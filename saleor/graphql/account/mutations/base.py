@@ -213,7 +213,7 @@ class PasswordChange(BaseMutation):
                 {
                     "old_password": ValidationError(
                         "Old password isn't valid.",
-                        code=AccountErrorCode.INVALID_PASSWORD,
+                        code=AccountErrorCode.INVALID_CREDENTIALS,
                     )
                 }
             )

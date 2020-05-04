@@ -213,7 +213,11 @@ def fulfillment_canceled_event(
 
 
 def fulfillment_restocked_items_event(
-    *, order: Order, user: UserType, fulfillment: Union[Order, Fulfillment]
+    *,
+    order: Order,
+    user: UserType,
+    fulfillment: Union[Order, Fulfillment],
+    warehouse_pk: Optional[int] = None,
 ) -> OrderEvent:
     if not _user_is_valid(user):
         user = None
@@ -221,7 +225,10 @@ def fulfillment_restocked_items_event(
         order=order,
         type=OrderEvents.FULFILLMENT_RESTOCKED_ITEMS,
         user=user,
-        parameters={"quantity": fulfillment.get_total_quantity()},
+        parameters={
+            "quantity": fulfillment.get_total_quantity(),
+            "warehouse": warehouse_pk,
+        },
     )
 
 

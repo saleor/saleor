@@ -6,7 +6,8 @@ from ..core.utils.json_serializer import CustomJsonEncoder
 
 
 class PluginConfiguration(models.Model):
-    name = models.CharField(max_length=128, unique=True)
+    identifier = models.CharField(max_length=128, unique=True)
+    name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
     active = models.BooleanField(default=True)
     configuration = JSONField(

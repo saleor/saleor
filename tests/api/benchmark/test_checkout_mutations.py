@@ -108,6 +108,7 @@ FRAGMENT_CHECKOUT = (
     + """
         fragment Checkout on Checkout {
           availablePaymentGateways {
+            id
             name
             config {
               field
@@ -485,7 +486,8 @@ def test_checkout_payment_charge(
         "checkoutId": Node.to_global_id("Checkout", checkout_with_billing_address.pk),
         "input": {
             "amount": calculations.checkout_total(
-                checkout=checkout_with_billing_address
+                checkout=checkout_with_billing_address,
+                lines=list(checkout_with_billing_address),
             ).gross.amount,
             "gateway": "Dummy",
             "token": "charged",

@@ -74,7 +74,7 @@ class ShippingZoneMixin:
                 {
                     "removeWarehouses": ValidationError(
                         error_msg,
-                        code=ShippingErrorCode.CANNOT_ADD_AND_REMOVE.value,
+                        code=ShippingErrorCode.DUPLICATED_INPUT_ITEM.value,
                         params={"warehouses": list(duplicates_ids)},
                     )
                 }
@@ -97,20 +97,6 @@ class ShippingZoneMixin:
         else:
             cleaned_input["default"] = False
         return cleaned_input
-
-    @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        typed_errors = [
-            cls._meta.error_type_class(  # type: ignore
-                field=e.field,
-                message=e.message,
-                code=code,
-                warehouses=params.get("warehouses") if params else None,
-            )
-            for e, code, params in errors
-        ]
-        extra.update({cls._meta.error_type_field: typed_errors})  # type: ignore
-        return cls(errors=[e[0] for e in errors], **extra)  # type: ignore
 
     @classmethod
     @transaction.atomic
@@ -221,6 +207,27 @@ class ShippingPriceMixin:
             else:
                 min_weight = cleaned_input.get("minimum_order_weight")
                 max_weight = cleaned_input.get("maximum_order_weight")
+
+                if min_weight and min_weight.value < 0:
+                    raise ValidationError(
+                        {
+                            "minimum_order_weight": ValidationError(
+                                "Shipping can't have negative weight.",
+                                code=ShippingErrorCode.INVALID,
+                            )
+                        }
+                    )
+
+                if max_weight and max_weight.value < 0:
+                    raise ValidationError(
+                        {
+                            "maximum_order_weight": ValidationError(
+                                "Shipping can't have negative weight.",
+                                code=ShippingErrorCode.INVALID,
+                            )
+                        }
+                    )
+
                 if (
                     min_weight is not None
                     and max_weight is not None

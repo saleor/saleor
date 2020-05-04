@@ -16,7 +16,9 @@ if TYPE_CHECKING:
     from .models import Checkout, CheckoutLine
 
 
-def base_checkout_shipping_price(checkout: "Checkout") -> TaxedMoney:
+def base_checkout_shipping_price(
+    checkout: "Checkout", lines: Iterable["CheckoutLine"]
+) -> TaxedMoney:
     """Return checkout shipping price."""
     if not checkout.shipping_method or not checkout.is_shipping_required():
         return zero_taxed_money(checkout.currency)

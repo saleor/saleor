@@ -89,11 +89,9 @@ def test_prepare_products_data(product, product_with_image, collection, image):
             for stock in variant.stocks.all():
                 slug = stock.warehouse.slug
                 warehouse_headers = [
-                    f"{slug} (warehouse quantity allocated)",
                     f"{slug} (warehouse quantity)",
                 ]
-                variant_data[warehouse_headers[0]] = stock.quantity_allocated
-                variant_data[warehouse_headers[1]] = stock.quantity
+                variant_data[warehouse_headers[0]] = stock.quantity
                 expected_headers.update(warehouse_headers)
 
             assigned_attribute = variant.attributes.first()
@@ -155,11 +153,9 @@ def test_prepare_variants_data(product):
     for stock in variant.stocks.all():
         slug = stock.warehouse.slug
         headers = [
-            f"{slug} (warehouse quantity allocated)",
             f"{slug} (warehouse quantity)",
         ]
-        expected_result[headers[0]] = stock.quantity_allocated
-        expected_result[headers[1]] = stock.quantity
+        expected_result[headers[0]] = stock.quantity
         warehouse_headers.update(headers)
 
     result_data, res_attribute_headers, res_warehouse_headers = prepare_variants_data(
@@ -287,10 +283,8 @@ def test_add_warehouse_info_to_data(product):
 
     expected_headers = [
         f"{slug} (warehouse quantity)",
-        f"{slug} (warehouse quantity allocated)",
     ]
     assert result[pk][expected_headers[0]] == 12
-    assert result[pk][expected_headers[1]] == 10
     assert headers == set(expected_headers)
 
 

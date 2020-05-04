@@ -12,7 +12,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
-from django.db.models import Q
+from django.db.models import F, Q
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
@@ -36,7 +36,6 @@ from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...discount.utils import fetch_discounts
-from ...plugins.manager import get_plugins_manager
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
 from ...menu.utils import update_menu
@@ -45,6 +44,7 @@ from ...order.utils import update_order_status
 from ...page.models import Page
 from ...payment import gateway
 from ...payment.utils import create_payment
+from ...plugins.manager import get_plugins_manager
 from ...product.models import (
     AssignedProductAttribute,
     AssignedVariantAttribute,
@@ -137,7 +137,7 @@ COLLECTION_IMAGES = {1: "summer.jpg", 2: "clothing.jpg"}
 def get_weight(weight):
     if not weight:
         return zero_weight()
-    value, unit = weight.split()
+    value, unit = weight.split(":")
     return Weight(**{unit: value})
 
 
@@ -245,9 +245,8 @@ def create_product_variants(variants_data):
         set_field_as_money(defaults, "price_override")
         set_field_as_money(defaults, "cost_price")
         quantity = defaults.pop("quantity")
-        quantity_allocated = defaults.pop("quantity_allocated")
         variant, _ = ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
-        create_stocks(variant, quantity=quantity, quantity_allocated=quantity_allocated)
+        create_stocks(variant, quantity=quantity)
 
 
 def assign_attributes_to_product_types(
@@ -423,7 +422,7 @@ def create_fake_user(save=True):
 @patch("saleor.order.emails.send_payment_confirmation.delay")
 def create_fake_payment(mock_email_confirmation, order):
     payment = create_payment(
-        gateway="Dummy",
+        gateway="mirumee.payments.dummy",
         customer_ip_address=fake.ipv4(),
         email=order.user_email,
         order=order,
@@ -457,15 +456,10 @@ def create_order_lines(order, discounts, how_many=10):
     )
     variants_iter = itertools.cycle(variants)
     lines = []
-    stocks = []
-    country = order.shipping_address.country
     for dummy in range(how_many):
         variant = next(variants_iter)
         product = variant.product
         quantity = random.randrange(1, 5)
-        stocks.append(
-            increase_stock(variant, country, quantity, allocate=True, commit=False)
-        )
         unit_price = variant.get_price(discounts)
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         lines.append(
@@ -481,13 +475,19 @@ def create_order_lines(order, discounts, how_many=10):
                 tax_rate=0,
             )
         )
-    Stock.objects.bulk_update(stocks, ["quantity", "quantity_allocated"])
     lines = OrderLine.objects.bulk_create(lines)
     manager = get_plugins_manager()
+    country = order.shipping_method.shipping_zone.countries[0]
+    warehouses = Warehouse.objects.filter(
+        shipping_zones__countries__contains=country
+    ).order_by("?")
+    warehouse_iter = itertools.cycle(warehouses)
     for line in lines:
         unit_price = manager.calculate_order_line_unit(line)
         line.unit_price = unit_price
         line.tax_rate = unit_price.tax / unit_price.net
+        warehouse = next(warehouse_iter)
+        increase_stock(line, warehouse, line.quantity, allocate=True)
     OrderLine.objects.bulk_update(
         lines,
         ["unit_price_net_amount", "unit_price_gross_amount", "currency", "tax_rate"],
@@ -500,9 +500,15 @@ def create_fulfillments(order):
         if random.choice([False, True]):
             fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
             quantity = random.randrange(0, line.quantity) + 1
-            fulfillment.lines.create(order_line=line, quantity=quantity)
+            allocation = line.allocations.get()
+            fulfillment.lines.create(
+                order_line=line, quantity=quantity, stock=allocation.stock
+            )
             line.quantity_fulfilled = quantity
             line.save(update_fields=["quantity_fulfilled"])
+
+            allocation.quantity_allocated = F("quantity_allocated") - quantity
+            allocation.save(update_fields=["quantity_allocated"])
 
     update_order_status(order)
 
@@ -531,7 +537,11 @@ def create_fake_order(discounts, max_order_lines=5):
     shipping_price = shipping_method.price
     shipping_price = manager.apply_taxes_to_shipping(shipping_price, address)
     order_data.update(
-        {"shipping_method_name": shipping_method.name, "shipping_price": shipping_price}
+        {
+            "shipping_method": shipping_method,
+            "shipping_method_name": shipping_method.name,
+            "shipping_price": shipping_price,
+        }
     )
 
     order = Order.objects.create(**order_data)

@@ -56,7 +56,7 @@ def validate_attribute_input_for_variant(instance: "Attribute", values: List[str
         )
 
 
-def get_used_attibute_values_for_variant(variant):
+def get_used_attribute_values_for_variant(variant):
     """Create a dict of attributes values for variant.
 
     Sample result is:
@@ -97,7 +97,7 @@ def get_used_variants_attribute_values(product):
     )
     used_attribute_values = []
     for variant in variants:
-        attribute_values = get_used_attibute_values_for_variant(variant)
+        attribute_values = get_used_attribute_values_for_variant(variant)
         used_attribute_values.append(attribute_values)
     return used_attribute_values
 

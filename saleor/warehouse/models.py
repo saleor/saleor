@@ -3,10 +3,11 @@ import uuid
 from typing import Set
 
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Sum
+from django.db.models.functions import Coalesce
 
 from ..account.models import Address
-from ..core.exceptions import InsufficientStock
+from ..order.models import OrderLine
 from ..product.models import ProductVariant
 from ..shipping.models import ShippingZone
 
@@ -16,7 +17,11 @@ class WarehouseQueryset(models.QuerySet):
         return self.select_related("address").prefetch_related("shipping_zones")
 
     def for_country(self, country: str):
-        return self.prefetch_data().get(shipping_zones__countries__contains=country)
+        return (
+            self.prefetch_data()
+            .filter(shipping_zones__countries__contains=country)
+            .order_by("pk")
+        )
 
 
 class Warehouse(models.Model):
@@ -53,7 +58,10 @@ class Warehouse(models.Model):
 
 class StockQuerySet(models.QuerySet):
     def annotate_available_quantity(self):
-        return self.annotate(available_quantity=F("quantity") - F("quantity_allocated"))
+        return self.annotate(
+            available_quantity=F("quantity")
+            - Coalesce(Sum("allocations__quantity_allocated"), 0)
+        )
 
     def for_country(self, country_code: str):
         query_warehouse = models.Subquery(
@@ -65,73 +73,61 @@ class StockQuerySet(models.QuerySet):
             warehouse__in=query_warehouse
         )
 
-    def get_variant_stock_for_country(
+    def get_variant_stocks_for_country(
         self, country_code: str, product_variant: ProductVariant
     ):
         """Return the stock information about the a stock for a given country.
 
         Note it will raise a 'Stock.DoesNotExist' exception if no such stock is found.
         """
-        return self.for_country(country_code).get(product_variant=product_variant)
-
-    def get_or_create_for_country(
-        self, country_code: str, product_variant: ProductVariant
-    ):
-        try:
-            return self.get_variant_stock_for_country(country_code, product_variant)
-        except Stock.DoesNotExist:
-            warehouse = Warehouse.objects.for_country(country_code)
-            return self.create(product_variant=product_variant, warehouse=warehouse)
+        return self.for_country(country_code).filter(product_variant=product_variant)
 
 
 class Stock(models.Model):
-    warehouse = models.ForeignKey(Warehouse, null=False, on_delete=models.PROTECT)
+    warehouse = models.ForeignKey(Warehouse, null=False, on_delete=models.CASCADE)
     product_variant = models.ForeignKey(
         ProductVariant, null=False, on_delete=models.CASCADE, related_name="stocks"
     )
     quantity = models.PositiveIntegerField(default=0)
-    quantity_allocated = models.PositiveIntegerField(default=0)
 
     objects = StockQuerySet.as_manager()
 
     class Meta:
         unique_together = [["warehouse", "product_variant"]]
+        ordering = ("pk",)
 
     def __str__(self):
         return f"{self.product_variant} - {self.warehouse.name}"
 
-    @property
-    def quantity_available(self) -> int:
-        return max(self.quantity - self.quantity_allocated, 0)
-
-    def check_quantity(self, quantity: int):
-        if quantity > self.quantity_available:
-            raise InsufficientStock(self)
-
-    def allocate_stock(self, quantity: int, commit: bool = True):
-        self.quantity_allocated = F("quantity_allocated") + quantity
-        if commit:
-            self.save(update_fields=["quantity_allocated"])
-
-    def deallocate_stock(self, quantity: int, commit: bool = True):
-        self.quantity_allocated = F("quantity_allocated") - quantity
-        if commit:
-            self.save(update_fields=["quantity_allocated"])
-
-    def increase_stock(
-        self, quantity: int, allocate: bool = False, commit: bool = True
-    ):
+    def increase_stock(self, quantity: int, commit: bool = True):
         """Return given quantity of product to a stock."""
         self.quantity = F("quantity") + quantity
-        update_fields = ["quantity"]
-        if allocate:
-            self.quantity_allocated = F("quantity_allocated") + quantity
-            update_fields.append("quantity_allocated")
         if commit:
-            self.save(update_fields=update_fields)
+            self.save(update_fields=["quantity"])
 
     def decrease_stock(self, quantity: int, commit: bool = True):
         self.quantity = F("quantity") - quantity
-        self.quantity_allocated = F("quantity_allocated") - quantity
         if commit:
-            self.save(update_fields=["quantity", "quantity_allocated"])
+            self.save(update_fields=["quantity"])
+
+
+class Allocation(models.Model):
+    order_line = models.ForeignKey(
+        OrderLine,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="allocations",
+    )
+    stock = models.ForeignKey(
+        Stock,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="allocations",
+    )
+    quantity_allocated = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = [["order_line", "stock"]]
+        ordering = ("pk",)

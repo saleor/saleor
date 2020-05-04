@@ -7,14 +7,14 @@ from ..core.emails import get_email_context
 from ..core.utils import build_absolute_uri
 
 if TYPE_CHECKING:
-    from .models import Job
+    from .models import ExportFile
 
 
 EXPORT_TEMPLATES = {"export_products": "csv/export_products_csv"}
 
 
 @app.task
-def send_email_with_link_to_download_csv(job: "Job", template_name: str):
+def send_email_with_link_to_download_csv(job: "ExportFile", template_name: str):
     recipient_email = job.created_by.email
     send_kwargs, ctx = get_email_context()
     ctx["csv_link"] = build_absolute_uri(job.content_file.url)

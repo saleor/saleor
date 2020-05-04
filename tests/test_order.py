@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from prices import Money, TaxedMoney
 
-from saleor.core.exceptions import InsufficientStock
 from saleor.core.weight import zero_weight
 from saleor.discount.models import (
     DiscountValueType,
@@ -19,7 +18,7 @@ from saleor.order.events import OrderEvent, OrderEventsEmails, email_sent_event
 from saleor.order.models import Order
 from saleor.order.templatetags.order_lines import display_translated_order_line_name
 from saleor.order.utils import (
-    add_variant_to_order,
+    add_variant_to_draft_order,
     change_order_line_quantity,
     delete_order_line,
     get_voucher_discount_for_order,
@@ -33,6 +32,8 @@ from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
 from saleor.product.models import Collection
 from saleor.warehouse.models import Stock
+
+from .utils import get_quantity_allocated_for_stock
 
 
 def test_total_setter():
@@ -56,14 +57,14 @@ def test_order_get_subtotal(order_with_lines):
     assert order_with_lines.get_subtotal() == target_subtotal
 
 
-def test_add_variant_to_order_adds_line_for_new_variant(
+def test_add_variant_to_draft_order_adds_line_for_new_variant(
     order_with_lines, product, product_translation_fr, settings
 ):
     order = order_with_lines
     variant = product.variants.get()
     lines_before = order.lines.count()
     settings.LANGUAGE_CODE = "fr"
-    add_variant_to_order(order, variant, 1)
+    add_variant_to_draft_order(order, variant, 1)
 
     line = order.lines.last()
     assert order.lines.count() == lines_before + 1
@@ -75,33 +76,27 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     assert line.product_name == str(variant.product)
 
 
-@pytest.mark.parametrize("track_inventory", (True, False))
-def test_add_variant_to_order_allocates_stock_for_new_variant(
-    order_with_lines, product, track_inventory
+def test_add_variant_to_draft_order_not_allocates_stock_for_new_variant(
+    order_with_lines, product
 ):
     variant = product.variants.get()
-    variant.track_inventory = track_inventory
-    variant.save()
     stock = Stock.objects.get(product_variant=variant)
 
-    stock_before = stock.quantity_allocated
+    stock_before = get_quantity_allocated_for_stock(stock)
 
-    add_variant_to_order(order_with_lines, variant, 1)
+    add_variant_to_draft_order(order_with_lines, variant, 1)
 
     stock.refresh_from_db()
-    if track_inventory:
-        assert stock.quantity_allocated == stock_before + 1
-    else:
-        assert stock.quantity_allocated == stock_before
+    assert get_quantity_allocated_for_stock(stock) == stock_before
 
 
-def test_add_variant_to_order_edits_line_for_existing_variant(order_with_lines):
+def test_add_variant_to_draft_order_edits_line_for_existing_variant(order_with_lines):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
     lines_before = order_with_lines.lines.count()
     line_quantity_before = existing_line.quantity
 
-    add_variant_to_order(order_with_lines, variant, 1)
+    add_variant_to_draft_order(order_with_lines, variant, 1)
 
     existing_line.refresh_from_db()
     assert order_with_lines.lines.count() == lines_before
@@ -109,33 +104,23 @@ def test_add_variant_to_order_edits_line_for_existing_variant(order_with_lines):
     assert existing_line.quantity == line_quantity_before + 1
 
 
-def test_add_variant_to_order_allocates_stock_for_existing_variant(order_with_lines):
+def test_add_variant_to_draft_order_not_allocates_stock_for_existing_variant(
+    order_with_lines,
+):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
     stock = Stock.objects.get(product_variant=variant)
-    stock_before = stock.quantity_allocated
+    stock_before = get_quantity_allocated_for_stock(stock)
+    quantity_before = existing_line.quantity
+    quantity_unfulfilled_before = existing_line.quantity_unfulfilled
 
-    add_variant_to_order(order_with_lines, variant, 1)
+    add_variant_to_draft_order(order_with_lines, variant, 1)
 
     stock.refresh_from_db()
-    assert stock.quantity_allocated == stock_before + 1
-
-
-def test_add_variant_to_order_allow_overselling(order_with_lines):
-    existing_line = order_with_lines.lines.first()
-    variant = existing_line.variant
-    stock = Stock.objects.get(product_variant=variant)
-    stock_before = stock.quantity_allocated
-
-    quantity = stock.quantity + 1
-    with pytest.raises(InsufficientStock):
-        add_variant_to_order(
-            order_with_lines, variant, quantity, allow_overselling=False
-        )
-
-    add_variant_to_order(order_with_lines, variant, quantity, allow_overselling=True)
-    stock.refresh_from_db()
-    assert stock.quantity_allocated == stock_before + quantity
+    existing_line.refresh_from_db()
+    assert get_quantity_allocated_for_stock(stock) == stock_before
+    assert existing_line.quantity == quantity_before + 1
+    assert existing_line.quantity_unfulfilled == quantity_unfulfilled_before + 1
 
 
 @pytest.mark.parametrize("track_inventory", (True, False))
@@ -153,8 +138,8 @@ def test_restock_order_lines(order_with_lines, track_inventory):
     stock_1 = Stock.objects.get(product_variant=line_1.variant)
     stock_2 = Stock.objects.get(product_variant=line_2.variant)
 
-    stock_1_quantity_allocated_before = stock_1.quantity_allocated
-    stock_2_quantity_allocated_before = stock_2.quantity_allocated
+    stock_1_quantity_allocated_before = get_quantity_allocated_for_stock(stock_1)
+    stock_2_quantity_allocated_before = get_quantity_allocated_for_stock(stock_2)
 
     stock_1_quantity_before = stock_1.quantity
     stock_2_quantity_before = stock_2.quantity
@@ -165,15 +150,19 @@ def test_restock_order_lines(order_with_lines, track_inventory):
     stock_2.refresh_from_db()
 
     if track_inventory:
-        assert stock_1.quantity_allocated == (
+        assert get_quantity_allocated_for_stock(stock_1) == (
             stock_1_quantity_allocated_before - line_1.quantity
         )
-        assert stock_2.quantity_allocated == (
+        assert get_quantity_allocated_for_stock(stock_2) == (
             stock_2_quantity_allocated_before - line_2.quantity
         )
     else:
-        assert stock_1.quantity_allocated == (stock_1_quantity_allocated_before)
-        assert stock_2.quantity_allocated == (stock_2_quantity_allocated_before)
+        assert get_quantity_allocated_for_stock(stock_1) == (
+            stock_1_quantity_allocated_before
+        )
+        assert get_quantity_allocated_for_stock(stock_2) == (
+            stock_2_quantity_allocated_before
+        )
 
     assert stock_1.quantity == stock_1_quantity_before
     assert stock_2.quantity == stock_2_quantity_before
@@ -186,8 +175,8 @@ def test_restock_fulfilled_order_lines(fulfilled_order):
     line_2 = fulfilled_order.lines.last()
     stock_1 = Stock.objects.get(product_variant=line_1.variant)
     stock_2 = Stock.objects.get(product_variant=line_2.variant)
-    stock_1_quantity_allocated_before = stock_1.quantity_allocated
-    stock_2_quantity_allocated_before = stock_2.quantity_allocated
+    stock_1_quantity_allocated_before = get_quantity_allocated_for_stock(stock_1)
+    stock_2_quantity_allocated_before = get_quantity_allocated_for_stock(stock_2)
     stock_1_quantity_before = stock_1.quantity
     stock_2_quantity_before = stock_2.quantity
 
@@ -195,35 +184,53 @@ def test_restock_fulfilled_order_lines(fulfilled_order):
 
     stock_1.refresh_from_db()
     stock_2.refresh_from_db()
-    assert stock_1.quantity_allocated == stock_1_quantity_allocated_before
-    assert stock_2.quantity_allocated == stock_2_quantity_allocated_before
+    assert (
+        get_quantity_allocated_for_stock(stock_1) == stock_1_quantity_allocated_before
+    )
+    assert (
+        get_quantity_allocated_for_stock(stock_2) == stock_2_quantity_allocated_before
+    )
     assert stock_1.quantity == stock_1_quantity_before + line_1.quantity
     assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
 
 
-def test_restock_fulfillment_lines(fulfilled_order):
+def test_restock_fulfillment_lines(fulfilled_order, warehouse):
     fulfillment = fulfilled_order.fulfillments.first()
     line_1 = fulfillment.lines.first()
     line_2 = fulfillment.lines.last()
     stock_1 = Stock.objects.get(product_variant=line_1.order_line.variant)
     stock_2 = Stock.objects.get(product_variant=line_2.order_line.variant)
-    stock_1_quantity_allocated_before = stock_1.quantity_allocated
-    stock_2_quantity_allocated_before = stock_2.quantity_allocated
+    stock_1_quantity_allocated_before = get_quantity_allocated_for_stock(stock_1)
+    stock_2_quantity_allocated_before = get_quantity_allocated_for_stock(stock_2)
     stock_1_quantity_before = stock_1.quantity
     stock_2_quantity_before = stock_2.quantity
+    order_line_1 = line_1.order_line
+    order_line_2 = line_2.order_line
+    order_line_1_quantity_fulfilled_before = order_line_1.quantity_fulfilled
+    order_line_2_quantity_fulfilled_before = order_line_2.quantity_fulfilled
 
-    restock_fulfillment_lines(fulfillment)
+    restock_fulfillment_lines(fulfillment, warehouse)
 
     stock_1.refresh_from_db()
     stock_2.refresh_from_db()
-    assert stock_1.quantity_allocated == (
+    assert get_quantity_allocated_for_stock(stock_1) == (
         stock_1_quantity_allocated_before + line_1.quantity
     )
-    assert stock_2.quantity_allocated == (
+    assert get_quantity_allocated_for_stock(stock_2) == (
         stock_2_quantity_allocated_before + line_2.quantity
     )
     assert stock_1.quantity == stock_1_quantity_before + line_1.quantity
     assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
+    order_line_1.refresh_from_db()
+    order_line_2.refresh_from_db()
+    assert (
+        order_line_1.quantity_fulfilled
+        == order_line_1_quantity_fulfilled_before - line_1.quantity
+    )
+    assert (
+        order_line_2.quantity_fulfilled
+        == order_line_2_quantity_fulfilled_before - line_2.quantity
+    )
 
 
 def test_update_order_status(fulfilled_order):
@@ -285,7 +292,7 @@ def test_order_queryset_to_ship(settings):
     ]
     for order in orders_to_ship:
         order.payments.create(
-            gateway="Dummy",
+            gateway="mirumee.payments.dummy",
             charge_status=ChargeStatus.FULLY_CHARGED,
             total=order.total.gross.amount,
             captured_amount=order.total.gross.amount,
@@ -365,7 +372,7 @@ def test_calculate_order_weight(order_with_lines):
 
 def test_order_weight_add_more_variant(order_with_lines):
     variant = order_with_lines.lines.first().variant
-    add_variant_to_order(order_with_lines, variant, 2)
+    add_variant_to_draft_order(order_with_lines, variant, 2)
     order_with_lines.refresh_from_db()
     assert order_with_lines.weight == _calculate_order_weight_from_lines(
         order_with_lines
@@ -374,7 +381,7 @@ def test_order_weight_add_more_variant(order_with_lines):
 
 def test_order_weight_add_new_variant(order_with_lines, product):
     variant = product.variants.first()
-    add_variant_to_order(order_with_lines, variant, 2)
+    add_variant_to_draft_order(order_with_lines, variant, 2)
     order_with_lines.refresh_from_db()
     assert order_with_lines.weight == _calculate_order_weight_from_lines(
         order_with_lines
@@ -403,7 +410,7 @@ def test_get_order_weight_non_existing_product(order_with_lines, product):
     # Removing product should not affect order's weight
     order = order_with_lines
     variant = product.variants.first()
-    add_variant_to_order(order, variant, 1)
+    add_variant_to_draft_order(order, variant, 1)
     old_weight = order.get_total_weight()
 
     product.delete()

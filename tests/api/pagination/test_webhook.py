@@ -1,6 +1,6 @@
 import pytest
 
-from saleor.account.models import ServiceAccount
+from saleor.app.models import App
 from saleor.webhook.models import Webhook
 
 from ..utils import get_graphql_content
@@ -8,41 +8,36 @@ from ..utils import get_graphql_content
 
 @pytest.fixture
 def webhooks_for_pagination(db):
-    service_accounts = ServiceAccount.objects.bulk_create(
-        [
-            ServiceAccount(name="ServiceAccount1", is_active=True),
-            ServiceAccount(name="ServiceAccount2", is_active=True),
-        ]
+    apps = App.objects.bulk_create(
+        [App(name="App1", is_active=True), App(name="App2", is_active=True)]
     )
 
     return Webhook.objects.bulk_create(
         [
             Webhook(
                 name="Webhook1",
-                service_account=service_accounts[1],
+                app=apps[1],
                 target_url="http://www.example.com/test4",
                 is_active=False,
             ),
             Webhook(
                 name="WebhookWebhook1",
-                service_account=service_accounts[0],
+                app=apps[0],
                 target_url="http://www.example.com/test2",
             ),
             Webhook(
                 name="WebhookWebhook2",
-                service_account=service_accounts[1],
+                app=apps[1],
                 target_url="http://www.example.com/test1",
             ),
             Webhook(
                 name="Webhook2",
-                service_account=service_accounts[1],
+                app=apps[1],
                 target_url="http://www.example.com/test3",
                 is_active=False,
             ),
             Webhook(
-                name="Webhook3",
-                service_account=service_accounts[0],
-                target_url="http://www.example.com/test",
+                name="Webhook3", app=apps[0], target_url="http://www.example.com/test",
             ),
         ]
     )
@@ -82,8 +77,12 @@ QUERY_WEBHOOKS_PAGINATION = """
             ["WebhookWebhook2", "WebhookWebhook1", "Webhook3"],
         ),
         (
+            {"field": "APP", "direction": "ASC"},
+            ["Webhook3", "WebhookWebhook1", "Webhook1"],
+        ),
+        (
             {"field": "SERVICE_ACCOUNT", "direction": "ASC"},
-            ["Webhook3", "WebhookWebhook1", "Webhook2"],
+            ["Webhook3", "WebhookWebhook1", "Webhook1"],
         ),
         (
             {"field": "TARGET_URL", "direction": "ASC"},

@@ -1,27 +1,46 @@
-from typing import List
+from collections import defaultdict
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 import graphene
 from django.contrib.auth import models as auth_models
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
-from ....account import models as account_models
-from ....account.error_codes import AccountErrorCode
+from ....account.error_codes import PermissionGroupErrorCode
 from ....core.permissions import AccountPermissions, get_permissions
-from ...account.types import User
+from ...account.utils import (
+    can_user_manage_group,
+    get_not_manageable_permissions_after_group_deleting,
+    get_not_manageable_permissions_after_removing_perms_from_group,
+    get_not_manageable_permissions_after_removing_users_from_group,
+    get_out_of_scope_permissions,
+    get_out_of_scope_users,
+)
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
-from ...core.types.common import AccountError
-from ...core.utils import from_global_id_strict_type
+from ...core.types.common import PermissionGroupError
+from ...core.utils import get_duplicates_ids
 from ..types import Group
 
+if TYPE_CHECKING:
+    from ....account.models import User
 
-class PermissionGroupCreateInput(graphene.InputObjectType):
-    name = graphene.String(description="Group name.", required=True)
-    permissions = graphene.List(
+
+class PermissionGroupInput(graphene.InputObjectType):
+    add_permissions = graphene.List(
         graphene.NonNull(PermissionEnum),
         description="List of permission code names to assign to this group.",
         required=False,
     )
+    add_users = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of users to assign to this group.",
+        required=False,
+    )
+
+
+class PermissionGroupCreateInput(PermissionGroupInput):
+    name = graphene.String(description="Group name.", required=True)
 
 
 class PermissionGroupCreate(ModelMutation):
@@ -36,23 +55,127 @@ class PermissionGroupCreate(ModelMutation):
         description = "Create new permission group."
         model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        error_type_class = PermissionGroupError
+        error_type_field = "permission_group_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    @transaction.atomic
+    def _save_m2m(cls, info, instance, cleaned_data):
+        add_permissions = cleaned_data.get("add_permissions")
+        if add_permissions:
+            instance.permissions.add(*add_permissions)
+
+        users = cleaned_data.get("add_users")
+        if users:
+            instance.user_set.add(*users)
+
+    @classmethod
+    def clean_input(
+        cls, info, instance, data,
+    ):
         cleaned_input = super().clean_input(info, instance, data)
-        # clean and prepare permissions
-        if "permissions" in cleaned_input:
-            cleaned_input["permissions"] = get_permissions(cleaned_input["permissions"])
+
+        requestor = info.context.user
+        errors = defaultdict(list)
+        cls.clean_permissions(requestor, instance, errors, cleaned_input)
+        cls.clean_users(requestor, errors, cleaned_input, instance)
+
+        if errors:
+            raise ValidationError(errors)
+
         return cleaned_input
 
+    @classmethod
+    def clean_permissions(
+        cls,
+        requestor: "User",
+        group: auth_models.Group,
+        errors: Dict[Optional[str], List[ValidationError]],
+        cleaned_input: dict,
+    ):
+        field = "add_permissions"
+        permission_items = cleaned_input.get(field)
+        if permission_items:
+            cleaned_input[field] = get_permissions(permission_items)
+            if not requestor.is_superuser:
+                cls.ensure_can_manage_permissions(
+                    requestor, errors, field, permission_items
+                )
 
-class PermissionGroupInput(graphene.InputObjectType):
+    @classmethod
+    def ensure_can_manage_permissions(
+        cls,
+        requestor: "User",
+        errors: Dict[Optional[str], List[ValidationError]],
+        field: str,
+        permission_items: List[str],
+    ):
+        """Check if requestor can manage permissions from input.
+
+        Requestor cannot manage permissions witch he doesn't have.
+        """
+        missing_permissions = get_out_of_scope_permissions(requestor, permission_items)
+        if missing_permissions:
+            # add error
+            error_msg = "You can't add permission that you don't have."
+            code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
+            params = {"permissions": missing_permissions}
+            cls.update_errors(errors, error_msg, field, code, params)
+
+    @classmethod
+    def clean_users(
+        cls,
+        requestor: "User",
+        errors: dict,
+        cleaned_input: dict,
+        group: auth_models.Group,
+    ):
+        user_items = cleaned_input.get("add_users")
+        if user_items:
+            cls.ensure_users_are_staff(errors, "add_users", cleaned_input)
+
+    @classmethod
+    def ensure_users_are_staff(
+        cls,
+        errors: Dict[Optional[str], List[ValidationError]],
+        field: str,
+        cleaned_input: dict,
+    ):
+        """Ensure all of the users are staff members, raise error if not."""
+        users = cleaned_input[field]
+        non_staff_users = [user.pk for user in users if not user.is_staff]
+        if non_staff_users:
+            # add error
+            ids = [graphene.Node.to_global_id("User", pk) for pk in non_staff_users]
+            error_msg = "User must be staff member."
+            code = PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.value
+            params = {"users": ids}
+            cls.update_errors(errors, error_msg, field, code, params)
+
+    @classmethod
+    def update_errors(
+        cls,
+        errors: Dict[Optional[str], List[ValidationError]],
+        msg: str,
+        field: Optional[str],
+        code: str,
+        params: dict,
+    ):
+        """Create ValidationError and add it to error list."""
+        error = ValidationError(message=msg, code=code, params=params)
+        errors[field].append(error)
+
+
+class PermissionGroupUpdateInput(PermissionGroupInput):
     name = graphene.String(description="Group name.", required=False)
-    permissions = graphene.List(
+    remove_permissions = graphene.List(
         graphene.NonNull(PermissionEnum),
-        description="List of permission code names to assign to this group.",
+        description="List of permission code names to unassign from this group.",
+        required=False,
+    )
+    remove_users = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of users to unassign from this group.",
         required=False,
     )
 
@@ -62,7 +185,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
     class Arguments:
         id = graphene.ID(description="ID of the group to update.", required=True)
-        input = PermissionGroupInput(
+        input = PermissionGroupUpdateInput(
             description="Input fields to create permission group.", required=True
         )
 
@@ -70,8 +193,216 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         description = "Update permission group."
         model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        error_type_class = PermissionGroupError
+        error_type_field = "permission_group_errors"
+
+    @classmethod
+    @transaction.atomic
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+        remove_users = cleaned_data.get("remove_users")
+        if remove_users:
+            instance.user_set.remove(*remove_users)
+        remove_permissions = cleaned_data.get("remove_permissions")
+        if remove_permissions:
+            instance.permissions.remove(*remove_permissions)
+
+    @classmethod
+    def clean_input(
+        cls, info, instance, data,
+    ):
+        requestor = info.context.user
+        cls.ensure_requestor_can_manage_group(requestor, instance)
+
+        errors = defaultdict(list)
+        permission_fields = ("add_permissions", "remove_permissions", "permissions")
+        user_fields = ("add_users", "remove_users", "users")
+
+        cls.check_for_duplicates(errors, data, permission_fields)
+        cls.check_for_duplicates(errors, data, user_fields)
+
+        if errors:
+            raise ValidationError(errors)
+
+        cleaned_input = super().clean_input(info, instance, data)
+
+        return cleaned_input
+
+    @classmethod
+    def ensure_requestor_can_manage_group(
+        cls, requestor: "User", group: auth_models.Group
+    ):
+        """Check if requestor can manage group.
+
+        Requestor cannot manage group with wider scope of permissions.
+        """
+        if not requestor.is_superuser and not can_user_manage_group(requestor, group):
+            error_msg = "You can't manage group with permissions out of your scope."
+            code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
+            raise ValidationError(error_msg, code)
+
+    @classmethod
+    def clean_permissions(
+        cls,
+        requestor: "User",
+        group: auth_models.Group,
+        errors: Dict[Optional[str], List[ValidationError]],
+        cleaned_input: dict,
+    ):
+        super().clean_permissions(requestor, group, errors, cleaned_input)
+        field = "remove_permissions"
+        permission_items = cleaned_input.get(field)
+        if permission_items:
+            cleaned_input[field] = get_permissions(permission_items)
+            if not requestor.is_superuser:
+                cls.ensure_can_manage_permissions(
+                    requestor, errors, field, permission_items
+                )
+                cls.ensure_permissions_can_be_removed(errors, group, permission_items)
+
+    @classmethod
+    def ensure_permissions_can_be_removed(
+        cls, errors: dict, group: auth_models.Group, permissions: List["str"],
+    ):
+        missing_perms = get_not_manageable_permissions_after_removing_perms_from_group(
+            group, permissions
+        )
+        if missing_perms:
+            # add error
+            permission_codes = [PermissionEnum.get(code) for code in permissions]
+            msg = (
+                "Permissions cannot be removed, "
+                "some of permissions will not be manageable."
+            )
+            code = PermissionGroupErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.value
+            params = {"permissions": permission_codes}
+            cls.update_errors(errors, msg, "remove_permissions", code, params)
+
+    @classmethod
+    def clean_users(
+        cls,
+        requestor: "User",
+        errors: dict,
+        cleaned_input: dict,
+        group: auth_models.Group,
+    ):
+        super().clean_users(requestor, errors, cleaned_input, group)
+        remove_users = cleaned_input.get("remove_users")
+        if remove_users:
+            cls.ensure_can_manage_users(
+                requestor, errors, "remove_users", cleaned_input
+            )
+            cls.clean_remove_users(requestor, errors, cleaned_input, group)
+
+    @classmethod
+    def ensure_can_manage_users(
+        cls,
+        requestor: "User",
+        errors: Dict[Optional[str], List[ValidationError]],
+        field: str,
+        cleaned_input: dict,
+    ):
+        """Check if requestor can manage users from input.
+
+        Requestor cannot manage users with wider scope of permissions.
+        """
+        if requestor.is_superuser:
+            return
+        users = cleaned_input[field]
+        out_of_scope_users = get_out_of_scope_users(requestor, users)
+        if out_of_scope_users:
+            # add error
+            ids = [
+                graphene.Node.to_global_id("User", user_instance.pk)
+                for user_instance in out_of_scope_users
+            ]
+            error_msg = "You can't manage these users."
+            code = PermissionGroupErrorCode.OUT_OF_SCOPE_USER.value
+            params = {"users": ids}
+            cls.update_errors(errors, error_msg, field, code, params)
+
+    @classmethod
+    def clean_remove_users(
+        cls,
+        requestor: "User",
+        errors: dict,
+        cleaned_input: dict,
+        group: auth_models.Group,
+    ):
+        cls.check_if_removing_user_last_group(requestor, errors, cleaned_input)
+        cls.check_if_users_can_be_removed(requestor, errors, cleaned_input, group)
+
+    @classmethod
+    def check_if_removing_user_last_group(
+        cls, requestor: "User", errors: dict, cleaned_input: dict
+    ):
+        """Ensure user doesn't remove user's last group."""
+        remove_users = cleaned_input["remove_users"]
+        if requestor in remove_users and requestor.groups.count() == 1:
+            # add error
+            error_msg = "You cannot remove yourself from your last group."
+            code = PermissionGroupErrorCode.CANNOT_REMOVE_FROM_LAST_GROUP.value
+            params = {"users": [graphene.Node.to_global_id("User", requestor.pk)]}
+            cls.update_errors(errors, error_msg, "remove_users", code, params)
+
+    @classmethod
+    def check_if_users_can_be_removed(
+        cls,
+        requestor: "User",
+        errors: dict,
+        cleaned_input: dict,
+        group: auth_models.Group,
+    ):
+        """Check if after removing users from group all permissions will be manageable.
+
+        After removing users from group, for each permission, there should be
+        at least one staff member who can manage it (has both “manage staff”
+        and this permission).
+        """
+        if requestor.is_superuser:
+            return
+
+        remove_users = cleaned_input["remove_users"]
+        add_users = cleaned_input.get("add_users")
+        manage_staff_permission = AccountPermissions.MANAGE_STAFF.value
+
+        # check if user with manage staff will be added to the group
+        if add_users:
+            if any([user.has_perm(manage_staff_permission) for user in add_users]):
+                return True
+
+        permissions = get_not_manageable_permissions_after_removing_users_from_group(
+            group, remove_users
+        )
+        if permissions:
+            # add error
+            permission_codes = [PermissionEnum.get(code) for code in permissions]
+            msg = "Users cannot be removed, some of permissions will not be manageable."
+            code = PermissionGroupErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.value
+            params = {"permissions": permission_codes}
+            cls.update_errors(errors, msg, "remove_users", code, params)
+
+    @classmethod
+    def check_for_duplicates(
+        cls, errors: dict, input_data: dict, fields: Tuple[str, str, str],
+    ):
+        """Check if any items are on both input field.
+
+        Raise error if some of items are duplicated.
+        """
+        add_field, remove_field, error_class_field = fields
+        duplicated_ids = get_duplicates_ids(
+            input_data.get(add_field), input_data.get(remove_field)
+        )
+        if duplicated_ids:
+            # add error
+            error_msg = (
+                "The same object cannot be in both list"
+                "for adding and removing items."
+            )
+            code = PermissionGroupErrorCode.DUPLICATED_INPUT_ITEM.value
+            params = {error_class_field: list(duplicated_ids)}
+            cls.update_errors(errors, error_msg, None, code, params)
 
 
 class PermissionGroupDelete(ModelDeleteMutation):
@@ -82,106 +413,47 @@ class PermissionGroupDelete(ModelDeleteMutation):
         description = "Delete permission group."
         model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-
-
-class PermissionGroupAssignUsers(ModelMutation):
-    group = graphene.Field(Group, description="Group to which users were assigned.")
-
-    class Arguments:
-        id = graphene.ID(
-            description="ID of the group to which users will be assigned.",
-            required=True,
-        )
-        users = graphene.List(
-            graphene.NonNull(graphene.ID),
-            description="List of users to assign to this group.",
-            required=True,
-        )
-
-    class Meta:
-        description = "Assign users to group."
-        model = auth_models.Group
-        permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        error_type_class = PermissionGroupError
+        error_type_field = "permission_group_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
-        group = cls.get_instance(info, **data)
-        user_pks = cls.prepare_user_pks(info, group, **data)
-        cls.check_if_users_are_staff(user_pks)
-        group.user_set.add(*user_pks)
-        return cls(group=group)
+    def clean_instance(cls, info, instance):
+        requestor = info.context.user
+        if requestor.is_superuser:
+            return
+        if not can_user_manage_group(requestor, instance):
+            error_msg = "You can't manage group with permissions out of your scope."
+            code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
+            raise ValidationError(error_msg, code)
+
+        cls.check_if_group_can_be_removed(requestor, instance)
 
     @classmethod
-    def prepare_user_pks(cls, info, group, **data):
-        cleaned_input = cls.clean_input(info, group, data, Group)
-        user_ids: List[str] = cleaned_input["users"]
-
-        user_pks = [
-            from_global_id_strict_type(user_id, only_type=User, field="id")
-            for user_id in user_ids
-        ]
-
-        return user_pks
+    def check_if_group_can_be_removed(cls, requestor, group):
+        cls.ensure_deleting_not_left_not_manageable_permissions(group)
+        cls.ensure_not_removing_requestor_last_group(group, requestor)
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data, input_cls=input_cls)
-        user_ids: List[str] = cleaned_input["users"]
-        if not user_ids:
+    def ensure_deleting_not_left_not_manageable_permissions(cls, group):
+        """Return true if management of all permissions is provided by other groups.
+
+        After removing group, for each permission, there should be at least one staff
+        member who can manage it (has both “manage staff” and this permission).
+        """
+        permissions = get_not_manageable_permissions_after_group_deleting(group)
+        if permissions:
+            permission_codes = [PermissionEnum.get(code) for code in permissions]
+            msg = "Group cannot be removed, some of permissions will not be manageable."
+            code = PermissionGroupErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.value
+            params = {"permissions": permission_codes}
             raise ValidationError(
-                {
-                    "users": ValidationError(
-                        "You must provide at least one staff user.",
-                        code=AccountErrorCode.REQUIRED.value,
-                    )
-                }
-            )
-        return cleaned_input
-
-    @staticmethod
-    def check_if_users_are_staff(user_pks: List[int]):
-        non_staff_users = account_models.User.objects.filter(pk__in=user_pks).filter(
-            is_staff=False
-        )
-        if non_staff_users:
-            raise ValidationError(
-                {
-                    "users": ValidationError(
-                        "Some of users aren't staff members.",
-                        code=AccountErrorCode.ASSIGN_NON_STAFF_MEMBER.value,
-                    )
-                }
+                {"id": ValidationError(message=msg, code=code, params=params)}
             )
 
-
-class PermissionGroupUnassignUsers(PermissionGroupAssignUsers):
-    group = graphene.Field(Group, description="Group from which users were unassigned.")
-
-    class Arguments:
-        id = graphene.ID(
-            description="ID of group from which users will be unassigned.",
-            required=True,
-        )
-        users = graphene.List(
-            graphene.NonNull(graphene.ID),
-            description="List of users to assign to this group.",
-            required=True,
-        )
-
-    class Meta:
-        description = "Unassign users from group."
-        model = auth_models.Group
-        permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-
     @classmethod
-    def perform_mutation(cls, root, info, **data):
-        group = cls.get_instance(info, **data)
-        user_pks = cls.prepare_user_pks(info, group, **data)
-        group.user_set.remove(*user_pks)
-        return cls(group=group)
+    def ensure_not_removing_requestor_last_group(cls, group, requestor):
+        """Ensure user doesn't remove user's last group."""
+        if requestor in group.user_set.all() and requestor.groups.count() == 1:
+            msg = "You cannot delete your last group."
+            code = PermissionGroupErrorCode.CANNOT_REMOVE_FROM_LAST_GROUP.value
+            raise ValidationError({"id": ValidationError(message=msg, code=code)})

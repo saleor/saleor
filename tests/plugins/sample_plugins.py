@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 
 class PluginSample(BasePlugin):
+    PLUGIN_ID = "plugin.sample"
     PLUGIN_NAME = "PluginSample"
     PLUGIN_DESCRIPTION = "Test plugin description"
     DEFAULT_ACTIVE = True
@@ -49,15 +50,15 @@ class PluginSample(BasePlugin):
         },
     }
 
-    def calculate_checkout_total(self, checkout, discounts, previous_value):
+    def calculate_checkout_total(self, checkout, lines, discounts, previous_value):
         total = Money("1.0", currency=checkout.currency)
         return TaxedMoney(total, total)
 
-    def calculate_checkout_subtotal(self, checkout, discounts, previous_value):
+    def calculate_checkout_subtotal(self, checkout, lines, discounts, previous_value):
         subtotal = Money("1.0", currency=checkout.currency)
         return TaxedMoney(subtotal, subtotal)
 
-    def calculate_checkout_shipping(self, checkout, discounts, previous_value):
+    def calculate_checkout_shipping(self, checkout, lines, discounts, previous_value):
         price = Money("1.0", currency=checkout.currency)
         return TaxedMoney(price, price)
 
@@ -97,17 +98,20 @@ class PluginSample(BasePlugin):
 
 
 class PluginInactive(BasePlugin):
+    PLUGIN_ID = "plugin.inactive"
     PLUGIN_NAME = "PluginInactive"
     PLUGIN_DESCRIPTION = "Test plugin description_2"
 
 
 class ActivePlugin(BasePlugin):
+    PLUGIN_ID = "plugin.active"
     PLUGIN_NAME = "Active"
     PLUGIN_DESCRIPTION = "Not working"
     DEFAULT_ACTIVE = True
 
 
 class ActivePaymentGateway(BasePlugin):
+    PLUGIN_ID = "gateway.active"
     CLIENT_CONFIG = [{"field": "foo", "value": "bar"}]
     PLUGIN_NAME = "braintree"
     DEFAULT_ACTIVE = True
@@ -120,6 +124,7 @@ class ActivePaymentGateway(BasePlugin):
 
 
 class InactivePaymentGateway(BasePlugin):
+    PLUGIN_ID = "gateway.inactive"
     PLUGIN_NAME = "stripe"
 
     def process_payment(self, payment_information, previous_value):

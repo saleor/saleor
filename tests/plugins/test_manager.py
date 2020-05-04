@@ -33,7 +33,9 @@ def test_manager_calculates_checkout_total(
     currency = checkout_with_item.currency
     expected_total = Money(total_amount, currency)
     manager = PluginsManager(plugins=plugins)
-    taxed_total = manager.calculate_checkout_total(checkout_with_item, [discount_info])
+    taxed_total = manager.calculate_checkout_total(
+        checkout_with_item, list(checkout_with_item), [discount_info]
+    )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 
 
@@ -47,7 +49,7 @@ def test_manager_calculates_checkout_subtotal(
     currency = checkout_with_item.currency
     expected_subtotal = Money(subtotal_amount, currency)
     taxed_subtotal = PluginsManager(plugins=plugins).calculate_checkout_subtotal(
-        checkout_with_item, [discount_info]
+        checkout_with_item, list(checkout_with_item), [discount_info]
     )
     assert TaxedMoney(expected_subtotal, expected_subtotal) == taxed_subtotal
 
@@ -62,7 +64,7 @@ def test_manager_calculates_checkout_shipping(
     currency = checkout_with_item.currency
     expected_shipping_price = Money(shipping_amount, currency)
     taxed_shipping_price = PluginsManager(plugins=plugins).calculate_checkout_shipping(
-        checkout_with_item, [discount_info]
+        checkout_with_item, list(checkout_with_item), [discount_info]
     )
     assert (
         TaxedMoney(expected_shipping_price, expected_shipping_price)
@@ -194,15 +196,17 @@ def test_manager_get_plugin_configuration(plugin_configuration):
         "tests.plugins.sample_plugins.PluginInactive",
     ]
     manager = PluginsManager(plugins=plugins)
-    plugin = manager.get_plugin("PluginSample")
-    configuration_from_db = PluginConfiguration.objects.get(name="PluginSample")
+    plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
+    configuration_from_db = PluginConfiguration.objects.get(
+        identifier=PluginSample.PLUGIN_ID
+    )
     assert plugin.DEFAULT_CONFIGURATION == configuration_from_db.configuration
 
 
 def test_manager_save_plugin_configuration(plugin_configuration):
     plugins = ["tests.plugins.sample_plugins.PluginSample"]
     manager = PluginsManager(plugins=plugins)
-    manager.save_plugin_configuration("PluginSample", {"active": False})
+    manager.save_plugin_configuration(PluginSample.PLUGIN_ID, {"active": False})
     plugin_configuration.refresh_from_db()
     assert not plugin_configuration.active
 
@@ -222,7 +226,7 @@ def test_plugin_updates_configuration_shape(
     )
 
     manager = PluginsManager(plugins=["tests.plugins.sample_plugins.PluginSample"])
-    plugin = manager.get_plugin("PluginSample")
+    plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
 
     assert len(plugin.configuration) == 5
     assert plugin.configuration[-1] == {**new_config, **new_config_structure}
@@ -238,13 +242,14 @@ def test_plugin_add_new_configuration(
     config_structure = {"Foo": new_config_structure}
     monkeypatch.setattr(PluginInactive, "CONFIG_STRUCTURE", config_structure)
     manager = PluginsManager(plugins=["tests.plugins.sample_plugins.PluginInactive"])
-    plugin = manager.get_plugin("PluginInactive")
+    plugin = manager.get_plugin(PluginInactive.PLUGIN_ID)
     assert len(plugin.configuration) == 1
     assert plugin.configuration[0] == {**new_config, **new_config_structure}
 
 
 def test_manager_serve_list_of_payment_gateways():
     expected_gateway = {
+        "id": ActivePaymentGateway.PLUGIN_ID,
         "name": ActivePaymentGateway.PLUGIN_NAME,
         "config": ActivePaymentGateway.CLIENT_CONFIG,
     }
@@ -260,10 +265,15 @@ def test_manager_serve_list_of_payment_gateways():
 def test_manager_serve_list_all_payment_gateways():
     expected_gateways = [
         {
+            "id": ActivePaymentGateway.PLUGIN_ID,
             "name": ActivePaymentGateway.PLUGIN_NAME,
             "config": ActivePaymentGateway.CLIENT_CONFIG,
         },
-        {"name": InactivePaymentGateway.PLUGIN_NAME, "config": []},
+        {
+            "id": InactivePaymentGateway.PLUGIN_ID,
+            "name": InactivePaymentGateway.PLUGIN_NAME,
+            "config": [],
+        },
     ]
 
     plugins = [

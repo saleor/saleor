@@ -2,7 +2,6 @@ import binascii
 from typing import TYPE_CHECKING, Type, Union
 
 import graphene
-import graphene_django_optimizer as gql_optimizer
 from django.core.exceptions import ValidationError
 from graphene import ObjectType
 
@@ -68,12 +67,6 @@ def from_global_id_strict_type(
     return _id
 
 
-def get_node_optimized(qs, lookup, info):
-    qs = qs.filter(**lookup)
-    qs = gql_optimizer.query(qs, info)
-    return qs[0] if qs else None
-
-
 def validate_slug_and_generate_if_needed(
     instance: Type["Model"],
     slugable_field: str,
@@ -110,3 +103,8 @@ def get_duplicates_ids(first_list, second_list):
     if first_list and second_list:
         return set(first_list) & set(second_list)
     return []
+
+
+def get_duplicated_values(values):
+    """Return set of duplicated values."""
+    return {value for value in values if values.count(value) > 1}

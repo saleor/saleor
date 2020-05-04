@@ -187,7 +187,7 @@ def test_vatlayer_plugin_caches_taxes(vatlayer, monkeypatch, product, address):
     )
 
     manager = get_plugins_manager()
-    plugin = manager.get_plugin(VatlayerPlugin.PLUGIN_NAME)
+    plugin = manager.get_plugin(VatlayerPlugin.PLUGIN_ID)
     price = product.variants.first().get_price()
     price = TaxedMoney(price, price)
     address.country = Country("de")
@@ -236,7 +236,9 @@ def test_calculate_checkout_total(
     site_settings.save()
 
     discounts = [discount_info] if with_discount else None
-    total = manager.calculate_checkout_total(checkout_with_item, discounts)
+    total = manager.calculate_checkout_total(
+        checkout_with_item, list(checkout_with_item), discounts
+    )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -284,7 +286,9 @@ def test_calculate_checkout_subtotal(
 
     discounts = [discount_info] if with_discount else None
     add_variant_to_checkout(checkout_with_item, variant, 2)
-    total = manager.calculate_checkout_subtotal(checkout_with_item, discounts)
+    total = manager.calculate_checkout_subtotal(
+        checkout_with_item, list(checkout_with_item), discounts
+    )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -360,9 +364,9 @@ def test_get_tax_rate_percentage_value(
 def test_save_plugin_configuration(vatlayer, settings):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
-    manager.save_plugin_configuration("Vatlayer", {"active": False})
+    manager.save_plugin_configuration(VatlayerPlugin.PLUGIN_ID, {"active": False})
 
-    configuration = PluginConfiguration.objects.get(name=VatlayerPlugin.PLUGIN_NAME)
+    configuration = PluginConfiguration.objects.get(identifier=VatlayerPlugin.PLUGIN_ID)
     assert not configuration.active
 
 
@@ -370,7 +374,9 @@ def test_save_plugin_configuration_cannot_be_enabled_without_config(settings):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     with pytest.raises(ValidationError):
-        manager.save_plugin_configuration("Vatlayer", {"active": True})
+        manager.save_plugin_configuration(
+            VatlayerPlugin.PLUGIN_ID, {"active": True},
+        )
 
 
 def test_show_taxes_on_storefront(vatlayer, settings):
@@ -433,7 +439,9 @@ def test_calculations_checkout_total_with_vatlayer(
     vatlayer, settings, checkout_with_item
 ):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
-    checkout_subtotal = calculations.checkout_total(checkout_with_item)
+    checkout_subtotal = calculations.checkout_total(
+        checkout=checkout_with_item, lines=list(checkout_with_item)
+    )
     assert checkout_subtotal == TaxedMoney(
         net=Money("30", "USD"), gross=Money("30", "USD")
     )
@@ -443,7 +451,9 @@ def test_calculations_checkout_subtotal_with_vatlayer(
     vatlayer, settings, checkout_with_item
 ):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
-    checkout_subtotal = calculations.checkout_subtotal(checkout_with_item)
+    checkout_subtotal = calculations.checkout_subtotal(
+        checkout=checkout_with_item, lines=list(checkout_with_item)
+    )
     assert checkout_subtotal == TaxedMoney(
         net=Money("30", "USD"), gross=Money("30", "USD")
     )
@@ -453,7 +463,9 @@ def test_calculations_checkout_shipping_price_with_vatlayer(
     vatlayer, settings, checkout_with_item
 ):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
-    checkout_shipping_price = calculations.checkout_shipping_price(checkout_with_item)
+    checkout_shipping_price = calculations.checkout_shipping_price(
+        checkout=checkout_with_item, lines=list(checkout_with_item)
+    )
     assert checkout_shipping_price == TaxedMoney(
         net=Money("0", "USD"), gross=Money("0", "USD")
     )
@@ -463,7 +475,7 @@ def test_skip_diabled_plugin(settings):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     settings.VATLAYER_ACCESS_KEY = None
     manager = get_plugins_manager()
-    plugin: VatlayerPlugin = manager.get_plugin("Vatlayer")
+    plugin: VatlayerPlugin = manager.get_plugin(VatlayerPlugin.PLUGIN_ID)
 
     assert (
         plugin._skip_plugin(

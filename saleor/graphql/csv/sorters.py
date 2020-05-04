@@ -3,27 +3,21 @@ import graphene
 from ..core.types import SortInputObjectType
 
 
-class JobSortField(graphene.Enum):
-    STATUS = "status"
-    CREATED_BY = "created_by__id"
-    CREATED_AT = "created_at"
-    COMPLETED_AT = "completed_at"
+class ExportFileSortField(graphene.Enum):
+    STATUS = ["status"]
+    CREATED_AT = ["created_at"]
+    UPDATED_AT = ["updated_at"]
+    CREATED_BY = ["created_by__id"]
 
     @property
     def description(self):
-        # pylint: disable=no-member
-        if self in [
-            JobSortField.STATUS,
-            JobSortField.CREATED_BY,
-            JobSortField.CREATED_AT,
-            JobSortField.COMPLETED_AT,
-        ]:
+        if self.name in ExportFileSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
-            return f"Sort job by {sort_name}."
+            return f"Sort export file by {sort_name}."
         raise ValueError("Unsupported enum value: %s" % self.value)
 
 
-class JobSortingInput(SortInputObjectType):
+class ExportFileSortingInput(SortInputObjectType):
     class Meta:
-        sort_enum = JobSortField
-        type_name = "job"
+        sort_enum = ExportFileSortField
+        type_name = "export file"

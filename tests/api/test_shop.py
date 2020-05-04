@@ -179,7 +179,7 @@ def test_query_permissions(staff_api_client):
         }
     }
     """
-    permissions_codenames = get_permissions_codename()
+    permissions_codenames = set(get_permissions_codename())
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content["data"]["shop"]
@@ -680,6 +680,24 @@ def test_query_geolocalization(user_api_client):
     content = get_graphql_content(response)
     data = content["data"]["shop"]["geolocalization"]
     assert data["country"] is None
+
+
+def test_query_available_payment_gateways(user_api_client):
+    query = """
+        query {
+            shop {
+                availablePaymentGateways {
+                    id
+                    name
+                }
+            }
+        }
+    """
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]["availablePaymentGateways"]
+    assert data[0]["id"] == "mirumee.payments.dummy"
+    assert data[0]["name"] == "Dummy"
 
 
 AUTHORIZATION_KEY_ADD = """

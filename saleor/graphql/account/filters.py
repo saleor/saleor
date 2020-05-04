@@ -1,10 +1,10 @@
 import django_filters
 from django.db.models import Count, Sum
 
-from ...account.models import ServiceAccount, User
+from ...account.models import User
 from ..core.filters import EnumFilter, ObjectTypeFilter
 from ..core.types.common import DateRangeInput, IntRangeInput, PriceRangeInput
-from ..utils import filter_by_query_param, filter_range_field
+from ..utils.filters import filter_by_query_param, filter_range_field
 from .enums import StaffMemberStatus
 
 
@@ -84,15 +84,6 @@ class CustomerFilter(django_filters.FilterSet):
 
 class PermissionGroupFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method=filter_search)
-
-
-class ServiceAccountFilter(django_filters.FilterSet):
-    search = django_filters.CharFilter(method=filter_search)
-    is_active = django_filters.BooleanFilter()
-
-    class Meta:
-        model = ServiceAccount
-        fields = ["search", "is_active"]
 
 
 class StaffUserFilter(django_filters.FilterSet):

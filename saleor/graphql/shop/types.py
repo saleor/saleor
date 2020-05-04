@@ -9,12 +9,14 @@ from ...account import models as account_models
 from ...core.permissions import SitePermissions, get_permissions
 from ...core.utils import get_client_ip, get_country_by_ip
 from ...menu import models as menu_models
+from ...plugins.manager import get_plugins_manager
 from ...product import models as product_models
 from ...site import models as site_models
 from ..account.types import Address, StaffNotificationRecipient
+from ..checkout.types import PaymentGateway
 from ..core.enums import WeightUnitsEnum
-from ..core.types.common import CountryDisplay, LanguageDisplay, PermissionDisplay
-from ..core.utils import get_node_optimized, str_to_enum
+from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
+from ..core.utils import str_to_enum
 from ..decorators import permission_required
 from ..menu.types import Menu
 from ..product.types import Collection
@@ -62,6 +64,11 @@ class Geolocalization(graphene.ObjectType):
 
 
 class Shop(graphene.ObjectType):
+    available_payment_gateways = graphene.List(
+        graphene.NonNull(PaymentGateway),
+        description="List of available payment gateways.",
+        required=True,
+    )
     geolocalization = graphene.Field(
         Geolocalization, description="Customer's geolocalization data."
     )
@@ -110,7 +117,7 @@ class Shop(graphene.ObjectType):
     name = graphene.String(description="Shop's name.", required=True)
     navigation = graphene.Field(Navigation, description="Shop's navigation.")
     permissions = graphene.List(
-        PermissionDisplay, description="List of available permissions.", required=True
+        Permission, description="List of available permissions.", required=True
     )
     phone_prefixes = graphene.List(
         graphene.String, description="List of possible phone prefixes.", required=True
@@ -157,6 +164,10 @@ class Shop(graphene.ObjectType):
         description = (
             "Represents a shop resource containing general shop data and configuration."
         )
+
+    @staticmethod
+    def resolve_available_payment_gateways(_, _info):
+        return [gtw for gtw in get_plugins_manager().list_payment_gateways()]
 
     @staticmethod
     @permission_required(SitePermissions.MANAGE_SETTINGS)
@@ -209,7 +220,7 @@ class Shop(graphene.ObjectType):
     def resolve_homepage_collection(_, info):
         collection_pk = info.context.site.settings.homepage_collection_id
         qs = product_models.Collection.objects.all()
-        return get_node_optimized(qs, {"pk": collection_pk}, info)
+        return qs.filter(pk=collection_pk).first()
 
     @staticmethod
     def resolve_languages(_, _info):
@@ -228,8 +239,8 @@ class Shop(graphene.ObjectType):
     def resolve_navigation(_, info):
         site_settings = info.context.site.settings
         qs = menu_models.Menu.objects.all()
-        top_menu = get_node_optimized(qs, {"pk": site_settings.top_menu_id}, info)
-        bottom_menu = get_node_optimized(qs, {"pk": site_settings.bottom_menu_id}, info)
+        top_menu = qs.filter(pk=site_settings.top_menu_id).first()
+        bottom_menu = qs.filter(pk=site_settings.bottom_menu_id).first()
         return Navigation(main=top_menu, secondary=bottom_menu)
 
     @staticmethod

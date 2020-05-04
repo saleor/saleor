@@ -3,7 +3,8 @@ from typing import Dict, List, Optional
 
 import django_filters
 import graphene
-from django.db.models import Q, Subquery, Sum
+from django.db.models import F, Q, Subquery, Sum
+from django.db.models.functions import Coalesce
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
 from ...product.filters import filter_products_by_attributes_values
@@ -21,12 +22,8 @@ from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types import FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
 from ..core.utils import from_global_id_strict_type
-from ..utils import (
-    filter_by_query_param,
-    filter_range_field,
-    get_nodes,
-    resolve_global_ids_to_primary_keys,
-)
+from ..utils import get_nodes, resolve_global_ids_to_primary_keys
+from ..utils.filters import filter_by_query_param, filter_range_field
 from ..warehouse import types as warehouse_types
 from .enums import (
     CollectionPublished,
@@ -113,10 +110,13 @@ def filter_products_by_collections(qs, collections):
 def filter_products_by_stock_availability(qs, stock_availability):
     total_stock = (
         Stock.objects.select_related("product_variant")
-        .annotate_available_quantity()
         .values("product_variant__product_id")
-        .annotate(total_quantity=Sum("available_quantity"))
-        .filter(total_quantity__lte=0)
+        .annotate(
+            total_quantity_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0)
+        )
+        .annotate(total_quantity=Coalesce(Sum("quantity"), 0))
+        .annotate(total_available=F("total_quantity") - F("total_quantity_allocated"))
+        .filter(total_available__lte=0)
         .values_list("product_variant__product_id", flat=True)
     )
     if stock_availability == StockAvailability.IN_STOCK:
