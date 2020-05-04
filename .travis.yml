@@ -60,6 +60,8 @@ matrix:
       python: "3.8"
     - env: TOXENV=pydocstyle
       python: "3.8"
+    - env: TOXENV=isort
+      python: "3.8"
   allow_failures:
     - env: DJANGO="master"
       python: "3.8"
