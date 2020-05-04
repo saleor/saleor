@@ -105,6 +105,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extend errors in OrderFulfill mutation - #5553 by @fowczarek
 - Refactor OrderCancel mutation for many warehouses - #5554 by @fowczarek
 - Add negative weight validation - #5564 by @fowczarek
+- Add error when user pass empty object as address - #5585 by @fowczarek
 
 ## 2.9.0
 
