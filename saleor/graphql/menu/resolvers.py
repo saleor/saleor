@@ -1,7 +1,7 @@
 import graphene
 
 from ...menu import models
-from ..utils import filter_by_query_param
+from ..utils.filters import filter_by_query_param
 from .types import Menu
 
 MENU_SEARCH_FIELDS = ("name",)
