@@ -27,6 +27,7 @@ def create_unique_slugs_for_producttypes(apps, schema_editor):
 
         slug = generate_unique_slug(product_type, slug_values)
         product_type.slug = slug
+        product_type.save(update_fields=["slug"])
         slug_values.append(slug)
 
 
