@@ -7,92 +7,92 @@ import pytz
 from django.core.files import File
 from freezegun import freeze_time
 
-from saleor.csv import JobStatus
-from saleor.csv.models import Job
+from saleor.core import JobStatus
+from saleor.csv.models import ExportFile
 from saleor.csv.utils.export import (
-    create_csv_file_and_save_in_job,
+    create_csv_file_and_save_in_export_file,
     export_products,
     get_filename,
     get_product_queryset,
     on_task_failure,
     on_task_success,
-    save_csv_file_in_job,
-    update_job_when_task_finished,
+    save_csv_file_in_export_file,
+    update_export_file_when_task_finished,
 )
 
 
-def test_on_task_failure(job):
+def test_on_task_failure(export_file):
     exc = Exception("Test")
     task_id = "task_id"
-    args = [job.pk, {"all": ""}]
+    args = [export_file.pk, {"all": ""}]
     kwargs = {}
-    einfo = None
+    info = None
 
-    assert job.status == JobStatus.PENDING
-    assert job.created_at
-    assert not job.completed_at
+    assert export_file.status == JobStatus.PENDING
+    assert export_file.created_at
+    previous_updated_at = export_file.updated_at
 
-    on_task_failure(None, exc, task_id, args, kwargs, einfo)
+    on_task_failure(None, exc, task_id, args, kwargs, info)
 
-    job.refresh_from_db()
-    assert job.status == JobStatus.FAILED
-    assert job.created_at
-    assert job.completed_at
+    export_file.refresh_from_db()
+    assert export_file.status == JobStatus.FAILED
+    assert export_file.created_at
+    assert export_file.updated_at != previous_updated_at
 
 
-def test_on_task_success(job):
+def test_on_task_success(export_file):
     task_id = "task_id"
-    args = [job.pk, {"filter": {}}]
+    args = [export_file.pk, {"filter": {}}]
     kwargs = {}
 
-    assert job.status == JobStatus.PENDING
-    assert job.created_at
-    assert not job.completed_at
+    assert export_file.status == JobStatus.PENDING
+    assert export_file.created_at
+    previous_updated_at = export_file.updated_at
 
     on_task_success(None, None, task_id, args, kwargs)
 
-    job.refresh_from_db()
-    assert job.status == JobStatus.SUCCESS
-    assert job.created_at
-    assert job.completed_at
+    export_file.refresh_from_db()
+    assert export_file.status == JobStatus.SUCCESS
+    assert export_file.created_at
+    assert export_file.updated_at != previous_updated_at
 
 
-def test_update_job_when_task_finished(job):
+def test_update_export_file_when_task_finished(export_file):
     with freeze_time(datetime.datetime.now()) as frozen_datetime:
-        assert not job.completed_at
-        update_job_when_task_finished(job.pk, JobStatus.FAILED)
+        previous_updated_at = export_file.updated_at
+        update_export_file_when_task_finished(export_file.pk, JobStatus.FAILED)
 
-        job.refresh_from_db()
-        assert job.completed_at == pytz.utc.localize(frozen_datetime())
+        export_file.refresh_from_db()
+        assert export_file.updated_at == pytz.utc.localize(frozen_datetime())
+        assert export_file.updated_at != previous_updated_at
 
 
 @pytest.mark.parametrize("scope", [{"filter": {"is_published": True}}, {"all": ""}])
 @patch("saleor.csv.utils.export.send_email_with_link_to_download_csv")
-@patch("saleor.csv.utils.export.save_csv_file_in_job")
+@patch("saleor.csv.utils.export.save_csv_file_in_export_file")
 def test_export_products(
-    save_csv_file_in_job_mock, send_email_mock, product_list, job, scope
+    save_csv_file_in_export_file_mock, send_email_mock, product_list, export_file, scope
 ):
-    export_products(job.id, scope)
+    export_products(export_file.id, scope)
 
-    save_csv_file_in_job_mock.called_once_with(job, ANY)
-    send_email_mock.called_once_with(job)
+    save_csv_file_in_export_file_mock.called_once_with(export_file, ANY)
+    send_email_mock.called_once_with(export_file)
 
 
 @patch("saleor.csv.utils.export.send_email_with_link_to_download_csv")
-@patch("saleor.csv.utils.export.save_csv_file_in_job")
+@patch("saleor.csv.utils.export.save_csv_file_in_export_file")
 def test_export_products_ids(
-    save_csv_file_in_job_mock, send_email_mock, product_list, job
+    save_csv_file_in_export_file_mock, send_email_mock, product_list, export_file
 ):
     pks = [product.pk for product in product_list[:2]]
 
-    assert job.status == JobStatus.PENDING
-    assert not job.completed_at
-    assert not job.content_file
+    assert export_file.status == JobStatus.PENDING
+    assert not export_file.content_file
 
-    export_products(job.id, {"ids": pks})
+    export_products(export_file.id, {"ids": pks})
 
-    save_csv_file_in_job_mock.called_once_with(job, ANY)
-    send_email_mock.called_once_with(job)
+    save_csv_file_in_export_file_mock.called_once_with(export_file, ANY)
+    send_email_mock.called_once_with(export_file)
 
 
 def test_get_filename():
@@ -125,7 +125,7 @@ def get_product_queryset_filter(product_list):
     assert queryset.count() == len(product_list) - 1
 
 
-def test_create_csv_file_and_save_in_job(job, tmpdir):
+def test_create_csv_file_and_save_in_export_file(export_file, tmpdir):
     from django.conf import settings
 
     settings.MEDIA_ROOT = tmpdir
@@ -137,20 +137,20 @@ def test_create_csv_file_and_save_in_job(job, tmpdir):
     headers = ["id", "name", "collections"]
     csv_headers_mapping = {"id": "ID", "name": "NAME"}
     delimiter = ";"
-    job = job
+    export_file = export_file
     file_name = "test.csv"
 
-    job_csv_upload_dir = Job.content_file.field.upload_to
+    export_file_csv_upload_dir = ExportFile.content_file.field.upload_to
 
-    assert not job.content_file
+    assert not export_file.content_file
 
-    create_csv_file_and_save_in_job(
-        export_data, headers, csv_headers_mapping, delimiter, job, file_name
+    create_csv_file_and_save_in_export_file(
+        export_data, headers, csv_headers_mapping, delimiter, export_file, file_name
     )
 
-    csv_file = job.content_file
+    csv_file = export_file.content_file
     assert csv_file
-    assert csv_file.name == f"{job_csv_upload_dir}/{file_name}"
+    assert csv_file.name == f"{export_file_csv_upload_dir}/{file_name}"
 
     file_content = csv_file.read().decode().split("\r\n")
     headers = list(csv_headers_mapping.values())
@@ -163,7 +163,7 @@ def test_create_csv_file_and_save_in_job(job, tmpdir):
     shutil.rmtree(tmpdir)
 
 
-def test_save_csv_file_in_job(job, tmpdir):
+def test_save_csv_file_in_export_file(export_file, tmpdir):
     from django.conf import settings
 
     settings.MEDIA_ROOT = tmpdir
@@ -172,11 +172,11 @@ def test_save_csv_file_in_job(job, tmpdir):
     file_mock.name = "temp_file.csv"
     file_name = "test.csv"
 
-    assert not job.content_file
+    assert not export_file.content_file
 
-    save_csv_file_in_job(job, file_mock, file_name)
+    save_csv_file_in_export_file(export_file, file_mock, file_name)
 
-    job.refresh_from_db()
-    assert job.content_file
+    export_file.refresh_from_db()
+    assert export_file.content_file
 
     shutil.rmtree(tmpdir)

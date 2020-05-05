@@ -363,13 +363,13 @@ def test_sort_export_files_query_by_created_at_date(
 def test_sort_export_files_query_by_updated_at_date(
     staff_api_client, export_file, permission_manage_products, staff_user
 ):
-    export_file.completed_at = datetime.datetime(
+    export_file.updated_at = datetime.datetime(
         2010, 2, 19, tzinfo=timezone.get_current_timezone()
     )
     export_file.save()
 
     second_export_file = ExportFile.objects.create(created_by=staff_user)
-    second_export_file.completed_at = export_file.completed_at + datetime.timedelta(
+    second_export_file.updated_at = export_file.updated_at + datetime.timedelta(
         minutes=10
     )
     second_export_file.save()

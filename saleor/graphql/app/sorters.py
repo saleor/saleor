@@ -9,11 +9,7 @@ class AppSortField(graphene.Enum):
 
     @property
     def description(self):
-        # pylint: disable=no-member
-        if self in [
-            AppSortField.NAME,
-            AppSortField.CREATION_DATE,
-        ]:
+        if self.name in AppSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort apps by {sort_name}."
         raise ValueError("Unsupported enum value: %s" % self.value)

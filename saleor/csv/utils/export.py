@@ -29,8 +29,7 @@ def on_task_success(self, retval, task_id, args, kwargs):
 def update_export_file_when_task_finished(export_file_id: int, status: JobStatus):
     export_file = ExportFile.objects.get(pk=export_file_id)
     export_file.status = status  # type: ignore
-    export_file.completed_at = timezone.now()  # type: ignore
-    export_file.save(update_fields=["status", "completed_at"])
+    export_file.save(update_fields=["status", "updated_at"])
 
 
 @app.task(on_success=on_task_success, on_failure=on_task_failure)
