@@ -203,6 +203,38 @@ def test_checkout_create_multiple_warehouse(
     assert checkout_line.quantity == 4
 
 
+def test_checkout_create_with_null_as_addresses(api_client, stock):
+    """Create checkout object using GraphQL API."""
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": None,
+            "billingAddress": None,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+
+    # Look at the flag to see whether a new checkout was created or not
+    assert content["created"] is True
+
+    new_checkout = Checkout.objects.first()
+    assert new_checkout is not None
+    checkout_data = content["checkout"]
+    assert checkout_data["token"] == str(new_checkout.token)
+    assert new_checkout.lines.count() == 1
+    checkout_line = new_checkout.lines.first()
+    assert checkout_line.variant == variant
+    assert checkout_line.quantity == 1
+    assert new_checkout.shipping_address is None
+    assert new_checkout.billing_address is None
+
+
 @pytest.mark.parametrize(
     "quantity, expected_error_message, error_code",
     (
@@ -296,6 +328,52 @@ def test_checkout_create_required_email(api_client, stock):
     assert errors[0]["message"] == "This field cannot be blank."
 
     checkout_errors = content["data"]["checkoutCreate"]["checkoutErrors"]
+    assert checkout_errors[0]["code"] == CheckoutErrorCode.REQUIRED.name
+
+
+def test_checkout_create_required_country_shipping_address(
+    api_client, stock, graphql_address_data
+):
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data
+    del shipping_address["country"]
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": shipping_address,
+        }
+    }
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+
+    checkout_errors = content["data"]["checkoutCreate"]["checkoutErrors"]
+    assert checkout_errors[0]["field"] == "country"
+    assert checkout_errors[0]["code"] == CheckoutErrorCode.REQUIRED.name
+
+
+def test_checkout_create_required_country_billing_address(
+    api_client, stock, graphql_address_data
+):
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    billing_address = graphql_address_data
+    del billing_address["country"]
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "billingAddress": billing_address,
+        }
+    }
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+
+    checkout_errors = content["data"]["checkoutCreate"]["checkoutErrors"]
+    assert checkout_errors[0]["field"] == "country"
     assert checkout_errors[0]["code"] == CheckoutErrorCode.REQUIRED.name
 
 
