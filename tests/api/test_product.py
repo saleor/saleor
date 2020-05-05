@@ -1054,6 +1054,58 @@ def test_create_product_no_slug_in_input(
     assert str(data["product"]["basePrice"]["amount"]) == product_price
 
 
+def test_create_product_no_category_id(
+    staff_api_client,
+    product_type,
+    category,
+    size_attribute,
+    description_json,
+    permission_manage_products,
+    monkeypatch,
+
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product_name = "test name"
+    product_is_published = False
+    product_tax_rate = "STANDARD"
+    product_price = "22.33"
+    input_slug = 'test-slug'
+
+    # Mock tax interface with fake response from tax gateway
+    monkeypatch.setattr(
+        PluginsManager,
+        "get_tax_code_from_object_meta",
+        lambda self, x: TaxType(description="", code=product_tax_rate),
+    )
+
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": product_name,
+            "slug": input_slug,
+            "isPublished": product_is_published,
+            "taxCode": product_tax_rate,
+            "basePrice": product_price,
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == input_slug
+    assert data["product"]["isPublished"] == product_is_published
+    assert data["product"]["taxType"]["taxCode"] == product_tax_rate
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"] is None
+    assert str(data["product"]["basePrice"]["amount"]) == product_price
+
+
 def test_create_product_with_negative_weight(
     staff_api_client,
     product_type,
