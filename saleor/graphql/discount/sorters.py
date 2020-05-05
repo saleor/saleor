@@ -12,14 +12,7 @@ class SaleSortField(graphene.Enum):
 
     @property
     def description(self):
-        # pylint: disable=no-member
-        if self in [
-            SaleSortField.NAME,
-            SaleSortField.START_DATE,
-            SaleSortField.END_DATE,
-            SaleSortField.VALUE,
-            SaleSortField.TYPE,
-        ]:
+        if self.name in SaleSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort sales by {sort_name}."
         raise ValueError("Unsupported enum value: %s" % self.value)
@@ -42,16 +35,7 @@ class VoucherSortField(graphene.Enum):
 
     @property
     def description(self):
-        # pylint: disable=no-member
-        if self in [
-            VoucherSortField.CODE,
-            VoucherSortField.START_DATE,
-            VoucherSortField.END_DATE,
-            VoucherSortField.VALUE,
-            VoucherSortField.TYPE,
-            VoucherSortField.USAGE_LIMIT,
-            VoucherSortField.MINIMUM_SPENT_AMOUNT,
-        ]:
+        if self.name in VoucherSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort vouchers by {sort_name}."
         raise ValueError("Unsupported enum value: %s" % self.value)

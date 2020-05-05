@@ -1778,7 +1778,7 @@ type ExportFileCountableEdge {
 
 input ExportFileFilterInput {
   createdAt: DateTimeRangeInput
-  completedAt: DateTimeRangeInput
+  updatedAt: DateTimeRangeInput
   status: JobStatusEnum
   createdBy: String
 }
@@ -2010,7 +2010,6 @@ input IntRangeInput {
 scalar JSONString
 
 interface Job {
-  id: ID!
   status: JobStatusEnum!
   createdAt: DateTime!
   updatedAt: DateTime!
