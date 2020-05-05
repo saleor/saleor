@@ -291,5 +291,8 @@ class Job(graphene.Interface):
 
     @classmethod
     def resolve_type(cls, instance, _info):
-        MODEL_TO_TYPE_MAP = {}
+        """Map a data object to a Graphene type."""
+        MODEL_TO_TYPE_MAP = {
+            # <DjangoModel>: <GrapheneType>
+        }
         return MODEL_TO_TYPE_MAP.get(type(instance))
