@@ -288,3 +288,8 @@ class Job(graphene.Interface):
     updated_at = graphene.DateTime(
         description="Date time of job last update in ISO 8601 format.", required=True
     )
+
+    @classmethod
+    def resolve_type(cls, instance, _info):
+        MODEL_TO_TYPE_MAP = {}
+        return MODEL_TO_TYPE_MAP.get(type(instance))
