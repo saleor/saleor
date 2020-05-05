@@ -1062,7 +1062,6 @@ def test_create_product_no_category_id(
     description_json,
     permission_manage_products,
     monkeypatch,
-
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -1071,7 +1070,7 @@ def test_create_product_no_category_id(
     product_is_published = False
     product_tax_rate = "STANDARD"
     product_price = "22.33"
-    input_slug = 'test-slug'
+    input_slug = "test-slug"
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
