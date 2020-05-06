@@ -1962,6 +1962,7 @@ type InstallApp {
 input InstallAppInput {
   name: String
   manifestUrl: String
+  activateAfterInstallation: Boolean = true
   permissions: [PermissionEnum]
 }
 

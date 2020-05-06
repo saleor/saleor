@@ -27,7 +27,11 @@ def validate_manifest_fields(manifest_data):
 
 
 @transaction.atomic
-def install_app(manifest_url: str, required_permissions: Iterable[Permission]):
+def install_app(
+    manifest_url: str,
+    required_permissions: Iterable[Permission],
+    activate: bool = False,
+):
     manifest_data = requests.get(manifest_url, timeout=REQUEST_TIMEOUT).json()
     validate_manifest_fields(manifest_data)
 
@@ -37,6 +41,7 @@ def install_app(manifest_url: str, required_permissions: Iterable[Permission]):
 
     app = App.objects.create(
         name=manifest_data.get("name"),
+        is_active=activate,
         identificator=manifest_data.get("identificator"),
         about_app=manifest_data.get("about_app"),
         data_privacy=manifest_data.get("data_privacy"),

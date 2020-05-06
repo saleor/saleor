@@ -210,6 +210,7 @@ class AppDelete(ModelDeleteMutation):
 class InstallAppInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the app to register.")
     manifest_url = graphene.String(description="Url to app's manifest in JSON format.")
+    activate_after_installation = graphene.Boolean(default_value=True, required=False)
     permissions = graphene.List(
         PermissionEnum,
         description="List of permission code names to assign to this app.",
@@ -256,4 +257,5 @@ class InstallApp(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        install_app_task.delay(instance.pk)
+        activate_after_installation = cleaned_input["activate_after_installation"]
+        install_app_task.delay(instance.pk, activate_after_installation)
