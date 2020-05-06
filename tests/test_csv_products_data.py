@@ -286,11 +286,9 @@ def test_add_warehouse_info_to_data(product):
     input_data = {pk: {}}
     result, headers = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
 
-    expected_headers = [
-        f"{slug} (warehouse quantity)",
-    ]
-    assert result[pk][expected_headers[0]] == 12
-    assert headers == set(expected_headers)
+    expected_header = f"{slug} (warehouse quantity)"
+    assert result[pk][expected_header] == 12
+    assert headers == expected_header
 
 
 def test_add_warehouse_info_to_data_data_not_changed(product):
@@ -310,7 +308,7 @@ def test_add_warehouse_info_to_data_data_not_changed(product):
     result, headers = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
 
     assert result == input_data
-    assert headers == set()
+    assert headers is None
 
 
 def test_add_warehouse_info_to_data_data_no_slug(product):
@@ -324,4 +322,4 @@ def test_add_warehouse_info_to_data_data_no_slug(product):
     result, headers = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
 
     assert result == input_data
-    assert headers == set()
+    assert headers is None
