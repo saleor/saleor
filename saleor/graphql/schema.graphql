@@ -4356,7 +4356,7 @@ type Shop {
   availablePaymentGateways: [PaymentGateway!]!
   geolocalization: Geolocalization
   authorizationKeys: [AuthorizationKey]!
-  countries(languageCode: LanguageCodeEnum): [CountryDisplay]!
+  countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
   currencies: [String]!
   defaultCurrency: String!
   defaultCountry: CountryDisplay

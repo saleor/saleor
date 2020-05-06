@@ -81,7 +81,7 @@ class Shop(graphene.ObjectType):
         required=True,
     )
     countries = graphene.List(
-        CountryDisplay,
+        graphene.NonNull(CountryDisplay),
         language_code=graphene.Argument(
             LanguageCodeEnum,
             description="A language code to return the translation for.",
@@ -183,7 +183,6 @@ class Shop(graphene.ObjectType):
                     code=country[0], country=country[1], vat=taxes.get(country[0])
                 )
                 for country in countries
-                if country is not None
             ]
 
     @staticmethod
