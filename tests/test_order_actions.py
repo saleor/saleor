@@ -144,8 +144,7 @@ def test_clean_mark_order_as_paid(payment_txn_preauth):
 
 def test_cancel_fulfillment(fulfilled_order, warehouse):
     fulfillment = fulfilled_order.fulfillments.first()
-    line_1 = fulfillment.lines.first()
-    line_2 = fulfillment.lines.first()
+    line_1, line_2 = fulfillment.lines.all()
 
     cancel_fulfillment(fulfillment, None, warehouse)
 
@@ -155,6 +154,25 @@ def test_cancel_fulfillment(fulfilled_order, warehouse):
     assert fulfilled_order.status == OrderStatus.UNFULFILLED
     assert line_1.order_line.quantity_fulfilled == 0
     assert line_2.order_line.quantity_fulfilled == 0
+
+
+def test_cancel_fulfillment_variant_witout_inventory_tracking(
+    fulfilled_order_without_inventory_tracking, warehouse
+):
+    fulfillment = fulfilled_order_without_inventory_tracking.fulfillments.first()
+    line = fulfillment.lines.first()
+    stock = line.order_line.variant.stocks.get()
+    stock_quantity_before = stock.quantity
+
+    cancel_fulfillment(fulfillment, None, warehouse)
+
+    fulfillment.refresh_from_db()
+    line.refresh_from_db()
+    fulfilled_order_without_inventory_tracking.refresh_from_db()
+    assert fulfillment.status == FulfillmentStatus.CANCELED
+    assert line.order_line.quantity_fulfilled == 0
+    assert fulfilled_order_without_inventory_tracking.status == OrderStatus.UNFULFILLED
+    assert stock_quantity_before == line.order_line.variant.stocks.get().quantity
 
 
 def test_cancel_order(fulfilled_order_with_all_cancelled_fulfillments):

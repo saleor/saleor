@@ -800,19 +800,25 @@ def test_validate_draft_order_out_of_stock_variant(draft_order):
     assert e.value.error_dict["lines"][0].message == msg
 
 
+DRAFT_ORDER_COMPLETE_MUTATION = """
+    mutation draftComplete($id: ID!) {
+        draftOrderComplete(id: $id) {
+            orderErrors {
+                field
+                code
+            }
+            order {
+                status
+            }
+        }
+    }
+"""
+
+
 def test_draft_order_complete(
     staff_api_client, permission_manage_orders, staff_user, draft_order,
 ):
     order = draft_order
-    query = """
-        mutation draftComplete($id: ID!) {
-            draftOrderComplete(id: $id) {
-                order {
-                    status
-                }
-            }
-        }
-        """
 
     # Ensure no events were created
     assert not OrderEvent.objects.exists()
@@ -823,7 +829,7 @@ def test_draft_order_complete(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
@@ -840,23 +846,45 @@ def test_draft_order_complete(
     assert draft_placed_event.parameters == {}
 
 
+def test_draft_order_complete_product_without_inventory_tracking(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    draft_order_without_inventory_tracking,
+):
+    order = draft_order_without_inventory_tracking
+
+    # Ensure no events were created
+    assert not OrderEvent.objects.exists()
+
+    # Ensure no allocation were created
+    assert not Allocation.objects.filter(order_line__order=order).exists()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+
+    assert not content["data"]["draftOrderComplete"]["orderErrors"]
+
+    order.refresh_from_db()
+    assert data["status"] == order.status.upper()
+    draft_placed_event = OrderEvent.objects.get()
+
+    assert not Allocation.objects.filter(order_line__order=order).exists()
+
+    assert draft_placed_event.user == staff_user
+    assert draft_placed_event.type == order_events.OrderEvents.PLACED_FROM_DRAFT
+    assert draft_placed_event.parameters == {}
+
+
 def test_draft_order_complete_out_of_stock_variant(
     staff_api_client, permission_manage_orders, staff_user, draft_order
 ):
     order = draft_order
-    query = """
-        mutation draftComplete($id: ID!) {
-            draftOrderComplete(id: $id) {
-                orderErrors {
-                    field
-                    code
-                }
-                order {
-                    status
-                }
-            }
-        }
-        """
 
     # Ensure no events were created
     assert not OrderEvent.objects.exists()
@@ -869,7 +897,7 @@ def test_draft_order_complete_out_of_stock_variant(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     error = content["data"]["draftOrderComplete"]["orderErrors"][0]
@@ -887,19 +915,10 @@ def test_draft_order_complete_existing_user_email_updates_user_field(
     order.user_email = customer_user.email
     order.user = None
     order.save()
-    query = """
-        mutation draftComplete($id: ID!) {
-            draftOrderComplete(id: $id) {
-                order {
-                    status
-                }
-            }
-        }
-        """
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     assert "errors" not in content
@@ -914,19 +933,10 @@ def test_draft_order_complete_anonymous_user_email_sets_user_field_null(
     order.user_email = "anonymous@example.com"
     order.user = None
     order.save()
-    query = """
-        mutation draftComplete($id: ID!) {
-            draftOrderComplete(id: $id) {
-                order {
-                    status
-                }
-            }
-        }
-        """
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     assert "errors" not in content
@@ -941,23 +951,10 @@ def test_draft_order_complete_anonymous_user_no_email(
     order.user_email = ""
     order.user = None
     order.save()
-    query = """
-        mutation draftComplete($id: ID!) {
-            draftOrderComplete(id: $id) {
-                order {
-                    status
-                }
-                errors {
-                    field
-                    message
-                }
-            }
-        }
-        """
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
