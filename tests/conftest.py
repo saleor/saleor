@@ -225,6 +225,16 @@ def checkout_with_single_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_with_variant_without_inventory_tracking(
+    checkout, variant_without_inventory_tracking
+):
+    variant = variant_without_inventory_tracking
+    add_variant_to_checkout(checkout, variant, 1)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def checkout_with_items(checkout, product_list, product):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, 1)
