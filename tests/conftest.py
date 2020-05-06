@@ -1267,6 +1267,22 @@ def fulfilled_order(order_with_lines):
 
 
 @pytest.fixture
+def fulfilled_order_without_inventory_tracking(
+    order_with_line_without_inventory_tracking,
+):
+    order = order_with_line_without_inventory_tracking
+    fulfillment = order.fulfillments.create(tracking_number="123")
+    line = order.lines.first()
+    stock = line.variant.stocks.get()
+    warehouse_pk = stock.warehouse.pk
+    fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
+    fulfill_order_line(line, line.quantity, warehouse_pk)
+    order.status = OrderStatus.FULFILLED
+    order.save(update_fields=["status"])
+    return order
+
+
+@pytest.fixture
 def fulfilled_order_with_cancelled_fulfillment(fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.create()
     line_1 = fulfilled_order.lines.first()
