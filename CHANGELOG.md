@@ -3,6 +3,7 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+- Fixed JWT expired token being flagged as unhandled error rather than handled. - #5603 by @NyanKiyoshi
 
 ## 2.10.0
 
