@@ -242,11 +242,11 @@ def update_variant_data(
         if attribute_header:
             variant_attributes_headers.add(attribute_header)
 
-        result_data, headers = add_warehouse_info_to_data(
+        result_data, header = add_warehouse_info_to_data(
             pk, warehouse_data, result_data
         )
-        if headers:
-            warehouse_headers.update(headers)
+        if header:
+            warehouse_headers.add(header)
 
         result_data = add_image_uris_to_data(pk, image, "variant_images", result_data)
 
@@ -294,20 +294,19 @@ def add_attribute_info_to_data(
 
 def add_warehouse_info_to_data(
     pk: int, warehouse_data: Dict[str, Union[str, int]], result_data: Dict[int, dict],
-) -> Tuple[Dict[int, dict], set]:
+) -> Tuple[Dict[int, dict], Optional[str]]:
     """Add info about stock quantity to variant data.
 
-    This functions adds info about stock quantity and quantity allocated to dict
-    with variant data. It returns updated data and warehouse header created based on
-    warehouse slug.
+    This functions adds info about stock quantity to dict with variant data.
+    It returns updated data and warehouse header created based on warehouse slug.
     """
 
     slug = warehouse_data["slug"]
-    warehouse_headers: Set[str] = set()
+    warehouse_header = None
     if slug:
         warehouse_qty_header = f"{slug} (warehouse quantity)"
         if warehouse_qty_header not in result_data[pk]:
             result_data[pk][warehouse_qty_header] = warehouse_data["qty"]
-            warehouse_headers.add(warehouse_qty_header)
+            warehouse_header = warehouse_qty_header
 
-    return result_data, warehouse_headers
+    return result_data, warehouse_header
