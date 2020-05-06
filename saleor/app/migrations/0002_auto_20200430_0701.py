@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="app",
             name="identificator",
-            field=models.CharField(default="Default", max_length=256),
+            field=models.CharField(blank=True, null=True, max_length=256),
             preserve_default=False,
         ),
         migrations.AddField(
