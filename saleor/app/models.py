@@ -16,7 +16,7 @@ class App(ModelWithMetadata):
     type = models.CharField(
         choices=AppType.CHOICES, default=AppType.CUSTOM, max_length=60
     )
-    identificator = models.CharField(max_length=256)
+    identificator = models.CharField(blank=True, null=True, max_length=256)
     permissions = models.ManyToManyField(
         Permission,
         blank=True,
