@@ -25,7 +25,7 @@ ROOT_URLCONF = "saleor.demo.urls"
 
 PLUGINS += ["saleor.plugins.anonymize.plugin.AnonymizePlugin"]
 
-MIDDLEWARE += ["saleor.core.middleware.ReadOnlyMiddleware"]
+GRAPHENE["MIDDLEWARE"] += ["saleor.graphql.middleware.ReadOnlyMiddleware"]  # type: ignore
 
 BRAINTREE_API_KEY = os.environ.get("BRAINTREE_API_KEY")
 BRAINTREE_MERCHANT_ID = os.environ.get("BRAINTREE_MERCHANT_ID")
