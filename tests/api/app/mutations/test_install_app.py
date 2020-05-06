@@ -53,7 +53,7 @@ def test_install_app_mutation(
     assert int(app_job_data["id"]) == app_job.id
     assert app_job_data["status"] == JobStatus.PENDING.upper()
     assert app_job_data["manifestUrl"] == app_job.manifest_url
-    mocked_task.assert_called_with(app_job.pk)
+    mocked_task.assert_called_with(app_job.pk, True)
 
 
 def test_install_app_mutation_by_app(
@@ -79,7 +79,7 @@ def test_install_app_mutation_by_app(
     assert int(app_job_data["id"]) == app_job.id
     assert app_job_data["status"] == JobStatus.PENDING.upper()
     assert app_job_data["manifestUrl"] == app_job.manifest_url
-    mocked_task.assert_called_with(app_job.pk)
+    mocked_task.assert_called_with(app_job.pk, True)
 
 
 def test_app_install_mutation_out_of_scope_permissions(

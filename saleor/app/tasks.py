@@ -8,10 +8,10 @@ from .models import AppJob
 
 
 @celeryconf.app.task
-def install_app_task(job_id):
+def install_app_task(job_id, activate=False):
     app_job = AppJob.objects.get(id=job_id)
     try:
-        install_app(app_job.manifest_url, app_job.permissions.all())
+        install_app(app_job.manifest_url, app_job.permissions.all(), activate=activate)
         app_job.delete()
         return
     except ValidationError:
