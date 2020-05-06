@@ -48,12 +48,26 @@ if REDIS_URL:
     CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
 CACHES = {"default": django_cache_url.config()}
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor", conn_max_age=600
-    )
-}
+# DATABASES = {
+#     "default": dj_database_url.config(
+#         default="postgres://saleor:saleor@localhost:5432/saleor", conn_max_age=600
+#     )
+# }
 
+DATABASES = {
+    'default': {
+        'ENGINE':
+        'django.db.backends.postgresql_psycopg2',
+        'NAME':
+        'cantinho',  
+        'USER':
+        'postgres',  
+        'PASSWORD':
+        'postgres',  
+        'HOST':
+        'localhost',  
+    }
+}
 
 TIME_ZONE = "America/Chicago"
 LANGUAGE_CODE = "pt-br"
@@ -358,13 +372,17 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_LOCATION = os.environ.get("AWS_LOCATION", "")
 AWS_MEDIA_BUCKET_NAME = os.environ.get("AWS_MEDIA_BUCKET_NAME")
-AWS_MEDIA_CUSTOM_DOMAIN = os.environ.get("AWS_MEDIA_CUSTOM_DOMAIN")
+# AWS_MEDIA_CUSTOM_DOMAIN = os.environ.get("AWS_MEDIA_CUSTOM_DOMAIN")
+AWS_MEDIA_CUSTOM_DOMAIN = f'{AWS_MEDIA_BUCKET_NAME}.s3.amazonaws.com'
 AWS_QUERYSTRING_AUTH = get_bool_from_env("AWS_QUERYSTRING_AUTH", False)
+AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
 AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_STATIC_CUSTOM_DOMAIN")
 AWS_S3_ENDPOINT_URL = os.environ.get("AWS_S3_ENDPOINT_URL", None)
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
 AWS_DEFAULT_ACL = os.environ.get("AWS_DEFAULT_ACL", None)
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
 
 # Google Cloud Storage configuration
 GS_PROJECT_ID = os.environ.get("GS_PROJECT_ID")
@@ -379,6 +397,7 @@ if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
 
 if AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
 elif GS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
 
