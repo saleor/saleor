@@ -776,6 +776,25 @@ def product_with_default_variant(product_type_without_variant, category, warehou
 
 
 @pytest.fixture
+def variant_without_inventory_tracking(
+    product_type_without_variant, category, warehouse
+):
+    product = Product.objects.create(
+        name="Test product without inventory tracking",
+        slug="test-product-without-tracking",
+        price=Money(10, "USD"),
+        product_type=product_type_without_variant,
+        category=category,
+        is_published=True,
+    )
+    variant = ProductVariant.objects.create(
+        product=product, sku="tracking123", track_inventory=False
+    )
+    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=0)
+    return variant
+
+
+@pytest.fixture
 def variant(product) -> ProductVariant:
     product_variant = ProductVariant.objects.create(
         product=product, sku="SKU_A", cost_price=Money(1, "USD")
@@ -1199,6 +1218,30 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
 
 
 @pytest.fixture
+def order_with_line_without_inventory_tracking(
+    order, variant_without_inventory_tracking
+):
+    variant = variant_without_inventory_tracking
+    net = variant.get_price()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    line = order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=3,
+        variant=variant,
+        unit_price=TaxedMoney(net=net, gross=gross),
+        tax_rate=23,
+    )
+
+    recalculate_order(order)
+
+    order.refresh_from_db()
+    return order
+
+
+@pytest.fixture
 def order_events(order):
     for event_type, _ in OrderEvents.CHOICES:
         OrderEvent.objects.create(type=event_type, order=order)
@@ -1255,6 +1298,13 @@ def draft_order(order_with_lines):
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.save(update_fields=["status"])
     return order_with_lines
+
+
+@pytest.fixture
+def draft_order_without_inventory_tracking(order_with_line_without_inventory_tracking):
+    order_with_line_without_inventory_tracking.status = OrderStatus.DRAFT
+    order_with_line_without_inventory_tracking.save(update_fields=["status"])
+    return order_with_line_without_inventory_tracking
 
 
 @pytest.fixture
