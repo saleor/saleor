@@ -183,6 +183,7 @@ class Shop(graphene.ObjectType):
                     code=country[0], country=country[1], vat=taxes.get(country[0])
                 )
                 for country in countries
+                if country is not None
             ]
 
     @staticmethod
