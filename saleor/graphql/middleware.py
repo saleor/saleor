@@ -85,6 +85,15 @@ class ReadOnlyMiddleware:
         if operation != "mutation":
             return next_(root, info, **kwargs)
 
+        # Bypass users authenticated with ROOT_EMAIL
+        request = info.context
+        user = getattr(request, "user", None)
+        if user and not user.is_anonymous:
+            user_email = user.email
+            root_email = getattr(settings, "ROOT_EMAIL", None)
+            if root_email and user_email == root_email:
+                return next_(root, info, **kwargs)
+
         for selection in info.operation.selection_set.selections:
             selection_name = str(selection.name.value)
             blocked = selection_name not in ReadOnlyMiddleware.ALLOWED_MUTATIONS

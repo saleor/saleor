@@ -25,7 +25,7 @@ ROOT_URLCONF = "saleor.demo.urls"
 
 PLUGINS += ["saleor.plugins.anonymize.plugin.AnonymizePlugin"]
 
-GRAPHENE["MIDDLEWARE"] += ["saleor.graphql.middleware.ReadOnlyMiddleware"]  # type: ignore
+GRAPHENE["MIDDLEWARE"].insert(0, "saleor.graphql.middleware.ReadOnlyMiddleware")  # type: ignore
 
 BRAINTREE_API_KEY = os.environ.get("BRAINTREE_API_KEY")
 BRAINTREE_MERCHANT_ID = os.environ.get("BRAINTREE_MERCHANT_ID")
@@ -81,3 +81,6 @@ if DEMO_SENTRY_DSN:
     sentry_sdk.init(
         DEMO_SENTRY_DSN, integrations=[DjangoIntegration()], before_send=before_send,
     )
+
+
+ROOT_EMAIL = os.environ.get("ROOT_EMAIL")
