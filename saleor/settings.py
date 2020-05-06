@@ -386,8 +386,6 @@ PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = "order.Payment"
 
-SESSION_SERIALIZER = "django.contrib.sessions.serializers.JSONSerializer"
-
 MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
 
 TEST_RUNNER = "tests.runner.PytestTestRunner"
