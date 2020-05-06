@@ -1855,7 +1855,9 @@ def other_description_json():
 
 @pytest.fixture
 def app(db):
-    return App.objects.create(name="Sample app objects", is_active=True)
+    app = App.objects.create(name="Sample app objects", is_active=True)
+    app.tokens.create(name="Default")
+    return app
 
 
 @pytest.fixture

@@ -9,7 +9,6 @@ from django.test.client import MULTIPART_CONTENT, Client
 from graphql_jwt.shortcuts import get_token
 
 from saleor.account.models import User
-from saleor.app.models import App
 
 from ..utils import flush_post_commit_hooks
 from .utils import assert_no_permission
@@ -167,10 +166,3 @@ def user_list_not_active(user_list):
     users = User.objects.filter(pk__in=[user.pk for user in user_list])
     users.update(is_active=False)
     return users
-
-
-@pytest.fixture
-def app(db):
-    app = App.objects.create(name="Sample app object", is_active=True)
-    app.tokens.create(name="Default")
-    return app
