@@ -16,6 +16,8 @@ GraphQL query
 import logging
 import re
 
+from sentry_sdk.integrations.celery import CeleryIntegration
+
 from ..settings import *  # noqa: F403, lgtm [py/polluting-import]
 
 logger = logging.getLogger(__name__)
@@ -79,8 +81,7 @@ def before_send(event: dict, _hint: dict):
 DEMO_SENTRY_DSN = os.environ.get("DEMO_SENTRY_DSN")
 if DEMO_SENTRY_DSN:
     sentry_sdk.init(
-        DEMO_SENTRY_DSN, integrations=[DjangoIntegration()], before_send=before_send,
+        DEMO_SENTRY_DSN,
+        integrations=[CeleryIntegration(), DjangoIntegration()],
+        before_send=before_send,
     )
-
-
-ROOT_EMAIL = os.environ.get("ROOT_EMAIL")
