@@ -5,7 +5,8 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from graphql_jwt.exceptions import PermissionDenied
 
-from ....account import events as account_events, models
+from ....account import events as account_events
+from ....account import models
 from ....account.emails import (
     send_set_password_email_with_url,
     send_user_password_reset_email_with_url,
@@ -25,7 +26,6 @@ from ...core.mutations import (
 )
 from ...core.types.common import AccountError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
-
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"

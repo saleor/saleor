@@ -2,7 +2,8 @@ import json
 from typing import Any, Dict, Iterable, List, Tuple, Union
 
 import graphene
-from django.db.models import Model as DjangoModel, Q, QuerySet
+from django.db.models import Model as DjangoModel
+from django.db.models import Q, QuerySet
 from graphene.relay.connection import Connection
 from graphene_django.types import DjangoObjectType
 from graphql.error import GraphQLError

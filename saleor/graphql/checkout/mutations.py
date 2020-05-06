@@ -30,7 +30,8 @@ from ...core.permissions import OrderPermissions
 from ...core.taxes import TaxError
 from ...core.utils.url import validate_storefront_url
 from ...discount import models as voucher_model
-from ...payment import PaymentError, gateway, models as payment_models
+from ...payment import PaymentError, gateway
+from ...payment import models as payment_models
 from ...payment.interface import AddressData
 from ...payment.utils import store_customer_id
 from ...product import models as product_models

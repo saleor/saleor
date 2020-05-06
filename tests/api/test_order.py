@@ -20,7 +20,8 @@ from saleor.graphql.order.mutations.orders import (
 )
 from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
-from saleor.order import OrderStatus, events as order_events
+from saleor.order import OrderStatus
+from saleor.order import events as order_events
 from saleor.order.error_codes import OrderErrorCode
 from saleor.order.models import Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError

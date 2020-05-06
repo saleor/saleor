@@ -3,7 +3,8 @@ import graphene
 from ...account import error_codes as account_error_codes
 from ...app import error_codes as app_error_codes
 from ...checkout import error_codes as checkout_error_codes
-from ...core import JobStatus, error_codes as core_error_codes
+from ...core import JobStatus
+from ...core import error_codes as core_error_codes
 from ...core.permissions import get_permissions_enum_list
 from ...core.weight import WeightUnits
 from ...discount import error_codes as discount_error_codes

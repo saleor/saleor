@@ -9,7 +9,8 @@ from saleor.account.models import User
 from saleor.core.permissions import AccountPermissions, OrderPermissions
 from saleor.discount.models import Sale, Voucher
 from saleor.menu.models import Menu, MenuItem
-from saleor.order import OrderStatus, models as order_models
+from saleor.order import OrderStatus
+from saleor.order import models as order_models
 from saleor.page.models import Page
 from saleor.product.models import (
     Attribute,
