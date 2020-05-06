@@ -9,5 +9,5 @@
     "configuration_url": "htpp://localhost:3000/configuration",
     "app_url": "http://localhost:3000/app",
     "token_target_url": "http://localhost:3000/register",
-    "identificator": "app1"
+    "identificator": "saleor.app.sample",
 }
