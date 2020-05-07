@@ -56,6 +56,8 @@ def get_available_quantity_for_customer(
     stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
     if not stocks:
         return 0
+    if not variant.track_inventory:
+        return settings.MAX_CHECKOUT_LINE_QUANTITY
     return min(_get_available_quantity(stocks), settings.MAX_CHECKOUT_LINE_QUANTITY)
 
 
@@ -68,7 +70,7 @@ def get_quantity_allocated(variant: "ProductVariant", country_code: str) -> int:
 
 def is_variant_in_stock(variant: "ProductVariant", country_code: str) -> bool:
     """Check if variant is available in given country."""
-    quantity_available = get_available_quantity(variant, country_code)
+    quantity_available = get_available_quantity_for_customer(variant, country_code)
     return quantity_available > 0
 
 
