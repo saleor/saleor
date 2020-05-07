@@ -5,7 +5,7 @@ from ...order.models import Order
 from ..core.filters import ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
 from ..payment.enums import PaymentChargeStatusEnum
-from ..utils import filter_by_query_param, filter_range_field
+from ..utils.filters import filter_by_query_param, filter_range_field
 from .enums import OrderStatusFilter
 
 

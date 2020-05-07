@@ -665,6 +665,48 @@ def test_create_weight_shipping_method_errors(
     assert data["shippingErrors"][0]["code"] == ShippingErrorCode.MAX_LESS_THAN_MIN.name
 
 
+def test_create_shipping_method_with_negative_min_weight(
+    shipping_zone, staff_api_client, permission_manage_shipping
+):
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "name": "DHL",
+        "price": 12.34,
+        "minimumOrderWeight": -20,
+        "type": ShippingMethodTypeEnum.WEIGHT.name,
+    }
+    response = staff_api_client.post_graphql(
+        WEIGHT_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceCreate"]
+    error = data["shippingErrors"][0]
+    assert error["field"] == "minimumOrderWeight"
+    assert error["code"] == ShippingErrorCode.INVALID.name
+
+
+def test_create_shipping_method_with_negative_max_weight(
+    shipping_zone, staff_api_client, permission_manage_shipping
+):
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "name": "DHL",
+        "price": 12.34,
+        "maximumOrderWeight": -15,
+        "type": ShippingMethodTypeEnum.WEIGHT.name,
+    }
+    response = staff_api_client.post_graphql(
+        WEIGHT_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceCreate"]
+    error = data["shippingErrors"][0]
+    assert error["field"] == "maximumOrderWeight"
+    assert error["code"] == ShippingErrorCode.INVALID.name
+
+
 def test_update_shipping_method(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):

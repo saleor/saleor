@@ -84,7 +84,7 @@ class StockQuerySet(models.QuerySet):
 
 
 class Stock(models.Model):
-    warehouse = models.ForeignKey(Warehouse, null=False, on_delete=models.PROTECT)
+    warehouse = models.ForeignKey(Warehouse, null=False, on_delete=models.CASCADE)
     product_variant = models.ForeignKey(
         ProductVariant, null=False, on_delete=models.CASCADE, related_name="stocks"
     )

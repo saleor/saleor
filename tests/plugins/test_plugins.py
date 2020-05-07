@@ -12,7 +12,7 @@ def test_update_config_items_keeps_bool_value(plugin_configuration, settings):
         {"name": "Use sandbox", "value": False},
     ]
     manager = get_plugins_manager()
-    plugin_sample = manager.get_plugin(PluginSample.PLUGIN_NAME)
+    plugin_sample = manager.get_plugin(PluginSample.PLUGIN_ID)
     plugin_sample._update_config_items(data_to_update, plugin_sample.configuration)
 
     assert get_config_value("Use sandbox", plugin_sample.configuration) is False
@@ -59,7 +59,7 @@ def test_base_plugin__update_configuration_structure_configuration_has_change(
 def test_base_plugin__append_config_structure_to_config(settings):
     settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
-    plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+    plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     config = [
         {"name": "Username", "value": "my_test_user"},
         {"name": "Password", "value": "my_password"},
@@ -87,7 +87,7 @@ def test_base_plugin__append_config_structure_to_config(settings):
 def test_change_user_address_in_anonymize_plugin_reset_phone(address, settings):
     settings.PLUGINS = ["saleor.plugins.anonymize.plugin.AnonymizePlugin"]
     manager = get_plugins_manager()
-    anonymize_plugin = manager.get_plugin(AnonymizePlugin.PLUGIN_NAME)
+    anonymize_plugin = manager.get_plugin(AnonymizePlugin.PLUGIN_ID)
 
     # ensure that phone is set
     assert address.phone

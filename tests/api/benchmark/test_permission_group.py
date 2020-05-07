@@ -72,7 +72,7 @@ def test_permission_group_create(
 @pytest.mark.count_queries(autouse=False)
 def test_permission_group_update(
     permission_group_manage_users,
-    staff_user,
+    staff_users,
     permission_manage_staff,
     staff_api_client,
     permission_manage_apps,
@@ -103,28 +103,33 @@ def test_permission_group_update(
         }
     }
     """
+    staff_user = staff_users[0]
+    staff_user.user_permissions.add(permission_manage_apps, permission_manage_users)
+    group1, group2 = Group.objects.bulk_create(
+        [Group(name="manage users"), Group(name="manage staff and users")]
+    )
+    group1.permissions.add(permission_manage_users)
+    group2.permissions.add(permission_manage_users, permission_manage_staff)
+
+    group1_user = staff_users[1]
+    group1.user_set.add(group1_user)
+    group2.user_set.add(staff_user)
 
     group_count = Group.objects.count()
 
-    staff_user.user_permissions.add(permission_manage_apps, permission_manage_users)
-    group = permission_group_manage_users
-    group.permissions.add(permission_manage_staff)
-
     variables = {
-        "id": graphene.Node.to_global_id("Group", group.id),
+        "id": graphene.Node.to_global_id("Group", group1.id),
         "input": {
             "name": "New permission group",
             "addPermissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
             "removePermissions": [AccountPermissions.MANAGE_USERS.name],
             "addUsers": [graphene.Node.to_global_id("User", staff_user.pk)],
             "removeUsers": [
-                graphene.Node.to_global_id("User", group.user_set.first().pk)
+                graphene.Node.to_global_id("User", group1.user_set.first().pk)
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=(permission_manage_staff,)
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
 

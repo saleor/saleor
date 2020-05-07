@@ -1,6 +1,7 @@
 import ast
 import os.path
 import warnings
+from datetime import timedelta
 
 import dj_database_url
 import dj_email_url
@@ -385,8 +386,6 @@ PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = "order.Payment"
 
-SESSION_SERIALIZER = "django.contrib.sessions.serializers.JSONSerializer"
-
 MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
 
 TEST_RUNNER = "tests.runner.PytestTestRunner"
@@ -473,9 +472,12 @@ AUTHENTICATION_BACKENDS = [
 # Django GraphQL JWT settings
 GRAPHQL_JWT = {
     "JWT_PAYLOAD_HANDLER": "saleor.graphql.utils.create_jwt_payload",
+    # How long until a token expires, default is 5m from graphql_jwt.settings
+    "JWT_EXPIRATION_DELTA": timedelta(minutes=5),
+    # Whether the JWT tokens should expire or not
+    # Enabled by default in production mode; disabled in development mode by default
+    "JWT_VERIFY_EXPIRATION": get_bool_from_env("JWT_VERIFY_EXPIRATION", not DEBUG),
 }
-if not DEBUG:
-    GRAPHQL_JWT["JWT_VERIFY_EXPIRATION"] = True  # type: ignore
 
 # CELERY SETTINGS
 CELERY_BROKER_URL = (

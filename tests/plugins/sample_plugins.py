@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 
 class PluginSample(BasePlugin):
+    PLUGIN_ID = "plugin.sample"
     PLUGIN_NAME = "PluginSample"
     PLUGIN_DESCRIPTION = "Test plugin description"
     DEFAULT_ACTIVE = True
@@ -97,17 +98,20 @@ class PluginSample(BasePlugin):
 
 
 class PluginInactive(BasePlugin):
+    PLUGIN_ID = "plugin.inactive"
     PLUGIN_NAME = "PluginInactive"
     PLUGIN_DESCRIPTION = "Test plugin description_2"
 
 
 class ActivePlugin(BasePlugin):
+    PLUGIN_ID = "plugin.active"
     PLUGIN_NAME = "Active"
     PLUGIN_DESCRIPTION = "Not working"
     DEFAULT_ACTIVE = True
 
 
 class ActivePaymentGateway(BasePlugin):
+    PLUGIN_ID = "gateway.active"
     CLIENT_CONFIG = [{"field": "foo", "value": "bar"}]
     PLUGIN_NAME = "braintree"
     DEFAULT_ACTIVE = True
@@ -120,6 +124,7 @@ class ActivePaymentGateway(BasePlugin):
 
 
 class InactivePaymentGateway(BasePlugin):
+    PLUGIN_ID = "gateway.inactive"
     PLUGIN_NAME = "stripe"
 
     def process_payment(self, payment_information, previous_value):

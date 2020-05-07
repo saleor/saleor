@@ -266,7 +266,9 @@ class Order(ModelWithMetadata):
         return self.status in statuses
 
     def can_cancel(self):
-        return self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
+        return (
+            not self.fulfillments.exclude(status=FulfillmentStatus.CANCELED).exists()
+        ) and self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
 
     def can_capture(self, payment=None):
         if not payment:

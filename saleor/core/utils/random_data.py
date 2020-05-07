@@ -422,7 +422,7 @@ def create_fake_user(save=True):
 @patch("saleor.order.emails.send_payment_confirmation.delay")
 def create_fake_payment(mock_email_confirmation, order):
     payment = create_payment(
-        gateway="Dummy",
+        gateway="mirumee.payments.dummy",
         customer_ip_address=fake.ipv4(),
         email=order.user_email,
         order=order,
