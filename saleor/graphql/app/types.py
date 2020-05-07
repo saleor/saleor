@@ -61,6 +61,7 @@ class App(CountableDjangoObjectType):
         description="Url to iframe with the configuration for the app."
     )
     app_url = graphene.String(description="Url to iframe with the app.")
+    version = graphene.String(description="Version number of the app.")
 
     class Meta:
         description = "Represents app data."

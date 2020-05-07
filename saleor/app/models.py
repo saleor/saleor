@@ -31,6 +31,7 @@ class App(ModelWithMetadata):
     support_url = models.URLField(blank=True)
     configuration_url = models.URLField(blank=True)
     app_url = models.URLField(blank=True)
+    version = models.CharField(max_length=60, blank=True)
 
     class Meta:
         ordering = ("name", "pk")
