@@ -343,6 +343,10 @@ def match_orders_with_new_user(user: User) -> None:
 
 
 def _chunk_products(products, product_limit):
+    """Split products to list of chunks.
+
+    Each chunk represents products per page, product_limit defines chunk size.
+    """
     chunks = []
     for i in range(0, len(products), product_limit):
         limit = i + product_limit
@@ -351,6 +355,11 @@ def _chunk_products(products, product_limit):
 
 
 def _get_page_count(products_first_page, rest_of_products):
+    """Calculate number of PDF pages.
+
+    Keep track of summary table that might be displayed on last page
+    if product count is too big to include table on that page.
+    """
     if not rest_of_products and len(products_first_page) == 4:
         return 2
     try:
@@ -361,16 +370,23 @@ def _get_page_count(products_first_page, rest_of_products):
 
 
 def generate_invoice_pdf_for_order(invoice):
-    logo_path = static_finders.find("images/logo-light.svg")
+    logo_path = static_finders.find("images/logo.svg")
+    MAX_PRODUCTS_FIRST_PAGE = 4
+    MAX_PRODUCTS_PER_PAGE = 13
 
     all_products = invoice.order.lines.all()
-    _product_limit = 3 if len(all_products) < 4 else 4
+    _product_limit = (
+        3 if len(all_products) < MAX_PRODUCTS_FIRST_PAGE else MAX_PRODUCTS_FIRST_PAGE
+    )
     products_first_page = all_products[:_product_limit]
-    rest_of_products = _chunk_products(all_products[_product_limit:], 13)
+    rest_of_products = _chunk_products(
+        all_products[_product_limit:], MAX_PRODUCTS_PER_PAGE
+    )
 
     rendered_template = get_template("invoice.html").render(
         {
             "invoice": invoice,
+            "creation_date": invoice.created.strftime("%d %b %Y"),
             "order": invoice.order,
             "logo_path": f"file://{logo_path}",
             "products_first_page": products_first_page,
