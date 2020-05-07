@@ -1,5 +1,4 @@
 import graphene
-from graphene import relay
 from graphql_jwt.exceptions import PermissionDenied
 
 from ...core.permissions import AccountPermissions
@@ -14,7 +13,7 @@ class ExportFile(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents a job data of exported file."
-        interfaces = [relay.Node, Job]
+        interfaces = [graphene.relay.Node, Job]
         model = models.ExportFile
         only_fields = ["id", "created_by", "url"]
 
