@@ -7,6 +7,7 @@ from django.utils import timezone
 from ...celeryconf import app
 from ...core import JobStatus
 from ...product.models import Product
+from .. import ExportEvents, events
 from ..emails import send_email_with_link_to_download_csv
 from ..models import ExportFile
 from .products_data import get_products_data
@@ -18,16 +19,23 @@ if TYPE_CHECKING:
 
 def on_task_failure(self, exc, task_id, args, kwargs, einfo):
     export_file_id = args[0]
-    update_export_file_when_task_finished(export_file_id, JobStatus.FAILED)
+    export_file = ExportFile.objects.get(pk=export_file_id)
+    update_export_file_when_task_finished(export_file, JobStatus.FAILED)
+    events.data_export_failed_event(
+        export_file=export_file, user=export_file.created_by, message=str(exc)
+    )
 
 
 def on_task_success(self, retval, task_id, args, kwargs):
     export_file_id = args[0]
-    update_export_file_when_task_finished(export_file_id, JobStatus.SUCCESS)
-
-
-def update_export_file_when_task_finished(export_file_id: int, status: JobStatus):
     export_file = ExportFile.objects.get(pk=export_file_id)
+    update_export_file_when_task_finished(export_file, JobStatus.SUCCESS)
+    events.data_export_success_event(
+        export_file=export_file, user=export_file.created_by
+    )
+
+
+def update_export_file_when_task_finished(export_file: ExportFile, status: JobStatus):
     export_file.status = status  # type: ignore
     export_file.save(update_fields=["status", "updated_at"])
 
