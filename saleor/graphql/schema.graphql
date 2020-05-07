@@ -307,7 +307,7 @@ input AppTokenInput {
 
 enum AppTypeEnum {
   CUSTOM
-  FROM_MARKETPLACE
+  EXTERNAL
 }
 
 type AppUpdate {

@@ -1866,7 +1866,7 @@ def external_app(db):
     app = App.objects.create(
         name="External App",
         is_active=True,
-        type=AppType.FROM_MARKETPLACE,
+        type=AppType.EXTERNAL,
         identificator="mirumee.app.sample",
         about_app="About app text.",
         data_privacy="Data privacy text.",

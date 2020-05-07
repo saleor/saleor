@@ -1,5 +1,5 @@
 class AppType:
     CUSTOM = "custom"
-    FROM_MARKETPLACE = "from_marketplace"
+    EXTERNAL = "external"
 
-    CHOICES = [(CUSTOM, "custom"), (FROM_MARKETPLACE, "from_marketplace")]
+    CHOICES = [(CUSTOM, "custom"), (EXTERNAL, "EXTERNAL")]

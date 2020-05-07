@@ -1,12 +1,10 @@
-from typing import Iterable
-
 import requests
-from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
+from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db import transaction
 
-from .models import App
+from .models import App, AppJob
 from .types import AppType
 
 REQUEST_TIMEOUT = 30
@@ -23,24 +21,27 @@ def send_app_token(target_url: str, token: str):
 
 
 def validate_manifest_fields(manifest_data):
-    pass
+    token_target_url = manifest_data.get("token_target_url")
+
+    try:
+        url_validator = URLValidator()
+        url_validator(token_target_url)
+    except ValidationError:
+        raise ValidationError({"token_target_url": "Incorrect format."})
 
 
 @transaction.atomic
 def install_app(
-    manifest_url: str,
-    required_permissions: Iterable[Permission],
-    activate: bool = False,
+    app_job: AppJob, activate: bool = False,
 ):
-    manifest_data = requests.get(manifest_url, timeout=REQUEST_TIMEOUT).json()
+    response = requests.get(app_job.manifest_url, timeout=REQUEST_TIMEOUT)
+    response.raise_for_status()
+    manifest_data = response.json()
+
     validate_manifest_fields(manifest_data)
 
-    token_target_url = manifest_data.get("token_target_url")
-    url_validator = URLValidator()
-    url_validator(token_target_url)
-
     app = App.objects.create(
-        name=manifest_data.get("name"),
+        name=app_job.name,
         is_active=activate,
         identificator=manifest_data.get("identificator"),
         about_app=manifest_data.get("about_app"),
@@ -50,9 +51,11 @@ def install_app(
         support_url=manifest_data.get("support_url"),
         configuration_url=manifest_data.get("configuration_url"),
         app_url=manifest_data.get("app_url"),
-        type=AppType.FROM_MARKETPLACE,
+        type=AppType.EXTERNAL,
     )
-    app.permissions.set(required_permissions)
+    app.permissions.set(app_job.permissions.all())
     token = app.tokens.create(name="Default token")
-    send_app_token(target_url=token_target_url, token=token.auth_token)
+    send_app_token(
+        target_url=manifest_data.get("token_target_url"), token=token.auth_token
+    )
     return app
