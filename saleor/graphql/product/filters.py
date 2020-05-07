@@ -22,12 +22,8 @@ from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types import FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
 from ..core.utils import from_global_id_strict_type
-from ..utils import (
-    filter_by_query_param,
-    filter_range_field,
-    get_nodes,
-    resolve_global_ids_to_primary_keys,
-)
+from ..utils import get_nodes, resolve_global_ids_to_primary_keys
+from ..utils.filters import filter_by_query_param, filter_range_field
 from ..warehouse import types as warehouse_types
 from . import types
 from .enums import (

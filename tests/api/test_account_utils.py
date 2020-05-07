@@ -14,6 +14,7 @@ from saleor.graphql.account.utils import (
     get_group_to_permissions_and_users_mapping,
     get_groups_which_user_can_manage,
     get_not_manageable_permissions_after_group_deleting,
+    get_not_manageable_permissions_after_removing_perms_from_group,
     get_not_manageable_permissions_after_removing_users_from_group,
     get_not_manageable_permissions_when_deactivate_or_remove_users,
     get_out_of_scope_permissions,
@@ -534,11 +535,11 @@ def test_get_not_manageable_permissions_removing_users_from_group(
     group.permissions.add(permission_manage_staff)
     group.user_set.add(*staff_users)
 
-    permissions = get_not_manageable_permissions_after_removing_users_from_group(
+    missing_perms = get_not_manageable_permissions_after_removing_users_from_group(
         group, staff_users[1:]
     )
 
-    assert not permissions
+    assert not missing_perms
 
 
 def test_get_not_manageable_perms_removing_users_from_group_user_from_group_can_manage(
@@ -559,11 +560,11 @@ def test_get_not_manageable_perms_removing_users_from_group_user_from_group_can_
     group1.user_set.add(*staff_users)
     group2.user_set.add(staff_user1)
 
-    permissions = get_not_manageable_permissions_after_removing_users_from_group(
+    missing_perms = get_not_manageable_permissions_after_removing_users_from_group(
         group1, [staff_user2]
     )
 
-    assert not permissions
+    assert not missing_perms
 
 
 def test_get_notmanageable_perms_removing_users_from_group_user_out_of_group_can_manage(
@@ -584,11 +585,11 @@ def test_get_notmanageable_perms_removing_users_from_group_user_out_of_group_can
     group1.user_set.add(staff_user1)
     group2.user_set.add(staff_user2)
 
-    permissions = get_not_manageable_permissions_after_removing_users_from_group(
+    missing_perms = get_not_manageable_permissions_after_removing_users_from_group(
         group1, [staff_user1]
     )
 
-    assert not permissions
+    assert not missing_perms
 
 
 def test_get_not_manageable_perms_removing_users_from_group_some_cannot_be_manage(
@@ -618,11 +619,11 @@ def test_get_not_manageable_perms_removing_users_from_group_some_cannot_be_manag
     group2.user_set.add(staff_user2)
     group3.user_set.add(staff_user1)
 
-    permissions = get_not_manageable_permissions_after_removing_users_from_group(
+    missing_perms = get_not_manageable_permissions_after_removing_users_from_group(
         group1, [staff_user1]
     )
 
-    assert permissions == {AccountPermissions.MANAGE_USERS.value}
+    assert missing_perms == {AccountPermissions.MANAGE_USERS.value}
 
 
 def test_get_not_manageable_permissions_when_deactivate_or_remove_user_no_permissions(
@@ -651,11 +652,11 @@ def test_get_not_manageable_permissions_when_deactivate_or_remove_user_no_permis
     group2.user_set.add(staff_user2, staff_user1)
     group3.user_set.add(staff_user2)
 
-    permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
+    missing_perms = get_not_manageable_permissions_when_deactivate_or_remove_users(
         [staff_user1]
     )
 
-    assert not permissions
+    assert not missing_perms
 
 
 def test_get_not_manageable_permissions_when_deactivate_or_remove_users_some_perms(
@@ -684,11 +685,11 @@ def test_get_not_manageable_permissions_when_deactivate_or_remove_users_some_per
     group2.user_set.add(staff_user2, staff_user1, staff_user3)
     group3.user_set.add(staff_user2)
 
-    permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
+    missing_perms = get_not_manageable_permissions_when_deactivate_or_remove_users(
         [staff_user1, staff_user2]
     )
 
-    assert permissions == {
+    assert missing_perms == {
         AccountPermissions.MANAGE_USERS.value,
         OrderPermissions.MANAGE_ORDERS.value,
     }
@@ -719,11 +720,83 @@ def test_get_not_manageable_permissions_deactivate_or_remove_user_cant_manage_st
     group2.user_set.add(staff_user2)
     group3.user_set.add(staff_user2)
 
-    permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
+    missing_perms = get_not_manageable_permissions_when_deactivate_or_remove_users(
         [staff_user1]
     )
 
-    assert not permissions
+    assert not missing_perms
+
+
+def test_get_not_manageable_permissions_after_removing_perms_from_group_no_perms(
+    staff_users,
+    permission_manage_users,
+    permission_manage_products,
+    permission_manage_staff,
+    permission_manage_orders,
+):
+    """Ensure no permissions are returned when all perms will be manageable after removing
+    permissions from group."""
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users and products"),
+            Group(name="manage staff"),
+            Group(name="manage orders and users"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users, permission_manage_products)
+    group2.permissions.add(permission_manage_staff)
+    group3.permissions.add(permission_manage_orders, permission_manage_users)
+
+    staff_user1, staff_user2, staff_user3 = staff_users
+    group1.user_set.add(staff_user1)
+    group2.user_set.add(staff_user2, staff_user1, staff_user3)
+    group3.user_set.add(staff_user2)
+
+    missing_perms = get_not_manageable_permissions_after_removing_perms_from_group(
+        group1, [AccountPermissions.MANAGE_USERS.value]
+    )
+
+    assert not missing_perms
+
+
+def test_get_not_manageable_permissions_after_removing_perms_from_group_some_cannot(
+    staff_users,
+    permission_manage_users,
+    permission_manage_products,
+    permission_manage_staff,
+    permission_manage_orders,
+):
+    """Ensure permissions are returned when not all perms will be manageable after
+    removing permissions from group."""
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users and products"),
+            Group(name="manage staff"),
+            Group(name="manage orders and products"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users, permission_manage_products)
+    group2.permissions.add(permission_manage_staff)
+    group3.permissions.add(permission_manage_orders, permission_manage_products)
+
+    staff_user1, staff_user2, staff_user3 = staff_users
+    group1.user_set.add(staff_user1)
+    group2.user_set.add(staff_user2, staff_user1, staff_user3)
+    group3.user_set.add(staff_user2)
+
+    missing_perms = get_not_manageable_permissions_after_removing_perms_from_group(
+        group1,
+        [
+            AccountPermissions.MANAGE_USERS.value,
+            ProductPermissions.MANAGE_PRODUCTS.value,
+        ],
+    )
+
+    assert missing_perms == {AccountPermissions.MANAGE_USERS.value}
 
 
 def test_can_manage_app_no_permission(

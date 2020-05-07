@@ -284,6 +284,21 @@ def get_not_manageable_permissions_when_deactivate_or_remove_users(users: List["
     return not_manageable_permissions
 
 
+def get_not_manageable_permissions_after_removing_perms_from_group(
+    group: Group, permissions: List["str"]
+):
+    """Return permissions that cannot be managed after removing permissions from group.
+
+    After removing permissions from group, for each permission, there should be at least
+    one staff member who can manage it (has both “manage staff” and this permission).
+    """
+    groups_data = get_group_to_permissions_and_users_mapping()
+    groups_data.pop(group.pk)
+    not_manageable_permissions = set(permissions)
+
+    return get_not_manageable_permissions(groups_data, not_manageable_permissions)
+
+
 def get_not_manageable_permissions_after_removing_users_from_group(
     group: Group, users: List["User"]
 ):
@@ -322,10 +337,14 @@ def get_not_manageable_permissions_after_group_deleting(group):
     After removing group, for each permission, there should be at least one staff member
     who can manage it (has both “manage staff” and this permission).
     """
-    group_pk = group.pk
     groups_data = get_group_to_permissions_and_users_mapping()
-    not_manageable_permissions = groups_data.pop(group_pk)["permissions"]
+    not_manageable_permissions = groups_data.pop(group.pk)["permissions"]
+    return get_not_manageable_permissions(groups_data, not_manageable_permissions)
 
+
+def get_not_manageable_permissions(
+    groups_data: dict, not_manageable_permissions: Set[str],
+):
     # get users from groups with manage staff and look for not_manageable_permissions
     # if any of not_manageable_permissions is found it is removed from set
     manage_staff_users = get_users_and_look_for_permissions_in_groups_with_manage_staff(
