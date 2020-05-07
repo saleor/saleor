@@ -8,6 +8,15 @@
         @page {
             background-color: #FAFAFA;
             margin: 0.5cm;
+            @bottom-right {
+                content: counter(page) " of " counter(pages);
+                font-style: normal;
+                font-weight: normal;
+                font-size: 13px;
+                letter-spacing: 0.02em;
+                color: rgba(40, 35, 74, 0.6);
+                margin: -15px 28px 40px 0;
+            }
         }
 
         body {
@@ -33,7 +42,7 @@
         .header-category {
             font-style: normal;
             font-weight: normal;
-            font-size: 14px;
+            font-size: 13px;
             letter-spacing: 0.02em;
             color: rgba(40, 35, 74, 0.6);
 
@@ -46,7 +55,7 @@
 
             font-style: normal;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
             letter-spacing: 0.02em;
             color: #28234A;
         }
@@ -55,7 +64,7 @@
             display: block;
             font-style: normal;
             font-weight: 600;
-            font-size: 19px;
+            font-size: 18px;
             letter-spacing: 0.02em;
             padding-bottom: 5px;
             color: #28234A;
@@ -74,6 +83,7 @@
         }
 
         .normal-text {
+            font-size: 14px;
             color: #28234A;
             line-height: 1.4;
         }
@@ -134,16 +144,6 @@
             display: inline-block;
             width: 100%;
             border-bottom: 2px solid #EFF5F8;
-        }
-
-        .page-counter {
-            float: right;
-        }
-
-        .page-footer {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
         }
 
         .page-break {
@@ -286,32 +286,18 @@
     <div class="content-padded">
         <span class="header-title">{% trans "ITEMS ORDERED" context "Invoice PDF table header" %}</span>
         {% include "invoice_products_table.html" with products=products_first_page %}
-        <div class="page-footer">
-            <span class="page-counter header-category">
-                1 / {{ page_count }}
-            </span>
-        </div>
         {% if not rest_of_products|length %}
             {% if products_first_page|length == 4 %}
                 <div class="page-break"></div>
-                <div class="page-footer">
-                    <span class="page-counter header-category">2 / 2</span>
-                </div>
             {% endif %}
             {% include "invoice_summary_table.html" with order=order %}
         {% else %}
             {% for product_set in rest_of_products %}
                 <div class="page-break"></div>
-                <div class="page-footer">
-                    <span class="page-counter header-category">{{ forloop.counter|add:1 }} / {{ page_count }}</span>
-                </div>
                 {% include "invoice_products_table.html" with products=product_set %}
                 {% if forloop.last %}
                     {% if product_set|length > 11 %}
                         <div class="page-break"></div>
-                        <div class="page-footer">
-                            <span class="page-counter header-category">{{ forloop.counter|add:2 }} / {{ page_count }}</span>
-                        </div>
                     {% endif %}
                     {% include "invoice_summary_table.html" with order=order %}
                 {% endif %}
