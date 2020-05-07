@@ -8,6 +8,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ability to query category, collection or product by slug - #5574 by @koradon
 
 ## 2.10.0
+- Use tags rather than time-based logs for information on requests - #5608 by @NyanKiyoshi
 
 - OpenTracing support - #5188 by @tomaszszymanski129
 - Account confirmation email - #5126 by @tomaszszymanski129
