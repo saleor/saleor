@@ -23,23 +23,10 @@ from saleor.order.models import Order
 from saleor.payment import TransactionKind
 from saleor.payment.interface import GatewayResponse
 from saleor.plugins.manager import PluginsManager
-from saleor.shipping import ShippingMethodType
-from saleor.shipping.models import ShippingMethod
 from saleor.warehouse.models import Stock
 
 from ..utils import get_available_quantity_for_stock
 from .utils import assert_no_permission, get_graphql_content
-
-
-@pytest.fixture
-def other_shipping_method(shipping_zone):
-    return ShippingMethod.objects.create(
-        name="DPD",
-        minimum_order_price=Money(0, "USD"),
-        type=ShippingMethodType.PRICE_BASED,
-        price=Money(9, "USD"),
-        shipping_zone=shipping_zone,
-    )
 
 
 @pytest.fixture(autouse=True)

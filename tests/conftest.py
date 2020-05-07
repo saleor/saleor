@@ -217,6 +217,35 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_with_shipping_required(checkout_with_item, product):
+    checkout = checkout_with_item
+    variant = product.variants.get()
+    add_variant_to_checkout(checkout, variant, 3)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
+def other_shipping_method(shipping_zone):
+    return ShippingMethod.objects.create(
+        name="DPD",
+        minimum_order_price=Money(0, "USD"),
+        type=ShippingMethodType.PRICE_BASED,
+        price=Money(9, "USD"),
+        shipping_zone=shipping_zone,
+    )
+
+
+@pytest.fixture
+def checkout_without_shipping_required(checkout, product_without_shipping):
+    checkout = checkout
+    variant = product_without_shipping.variants.get()
+    add_variant_to_checkout(checkout, variant, 1)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def checkout_with_single_item(checkout, product):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, 1)
