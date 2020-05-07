@@ -76,6 +76,18 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         return max(checkout_total, zero_taxed_money(checkout_total.currency))
 
     @classmethod
+    def clean_shipping_method(cls, checkout):
+        if not checkout.shipping_method:
+            raise ValidationError(
+                {
+                    "shipping_method": ValidationError(
+                        "Shipping method not set for this checkout.",
+                        code=PaymentErrorCode.SHIPPING_METHOD_NOT_SET,
+                    )
+                }
+            )
+
+    @classmethod
     def clean_billing_address(cls, billing_address):
         if billing_address is None:
             raise ValidationError(
@@ -114,9 +126,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         checkout_total = cls.calculate_total(info, checkout)
         amount = data.get("amount", checkout_total.gross.amount)
 
+        if checkout.is_shipping_required():
+            cls.clean_shipping_method(checkout)
         cls.clean_billing_address(checkout.billing_address)
         cls.clean_payment_amount(info, checkout_total, amount)
-
         extra_data = {"customer_user_agent": info.context.META.get("HTTP_USER_AGENT")}
 
         payment = create_payment(

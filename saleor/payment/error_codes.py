@@ -7,6 +7,7 @@ class PaymentErrorCode(Enum):
     INVALID = "invalid"
     NOT_FOUND = "not_found"
     PARTIAL_PAYMENT_NOT_ALLOWED = "partial_payment_not_allowed"
+    SHIPPING_METHOD_NOT_SET = "shipping_method_not_set"
     PAYMENT_ERROR = "payment_error"
     REQUIRED = "required"
     UNIQUE = "unique"
