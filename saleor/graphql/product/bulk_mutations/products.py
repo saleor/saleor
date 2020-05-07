@@ -373,10 +373,11 @@ class ProductVariantStocksCreate(BaseMutation):
         variant = cls.get_node_or_error(
             info, data["variant_id"], only_type=ProductVariant
         )
-        warehouses = cls.clean_stocks_input(variant, stocks, errors)
-        if errors:
-            raise ValidationError(errors)
-        create_stocks(variant, stocks, warehouses)
+        if stocks:
+            warehouses = cls.clean_stocks_input(variant, stocks, errors)
+            if errors:
+                raise ValidationError(errors)
+            create_stocks(variant, stocks, warehouses)
         return cls(product_variant=variant)
 
     @classmethod

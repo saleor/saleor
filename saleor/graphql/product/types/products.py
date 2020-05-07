@@ -41,7 +41,8 @@ from ...translations.types import (
     ProductTranslation,
     ProductVariantTranslation,
 )
-from ...utils import get_database_id, reporting_period_to_date
+from ...utils import get_database_id
+from ...utils.filters import reporting_period_to_date
 from ...warehouse.types import Stock
 from ..dataloaders import (
     CategoryByIdLoader,
@@ -459,7 +460,11 @@ class Product(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_category(root: models.Product, info):
-        return CategoryByIdLoader(info.context).load(root.category_id)
+        category_id = root.category_id
+        if category_id is None:
+            return None
+
+        return CategoryByIdLoader(info.context).load(category_id)
 
     @staticmethod
     def resolve_tax_type(root: models.Product, info):

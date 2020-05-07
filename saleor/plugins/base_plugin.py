@@ -43,6 +43,7 @@ class BasePlugin:
     """
 
     PLUGIN_NAME = ""
+    PLUGIN_ID = ""
     PLUGIN_DESCRIPTION = ""
     CONFIG_STRUCTURE = None
     DEFAULT_CONFIGURATION = []
