@@ -27,7 +27,7 @@ def test_get_products_data(mock_prepare_products_data, product_list):
         **product_headers["product"],
         **product_headers["product_many_to_many"],
         **product_headers["variant"],
-        **product_headers["common"],
+        **product_headers["images"],
     }
     expected_headers = list(expected_csv_headers.keys()) + attr_and_warehouse_headers
 
@@ -60,7 +60,7 @@ def test_prepare_products_data(product, product_with_image, collection, image):
         product_data["product_currency"] = product.currency
         product_data["product_type__name"] = product.product_type.name
         product_data["id"] = product.pk
-        product_data["images"] = (
+        product_data["product_images"] = (
             ""
             if not product.images.all()
             else "http://mirumee.com{}".format(product.images.first().image.url)
@@ -72,35 +72,32 @@ def test_prepare_products_data(product, product_with_image, collection, image):
             product_data[header] = assigned_attribute.values.first().slug
             expected_headers.add(header)
 
-        expected_data.append(product_data)
-
         for variant in product.variants.all():
-            variant_data = {}
-            variant_data["images"] = (
+            product_data["variant_images"] = (
                 ""
                 if not variant.images.all()
                 else "http://mirumee.com{}".format(variant.images.first().image.url)
             )
-            variant_data["sku"] = variant.sku
-            variant_data["variant_currency"] = variant.currency
-            variant_data["price_override_amount"] = variant.price_override_amount
-            variant_data["cost_price_amount"] = variant.cost_price_amount
+            product_data["sku"] = variant.sku
+            product_data["variant_currency"] = variant.currency
+            product_data["price_override_amount"] = variant.price_override_amount
+            product_data["cost_price_amount"] = variant.cost_price_amount
 
             for stock in variant.stocks.all():
                 slug = stock.warehouse.slug
                 warehouse_headers = [
                     f"{slug} (warehouse quantity)",
                 ]
-                variant_data[warehouse_headers[0]] = stock.quantity
+                product_data[warehouse_headers[0]] = stock.quantity
                 expected_headers.update(warehouse_headers)
 
             assigned_attribute = variant.attributes.first()
             if assigned_attribute:
                 header = f"{assigned_attribute.attribute.slug} (attribute)"
-                variant_data[header] = assigned_attribute.values.first().slug
+                product_data[header] = assigned_attribute.values.first().slug
                 expected_headers.add(header)
 
-            expected_data.append(variant_data)
+            expected_data.append(product_data)
 
     assert data == expected_data
     assert set(headers) == expected_headers
@@ -122,7 +119,7 @@ def test_prepare_product_relations_data(product_with_image, collection_list):
             for image in product_with_image.images.all()
         ]
     )
-    expected_result = {pk: {"collections": collections, "images": images}}
+    expected_result = {pk: {"collections": collections, "product_images": images}}
 
     assigned_attribute = product_with_image.attributes.first()
     if assigned_attribute:
@@ -138,7 +135,9 @@ def test_prepare_variants_data(product):
     warehouse_headers = set()
     attribute_headers = set()
 
-    expected_result = {
+    data = {"id": 123, "name": "test_product"}
+
+    variant_data = {
         "sku": variant.sku,
         "cost_price_amount": variant.cost_price_amount,
         "price_override_amount": variant.price_override_amount,
@@ -147,7 +146,7 @@ def test_prepare_variants_data(product):
     assigned_attribute = variant.attributes.first()
     if assigned_attribute:
         header = f"{assigned_attribute.attribute.slug} (attribute)"
-        expected_result[header] = assigned_attribute.values.first().slug
+        variant_data[header] = assigned_attribute.values.first().slug
         attribute_headers.add(header)
 
     for stock in variant.stocks.all():
@@ -155,12 +154,14 @@ def test_prepare_variants_data(product):
         headers = [
             f"{slug} (warehouse quantity)",
         ]
-        expected_result[headers[0]] = stock.quantity
+        variant_data[headers[0]] = stock.quantity
         warehouse_headers.update(headers)
 
     result_data, res_attribute_headers, res_warehouse_headers = prepare_variants_data(
-        product.pk
+        product.pk, data
     )
+
+    expected_result = {**data, **variant_data}
 
     assert result_data == [expected_result]
     assert res_attribute_headers == attribute_headers
@@ -198,27 +199,31 @@ def test_add_collection_info_to_data_no_collection(product):
 def test_add_image_uris_to_data(product):
     pk = product.pk
     image_path = "test/path/image.jpg"
+    field = "variant_images"
     input_data = {pk: {}}
-    result = add_image_uris_to_data(product.pk, image_path, input_data)
+    result = add_image_uris_to_data(product.pk, image_path, field, input_data)
 
-    assert result[pk]["images"] == {"http://mirumee.com/media/" + image_path}
+    assert result[pk][field] == {"http://mirumee.com/media/" + image_path}
 
 
 def test_add_image_uris_to_data_update_images(product):
     pk = product.pk
     old_path = "http://mirumee.com/media/test/image0.jpg"
     image_path = "test/path/image.jpg"
-    input_data = {pk: {"images": {old_path}}}
-    result = add_image_uris_to_data(product.pk, image_path, input_data)
+    input_data = {pk: {"product_images": {old_path}}}
+    field = "product_images"
+    result = add_image_uris_to_data(product.pk, image_path, field, input_data)
 
-    assert result[pk]["images"] == {"http://mirumee.com/media/" + image_path, old_path}
+    assert result[pk][field] == {"http://mirumee.com/media/" + image_path, old_path}
 
 
 def test_add_image_uris_to_data_no_image_path(product):
     pk = product.pk
     image_path = None
     input_data = {pk: {"name": "test"}}
-    result = add_image_uris_to_data(product.pk, image_path, input_data)
+    result = add_image_uris_to_data(
+        product.pk, image_path, "product_images", input_data
+    )
 
     assert result == input_data
 
@@ -281,11 +286,9 @@ def test_add_warehouse_info_to_data(product):
     input_data = {pk: {}}
     result, headers = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
 
-    expected_headers = [
-        f"{slug} (warehouse quantity)",
-    ]
-    assert result[pk][expected_headers[0]] == 12
-    assert headers == set(expected_headers)
+    expected_header = f"{slug} (warehouse quantity)"
+    assert result[pk][expected_header] == 12
+    assert headers == expected_header
 
 
 def test_add_warehouse_info_to_data_data_not_changed(product):
@@ -305,7 +308,7 @@ def test_add_warehouse_info_to_data_data_not_changed(product):
     result, headers = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
 
     assert result == input_data
-    assert headers == set()
+    assert headers is None
 
 
 def test_add_warehouse_info_to_data_data_no_slug(product):
@@ -319,4 +322,4 @@ def test_add_warehouse_info_to_data_data_no_slug(product):
     result, headers = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
 
     assert result == input_data
-    assert headers == set()
+    assert headers is None
