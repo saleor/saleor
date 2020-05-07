@@ -130,6 +130,7 @@
   }
 }
 
+
 .navbar {
   padding: 0;
   @include media-breakpoint-down(sm) {
@@ -185,11 +186,12 @@
       display: inline-block;
       span {
         position: absolute;
-        top: 1.3rem;
+        top: 2.3rem;
         left: 1.1rem;
         text-transform: uppercase;
-        font-size: 0.45rem;
+        font-size: 3.45rem;
       }
+      // testando wat
       svg {
         height: 30px;
         vertical-align: top;

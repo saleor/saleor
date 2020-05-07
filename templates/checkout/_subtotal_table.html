@@ -13,10 +13,7 @@
             {% price checkout_subtotal %}
             {% if local_checkout_subtotal is not None and local_checkout_subtotal.gross %}
               <br>
-              <small>
-                &asymp;
-                {% price local_checkout_subtotal %}
-              </small>
+              <small> &asymp; {% price local_checkout_subtotal %} </small>
             {% endif %}
           {% endspaceless %}
         </h3>
