@@ -3304,6 +3304,47 @@ def test_variant_digital_content(
     assert "id" in content["data"]["productVariant"]["digitalContent"]
 
 
+def test_variant_availability_without_inventory_tracking(
+    api_client, variant_without_inventory_tracking, settings
+):
+    query = """
+    query variantAvailability($id: ID!) {
+        productVariant(id: $id) {
+            isAvailable
+            stockQuantity
+        }
+    }
+    """
+    variant = variant_without_inventory_tracking
+    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["isAvailable"] is True
+    assert variant_data["stockQuantity"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+
+
+def test_variant_availability_without_inventory_tracking_not_available(
+    api_client, variant_without_inventory_tracking, settings
+):
+    query = """
+    query variantAvailability($id: ID!) {
+        productVariant(id: $id) {
+            isAvailable
+            stockQuantity
+        }
+    }
+    """
+    variant = variant_without_inventory_tracking
+    variant.stocks.all().delete()
+    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["isAvailable"] is False
+    assert variant_data["stockQuantity"] == 0
+
+
 @pytest.mark.parametrize(
     "collection_filter, count",
     [
