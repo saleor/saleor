@@ -142,28 +142,55 @@ def test_clean_mark_order_as_paid(payment_txn_preauth):
         clean_mark_order_as_paid(order)
 
 
-def test_cancel_fulfillment(fulfilled_order):
+def test_cancel_fulfillment(fulfilled_order, warehouse):
     fulfillment = fulfilled_order.fulfillments.first()
-    line_1 = fulfillment.lines.first()
-    line_2 = fulfillment.lines.first()
+    line_1, line_2 = fulfillment.lines.all()
 
-    cancel_fulfillment(fulfillment, None, restock=False)
+    cancel_fulfillment(fulfillment, None, warehouse)
 
+    fulfillment.refresh_from_db()
+    fulfilled_order.refresh_from_db()
     assert fulfillment.status == FulfillmentStatus.CANCELED
     assert fulfilled_order.status == OrderStatus.UNFULFILLED
     assert line_1.order_line.quantity_fulfilled == 0
     assert line_2.order_line.quantity_fulfilled == 0
 
 
-def test_cancel_order(fulfilled_order):
-    cancel_order(fulfilled_order, None, restock=False)
-    assert all(
-        [
-            f.status == FulfillmentStatus.CANCELED
-            for f in fulfilled_order.fulfillments.all()
-        ]
-    )
-    assert fulfilled_order.status == OrderStatus.CANCELED
+def test_cancel_fulfillment_variant_witout_inventory_tracking(
+    fulfilled_order_without_inventory_tracking, warehouse
+):
+    fulfillment = fulfilled_order_without_inventory_tracking.fulfillments.first()
+    line = fulfillment.lines.first()
+    stock = line.order_line.variant.stocks.get()
+    stock_quantity_before = stock.quantity
+
+    cancel_fulfillment(fulfillment, None, warehouse)
+
+    fulfillment.refresh_from_db()
+    line.refresh_from_db()
+    fulfilled_order_without_inventory_tracking.refresh_from_db()
+    assert fulfillment.status == FulfillmentStatus.CANCELED
+    assert line.order_line.quantity_fulfilled == 0
+    assert fulfilled_order_without_inventory_tracking.status == OrderStatus.UNFULFILLED
+    assert stock_quantity_before == line.order_line.variant.stocks.get().quantity
+
+
+def test_cancel_order(fulfilled_order_with_all_cancelled_fulfillments):
+    order = fulfilled_order_with_all_cancelled_fulfillments
+
+    assert Allocation.objects.filter(
+        order_line__order=order, quantity_allocated__gt=0
+    ).exists()
+
+    cancel_order(order, None)
+
+    order_event = order.events.last()
+    assert order_event.type == OrderEvents.CANCELED
+
+    assert order.status == OrderStatus.CANCELED
+    assert not Allocation.objects.filter(
+        order_line__order=order, quantity_allocated__gt=0
+    ).exists()
 
 
 def test_fulfill_order_line(order_with_lines):

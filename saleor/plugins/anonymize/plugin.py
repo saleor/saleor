@@ -12,6 +12,7 @@ class AnonymizePlugin(BasePlugin):
     """Anonymize all user data in the checkout, user profile and its orders."""
 
     PLUGIN_NAME = "Anonymize"
+    PLUGIN_ID = "mirumee.anonymize"
     DEFAULT_ACTIVE = True
     PLUGIN_DESCRIPTION = (
         "Anonymize customer's personal data in the checkout, such as shipping "

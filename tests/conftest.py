@@ -39,7 +39,7 @@ from saleor.graphql.order.enums import InvoiceStatus
 from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 from saleor.menu.utils import update_menu
 from saleor.order import OrderStatus
-from saleor.order.actions import fulfill_order_line
+from saleor.order.actions import cancel_fulfillment, fulfill_order_line
 from saleor.order.events import OrderEvents
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
 from saleor.order.utils import recalculate_order
@@ -220,6 +220,16 @@ def checkout_with_item(checkout, product):
 @pytest.fixture
 def checkout_with_single_item(checkout, product):
     variant = product.variants.get()
+    add_variant_to_checkout(checkout, variant, 1)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
+def checkout_with_variant_without_inventory_tracking(
+    checkout, variant_without_inventory_tracking
+):
+    variant = variant_without_inventory_tracking
     add_variant_to_checkout(checkout, variant, 1)
     checkout.save()
     return checkout
@@ -777,6 +787,25 @@ def product_with_default_variant(product_type_without_variant, category, warehou
 
 
 @pytest.fixture
+def variant_without_inventory_tracking(
+    product_type_without_variant, category, warehouse
+):
+    product = Product.objects.create(
+        name="Test product without inventory tracking",
+        slug="test-product-without-tracking",
+        price=Money(10, "USD"),
+        product_type=product_type_without_variant,
+        category=category,
+        is_published=True,
+    )
+    variant = ProductVariant.objects.create(
+        product=product, sku="tracking123", track_inventory=False
+    )
+    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=0)
+    return variant
+
+
+@pytest.fixture
 def variant(product) -> ProductVariant:
     product_variant = ProductVariant.objects.create(
         product=product, sku="SKU_A", cost_price=Money(1, "USD")
@@ -1200,6 +1229,30 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
 
 
 @pytest.fixture
+def order_with_line_without_inventory_tracking(
+    order, variant_without_inventory_tracking
+):
+    variant = variant_without_inventory_tracking
+    net = variant.get_price()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    line = order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=3,
+        variant=variant,
+        unit_price=TaxedMoney(net=net, gross=gross),
+        tax_rate=23,
+    )
+
+    recalculate_order(order)
+
+    order.refresh_from_db()
+    return order
+
+
+@pytest.fixture
 def order_events(order):
     for event_type, _ in OrderEvents.CHOICES:
         OrderEvent.objects.create(type=event_type, order=order)
@@ -1230,6 +1283,22 @@ def fulfilled_order(order_with_lines):
 
 
 @pytest.fixture
+def fulfilled_order_without_inventory_tracking(
+    order_with_line_without_inventory_tracking,
+):
+    order = order_with_line_without_inventory_tracking
+    fulfillment = order.fulfillments.create(tracking_number="123")
+    line = order.lines.first()
+    stock = line.variant.stocks.get()
+    warehouse_pk = stock.warehouse.pk
+    fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
+    fulfill_order_line(line, line.quantity, warehouse_pk)
+    order.status = OrderStatus.FULFILLED
+    order.save(update_fields=["status"])
+    return order
+
+
+@pytest.fixture
 def fulfilled_order_with_cancelled_fulfillment(fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.create()
     line_1 = fulfilled_order.lines.first()
@@ -1238,6 +1307,15 @@ def fulfilled_order_with_cancelled_fulfillment(fulfilled_order):
     fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity)
     fulfillment.status = FulfillmentStatus.CANCELED
     fulfillment.save()
+    return fulfilled_order
+
+
+@pytest.fixture
+def fulfilled_order_with_all_cancelled_fulfillments(
+    fulfilled_order, staff_user, warehouse
+):
+    fulfillment = fulfilled_order.fulfillments.get()
+    cancel_fulfillment(fulfillment, staff_user, warehouse)
     return fulfilled_order
 
 
@@ -1252,6 +1330,13 @@ def draft_order(order_with_lines):
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.save(update_fields=["status"])
     return order_with_lines
+
+
+@pytest.fixture
+def draft_order_without_inventory_tracking(order_with_line_without_inventory_tracking):
+    order_with_line_without_inventory_tracking.status = OrderStatus.DRAFT
+    order_with_line_without_inventory_tracking.save(update_fields=["status"])
+    return order_with_line_without_inventory_tracking
 
 
 @pytest.fixture
@@ -1672,7 +1757,7 @@ def menu_item_translation_fr(menu_item):
 @pytest.fixture
 def payment_dummy(db, order_with_lines):
     return Payment.objects.create(
-        gateway="Dummy",
+        gateway="mirumee.payments.dummy",
         order=order_with_lines,
         is_active=True,
         cc_first_digits="4111",

@@ -64,7 +64,9 @@ class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
 
 
 class FulfillmentCancelInput(graphene.InputObjectType):
-    restock = graphene.Boolean(description="Whether item lines are restocked.")
+    warehouse_id = graphene.ID(
+        description="ID of warehouse where items will be restock.", required=True
+    )
 
 
 class FulfillmentClearMeta(ClearMetaBaseMutation):
@@ -133,10 +135,15 @@ class OrderFulfill(BaseMutation):
                     "item_pluralize": pluralize(line_quantity_unfulfilled),
                     "order_line": order_line,
                 }
+                order_line_global_id = graphene.Node.to_global_id(
+                    "OrderLine", order_line.pk
+                )
                 raise ValidationError(
                     {
                         "order_line_id": ValidationError(
-                            msg, code=OrderErrorCode.FULFILL_ORDER_LINE
+                            msg,
+                            code=OrderErrorCode.FULFILL_ORDER_LINE,
+                            params={"order_line": order_line_global_id},
                         )
                     }
                 )
@@ -151,6 +158,7 @@ class OrderFulfill(BaseMutation):
                         "warehouse": ValidationError(
                             "Duplicated warehouse ID.",
                             code=OrderErrorCode.DUPLICATED_INPUT_ITEM,
+                            params={"warehouse": duplicates.pop()},
                         )
                     }
                 )
@@ -164,6 +172,7 @@ class OrderFulfill(BaseMutation):
                     "orderLineId": ValidationError(
                         "Duplicated order line ID.",
                         code=OrderErrorCode.DUPLICATED_INPUT_ITEM,
+                        params={"order_line": duplicates.pop()},
                     )
                 }
             )
@@ -207,12 +216,13 @@ class OrderFulfill(BaseMutation):
         lines_for_warehouses = defaultdict(list)
         for line, order_line in zip(lines, order_lines):
             for stock in line["stocks"]:
-                warehouse_pk = from_global_id_strict_type(
-                    stock["warehouse"], only_type=Warehouse, field="warehouse"
-                )
-                lines_for_warehouses[warehouse_pk].append(
-                    {"order_line": order_line, "quantity": stock["quantity"]}
-                )
+                if stock["quantity"] > 0:
+                    warehouse_pk = from_global_id_strict_type(
+                        stock["warehouse"], only_type=Warehouse, field="warehouse"
+                    )
+                    lines_for_warehouses[warehouse_pk].append(
+                        {"order_line": order_line, "quantity": stock["quantity"]}
+                    )
 
         data["order_lines"] = order_lines
         data["quantities"] = quantities_for_lines
@@ -235,11 +245,21 @@ class OrderFulfill(BaseMutation):
                 requester, order, dict(lines_for_warehouses), notify_customer
             )
         except InsufficientStock as exc:
+            order_line_global_id = graphene.Node.to_global_id(
+                "OrderLine", exc.context["order_line"].pk
+            )
+            warehouse_global_id = graphene.Node.to_global_id(
+                "Warehouse", exc.context["warehouse_pk"]
+            )
             raise ValidationError(
                 {
                     "stocks": ValidationError(
                         f"Insufficient product stock: {exc.item}",
                         code=OrderErrorCode.INSUFFICIENT_STOCK,
+                        params={
+                            "order_line": order_line_global_id,
+                            "warehouse": warehouse_global_id,
+                        },
                     )
                 }
             )
@@ -300,7 +320,10 @@ class FulfillmentCancel(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        restock = data.get("input").get("restock")
+        warehouse_id = data.get("input").get("warehouse_id")
+        warehouse = cls.get_node_or_error(
+            info, warehouse_id, only_type="Warehouse", field="warehouse_id"
+        )
         fulfillment = cls.get_node_or_error(info, data.get("id"), only_type=Fulfillment)
 
         if not fulfillment.can_edit():
@@ -314,5 +337,7 @@ class FulfillmentCancel(BaseMutation):
             )
 
         order = fulfillment.order
-        cancel_fulfillment(fulfillment, info.context.user, restock)
+        cancel_fulfillment(fulfillment, info.context.user, warehouse)
+        fulfillment.refresh_from_db(fields=["status"])
+        order.refresh_from_db(fields=["status"])
         return FulfillmentCancel(fulfillment=fulfillment, order=order)

@@ -10,6 +10,7 @@ from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
 from ...plugins.manager import get_plugins_manager
 from ...product.templatetags.product_images import get_product_image_thumbnail
+from ...warehouse import models as warehouse_models
 from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Image
@@ -55,6 +56,9 @@ class OrderEvent(CountableDjangoObjectType):
     lines = graphene.List(OrderEventOrderLineObject, description="The concerned lines.")
     fulfilled_items = graphene.List(
         lambda: FulfillmentLine, description="The lines fulfilled."
+    )
+    warehouse = graphene.Field(
+        Warehouse, description="The warehouse were items were restocked."
     )
 
     class Meta:
@@ -149,6 +153,11 @@ class OrderEvent(CountableDjangoObjectType):
     def resolve_fulfilled_items(root: models.OrderEvent, _info):
         lines = root.parameters.get("fulfilled_items", None)
         return models.FulfillmentLine.objects.filter(pk__in=lines)
+
+    @staticmethod
+    def resolve_warehouse(root: models.OrderEvent, _info):
+        warehouse = root.parameters.get("warehouse")
+        return warehouse_models.Warehouse.objects.filter(pk=warehouse).first()
 
 
 class FulfillmentLine(CountableDjangoObjectType):
