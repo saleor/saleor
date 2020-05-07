@@ -111,6 +111,18 @@ def test_checkout_add_payment_without_shipping_method_and_not_shipping_required(
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
     assert not data["paymentErrors"]
+    transactions = data["payment"]["transactions"]
+    assert not transactions
+    payment = Payment.objects.get()
+    assert payment.checkout == checkout
+    assert payment.is_active
+    assert payment.token == "sample-token"
+    assert payment.total == total.gross.amount
+    assert payment.currency == total.gross.currency
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.billing_address_1 == checkout.billing_address.street_address_1
+    assert payment.billing_first_name == checkout.billing_address.first_name
+    assert payment.billing_last_name == checkout.billing_address.last_name
 
 
 def test_checkout_add_payment_without_shipping_method_with_shipping_required(
