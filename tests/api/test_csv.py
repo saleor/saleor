@@ -7,7 +7,8 @@ from django.utils import timezone
 
 from saleor.account.models import User
 from saleor.core import JobStatus
-from saleor.csv.models import ExportFile
+from saleor.csv import ExportEvents
+from saleor.csv.models import ExportEvent, ExportFile
 from saleor.graphql.csv.enums import ExportScope
 from tests.api.utils import get_graphql_content
 
@@ -54,6 +55,7 @@ def test_export_products_mutation(
     called_data,
 ):
     query = EXPORT_PRODUCTS_MUTATION
+    user = staff_api_client.user
     variables = {"input": input}
 
     response = staff_api_client.post_graphql(
@@ -69,6 +71,9 @@ def test_export_products_mutation(
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
     assert export_file_data["createdBy"]["email"] == staff_api_client.user.email
+    assert ExportEvent.objects.filter(
+        user=user, type=ExportEvents.DATA_EXPORT_PENDING
+    ).exists()
 
 
 @patch("saleor.graphql.csv.mutations.export_products.delay")
@@ -76,6 +81,7 @@ def test_export_products_mutation_ids_scope(
     export_products_mock, staff_api_client, product_list, permission_manage_products
 ):
     query = EXPORT_PRODUCTS_MUTATION
+    user = staff_api_client.user
 
     products = product_list[:2]
 
@@ -103,6 +109,9 @@ def test_export_products_mutation_ids_scope(
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
     assert export_file_data["createdBy"]["email"] == staff_api_client.user.email
+    assert ExportEvent.objects.filter(
+        user=user, type=ExportEvents.DATA_EXPORT_PENDING
+    ).exists()
 
 
 @pytest.mark.parametrize(
@@ -122,6 +131,7 @@ def test_export_products_mutation_failed(
     error_field,
 ):
     query = EXPORT_PRODUCTS_MUTATION
+    user = staff_api_client.user
     variables = {"input": input}
 
     response = staff_api_client.post_graphql(
@@ -135,6 +145,9 @@ def test_export_products_mutation_failed(
 
     assert data["csvErrors"]
     assert errors[0]["field"] == error_field
+    assert not ExportEvent.objects.filter(
+        user=user, type=ExportEvents.DATA_EXPORT_PENDING
+    ).exists()
 
 
 EXPORT_FILE_QUERY = """
