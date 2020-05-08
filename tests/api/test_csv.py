@@ -161,6 +161,14 @@ EXPORT_FILE_QUERY = """
             createdBy{
                 email
             }
+            events{
+                date
+                type
+                user{
+                    email
+                }
+                message
+            }
         }
     }
 """
@@ -206,7 +214,9 @@ SORT_EXPORT_FILES_QUERY = """
 """
 
 
-def test_query_export_file(staff_api_client, export_file, permission_manage_products):
+def test_query_export_file(
+    staff_api_client, export_file, permission_manage_products, export_event
+):
     query = EXPORT_FILE_QUERY
     variables = {"id": graphene.Node.to_global_id("ExportFile", export_file.pk)}
 
@@ -220,7 +230,44 @@ def test_query_export_file(staff_api_client, export_file, permission_manage_prod
     assert data["createdAt"]
     assert data["updatedAt"]
     assert not data["url"]
-    assert data["createdBy"]["email"] == staff_api_client.user.email
+    assert data["createdBy"]["email"] == staff_api_client.created_by.email
+    assert len(data["events"]) == 1
+    event = data["events"][0]
+    assert event["date"]
+    assert event["message"] == export_event.parameters.get("message")
+    assert event["type"] == ExportEvents.DATA_EXPORT_FAILED.upper()
+    assert event["user"]["email"] == export_event.user.email
+
+
+def test_query_export_file_as_app(
+    app_api_client,
+    export_file,
+    permission_manage_products,
+    permission_manage_users,
+    export_event,
+):
+    query = EXPORT_FILE_QUERY
+    variables = {"id": graphene.Node.to_global_id("ExportFile", export_file.pk)}
+
+    response = app_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_products, permission_manage_users],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["exportFile"]
+
+    assert data["status"] == JobStatus.PENDING.upper()
+    assert data["createdAt"]
+    assert data["updatedAt"]
+    assert not data["url"]
+    assert data["createdBy"]["email"] == export_file.created_by.email
+    assert len(data["events"]) == 1
+    event = data["events"][0]
+    assert event["date"]
+    assert event["message"] == export_event.parameters.get("message")
+    assert event["type"] == ExportEvents.DATA_EXPORT_FAILED.upper()
+    assert event["user"]["email"] == export_event.user.email
 
 
 @pytest.mark.parametrize(

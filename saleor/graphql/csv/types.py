@@ -4,13 +4,49 @@ from graphql_jwt.exceptions import PermissionDenied
 
 from ...core.permissions import AccountPermissions
 from ...csv import models
+from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Job
 from ..utils import get_user_or_app_from_context
+from .enums import ExportEventEnum
+
+
+class ExportEvent(CountableDjangoObjectType):
+    date = graphene.types.datetime.DateTime(
+        description="Date when event happened at in ISO 8601 format."
+    )
+    type = ExportEventEnum(description="Export event type.")
+    user = graphene.Field(User, description="User who performed the action.")
+    message = graphene.String(description="Content of the event.")
+
+    class Meta:
+        description = "History log of export file."
+        model = models.ExportEvent
+        interfaces = [relay.Node]
+        only_fields = ["id"]
+
+    @staticmethod
+    def resolve_user(root: models.ExportEvent, info):
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor == root.user
+            or requestor.has_perm(AccountPermissions.MANAGE_USERS)
+            or requestor.has_perm(AccountPermissions.MANAGE_STAFF)
+        ):
+            return root.user
+        raise PermissionDenied()
+
+    @staticmethod
+    def resolve_message(root: models.ExportEvent, _info):
+        return root.parameters.get("message", None)
 
 
 class ExportFile(CountableDjangoObjectType):
     url = graphene.String(description="The URL of field to download.")
+    events = graphene.List(
+        graphene.NonNull(ExportEvent),
+        description="List of events associated with the order.",
+    )
 
     class Meta:
         description = "Represents a job data of exported file."
@@ -33,3 +69,7 @@ class ExportFile(CountableDjangoObjectType):
         ):
             return root.created_by
         raise PermissionDenied()
+
+    @staticmethod
+    def resolve_events(root: models.ExportFile, _info):
+        return root.events.all().order_by("pk")
