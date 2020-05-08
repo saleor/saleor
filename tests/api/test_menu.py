@@ -9,7 +9,7 @@ from saleor.menu.models import Menu, MenuItem
 from saleor.product.models import Category
 from tests.api.utils import get_graphql_content
 
-from .utils import assert_no_permission, menu_item_to_json
+from .utils import assert_no_permission, menu_item_to_json, construct_query_input
 
 
 def test_validate_menu_item_instance(category, page):
@@ -20,6 +20,36 @@ def test_validate_menu_item_instance(category, page):
     # test that validation passes with empty values passed in input
     _validate_menu_item_instance({}, "category", Category)
     _validate_menu_item_instance({"category": None}, "category", Category)
+
+
+@pytest.mark.parametrize(
+    "arguments, expected_error",
+    ((["id"], False), (["name"], False), ([], True), (["id", "name"], True)),
+)
+def test_collection_query(
+    arguments, expected_error, user_api_client, menu, graphql_log_handler
+):
+    query_input = construct_query_input(arguments=arguments, obj=menu)
+    query = f"""
+    query {{
+        menu{query_input} {{
+            id
+            name
+        }}
+    }}
+    """
+
+    if expected_error:
+        response = user_api_client.post_graphql(query)
+        assert graphql_log_handler.messages == [
+            "saleor.graphql.errors.handled[ERROR].GraphQLError"
+        ]
+    else:
+        response = user_api_client.post_graphql(query)
+        content = get_graphql_content(response)
+        menu_data = content["data"]["menu"]
+        assert menu_data is not None
+        assert menu_data["name"] == menu.name
 
 
 def test_menu_query(user_api_client, menu):
