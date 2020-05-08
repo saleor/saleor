@@ -8,6 +8,7 @@ from typing import List, Optional
 from unittest.mock import MagicMock, Mock
 
 import pytest
+import pytz
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
@@ -1265,6 +1266,7 @@ def fulfilled_order(order_with_lines):
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
         status=InvoiceStatus.READY,
+        created=datetime.datetime.now(tz=pytz.utc),
     )
     fulfillment = order.fulfillments.create(tracking_number="123")
     line_1 = order.lines.first()

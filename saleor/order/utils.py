@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.staticfiles import finders as static_finders
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db import transaction
@@ -10,6 +11,9 @@ from django.template.loader import get_template
 from django.utils import timezone
 from prices import Money, TaxedMoney
 from weasyprint import HTML
+
+from saleor.graphql.order.enums import InvoiceStatus
+from saleor.order.error_codes import InvoiceErrorCode
 
 from ..account.models import User
 from ..core.taxes import zero_money
@@ -343,7 +347,7 @@ def match_orders_with_new_user(user: User) -> None:
     Order.objects.confirmed().filter(user_email=user.email, user=None).update(user=user)
 
 
-def _chunk_products(products, product_limit):
+def chunk_products(products, product_limit):
     """Split products to list of chunks.
 
     Each chunk represents products per page, product_limit defines chunk size.
@@ -355,7 +359,7 @@ def _chunk_products(products, product_limit):
     return chunks
 
 
-def _get_product_limit_first_page(products):
+def get_product_limit_first_page(products):
     MAX_PRODUCTS_WITH_TABLE = 3
     MAX_PRODUCTS_WITHOUT_TABLE = 4
 
@@ -369,12 +373,29 @@ def generate_invoice_pdf_for_order(invoice):
     logo_path = static_finders.find("images/logo.svg")
     MAX_PRODUCTS_PER_PAGE = 13
 
+    if not getattr(invoice, "order"):
+        raise ValidationError(
+            {
+                "order": ValidationError(
+                    "Invice order is invalid.", code=InvoiceErrorCode.REQUIRED
+                )
+            }
+        )
+    if invoice.status != InvoiceStatus.READY:
+        raise ValidationError(
+            {
+                "status": ValidationError(
+                    "Invoice is not ready.", code=InvoiceErrorCode.NOT_READY
+                )
+            }
+        )
+
     all_products = invoice.order.lines.all()
 
-    product_limit_first_page = _get_product_limit_first_page(all_products)
+    product_limit_first_page = get_product_limit_first_page(all_products)
 
     products_first_page = all_products[:product_limit_first_page]
-    rest_of_products = _chunk_products(
+    rest_of_products = chunk_products(
         all_products[product_limit_first_page:], MAX_PRODUCTS_PER_PAGE
     )
 
