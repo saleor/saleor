@@ -1,10 +1,9 @@
 import graphene
-from graphql.error import GraphQLError
 
 from ...core.permissions import ProductPermissions
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
-from ..core.validators import validate_query_args
+from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import permission_required
 from ..translations.mutations import (
     AttributeTranslate,
@@ -254,20 +253,18 @@ class ProductQueries(graphene.ObjectType):
         return resolve_categories(info, level=level, **kwargs)
 
     def resolve_category(self, info, id=None, slug=None):
-        validate_query_args(id=id, slug=slug)
+        validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
             return graphene.Node.get_node_from_global_id(info, id, Category)
         if slug:
             return resolve_category_by_slug(slug=slug)
-        raise GraphQLError("Either 'id' or 'slug' argument is required")
 
     def resolve_collection(self, info, id=None, slug=None):
-        validate_query_args(id=id, slug=slug)
+        validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
             return graphene.Node.get_node_from_global_id(info, id, Collection)
         if slug:
             return resolve_collection_by_slug(slug=slug)
-        raise GraphQLError("Either 'id' or 'slug' argument is required")
 
     def resolve_collections(self, info, **kwargs):
         return resolve_collections(info, **kwargs)
@@ -281,12 +278,11 @@ class ProductQueries(graphene.ObjectType):
         return resolve_digital_contents(info)
 
     def resolve_product(self, info, id=None, slug=None):
-        validate_query_args(id=id, slug=slug)
+        validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
             return graphene.Node.get_node_from_global_id(info, id, Product)
         if slug:
             return resolve_product_by_slug(slug=slug)
-        raise GraphQLError("Either 'id' or 'slug' argument is required")
 
     def resolve_products(self, info, **kwargs):
         return resolve_products(info, **kwargs)

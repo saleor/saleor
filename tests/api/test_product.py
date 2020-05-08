@@ -34,11 +34,7 @@ from saleor.warehouse.models import Allocation, Stock, Warehouse
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
-from .utils import (
-    assert_no_permission,
-    construct_query_input,
-    get_multipart_request_body,
-)
+from .utils import assert_no_permission, get_multipart_request_body
 
 
 @pytest.fixture
@@ -108,36 +104,67 @@ QUERY_FETCH_ALL_PRODUCTS = """
 """
 
 
-@pytest.mark.parametrize(
-    "arguments, expected_error",
-    ((["id"], False), (["slug"], False), ([], True), (["id", "slug"], True)),
-)
-def test_collection_query(
-    arguments, expected_error, user_api_client, product, graphql_log_handler
-):
-    query_input = construct_query_input(arguments=arguments, obj=product)
-    query = f"""
-    query {{
-        product{query_input} {{
+QUERY_PRODUCT = """
+    query ($id: ID, $slug: String){
+        product(
+            id: $id,
+            slug: $slug,
+        ) {
             id
             name
-        }}
-    }}
+        }
+    }
     """
 
-    if expected_error:
-        response = user_api_client.post_graphql(query)
-        assert graphql_log_handler.messages == [
-            "saleor.graphql.errors.handled[ERROR].GraphQLError"
-        ]
-        content = get_graphql_content(response, ignore_errors=True)
-        assert len(content["errors"]) == 1
-    else:
-        response = user_api_client.post_graphql(query)
-        content = get_graphql_content(response)
-        product_data = content["data"]["product"]
-        assert product_data is not None
-        assert product_data["name"] == product.name
+
+def test_product_query_by_id(
+    user_api_client, product,
+):
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+    content = get_graphql_content(response)
+    collection_data = content["data"]["product"]
+    assert collection_data is not None
+    assert collection_data["name"] == product.name
+
+
+def test_product_query_by_slug(
+    user_api_client, product,
+):
+    variables = {"slug": product.slug}
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+    content = get_graphql_content(response)
+    collection_data = content["data"]["product"]
+    assert collection_data is not None
+    assert collection_data["name"] == product.name
+
+
+def test_product_query_error_when_id_and_slug_provided(
+    user_api_client, product, graphql_log_handler,
+):
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "slug": product.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+    assert graphql_log_handler.messages == [
+        "saleor.graphql.errors.handled[ERROR].GraphQLError"
+    ]
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["errors"]) == 1
+
+
+def test_product_query_error_when_no_param(
+    user_api_client, product, graphql_log_handler,
+):
+    variables = {}
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+    assert graphql_log_handler.messages == [
+        "saleor.graphql.errors.handled[ERROR].GraphQLError"
+    ]
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["errors"]) == 1
 
 
 def test_fetch_all_products(user_api_client, product):
