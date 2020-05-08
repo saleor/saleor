@@ -1,10 +1,10 @@
 import graphene
 from graphql.error import GraphQLError
 
-from ..core.validators import validate_query_args
 from ...core.permissions import ProductPermissions
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
+from ..core.validators import validate_query_args
 from ..decorators import permission_required
 from ..translations.mutations import (
     AttributeTranslate,
@@ -107,8 +107,8 @@ from .mutations.products import (
 )
 from .resolvers import (
     resolve_attributes,
-    resolve_category_by_slug,
     resolve_categories,
+    resolve_category_by_slug,
     resolve_collection_by_slug,
     resolve_collections,
     resolve_digital_contents,

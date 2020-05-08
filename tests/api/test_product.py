@@ -36,8 +36,8 @@ from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from .utils import (
     assert_no_permission,
-    get_multipart_request_body,
     construct_query_input,
+    get_multipart_request_body,
 )
 
 
@@ -130,6 +130,8 @@ def test_collection_query(
         assert graphql_log_handler.messages == [
             "saleor.graphql.errors.handled[ERROR].GraphQLError"
         ]
+        content = get_graphql_content(response, ignore_errors=True)
+        assert len(content["errors"]) == 1
     else:
         response = user_api_client.post_graphql(query)
         content = get_graphql_content(response)

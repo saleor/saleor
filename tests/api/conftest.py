@@ -1,6 +1,6 @@
 import json
-
 import logging
+
 import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
@@ -11,11 +11,10 @@ from graphql_jwt.shortcuts import get_token
 
 from saleor.account.models import User
 from saleor.app.models import App
+from saleor.graphql.views import handled_errors_logger, unhandled_errors_logger
 
 from ..utils import flush_post_commit_hooks
 from .utils import assert_no_permission
-
-from saleor.graphql.views import handled_errors_logger, unhandled_errors_logger
 
 API_PATH = reverse("api")
 

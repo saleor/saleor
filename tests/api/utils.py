@@ -1,7 +1,7 @@
 import json
 from typing import List
-import graphene
 
+import graphene
 from django.core.serializers.json import DjangoJSONEncoder
 
 from saleor.graphql.core.utils import snake_to_camel_case
