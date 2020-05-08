@@ -471,7 +471,6 @@ def test_calculations_checkout_shipping_price_with_vatlayer(
 
 def test_skip_diabled_plugin(settings):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
-    settings.VATLAYER_ACCESS_KEY = None
     manager = get_plugins_manager()
     plugin: VatlayerPlugin = manager.get_plugin("Vatlayer")
 
