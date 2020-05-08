@@ -2118,11 +2118,14 @@ def test_product_type_query(
 
 
 def test_product_type_create_mutation(
-    staff_api_client, product_type, permission_manage_products, monkeypatch, settings
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+    monkeypatch,
+    setup_vatlayer,
 ):
-    settings.VATLAYER_ACCESS_KEY = "test"
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
-    manager = PluginsManager(plugins=settings.PLUGINS)
+    manager = PluginsManager(plugins=setup_vatlayer.PLUGINS)
+
     query = """
     mutation createProductType(
         $name: String!,

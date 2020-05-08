@@ -597,7 +597,7 @@ description = "vatlayer.com support for django"
 name = "django-prices-vatlayer"
 optional = false
 python-versions = "*"
-version = "1.0.2"
+version = "1.1.0"
 
 [package.dependencies]
 Django = ">=1.11"
@@ -2172,7 +2172,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "339e653c0fb997bd6e28f9fb5f1b1c5ff243178c7691a363e442d96be0fbf82d"
+content-hash = "f26df05351142985390bc570358bce1cadd0f2b36967b2492098797650730be6"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2422,7 +2422,8 @@ django-prices-openexchangerates = [
     {file = "django_prices_openexchangerates-1.1.0-py3-none-any.whl", hash = "sha256:e8a8e85020ab62071bec29bf48eb7e688822141291e9d855b045efe1ab27ea74"},
 ]
 django-prices-vatlayer = [
-    {file = "django-prices-vatlayer-1.0.2.tar.gz", hash = "sha256:cd0e45a8e71b680c5fa8d7b2022535d7ccfd2bf71b10b18aa7f78b3aa0d596af"},
+    {file = "django-prices-vatlayer-1.1.0.tar.gz", hash = "sha256:54cb240dfd2b7c5fd22498aaf6e9141e602eccb2b0672911c64dc5add3fa666e"},
+    {file = "django_prices_vatlayer-1.1.0-py3-none-any.whl", hash = "sha256:de47234d46ae35d83dd35adbd83e3d26a9c90a8d184020590109bdef39474ed0"},
 ]
 django-render-block = [
     {file = "django_render_block-0.6-py2.py3-none-any.whl", hash = "sha256:95c7dc9610378a10e0c4a10d8364ec7307210889afccd6a67a6aaa0fd599bd4d"},

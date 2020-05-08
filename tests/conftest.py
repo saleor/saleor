@@ -45,6 +45,8 @@ from saleor.order.utils import recalculate_order
 from saleor.page.models import Page, PageTranslation
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
+from saleor.plugins.models import PluginConfiguration
+from saleor.plugins.vatlayer.plugin import VatlayerPlugin
 from saleor.product import AttributeInputType
 from saleor.product.models import (
     Attribute,
@@ -163,6 +165,17 @@ def assert_num_queries(capture_queries):
 @pytest.fixture
 def assert_max_num_queries(capture_queries):
     return partial(capture_queries, exact=False)
+
+
+@pytest.fixture
+def setup_vatlayer(settings):
+    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    data = {
+        "active": True,
+        "configuration": [{"name": "Access key", "value": "vatlayer_access_key"},],
+    }
+    PluginConfiguration.objects.create(name=VatlayerPlugin.PLUGIN_NAME, **data)
+    return settings
 
 
 @pytest.fixture(autouse=True)

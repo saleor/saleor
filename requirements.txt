@@ -29,7 +29,7 @@ django-mptt==0.11.0
 django-phonenumber-field==2.4.0
 django-prices==2.2.0
 django-prices-openexchangerates==1.1.0
-django-prices-vatlayer==1.0.2
+django-prices-vatlayer==1.1.0
 django-render-block==0.6
 django-storages==1.9.1
 django-templated-email==2.3.0
