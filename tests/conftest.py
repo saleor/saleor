@@ -28,7 +28,8 @@ from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.core import JobStatus
 from saleor.core.payments import PaymentInterface
-from saleor.csv.models import ExportFile
+from saleor.csv import ExportEvents
+from saleor.csv.models import ExportEvent, ExportFile
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
 from saleor.discount.models import (
     Sale,
@@ -2085,3 +2086,13 @@ def export_file_list(staff_user):
     ExportFile.objects.bulk_update(export_file_list, ["created_at", "updated_at"])
 
     return export_file_list
+
+
+@pytest.fixture
+def export_event(export_file):
+    return ExportEvent.objects.create(
+        type=ExportEvents.DATA_EXPORT_FAILED,
+        export_file=export_file,
+        user=export_file.created_by,
+        parameters={"message": "Example error message"},
+    )
