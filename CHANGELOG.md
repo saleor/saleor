@@ -111,6 +111,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed JWT expired token being flagged as unhandled error rather than handled. - #5603 by @NyanKiyoshi
 - Refactor read-only middleware - #5602 by @maarcingebala
 - Fix availability for variants without inventory tracking - #5605 by @fowczarek
+- Add ability to query category, collection or product by slug - #5574 by @koradon
 
 ## 2.9.0
 
