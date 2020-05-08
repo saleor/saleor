@@ -9,7 +9,7 @@ from saleor.menu.models import Menu, MenuItem
 from saleor.product.models import Category
 from tests.api.utils import get_graphql_content
 
-from .utils import assert_no_permission, construct_query_input, menu_item_to_json
+from .utils import assert_no_permission, menu_item_to_json
 
 
 def test_validate_menu_item_instance(category, page):
@@ -22,36 +22,67 @@ def test_validate_menu_item_instance(category, page):
     _validate_menu_item_instance({"category": None}, "category", Category)
 
 
-@pytest.mark.parametrize(
-    "arguments, expected_error",
-    ((["id"], False), (["name"], False), ([], True), (["id", "name"], True)),
-)
-def test_collection_query(
-    arguments, expected_error, user_api_client, menu, graphql_log_handler
-):
-    query_input = construct_query_input(arguments=arguments, obj=menu)
-    query = f"""
-    query {{
-        menu{query_input} {{
+QUERY_MENU = """
+    query ($id: ID, $name: String){
+        menu(
+            id: $id,
+            name: $name,
+        ) {
             id
             name
-        }}
-    }}
+        }
+    }
     """
 
-    if expected_error:
-        response = user_api_client.post_graphql(query)
-        assert graphql_log_handler.messages == [
-            "saleor.graphql.errors.handled[ERROR].GraphQLError"
-        ]
-        content = get_graphql_content(response, ignore_errors=True)
-        assert len(content["errors"]) == 1
-    else:
-        response = user_api_client.post_graphql(query)
-        content = get_graphql_content(response)
-        menu_data = content["data"]["menu"]
-        assert menu_data is not None
-        assert menu_data["name"] == menu.name
+
+def test_menu_query_by_id(
+    user_api_client, menu,
+):
+    variables = {"id": graphene.Node.to_global_id("Menu", menu.pk)}
+
+    response = user_api_client.post_graphql(QUERY_MENU, variables=variables)
+    content = get_graphql_content(response)
+    menu_data = content["data"]["menu"]
+    assert menu_data is not None
+    assert menu_data["name"] == menu.name
+
+
+def test_menu_query_by_name(
+    user_api_client, menu,
+):
+    variables = {"name": menu.name}
+    response = user_api_client.post_graphql(QUERY_MENU, variables=variables)
+    content = get_graphql_content(response)
+    menu_data = content["data"]["menu"]
+    assert menu_data is not None
+    assert menu_data["name"] == menu.name
+
+
+def test_menu_query_error_when_id_and_name_provided(
+    user_api_client, menu, graphql_log_handler,
+):
+    variables = {
+        "id": graphene.Node.to_global_id("Menu", menu.pk),
+        "name": menu.name,
+    }
+    response = user_api_client.post_graphql(QUERY_MENU, variables=variables)
+    assert graphql_log_handler.messages == [
+        "saleor.graphql.errors.handled[ERROR].GraphQLError"
+    ]
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["errors"]) == 1
+
+
+def test_menu_query_error_when_no_param(
+    user_api_client, menu, graphql_log_handler,
+):
+    variables = {}
+    response = user_api_client.post_graphql(QUERY_MENU, variables=variables)
+    assert graphql_log_handler.messages == [
+        "saleor.graphql.errors.handled[ERROR].GraphQLError"
+    ]
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["errors"]) == 1
 
 
 def test_menu_query(user_api_client, menu):
