@@ -3,21 +3,32 @@ from unittest.mock import Mock, patch
 
 import graphene
 import pytest
+
 from django.template.defaultfilters import slugify
 from graphql_relay import to_global_id
 
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import Category
-from tests.api.utils import get_graphql_content, get_multipart_request_body
+from tests.api.utils import (
+    get_graphql_content,
+    get_multipart_request_body,
+    construct_query_input,
+)
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
 
-def test_category_query_by_id(user_api_client, product):
+@pytest.mark.parametrize(
+    "arguments, expected_error",
+    ((["id"], False), (["slug"], False), ([], True), (["id", "slug"], True)),
+)
+def test_category_query(
+    arguments, expected_error, user_api_client, product, graphql_log_handler
+):
     category = Category.objects.first()
-    category_pk = graphene.Node.to_global_id("Category", category.pk)
+    query_input = construct_query_input(arguments=arguments, obj=category)
     query = f"""
     query {{
-        category(id: "{category_pk}") {{
+        category{query_input} {{
             id
             name
             ancestors(first: 20) {{
@@ -37,170 +48,24 @@ def test_category_query_by_id(user_api_client, product):
         }}
     }}
     """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    category_data = content["data"]["category"]
-    assert category_data is not None
-    assert category_data["name"] == category.name
-    assert len(category_data["ancestors"]["edges"]) == category.get_ancestors().count()
-    assert len(category_data["children"]["edges"]) == category.get_children().count()
 
-
-def test_category_query_by_slug(user_api_client, product):
-    category = Category.objects.first()
-    query = f"""
-    query {{
-        category(slug: "{category.slug}") {{
-            id
-            name
-            ancestors(first: 20) {{
-                edges {{
-                    node {{
-                        name
-                    }}
-                }}
-            }}
-            children(first: 20) {{
-                edges {{
-                    node {{
-                        name
-                    }}
-                }}
-            }}
-        }}
-    }}
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    category_data = content["data"]["category"]
-    assert category_data is not None
-    assert category_data["name"] == category.name
-    assert len(category_data["ancestors"]["edges"]) == category.get_ancestors().count()
-    assert len(category_data["children"]["edges"]) == category.get_children().count()
-
-
-def test_category_query_prioritize_id(user_api_client, product):
-    category = Category.objects.first()
-    category_second = Category.objects.create(name="Not that one", slug="not-that-one")
-    category_pk = graphene.Node.to_global_id("Category", category.pk)
-    query = f"""
-    query {{
-        category(id: "{category_pk}", slug: "{category_second.slug}") {{
-            id
-            name
-            ancestors(first: 20) {{
-                edges {{
-                    node {{
-                        name
-                    }}
-                }}
-            }}
-            children(first: 20) {{
-                edges {{
-                    node {{
-                        name
-                    }}
-                }}
-            }}
-        }}
-    }}
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    category_data = content["data"]["category"]
-    assert category_data is not None
-    assert category_data["name"] == category.name
-    assert category_data["name"] != category_second.name
-    assert len(category_data["ancestors"]["edges"]) == category.get_ancestors().count()
-    assert len(category_data["children"]["edges"]) == category.get_children().count()
-
-
-def test_category_query_wrong_id_correct_slug(user_api_client, product):
-    category = Category.objects.first()
-    query = f"""
-    query {{
-        category(id: "invalidPK", slug: "{category.slug}") {{
-            id
-            name
-            ancestors(first: 20) {{
-                edges {{
-                    node {{
-                        name
-                    }}
-                }}
-            }}
-            children(first: 20) {{
-                edges {{
-                    node {{
-                        name
-                    }}
-                }}
-            }}
-        }}
-    }}
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    category_data = content["data"]["category"]
-    assert category_data is None
-
-
-def test_category_query_wrong_id_and_slug(user_api_client, product):
-    query = f"""
-    query {{
-        category(id: "invalidPK", slug: "someslug") {{
-            id
-            name
-            ancestors(first: 20) {{
-                edges {{
-                    node {{
-                        name
-                    }}
-                }}
-            }}
-            children(first: 20) {{
-                edges {{
-                    node {{
-                        name
-                    }}
-                }}
-            }}
-        }}
-    }}
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    category_data = content["data"]["category"]
-    assert category_data is None
-
-
-def test_category_query_without_params(user_api_client, product):
-    query = f"""
-    query {{
-        category{{
-            id
-            name
-            ancestors(first: 20) {{
-                edges {{
-                    node {{
-                        name
-                    }}
-                }}
-            }}
-            children(first: 20) {{
-                edges {{
-                    node {{
-                        name
-                    }}
-                }}
-            }}
-        }}
-    }}
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response, ignore_errors=True)
-    category_data = content["data"]["category"]
-    assert category_data is None
+    if expected_error:
+        response = user_api_client.post_graphql(query)
+        assert graphql_log_handler.messages == [
+            "saleor.graphql.errors.handled[ERROR].GraphQLError"
+        ]
+    else:
+        response = user_api_client.post_graphql(query)
+        content = get_graphql_content(response)
+        category_data = content["data"]["category"]
+        assert category_data is not None
+        assert category_data["name"] == category.name
+        assert (
+            len(category_data["ancestors"]["edges"]) == category.get_ancestors().count()
+        )
+        assert (
+            len(category_data["children"]["edges"]) == category.get_children().count()
+        )
 
 
 def test_category_create_mutation(

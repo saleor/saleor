@@ -1,6 +1,7 @@
 import graphene
 from graphql.error import GraphQLError
 
+from ..core.validators import validate_query_args
 from ...core.permissions import ProductPermissions
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
@@ -108,8 +109,10 @@ from .resolvers import (
     resolve_attributes,
     resolve_category_by_slug,
     resolve_categories,
+    resolve_collection_by_slug,
     resolve_collections,
     resolve_digital_contents,
+    resolve_product_by_slug,
     resolve_product_types,
     resolve_product_variants,
     resolve_products,
@@ -175,9 +178,8 @@ class ProductQueries(graphene.ObjectType):
     )
     collection = graphene.Field(
         Collection,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the collection.", required=True
-        ),
+        id=graphene.Argument(graphene.ID, description="ID of the collection.",),
+        slug=graphene.Argument(graphene.String, description="Slug of the category"),
         description="Look up a collection by ID.",
     )
     collections = FilterInputConnectionField(
@@ -188,9 +190,8 @@ class ProductQueries(graphene.ObjectType):
     )
     product = graphene.Field(
         Product,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the product.", required=True
-        ),
+        id=graphene.Argument(graphene.ID, description="ID of the product.",),
+        slug=graphene.Argument(graphene.String, description="Slug of the category"),
         description="Look up a product by ID.",
     )
     products = FilterInputConnectionField(
@@ -253,14 +254,20 @@ class ProductQueries(graphene.ObjectType):
         return resolve_categories(info, level=level, **kwargs)
 
     def resolve_category(self, info, id=None, slug=None):
+        validate_query_args(id=id, slug=slug)
         if id:
             return graphene.Node.get_node_from_global_id(info, id, Category)
         if slug:
-            return resolve_category_by_slug(info=info, slug=slug)
-        raise GraphQLError("Either ID or slug are required")
+            return resolve_category_by_slug(slug=slug)
+        raise GraphQLError("Either 'id' or 'slug' argument is required")
 
-    def resolve_collection(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Collection)
+    def resolve_collection(self, info, id=None, slug=None):
+        validate_query_args(id=id, slug=slug)
+        if id:
+            return graphene.Node.get_node_from_global_id(info, id, Collection)
+        if slug:
+            return resolve_collection_by_slug(slug=slug)
+        raise GraphQLError("Either 'id' or 'slug' argument is required")
 
     def resolve_collections(self, info, **kwargs):
         return resolve_collections(info, **kwargs)
@@ -273,8 +280,13 @@ class ProductQueries(graphene.ObjectType):
     def resolve_digital_contents(self, info, **_kwargs):
         return resolve_digital_contents(info)
 
-    def resolve_product(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Product)
+    def resolve_product(self, info, id=None, slug=None):
+        validate_query_args(id=id, slug=slug)
+        if id:
+            return graphene.Node.get_node_from_global_id(info, id, Product)
+        if slug:
+            return resolve_product_by_slug(slug=slug)
+        raise GraphQLError("Either 'id' or 'slug' argument is required")
 
     def resolve_products(self, info, **kwargs):
         return resolve_products(info, **kwargs)

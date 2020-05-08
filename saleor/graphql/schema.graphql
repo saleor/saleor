@@ -3888,9 +3888,9 @@ type Query {
   attribute(id: ID!): Attribute
   categories(filter: CategoryFilterInput, sortBy: CategorySortingInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID, slug: String): Category
-  collection(id: ID!): Collection
+  collection(id: ID, slug: String): Collection
   collections(filter: CollectionFilterInput, sortBy: CollectionSortingInput, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
-  product(id: ID!): Product
+  product(id: ID, slug: String): Product
   products(filter: ProductFilterInput, sortBy: ProductOrder, stockAvailability: StockAvailability, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
   productTypes(filter: ProductTypeFilterInput, sortBy: ProductTypeSortingInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection

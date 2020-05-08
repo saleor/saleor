@@ -1,4 +1,6 @@
 import json
+from typing import List
+import graphene
 
 from django.core.serializers.json import DjangoJSONEncoder
 
@@ -62,3 +64,22 @@ def menu_item_to_json(menu_item):
     item_json = get_menu_item_as_dict(menu_item)
     item_json["child_items"] = []
     return item_json
+
+
+def construct_query_input(arguments: List, obj: object) -> str:
+    obj_pk = graphene.Node.to_global_id(obj.__class__.__name__, obj.pk)
+    id_arg = ""
+    slug_arg = ""
+    name_arg = ""
+    if "id" in arguments:
+        id_arg = f'id: "{obj_pk}",'
+    if "slug" in arguments:
+        slug_arg = f'slug: "{obj.slug}",'
+    if "name" in arguments:
+        name_arg = f'name: "{obj.name}",'
+
+    query_input = ""
+    if arguments:
+        query_input = f"({id_arg} {slug_arg} {name_arg})"
+
+    return query_input

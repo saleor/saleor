@@ -34,7 +34,11 @@ from saleor.warehouse.models import Allocation, Stock, Warehouse
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
-from .utils import assert_no_permission, get_multipart_request_body
+from .utils import (
+    assert_no_permission,
+    get_multipart_request_body,
+    construct_query_input,
+)
 
 
 @pytest.fixture
@@ -102,6 +106,36 @@ QUERY_FETCH_ALL_PRODUCTS = """
         }
     }
 """
+
+
+@pytest.mark.parametrize(
+    "arguments, expected_error",
+    ((["id"], False), (["slug"], False), ([], True), (["id", "slug"], True)),
+)
+def test_collection_query(
+    arguments, expected_error, user_api_client, product, graphql_log_handler
+):
+    query_input = construct_query_input(arguments=arguments, obj=product)
+    query = f"""
+    query {{
+        product{query_input} {{
+            id
+            name
+        }}
+    }}
+    """
+
+    if expected_error:
+        response = user_api_client.post_graphql(query)
+        assert graphql_log_handler.messages == [
+            "saleor.graphql.errors.handled[ERROR].GraphQLError"
+        ]
+    else:
+        response = user_api_client.post_graphql(query)
+        content = get_graphql_content(response)
+        product_data = content["data"]["product"]
+        assert product_data is not None
+        assert product_data["name"] == product.name
 
 
 def test_fetch_all_products(user_api_client, product):

@@ -1,5 +1,6 @@
 import json
 
+import logging
 import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
@@ -13,6 +14,8 @@ from saleor.app.models import App
 
 from ..utils import flush_post_commit_hooks
 from .utils import assert_no_permission
+
+from saleor.graphql.views import handled_errors_logger, unhandled_errors_logger
 
 API_PATH = reverse("api")
 
@@ -141,6 +144,28 @@ def api_client():
 def schema_context():
     params = {"user": AnonymousUser()}
     return graphene.types.Context(**params)
+
+
+class LoggingHandler(logging.Handler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.messages = []
+
+    def emit(self, record: logging.LogRecord):
+        exc_type, exc_value, _tb = record.exc_info
+        self.messages.append(
+            f"{record.name}[{record.levelname.upper()}].{exc_type.__name__}"
+        )
+
+
+@pytest.fixture
+def graphql_log_handler():
+    log_handler = LoggingHandler()
+
+    unhandled_errors_logger.addHandler(log_handler)
+    handled_errors_logger.addHandler(log_handler)
+
+    return log_handler
 
 
 @pytest.fixture

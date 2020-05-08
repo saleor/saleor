@@ -10,7 +10,41 @@ from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import Collection
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
-from .utils import get_graphql_content, get_multipart_request_body
+from .utils import (
+    get_graphql_content,
+    get_multipart_request_body,
+    construct_query_input,
+)
+
+
+@pytest.mark.parametrize(
+    "arguments, expected_error",
+    ((["id"], False), (["slug"], False), ([], True), (["id", "slug"], True)),
+)
+def test_collection_query(
+    arguments, expected_error, user_api_client, collection, graphql_log_handler
+):
+    query_input = construct_query_input(arguments=arguments, obj=collection)
+    query = f"""
+    query {{
+        collection{query_input} {{
+            id
+            name
+        }}
+    }}
+    """
+
+    if expected_error:
+        response = user_api_client.post_graphql(query)
+        assert graphql_log_handler.messages == [
+            "saleor.graphql.errors.handled[ERROR].GraphQLError"
+        ]
+    else:
+        response = user_api_client.post_graphql(query)
+        content = get_graphql_content(response)
+        collection_data = content["data"]["collection"]
+        assert collection_data is not None
+        assert collection_data["name"] == collection.name
 
 
 def test_collections_query(
