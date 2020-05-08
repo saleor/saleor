@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, reverse
 from django.template.response import TemplateResponse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
-
+from django.http import HttpResponseForbidden
 from ...core.utils import get_paginator_items
 from ...product.models import (
     Attribute,
@@ -328,6 +328,9 @@ def variant_details(request, product_pk, variant_pk):
 def variant_create(request, product_pk):
     track_inventory = request.site.settings.track_inventory_by_default
     product = get_object_or_404(Product.objects.all(), pk=product_pk)
+    variants = ProductVariant.objects.filter(product=product)
+    if len(variants) > 0:
+        return HttpResponseForbidden() 
     variant = ProductVariant(product=product, track_inventory=track_inventory)
     form = forms.ProductVariantForm(request.POST or None, instance=variant)
     if form.is_valid():
