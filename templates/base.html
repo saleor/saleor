@@ -56,7 +56,7 @@
         <div class=" d-none d-md-block container">
         <div class="row">
           <div class="col-6">
-            <p class="text-left">{{ site.settings.translated.header_text }}</p>
+            <p class="text-left">REMOVER</p>
           </div>
           <div class="col-6">
             <ul class="float-right">
@@ -67,9 +67,9 @@
             
               {% if user.is_authenticated %}
                 {% if user.is_staff or request.impersonator.is_staff %}
-                  <li>
+                  <li hidden>
                     <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
-                      {% trans "Dashboard" context "Main navigation item" %}
+                      Admin
                     </a>
                   </li>
                 {% endif %}
@@ -91,13 +91,14 @@
                   </li>
                 {% endif %}
               {% else %}
+                
                 <li>
                   <a rel="nofollow" href="{% url "account:signup" %}">
-                    {% trans "Register" context "Main navigation item" %}</a>
+                    Cadastro</a>
                 </li>
                 <li>
                   <a rel="nofollow" href="{% url "account:login" %}">
-                    {% trans "Log in" context "Main navigation item" %}
+                    LOGIN
                   </a>
                 </li>
               {% endif %}
