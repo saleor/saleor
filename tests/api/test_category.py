@@ -3,16 +3,15 @@ from unittest.mock import Mock, patch
 
 import graphene
 import pytest
-
 from django.template.defaultfilters import slugify
 from graphql_relay import to_global_id
 
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import Category
 from tests.api.utils import (
+    construct_query_input,
     get_graphql_content,
     get_multipart_request_body,
-    construct_query_input,
 )
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
@@ -54,6 +53,8 @@ def test_category_query(
         assert graphql_log_handler.messages == [
             "saleor.graphql.errors.handled[ERROR].GraphQLError"
         ]
+        content = get_graphql_content(response, ignore_errors=True)
+        assert len(content["errors"]) == 1
     else:
         response = user_api_client.post_graphql(query)
         content = get_graphql_content(response)

@@ -3,8 +3,8 @@ from graphql.error import GraphQLError
 
 from ...menu import models
 from ..utils.filters import filter_by_query_param
-from .types import Menu
 from ..core.validators import validate_query_args
+from .types import Menu
 
 MENU_SEARCH_FIELDS = ("name",)
 MENU_ITEM_SEARCH_FIELDS = ("name",)

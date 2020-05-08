@@ -9,7 +9,7 @@ from saleor.menu.models import Menu, MenuItem
 from saleor.product.models import Category
 from tests.api.utils import get_graphql_content
 
-from .utils import assert_no_permission, menu_item_to_json, construct_query_input
+from .utils import assert_no_permission, construct_query_input, menu_item_to_json
 
 
 def test_validate_menu_item_instance(category, page):
@@ -44,6 +44,8 @@ def test_collection_query(
         assert graphql_log_handler.messages == [
             "saleor.graphql.errors.handled[ERROR].GraphQLError"
         ]
+        content = get_graphql_content(response, ignore_errors=True)
+        assert len(content["errors"]) == 1
     else:
         response = user_api_client.post_graphql(query)
         content = get_graphql_content(response)
