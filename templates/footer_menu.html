@@ -3,9 +3,10 @@
 {% get_current_language as LANGUAGE_CODE %}
 {% load get_menu_item_name from shop %}
 
-{% for item in menu_items %}
+<!--{% for item in menu_items %}
 {% with children=item.child_items %}
   <div class="col-6 col-md-2">
+  
     <ul class="menu">
       <li class="{% if children %}nav-item__dropdown{% endif %} menu__item">
         <a href="{{ item.url }}">
@@ -36,11 +37,11 @@
                 {% endwith %}
               </li>
             {% endfor %}
-            </ul>
+          </ul>
         </div>
         {% endif %}
       </li>
     </ul>
   </div>
 {% endwith %}
-{% endfor %}
+{% endfor %}-->

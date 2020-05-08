@@ -168,6 +168,7 @@
     </header>
   {% endblock %}
 
+
   <div class="container maincontent">
     {% block topcontent %}{% endblock topcontent %}
     {% if messages %}
@@ -184,91 +185,89 @@
     {% endblock content %}
   </div>
   {% block footer %}
+
+
   <footer class="footer">
 
-  <div class="footer__menus">
+    <div class="footer__menus">
 
-    <div class="container">
+      <div class="container">
 
-      <div class="row">
+        <div class="row">
 
-        {% footer_menu site_menu=site.settings.bottom_menu %}
-        <div class="col-md-2 col-6">
+          {% footer_menu site_menu=site.settings.bottom_menu %}
+          <!--<div class="col-md-2 col-6">
 
-          <ul class="menu">
-              
-            <li class="nav-item__dropdown menu__item">
-              <a><strong> {% trans "Account" %} </strong> </a><hr />
-            <li>
-              <a rel="nofollow" href="{% url "checkout:index" %}"> Carrinho </a>
-            </li>
-
-            {% if user.is_authenticated %}
+            <ul class="menu">
                 
-            <li><a href="{% url "account:details" %}">Sua conta</a></li>
-                {% if user.is_impersonate %}
-                  <li>
-                    <a href="{% url "impersonate-stop" %}">
-                      {% trans 'Stop impersonating' context 'Main navigation item' %}
-                    </a>
-                  </li>
-                {% else %}
-                  <li>
-                    <a href="{% url "account:logout" %}">
-                      {% trans "Log out" context "Main navigation item" %}</a>
-                  </li>
-                {% endif %}
-            {% else %}
-            <li>
-              <a rel="nofollow" href="{% url "account:signup" %}">
-                {% trans "Register" context "Main navigation item" %}
-              </a>
-            </li>
+              <li class="nav-item__dropdown menu__item">
+                <a><strong> {% trans "Account" %} </strong> </a><hr />
+              </li>
+              <li> <a rel="nofollow" href="{% url "checkout:index" %}"> Carrinho </a> </li>
+
+              {% if user.is_authenticated %}
+                  
+              <li><a href="{% url "account:details" %}">Sua conta</a></li>
+                  {% if user.is_impersonate %}
+                    <li>
+                      <a href="{% url "impersonate-stop" %}">
+                        {% trans 'Stop impersonating' context 'Main navigation item' %}
+                      </a>
+                    </li>
+                  {% else %}
+                    <li>
+                      <a href="{% url "account:logout" %}">
+                        {% trans "Log out" context "Main navigation item" %}</a>
+                    </li>
+                  {% endif %}
+              {% else %}
               <li>
-                <a rel="nofollow" href="{% url "account:login" %}">
-                  {% trans "Log in" context "Main navigation item" %}
+                <a rel="nofollow" href="{% url "account:signup" %}">
+                  {% trans "Register" context "Main navigation item" %}
                 </a>
               </li>
-            {% endif %}
-          </ul>
+                <li>
+                  <a rel="nofollow" href="{% url "account:login" %}">
+                    {% trans "Log in" context "Main navigation item" %}
+                  </a>
+                </li>
+              {% endif %}
+            </ul>
 
-        </div>
-
-        <!-- inicio bloco redes sociais -->
-        <div class="offset-md-2 col-md-4 col-12">
-          <div class="footer__menus__social-container">
-            <div class="footer__menus__social">
-              <a target="_blank" rel="noopener" class="social-footer" href="#">
-                <svg data-src="{% static "images/facebook-logo.svg" %}" width="45px" height="45px"/>
-              </a>
-              <a target="_blank" rel="noopener" class="social-footer" href="#">
-                <svg data-src="{% static "images/twitter-logo.svg" %}" width="45px" height="45px"/>
-              </a>
-              <a target="_blank" rel="noopener" class="social-footer" href="#">
-                <svg data-src="{% static "images/instagram-logo.svg" %}" width="45px" height="45px"/>
-              </a>
+          </div>-->
+          {% endblock %}
+          
+          <!-- inicio bloco redes sociais -->
+          <div class="col-12 col-md-12">
+            <div class="footer__menus__social-container">
+              <div class="footer__menus__social">
+                <a target="_blank" rel="noopener" class="social-footer" href="https://www.instagram.com/lojascantinhodoce/">
+                  <svg data-src="{% static "images/instagram-logo.svg" %}" width="45px" height="45px"/>
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-        <!-- inicio bloco redes sociais -->
+          <!-- inicio bloco redes sociais -->
 
-      </div>
-    </div>
-  </div>
-  <div class="footer__copy">
-    <div class="container">
-      <div class="row" style="display:flex;align-items:center;">
-        <div class="col-4">
-          <a href="{% url 'home' %}" class="footer__logo float-md-left">
-            <svg data-src="{% static "images/logo-light.svg" %}"/>
-          </a>
         </div>
-        <div class="col-8 footer__copy-text">Copyright © 2020 Boxsales</div>
       </div>
     </div>
-  </div>
+
+    <div class="footer__copy">
+      <div class="container">
+        <div class="row" style="display:flex;align-items:center;">
+          <div class="col-4">
+            <a href="{% url 'home' %}" class="footer__logo float-md-left">
+              <svg data-src="{% static "images/logo-light.svg" %}"/>
+            </a>
+          </div>
+          <div class="col-8 footer__copy-text">Copyright © 2020 Boxsales</div>
+        </div>
+      </div>
+    </div>
+
   </footer>
-  {% endblock %}
+  
   {% block footer_scripts %}
     <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
     {% render_bundle 'storefront' 'js' %}
