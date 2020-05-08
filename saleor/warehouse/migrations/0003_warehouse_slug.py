@@ -4,11 +4,12 @@ from django.db import migrations, models
 from django.db.models.functions import Lower
 from django.utils.text import slugify
 
+DEFAULT_SLUG_VALUE = "warehouse"
+
 
 def create_unique_slug_for_warehouses(apps, schema_editor):
     Warehouse = apps.get_model("warehouse", "Warehouse")
 
-    default_slug_value = "warehouse"
     warehouses = (
         Warehouse.objects.filter(slug__isnull=True).order_by(Lower("name")).iterator()
     )
@@ -28,18 +29,18 @@ def create_unique_slug_for_warehouses(apps, schema_editor):
             previous_char = ""
             slug_values = list(
                 Warehouse.objects.filter(
-                    slug__istartswith=default_slug_value
+                    slug__istartswith=DEFAULT_SLUG_VALUE
                 ).values_list("slug", flat=True)
             )
 
-        slug = generate_unique_slug(warehouse, slug_values, default_slug_value)
+        slug = generate_unique_slug(warehouse, slug_values)
         warehouse.slug = slug
         warehouse.save(update_fields=["slug"])
         slug_values.append(slug)
 
 
-def generate_unique_slug(instance, slug_values, default_slug_value):
-    slug = slugify(instance.name) if instance.name else default_slug_value
+def generate_unique_slug(instance, slug_values):
+    slug = slugify(instance.name) if instance.name else DEFAULT_SLUG_VALUE
     unique_slug = slug
     extension = 1
 
