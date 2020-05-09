@@ -241,7 +241,7 @@ class ProductVariant(models.Model):
         blank=True,
         null=True,
     )
-    product = models.ForeignKey(
+    product = models.OneToOneField(
         Product, related_name="variants", on_delete=models.CASCADE
     )
     attributes = HStoreField(default=dict, blank=True)
