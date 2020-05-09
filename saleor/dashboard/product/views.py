@@ -337,6 +337,8 @@ def variant_create(request, product_pk):
         form.save()
         msg = pgettext_lazy("Dashboard message", "Saved variant %s") % (variant.name,)
         messages.success(request, msg)
+        product.sku = variant.sku
+        product.save()
         return redirect(
             "dashboard:variant-details", product_pk=product.pk, variant_pk=variant.pk
         )
@@ -354,6 +356,8 @@ def variant_edit(request, product_pk, variant_pk):
         form.save()
         msg = pgettext_lazy("Dashboard message", "Saved variant %s") % (variant.name,)
         messages.success(request, msg)
+        product.sku = variant.sku
+        product.save()
         return redirect(
             "dashboard:variant-details", product_pk=product.pk, variant_pk=variant.pk
         )
