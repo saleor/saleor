@@ -58,7 +58,6 @@ def payment(request, token):
     order = get_object_or_404(orders, token=token)
     payments = order.payments.all()
     form_data = request.POST or None
-
     waiting_payment = payments.filter(
         is_active=True,
         charge_status=ChargeStatus.NOT_CHARGED,
@@ -75,7 +74,9 @@ def payment(request, token):
         form_data = None
     payment_form = None
     if not order.is_pre_authorized():
-        payment_form = PaymentsForm(form_data)
+        #gateway
+        # payment_form = PaymentsForm(form_data)
+        payment_form = PaymentsForm({"gateway":"dummy"})
         # FIXME: redirect if there is only one payment
         if payment_form.is_valid():
             payment = payment_form.cleaned_data["gateway"]
