@@ -4,7 +4,7 @@
 
 {% block breadcrumb_part %}
   <li>
-    <a href="{% url 'home' %}">{% trans "Home" context 'Site breadcrumbs home' %}</a>
+    <a href="{% url 'home' %}">INICIO</a>
   </li>
   <li><a href='{{ object.get_absolute_url }}'>{{ object.translated.name }}</a></li>
 {% endblock %}

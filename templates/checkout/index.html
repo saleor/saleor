@@ -8,7 +8,7 @@
 
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
-    <li><a href="{% url 'home' %}">{% trans "Home" context "Main navigation item" %}</a></li>
+    <li><a href="{% url 'home' %}">INICIO</a></li>
     <li><a rel="nofollow" href="{% url 'checkout:index' %}">{% trans "Cart" context "Checkout breadcrumb" %}</a></li>
   </ul>
 {% endblock breadcrumb %}
@@ -22,6 +22,7 @@
     {% trans "Product has been removed from checkout" context "Checkout message" %}
     <button type="button" class="close close-msg" aria-hidden="true">&times;</button>
   </div>
+  <h1 class="text-center">MEU CARRINHO</h1><br><br>
   <div class="checkout-preview">
     {% if checkout_lines %}
       <div class="table__header d-none d-md-block">
@@ -75,6 +76,7 @@
       <div class="checkout__subtotal">
         {% include 'checkout/_subtotal_table.html' %}
       </div>
+      <br>
       <div class="row">
         <div class="col-md-12">
             <a href="{% url "checkout:login" %}" class="btn btn-primary float-right checkout-preview__submit">
@@ -88,8 +90,8 @@
     {% else %}
       <div class="checkout-preview__empty">
         <img class="lazyload lazypreload" data-src="{% static 'images/empty-checkout-bg.png' %}" data-srcset="{% static 'images/empty-checkout-bg.png' %} 1x, {% static 'images/empty-checkout-bg2x.png' %} 2x">
-        <h2>{% trans "There are no products in your shopping cart." context "Empty checkout message" %}</h2>
-        <a href="{% url 'home' %}" class="btn btn-primary">{% trans "Check out our sales" context "Empty checkout link" %}</a>
+        <h2>Seu carrinho está vacio</h2>
+        <a href="{% url 'home' %}" class="btn btn-primary">Continuar comprando</a>
       </div>
     {% endif %}
   </div>
