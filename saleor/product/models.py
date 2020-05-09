@@ -241,8 +241,8 @@ class ProductVariant(models.Model):
         blank=True,
         null=True,
     )
-    product = models.OneToOneField(
-        Product, related_name="variants", on_delete=models.CASCADE
+    product = models.ForeignKey(
+        Product, related_name="variants", on_delete=models.CASCADE, unique=True
     )
     attributes = HStoreField(default=dict, blank=True)
     images = models.ManyToManyField("ProductImage", through="VariantImage")
