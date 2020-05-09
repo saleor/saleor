@@ -9,7 +9,7 @@
 {% block header %}
   <div class="container-fluid navbar__login">
     <div class="container">
-      <p>{% trans "Easy and secure!" context "Checkout top message" %}</p>
+      <p>Mensagem top bar</p>
     </div>
   </div>
   <header class="checkout__header">
@@ -17,7 +17,7 @@
       <a href="{% url 'home'%}">
         <svg data-src="{% static "images/logo-light.svg" %}" height="48px" width="176px" />
       </a>
-      <h1>{% trans "Checkout" context "Checkout title" %}</h1>
+      <h1>Pedido</h1>
     </div>
   </header>
 {% endblock %}
@@ -32,7 +32,7 @@
     </div>
     <div class="col-md-5">
       <div class="checkout__review">
-        <h3 class="checkout__review__tittle">{% trans "Order review" context "Order review title" %}</h3>
+        <h3 class="checkout__review__tittle">Order review - CHECEKOUT DETAILS</h3>
         {% for line, line_total in checkout_lines %}
           <div class="row">
             <div class="col-8">
@@ -86,13 +86,13 @@
         {% endif %}
         <div class="row checkout__review__section">
           <div class="col-12">
-            <h3>{% trans "Promo code" context "Order review section title" %}</h3>
+            <h3>PROMO CODE</h3>
             {% include "checkout/snippets/voucher_form.html" with checkout=checkout form=voucher_form %}
           </div>
         </div>
         <div class="row checkout__review__section">
           <div class="col-8">
-            <h3>{% trans "Total" context "Order review section title" %}</h3>
+            <h3>TOTAL DO PEDIDO</h3>
           </div>
           <div class="col-4">
             <h3 class="float-right">{% price checkout_total.gross %}</h3>

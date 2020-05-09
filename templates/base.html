@@ -67,7 +67,7 @@
             
               {% if user.is_authenticated %}
                 {% if user.is_staff or request.impersonator.is_staff %}
-                  <li hidden>
+                  <li>
                     <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
                       Admin
                     </a>
@@ -107,6 +107,7 @@
         </div>
       </div>
       </div>
+
       <div class="navbar__brand container-fluid d-block">
         <div class="container">
           <div class="row no-gutters">
@@ -160,11 +161,11 @@
           </div>
         </div>
       </div>
-      <div class="navbar__menu container d-block">
+      <!--<div class="navbar__menu container d-block">
         <nav class="navigation">
           {% menu site_menu=site.settings.top_menu horizontal=True %}
         </nav>
-      </div>
+      </div>-->
     </header>
   {% endblock %}
 

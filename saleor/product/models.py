@@ -142,6 +142,7 @@ class Product(SeoModel, PublishableModel):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
+    sku = models.CharField(max_length=32, unique=True, null=True)
 
     objects = ProductsQueryset.as_manager()
     translated = TranslationProxy()
