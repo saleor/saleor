@@ -142,6 +142,7 @@ class Product(SeoModel, PublishableModel):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
+    sku = models.CharField(max_length=32, unique=True, null=True)
 
     objects = ProductsQueryset.as_manager()
     translated = TranslationProxy()
@@ -242,7 +243,7 @@ class ProductVariant(models.Model):
         null=True,
     )
     product = models.ForeignKey(
-        Product, related_name="variants", on_delete=models.CASCADE, unique=True
+        Product, related_name="variants", on_delete=models.CASCADE
     )
     attributes = HStoreField(default=dict, blank=True)
     images = models.ManyToManyField("ProductImage", through="VariantImage")

@@ -62,7 +62,10 @@ class ProductFilter(SortedFilterSet):
         fields=PRODUCT_SORT_BY_FIELDS.keys(),
         field_labels=PRODUCT_SORT_BY_FIELDS,
     )
-
+    sku = CharFilter(
+        label=pgettext_lazy("Product list filter label", "SKU"),
+        lookup_expr="icontains",
+    )
     class Meta:
         model = Product
         fields = []
