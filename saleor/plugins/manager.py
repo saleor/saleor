@@ -15,8 +15,7 @@ from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from django.db.models.query import QuerySet
-    from .base_plugin import BasePlugin, PluginConfigurationType
+    from .base_plugin import BasePlugin
     from ..checkout.models import Checkout, CheckoutLine
     from ..product.models import Product, ProductType
     from ..account.models import Address, User

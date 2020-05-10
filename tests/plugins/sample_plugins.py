@@ -1,6 +1,8 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, Union
 
+from django.http import JsonResponse
+from django.urls import include, path
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
@@ -16,6 +18,7 @@ if TYPE_CHECKING:
 
 
 class PluginSample(BasePlugin):
+    URL_ID = "plugin-sample"
     PLUGIN_ID = "plugin.sample"
     PLUGIN_NAME = "PluginSample"
     PLUGIN_DESCRIPTION = "Test plugin description"
@@ -95,6 +98,26 @@ class PluginSample(BasePlugin):
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:
         return Decimal("15.0").quantize(Decimal("1."))
+
+    @classmethod
+    def register_urls(cls):
+        def handle_request(request):
+            return JsonResponse({"plugin_id": cls.PLUGIN_ID, "msg": "Request handled"})
+
+        def handle_detail_request(request, pk):
+            return JsonResponse(
+                {
+                    "plugin_id": cls.PLUGIN_ID,
+                    "recieved_pk": pk,
+                    "msg": "Request handled",
+                }
+            )
+
+        urls = [
+            path("test-request/", handle_request),
+            path("test-request/<int:pk>/", handle_detail_request),
+        ]
+        return urls
 
 
 class PluginInactive(BasePlugin):

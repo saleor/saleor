@@ -96,3 +96,12 @@ def test_change_user_address_in_anonymize_plugin_reset_phone(address, settings):
         address=address, address_type=None, user=None, previous_value=address
     )
     assert not new_address.phone
+
+
+def test_registered_urls(client, settings):
+    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
+    response = client.get("/plugins/plugin-sample/test-request/")
+    assert response.status_code == 200
+
+    response = client.get("/plugins/plugin-sample/test-request/11/")
+    assert response.status_code == 200

@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .data_feeds.urls import urlpatterns as feed_urls
 from .graphql.api import schema
 from .graphql.views import GraphQLView
+from .plugins.urls import register_plugins_urls
 from .product.views import digital_product
 
 urlpatterns = [
@@ -17,6 +18,7 @@ urlpatterns = [
         digital_product,
         name="digital-product",
     ),
+    url(r"plugins/", include(register_plugins_urls())),
 ]
 
 if settings.DEBUG:

@@ -48,6 +48,7 @@ class BasePlugin:
     CONFIG_STRUCTURE = None
     DEFAULT_CONFIGURATION = []
     DEFAULT_ACTIVE = False
+    URL_ID = None
 
     def __init__(self, *, configuration: PluginConfigurationType, active: bool):
         self.configuration = self.get_plugin_configuration(configuration)
@@ -419,3 +420,17 @@ class BasePlugin:
             # Let's add a translated descriptions and labels
             self._append_config_structure(configuration)
         return configuration
+
+    @classmethod
+    def register_urls(cls):
+        """Append plugin urls to Saleor.
+
+        Register list of urls to Saleor. URL_ID is required to properly register plugin
+        views. Url will have a given structure:
+        [
+            /plugins/<plugin.URL_ID>/<registered_view1>
+            /plugins/<plugin.URL_ID>/<registered_view2>
+        ]
+        See sample usage - tests.plugins.sample_plugins.PluginSample
+        """
+        return NotImplemented
