@@ -12,6 +12,7 @@ from .mutations import (
     AppTokenDelete,
     AppUpdate,
     InstallApp,
+    RetryInstallApp,
 )
 from .resolvers import resolve_apps
 from .sorters import AppSortingInput
@@ -57,3 +58,4 @@ class AppMutations(graphene.ObjectType):
     app_token_delete = AppTokenDelete.Field()
 
     install_app = InstallApp.Field()
+    retry_install_app = RetryInstallApp.Field()

@@ -8,14 +8,6 @@ from saleor.app.tasks import install_app_task
 from saleor.core import JobStatus
 
 
-@pytest.fixture
-def app_job():
-    app_job = AppJob.objects.create(
-        name="External App", manifest_url="http://localhost:3000/manifest",
-    )
-    return app_job
-
-
 @pytest.mark.vcr
 def test_install_app_task(app_job):
     install_app_task(app_job.id, activate=False)
