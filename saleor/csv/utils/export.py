@@ -7,7 +7,7 @@ from django.utils import timezone
 from ...celeryconf import app
 from ...core import JobStatus
 from ...product.models import Product
-from .. import ExportEvents, events
+from .. import events
 from ..emails import send_email_with_link_to_download_csv
 from ..models import ExportFile
 from .products_data import get_products_data
