@@ -28,7 +28,7 @@ django-mptt = "^0"
 django-phonenumber-field = "^4.0"
 django-prices = "^2.1"
 django-prices-openexchangerates = "^1.0.1"
-django-prices-vatlayer = "^1.0.2"
+django-prices-vatlayer = "^1.1.0"
 django-storages = { version = "^1.7.1", extras = [ "google" ] }
 django-templated-email = "^2.3.0"
 django-versatileimagefield = "^2.0"
