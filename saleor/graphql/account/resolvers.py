@@ -10,11 +10,8 @@ from ...account import models
 from ...core.permissions import AccountPermissions
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
-from ..utils import (
-    filter_by_query_param,
-    format_permissions_for_display,
-    get_user_or_app_from_context,
-)
+from ..utils import format_permissions_for_display, get_user_or_app_from_context
+from ..utils.filters import filter_by_query_param
 from .types import AddressValidationData, ChoiceValue
 from .utils import (
     get_allowed_fields_camel_case,
@@ -112,7 +109,7 @@ def resolve_address_validation_rules(
 
 def resolve_payment_sources(user: models.User):
     stored_customer_accounts = (
-        (gtw["name"], fetch_customer_id(user, gtw["name"]))
+        (gtw["id"], fetch_customer_id(user, gtw["id"]))
         for gtw in gateway.list_gateways()
     )
     return list(

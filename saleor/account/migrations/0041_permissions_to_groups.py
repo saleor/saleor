@@ -39,11 +39,8 @@ def get_counter_value(Group):
 def create_permissions_mapping(User):
     """Create mapping permissions to users and potential new group name."""
     mapping = defaultdict(set)
-    users = (
-        User.objects.filter(user_permissions__isnull=False)
-        .distinct()
-        .prefetch_related("user_permissions")
-    )
+    users = User.objects.filter(user_permissions__isnull=False).distinct().iterator()
+
     for user in users:
         permissions = user.user_permissions.all().order_by("pk")
         perm_pks = tuple([perm.pk for perm in permissions])

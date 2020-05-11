@@ -207,6 +207,27 @@ class ShippingPriceMixin:
             else:
                 min_weight = cleaned_input.get("minimum_order_weight")
                 max_weight = cleaned_input.get("maximum_order_weight")
+
+                if min_weight and min_weight.value < 0:
+                    raise ValidationError(
+                        {
+                            "minimum_order_weight": ValidationError(
+                                "Shipping can't have negative weight.",
+                                code=ShippingErrorCode.INVALID,
+                            )
+                        }
+                    )
+
+                if max_weight and max_weight.value < 0:
+                    raise ValidationError(
+                        {
+                            "maximum_order_weight": ValidationError(
+                                "Shipping can't have negative weight.",
+                                code=ShippingErrorCode.INVALID,
+                            )
+                        }
+                    )
+
                 if (
                     min_weight is not None
                     and max_weight is not None

@@ -23,7 +23,7 @@ def get_or_create_warehouse(apps):
         Address = apps.get_model("account", "Address")
         address = Address.objects.create()
 
-    warehouse = Warehouse.objects.create(address=address)
+    warehouse = Warehouse.objects.create(name="Default warehouse", address=address)
     warehouse.shipping_zones.add(*ShippingZone.objects.all())
     return warehouse
 
@@ -120,7 +120,7 @@ class Migration(migrations.Migration):
                     models.ManyToManyField(blank=True, to="shipping.ShippingZone"),
                 ),
             ],
-            options={"ordering": ("-name",),},
+            options={"ordering": ("-name",)},
         ),
         migrations.CreateModel(
             name="Stock",
@@ -152,7 +152,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"unique_together": {("warehouse", "product_variant")},},
+            options={"unique_together": {("warehouse", "product_variant")}},
         ),
         migrations.RunPython(forward, backward),
     ]

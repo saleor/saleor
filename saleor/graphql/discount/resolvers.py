@@ -1,5 +1,5 @@
 from ...discount import models
-from ..utils import filter_by_query_param
+from ..utils.filters import filter_by_query_param
 
 VOUCHER_SEARCH_FIELDS = ("name", "code")
 SALE_SEARCH_FIELDS = ("name", "value", "type")

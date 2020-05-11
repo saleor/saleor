@@ -35,6 +35,7 @@ if TYPE_CHECKING:
 
 
 class VatlayerPlugin(BasePlugin):
+    PLUGIN_ID = "mirumee.taxes.vatlayer"
     PLUGIN_NAME = "Vatlayer"
     META_CODE_KEY = "vatlayer.code"
     META_DESCRIPTION_KEY = "vatlayer.description"

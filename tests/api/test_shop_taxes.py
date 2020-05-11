@@ -53,7 +53,7 @@ def taxes(tax_rates):
 
 
 @pytest.fixture
-def vatlayer(db, settings, tax_rates, taxes):
+def vatlayer(db, tax_rates, taxes, setup_vatlayer):
     VAT.objects.create(country_code="PL", data=tax_rates)
 
     tax_rates_2 = {

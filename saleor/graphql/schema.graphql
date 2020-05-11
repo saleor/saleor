@@ -774,7 +774,7 @@ type Checkout implements Node & ObjectWithMetadata {
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
   availableShippingMethods: [ShippingMethod]!
-  availablePaymentGateways: [PaymentGateway]!
+  availablePaymentGateways: [PaymentGateway!]!
   email: String!
   isShippingRequired: Boolean!
   lines: [CheckoutLine]
@@ -3101,6 +3101,7 @@ enum PaymentErrorCode {
 
 type PaymentGateway {
   name: String!
+  id: ID!
   config: [GatewayConfigLine!]!
 }
 
@@ -4352,9 +4353,10 @@ input ShippingZoneUpdateInput {
 }
 
 type Shop {
+  availablePaymentGateways: [PaymentGateway!]!
   geolocalization: Geolocalization
   authorizationKeys: [AuthorizationKey]!
-  countries(languageCode: LanguageCodeEnum): [CountryDisplay]!
+  countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
   currencies: [String]!
   defaultCurrency: String!
   defaultCountry: CountryDisplay

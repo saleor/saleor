@@ -79,7 +79,7 @@ CONFIRM_RESPONSE = GatewayResponse(
     raw_response=RAW_RESPONSE,
 )
 TOKEN = "token"
-USED_GATEWAY = "Dummy"
+USED_GATEWAY = "mirumee.payments.dummy"
 
 
 @pytest.fixture
