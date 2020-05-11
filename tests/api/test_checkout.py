@@ -2217,9 +2217,9 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
     payment.checkout = checkout
     payment.save()
     # Shouldn't raise any errors
-    clean_args = (checkout, list(checkout), None, CheckoutErrorCode)
-    clean_checkout_shipping(*clean_args)
-    clean_checkout_payment(*clean_args)
+    lines = list(checkout)
+    clean_checkout_shipping(checkout, lines, None, CheckoutErrorCode)
+    clean_checkout_payment(checkout, lines, None, CheckoutErrorCode)
 
 
 def test_clean_checkout_no_shipping_method(checkout_with_item, address):

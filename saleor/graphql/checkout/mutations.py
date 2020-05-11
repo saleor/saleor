@@ -735,9 +735,8 @@ class CheckoutComplete(BaseMutation):
         discounts = info.context.discounts
         user = info.context.user
 
-        clean_args = checkout, list(checkout), discounts, CheckoutErrorCode
-        clean_checkout_shipping(*clean_args)
-        clean_checkout_payment(*clean_args)
+        clean_checkout_shipping(checkout, lines, discounts, CheckoutErrorCode)
+        clean_checkout_payment(checkout, lines, discounts, CheckoutErrorCode)
 
         payment = checkout.get_last_active_payment()
 
