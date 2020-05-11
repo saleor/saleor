@@ -8,7 +8,8 @@ from django.core.files import File
 from freezegun import freeze_time
 
 from saleor.core import JobStatus
-from saleor.csv.models import ExportFile
+from saleor.csv import ExportEvents
+from saleor.csv.models import ExportEvent, ExportFile
 from saleor.csv.utils.export import (
     create_csv_file_and_save_in_export_file,
     export_products,
@@ -38,6 +39,11 @@ def test_on_task_failure(export_file):
     assert export_file.status == JobStatus.FAILED
     assert export_file.created_at
     assert export_file.updated_at != previous_updated_at
+    export_event = ExportEvent.objects.get(
+        export_file=export_file, user=export_file.created_by
+    )
+    assert export_event.type == ExportEvents.EXPORT_FAILED
+    assert export_event.parameters == {"message": str(exc)}
 
 
 def test_on_task_success(export_file):
@@ -55,12 +61,17 @@ def test_on_task_success(export_file):
     assert export_file.status == JobStatus.SUCCESS
     assert export_file.created_at
     assert export_file.updated_at != previous_updated_at
+    assert ExportEvent.objects.filter(
+        export_file=export_file,
+        user=export_file.created_by,
+        type=ExportEvents.EXPORT_SUCCESS,
+    )
 
 
 def test_update_export_file_when_task_finished(export_file):
     with freeze_time(datetime.datetime.now()) as frozen_datetime:
         previous_updated_at = export_file.updated_at
-        update_export_file_when_task_finished(export_file.pk, JobStatus.FAILED)
+        update_export_file_when_task_finished(export_file, JobStatus.FAILED)
 
         export_file.refresh_from_db()
         assert export_file.updated_at == pytz.utc.localize(frozen_datetime())

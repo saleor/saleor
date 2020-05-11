@@ -1,5 +1,10 @@
 import graphene
 
+from ...csv import ExportEvents
+from ...graphql.core.enums import to_enum
+
+ExportEventEnum = to_enum(ExportEvents)
+
 
 class ExportScope(graphene.Enum):
     ALL = "all"

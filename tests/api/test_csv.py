@@ -7,7 +7,8 @@ from django.utils import timezone
 
 from saleor.account.models import User
 from saleor.core import JobStatus
-from saleor.csv.models import ExportFile
+from saleor.csv import ExportEvents
+from saleor.csv.models import ExportEvent, ExportFile
 from saleor.graphql.csv.enums import ExportScope
 from tests.api.utils import get_graphql_content
 
@@ -54,6 +55,7 @@ def test_export_products_mutation(
     called_data,
 ):
     query = EXPORT_PRODUCTS_MUTATION
+    user = staff_api_client.user
     variables = {"input": input}
 
     response = staff_api_client.post_graphql(
@@ -69,6 +71,9 @@ def test_export_products_mutation(
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
     assert export_file_data["createdBy"]["email"] == staff_api_client.user.email
+    assert ExportEvent.objects.filter(
+        user=user, type=ExportEvents.EXPORT_PENDING
+    ).exists()
 
 
 @patch("saleor.graphql.csv.mutations.export_products.delay")
@@ -76,6 +81,7 @@ def test_export_products_mutation_ids_scope(
     export_products_mock, staff_api_client, product_list, permission_manage_products
 ):
     query = EXPORT_PRODUCTS_MUTATION
+    user = staff_api_client.user
 
     products = product_list[:2]
 
@@ -103,6 +109,9 @@ def test_export_products_mutation_ids_scope(
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
     assert export_file_data["createdBy"]["email"] == staff_api_client.user.email
+    assert ExportEvent.objects.filter(
+        user=user, type=ExportEvents.EXPORT_PENDING
+    ).exists()
 
 
 @pytest.mark.parametrize(
@@ -122,6 +131,7 @@ def test_export_products_mutation_failed(
     error_field,
 ):
     query = EXPORT_PRODUCTS_MUTATION
+    user = staff_api_client.user
     variables = {"input": input}
 
     response = staff_api_client.post_graphql(
@@ -135,6 +145,9 @@ def test_export_products_mutation_failed(
 
     assert data["csvErrors"]
     assert errors[0]["field"] == error_field
+    assert not ExportEvent.objects.filter(
+        user=user, type=ExportEvents.EXPORT_PENDING
+    ).exists()
 
 
 EXPORT_FILE_QUERY = """
@@ -147,6 +160,14 @@ EXPORT_FILE_QUERY = """
             url
             createdBy{
                 email
+            }
+            events{
+                date
+                type
+                user{
+                    email
+                }
+                message
             }
         }
     }
@@ -193,7 +214,9 @@ SORT_EXPORT_FILES_QUERY = """
 """
 
 
-def test_query_export_file(staff_api_client, export_file, permission_manage_products):
+def test_query_export_file(
+    staff_api_client, export_file, permission_manage_products, export_event
+):
     query = EXPORT_FILE_QUERY
     variables = {"id": graphene.Node.to_global_id("ExportFile", export_file.pk)}
 
@@ -208,6 +231,43 @@ def test_query_export_file(staff_api_client, export_file, permission_manage_prod
     assert data["updatedAt"]
     assert not data["url"]
     assert data["createdBy"]["email"] == staff_api_client.user.email
+    assert len(data["events"]) == 1
+    event = data["events"][0]
+    assert event["date"]
+    assert event["message"] == export_event.parameters.get("message")
+    assert event["type"] == ExportEvents.EXPORT_FAILED.upper()
+    assert event["user"]["email"] == export_event.user.email
+
+
+def test_query_export_file_as_app(
+    app_api_client,
+    export_file,
+    permission_manage_products,
+    permission_manage_users,
+    export_event,
+):
+    query = EXPORT_FILE_QUERY
+    variables = {"id": graphene.Node.to_global_id("ExportFile", export_file.pk)}
+
+    response = app_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_products, permission_manage_users],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["exportFile"]
+
+    assert data["status"] == JobStatus.PENDING.upper()
+    assert data["createdAt"]
+    assert data["updatedAt"]
+    assert not data["url"]
+    assert data["createdBy"]["email"] == export_file.created_by.email
+    assert len(data["events"]) == 1
+    event = data["events"][0]
+    assert event["date"]
+    assert event["message"] == export_event.parameters.get("message")
+    assert event["type"] == ExportEvents.EXPORT_FAILED.upper()
+    assert event["user"]["email"] == export_event.user.email
 
 
 @pytest.mark.parametrize(

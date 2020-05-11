@@ -1756,6 +1756,22 @@ type Error {
   message: String
 }
 
+type ExportEvent implements Node {
+  id: ID!
+  date: DateTime!
+  type: ExportEventsEnum!
+  user: User!
+  message: String!
+}
+
+enum ExportEventsEnum {
+  EXPORT_PENDING
+  EXPORT_SUCCESS
+  EXPORT_FAILED
+  EXPORT_DELETED
+  EXPORTED_FILE_SENT
+}
+
 type ExportFile implements Node & Job {
   id: ID!
   createdBy: User!
@@ -1763,6 +1779,7 @@ type ExportFile implements Node & Job {
   createdAt: DateTime!
   updatedAt: DateTime!
   url: String
+  events: [ExportEvent!]
 }
 
 type ExportFileCountableConnection {

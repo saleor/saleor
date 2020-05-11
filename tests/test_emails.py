@@ -4,13 +4,17 @@ from urllib.parse import urlencode
 import pytest
 from django.core import mail
 from django.core.exceptions import ImproperlyConfigured
+from django.core.files import File
 from django.templatetags.static import static
 from templated_email import get_connection
 
 import saleor.account.emails as account_emails
+import saleor.csv.emails as csv_emails
 import saleor.order.emails as emails
 from saleor.core.emails import get_email_context, prepare_url
 from saleor.core.utils import build_absolute_uri
+from saleor.csv import ExportEvents
+from saleor.csv.models import ExportEvent
 from saleor.order.utils import add_variant_to_draft_order
 
 
@@ -359,3 +363,48 @@ def test_send_email_changed_notification(
     # Render the email to ensure there is no error
     email_connection = get_connection()
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+@mock.patch("saleor.csv.emails.send_templated_mail")
+def test_send_email_with_link_to_download_csv(
+    mocked_templated_email, site_settings, export_file, tmpdir
+):
+    from django.conf import settings
+
+    settings.MEDIA_ROOT = tmpdir
+
+    file_mock = mock.MagicMock(spec=File)
+    file_mock.name = "temp_file.csv"
+
+    export_file.content_file = file_mock
+    export_file.save()
+
+    csv_emails.send_email_with_link_to_download_csv(export_file, "export_products")
+    template = csv_emails.EXPORT_TEMPLATES["export_products"]
+    ctx = {
+        "csv_link": f"http://mirumee.com/media/csv_files/{file_mock.name}",
+        "domain": "mirumee.com",
+        "logo_url": "http://mirumee.com/static/images/logo-light.svg",
+        "site_name": "mirumee.com",
+    }
+    recipients = [export_file.created_by.email]
+    expected_call_kwargs = {
+        "context": ctx,
+        "from_email": site_settings.default_from_email,
+        "template_name": template,
+    }
+
+    # mocked_templated_email.assert_called_once()
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=recipients, **expected_call_kwargs
+    )
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+    assert ExportEvent.objects.filter(
+        export_file=export_file,
+        user=export_file.created_by,
+        type=ExportEvents.EXPORTED_FILE_SENT,
+    )
