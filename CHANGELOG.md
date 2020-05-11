@@ -3,7 +3,7 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
-
+- Drop support for configuring Vatlayer plugin from settings file. - #5614 by @korycins
 ## 2.10.0
 
 - OpenTracing support - #5188 by @tomaszszymanski129
