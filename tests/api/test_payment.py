@@ -156,6 +156,7 @@ def test_checkout_add_payment_with_shipping_method_and_shipping_required(
 ):
     checkout = checkout_with_shipping_required
     checkout.billing_address = address
+    checkout.shipping_address = address
     checkout.shipping_method = other_shipping_method
     checkout.save()
 

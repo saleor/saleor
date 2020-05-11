@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from ...core.permissions import OrderPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.utils import get_client_ip
+from ...graphql.checkout.utils import clean_billing_address, clean_checkout_shipping
 from ...payment import PaymentError, gateway, models
 from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment
@@ -88,18 +89,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def clean_billing_address(cls, billing_address):
-        if billing_address is None:
-            raise ValidationError(
-                {
-                    "billing_address": ValidationError(
-                        "No billing address associated with this checkout.",
-                        code=PaymentErrorCode.BILLING_ADDRESS_NOT_SET,
-                    )
-                }
-            )
-
-    @classmethod
     def clean_payment_amount(cls, info, checkout_total, amount):
         if amount != checkout_total.gross.amount:
             raise ValidationError(
@@ -125,10 +114,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
         checkout_total = cls.calculate_total(info, checkout)
         amount = data.get("amount", checkout_total.gross.amount)
-
-        if checkout.is_shipping_required():
-            cls.clean_shipping_method(checkout)
-        cls.clean_billing_address(checkout.billing_address)
+        clean_checkout_shipping(
+            checkout, list(checkout), info.context.discounts, PaymentErrorCode
+        )
+        clean_billing_address(checkout, PaymentErrorCode)
         cls.clean_payment_amount(info, checkout_total, amount)
         extra_data = {"customer_user_agent": info.context.META.get("HTTP_USER_AGENT")}
 
