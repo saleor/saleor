@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from .models import ExportFile
 
 
-def export_event(*, export_file: "ExportFile", user: User):
+def export_started_event(*, export_file: "ExportFile", user: User):
     ExportEvent.objects.create(
         export_file=export_file, user=user, type=ExportEvents.EXPORT_PENDING
     )

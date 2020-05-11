@@ -17,12 +17,7 @@ class ExportEvent(models.Model):
     """Model used to store events that happened during the export file lifecycle."""
 
     date = models.DateTimeField(default=timezone.now, editable=False)
-    type = models.CharField(
-        max_length=255,
-        choices=[
-            (type_name.upper(), type_name) for type_name, _ in ExportEvents.CHOICES
-        ],
-    )
+    type = models.CharField(max_length=255, choices=ExportEvents.CHOICES)
     parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
     export_file = models.ForeignKey(
         ExportFile, related_name="events", on_delete=models.CASCADE
