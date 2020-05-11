@@ -5,6 +5,7 @@ from django.core.validators import URLValidator
 from ...app import models
 from ...app.error_codes import AppErrorCode
 from ...app.tasks import install_app_task
+from ...core import JobStatus
 from ...core.permissions import AppPermission, get_permissions
 from ..account.utils import can_manage_app
 from ..core.enums import PermissionEnum
@@ -208,13 +209,55 @@ class AppDelete(ModelDeleteMutation):
 
 
 class InstallAppInput(graphene.InputObjectType):
-    name = graphene.String(description="Name of the app to register.")
+    name = graphene.String(description="Name of the app to install.")
     manifest_url = graphene.String(description="Url to app's manifest in JSON format.")
     activate_after_installation = graphene.Boolean(default_value=True, required=False)
     permissions = graphene.List(
         PermissionEnum,
         description="List of permission code names to assign to this app.",
     )
+
+
+class RetryInstallApp(ModelMutation):
+    class Arguments:
+        id = graphene.ID(description="ID of an failed installation.", required=True)
+        activate_after_installation = graphene.Boolean(
+            default_value=True, required=False
+        )
+
+    class Meta:
+        description = "Install new app by using app manifest."
+        model = models.AppJob
+        permissions = (AppPermission.MANAGE_APPS,)
+        error_type_class = AppError
+        error_type_field = "app_errors"
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        instance.status = JobStatus.PENDING
+        instance.save()
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        activate_after_installation = data.get("activate_after_installation")
+        app_job = cls.get_instance(info, **data)
+        cls.ensure_can_manage_permissions(info, app_job)
+
+        cls.save(info, app_job, cleaned_input=None)
+        install_app_task.delay(app_job.pk, activate_after_installation)
+        return cls.success_response(app_job)
+
+    @classmethod
+    def ensure_can_manage_permissions(cls, info, instance):
+        perms = instance.permissions.all()
+        if not perms:
+            return
+        perms = [
+            PermissionEnum.get(f"{perm.content_type.app_label}.{perm.codename}")
+            for perm in perms
+        ]
+        requestor = get_user_or_app_from_context(info.context)
+        ensure_can_manage_permissions(requestor, perms)
 
 
 class InstallApp(ModelMutation):
