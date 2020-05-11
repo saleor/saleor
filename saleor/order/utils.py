@@ -1,3 +1,4 @@
+import os
 from functools import wraps
 from uuid import uuid4
 
@@ -367,6 +368,10 @@ def get_product_limit_first_page(products):
 
 def generate_invoice_pdf_for_order(invoice):
     logo_path = static_finders.find("images/logo.svg")
+    font_path = os.path.join(
+        settings.PROJECT_ROOT, "templates", "invoices", "inter.ttf"
+    )
+
     MAX_PRODUCTS_PER_PAGE = 13
 
     all_products = invoice.order.lines.all()
@@ -378,12 +383,13 @@ def generate_invoice_pdf_for_order(invoice):
         all_products[product_limit_first_page:], MAX_PRODUCTS_PER_PAGE
     )
 
-    rendered_template = get_template("invoice.html").render(
+    rendered_template = get_template("invoices/invoice.html").render(
         {
             "invoice": invoice,
             "creation_date": invoice.created.strftime("%d %b %Y"),
             "order": invoice.order,
             "logo_path": f"file://{logo_path}",
+            "font_path": f"file://{font_path}",
             "products_first_page": products_first_page,
             "rest_of_products": rest_of_products,
         }
