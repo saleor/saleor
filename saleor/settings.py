@@ -1,6 +1,7 @@
 import ast
 import os.path
 import warnings
+from datetime import timedelta
 
 import dj_database_url
 import dj_email_url
@@ -359,19 +360,6 @@ COUNTRIES_OVERRIDE = {"EU": "European Union"}
 
 OPENEXCHANGERATES_API_KEY = os.environ.get("OPENEXCHANGERATES_API_KEY")
 
-# VAT configuration
-# Enabling vat requires valid vatlayer access key.
-# If you are subscribed to a paid vatlayer plan, you can enable HTTPS.
-VATLAYER_ACCESS_KEY = os.environ.get("VATLAYER_ACCESS_KEY")
-VATLAYER_USE_HTTPS = get_bool_from_env("VATLAYER_USE_HTTPS", False)
-
-# Avatax supports two ways of log in - username:password or account:license
-AVATAX_USERNAME_OR_ACCOUNT = os.environ.get("AVATAX_USERNAME_OR_ACCOUNT")
-AVATAX_PASSWORD_OR_LICENSE = os.environ.get("AVATAX_PASSWORD_OR_LICENSE")
-AVATAX_USE_SANDBOX = get_bool_from_env("AVATAX_USE_SANDBOX", DEBUG)
-AVATAX_COMPANY_NAME = os.environ.get("AVATAX_COMPANY_NAME", "DEFAULT")
-AVATAX_AUTOCOMMIT = get_bool_from_env("AVATAX_AUTOCOMMIT", False)
-
 GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get("GOOGLE_ANALYTICS_TRACKING_ID")
 
 
@@ -384,8 +372,6 @@ def get_host():
 PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = "order.Payment"
-
-SESSION_SERIALIZER = "django.contrib.sessions.serializers.JSONSerializer"
 
 MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
 
@@ -473,9 +459,12 @@ AUTHENTICATION_BACKENDS = [
 # Django GraphQL JWT settings
 GRAPHQL_JWT = {
     "JWT_PAYLOAD_HANDLER": "saleor.graphql.utils.create_jwt_payload",
+    # How long until a token expires, default is 5m from graphql_jwt.settings
+    "JWT_EXPIRATION_DELTA": timedelta(minutes=5),
+    # Whether the JWT tokens should expire or not
+    # Enabled by default in production mode; disabled in development mode by default
+    "JWT_VERIFY_EXPIRATION": get_bool_from_env("JWT_VERIFY_EXPIRATION", not DEBUG),
 }
-if not DEBUG:
-    GRAPHQL_JWT["JWT_VERIFY_EXPIRATION"] = True  # type: ignore
 
 # CELERY SETTINGS
 CELERY_BROKER_URL = (

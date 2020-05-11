@@ -412,6 +412,10 @@ class PluginsManager(PaymentInterface):
                 return plugin
         return None
 
+    def fetch_taxes_data(self) -> bool:
+        default_value = False
+        return self.__run_method_on_plugins("fetch_taxes_data", default_value)
+
 
 def get_plugins_manager(
     manager_path: str = None, plugins: List[str] = None

@@ -1054,6 +1054,57 @@ def test_create_product_no_slug_in_input(
     assert str(data["product"]["basePrice"]["amount"]) == product_price
 
 
+def test_create_product_no_category_id(
+    staff_api_client,
+    product_type,
+    category,
+    size_attribute,
+    description_json,
+    permission_manage_products,
+    monkeypatch,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product_name = "test name"
+    product_is_published = False
+    product_tax_rate = "STANDARD"
+    product_price = "22.33"
+    input_slug = "test-slug"
+
+    # Mock tax interface with fake response from tax gateway
+    monkeypatch.setattr(
+        PluginsManager,
+        "get_tax_code_from_object_meta",
+        lambda self, x: TaxType(description="", code=product_tax_rate),
+    )
+
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "name": product_name,
+            "slug": input_slug,
+            "isPublished": product_is_published,
+            "taxCode": product_tax_rate,
+            "basePrice": product_price,
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == input_slug
+    assert data["product"]["isPublished"] == product_is_published
+    assert data["product"]["taxType"]["taxCode"] == product_tax_rate
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"] is None
+    assert str(data["product"]["basePrice"]["amount"]) == product_price
+
+
 def test_create_product_with_negative_weight(
     staff_api_client,
     product_type,
@@ -2197,11 +2248,14 @@ def test_product_type_query(
 
 
 def test_product_type_create_mutation(
-    staff_api_client, product_type, permission_manage_products, monkeypatch, settings
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+    monkeypatch,
+    setup_vatlayer,
 ):
-    settings.VATLAYER_ACCESS_KEY = "test"
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
-    manager = PluginsManager(plugins=settings.PLUGINS)
+    manager = PluginsManager(plugins=setup_vatlayer.PLUGINS)
+
     query = """
     mutation createProductType(
         $name: String!,
@@ -3251,6 +3305,47 @@ def test_variant_digital_content(
     content = get_graphql_content(response)
     assert "digitalContent" in content["data"]["productVariant"]
     assert "id" in content["data"]["productVariant"]["digitalContent"]
+
+
+def test_variant_availability_without_inventory_tracking(
+    api_client, variant_without_inventory_tracking, settings
+):
+    query = """
+    query variantAvailability($id: ID!) {
+        productVariant(id: $id) {
+            isAvailable
+            stockQuantity
+        }
+    }
+    """
+    variant = variant_without_inventory_tracking
+    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["isAvailable"] is True
+    assert variant_data["stockQuantity"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+
+
+def test_variant_availability_without_inventory_tracking_not_available(
+    api_client, variant_without_inventory_tracking, settings
+):
+    query = """
+    query variantAvailability($id: ID!) {
+        productVariant(id: $id) {
+            isAvailable
+            stockQuantity
+        }
+    }
+    """
+    variant = variant_without_inventory_tracking
+    variant.stocks.all().delete()
+    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["isAvailable"] is False
+    assert variant_data["stockQuantity"] == 0
 
 
 @pytest.mark.parametrize(
