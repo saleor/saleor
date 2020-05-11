@@ -3,7 +3,7 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
-
+- Drop support for configuring Vatlayer plugin from settings file. - #5614 by @korycins
 ## 2.10.0
 
 - OpenTracing support - #5188 by @tomaszszymanski129
@@ -99,12 +99,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add tests for pagination - #5468 by @koradon
 - Add `Job` abstract model and interface - #5510 by @IKarbowiak
 - Refactor implementation of allocation - #5445 by @fowczarek
-- Fix WeightScalar - #5530 by @koradon
-- Add OrderFulfill mutation - #5525 by @fowczarek
-- Add home page - #5494 by @IKarbowiak and @dominik-zeglen
-- Extend errors in OrderFulfill mutation - #5553 by @fowczarek
-- Refactor OrderCancel mutation for many warehouses - #5554 by @fowczarek
-- Drop support for configuring Vatlayer plugin from settings file. - #5614 by @korycins
 - Fix `WeightScalar` - #5530 by @koradon
 - Add `OrderFulfill` mutation - #5525 by @fowczarek
 - Add "It Works" page - #5494 by @IKarbowiak and @dominik-zeglen
