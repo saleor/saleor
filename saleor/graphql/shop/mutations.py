@@ -169,7 +169,6 @@ class ShopFetchTaxRates(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info):
-
         if not info.context.plugins.fetch_taxes_data():
             raise ValidationError(
                 "Could not fetch tax rates. Make sure you have supplied a "
