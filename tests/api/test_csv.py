@@ -72,7 +72,7 @@ def test_export_products_mutation(
     assert export_file_data["createdAt"]
     assert export_file_data["createdBy"]["email"] == staff_api_client.user.email
     assert ExportEvent.objects.filter(
-        user=user, type=ExportEvents.DATA_EXPORT_PENDING
+        user=user, type=ExportEvents.EXPORT_PENDING
     ).exists()
 
 
@@ -110,7 +110,7 @@ def test_export_products_mutation_ids_scope(
     assert export_file_data["createdAt"]
     assert export_file_data["createdBy"]["email"] == staff_api_client.user.email
     assert ExportEvent.objects.filter(
-        user=user, type=ExportEvents.DATA_EXPORT_PENDING
+        user=user, type=ExportEvents.EXPORT_PENDING
     ).exists()
 
 
@@ -146,7 +146,7 @@ def test_export_products_mutation_failed(
     assert data["csvErrors"]
     assert errors[0]["field"] == error_field
     assert not ExportEvent.objects.filter(
-        user=user, type=ExportEvents.DATA_EXPORT_PENDING
+        user=user, type=ExportEvents.EXPORT_PENDING
     ).exists()
 
 
@@ -230,12 +230,12 @@ def test_query_export_file(
     assert data["createdAt"]
     assert data["updatedAt"]
     assert not data["url"]
-    assert data["createdBy"]["email"] == staff_api_client.created_by.email
+    assert data["createdBy"]["email"] == staff_api_client.user.email
     assert len(data["events"]) == 1
     event = data["events"][0]
     assert event["date"]
     assert event["message"] == export_event.parameters.get("message")
-    assert event["type"] == ExportEvents.DATA_EXPORT_FAILED.upper()
+    assert event["type"] == ExportEvents.EXPORT_FAILED.upper()
     assert event["user"]["email"] == export_event.user.email
 
 
@@ -266,7 +266,7 @@ def test_query_export_file_as_app(
     event = data["events"][0]
     assert event["date"]
     assert event["message"] == export_event.parameters.get("message")
-    assert event["type"] == ExportEvents.DATA_EXPORT_FAILED.upper()
+    assert event["type"] == ExportEvents.EXPORT_FAILED.upper()
     assert event["user"]["email"] == export_event.user.email
 
 

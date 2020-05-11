@@ -42,7 +42,7 @@ def test_on_task_failure(export_file):
     export_event = ExportEvent.objects.get(
         export_file=export_file, user=export_file.created_by
     )
-    assert export_event.type == ExportEvents.DATA_EXPORT_FAILED
+    assert export_event.type == ExportEvents.EXPORT_FAILED
     assert export_event.parameters == {"message": str(exc)}
 
 
@@ -64,7 +64,7 @@ def test_on_task_success(export_file):
     assert ExportEvent.objects.filter(
         export_file=export_file,
         user=export_file.created_by,
-        type=ExportEvents.DATA_EXPORT_SUCCESS,
+        type=ExportEvents.EXPORT_SUCCESS,
     )
 
 
