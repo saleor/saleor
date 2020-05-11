@@ -21,7 +21,7 @@ def clean_checkout_shipping(
                 {
                     "shipping_method": ValidationError(
                         "Shipping method is not set",
-                        code=error_code.SHIPPING_METHOD_NOT_SET
+                        code=error_code.SHIPPING_METHOD_NOT_SET,
                     )
                 }
             )
@@ -30,7 +30,7 @@ def clean_checkout_shipping(
                 {
                     "shipping_address": ValidationError(
                         "Shipping address is not set",
-                        code=error_code.SHIPPING_ADDRESS_NOT_SET
+                        code=error_code.SHIPPING_ADDRESS_NOT_SET,
                     )
                 }
             )
