@@ -2217,7 +2217,7 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
     payment.checkout = checkout
     payment.save()
     # Shouldn't raise any errors
-    clean_args = checkout, list(checkout), None
+    clean_args = (checkout, list(checkout), None, CheckoutErrorCode)
     clean_checkout_shipping(*clean_args)
     clean_checkout_payment(*clean_args)
 
@@ -2228,10 +2228,10 @@ def test_clean_checkout_no_shipping_method(checkout_with_item, address):
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout_shipping(checkout, list(checkout), None)
+        clean_checkout_shipping(checkout, list(checkout), None, CheckoutErrorCode)
 
     msg = "Shipping method is not set"
-    assert e.value.error_list[0].message == msg
+    assert e.value.error_dict["shipping_method"][0].message == msg
 
 
 def test_clean_checkout_no_shipping_address(checkout_with_item, shipping_method):
@@ -2240,9 +2240,9 @@ def test_clean_checkout_no_shipping_address(checkout_with_item, shipping_method)
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout_shipping(checkout, list(checkout), None)
+        clean_checkout_shipping(checkout, list(checkout), None, CheckoutErrorCode)
     msg = "Shipping address is not set"
-    assert e.value.error_list[0].message == msg
+    assert e.value.error_dict["shipping_address"][0].message == msg
 
 
 def test_clean_checkout_invalid_shipping_method(
@@ -2255,10 +2255,11 @@ def test_clean_checkout_invalid_shipping_method(
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout_shipping(checkout, list(checkout), None)
+        clean_checkout_shipping(checkout, list(checkout), None, CheckoutErrorCode)
 
     msg = "Shipping method is not valid for your shipping address"
-    assert e.value.error_list[0].message == msg
+
+    assert e.value.error_dict["shipping_method"][0].message == msg
 
 
 def test_clean_checkout_no_billing_address(
@@ -2270,9 +2271,9 @@ def test_clean_checkout_no_billing_address(
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout_payment(checkout, list(checkout), None)
+        clean_checkout_payment(checkout, list(checkout), None, CheckoutErrorCode)
     msg = "Billing address is not set"
-    assert e.value.error_list[0].message == msg
+    assert e.value.error_dict["billing_address"][0].message == msg
 
 
 def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address):
@@ -2283,7 +2284,7 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout_payment(checkout, list(checkout), None)
+        clean_checkout_payment(checkout, list(checkout), None, CheckoutErrorCode)
 
     msg = "Provided payment methods can not cover the checkout's total amount"
     assert e.value.error_list[0].message == msg
