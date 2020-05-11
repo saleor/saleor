@@ -6,7 +6,6 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
-from graphql.checkout.utils import clean_checkout_payment, clean_checkout_shipping
 from prices import Money, TaxedMoney
 
 from saleor.account.models import User
@@ -19,6 +18,10 @@ from saleor.core.taxes import zero_money
 from saleor.graphql.checkout.mutations import (
     clean_shipping_method,
     update_checkout_shipping_method_if_invalid,
+)
+from saleor.graphql.checkout.utils import (
+    clean_checkout_payment,
+    clean_checkout_shipping,
 )
 from saleor.order.models import Order
 from saleor.payment import TransactionKind
