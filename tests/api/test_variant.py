@@ -178,6 +178,50 @@ def test_create_variant(
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
 
 
+def test_create_product_variant_with_negative_weight(
+    staff_api_client, product, product_type, permission_manage_products
+):
+    query = """
+        mutation createVariant (
+            $productId: ID!,
+            $attributes: [AttributeValueInput]!,
+            $weight: WeightScalar) {
+                productVariantCreate(
+                    input: {
+                        product: $productId,
+                        attributes: $attributes,
+                        weight: $weight
+                    }) {
+                    productErrors {
+                        field
+                        code
+                        message
+                    }
+                }
+            }
+    """
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variant_id = graphene.Node.to_global_id(
+        "Attribute", product_type.variant_attributes.first().pk
+    )
+    variant_value = "test-value"
+
+    variables = {
+        "productId": product_id,
+        "weight": -1,
+        "attributes": [{"id": variant_id, "values": [variant_value]}],
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantCreate"]
+    error = data["productErrors"][0]
+    assert error["field"] == "weight"
+    assert error["code"] == ProductErrorCode.INVALID.name
+
+
 def test_create_product_variant_not_all_attributes(
     staff_api_client, product, product_type, color_attribute, permission_manage_products
 ):
@@ -403,6 +447,47 @@ def test_update_product_variant(staff_api_client, product, permission_manage_pro
     assert data["name"] == variant.name
     assert data["costPrice"]["amount"] == cost_price
     assert data["sku"] == sku
+
+
+def test_update_product_variant_with_negative_weight(
+    staff_api_client, product, permission_manage_products
+):
+    query = """
+        mutation updateVariant (
+            $id: ID!,
+            $weight: WeightScalar
+        ) {
+            productVariantUpdate(
+                id: $id,
+                input: {
+                    weight: $weight
+                }
+            ){
+                productVariant {
+                    name
+                }
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {"id": variant_id, "weight": -1}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]
+    error = data["productErrors"][0]
+    assert error["field"] == "weight"
+    assert error["code"] == ProductErrorCode.INVALID.name
 
 
 @pytest.mark.parametrize("field", ("cost_price", "price_override"))
@@ -1342,6 +1427,7 @@ VARIANT_STOCKS_CREATE_MUTATION = """
     mutation ProductVariantStocksCreate($variantId: ID!, $stocks: [StockInput!]!){
         productVariantStocksCreate(variantId: $variantId, stocks: $stocks){
             productVariant{
+                id
                 stocks {
                     quantity
                     quantityAllocated
@@ -1410,6 +1496,25 @@ def test_variant_stocks_create(
         result.append(stock)
     for res in result:
         assert res in expected_result
+
+
+def test_variant_stocks_create_empty_stock_input(
+    staff_api_client, variant, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {"variantId": variant_id, "stocks": []}
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_CREATE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantStocksCreate"]
+
+    assert not data["bulkStockErrors"]
+    assert len(data["productVariant"]["stocks"]) == variant.stocks.count()
+    assert data["productVariant"]["id"] == variant_id
 
 
 def test_variant_stocks_create_stock_already_exists(

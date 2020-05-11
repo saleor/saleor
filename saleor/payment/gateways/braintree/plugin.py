@@ -32,6 +32,7 @@ def require_active_plugin(fn):
 
 
 class BraintreeGatewayPlugin(BasePlugin):
+    PLUGIN_ID = "mirumee.payments.braintree"
     PLUGIN_NAME = GATEWAY_NAME
     DEFAULT_CONFIGURATION = [
         {"name": "Public API key", "value": None},

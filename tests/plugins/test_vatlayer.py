@@ -187,12 +187,13 @@ def test_vatlayer_plugin_caches_taxes(vatlayer, monkeypatch, product, address):
     )
 
     manager = get_plugins_manager()
-    plugin = manager.get_plugin(VatlayerPlugin.PLUGIN_NAME)
+    plugin = manager.get_plugin(VatlayerPlugin.PLUGIN_ID)
     price = product.variants.first().get_price()
-    price = TaxedMoney(price, price)
     address.country = Country("de")
-    plugin.apply_taxes_to_product(product, price, address.country, price)
-    plugin.apply_taxes_to_shipping(price, address, price)
+    plugin.apply_taxes_to_product(
+        product, price, address.country, TaxedMoney(price, price)
+    )
+    plugin.apply_taxes_to_shipping(price, address, TaxedMoney(price, price))
     assert mocked_taxes.call_count == 1
 
 
@@ -364,9 +365,9 @@ def test_get_tax_rate_percentage_value(
 def test_save_plugin_configuration(vatlayer, settings):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
-    manager.save_plugin_configuration("Vatlayer", {"active": False})
+    manager.save_plugin_configuration(VatlayerPlugin.PLUGIN_ID, {"active": False})
 
-    configuration = PluginConfiguration.objects.get(name=VatlayerPlugin.PLUGIN_NAME)
+    configuration = PluginConfiguration.objects.get(identifier=VatlayerPlugin.PLUGIN_ID)
     assert not configuration.active
 
 
@@ -374,7 +375,9 @@ def test_save_plugin_configuration_cannot_be_enabled_without_config(settings):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
     with pytest.raises(ValidationError):
-        manager.save_plugin_configuration("Vatlayer", {"active": True})
+        manager.save_plugin_configuration(
+            VatlayerPlugin.PLUGIN_ID, {"active": True},
+        )
 
 
 def test_show_taxes_on_storefront(vatlayer, settings):
@@ -472,7 +475,7 @@ def test_calculations_checkout_shipping_price_with_vatlayer(
 def test_skip_diabled_plugin(settings):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
-    plugin: VatlayerPlugin = manager.get_plugin("Vatlayer")
+    plugin: VatlayerPlugin = manager.get_plugin(VatlayerPlugin.PLUGIN_ID)
 
     assert (
         plugin._skip_plugin(

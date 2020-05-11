@@ -174,7 +174,7 @@ class ShopFetchTaxRates(BaseMutation):
             raise ValidationError(
                 "Could not fetch tax rates. Make sure you have supplied a "
                 "valid credential for your tax plugin.",
-                code=ShopErrorCode.CANNOT_FETCH_TAX_RATES,
+                code=ShopErrorCode.CANNOT_FETCH_TAX_RATES.value,
             )
         return ShopFetchTaxRates(shop=Shop())
 

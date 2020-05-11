@@ -32,6 +32,7 @@ def require_active_plugin(fn):
 
 class StripeGatewayPlugin(BasePlugin):
     PLUGIN_NAME = GATEWAY_NAME
+    PLUGIN_ID = "mirumee.payments.stripe"
     DEFAULT_CONFIGURATION = [
         {"name": "Public API key", "value": None},
         {"name": "Secret API key", "value": None},

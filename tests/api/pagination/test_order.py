@@ -4,13 +4,12 @@ from datetime import date, timedelta
 import graphene
 import pytest
 from freezegun import freeze_time
+from prices import Money, TaxedMoney
 
 from saleor.order.models import Order, OrderStatus
 from saleor.payment import ChargeStatus
 
 from ..utils import get_graphql_content
-
-from prices import TaxedMoney, Money
 
 
 @pytest.fixture()

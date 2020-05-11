@@ -205,7 +205,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def retrieve_shipping_address(cls, user, data: dict) -> Optional[models.Address]:
-        if "shipping_address" in data:
+        if data.get("shipping_address") is not None:
             return cls.validate_address(data["shipping_address"])
         if user.is_authenticated:
             return user.default_shipping_address
@@ -213,7 +213,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def retrieve_billing_address(cls, user, data: dict) -> Optional[models.Address]:
-        if "billing_address" in data:
+        if data.get("billing_address") is not None:
             return cls.validate_address(data["billing_address"])
         if user.is_authenticated:
             return user.default_billing_address
