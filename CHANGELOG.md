@@ -104,7 +104,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add home page - #5494 by @IKarbowiak and @dominik-zeglen
 - Extend errors in OrderFulfill mutation - #5553 by @fowczarek
 - Refactor OrderCancel mutation for many warehouses - #5554 by @fowczarek
-- Drop support for configuring Vatlayer plaugin from settings file. - by @korycins
+- Drop support for configuring Vatlayer plugin from settings file. - #5614 by @korycins
 
 ## 2.9.0
 
