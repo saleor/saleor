@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, Mock, patch
 from uuid import UUID
 
 import pytest
-from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
 from saleor.core.weight import zero_weight
@@ -15,7 +14,6 @@ from saleor.discount.models import (
     VoucherType,
 )
 from saleor.discount.utils import validate_voucher_in_order
-from saleor.graphql.order.enums import InvoiceStatus
 from saleor.order import OrderEvents, OrderStatus, models
 from saleor.order.emails import send_fulfillment_confirmation_to_customer
 from saleor.order.events import OrderEvent, OrderEventsEmails, email_sent_event
@@ -777,23 +775,3 @@ def test_generate_invoice_pdf_for_order(
     file_name, extension = storage_mock.save.call_args[0][0].split(".")
     assert UUID(file_name, version=4)
     assert extension == "pdf"
-
-
-def test_generate_invoice_pdf_for_invalid_order(fulfilled_order):
-    invoice = fulfilled_order.invoices.first()
-    invoice.order = None
-
-    with pytest.raises(ValidationError) as error:
-        generate_invoice_pdf_for_order(invoice)
-
-    assert error.value.message_dict == {"order": ["Invice order is invalid."]}
-
-
-def test_generate_invoice_pdf_for_pending_invoice(fulfilled_order):
-    invoice = fulfilled_order.invoices.first()
-    invoice.status = InvoiceStatus.PENDING
-
-    with pytest.raises(ValidationError) as error:
-        generate_invoice_pdf_for_order(invoice)
-
-    assert error.value.message_dict == {"status": ["Invoice is not ready."]}
