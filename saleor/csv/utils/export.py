@@ -21,7 +21,7 @@ def on_task_failure(self, exc, task_id, args, kwargs, einfo):
     export_file_id = args[0]
     export_file = ExportFile.objects.get(pk=export_file_id)
     update_export_file_when_task_finished(export_file, JobStatus.FAILED)
-    events.data_export_failed_event(
+    events.export_failed_event(
         export_file=export_file, user=export_file.created_by, message=str(exc)
     )
 
@@ -30,9 +30,7 @@ def on_task_success(self, retval, task_id, args, kwargs):
     export_file_id = args[0]
     export_file = ExportFile.objects.get(pk=export_file_id)
     update_export_file_when_task_finished(export_file, JobStatus.SUCCESS)
-    events.data_export_success_event(
-        export_file=export_file, user=export_file.created_by
-    )
+    events.export_success_event(export_file=export_file, user=export_file.created_by)
 
 
 def update_export_file_when_task_finished(export_file: ExportFile, status: JobStatus):

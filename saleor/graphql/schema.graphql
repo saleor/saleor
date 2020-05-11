@@ -1758,17 +1758,17 @@ type Error {
 
 type ExportEvent implements Node {
   id: ID!
-  date: DateTime
-  type: ExportEventsEnum
-  user: User
-  message: String
+  date: DateTime!
+  type: ExportEventsEnum!
+  user: User!
+  message: String!
 }
 
 enum ExportEventsEnum {
-  DATA_EXPORT_PENDING
-  DATA_EXPORT_SUCCESS
-  DATA_EXPORT_FAILED
-  DATA_EXPORT_DELETED
+  EXPORT_PENDING
+  EXPORT_SUCCESS
+  EXPORT_FAILED
+  EXPORT_DELETED
   EXPORTED_FILE_SENT
 }
 

@@ -8,30 +8,30 @@ if TYPE_CHECKING:
     from .models import ExportFile
 
 
-def data_export_event(*, export_file: "ExportFile", user: User):
+def export_event(*, export_file: "ExportFile", user: User):
     ExportEvent.objects.create(
-        export_file=export_file, user=user, type=ExportEvents.DATA_EXPORT_PENDING
+        export_file=export_file, user=user, type=ExportEvents.EXPORT_PENDING
     )
 
 
-def data_export_success_event(*, export_file: "ExportFile", user: User):
+def export_success_event(*, export_file: "ExportFile", user: User):
     ExportEvent.objects.create(
-        export_file=export_file, user=user, type=ExportEvents.DATA_EXPORT_SUCCESS
+        export_file=export_file, user=user, type=ExportEvents.EXPORT_SUCCESS
     )
 
 
-def data_export_failed_event(*, export_file: "ExportFile", user: User, message: str):
+def export_failed_event(*, export_file: "ExportFile", user: User, message: str):
     ExportEvent.objects.create(
         export_file=export_file,
         user=user,
-        type=ExportEvents.DATA_EXPORT_FAILED,
+        type=ExportEvents.EXPORT_FAILED,
         parameters={"message": message},
     )
 
 
-def data_export_deleted_event(*, export_file: "ExportFile", user: User):
+def export_deleted_event(*, export_file: "ExportFile", user: User):
     ExportEvent.objects.create(
-        export_file=export_file, user=user, type=ExportEvents.DATA_EXPORT_DELETED
+        export_file=export_file, user=user, type=ExportEvents.EXPORT_DELETED
     )
 
 

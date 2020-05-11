@@ -2091,7 +2091,7 @@ def export_file_list(staff_user):
 @pytest.fixture
 def export_event(export_file):
     return ExportEvent.objects.create(
-        type=ExportEvents.DATA_EXPORT_FAILED,
+        type=ExportEvents.EXPORT_FAILED,
         export_file=export_file,
         user=export_file.created_by,
         parameters={"message": "Example error message"},

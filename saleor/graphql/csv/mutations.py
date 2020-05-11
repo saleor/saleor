@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 from ...core.permissions import ProductPermissions
 from ...csv import models as csv_models
-from ...csv.events import data_export_event
+from ...csv.events import export_event
 from ...csv.utils.export import export_products
 from ..core.enums import CsvErrorCode
 from ..core.mutations import BaseMutation
@@ -55,7 +55,7 @@ class ExportProducts(BaseMutation):
         user = info.context.user
         scope = cls.get_products_scope(info, data["input"])
         export_file = csv_models.ExportFile.objects.create(created_by=user)
-        data_export_event(export_file=export_file, user=user)
+        export_event(export_file=export_file, user=user)
         export_products.delay(export_file.pk, scope)
         export_file.refresh_from_db()
         return cls(export_file=export_file)
