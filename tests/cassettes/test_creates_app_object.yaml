@@ -1,0 +1,107 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.23.0
+    method: GET
+    uri: http://localhost:3000/manifest
+  response:
+    body:
+      string: "{\n  \"name\": \"app\",\n  \"version\": \"1.0.0\",\n  \"about_app\"\
+        : \"Lorem ipsum\",\n  \"data_privacy\": \"Lorem ipsum\",\n  \"data_privacy_url\"\
+        : \"http://localhost:8888/app-data-privacy\",\n  \"homepage_url\": \"http://localhost:8888/homepage\"\
+        ,\n  \"support_url\": \"http://localhost:8888/support\",\n  \"configuration_url\"\
+        : \"htpp://localhost:8888/configuration\",\n  \"app_url\": \"http://localhost:8888/app\"\
+        ,\n  \"token_target_url\": \"http://localhost:3000/register\",\n  \"identificator\"\
+        : \"app2\"\n}"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '457'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Tue, 12 May 2020 08:55:42 GMT
+      ETag:
+      - W/"1c9-rhA8cnfjgbXJTC5B4V+OdmeL6E4"
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+      Vary:
+      - Origin, Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Powered-By:
+      - Express
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"auth_token": "EPIiZBMM57tSkVGcc0ctOY8aObWTY7"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '48'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.23.0
+      x-saleor-domain:
+      - mirumee.com
+    method: POST
+    uri: http://localhost:3000/register
+  response:
+    body:
+      string: "{\n  \"auth_token\": \"EPIiZBMM57tSkVGcc0ctOY8aObWTY7\",\n  \"id\"\
+        : 14\n}"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Expose-Headers:
+      - Location
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '64'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Tue, 12 May 2020 08:55:42 GMT
+      ETag:
+      - W/"40-uIkbdADCyMAHdmTFmdr/iG/m4Kg"
+      Expires:
+      - '-1'
+      Location:
+      - http://localhost:3000/register/14
+      Pragma:
+      - no-cache
+      Vary:
+      - Origin, X-HTTP-Method-Override, Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Powered-By:
+      - Express
+    status:
+      code: 201
+      message: Created
+version: 1
