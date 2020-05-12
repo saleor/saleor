@@ -21,6 +21,7 @@ from ....product.utils.costs import get_margin_for_variant, get_product_costs_da
 from ....warehouse.availability import (
     get_available_quantity,
     get_available_quantity_for_customer,
+    get_max_available_quantity_for_customer,
     get_quantity_allocated,
     is_product_in_stock,
     is_variant_in_stock,
@@ -238,7 +239,6 @@ class ProductVariant(CountableDjangoObjectType):
     digital_content = graphene.Field(
         DigitalContent, description="Digital content for the product variant."
     )
-
     stocks = graphene.Field(
         graphene.List(Stock),
         description="Stocks for the product variant.",
@@ -246,6 +246,13 @@ class ProductVariant(CountableDjangoObjectType):
             CountryCodeEnum,
             description="Two-letter ISO 3166-1 country code.",
             required=False,
+        ),
+    )
+    quantity_available = graphene.Int(
+        required=True,
+        description="Quantity of a product available for sale in one checkout.",
+        country_code=graphene.Argument(
+            CountryCodeEnum, description="Two-letter ISO 3166-1 country code.",
         ),
     )
 
@@ -262,6 +269,14 @@ class ProductVariant(CountableDjangoObjectType):
         if not country_code:
             return root.stocks.annotate_available_quantity().all()
         return root.stocks.annotate_available_quantity().for_country(country_code).all()
+
+    @staticmethod
+    def resolve_quantity_available(
+        root: models.ProductVariant, info, country_code=None
+    ):
+        if not country_code:
+            return get_max_available_quantity_for_customer(root)
+        return get_available_quantity_for_customer(root, country_code)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

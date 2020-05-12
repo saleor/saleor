@@ -3732,6 +3732,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
   stocks(countryCode: CountryCode): [Stock]
+  quantityAvailable(countryCode: CountryCode): Int!
 }
 
 type ProductVariantBulkCreate {
