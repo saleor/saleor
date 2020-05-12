@@ -10,6 +10,7 @@ from tests.plugins.sample_plugins import PluginInactive, PluginSample
 @pytest.fixture
 def plugin_configuration(db):
     configuration, _ = PluginConfiguration.objects.get_or_create(
+        identifier=PluginSample.PLUGIN_ID,
         name=PluginSample.PLUGIN_NAME,
         defaults={
             "active": PluginSample.DEFAULT_ACTIVE,
@@ -23,6 +24,7 @@ def plugin_configuration(db):
 @pytest.fixture
 def inactive_plugin_configuration(db):
     return PluginConfiguration.objects.get_or_create(
+        identifier=PluginSample.PLUGIN_ID,
         name=PluginInactive.PLUGIN_NAME,
         defaults={
             "active": PluginInactive.DEFAULT_ACTIVE,
@@ -83,9 +85,7 @@ def taxes(tax_rates):
 
 
 @pytest.fixture
-def vatlayer(db, settings, tax_rates, taxes):
-    settings.VATLAYER_ACCESS_KEY = "enablevatlayer"
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+def vatlayer(db, tax_rates, taxes, setup_vatlayer):
     VAT.objects.create(country_code="PL", data=tax_rates)
 
     tax_rates_2 = {
