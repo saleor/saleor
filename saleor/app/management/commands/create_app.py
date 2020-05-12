@@ -1,22 +1,25 @@
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
-import requests
 from django.contrib.auth.models import Permission
-from django.contrib.sites.models import Site
+from django.core.exceptions import ValidationError
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
-from requests.exceptions import RequestException
+from django.core.validators import URLValidator
 
+from ....core import JobStatus
 from ....core.permissions import get_permissions, get_permissions_enum_list
-from ...models import App
+from ...installation_utils import install_app
+from ...models import AppJob
+from ...tasks import install_app_task
 
 
 class Command(BaseCommand):
     help = "Used to create new app."
 
     def add_arguments(self, parser: CommandParser) -> None:
-        parser.add_argument("name", type=str)
+        parser.add_argument("name", type=str, help="Name of new app.")
+        parser.add_argument("manifest-url", help="Url with app manifest.", type=str)
         parser.add_argument(
             "--permission",
             action="append",
@@ -25,13 +28,13 @@ class Command(BaseCommand):
             help="Assign new permission to app."
             "Argument can be specified multiple times.",
         )
-        parser.add_argument("--is_active", default=True, dest="is_active")
         parser.add_argument(
-            "--target_url",
-            dest="target_url",
-            help="Url which will receive newly created data of app object. "
-            "Command doesn't return app data to stdout when this "
-            "argument is provided.",
+            "--activate-after-installation", action="store_true", dest="activate"
+        )
+        parser.add_argument(
+            "--use-celery",
+            action="store_true",
+            help="Use celery do schedule installation task.",
         )
 
     def validate_permissions(self, required_permissions: List[str]):
@@ -47,34 +50,37 @@ class Command(BaseCommand):
         permissions = get_permissions(required_permissions)
         return permissions
 
-    def send_app_data(self, target_url, data: Dict[str, Any]):
-        domain = Site.objects.get_current().domain
-        headers = {"x-saleor-domain": domain}
+    def validate_manifest_url(self, manifest_url: str):
+        url_validator = URLValidator()
         try:
-            response = requests.post(target_url, json=data, headers=headers, timeout=15)
-        except RequestException as e:
-            raise CommandError(f"Request failed. Exception: {e}")
-        if response.status_code != 200:
-            raise CommandError(
-                f"Failed to send app data to {target_url}. "  # type: ignore
-                f"Status code: {response.status_code}, content: {response.content}"
-            )
+            url_validator(manifest_url)
+        except ValidationError:
+            raise CommandError(f"Incorrect format of manifest-url: {manifest_url}")
 
     def handle(self, *args: Any, **options: Any) -> Optional[str]:
         name = options["name"]
-        is_active = options["is_active"]
-        target_url = options["target_url"]
+        activate = options["activate"]
+        manifest_url = options["manifest-url"]
+        use_celery = options["use_celery"]
+
         permissions = list(set(options["permissions"]))
         self.validate_permissions(permissions)
+        self.validate_manifest_url(manifest_url)
 
-        app = App.objects.create(name=name, is_active=is_active)
-        permissions_qs = self.clean_permissions(permissions)
-        app.permissions.add(*permissions_qs)
-        token_obj = app.tokens.create()
-        data = {
-            "auth_token": token_obj.auth_token,
-        }
-        if target_url:
-            self.send_app_data(target_url, data)
+        app_job = AppJob.objects.create(name=name, manifest_url=manifest_url)
+        if permissions:
+            permissions_qs = self.clean_permissions(permissions)
+            app_job.permissions.set(permissions_qs)
 
-        return json.dumps(data) if not target_url else ""
+        if use_celery:
+            install_app_task.delay(app_job.pk, activate)
+            return "Celery task has been scheduled."
+
+        try:
+            app = install_app(app_job, activate)
+        except Exception as e:
+            app_job.status = JobStatus.FAILED
+            app_job.save()
+            raise e
+        token = app.tokens.first()
+        return json.dumps({"auth_token": token.auth_token})

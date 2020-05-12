@@ -9,8 +9,9 @@ from saleor.core.permissions import get_permissions
 
 def test_creates_app_object():
     name = "Single App"
+    manifest_url = "http://localhost:3000/manifest"
     permissions = ["account.manage_users", "order.manage_orders"]
-    call_command("create_app", name, permission=permissions)
+    call_command("create_app", name, manifest_url, permission=permissions)
 
     apps = App.objects.filter(name=name)
     assert len(apps) == 1
