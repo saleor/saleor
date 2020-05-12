@@ -24,14 +24,14 @@ class App(ModelWithMetadata):
         related_name="app_set",
         related_query_name="app",
     )
-    about_app = models.TextField(blank=True)
-    data_privacy = models.TextField(blank=True)
-    data_privacy_url = models.URLField(blank=True)
-    homepage_url = models.URLField(blank=True)
-    support_url = models.URLField(blank=True)
-    configuration_url = models.URLField(blank=True)
-    app_url = models.URLField(blank=True)
-    version = models.CharField(max_length=60, blank=True)
+    about_app = models.TextField(blank=True, null=True)
+    data_privacy = models.TextField(blank=True, null=True)
+    data_privacy_url = models.URLField(blank=True, null=True)
+    homepage_url = models.URLField(blank=True, null=True)
+    support_url = models.URLField(blank=True, null=True)
+    configuration_url = models.URLField(blank=True, null=True)
+    app_url = models.URLField(blank=True, null=True)
+    version = models.CharField(max_length=60, blank=True, null=True)
 
     class Meta:
         ordering = ("name", "pk")
