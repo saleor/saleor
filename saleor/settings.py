@@ -462,8 +462,7 @@ GRAPHQL_JWT = {
     # How long until a token expires, default is 5m from graphql_jwt.settings
     "JWT_EXPIRATION_DELTA": timedelta(minutes=5),
     # Whether the JWT tokens should expire or not
-    # Enabled by default in production mode; disabled in development mode by default
-    "JWT_VERIFY_EXPIRATION": get_bool_from_env("JWT_VERIFY_EXPIRATION", not DEBUG),
+    "JWT_VERIFY_EXPIRATION": get_bool_from_env("JWT_VERIFY_EXPIRATION", False),
 }
 
 # CELERY SETTINGS
