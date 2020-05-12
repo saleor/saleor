@@ -208,19 +208,43 @@ class AppDelete(ModelDeleteMutation):
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
 
-class InstallAppInput(graphene.InputObjectType):
-    name = graphene.String(description="Name of the app to install.")
-    manifest_url = graphene.String(description="Url to app's manifest in JSON format.")
-    activate_after_installation = graphene.Boolean(default_value=True, required=False)
-    permissions = graphene.List(
-        PermissionEnum,
-        description="List of permission code names to assign to this app.",
-    )
+class DropFailedInstallation(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            description="ID of failed installation to drop.", required=True
+        )
+
+    class Meta:
+        description = "Install new app by using app manifest."
+        model = models.AppJob
+        permissions = (AppPermission.MANAGE_APPS,)
+        error_type_class = AppError
+        error_type_field = "app_errors"
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        if instance.status != JobStatus.FAILED:
+            msg = "Cannot drop installation with different status than failed."
+            code = AppErrorCode.FORBIDDEN.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+        cls.ensure_can_manage_permissions(info, instance)
+
+    @classmethod
+    def ensure_can_manage_permissions(cls, info, instance):
+        perms = instance.permissions.all()
+        if not perms:
+            return
+        perms = [
+            PermissionEnum.get(f"{perm.content_type.app_label}.{perm.codename}")
+            for perm in perms
+        ]
+        requestor = get_user_or_app_from_context(info.context)
+        ensure_can_manage_permissions(requestor, perms)
 
 
 class RetryInstallApp(ModelMutation):
     class Arguments:
-        id = graphene.ID(description="ID of an failed installation.", required=True)
+        id = graphene.ID(description="ID of failed installation.", required=True)
         activate_after_installation = graphene.Boolean(
             default_value=True, required=False
         )
@@ -258,6 +282,16 @@ class RetryInstallApp(ModelMutation):
         ]
         requestor = get_user_or_app_from_context(info.context)
         ensure_can_manage_permissions(requestor, perms)
+
+
+class InstallAppInput(graphene.InputObjectType):
+    name = graphene.String(description="Name of the app to install.")
+    manifest_url = graphene.String(description="Url to app's manifest in JSON format.")
+    activate_after_installation = graphene.Boolean(default_value=True, required=False)
+    permissions = graphene.List(
+        PermissionEnum,
+        description="List of permission code names to assign to this app.",
+    )
 
 
 class InstallApp(ModelMutation):

@@ -245,6 +245,7 @@ type AppError {
 }
 
 enum AppErrorCode {
+  FORBIDDEN
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
@@ -1760,6 +1761,12 @@ type DraftOrderUpdate {
   order: Order
 }
 
+type DropFailedInstallation {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  appErrors: [AppError!]!
+  appJob: OngoingAppInstallation
+}
+
 type Error {
   field: String
   message: String
@@ -2501,6 +2508,7 @@ type Mutation {
   appTokenDelete(id: ID!): AppTokenDelete
   installApp(input: InstallAppInput!): InstallApp
   retryInstallApp(activateAfterInstallation: Boolean = true, id: ID!): RetryInstallApp
+  dropFailedInstallation(id: ID!): DropFailedInstallation
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(token: String!, email: String!, password: String!): SetPassword

@@ -11,6 +11,7 @@ from .mutations import (
     AppTokenCreate,
     AppTokenDelete,
     AppUpdate,
+    DropFailedInstallation,
     InstallApp,
     RetryInstallApp,
 )
@@ -59,3 +60,4 @@ class AppMutations(graphene.ObjectType):
 
     install_app = InstallApp.Field()
     retry_install_app = RetryInstallApp.Field()
+    drop_failed_installation = DropFailedInstallation.Field()
