@@ -12,6 +12,68 @@ from tests.utils import create_image, create_pdf_file_with_image_ext
 
 from .utils import get_graphql_content, get_multipart_request_body
 
+QUERY_COLLECTION = """
+    query ($id: ID, $slug: String){
+        collection(
+            id: $id,
+            slug: $slug,
+        ) {
+            id
+            name
+        }
+    }
+    """
+
+
+def test_collection_query_by_id(
+    user_api_client, collection,
+):
+    variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
+
+    response = user_api_client.post_graphql(QUERY_COLLECTION, variables=variables)
+    content = get_graphql_content(response)
+    collection_data = content["data"]["collection"]
+    assert collection_data is not None
+    assert collection_data["name"] == collection.name
+
+
+def test_collection_query_by_slug(
+    user_api_client, collection,
+):
+    variables = {"slug": collection.slug}
+    response = user_api_client.post_graphql(QUERY_COLLECTION, variables=variables)
+    content = get_graphql_content(response)
+    collection_data = content["data"]["collection"]
+    assert collection_data is not None
+    assert collection_data["name"] == collection.name
+
+
+def test_collection_query_error_when_id_and_slug_provided(
+    user_api_client, collection, graphql_log_handler,
+):
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection.pk),
+        "slug": collection.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_COLLECTION, variables=variables)
+    assert graphql_log_handler.messages == [
+        "saleor.graphql.errors.handled[ERROR].GraphQLError"
+    ]
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["errors"]) == 1
+
+
+def test_collection_query_error_when_no_param(
+    user_api_client, collection, graphql_log_handler,
+):
+    variables = {}
+    response = user_api_client.post_graphql(QUERY_COLLECTION, variables=variables)
+    assert graphql_log_handler.messages == [
+        "saleor.graphql.errors.handled[ERROR].GraphQLError"
+    ]
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["errors"]) == 1
+
 
 def test_collections_query(
     user_api_client,
