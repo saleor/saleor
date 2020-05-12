@@ -215,7 +215,7 @@ class DropFailedInstallation(ModelDeleteMutation):
         )
 
     class Meta:
-        description = "Install new app by using app manifest."
+        description = "Drop failed installation."
         model = models.AppJob
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
@@ -250,7 +250,7 @@ class RetryInstallApp(ModelMutation):
         )
 
     class Meta:
-        description = "Install new app by using app manifest."
+        description = "Retry failed installation of new app."
         model = models.AppJob
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
