@@ -39,8 +39,8 @@ class PluginsManager(PaymentInterface):
         all_configs = self._get_all_plugin_configs()
         for plugin_path in plugins:
             PluginClass = import_string(plugin_path)
-            if PluginClass.PLUGIN_NAME in all_configs:
-                existing_config = all_configs[PluginClass.PLUGIN_NAME]
+            if PluginClass.PLUGIN_ID in all_configs:
+                existing_config = all_configs[PluginClass.PLUGIN_ID]
                 plugin_config = existing_config.configuration
                 active = existing_config.active
             else:
@@ -309,13 +309,13 @@ class PluginsManager(PaymentInterface):
             plugins = self.plugins
         return [plugin for plugin in plugins if plugin.active]
 
-    def list_payment_plugin_names(self, active_only: bool = False) -> List[str]:
+    def list_payment_plugin_names(self, active_only: bool = False) -> List[tuple]:
         payment_method = "process_payment"
         plugins = self.plugins
         if active_only:
             plugins = self.get_active_plugins()
         return [
-            plugin.PLUGIN_NAME
+            (plugin.PLUGIN_ID, plugin.PLUGIN_NAME)
             for plugin in plugins
             if payment_method in type(plugin).__dict__
         ]
@@ -323,8 +323,12 @@ class PluginsManager(PaymentInterface):
     def list_payment_gateways(self, active_only: bool = True) -> List[dict]:
         payment_plugins = self.list_payment_plugin_names(active_only=active_only)
         return [
-            {"name": plugin_name, "config": self.__get_payment_config(plugin_name)}
-            for plugin_name in payment_plugins
+            {
+                "id": plugin_id,
+                "name": plugin_name,
+                "config": self.__get_payment_config(plugin_id),
+            }
+            for plugin_id, plugin_name in payment_plugins
         ]
 
     def __get_payment_config(self, gateway: str) -> List[dict]:
@@ -361,7 +365,7 @@ class PluginsManager(PaymentInterface):
     def _get_all_plugin_configs(self):
         if not hasattr(self, "_plugin_configs"):
             self._plugin_configs = {
-                pc.name: pc for pc in PluginConfiguration.objects.all()
+                pc.identifier: pc for pc in PluginConfiguration.objects.all()
             }
         return self._plugin_configs
 
@@ -391,21 +395,26 @@ class PluginsManager(PaymentInterface):
             "get_tax_rate_percentage_value", default_value, obj, country
         ).quantize(Decimal("1."))
 
-    def save_plugin_configuration(self, plugin_name, cleaned_data: dict):
+    def save_plugin_configuration(self, plugin_id, cleaned_data: dict):
         for plugin in self.plugins:
-            if plugin.PLUGIN_NAME == plugin_name:
+            if plugin.PLUGIN_ID == plugin_id:
                 plugin_configuration, _ = PluginConfiguration.objects.get_or_create(
-                    name=plugin_name, defaults={"configuration": plugin.configuration}
+                    identifier=plugin_id,
+                    defaults={"configuration": plugin.configuration},
                 )
                 return plugin.save_plugin_configuration(
                     plugin_configuration, cleaned_data
                 )
 
-    def get_plugin(self, plugin_name: str) -> Optional["BasePlugin"]:
+    def get_plugin(self, plugin_id: str) -> Optional["BasePlugin"]:
         for plugin in self.plugins:
-            if plugin.PLUGIN_NAME == plugin_name:
+            if plugin.PLUGIN_ID == plugin_id:
                 return plugin
         return None
+
+    def fetch_taxes_data(self) -> bool:
+        default_value = False
+        return self.__run_method_on_plugins("fetch_taxes_data", default_value)
 
 
 def get_plugins_manager(

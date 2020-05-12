@@ -52,9 +52,10 @@ def test_query_plugin_configurations(staff_api_client_can_manage_plugins, settin
     assert len(plugins) == 1
     plugin = plugins[0]["node"]
     manager = get_plugins_manager()
-    sample_plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+    sample_plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     confiugration_structure = PluginSample.CONFIG_STRUCTURE
 
+    assert plugin["id"] == sample_plugin.PLUGIN_ID
     assert plugin["name"] == sample_plugin.PLUGIN_NAME
     assert plugin["active"] == sample_plugin.DEFAULT_ACTIVE
     assert plugin["description"] == sample_plugin.PLUGIN_DESCRIPTION
@@ -99,7 +100,7 @@ def test_query_plugins_hides_secret_fields(
 
     settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
-    plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+    plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     configuration = copy.deepcopy(plugin.configuration)
     for conf_field in configuration:
         if conf_field["name"] == "Password":
@@ -107,7 +108,12 @@ def test_query_plugins_hides_secret_fields(
         if conf_field["name"] == "API private key":
             conf_field["value"] = api_key
     manager.save_plugin_configuration(
-        PluginSample.PLUGIN_NAME, {"active": True, "configuration": configuration}
+        PluginSample.PLUGIN_ID,
+        {
+            "active": True,
+            "configuration": configuration,
+            "name": PluginSample.PLUGIN_NAME,
+        },
     )
 
     staff_api_client.user.user_permissions.add(permission_manage_plugins)
@@ -135,6 +141,7 @@ def test_query_plugin_configurations_as_customer_user(user_api_client, settings)
 PLUGIN_QUERY = """
     query plugin($id: ID!){
       plugin(id:$id){
+        id
         name
         description
         active
@@ -171,7 +178,7 @@ def test_query_plugin_hides_secret_fields(
 
     settings.PLUGINS = ["tests.api.test_plugins.PluginSample"]
     manager = get_plugins_manager()
-    plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+    plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     configuration = copy.deepcopy(plugin.configuration)
     for conf_field in configuration:
         if conf_field["name"] == "Password":
@@ -179,10 +186,15 @@ def test_query_plugin_hides_secret_fields(
         if conf_field["name"] == "API private key":
             conf_field["value"] = api_key
     manager.save_plugin_configuration(
-        PluginSample.PLUGIN_NAME, {"active": True, "configuration": configuration}
+        PluginSample.PLUGIN_ID,
+        {
+            "active": True,
+            "configuration": configuration,
+            "name": PluginSample.PLUGIN_NAME,
+        },
     )
 
-    variables = {"id": plugin.PLUGIN_NAME}
+    variables = {"id": plugin.PLUGIN_ID}
     staff_api_client.user.user_permissions.add(permission_manage_plugins)
     response = staff_api_client.post_graphql(PLUGIN_QUERY, variables)
     content = get_graphql_content(response)
@@ -201,14 +213,15 @@ def test_query_plugin_configuration(
 ):
     settings.PLUGINS = ["tests.api.test_plugins.PluginSample"]
     manager = get_plugins_manager()
-    sample_plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+    sample_plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
 
-    variables = {"id": sample_plugin.PLUGIN_NAME}
+    variables = {"id": sample_plugin.PLUGIN_ID}
     staff_api_client.user.user_permissions.add(permission_manage_plugins)
     response = staff_api_client.post_graphql(PLUGIN_QUERY, variables)
     content = get_graphql_content(response)
     plugin = content["data"]["plugin"]
     assert plugin["name"] == sample_plugin.PLUGIN_NAME
+    assert plugin["id"] == sample_plugin.PLUGIN_ID
     assert plugin["active"] == sample_plugin.active
     assert plugin["description"] == sample_plugin.PLUGIN_DESCRIPTION
 
@@ -230,9 +243,9 @@ def test_query_plugin_configuration_for_invalid_plugin_name(
 def test_query_plugin_configuration_as_customer_user(user_api_client, settings):
     settings.PLUGINS = ["tests.api.test_plugins.PluginSample"]
     manager = get_plugins_manager()
-    sample_plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+    sample_plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
 
-    variables = {"id": sample_plugin.PLUGIN_NAME}
+    variables = {"id": sample_plugin.PLUGIN_ID}
     response = user_api_client.post_graphql(PLUGIN_QUERY, variables)
 
     assert_no_permission(response)
@@ -240,11 +253,13 @@ def test_query_plugin_configuration_as_customer_user(user_api_client, settings):
 
 PLUGIN_UPDATE_MUTATION = """
         mutation pluginUpdate(
-            $id: ID!, $active: Boolean, $configuration: [ConfigurationItemInput]){
-            pluginUpdate(
-                id:$id,
-                input:{active: $active, configuration: $configuration}
-            ){
+            $id: ID!,
+            $active: Boolean,
+            $configuration: [ConfigurationItemInput]
+        ){pluginUpdate(
+            id:$id,
+            input:{active: $active, configuration: $configuration}
+        ){
             plugin{
               name
               active
@@ -282,11 +297,11 @@ def test_plugin_configuration_update(
 
     settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
-    plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+    plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     old_configuration = copy.deepcopy(plugin.configuration)
 
     variables = {
-        "id": plugin.PLUGIN_NAME,
+        "id": plugin.PLUGIN_ID,
         "active": active,
         "configuration": [updated_configuration_item],
     }
@@ -295,7 +310,7 @@ def test_plugin_configuration_update(
     )
     get_graphql_content(response)
 
-    plugin = PluginConfiguration.objects.get(name=PluginSample.PLUGIN_NAME)
+    plugin = PluginConfiguration.objects.get(identifier=PluginSample.PLUGIN_ID)
     assert plugin.active == active
 
     first_configuration_item = plugin.configuration[0]
@@ -307,11 +322,11 @@ def test_plugin_configuration_update(
     assert second_configuration_item["value"] == old_configuration[1]["value"]
 
 
-def test_plugin_configuration_update_containing_invalid_plugin_name(
+def test_plugin_configuration_update_containing_invalid_plugin_id(
     staff_api_client_can_manage_plugins,
 ):
     variables = {
-        "id": "fake-name",
+        "id": "fake-id",
         "active": True,
         "configuration": [{"name": "Username", "value": "user"}],
     }
@@ -330,10 +345,10 @@ def test_plugin_update_saves_boolean_as_boolean(
 ):
     settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
-    plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+    plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     use_sandbox = get_config_value("Use sandbox", plugin.configuration)
     variables = {
-        "id": plugin.PLUGIN_NAME,
+        "id": plugin.PLUGIN_ID,
         "active": plugin.active,
         "configuration": [{"name": "Use sandbox", "value": True}],
     }
@@ -385,10 +400,10 @@ def test_plugins_query_with_filter(
 def test_plugin_configuration_update_as_customer_user(user_api_client, settings):
     settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
-    plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+    plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
 
     variables = {
-        "id": plugin.PLUGIN_NAME,
+        "id": plugin.PLUGIN_ID,
         "active": True,
         "configuration": [{"name": "Username", "value": "user"}],
     }

@@ -3,7 +3,7 @@ from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...warehouse.models import Stock, Warehouse
 from ..core.types import FilterInputObjectType
-from ..utils import filter_by_query_param
+from ..utils.filters import filter_by_query_param
 
 
 def prefech_qs_for_filter(qs):

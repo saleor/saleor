@@ -1,4 +1,5 @@
 import json
+import logging
 
 import graphene
 import pytest
@@ -9,6 +10,7 @@ from django.test.client import MULTIPART_CONTENT, Client
 from graphql_jwt.shortcuts import get_token
 
 from saleor.account.models import User
+from saleor.graphql.views import handled_errors_logger, unhandled_errors_logger
 
 from ..utils import flush_post_commit_hooks
 from .utils import assert_no_permission
@@ -140,6 +142,28 @@ def api_client():
 def schema_context():
     params = {"user": AnonymousUser()}
     return graphene.types.Context(**params)
+
+
+class LoggingHandler(logging.Handler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.messages = []
+
+    def emit(self, record: logging.LogRecord):
+        exc_type, exc_value, _tb = record.exc_info
+        self.messages.append(
+            f"{record.name}[{record.levelname.upper()}].{exc_type.__name__}"
+        )
+
+
+@pytest.fixture
+def graphql_log_handler():
+    log_handler = LoggingHandler()
+
+    unhandled_errors_logger.addHandler(log_handler)
+    handled_errors_logger.addHandler(log_handler)
+
+    return log_handler
 
 
 @pytest.fixture

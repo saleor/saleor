@@ -9,9 +9,11 @@ from ...account import models as account_models
 from ...core.permissions import SitePermissions, get_permissions
 from ...core.utils import get_client_ip, get_country_by_ip
 from ...menu import models as menu_models
+from ...plugins.manager import get_plugins_manager
 from ...product import models as product_models
 from ...site import models as site_models
 from ..account.types import Address, StaffNotificationRecipient
+from ..checkout.types import PaymentGateway
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
 from ..core.utils import str_to_enum
@@ -62,6 +64,11 @@ class Geolocalization(graphene.ObjectType):
 
 
 class Shop(graphene.ObjectType):
+    available_payment_gateways = graphene.List(
+        graphene.NonNull(PaymentGateway),
+        description="List of available payment gateways.",
+        required=True,
+    )
     geolocalization = graphene.Field(
         Geolocalization, description="Customer's geolocalization data."
     )
@@ -74,7 +81,7 @@ class Shop(graphene.ObjectType):
         required=True,
     )
     countries = graphene.List(
-        CountryDisplay,
+        graphene.NonNull(CountryDisplay),
         language_code=graphene.Argument(
             LanguageCodeEnum,
             description="A language code to return the translation for.",
@@ -157,6 +164,10 @@ class Shop(graphene.ObjectType):
         description = (
             "Represents a shop resource containing general shop data and configuration."
         )
+
+    @staticmethod
+    def resolve_available_payment_gateways(_, _info):
+        return [gtw for gtw in get_plugins_manager().list_payment_gateways()]
 
     @staticmethod
     @permission_required(SitePermissions.MANAGE_SETTINGS)

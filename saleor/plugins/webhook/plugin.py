@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 
 class WebhookPlugin(BasePlugin):
+    PLUGIN_ID = "mirumee.webhooks"
     PLUGIN_NAME = "Webhooks"
     DEFAULT_ACTIVE = True
 

@@ -1,4 +1,3 @@
-import logging
 from unittest import mock
 
 import graphene
@@ -7,7 +6,6 @@ from django.test import override_settings
 
 from saleor.demo.views import EXAMPLE_QUERY
 from saleor.graphql.product.types import Product
-from saleor.graphql.views import handled_errors_logger, unhandled_errors_logger
 
 from .conftest import API_PATH
 from .utils import _get_graphql_content_from_response, get_graphql_content
@@ -127,28 +125,6 @@ def test_graphql_execution_exception(monkeypatch, api_client):
     assert response.status_code == 400
     content = _get_graphql_content_from_response(response)
     assert content["errors"][0]["message"] == "Spanish inquisition"
-
-
-class LoggingHandler(logging.Handler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.messages = []
-
-    def emit(self, record: logging.LogRecord):
-        exc_type, exc_value, _tb = record.exc_info
-        self.messages.append(
-            f"{record.name}[{record.levelname.upper()}].{exc_type.__name__}"
-        )
-
-
-@pytest.fixture
-def graphql_log_handler():
-    log_handler = LoggingHandler()
-
-    unhandled_errors_logger.addHandler(log_handler)
-    handled_errors_logger.addHandler(log_handler)
-
-    return log_handler
 
 
 def test_invalid_query_graphql_errors_are_logged_in_another_logger(
