@@ -51,6 +51,7 @@ def install_app(
         support_url=manifest_data.get("support_url"),
         configuration_url=manifest_data.get("configuration_url"),
         app_url=manifest_data.get("app_url"),
+        version=manifest_data.get("version"),
         type=AppType.EXTERNAL,
     )
     app.permissions.set(app_job.permissions.all())
