@@ -12,34 +12,25 @@ from saleor.account.models import User
 from saleor.checkout import calculations
 from saleor.checkout.error_codes import CheckoutErrorCode
 from saleor.checkout.models import Checkout
-from saleor.checkout.utils import clean_checkout, is_fully_paid
+from saleor.checkout.utils import is_fully_paid
 from saleor.core.payments import PaymentInterface
 from saleor.core.taxes import zero_money
 from saleor.graphql.checkout.mutations import (
     clean_shipping_method,
     update_checkout_shipping_method_if_invalid,
 )
+from saleor.graphql.checkout.utils import (
+    clean_checkout_payment,
+    clean_checkout_shipping,
+)
 from saleor.order.models import Order
 from saleor.payment import TransactionKind
 from saleor.payment.interface import GatewayResponse
 from saleor.plugins.manager import PluginsManager
-from saleor.shipping import ShippingMethodType
-from saleor.shipping.models import ShippingMethod
 from saleor.warehouse.models import Stock
 
 from ..utils import get_available_quantity_for_stock
 from .utils import assert_no_permission, get_graphql_content
-
-
-@pytest.fixture
-def other_shipping_method(shipping_zone):
-    return ShippingMethod.objects.create(
-        name="DPD",
-        minimum_order_price=Money(0, "USD"),
-        type=ShippingMethodType.PRICE_BASED,
-        price=Money(9, "USD"),
-        shipping_zone=shipping_zone,
-    )
 
 
 @pytest.fixture(autouse=True)
@@ -2344,7 +2335,9 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
     payment.checkout = checkout
     payment.save()
     # Shouldn't raise any errors
-    clean_checkout(checkout, list(checkout), None)
+    lines = list(checkout)
+    clean_checkout_shipping(checkout, lines, None, CheckoutErrorCode)
+    clean_checkout_payment(checkout, lines, None, CheckoutErrorCode)
 
 
 def test_clean_checkout_no_shipping_method(checkout_with_item, address):
@@ -2353,10 +2346,10 @@ def test_clean_checkout_no_shipping_method(checkout_with_item, address):
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout(checkout, list(checkout), None)
+        clean_checkout_shipping(checkout, list(checkout), None, CheckoutErrorCode)
 
     msg = "Shipping method is not set"
-    assert e.value.error_list[0].message == msg
+    assert e.value.error_dict["shipping_method"][0].message == msg
 
 
 def test_clean_checkout_no_shipping_address(checkout_with_item, shipping_method):
@@ -2365,9 +2358,9 @@ def test_clean_checkout_no_shipping_address(checkout_with_item, shipping_method)
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout(checkout, list(checkout), None)
+        clean_checkout_shipping(checkout, list(checkout), None, CheckoutErrorCode)
     msg = "Shipping address is not set"
-    assert e.value.error_list[0].message == msg
+    assert e.value.error_dict["shipping_address"][0].message == msg
 
 
 def test_clean_checkout_invalid_shipping_method(
@@ -2380,10 +2373,11 @@ def test_clean_checkout_invalid_shipping_method(
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout(checkout, list(checkout), None)
+        clean_checkout_shipping(checkout, list(checkout), None, CheckoutErrorCode)
 
     msg = "Shipping method is not valid for your shipping address"
-    assert e.value.error_list[0].message == msg
+
+    assert e.value.error_dict["shipping_method"][0].message == msg
 
 
 def test_clean_checkout_no_billing_address(
@@ -2395,9 +2389,9 @@ def test_clean_checkout_no_billing_address(
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout(checkout, list(checkout), None)
+        clean_checkout_payment(checkout, list(checkout), None, CheckoutErrorCode)
     msg = "Billing address is not set"
-    assert e.value.error_list[0].message == msg
+    assert e.value.error_dict["billing_address"][0].message == msg
 
 
 def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address):
@@ -2408,7 +2402,7 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
     checkout.save()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout(checkout, list(checkout), None)
+        clean_checkout_payment(checkout, list(checkout), None, CheckoutErrorCode)
 
     msg = "Provided payment methods can not cover the checkout's total amount"
     assert e.value.error_list[0].message == msg
