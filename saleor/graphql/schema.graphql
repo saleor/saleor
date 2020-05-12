@@ -1812,6 +1812,12 @@ input ExportFileSortingInput {
   field: ExportFileSortField!
 }
 
+input ExportInfoInput {
+  attributes: [ID!]
+  warehouses: [ID!]
+  fields: [ProductFieldEnum!]
+}
+
 type ExportProducts {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   exportFile: ExportFile
@@ -1822,6 +1828,7 @@ input ExportProductsInput {
   scope: ExportScope!
   filter: ProductFilterInput
   ids: [ID!]
+  exportInfo: ExportInfoInput!
 }
 
 enum ExportScope {
@@ -3518,6 +3525,20 @@ enum ProductErrorCode {
   REQUIRED
   UNIQUE
   VARIANT_NO_DIGITAL_CONTENT
+}
+
+enum ProductFieldEnum {
+  NAME
+  DESCRIPTION
+  PRODUCT_TYPE
+  CATEGORY
+  VISIBLE
+  COLLECTIONS
+  PRICE
+  PRICE_OVERRIDE
+  IMAGES
+  WEIGHT
+  CHARGE_TAXES
 }
 
 input ProductFilterInput {
