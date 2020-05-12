@@ -38,9 +38,13 @@ EXPORT_PRODUCTS_MUTATION = """
 @pytest.mark.parametrize(
     "input, called_data",
     [
-        ({"scope": ExportScope.ALL.name}, {"all": ""}),
+        ({"scope": ExportScope.ALL.name, "exportInfo": {}}, {"all": ""}),
         (
-            {"scope": ExportScope.FILTER.name, "filter": {"isPublished": True}},
+            {
+                "scope": ExportScope.FILTER.name,
+                "filter": {"isPublished": True},
+                "exportInfo": {},
+            },
             {"filter": {"is_published": True}},
         ),
     ],
@@ -91,7 +95,7 @@ def test_export_products_mutation_ids_scope(
         pks.add(str(product.pk))
         ids.append(graphene.Node.to_global_id("Product", product.pk))
 
-    variables = {"input": {"scope": ExportScope.IDS.name, "ids": ids}}
+    variables = {"input": {"scope": ExportScope.IDS.name, "ids": ids, "exportInfo": {}}}
 
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]
@@ -117,8 +121,8 @@ def test_export_products_mutation_ids_scope(
 @pytest.mark.parametrize(
     "input, error_field",
     [
-        ({"scope": ExportScope.FILTER.name}, "filter"),
-        ({"scope": ExportScope.IDS.name}, "ids"),
+        ({"scope": ExportScope.FILTER.name, "exportInfo": {}}, "filter"),
+        ({"scope": ExportScope.IDS.name, "exportInfo": {}}, "ids"),
     ],
 )
 @patch("saleor.graphql.csv.mutations.export_products.delay")

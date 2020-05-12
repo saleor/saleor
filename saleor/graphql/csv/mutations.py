@@ -11,10 +11,26 @@ from ..core.enums import CsvErrorCode
 from ..core.mutations import BaseMutation
 from ..core.types.common import CsvError
 from ..product.filters import ProductFilterInput
-from ..product.types import Product
+from ..product.types import Attribute, Product
 from ..utils import resolve_global_ids_to_primary_keys
-from .enums import ExportScope
+from ..warehouse.types import Warehouse
+from .enums import ExportScope, ProductFieldEnum
 from .types import ExportFile
+
+
+class ExportInfoInput(graphene.InputObjectType):
+    attributes = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of attribute ids witch should be exported.",
+    )
+    warehouses = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of warehouse ids witch should be exported.",
+    )
+    fields = graphene.List(
+        graphene.NonNull(ProductFieldEnum),
+        description="List of product fields witch should be exported.",
+    )
 
 
 class ExportProductsInput(graphene.InputObjectType):
@@ -28,6 +44,10 @@ class ExportProductsInput(graphene.InputObjectType):
         graphene.NonNull(graphene.ID),
         description="List of products IDS to export.",
         required=False,
+    )
+    export_info = ExportInfoInput(
+        description="Input with info about fields which should be exported.",
+        required=True,
     )
 
 
@@ -53,7 +73,9 @@ class ExportProducts(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         user = info.context.user
-        scope = cls.get_products_scope(info, data["input"])
+        input = data["input"]
+        scope = cls.get_products_scope(input)
+        cls.get_export_info(input["export_info"])
         export_file = csv_models.ExportFile.objects.create(created_by=user)
         export_started_event(export_file=export_file, user=user)
         export_products.delay(export_file.pk, scope)
@@ -61,7 +83,7 @@ class ExportProducts(BaseMutation):
         return cls(export_file=export_file)
 
     @classmethod
-    def get_products_scope(cls, info, input) -> Mapping[str, Union[list, dict, str]]:
+    def get_products_scope(cls, input) -> Mapping[str, Union[list, dict, str]]:
         scope = input["scope"]
         if scope == ExportScope.IDS.value:  # type: ignore
             return cls.clean_ids(input)
@@ -97,3 +119,23 @@ class ExportProducts(BaseMutation):
                 }
             )
         return {"filter": filter}
+
+    @staticmethod
+    def get_export_info(export_info_input):
+        export_info = {}
+        fields = export_info_input.get("fields")
+        attribute_ids = export_info_input.get("attributes")
+        warehouse_ids = export_info_input.get("warehouses")
+        if fields:
+            export_info["fields"] = fields
+        if attribute_ids:
+            _, attribute_pks = resolve_global_ids_to_primary_keys(
+                attribute_ids, graphene_type=Attribute
+            )
+            export_info["attributes"] = attribute_pks
+        if warehouse_ids:
+            _, warehouse_pks = resolve_global_ids_to_primary_keys(
+                warehouse_ids, graphene_type=Warehouse
+            )
+            export_info["warehouses"] = warehouse_pks
+        return export_info
