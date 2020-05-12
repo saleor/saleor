@@ -16,7 +16,6 @@ from ...checkout.utils import (
     add_variant_to_checkout,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
-    clean_checkout,
     create_order,
     get_user_checkout,
     get_valid_shipping_methods_for_checkout,
@@ -30,6 +29,7 @@ from ...core.permissions import OrderPermissions
 from ...core.taxes import TaxError
 from ...core.utils.url import validate_storefront_url
 from ...discount import models as voucher_model
+from ...graphql.checkout.utils import clean_checkout_payment, clean_checkout_shipping
 from ...payment import PaymentError, gateway, models as payment_models
 from ...payment.interface import AddressData
 from ...payment.utils import store_customer_id
@@ -734,7 +734,9 @@ class CheckoutComplete(BaseMutation):
 
         discounts = info.context.discounts
         user = info.context.user
-        clean_checkout(checkout, list(checkout), discounts)
+
+        clean_checkout_shipping(checkout, lines, discounts, CheckoutErrorCode)
+        clean_checkout_payment(checkout, lines, discounts, CheckoutErrorCode)
 
         payment = checkout.get_last_active_payment()
 
