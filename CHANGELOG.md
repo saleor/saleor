@@ -3,10 +3,11 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
-- Drop support for configuring Vatlayer plugin from settings file. - #5614 by @korycins
 
+- Drop support for configuring Vatlayer plugin from settings file. - #5614 by @korycins
 - Add ability to query category, collection or product by slug - #5574 by @koradon
 - Combine manage_webhooks permission with manage_apps - #5556 by @korycins
+- Add `quantityAvailable` field to `ProductVariant` type - #5628 by @fowczarek
 
 ## 2.10.0
 - Use tags rather than time-based logs for information on requests - #5608 by @NyanKiyoshi
