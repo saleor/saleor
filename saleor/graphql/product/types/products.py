@@ -252,7 +252,13 @@ class ProductVariant(CountableDjangoObjectType):
         required=True,
         description="Quantity of a product available for sale in one checkout.",
         country_code=graphene.Argument(
-            CountryCodeEnum, description="Two-letter ISO 3166-1 country code.",
+            CountryCodeEnum,
+            description=(
+                "Two-letter ISO 3166-1 country code. When provided, the exact quantity "
+                "from a warehouse operating in shipping zones that contain this "
+                "country will be returned. Otherwise, it will return the maximum "
+                "quantity from all shipping zones."
+            ),
         ),
     )
 
