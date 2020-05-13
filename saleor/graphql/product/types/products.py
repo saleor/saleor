@@ -188,7 +188,7 @@ class ProductVariant(CountableDjangoObjectType):
         required=True,
         description="Quantity of a product available for sale.",
         deprecation_reason=(
-            "Use the quantity_available field instead. "
+            "Use the quantityAvailable field instead. "
             "This field will be removed after 2020-07-31."
         ),
     )
@@ -265,6 +265,7 @@ class ProductVariant(CountableDjangoObjectType):
         model = models.ProductVariant
 
     @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_stocks(root: models.ProductVariant, info, country_code=None):
         if not country_code:
             return root.stocks.annotate_available_quantity().all()
