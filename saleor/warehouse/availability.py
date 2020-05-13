@@ -56,7 +56,12 @@ def get_available_quantity_for_customer(
     """Return maximum checkout line quantity.
 
     Returns maximum checkout quantity for the given variant and country code.
-    If country code is missing return maximum checkout quantity from shipping zones.
+    If country code is provided, the function returns the exact variant quantity
+    available in warehouses operating in shipping zones containing this country.
+    Otherwise, it returns the maximum quantity from all shipping zones.
+
+    The returned value is limited by `MAX_CHECKOUT_LINE_QUANTITY` setting to
+    limit the quantity of a variant that can be added in one checkout line.
     """
     query = Q(product_variant=variant)
     if country_code:
