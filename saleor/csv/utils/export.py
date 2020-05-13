@@ -22,7 +22,10 @@ def on_task_failure(self, exc, task_id, args, kwargs, einfo):
     export_file = ExportFile.objects.get(pk=export_file_id)
     update_export_file_when_task_finished(export_file, JobStatus.FAILED)
     events.export_failed_event(
-        export_file=export_file, user=export_file.created_by, message=str(exc)
+        export_file=export_file,
+        user=export_file.created_by,
+        message=str(exc),
+        error_type=str(einfo.type),
     )
 
 
@@ -40,12 +43,15 @@ def update_export_file_when_task_finished(export_file: ExportFile, status: JobSt
 
 @app.task(on_success=on_task_success, on_failure=on_task_failure)
 def export_products(
-    export_file_id: int, scope: Dict[str, Union[str, dict]], delimiter: str = ";"
+    export_file_id: int,
+    scope: Dict[str, Union[str, dict]],
+    export_info: Dict[str, list],
+    delimiter: str = ";",
 ):
     file_name = get_filename("product")
     queryset = get_product_queryset(scope)
 
-    export_data, csv_headers_mapping, headers = get_products_data(queryset)
+    export_data, csv_headers_mapping, headers = get_products_data(queryset, export_info)
 
     export_file = ExportFile.objects.get(pk=export_file_id)
     create_csv_file_and_save_in_export_file(

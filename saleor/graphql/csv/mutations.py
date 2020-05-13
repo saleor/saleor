@@ -75,10 +75,10 @@ class ExportProducts(BaseMutation):
         user = info.context.user
         input = data["input"]
         scope = cls.get_products_scope(input)
-        cls.get_export_info(input["export_info"])
+        export_info = cls.get_export_info(input["export_info"])
         export_file = csv_models.ExportFile.objects.create(created_by=user)
         export_started_event(export_file=export_file, user=user)
-        export_products.delay(export_file.pk, scope)
+        export_products.delay(export_file.pk, scope, export_info)
         export_file.refresh_from_db()
         return cls(export_file=export_file)
 

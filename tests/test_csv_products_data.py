@@ -11,6 +11,7 @@ from saleor.csv.utils.products_data import (
     prepare_products_data,
     prepare_variants_data,
 )
+from saleor.graphql.csv.enums import ProductFieldEnum
 from saleor.product.models import Product, VariantImage
 
 
@@ -20,20 +21,22 @@ def test_get_products_data(mock_prepare_products_data, product_list):
     attr_and_warehouse_headers = ["attr1", "test warehouse", "attr2"]
     mock_prepare_products_data.return_value = (exp_data, attr_and_warehouse_headers)
     queryset = Product.objects.all()
-    export_data, csv_headers_mapping, headers = get_products_data(queryset)
+    export_info = {"fields": ProductFieldEnum.__enum__._value2member_map_.keys()}
+    export_data, csv_headers_mapping, headers = get_products_data(queryset, export_info)
 
-    product_headers = ProductExportFields.PRODUCT_HEADERS_MAPPING
     expected_csv_headers = {
-        **product_headers["product"],
-        **product_headers["product_many_to_many"],
-        **product_headers["variant"],
-        **product_headers["images"],
+        value: key
+        for key, value in ProductExportFields.HEADERS_TO_LOOKUP_MAPPING.items()
     }
-    expected_headers = list(expected_csv_headers.keys()) + attr_and_warehouse_headers
+    expected_headers = (
+        ["id"]
+        + list(ProductExportFields.HEADERS_TO_LOOKUP_MAPPING.values())
+        + attr_and_warehouse_headers
+    )
 
     assert export_data == exp_data
     assert csv_headers_mapping == expected_csv_headers
-    assert headers == expected_headers
+    assert set(headers) == set(expected_headers)
 
 
 def test_prepare_products_data(product, product_with_image, collection, image):
@@ -43,13 +46,31 @@ def test_prepare_products_data(product, product_with_image, collection, image):
     VariantImage.objects.create(variant=variant, image=product.images.first())
 
     products = Product.objects.all()
-    data, headers = prepare_products_data(products)
+    export_fields = set(ProductExportFields.HEADERS_TO_LOOKUP_MAPPING.values())
+    export_fields.add("id")
+    warehouse_ids = [
+        str(stock.warehouse.pk)
+        for product in products
+        for variant in product.variants.all()
+        for stock in variant.stocks.all()
+    ]
+    attribute_ids = [
+        str(attr.assignment.attribute.pk)
+        for product in products
+        for attr in product.attributes.all()
+    ]
+    for variant in product.variants.all():
+        for attr in variant.attributes.all():
+            attribute_ids.append(str(attr.assignment.attribute.pk))
+    data, headers = prepare_products_data(
+        products, export_fields, warehouse_ids, attribute_ids
+    )
 
     expected_data = []
     expected_headers = set()
     for product in products.order_by("pk"):
         product_data = {}
-        product_data["collections"] = (
+        product_data["collections__slug"] = (
             "" if not product.collections.all() else product.collections.first().slug
         )
         product_data["name"] = product.name
@@ -60,7 +81,9 @@ def test_prepare_products_data(product, product_with_image, collection, image):
         product_data["product_currency"] = product.currency
         product_data["product_type__name"] = product.product_type.name
         product_data["id"] = product.pk
-        product_data["product_images"] = (
+        product_data["product_weight"] = product.weight
+        product_data["charge_taxes"] = product.charge_taxes
+        product_data["product_image_path"] = (
             ""
             if not product.images.all()
             else "http://mirumee.com{}".format(product.images.first().image.url)
@@ -73,7 +96,7 @@ def test_prepare_products_data(product, product_with_image, collection, image):
             expected_headers.add(header)
 
         for variant in product.variants.all():
-            product_data["variant_images"] = (
+            product_data["variant_image_path"] = (
                 ""
                 if not variant.images.all()
                 else "http://mirumee.com{}".format(variant.images.first().image.url)
@@ -82,6 +105,7 @@ def test_prepare_products_data(product, product_with_image, collection, image):
             product_data["variant_currency"] = variant.currency
             product_data["price_override_amount"] = variant.price_override_amount
             product_data["cost_price_amount"] = variant.cost_price_amount
+            product_data["variant_weight"] = variant.weight
 
             for stock in variant.stocks.all():
                 slug = stock.warehouse.slug
@@ -108,7 +132,13 @@ def test_prepare_product_relations_data(product_with_image, collection_list):
     collection_list[0].products.add(product_with_image)
     collection_list[1].products.add(product_with_image)
     qs = Product.objects.all()
-    result, result_headers = prepare_product_relations_data(qs)
+    fields = set(ProductExportFields.PRODUCT_MANY_TO_MANY)
+    attribute_ids = [
+        str(attr.assignment.attribute.pk)
+        for attr in product_with_image.attributes.all()
+    ]
+
+    result, result_headers = prepare_product_relations_data(qs, fields, attribute_ids)
 
     collections = ", ".join(
         sorted([collection.slug for collection in collection_list[:2]])
@@ -119,7 +149,9 @@ def test_prepare_product_relations_data(product_with_image, collection_list):
             for image in product_with_image.images.all()
         ]
     )
-    expected_result = {pk: {"collections": collections, "product_images": images}}
+    expected_result = {
+        pk: {"collections__slug": collections, "product_image_path": images}
+    }
 
     assigned_attribute = product_with_image.attributes.first()
     if assigned_attribute:
@@ -136,12 +168,22 @@ def test_prepare_variants_data(product):
     attribute_headers = set()
 
     data = {"id": 123, "name": "test_product"}
+    variant_fields = set(ProductExportFields.VARIANT_FIELDS)
+    warhouse_ids = [str(stock.warehouse.pk) for stock in variant.stocks.all()]
+    attribute_ids = [
+        str(attr.assignment.attribute.pk) for attr in variant.attributes.all()
+    ]
+
+    result_data, res_attribute_headers, res_warehouse_headers = prepare_variants_data(
+        product.pk, data, variant_fields, warhouse_ids, attribute_ids
+    )
 
     variant_data = {
         "sku": variant.sku,
         "cost_price_amount": variant.cost_price_amount,
         "price_override_amount": variant.price_override_amount,
         "variant_currency": variant.currency,
+        "variant_weight": variant.weight,
     }
     assigned_attribute = variant.attributes.first()
     if assigned_attribute:
@@ -157,10 +199,6 @@ def test_prepare_variants_data(product):
         variant_data[headers[0]] = stock.quantity
         warehouse_headers.update(headers)
 
-    result_data, res_attribute_headers, res_warehouse_headers = prepare_variants_data(
-        product.pk, data
-    )
-
     expected_result = {**data, **variant_data}
 
     assert result_data == [expected_result]
@@ -174,17 +212,17 @@ def test_add_collection_info_to_data(product):
     input_data = {pk: {}}
     result = add_collection_info_to_data(product.pk, collection, input_data)
 
-    assert result[pk]["collections"] == {collection}
+    assert result[pk]["collections__slug"] == {collection}
 
 
 def test_add_collection_info_to_data_update_collections(product):
     pk = product.pk
     existing_collection = "test2"
     collection = "test_collection"
-    input_data = {pk: {"collections": {existing_collection}}}
+    input_data = {pk: {"collections__slug": {existing_collection}}}
     result = add_collection_info_to_data(product.pk, collection, input_data)
 
-    assert result[pk]["collections"] == {collection, existing_collection}
+    assert result[pk]["collections__slug"] == {collection, existing_collection}
 
 
 def test_add_collection_info_to_data_no_collection(product):
