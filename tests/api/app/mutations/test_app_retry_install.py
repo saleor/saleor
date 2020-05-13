@@ -44,13 +44,14 @@ def test_retry_install_app_mutation(
     )
     query = RETRY_INSTALL_APP_MUTATION
     staff_user.user_permissions.set([permission_manage_apps, permission_manage_orders])
-    id = graphene.Node.to_global_id("OngoingAppInstallation", app_job.id)
+    id = graphene.Node.to_global_id("AppOngoingInstallation", app_job.id)
     variables = {
         "id": id,
         "activate_after_installation": True,
     }
     response = staff_api_client.post_graphql(query, variables=variables,)
     content = get_graphql_content(response)
+    print(content)
     app_job = AppJob.objects.get()
     app_job_data = content["data"]["appRetryInstall"]["appJob"]
     assert int(app_job_data["id"]) == app_job.id
@@ -72,7 +73,7 @@ def test_retry_install_app_mutation_by_app(
     monkeypatch.setattr(
         "saleor.graphql.app.mutations.install_app_task.delay", mocked_task
     )
-    id = graphene.Node.to_global_id("OngoingAppInstallation", app_job.id)
+    id = graphene.Node.to_global_id("AppOngoingInstallation", app_job.id)
     query = RETRY_INSTALL_APP_MUTATION
     app_api_client.app.permissions.set(
         [permission_manage_apps, permission_manage_orders]
@@ -106,7 +107,7 @@ def test_retry_install_app_mutation_missing_required_permissions(
 
     staff_user.user_permissions.set([permission_manage_apps])
 
-    id = graphene.Node.to_global_id("OngoingAppInstallation", app_job.id)
+    id = graphene.Node.to_global_id("AppOngoingInstallation", app_job.id)
     variables = {
         "id": id,
     }
@@ -130,7 +131,7 @@ def test_retry_install_app_mutation_by_app_missing_required_permissions(
     app_job.save()
     query = RETRY_INSTALL_APP_MUTATION
     app_api_client.app.permissions.set([permission_manage_apps])
-    id = graphene.Node.to_global_id("OngoingAppInstallation", app_job.id)
+    id = graphene.Node.to_global_id("AppOngoingInstallation", app_job.id)
     variables = {
         "id": id,
     }
@@ -164,7 +165,7 @@ def test_cannot_retry_installation_if_status_is_different_than_failed(
     )
     query = RETRY_INSTALL_APP_MUTATION
     staff_user.user_permissions.set([permission_manage_apps, permission_manage_orders])
-    id = graphene.Node.to_global_id("OngoingAppInstallation", app_job.id)
+    id = graphene.Node.to_global_id("AppOngoingInstallation", app_job.id)
     variables = {
         "id": id,
         "activate_after_installation": True,

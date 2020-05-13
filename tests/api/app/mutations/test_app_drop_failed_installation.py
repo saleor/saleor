@@ -31,7 +31,7 @@ def test_drop_failed_installation_mutation(
     query = DROP_FAILED_INSTALLATION_MUTATION
 
     staff_user.user_permissions.set([permission_manage_apps, permission_manage_orders])
-    id = graphene.Node.to_global_id("OngoingAppInstallation", app_job.id)
+    id = graphene.Node.to_global_id("AppOngoingInstallation", app_job.id)
     variables = {
         "id": id,
     }
@@ -47,7 +47,7 @@ def test_drop_failed_installation_mutation_by_app(
     app_job.status = JobStatus.FAILED
     app_job.save()
 
-    id = graphene.Node.to_global_id("OngoingAppInstallation", app_job.id)
+    id = graphene.Node.to_global_id("AppOngoingInstallation", app_job.id)
     query = DROP_FAILED_INSTALLATION_MUTATION
     app_api_client.app.permissions.set(
         [permission_manage_apps, permission_manage_orders]
@@ -76,7 +76,7 @@ def test_drop_failed_installation_mutation_out_of_scope_permissions(
 
     staff_user.user_permissions.set([permission_manage_apps])
 
-    id = graphene.Node.to_global_id("OngoingAppInstallation", app_job.id)
+    id = graphene.Node.to_global_id("AppOngoingInstallation", app_job.id)
     variables = {
         "id": id,
     }
@@ -94,7 +94,7 @@ def test_drop_failed_installation_mutation_by_app_out_of_scope_permissions(
     query = DROP_FAILED_INSTALLATION_MUTATION
 
     app_api_client.app.permissions.set([permission_manage_apps])
-    id = graphene.Node.to_global_id("OngoingAppInstallation", app_job.id)
+    id = graphene.Node.to_global_id("AppOngoingInstallation", app_job.id)
     variables = {
         "id": id,
     }
@@ -116,7 +116,7 @@ def test_cannot_drop_installation_if_status_is_different_than_failed(
 
     query = DROP_FAILED_INSTALLATION_MUTATION
     staff_user.user_permissions.set([permission_manage_apps, permission_manage_orders])
-    id = graphene.Node.to_global_id("OngoingAppInstallation", app_job.id)
+    id = graphene.Node.to_global_id("AppOngoingInstallation", app_job.id)
     variables = {
         "id": id,
     }
