@@ -2,7 +2,7 @@ from tests.api.utils import assert_no_permission, get_graphql_content
 
 ONGOING_APPS_INSTALLATION_QUERY = """
     {
-      ongoingAppsInstallations{
+      appsOngoingInstallations{
         id
       }
     }
@@ -15,7 +15,7 @@ def test_ongoing_apps_installation(app_job, staff_api_client, permission_manage_
         ONGOING_APPS_INSTALLATION_QUERY, permissions=[permission_manage_apps]
     )
     content = get_graphql_content(response)
-    installations = content["data"]["ongoingAppsInstallations"]
+    installations = content["data"]["appsOngoingInstallations"]
     assert len(installations) == 1
     assert int(installations[0]["id"]) == app_job.id
 
@@ -27,7 +27,7 @@ def test_ongoing_apps_installation_by_app(
         ONGOING_APPS_INSTALLATION_QUERY, permissions=[permission_manage_apps]
     )
     content = get_graphql_content(response)
-    installations = content["data"]["ongoingAppsInstallations"]
+    installations = content["data"]["appsOngoingInstallations"]
     assert len(installations) == 1
     assert int(installations[0]["id"]) == app_job.id
 

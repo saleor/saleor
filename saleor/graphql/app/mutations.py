@@ -208,7 +208,7 @@ class AppDelete(ModelDeleteMutation):
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
 
-class DropFailedInstallation(ModelDeleteMutation):
+class AppDropFailedInstallation(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
             description="ID of failed installation to drop.", required=True
@@ -238,7 +238,7 @@ class DropFailedInstallation(ModelDeleteMutation):
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
 
-class RetryInstallApp(ModelMutation):
+class AppRetryInstall(ModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of failed installation.", required=True)
         activate_after_installation = graphene.Boolean(
@@ -286,7 +286,7 @@ class RetryInstallApp(ModelMutation):
         return cls.success_response(app_job)
 
 
-class InstallAppInput(graphene.InputObjectType):
+class AppInstallInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the app to install.")
     manifest_url = graphene.String(description="Url to app's manifest in JSON format.")
     activate_after_installation = graphene.Boolean(
@@ -300,9 +300,9 @@ class InstallAppInput(graphene.InputObjectType):
     )
 
 
-class InstallApp(ModelMutation):
+class AppInstall(ModelMutation):
     class Arguments:
-        input = InstallAppInput(
+        input = AppInstallInput(
             required=True, description="Fields required to install a new app.",
         )
 

@@ -7,9 +7,9 @@ from saleor.graphql.core.enums import AppErrorCode, PermissionEnum
 from ...utils import get_graphql_content
 
 INSTALL_APP_MUTATION = """
-    mutation InstallApp(
+    mutation AppInstall(
         $name: String, $manifest_url: String, $permissions: [PermissionEnum]){
-        installApp(
+        appInstall(
             input:{name: $name, manifestUrl: $manifest_url, permissions:$permissions}){
             appJob{
                 id
@@ -49,7 +49,7 @@ def test_install_app_mutation(
     response = staff_api_client.post_graphql(query, variables=variables,)
     content = get_graphql_content(response)
     app_job = AppJob.objects.get()
-    app_job_data = content["data"]["installApp"]["appJob"]
+    app_job_data = content["data"]["appInstall"]["appJob"]
     assert int(app_job_data["id"]) == app_job.id
     assert app_job_data["status"] == JobStatus.PENDING.upper()
     assert app_job_data["manifestUrl"] == app_job.manifest_url
@@ -75,7 +75,7 @@ def test_install_app_mutation_by_app(
     response = app_api_client.post_graphql(query, variables=variables,)
     content = get_graphql_content(response)
     app_job = AppJob.objects.get()
-    app_job_data = content["data"]["installApp"]["appJob"]
+    app_job_data = content["data"]["appInstall"]["appJob"]
     assert int(app_job_data["id"]) == app_job.id
     assert app_job_data["status"] == JobStatus.PENDING.upper()
     assert app_job_data["manifestUrl"] == app_job.manifest_url
@@ -94,7 +94,7 @@ def test_app_install_mutation_out_of_scope_permissions(
     }
     response = staff_api_client.post_graphql(query, variables=variables,)
     content = get_graphql_content(response)
-    data = content["data"]["installApp"]
+    data = content["data"]["appInstall"]
 
     errors = data["appErrors"]
     assert not data["appJob"]
@@ -118,7 +118,7 @@ def test_install_app_mutation_by_app_out_of_scope_permissions(
     response = app_api_client.post_graphql(query, variables=variables,)
 
     content = get_graphql_content(response)
-    data = content["data"]["installApp"]
+    data = content["data"]["appInstall"]
 
     errors = data["appErrors"]
     assert not data["appJob"]

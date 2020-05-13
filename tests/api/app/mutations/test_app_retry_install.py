@@ -8,9 +8,9 @@ from saleor.graphql.core.enums import AppErrorCode
 from tests.api.utils import get_graphql_content
 
 RETRY_INSTALL_APP_MUTATION = """
-    mutation RetryInstallApp(
+    mutation AppRetryInstall(
         $id: ID!, $activate_after_installation: Boolean){
-        retryInstallApp(id:$id, activateAfterInstallation:$activate_after_installation){
+        appRetryInstall(id:$id, activateAfterInstallation:$activate_after_installation){
             appJob{
                 id
                 status
@@ -52,7 +52,7 @@ def test_retry_install_app_mutation(
     response = staff_api_client.post_graphql(query, variables=variables,)
     content = get_graphql_content(response)
     app_job = AppJob.objects.get()
-    app_job_data = content["data"]["retryInstallApp"]["appJob"]
+    app_job_data = content["data"]["appRetryInstall"]["appJob"]
     assert int(app_job_data["id"]) == app_job.id
     assert app_job_data["status"] == JobStatus.PENDING.upper()
     assert app_job_data["manifestUrl"] == app_job.manifest_url
@@ -84,7 +84,7 @@ def test_retry_install_app_mutation_by_app(
     response = app_api_client.post_graphql(query, variables=variables,)
     content = get_graphql_content(response)
     app_job = AppJob.objects.get()
-    app_job_data = content["data"]["retryInstallApp"]["appJob"]
+    app_job_data = content["data"]["appRetryInstall"]["appJob"]
     assert int(app_job_data["id"]) == app_job.id
     assert app_job_data["status"] == JobStatus.PENDING.upper()
     assert app_job_data["manifestUrl"] == app_job.manifest_url
@@ -112,7 +112,7 @@ def test_retry_install_app_mutation_missing_required_permissions(
     }
     response = staff_api_client.post_graphql(query, variables=variables,)
     content = get_graphql_content(response)
-    data = content["data"]["retryInstallApp"]
+    data = content["data"]["appRetryInstall"]
 
     errors = data["appErrors"]
     assert not data["appJob"]
@@ -137,7 +137,7 @@ def test_retry_install_app_mutation_by_app_missing_required_permissions(
     response = app_api_client.post_graphql(query, variables=variables,)
 
     content = get_graphql_content(response)
-    data = content["data"]["retryInstallApp"]
+    data = content["data"]["appRetryInstall"]
 
     errors = data["appErrors"]
     assert not data["appJob"]
@@ -173,8 +173,8 @@ def test_cannot_retry_installation_if_status_is_different_than_failed(
     content = get_graphql_content(response)
 
     AppJob.objects.get()
-    app_job_data = content["data"]["retryInstallApp"]["appJob"]
-    app_job_errors = content["data"]["retryInstallApp"]["appErrors"]
+    app_job_data = content["data"]["appRetryInstall"]["appJob"]
+    app_job_errors = content["data"]["appRetryInstall"]["appErrors"]
     assert not app_job_data
     assert len(app_job_errors) == 1
     assert app_job_errors[0]["field"] == "id"

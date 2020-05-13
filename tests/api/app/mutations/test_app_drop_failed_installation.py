@@ -6,8 +6,8 @@ from saleor.graphql.core.enums import AppErrorCode
 from tests.api.utils import get_graphql_content
 
 DROP_FAILED_INSTALLATION_MUTATION = """
-    mutation DropFailedInstallation($id: ID!){
-        dropFailedInstallation(id:$id){
+    mutation AppDropFailedInstallation($id: ID!){
+        appDropFailedInstallation(id:$id){
             appErrors{
                 field
                 message
@@ -124,7 +124,7 @@ def test_cannot_drop_installation_if_status_is_different_than_failed(
     content = get_graphql_content(response)
 
     AppJob.objects.get()
-    app_job_errors = content["data"]["dropFailedInstallation"]["appErrors"]
+    app_job_errors = content["data"]["appDropFailedInstallation"]["appErrors"]
 
     assert len(app_job_errors) == 1
     assert app_job_errors[0]["field"] == "id"
