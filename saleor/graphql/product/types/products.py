@@ -21,7 +21,6 @@ from ....product.utils.costs import get_margin_for_variant, get_product_costs_da
 from ....warehouse.availability import (
     get_available_quantity,
     get_available_quantity_for_customer,
-    get_max_available_quantity_for_customer,
     get_quantity_allocated,
     is_product_in_stock,
     is_variant_in_stock,
@@ -189,7 +188,8 @@ class ProductVariant(CountableDjangoObjectType):
         required=True,
         description="Quantity of a product available for sale.",
         deprecation_reason=(
-            "Use the stock field instead. This field will be removed after 2020-07-31."
+            "Use the quantity_available field instead. "
+            "This field will be removed after 2020-07-31."
         ),
     )
     price_override = graphene.Field(
@@ -274,8 +274,6 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_quantity_available(
         root: models.ProductVariant, info, country_code=None
     ):
-        if not country_code:
-            return get_max_available_quantity_for_customer(root)
         return get_available_quantity_for_customer(root, country_code)
 
     @staticmethod
