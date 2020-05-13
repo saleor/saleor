@@ -15,7 +15,7 @@ from .mutations import (
     InstallApp,
     RetryInstallApp,
 )
-from .resolvers import resolve_apps
+from .resolvers import resolve_apps, resolve_ongoing_apps_installations
 from .sorters import AppSortingInput
 from .types import App, OngoingAppInstallation
 
@@ -40,6 +40,10 @@ class AppQueries(graphene.ObjectType):
         id=graphene.Argument(graphene.ID, description="ID of the app.", required=True),
         description="Look up a app by ID.",
     )
+
+    @permission_required(AppPermission.MANAGE_APPS)
+    def resolve_ongoing_apps_installations(self, info, **kwargs):
+        return resolve_ongoing_apps_installations(info, **kwargs)
 
     @permission_required(AppPermission.MANAGE_APPS)
     def resolve_apps(self, info, **kwargs):
