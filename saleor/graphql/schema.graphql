@@ -216,7 +216,7 @@ type App implements Node & ObjectWithMetadata {
 type AppActivate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   appErrors: [AppError!]!
-  appJob: AppOngoingInstallation
+  app: App
 }
 
 type AppCountableConnection {
@@ -240,7 +240,7 @@ type AppCreate {
 type AppDeactivate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   appErrors: [AppError!]!
-  appJob: AppOngoingInstallation
+  app: App
 }
 
 type AppDelete {
