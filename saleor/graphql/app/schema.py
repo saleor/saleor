@@ -1,7 +1,7 @@
 import graphene
 
 from ...core.permissions import AppPermission
-from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
+from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
 from ..decorators import permission_required
 from .filters import AppFilter
@@ -26,7 +26,7 @@ class AppFilterInput(FilterInputObjectType):
 
 
 class AppQueries(graphene.ObjectType):
-    ongoing_apps_installations = PrefetchingConnectionField(
+    ongoing_apps_installations = graphene.List(
         OngoingAppInstallation, description="List of all ongoing apps installations"
     )
     apps = FilterInputConnectionField(

@@ -147,3 +147,39 @@ def test_retry_install_app_mutation_by_app_out_of_scope_permissions(
     assert error["field"] == "permissions"
     assert error["code"] == AppErrorCode.OUT_OF_SCOPE_PERMISSION.name
     assert error["permissions"] == [PermissionEnum.MANAGE_ORDERS.name]
+
+
+def test_cannot_retry_installation_if_status_is_different_than_failed(
+    monkeypatch,
+    app_job,
+    permission_manage_apps,
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+):
+    app_job.status = JobStatus.PENDING
+    app_job.save()
+
+    mocked_task = Mock()
+    monkeypatch.setattr(
+        "saleor.graphql.app.mutations.install_app_task.delay", mocked_task
+    )
+    query = RETRY_INSTALL_APP_MUTATION
+    staff_user.user_permissions.set([permission_manage_apps, permission_manage_orders])
+    id = graphene.Node.to_global_id("OngoingAppInstallation", app_job.id)
+    variables = {
+        "id": id,
+        "activate_after_installation": True,
+    }
+    response = staff_api_client.post_graphql(query, variables=variables,)
+    content = get_graphql_content(response)
+
+    AppJob.objects.get()
+    app_job_data = content["data"]["retryInstallApp"]["appJob"]
+    app_job_errors = content["data"]["retryInstallApp"]["appErrors"]
+    assert not app_job_data
+    assert len(app_job_errors) == 1
+    assert app_job_errors[0]["field"] == "id"
+    assert app_job_errors[0]["code"] == AppErrorCode.FORBIDDEN.name
+
+    assert not mocked_task.called
