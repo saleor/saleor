@@ -7,7 +7,6 @@ from saleor.warehouse.availability import (
     check_stock_quantity,
     get_available_quantity,
     get_available_quantity_for_customer,
-    get_max_available_quantity_for_customer,
     get_quantity_allocated,
 )
 from saleor.warehouse.models import Allocation, Stock
@@ -91,7 +90,38 @@ def test_get_available_quantity_for_customer_without_stocks(variant_with_many_st
     assert available_quantity == 0
 
 
-def test_get_max_available_quantity_for_customer(
+@override_settings(MAX_CHECKOUT_LINE_QUANTITY=2)
+def test_get_available_quantity_for_customer_with_max(
+    variant_with_many_stocks, settings
+):
+    available_quantity = get_available_quantity_for_customer(
+        variant_with_many_stocks, COUNTRY_CODE
+    )
+    assert available_quantity == settings.MAX_CHECKOUT_LINE_QUANTITY
+
+
+def test_get_available_quantity_for_customer_with_allocations(
+    variant_with_many_stocks, order_line_with_allocation_in_many_stocks
+):
+    available_quantity = get_available_quantity_for_customer(
+        variant_with_many_stocks, COUNTRY_CODE
+    )
+    assert available_quantity == 4
+
+
+@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
+def test_get_available_quantity_for_customer_without_inventory_tracking(
+    variant_with_many_stocks, settings
+):
+    variant_with_many_stocks.track_inventory = False
+    variant_with_many_stocks.save(update_fields=["track_inventory"])
+    available_quantity = get_available_quantity_for_customer(
+        variant_with_many_stocks, COUNTRY_CODE
+    )
+    assert available_quantity == settings.MAX_CHECKOUT_LINE_QUANTITY
+
+
+def test_get_available_quantity_for_customer_without_country(
     variant_with_many_stocks,
     warehouse_no_shipping_zone,
     shipping_zone_without_countries,
@@ -103,54 +133,8 @@ def test_get_max_available_quantity_for_customer(
         quantity=12,
     )
 
-    available_quantity = get_max_available_quantity_for_customer(
-        variant_with_many_stocks
-    )
+    available_quantity = get_available_quantity_for_customer(variant_with_many_stocks)
     assert available_quantity == 12
-
-
-def test_get_max_available_quantity_for_customer_with_allocations(
-    variant_with_many_stocks, order_line_with_allocation_in_many_stocks
-):
-    available_quantity = get_max_available_quantity_for_customer(
-        variant_with_many_stocks
-    )
-    assert available_quantity == 4
-
-
-def test_get_max_available_quantity_for_customer_without_stocks(
-    variant_with_many_stocks,
-):
-    variant_with_many_stocks.stocks.all().delete()
-    available_quantity = get_max_available_quantity_for_customer(
-        variant_with_many_stocks
-    )
-    assert available_quantity == 0
-
-
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
-def test_get_max_available_quantity_for_customer_with_max(
-    variant_with_many_stocks, settings
-):
-    stock = variant_with_many_stocks.stocks.first()
-    stock.quantity = 16
-    stock.save(update_fields=["quantity"])
-    available_quantity = get_max_available_quantity_for_customer(
-        variant_with_many_stocks
-    )
-    assert available_quantity == settings.MAX_CHECKOUT_LINE_QUANTITY
-
-
-@override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
-def test_get_max_available_quantity_for_customer_without_inventory_tracking(
-    variant_with_many_stocks, settings
-):
-    variant_with_many_stocks.track_inventory = False
-    variant_with_many_stocks.save(update_fields=["track_inventory"])
-    available_quantity = get_max_available_quantity_for_customer(
-        variant_with_many_stocks
-    )
-    assert available_quantity == settings.MAX_CHECKOUT_LINE_QUANTITY
 
 
 def test_get_quantity_allocated(

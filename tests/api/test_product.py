@@ -3434,9 +3434,9 @@ def test_variant_quantity_available_with_country_code(
     mock_get_available_quantity_for_customer.assert_called_once_with(variant, "PL")
 
 
-@patch("saleor.graphql.product.types.products.get_max_available_quantity_for_customer")
+@patch("saleor.graphql.product.types.products.get_available_quantity_for_customer")
 def test_variant_quantity_available_without_country_code(
-    mock_get_max_available_quantity_for_customer, api_client, variant
+    mock_get_available_quantity_for_customer, api_client, variant
 ):
     query = """
     query variantAvailability($id: ID!) {
@@ -3450,10 +3450,10 @@ def test_variant_quantity_available_without_country_code(
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
     assert variant_data
-    mock_get_max_available_quantity_for_customer.assert_called_once_with(variant)
+    mock_get_available_quantity_for_customer.assert_called_once_with(variant, None)
 
 
-@patch("saleor.graphql.product.types.products.get_max_available_quantity_for_customer")
+@patch("saleor.graphql.product.types.products.get_available_quantity_for_customer")
 def test_variant_quantity_available_with_null_as_country_code(
     mock_get_available_quantity_for_customer, api_client, variant
 ):
@@ -3472,7 +3472,7 @@ def test_variant_quantity_available_with_null_as_country_code(
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
     assert variant_data
-    mock_get_available_quantity_for_customer.assert_called_once_with(variant)
+    mock_get_available_quantity_for_customer.assert_called_once_with(variant, None)
 
 
 @pytest.mark.parametrize(
