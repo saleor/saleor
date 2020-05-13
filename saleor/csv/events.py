@@ -20,12 +20,14 @@ def export_success_event(*, export_file: "ExportFile", user: User):
     )
 
 
-def export_failed_event(*, export_file: "ExportFile", user: User, message: str):
+def export_failed_event(
+    *, export_file: "ExportFile", user: User, message: str, error_type: str
+):
     ExportEvent.objects.create(
         export_file=export_file,
         user=user,
         type=ExportEvents.EXPORT_FAILED,
-        parameters={"message": message},
+        parameters={"message": message, "error_type": error_type},
     )
 
 

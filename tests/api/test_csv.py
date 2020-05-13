@@ -9,7 +9,7 @@ from saleor.account.models import User
 from saleor.core import JobStatus
 from saleor.csv import ExportEvents
 from saleor.csv.models import ExportEvent, ExportFile
-from saleor.graphql.csv.enums import ExportScope
+from saleor.graphql.csv.enums import ExportScope, ProductFieldEnum
 from tests.api.utils import get_graphql_content
 
 EXPORT_PRODUCTS_MUTATION = """
@@ -69,7 +69,7 @@ def test_export_products_mutation(
     data = content["data"]["exportProducts"]
     export_file_data = data["exportFile"]
 
-    export_products_mock.assert_called_once_with(ANY, called_data)
+    export_products_mock.assert_called_once_with(ANY, called_data, {})
 
     assert not data["csvErrors"]
     assert data["exportFile"]["id"]
@@ -95,7 +95,13 @@ def test_export_products_mutation_ids_scope(
         pks.add(str(product.pk))
         ids.append(graphene.Node.to_global_id("Product", product.pk))
 
-    variables = {"input": {"scope": ExportScope.IDS.name, "ids": ids, "exportInfo": {}}}
+    variables = {
+        "input": {
+            "scope": ExportScope.IDS.name,
+            "ids": ids,
+            "exportInfo": {"fields": [ProductFieldEnum.PRICE_OVERRIDE.name]},
+        }
+    }
 
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]
@@ -108,6 +114,7 @@ def test_export_products_mutation_ids_scope(
     (call_args, call_kwargs,) = export_products_mock.call_args
 
     assert set(call_args[1]["ids"]) == pks
+    assert call_args[2]["fields"] == [ProductFieldEnum.PRICE_OVERRIDE.value]
 
     assert not data["csvErrors"]
     assert data["exportFile"]["id"]
