@@ -214,7 +214,7 @@ class AppActivate(ModelMutation):
 
     class Meta:
         description = "Activate the app."
-        model = models.AppJob
+        model = models.App
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
@@ -222,7 +222,10 @@ class AppActivate(ModelMutation):
     @classmethod
     def clean_instance(cls, info, app: App):
         requestor = get_user_or_app_from_context(info.context)
-        if not requestor_is_superuser(requestor) and not can_manage_app(requestor, app):
+        permissions = app.permissions.all()
+        if not requestor_is_superuser(requestor) and not requestor.has_perms(
+            permissions
+        ):
             msg = "You don't have enough permission to perform this action."
             code = AppErrorCode.OUT_OF_SCOPE_APP.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
@@ -247,7 +250,7 @@ class AppDeactivate(ModelMutation):
 
     class Meta:
         description = "Deactivate the app."
-        model = models.AppJob
+        model = models.App
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
