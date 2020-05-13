@@ -96,9 +96,6 @@ class Stock(models.Model):
         unique_together = [["warehouse", "product_variant"]]
         ordering = ("pk",)
 
-    def __str__(self):
-        return f"{self.product_variant} - {self.warehouse.name}"
-
     def increase_stock(self, quantity: int, commit: bool = True):
         """Return given quantity of product to a stock."""
         self.quantity = F("quantity") + quantity
