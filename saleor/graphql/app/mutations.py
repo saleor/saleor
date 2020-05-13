@@ -223,23 +223,19 @@ class DropFailedInstallation(ModelDeleteMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
+        requestor = get_user_or_app_from_context(info.context)
+        permissions = instance.permissions.all()
+        if not requestor_is_superuser(requestor) and not requestor.has_perms(
+            permissions
+        ):
+            msg = "You don't have enough permission to perform this action."
+            code = AppErrorCode.OUT_OF_SCOPE_APP.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+
         if instance.status != JobStatus.FAILED:
             msg = "Cannot drop installation with different status than failed."
             code = AppErrorCode.FORBIDDEN.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
-        cls.ensure_can_manage_permissions(info, instance)
-
-    @classmethod
-    def ensure_can_manage_permissions(cls, info, instance):
-        perms = instance.permissions.all()
-        if not perms:
-            return
-        perms = [
-            PermissionEnum.get(f"{perm.content_type.app_label}.{perm.codename}")
-            for perm in perms
-        ]
-        requestor = get_user_or_app_from_context(info.context)
-        ensure_can_manage_permissions(requestor, perms)
 
 
 class RetryInstallApp(ModelMutation):
@@ -265,6 +261,15 @@ class RetryInstallApp(ModelMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
+        requestor = get_user_or_app_from_context(info.context)
+        permissions = instance.permissions.all()
+        if not requestor_is_superuser(requestor) and not requestor.has_perms(
+            permissions
+        ):
+            msg = "You don't have enough permission to perform this action."
+            code = AppErrorCode.OUT_OF_SCOPE_APP.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+
         if instance.status != JobStatus.FAILED:
             msg = "Cannot retry installation with different status than failed."
             code = AppErrorCode.FORBIDDEN.value
@@ -275,23 +280,10 @@ class RetryInstallApp(ModelMutation):
         activate_after_installation = data.get("activate_after_installation")
         app_job = cls.get_instance(info, **data)
         cls.clean_instance(info, app_job)
-        cls.ensure_can_manage_permissions(info, app_job)
 
         cls.save(info, app_job, cleaned_input=None)
         install_app_task.delay(app_job.pk, activate_after_installation)
         return cls.success_response(app_job)
-
-    @classmethod
-    def ensure_can_manage_permissions(cls, info, instance):
-        perms = instance.permissions.all()
-        if not perms:
-            return
-        perms = [
-            PermissionEnum.get(f"{perm.content_type.app_label}.{perm.codename}")
-            for perm in perms
-        ]
-        requestor = get_user_or_app_from_context(info.context)
-        ensure_can_manage_permissions(requestor, perms)
 
 
 class InstallAppInput(graphene.InputObjectType):

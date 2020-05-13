@@ -4,7 +4,7 @@ import graphene
 
 from saleor.app.models import AppJob
 from saleor.core import JobStatus
-from saleor.graphql.core.enums import AppErrorCode, PermissionEnum
+from saleor.graphql.core.enums import AppErrorCode
 from tests.api.utils import get_graphql_content
 
 RETRY_INSTALL_APP_MUTATION = """
@@ -91,7 +91,7 @@ def test_retry_install_app_mutation_by_app(
     mocked_task.assert_called_with(app_job.pk, False)
 
 
-def test_retry_install_app_mutation_out_of_scope_permissions(
+def test_retry_install_app_mutation_missing_required_permissions(
     permission_manage_apps,
     staff_api_client,
     staff_user,
@@ -118,12 +118,11 @@ def test_retry_install_app_mutation_out_of_scope_permissions(
     assert not data["appJob"]
     assert len(errors) == 1
     error = errors[0]
-    assert error["field"] == "permissions"
-    assert error["code"] == AppErrorCode.OUT_OF_SCOPE_PERMISSION.name
-    assert error["permissions"] == [PermissionEnum.MANAGE_ORDERS.name]
+    assert error["field"] == "id"
+    assert error["code"] == AppErrorCode.OUT_OF_SCOPE_APP.name
 
 
-def test_retry_install_app_mutation_by_app_out_of_scope_permissions(
+def test_retry_install_app_mutation_by_app_missing_required_permissions(
     permission_manage_apps, app_api_client, app_job, permission_manage_orders
 ):
     app_job.status = JobStatus.FAILED
@@ -144,9 +143,8 @@ def test_retry_install_app_mutation_by_app_out_of_scope_permissions(
     assert not data["appJob"]
     assert len(errors) == 1
     error = errors[0]
-    assert error["field"] == "permissions"
-    assert error["code"] == AppErrorCode.OUT_OF_SCOPE_PERMISSION.name
-    assert error["permissions"] == [PermissionEnum.MANAGE_ORDERS.name]
+    assert error["field"] == "id"
+    assert error["code"] == AppErrorCode.OUT_OF_SCOPE_APP.name
 
 
 def test_cannot_retry_installation_if_status_is_different_than_failed(
