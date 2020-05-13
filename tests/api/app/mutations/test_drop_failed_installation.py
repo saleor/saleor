@@ -2,6 +2,7 @@ import graphene
 
 from saleor.app.models import AppJob
 from saleor.core import JobStatus
+from saleor.graphql.core.enums import AppErrorCode
 from tests.api.utils import get_graphql_content
 
 DROP_FAILED_INSTALLATION_MUTATION = """
@@ -101,3 +102,30 @@ def test_drop_failed_installation_mutation_by_app_out_of_scope_permissions(
 
     get_graphql_content(response)
     assert AppJob.objects.get()
+
+
+def test_cannot_drop_installation_if_status_is_different_than_failed(
+    app_job,
+    permission_manage_apps,
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+):
+    app_job.status = JobStatus.PENDING
+    app_job.save()
+
+    query = DROP_FAILED_INSTALLATION_MUTATION
+    staff_user.user_permissions.set([permission_manage_apps, permission_manage_orders])
+    id = graphene.Node.to_global_id("OngoingAppInstallation", app_job.id)
+    variables = {
+        "id": id,
+    }
+    response = staff_api_client.post_graphql(query, variables=variables,)
+    content = get_graphql_content(response)
+
+    AppJob.objects.get()
+    app_job_errors = content["data"]["dropFailedInstallation"]["appErrors"]
+
+    assert len(app_job_errors) == 1
+    assert app_job_errors[0]["field"] == "id"
+    assert app_job_errors[0]["code"] == AppErrorCode.FORBIDDEN.name

@@ -246,7 +246,9 @@ class RetryInstallApp(ModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of failed installation.", required=True)
         activate_after_installation = graphene.Boolean(
-            default_value=True, required=False
+            default_value=True,
+            required=False,
+            description="Determine if app will be set active or not.",
         )
 
     class Meta:
@@ -262,9 +264,17 @@ class RetryInstallApp(ModelMutation):
         instance.save()
 
     @classmethod
+    def clean_instance(cls, info, instance):
+        if instance.status != JobStatus.FAILED:
+            msg = "Cannot retry installation with different status than failed."
+            code = AppErrorCode.FORBIDDEN.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+
+    @classmethod
     def perform_mutation(cls, root, info, **data):
         activate_after_installation = data.get("activate_after_installation")
         app_job = cls.get_instance(info, **data)
+        cls.clean_instance(info, app_job)
         cls.ensure_can_manage_permissions(info, app_job)
 
         cls.save(info, app_job, cleaned_input=None)
@@ -287,7 +297,11 @@ class RetryInstallApp(ModelMutation):
 class InstallAppInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the app to install.")
     manifest_url = graphene.String(description="Url to app's manifest in JSON format.")
-    activate_after_installation = graphene.Boolean(default_value=True, required=False)
+    activate_after_installation = graphene.Boolean(
+        default_value=True,
+        required=False,
+        description="Determine if app will be set active or not.",
+    )
     permissions = graphene.List(
         PermissionEnum,
         description="List of permission code names to assign to this app.",

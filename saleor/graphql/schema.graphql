@@ -2590,17 +2590,6 @@ type OngoingAppInstallation {
   manifestUrl: String!
 }
 
-type OngoingAppInstallationCountableConnection {
-  pageInfo: PageInfo!
-  edges: [OngoingAppInstallationCountableEdge!]!
-  totalCount: Int
-}
-
-type OngoingAppInstallationCountableEdge {
-  node: OngoingAppInstallation!
-  cursor: String!
-}
-
 type Order implements Node & ObjectWithMetadata {
   id: ID!
   created: DateTime!
@@ -3989,7 +3978,7 @@ type Query {
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
-  ongoingAppsInstallations(before: String, after: String, first: Int, last: Int): OngoingAppInstallationCountableConnection
+  ongoingAppsInstallations: [OngoingAppInstallation]
   apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
   app(id: ID!): App
   addressValidationRules(countryCode: CountryCode!, countryArea: String, city: String, cityArea: String): AddressValidationData
