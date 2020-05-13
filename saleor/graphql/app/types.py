@@ -106,7 +106,7 @@ class App(CountableDjangoObjectType):
         return root.webhooks.all()
 
 
-class OngoingAppInstallation(CountableDjangoObjectType):
+class AppOngoingInstallation(CountableDjangoObjectType):
     class Meta:
         model = models.AppJob
         description = "Represents ongoing installation of app."
