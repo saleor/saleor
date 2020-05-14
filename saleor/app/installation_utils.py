@@ -41,7 +41,7 @@ def install_app(
     validate_manifest_fields(manifest_data)
 
     app = App.objects.create(
-        name=app_job.name,
+        name=app_job.app_name,
         is_active=activate,
         identificator=manifest_data.get("identificator"),
         about_app=manifest_data.get("about_app"),

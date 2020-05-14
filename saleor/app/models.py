@@ -77,7 +77,7 @@ class AppToken(models.Model):
 
 
 class AppJob(Job):
-    name = models.CharField(max_length=60)
+    app_name = models.CharField(max_length=60)
     manifest_url = models.URLField()
     permissions = models.ManyToManyField(
         Permission,

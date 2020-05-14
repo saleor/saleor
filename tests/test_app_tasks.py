@@ -12,7 +12,7 @@ from saleor.core import JobStatus
 def test_install_app_task(app_job):
     install_app_task(app_job.id, activate=False)
     assert not AppJob.objects.all().exists()
-    app = App.objects.filter(name=app_job.name).first()
+    app = App.objects.filter(name=app_job.app_name).first()
     assert app
     assert app.is_active is False
 
@@ -20,7 +20,7 @@ def test_install_app_task(app_job):
 @pytest.mark.vcr
 def test_install_app_task_wrong_format_of_target_token_url():
     app_job = AppJob.objects.create(
-        name="External App", manifest_url="http://localhost:3000/manifest-wrong",
+        app_name="External App", manifest_url="http://localhost:3000/manifest-wrong",
     )
     install_app_task(app_job.id, activate=False)
     app_job.refresh_from_db()
@@ -47,7 +47,7 @@ def test_install_app_task_request_timeout(monkeypatch, app_job):
 @pytest.mark.vcr
 def test_install_app_task_wrong_response_code(monkeypatch, app_job):
     app_job = AppJob.objects.create(
-        name="External App", manifest_url="http://localhost:3000/manifest-wrong1",
+        app_name="External App", manifest_url="http://localhost:3000/manifest-wrong1",
     )
     mocked_post = Mock()
     mocked_post.status_code = 404

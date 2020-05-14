@@ -2178,6 +2178,6 @@ def allocations(order_list, stock):
 @pytest.fixture
 def app_job():
     app_job = AppJob.objects.create(
-        name="External App", manifest_url="http://localhost:3000/manifest",
+        app_name="External App", manifest_url="http://localhost:3000/manifest",
     )
     return app_job
