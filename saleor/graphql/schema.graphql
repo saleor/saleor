@@ -1955,6 +1955,7 @@ enum LanguageCodeEnum {
   ES_CO
   ET
   FA
+  FI
   FR
   HI
   HU
@@ -1974,10 +1975,11 @@ enum LanguageCodeEnum {
   RO
   RU
   SK
+  SL
   SQ
   SR
-  SW
   SV
+  SW
   TH
   TR
   UK
