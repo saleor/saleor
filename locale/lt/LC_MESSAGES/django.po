@@ -4,7 +4,7 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# Khosbayar S, 2020
+# Dimon Kilbukoff <kazakjokes@gmail.com>, 2020
 #
 #, fuzzy
 msgid ""
@@ -13,19 +13,19 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-05-14 03:45-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Khosbayar S, 2020\n"
-"Language-Team: Mongolian (https://www.transifex.com/mirumee/teams/34782/mn/)\n"
+"Last-Translator: Dimon Kilbukoff <kazakjokes@gmail.com>, 2020\n"
+"Language-Team: Lithuanian (https://www.transifex.com/mirumee/teams/34782/lt/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: mn\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: lt\n"
+"Plural-Forms: nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
 #, python-format
 msgctxt "Address data"
 msgid "%(first_name)s %(last_name)s"
-msgstr "%(first_name)s %(last_name)s"
+msgstr ""
 
 #: saleor/account/templatetags/i18n_address_tags.py:16
 #, python-format
@@ -34,8 +34,6 @@ msgid ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 msgstr ""
-"%(street_address_1)s\n"
-"%(street_address_2)s"
 
 #: templates/templated_email/account/account_delete.email:4
 msgctxt "Account delete reset e-mail subject"
@@ -196,7 +194,7 @@ msgstr ""
 #: templates/templated_email/order/staff_confirm_order.email:25
 msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
-msgstr ""
+msgstr "Pristatymas"
 
 #: templates/templated_email/order/confirm_order.email:26
 #: templates/templated_email/order/staff_confirm_order.email:26
@@ -220,7 +218,7 @@ msgstr ""
 #: templates/templated_email/order/staff_confirm_order.email:28
 msgctxt "Order confirmation e-mail table header"
 msgid "Total"
-msgstr ""
+msgstr "Viso"
 
 #: templates/templated_email/order/confirm_order.email:30
 #: templates/templated_email/order/staff_confirm_order.email:30
@@ -228,7 +226,7 @@ msgstr ""
 #: templates/templated_email/source/staff_confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
-msgstr "Тооцооны хаяг"
+msgstr "Mokėtojo adresas"
 
 #: templates/templated_email/order/confirm_order.email:31
 #: templates/templated_email/order/staff_confirm_order.email:31
@@ -236,7 +234,7 @@ msgstr "Тооцооны хаяг"
 #: templates/templated_email/source/staff_confirm_order.mjml:39
 msgctxt "Order confirmation e-mail text"
 msgid "No billing address"
-msgstr "Тооцооны хаяг олдсонгүй"
+msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:33
 #: templates/templated_email/order/staff_confirm_order.email:33
@@ -244,7 +242,7 @@ msgstr "Тооцооны хаяг олдсонгүй"
 #: templates/templated_email/source/staff_confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
-msgstr "Хүргэлтийн хаяг"
+msgstr "Pristatymo adresas"
 
 #: templates/templated_email/order/confirm_order.email:34
 #: templates/templated_email/order/staff_confirm_order.email:34
@@ -252,7 +250,7 @@ msgstr "Хүргэлтийн хаяг"
 #: templates/templated_email/source/staff_confirm_order.mjml:46
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
-msgstr "Хүргэлт хийх шаардлагагүй"
+msgstr ""
 
 #: templates/templated_email/order/payment/confirm_payment.email:4
 msgctxt "Payment confirmation subject"
@@ -322,7 +320,7 @@ msgstr ""
 #: templates/templated_email/source/update_fulfillment.mjml:13
 msgctxt "Standard e-mail greeting"
 msgid "Hi!"
-msgstr "Сайн байна уу!"
+msgstr ""
 
 #: templates/templated_email/source/account_delete.mjml:16
 #, python-format
@@ -365,7 +363,7 @@ msgstr ""
 #: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
 msgid "Thank you for your payment. Your payment was successfully charged."
-msgstr "Төлбөр төлсөнд баярлалаа. Гүйлгээг амжилттай татлаа."
+msgstr ""
 
 #: templates/templated_email/source/email_changed_notification.mjml:16
 #, python-format
@@ -387,7 +385,7 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:60
 msgctxt "Quantity ordered of a product"
 msgid "Quantity"
-msgstr "Тоо хэмжээ"
+msgstr ""
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
 msgctxt "Ordered item download links"
@@ -402,32 +400,32 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:20
 msgctxt "E-mail order lines summary table"
 msgid "Shipping"
-msgstr "Хүргэлт"
+msgstr "Pristatymas"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:29
 msgctxt "E-mail order lines summary table"
 msgid "Taxes (included)"
-msgstr "Татвар (багтсан)"
+msgstr ""
 
 #: templates/templated_email/source/partials/_order_lines.mjml:31
 msgctxt "E-mail order lines summary table"
 msgid "Taxes"
-msgstr "Татварууд"
+msgstr ""
 
 #: templates/templated_email/source/partials/_order_lines.mjml:41
 msgctxt "E-mail order lines summary table"
 msgid "Discount"
-msgstr "Хямдрал"
+msgstr "Nuolaida"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:50
 msgctxt "E-mail order lines summary table"
 msgid "Total"
-msgstr "Нийт"
+msgstr "Viso"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:61
 msgctxt "Unit price of a product"
 msgid "Per unit"
-msgstr "Нэгж тутамд"
+msgstr ""
 
 #: templates/templated_email/source/partials/_order_lines.mjml:62
 msgctxt "Ordered item subtotal (unit price * quantity)"
