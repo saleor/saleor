@@ -90,11 +90,11 @@ Saleor requires Python 3.8, Node.js 10.0+, PostgreSQL and OS-specific dependency
 Note:
 The `master` branch is the development version of Saleor and it may be unstable. To use the latest stable version, download it from the [Releases](https://github.com/mirumee/saleor/releases/) page or switch to a release tag.
 
-The current stable combination is:
+The current stable version is 2.10 and you should use this version for all three components:
 
-- Saleor 2.9.1: https://github.com/mirumee/saleor/releases/tag/2.9.1
-- Dashboard 2.0.0: https://github.com/mirumee/saleor-dashboard/releases/tag/v2.0.0
-- Storefront 0.7.0: https://github.com/mirumee/saleor-storefront/releases/tag/v0.7.0
+- Saleor: https://github.com/mirumee/saleor/releases/tag/2.10.0-rc.2
+- Dashboard: https://github.com/mirumee/saleor-dashboard/releases/tag/2.10.0-rc.2
+- Storefront: https://github.com/mirumee/saleor-storefront/releases/tag/2.10.0-rc.2
 ## Documentation
 
 Saleor documentation is available here: [docs.saleor.io](https://docs.saleor.io)

@@ -279,18 +279,19 @@ def restock_order_lines(order):
             line.save(update_fields=["quantity_fulfilled"])
 
 
-def restock_fulfillment_lines(fulfillment):
-    """Return fulfilled products to corresponding stocks."""
-    country = get_order_country(fulfillment.order)
-    default_warehouse = Warehouse.objects.filter(
-        shipping_zones__countries__contains=country
-    ).first()
+def restock_fulfillment_lines(fulfillment, warehouse):
+    """Return fulfilled products to corresponding stocks.
 
+    Return products to stocks and update order lines quantity fulfilled values.
+    """
+    order_lines = []
     for line in fulfillment:
         if line.order_line.variant and line.order_line.variant.track_inventory:
-            allocation = line.order_line.allocations.first()
-            warehouse = allocation.stock.warehouse if allocation else default_warehouse
             increase_stock(line.order_line, warehouse, line.quantity, allocate=True)
+        order_line = line.order_line
+        order_line.quantity_fulfilled -= line.quantity
+        order_lines.append(order_line)
+    OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
 
 
 def sum_order_totals(qs):

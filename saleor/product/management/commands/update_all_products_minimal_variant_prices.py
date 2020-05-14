@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = "Generate thumbnails for all images"
+    help = "Recalculates the minimal variant prices for all products."
 
     def handle(self, *args, **options):
         self.stdout.write('Updating "minimal_variant_price" field of all the products.')

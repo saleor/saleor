@@ -8,7 +8,7 @@ from ..core.exceptions import AllocationError, InsufficientStock
 from .models import Allocation, Stock, Warehouse
 
 if TYPE_CHECKING:
-    from ..order.models import OrderLine
+    from ..order.models import OrderLine, Order
 
 
 @transaction.atomic
@@ -161,14 +161,25 @@ def decrease_stock(order_line: "OrderLine", quantity: int, warehouse_pk: str):
             .get(warehouse__pk=warehouse_pk)
         )
     except Stock.DoesNotExist:
-        raise InsufficientStock(order_line.variant)
+        error_context = {"order_line": order_line, "warehouse_pk": warehouse_pk}
+        raise InsufficientStock(order_line.variant, error_context)
 
     quantity_allocated = stock.allocations.aggregate(
         quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
     )["quantity_allocated"]
 
     if stock.quantity - quantity_allocated < quantity:
-        raise InsufficientStock(order_line.variant)
+        error_context = {"order_line": order_line, "warehouse_pk": warehouse_pk}
+        raise InsufficientStock(order_line.variant, error_context)
 
     stock.quantity = F("quantity") - quantity
     stock.save(update_fields=["quantity"])
+
+
+@transaction.atomic
+def deallocate_stock_for_order(order: "Order"):
+    """Remove all allocations for given order."""
+    allocations = Allocation.objects.filter(
+        order_line__order=order, quantity_allocated__gt=0
+    ).select_for_update(of=("self",))
+    allocations.update(quantity_allocated=0)

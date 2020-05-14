@@ -15,6 +15,7 @@ from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
 from ...meta.deprecated.mutations import UpdateMetaBaseMutation
 from ...meta.deprecated.types import MetaInput
+from ..i18n import I18nMixin
 from .base import (
     INVALID_TOKEN,
     BaseAddressDelete,
@@ -223,7 +224,7 @@ class AccountDelete(ModelDeleteMutation):
         return cls.success_response(user)
 
 
-class AccountAddressCreate(ModelMutation):
+class AccountAddressCreate(ModelMutation, I18nMixin):
     user = graphene.Field(
         User, description="A user instance for which the address was created."
     )
@@ -253,14 +254,18 @@ class AccountAddressCreate(ModelMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
-        success_response = super().perform_mutation(root, info, **data)
         address_type = data.get("type", None)
         user = info.context.user
-        success_response.user = user
+        cleaned_input = cls.clean_input(
+            info=info, instance=Address(), data=data.get("input")
+        )
+        address = cls.validate_address(cleaned_input)
+        cls.clean_instance(info, address)
+        cls.save(info, address, cleaned_input)
+        cls._save_m2m(info, address, cleaned_input)
         if address_type:
-            instance = success_response.address
-            utils.change_user_default_address(user, instance, address_type)
-        return success_response
+            utils.change_user_default_address(user, address, address_type)
+        return AccountAddressCreate(user=user, address=address)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
