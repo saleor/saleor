@@ -10,4 +10,8 @@
     "app_url": "http://localhost:3000/app",
     "token_target_url": "http://localhost:3000/register",
     "identificator": "saleor.app.sample",
+    "permissions": [
+      "MANAGE_USERS",
+      "MANAGE_STAFF"
+    ]
 }
