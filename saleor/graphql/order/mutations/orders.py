@@ -19,7 +19,7 @@ from ....order.utils import get_valid_shipping_methods_for_order
 from ....payment import CustomPaymentChoices, PaymentError, gateway
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
-from ...core.scalars import Decimal
+from ...core.scalars import UUID, Decimal
 from ...core.types.common import OrderError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...meta.deprecated.types import MetaInput, MetaPath
@@ -465,9 +465,7 @@ class OrderUpdateMeta(UpdateMetaBaseMutation):
         public = True
 
     class Arguments:
-        token = graphene.UUID(
-            description="Token of an object to update.", required=True
-        )
+        token = UUID(description="Token of an object to update.", required=True)
         input = MetaInput(
             description="Fields required to update new or stored metadata item.",
             required=True,
@@ -495,7 +493,7 @@ class OrderClearMeta(ClearMetaBaseMutation):
         public = True
 
     class Arguments:
-        token = graphene.UUID(description="Token of an object to clear.", required=True)
+        token = UUID(description="Token of an object to clear.", required=True)
         input = MetaPath(
             description="Fields required to update new or stored metadata item.",
             required=True,
