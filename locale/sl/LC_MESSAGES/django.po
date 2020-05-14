@@ -4,25 +4,22 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# Greg Zunic <gregor.ninjaboy@gmail.com>, 2019
-# Nix Nix <nixnix33@hotmail.com>, 2019
+# Nix Nix <nixnix33@hotmail.com>, 2018
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-14 04:02-0500\n"
+"POT-Creation-Date: 2020-05-14 03:45-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Nix Nix <nixnix33@hotmail.com>, 2019\n"
-"Language-Team: Slovenian (https://www.transifex.com/mirumee/teams/34782/"
-"sl/)\n"
-"Language: sl\n"
+"Last-Translator: Nix Nix <nixnix33@hotmail.com>, 2018\n"
+"Language-Team: Slovenian (https://www.transifex.com/mirumee/teams/34782/sl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n"
-"%100==4 ? 2 : 3);\n"
+"Language: sl\n"
+"Plural-Forms: nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
 #, python-format
@@ -40,84 +37,304 @@ msgstr ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 
-#: templates/read_only/read_only_splash.html:48
-msgid "Be aware pirate! <br> Saleor runs in <span>read only mode!</span>"
+#: templates/templated_email/account/account_delete.email:4
+msgctxt "Account delete reset e-mail subject"
+msgid "Delete your account"
 msgstr ""
 
-#: templates/read_only/read_only_splash.html:49
-msgid "Close"
-msgstr ""
-
-#: templates/templated_email/compiled/account_delete.html:174
-#: templates/templated_email/compiled/confirm.html:174
-#: templates/templated_email/compiled/confirm_fulfillment.html:174
-#: templates/templated_email/compiled/confirm_order.html:175
-#: templates/templated_email/compiled/confirm_payment.html:174
-#: templates/templated_email/compiled/email_changed_notification.html:174
-#: templates/templated_email/compiled/password_reset.html:174
-#: templates/templated_email/compiled/request_email_change.html:174
-#: templates/templated_email/compiled/set_customer_password.html:174
-#: templates/templated_email/compiled/set_password.html:174
-#: templates/templated_email/compiled/staff_confirm_order.html:175
-#: templates/templated_email/compiled/update_fulfillment.html:174
-msgctxt "Standard e-mail greeting"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/compiled/account_delete.html:182
-#, fuzzy, python-format
-#| msgctxt "Account delete e-mail text"
-#| msgid ""
-#| "You're receiving this e-mail because you or someone else has requested a "
-#| "deletion of your user account at %(domain)s.<br/> Click the link below to "
-#| "delete your account. Please note that this action is permanent and cannot "
-#| "be reversed."
-msgctxt "Account delete e-mail text"
+#: templates/templated_email/account/account_delete.email:9
+#, python-format
+msgctxt "Account delete reset e-mail text"
 msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be "
-"reversed."
+"\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"Click the link below to delete your account.\n"
+"\n"
+"Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
-"To pošto ste prejeli, ker ste vi - ali pa nekdo drug - zahtevali izbris "
-"vašega uporabniškega računa pri %(domain)s. <br/> Za trajen izbris računa "
-"kliknite na spodnjo povezavo. Prosimo, upoštevajte, da tega dejanja kasneje "
-"ne morete več spremeniti."
 
-#: templates/templated_email/compiled/account_delete.html:255
-#: templates/templated_email/compiled/confirm.html:255
-#: templates/templated_email/compiled/confirm_fulfillment.html:362
-#: templates/templated_email/compiled/confirm_order.html:465
-#: templates/templated_email/compiled/confirm_payment.html:245
-#: templates/templated_email/compiled/email_changed_notification.html:245
-#: templates/templated_email/compiled/password_reset.html:255
-#: templates/templated_email/compiled/request_email_change.html:255
-#: templates/templated_email/compiled/set_customer_password.html:255
-#: templates/templated_email/compiled/set_password.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:465
-#: templates/templated_email/compiled/update_fulfillment.html:350
+#: templates/templated_email/account/confirm.email:4
+msgctxt "Account confirmation e-mail subject"
+msgid "Account confirmation e-mail"
+msgstr ""
+
+#: templates/templated_email/account/confirm.email:9
+#, python-format
+msgctxt "Account confirmation e-mail text"
+msgid ""
+"\n"
+"In order to log into %(domain)s, you have to confirm your email address first.\n"
+"Please click the link below to do so and log into your account.\n"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:4
+#: templates/templated_email/account/request_email_change.email:4
+msgctxt "Email change e-mail subject"
+msgid "Email change e-mail"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
+"If you didn't request this change, please contact the administrator.\n"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:9
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/account/request_email_change.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:2
+#, python-format
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:6
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:6
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment confirmation email subject"
+msgid "Your order %(order)s has been fulfilled"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:11
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of fulfilled products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:15
+#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:6
+#: templates/templated_email/order/staff_confirm_order.email:6
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:11
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:15
+#: templates/templated_email/order/staff_confirm_order.email:15
+#, python-format
+msgctxt "Order confirmation e-mail payment details"
+msgid ""
+"\n"
+"To see your payment details please visit:\n"
+"%(order_details_url)s\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:23
+#: templates/templated_email/order/staff_confirm_order.email:23
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:24
+#: templates/templated_email/order/staff_confirm_order.email:24
+msgctxt "Order confirmation e-mail table header"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/order/staff_confirm_order.email:25
+msgctxt "Order confirmation e-mail table header"
+msgid "Shipping"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:27
+#: templates/templated_email/order/staff_confirm_order.email:27
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/staff_confirm_order.email:28
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:30
+#: templates/templated_email/order/staff_confirm_order.email:30
+#: templates/templated_email/source/confirm_order.mjml:29
+#: templates/templated_email/source/staff_confirm_order.mjml:29
+msgctxt "Order confirmation e-mail billing address"
+msgid "Billing address"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:31
+#: templates/templated_email/order/staff_confirm_order.email:31
+#: templates/templated_email/source/confirm_order.mjml:39
+#: templates/templated_email/source/staff_confirm_order.mjml:39
+msgctxt "Order confirmation e-mail text"
+msgid "No billing address"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:33
+#: templates/templated_email/order/staff_confirm_order.email:33
+#: templates/templated_email/source/confirm_order.mjml:30
+#: templates/templated_email/source/staff_confirm_order.mjml:30
+msgctxt "Order confirmation e-mail shipping address"
+msgid "Shipping address"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:34
+#: templates/templated_email/order/staff_confirm_order.email:34
+#: templates/templated_email/source/confirm_order.mjml:46
+#: templates/templated_email/source/staff_confirm_order.mjml:46
+msgctxt "Order confirmation e-mail text"
+msgid "No shipping required"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:9
+msgctxt "Payment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your payment.\n"
+"Your payment was successfully charged.\n"
+msgstr ""
+
+#: templates/templated_email/order/staff_confirm_order.email:11
+msgctxt "Order confirmation staff e-mail text"
+msgid ""
+"\n"
+"Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment update email subject"
+msgid "Shipping update for order %(order)s"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:11
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:15
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid ""
+"You can track your shipment with the following code: %(tracking_number)s."
+msgstr ""
+
+#: templates/templated_email/shared/_footer.email:2
+#: templates/templated_email/source/shared/footer.mjml:4
 msgctxt "Base email text"
 msgid "This is an automatically generated e-mail, please do not reply."
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:317
-#: templates/templated_email/compiled/confirm.html:317
-#: templates/templated_email/compiled/confirm_fulfillment.html:424
-#: templates/templated_email/compiled/confirm_order.html:527
-#: templates/templated_email/compiled/confirm_payment.html:307
-#: templates/templated_email/compiled/email_changed_notification.html:307
-#: templates/templated_email/compiled/password_reset.html:317
-#: templates/templated_email/compiled/request_email_change.html:317
-#: templates/templated_email/compiled/set_customer_password.html:317
-#: templates/templated_email/compiled/set_password.html:317
-#: templates/templated_email/compiled/staff_confirm_order.html:527
-#: templates/templated_email/compiled/update_fulfillment.html:412
+#: templates/templated_email/shared/_footer.email:5
+#: templates/templated_email/source/shared/footer.mjml:13
 #, python-format
 msgctxt "Base email footer"
 msgid "Sincerely, %(site_name)s"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm.html:182
+#: templates/templated_email/shared/_header.email:2
+#: templates/templated_email/source/account_delete.mjml:13
+#: templates/templated_email/source/confirm.mjml:13
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+#: templates/templated_email/source/confirm_order.mjml:14
+#: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/email_changed_notification.mjml:13
+#: templates/templated_email/source/password_reset.mjml:13
+#: templates/templated_email/source/request_email_change.mjml:13
+#: templates/templated_email/source/set_customer_password.mjml:13
+#: templates/templated_email/source/set_password.mjml:13
+#: templates/templated_email/source/staff_confirm_order.mjml:14
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Standard e-mail greeting"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/account_delete.mjml:16
+#, python-format
+msgctxt "Account delete e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"deletion of your user account at %(domain)s.<br/> Click the link below to "
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
+msgstr ""
+
+#: templates/templated_email/source/confirm.mjml:16
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
@@ -125,1669 +342,153 @@ msgid ""
 "first. Please click the link below to do so and log into your account."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:182
+#: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:186
-#, python-format
-msgctxt "Fulfillment confirmation email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_fulfillment.html:198
+#: templates/templated_email/source/confirm_fulfillment.mjml:27
 msgctxt "Fulfillment digital products email text"
-msgid "You can download your digital products by clicking in download link(s)."
+msgid ""
+"You can download your digital products by clicking in download link(s)."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:183
+#: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit: <a href=\"%(order_details_url)s\">"
-"%(order_details_url)s</a>"
+"Thank you for your order. Below is the list of ordered products. To see your"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:255
-msgctxt "E-mail order lines summary table"
-msgid "Subtotal"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:263
-#: templates/templated_email/compiled/staff_confirm_order.html:263
-msgctxt "E-mail order lines summary table"
-msgid "Shipping"
-msgstr "Dostava oziroma pošiljanje"
-
-#: templates/templated_email/compiled/confirm_order.html:272
-#: templates/templated_email/compiled/staff_confirm_order.html:272
-msgctxt "E-mail order lines summary table"
-msgid "Taxes (included)"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:274
-#: templates/templated_email/compiled/staff_confirm_order.html:274
-msgctxt "E-mail order lines summary table"
-msgid "Taxes"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:284
-#: templates/templated_email/compiled/staff_confirm_order.html:284
-msgctxt "E-mail order lines summary table"
-msgid "Discount"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:293
-#: templates/templated_email/compiled/staff_confirm_order.html:293
-msgctxt "E-mail order lines summary table"
-msgid "Total"
-msgstr "Skupna vsota"
-
-#: templates/templated_email/compiled/confirm_order.html:302
-#: templates/templated_email/compiled/staff_confirm_order.html:302
-msgctxt "Ordered item name"
-msgid "Item"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:303
-#: templates/templated_email/compiled/staff_confirm_order.html:303
-msgctxt "Quantity ordered of a product"
-msgid "Quantity"
-msgstr "Količina"
-
-#: templates/templated_email/compiled/confirm_order.html:304
-#: templates/templated_email/compiled/staff_confirm_order.html:304
-msgctxt "Unit price of a product"
-msgid "Per unit"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:305
-#: templates/templated_email/compiled/staff_confirm_order.html:305
-msgctxt "Ordered item subtotal (unit price * quantity)"
-msgid "Subtotal"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:383
-#: templates/templated_email/compiled/staff_confirm_order.html:383
-msgctxt "Order confirmation e-mail billing address"
-msgid "Billing address"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:384
-#: templates/templated_email/compiled/staff_confirm_order.html:384
-msgctxt "Order confirmation e-mail shipping address"
-msgid "Shipping address"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:393
-#: templates/templated_email/compiled/staff_confirm_order.html:393
-msgctxt "Order confirmation e-mail text"
-msgid "No billing address"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:400
-#: templates/templated_email/compiled/staff_confirm_order.html:400
-msgctxt "Order confirmation e-mail text"
-msgid "No shipping required"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_payment.html:182
+#: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
 msgid "Thank you for your payment. Your payment was successfully charged."
 msgstr ""
 
-#: templates/templated_email/compiled/email_changed_notification.html:182
-#, fuzzy, python-format
-#| msgctxt "Password reset e-mail text"
-#| msgid ""
-#| "You're receiving this e-mail because you or someone else has requested a "
-#| "password for your user account at %(domain)s.<br/> It can be safely "
-#| "ignored if you did not request a password reset. Click the link below to "
-#| "reset your password."
+#: templates/templated_email/source/email_changed_notification.mjml:16
+#, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
-"for your user account at %(domain)s.<br> If you didn't request this change, "
-"please contact the administrator."
+"for your user account at %(domain)s.<br /> If you didn't request this "
+"change, please contact the administrator."
 msgstr ""
-"To pošto ste prejeli, ker ste vi - ali pa nekdo drug - zahtevali spremembo "
-"uporabniškega gesla pri %(domain)s. <br/> Če spremembe niste zahtevali vi, "
-"lahko to sporočilo brez varnostnega tveganja ignorirate. V nasprotnem "
-"primeru pa za ponastavitev gesla kliknite spodnjo povezavo."
 
-#: templates/templated_email/compiled/password_reset.html:182
-#, fuzzy, python-format
-#| msgctxt "Password reset e-mail text"
-#| msgid ""
-#| "You're receiving this e-mail because you or someone else has requested a "
-#| "password for your user account at %(domain)s.<br/> It can be safely "
-#| "ignored if you did not request a password reset. Click the link below to "
-#| "reset your password."
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:29
+#: templates/templated_email/source/partials/_order_lines.mjml:59
+msgctxt "Ordered item name"
+msgid "Item"
+msgstr ""
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
+#: templates/templated_email/source/partials/_order_lines.mjml:60
+msgctxt "Quantity ordered of a product"
+msgid "Quantity"
+msgstr "Količina"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
+msgctxt "Ordered item download links"
+msgid "Download Link"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:12
+msgctxt "E-mail order lines summary table"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:20
+msgctxt "E-mail order lines summary table"
+msgid "Shipping"
+msgstr "Dostava oziroma pošiljanje"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:29
+msgctxt "E-mail order lines summary table"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:31
+msgctxt "E-mail order lines summary table"
+msgid "Taxes"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:41
+msgctxt "E-mail order lines summary table"
+msgid "Discount"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:50
+msgctxt "E-mail order lines summary table"
+msgid "Total"
+msgstr "Skupna vsota"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:61
+msgctxt "Unit price of a product"
+msgid "Per unit"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:62
+msgctxt "Ordered item subtotal (unit price * quantity)"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/source/password_reset.mjml:16
+#, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br> It can be safely ignored "
+"password for your user account at %(domain)s.<br/> It can be safely ignored "
 "if you did not request a password reset. Click the link below to reset your "
 "password."
 msgstr ""
-"To pošto ste prejeli, ker ste vi - ali pa nekdo drug - zahtevali spremembo "
-"uporabniškega gesla pri %(domain)s. <br/> Če spremembe niste zahtevali vi, "
-"lahko to sporočilo brez varnostnega tveganja ignorirate. V nasprotnem "
-"primeru pa za ponastavitev gesla kliknite spodnjo povezavo."
 
-#: templates/templated_email/compiled/request_email_change.html:182
-#, fuzzy, python-format
-#| msgctxt "Password reset e-mail text"
-#| msgid ""
-#| "You're receiving this e-mail because you or someone else has requested a "
-#| "password for your user account at %(domain)s.<br/> It can be safely "
-#| "ignored if you did not request a password reset. Click the link below to "
-#| "reset your password."
+#: templates/templated_email/source/request_email_change.mjml:16
+#, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested an "
-"email change for your user account at %(domain)s.<br> It can be safely "
+"email change for your user account at %(domain)s.<br /> It can be safely "
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
-"To pošto ste prejeli, ker ste vi - ali pa nekdo drug - zahtevali spremembo "
-"uporabniškega gesla pri %(domain)s. <br/> Če spremembe niste zahtevali vi, "
-"lahko to sporočilo brez varnostnega tveganja ignorirate. V nasprotnem "
-"primeru pa za ponastavitev gesla kliknite spodnjo povezavo."
 
-#: templates/templated_email/compiled/set_customer_password.html:182
-#, fuzzy, python-format
-#| msgctxt "Password reset e-mail text"
-#| msgid ""
-#| "You're receiving this e-mail because you or someone else has requested a "
-#| "password for your user account at %(domain)s.<br/> It can be safely "
-#| "ignored if you did not request a password reset. Click the link below to "
-#| "reset your password."
+#: templates/templated_email/source/set_customer_password.mjml:16
+#, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your "
-"customer account at %(domain)s.<br> Click the link below to set up your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
-"To pošto ste prejeli, ker ste vi - ali pa nekdo drug - zahtevali spremembo "
-"uporabniškega gesla pri %(domain)s. <br/> Če spremembe niste zahtevali vi, "
-"lahko to sporočilo brez varnostnega tveganja ignorirate. V nasprotnem "
-"primeru pa za ponastavitev gesla kliknite spodnjo povezavo."
 
-#: templates/templated_email/compiled/set_password.html:182
-#, fuzzy, python-format
-#| msgctxt "Password reset e-mail text"
-#| msgid ""
-#| "You're receiving this e-mail because you or someone else has requested a "
-#| "password for your user account at %(domain)s.<br/> It can be safely "
-#| "ignored if you did not request a password reset. Click the link below to "
-#| "reset your password."
+#: templates/templated_email/source/set_password.mjml:16
+#, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
-"You're receiving this e-mail because you have to set password for your staff "
-"member account at %(domain)s.<br> Click the link below to set up your "
+"You're receiving this e-mail because you have to set password for your staff"
+" member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
-"To pošto ste prejeli, ker ste vi - ali pa nekdo drug - zahtevali spremembo "
-"uporabniškega gesla pri %(domain)s. <br/> Če spremembe niste zahtevali vi, "
-"lahko to sporočilo brez varnostnega tveganja ignorirate. V nasprotnem "
-"primeru pa za ponastavitev gesla kliknite spodnjo povezavo."
 
-#: templates/templated_email/compiled/staff_confirm_order.html:183
+#: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
-"Someone placed a new order in your store. To see order details please visit: "
-"<a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+"Someone placed a new order in your store. To see order details please visit:"
+" <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:182
+#: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number."
+"Your shipping status has been updated. Below is the list of ordered products"
+" that have been updated with new tracking number."
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:186
+#: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
 msgstr ""
-
-#~ msgctxt "Form field"
-#~ msgid "Email"
-#~ msgstr "Elektronska pošta"
-
-#~ msgctxt "Password"
-#~ msgid "Password"
-#~ msgstr "Geslo"
-
-#~ msgctxt "Email"
-#~ msgid "Email"
-#~ msgstr "Elektronska pošta"
-
-#~ msgctxt "Registration error"
-#~ msgid "This email has already been registered."
-#~ msgstr "Ta elektronska pošta je že registrirana"
-
-#~ msgctxt "Customer form: Given name field"
-#~ msgid "Given name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Customer form: Family name field"
-#~ msgid "Family name"
-#~ msgstr "Priimek"
-
-#~ msgctxt "Address field"
-#~ msgid "Area"
-#~ msgstr "Območje"
-
-#~ msgctxt "Address field"
-#~ msgid "County"
-#~ msgstr "Okrožje"
-
-#~ msgctxt "Address field"
-#~ msgid "Department"
-#~ msgstr "Okraj"
-
-#~ msgctxt "Address field"
-#~ msgid "District"
-#~ msgstr "Distrikt"
-
-#~ msgctxt "Address field"
-#~ msgid "Eircode"
-#~ msgstr "Koda EIR"
-
-#~ msgctxt "Address field"
-#~ msgid "Emirate"
-#~ msgstr "Emirat"
-
-#~ msgctxt "Address field"
-#~ msgid "Island"
-#~ msgstr "Otok"
-
-#~ msgctxt "Address field"
-#~ msgid "Neighborhood"
-#~ msgstr "Soseska"
-
-#~ msgctxt "Address field"
-#~ msgid "PIN"
-#~ msgstr "PIN koda"
-
-#~ msgctxt "Address field"
-#~ msgid "Postal code"
-#~ msgstr "Poštna številka"
-
-#~ msgctxt "Address field"
-#~ msgid "Prefecture"
-#~ msgstr "Prefektura"
-
-#~ msgctxt "Address field"
-#~ msgid "Province"
-#~ msgstr "Provinca"
-
-#~ msgctxt "Address field"
-#~ msgid "State"
-#~ msgstr "Zvezna država"
-
-#~ msgctxt "Address field"
-#~ msgid "Suburb"
-#~ msgstr "Soseska"
-
-#~ msgctxt "Address field"
-#~ msgid "Village/township"
-#~ msgstr "Vas/kraj"
-
-#~ msgctxt "Address field"
-#~ msgid "ZIP code"
-#~ msgstr "ZIP koda"
-
-#~ msgctxt "Country"
-#~ msgid "Country"
-#~ msgstr "Država"
-
-#~ msgctxt "Personal name"
-#~ msgid "Given name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Personal name"
-#~ msgid "Family name"
-#~ msgstr "Priimek"
-
-#~ msgctxt "Company or organization"
-#~ msgid "Company or organization"
-#~ msgstr "Podjetje ali organizacija"
-
-#~ msgctxt "Address"
-#~ msgid "Address"
-#~ msgstr "Naslov"
-
-#~ msgctxt "City"
-#~ msgid "City"
-#~ msgstr "Mesto"
-
-#~ msgctxt "City area"
-#~ msgid "District"
-#~ msgstr "Distrikt"
-
-#~ msgctxt "Postal code"
-#~ msgid "Postal code"
-#~ msgstr "Poštna številka"
-
-#~ msgctxt "Country area"
-#~ msgid "State or province"
-#~ msgstr "Zvezna država"
-
-#~ msgctxt "Phone number"
-#~ msgid "Phone number"
-#~ msgstr "Telefonska številka"
-
-#~ msgctxt "Address"
-#~ msgid "Street address, P.O. box, company name"
-#~ msgstr "Ulica, poštni predal ali naziv podjetja"
-
-#~ msgctxt "Address"
-#~ msgid "Apartment, suite, unit, building, floor, etc"
-#~ msgstr "Št. stanovanja, apartmaja, enote, stavbe ali nadstropja"
-
-#~ msgctxt "Address form"
-#~ msgid "This value is invalid for selected country"
-#~ msgstr "Vrednost tega polja je za izbrano državo neveljavna"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage customers."
-#~ msgstr "Uredi naročnike"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage staff."
-#~ msgstr "Uredi osebje"
-
-#~ msgctxt "Permission description"
-#~ msgid "Impersonate customers."
-#~ msgstr "Poosebi naročnika"
-
-#~ msgid "The phone number entered is not valid."
-#~ msgstr "Vnesena telefonska številka je neveljavna"
-
-#~ msgid "You have been successfully logged out."
-#~ msgstr "Uspešno ste se odjavili."
-
-#~ msgid "User has been created"
-#~ msgstr "Uporabnik je ustvarjen"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Password successfully changed."
-#~ msgstr "Geslo je uspešno posodobljeno."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Account successfully updated."
-#~ msgstr "Račun uspešno narejen."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully updated."
-#~ msgstr "Naslov je uspešno posodobljen."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully removed"
-#~ msgstr "Naslov je odstranjen"
-
-#~ msgctxt "Storefront message, when user requested his account removed"
-#~ msgid "Please check your inbox for a confirmation e-mail."
-#~ msgstr ""
-#~ "Na vaš elektronski naslov smo poslali potrditveno sporočilo. Prosimo, "
-#~ "preverite in ga potrdite!"
-
-#~ msgctxt "Account deleted"
-#~ msgid ""
-#~ "Your account was deleted successfully. In case of any trouble or "
-#~ "questions feel free to contact us."
-#~ msgstr ""
-#~ "Vaš uporabniški račun je uspešno odstranjen. V primeru težav ali vprašanj "
-#~ "nam prosimo pišite."
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Billing"
-#~ msgstr "Naslov za račun"
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Shipping"
-#~ msgstr "Dostava oziroma pošiljanje"
-
-#~ msgctxt "Add to checkout form field label"
-#~ msgid "Quantity"
-#~ msgstr "Količina"
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently not available."
-#~ msgstr "Oprostite, izdelek trenutno ni na voljo."
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently out of stock."
-#~ msgstr "Oprostite, izdelka trenutno ni na zalogi."
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Oops. We could not find that product."
-#~ msgstr "Ups! Izdelka nismo našli."
-
-#~ msgctxt "Country form field label"
-#~ msgid "Country"
-#~ msgstr "Država"
-
-#~ msgctxt "Address form field label"
-#~ msgid "Email"
-#~ msgstr "Elektronska pošta"
-
-#~ msgctxt "Shipping addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Vpiši novi naslov"
-
-#~ msgctxt "Shipping addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Naslov"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Vpiši novi naslov"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Same as shipping"
-#~ msgstr "Naslov je enak naslovu za dostavo"
-
-#~ msgctxt "Billing addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Naslov"
-
-#~ msgctxt "Shipping method form field label"
-#~ msgid "Shipping method"
-#~ msgstr "Vrsta dostave"
-
-#~ msgctxt "Voucher form error"
-#~ msgid "Discount code incorrect or expired"
-#~ msgstr "Koda za popust je napačna ali pa je potekla"
-
-#~ msgctxt "Checkout discount form label for voucher field"
-#~ msgid "Gift card or discount code"
-#~ msgstr "Darilna kartica ali koda za popust"
-
-#~ msgctxt "Checkout warning message"
-#~ msgid ""
-#~ "Sorry. We don't have that many items in stock. Quantity was set to "
-#~ "maximum available for now."
-#~ msgstr ""
-#~ "Oprostite, trenutno nimamo dovolj izdelkov na zalogi. Naročilo je "
-#~ "ponastavljeno na največjo možno količino."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Your order does not require shipping."
-#~ msgstr "Vaše naročilo ne zahteva pošiljanja."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Please select a shipping method first."
-#~ msgstr "Prosimo, da najprej izberete vrsto dostave."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is not valid in your country."
-#~ msgstr "Ponudba za vašo državo ni veljavna."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for selected items."
-#~ msgstr "Ta ponudba je veljavna le za izbrane izdelke."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Voucher expired in meantime. Order placement aborted."
-#~ msgstr "Kupon je pretekel. Naročilo je preklicano."
-
-#~ msgctxt "Checkout warning"
-#~ msgid "This voucher has expired. Please review your checkout."
-#~ msgstr "Ta kupon je neveljaven. Prosimo, preverite vaš nakup."
-
-#~ msgctxt "Checkout warning"
-#~ msgid "Please review your checkout."
-#~ msgstr "Prosimo, preverite znova vaš nakup."
-
-#, python-format
-#~ msgctxt "Number of matching records in the dashboard list"
-#~ msgid "Found %(counter)d matching record"
-#~ msgid_plural "Found %(counter)d matching records"
-#~ msgstr[0] "Najdenih je nekaj - %(counter)d - ustreznih zapisov"
-#~ msgstr[1] "Najdena sta %(counter)d ustrezna zapisa"
-#~ msgstr[2] "Našli smo nekaj - %(counter)d - ustreznih zapisov"
-#~ msgstr[3] "Našli smo %(counter)d  ustreznih zapisov"
-
-#~ msgctxt "Country choice"
-#~ msgid "Any Country"
-#~ msgstr "Katerakoli država"
-
-#~ msgctxt "Impersonation message"
-#~ msgid "You are now logged as {}"
-#~ msgstr "Vpisani ste kot {}"
-
-#~ msgctxt "Kilogram weight unit symbol"
-#~ msgid "kg"
-#~ msgstr "kg"
-
-#~ msgctxt "Pound weight unit symbol"
-#~ msgid "lb"
-#~ msgstr "lb"
-
-#~ msgctxt "Ounce weight unit symbol"
-#~ msgid "oz"
-#~ msgstr "oz"
-
-#~ msgctxt "Gram weight unit symbol"
-#~ msgid "g"
-#~ msgstr "g"
-
-#~ msgctxt "Discount type"
-#~ msgid "%"
-#~ msgstr "%"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific products"
-#~ msgstr "Določeni izdelki"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific collections of products"
-#~ msgstr "Določene kolekcije izdelkov"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific categories of products"
-#~ msgstr "Določene kategorije izdelkov"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Shipping"
-#~ msgstr "Dostava oziroma pošiljanje"
-
-#~ msgctxt "Voucher type"
-#~ msgid "Free shipping"
-#~ msgstr "Brezplačna dostava"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off shipping"
-#~ msgstr "Popust na pošiljanje v višini %(discount)s"
-
-#, python-format
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for orders over %(amount)s."
-#~ msgstr "Ta ponudba je veljavna le za nakupe nad %(amount)s."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Discount not applicable for this product"
-#~ msgstr "Popust ne velja za ta produkt"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "accommodation"
-#~ msgstr "nastanitev"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "advertising"
-#~ msgstr "oglaševanje"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "bikes"
-#~ msgstr "kolesa"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "childrens clothing"
-#~ msgstr "otroška oblačila"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "foodstuffs"
-#~ msgstr "prehrana"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "hotels"
-#~ msgstr "hoteli"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "medical"
-#~ msgstr "medicinski pripomočki"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "newspapers"
-#~ msgstr "časopisi"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "passenger transport"
-#~ msgstr "potniški promet"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "pharmaceuticals"
-#~ msgstr "zdravila"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "property renovations"
-#~ msgstr "prenove nepremičnin"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "restaurants"
-#~ msgstr "restavracije"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "water"
-#~ msgstr "voda"
-
-#~ msgctxt "Cancel fulfillment mutation error"
-#~ msgid "This fulfillment can't be canceled"
-#~ msgstr "Tega ne morete preklicati"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage orders."
-#~ msgstr "Upravljaj z naročili"
-
-#~ msgctxt "Connect order with user warning message"
-#~ msgid ""
-#~ "We couldn't assign the order to your account as the email addresses don't "
-#~ "match"
-#~ msgstr ""
-#~ "Vašega naročila nismo mogli povezati z vašim računom, saj se elektronska "
-#~ "naslova nista ujemala."
-
-#~ msgctxt "storefront message"
-#~ msgid "The order is now assigned to your account"
-#~ msgstr "Naročilo je zdaj povezano z vašim računom"
-
-#~ msgctxt "Payment status form field"
-#~ msgid "Payment status"
-#~ msgstr "Status plačila"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "price"
-#~ msgstr "cena"
-
-#~ msgctxt "Product list sorting form"
-#~ msgid "Sort by"
-#~ msgstr "Razvrsti po"
-
-#~ msgctxt "Currency amount"
-#~ msgid "Price"
-#~ msgstr "Cena"
-
-#~ msgctxt "Search form label"
-#~ msgid "Query"
-#~ msgstr "Poizvedba"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage settings."
-#~ msgstr "Upravljaj z nastavitvami"
-
-#~ msgctxt ""
-#~ "Message displayed to the user requesting for his account deletetion"
-#~ msgid "Are you sure you want to delete your account?"
-#~ msgstr "Ste prepričani, da želite izbrisati svoj račun?"
-
-#~ msgctxt "Confirm account deletion button"
-#~ msgid "Delete account"
-#~ msgstr "Izbriši račun"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Home"
-#~ msgstr "Domov"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your account"
-#~ msgstr "Vaš račun"
-
-#~ msgid "My account"
-#~ msgstr "Moj račun"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Recent Orders"
-#~ msgstr "Nedavni nakupi"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Change password"
-#~ msgstr "Spremenite geslo"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Settings"
-#~ msgstr "Nastavitve"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Payment status"
-#~ msgstr "Status plačila"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order status"
-#~ msgstr "Status naročila"
-
-#~ msgctxt "No recent orders text"
-#~ msgid "There are not any completed orders yet."
-#~ msgstr "Niste še opravili nobenega nakupa."
-
-#~ msgctxt "User profile action"
-#~ msgid "Change password"
-#~ msgstr "Spremenite geslo"
-
-#~ msgctxt "No addresses text"
-#~ msgid "You will see new addresses here after first successful checkout."
-#~ msgstr ""
-#~ "Vaš naslov bo shranjen tu, potem ko boste prvič uspešno opravili nakup."
-
-#~ msgctxt "Message informing about the process of account removal"
-#~ msgid ""
-#~ "\n"
-#~ "                  If you'd like to remove your account, please click on "
-#~ "the button below and a confirmation email will be sent to you.\n"
-#~ "                "
-#~ msgstr ""
-#~ "\n"
-#~ "Če želite izbris vašega računa, kliknite na gumb spodaj in na vaš "
-#~ "elektronski naslov bomo poslali sporočilo s potrditvijo."
-
-#~ msgctxt "Remove account form action"
-#~ msgid "Remove Account"
-#~ msgstr "Odstrani svoj račun"
-
-#~ msgctxt "Login page title"
-#~ msgid "Log in"
-#~ msgstr "Vpiši se"
-
-#~ msgctxt "Login form secondary title"
-#~ msgid "Don't have an account yet?"
-#~ msgstr "Še nimate računa?"
-
-#~ msgctxt "Login form secondary action"
-#~ msgid "Register"
-#~ msgstr "Registriraj se"
-
-#~ msgctxt "Login form title"
-#~ msgid "Log in"
-#~ msgstr "Vpiši se"
-
-#, python-format
-#~ msgctxt "Already logged in warning message"
-#~ msgid "You are already logged in as %(user)s."
-#~ msgstr "Vpisani ste že kot %(user)s."
-
-#~ msgctxt "Login form primary action"
-#~ msgid "Log in"
-#~ msgstr "Vpiši se"
-
-#~ msgctxt "Login form secondary link"
-#~ msgid "Forgot password?"
-#~ msgstr "Pozabljeno geslo?"
-
-#~ msgctxt "Password change form legend"
-#~ msgid "Change Password"
-#~ msgstr "Spremeni geslo"
-
-#~ msgctxt "Password change form primary action"
-#~ msgid "Save new password"
-#~ msgstr "Shrani novo geslo"
-
-#~ msgctxt "Password reset page title"
-#~ msgid "Password reset"
-#~ msgstr "Ponastavi geslo"
-
-#~ msgctxt "Password reset form title"
-#~ msgid "Forgot your password?"
-#~ msgstr "Pozabljeno geslo?"
-
-#~ msgctxt "Password reset form help text"
-#~ msgid ""
-#~ "Please let us know the email you have used to register or purchase at our "
-#~ "store."
-#~ msgstr ""
-#~ "Prosimo, sporočite nam elektronski naslov, s katerim ste se registrirali "
-#~ "v naši trgovini in opravili nakup."
-
-#~ msgctxt "Password reset done page title"
-#~ msgid "Password Reset"
-#~ msgstr "Ponastavitev gesla"
-
-#~ msgctxt "Password reset done title"
-#~ msgid "Password Reset"
-#~ msgstr "Ponastavitev gesla"
-
-#~ msgctxt "Password reset from key page title"
-#~ msgid "Change Password"
-#~ msgstr "Spremeni geslo"
-
-#, python-format
-#~ msgctxt "Password reset text if key is invalid"
-#~ msgid ""
-#~ "The password reset link was invalid, possibly because it has already been "
-#~ "used.<br> Please request a <a href=\"%(passwd_reset_url)s\">new password "
-#~ "reset</a>."
-#~ msgstr ""
-#~ "Povezava za ponastavitev geslaje bila neveljavna, morda zato, ker je že "
-#~ "bila uporabljena.<br> Prosimo, da zaprosite za <a href="
-#~ "\"%(passwd_reset_url)s\">novo ponastavitev gesla</a>."
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Password Reset"
-#~ msgstr "Ponastavitev gesla"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Now you can set new password for you account."
-#~ msgstr "Za svoj račun lahko nastavite novo geslo."
-
-#~ msgctxt "Password reset link expired from key form title"
-#~ msgid "Password Reset Link Expired"
-#~ msgstr "Povezava za ponastavitev gesla je potekla"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid ""
-#~ "Sorry but this link is no longer valid. If you forget your password, "
-#~ "please use link below."
-#~ msgstr ""
-#~ "Oprostite, ta povezava je potekla. Če ste pozabili geslo, prosimo "
-#~ "uporabite spodnjo povezavo."
-
-#~ msgctxt "Reset my password link"
-#~ msgid "Reset my password"
-#~ msgstr "Ponastavi moje geslo"
-
-#~ msgctxt "Password reset from key done page title"
-#~ msgid "Password Changed"
-#~ msgstr "Geslo je spremenjeno"
-
-#~ msgctxt "Password reset from key done title"
-#~ msgid "Password Changed"
-#~ msgstr "Geslo je spremenjeno"
-
-#~ msgid "Your password is now changed."
-#~ msgstr "Vaše geslo je zdaj spremenjeno."
-
-#, python-format
-#~ msgctxt "Password reset from key done text"
-#~ msgid ""
-#~ "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
-#~ msgstr "Zdaj se lahko <a href=\"%(login_url)s\">vpišete</a> z novim geslom"
-
-#~ msgctxt "Signup form secondary title"
-#~ msgid "Already have an account?"
-#~ msgstr "Že imate svoj račun?"
-
-#~ msgctxt "Signup form secondary action"
-#~ msgid "Log in"
-#~ msgstr "Vpiši se"
-
-#~ msgctxt "Signup form title"
-#~ msgid "Create an account"
-#~ msgstr "Ustvari račun"
-
-#~ msgctxt "Signup form primary action"
-#~ msgid "Create an account"
-#~ msgstr "Ustvari račun"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Register"
-#~ msgstr "Registriraj se"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log in"
-#~ msgstr "Vpiši se"
-
-#~ msgid "Search for product"
-#~ msgstr "Išči po trgovini"
-
-#~ msgid "Search"
-#~ msgstr "Išči"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your cart"
-#~ msgstr "Vaša košarica"
-
-#~ msgid "Account"
-#~ msgstr "Račun"
-
-#~ msgctxt "Category breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "Domov"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Total"
-#~ msgstr "Skupna vsota"
-
-#~ msgctxt "Checkout summary text"
-#~ msgid "Shipment and taxes calculated at checkout"
-#~ msgstr "Davek in stroški dostave se dodajo na koncu nakupa"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Total"
-#~ msgstr "Skupna vsota"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Your cart"
-#~ msgstr "Vaša košarica"
-
-#~ msgctxt "Checkout breadcrumb"
-#~ msgid "Cart"
-#~ msgstr "Košarica"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Quantity"
-#~ msgstr "Količina"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Price"
-#~ msgstr "Cena"
-
-#~ msgctxt "checkout page: secondary action, empty the checkout"
-#~ msgid "Clear cart"
-#~ msgstr "Izprazni košarico"
-
-#~ msgctxt "Empty checkout message"
-#~ msgid "There are no products in your shopping cart."
-#~ msgstr "V vaši košarici še ni izdelkov."
-
-#~ msgctxt "Empty checkout link"
-#~ msgid "Check out our sales"
-#~ msgstr "Preglej ponudbo"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "Login"
-#~ msgstr "Vpis"
-
-#~ msgctxt "Checkout login form title"
-#~ msgid "Existing customer? Log in."
-#~ msgstr "Ste že registrirani? Vpišite se."
-
-#~ msgctxt "Checkout shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Vrsta dostave"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Same as shipping"
-#~ msgstr "Naslov je enak naslovu za dostavo"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Enter a new address"
-#~ msgstr "Vpiši novi naslov"
-
-#~ msgctxt "Checkout dropdown text"
-#~ msgid "Shipment and taxes calculated at checkout"
-#~ msgstr "Davek in stroški dostave se dodajo na koncu nakupa"
-
-#~ msgctxt "Checkout dropdown secondary action"
-#~ msgid "Go to cart"
-#~ msgstr "Pojdi v košarico"
-
-#~ msgctxt "Site breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "Domov"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search"
-#~ msgstr "Išči"
-
-#~ msgctxt "Dashboard homepage"
-#~ msgid "Home"
-#~ msgstr "Domov"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Products"
-#~ msgstr "Proizvodi"
-
-#~ msgctxt "Dashboard categories list"
-#~ msgid "Categories"
-#~ msgstr "Kategorije"
-
-#~ msgctxt "Dashboard side navigation link"
-#~ msgid "Collections"
-#~ msgstr "Kolekcije"
-
-#~ msgctxt "Dashboard orders list"
-#~ msgid "Orders"
-#~ msgstr "Nakupi"
-
-#~ msgctxt "Dashboard shipping zones list"
-#~ msgid "Shipping"
-#~ msgstr "Dostava oziroma pošiljanje"
-
-#~ msgctxt "Dashboard site settings"
-#~ msgid "Site settings"
-#~ msgstr "Nastavitve strani"
-
-#~ msgctxt "Category list page title"
-#~ msgid "Categories"
-#~ msgstr "Kategorije"
-
-#~ msgctxt "Category field"
-#~ msgid "Description"
-#~ msgstr "Opis"
-
-#~ msgctxt "Category list table header name"
-#~ msgid "Name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Category list table header description"
-#~ msgid "Description"
-#~ msgstr "Opis"
-
-#~ msgid "Collections"
-#~ msgstr "Kolekcije"
-
-#~ msgctxt "Collection field"
-#~ msgid "Published"
-#~ msgstr "Objavljeno"
-
-#~ msgctxt "Collection field"
-#~ msgid "Can't unpublish homepage collection"
-#~ msgstr "Kolekcije za vstopno stran ne morem odstraniti"
-
-#~ msgctxt "Collections list page title "
-#~ msgid "Collections"
-#~ msgstr "Kolekcije"
-
-#~ msgctxt "Collections list table header name"
-#~ msgid "Name"
-#~ msgstr "Ime"
-
-#~ msgid "Homepage collection"
-#~ msgstr "Kolekcija za vstopno stran"
-
-#~ msgctxt "Customer field"
-#~ msgid "Note"
-#~ msgstr "Opomba"
-
-#~ msgctxt "Customer recent orders table title"
-#~ msgid "Recent orders"
-#~ msgstr "Nedavni nakupi"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Placed on"
-#~ msgstr "Naročilo potrjeno (datum)"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Order status"
-#~ msgstr "Status naročila"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Total"
-#~ msgstr "Skupna vsota"
-
-#~ msgctxt "Empty customer orders table message"
-#~ msgid "No orders found."
-#~ msgstr "Ni nakupov."
-
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer"
-#~ msgstr "Naročnik"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Email"
-#~ msgstr "Elektronska pošta"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Location"
-#~ msgstr "Lokacija"
-
-#, python-format
-#~ msgctxt "Modal remove collection text"
-#~ msgid ""
-#~ "Are you sure you want to remove customer <strong>%(customer)s</strong>? "
-#~ "Please note that this procedure will remove customer's account, but "
-#~ "customer's orders and addresses associated with them will persist for the "
-#~ "financial records."
-#~ msgstr ""
-#~ "Ste prepričani, da želite odstraniti uporabnika <strong>%(customer)s</"
-#~ "strong>? Upoštevajte, da bo naročnik odstranjen, toda podatke o naročilih "
-#~ "in naslovih, ki so z njim povezani, bodo zaradi računskih izkazov ostali "
-#~ "shranjeni."
-
-#~ msgid ""
-#~ "\n"
-#~ "    Customer accounts will appear here once users register in the shop.\n"
-#~ "  "
-#~ msgstr ""
-#~ "\n"
-#~ "Ko se uporabniki registrirajo, bodo njihovi uporabniški računi prikazani "
-#~ "tu."
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Start date"
-#~ msgstr "Datum začetka"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "End date"
-#~ msgstr "Datum konca"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Start date"
-#~ msgstr "Datum začetka"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "End date"
-#~ msgstr "Datum konca"
-
-#~ msgctxt "Collection availability status"
-#~ msgid "Published"
-#~ msgstr "Objavljeno"
-
-#~ msgctxt ""
-#~ "Title of the box showing preview from the search engine perspective"
-#~ msgid "Search engine listing preview"
-#~ msgstr "Predogled rezultatov iskanja"
-
-#~ msgctxt "Menu items list table header name"
-#~ msgid "Name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Menu items list table header points to"
-#~ msgid "Points to"
-#~ msgstr "Kaže na"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Published"
-#~ msgstr "Objavljeno"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Not published"
-#~ msgstr "Neobjavljeno"
-
-#~ msgctxt "Page availability status"
-#~ msgid "Published"
-#~ msgstr "Objavljeno"
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Orders ready for shipment"
-#~ msgstr "Nakupi, ki so pripravljeni za odpošiljanje"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Placed on"
-#~ msgstr "Naročilo potrjeno (datum)"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Customer"
-#~ msgstr "Naročnik"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Payment status"
-#~ msgstr "Status plačila"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Order status"
-#~ msgstr "Status naročila"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Total"
-#~ msgstr "Skupna vsota"
-
-#~ msgctxt "Anonymous user account value"
-#~ msgid "Guest"
-#~ msgstr "Gost"
-
-#~ msgctxt "Empty order table message"
-#~ msgid "No orders are ready for shipment."
-#~ msgstr "Noben nakup ni pripravljen za odpošiljanje."
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Customer"
-#~ msgstr "Naročnik"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Amount"
-#~ msgstr "Znesek"
-
-#~ msgid "Guest"
-#~ msgstr "Gost"
-
-#~ msgctxt "Menu item field"
-#~ msgid "Points to"
-#~ msgstr "Kaže na"
-
-#, python-format
-#~ msgctxt "Remove menu item modal title"
-#~ msgid ""
-#~ "Are you sure you want to remove menu item <strong>%(menu_item)s</strong> "
-#~ "from %(menu)s menu?"
-#~ msgstr ""
-#~ "Ali ste prepričani, da želite odstraniti <strong>%(menu_item)s</strong> z "
-#~ "menija %(menu)s?"
-
-#~ msgctxt "Menu list table header Menu name"
-#~ msgid "Menu name"
-#~ msgstr "Ime menija"
-
-#~ msgctxt "Order details summary header"
-#~ msgid "Customer"
-#~ msgstr "Naročnik"
-
-#~ msgctxt "Order placed on date"
-#~ msgid "Placed on"
-#~ msgstr "Naročilo potrjeno (datum)"
-
-#~ msgctxt "Order table header"
-#~ msgid "Price"
-#~ msgstr "Cena"
-
-#~ msgctxt "Order table header"
-#~ msgid "Quantity"
-#~ msgstr "Količina"
-
-#~ msgctxt "Order table header"
-#~ msgid "Total"
-#~ msgstr "Skupna vsota"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Shipping"
-#~ msgstr "Dostava oziroma pošiljanje"
-
-#~ msgctxt "No customer order note card message"
-#~ msgid "There is no note from the customer associated with this order."
-#~ msgstr "Naročnik ni dodal opombe k temu naročilu."
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Payment status"
-#~ msgstr "Status plačila"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Amount"
-#~ msgstr "Znesek"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Quantity"
-#~ msgstr "Količina"
-
-#~ msgctxt "Empty order list message"
-#~ msgid "No orders found."
-#~ msgstr "Ni nakupov."
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Price"
-#~ msgstr "Cena"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Total"
-#~ msgstr "Skupna vsota"
-
-#~ msgctxt "Modal edit customer text"
-#~ msgid ""
-#~ "Connect an order with an account of an existing customer or provide a "
-#~ "contact email address."
-#~ msgstr ""
-#~ "Poveži naročilo z uporabnikovim računom ali vpiši uporabnikov elektronski "
-#~ "naslov."
-
-#~ msgctxt "Dashboard edit draft order remove action"
-#~ msgid "Remove customer from order"
-#~ msgstr "Odstrani naročnika z naročila"
-
-#~ msgctxt "Dashboard edit draft order remove action"
-#~ msgid "Remove shipping from order"
-#~ msgstr "Odstrani dostavo z naročila"
-
-#~ msgctxt "Dashboard edit draft order remove action"
-#~ msgid "Remove voucher from order"
-#~ msgstr "Odstrani kupon z naročila"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Tax rate"
-#~ msgstr "Vrednost davka"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Gross price"
-#~ msgstr "Grosistična cena izdelka"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Quantity"
-#~ msgstr "Količina"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Total"
-#~ msgstr "Skupna vsota"
-
-#~ msgctxt "Order total shipping price header"
-#~ msgid "Shipping"
-#~ msgstr "Dostava oziroma pošiljanje"
-
-#~ msgctxt "Order table header"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgid "No orders found."
-#~ msgstr "Ni nakupov."
-
-#~ msgid ""
-#~ "\n"
-#~ "    Orders will appear here after customers complete the checkout.\n"
-#~ "  "
-#~ msgstr ""
-#~ "\n"
-#~ "Ko bodo uporabniki opravili nakup, se bodo naročila shranila tu."
-
-#~ msgctxt "Static pages table header name"
-#~ msgid "Title"
-#~ msgstr "Naslov"
-
-#~ msgctxt "Static pages table header url"
-#~ msgid "URL"
-#~ msgstr "URL"
-
-#~ msgid "Display name"
-#~ msgstr "Ime za prikaz"
-
-#~ msgctxt "Dashboard attributes list table header name"
-#~ msgid "Name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Products"
-#~ msgstr "Proizvodi"
-
-#~ msgctxt "Product field"
-#~ msgid "Published"
-#~ msgstr "Objavljeno"
-
-#~ msgid "Variant"
-#~ msgstr "Različica"
-
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgid "Name"
-#~ msgstr "Ime"
-
-#~ msgid "Gross price"
-#~ msgstr "Grosistična cena izdelka"
-
-#~ msgid "Net price"
-#~ msgstr "Maloprodajna cena izdelka"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "Number in stock"
-#~ msgstr "Število na zalogi"
-
-#~ msgid "Shipping"
-#~ msgstr "Dostava oziroma pošiljanje"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Price"
-#~ msgstr "Cena"
-
-#~ msgctxt "Modal select product types title"
-#~ msgid "Product type"
-#~ msgstr "Tip izdelka"
-
-#~ msgctxt "Image form text"
-#~ msgid "Image"
-#~ msgstr "Slika"
-
-#~ msgctxt "Dashboard product types list table header name"
-#~ msgid "Name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Product attributes"
-#~ msgstr "Atributi izdelka"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Variant attributes"
-#~ msgstr "Atributi različice"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Search page title"
-#~ msgid "Search results"
-#~ msgstr "Išči rezultate"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search results"
-#~ msgstr "Išči rezultate"
-
-#~ msgctxt "Search results list products"
-#~ msgid "Products"
-#~ msgstr "Proizvodi"
-
-#~ msgctxt "Search results list orders"
-#~ msgid "Orders"
-#~ msgstr "Nakupi"
-
-#, python-format
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer: %(email)s"
-#~ msgstr "Naročnik: %(email)s"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, price range of shipping methods within "
-#~ "shipping zone"
-#~ msgid "Price range"
-#~ msgstr "Cenovni razpon"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, list of countries within of shipping zone"
-#~ msgid "Countries"
-#~ msgstr "Države"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Price"
-#~ msgstr "Cena"
-
-#~ msgctxt "Shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Vrsta dostave"
-
-#~ msgctxt "Dashboard site setting detail"
-#~ msgid "Site settings"
-#~ msgstr "Nastavitve strani"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Header text"
-#~ msgstr "Tekst za naslov"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Description"
-#~ msgstr "Opis"
-
-#~ msgctxt "Site settings action"
-#~ msgid "Edit site settings"
-#~ msgstr "Spremeni nastavitve strani"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Key"
-#~ msgstr "Ključ"
-
-#~ msgctxt "Site settings page title"
-#~ msgid "Add new site settings"
-#~ msgstr "Dodaj nastavitve za novo stran"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Site settings"
-#~ msgstr "vitve strani"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Email"
-#~ msgstr "Elektronska pošta"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Location"
-#~ msgstr "Lokacija"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Name"
-#~ msgstr "Ime"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Value"
-#~ msgstr "Vrednost"
-
-#~ msgctxt "Taxes table header"
-#~ msgid "Country name"
-#~ msgstr "Ime države"
-
-#~ msgctxt "Site settings field"
-#~ msgid "All products prices are entered with tax included"
-#~ msgstr "Vse cene izdelkov že vsebujejo davek "
-
-#~ msgctxt "Site settings field"
-#~ msgid "Show gross prices to customers in the storefront"
-#~ msgstr "Pokaži naročnikom grosistične cene na vstopni strani"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Charge taxes on shipping rates"
-#~ msgstr "Vračunaj davek na poštnino"
-
-#~ msgid ""
-#~ "\n"
-#~ "    Taxes define tax rates used in European Union countries and needs to "
-#~ "be fetched manually.<br>\n"
-#~ "    To enable fetching taxes, please provide your access key to <a href="
-#~ "\"https://vatlayer.com/\">vatlayer</a> API in settings file.\n"
-#~ "  "
-#~ msgstr ""
-#~ "\n"
-#~ "Davke definirajo različne davčne stopnje po Evropski Uniji, zato  morajo "
-#~ "biti ti ročno nastavljeni.<br>\n"
-#~ "Da to storite, prosimo vnesite vaš ključ za dostop do <a href=\"https://"
-#~ "vatlayer.com/\">vatlayer</a> API v datoteki z nastavitvami."
-
-#~ msgctxt "Homepage title"
-#~ msgid "from the Northpole"
-#~ msgstr "s Severnega tečaja"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Featured products"
-#~ msgstr "Naša ponudba"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Quantity"
-#~ msgstr "Količina"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Price"
-#~ msgstr "Cena"
-
-#~ msgctxt "Order details shipment row text"
-#~ msgid "Shipping"
-#~ msgstr "Dostava oziroma pošiljanje"
-
-#~ msgctxt "Order details total text"
-#~ msgid "Total"
-#~ msgstr "Skupna vsota"
-
-#~ msgctxt "Fulfillment tracking number details"
-#~ msgid "Tracking number"
-#~ msgstr "Številka za spremljanje naročila - tracking number"
-
-#~ msgctxt "Checkout text"
-#~ msgid ""
-#~ "It looks like you already are our customer! <br> Please log in to connect "
-#~ "order with your account."
-#~ msgstr ""
-#~ "Videti je, da ste na naši strani že registrirani! <br> Prosimo, vpišite "
-#~ "se in nadaljujte z nakupom."
-
-#~ msgctxt "Checkout title"
-#~ msgid "Why not to create an account"
-#~ msgstr "Zakaj ne bi ustvarili računa?"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Create an account"
-#~ msgstr "Ustvari račun"
-
-#, python-format
-#~ msgctxt "Order details page title"
-#~ msgid "Order %(order)s"
-#~ msgstr "Naročilo %(order)s"
-
-#, python-format
-#~ msgctxt "Order details breadcrumb"
-#~ msgid "Order %(order)s"
-#~ msgstr "Naročilo %(order)s"
-
-#, python-format
-#~ msgctxt "Payment details breadcrumb"
-#~ msgid "Order %(order)s"
-#~ msgstr "Naročilo %(order)s"
-
-#~ msgctxt "Product price filter"
-#~ msgid "from"
-#~ msgstr "od"
-
-#~ msgctxt "product price range"
-#~ msgid "from"
-#~ msgstr "od"
-
-#~ msgctxt "Product details primary action"
-#~ msgid "Add to cart"
-#~ msgstr "Dodaj v košarico"
-
-#~ msgctxt "Product details title"
-#~ msgid "Description"
-#~ msgstr "Opis"
-
-#~ msgctxt "Product list filters"
-#~ msgid "Sort by"
-#~ msgstr "Razvrsti po"
-
-#~ msgid "Search:"
-#~ msgstr "Išči:"
-
-#~ msgctxt "Account delete reset e-mail subject"
-#~ msgid "Delete your account"
-#~ msgstr "Izbriši račun"
-
-#~ msgctxt "Password reset e-mail subject"
-#~ msgid "Password reset e-mail"
-#~ msgstr "Elektronska pošta za ponastavitev gesla"
-
-#, python-format
-#~ msgctxt "Set password for customer e-mail title"
-#~ msgid "Hello from %(site_name)s!"
-#~ msgstr "Pozdrav od %(site_name)s!"
-
-#, python-format
-#~ msgid "Hello from %(site_name)s!"
-#~ msgstr "Pozdrav od %(site_name)s!"
-
-#, python-format
-#~ msgctxt "Set password for staff member e-mail title"
-#~ msgid "Hello from %(site_name)s!"
-#~ msgstr "Pozdrav od %(site_name)s!"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Shipping"
-#~ msgstr "Dostava oziroma pošiljanje"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Total"
-#~ msgstr "Skupna vsota"
