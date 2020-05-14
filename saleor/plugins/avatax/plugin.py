@@ -41,6 +41,8 @@ logger = logging.getLogger(__name__)
 
 class AvataxPlugin(BasePlugin):
     PLUGIN_NAME = "Avalara"
+    PLUGIN_ID = "mirumee.taxes.avalara"
+
     DEFAULT_CONFIGURATION = [
         {"name": "Username or account", "value": None},
         {"name": "Password or license", "value": None},
@@ -370,6 +372,12 @@ class AvataxPlugin(BasePlugin):
         if not self.active:
             return previous_value
         return False
+
+    def fetch_taxes_data(self, previous_value):
+        if not self.active:
+            return previous_value
+        get_cached_tax_codes_or_fetch(self.config)
+        return True
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):

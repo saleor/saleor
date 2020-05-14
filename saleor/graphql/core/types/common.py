@@ -115,6 +115,12 @@ class MetadataError(Error):
 
 class OrderError(Error):
     code = OrderErrorCode(description="The error code.", required=True)
+    warehouse = graphene.ID(
+        description="Warehouse ID which causes the error.", required=False,
+    )
+    order_line = graphene.ID(
+        description="Order line ID which causes the error.", required=False,
+    )
 
 
 class PermissionGroupError(Error):
@@ -275,7 +281,6 @@ class TaxType(graphene.ObjectType):
 
 
 class Job(graphene.Interface):
-    id = graphene.ID(description="ID of job.", required=True)
     status = JobStatusEnum(description="Job status.", required=True)
     created_at = graphene.DateTime(
         description="Created date time of job in ISO 8601 format.", required=True
@@ -283,3 +288,11 @@ class Job(graphene.Interface):
     updated_at = graphene.DateTime(
         description="Date time of job last update in ISO 8601 format.", required=True
     )
+
+    @classmethod
+    def resolve_type(cls, instance, _info):
+        """Map a data object to a Graphene type."""
+        MODEL_TO_TYPE_MAP = {
+            # <DjangoModel>: <GrapheneType>
+        }
+        return MODEL_TO_TYPE_MAP.get(type(instance))

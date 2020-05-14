@@ -6,6 +6,7 @@ from saleor.core.exceptions import InsufficientStock
 from saleor.warehouse.management import (
     allocate_stock,
     deallocate_stock,
+    deallocate_stock_for_order,
     decrease_stock,
     increase_stock,
 )
@@ -248,3 +249,14 @@ def test_decrease_stock_more_then_allocated(order_line_with_allocation_in_many_s
     assert allocations[1].quantity_allocated == 0
     assert allocations[0].stock.quantity == 0
     assert allocations[1].stock.quantity == 3
+
+
+def test_deallocate_stock_for_order(order_line_with_allocation_in_many_stocks,):
+    order_line = order_line_with_allocation_in_many_stocks
+    order = order_line.order
+
+    deallocate_stock_for_order(order)
+
+    allocations = order_line.allocations.all()
+    assert allocations[0].quantity_allocated == 0
+    assert allocations[1].quantity_allocated == 0

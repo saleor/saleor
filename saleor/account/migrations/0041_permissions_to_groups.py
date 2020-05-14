@@ -1,4 +1,5 @@
-from collections import namedtuple
+import re
+from collections import defaultdict
 
 from django.db import migrations
 
@@ -12,44 +13,40 @@ def add_users_to_groups_based_on_users_permissions(apps, schema_editor):
     """
     User = apps.get_model("account", "User")
     Group = apps.get_model("auth", "Group")
-    GroupData = namedtuple("GroupData", ["users", "group_name"])
 
     groups = Group.objects.all().prefetch_related("permissions")
-
-    mapping = create_permissions_mapping(User, GroupData)
-    for perms, group_data in mapping.items():
+    counter = get_counter_value(Group)
+    mapping = create_permissions_mapping(User)
+    for perms, users in mapping.items():
         group = get_group_with_given_permissions(perms, groups)
-        users = group_data.users
         if group:
             group.user_set.add(*users)
             continue
-        group = create_group_with_given_permissions(perms, group_data.group_name, Group)
+        group = create_group_with_given_permissions(perms, counter, Group)
         group.user_set.add(*users)
+        counter += 1
 
 
-def create_permissions_mapping(User, GroupData):
+def get_counter_value(Group):
+    """Get the number of next potential group."""
+    pattern = r"^Group (\d+)$"
+    group = Group.objects.filter(name__iregex=pattern).order_by("name").last()
+    if not group:
+        return 1
+    return int(re.match(pattern, group.name).group(1)) + 1
+
+
+def create_permissions_mapping(User):
     """Create mapping permissions to users and potential new group name."""
-    mapping = {}
-    users = User.objects.filter(user_permissions__isnull=False).prefetch_related(
-        "user_permissions"
-    )
+    mapping = defaultdict(set)
+    users = User.objects.filter(user_permissions__isnull=False).distinct().iterator()
+
     for user in users:
-        permissions = user.user_permissions.all()
-        perm_pks = (perm.pk for perm in permissions)
-        if perm_pks not in mapping:
-            group_name = create_group_name(permissions)
-            mapping[perm_pks] = GroupData({user.pk}, group_name)
-        else:
-            mapping[perm_pks].users.add(user.pk)
+        permissions = user.user_permissions.all().order_by("pk")
+        perm_pks = tuple([perm.pk for perm in permissions])
+        mapping[perm_pks].add(user.pk)
         user.user_permissions.clear()
     return mapping
-
-
-def create_group_name(permissions):
-    """Create group name based on permissions."""
-    formatted_names = [perm.name.rstrip(".").lower() for perm in permissions]
-    group_name = ", ".join(formatted_names).capitalize()
-    return group_name
 
 
 def get_group_with_given_permissions(permissions, groups):
@@ -60,8 +57,9 @@ def get_group_with_given_permissions(permissions, groups):
             return group
 
 
-def create_group_with_given_permissions(perm_pks, group_name, Group):
+def create_group_with_given_permissions(perm_pks, counter, Group):
     """Create new group with given set of permissions."""
+    group_name = f"Group {counter:03d}"
     group = Group.objects.create(name=group_name)
     group.permissions.add(*perm_pks)
     return group

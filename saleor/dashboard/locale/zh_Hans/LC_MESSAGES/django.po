@@ -1,0 +1,2216 @@
+# Saleor
+# Copyright (C) 2017 Mirumee Software
+# This file is distributed under the same license as the Saleor package.
+# Mirumee Software <hello@mirumee.com>, 2017.
+# 
+# Translators:
+# renothing <cncaiker@gmail.com>, 2018
+# Slade Liu <laplaceliu@outlook.com>, 2019
+# 小平 吴 <wu526515597@hotmail.com>, 2019
+# shell wang <washng@gmail.com>, 2019
+# 刘 志锋 <752074518@qq.com>, 2019
+# Julian Hu <julianhy@gmail.com>, 2019
+# John Q <guoke333803@gmail.com>, 2019
+# Patryk Zawadzki <patrys@room-303.com>, 2019
+# iorj <2806198697@qq.com>, 2019
+# 陈 铭轩 <cmx18682659373@gmail.com>, 2019
+# Jack He <zihen@zihen.com>, 2019
+# 志刚 胡 <thatzhigang@outlook.com>, 2019
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: master\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-20 10:01-0500\n"
+"PO-Revision-Date: 2017-02-09 15:43+0000\n"
+"Last-Translator: 志刚 胡 <thatzhigang@outlook.com>, 2019\n"
+"Language-Team: Chinese Simplified (https://www.transifex.com/mirumee/teams/34782/zh-Hans/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh-Hans\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: saleor/dashboard/category/filters.py:8
+msgctxt "Category list sorting option"
+msgid "name"
+msgstr "名称"
+
+#: saleor/dashboard/category/filters.py:9
+msgctxt "Category list sorting option"
+msgid "description"
+msgstr "描述"
+
+#: saleor/dashboard/category/filters.py:15
+msgctxt "Category list filter label"
+msgid "Name"
+msgstr "名称"
+
+#: saleor/dashboard/category/filters.py:19
+msgctxt "Category list sorting filter label"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/category/filters.py:32
+#, python-format
+msgctxt "Number of matching records in the dashboard categories list"
+msgid "Found %(counter)d matching category"
+msgid_plural "Found %(counter)d matching categories"
+msgstr[0] "已找到%(counter)d个匹配的分类"
+
+#: saleor/dashboard/category/forms.py:27
+#: saleor/dashboard/collection/forms.py:26
+#: saleor/dashboard/discount/forms.py:93 saleor/dashboard/product/forms.py:100
+#: saleor/dashboard/product/forms.py:261 saleor/dashboard/product/forms.py:505
+#: saleor/dashboard/sites/forms.py:54
+msgctxt "Item name"
+msgid "Name"
+msgstr "名称"
+
+#: saleor/dashboard/category/forms.py:28 saleor/dashboard/product/forms.py:243
+#: saleor/dashboard/product/forms.py:455 saleor/dashboard/sites/forms.py:29
+msgctxt "Description"
+msgid "Description"
+msgstr "描述"
+
+#: saleor/dashboard/category/forms.py:29
+msgctxt "Category form"
+msgid "Background Image"
+msgstr "背景图片"
+
+#: saleor/dashboard/category/forms.py:31
+msgctxt "Description of a category image"
+msgid "Image description"
+msgstr "图片描述"
+
+#: saleor/dashboard/category/views.py:46
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added category %s"
+msgstr "添加分类%s"
+
+#: saleor/dashboard/category/views.py:74
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated category %s"
+msgstr "更新分类%s"
+
+#: saleor/dashboard/category/views.py:118
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed category %s"
+msgstr "删除分类%s"
+
+#: saleor/dashboard/collection/filters.py:8
+msgctxt "Collection list sorting option"
+msgid "name"
+msgstr "名称"
+
+#: saleor/dashboard/collection/filters.py:11
+#: saleor/dashboard/product/filters.py:29
+msgctxt "Is publish filter choice"
+msgid "Published"
+msgstr "已发布"
+
+#: saleor/dashboard/collection/filters.py:12
+#: saleor/dashboard/product/filters.py:30
+msgctxt "Is publish filter choice"
+msgid "Not published"
+msgstr "未发布"
+
+#: saleor/dashboard/collection/filters.py:18
+msgctxt "Collection list name filter label"
+msgid "Name"
+msgstr "名称"
+
+#: saleor/dashboard/collection/filters.py:22
+msgctxt "Collection list filter label"
+msgid "Is published"
+msgstr "是否已发布"
+
+#: saleor/dashboard/collection/filters.py:24
+#: saleor/dashboard/customer/filters.py:44
+#: saleor/dashboard/discount/filters.py:67
+#: saleor/dashboard/discount/filters.py:106
+#: saleor/dashboard/order/filters.py:50 saleor/dashboard/order/filters.py:58
+#: saleor/dashboard/product/filters.py:57 saleor/dashboard/taxes/filters.py:25
+msgctxt "Filter empty choice label"
+msgid "All"
+msgstr "全部"
+
+#: saleor/dashboard/collection/filters.py:28
+msgctxt "Collection list sorting filter label"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/collection/filters.py:41
+#, python-format
+msgctxt "Number of matching records in the dashboard collections list"
+msgid "Found %(counter)d matching collection"
+msgid_plural "Found %(counter)d matching collections"
+msgstr[0] "已找到 %(counter)d 满足条件的套餐"
+
+#: saleor/dashboard/collection/forms.py:19
+msgctxt "Products selection"
+msgid "Products"
+msgstr "产品"
+
+#: saleor/dashboard/collection/forms.py:28
+msgctxt "Background image of a collection"
+msgid "Background image"
+msgstr "背景图"
+
+#: saleor/dashboard/collection/forms.py:31
+msgctxt "Description of a collection image"
+msgid "Image description"
+msgstr "图片描述"
+
+#: saleor/dashboard/collection/forms.py:33
+msgctxt "Collection published toggle"
+msgid "Published"
+msgstr "已发布"
+
+#: saleor/dashboard/collection/forms.py:37
+msgctxt ""
+"The publication date field, can be a posterior date for a planned "
+"publication."
+msgid "Publication date"
+msgstr "出版日期"
+
+#: saleor/dashboard/collection/forms.py:40
+msgctxt "Description field of a collection"
+msgid "Description"
+msgstr "描述"
+
+#: saleor/dashboard/collection/views.py:28
+msgctxt "Dashboard message"
+msgid "Updated homepage collection"
+msgstr "更新首页套餐"
+
+#: saleor/dashboard/collection/views.py:54
+msgctxt "Collection message"
+msgid "Added collection"
+msgstr "添加套餐"
+
+#: saleor/dashboard/collection/views.py:70
+msgctxt "Collection message"
+msgid "Updated collection"
+msgstr "更新套餐"
+
+#: saleor/dashboard/collection/views.py:94
+msgctxt "Collection message"
+msgid "Deleted collection"
+msgstr "删除套餐"
+
+#: saleor/dashboard/customer/filters.py:17
+#: saleor/dashboard/staff/filters.py:16
+msgctxt "Customer list sorting option"
+msgid "email"
+msgstr "电子邮件"
+
+#: saleor/dashboard/customer/filters.py:19
+#: saleor/dashboard/staff/filters.py:18
+msgctxt "Customer list sorting option"
+msgid "name"
+msgstr "名称"
+
+#: saleor/dashboard/customer/filters.py:22
+#: saleor/dashboard/staff/filters.py:21
+msgctxt "Customer list sorting option"
+msgid "location"
+msgstr "地址"
+
+#: saleor/dashboard/customer/filters.py:27
+msgctxt "Is active filter choice"
+msgid "Active"
+msgstr "激活"
+
+#: saleor/dashboard/customer/filters.py:28
+msgctxt "Is active filter choice"
+msgid "Not active"
+msgstr "未激活"
+
+#: saleor/dashboard/customer/filters.py:34
+msgctxt "Customer name or email filter"
+msgid "Name or email"
+msgstr "名称或电子邮箱"
+
+#: saleor/dashboard/customer/filters.py:38
+msgctxt "Customer list filter label"
+msgid "Location"
+msgstr "地址"
+
+#: saleor/dashboard/customer/filters.py:42
+msgctxt "Customer list filter label"
+msgid "Is active"
+msgstr "已激活"
+
+#: saleor/dashboard/customer/filters.py:48
+msgctxt "Customer list filter label"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/customer/filters.py:85
+#, python-format
+msgctxt "Number of matching records in the dashboard customers list"
+msgid "Found %(counter)d matching customer"
+msgid_plural "Found %(counter)d matching customers"
+msgstr[0] "找到 %(counter)d 匹配的客户"
+
+#: saleor/dashboard/customer/forms.py:11
+#, python-format
+msgctxt "Customer form: Name field placeholder"
+msgid "%(name)s (Inherit from default billing address)"
+msgstr "1%(name)s(使用默认收费地址）"
+
+#: saleor/dashboard/customer/forms.py:30
+msgctxt "Edit customer details in order form error"
+msgid ""
+"You can't delete your own account via dashboard, please try from the "
+"storefront."
+msgstr "你不能在Dashboard中删除自己的账户，请在Storefront中尝试删除。"
+
+#: saleor/dashboard/customer/forms.py:38
+msgctxt "Edit customer details in order form error"
+msgid "Only superuser can delete his own account."
+msgstr "只有超级用户可以删除他的账户。"
+
+#: saleor/dashboard/customer/forms.py:46
+msgctxt "Edit customer details in order form error"
+msgid "You have insufficient permissions, to edit staff users."
+msgstr "您没有足够的权限来编辑员工用户。"
+
+#: saleor/dashboard/customer/forms.py:104 saleor/dashboard/staff/forms.py:30
+msgctxt "Customer form: Given name field"
+msgid "Given name"
+msgstr "名"
+
+#: saleor/dashboard/customer/forms.py:107 saleor/dashboard/staff/forms.py:33
+msgctxt "Customer form: Family name field"
+msgid "Family name"
+msgstr "姓"
+
+#: saleor/dashboard/customer/forms.py:109
+msgctxt "Customer form: email address field"
+msgid "Email"
+msgstr "电子邮件"
+
+#: saleor/dashboard/customer/forms.py:110
+msgctxt "Customer form: customer note field"
+msgid "Notes"
+msgstr "备注"
+
+#: saleor/dashboard/customer/forms.py:112
+msgctxt "Customer form: is active toggle"
+msgid "User is active"
+msgstr "活动的用户"
+
+#: saleor/dashboard/customer/forms.py:123
+msgctxt "Customer note"
+msgid "Note"
+msgstr "备注"
+
+#: saleor/dashboard/customer/forms.py:125
+msgctxt "Allow customers to see note toggle"
+msgid "Customer can see this note"
+msgstr "备注对顾客可见"
+
+#: saleor/dashboard/customer/views.py:64
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added customer %s"
+msgstr "添加客户%s"
+
+#: saleor/dashboard/customer/views.py:79
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated customer %s"
+msgstr "更新客户资料%s"
+
+#: saleor/dashboard/customer/views.py:111
+msgctxt "Dashboard message related to an customer"
+msgid "Added note"
+msgstr "添加备注"
+
+#: saleor/dashboard/customer/views.py:133
+#, python-format
+msgctxt "Dashboard message"
+msgid "%(customer_name)s successfully removed"
+msgstr "%(customer_name)s确认删除客户"
+
+#: saleor/dashboard/discount/filters.py:19
+msgctxt "Sale list sorting option"
+msgid "name"
+msgstr "名称"
+
+#: saleor/dashboard/discount/filters.py:20
+msgctxt "Sale list sorting option"
+msgid "value"
+msgstr "值"
+
+#: saleor/dashboard/discount/filters.py:21
+msgctxt "Sale list sorting option"
+msgid "start_date"
+msgstr "开始日期"
+
+#: saleor/dashboard/discount/filters.py:22
+msgctxt "Sale list sorting option"
+msgid "end_date"
+msgstr "结束日期"
+
+#: saleor/dashboard/discount/filters.py:26
+msgctxt "Voucher list sorting option"
+msgid "name"
+msgstr "名称"
+
+#: saleor/dashboard/discount/filters.py:27
+msgctxt "Voucher list sorting option"
+msgid "discount_value"
+msgstr "折扣值"
+
+#: saleor/dashboard/discount/filters.py:28
+msgctxt "Voucher list sorting option"
+msgid "countries"
+msgstr "国家"
+
+#: saleor/dashboard/discount/filters.py:29
+msgctxt "Voucher list sorting option"
+msgid "start_date"
+msgstr "开始日期"
+
+#: saleor/dashboard/discount/filters.py:30
+msgctxt "Voucher list sorting option"
+msgid "end_date"
+msgstr "结束日期"
+
+#: saleor/dashboard/discount/filters.py:31
+msgctxt "Voucher list sorting option"
+msgid "used"
+msgstr "已使用"
+
+#: saleor/dashboard/discount/filters.py:33
+msgctxt "Voucher list sorting option"
+msgid "min_amount_spent"
+msgstr "最少花费"
+
+#: saleor/dashboard/discount/filters.py:38
+msgctxt "Sale type filter choice"
+msgid "USD"
+msgstr "美元"
+
+#: saleor/dashboard/discount/filters.py:39
+msgctxt "Sale type filter choice"
+msgid "%"
+msgstr "%"
+
+#: saleor/dashboard/discount/filters.py:57
+msgctxt "Sale list filter label"
+msgid "Name"
+msgstr "名字"
+
+#: saleor/dashboard/discount/filters.py:60
+msgctxt "Sale list filter label"
+msgid "Categories"
+msgstr "产品分类"
+
+#: saleor/dashboard/discount/filters.py:65
+msgctxt "Sale list filter label"
+msgid "Discount type"
+msgstr "折扣类型"
+
+#: saleor/dashboard/discount/filters.py:70
+msgctxt "Sale list filter label"
+msgid "Value"
+msgstr "值"
+
+#: saleor/dashboard/discount/filters.py:72
+msgctxt "Sale list sorting filter label"
+msgid "Period of validity"
+msgstr "有效期"
+
+#: saleor/dashboard/discount/filters.py:78
+msgctxt "Sale list filter label"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/discount/filters.py:91
+#, python-format
+msgctxt "Number of matching records in the dashboard sales list"
+msgid "Found %(counter)d matching sale"
+msgid_plural "Found %(counter)d matching sales"
+msgstr[0] "已找到 %(counter)d 满足条件的订单"
+
+#: saleor/dashboard/discount/filters.py:99
+msgctxt "Voucher list name filter label"
+msgid "Name"
+msgstr "名字"
+
+#: saleor/dashboard/discount/filters.py:104
+msgctxt "Sale list is sale type filter label"
+msgid "Discount type"
+msgstr "折扣类型"
+
+#: saleor/dashboard/discount/filters.py:110
+msgctxt "Sale list filter label"
+msgid "Discount_value"
+msgstr "折扣值"
+
+#: saleor/dashboard/discount/filters.py:113
+msgctxt "Voucher list sorting filter label"
+msgid "Period of validity"
+msgstr "有效期"
+
+#: saleor/dashboard/discount/filters.py:119
+msgctxt "Voucher list sorting filter"
+msgid "Minimum amount spent"
+msgstr "最少花费"
+
+#: saleor/dashboard/discount/filters.py:123
+msgctxt "Voucher list sorting filter label"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/discount/filters.py:136
+#, python-format
+msgctxt "Number of matching records in the dashboard vouchers list"
+msgid "Found %(counter)d matching voucher"
+msgid_plural "Found %(counter)d matching vouchers"
+msgstr[0] "已找到%(counter)d匹配的优惠券"
+
+#: saleor/dashboard/discount/forms.py:22
+msgctxt "Lowest value for order to be able to use the voucher"
+msgid "Apply only if the purchase value is greater than or equal to"
+msgstr "只适用于购买价值大于或等于"
+
+#: saleor/dashboard/discount/forms.py:32
+msgctxt "Discounted products"
+msgid "Discounted products"
+msgstr "折扣产品"
+
+#: saleor/dashboard/discount/forms.py:39
+msgctxt "Sale name"
+msgid "Name"
+msgstr "名称"
+
+#: saleor/dashboard/discount/forms.py:40
+msgctxt "Discount type"
+msgid "Fixed or percentage"
+msgstr "固定或百分比"
+
+#: saleor/dashboard/discount/forms.py:41
+msgctxt "Sale date restrictions"
+msgid "Start date"
+msgstr "开始日期"
+
+#: saleor/dashboard/discount/forms.py:42
+msgctxt "Sale date restrictions"
+msgid "End date"
+msgstr "结束日期"
+
+#: saleor/dashboard/discount/forms.py:43
+msgctxt "Percentage or fixed amount value"
+msgid "Value"
+msgstr "值"
+
+#: saleor/dashboard/discount/forms.py:45
+msgctxt "Discounted categories"
+msgid "Discounted categories"
+msgstr "折扣类型"
+
+#: saleor/dashboard/discount/forms.py:48
+msgctxt "Discounted collections"
+msgid "Discounted collections"
+msgstr "折扣集合"
+
+#: saleor/dashboard/discount/forms.py:64
+msgctxt "Sale (discount) error"
+msgid "Sale cannot exceed 100%"
+msgstr "促销幅度不能超过 100%"
+
+#: saleor/dashboard/discount/forms.py:73
+msgctxt "Sale (discount) error"
+msgid ""
+"A single sale must point to at least one product, collectionand/or category."
+msgstr "单个销售必须指向至少一个产品，多个集合/或类别 。"
+
+#: saleor/dashboard/discount/forms.py:92
+msgctxt "Discount type"
+msgid "Discount type"
+msgstr "折扣类型"
+
+#: saleor/dashboard/discount/forms.py:94
+msgctxt "Coupon code"
+msgid "Code"
+msgstr "码值"
+
+#: saleor/dashboard/discount/forms.py:95
+msgctxt "Usage limit"
+msgid "Usage limit"
+msgstr "使用限制"
+
+#: saleor/dashboard/discount/forms.py:97
+msgctxt "Voucher: discount with"
+msgid "Minimal quantity of products"
+msgstr "最少商品数量"
+
+#: saleor/dashboard/discount/forms.py:99
+msgctxt "Voucher date restrictions"
+msgid "Start date"
+msgstr "开始日期"
+
+#: saleor/dashboard/discount/forms.py:100
+msgctxt "Voucher date restrictions"
+msgid "End date"
+msgstr "结束日期"
+
+#: saleor/dashboard/discount/forms.py:102
+msgctxt "Discount type of the voucher"
+msgid "Discount type"
+msgstr "折扣类型"
+
+#: saleor/dashboard/discount/forms.py:105
+msgctxt "Discount value of the voucher"
+msgid "Discount value"
+msgstr "折扣额度"
+
+#: saleor/dashboard/discount/forms.py:125
+msgctxt "Text above the dropdown of countries"
+msgid "Limit countries that voucher should apply to"
+msgstr "限制代金券应适用的国家"
+
+#: saleor/dashboard/discount/forms.py:155
+msgctxt "Field label, apply discount value only once per order"
+msgid "Only apply once per order"
+msgstr "每个订单只允许使用一次"
+
+#: saleor/dashboard/discount/forms.py:159
+msgctxt "Help text of checkbox for applying discount only once per order"
+msgid ""
+"If unchecked, discount value will be taken off each suitable item in an "
+"order."
+msgstr "如果未选中，将从订单中对应项中删除折扣金额"
+
+#: saleor/dashboard/discount/forms.py:171
+msgctxt "Products that can be discounted with the voucher"
+msgid "Products"
+msgstr "产品"
+
+#: saleor/dashboard/discount/forms.py:178
+msgctxt "Categories that can be discounted with the voucher"
+msgid "Categories"
+msgstr "产品分类"
+
+#: saleor/dashboard/discount/forms.py:194
+msgctxt "Collections that can be discounted with the voucher"
+msgid "Collections"
+msgstr "系列"
+
+#: saleor/dashboard/discount/forms.py:211
+msgctxt "Product"
+msgid "Products"
+msgstr "产品"
+
+#: saleor/dashboard/discount/forms.py:238
+msgctxt "Collections"
+msgid "Collections"
+msgstr "系列"
+
+#: saleor/dashboard/discount/forms.py:249
+msgctxt "Categories"
+msgid "Categories"
+msgstr "产品分类"
+
+#: saleor/dashboard/discount/views.py:66
+msgctxt "Sale (discount) message"
+msgid "Added sale"
+msgstr "添加促销"
+
+#: saleor/dashboard/discount/views.py:80
+msgctxt "Sale (discount) message"
+msgid "Updated sale"
+msgstr "更新促销"
+
+#: saleor/dashboard/discount/views.py:93
+#, python-format
+msgctxt "Sale (discount) message"
+msgid "Removed sale %s"
+msgstr "删除促销%s"
+
+#: saleor/dashboard/discount/views.py:138
+msgctxt "Voucher message"
+msgid "Added voucher"
+msgstr "添加优惠券"
+
+#: saleor/dashboard/discount/views.py:166
+msgctxt "Voucher message"
+msgid "Updated voucher"
+msgstr "更新优惠券"
+
+#: saleor/dashboard/discount/views.py:184
+#, python-format
+msgctxt "Voucher message"
+msgid "Removed voucher %s"
+msgstr "删除优惠券%s"
+
+#: saleor/dashboard/menu/filters.py:8
+msgctxt "Menu list sorting option"
+msgid "Name"
+msgstr "名称"
+
+#: saleor/dashboard/menu/filters.py:11
+msgctxt "Menu item list sorting option"
+msgid "Name"
+msgstr "名称"
+
+#: saleor/dashboard/menu/filters.py:17
+msgctxt "Menu list filter label"
+msgid "Menu name"
+msgstr "菜单名称"
+
+#: saleor/dashboard/menu/filters.py:21
+msgctxt "Menu list filter label"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/menu/filters.py:34
+#, python-format
+msgctxt "Number of matching records in the dashboard menus list"
+msgid "Found %(counter)d matching menu"
+msgid_plural "Found %(counter)d matching menus"
+msgstr[0] "已找到%(counter)d匹配的菜单"
+
+#: saleor/dashboard/menu/filters.py:42
+msgctxt "Menu item list filter label"
+msgid "Name"
+msgstr "名称"
+
+#: saleor/dashboard/menu/filters.py:46
+msgctxt "Menu item list filter label"
+msgid "Points to"
+msgstr "指出"
+
+#: saleor/dashboard/menu/filters.py:50
+msgctxt "Menu item list sorting filter label"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/menu/filters.py:63
+#, python-format
+msgctxt "Number of matching records in the dashboard menu items list"
+msgid "Found %(counter)d matching menu item"
+msgid_plural "Found %(counter)d matching menu items"
+msgstr[0] "已找到%(counter)d个匹配的子菜单"
+
+#: saleor/dashboard/menu/forms.py:25
+msgctxt "Menu name"
+msgid "Menu name"
+msgstr "菜单名称"
+
+#: saleor/dashboard/menu/forms.py:48
+msgctxt "Menu item object to link"
+msgid "Link"
+msgstr "链接"
+
+#: saleor/dashboard/menu/forms.py:55
+msgctxt "Menu item name"
+msgid "Name"
+msgstr "名称"
+
+#: saleor/dashboard/menu/forms.py:56
+msgctxt "Menu item url"
+msgid "URL"
+msgstr "URL"
+
+#: saleor/dashboard/menu/forms.py:73
+msgctxt "Menu item form error"
+msgid "Maximum nesting level for menu items equals to 2."
+msgstr "菜单项的最大嵌套级别为2。"
+
+#: saleor/dashboard/menu/forms.py:83
+msgctxt "Menu item form error"
+msgid "A single menu item can't point to both an internal link and URL."
+msgstr "单个菜单项不能同时指向内部链接和URL。"
+
+#: saleor/dashboard/menu/forms.py:92
+msgctxt "Menu item form error"
+msgid "A single menu item must point to an internal link or URL."
+msgstr "单个菜单项必须指向内部链接或URL。"
+
+#: saleor/dashboard/menu/utils.py:11
+#, python-format
+msgctxt "Menu item page hidden status"
+msgid ""
+"%(menu_item_name)s is hidden (will become visible on %(available_on_date)s)"
+msgstr "%(menu_item_name)s是隐藏的(将变的可见在%(available_on_date)s)"
+
+#: saleor/dashboard/menu/utils.py:24
+#, python-format
+msgctxt "Menu item published status"
+msgid "%(menu_item_name)s (Not published)"
+msgstr "%(menu_item_name)s(不公布)"
+
+#: saleor/dashboard/menu/views.py:35
+msgctxt "Dashboard message"
+msgid "Updated storefront menus"
+msgstr "店面更新菜单"
+
+#: saleor/dashboard/menu/views.py:54
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added menu %s"
+msgstr "已添加菜单%s"
+
+#: saleor/dashboard/menu/views.py:68
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated menu %s"
+msgstr "已修改菜单%s"
+
+#: saleor/dashboard/menu/views.py:102
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed menu %s"
+msgstr "已删除菜单%s"
+
+#: saleor/dashboard/menu/views.py:123
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added menu item %s"
+msgstr "已添加菜单项%s"
+
+#: saleor/dashboard/menu/views.py:145
+#, python-format
+msgctxt "Dashboard message"
+msgid "Saved menu item %s"
+msgstr "已保存菜单项%s"
+
+#: saleor/dashboard/menu/views.py:160
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed menu item %s"
+msgstr "已删除菜单项%s"
+
+#: saleor/dashboard/menu/views.py:246
+msgctxt "Link object type group description"
+msgid "Collection"
+msgstr "集合"
+
+#: saleor/dashboard/menu/views.py:252
+msgctxt "Link object type group description"
+msgid "Category"
+msgstr "分类"
+
+#: saleor/dashboard/menu/views.py:258
+msgctxt "Link object type group description"
+msgid "Page"
+msgstr "页"
+
+#: saleor/dashboard/order/filters.py:28
+msgctxt "Order list sorting option"
+msgid "#"
+msgstr "#"
+
+#: saleor/dashboard/order/filters.py:29
+msgctxt "Order list sorting option"
+msgid "payment"
+msgstr "支付"
+
+#: saleor/dashboard/order/filters.py:30
+msgctxt "Order list sorting option"
+msgid "email"
+msgstr "电子邮件"
+
+#: saleor/dashboard/order/filters.py:31 saleor/dashboard/order/filters.py:32
+msgctxt "Order list sorting option"
+msgid "created"
+msgstr "创建时间"
+
+#: saleor/dashboard/order/filters.py:37
+msgctxt "Order list filter label"
+msgid "ID"
+msgstr "ID"
+
+#: saleor/dashboard/order/filters.py:39
+msgctxt "Order list filter label"
+msgid "Customer name or email"
+msgstr "用户姓名或邮箱"
+
+#: saleor/dashboard/order/filters.py:43
+msgctxt "Order list filter label"
+msgid "Placed on"
+msgstr "放置在"
+
+#: saleor/dashboard/order/filters.py:48
+msgctxt "Order list filter label"
+msgid "Order status"
+msgstr "订单状态"
+
+#: saleor/dashboard/order/filters.py:54
+msgctxt "Order list filter label"
+msgid "Payment status"
+msgstr "支付状态"
+
+#: saleor/dashboard/order/filters.py:62
+msgctxt "Order list filter label"
+msgid "Total"
+msgstr "总数"
+
+#: saleor/dashboard/order/filters.py:65
+msgctxt "Order list filter label"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/order/filters.py:99
+#, python-format
+msgctxt "Number of matching records in the dashboard orders list"
+msgid "Found %(counter)d matching order"
+msgid_plural "Found %(counter)d matching orders"
+msgstr[0] "找到 %(counter)d 匹配的订单"
+
+#: saleor/dashboard/order/forms.py:50
+msgctxt "Send email to customer about order created by staff users"
+msgid "Send email with order confirmation to the customer"
+msgstr "向客户发送确认订单的电子邮件"
+
+#: saleor/dashboard/order/forms.py:73
+msgctxt "Create draft order form error"
+msgid "Could not create order without any products"
+msgstr "没有任何产品无法创建订单"
+
+#: saleor/dashboard/order/forms.py:90
+msgctxt "Create draft order form error"
+msgid "Shipping method is not valid for chosen shipping address"
+msgstr "送货方法不适用于所选送货地址"
+
+#: saleor/dashboard/order/forms.py:121
+msgctxt "Update an order with user default addresses"
+msgid "Set billing and shipping address in order to customer defaults"
+msgstr "按客户默认设置帐单和送货地址"
+
+#: saleor/dashboard/order/forms.py:131
+msgctxt "Order form: editing customer details - selecting a customer"
+msgid "Customer"
+msgstr "客户"
+
+#: saleor/dashboard/order/forms.py:138
+msgctxt "Order customer email"
+msgid "Email"
+msgstr "电子邮件"
+
+#: saleor/dashboard/order/forms.py:154
+msgctxt "Edit customer details in order form error"
+msgid ""
+"An order can be related either with an email or an existing user account"
+msgstr "订单可以与电子邮件或现有用户帐户关联"
+
+#: saleor/dashboard/order/forms.py:185
+msgctxt "Shipping method form field label"
+msgid "Shipping method"
+msgstr "配送方式"
+
+#: saleor/dashboard/order/forms.py:245
+msgctxt "Order discount amount fixed value"
+msgid "Discount amount"
+msgstr "折扣金额"
+
+#: saleor/dashboard/order/forms.py:261
+msgctxt "Order voucher"
+msgid "Voucher"
+msgstr "折扣券"
+
+#: saleor/dashboard/order/forms.py:290
+msgctxt "Order note"
+msgid "Note"
+msgstr "备注"
+
+#: saleor/dashboard/order/forms.py:298
+msgctxt "Payment management form (capture, refund, void)"
+msgid "Amount"
+msgstr "金额"
+
+#: saleor/dashboard/order/forms.py:305
+msgctxt "Payment form error"
+msgid "This payment action can not be performed."
+msgstr "付款行为不能执行"
+
+#: saleor/dashboard/order/forms.py:315
+#, python-format
+msgctxt "Payment form error"
+msgid "Payment gateway error: %s"
+msgstr "支付网关错误：%s"
+
+#: saleor/dashboard/order/forms.py:337
+msgctxt "Payment form error"
+msgid "Only pre-authorized payments can be captured"
+msgstr "只有预授权的付款可以被抓取"
+
+#: saleor/dashboard/order/forms.py:353
+msgctxt "Payment form error"
+msgid "Only confirmed payments can be refunded"
+msgstr "只有确认的订单可以退款"
+
+#: saleor/dashboard/order/forms.py:363
+msgctxt "Payment form error"
+msgid "Manual payments can not be refunded"
+msgstr "人工付款不能退款"
+
+#: saleor/dashboard/order/forms.py:376
+msgctxt "Payment form error"
+msgid "Only pre-authorized payments can be voided"
+msgstr "只有预先授权的付款才能作废"
+
+#: saleor/dashboard/order/forms.py:429
+msgctxt "Integer number"
+msgid "Quantity"
+msgstr "数量"
+
+#: saleor/dashboard/order/forms.py:449
+#, python-format
+msgctxt "Change quantity form error"
+msgid "Only %(remaining)d remaining in stock."
+msgid_plural "Only %(remaining)d remaining in stock."
+msgstr[0] "库存仅剩 %(remaining)d"
+
+#: saleor/dashboard/order/forms.py:482
+#, python-format
+msgctxt "Cancel order form action"
+msgid "Restock %(quantity)d item"
+msgid_plural "Restock %(quantity)d items"
+msgstr[0] "重入库%(quantity)d商品"
+
+#: saleor/dashboard/order/forms.py:491
+msgctxt "Cancel order form error"
+msgid "This order can't be canceled"
+msgstr "此订单不能取消"
+
+#: saleor/dashboard/order/forms.py:512
+#, python-format
+msgctxt "Cancel fulfillment form action"
+msgid "Restock %(quantity)d item"
+msgid_plural "Restock %(quantity)d items"
+msgstr[0] "重入库%(quantity)d商品"
+
+#: saleor/dashboard/order/forms.py:523
+msgctxt "Cancel fulfillment form error"
+msgid "This fulfillment can't be canceled"
+msgstr "该操作是不能被取消"
+
+#: saleor/dashboard/order/forms.py:539
+msgctxt "Send mail to customer"
+msgid "Send notification email to customer"
+msgstr "发送提醒邮件给客户"
+
+#: saleor/dashboard/order/forms.py:547
+msgctxt "Fulfillment record"
+msgid "Tracking number"
+msgstr "追踪编号"
+
+#: saleor/dashboard/order/forms.py:567
+msgctxt "Remove voucher form error"
+msgid "This order has no voucher"
+msgstr "订单无优惠券可用"
+
+#: saleor/dashboard/order/forms.py:581
+msgctxt "Payment status field value"
+msgid "All"
+msgstr "全部"
+
+#: saleor/dashboard/order/forms.py:596
+msgctxt "Order form: subform to add variant to order form: variant field"
+msgid "Variant"
+msgstr "变种"
+
+#: saleor/dashboard/order/forms.py:600
+msgctxt "Add variant to order form label"
+msgid "Quantity"
+msgstr "数量"
+
+#: saleor/dashboard/order/forms.py:621
+#, python-format
+msgctxt "Add item form error"
+msgid "Could not add item. Only %(remaining)d remaining in stock."
+msgstr "无法添加物品。 库存中只剩余 %(remaining)d 单位。"
+
+#: saleor/dashboard/order/forms.py:648
+msgctxt "Order form: address subform - phone number input field"
+msgid "Phone number"
+msgstr "手机号码"
+
+#: saleor/dashboard/order/forms.py:664
+msgctxt "Send mail to customer"
+msgid "Send shipment details to your customer now"
+msgstr "现在发送发运明细给您的客户"
+
+#: saleor/dashboard/order/forms.py:672
+msgctxt "Order tracking number"
+msgid "Tracking number"
+msgstr "追踪编号"
+
+#: saleor/dashboard/order/forms.py:711
+#, python-format
+msgctxt "Fulfill order line form error"
+msgid "%(quantity)d item remaining to fulfill."
+msgid_plural "%(quantity)d items remaining to fulfill."
+msgstr[0] "还剩%(quantity)d条行项目待完成。"
+
+#: saleor/dashboard/order/utils.py:135
+msgctxt "Voucher not applicable"
+msgid "This offer is only valid for selected items."
+msgstr "此优惠只适用于选定项目."
+
+#: saleor/dashboard/order/views.py:82
+msgctxt "Dashboard message related to an order"
+msgid "Draft order created"
+msgstr "草稿订单已创建"
+
+#: saleor/dashboard/order/views.py:104
+msgctxt "Dashboard message related to an order"
+msgid "Order created from draft order"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:126
+msgctxt "Dashboard message"
+msgid "Draft order successfully removed"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:169
+msgctxt "Dashboard message related to an order"
+msgid "Added note"
+msgstr "添加备注"
+
+#: saleor/dashboard/order/views.py:191
+#, python-format
+msgctxt "Dashboard message related to a payment"
+msgid "Captured %(amount)s"
+msgstr "抓取 %(amount)s"
+
+#: saleor/dashboard/order/views.py:218
+#, python-format
+msgctxt "Dashboard message related to a payment"
+msgid "Refunded %(amount)s"
+msgstr "退款 %(amount)s"
+
+#: saleor/dashboard/order/views.py:245
+msgctxt "Dashboard message"
+msgid "Voided payment"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:268
+#, python-format
+msgctxt "Dashboard message related to an order line"
+msgid ""
+"Changed quantity for variant %(variant)s from %(old_quantity)s to "
+"%(new_quantity)s"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:296
+#, python-format
+msgctxt "Dashboard message related to an order line"
+msgid "Canceled item %s"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:332
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Added %(quantity)d x %(variant)s"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:341
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Insufficient stock: could not add %(quantity)d x %(variant)s"
+msgstr "存货不足，不能添加%(quantity)dx%(variant)s"
+
+#: saleor/dashboard/order/views.py:361
+msgctxt "Dashboard message"
+msgid "Updated shipping address"
+msgstr "更新配送地址"
+
+#: saleor/dashboard/order/views.py:365
+msgctxt "Dashboard message"
+msgid "Updated billing address"
+msgstr "更新账单地址"
+
+#: saleor/dashboard/order/views.py:396
+#, python-format
+msgctxt "Dashboard message"
+msgid "%s email assigned to an order"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:401
+#, python-format
+msgctxt "Dashboard message"
+msgid "%s user assigned to an order"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:405
+msgctxt "Dashboard message"
+msgid "Guest user assigned to an order"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:424
+msgctxt "Dashboard message"
+msgid "Customer removed from an order"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:438
+msgctxt "Dashboard message"
+msgid "Shipping updated"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:456
+msgctxt "Dashboard message"
+msgid "Shipping removed"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:470
+msgctxt "Dashboard message"
+msgid "Discount updated"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:489
+msgctxt "Dashboard message"
+msgid "Voucher updated"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:510
+msgctxt "Dashboard message"
+msgid "Order canceled"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:531
+msgctxt "Dashboard message"
+msgid "Removed voucher from order"
+msgstr "删除订单优惠券"
+
+#: saleor/dashboard/order/views.py:563
+msgctxt "Dashboard message"
+msgid "Order manually marked as paid"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:638
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Fulfilled %(quantity_fulfilled)d item"
+msgid_plural "Fulfilled %(quantity_fulfilled)d items"
+msgstr[0] ""
+
+#: saleor/dashboard/order/views.py:655
+msgctxt "Dashboard message related to an order"
+msgid "No items fulfilled"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:681
+#, python-format
+msgctxt "Dashboard message"
+msgid "Fulfillment #%(fulfillment)s canceled"
+msgstr ""
+
+#: saleor/dashboard/order/views.py:720
+#, python-format
+msgctxt "Dashboard message"
+msgid "Fulfillment #%(fulfillment)s tracking number updated"
+msgstr ""
+
+#: saleor/dashboard/page/filters.py:8
+msgctxt "Page list sorting option"
+msgid "title"
+msgstr "标题"
+
+#: saleor/dashboard/page/filters.py:9
+msgctxt "Page list sorting option"
+msgid "url"
+msgstr "链接"
+
+#: saleor/dashboard/page/filters.py:15
+msgctxt "Page list title filter label"
+msgid "Title"
+msgstr "标题"
+
+#: saleor/dashboard/page/filters.py:19
+msgctxt "Page list url filter label"
+msgid "URL"
+msgstr "URL"
+
+#: saleor/dashboard/page/filters.py:23
+msgctxt "Page list sorting filter label"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/page/filters.py:36
+#, python-format
+msgctxt "Number of matching records in the dashboard page list"
+msgid "Found %(counter)d matching page"
+msgid_plural "Found %(counter)d matching pages"
+msgstr[0] "找到%(counter)d个匹配的页"
+
+#: saleor/dashboard/page/forms.py:12
+msgctxt "Page form: page content field"
+msgid "Content"
+msgstr "内容"
+
+#: saleor/dashboard/page/forms.py:20
+msgctxt "Page form: title field"
+msgid "Title"
+msgstr "标题"
+
+#: saleor/dashboard/page/forms.py:21
+msgctxt "Page form: slug field"
+msgid "Slug"
+msgstr ""
+
+#: saleor/dashboard/page/forms.py:23
+msgctxt "Page form: available on which date field"
+msgid "Available on"
+msgstr ""
+
+#: saleor/dashboard/page/forms.py:26
+msgctxt "Page form: publication status indicator"
+msgid "Is published"
+msgstr "是否已发布"
+
+#: saleor/dashboard/page/forms.py:31
+msgctxt "Form field help text"
+msgid "Slug is being used to create page URL"
+msgstr ""
+
+#: saleor/dashboard/page/views.py:50
+msgctxt "Dashboard message"
+msgid "Saved page"
+msgstr ""
+
+#: saleor/dashboard/page/views.py:66
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed page %s"
+msgstr "删除页面%s"
+
+#: saleor/dashboard/product/__init__.py:11
+msgctxt "product bulk action"
+msgid "Publish"
+msgstr "发布"
+
+#: saleor/dashboard/product/__init__.py:12
+msgctxt "product bulk action"
+msgid "Unpublish"
+msgstr "取消发布"
+
+#: saleor/dashboard/product/filters.py:16
+msgctxt "Product list sorting option"
+msgid "name"
+msgstr "名称"
+
+#: saleor/dashboard/product/filters.py:17
+msgctxt "Product type list sorting option"
+msgid "price"
+msgstr "价格"
+
+#: saleor/dashboard/product/filters.py:21
+msgctxt "Product attribute list sorting option"
+msgid "name"
+msgstr "名称"
+
+#: saleor/dashboard/product/filters.py:25
+msgctxt "Product type list sorting option"
+msgid "name"
+msgstr "名称"
+
+#: saleor/dashboard/product/filters.py:36
+msgctxt "Product list filter label"
+msgid "Name"
+msgstr "名字"
+
+#: saleor/dashboard/product/filters.py:40
+msgctxt "Product list filter label"
+msgid "Category"
+msgstr "分类"
+
+#: saleor/dashboard/product/filters.py:45
+msgctxt "Product list filter label"
+msgid "Product type"
+msgstr "产品类别"
+
+#: saleor/dashboard/product/filters.py:50
+msgctxt "Product list filter label"
+msgid "Price"
+msgstr "价格"
+
+#: saleor/dashboard/product/filters.py:55
+msgctxt "Product list filter label"
+msgid "Is published"
+msgstr "是否已发布"
+
+#: saleor/dashboard/product/filters.py:61
+msgctxt "Product list filter label"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/product/filters.py:74
+#, python-format
+msgctxt "Number of matching records in the dashboard products list"
+msgid "Found %(counter)d matching product"
+msgid_plural "Found %(counter)d matching products"
+msgstr[0] "找到%(counter)d个匹配的商品"
+
+#: saleor/dashboard/product/filters.py:82
+msgctxt "Attribute list filter label"
+msgid "Name"
+msgstr "名称"
+
+#: saleor/dashboard/product/filters.py:86
+msgctxt "Attribute list filter label"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/product/filters.py:99
+#, python-format
+msgctxt "Number of matching records in the dashboard attributes list"
+msgid "Found %(counter)d matching attribute"
+msgid_plural "Found %(counter)d matching attributes"
+msgstr[0] ""
+
+#: saleor/dashboard/product/filters.py:107
+msgctxt "Product type list filter label"
+msgid "Name"
+msgstr "名字"
+
+#: saleor/dashboard/product/filters.py:111
+msgctxt "Product type list filter label"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/product/filters.py:116
+msgctxt "Product type list filter label"
+msgid "Product attributes"
+msgstr "产品属性"
+
+#: saleor/dashboard/product/filters.py:121
+msgctxt "Product type list filter label"
+msgid "Variant attributes"
+msgstr "变种属性"
+
+#: saleor/dashboard/product/filters.py:134
+#, python-format
+msgctxt "Number of matching records in the dashboard product types list"
+msgid "Found %(counter)d matching product type"
+msgid_plural "Found %(counter)d matching product types"
+msgstr[0] "查询到 %(counter)d 匹配的商品"
+
+#: saleor/dashboard/product/forms.py:46
+msgctxt "Help text in rich-text editor field"
+msgid "Select text to enable text-formatting tools."
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:63
+msgctxt "Product type form label"
+msgid "Product type"
+msgstr "产品类别"
+
+#: saleor/dashboard/product/forms.py:71
+msgctxt "Product type tax rate type"
+msgid "Tax rate"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:74 saleor/dashboard/product/forms.py:247
+msgctxt "ProductType weight"
+msgid "Weight"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:77
+msgctxt "ProductVariant weight help text"
+msgid ""
+"Default weight that will be used for calculating shipping price for products"
+" of that type."
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:85
+msgctxt "Product type attributes"
+msgid "Attributes common to all variants."
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:92
+msgctxt "Product type attributes"
+msgid "Attributes specific to each variant."
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:101
+msgctxt "Enable variants"
+msgid "Enable variants"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:103
+msgctxt "Shipping toggle"
+msgid "Require shipping"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:138
+msgctxt "Product type form error"
+msgid "Product variants are disabled."
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:144
+msgctxt "Product type form error"
+msgid "A single attribute can't belong to both a product and its variant."
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:165
+msgctxt "Product type form error"
+msgid "Some products of this type have more than one variant."
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:231
+msgctxt "Product tax rate type"
+msgid "Tax rate"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:235
+msgctxt "Category"
+msgid "Category"
+msgstr "分类"
+
+#: saleor/dashboard/product/forms.py:240
+msgctxt "Add to collection select"
+msgid "Collections"
+msgstr "系列"
+
+#: saleor/dashboard/product/forms.py:250
+msgctxt "Product weight field help text"
+msgid ""
+"Weight will be used to calculate shipping price, if empty, equal to default "
+"value used on the ProductType."
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:262
+#: saleor/dashboard/shipping/forms.py:138
+msgctxt "Currency amount"
+msgid "Price"
+msgstr "价格"
+
+#: saleor/dashboard/product/forms.py:264
+msgctxt "Availability date"
+msgid "Publish product on"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:266
+msgctxt "Product published toggle"
+msgid "Published"
+msgstr "已发布"
+
+#: saleor/dashboard/product/forms.py:268
+msgctxt "Charge taxes on product"
+msgid "Charge taxes on this product"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:301
+msgctxt "Currency gross amount"
+msgid "Gross price"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:305
+msgctxt "Currency net amount"
+msgid "Net price"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:337
+msgctxt "ProductVariant weight"
+msgid "Weight"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:340
+msgctxt "ProductVariant weight help text"
+msgid ""
+"Weight will be used to calculate shipping price. If empty, weight from "
+"Product or ProductType will be used."
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:356
+msgctxt "SKU"
+msgid "SKU"
+msgstr "库存单位"
+
+#: saleor/dashboard/product/forms.py:357
+msgctxt "Override price"
+msgid "Selling price override"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:358
+msgctxt "Integer number"
+msgid "Number in stock"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:359
+msgctxt "Currency amount"
+msgid "Cost price"
+msgstr "成本价格"
+
+#: saleor/dashboard/product/forms.py:361
+msgctxt "Track inventory field"
+msgid "Track inventory"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:367
+msgctxt "product variant handle stock field help text"
+msgid "Automatically track this product's inventory"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:386
+msgctxt "Override price"
+msgid "Selling gross price override"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:389
+msgctxt "Currency amount"
+msgid "Cost gross price"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:393
+msgctxt "Override price"
+msgid "Selling net price override"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:396
+msgctxt "Currency amount"
+msgid "Cost net price"
+msgstr ""
+
+#: saleor/dashboard/product/forms.py:454 saleor/dashboard/product/forms.py:558
+msgctxt "Product image"
+msgid "Image"
+msgstr "图片"
+
+#: saleor/dashboard/product/forms.py:495
+msgctxt "Product display name"
+msgid "Display name"
+msgstr "显示名称"
+
+#: saleor/dashboard/product/forms.py:496
+msgctxt "Product internal name"
+msgid "Internal name"
+msgstr "内部名称"
+
+#: saleor/dashboard/product/views.py:141
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added product %s"
+msgstr "添加产品%s"
+
+#: saleor/dashboard/product/views.py:175
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated product %s"
+msgstr "更新产品%s"
+
+#: saleor/dashboard/product/views.py:188
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed product %s"
+msgstr "删除产品%s"
+
+#: saleor/dashboard/product/views.py:206
+#, python-format
+msgctxt "Dashboard message"
+msgid "%(count)d product has been updated"
+msgid_plural "%(count)d products have been updated"
+msgstr[0] "%(count)d个产品已更新"
+
+#: saleor/dashboard/product/views.py:263
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added product type %s"
+msgstr "添加产品分类%s"
+
+#: saleor/dashboard/product/views.py:279
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated product type %s"
+msgstr "更新产品分类%s"
+
+#: saleor/dashboard/product/views.py:294
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed product type %s"
+msgstr "删除产品分类%s"
+
+#: saleor/dashboard/product/views.py:342 saleor/dashboard/product/views.py:359
+#, python-format
+msgctxt "Dashboard message"
+msgid "Saved variant %s"
+msgstr "添加产品变种%s"
+
+#: saleor/dashboard/product/views.py:375
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed variant %s"
+msgstr "删除产品变种%s"
+
+#: saleor/dashboard/product/views.py:454
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added image %s"
+msgstr "添加图片%s"
+
+#: saleor/dashboard/product/views.py:473
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated image %s"
+msgstr "更新图片%s"
+
+#: saleor/dashboard/product/views.py:489
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed image %s"
+msgstr "删除图片%s"
+
+#: saleor/dashboard/product/views.py:584
+msgctxt "Dashboard message"
+msgid "Added attribute"
+msgstr "添加属性"
+
+#: saleor/dashboard/product/views.py:598
+msgctxt "Dashboard message"
+msgid "Updated attribute"
+msgstr "更新属性"
+
+#: saleor/dashboard/product/views.py:611
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed attribute %s"
+msgstr "删除属性%s"
+
+#: saleor/dashboard/product/views.py:631
+msgctxt "Dashboard message"
+msgid "Added attribute's value"
+msgstr "添加属性值"
+
+#: saleor/dashboard/product/views.py:648
+msgctxt "Dashboard message"
+msgid "Updated attribute's value"
+msgstr "更新属性值"
+
+#: saleor/dashboard/product/views.py:663
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed attribute's value %s"
+msgstr "删除属性值%s"
+
+#: saleor/dashboard/seo/fields.py:8
+msgctxt "Form field help text"
+msgid "If empty, the preview shows what will be autogenerated."
+msgstr ""
+
+#: saleor/dashboard/seo/fields.py:31
+msgctxt "A SEO friendly title"
+msgid "SEO Friendly Title"
+msgstr "SEO友好的标题"
+
+#: saleor/dashboard/seo/fields.py:53
+msgctxt "A SEO friendly description"
+msgid "SEO Friendly Description"
+msgstr "SEO友好的描述"
+
+#: saleor/dashboard/shipping/filters.py:8
+msgctxt "Group list sorting option"
+msgid "name"
+msgstr "名称"
+
+#: saleor/dashboard/shipping/filters.py:13
+msgctxt "Shipping zones list filter label"
+msgid "Shipping zone name"
+msgstr ""
+
+#: saleor/dashboard/shipping/filters.py:17
+msgctxt "Shipping zones list filter label"
+msgid "Price range"
+msgstr "价格范围"
+
+#: saleor/dashboard/shipping/filters.py:21
+msgctxt "Shipping zones filter label"
+msgid "Country"
+msgstr "国家"
+
+#: saleor/dashboard/shipping/filters.py:27
+msgctxt "Product list sorting filter label"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/shipping/filters.py:40
+#, python-format
+msgctxt "Number of matching records in the dashboard shipping zones list"
+msgid "Found %(counter)d matching shipping zone"
+msgid_plural "Found %(counter)d matching shipping zones"
+msgstr[0] ""
+
+#: saleor/dashboard/shipping/forms.py:35
+msgctxt "Label of the default weight unit picker"
+msgid "Default weight unit"
+msgstr ""
+
+#: saleor/dashboard/shipping/forms.py:41
+msgctxt "Default weight unit help text"
+msgid ""
+"Default unit for weights entered from the dashboard.All weights will be "
+"recalculated to the new unit."
+msgstr ""
+
+#: saleor/dashboard/shipping/forms.py:52
+msgctxt "Shippment Zone field name"
+msgid "Shipping zone name"
+msgstr ""
+
+#: saleor/dashboard/shipping/forms.py:53
+msgctxt "Shipping Zone field name"
+msgid "Rest of World"
+msgstr "世界的其他地方"
+
+#: saleor/dashboard/shipping/forms.py:54
+msgctxt "List of countries to pick from"
+msgid "Countries"
+msgstr "国家"
+
+#: saleor/dashboard/shipping/forms.py:59
+msgctxt "Countries field help text"
+msgid "Each country might be included in only one shipping zone."
+msgstr ""
+
+#: saleor/dashboard/shipping/forms.py:63
+msgctxt "Help text for ShippingZone name"
+msgid "Name is for internal use only, it won't be displayed to your customers"
+msgstr ""
+
+#: saleor/dashboard/shipping/forms.py:68
+msgctxt "Help text for ShippingZone name"
+msgid ""
+"If selected, this zone will include any countries that are not already "
+"listed in your other shipping zones."
+msgstr ""
+
+#: saleor/dashboard/shipping/forms.py:98
+msgctxt "ShippingZone  with \"default\" option selected already exists"
+msgid "Default ShippingZone already exists."
+msgstr ""
+
+#: saleor/dashboard/shipping/forms.py:113
+#, python-format
+msgctxt "Shipping zone containing duplicated countries form error"
+msgid ""
+"Countries already exists in another shipping zone: %(list_of_countries)s"
+msgstr ""
+
+#: saleor/dashboard/shipping/forms.py:125
+msgctxt "ShippingZone field error"
+msgid "This field is required."
+msgstr "必填项"
+
+#: saleor/dashboard/shipping/forms.py:137
+msgctxt "Shipping Method name"
+msgid "Name"
+msgstr "名称"
+
+#: saleor/dashboard/shipping/forms.py:143
+msgctxt "Shipping method name help text"
+msgid "Customers will see this at the checkout."
+msgstr ""
+
+#: saleor/dashboard/shipping/forms.py:152
+msgctxt "Minimum order price to use this shipping method"
+msgid "Minimum order price"
+msgstr "最小订单价格"
+
+#: saleor/dashboard/shipping/forms.py:155
+msgctxt "Maximum order price to use this order"
+msgid "Maximum order price"
+msgstr "最大订单价格"
+
+#: saleor/dashboard/shipping/forms.py:164
+msgctxt "Placeholder for maximum order price set to unlimited"
+msgid "No limit"
+msgstr "无限制"
+
+#: saleor/dashboard/shipping/forms.py:180
+#: saleor/dashboard/shipping/forms.py:223
+msgctxt "Price shipping method form error"
+msgid "Maximum order price should be larger than the minimum order price."
+msgstr ""
+
+#: saleor/dashboard/shipping/forms.py:191
+msgctxt "Minimum order weight to use this shipping method"
+msgid "Minimum order weight"
+msgstr ""
+
+#: saleor/dashboard/shipping/forms.py:197
+msgctxt "Maximum order weight to use this shipping method"
+msgid "Maximum order weight"
+msgstr ""
+
+#: saleor/dashboard/shipping/forms.py:207
+msgctxt "Placeholder for maximum order weight set to unlimited"
+msgid "No limit"
+msgstr "无限制"
+
+#: saleor/dashboard/shipping/views.py:24
+msgctxt "Dashboard message"
+msgid "Updated default weight unit"
+msgstr ""
+
+#: saleor/dashboard/shipping/views.py:49
+msgctxt "Dashboard message"
+msgid "Added shipping zone"
+msgstr ""
+
+#: saleor/dashboard/shipping/views.py:63
+msgctxt "Dashboard message"
+msgid "Updated shipping zone"
+msgstr ""
+
+#: saleor/dashboard/shipping/views.py:91
+#, python-format
+msgctxt "Dashboard message"
+msgid "%(shipping_zone_name)s successfully removed"
+msgstr ""
+
+#: saleor/dashboard/shipping/views.py:111
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added shipping method for %(zone_name)s shipping zone"
+msgstr ""
+
+#: saleor/dashboard/shipping/views.py:134
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated %(method_name)s shipping method"
+msgstr ""
+
+#: saleor/dashboard/shipping/views.py:153
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed %(shipping_method_name)s shipping method"
+msgstr ""
+
+#: saleor/dashboard/sites/forms.py:13
+msgctxt "Domain name (FQDN)"
+msgid "Domain name"
+msgstr "域名"
+
+#: saleor/dashboard/sites/forms.py:14
+msgctxt "Display name"
+msgid "Display name"
+msgstr "显示名"
+
+#: saleor/dashboard/sites/forms.py:28
+msgctxt "Header text"
+msgid "Header text"
+msgstr "头部文字"
+
+#: saleor/dashboard/sites/forms.py:32
+msgctxt "Inventory tracking by default settings toggle label"
+msgid "Enable inventory tracking for newly created products"
+msgstr ""
+
+#: saleor/dashboard/sites/forms.py:35
+msgctxt "Default weight unit"
+msgid "Default weight unit"
+msgstr ""
+
+#: saleor/dashboard/sites/forms.py:41
+msgctxt "handle stock by default settings field help text"
+msgid ""
+"This will set the default value of stock handling on product and variant "
+"creation"
+msgstr ""
+
+#: saleor/dashboard/sites/forms.py:52
+msgctxt "Key for chosen authorization method"
+msgid "Key"
+msgstr "密钥"
+
+#: saleor/dashboard/sites/forms.py:53
+msgctxt "Password"
+msgid "Password"
+msgstr "密码"
+
+#: saleor/dashboard/sites/views.py:34
+msgctxt "Dashboard message"
+msgid "Updated site settings"
+msgstr "更新站点设置"
+
+#: saleor/dashboard/sites/views.py:65
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added authorization key %s"
+msgstr "添加授权密钥%s"
+
+#: saleor/dashboard/sites/views.py:81
+#, python-format
+msgctxt "dashboard message"
+msgid "Updated authorization key %s"
+msgstr "更新授权密钥%s"
+
+#: saleor/dashboard/sites/views.py:100
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed site authorization key %s"
+msgstr "删除站点授权密钥%s"
+
+#: saleor/dashboard/staff/filters.py:32
+msgctxt "Group list filter label"
+msgid "Permissions"
+msgstr "权限"
+
+#: saleor/dashboard/staff/filters.py:37
+msgctxt "Staff list filter label"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/staff/filters.py:50
+#, python-format
+msgctxt "Number of matching records in the dashboard staff members list"
+msgid "Found %(counter)d matching staff member"
+msgid_plural "Found %(counter)d matching staff members"
+msgstr[0] "查询到 %(counter)d 个匹配的工作人员编号"
+
+#: saleor/dashboard/staff/forms.py:15
+msgctxt "Label above the permissions choicefield"
+msgid "Permissions"
+msgstr "权限"
+
+#: saleor/dashboard/staff/forms.py:35
+msgctxt "Email"
+msgid "Email"
+msgstr "电子邮件"
+
+#: saleor/dashboard/staff/forms.py:36
+msgctxt "User active toggle"
+msgid "User is active"
+msgstr "活动的用户"
+
+#: saleor/dashboard/staff/forms.py:37
+msgctxt "User staff toggle"
+msgid "User is staff"
+msgstr ""
+
+#: saleor/dashboard/staff/views.py:45
+#, python-format
+msgctxt "Dashboard message"
+msgid "Updated staff member %s"
+msgstr "更新职员%s"
+
+#: saleor/dashboard/staff/views.py:71
+#, python-format
+msgctxt "Dashboard message"
+msgid "Added staff member %s"
+msgstr "添加职员%s"
+
+#: saleor/dashboard/staff/views.py:89
+#, python-format
+msgctxt "Dashboard message"
+msgid "Removed staff member %s"
+msgstr "删除职员%s"
+
+#: saleor/dashboard/taxes/filters.py:10
+msgctxt "Product list sorting option"
+msgid "country_code"
+msgstr ""
+
+#: saleor/dashboard/taxes/filters.py:24
+msgctxt "Taxes list filter label"
+msgid "Country name"
+msgstr ""
+
+#: saleor/dashboard/taxes/filters.py:29
+msgctxt "Taxes list sorting form"
+msgid "Sort by"
+msgstr "排序"
+
+#: saleor/dashboard/taxes/filters.py:48
+#, python-format
+msgctxt "Number of matching records in the dashboard taxes list"
+msgid "Found %(counter)d matching country"
+msgid_plural "Found %(counter)d matching countries"
+msgstr[0] ""
+
+#: saleor/dashboard/taxes/forms.py:18
+msgctxt "Include taxes in prices"
+msgid "All products prices are entered with tax included"
+msgstr ""
+
+#: saleor/dashboard/taxes/forms.py:22
+msgctxt "Display gross prices"
+msgid "Show gross prices to customers in the storefront"
+msgstr ""
+
+#: saleor/dashboard/taxes/forms.py:25
+msgctxt "Charge taxes on shipping rates"
+msgid "Charge taxes on shipping rates"
+msgstr ""
+
+#: saleor/dashboard/taxes/views.py:67
+msgctxt "Dashboard message"
+msgid "Updated taxes settings"
+msgstr ""
+
+#: saleor/dashboard/taxes/views.py:80
+msgctxt "Dashboard message"
+msgid "Tax rates updated successfully"
+msgstr ""
+
+#: saleor/dashboard/taxes/views.py:86
+msgctxt "Dashboard message"
+msgid ""
+"Could not fetch tax rates. Make sure you have supplied a valid API Access "
+"Key.<br/>Check the server logs for more information about this error."
+msgstr ""
+
+#: saleor/dashboard/templatetags/chips.py:78
+msgctxt "Possible values of boolean filter"
+msgid "yes,no,all"
+msgstr "是,否,全部"
+
+#: saleor/dashboard/templatetags/chips.py:94
+#, python-format
+msgctxt "Label of first value in range filter"
+msgid "From %(value)s"
+msgstr "从%(value)s"
+
+#: saleor/dashboard/templatetags/chips.py:95
+#, python-format
+msgctxt "Label of second value in range filter"
+msgid "To %(value)s"
+msgstr "到%(value)s"
+
+#: saleor/dashboard/templatetags/orders.py:14
+msgctxt "Email type"
+msgid "Payment confirmation"
+msgstr "已付款"
+
+#: saleor/dashboard/templatetags/orders.py:17
+msgctxt "Email type"
+msgid "Shipping confirmation"
+msgstr "已发货"
+
+#: saleor/dashboard/templatetags/orders.py:20
+msgctxt "Email type"
+msgid "Fulfillment confirmation"
+msgstr "已发货"
+
+#: saleor/dashboard/templatetags/orders.py:22
+msgctxt "Email type"
+msgid "Order confirmation"
+msgstr "订单已完成"
+
+#: saleor/dashboard/templatetags/orders.py:51
+msgctxt "Dashboard message related to an order"
+msgid "Order placed from draft order"
+msgstr ""
+
+#: saleor/dashboard/templatetags/orders.py:56
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Payment was voided by %(user_name)s"
+msgstr "支付已被用户%(user_name)s取消"
+
+#: saleor/dashboard/templatetags/orders.py:62
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Successfully refunded: %(amount)s"
+msgstr "已退款：%(amount)s"
+
+#: saleor/dashboard/templatetags/orders.py:69
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "Successfully captured: %(amount)s"
+msgstr "已捕获：%(amount)s"
+
+#: saleor/dashboard/templatetags/orders.py:74
+msgctxt "Dashboard message related to an order"
+msgid "Order manually marked as paid"
+msgstr ""
+
+#: saleor/dashboard/templatetags/orders.py:78
+msgctxt "Dashboard message related to an order"
+msgid "Order was canceled"
+msgstr ""
+
+#: saleor/dashboard/templatetags/orders.py:83
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "We restocked %(quantity)d item"
+msgid_plural "We restocked %(quantity)d items"
+msgstr[0] ""
+
+#: saleor/dashboard/templatetags/orders.py:90
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "%(user_name)s added note: %(note)s"
+msgstr "用户%(user_name)s增加了标记：%(note)s"
+
+#: saleor/dashboard/templatetags/orders.py:96
+#, python-format
+msgctxt "Dashboard message"
+msgid "Fulfillment #%(fulfillment)s canceled by %(user_name)s"
+msgstr ""
+
+#: saleor/dashboard/templatetags/orders.py:100
+msgctxt "Dashboard message related to an order"
+msgid "Fulfilled some items"
+msgstr ""
+
+#: saleor/dashboard/templatetags/orders.py:104
+msgctxt "Dashboard message related to an order"
+msgid "Order was placed"
+msgstr ""
+
+#: saleor/dashboard/templatetags/orders.py:108
+msgctxt "Dashboard message related to an order"
+msgid "Order was fully paid"
+msgstr ""
+
+#: saleor/dashboard/templatetags/orders.py:113
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "%(email_type)s email was sent to the customer (%(email)s)"
+msgstr ""
+
+#: saleor/dashboard/templatetags/orders.py:121
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid ""
+"Fulfillment #%(fulfillment)s tracking was updated to %(tracking_number)s by "
+"%(user_name)s"
+msgstr ""
+
+#: saleor/dashboard/templatetags/orders.py:131
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "The draft was created by %(user_name)s"
+msgstr ""
+
+#: saleor/dashboard/templatetags/orders.py:135
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "%(user_name)s added some products"
+msgstr ""
+
+#: saleor/dashboard/templatetags/orders.py:140
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "%(user_name)s removed some products"
+msgstr ""
+
+#: saleor/dashboard/templatetags/orders.py:145
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "%(user_name)s placed the order by bypassing oversold items"
+msgstr ""
+
+#: saleor/dashboard/templatetags/orders.py:150
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "The order address was updated by %(user_name)s"
+msgstr ""
+
+#: saleor/dashboard/templatetags/orders.py:155
+#, python-format
+msgctxt "Dashboard message related to an order"
+msgid "The payment was failed by %(user_name)s"
+msgstr ""

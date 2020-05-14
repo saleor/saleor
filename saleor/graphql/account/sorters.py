@@ -12,13 +12,7 @@ class UserSortField(graphene.Enum):
 
     @property
     def description(self):
-        # pylint: disable=no-member
-        if self in [
-            UserSortField.FIRST_NAME,
-            UserSortField.LAST_NAME,
-            UserSortField.EMAIL,
-            UserSortField.ORDER_COUNT,
-        ]:
+        if self.name in UserSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort users by {sort_name}."
         raise ValueError("Unsupported enum value: %s" % self.value)

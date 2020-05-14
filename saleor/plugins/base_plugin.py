@@ -43,6 +43,7 @@ class BasePlugin:
     """
 
     PLUGIN_NAME = ""
+    PLUGIN_ID = ""
     PLUGIN_DESCRIPTION = ""
     CONFIG_STRUCTURE = None
     DEFAULT_CONFIGURATION = []
@@ -288,6 +289,10 @@ class BasePlugin:
         Overwrite this method if you need to trigger specific logic when a fulfillment is
          created.
         """
+        return NotImplemented
+
+    def fetch_taxes_data(self, previous_value: Any) -> Any:
+        """Triggered when ShopFetchTaxRates mutation is called."""
         return NotImplemented
 
     def authorize_payment(

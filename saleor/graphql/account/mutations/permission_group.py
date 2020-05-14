@@ -11,6 +11,7 @@ from ....core.permissions import AccountPermissions, get_permissions
 from ...account.utils import (
     can_user_manage_group,
     get_not_manageable_permissions_after_group_deleting,
+    get_not_manageable_permissions_after_removing_perms_from_group,
     get_not_manageable_permissions_after_removing_users_from_group,
     get_out_of_scope_permissions,
     get_out_of_scope_users,
@@ -76,7 +77,7 @@ class PermissionGroupCreate(ModelMutation):
 
         requestor = info.context.user
         errors = defaultdict(list)
-        cls.clean_permissions(requestor, errors, cleaned_input)
+        cls.clean_permissions(requestor, instance, errors, cleaned_input)
         cls.clean_users(requestor, errors, cleaned_input, instance)
 
         if errors:
@@ -88,6 +89,7 @@ class PermissionGroupCreate(ModelMutation):
     def clean_permissions(
         cls,
         requestor: "User",
+        group: auth_models.Group,
         errors: Dict[Optional[str], List[ValidationError]],
         cleaned_input: dict,
     ):
@@ -95,9 +97,10 @@ class PermissionGroupCreate(ModelMutation):
         permission_items = cleaned_input.get(field)
         if permission_items:
             cleaned_input[field] = get_permissions(permission_items)
-            cls.ensure_can_manage_permissions(
-                requestor, errors, field, permission_items
-            )
+            if not requestor.is_superuser:
+                cls.ensure_can_manage_permissions(
+                    requestor, errors, field, permission_items
+                )
 
     @classmethod
     def ensure_can_manage_permissions(
@@ -111,8 +114,6 @@ class PermissionGroupCreate(ModelMutation):
 
         Requestor cannot manage permissions witch he doesn't have.
         """
-        if requestor.is_superuser:
-            return
         missing_permissions = get_out_of_scope_permissions(requestor, permission_items)
         if missing_permissions:
             # add error
@@ -244,17 +245,38 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def clean_permissions(
         cls,
         requestor: "User",
+        group: auth_models.Group,
         errors: Dict[Optional[str], List[ValidationError]],
         cleaned_input: dict,
     ):
-        super().clean_permissions(requestor, errors, cleaned_input)
+        super().clean_permissions(requestor, group, errors, cleaned_input)
         field = "remove_permissions"
         permission_items = cleaned_input.get(field)
         if permission_items:
             cleaned_input[field] = get_permissions(permission_items)
-            cls.ensure_can_manage_permissions(
-                requestor, errors, field, permission_items
+            if not requestor.is_superuser:
+                cls.ensure_can_manage_permissions(
+                    requestor, errors, field, permission_items
+                )
+                cls.ensure_permissions_can_be_removed(errors, group, permission_items)
+
+    @classmethod
+    def ensure_permissions_can_be_removed(
+        cls, errors: dict, group: auth_models.Group, permissions: List["str"],
+    ):
+        missing_perms = get_not_manageable_permissions_after_removing_perms_from_group(
+            group, permissions
+        )
+        if missing_perms:
+            # add error
+            permission_codes = [PermissionEnum.get(code) for code in permissions]
+            msg = (
+                "Permissions cannot be removed, "
+                "some of permissions will not be manageable."
             )
+            code = PermissionGroupErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.value
+            params = {"permissions": permission_codes}
+            cls.update_errors(errors, msg, "remove_permissions", code, params)
 
     @classmethod
     def clean_users(
@@ -404,10 +426,15 @@ class PermissionGroupDelete(ModelDeleteMutation):
             code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
             raise ValidationError(error_msg, code)
 
-        cls.check_if_group_can_be_removed(instance)
+        cls.check_if_group_can_be_removed(requestor, instance)
 
     @classmethod
-    def check_if_group_can_be_removed(cls, group):
+    def check_if_group_can_be_removed(cls, requestor, group):
+        cls.ensure_deleting_not_left_not_manageable_permissions(group)
+        cls.ensure_not_removing_requestor_last_group(group, requestor)
+
+    @classmethod
+    def ensure_deleting_not_left_not_manageable_permissions(cls, group):
         """Return true if management of all permissions is provided by other groups.
 
         After removing group, for each permission, there should be at least one staff
@@ -422,3 +449,11 @@ class PermissionGroupDelete(ModelDeleteMutation):
             raise ValidationError(
                 {"id": ValidationError(message=msg, code=code, params=params)}
             )
+
+    @classmethod
+    def ensure_not_removing_requestor_last_group(cls, group, requestor):
+        """Ensure user doesn't remove user's last group."""
+        if requestor in group.user_set.all() and requestor.groups.count() == 1:
+            msg = "You cannot delete your last group."
+            code = PermissionGroupErrorCode.CANNOT_REMOVE_FROM_LAST_GROUP.value
+            raise ValidationError({"id": ValidationError(message=msg, code=code)})
