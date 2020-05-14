@@ -99,12 +99,12 @@ class UUID(graphene.UUID):
     def parse_literal(node):
         try:
             return super(UUID, UUID).parse_literal(node)
-        except ValueError:
-            raise GraphQLError(f"Unsuported value: {node.value}")
+        except ValueError as e:
+            raise GraphQLError(str(e))
 
     @staticmethod
     def parse_value(value):
         try:
             return super(UUID, UUID).parse_value(value)
-        except ValueError:
-            raise GraphQLError(f"Unsuported value: {value}")
+        except ValueError as e:
+            raise GraphQLError(str(e))
