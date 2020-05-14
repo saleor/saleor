@@ -28,7 +28,7 @@ class Command(BaseCommand):
             "--activate-after-installation", action="store_true", dest="activate"
         )
         parser.add_argument(
-            "--target_url",
+            "--target-url",
             dest="target_url",
             help="Url which will receive newly created data of app object. "
             "Command doesn't return app data to stdout when this "
