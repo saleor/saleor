@@ -4,6 +4,11 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Drop support for configuring Vatlayer plugin from settings file. - #5614 by @korycins
+- Add ability to query category, collection or product by slug - #5574 by @koradon
+- Add `quantityAvailable` field to `ProductVariant` type - #5628 by @fowczarek
+- Add our implementation of UUID scalar - #5646 by @koradon
+
 ## 2.10.0
 - OpenTracing support - #5188 by @tomaszszymanski129
 - Account confirmation email - #5126 by @tomaszszymanski129
