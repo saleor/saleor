@@ -11,7 +11,7 @@ interactions:
       User-Agent:
       - python-requests/2.23.0
     method: GET
-    uri: http://localhost:3000/manifest
+    uri: http://localhost:3000/manifest-wrong
   response:
     body:
       string: "{\n  \"name\": \"app\",\n  \"version\": \"1.0.0\",\n  \"about_app\"\
@@ -19,7 +19,7 @@ interactions:
         : \"http://localhost:8888/app-data-privacy\",\n  \"homepage_url\": \"http://localhost:8888/homepage\"\
         ,\n  \"support_url\": \"http://localhost:8888/support\",\n  \"configuration_url\"\
         : \"htpp://localhost:8888/configuration\",\n  \"app_url\": \"http://localhost:8888/app\"\
-        ,\n  \"token_target_url\": \"http://localhost:3000/register\",\n  \"identificator\"\
+        ,\n  \"token_target_url\": \"register-wrong-format\",\n  \"identificator\"\
         : \"app2\"\n}"
     headers:
       Access-Control-Allow-Credentials:
@@ -29,13 +29,13 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '457'
+      - '448'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Tue, 12 May 2020 08:55:48 GMT
+      - Thu, 14 May 2020 12:43:50 GMT
       ETag:
-      - W/"1c9-rhA8cnfjgbXJTC5B4V+OdmeL6E4"
+      - W/"1c0-JJiYGAsB1lIohC/29ugFSHRYbSM"
       Expires:
       - '-1'
       Pragma:
@@ -50,7 +50,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"auth_token": "YFXjB5IIUEJfvAflkHFPEEkM61Gchv"}'
+    body: null
     headers:
       Accept:
       - '*/*'
@@ -58,50 +58,45 @@ interactions:
       - gzip, deflate
       Connection:
       - keep-alive
-      Content-Length:
-      - '48'
-      Content-Type:
-      - application/json
       User-Agent:
       - python-requests/2.23.0
-      x-saleor-domain:
-      - mirumee.com
-    method: POST
-    uri: http://localhost:3000/register
+    method: GET
+    uri: http://localhost:3000/manifest-wrong
   response:
     body:
-      string: "{\n  \"auth_token\": \"YFXjB5IIUEJfvAflkHFPEEkM61Gchv\",\n  \"id\"\
-        : 15\n}"
+      string: "{\n  \"name\": \"app\",\n  \"version\": \"1.0.0\",\n  \"about_app\"\
+        : \"Lorem ipsum\",\n  \"data_privacy\": \"Lorem ipsum\",\n  \"data_privacy_url\"\
+        : \"http://localhost:8888/app-data-privacy\",\n  \"homepage_url\": \"http://localhost:8888/homepage\"\
+        ,\n  \"support_url\": \"http://localhost:8888/support\",\n  \"configuration_url\"\
+        : \"htpp://localhost:8888/configuration\",\n  \"app_url\": \"http://localhost:8888/app\"\
+        ,\n  \"token_target_url\": \"register-wrong-format\",\n  \"identificator\"\
+        : \"app2\"\n}"
     headers:
       Access-Control-Allow-Credentials:
       - 'true'
-      Access-Control-Expose-Headers:
-      - Location
       Cache-Control:
       - no-cache
       Connection:
       - keep-alive
       Content-Length:
-      - '64'
+      - '448'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Tue, 12 May 2020 08:55:48 GMT
+      - Thu, 14 May 2020 12:43:50 GMT
       ETag:
-      - W/"40-fW5p7pz4wAbGNjq0no1jwexwcGs"
+      - W/"1c0-JJiYGAsB1lIohC/29ugFSHRYbSM"
       Expires:
       - '-1'
-      Location:
-      - http://localhost:3000/register/15
       Pragma:
       - no-cache
       Vary:
-      - Origin, X-HTTP-Method-Override, Accept-Encoding
+      - Origin, Accept-Encoding
       X-Content-Type-Options:
       - nosniff
       X-Powered-By:
       - Express
     status:
-      code: 201
-      message: Created
+      code: 200
+      message: OK
 version: 1

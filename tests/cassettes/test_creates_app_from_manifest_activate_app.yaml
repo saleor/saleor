@@ -20,7 +20,8 @@ interactions:
         ,\n  \"support_url\": \"http://localhost:8888/support\",\n  \"configuration_url\"\
         : \"htpp://localhost:8888/configuration\",\n  \"app_url\": \"http://localhost:8888/app\"\
         ,\n  \"token_target_url\": \"http://localhost:3000/register\",\n  \"identificator\"\
-        : \"app2\"\n}"
+        : \"app2\",\n  \"permissions\": [\n    \"MANAGE_USERS\",\n    \"MANAGE_ORDERS\"\
+        \n  ]\n}"
     headers:
       Access-Control-Allow-Credentials:
       - 'true'
@@ -29,13 +30,13 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '457'
+      - '521'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Tue, 12 May 2020 08:55:42 GMT
+      - Thu, 14 May 2020 12:38:40 GMT
       ETag:
-      - W/"1c9-rhA8cnfjgbXJTC5B4V+OdmeL6E4"
+      - W/"209-nZ8IFYM5Y7abK3rAKwcp0Qk6oSw"
       Expires:
       - '-1'
       Pragma:
@@ -50,7 +51,58 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"auth_token": "EPIiZBMM57tSkVGcc0ctOY8aObWTY7"}'
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.23.0
+    method: GET
+    uri: http://localhost:3000/manifest
+  response:
+    body:
+      string: "{\n  \"name\": \"app\",\n  \"version\": \"1.0.0\",\n  \"about_app\"\
+        : \"Lorem ipsum\",\n  \"data_privacy\": \"Lorem ipsum\",\n  \"data_privacy_url\"\
+        : \"http://localhost:8888/app-data-privacy\",\n  \"homepage_url\": \"http://localhost:8888/homepage\"\
+        ,\n  \"support_url\": \"http://localhost:8888/support\",\n  \"configuration_url\"\
+        : \"htpp://localhost:8888/configuration\",\n  \"app_url\": \"http://localhost:8888/app\"\
+        ,\n  \"token_target_url\": \"http://localhost:3000/register\",\n  \"identificator\"\
+        : \"app2\",\n  \"permissions\": [\n    \"MANAGE_USERS\",\n    \"MANAGE_ORDERS\"\
+        \n  ]\n}"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '521'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Thu, 14 May 2020 12:38:40 GMT
+      ETag:
+      - W/"209-nZ8IFYM5Y7abK3rAKwcp0Qk6oSw"
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+      Vary:
+      - Origin, Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Powered-By:
+      - Express
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"auth_token": "umPfSpRLbHIAfERSyxcinanPNV0c71"}'
     headers:
       Accept:
       - '*/*'
@@ -70,8 +122,8 @@ interactions:
     uri: http://localhost:3000/register
   response:
     body:
-      string: "{\n  \"auth_token\": \"EPIiZBMM57tSkVGcc0ctOY8aObWTY7\",\n  \"id\"\
-        : 14\n}"
+      string: "{\n  \"auth_token\": \"umPfSpRLbHIAfERSyxcinanPNV0c71\",\n  \"id\"\
+        : 21\n}"
     headers:
       Access-Control-Allow-Credentials:
       - 'true'
@@ -86,13 +138,13 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Tue, 12 May 2020 08:55:42 GMT
+      - Thu, 14 May 2020 12:38:40 GMT
       ETag:
-      - W/"40-uIkbdADCyMAHdmTFmdr/iG/m4Kg"
+      - W/"40-IeSY594Wsx2DnlKP2tiXVGPvB78"
       Expires:
       - '-1'
       Location:
-      - http://localhost:3000/register/14
+      - http://localhost:3000/register/21
       Pragma:
       - no-cache
       Vary:
