@@ -169,7 +169,6 @@ def test_calculate_checkout_shipping(
     shipping_price = manager.calculate_checkout_shipping(
         checkout_with_item, list(checkout_with_item), [discount_info]
     )
-    shipping_price = quantize_price(shipping_price, shipping_price.currency)
     assert shipping_price == TaxedMoney(
         net=Money("8.13", "USD"), gross=Money("10.00", "USD")
     )
