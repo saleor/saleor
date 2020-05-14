@@ -139,8 +139,9 @@ class AvataxPlugin(BasePlugin):
         voucher_value = checkout.discount
         if voucher_value:
             total -= voucher_value
-        total = max(total, zero_taxed_money(total.currency))
-        return quantize_price(total, total.currency)
+        return quantize_price(
+            max(total, zero_taxed_money(total.currency)), total.currency
+        )
 
     def _calculate_checkout_subtotal(
         self, currency: str, lines: List[Dict]
