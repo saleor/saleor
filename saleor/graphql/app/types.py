@@ -117,7 +117,7 @@ class AppOngoingInstallation(CountableDjangoObjectType):
             "status",
             "created_at",
             "updated_at",
-            "name",
+            "app_name",
             "manifest_url",
             "message",
         ]

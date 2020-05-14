@@ -8,13 +8,14 @@ from ...utils import get_graphql_content
 
 INSTALL_APP_MUTATION = """
     mutation AppInstall(
-        $name: String, $manifest_url: String, $permissions: [PermissionEnum]){
+        $app_name: String, $manifest_url: String, $permissions: [PermissionEnum]){
         appInstall(
-            input:{name: $name, manifestUrl: $manifest_url, permissions:$permissions}){
+            input:{appName: $app_name, manifestUrl: $manifest_url,
+                permissions:$permissions}){
             appJob{
                 id
                 status
-                name
+                appName
                 manifestUrl
             }
             appErrors{
@@ -42,7 +43,7 @@ def test_install_app_mutation(
     query = INSTALL_APP_MUTATION
     staff_user.user_permissions.set([permission_manage_apps, permission_manage_orders])
     variables = {
-        "name": "New external integration",
+        "app_name": "New external integration",
         "manifest_url": "http://localhost:3000/manifest",
         "permissions": [PermissionEnum.MANAGE_ORDERS.name],
     }
@@ -68,7 +69,7 @@ def test_install_app_mutation_by_app(
         [permission_manage_apps, permission_manage_orders]
     )
     variables = {
-        "name": "New external integration",
+        "app_name": "New external integration",
         "manifest_url": "http://localhost:3000/manifest",
         "permissions": [PermissionEnum.MANAGE_ORDERS.name],
     }
@@ -88,7 +89,7 @@ def test_app_install_mutation_out_of_scope_permissions(
     query = INSTALL_APP_MUTATION
     staff_user.user_permissions.set([permission_manage_apps])
     variables = {
-        "name": "New external integration",
+        "app_name": "New external integration",
         "manifest_url": "http://localhost:3000/manifest",
         "permissions": [PermissionEnum.MANAGE_ORDERS.name],
     }
@@ -111,7 +112,7 @@ def test_install_app_mutation_by_app_out_of_scope_permissions(
     query = INSTALL_APP_MUTATION
     app_api_client.app.permissions.set([permission_manage_apps])
     variables = {
-        "name": "New external integration",
+        "app_name": "New external integration",
         "manifest_url": "http://localhost:3000/manifest",
         "permissions": [PermissionEnum.MANAGE_ORDERS.name],
     }

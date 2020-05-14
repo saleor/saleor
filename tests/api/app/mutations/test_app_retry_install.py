@@ -14,7 +14,7 @@ RETRY_INSTALL_APP_MUTATION = """
             appJob{
                 id
                 status
-                name
+                appName
                 manifestUrl
             }
             appErrors{

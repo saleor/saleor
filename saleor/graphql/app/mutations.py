@@ -287,7 +287,7 @@ class AppRetryInstall(ModelMutation):
 
 
 class AppInstallInput(graphene.InputObjectType):
-    name = graphene.String(description="Name of the app to install.")
+    app_name = graphene.String(description="Name of the app to install.")
     manifest_url = graphene.String(description="Url to app's manifest in JSON format.")
     activate_after_installation = graphene.Boolean(
         default_value=True,
