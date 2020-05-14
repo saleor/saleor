@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from ...core.taxes import TaxError, TaxType, zero_taxed_money
+from ...core.taxes import TaxError, TaxType, quantize_price, zero_taxed_money
 from ...discount import DiscountInfo
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
@@ -139,7 +139,8 @@ class AvataxPlugin(BasePlugin):
         voucher_value = checkout.discount
         if voucher_value:
             total -= voucher_value
-        return max(total, zero_taxed_money(total.currency))
+        total = max(total, zero_taxed_money(total.currency))
+        return quantize_price(total, total.currency)
 
     def _calculate_checkout_subtotal(
         self, currency: str, lines: List[Dict]
@@ -153,7 +154,10 @@ class AvataxPlugin(BasePlugin):
             sub_net += Decimal(line.get("lineAmount", 0.0))
         sub_total_gross = Money(sub_net + sub_tax, currency)
         sub_total_net = Money(sub_net, currency)
-        return TaxedMoney(net=sub_total_net, gross=sub_total_gross)
+
+        return quantize_price(
+            TaxedMoney(net=sub_total_net, gross=sub_total_gross), currency
+        )
 
     def calculate_checkout_subtotal(
         self,
@@ -168,7 +172,6 @@ class AvataxPlugin(BasePlugin):
         base_subtotal = previous_value
         if not _validate_checkout(checkout):
             return base_subtotal
-
         response = get_checkout_tax_data(checkout, discounts, self.config)
         if not response or "error" in response:
             return base_subtotal
@@ -189,7 +192,10 @@ class AvataxPlugin(BasePlugin):
 
         shipping_gross = Money(amount=shipping_net + shipping_tax, currency=currency)
         shipping_net = Money(amount=shipping_net, currency=currency)
-        return TaxedMoney(net=shipping_net, gross=shipping_gross)
+
+        return quantize_price(
+            TaxedMoney(net=shipping_net, gross=shipping_gross), currency
+        )
 
     def calculate_checkout_shipping(
         self,
