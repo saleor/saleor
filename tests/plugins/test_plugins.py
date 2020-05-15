@@ -49,9 +49,7 @@ def test_update_config_items_skips_new_keys_when_doesnt_exsist_in_conf_structure
 
 
 def test_update_config_items_adds_new_keys(monkeypatch):
-    data_to_update = [
-        {"name": "New-field", "value": "content"},
-    ]
+    # Add new definition of field to CONFIG_STRUCTURE
     monkeypatch.setattr(
         PluginSample,
         "CONFIG_STRUCTURE",
@@ -64,11 +62,17 @@ def test_update_config_items_adds_new_keys(monkeypatch):
             **PluginSample.CONFIG_STRUCTURE,
         },
     )
+
+    data_to_update = [
+        {"name": "New-field", "value": "content"},
+    ]
     plugin_sample = PluginSample(
         configuration=PluginSample.DEFAULT_CONFIGURATION,
         active=PluginSample.DEFAULT_ACTIVE,
     )
-    current_config = PluginSample.DEFAULT_CONFIGURATION
+    current_config = [
+        {"name": "Username", "value": "admin"},
+    ]
 
     plugin_sample._update_config_items(data_to_update, current_config)
     assert any([config_field["name"] == "New-field" for config_field in current_config])
