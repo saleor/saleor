@@ -1,7 +1,7 @@
 from django.db import migrations
 
 
-def assign_access_key(apps, schema):
+def deactivate_vatlayer(apps, schema):
     vatlayer_configuration = (
         apps.get_model("plugins", "PluginConfiguration")
         .objects.filter(identifier="mirumee.taxes.vatlayer")
@@ -20,5 +20,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(assign_access_key),
+        migrations.RunPython(deactivate_vatlayer),
     ]
