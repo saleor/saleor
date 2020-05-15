@@ -4,7 +4,6 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# Peeravit Prapatrangsi <peeravit.pra@gmail.com>, 2019
 # Jakkrit S <jakkrit@ppsmartbot.com>, 2019
 #
 #, fuzzy
@@ -12,14 +11,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-14 04:02-0500\n"
+"POT-Creation-Date: 2020-05-14 03:45-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Jakkrit S <jakkrit@ppsmartbot.com>, 2019\n"
 "Language-Team: Thai (https://www.transifex.com/mirumee/teams/34782/th/)\n"
-"Language: th\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: th\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
@@ -36,77 +35,304 @@ msgid ""
 "%(street_address_2)s"
 msgstr ""
 
-#: templates/read_only/read_only_splash.html:48
-msgid "Be aware pirate! <br> Saleor runs in <span>read only mode!</span>"
+#: templates/templated_email/account/account_delete.email:4
+msgctxt "Account delete reset e-mail subject"
+msgid "Delete your account"
 msgstr ""
 
-#: templates/read_only/read_only_splash.html:49
-#, fuzzy
-#| msgctxt "Close modal action button"
-#| msgid "Close"
-msgid "Close"
-msgstr "ปิด"
-
-#: templates/templated_email/compiled/account_delete.html:174
-#: templates/templated_email/compiled/confirm.html:174
-#: templates/templated_email/compiled/confirm_fulfillment.html:174
-#: templates/templated_email/compiled/confirm_order.html:175
-#: templates/templated_email/compiled/confirm_payment.html:174
-#: templates/templated_email/compiled/email_changed_notification.html:174
-#: templates/templated_email/compiled/password_reset.html:174
-#: templates/templated_email/compiled/request_email_change.html:174
-#: templates/templated_email/compiled/set_customer_password.html:174
-#: templates/templated_email/compiled/set_password.html:174
-#: templates/templated_email/compiled/staff_confirm_order.html:175
-#: templates/templated_email/compiled/update_fulfillment.html:174
-msgctxt "Standard e-mail greeting"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/compiled/account_delete.html:182
+#: templates/templated_email/account/account_delete.email:9
 #, python-format
-msgctxt "Account delete e-mail text"
+msgctxt "Account delete reset e-mail text"
 msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be "
-"reversed."
+"\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"Click the link below to delete your account.\n"
+"\n"
+"Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:255
-#: templates/templated_email/compiled/confirm.html:255
-#: templates/templated_email/compiled/confirm_fulfillment.html:362
-#: templates/templated_email/compiled/confirm_order.html:465
-#: templates/templated_email/compiled/confirm_payment.html:245
-#: templates/templated_email/compiled/email_changed_notification.html:245
-#: templates/templated_email/compiled/password_reset.html:255
-#: templates/templated_email/compiled/request_email_change.html:255
-#: templates/templated_email/compiled/set_customer_password.html:255
-#: templates/templated_email/compiled/set_password.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:465
-#: templates/templated_email/compiled/update_fulfillment.html:350
+#: templates/templated_email/account/confirm.email:4
+msgctxt "Account confirmation e-mail subject"
+msgid "Account confirmation e-mail"
+msgstr ""
+
+#: templates/templated_email/account/confirm.email:9
+#, python-format
+msgctxt "Account confirmation e-mail text"
+msgid ""
+"\n"
+"In order to log into %(domain)s, you have to confirm your email address first.\n"
+"Please click the link below to do so and log into your account.\n"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:4
+#: templates/templated_email/account/request_email_change.email:4
+msgctxt "Email change e-mail subject"
+msgid "Email change e-mail"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
+"If you didn't request this change, please contact the administrator.\n"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:9
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/account/request_email_change.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:2
+#, python-format
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:6
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:6
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment confirmation email subject"
+msgid "Your order %(order)s has been fulfilled"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:11
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of fulfilled products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:15
+#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:6
+#: templates/templated_email/order/staff_confirm_order.email:6
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:11
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:15
+#: templates/templated_email/order/staff_confirm_order.email:15
+#, python-format
+msgctxt "Order confirmation e-mail payment details"
+msgid ""
+"\n"
+"To see your payment details please visit:\n"
+"%(order_details_url)s\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:23
+#: templates/templated_email/order/staff_confirm_order.email:23
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:24
+#: templates/templated_email/order/staff_confirm_order.email:24
+msgctxt "Order confirmation e-mail table header"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/order/staff_confirm_order.email:25
+msgctxt "Order confirmation e-mail table header"
+msgid "Shipping"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:27
+#: templates/templated_email/order/staff_confirm_order.email:27
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/staff_confirm_order.email:28
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:30
+#: templates/templated_email/order/staff_confirm_order.email:30
+#: templates/templated_email/source/confirm_order.mjml:29
+#: templates/templated_email/source/staff_confirm_order.mjml:29
+msgctxt "Order confirmation e-mail billing address"
+msgid "Billing address"
+msgstr "ี่ที่อยู่ส่งบิล"
+
+#: templates/templated_email/order/confirm_order.email:31
+#: templates/templated_email/order/staff_confirm_order.email:31
+#: templates/templated_email/source/confirm_order.mjml:39
+#: templates/templated_email/source/staff_confirm_order.mjml:39
+msgctxt "Order confirmation e-mail text"
+msgid "No billing address"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:33
+#: templates/templated_email/order/staff_confirm_order.email:33
+#: templates/templated_email/source/confirm_order.mjml:30
+#: templates/templated_email/source/staff_confirm_order.mjml:30
+msgctxt "Order confirmation e-mail shipping address"
+msgid "Shipping address"
+msgstr "ที่อยู่จัดส่ง"
+
+#: templates/templated_email/order/confirm_order.email:34
+#: templates/templated_email/order/staff_confirm_order.email:34
+#: templates/templated_email/source/confirm_order.mjml:46
+#: templates/templated_email/source/staff_confirm_order.mjml:46
+msgctxt "Order confirmation e-mail text"
+msgid "No shipping required"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:9
+msgctxt "Payment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your payment.\n"
+"Your payment was successfully charged.\n"
+msgstr ""
+
+#: templates/templated_email/order/staff_confirm_order.email:11
+msgctxt "Order confirmation staff e-mail text"
+msgid ""
+"\n"
+"Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment update email subject"
+msgid "Shipping update for order %(order)s"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:11
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:15
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid ""
+"You can track your shipment with the following code: %(tracking_number)s."
+msgstr ""
+
+#: templates/templated_email/shared/_footer.email:2
+#: templates/templated_email/source/shared/footer.mjml:4
 msgctxt "Base email text"
 msgid "This is an automatically generated e-mail, please do not reply."
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:317
-#: templates/templated_email/compiled/confirm.html:317
-#: templates/templated_email/compiled/confirm_fulfillment.html:424
-#: templates/templated_email/compiled/confirm_order.html:527
-#: templates/templated_email/compiled/confirm_payment.html:307
-#: templates/templated_email/compiled/email_changed_notification.html:307
-#: templates/templated_email/compiled/password_reset.html:317
-#: templates/templated_email/compiled/request_email_change.html:317
-#: templates/templated_email/compiled/set_customer_password.html:317
-#: templates/templated_email/compiled/set_password.html:317
-#: templates/templated_email/compiled/staff_confirm_order.html:527
-#: templates/templated_email/compiled/update_fulfillment.html:412
+#: templates/templated_email/shared/_footer.email:5
+#: templates/templated_email/source/shared/footer.mjml:13
 #, python-format
 msgctxt "Base email footer"
 msgid "Sincerely, %(site_name)s"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm.html:182
+#: templates/templated_email/shared/_header.email:2
+#: templates/templated_email/source/account_delete.mjml:13
+#: templates/templated_email/source/confirm.mjml:13
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+#: templates/templated_email/source/confirm_order.mjml:14
+#: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/email_changed_notification.mjml:13
+#: templates/templated_email/source/password_reset.mjml:13
+#: templates/templated_email/source/request_email_change.mjml:13
+#: templates/templated_email/source/set_customer_password.mjml:13
+#: templates/templated_email/source/set_password.mjml:13
+#: templates/templated_email/source/staff_confirm_order.mjml:14
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Standard e-mail greeting"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/account_delete.mjml:16
+#, python-format
+msgctxt "Account delete e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"deletion of your user account at %(domain)s.<br/> Click the link below to "
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
+msgstr ""
+
+#: templates/templated_email/source/confirm.mjml:16
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
@@ -114,2168 +340,153 @@ msgid ""
 "first. Please click the link below to do so and log into your account."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:182
+#: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:186
-#, python-format
-msgctxt "Fulfillment confirmation email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_fulfillment.html:198
+#: templates/templated_email/source/confirm_fulfillment.mjml:27
 msgctxt "Fulfillment digital products email text"
-msgid "You can download your digital products by clicking in download link(s)."
+msgid ""
+"You can download your digital products by clicking in download link(s)."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:183
+#: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit: <a href=\"%(order_details_url)s\">"
-"%(order_details_url)s</a>"
+"Thank you for your order. Below is the list of ordered products. To see your"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:255
-msgctxt "E-mail order lines summary table"
-msgid "Subtotal"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:263
-#: templates/templated_email/compiled/staff_confirm_order.html:263
-msgctxt "E-mail order lines summary table"
-msgid "Shipping"
-msgstr "ตัวเลือกการจัดส่ง"
-
-#: templates/templated_email/compiled/confirm_order.html:272
-#: templates/templated_email/compiled/staff_confirm_order.html:272
-msgctxt "E-mail order lines summary table"
-msgid "Taxes (included)"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:274
-#: templates/templated_email/compiled/staff_confirm_order.html:274
-msgctxt "E-mail order lines summary table"
-msgid "Taxes"
-msgstr "ภาษี"
-
-#: templates/templated_email/compiled/confirm_order.html:284
-#: templates/templated_email/compiled/staff_confirm_order.html:284
-msgctxt "E-mail order lines summary table"
-msgid "Discount"
-msgstr "ส่วนลด"
-
-#: templates/templated_email/compiled/confirm_order.html:293
-#: templates/templated_email/compiled/staff_confirm_order.html:293
-msgctxt "E-mail order lines summary table"
-msgid "Total"
-msgstr "รวมทั้งหมด"
-
-#: templates/templated_email/compiled/confirm_order.html:302
-#: templates/templated_email/compiled/staff_confirm_order.html:302
-msgctxt "Ordered item name"
-msgid "Item"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:303
-#: templates/templated_email/compiled/staff_confirm_order.html:303
-msgctxt "Quantity ordered of a product"
-msgid "Quantity"
-msgstr "จำนวน"
-
-#: templates/templated_email/compiled/confirm_order.html:304
-#: templates/templated_email/compiled/staff_confirm_order.html:304
-msgctxt "Unit price of a product"
-msgid "Per unit"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:305
-#: templates/templated_email/compiled/staff_confirm_order.html:305
-msgctxt "Ordered item subtotal (unit price * quantity)"
-msgid "Subtotal"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:383
-#: templates/templated_email/compiled/staff_confirm_order.html:383
-msgctxt "Order confirmation e-mail billing address"
-msgid "Billing address"
-msgstr "ี่ที่อยู่ส่งบิล"
-
-#: templates/templated_email/compiled/confirm_order.html:384
-#: templates/templated_email/compiled/staff_confirm_order.html:384
-msgctxt "Order confirmation e-mail shipping address"
-msgid "Shipping address"
-msgstr "ที่อยู่จัดส่ง"
-
-#: templates/templated_email/compiled/confirm_order.html:393
-#: templates/templated_email/compiled/staff_confirm_order.html:393
-msgctxt "Order confirmation e-mail text"
-msgid "No billing address"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:400
-#: templates/templated_email/compiled/staff_confirm_order.html:400
-msgctxt "Order confirmation e-mail text"
-msgid "No shipping required"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_payment.html:182
+#: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
 msgid "Thank you for your payment. Your payment was successfully charged."
 msgstr ""
 
-#: templates/templated_email/compiled/email_changed_notification.html:182
+#: templates/templated_email/source/email_changed_notification.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
-"for your user account at %(domain)s.<br> If you didn't request this change, "
-"please contact the administrator."
+"for your user account at %(domain)s.<br /> If you didn't request this "
+"change, please contact the administrator."
 msgstr ""
 
-#: templates/templated_email/compiled/password_reset.html:182
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:29
+#: templates/templated_email/source/partials/_order_lines.mjml:59
+msgctxt "Ordered item name"
+msgid "Item"
+msgstr ""
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
+#: templates/templated_email/source/partials/_order_lines.mjml:60
+msgctxt "Quantity ordered of a product"
+msgid "Quantity"
+msgstr "จำนวน"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
+msgctxt "Ordered item download links"
+msgid "Download Link"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:12
+msgctxt "E-mail order lines summary table"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:20
+msgctxt "E-mail order lines summary table"
+msgid "Shipping"
+msgstr "ตัวเลือกการจัดส่ง"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:29
+msgctxt "E-mail order lines summary table"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:31
+msgctxt "E-mail order lines summary table"
+msgid "Taxes"
+msgstr "ภาษี"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:41
+msgctxt "E-mail order lines summary table"
+msgid "Discount"
+msgstr "ส่วนลด"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:50
+msgctxt "E-mail order lines summary table"
+msgid "Total"
+msgstr "รวมทั้งหมด"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:61
+msgctxt "Unit price of a product"
+msgid "Per unit"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:62
+msgctxt "Ordered item subtotal (unit price * quantity)"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/source/password_reset.mjml:16
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br> It can be safely ignored "
+"password for your user account at %(domain)s.<br/> It can be safely ignored "
 "if you did not request a password reset. Click the link below to reset your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/request_email_change.html:182
+#: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested an "
-"email change for your user account at %(domain)s.<br> It can be safely "
+"email change for your user account at %(domain)s.<br /> It can be safely "
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
 
-#: templates/templated_email/compiled/set_customer_password.html:182
+#: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your "
-"customer account at %(domain)s.<br> Click the link below to set up your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/set_password.html:182
+#: templates/templated_email/source/set_password.mjml:16
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
-"You're receiving this e-mail because you have to set password for your staff "
-"member account at %(domain)s.<br> Click the link below to set up your "
+"You're receiving this e-mail because you have to set password for your staff"
+" member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/staff_confirm_order.html:183
+#: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
-"Someone placed a new order in your store. To see order details please visit: "
-"<a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+"Someone placed a new order in your store. To see order details please visit:"
+" <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:182
+#: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number."
+"Your shipping status has been updated. Below is the list of ordered products"
+" that have been updated with new tracking number."
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:186
+#: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
 msgstr ""
-
-#~ msgctxt "Form field"
-#~ msgid "Email"
-#~ msgstr "อีเมล"
-
-#~ msgctxt "Password"
-#~ msgid "Password"
-#~ msgstr "รหัสผ่าน"
-
-#~ msgctxt "Email"
-#~ msgid "Email"
-#~ msgstr "อีเมล"
-
-#~ msgctxt "Registration error"
-#~ msgid "This email has already been registered."
-#~ msgstr "อีเมลนี้มีอยู่ในระบบแล้ว"
-
-#~ msgctxt "Customer form: Given name field"
-#~ msgid "Given name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Customer form: Family name field"
-#~ msgid "Family name"
-#~ msgstr "นามสกุล"
-
-#~ msgctxt "Address field"
-#~ msgid "Area"
-#~ msgstr "พื้นที่"
-
-#~ msgctxt "Address field"
-#~ msgid "County"
-#~ msgstr "ประเทศ"
-
-#~ msgctxt "Address field"
-#~ msgid "Department"
-#~ msgstr "แผนก"
-
-#~ msgctxt "Address field"
-#~ msgid "District"
-#~ msgstr "เขต/อำเภอ"
-
-#~ msgctxt "Address field"
-#~ msgid "PIN"
-#~ msgstr "รหัส PIN"
-
-#~ msgctxt "Address field"
-#~ msgid "Postal code"
-#~ msgstr "รหัสไปรษณีย์"
-
-#~ msgctxt "Address field"
-#~ msgid "Province"
-#~ msgstr "จังหวัด"
-
-#~ msgctxt "Address field"
-#~ msgid "State"
-#~ msgstr "รัฐ"
-
-#~ msgctxt "Address field"
-#~ msgid "ZIP code"
-#~ msgstr "รหัสไปรษณีย์"
-
-#~ msgctxt "Country"
-#~ msgid "Country"
-#~ msgstr "ประเทศ"
-
-#~ msgctxt "Personal name"
-#~ msgid "Given name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Personal name"
-#~ msgid "Family name"
-#~ msgstr "นามสกุล"
-
-#~ msgctxt "Company or organization"
-#~ msgid "Company or organization"
-#~ msgstr "บริษัท/องค์กร"
-
-#~ msgctxt "Address"
-#~ msgid "Address"
-#~ msgstr "ที่อยู่"
-
-#~ msgctxt "City"
-#~ msgid "City"
-#~ msgstr "เมือง"
-
-#~ msgctxt "City area"
-#~ msgid "District"
-#~ msgstr "เขต/อำเภอ"
-
-#~ msgctxt "Postal code"
-#~ msgid "Postal code"
-#~ msgstr "รหัสไปรษณีย์"
-
-#~ msgctxt "Country area"
-#~ msgid "State or province"
-#~ msgstr "จังหวัด"
-
-#~ msgctxt "Phone number"
-#~ msgid "Phone number"
-#~ msgstr "เบอร์โทรศัพท์"
-
-#~ msgid "The phone number entered is not valid."
-#~ msgstr "เบอร์โทรศัพท์ไม่ถูกต้อง"
-
-#~ msgid "You have been successfully logged out."
-#~ msgstr "ล็อกเอ๊าท์สำเร็จ"
-
-#~ msgid "User has been created"
-#~ msgstr "สร้างผู้ใช้เรียบร้อยแล้ว"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Password successfully changed."
-#~ msgstr "เปลี่ยนพาสเวิร์ดสำเร็จ"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Account successfully updated."
-#~ msgstr "บัญชีอัพเดทสำเร็จ"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully updated."
-#~ msgstr "ที่อยู่อัพเดทสำเร็จ"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully removed"
-#~ msgstr "ลบที่อยู่เรียบร้อยแล้ว"
-
-#~ msgctxt "Storefront message, when user requested his account removed"
-#~ msgid "Please check your inbox for a confirmation e-mail."
-#~ msgstr "กรุณาตรวจสอบอีเมลยืนยันที่ถูกส่งไปแล้ว"
-
-#~ msgctxt "Account deleted"
-#~ msgid ""
-#~ "Your account was deleted successfully. In case of any trouble or "
-#~ "questions feel free to contact us."
-#~ msgstr "ลบบัญชีเรียบร้อยแล้ว หากมีข้อสงสัยหรือคำถาม กรุณาติดต่อเรา"
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Billing"
-#~ msgstr "บิล"
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Shipping"
-#~ msgstr "ตัวเลือกการจัดส่ง"
-
-#~ msgctxt "Add to checkout form field label"
-#~ msgid "Quantity"
-#~ msgstr "จำนวน"
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently not available."
-#~ msgstr "ขอโทษค่ะ ไม่มีสินค้านี้ในขณะนี้ค่ะ"
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently out of stock."
-#~ msgstr "ขอโทษค่ะ สินค้านี้ไม่มีในสต็อกในขณะนี้ค่ะ"
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Oops. We could not find that product."
-#~ msgstr "ขอโทษค่ะ เราหาสินค้านี้ไม่เจอค่ะ"
-
-#~ msgctxt "Country form field label"
-#~ msgid "Country"
-#~ msgstr "ประเทศ"
-
-#~ msgctxt "Address form field label"
-#~ msgid "Email"
-#~ msgstr "อีเมล"
-
-#~ msgctxt "Shipping addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "กรุณากรอกที่อยู่ใหม่"
-
-#~ msgctxt "Shipping addresses form field label"
-#~ msgid "Address"
-#~ msgstr "ที่อยู่"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "กรุณากรอกที่อยู่ใหม่"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Same as shipping"
-#~ msgstr "ที่อยู่เดียวกับที่อยู่จัดส่ง"
-
-#~ msgctxt "Billing addresses form field label"
-#~ msgid "Address"
-#~ msgstr "ที่อยู่"
-
-#~ msgctxt "Shipping method form field label"
-#~ msgid "Shipping method"
-#~ msgstr "ตัวเลือกการจัดส่ง"
-
-#~ msgctxt "Voucher form error"
-#~ msgid "Discount code incorrect or expired"
-#~ msgstr "โค๊ดส่วนลดไม่ถูกต้อง หรืออาจหมดอายุแล้ว"
-
-#~ msgctxt "Checkout discount form label for voucher field"
-#~ msgid "Gift card or discount code"
-#~ msgstr "รหัสโค๊ดบัตรของขวัญหรือรหัสส่วนลด"
-
-#~ msgctxt "Checkout warning message"
-#~ msgid ""
-#~ "Sorry. We don't have that many items in stock. Quantity was set to "
-#~ "maximum available for now."
-#~ msgstr "ขอโทษค่ะ เรามีสินค้าไม่พอในสต็อก จำนวนสินค้าที่ต้องการมีน้อยกว่าสินค้าในสต็อกค่ะ"
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Your order does not require shipping."
-#~ msgstr "คำสั่งซื้อของคุณไม่จำเป็นต้องกรอกที่อยู่จัดส่งค่ะ"
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Please select a shipping method first."
-#~ msgstr "กรุณาเลือกวิธีจัดส่งก่อนค่ะ"
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is not valid in your country."
-#~ msgstr "ไม่มีข้อเสนอนี้ในประเทศของคุณค่ะ"
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for selected items."
-#~ msgstr "ข้อเสนอนี้ใช้ได้กับเพียงสินค้าบางชิ้นที่เลือกอยู่นะคะ"
-
-#~ msgctxt "Kilogram weight unit symbol"
-#~ msgid "kg"
-#~ msgstr "กิโลกรัม"
-
-#~ msgctxt "Pound weight unit symbol"
-#~ msgid "lb"
-#~ msgstr "ปอนด์"
-
-#~ msgctxt "Ounce weight unit symbol"
-#~ msgid "oz"
-#~ msgstr "ออนซ์"
-
-#~ msgctxt "Discount type"
-#~ msgid "%"
-#~ msgstr "เปอร์เซ็นต์"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Shipping"
-#~ msgstr "ตัวเลือกการจัดส่ง"
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Discount not applicable for this product"
-#~ msgstr "ส่วนลดนี้ไม่สามารถใช้กับสินค้านี้ค่ะ"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "bikes"
-#~ msgstr "จักรยาน"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "books"
-#~ msgstr "หนังสือ"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "childrens clothing"
-#~ msgstr "เสื้อผ้าเด็ก"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "e-books"
-#~ msgstr "หนังสืออีบุ๊ค"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "hotels"
-#~ msgstr "โรงแรมที่พัก"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "medical"
-#~ msgstr "ยา/เวชภัณฑ์"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "newspapers"
-#~ msgstr "หนังสือพิมพ์"
-
-#~ msgctxt "Status for a permanently canceled order"
-#~ msgid "Canceled"
-#~ msgstr "ยกเลิกแล้ว"
-
-#~ msgctxt ""
-#~ "Status for a fulfilled group of products in an order marked as canceled"
-#~ msgid "Canceled"
-#~ msgstr "ยกเลิกแล้ว"
-
-#~ msgctxt "Payments form label"
-#~ msgid "Payment Method"
-#~ msgstr "วีธีชำระเงิน"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage orders."
-#~ msgstr "จัดการคำสั่งซื้อ"
-
-#~ msgctxt "Connect order with user warning message"
-#~ msgid ""
-#~ "We couldn't assign the order to your account as the email addresses don't "
-#~ "match"
-#~ msgstr "ไม่สามารถส่งคำสั่งซื้อไปยังบัญชีของคุณได้เนื่องจากอีเมลไม่ตรงกัน"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Refund"
-#~ msgstr "คืนเงิน"
-
-#~ msgctxt "payment error"
-#~ msgid "Unable to process transaction. Please try again in a moment"
-#~ msgstr "ไม่สามารถดำเนินการได้ อีกสักครู่กรุณาลองใหม่อีกครั้งค่ะ"
-
-#~ msgctxt "Payment status form field"
-#~ msgid "Payment status"
-#~ msgstr "สถานะการชำระเงิน"
-
-#~ msgctxt "Product status"
-#~ msgid "out of stock"
-#~ msgstr "สินค้าหมดสต็อก"
-
-#~ msgctxt "Product status"
-#~ msgid "stock running low"
-#~ msgstr "สต็อกเหลือน้อย"
-
-#~ msgctxt "Product status"
-#~ msgid "not yet available"
-#~ msgstr "ยังไม่มีสินค้า"
-
-#~ msgctxt "Product status"
-#~ msgid "ready for purchase"
-#~ msgstr "พร้อมส่ง"
-
-#~ msgctxt "Variant status"
-#~ msgid "out of stock"
-#~ msgstr "สินค้าหมดสต็อก"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Product list sorting form"
-#~ msgid "Sort by"
-#~ msgstr "เรียงโดย"
-
-#~ msgctxt "Currency amount"
-#~ msgid "Price"
-#~ msgstr "ราคา"
-
-#~ msgid "Arabic"
-#~ msgstr "ภาษาอารบิก"
-
-#~ msgid "Bulgarian"
-#~ msgstr "ภาษาบัลแกเรียน"
-
-#~ msgctxt "Type of shipping"
-#~ msgid "Price based shipping"
-#~ msgstr "ค่าจัดส่งตามราคา"
-
-#~ msgctxt "Type of shipping"
-#~ msgid "Weight based shipping"
-#~ msgstr "ค่าจัดส่งตามน้ำหนัก"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage settings."
-#~ msgstr "จัดการการตั้งค่า"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage translations."
-#~ msgstr "จัดการการแปลภาษา"
-
-#~ msgctxt "Eror page not found"
-#~ msgid "Page not found"
-#~ msgstr "ไม่พบหน้าที่ต้องการ"
-
-#~ msgctxt "Change language modal title"
-#~ msgid "Select language"
-#~ msgstr "เลือกภาษา"
-
-#~ msgctxt "Change language action button"
-#~ msgid "Change"
-#~ msgstr "เปลี่ยน"
-
-#~ msgctxt "Account deletetion confirmation page title"
-#~ msgid "Are you sure?"
-#~ msgstr "คุณแน่ใจใช่ไหมคะ?"
-
-#~ msgctxt ""
-#~ "Message displayed to the user requesting for his account deletetion"
-#~ msgid "Sorry to see you go!"
-#~ msgstr "เสียใจที่คุณจากไปนะคะ"
-
-#~ msgctxt ""
-#~ "Message displayed to the user requesting for his account deletetion"
-#~ msgid "Are you sure you want to delete your account?"
-#~ msgstr "คุณแน่ใจว่าต้องการลบบัญชีนะคะ"
-
-#~ msgctxt "Confirm account deletion button"
-#~ msgid "Delete account"
-#~ msgstr "ลบบัญชี"
-
-#~ msgctxt "Remove address form action"
-#~ msgid "Remove Address"
-#~ msgstr "ลบที่อยู่"
-
-#~ msgctxt "Remove address form action"
-#~ msgid "Cancel"
-#~ msgstr "ยกเลิก"
-
-#~ msgctxt "Edit address page title"
-#~ msgid "Edit address"
-#~ msgstr "แก้ไขที่อยู่"
-
-#~ msgctxt "New address page title"
-#~ msgid "New address"
-#~ msgstr "ี่ที่อยู่ใหม่"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Home"
-#~ msgstr "หน้าแรก"
-
-#~ msgctxt "Edit/new address breadcrumb"
-#~ msgid "Your profile"
-#~ msgstr "โปรไฟล์"
-
-#~ msgctxt "Edit address breadcrumb"
-#~ msgid "Edit address"
-#~ msgstr "แก้ไขที่อยู่"
-
-#~ msgctxt "New address breadcrumb"
-#~ msgid "New address"
-#~ msgstr "ที่อยู่ใหม่"
-
-#~ msgctxt "Edit address title"
-#~ msgid "Edit address"
-#~ msgstr "แก้ไขที่อยู่"
-
-#~ msgctxt "New address title"
-#~ msgid "New address"
-#~ msgstr "ที่อยู่ใหม่"
-
-#~ msgctxt "Edit/new address primary action"
-#~ msgid "Save changes"
-#~ msgstr "บันทึก"
-
-#~ msgctxt "User profile page title"
-#~ msgid "Your profile"
-#~ msgstr "โปรไฟล์"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your account"
-#~ msgstr "บัญชี"
-
-#~ msgid "My account"
-#~ msgstr "บัญชี"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Recent Orders"
-#~ msgstr "คำสั่งซื้อล่าสุด"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Change password"
-#~ msgstr "เปลี่ยนพาสเวิร์ด"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Contact details"
-#~ msgstr "รายละเอียดการติดต่อ"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Settings"
-#~ msgstr "การตั้งค่า"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order"
-#~ msgstr "คำสั่งซื้อ"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Date"
-#~ msgstr "วันที่"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Summary"
-#~ msgstr "สรุป"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Payment status"
-#~ msgstr "สถานะการชำระเงิน"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order status"
-#~ msgstr "สถานะคำสั่งซื้อ"
-
-#~ msgctxt "Recent orders link text"
-#~ msgid "Details"
-#~ msgstr "รายละเอียด"
-
-#~ msgctxt "User profile action"
-#~ msgid "Change password"
-#~ msgstr "เปลี่ยนพาสเวิร์ด"
-
-#~ msgctxt "User profile settings"
-#~ msgid "Personal Data"
-#~ msgstr "ข้อมูลส่วนตัว"
-
-#~ msgctxt "User profile action"
-#~ msgid "Update"
-#~ msgstr "อัพเดท"
-
-#~ msgctxt "List of adresses in contact details"
-#~ msgid "Addresses"
-#~ msgstr "ที่อยู่"
-
-#~ msgctxt "User address action"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Remove account form action"
-#~ msgid "Remove Account"
-#~ msgstr "ลบบัญชี"
-
-#~ msgctxt "Login page title"
-#~ msgid "Log in"
-#~ msgstr "ล็อกอิน"
-
-#~ msgctxt "Login form secondary title"
-#~ msgid "Don't have an account yet?"
-#~ msgstr "ยังไม่มีแอ็คเค้าท์ใช่มั๊ย"
-
-#~ msgctxt "Login form secondary action"
-#~ msgid "Register"
-#~ msgstr "ลงทะเบียน"
-
-#~ msgctxt "Login form title"
-#~ msgid "Log in"
-#~ msgstr "ล็อกอิน"
-
-#~ msgctxt "Login form primary action"
-#~ msgid "Log in"
-#~ msgstr "ล็อกอิน"
-
-#~ msgctxt "Login form secondary link"
-#~ msgid "Forgot password?"
-#~ msgstr "ลืมพาสเวิร์ด?"
-
-#~ msgid "Facebook"
-#~ msgstr "เฟซบุ๊ค"
-
-#~ msgid "Google"
-#~ msgstr "กูเกิ้ล"
-
-#~ msgctxt "Password change breadcrumb"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Password change form legend"
-#~ msgid "Change Password"
-#~ msgstr "เปลี่ยนพาสเวิร์ด"
-
-#~ msgctxt "Password change form primary action"
-#~ msgid "Save new password"
-#~ msgstr "บันทึกพาสเวิร์ดใหม่"
-
-#~ msgctxt "Password reset page title"
-#~ msgid "Password reset"
-#~ msgstr "รีเซ็ทพาสเวิร์ด"
-
-#~ msgctxt "Password reset form title"
-#~ msgid "Forgot your password?"
-#~ msgstr "ลืมพาสเวิร์ดใช่มั๊ย?"
-
-#~ msgctxt "Password reset primary action"
-#~ msgid "Continue"
-#~ msgstr "ต่อไป"
-
-#~ msgctxt "Password reset done page title"
-#~ msgid "Password Reset"
-#~ msgstr "รีเซ็ทพาสเวิร์ด"
-
-#~ msgctxt "Password reset done title"
-#~ msgid "Password Reset"
-#~ msgstr "รีเซ็ทพาสเวิร์ด"
-
-#~ msgctxt "Password reset done text"
-#~ msgid ""
-#~ "We have sent you an e-mail. Please contact us if you do not receive it "
-#~ "within a few minutes."
-#~ msgstr "เราได้ส่งอีเมล์ไปแล้ว กรุณาติดต่อเราหากไม่ได้รับอีเมลภายในสิบนาที"
-
-#~ msgctxt "Password reset from key page title"
-#~ msgid "Change Password"
-#~ msgstr "เปลี่ยนพาสเวิร์ด"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Password Reset"
-#~ msgstr "รีเซ็ทพาสเวิร์ด"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Now you can set new password for you account."
-#~ msgstr "คุณสามารถตั้งค่าพาสเวิร์ดใหม่ได้เลยค่ะ"
-
-#~ msgctxt "Password reset from key form primary action"
-#~ msgid "Continue"
-#~ msgstr "ต่อไป"
-
-#~ msgctxt "Password reset link expired from key form title"
-#~ msgid "Password Reset Link Expired"
-#~ msgstr "ลิ๊งค์รีเซ็ทพาสเวิร์ดหมดอายุแล้วค่ะ"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid ""
-#~ "Sorry but this link is no longer valid. If you forget your password, "
-#~ "please use link below."
-#~ msgstr "ขอโทษค่ะ ลิ๊งค์นี้หมดอายุแล้ว หากคุณลืมพาสเวิร์ด กรุณาใช้ลิ๊งค์ด้านล่างค่ะ"
-
-#~ msgctxt "Reset my password link"
-#~ msgid "Reset my password"
-#~ msgstr "รีเซ็ทพาสเวิร์ด"
-
-#~ msgctxt "Password reset from key done page title"
-#~ msgid "Password Changed"
-#~ msgstr "เปลี่ยนพาสเวิร์ดเรียบร้อยแล้ว"
-
-#~ msgctxt "Password reset from key done title"
-#~ msgid "Password Changed"
-#~ msgstr "เปลี่ยนพาสเวิร์ดเรียบร้อยแล้ว"
-
-#~ msgid "Your password is now changed."
-#~ msgstr "พาสเวิร์ดของคุณเปลี่ยนแปลงเรียบร้อยแล้ว"
-
-#~ msgctxt "Signup page title"
-#~ msgid "Sign Up"
-#~ msgstr "ลงทะเบียน"
-
-#~ msgctxt "Signup form secondary title"
-#~ msgid "Already have an account?"
-#~ msgstr "มีบัญชีแล้วใช่มั๊ย"
-
-#~ msgctxt "Signup form secondary action"
-#~ msgid "Log in"
-#~ msgstr "ล็อกอิน"
-
-#~ msgctxt "Signup form title"
-#~ msgid "Create an account"
-#~ msgstr "สร้างบัญชี"
-
-#~ msgctxt "Signup form primary action"
-#~ msgid "Create an account"
-#~ msgstr "สร้างบัญชี"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Dashboard"
-#~ msgstr "แดชบอร์ด"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log out"
-#~ msgstr "ล็อกเอ๊าท์"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Register"
-#~ msgstr "ลงทะเบียน"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log in"
-#~ msgstr "ล็อกอิน"
-
-#~ msgid "Search for product"
-#~ msgstr "ค้นหาสินค้า"
-
-#~ msgid "Search"
-#~ msgstr "ค้นหา"
-
-#~ msgid "Account"
-#~ msgstr "บัญชี"
-
-#~ msgctxt "Category breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "หน้าแรก"
-
-#~ msgctxt "Checkout shipping cost form"
-#~ msgid "Shipping cost for:"
-#~ msgstr "ค่าจัดส่งสำหรับ:"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Total"
-#~ msgstr "รวมทั้งหมด"
-
-#~ msgctxt "Checkout summary text"
-#~ msgid "Shipment and taxes calculated at checkout"
-#~ msgstr "ค่าขนส่งและภาษีจะคำนวณเมื่อเช็คเอ๊าท์"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Checkout"
-#~ msgstr "เช็คเอ๊าท์"
-
-#~ msgctxt "Checkout top message"
-#~ msgid "Easy and secure!"
-#~ msgstr "ง่ายและปลอดภัย!"
-
-#~ msgctxt "Checkout title"
-#~ msgid "Checkout"
-#~ msgstr "เช็คเอ๊าท์"
-
-#~ msgctxt "Order review title"
-#~ msgid "Order review"
-#~ msgstr "เช็คคำสั่งซื้อ"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Taxes"
-#~ msgstr "ภาษี"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Total"
-#~ msgstr "รวมทั้งหมด"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Product"
-#~ msgstr "สินค้า"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Quantity"
-#~ msgstr "จำนวน"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Price"
-#~ msgstr "ราคา"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Checkout"
-#~ msgstr "เช็คเอ๊าท์"
-
-#~ msgctxt "Empty checkout message"
-#~ msgid "There are no products in your shopping cart."
-#~ msgstr "ไม่สินค้าในตระกร้าสินค้า"
-
-#~ msgctxt "Empty checkout link"
-#~ msgid "Check out our sales"
-#~ msgstr "ดูสินค้าลดราคา"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "Login"
-#~ msgstr "ล็อกอิน"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "New customer?"
-#~ msgstr "ลูกค้าใหม่?"
-
-#~ msgctxt "Checkout login page new users action"
-#~ msgid "Continue"
-#~ msgstr "ต่อไป"
-
-#~ msgctxt "Checkout login page new users message"
-#~ msgid "Registration is not required!"
-#~ msgstr "ไม่จำเป็นต้องลงทะเบียน!"
-
-#~ msgctxt "Checkout login form title"
-#~ msgid "Existing customer? Log in."
-#~ msgstr "มีบัญชีอยู่แล้ว? ล็อกอิน"
-
-#~ msgctxt "Checkout payment title"
-#~ msgid "Payment"
-#~ msgstr "การชำระเงิน"
-
-#~ msgctxt "Checkout shipping address title"
-#~ msgid "Shipping address"
-#~ msgstr "ที่อยู่จัดส่ง"
-
-#~ msgctxt "Checkout shipping address primary action"
-#~ msgid "Continue"
-#~ msgstr "ต่อไป"
-
-#~ msgid "Select other address"
-#~ msgstr "ใช้ที่อยู่อื่น"
-
-#~ msgctxt "Checkout shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "ตัวเลือกการจัดส่ง"
-
-#~ msgctxt "Checkout shipping method primary action"
-#~ msgid "Continue"
-#~ msgstr "ต่อไป"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Same as shipping"
-#~ msgstr "ที่อยู่เดียวกับที่อยู่จัดส่ง"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Enter a new address"
-#~ msgstr "กรุณากรอกที่อยู่ใหม่"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "Remove"
-#~ msgstr "ลบ"
-
-#~ msgctxt "Checkout summary title"
-#~ msgid "Billing address"
-#~ msgstr "ี่ที่อยู่ส่งบิล"
-
-#~ msgctxt "Checkout summary note title"
-#~ msgid "Add a note to your order"
-#~ msgstr "เพิ่มโน๊ต"
-
-#~ msgctxt "Checkout summary without shipping title"
-#~ msgid "Billing address"
-#~ msgstr "ี่ที่อยู่ส่งบิล"
-
-#~ msgctxt "Checkout summary without shipping note title"
-#~ msgid "Add a note to your order"
-#~ msgstr "เพิ่มโน๊ต"
-
-#~ msgctxt "Checkout dropdown text"
-#~ msgid "Shipment and taxes calculated at checkout"
-#~ msgstr "ค่าขนส่งและภาษีจะคำนวณเมื่อเช็คเอ๊าท์"
-
-#~ msgctxt "Checkout dropdown secondary action"
-#~ msgid "Go to cart"
-#~ msgstr "ไปยังตระกร้าสินค้า"
-
-#~ msgctxt "Checkout dropdown primary action"
-#~ msgid "Checkout"
-#~ msgstr "เช็คเอ๊าท์"
-
-#~ msgctxt "Site breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "หน้าแรก"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Log out"
-#~ msgstr "ล็อกเอ๊าท์"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search"
-#~ msgstr "ค้นหา"
-
-#~ msgctxt "Dashboard homepage"
-#~ msgid "Home"
-#~ msgstr "หน้าแรก"
-
-#~ msgctxt "Dashboard catalogue"
-#~ msgid "Catalogue"
-#~ msgstr "แคตตาล็อก"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Products"
-#~ msgstr "สินค้า"
-
-#~ msgctxt "Dashboard categories list"
-#~ msgid "Categories"
-#~ msgstr "ประเภทสินค้า"
-
-#~ msgctxt "Dashboard side navigation link"
-#~ msgid "Collections"
-#~ msgstr "คอลเล็กชั่น"
-
-#~ msgctxt "Dashboard discounts list"
-#~ msgid "Discounts"
-#~ msgstr "ส่วนลด"
-
-#~ msgctxt "Dashboard sales (discounts) list"
-#~ msgid "Sales"
-#~ msgstr "ลดราคา"
-
-#~ msgctxt "Dashboard sales. `Sales' is noun of to sell"
-#~ msgid "Sales"
-#~ msgstr "ลดราคา"
-
-#~ msgctxt "Dashboard orders list"
-#~ msgid "Orders"
-#~ msgstr "คำสั่งซื้อ"
-
-#~ msgctxt "Dashboard customers list"
-#~ msgid "Customers"
-#~ msgstr "ลูกค้า"
-
-#~ msgctxt "Management section"
-#~ msgid "Staff management"
-#~ msgstr "การจัดการพนักงานร้าน"
-
-#~ msgctxt "Dashboard staff members list"
-#~ msgid "Staff members"
-#~ msgstr "พนักงานร้าน"
-
-#~ msgctxt "Dashboard configuration"
-#~ msgid "Configuration"
-#~ msgstr "การตั้งค่า"
-
-#~ msgctxt "Dashboard shipping zones list"
-#~ msgid "Shipping"
-#~ msgstr "ตัวเลือกการจัดส่ง"
-
-#~ msgctxt "Dashboard taxes"
-#~ msgid "Taxes"
-#~ msgstr "ภาษี"
-
-#~ msgctxt "Dashboard cancel action"
-#~ msgid "Cancel"
-#~ msgstr "ยกเลิก"
-
-#~ msgctxt "Category list page title"
-#~ msgid "Categories"
-#~ msgstr "ประเภทสินค้า"
-
-#~ msgctxt "Category field"
-#~ msgid "Description"
-#~ msgstr "คำอธิบายา"
-
-#~ msgctxt "Category detail view action"
-#~ msgid "Edit category"
-#~ msgstr "แก้ไขประเภทสินค้า"
-
-#~ msgctxt "Category detail view action"
-#~ msgid "Remove category"
-#~ msgstr "ลบประเภทสินค้า"
-
-#~ msgctxt "Title of the subcategories list"
-#~ msgid "Subcategories"
-#~ msgstr "ประเภทสินค้าย่อย"
-
-#~ msgid "Add"
-#~ msgstr "เพิ่ม"
-
-#~ msgctxt "Category list table header name"
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Category list table header description"
-#~ msgid "Description"
-#~ msgstr "คำอธิบายา"
-
-#~ msgctxt "Category edit action"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Category list action link"
-#~ msgid "Remove"
-#~ msgstr "ลบ"
-
-#~ msgctxt "Empty list of categories"
-#~ msgid "No subcategories"
-#~ msgstr "ไม่มีประเภทสินค้าย่อย"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Edit category"
-#~ msgstr "แก้ไขประเภทสินค้า"
-
-#~ msgctxt "Category detail page title"
-#~ msgid "Add new category"
-#~ msgstr "เพิ่มประเภทสินค้าใหม่"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Add new category"
-#~ msgstr "เพิ่มประเภทสินค้าใหม่"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Category detail breadcrumbs"
-#~ msgid "Add new category"
-#~ msgstr "เพิ่มประเภทสินค้าใหม่"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Update"
-#~ msgstr "อัพเดท"
-
-#~ msgctxt "Dashboard create action"
-#~ msgid "Create"
-#~ msgstr "สร้าง"
-
-#~ msgctxt "Category list add button text"
-#~ msgid "Add category"
-#~ msgstr "เพิ่มประเภทสินค้า"
-
-#~ msgctxt "Empty category list message"
-#~ msgid "No categories found."
-#~ msgstr "ไม่พบประเภทสินค้า"
-
-#~ msgctxt "Dashboard delete action"
-#~ msgid "Remove"
-#~ msgstr "ลบ"
-
-#~ msgid "No categories found."
-#~ msgstr "ไม่พบประเภทสินค้า"
-
-#~ msgid "Collections"
-#~ msgstr "คอลเล็กชั่น"
-
-#~ msgctxt "Collection secondary action"
-#~ msgid "Cancel"
-#~ msgstr "ยกเลิก"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Update"
-#~ msgstr "อัพเดท"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Create"
-#~ msgstr "สร้าง"
-
-#~ msgctxt "Collections list page title "
-#~ msgid "Collections"
-#~ msgstr "คอลเล็กชั่น"
-
-#~ msgctxt "Collections list table header name"
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Homepage collection save"
-#~ msgid "Save"
-#~ msgstr "บันทึก"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Placed on"
-#~ msgstr "สั่งซื้อเมื่อ"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Order status"
-#~ msgstr "สถานะคำสั่งซื้อ"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Total"
-#~ msgstr "รวมทั้งหมด"
-
-#~ msgctxt "Empty customer orders table message"
-#~ msgid "No orders found."
-#~ msgstr "ไม่พบรายการสั่งซื้อ"
-
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer"
-#~ msgstr "ลูกค้า"
-
-#~ msgctxt "Dashboard add action"
-#~ msgid "Add"
-#~ msgstr "เพิ่ม"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Email"
-#~ msgstr "อีเมลล์"
-
-#~ msgctxt "Dashboard confirmation modal"
-#~ msgid "Promote to staff member"
-#~ msgstr "เลื่อนระดับเป็นพนักงานร้าน"
-
-#~ msgctxt "Dashboard sales (discounts) list."
-#~ msgid "Sales"
-#~ msgstr "ลดราคา"
-
-#~ msgid "Sales"
-#~ msgstr "ลดราคา"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Discount"
-#~ msgstr "ส่วนลด"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Discount"
-#~ msgstr "ส่วนลด"
-
-#~ msgctxt "Category page filters"
-#~ msgid "Clear"
-#~ msgstr "ลบทั้งหมด"
-
-#~ msgctxt "Menu items list table header name"
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Status"
-#~ msgstr "สถานะ"
-
-#~ msgctxt "Menu item edit action"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Menu item list action link"
-#~ msgid "Remove"
-#~ msgstr "ลบ"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Placed on"
-#~ msgstr "สั่งซื้อเมื่อ"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Customer"
-#~ msgstr "ลูกค้า"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Payment status"
-#~ msgstr "สถานะการชำระเงิน"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Order status"
-#~ msgstr "สถานะคำสั่งซื้อ"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Total"
-#~ msgstr "รวมทั้งหมด"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Order"
-#~ msgstr "คำสั่งซื้อ"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Date"
-#~ msgstr "วันที่"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Customer"
-#~ msgstr "ลูกค้า"
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Save"
-#~ msgstr "บันทึก"
-
-#~ msgctxt ""
-#~ msgid "Edit address"
-#~ msgstr "แก้ไขที่อยู่"
-
-#~ msgctxt ""
-#~ msgid "Shipping address"
-#~ msgstr "ที่อยู่จัดส่ง"
-
-#~ msgctxt ""
-#~ msgid "Billing address"
-#~ msgstr "ี่ที่อยู่ส่งบิล"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Cancel Order"
-#~ msgstr "ยกเลิกคำสั่งซื้อ"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Details"
-#~ msgstr "รายละเอียด"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Refund"
-#~ msgstr "คืนเงิน"
-
-#~ msgctxt "Order details summary header"
-#~ msgid "Customer"
-#~ msgstr "ลูกค้า"
-
-#~ msgctxt "Order customer details action title"
-#~ msgid "Edit customer details"
-#~ msgstr "แก้ไขรายละเอียดลูกค้า"
-
-#~ msgctxt "Dashboard edit action"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Order placed on date"
-#~ msgid "Placed on"
-#~ msgstr "สั่งซื้อเมื่อ"
-
-#~ msgctxt "Order table header"
-#~ msgid "Price"
-#~ msgstr "ราคา"
-
-#~ msgctxt "Order table header"
-#~ msgid "Quantity"
-#~ msgstr "จำนวน"
-
-#~ msgctxt "Order table header"
-#~ msgid "Total"
-#~ msgstr "รวมทั้งหมด"
-
-#~ msgctxt "Order table row action"
-#~ msgid "Change quantity"
-#~ msgstr "เปลี่ยนจำนวน"
-
-#~ msgctxt "Order totals action"
-#~ msgid "Edit shipping"
-#~ msgstr "แก้ไขการจัดส่ง"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Shipping"
-#~ msgstr "ตัวเลือกการจัดส่ง"
-
-#~ msgctxt "Order total taxes"
-#~ msgid "Taxes"
-#~ msgstr "ภาษี"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Discount"
-#~ msgstr "ส่วนลด"
-
-#~ msgctxt "Order totals action"
-#~ msgid "Edit discount"
-#~ msgstr "แก้ไขส่วนลด"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Edit discount"
-#~ msgstr "แก้ไขส่วนลด"
-
-#~ msgctxt "Order summary card action title"
-#~ msgid "Create order"
-#~ msgstr "สร้างคำสั่งซื้อ"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Create order"
-#~ msgstr "สร้างคำสั่งซื้อ"
-
-#~ msgctxt "Fulfillment summary card action"
-#~ msgid "Cancel"
-#~ msgstr "ยกเลิก"
-
-#~ msgctxt "Fulfillment summary card action"
-#~ msgid "Edit tracking"
-#~ msgstr "แก้ไขข้อมูลติดตามสถานะจัดส่ง"
-
-#~ msgctxt "Fulfillment summary card action"
-#~ msgid "Add tracking"
-#~ msgstr "เพิ่มข้อมูลติดตามสถานะจัดส่งสินค้า"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Date"
-#~ msgstr "วันที่"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Payment status"
-#~ msgstr "สถานะการชำระเงิน"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Quantity"
-#~ msgstr "จำนวน"
-
-#~ msgctxt "Empty order list message"
-#~ msgid "No orders found."
-#~ msgstr "ไม่พบรายการสั่งซื้อ"
-
-#~ msgctxt "Modal order add variant primary action"
-#~ msgid "Add"
-#~ msgstr "เพิ่ม"
-
-#~ msgctxt "Modal cancel fulfillment cancel action"
-#~ msgid "Abort"
-#~ msgstr "ยกเลิก"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "SKU"
-#~ msgstr "รหัสสินค้า"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Price"
-#~ msgstr "ราคา"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Total"
-#~ msgstr "รวมทั้งหมด"
-
-#~ msgctxt "Modal cancel order title"
-#~ msgid "Cancel order"
-#~ msgstr "ยกเลิกคำสั่งซื้อ"
-
-#~ msgctxt "Modal cancel order cancel action"
-#~ msgid "Abort"
-#~ msgstr "ยกเลิก"
-
-#~ msgctxt "Modal cancel order primary action"
-#~ msgid "Cancel Order"
-#~ msgstr "ยกเลิกคำสั่งซื้อ"
-
-#~ msgctxt "Modal capture payment list title"
-#~ msgid "Order total:"
-#~ msgstr "ยอดสั่งซื้อทั้งหมด"
-
-#~ msgctxt "Modal capture payment list title"
-#~ msgid "Taxes (included):"
-#~ msgstr "ภาษี (รวมแล้ว)"
-
-#~ msgctxt "Modal change quantity title"
-#~ msgid "Change quantity"
-#~ msgstr "เปลี่ยนจำนวน"
-
-#~ msgctxt "Modal create order title"
-#~ msgid "Create order"
-#~ msgstr "สร้างคำสั่งซื้อ"
-
-#~ msgctxt "Modal create order primary action"
-#~ msgid "Create"
-#~ msgstr "สร้าง"
-
-#~ msgctxt "Modal edit customer title"
-#~ msgid "Edit customer details"
-#~ msgstr "แก้ไขรายละเอียดลูกค้า"
-
-#~ msgctxt "Dashboard edit draft order remove action"
-#~ msgid "Remove customer from order"
-#~ msgstr "ลบลูกค้าออกจากคำสั่งซื้อ"
-
-#~ msgctxt "Modal edit customer primary action"
-#~ msgid "Update"
-#~ msgstr "อัพเดท"
-
-#~ msgctxt "Modal edit discount title"
-#~ msgid "Edit discount"
-#~ msgstr "แก้ไขส่วนลด"
-
-#~ msgctxt "Modal edit discount primary action"
-#~ msgid "Update"
-#~ msgstr "อัพเดท"
-
-#~ msgctxt "Modal edit shipping title"
-#~ msgid "Edit shipping"
-#~ msgstr "แก้ไขการจัดส่ง"
-
-#~ msgctxt "Dashboard edit draft order remove action"
-#~ msgid "Remove shipping from order"
-#~ msgstr "ลบการจัดส่งออกจากคำสั่งซื้อ"
-
-#~ msgctxt "Modal edit shipping primary action"
-#~ msgid "Update"
-#~ msgstr "อัพเดท"
-
-#~ msgctxt "Modal edit voucher primary action"
-#~ msgid "Update"
-#~ msgstr "อัพเดท"
-
-#~ msgctxt "Modal change fulfillment tracking title"
-#~ msgid "Edit tracking"
-#~ msgstr "แก้ไขข้อมูลติดตามสถานะจัดส่ง"
-
-#~ msgctxt "Modal change fulfillment tracking title"
-#~ msgid "Add tracking"
-#~ msgstr "เพิ่มข้อมูลติดตามสถานะจัดส่งสินค้า"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Update"
-#~ msgstr "อัพเดท"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Save"
-#~ msgstr "บันทึก"
-
-#~ msgctxt "Modal mark order as paid cancel action"
-#~ msgid "Abort"
-#~ msgstr "ยกเลิก"
-
-#~ msgctxt "Modal refund payment title"
-#~ msgid "Refund payment"
-#~ msgstr "คืนเงิน"
-
-#~ msgctxt "Modal refund payment list title"
-#~ msgid "Order total:"
-#~ msgstr "ยอดสั่งซื้อทั้งหมด"
-
-#~ msgctxt "Modal refund payment list title"
-#~ msgid "Taxes (included):"
-#~ msgstr "ภาษี (รวมแล้ว)"
-
-#~ msgctxt "Modal refund payment primary action"
-#~ msgid "Refund"
-#~ msgstr "คืนเงิน"
-
-#~ msgctxt "Modal remove order cancel action"
-#~ msgid "Abort"
-#~ msgstr "ยกเลิก"
-
-#~ msgctxt "Invoice shipping address"
-#~ msgid "Shipping address"
-#~ msgstr "ที่อยู่จัดส่ง"
-
-#~ msgctxt "Invoice billing address"
-#~ msgid "Billing address"
-#~ msgstr "ี่ที่อยู่ส่งบิล"
-
-#~ msgctxt "Invoice ordered items header"
-#~ msgid "Items Ordered"
-#~ msgstr "จำนวนสินค้าที่สั่ง"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "SKU"
-#~ msgstr "รหัสสินค้า"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Tax rate"
-#~ msgstr "อัตราภาษี"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Quantity"
-#~ msgstr "จำนวน"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Total"
-#~ msgstr "รวมทั้งหมด"
-
-#~ msgctxt "Order total shipping price header"
-#~ msgid "Shipping"
-#~ msgstr "ตัวเลือกการจัดส่ง"
-
-#~ msgctxt "Order voucher header"
-#~ msgid "Discount"
-#~ msgstr "ส่วนลด"
-
-#~ msgctxt "Packing slip shipping details"
-#~ msgid "Shipping Details"
-#~ msgstr "รายละเอียดจัดส่ง"
-
-#~ msgctxt "Packing slip shipping details"
-#~ msgid "Billing Details"
-#~ msgstr "รายละเอียดบิล"
-
-#~ msgctxt "Packing slip shipping address"
-#~ msgid "Shipping address"
-#~ msgstr "ที่อยู่จัดส่ง"
-
-#~ msgctxt "Packing slip billing address"
-#~ msgid "Billing address"
-#~ msgstr "ี่ที่อยู่ส่งบิล"
-
-#~ msgctxt "Order invoice"
-#~ msgid "Items Ordered"
-#~ msgstr "จำนวนสินค้าที่สั่ง"
-
-#~ msgctxt "Order table header"
-#~ msgid "SKU"
-#~ msgstr "รหัสสินค้า"
-
-#~ msgid "No orders found."
-#~ msgstr "ไม่พบรายการสั่งซื้อ"
-
-#~ msgctxt "Page form page title"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Page form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgid "Cancel"
-#~ msgstr "ยกเลิก"
-
-#~ msgid "Save"
-#~ msgstr "บันทึก"
-
-#~ msgid "Create"
-#~ msgstr "สร้าง"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Remove"
-#~ msgstr "ลบ"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Dashboard attributes list table header name"
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Products"
-#~ msgstr "สินค้า"
-
-#~ msgid "SKU"
-#~ msgstr "รหัสสินค้า"
-
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgid "Status"
-#~ msgstr "สถานะ"
-
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgid "Shipping"
-#~ msgstr "ตัวเลือกการจัดส่ง"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Price"
-#~ msgstr "ราคา"
-
-#~ msgctxt "Empty product list message"
-#~ msgid "No products found."
-#~ msgstr "ไม่พบสินค้า"
-
-#~ msgctxt "Dashboard add action"
-#~ msgid "Create"
-#~ msgstr "สร้าง"
-
-#~ msgctxt "Image form text"
-#~ msgid "Edit - Image"
-#~ msgstr "แก้ไขรูปภาพ"
-
-#~ msgctxt "Image form text"
-#~ msgid "Add image"
-#~ msgstr "เพิ่มรูปภาพ"
-
-#~ msgctxt "Image form text"
-#~ msgid "Image"
-#~ msgstr "รูปภาพ"
-
-#~ msgctxt "Image form text"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Image form breadcrumbs"
-#~ msgid "Add image"
-#~ msgstr "เพิ่มรูปภาพ"
-
-#~ msgctxt "Add image button text"
-#~ msgid "Add image"
-#~ msgstr "เพิ่มรูปภาพ"
-
-#~ msgctxt "Image card text"
-#~ msgid "No description"
-#~ msgstr "ไม่มีรายละเอียด"
-
-#~ msgctxt "Dashboard remove action"
-#~ msgid "Remove"
-#~ msgstr "ลบ"
-
-#~ msgctxt "Image gallery upload box text"
-#~ msgid "Drop images here to upload"
-#~ msgstr "ลากรูปมาวางที่นี่เพื่ออัพโหลด"
-
-#~ msgctxt "Empty image gallery message"
-#~ msgid "No description"
-#~ msgstr "ไม่มีรายละเอียด"
-
-#~ msgctxt "Modal remove image text"
-#~ msgid "Remove product image"
-#~ msgstr "ลบรูปสินค้า"
-
-#~ msgctxt "Modal remove image text"
-#~ msgid "Are you sure you want to remove product image?"
-#~ msgstr "คุณต้องการลบรูปสินค้า?"
-
-#~ msgid "Taxes"
-#~ msgstr "ภาษี"
-
-#~ msgctxt "Dashboard product types list table header name"
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "SKU"
-#~ msgstr "รหัสสินค้า"
-
-#~ msgctxt "Variant form page title"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Dashboard modal action"
-#~ msgid "Save"
-#~ msgstr "บันทึก"
-
-#~ msgid "No products found."
-#~ msgstr "ไม่พบสินค้า"
-
-#~ msgctxt "Search page title"
-#~ msgid "Search results"
-#~ msgstr "ผลการค้นหา"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search results"
-#~ msgstr "ผลการค้นหา"
-
-#~ msgctxt "Search results list products"
-#~ msgid "Products"
-#~ msgstr "สินค้า"
-
-#~ msgctxt "Search results list orders"
-#~ msgid "Orders"
-#~ msgstr "คำสั่งซื้อ"
-
-#~ msgctxt "Search results list users"
-#~ msgid "Users"
-#~ msgstr "ผู้ใช้"
-
-#~ msgctxt "Shipping zone form breadcrumbs"
-#~ msgid "Shipping zones"
-#~ msgstr "โซนจัดส่ง"
-
-#~ msgctxt "Shipping zone action"
-#~ msgid "Edit shipping zone"
-#~ msgstr "แก้ไขโซนจัดส่ง"
-
-#~ msgctxt "Shipping zone action"
-#~ msgid "Remove shipping zone"
-#~ msgstr "ลบโซนจัดส่ง"
-
-#~ msgctxt "Title of the shipping methods list"
-#~ msgid "Price based shipping"
-#~ msgstr "ค่าจัดส่งตามราคา"
-
-#~ msgctxt "Title of the shipping methods list"
-#~ msgid "Weight based shipping"
-#~ msgstr "ค่าจัดส่งตามน้ำหนัก"
-
-#~ msgctxt "Dashboard shipping zones"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Shipping zone form page title"
-#~ msgid "Add new shipping zone"
-#~ msgstr "เพิ่มโซนจัดส่งใหม่"
-
-#~ msgctxt "Dashboard shipping zone"
-#~ msgid "Shipping zones"
-#~ msgstr "โซนจัดส่ง"
-
-#~ msgctxt "Shipping zone form page title"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Shipping zone form breadcrumbs"
-#~ msgid "Add new shipping zone"
-#~ msgstr "เพิ่มโซนจัดส่งใหม่"
-
-#~ msgctxt "Dashboard shipping zones list"
-#~ msgid "Shipping zones"
-#~ msgstr "โซนจัดส่ง"
-
-#~ msgctxt "Shipping zone list add button text"
-#~ msgid "Add shipping zone"
-#~ msgstr "เพิ่มโซนจัดส่ง"
-
-#~ msgctxt "Shipping zones table header, name of the shipping zone"
-#~ msgid "Shipping zone"
-#~ msgstr "โซนจัดส่ง"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, price range of shipping methods within "
-#~ "shipping zone"
-#~ msgid "Price range"
-#~ msgstr "ช่วงราคา"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, list of countries within of shipping zone"
-#~ msgid "Countries"
-#~ msgstr "ประเทศ"
-
-#~ msgctxt "Empty shipping list message"
-#~ msgid "No shipping zones found."
-#~ msgstr "ไม่พบโซนจัดส่ง"
-
-#~ msgid "Default Weight Unit"
-#~ msgstr "หน่วยน้ำหนักเริ่มต้น"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Price"
-#~ msgstr "ราคา"
-
-#~ msgctxt "Attribute value remove action"
-#~ msgid "Remove"
-#~ msgstr "ลบ"
-
-#~ msgctxt "Empty list of shipping methods prices"
-#~ msgid "No shipping methods"
-#~ msgstr "ไม่พบวิธีจัดส่ง"
-
-#~ msgctxt "Dashboard shipping method edit page"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Shipping method edit page title"
-#~ msgid "Add new shipping method"
-#~ msgstr "เพิ่มวิธีจัดส่งใหม่"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Shipping zones"
-#~ msgstr "โซนจัดส่ง"
-
-#~ msgctxt "Shipping method breadcrumbs"
-#~ msgid "Edit shipping method"
-#~ msgstr "แก้ไขวิธีจัดส่ง"
-
-#~ msgctxt "Shipping method breadcrumbs"
-#~ msgid "Add shipping method"
-#~ msgstr "เพิ่มวิธีจัดส่ง"
-
-#~ msgctxt "Shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "ตัวเลือกการจัดส่ง"
-
-#~ msgid "No shipping zones found."
-#~ msgstr "ไม่พบโซนจัดส่ง"
-
-#~ msgctxt "Dashboard authorization key list"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Authorization key breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Domain"
-#~ msgstr "โดเมน"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Description"
-#~ msgstr "คำอธิบายา"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Authorization key edit action"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Authorization key remove action"
-#~ msgid "Remove"
-#~ msgstr "ลบ"
-
-#~ msgctxt "Dashboard site settings"
-#~ msgid "Edit"
-#~ msgstr "แก้ไข"
-
-#~ msgctxt "Dashboard staff"
-#~ msgid "Staff"
-#~ msgstr "พนักงาน"
-
-#~ msgctxt "Dashboard staff list"
-#~ msgid "Staff"
-#~ msgstr "พนักงาน"
-
-#~ msgctxt "Dashboard add staff member action"
-#~ msgid "Add staff member"
-#~ msgstr "เพิ่มพนักงานร้าน"
-
-#~ msgctxt "Staff member form action"
-#~ msgid "Remove staff member"
-#~ msgstr "ลบพนักงานร้าน"
-
-#~ msgctxt "Staff member details header"
-#~ msgid "Staff member details"
-#~ msgstr "รายละเอียดพนักงาน"
-
-#~ msgctxt "Dashboard staff members list"
-#~ msgid "Staff"
-#~ msgstr "พนักงาน"
-
-#~ msgctxt "Staff members list add button text"
-#~ msgid "Add staff member"
-#~ msgstr "เพิ่มพนักงานร้าน"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Email"
-#~ msgstr "อีเมลล์"
-
-#~ msgctxt "Empty staff table message"
-#~ msgid "No staff members found."
-#~ msgstr "ไม่พบพนักงาน"
-
-#~ msgid "No staff members found."
-#~ msgstr "ไม่พบพนักงาน"
-
-#~ msgctxt "Tax details breadcrumbs"
-#~ msgid "Taxes"
-#~ msgstr "ภาษี"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Name"
-#~ msgstr "ชื่อ"
-
-#~ msgctxt "Dashboard taxes list"
-#~ msgid "Taxes"
-#~ msgstr "ภาษี"
-
-#~ msgctxt "Dashboard site taxes settings form title"
-#~ msgid "Taxes"
-#~ msgstr "ภาษี"
-
-#~ msgid "Dashboard"
-#~ msgstr "แดชบอร์ด"
-
-#~ msgctxt "Taxes table header"
-#~ msgid "Country code"
-#~ msgstr "รหัสประเทศ"
-
-#~ msgctxt "Taxes table header"
-#~ msgid "Country name"
-#~ msgstr "ชื่อประเทศ"
-
-#~ msgctxt "Empty taxes message"
-#~ msgid "No taxes found."
-#~ msgstr "ไม่พบภาษี"
-
-#~ msgctxt "Taxes site settings title"
-#~ msgid "Configuration"
-#~ msgstr "การตั้งค่า"
-
-#~ msgid "No taxes found."
-#~ msgstr "ไม่พบภาษี"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Shipping address"
-#~ msgstr "ที่อยู่จัดส่ง"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Billing address"
-#~ msgstr "ที่อยู่ส่งบิล"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Product"
-#~ msgstr "สินค้า"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Quantity"
-#~ msgstr "จำนวน"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Price"
-#~ msgstr "ราคา"
-
-#~ msgctxt "Order details shipment row text"
-#~ msgid "Shipping"
-#~ msgstr "ตัวเลือกการจัดส่ง"
-
-#~ msgctxt "Order details taxes text"
-#~ msgid "Taxes"
-#~ msgstr "ภาษี"
-
-#~ msgctxt "Order details total text"
-#~ msgid "Total"
-#~ msgstr "รวมทั้งหมด"
-
-#~ msgctxt "Fulfillment tracking number details"
-#~ msgid "Tracking number"
-#~ msgstr "รหัสติดตามสินค้า"
-
-#~ msgctxt "Checkout success page title"
-#~ msgid "Thank you"
-#~ msgstr "ขอบคุณ"
-
-#~ msgctxt "Checkout secondary action"
-#~ msgid "Continue shopping"
-#~ msgstr "เลือกซื้อสินค้าต่อ"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Create an account"
-#~ msgstr "สร้างบัญชี"
-
-#~ msgctxt "Order details link text"
-#~ msgid "Payment details"
-#~ msgstr "รายละเอียดการชำระเงิน"
-
-#~ msgctxt "Order details primary action"
-#~ msgid "Pay for order"
-#~ msgstr "ชำระเงิน"
-
-#~ msgctxt "Customer order note"
-#~ msgid "Your note"
-#~ msgstr "โน๊ต"
-
-#~ msgctxt "Order note title"
-#~ msgid "Add a note to your order"
-#~ msgstr "เพิ่มโน๊ต"
-
-#~ msgctxt "Customer panel - order details: add note submit button"
-#~ msgid "Submit note"
-#~ msgstr "ส่งโน๊ต"
-
-#~ msgctxt "Payment details title"
-#~ msgid "Payment pending"
-#~ msgstr "ค้างชำระ"
-
-#~ msgctxt "Payment status text"
-#~ msgid "Current status:"
-#~ msgstr "สถานะปัจจุบัน:"
-
-#~ msgid "Choose payment method"
-#~ msgstr "เลือกวิธีชำระเงิน"
-
-#~ msgctxt "Payment details primary action"
-#~ msgid "Proceed to payment"
-#~ msgstr "เริ่มขั้นตอนการชำระเงิน"
-
-#~ msgctxt "Payment details text"
-#~ msgid "You've authorized transaction. Order is in processing"
-#~ msgstr ""
-#~ "คุณได้อนุมัติการสั่งซื้อแล้ว \n"
-#~ "กำลังประมวลผลคำสั่งซื้อ"
-
-#~ msgctxt "Payment form primary action"
-#~ msgid "Make payment"
-#~ msgstr "ชำระเงิน"
-
-#~ msgctxt "Payment form page title"
-#~ msgid "Payment"
-#~ msgstr "การชำระเงิน"
-
-#~ msgctxt "Payment form breadcrumb"
-#~ msgid "Payment"
-#~ msgstr "การชำระเงิน"
-
-#~ msgctxt "Payment form title"
-#~ msgid "Payment"
-#~ msgstr "การชำระเงิน"
-
-#~ msgctxt "Header of the order summary table"
-#~ msgid "Order details"
-#~ msgstr "รายละเอียดคำสั่งซื้อ"
-
-#~ msgctxt "Payment form (Stripe) secondary action"
-#~ msgid "Change payment"
-#~ msgstr "เปลี่ยนวิธีการชำระเงิน"
-
-#~ msgctxt "Payment form (Razorpay) secondary action"
-#~ msgid "Change payment"
-#~ msgstr "เปลี่ยนวิธีการชำระเงิน"
-
-#~ msgctxt "Product list page filters"
-#~ msgid "Clear filters"
-#~ msgstr "ยกเลิกตัวกรอง"
-
-#~ msgctxt "Apply filters button"
-#~ msgid "Update results"
-#~ msgstr "อัพเดท"
-
-#~ msgctxt "Product details link text"
-#~ msgid "Edit in dashboard"
-#~ msgstr "แก้ไขในแดชบอร์ด"
-
-#~ msgctxt "Product details title"
-#~ msgid "Description"
-#~ msgstr "คำอธิบายา"
-
-#~ msgctxt "Product list filters"
-#~ msgid "Sort by"
-#~ msgstr "เรียงโดย"
-
-#~ msgctxt "Order confirmation e-mail subject"
-#~ msgid "Order details"
-#~ msgstr "รายละเอียดคำสั่งซื้อ"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Shipping"
-#~ msgstr "ตัวเลือกการจัดส่ง"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Taxes"
-#~ msgstr "ภาษี"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Total"
-#~ msgstr "รวมทั้งหมด"
-
-#~ msgctxt "Payment confirmation subject"
-#~ msgid "Payment details"
-#~ msgstr "รายละเอียดการชำระเงิน"

@@ -751,13 +751,15 @@ def test_get_product_limit_first_page(product):
 @patch("saleor.order.utils.static_finders")
 @patch("saleor.order.utils.get_template")
 @patch("saleor.order.utils.default_storage")
+@patch("saleor.order.utils.os")
 def test_generate_invoice_pdf_for_order(
-    storage_mock, get_template_mock, static_mock, fulfilled_order
+    os_mock, storage_mock, get_template_mock, static_mock, fulfilled_order
 ):
     file_path = "/dev/null"
     static_mock.find.return_value = file_path
     storage_mock.save = Mock()
     get_template_mock.return_value.render = Mock(return_value="<html></html>")
+    os_mock.path.join.return_value = "test"
 
     generate_invoice_pdf_for_order(fulfilled_order.invoices.first())
 
@@ -767,6 +769,7 @@ def test_generate_invoice_pdf_for_order(
             "creation_date": datetime.today().strftime("%d %b %Y"),
             "order": fulfilled_order,
             "logo_path": f"file://{file_path}",
+            "font_path": "file://test",
             "products_first_page": list(fulfilled_order.lines.all()),
             "rest_of_products": [],
         }

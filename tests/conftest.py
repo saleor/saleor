@@ -47,6 +47,8 @@ from saleor.order.utils import recalculate_order
 from saleor.page.models import Page, PageTranslation
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
+from saleor.plugins.models import PluginConfiguration
+from saleor.plugins.vatlayer.plugin import VatlayerPlugin
 from saleor.product import AttributeInputType
 from saleor.product.models import (
     Attribute,
@@ -167,6 +169,17 @@ def assert_max_num_queries(capture_queries):
     return partial(capture_queries, exact=False)
 
 
+@pytest.fixture
+def setup_vatlayer(settings):
+    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    data = {
+        "active": True,
+        "configuration": [{"name": "Access key", "value": "vatlayer_access_key"},],
+    }
+    PluginConfiguration.objects.create(identifier=VatlayerPlugin.PLUGIN_ID, **data)
+    return settings
+
+
 @pytest.fixture(autouse=True)
 def setup_dummy_gateway(settings):
     settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
@@ -214,6 +227,35 @@ def checkout(db):
 def checkout_with_item(checkout, product):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, 3)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
+def checkout_with_shipping_required(checkout_with_item, product):
+    checkout = checkout_with_item
+    variant = product.variants.get()
+    add_variant_to_checkout(checkout, variant, 3)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
+def other_shipping_method(shipping_zone):
+    return ShippingMethod.objects.create(
+        name="DPD",
+        minimum_order_price=Money(0, "USD"),
+        type=ShippingMethodType.PRICE_BASED,
+        price=Money(9, "USD"),
+        shipping_zone=shipping_zone,
+    )
+
+
+@pytest.fixture
+def checkout_without_shipping_required(checkout, product_without_shipping):
+    checkout = checkout
+    variant = product_without_shipping.variants.get()
+    add_variant_to_checkout(checkout, variant, 1)
     checkout.save()
     return checkout
 

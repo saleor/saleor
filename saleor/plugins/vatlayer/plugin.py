@@ -4,16 +4,21 @@ from typing import TYPE_CHECKING, Any, List, Union
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django_countries.fields import Country
-from django_prices_vatlayer.utils import get_tax_rate_types
+from django_prices_vatlayer.utils import (
+    fetch_rate_types,
+    fetch_rates,
+    get_tax_rate_types,
+)
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import calculations
 from ...core.taxes import TaxType
 from ...graphql.core.utils.error_codes import PluginErrorCode
-from ..base_plugin import BasePlugin
+from ..base_plugin import BasePlugin, ConfigurationTypeField
 from . import (
     DEFAULT_TAX_RATE_NAME,
     TaxRateType,
+    VatlayerConfiguration,
     apply_tax_to_price,
     get_taxed_shipping_price,
     get_taxes_for_country,
@@ -34,17 +39,24 @@ class VatlayerPlugin(BasePlugin):
     PLUGIN_NAME = "Vatlayer"
     META_CODE_KEY = "vatlayer.code"
     META_DESCRIPTION_KEY = "vatlayer.description"
+    DEFAULT_CONFIGURATION = [{"name": "Access key", "value": None}]
+    CONFIG_STRUCTURE = {
+        "Access key": {
+            "type": ConfigurationTypeField.PASSWORD,
+            "help_text": "Required to authenticate to Vatlayer API.",
+            "label": "Access key",
+        },
+    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Convert to dict to easier take config elements
+        configuration = {item["name"]: item["value"] for item in self.configuration}
+        self.config = VatlayerConfiguration(access_key=configuration["Access key"])
         self._cached_taxes = {}
 
-    @classmethod
-    def get_default_active(cls):
-        return bool(settings.VATLAYER_ACCESS_KEY)
-
     def _skip_plugin(self, previous_value: Union[TaxedMoney, TaxedMoneyRange]) -> bool:
-        if not self.active or not settings.VATLAYER_ACCESS_KEY:
+        if not self.active or not self.config.access_key:
             return True
 
         # The previous plugin already calculated taxes so we can skip our logic
@@ -264,11 +276,37 @@ class VatlayerPlugin(BasePlugin):
         tax = taxes.get(rate_name) or taxes.get(DEFAULT_TAX_RATE_NAME)
         return Decimal(tax["value"])
 
+    def fetch_taxes_data(self, previous_value: Any) -> Any:
+        """Triggered when ShopFetchTaxRates mutation is called."""
+        if not self.active:
+            return previous_value
+        fetch_rates(self.config.access_key)
+        return True
+
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct."""
-        if not settings.VATLAYER_ACCESS_KEY and plugin_configuration.active:
+        configuration = plugin_configuration.configuration
+        configuration = {item["name"]: item["value"] for item in configuration}
+        access_key = configuration["Access key"]
+        if not access_key and plugin_configuration.active:
             raise ValidationError(
-                "Cannot be enabled without provided 'settings.VATLAYER_ACCESS_KEY'",
-                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                {
+                    "Access key": ValidationError(
+                        "Cannot be enabled without provided Access key",
+                        code=PluginErrorCode.INVALID.value,
+                    )
+                }
             )
+        if access_key and plugin_configuration.active:
+            # let's check if access_key works
+            fetched_data = fetch_rate_types(access_key=access_key)
+            if not fetched_data["success"]:
+                raise ValidationError(
+                    {
+                        "Access key": ValidationError(
+                            "Cannot enable Vatlayer. Incorrect API key.",
+                            code=PluginErrorCode.INVALID.value,
+                        )
+                    }
+                )
