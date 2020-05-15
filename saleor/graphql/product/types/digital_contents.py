@@ -12,7 +12,9 @@ from ...meta.types import ObjectWithMetadata
 
 class DigitalContentUrl(CountableDjangoObjectType):
     url = graphene.String(description="URL for digital content.")
-    token = graphene.Field(UUID, description=("UUID of digital content."))
+    token = graphene.Field(
+        UUID, description=("UUID of digital content."), required=True
+    )
 
     class Meta:
         model = models.DigitalContentUrl
