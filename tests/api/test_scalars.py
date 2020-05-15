@@ -1,5 +1,12 @@
-from tests.api.test_checkout import QUERY_CHECKOUT
 from tests.api.utils import get_graphql_content
+
+QUERY_CHECKOUT = """
+query getCheckout($token: UUID!) {
+    checkout(token: $token) {
+        token
+    }
+}
+"""
 
 
 def test_uuid_scalar_value_passed_as_variable(api_client, checkout):

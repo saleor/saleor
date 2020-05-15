@@ -110,7 +110,7 @@ class Checkout(CountableDjangoObjectType):
         TaxedMoney,
         description="The price of the checkout before shipping, with taxes included.",
     )
-    token = graphene.Field(UUID, description=("UUID of checkout."))
+    token = graphene.Field(UUID, description=("UUID of checkout."), required=True)
     total_price = graphene.Field(
         TaxedMoney,
         description=(

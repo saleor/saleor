@@ -779,7 +779,7 @@ type Checkout implements Node & ObjectWithMetadata {
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
   subtotalPrice: TaxedMoney
-  token: UUID
+  token: UUID!
   totalPrice: TaxedMoney
 }
 
@@ -1614,7 +1614,7 @@ type DigitalContentUrl implements Node {
   downloadNum: Int!
   id: ID!
   url: String
-  token: UUID
+  token: UUID!
 }
 
 type DigitalContentUrlCreate {
