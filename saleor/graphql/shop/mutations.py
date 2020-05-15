@@ -1,7 +1,5 @@
 import graphene
-from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.management import call_command
 
 from ...account import models as account_models
 from ...core.error_codes import ShopErrorCode
@@ -170,14 +168,13 @@ class ShopFetchTaxRates(BaseMutation):
         error_type_field = "shop_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, _info):
-        if not settings.VATLAYER_ACCESS_KEY:
+    def perform_mutation(cls, _root, info):
+        if not info.context.plugins.fetch_taxes_data():
             raise ValidationError(
                 "Could not fetch tax rates. Make sure you have supplied a "
-                "valid API Access Key.",
-                code=ShopErrorCode.CANNOT_FETCH_TAX_RATES,
+                "valid credential for your tax plugin.",
+                code=ShopErrorCode.CANNOT_FETCH_TAX_RATES.value,
             )
-        call_command("get_vat_rates")
         return ShopFetchTaxRates(shop=Shop())
 
 

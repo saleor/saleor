@@ -392,7 +392,7 @@ def test_attributes_in_collection_query(
     )
     other_product_type.product_attributes.add(other_attribute)
     other_product = Product.objects.create(
-        name=f"Another Product",
+        name="Another Product",
         product_type=other_product_type,
         category=other_category,
         price=zero_money(),
