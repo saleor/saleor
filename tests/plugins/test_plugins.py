@@ -32,7 +32,7 @@ def test_update_config_items_convert_to_bool_value():
     assert get_config_value("Use sandbox", plugin_sample.configuration) is False
 
 
-def test_update_config_items_skips_new_keys_when_doesnt_exsit_in_conf_structure():
+def test_update_config_items_skips_new_keys_when_doesnt_exsist_in_conf_structure():
     data_to_update = [
         {"name": "New-field", "value": "content"},
     ]
@@ -48,15 +48,22 @@ def test_update_config_items_skips_new_keys_when_doesnt_exsit_in_conf_structure(
     )
 
 
-def test_update_config_items_adds_new_keys():
+def test_update_config_items_adds_new_keys(monkeypatch):
     data_to_update = [
         {"name": "New-field", "value": "content"},
     ]
-    PluginSample.CONFIG_STRUCTURE["New-field"] = {
-        "type": ConfigurationTypeField.STRING,
-        "help_text": "New input field",
-        "label": "New field",
-    }
+    monkeypatch.setattr(
+        PluginSample,
+        "CONFIG_STRUCTURE",
+        {
+            "New-field": {
+                "type": ConfigurationTypeField.STRING,
+                "help_text": "New input field",
+                "label": "New field",
+            },
+            **PluginSample.CONFIG_STRUCTURE,
+        },
+    )
     plugin_sample = PluginSample(
         configuration=PluginSample.DEFAULT_CONFIGURATION,
         active=PluginSample.DEFAULT_ACTIVE,
@@ -78,12 +85,19 @@ def test_save_plugin_configuration(plugin_configuration):
     assert configuration_dict["Username"] == "new-username"
 
 
-def test_save_plugin_configuration_adds_new_field(plugin_configuration):
-    PluginSample.CONFIG_STRUCTURE["Token"] = {
-        "type": ConfigurationTypeField.PASSWORD,
-        "help_text": "New input field",
-        "label": "New field",
-    }
+def test_save_plugin_configuration_adds_new_field(plugin_configuration, monkeypatch):
+    monkeypatch.setattr(
+        PluginSample,
+        "CONFIG_STRUCTURE",
+        {
+            "Token": {
+                "type": ConfigurationTypeField.PASSWORD,
+                "help_text": "New input field",
+                "label": "New field",
+            },
+            **PluginSample.CONFIG_STRUCTURE,
+        },
+    )
     cleaned_data = {"configuration": [{"name": "Token", "value": "token-data"}]}
     PluginSample.save_plugin_configuration(plugin_configuration, cleaned_data)
     plugin_configuration.refresh_from_db()
@@ -94,7 +108,7 @@ def test_save_plugin_configuration_adds_new_field(plugin_configuration):
     assert configuration_dict.get("Token") == "token-data"
 
 
-def test_save_plugin_configuration_skips_new_field_when_doesnt_exsit_in_conf_structure(
+def test_save_plugin_configuration_skips_new_field_when_doesnt_exsist_in_conf_structure(
     plugin_configuration,
 ):
     cleaned_data = {"configuration": [{"name": "Token", "value": "token-data"}]}
@@ -108,7 +122,7 @@ def test_save_plugin_configuration_skips_new_field_when_doesnt_exsit_in_conf_str
 
 
 def test_base_plugin__update_configuration_structure_when_old_config_is_empty(
-    monkeypatch, plugin_configuration
+    plugin_configuration,
 ):
     plugin_configuration.configuration = []
     plugin_configuration.save()
