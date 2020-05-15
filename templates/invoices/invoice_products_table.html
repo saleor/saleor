@@ -1,0 +1,40 @@
+{% load i18n %}
+{% load price from taxed_prices %}
+<table class="products-table">
+    <tbody>
+        <tr class="row-category">
+            <td class="cell-product">
+                <span class="header-category-small">{% trans "Products" context "Invoice PDF table" %}</span>
+            </td>
+            <td class="cell-price">
+                <span class="header-category-small cell-price-content">{% trans "Price" context "Invoice PDF table" %}</span>
+            </td>
+            <td class="cell-quantity">
+                <span class="header-category-small cell-quantity-content">{% trans "Quantity" context "Invoice PDF table" %}</span>
+            </td>
+            <td class="cell-total-price">
+                <span class="header-category-small">{% trans "Total Price" context "Invoice PDF table" %}</span>
+            </td>
+        </tr>
+        {% for product in products %}
+        <tr class="row-product">
+            <td class="cell-product">
+                <span class="normal-text-table">
+                    {{ product|truncatechars:46 }}
+                    <div class="padded-font-small"></div>
+                    <span class="header-category-small">SKU: {{ product.product_sku }}</span>
+                </span>
+            </td>
+            <td class="cell-price">
+                <span class="normal-text-table cell-price-content">{% price product.unit_price.gross %}</span>
+            </td>
+            <td class="cell-quantity">
+                <span class="normal-text-table cell-quantity-content">{{ product.quantity }}</span>
+            </td>
+            <td class="cell-total-price">
+                <span class="normal-text-table">{% price product.get_total.gross %}</span>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

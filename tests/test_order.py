@@ -1,5 +1,7 @@
+from datetime import datetime
 from decimal import Decimal
 from unittest.mock import MagicMock, Mock, patch
+from uuid import UUID
 
 import pytest
 from prices import Money, TaxedMoney
@@ -20,7 +22,10 @@ from saleor.order.templatetags.order_lines import display_translated_order_line_
 from saleor.order.utils import (
     add_variant_to_draft_order,
     change_order_line_quantity,
+    chunk_products,
     delete_order_line,
+    generate_invoice_pdf_for_order,
+    get_product_limit_first_page,
     get_voucher_discount_for_order,
     recalculate_order,
     restock_fulfillment_lines,
@@ -725,3 +730,48 @@ def test_email_sent_event_without_user_and_user_pk(order):
         "email": order.get_customer_email(),
         "email_type": email_type,
     }
+
+
+def test_chunk_products(product):
+    assert chunk_products([product] * 3, 3) == [[product] * 3]
+    assert chunk_products([product] * 5, 3) == [[product] * 3, [product] * 2]
+    assert chunk_products([product] * 8, 3) == [
+        [product] * 3,
+        [product] * 3,
+        [product] * 2,
+    ]
+
+
+def test_get_product_limit_first_page(product):
+    assert get_product_limit_first_page([product] * 3) == 3
+    assert get_product_limit_first_page([product] * 4) == 4
+    assert get_product_limit_first_page([product] * 16) == 4
+
+
+@patch("saleor.order.utils.static_finders")
+@patch("saleor.order.utils.get_template")
+@patch("saleor.order.utils.default_storage")
+def test_generate_invoice_pdf_for_order(
+    storage_mock, get_template_mock, static_mock, fulfilled_order
+):
+    file_path = "/dev/null"
+    static_mock.find.return_value = file_path
+    storage_mock.save = Mock()
+    get_template_mock.return_value.render = Mock(return_value="<html></html>")
+
+    generate_invoice_pdf_for_order(fulfilled_order.invoices.first())
+
+    get_template_mock.return_value.render.assert_called_once_with(
+        {
+            "invoice": fulfilled_order.invoices.first(),
+            "creation_date": datetime.today().strftime("%d %b %Y"),
+            "order": fulfilled_order,
+            "logo_path": f"file://{file_path}",
+            "products_first_page": list(fulfilled_order.lines.all()),
+            "rest_of_products": [],
+        }
+    )
+
+    file_name, extension = storage_mock.save.call_args[0][0].split(".")
+    assert UUID(file_name, version=4)
+    assert extension == "pdf"
