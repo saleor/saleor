@@ -277,7 +277,7 @@ def prepare_variants_data(
     variants = ProductVariant.objects.filter(product__pk=pk).prefetch_related(
         "images", "attributes"
     )
-    variant_fields.update(["pk", "sku"])
+    variant_fields.update(["pk"])
     if attribute_ids:
         variant_fields.update(ProductExportFields.ATTRIBUTE_FIELDS)
     if warehouse_ids:
@@ -332,18 +332,16 @@ def update_variant_data(
         warehouse_data: dict = {}
 
         attribute_pk = str(data.pop("attribute_pk", ""))
-        if attribute_ids and attribute_pk in attribute_ids:
-            attribute_data = {
-                "slug": data.pop("attribute_slug", None),
-                "value": data.pop("attribute_values", None),
-            }
+        attribute_data = {
+            "slug": data.pop("attribute_slug", None),
+            "value": data.pop("attribute_values", None),
+        }
 
         warehouse_pk = str(data.pop("warehouse_pk", ""))
-        if warehouse_ids and warehouse_pk in warehouse_ids:
-            warehouse_data = {
-                "slug": data.pop("stocks__warehouse__slug", None),
-                "qty": data.pop("stocks__quantity", None),
-            }
+        warehouse_data = {
+            "slug": data.pop("stocks__warehouse__slug", None),
+            "qty": data.pop("stocks__quantity", None),
+        }
 
         image: str = data.pop("variant_image_path", None)  # type: ignore
 
@@ -352,14 +350,14 @@ def update_variant_data(
             data.update(product_data)
             result_data[pk] = data
 
-        if attribute_data:
+        if attribute_ids and attribute_pk in attribute_ids:
             result_data, attribute_header = add_attribute_info_to_data(
                 pk, attribute_data, result_data
             )
             if attribute_header:
                 variant_attributes_headers.add(attribute_header)
 
-        if warehouse_data:
+        if warehouse_ids and warehouse_pk in warehouse_ids:
             result_data, header = add_warehouse_info_to_data(
                 pk, warehouse_data, result_data
             )
