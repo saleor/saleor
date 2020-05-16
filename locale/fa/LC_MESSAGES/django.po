@@ -41,7 +41,7 @@ msgstr ""
 #: templates/templated_email/account/account_delete.email:4
 msgctxt "Account delete reset e-mail subject"
 msgid "Delete your account"
-msgstr ""
+msgstr "حذف حساب کاربری"
 
 #: templates/templated_email/account/account_delete.email:9
 #, python-format
@@ -53,11 +53,16 @@ msgid ""
 "\n"
 "Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
+"\n"
+"شما این ایمیل را به این دلیل دریافت میکنید که یک نفر درخواست حذف حساب کاربری شما از وبسایت\n %(domain) \n را داده است.\n"
+"برای حذف حساب کاربری خود برروی لینک زیر کلیک نمایید.\n"
+"\n"
+"توجه کنید که این عملیات دايمی است و بازگشت پذیر نمیباشد.\n"
 
 #: templates/templated_email/account/confirm.email:4
 msgctxt "Account confirmation e-mail subject"
 msgid "Account confirmation e-mail"
-msgstr ""
+msgstr "ایمیل فعالسازی حساب"
 
 #: templates/templated_email/account/confirm.email:9
 #, python-format
@@ -67,12 +72,15 @@ msgid ""
 "In order to log into %(domain)s, you have to confirm your email address first.\n"
 "Please click the link below to do so and log into your account.\n"
 msgstr ""
+"\n"
+"برای وارد شدن به حساب کاربری %(domain) خود لازم است ابتدا ایمیل خود را تایید کنید.\n"
+"لطفا برروی لینک زیر کلیک کنید تا به حساب کاربری خود وارد شوید."
 
 #: templates/templated_email/account/email_changed_notification.email:4
 #: templates/templated_email/account/request_email_change.email:4
 msgctxt "Email change e-mail subject"
 msgid "Email change e-mail"
-msgstr ""
+msgstr "ایمیل تغییر ایمیل"
 
 #: templates/templated_email/account/email_changed_notification.email:9
 #, python-format
@@ -83,11 +91,15 @@ msgid ""
 "You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
 "If you didn't request this change, please contact the administrator.\n"
 msgstr ""
+"\n"
+"\n"
+"شما این ایمیل را به این دلیل دریافت کرده اید که یک نفر ایمیل شمارا در حساب %(domain) تغییر داده است.\n"
+"اگر شما این درخواست را نداده اید لطفا با مدیر وبسایت ما تماس بگیرید.\n"
 
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
 msgid "Password reset e-mail"
-msgstr ""
+msgstr "ایمیل تغییر پسورد"
 
 #: templates/templated_email/account/password_reset.email:9
 #, python-format
@@ -97,6 +109,9 @@ msgid ""
 "You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
 "It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"شما این ایمیل را به این دلیل دریافت میکنید که یک نفر درخواست تغییر رمز عبور شما را در سایت %(domain) داده است.\n"
+"اگر شما این درخواست را نداده اید میتوانید این ایمیل را نادیده بگیرید. در غیر این صورت برروی لینک زیر کلیک نمایید.\n"
 
 #: templates/templated_email/account/request_email_change.email:9
 #, python-format
