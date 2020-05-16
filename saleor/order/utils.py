@@ -1,16 +1,9 @@
-import os
 from functools import wraps
-from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.staticfiles import finders as static_finders
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
 from django.db import transaction
-from django.template.loader import get_template
 from django.utils import timezone
 from prices import Money, TaxedMoney
-from weasyprint import HTML
 
 from ..account.models import User
 from ..core.taxes import zero_money
@@ -342,57 +335,3 @@ def get_voucher_discount_for_order(order: Order) -> Money:
 
 def match_orders_with_new_user(user: User) -> None:
     Order.objects.confirmed().filter(user_email=user.email, user=None).update(user=user)
-
-
-def chunk_products(products, product_limit):
-    """Split products to list of chunks.
-
-    Each chunk represents products per page, product_limit defines chunk size.
-    """
-    chunks = []
-    for i in range(0, len(products), product_limit):
-        limit = i + product_limit
-        chunks.append(products[i:limit])
-    return chunks
-
-
-def get_product_limit_first_page(products):
-    MAX_PRODUCTS_WITH_TABLE = 3
-    MAX_PRODUCTS_WITHOUT_TABLE = 4
-
-    if len(products) < MAX_PRODUCTS_WITHOUT_TABLE:
-        return MAX_PRODUCTS_WITH_TABLE
-
-    return MAX_PRODUCTS_WITHOUT_TABLE
-
-
-def generate_invoice_pdf_for_order(invoice):
-    logo_path = static_finders.find("images/logo.svg")
-    font_path = os.path.join(
-        settings.PROJECT_ROOT, "templates", "invoices", "inter.ttf"
-    )
-
-    MAX_PRODUCTS_PER_PAGE = 13
-
-    all_products = invoice.order.lines.all()
-
-    product_limit_first_page = get_product_limit_first_page(all_products)
-
-    products_first_page = all_products[:product_limit_first_page]
-    rest_of_products = chunk_products(
-        all_products[product_limit_first_page:], MAX_PRODUCTS_PER_PAGE
-    )
-
-    rendered_template = get_template("invoices/invoice.html").render(
-        {
-            "invoice": invoice,
-            "creation_date": invoice.created.strftime("%d %b %Y"),
-            "order": invoice.order,
-            "logo_path": f"file://{logo_path}",
-            "font_path": f"file://{font_path}",
-            "products_first_page": products_first_page,
-            "rest_of_products": rest_of_products,
-        }
-    )
-    content_file = ContentFile(HTML(string=rendered_template).write_pdf())
-    return default_storage.save(f"{uuid4()}.pdf", content_file)

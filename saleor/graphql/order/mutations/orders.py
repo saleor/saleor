@@ -517,9 +517,10 @@ class OrderClearPrivateMeta(ClearMetaBaseMutation):
         public = False
 
 
-class RequestInvoice(BaseMutation):
+class RequestInvoice(ModelMutation):
     class Meta:
         description = "Request an invoice for the order."
+        model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -544,7 +545,8 @@ class RequestInvoice(BaseMutation):
         info.context.plugins.invoice_request(
             order=order, invoice=invoice, number=data.get("number")
         )
-        return RequestInvoice()
+        invoice.refresh_from_db()
+        return RequestInvoice(invoice=invoice)
 
 
 class CreateInvoiceInput(graphene.InputObjectType):

@@ -531,3 +531,7 @@ class Invoice(ModelWithMetadata):
         if url is not None:
             self.url = url
         self.save()
+
+    def fullfill_invoice(self):
+        self.status = InvoiceStatus.READY
+        self.save()

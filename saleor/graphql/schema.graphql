@@ -1959,6 +1959,7 @@ type Invoice implements Node {
   id: ID!
   number: String
   url: String
+  status: String!
 }
 
 type InvoiceError {
@@ -4021,6 +4022,7 @@ type RequestEmailChange {
 type RequestInvoice {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
+  invoice: Invoice
 }
 
 type RequestPasswordReset {
