@@ -23,7 +23,7 @@ from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import OrderStatus, events as order_events
 from saleor.order.error_codes import InvoiceErrorCode, OrderErrorCode
-from saleor.order.models import Invoice, Order, OrderEvent
+from saleor.order.models import Invoice, InvoiceEvent, InvoiceEvents, Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
 from saleor.plugins.manager import PluginsManager
@@ -3018,6 +3018,12 @@ def test_request_invoice(
     invoice = Invoice.objects.filter(number=number, order=order.pk).first()
     assert invoice
     plugin_mock.assert_called_once_with(order, invoice, number, previous_value=None)
+    assert InvoiceEvent.objects.filter(
+        type=InvoiceEvents.REQUESTED,
+        user=staff_api_client.user,
+        order=invoice.order,
+        parameters__number=number,
+    ).exists()
 
 
 def test_request_invoice_no_number(staff_api_client, permission_manage_orders, order):
@@ -3051,6 +3057,12 @@ def test_request_delete_invoice(
     invoice.refresh_from_db()
     assert invoice.status == InvoiceStatus.PENDING_DELETE
     plugin_mock.assert_called_once_with(invoice, previous_value=None)
+    assert InvoiceEvent.objects.filter(
+        type=InvoiceEvents.REQUESTED_DELETION,
+        user=staff_api_client.user,
+        invoice=invoice,
+        order=invoice.order,
+    ).exists()
 
 
 @patch("saleor.plugins.base_plugin.BasePlugin.invoice_delete")
@@ -3087,6 +3099,11 @@ def test_delete_invoice(staff_api_client, permission_manage_orders, order):
     content = get_graphql_content(response)
     assert not content["data"]["deleteInvoice"]["invoiceErrors"]
     assert not Invoice.objects.filter(id=invoice.pk).exists()
+    assert InvoiceEvent.objects.filter(
+        type=InvoiceEvents.DELETED,
+        user=staff_api_client.user,
+        parameters__invoice_id=invoice.id,
+    ).exists()
 
 
 @patch("saleor.plugins.base_plugin.BasePlugin.invoice_delete")
@@ -3189,6 +3206,14 @@ def test_create_invoice(staff_api_client, permission_manage_orders, order):
     assert invoice.url == content["data"]["createInvoice"]["invoice"]["url"]
     assert invoice.number == content["data"]["createInvoice"]["invoice"]["number"]
     assert invoice.status == InvoiceStatus.READY
+    assert InvoiceEvent.objects.filter(
+        type=InvoiceEvents.CREATED,
+        user=staff_api_client.user,
+        invoice=invoice,
+        order=invoice.order,
+        parameters__number=number,
+        parameters__url=url,
+    ).exists()
 
 
 def test_create_invoice_invalid_id(staff_api_client, permission_manage_orders):
@@ -3245,6 +3270,12 @@ def test_send_invoice(email_mock, staff_api_client, permission_manage_orders, or
     content = get_graphql_content(response)
     assert not content["data"]["sendInvoiceEmail"]["invoiceErrors"]
     email_mock.assert_called_with(invoice.pk)
+    assert InvoiceEvent.objects.filter(
+        type=InvoiceEvents.SENT,
+        user=staff_api_client.user,
+        invoice=invoice,
+        parameters__email=order.user.email,
+    ).exists()
 
 
 @patch("saleor.order.emails.send_invoice.delay")

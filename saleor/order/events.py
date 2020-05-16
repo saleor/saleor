@@ -3,10 +3,10 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from ..account import events as account_events
 from ..account.models import User
-from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
+from ..order.models import Fulfillment, FulfillmentLine, Invoice, Order, OrderLine
 from ..payment.models import Payment
 from . import OrderEvents, OrderEventsEmails
-from .models import OrderEvent
+from .models import InvoiceEvent, InvoiceEvents, OrderEvent
 
 UserType = Optional[User]
 
@@ -92,6 +92,53 @@ def draft_order_removed_products_event(
         type=OrderEvents.DRAFT_REMOVED_PRODUCTS,
         user=user,
         parameters={"lines": _lines_per_quantity_to_line_object_list(order_lines)},
+    )
+
+
+def invoice_requested_event(
+    *, user: UserType, order: Order, number: str
+) -> InvoiceEvent:
+    return InvoiceEvent.objects.create(
+        type=InvoiceEvents.REQUESTED,
+        user=user,
+        order=order,
+        parameters={"number": number},
+    )
+
+
+def invoice_requested_deletion(*, user: UserType, invoice: Invoice) -> InvoiceEvent:
+    return InvoiceEvent.objects.create(
+        type=InvoiceEvents.REQUESTED_DELETION,
+        user=user,
+        invoice=invoice,
+        order=invoice.order,
+    )
+
+
+def invoice_created_event(
+    *, user: UserType, invoice: Invoice, number: str, url: str
+) -> InvoiceEvent:
+    return InvoiceEvent.objects.create(
+        type=InvoiceEvents.CREATED,
+        user=user,
+        invoice=invoice,
+        order=invoice.order,
+        parameters={"number": number, "url": url},
+    )
+
+
+def invoice_deleted_event(*, user: UserType, invoice_id: int) -> InvoiceEvent:
+    return InvoiceEvent.objects.create(
+        type=InvoiceEvents.DELETED, user=user, parameters={"invoice_id": invoice_id}
+    )
+
+
+def invoice_sent_event(*, user: UserType, invoice: Invoice) -> InvoiceEvent:
+    return InvoiceEvent.objects.create(
+        type=InvoiceEvents.SENT,
+        user=user,
+        invoice=invoice,
+        parameters={"email": invoice.order.user.email},  # type: ignore
     )
 
 
