@@ -1,3 +1,5 @@
+import copy
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -544,6 +546,9 @@ class RequestInvoice(BaseMutation):
         info.context.plugins.invoice_request(
             order=order, invoice=invoice, number=data.get("number")
         )
+        events.invoice_requested_event(
+            user=info.context.user, order=order, number=data.get("number")
+        )
         return RequestInvoice()
 
 
@@ -590,6 +595,12 @@ class CreateInvoice(ModelMutation):
         invoice.order = instance
         invoice.status = InvoiceStatus.READY
         invoice.save()
+        events.invoice_created_event(
+            user=info.context.user,
+            invoice=invoice,
+            number=data["input"].get("number"),
+            url=data["input"].get("url"),
+        )
         return CreateInvoice(invoice=invoice)
 
 
@@ -612,6 +623,7 @@ class RequestDeleteInvoice(ModelMutation):
         invoice.status = InvoiceStatus.PENDING_DELETE
         invoice.save()
         info.context.plugins.invoice_delete(invoice)
+        events.invoice_requested_deletion(user=info.context.user, invoice=invoice)
         return RequestDeleteInvoice()
 
 
@@ -625,6 +637,13 @@ class DeleteInvoice(ModelDeleteMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        invoice_pk = copy.copy(cls.get_instance(info, **data).pk)
+        response = super().perform_mutation(_root, info, **data)
+        events.invoice_deleted_event(user=info.context.user, invoice_id=invoice_pk)
+        return response
 
 
 class UpdateInvoiceInput(graphene.InputObjectType):
@@ -703,4 +722,5 @@ class SendInvoiceEmail(ModelMutation):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
         send_invoice.delay(instance.pk)
+        events.invoice_sent_event(user=info.context.user, invoice=instance)
         return SendInvoiceEmail(invoice=instance)
