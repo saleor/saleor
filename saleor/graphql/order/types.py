@@ -289,7 +289,7 @@ class Invoice(CountableDjangoObjectType):
         description = "Represents an Invoice."
         interfaces = [relay.Node]
         model = models.Invoice
-        only_fields = ["id", "number", "url"]
+        only_fields = ["id", "number", "url", "status"]
 
 
 class Order(CountableDjangoObjectType):

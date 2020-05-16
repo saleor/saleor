@@ -47,6 +47,7 @@ from saleor.order.utils import recalculate_order
 from saleor.page.models import Page, PageTranslation
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
+from saleor.plugins.invoicing.plugin import InvoicingPlugin
 from saleor.plugins.models import PluginConfiguration
 from saleor.plugins.vatlayer.plugin import VatlayerPlugin
 from saleor.product import AttributeInputType
@@ -177,6 +178,16 @@ def setup_vatlayer(settings):
         "configuration": [{"name": "Access key", "value": "vatlayer_access_key"},],
     }
     PluginConfiguration.objects.create(identifier=VatlayerPlugin.PLUGIN_ID, **data)
+    return settings
+
+
+@pytest.fixture
+def setup_invoicing(settings):
+    settings.PLUGINS = ["saleor.plugins.invoicing.plugin.InvoicingPlugin"]
+    data = {
+        "active": True,
+    }
+    PluginConfiguration.objects.create(identifier=InvoicingPlugin.PLUGIN_ID, **data)
     return settings
 
 

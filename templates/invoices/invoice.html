@@ -217,7 +217,12 @@
             <span class="header-title">
                 {% trans "INVOICE INFORMATION" context "Invoice PDF header" %}
             </span>
-            <br />
+            <span class="header-category">
+                {% trans "Invoice number:" context "Invoice PDF header: Invoice number" %}
+            </span>
+            <div class="padded-font-sm"></div>
+            <span class="header-item">{{ invoice.number }}</span>
+            <div class="padded-font"></div>
             <span class="header-category">
                 {% trans "Order:" context "Invoice PDF header: order number" %}
             </span>
