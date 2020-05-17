@@ -101,7 +101,6 @@ def send_staff_order_confirmation(order_pk, redirect_url):
         send_templated_mail(**staff_email_data)
 
 
-@app.task
 def send_fulfillment_confirmation(order_pk, fulfillment_pk):
     email_data = collect_data_for_fullfillment_email(
         order_pk, CONFIRM_FULFILLMENT_TEMPLATE, fulfillment_pk
@@ -110,7 +109,7 @@ def send_fulfillment_confirmation(order_pk, fulfillment_pk):
 
 
 def send_fulfillment_confirmation_to_customer(order, fulfillment, user):
-    send_fulfillment_confirmation.delay(order.pk, fulfillment.pk)
+    send_fulfillment_confirmation(order.pk, fulfillment.pk)
 
     events.email_sent_event(
         order=order, user=user, email_type=events.OrderEventsEmails.FULFILLMENT
