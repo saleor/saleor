@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from ....account.models import User
 from ....core.permissions import OrderPermissions
 from ....core.taxes import zero_taxed_money
-from ....order import events, models
+from ....order import OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -533,16 +533,42 @@ class RequestInvoice(BaseMutation):
         )
 
     @classmethod
+    def clean_instance(cls, info, instance):
+        if instance.status == OrderStatus.DRAFT:
+            raise ValidationError(
+                {
+                    "orderId": ValidationError(
+                        "Provided order status cannot be draft.",
+                        code=InvoiceErrorCode.INVALID_STATUS,
+                    )
+                }
+            )
+
+        if not instance.billing_address:
+            raise ValidationError(
+                {
+                    "orderId": ValidationError(
+                        "Billing address is not set on order.",
+                        code=InvoiceErrorCode.NOT_READY,
+                    )
+                }
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(
             info, data["order_id"], only_type=Order, field="orderId"
         )
+        cls.clean_instance(info, order)
 
         invoice = models.Invoice.objects.create(
             order=order, status=InvoiceStatus.PENDING, number=data.get("number")
         )
         info.context.plugins.invoice_request(
             order=order, invoice=invoice, number=data.get("number")
+        )
+        events.invoice_requested_event(
+            user=info.context.user, order=order, number=data.get("number")
         )
         return RequestInvoice()
 
@@ -581,15 +607,44 @@ class CreateInvoice(ModelMutation):
         return data["input"]
 
     @classmethod
+    def clean_instance(cls, info, instance):
+        if instance.status == OrderStatus.DRAFT:
+            raise ValidationError(
+                {
+                    "orderId": ValidationError(
+                        "Provided order status cannot be draft.",
+                        code=InvoiceErrorCode.INVALID_STATUS,
+                    )
+                }
+            )
+
+        if not instance.billing_address:
+            raise ValidationError(
+                {
+                    "orderId": ValidationError(
+                        "Billing address is not set on order.",
+                        code=InvoiceErrorCode.NOT_READY,
+                    )
+                }
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_node_or_error(
             info, data["order_id"], only_type=Order, field="orderId"
         )
+        cls.clean_instance(info, instance)
         cleaned_input = cls.clean_input(info, instance, data)
         invoice = cls.construct_instance(cls.get_instance(info, **data), cleaned_input)
         invoice.order = instance
         invoice.status = InvoiceStatus.READY
         invoice.save()
+        events.invoice_created_event(
+            user=info.context.user,
+            invoice=invoice,
+            number=cleaned_input["number"],
+            url=cleaned_input["url"],
+        )
         return CreateInvoice(invoice=invoice)
 
 
@@ -612,6 +667,7 @@ class RequestDeleteInvoice(ModelMutation):
         invoice.status = InvoiceStatus.PENDING_DELETE
         invoice.save()
         info.context.plugins.invoice_delete(invoice)
+        events.invoice_requested_deletion(user=info.context.user, invoice=invoice)
         return RequestDeleteInvoice()
 
 
@@ -625,6 +681,13 @@ class DeleteInvoice(ModelDeleteMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        invoice_pk = cls.get_instance(info, **data).pk
+        response = super().perform_mutation(_root, info, **data)
+        events.invoice_deleted_event(user=info.context.user, invoice_id=invoice_pk)
+        return response
 
 
 class UpdateInvoiceInput(graphene.InputObjectType):
@@ -703,4 +766,5 @@ class SendInvoiceEmail(ModelMutation):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
         send_invoice.delay(instance.pk)
+        events.invoice_sent_event(user=info.context.user, invoice=instance)
         return SendInvoiceEmail(invoice=instance)

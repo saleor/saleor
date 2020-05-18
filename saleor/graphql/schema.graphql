@@ -1972,6 +1972,7 @@ enum InvoiceErrorCode {
   NOT_READY
   URL_OR_NUMBER_NOT_SET
   NOT_FOUND
+  INVALID_STATUS
 }
 
 scalar JSONString
