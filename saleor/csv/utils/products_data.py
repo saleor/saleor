@@ -24,13 +24,10 @@ class ProductExportFields:
             "visible": "is_published",
             "category": "category__slug",
             "product type": "product_type__name",
-            "category": "category__slug",
-            "visible": "is_published",
             "charge taxes": "charge_taxes",
             "product weight": "product_weight",
             "price": "price_amount",
             "product currency": "product_currency",
-            "charge taxes": "charge_taxes",
         },
         "product_many_to_many": {
             "collections": "collections__slug",
@@ -244,7 +241,6 @@ def prepare_attribute_products_data(
 
     for data in attribute_data:
         pk = data.get("pk")
-        attribute_pk = str(data.pop(attribute_fields["attribute_pk"], ""))
         attribute = {
             "slug": data[attribute_fields["slug"]],
             "value": data[attribute_fields["value"]],
@@ -287,7 +283,7 @@ def prepare_variants_data(
 ) -> Tuple[List[dict], set, set]:
     """Prepare variants data for product with given pk.
 
-    This function gets product pk and prepared data about product's variants.
+    This function gets product pk and prepared data about product"s variants.
     Returned data contains info about variant fields and relations.
     It also return sets with variant attributes and warehouse headers.
     """
