@@ -250,7 +250,7 @@ def prepare_attribute_products_data(
             "value": data[attribute_fields["value"]],
         }
         result_data, attribute_header = add_attribute_info_to_data(
-            pk, attribute, result_data
+            pk, attribute, "product attribute", result_data
         )
         if attribute_header:
             attributes_headers.add(attribute_header)
@@ -368,7 +368,7 @@ def update_variant_data(
 
         if attribute_ids and attribute_pk in attribute_ids:
             result_data, attribute_header = add_attribute_info_to_data(
-                pk, attribute_data, result_data
+                pk, attribute_data, "variant attribute", result_data
             )
             if attribute_header:
                 variant_attributes_headers.add(attribute_header)
@@ -408,6 +408,7 @@ def add_image_uris_to_data(
 def add_attribute_info_to_data(
     pk: int,
     attribute_data: Dict[str, Optional[Union[str]]],
+    attribute_owner: str,
     result_data: Dict[int, dict],
 ) -> Tuple[Dict[int, dict], Optional[str]]:
     """Add info about attribute to variant or product data.
@@ -420,7 +421,7 @@ def add_attribute_info_to_data(
     slug = attribute_data["slug"]
     header = None
     if slug:
-        header = f"{slug} (attribute)"
+        header = f"{slug} ({attribute_owner})"
         if header in result_data[pk]:
             result_data[pk][header].add(attribute_data["value"])  # type: ignore
         else:
