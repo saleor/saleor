@@ -60,10 +60,6 @@ class SitePermissions(BasePermissionEnum):
     MANAGE_TRANSLATIONS = "site.manage_translations"
 
 
-class WebhookPermissions(BasePermissionEnum):
-    MANAGE_WEBHOOKS = "webhook.manage_webhooks"
-
-
 PERMISSIONS_ENUMS = [
     AccountPermissions,
     AppPermission,
@@ -76,7 +72,6 @@ PERMISSIONS_ENUMS = [
     ProductPermissions,
     ShippingPermissions,
     SitePermissions,
-    WebhookPermissions,
     CheckoutPermissions,
 ]
 
