@@ -533,10 +533,33 @@ class RequestInvoice(BaseMutation):
         )
 
     @classmethod
+    def clean_instance(cls, info, instance):
+        if instance.status == OrderStatus.DRAFT:
+            raise ValidationError(
+                {
+                    "orderId": ValidationError(
+                        "Provided order status cannot be draft.",
+                        code=InvoiceErrorCode.INVALID_STATUS,
+                    )
+                }
+            )
+
+        if not instance.billing_address:
+            raise ValidationError(
+                {
+                    "orderId": ValidationError(
+                        "Billing address is not set on order.",
+                        code=InvoiceErrorCode.NOT_READY,
+                    )
+                }
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(
             info, data["order_id"], only_type=Order, field="orderId"
         )
+        cls.clean_instance(info, order)
 
         invoice = models.Invoice.objects.create(
             order=order, status=InvoiceStatus.PENDING, number=data.get("number")
@@ -595,6 +618,16 @@ class CreateInvoice(ModelMutation):
                 }
             )
 
+        if not instance.billing_address:
+            raise ValidationError(
+                {
+                    "orderId": ValidationError(
+                        "Billing address is not set on order.",
+                        code=InvoiceErrorCode.NOT_READY,
+                    )
+                }
+            )
+
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_node_or_error(
@@ -609,8 +642,8 @@ class CreateInvoice(ModelMutation):
         events.invoice_created_event(
             user=info.context.user,
             invoice=invoice,
-            number=data["input"].get("number"),
-            url=data["input"].get("url"),
+            number=cleaned_input["number"],
+            url=cleaned_input["url"],
         )
         return CreateInvoice(invoice=invoice)
 
