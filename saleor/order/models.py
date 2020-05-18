@@ -25,7 +25,7 @@ from ..giftcard.models import GiftCard
 from ..graphql.order.enums import InvoiceStatus
 from ..payment import ChargeStatus, TransactionKind
 from ..shipping.models import ShippingMethod
-from . import FulfillmentStatus, OrderEvents, OrderStatus
+from . import FulfillmentStatus, InvoiceEvents, OrderEvents, OrderStatus
 
 
 class OrderQueryset(models.QuerySet):
@@ -535,3 +535,33 @@ class Invoice(ModelWithMetadata):
     def fullfill_invoice(self):
         self.status = InvoiceStatus.READY
         self.save()
+
+
+class InvoiceEvent(models.Model):
+    """Model used to store events that happened during the invoice lifecycle."""
+
+    date = models.DateTimeField(default=now, editable=False)
+    type = models.CharField(max_length=255, choices=InvoiceEvents.CHOICES)
+    invoice = models.ForeignKey(
+        Invoice, related_name="events", blank=True, null=True, on_delete=models.SET_NULL
+    )
+    order = models.ForeignKey(
+        Order,
+        related_name="invoice_events",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+
+    class Meta:
+        ordering = ("date",)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(type={self.type!r}, user={self.user!r})"
