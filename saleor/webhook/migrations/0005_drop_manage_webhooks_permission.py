@@ -18,7 +18,6 @@ def change_webhook_permission_to_app_permission(apps, schema_editor):
         permissions__content_type__app_label="webhook",
         permissions__codename="manage_webhooks",
     )
-
     groups = Group.objects.filter(
         permissions__content_type__app_label="webhook",
         permissions__codename="manage_webhooks",
@@ -27,11 +26,11 @@ def change_webhook_permission_to_app_permission(apps, schema_editor):
     if not manage_apps or not manage_webhooks:
         return
 
-    for group in groups:
+    for group in groups.iterator():
         group.permissions.remove(manage_webhooks)
         group.permissions.add(manage_apps)
 
-    for app in apps:
+    for app in apps.iterator():
         app.permissions.remove(manage_webhooks)
         app.permissions.add(manage_apps)
 
@@ -42,6 +41,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("webhook", "0004_mount_app"),
+        ("account", "0045_auto_20200427_0425"),
     ]
 
     operations = [
