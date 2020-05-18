@@ -1,5 +1,3 @@
-import copy
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -640,7 +638,7 @@ class DeleteInvoice(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        invoice_pk = copy.copy(cls.get_instance(info, **data).pk)
+        invoice_pk = cls.get_instance(info, **data).pk
         response = super().perform_mutation(_root, info, **data)
         events.invoice_deleted_event(user=info.context.user, invoice_id=invoice_pk)
         return response
