@@ -589,8 +589,8 @@ class CreateInvoice(ModelMutation):
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Provided order cannot be draft.",
-                        code=InvoiceErrorCode.NOT_READY,
+                        "Provided order status cannot be draft.",
+                        code=InvoiceErrorCode.INVALID_STATUS,
                     )
                 }
             )

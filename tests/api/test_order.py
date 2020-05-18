@@ -3237,7 +3237,7 @@ def test_create_invoice_for_draft_order(
     ).exists()
     error = content["data"]["createInvoice"]["invoiceErrors"][0]
     assert error["field"] == "orderId"
-    assert error["code"] == InvoiceErrorCode.NOT_READY.name
+    assert error["code"] == InvoiceErrorCode.INVALID_STATUS.name
 
 
 def test_create_invoice_invalid_id(staff_api_client, permission_manage_orders):
