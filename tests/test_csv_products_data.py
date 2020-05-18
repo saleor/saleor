@@ -7,8 +7,8 @@ from saleor.csv.utils.products_data import (
     add_image_uris_to_data,
     add_warehouse_info_to_data,
     get_products_data,
-    prepare_product_relations_data,
     prepare_products_data,
+    prepare_products_relations_data,
     prepare_variants_data,
 )
 from saleor.graphql.csv.enums import ProductFieldEnum
@@ -27,12 +27,12 @@ def test_get_products_data(mock_prepare_products_data, product_list):
 
     expected_csv_headers = {
         value: key
-        for key, value in ProductExportFields.HEADERS_TO_LOOKUP_MAPPING.items()
+        for mapping in ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()
+        for key, value in mapping.items()
     }
+    del expected_csv_headers["id"]
     expected_headers = (
-        ["id"]
-        + list(ProductExportFields.HEADERS_TO_LOOKUP_MAPPING.values())
-        + attr_and_warehouse_headers
+        ["id"] + list(expected_csv_headers.keys()) + attr_and_warehouse_headers
     )
 
     assert export_data == exp_data
@@ -57,12 +57,12 @@ def test_get_products_data_with_empty_warehouses_and_attributes_lists(
 
     expected_csv_headers = {
         value: key
-        for key, value in ProductExportFields.HEADERS_TO_LOOKUP_MAPPING.items()
+        for mapping in ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()
+        for key, value in mapping.items()
     }
+    del expected_csv_headers["id"]
     expected_headers = (
-        ["id"]
-        + list(ProductExportFields.HEADERS_TO_LOOKUP_MAPPING.values())
-        + attr_and_warehouse_headers
+        ["id"] + list(expected_csv_headers.keys()) + attr_and_warehouse_headers
     )
 
     assert export_data == exp_data
@@ -109,8 +109,11 @@ def test_prepare_products_data(product, product_with_image, collection, image):
     VariantImage.objects.create(variant=variant, image=product.images.first())
 
     products = Product.objects.all()
-    export_fields = set(ProductExportFields.HEADERS_TO_LOOKUP_MAPPING.values())
-    export_fields.add("id")
+    export_fields = set(
+        value
+        for mapping in ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()
+        for value in mapping.values()
+    )
     warehouse_ids = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()]
     for variant in product.variants.all():
@@ -320,18 +323,20 @@ def test_prepare_products_data_for_specified_warehouses_and_attributes(
     assert set(headers) == expected_headers
 
 
-def test_prepare_product_relations_data(product_with_image, collection_list):
+def test_prepare_products_relations_data(product_with_image, collection_list):
     pk = product_with_image.pk
     collection_list[0].products.add(product_with_image)
     collection_list[1].products.add(product_with_image)
     qs = Product.objects.all()
-    fields = set(ProductExportFields.PRODUCT_MANY_TO_MANY)
+    fields = set(
+        ProductExportFields.HEADERS_TO_FIELDS_MAPPING["product_many_to_many"].values()
+    )
     attribute_ids = [
         str(attr.assignment.attribute.pk)
         for attr in product_with_image.attributes.all()
     ]
 
-    result, result_headers = prepare_product_relations_data(qs, fields, attribute_ids)
+    result, result_headers = prepare_products_relations_data(qs, fields, attribute_ids)
 
     collections = ", ".join(
         sorted([collection.slug for collection in collection_list[:2]])
@@ -361,7 +366,9 @@ def test_prepare_variants_data(product):
     attribute_headers = set()
 
     data = {"id": 123, "name": "test_product"}
-    variant_fields = set(ProductExportFields.VARIANT_FIELDS)
+    variant_fields = set(
+        ProductExportFields.HEADERS_TO_FIELDS_MAPPING["variant_fields"].values()
+    )
     warhouse_ids = [str(stock.warehouse.pk) for stock in variant.stocks.all()]
     attribute_ids = [
         str(attr.assignment.attribute.pk) for attr in variant.attributes.all()
