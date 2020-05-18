@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from ....account.models import User
 from ....core.permissions import OrderPermissions
 from ....core.taxes import zero_taxed_money
-from ....order import events, models
+from ....order import OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -584,10 +584,23 @@ class CreateInvoice(ModelMutation):
         return data["input"]
 
     @classmethod
+    def clean_instance(cls, info, instance):
+        if instance.status == OrderStatus.DRAFT:
+            raise ValidationError(
+                {
+                    "orderId": ValidationError(
+                        "Provided order cannot be draft.",
+                        code=InvoiceErrorCode.NOT_READY,
+                    )
+                }
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_node_or_error(
             info, data["order_id"], only_type=Order, field="orderId"
         )
+        cls.clean_instance(info, instance)
         cleaned_input = cls.clean_input(info, instance, data)
         invoice = cls.construct_instance(cls.get_instance(info, **data), cleaned_input)
         invoice.order = instance
