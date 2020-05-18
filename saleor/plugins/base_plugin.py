@@ -352,7 +352,7 @@ class BasePlugin:
                         new_value = new_value.lower() == "true"
                     config_item.update([("value", new_value)])
 
-        # Get new keys that are not exists in current_config and extend it.
+        # Get new keys that don't exist in current_config and extend it.
         current_config_keys = set(c_field["name"] for c_field in current_config)
         configuration_to_update_dict = {
             c_field["name"]: c_field["value"] for c_field in configuration_to_update
