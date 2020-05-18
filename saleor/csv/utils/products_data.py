@@ -76,6 +76,11 @@ def get_products_data(
 
 
 def get_export_fields_and_headers(export_info: Dict[str, list]):
+    """Get export fields from export info and prepare headers mapping.
+
+    Based on given fields headers from export info, export fields set and
+    headers mapping is prepared.
+    """
     fields_mapping = dict(
         ChainMap(*reversed(ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()))  # type: ignore
     )
@@ -90,6 +95,7 @@ def get_export_fields_and_headers(export_info: Dict[str, list]):
         lookup_field = fields_mapping[field]
         export_fields.append(lookup_field)
         csv_headers_mapping[lookup_field] = field
+        # if price is exported, currency is needed too
         if field == "price":
             lookup_field = fields_mapping["product currency"]
             export_fields.append(lookup_field)
@@ -164,6 +170,13 @@ def prepare_products_data(
 def get_products_relations_data(
     queryset: "QuerySet", export_fields: Set[str], attribute_ids: Optional[List[int]]
 ):
+    """Get data about product relations fields.
+
+    If any many to many fields are in export_fields or some attribute_ids exists then
+    dict with product relations fields is returned. It also returns set with
+    attribute headers.
+    Otherwise it returns empty dict and set.
+    """
     many_to_many_fields = set(
         ProductExportFields.HEADERS_TO_FIELDS_MAPPING["product_many_to_many"].values()
     )
