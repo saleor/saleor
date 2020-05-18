@@ -16,57 +16,47 @@ if TYPE_CHECKING:
 class ProductExportFields:
     """Data structure with fields for product export."""
 
-    HEADERS_TO_LOOKUP_MAPPING = {
-        "name": "name",
-        "description": "description",
-        "product type": "product_type__name",
-        "category": "category__slug",
-        "visible": "is_published",
-        "collections": "collections__slug",
-        "price": "price_amount",
-        "product currency": "product_currency",
-        "price override": "price_override_amount",
-        "variant currency": "variant_currency",
-        "cost price": "cost_price_amount",
-        "product weight": "product_weight",
-        "variant weight": "variant_weight",
-        "charge taxes": "charge_taxes",
-        "product images": "product_image_path",
-        "variant images": "variant_image_path",
-        "variant sku": "sku",
+    HEADERS_TO_FIELDS_MAPPING = {
+        "product_fields": {
+            "id": "id",
+            "name": "name",
+            "description": "description",
+            "visible": "is_published",
+            "category": "category__slug",
+            "product type": "product_type__name",
+            "category": "category__slug",
+            "visible": "is_published",
+            "charge taxes": "charge_taxes",
+            "product weight": "product_weight",
+            "price": "price_amount",
+            "product currency": "product_currency",
+            "charge taxes": "charge_taxes",
+        },
+        "product_many_to_many": {
+            "collections": "collections__slug",
+            "product images": "product_image_path",
+        },
+        "variant_fields": {
+            "variant sku": "sku",
+            "variant weight": "variant_weight",
+            "variant images": "variant_image_path",
+            "cost price": "cost_price_amount",
+            "price override": "price_override_amount",
+            "variant currency": "variant_currency",
+        },
     }
 
-    PRODUCT_FIELDS = [
-        "id",
-        "name",
-        "description",
-        "product_type__name",
-        "category__slug",
-        "is_published",
-        "price_amount",
-        "product_currency",
-        "product_weight",
-        "charge_taxes",
-    ]
+    WAREHOUSE_FIELDS = {
+        "slug": "stocks__warehouse__slug",
+        "quantity": "stocks__quantity",
+        "warehouse_pk": "stocks__warehouse__id",
+    }
 
-    PRODUCT_MANY_TO_MANY = ["collections__slug", "product_image_path"]
-
-    VARIANT_FIELDS = [
-        "sku",
-        "price_override_amount",
-        "cost_price_amount",
-        "variant_currency",
-        "variant_weight",
-        "variant_image_path",
-    ]
-
-    WAREHOUSE_FIELDS = [
-        "stocks__warehouse__slug",
-        "stocks__quantity",
-        "warehouse_pk",
-    ]
-
-    ATTRIBUTE_FIELDS = ["attribute_values", "attribute_slug", "attribute_pk"]
+    ATTRIBUTE_FIELDS = {
+        "value": "attributes__values__slug",
+        "slug": "attributes__assignment__attribute__slug",
+        "attribute_pk": "attributes__assignment__attribute__pk",
+    }
 
 
 def get_products_data(
@@ -80,12 +70,15 @@ def get_products_data(
     export_data, attributes_and_warehouse_headers = prepare_products_data(
         queryset, set(export_fields), warehouse_ids, attribute_ids
     )
+
     headers = product_headers + attributes_and_warehouse_headers
     return export_data, csv_headers_mapping, headers
 
 
 def get_export_fields_and_headers(export_info: Dict[str, list]):
-    fields_mapping = ProductExportFields.HEADERS_TO_LOOKUP_MAPPING
+    fields_mapping = dict(
+        ChainMap(*reversed(ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()))  # type: ignore
+    )
     export_fields = ["id"]
     csv_headers_mapping: Dict[str, str] = {}
 
@@ -121,26 +114,27 @@ def prepare_products_data(
     csv writer and list of attribute and warehouse headers.
     """
 
-    products_attributes_fields: Set[str] = set()
     variants_attributes_fields: Set[str] = set()
     warehouse_fields: Set[str] = set()
-
-    product_export_fields = export_fields & set(ProductExportFields.PRODUCT_FIELDS)
-
     products_with_variants_data = []
+
+    product_fields = set(
+        ProductExportFields.HEADERS_TO_FIELDS_MAPPING["product_fields"].values()
+    )
+    product_export_fields = export_fields & product_fields
+
     products_data = queryset.annotate(
         product_currency=F("currency"), product_weight=F("weight")
     ).values(*product_export_fields)
 
-    product_relations_data: Dict[int, Dict[str, str]] = {}
-    relations_fields = export_fields & set(ProductExportFields.PRODUCT_MANY_TO_MANY)
-    if relations_fields or attribute_ids:
-        (
-            product_relations_data,
-            products_attributes_fields,
-        ) = prepare_product_relations_data(queryset, relations_fields, attribute_ids)
+    product_relations_data, products_attributes_fields = get_products_relations_data(
+        queryset, export_fields, attribute_ids
+    )
 
-    variant_fields = export_fields & set(ProductExportFields.VARIANT_FIELDS)
+    variant_fields = set(
+        ProductExportFields.HEADERS_TO_FIELDS_MAPPING["variant_fields"].values()
+    )
+    variant_export_fields = export_fields & variant_fields
     export_variant_data = variant_fields or attribute_ids or warehouse_ids
     for product_data in products_data:
         pk = product_data["id"]
@@ -152,7 +146,7 @@ def prepare_products_data(
             continue
 
         variants_data, *headers = prepare_variants_data(
-            pk, data, variant_fields, warehouse_ids, attribute_ids
+            pk, data, variant_export_fields, warehouse_ids, attribute_ids
         )
         products_with_variants_data.extend(variants_data)
         variants_attributes_fields.update(headers[0])
@@ -167,7 +161,22 @@ def prepare_products_data(
     return products_with_variants_data, attribute_and_warehouse_headers
 
 
-def prepare_product_relations_data(
+def get_products_relations_data(
+    queryset: "QuerySet", export_fields: Set[str], attribute_ids: Optional[List[int]]
+):
+    many_to_many_fields = set(
+        ProductExportFields.HEADERS_TO_FIELDS_MAPPING["product_many_to_many"].values()
+    )
+    relations_fields = export_fields & many_to_many_fields
+    if relations_fields or attribute_ids:
+        return prepare_products_relations_data(
+            queryset, relations_fields, attribute_ids
+        )
+
+    return {}, set()
+
+
+def prepare_products_relations_data(
     queryset: "QuerySet", fields: Set[str], attribute_ids: Optional[List[int]]
 ) -> Tuple[Dict[int, Dict[str, str]], set]:
     """Prepare data about products relation fields for given queryset.
@@ -212,25 +221,20 @@ def prepare_attribute_products_data(
     attributes_headers = set()
     result_data: Dict[int, dict] = defaultdict(dict)
 
-    fields = ProductExportFields.ATTRIBUTE_FIELDS + ["pk"]
-    attribute_data = (
-        queryset.filter(attributes__assignment__attribute__pk__in=attribute_ids)
-        .annotate(
-            attribute_values=F("attributes__values__slug"),
-            attribute_slug=F("attributes__assignment__attribute__slug"),
-            attribute_pk=F("attributes__assignment__attribute__pk"),
-        )
-        .values(*fields)
-    )
+    attribute_fields = ProductExportFields.ATTRIBUTE_FIELDS
+    fields = set(attribute_fields.values())
+    fields.add("pk")
+
+    attribute_data = queryset.filter(
+        attributes__assignment__attribute__pk__in=attribute_ids
+    ).values(*fields)
 
     for data in attribute_data:
         pk = data.get("pk")
-        attribute_pk = str(data.pop("attribute_pk", ""))
-        # if attribute_pk not in attribute_ids:
-        #     continue
+        attribute_pk = str(data.pop(attribute_fields["attribute_pk"], ""))
         attribute = {
-            "slug": data["attribute_slug"],
-            "value": data["attribute_values"],
+            "slug": data[attribute_fields["slug"]],
+            "value": data[attribute_fields["value"]],
         }
         result_data, attribute_header = add_attribute_info_to_data(
             pk, attribute, result_data
@@ -274,24 +278,19 @@ def prepare_variants_data(
     Returned data contains info about variant fields and relations.
     It also return sets with variant attributes and warehouse headers.
     """
-    variants = ProductVariant.objects.filter(product__pk=pk).prefetch_related(
-        "images", "attributes"
-    )
-    variant_fields.update(["pk"])
+    variant_fields.add("pk")
+
     if attribute_ids:
-        variant_fields.update(ProductExportFields.ATTRIBUTE_FIELDS)
+        variant_fields.update(ProductExportFields.ATTRIBUTE_FIELDS.values())
     if warehouse_ids:
-        variant_fields.update(ProductExportFields.WAREHOUSE_FIELDS)
+        variant_fields.update(ProductExportFields.WAREHOUSE_FIELDS.values())
 
     variants_data = (
-        variants.annotate(
-            attribute_values=F("attributes__values__slug"),
-            attribute_slug=F("attributes__assignment__attribute__slug"),
+        ProductVariant.objects.filter(product__pk=pk)
+        .annotate(
             variant_currency=F("currency"),
             variant_weight=F("weight"),
             variant_image_path=F("images__image"),
-            warehouse_pk=F("stocks__warehouse__id"),
-            attribute_pk=F("attributes__assignment__attribute__pk"),
         )
         .order_by("sku")
         .values(*variant_fields)
@@ -323,24 +322,28 @@ def update_variant_data(
     about relations fields.
     It return dict with updated info and sets of attributes and warehouse headers.
     """
+    warehouse_fields = ProductExportFields.WAREHOUSE_FIELDS
+    attribute_fields = ProductExportFields.ATTRIBUTE_FIELDS
+
     variant_attributes_headers = set()
     warehouse_headers = set()
     result_data: Dict[int, dict] = defaultdict(dict)
+
     for data in variants_data:
         pk: int = data.pop("pk")  # type: ignore
         attribute_data: dict = {}
         warehouse_data: dict = {}
 
-        attribute_pk = str(data.pop("attribute_pk", ""))
+        attribute_pk = str(data.pop(attribute_fields["attribute_pk"], ""))
         attribute_data = {
-            "slug": data.pop("attribute_slug", None),
-            "value": data.pop("attribute_values", None),
+            "slug": data.pop(attribute_fields["slug"], None),
+            "value": data.pop(attribute_fields["value"], None),
         }
 
-        warehouse_pk = str(data.pop("warehouse_pk", ""))
+        warehouse_pk = str(data.pop(warehouse_fields["warehouse_pk"], ""))
         warehouse_data = {
-            "slug": data.pop("stocks__warehouse__slug", None),
-            "qty": data.pop("stocks__quantity", None),
+            "slug": data.pop(warehouse_fields["slug"], None),
+            "qty": data.pop(warehouse_fields["quantity"], None),
         }
 
         image: str = data.pop("variant_image_path", None)  # type: ignore
