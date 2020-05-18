@@ -149,7 +149,7 @@ def test_prepare_products_data(product, product_with_image, collection, image):
 
         assigned_attribute = product.attributes.first()
         if assigned_attribute:
-            header = f"{assigned_attribute.attribute.slug} (attribute)"
+            header = f"{assigned_attribute.attribute.slug} (product attribute)"
             product_data[header] = assigned_attribute.values.first().slug
             expected_headers.add(header)
 
@@ -177,7 +177,7 @@ def test_prepare_products_data(product, product_with_image, collection, image):
 
             assigned_attribute = variant.attributes.first()
             if assigned_attribute:
-                header = f"{assigned_attribute.attribute.slug} (attribute)"
+                header = f"{assigned_attribute.attribute.slug} (variant attribute)"
                 data[header] = assigned_attribute.values.first().slug
                 expected_headers.add(header)
 
@@ -206,7 +206,7 @@ def test_prepare_products_data_for_specified_attributes(
 
         for assigned_attribute in product.attributes.all():
             if assigned_attribute:
-                header = f"{assigned_attribute.attribute.slug} (attribute)"
+                header = f"{assigned_attribute.attribute.slug} (product attribute)"
                 if str(assigned_attribute.attribute.pk) in attribute_ids:
                     product_data[header] = assigned_attribute.values.first().slug
                     expected_headers.add(header)
@@ -216,7 +216,7 @@ def test_prepare_products_data_for_specified_attributes(
             data.update(product_data)
             data["sku"] = variant.sku
             for assigned_attribute in variant.attributes.all():
-                header = f"{assigned_attribute.attribute.slug} (attribute)"
+                header = f"{assigned_attribute.attribute.slug} (variant attribute)"
                 if str(assigned_attribute.attribute.pk) in attribute_ids:
                     data[header] = assigned_attribute.values.first().slug
                     expected_headers.add(header)
@@ -293,7 +293,7 @@ def test_prepare_products_data_for_specified_warehouses_and_attributes(
 
         for assigned_attribute in product.attributes.all():
             if assigned_attribute:
-                header = f"{assigned_attribute.attribute.slug} (attribute)"
+                header = f"{assigned_attribute.attribute.slug} (product attribute)"
                 if str(assigned_attribute.attribute.pk) in attribute_ids:
                     product_data[header] = assigned_attribute.values.first().slug
                     expected_headers.add(header)
@@ -313,7 +313,7 @@ def test_prepare_products_data_for_specified_warehouses_and_attributes(
                     expected_headers.update(warehouse_headers)
 
             for assigned_attribute in variant.attributes.all():
-                header = f"{assigned_attribute.attribute.slug} (attribute)"
+                header = f"{assigned_attribute.attribute.slug} (variant attribute)"
                 if str(assigned_attribute.attribute.pk) in attribute_ids:
                     data[header] = assigned_attribute.values.first().slug
                     expected_headers.add(header)
@@ -354,7 +354,7 @@ def test_prepare_products_relations_data(product_with_image, collection_list):
 
     assigned_attribute = product_with_image.attributes.first()
     if assigned_attribute:
-        header = f"{assigned_attribute.attribute.slug} (attribute)"
+        header = f"{assigned_attribute.attribute.slug} (product attribute)"
         expected_result[pk][header] = assigned_attribute.values.first().slug
 
     assert result == expected_result
@@ -388,7 +388,7 @@ def test_prepare_variants_data(product):
     }
     assigned_attribute = variant.attributes.first()
     if assigned_attribute:
-        header = f"{assigned_attribute.attribute.slug} (attribute)"
+        header = f"{assigned_attribute.attribute.slug} (variant attribute)"
         variant_data[header] = assigned_attribute.values.first().slug
         attribute_headers.add(header)
 
@@ -476,9 +476,11 @@ def test_add_attribute_info_to_data(product):
         "value": value,
     }
     input_data = {pk: {}}
-    result, header = add_attribute_info_to_data(product.pk, attribute_data, input_data)
+    result, header = add_attribute_info_to_data(
+        product.pk, attribute_data, "product attribute", input_data
+    )
 
-    expected_header = f"{slug} (attribute)"
+    expected_header = f"{slug} (product attribute)"
 
     assert header == expected_header
     assert result[pk][header] == {value}
@@ -488,14 +490,16 @@ def test_add_attribute_info_to_data_update_attribute_data(product):
     pk = product.pk
     slug = "test_attribute_slug"
     value = "test value"
-    expected_header = f"{slug} (attribute)"
+    expected_header = f"{slug} (variant attribute)"
 
     attribute_data = {
         "slug": slug,
         "value": value,
     }
     input_data = {pk: {expected_header: {"value1"}}}
-    result, header = add_attribute_info_to_data(product.pk, attribute_data, input_data)
+    result, header = add_attribute_info_to_data(
+        product.pk, attribute_data, "variant attribute", input_data
+    )
 
     assert header == expected_header
     assert result[pk][header] == {value, "value1"}
@@ -508,7 +512,9 @@ def test_add_attribute_info_to_data_no_slug(product):
         "value": None,
     }
     input_data = {pk: {}}
-    result, header = add_attribute_info_to_data(product.pk, attribute_data, input_data)
+    result, header = add_attribute_info_to_data(
+        product.pk, attribute_data, "variant attribute", input_data
+    )
 
     assert not header
     assert result == input_data
