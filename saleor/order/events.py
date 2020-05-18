@@ -98,6 +98,8 @@ def draft_order_removed_products_event(
 def invoice_requested_event(
     *, user: UserType, order: Order, number: str
 ) -> InvoiceEvent:
+    if not _user_is_valid(user):
+        user = None
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.REQUESTED,
         user=user,
@@ -107,6 +109,8 @@ def invoice_requested_event(
 
 
 def invoice_requested_deletion(*, user: UserType, invoice: Invoice) -> InvoiceEvent:
+    if not _user_is_valid(user):
+        user = None
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.REQUESTED_DELETION,
         user=user,
@@ -118,6 +122,8 @@ def invoice_requested_deletion(*, user: UserType, invoice: Invoice) -> InvoiceEv
 def invoice_created_event(
     *, user: UserType, invoice: Invoice, number: str, url: str
 ) -> InvoiceEvent:
+    if not _user_is_valid(user):
+        user = None
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.CREATED,
         user=user,
@@ -128,12 +134,16 @@ def invoice_created_event(
 
 
 def invoice_deleted_event(*, user: UserType, invoice_id: int) -> InvoiceEvent:
+    if not _user_is_valid(user):
+        user = None
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.DELETED, user=user, parameters={"invoice_id": invoice_id}
     )
 
 
 def invoice_sent_event(*, user: UserType, invoice: Invoice) -> InvoiceEvent:
+    if not _user_is_valid(user):
+        user = None
     return InvoiceEvent.objects.create(
         type=InvoiceEvents.SENT,
         user=user,
