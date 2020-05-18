@@ -6,6 +6,7 @@ from saleor.csv.utils.products_data import (
     add_collection_info_to_data,
     add_image_uris_to_data,
     add_warehouse_info_to_data,
+    get_export_fields_and_headers,
     get_products_data,
     prepare_products_data,
     prepare_products_relations_data,
@@ -561,3 +562,64 @@ def test_add_warehouse_info_to_data_data_no_slug(product):
 
     assert result == input_data
     assert headers is None
+
+
+def test_get_export_fields_and_headers_fields_with_price():
+    export_info = {
+        "fields": [
+            ProductFieldEnum.PRICE.value,
+            ProductFieldEnum.PRICE_OVERRIDE.value,
+            ProductFieldEnum.COLLECTIONS.value,
+            ProductFieldEnum.DESCRIPTION.value,
+        ],
+        "warehoses": [],
+    }
+    export_fields, csv_headers_mapping = get_export_fields_and_headers(export_info)
+
+    expected_mapping = {
+        "price_amount": "price",
+        "product_currency": "product currency",
+        "price_override_amount": "price override",
+        "variant_currency": "variant currency",
+        "collections__slug": "collections",
+        "description": "description",
+    }
+
+    assert set(export_fields) == {
+        "price_override_amount",
+        "variant_currency",
+        "collections__slug",
+        "id",
+        "product_currency",
+        "price_amount",
+        "description",
+    }
+    assert csv_headers_mapping == expected_mapping
+
+
+def test_get_export_fields_and_headers_fields_without_price():
+    export_info = {
+        "fields": [
+            ProductFieldEnum.COLLECTIONS.value,
+            ProductFieldEnum.DESCRIPTION.value,
+            ProductFieldEnum.VARIANT_SKU.value,
+        ],
+        "warehoses": [],
+    }
+    export_fields, csv_headers_mapping = get_export_fields_and_headers(export_info)
+
+    expected_mapping = {
+        "collections__slug": "collections",
+        "description": "description",
+        "sku": "variant sku",
+    }
+
+    assert set(export_fields) == {"collections__slug", "id", "sku", "description"}
+    assert csv_headers_mapping == expected_mapping
+
+
+def test_get_export_fields_and_headers_no_fields():
+    export_fields, csv_headers_mapping = get_export_fields_and_headers({})
+
+    assert export_fields == ["id"]
+    assert csv_headers_mapping == {}
