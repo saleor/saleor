@@ -141,7 +141,7 @@ def prepare_products_data(
         ProductExportFields.HEADERS_TO_FIELDS_MAPPING["variant_fields"].values()
     )
     variant_export_fields = export_fields & variant_fields
-    export_variant_data = variant_fields or attribute_ids or warehouse_ids
+    export_variant_data = variant_export_fields or attribute_ids or warehouse_ids
     for product_data in products_data:
         pk = product_data["id"]
         relations_data: Dict[str, str] = product_relations_data.get(pk, {})
