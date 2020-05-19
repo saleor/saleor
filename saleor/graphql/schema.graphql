@@ -237,10 +237,10 @@ type AppDelete {
   app: App
 }
 
-type AppDropFailedInstallation {
+type AppDeleteFailedInstallation {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   appErrors: [AppError!]!
-  appJob: AppOngoingInstallation
+  appInstallation: AppInstallation
 }
 
 type AppError {
@@ -275,7 +275,7 @@ input AppInput {
 type AppInstall {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   appErrors: [AppError!]!
-  appJob: AppOngoingInstallation
+  appInstallation: AppInstallation
 }
 
 input AppInstallInput {
@@ -285,7 +285,7 @@ input AppInstallInput {
   permissions: [PermissionEnum]
 }
 
-type AppOngoingInstallation implements Node & Job {
+type AppInstallation implements Node & Job {
   status: JobStatusEnum!
   message: String
   createdAt: DateTime!
@@ -298,7 +298,7 @@ type AppOngoingInstallation implements Node & Job {
 type AppRetryInstall {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   appErrors: [AppError!]!
-  appJob: AppOngoingInstallation
+  appInstallation: AppInstallation
 }
 
 enum AppSortField {
@@ -2531,7 +2531,7 @@ type Mutation {
   appTokenDelete(id: ID!): AppTokenDelete
   appInstall(input: AppInstallInput!): AppInstall
   appRetryInstall(activateAfterInstallation: Boolean = true, id: ID!): AppRetryInstall
-  appDropFailedInstallation(id: ID!): AppDropFailedInstallation
+  appDeleteFailedInstallation(id: ID!): AppDeleteFailedInstallation
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(token: String!, email: String!, password: String!): SetPassword
@@ -3990,7 +3990,7 @@ type Query {
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
-  appsOngoingInstallations: [AppOngoingInstallation!]!
+  appsInstallations: [AppInstallation!]!
   apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
   app(id: ID!): App
   addressValidationRules(countryCode: CountryCode!, countryArea: String, city: String, cityArea: String): AddressValidationData

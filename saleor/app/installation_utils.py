@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db import transaction
 
-from .models import App, AppJob
+from .models import App, AppInstallation
 from .types import AppType
 
 REQUEST_TIMEOUT = 30
@@ -32,16 +32,16 @@ def validate_manifest_fields(manifest_data):
 
 @transaction.atomic
 def install_app(
-    app_job: AppJob, activate: bool = False,
+    app_installation: AppInstallation, activate: bool = False,
 ):
-    response = requests.get(app_job.manifest_url, timeout=REQUEST_TIMEOUT)
+    response = requests.get(app_installation.manifest_url, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
     manifest_data = response.json()
 
     validate_manifest_fields(manifest_data)
 
     app = App.objects.create(
-        name=app_job.app_name,
+        name=app_installation.app_name,
         is_active=activate,
         identificator=manifest_data.get("identificator"),
         about_app=manifest_data.get("about_app"),
@@ -54,7 +54,7 @@ def install_app(
         version=manifest_data.get("version"),
         type=AppType.EXTERNAL,
     )
-    app.permissions.set(app_job.permissions.all())
+    app.permissions.set(app_installation.permissions.all())
     token = app.tokens.create(name="Default token")
     send_app_token(
         target_url=manifest_data.get("token_target_url"), token=token.auth_token
