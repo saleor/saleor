@@ -285,21 +285,14 @@ input AppInstallInput {
   permissions: [PermissionEnum]
 }
 
-enum AppJobStatus {
-  PENDING
-  SUCCESS
-  FAILED
-  DELETED
-}
-
-type AppOngoingInstallation {
-  id: ID!
-  status: AppJobStatus!
+type AppOngoingInstallation implements Node & Job {
+  status: JobStatusEnum!
   message: String
   createdAt: DateTime!
   updatedAt: DateTime!
   appName: String!
   manifestUrl: String!
+  id: ID!
 }
 
 type AppRetryInstall {
@@ -1996,6 +1989,20 @@ input IntRangeInput {
 }
 
 scalar JSONString
+
+interface Job {
+  status: JobStatusEnum!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  message: String
+}
+
+enum JobStatusEnum {
+  PENDING
+  SUCCESS
+  FAILED
+  DELETED
+}
 
 enum LanguageCodeEnum {
   AR

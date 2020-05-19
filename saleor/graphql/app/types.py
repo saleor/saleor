@@ -110,10 +110,9 @@ class AppOngoingInstallation(CountableDjangoObjectType):
     class Meta:
         model = models.AppJob
         description = "Represents ongoing installation of app."
-        interface = (Job,)
+        interfaces = [graphene.relay.Node, Job]
         permissions = (AppPermission.MANAGE_APPS,)
         only_fields = [
-            "id",
             "status",
             "created_at",
             "updated_at",
