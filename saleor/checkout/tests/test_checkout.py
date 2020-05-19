@@ -36,8 +36,7 @@ from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import OrderEvent
 from saleor.plugins.manager import get_plugins_manager
 from saleor.shipping.models import ShippingZone
-
-from .utils import flush_post_commit_hooks
+from tests.utils import flush_post_commit_hooks
 
 
 def test_is_valid_shipping_method(checkout_with_item, address, shipping_zone):
