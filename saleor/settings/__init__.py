@@ -612,3 +612,5 @@ TEST_RUNNER = 'snapshottest.django.TestRunner'
 
 IS_TESTING = os.environ.get('IS_TESTING', False)
 RUN_EMAIL_TESTS = os.environ.get('RUN_EMAIL_TESTS', False)
+
+DJANGO_CELERY_BEAT_TZ_AWARE = False
