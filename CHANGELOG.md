@@ -9,7 +9,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Combine manage_webhooks permission with manage_apps - #5556 by @korycins
 
 ## 2.10.0
-
 - OpenTracing support - #5188 by @tomaszszymanski129
 - Account confirmation email - #5126 by @tomaszszymanski129
 - Relocate `Checkout` and `CheckoutLine` methods into separate module and update checkout related plugins to use them - #4980 by @krzysztofwolski
@@ -115,6 +114,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed JWT expired token being flagged as unhandled error rather than handled. - #5603 by @NyanKiyoshi
 - Refactor read-only middleware - #5602 by @maarcingebala
 - Fix availability for variants without inventory tracking - #5605 by @fowczarek
+- Drop support for configuring Vatlayer plugin from settings file. - #5614 by @korycins
+- Add ability to query category, collection or product by slug - #5574 by @koradon
+- Add `quantityAvailable` field to `ProductVariant` type - #5628 by @fowczarek
+- Use tags rather than time-based logs for information on requests - #5608 by @NyanKiyoshi
 
 ## 2.9.0
 
