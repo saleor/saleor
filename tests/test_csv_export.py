@@ -8,7 +8,7 @@ from django.core.files import File
 from freezegun import freeze_time
 
 from saleor.core import JobStatus
-from saleor.csv import ExportEvents
+from saleor.csv import ExportEvents, FileTypes
 from saleor.csv.models import ExportEvent, ExportFile
 from saleor.csv.utils.export import (
     create_csv_file_and_save_in_export_file,
@@ -111,7 +111,7 @@ def test_export_products_ids(
 
 def test_get_filename():
     with freeze_time("2000-02-09"):
-        file_name = get_filename("test")
+        file_name = get_filename("test", FileTypes.CSV)
 
         assert file_name == "test_data_09_02_2000.csv"
 
@@ -159,7 +159,13 @@ def test_create_csv_file_and_save_in_export_file(export_file, tmpdir):
     assert not export_file.content_file
 
     create_csv_file_and_save_in_export_file(
-        export_data, headers, csv_headers_mapping, delimiter, export_file, file_name
+        export_data,
+        headers,
+        csv_headers_mapping,
+        delimiter,
+        export_file,
+        file_name,
+        FileTypes.CSV,
     )
 
     csv_file = export_file.content_file
