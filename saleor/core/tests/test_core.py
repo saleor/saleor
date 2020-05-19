@@ -171,7 +171,8 @@ def test_create_gift_card(db):
 
 
 @override_settings(VERSATILEIMAGEFIELD_SETTINGS={"create_images_on_demand": False})
-def test_create_thumbnails(product_with_image, settings):
+def test_create_thumbnails(product_with_image, settings, monkeypatch):
+    monkeypatch.setattr("django.core.cache.cache.get", Mock(return_value=None))
     sizeset = settings.VERSATILEIMAGEFIELD_RENDITION_KEY_SETS["products"]
     product_image = product_with_image.images.first()
 
