@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from ...core.taxes import TaxError, TaxType, quantize_price, zero_taxed_money
+from ...core.taxes import TaxError, TaxType, zero_taxed_money
 from ...discount import DiscountInfo
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
