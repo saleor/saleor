@@ -4,9 +4,9 @@ asgiref==3.2.7
 babel==2.8.0
 beautifulsoup4==4.7.1
 billiard==3.6.3.0
-boto3==1.13.7
-botocore==1.16.7
-braintree==3.49.0
+boto3==1.13.11
+botocore==1.16.11
+braintree==4.1.0
 cachetools==4.1.0
 cairocffi==1.1.0
 cairosvg==2.4.2
@@ -38,7 +38,7 @@ django-versatileimagefield==2.0
 docutils==0.15.2
 draftjs-sanitizer==1.0.0
 enmerkar==0.7.1
-faker==4.0.3
+faker==4.1.0
 freezegun==0.3.15
 google-api-core==1.17.0
 google-auth==1.14.3
@@ -90,7 +90,7 @@ requests==2.23.0
 rsa==4.0
 rx==1.6.1
 s3transfer==0.3.3
-sentry-sdk==0.14.3
+sentry-sdk==0.14.4
 singledispatch==3.4.0.3
 six==1.14.0
 soupsieve==2.0
