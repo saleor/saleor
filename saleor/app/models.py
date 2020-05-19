@@ -76,13 +76,13 @@ class AppToken(models.Model):
     auth_token = models.CharField(default=generate_token, unique=True, max_length=30)
 
 
-class AppJob(Job):
+class AppInstallation(Job):
     app_name = models.CharField(max_length=60)
     manifest_url = models.URLField()
     permissions = models.ManyToManyField(
         Permission,
         blank=True,
         help_text="Specific permissions which will be assigned to app.",
-        related_name="app_job_set",
-        related_query_name="app_job",
+        related_name="app_installation_set",
+        related_query_name="app_installation",
     )

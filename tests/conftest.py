@@ -21,7 +21,7 @@ from PIL import Image
 from prices import Money, TaxedMoney
 
 from saleor.account.models import Address, StaffNotificationRecipient, User
-from saleor.app.models import App, AppJob
+from saleor.app.models import App, AppInstallation
 from saleor.app.types import AppType
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
@@ -2171,8 +2171,8 @@ def allocations(order_list, stock):
 
 
 @pytest.fixture
-def app_job():
-    app_job = AppJob.objects.create(
+def app_installation():
+    app_installation = AppInstallation.objects.create(
         app_name="External App", manifest_url="http://localhost:3000/manifest",
     )
-    return app_job
+    return app_installation
