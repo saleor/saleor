@@ -4,24 +4,21 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# Dimitris Papatheodoulou <dimitrispapatheodoulou@gmail.com>, 2019
-# Yiannis Inglessis <negtheone@gmail.com>, 2019
-# George Giannoulopoulos <vdotoree@yahoo.gr>, 2019
-# 1 2 <blydc@protonmail.ch>, 2019
+# Yiannis Inglessis <negtheone@gmail.com>, 2020
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-14 04:02-0500\n"
+"POT-Creation-Date: 2020-05-14 03:45-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: 1 2 <blydc@protonmail.ch>, 2019\n"
+"Last-Translator: Yiannis Inglessis <negtheone@gmail.com>, 2020\n"
 "Language-Team: Greek (https://www.transifex.com/mirumee/teams/34782/el/)\n"
-"Language: el\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: el\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
@@ -40,77 +37,304 @@ msgstr ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 
-#: templates/read_only/read_only_splash.html:48
-msgid "Be aware pirate! <br> Saleor runs in <span>read only mode!</span>"
+#: templates/templated_email/account/account_delete.email:4
+msgctxt "Account delete reset e-mail subject"
+msgid "Delete your account"
 msgstr ""
 
-#: templates/read_only/read_only_splash.html:49
-#, fuzzy
-#| msgctxt "Close modal action button"
-#| msgid "Close"
-msgid "Close"
-msgstr "Κλείσιμο"
-
-#: templates/templated_email/compiled/account_delete.html:174
-#: templates/templated_email/compiled/confirm.html:174
-#: templates/templated_email/compiled/confirm_fulfillment.html:174
-#: templates/templated_email/compiled/confirm_order.html:175
-#: templates/templated_email/compiled/confirm_payment.html:174
-#: templates/templated_email/compiled/email_changed_notification.html:174
-#: templates/templated_email/compiled/password_reset.html:174
-#: templates/templated_email/compiled/request_email_change.html:174
-#: templates/templated_email/compiled/set_customer_password.html:174
-#: templates/templated_email/compiled/set_password.html:174
-#: templates/templated_email/compiled/staff_confirm_order.html:175
-#: templates/templated_email/compiled/update_fulfillment.html:174
-msgctxt "Standard e-mail greeting"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/compiled/account_delete.html:182
+#: templates/templated_email/account/account_delete.email:9
 #, python-format
-msgctxt "Account delete e-mail text"
+msgctxt "Account delete reset e-mail text"
 msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be "
-"reversed."
+"\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"Click the link below to delete your account.\n"
+"\n"
+"Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:255
-#: templates/templated_email/compiled/confirm.html:255
-#: templates/templated_email/compiled/confirm_fulfillment.html:362
-#: templates/templated_email/compiled/confirm_order.html:465
-#: templates/templated_email/compiled/confirm_payment.html:245
-#: templates/templated_email/compiled/email_changed_notification.html:245
-#: templates/templated_email/compiled/password_reset.html:255
-#: templates/templated_email/compiled/request_email_change.html:255
-#: templates/templated_email/compiled/set_customer_password.html:255
-#: templates/templated_email/compiled/set_password.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:465
-#: templates/templated_email/compiled/update_fulfillment.html:350
+#: templates/templated_email/account/confirm.email:4
+msgctxt "Account confirmation e-mail subject"
+msgid "Account confirmation e-mail"
+msgstr ""
+
+#: templates/templated_email/account/confirm.email:9
+#, python-format
+msgctxt "Account confirmation e-mail text"
+msgid ""
+"\n"
+"In order to log into %(domain)s, you have to confirm your email address first.\n"
+"Please click the link below to do so and log into your account.\n"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:4
+#: templates/templated_email/account/request_email_change.email:4
+msgctxt "Email change e-mail subject"
+msgid "Email change e-mail"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
+"If you didn't request this change, please contact the administrator.\n"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:9
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/account/request_email_change.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:2
+#, python-format
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:6
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:6
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment confirmation email subject"
+msgid "Your order %(order)s has been fulfilled"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:11
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of fulfilled products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:15
+#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:6
+#: templates/templated_email/order/staff_confirm_order.email:6
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:11
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:15
+#: templates/templated_email/order/staff_confirm_order.email:15
+#, python-format
+msgctxt "Order confirmation e-mail payment details"
+msgid ""
+"\n"
+"To see your payment details please visit:\n"
+"%(order_details_url)s\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:23
+#: templates/templated_email/order/staff_confirm_order.email:23
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:24
+#: templates/templated_email/order/staff_confirm_order.email:24
+msgctxt "Order confirmation e-mail table header"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/order/staff_confirm_order.email:25
+msgctxt "Order confirmation e-mail table header"
+msgid "Shipping"
+msgstr "Αποστολή"
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:27
+#: templates/templated_email/order/staff_confirm_order.email:27
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/staff_confirm_order.email:28
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr "Σύνολο"
+
+#: templates/templated_email/order/confirm_order.email:30
+#: templates/templated_email/order/staff_confirm_order.email:30
+#: templates/templated_email/source/confirm_order.mjml:29
+#: templates/templated_email/source/staff_confirm_order.mjml:29
+msgctxt "Order confirmation e-mail billing address"
+msgid "Billing address"
+msgstr "Διεύθυνση τιμολόγησης"
+
+#: templates/templated_email/order/confirm_order.email:31
+#: templates/templated_email/order/staff_confirm_order.email:31
+#: templates/templated_email/source/confirm_order.mjml:39
+#: templates/templated_email/source/staff_confirm_order.mjml:39
+msgctxt "Order confirmation e-mail text"
+msgid "No billing address"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:33
+#: templates/templated_email/order/staff_confirm_order.email:33
+#: templates/templated_email/source/confirm_order.mjml:30
+#: templates/templated_email/source/staff_confirm_order.mjml:30
+msgctxt "Order confirmation e-mail shipping address"
+msgid "Shipping address"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:34
+#: templates/templated_email/order/staff_confirm_order.email:34
+#: templates/templated_email/source/confirm_order.mjml:46
+#: templates/templated_email/source/staff_confirm_order.mjml:46
+msgctxt "Order confirmation e-mail text"
+msgid "No shipping required"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:9
+msgctxt "Payment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your payment.\n"
+"Your payment was successfully charged.\n"
+msgstr ""
+
+#: templates/templated_email/order/staff_confirm_order.email:11
+msgctxt "Order confirmation staff e-mail text"
+msgid ""
+"\n"
+"Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment update email subject"
+msgid "Shipping update for order %(order)s"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:11
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:15
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid ""
+"You can track your shipment with the following code: %(tracking_number)s."
+msgstr ""
+
+#: templates/templated_email/shared/_footer.email:2
+#: templates/templated_email/source/shared/footer.mjml:4
 msgctxt "Base email text"
 msgid "This is an automatically generated e-mail, please do not reply."
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:317
-#: templates/templated_email/compiled/confirm.html:317
-#: templates/templated_email/compiled/confirm_fulfillment.html:424
-#: templates/templated_email/compiled/confirm_order.html:527
-#: templates/templated_email/compiled/confirm_payment.html:307
-#: templates/templated_email/compiled/email_changed_notification.html:307
-#: templates/templated_email/compiled/password_reset.html:317
-#: templates/templated_email/compiled/request_email_change.html:317
-#: templates/templated_email/compiled/set_customer_password.html:317
-#: templates/templated_email/compiled/set_password.html:317
-#: templates/templated_email/compiled/staff_confirm_order.html:527
-#: templates/templated_email/compiled/update_fulfillment.html:412
+#: templates/templated_email/shared/_footer.email:5
+#: templates/templated_email/source/shared/footer.mjml:13
 #, python-format
 msgctxt "Base email footer"
 msgid "Sincerely, %(site_name)s"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm.html:182
+#: templates/templated_email/shared/_header.email:2
+#: templates/templated_email/source/account_delete.mjml:13
+#: templates/templated_email/source/confirm.mjml:13
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+#: templates/templated_email/source/confirm_order.mjml:14
+#: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/email_changed_notification.mjml:13
+#: templates/templated_email/source/password_reset.mjml:13
+#: templates/templated_email/source/request_email_change.mjml:13
+#: templates/templated_email/source/set_customer_password.mjml:13
+#: templates/templated_email/source/set_password.mjml:13
+#: templates/templated_email/source/staff_confirm_order.mjml:14
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Standard e-mail greeting"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/account_delete.mjml:16
+#, python-format
+msgctxt "Account delete e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"deletion of your user account at %(domain)s.<br/> Click the link below to "
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
+msgstr ""
+
+#: templates/templated_email/source/confirm.mjml:16
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
@@ -118,1615 +342,153 @@ msgid ""
 "first. Please click the link below to do so and log into your account."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:182
+#: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:186
-#, python-format
-msgctxt "Fulfillment confirmation email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_fulfillment.html:198
+#: templates/templated_email/source/confirm_fulfillment.mjml:27
 msgctxt "Fulfillment digital products email text"
-msgid "You can download your digital products by clicking in download link(s)."
+msgid ""
+"You can download your digital products by clicking in download link(s)."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:183
+#: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit: <a href=\"%(order_details_url)s\">"
-"%(order_details_url)s</a>"
+"Thank you for your order. Below is the list of ordered products. To see your"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:255
-msgctxt "E-mail order lines summary table"
-msgid "Subtotal"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:263
-#: templates/templated_email/compiled/staff_confirm_order.html:263
-msgctxt "E-mail order lines summary table"
-msgid "Shipping"
-msgstr "Αποστολή"
-
-#: templates/templated_email/compiled/confirm_order.html:272
-#: templates/templated_email/compiled/staff_confirm_order.html:272
-msgctxt "E-mail order lines summary table"
-msgid "Taxes (included)"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:274
-#: templates/templated_email/compiled/staff_confirm_order.html:274
-msgctxt "E-mail order lines summary table"
-msgid "Taxes"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:284
-#: templates/templated_email/compiled/staff_confirm_order.html:284
-msgctxt "E-mail order lines summary table"
-msgid "Discount"
-msgstr "Έκπτωση"
-
-#: templates/templated_email/compiled/confirm_order.html:293
-#: templates/templated_email/compiled/staff_confirm_order.html:293
-msgctxt "E-mail order lines summary table"
-msgid "Total"
-msgstr "Σύνολο"
-
-#: templates/templated_email/compiled/confirm_order.html:302
-#: templates/templated_email/compiled/staff_confirm_order.html:302
-msgctxt "Ordered item name"
-msgid "Item"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:303
-#: templates/templated_email/compiled/staff_confirm_order.html:303
-msgctxt "Quantity ordered of a product"
-msgid "Quantity"
-msgstr "Ποσότητα"
-
-#: templates/templated_email/compiled/confirm_order.html:304
-#: templates/templated_email/compiled/staff_confirm_order.html:304
-msgctxt "Unit price of a product"
-msgid "Per unit"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:305
-#: templates/templated_email/compiled/staff_confirm_order.html:305
-msgctxt "Ordered item subtotal (unit price * quantity)"
-msgid "Subtotal"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:383
-#: templates/templated_email/compiled/staff_confirm_order.html:383
-msgctxt "Order confirmation e-mail billing address"
-msgid "Billing address"
-msgstr "Διεύθυνση τιμολόγησης"
-
-#: templates/templated_email/compiled/confirm_order.html:384
-#: templates/templated_email/compiled/staff_confirm_order.html:384
-msgctxt "Order confirmation e-mail shipping address"
-msgid "Shipping address"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:393
-#: templates/templated_email/compiled/staff_confirm_order.html:393
-msgctxt "Order confirmation e-mail text"
-msgid "No billing address"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:400
-#: templates/templated_email/compiled/staff_confirm_order.html:400
-msgctxt "Order confirmation e-mail text"
-msgid "No shipping required"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_payment.html:182
+#: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
 msgid "Thank you for your payment. Your payment was successfully charged."
 msgstr ""
 
-#: templates/templated_email/compiled/email_changed_notification.html:182
+#: templates/templated_email/source/email_changed_notification.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
-"for your user account at %(domain)s.<br> If you didn't request this change, "
-"please contact the administrator."
+"for your user account at %(domain)s.<br /> If you didn't request this "
+"change, please contact the administrator."
 msgstr ""
 
-#: templates/templated_email/compiled/password_reset.html:182
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:29
+#: templates/templated_email/source/partials/_order_lines.mjml:59
+msgctxt "Ordered item name"
+msgid "Item"
+msgstr ""
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
+#: templates/templated_email/source/partials/_order_lines.mjml:60
+msgctxt "Quantity ordered of a product"
+msgid "Quantity"
+msgstr "Ποσότητα"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
+msgctxt "Ordered item download links"
+msgid "Download Link"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:12
+msgctxt "E-mail order lines summary table"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:20
+msgctxt "E-mail order lines summary table"
+msgid "Shipping"
+msgstr "Αποστολή"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:29
+msgctxt "E-mail order lines summary table"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:31
+msgctxt "E-mail order lines summary table"
+msgid "Taxes"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:41
+msgctxt "E-mail order lines summary table"
+msgid "Discount"
+msgstr "Έκπτωση"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:50
+msgctxt "E-mail order lines summary table"
+msgid "Total"
+msgstr "Σύνολο"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:61
+msgctxt "Unit price of a product"
+msgid "Per unit"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:62
+msgctxt "Ordered item subtotal (unit price * quantity)"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/source/password_reset.mjml:16
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br> It can be safely ignored "
+"password for your user account at %(domain)s.<br/> It can be safely ignored "
 "if you did not request a password reset. Click the link below to reset your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/request_email_change.html:182
+#: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested an "
-"email change for your user account at %(domain)s.<br> It can be safely "
+"email change for your user account at %(domain)s.<br /> It can be safely "
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
 
-#: templates/templated_email/compiled/set_customer_password.html:182
+#: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your "
-"customer account at %(domain)s.<br> Click the link below to set up your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/set_password.html:182
+#: templates/templated_email/source/set_password.mjml:16
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
-"You're receiving this e-mail because you have to set password for your staff "
-"member account at %(domain)s.<br> Click the link below to set up your "
+"You're receiving this e-mail because you have to set password for your staff"
+" member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/staff_confirm_order.html:183
+#: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
-"Someone placed a new order in your store. To see order details please visit: "
-"<a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+"Someone placed a new order in your store. To see order details please visit:"
+" <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:182
+#: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number."
+"Your shipping status has been updated. Below is the list of ordered products"
+" that have been updated with new tracking number."
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:186
+#: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
 msgstr ""
-
-#~ msgctxt "Event from a customer that got their account created"
-#~ msgid "The account account was created"
-#~ msgstr "Ο λογαριασμός έχει δημιουργηθεί"
-
-#~ msgctxt ""
-#~ "Event from a customer that got the password reset link sent by email"
-#~ msgid "Password reset link was sent to the customer"
-#~ msgstr "Ο σύνδεσμος επαναφοράς κωδικού πρόσβασεις έχει σταλεί"
-
-#~ msgctxt "Event from a customer that reset their password"
-#~ msgid "The account password was reset"
-#~ msgstr "Ο κωδικός λογαριασμού έχει επαναφερθεί"
-
-#~ msgctxt "Event from a customer that placed an order"
-#~ msgid "An order was placed"
-#~ msgstr "Η παραγγελία έχει καταχωρηθεί"
-
-#~ msgctxt "Event from a customer that added a note to one of their orders"
-#~ msgid "A note was added"
-#~ msgstr "Η σημέιωση έχει προσθεθεί"
-
-#~ msgctxt "Event from a customer that downloaded an ordered digital good"
-#~ msgid "A digital good was downloaded"
-#~ msgstr "Ένα ψυφιακό αρχείο έχει κατέβει"
-
-#~ msgctxt "Event from a staff user that deleted a customer"
-#~ msgid "A customer was deleted"
-#~ msgstr "Ο πελάτης έχει διαγραφεί"
-
-#~ msgctxt "Event from a staff user assigned a new name to a customer"
-#~ msgid "A customer's name was edited"
-#~ msgstr "Το όνομα του πελάτη έχει τροποποιηθεί"
-
-#~ msgctxt "Form field"
-#~ msgid "Email"
-#~ msgstr "Ηλεκτρονικό ταχυδρομείο"
-
-#~ msgctxt "Password"
-#~ msgid "Password"
-#~ msgstr "Κωδικός πρόσβασης"
-
-#~ msgctxt "Email"
-#~ msgid "Email"
-#~ msgstr "Ηλεκτρονικό ταχυδρομείο"
-
-#~ msgctxt "Customer form: Given name field"
-#~ msgid "Given name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Customer form: Family name field"
-#~ msgid "Family name"
-#~ msgstr "Επίθετο"
-
-#~ msgctxt "Address field"
-#~ msgid "Area"
-#~ msgstr "Περιοχή"
-
-#~ msgctxt "Address field"
-#~ msgid "County"
-#~ msgstr "Επαρχία"
-
-#~ msgctxt "Address field"
-#~ msgid "Department"
-#~ msgstr "Τμήμα"
-
-#~ msgctxt "Address field"
-#~ msgid "District"
-#~ msgstr "Περιοχή"
-
-#~ msgctxt "Address field"
-#~ msgid "Do/si"
-#~ msgstr "Περιφέρεια/Πόλη"
-
-#~ msgctxt "Address field"
-#~ msgid "Emirate"
-#~ msgstr "Εμιράτο"
-
-#~ msgctxt "Address field"
-#~ msgid "Island"
-#~ msgstr "Νησί"
-
-#~ msgctxt "Address field"
-#~ msgid "Neighborhood"
-#~ msgstr "Γειτονιά"
-
-#~ msgctxt "Address field"
-#~ msgid "Oblast"
-#~ msgstr "Περιοχή"
-
-#~ msgctxt "Address field"
-#~ msgid "Parish"
-#~ msgstr "Κοινότητα"
-
-#~ msgctxt "Address field"
-#~ msgid "PIN"
-#~ msgstr "PIN"
-
-#~ msgctxt "Address field"
-#~ msgid "Postal code"
-#~ msgstr "Ταχυδρομικός κώδικας"
-
-#~ msgctxt "Address field"
-#~ msgid "Prefecture"
-#~ msgstr "Νομαρχία"
-
-#~ msgctxt "Address field"
-#~ msgid "Province"
-#~ msgstr "Νομός"
-
-#~ msgctxt "Address field"
-#~ msgid "State"
-#~ msgstr "Πολιτεία"
-
-#~ msgctxt "Address field"
-#~ msgid "Suburb"
-#~ msgstr "Προάστιο"
-
-#~ msgctxt "Address field"
-#~ msgid "Townland"
-#~ msgstr "Πόλη"
-
-#~ msgctxt "Address field"
-#~ msgid "Village/township"
-#~ msgstr "Χωριό / Δήμος"
-
-#~ msgctxt "Address field"
-#~ msgid "ZIP code"
-#~ msgstr "Τ.Κ"
-
-#~ msgctxt "Country"
-#~ msgid "Country"
-#~ msgstr "Χώρα"
-
-#~ msgctxt "Personal name"
-#~ msgid "Given name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Personal name"
-#~ msgid "Family name"
-#~ msgstr "Επίθετο"
-
-#~ msgctxt "Address"
-#~ msgid "Address"
-#~ msgstr "Διεύθυνση"
-
-#~ msgctxt "City area"
-#~ msgid "District"
-#~ msgstr "Περιοχή"
-
-#~ msgctxt "Postal code"
-#~ msgid "Postal code"
-#~ msgstr "Ταχυδρομικός κώδικας"
-
-#~ msgctxt "Phone number"
-#~ msgid "Phone number"
-#~ msgstr "Τηλέφωνο"
-
-#~ msgctxt "Address form"
-#~ msgid "This value is invalid for selected country"
-#~ msgstr "Μη έγκυρη τιμή για επιλεγμένη χώρα"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully updated."
-#~ msgstr "Η διεύθυνσή σας ανανεώθηκε με επιτυχία."
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Shipping"
-#~ msgstr "Αποστολή"
-
-#~ msgctxt "Add to checkout form field label"
-#~ msgid "Quantity"
-#~ msgstr "Ποσότητα"
-
-#~ msgctxt "Country form field label"
-#~ msgid "Country"
-#~ msgstr "Χώρα"
-
-#~ msgctxt "Address form field label"
-#~ msgid "Email"
-#~ msgstr "Ηλεκτρονικό ταχυδρομείο"
-
-#~ msgctxt "Shipping addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Εισάγετε νέα διεύθυνση"
-
-#~ msgctxt "Shipping addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Διεύθυνση"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Εισάγετε νέα διεύθυνση"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Same as shipping"
-#~ msgstr "Ίδια με την διεύθυνση αποστολής"
-
-#~ msgctxt "Billing addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Διεύθυνση"
-
-#~ msgctxt "Shipping method form field label"
-#~ msgid "Shipping method"
-#~ msgstr "Τρόπος αποστολής"
-
-#~ msgctxt "Voucher form error"
-#~ msgid "Discount code incorrect or expired"
-#~ msgstr "Ο κωδικός έκπτωσης είναι λάθος ή έχει λήξει"
-
-#~ msgctxt "Checkout discount form label for voucher field"
-#~ msgid "Gift card or discount code"
-#~ msgstr "Κάρτα δώρου ή εκπτωτικός κωδικός"
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Your order does not require shipping."
-#~ msgstr "Η παραγγελία σας δεν απαιτεί αποστολή."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Please select a shipping method first."
-#~ msgstr "Παρακαλούμε επιλέξτε πρώτα τρόπο αποστολής. "
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for selected items."
-#~ msgstr "Αυτή η προσφορά ισχύει μόνο για επιλεγμένα προϊόντα."
-
-#~ msgctxt "Checkout warning"
-#~ msgid "This voucher has expired. Please review your checkout."
-#~ msgstr ""
-#~ "Το κουπόνι αυτό έχει λήξει. Παρακαλούμε κάντε μια ανασκόπηση της "
-#~ "παραγγελίας σας."
-
-#~ msgctxt "Checkout warning"
-#~ msgid "Please review your checkout."
-#~ msgstr "Παρακαλούμε κάντε μια ανασκόπηση της παραγγελίας σας."
-
-#~ msgctxt "Discount type"
-#~ msgid "%"
-#~ msgstr "%"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Shipping"
-#~ msgstr "Αποστολή"
-
-#~ msgctxt "Voucher type"
-#~ msgid "Free shipping"
-#~ msgstr "Χωρίς έξοδα αποστολής"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off shipping"
-#~ msgstr "%(discount)s εκτός αποστολής"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off"
-#~ msgstr "%(discount)s εκτός"
-
-#, python-format
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for orders over %(amount)s."
-#~ msgstr "Αυτή η προσφορά ισχύει μόνο για παραγγελίες άνω των  %(amount)s."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Discount not applicable for this product"
-#~ msgstr "Δεν εφαρμόζεται έκπτωση στο συγκεκριμένο προϊόν"
-
-#~ msgctxt "Cancel fulfillment mutation error"
-#~ msgid "This fulfillment can't be canceled"
-#~ msgstr "Αυτή η εκπλήρωση δεν μπορεί να ακυρωθεί"
-
-#~ msgctxt "Payment delete form error"
-#~ msgid "Payment does not exist"
-#~ msgstr "Η πληρωμή δεν υπάρχει"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Refund"
-#~ msgstr "Επιστροφή"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Capture"
-#~ msgstr "Εκκαθάριση"
-
-#~ msgctxt "Payment status form field"
-#~ msgid "Payment status"
-#~ msgstr "Κατάσταση πληρωμής"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "name"
-#~ msgstr "όνομα"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "price"
-#~ msgstr "τιμή"
-
-#~ msgctxt "Product list sorting form"
-#~ msgid "Sort by"
-#~ msgstr "Ταξινόμηση ανά"
-
-#~ msgctxt "Currency amount"
-#~ msgid "Price"
-#~ msgstr "Τιμή"
-
-#, python-format
-#~ msgctxt "Variant choice field label"
-#~ msgid "%(variant_label)s - %(price)s"
-#~ msgstr "%(variant_label)s - %(price)s"
-
-#~ msgctxt "Search form label"
-#~ msgid "Query"
-#~ msgstr "Κείμενο αναζήτησης"
-
-#~ msgctxt "New address page title"
-#~ msgid "New address"
-#~ msgstr "Νέα διεύθυνση"
-
-#~ msgctxt "New address breadcrumb"
-#~ msgid "New address"
-#~ msgstr "Νέα διεύθυνση"
-
-#~ msgctxt "New address title"
-#~ msgid "New address"
-#~ msgstr "Νέα διεύθυνση"
-
-#~ msgctxt "Edit/new address primary action"
-#~ msgid "Save changes"
-#~ msgstr "Αποθήκευση αλλαγών"
-
-#~ msgid "My account"
-#~ msgstr "Ο λογαριασμός μου"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Recent Orders"
-#~ msgstr "Πρόσφατες παραγγελίες"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Date"
-#~ msgstr "Ημερομηνία"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Payment status"
-#~ msgstr "Κατάσταση πληρωμής"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order status"
-#~ msgstr "Κατάσταση παραγγελίας"
-
-#~ msgctxt "Recent orders link text"
-#~ msgid "Details"
-#~ msgstr "Λεπτομέρειες"
-
-#~ msgctxt "User address action"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Login page title"
-#~ msgid "Log in"
-#~ msgstr "Σύνδεση"
-
-#~ msgctxt "Login form title"
-#~ msgid "Log in"
-#~ msgstr "Σύνδεση"
-
-#~ msgctxt "Login form primary action"
-#~ msgid "Log in"
-#~ msgstr "Είσοδος"
-
-#~ msgctxt "Password change breadcrumb"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Password change form legend"
-#~ msgid "Change Password"
-#~ msgstr "Αλλάξτε κωδικό"
-
-#~ msgctxt "Password reset form title"
-#~ msgid "Forgot your password?"
-#~ msgstr "Ξεχάσατε τον κωδικό;"
-
-#~ msgctxt "Password reset primary action"
-#~ msgid "Continue"
-#~ msgstr "Συνεχίστε"
-
-#~ msgctxt "Password reset from key page title"
-#~ msgid "Change Password"
-#~ msgstr "Αλλάξτε κωδικό"
-
-#~ msgid "Bad Token"
-#~ msgstr "Μη έγκυρο κλειδί"
-
-#~ msgctxt "Password reset from key form primary action"
-#~ msgid "Continue"
-#~ msgstr "Συνεχίστε"
-
-#~ msgid "Your password is now changed."
-#~ msgstr "Ο κωδικός σας άλλαξε με επιτυχία."
-
-#~ msgctxt "Signup page title"
-#~ msgid "Sign Up"
-#~ msgstr "Εγγραφή"
-
-#~ msgctxt "Signup form secondary action"
-#~ msgid "Log in"
-#~ msgstr "Σύνδεση"
-
-#~ msgctxt "Signup form title"
-#~ msgid "Create an account"
-#~ msgstr "Δημιουργία λογαριασμού"
-
-#~ msgctxt "Signup form primary action"
-#~ msgid "Create an account"
-#~ msgstr "Δημιουργία λογαριασμού"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log out"
-#~ msgstr "Αποσύνδεση"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log in"
-#~ msgstr "Σύνδεση"
-
-#~ msgid "Search for product"
-#~ msgstr "Αναζήτηση προϊόντος"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Total"
-#~ msgstr "Σύνολο"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Checkout"
-#~ msgstr "Ολοκλήρωση αγοράς"
-
-#~ msgctxt "Checkout title"
-#~ msgid "Checkout"
-#~ msgstr "Ολοκλήρωση αγοράς"
-
-#~ msgctxt "Order review title"
-#~ msgid "Order review"
-#~ msgstr "Ανασκόπηση παραγγελίας"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Total"
-#~ msgstr "Σύνολο"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Quantity"
-#~ msgstr "Ποσότητα"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Price"
-#~ msgstr "Τιμή"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Checkout"
-#~ msgstr "Ολοκλήρωση αγοράς"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "Login"
-#~ msgstr "Είσοδος"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "New customer?"
-#~ msgstr "Νέος πελάτης;"
-
-#~ msgctxt "Checkout login page new users action"
-#~ msgid "Continue"
-#~ msgstr "Συνεχίστε"
-
-#~ msgctxt "Checkout payment title"
-#~ msgid "Payment"
-#~ msgstr "Πληρωμή"
-
-#~ msgctxt "Checkout shipping address primary action"
-#~ msgid "Continue"
-#~ msgstr "Συνεχίστε"
-
-#~ msgid "Select other address"
-#~ msgstr "Επιλέξτε άλλη διεύθυνση"
-
-#~ msgctxt "Checkout shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Τρόπος αποστολής"
-
-#~ msgctxt "Checkout shipping method primary action"
-#~ msgid "Continue"
-#~ msgstr "Συνεχίστε"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Same as shipping"
-#~ msgstr "Ίδια με την διεύθυνση αποστολής"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Enter a new address"
-#~ msgstr "Εισάγετε νέα διεύθυνση"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "Remove"
-#~ msgstr "Αφαίρεση"
-
-#~ msgctxt "Checkout summary title"
-#~ msgid "Billing address"
-#~ msgstr "Διεύθυνση τιμολόγησης"
-
-#~ msgctxt "Checkout summary without shipping title"
-#~ msgid "Billing address"
-#~ msgstr "Διεύθυνση τιμολόγησης"
-
-#~ msgctxt "Checkout dropdown primary action"
-#~ msgid "Checkout"
-#~ msgstr "Ολοκλήρωση αγοράς"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Visit storefront"
-#~ msgstr "Επισκεφθείτε το κατάστημα"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Log out"
-#~ msgstr "Αποσύνδεση"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Products"
-#~ msgstr "Προϊόντα"
-
-#~ msgctxt "Dashboard categories list"
-#~ msgid "Categories"
-#~ msgstr "Κατηγορίες"
-
-#~ msgctxt "Dashboard side navigation link"
-#~ msgid "Collections"
-#~ msgstr "Συλλογές"
-
-#~ msgctxt "Dashboard sales (discounts) list"
-#~ msgid "Sales"
-#~ msgstr "Πωλήσεις"
-
-#~ msgctxt "Dashboard sales. `Sales' is noun of to sell"
-#~ msgid "Sales"
-#~ msgstr "Πωλήσεις"
-
-#~ msgctxt "Dashboard shipping zones list"
-#~ msgid "Shipping"
-#~ msgstr "Αποστολή"
-
-#~ msgctxt "Category list page title"
-#~ msgid "Categories"
-#~ msgstr "Κατηγορίες"
-
-#~ msgctxt "Category field"
-#~ msgid "Description"
-#~ msgstr "Περιγραφή"
-
-#~ msgctxt "Category list table header name"
-#~ msgid "Name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Category list table header description"
-#~ msgid "Description"
-#~ msgstr "Περιγραφή"
-
-#~ msgctxt "Category edit action"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Category list action link"
-#~ msgid "Remove"
-#~ msgstr "Αφαίρεση"
-
-#~ msgctxt "Category detail page title"
-#~ msgid "Add new category"
-#~ msgstr "Προσθήκη νέας κατηγορίας"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Add new category"
-#~ msgstr "Προσθήκη νέας κατηγορίας"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Category detail breadcrumbs"
-#~ msgid "Add new category"
-#~ msgstr "Προσθήκη νέας κατηγορίας"
-
-#~ msgctxt "Category list add button text"
-#~ msgid "Add category"
-#~ msgstr "Πρόσθηκη κατηγορίας"
-
-#~ msgctxt "Dashboard delete action"
-#~ msgid "Remove"
-#~ msgstr "Αφαίρεση"
-
-#~ msgid "Collections"
-#~ msgstr "Συλλογές"
-
-#~ msgctxt "Collection field"
-#~ msgid "Published"
-#~ msgstr "Δημοσιευμένο"
-
-#~ msgctxt "Collections list page title "
-#~ msgid "Collections"
-#~ msgstr "Συλλογές"
-
-#~ msgctxt "Collections list table header name"
-#~ msgid "Name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Customer field"
-#~ msgid "Note"
-#~ msgstr "Σημείωση"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Number"
-#~ msgstr "Αριθμός"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Placed on"
-#~ msgstr "Ημερομηνία παραγγελίας"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Order status"
-#~ msgstr "Κατάσταση παραγγελίας"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Total"
-#~ msgstr "Σύνολο"
-
-#~ msgctxt "Empty customer orders table message"
-#~ msgid "No orders found."
-#~ msgstr "Δεν βρέθηκαν παραγγελίες."
-
-#~ msgctxt "Customer notes card action"
-#~ msgid "Add note"
-#~ msgstr "Προσθήκη σημείωσης"
-
-#~ msgctxt "Customer default shipping address card title"
-#~ msgid "Default shipping address"
-#~ msgstr "Προκαθορισμένη διεύθυνση αποστολής"
-
-#~ msgctxt "Customer without default shipping address message"
-#~ msgid "No default shipping address."
-#~ msgstr "Δεν υπάρχει προκαθορισμένη διεύθυνση αποστολής."
-
-#~ msgctxt "Customer default billing address card title"
-#~ msgid "Default billing address"
-#~ msgstr "Προκαθορισμένη διεύθυνση τιμολόγησης"
-
-#~ msgctxt "Customer without default billing address message"
-#~ msgid "No default billing address."
-#~ msgstr "Δεν υπάρχει προκαθορισμένη διεύθυνση τιμολόγησης."
-
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer"
-#~ msgstr "Πελάτης"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Email"
-#~ msgstr "Ηλεκτρονικό ταχυδρομείο"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Location"
-#~ msgstr "Τοποθεσία"
-
-#~ msgctxt "Empty customers table message"
-#~ msgid "No customers found."
-#~ msgstr "Δεν βρέθηκαν πελάτες."
-
-#~ msgctxt "Modal add note title"
-#~ msgid "Add note"
-#~ msgstr "Προσθήκη σημείωσης"
-
-#~ msgctxt "Modal add note primary action"
-#~ msgid "Save note"
-#~ msgstr "Αποθήκευση σημείωσης"
-
-#~ msgid "No customers found."
-#~ msgstr "Δεν βρέθηκαν πελάτες."
-
-#~ msgctxt "Sale (discount) page title"
-#~ msgid "Add new sale"
-#~ msgstr "Προσθήκη νέας πώλησης"
-
-#~ msgctxt "Dashboard sales (discounts) list."
-#~ msgid "Sales"
-#~ msgstr "Πωλήσεις"
-
-#~ msgctxt "Sale (discount) action"
-#~ msgid "Remove sale"
-#~ msgstr "Αφαίρεση πώλησης"
-
-#~ msgctxt "Sale (discount) breadcrumbs"
-#~ msgid "Add new sale"
-#~ msgstr "Προσθήκη νέας πώλησης"
-
-#~ msgid "Sales"
-#~ msgstr "Πωλήσεις"
-
-#~ msgctxt "Sale (discount) list add button text"
-#~ msgid "Add sale"
-#~ msgstr "Προσθήκη πώλησης"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Start date"
-#~ msgstr "Ημερομηνία έναρξης"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "End date"
-#~ msgstr "Ημερομηνία λήξης"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Discount"
-#~ msgstr "Έκπτωση"
-
-#~ msgctxt "Remove sale (discount) text"
-#~ msgid "Remove sale"
-#~ msgstr "Αφαίρεση πώλησης"
-
-#~ msgctxt "Voucher page title"
-#~ msgid "Add new voucher"
-#~ msgstr "Προσθήκη νέου κουπονιού"
-
-#~ msgctxt "Voucher action"
-#~ msgid "Remove voucher"
-#~ msgstr "Αφαίρεση κουπονιού"
-
-#~ msgctxt "Voucher breadcrumbs"
-#~ msgid "Add new voucher"
-#~ msgstr "Προσθήκη νέου κουπονιού"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Discount"
-#~ msgstr "Έκπτωση"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Start date"
-#~ msgstr "Ημερομηνία έναρξης"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "End date"
-#~ msgstr "Ημερομηνία λήξης"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Used"
-#~ msgstr "Χρησιμοποιήθηκε"
-
-#~ msgctxt "Collection availability status"
-#~ msgid "Published"
-#~ msgstr "Δημοσιευμένο"
-
-#~ msgctxt "Category page filters"
-#~ msgid "Clear"
-#~ msgstr "Καθαρισμός"
-
-#~ msgctxt "Menu items list table header name"
-#~ msgid "Name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Menu items list table header points to"
-#~ msgid "Points to"
-#~ msgstr "Αντιστοιχεί σε"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Published"
-#~ msgstr "Δημοσιευμένο"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Not published"
-#~ msgstr "Μη δημοσιευμένο"
-
-#~ msgctxt "Menu item edit action"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Menu item list action link"
-#~ msgid "Remove"
-#~ msgstr "Αφαίρεση"
-
-#~ msgctxt "Page availability status"
-#~ msgid "Published"
-#~ msgstr "Δημοσιευμένο"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Placed on"
-#~ msgstr "Ημερομηνία παραγγελίας"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Customer"
-#~ msgstr "Πελάτης"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Payment status"
-#~ msgstr "Κατάσταση πληρωμής"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Order status"
-#~ msgstr "Κατάσταση παραγγελίας"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Total"
-#~ msgstr "Σύνολο"
-
-#~ msgctxt "Anonymous user account value"
-#~ msgid "Guest"
-#~ msgstr "Επισκέπτης"
-
-#~ msgctxt "Empty order table message"
-#~ msgid "No orders are ready for shipment."
-#~ msgstr "Δεν υπάρχουν παραγγελίες έτοιμες για αποστολή."
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Preauthorized payments"
-#~ msgstr "Προεγκεκριμένες πληρωμές"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Date"
-#~ msgstr "Ημερομηνία"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Customer"
-#~ msgstr "Πελάτης"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Amount"
-#~ msgstr "Ποσό"
-
-#~ msgid "Guest"
-#~ msgstr "Επισκέπτης"
-
-#~ msgctxt "Empty Preauthorized payments table message"
-#~ msgid "No preauthorized payments."
-#~ msgstr "Δεν βρέθηκαν προεγκεκριμένες πληρωμές."
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Products with low stock"
-#~ msgstr "Προϊόντα με χαμηλό απόθεμα"
-
-#~ msgctxt "Empty low stock table message"
-#~ msgid "No products are low in stock."
-#~ msgstr "Δεν υπάρχουν προϊόντα χαμηλά σε απόθεμα."
-
-#~ msgctxt "Menu item field"
-#~ msgid "Points to"
-#~ msgstr "Αντιστοιχεί σε"
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Menu list table header Menu name"
-#~ msgid "Menu name"
-#~ msgstr "Όνομα μενού"
-
-#~ msgctxt ""
-#~ msgid "Billing address"
-#~ msgstr "Διεύθυνση τιμολόγησης"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Cancel Order"
-#~ msgstr "Ακύρωση παραγγελίας"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Details"
-#~ msgstr "Λεπτομέρειες"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Payments"
-#~ msgstr "Πληρωμές"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "History"
-#~ msgstr "Ιστορικό"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Payments"
-#~ msgstr "Πληρωμές"
-
-#~ msgctxt "Payment status not available"
-#~ msgid "N/A"
-#~ msgstr "Δ/Α"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Outstanding balance"
-#~ msgstr "Εκκρεμή υπόλοιπο"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Preauthorized amount"
-#~ msgstr "Προεγκεκριμένο ποσό"
-
-#~ msgctxt "Preauthorized amount not available"
-#~ msgid "N/A"
-#~ msgstr "Δ/Α"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Captured amount"
-#~ msgstr "Εκκαθαρισμένο ποσό"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Capture"
-#~ msgstr "Εκκαθάριση"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Refund"
-#~ msgstr "Επιστροφή"
-
-#~ msgctxt "Order details summary header"
-#~ msgid "Customer"
-#~ msgstr "Πελάτης"
-
-#~ msgctxt "Dashboard edit action"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Order placed on date"
-#~ msgid "Placed on"
-#~ msgstr "Ημερομηνία παραγγελίας"
-
-#~ msgctxt "Order table header"
-#~ msgid "Price"
-#~ msgstr "Τιμή"
-
-#~ msgctxt "Order table header"
-#~ msgid "Quantity"
-#~ msgstr "Ποσότητα"
-
-#~ msgctxt "Order table header"
-#~ msgid "Total"
-#~ msgstr "Σύνολο"
-
-#~ msgctxt "Order table row action"
-#~ msgid "Change quantity"
-#~ msgstr "Αλλάξτε ποσότητα"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Shipping"
-#~ msgstr "Αποστολή"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Discount"
-#~ msgstr "Έκπτωση"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Grand total"
-#~ msgstr "Συνολικά"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Add product"
-#~ msgstr "Προσθήκη προϊόντος"
-
-#~ msgctxt "Order notes card action"
-#~ msgid "Add note"
-#~ msgstr "Προσθήκη σημείωσης"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Date"
-#~ msgstr "Ημερομηνία"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Payment status"
-#~ msgstr "Κατάσταση πληρωμής"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Amount"
-#~ msgstr "Ποσό"
-
-#~ msgctxt "Empty payment history table message"
-#~ msgid "No payments made for this order."
-#~ msgstr "Δεν πραγματοποιήθηκαν πληρωμές για την παραγγελία."
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Quantity"
-#~ msgstr "Ποσότητα"
-
-#~ msgctxt "Empty order list message"
-#~ msgid "No orders found."
-#~ msgstr "Δεν βρέθηκαν παραγγελίες."
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Price"
-#~ msgstr "Τιμή"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Total"
-#~ msgstr "Σύνολο"
-
-#~ msgctxt "Modal cancel order primary action"
-#~ msgid "Cancel Order"
-#~ msgstr "Ακύρωση παραγγελίας"
-
-#~ msgctxt "Modal capture payment title"
-#~ msgid "Capture payment"
-#~ msgstr "Εκκαθάριση πληρωμής"
-
-#~ msgctxt "Modal capture payment list title"
-#~ msgid "Order total:"
-#~ msgstr "Σύνολο παραγγελίας:"
-
-#~ msgctxt "Modal capture payment list title"
-#~ msgid "Captured amount:"
-#~ msgstr "Εκκαθαρισμένο ποσό:"
-
-#~ msgctxt "Modal capture payment primary action"
-#~ msgid "Capture"
-#~ msgstr "Εκκαθάριση"
-
-#~ msgctxt "Modal change quantity title"
-#~ msgid "Change quantity"
-#~ msgstr "Αλλάξτε ποσότητα"
-
-#~ msgctxt "Modal refund payment title"
-#~ msgid "Refund payment"
-#~ msgstr "Επιστροφή πληρωμής"
-
-#~ msgctxt "Modal refund payment list title"
-#~ msgid "Order total:"
-#~ msgstr "Σύνολο παραγγελίας:"
-
-#~ msgctxt "Modal refund payment list title"
-#~ msgid "Captured amount:"
-#~ msgstr "Εκκαθαρισμένο ποσό:"
-
-#~ msgctxt "Modal refund payment primary action"
-#~ msgid "Refund"
-#~ msgstr "Επιστροφή"
-
-#~ msgctxt "Invoice billing address"
-#~ msgid "Billing address"
-#~ msgstr "Διεύθυνση τιμολόγησης"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Quantity"
-#~ msgstr "Ποσότητα"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Total"
-#~ msgstr "Σύνολο"
-
-#~ msgctxt "Order total shipping price header"
-#~ msgid "Shipping"
-#~ msgstr "Αποστολή"
-
-#~ msgctxt "Order voucher header"
-#~ msgid "Discount"
-#~ msgstr "Έκπτωση"
-
-#~ msgctxt "Order total price header"
-#~ msgid "Grand total"
-#~ msgstr "Συνολικά"
-
-#~ msgctxt "Packing slip billing address"
-#~ msgid "Billing address"
-#~ msgstr "Διεύθυνση τιμολόγησης"
-
-#~ msgid "No orders found."
-#~ msgstr "Δεν βρέθηκαν παραγγελίες."
-
-#~ msgctxt "Page form page title"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Page form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Static pages table header name"
-#~ msgid "Title"
-#~ msgstr "Τίτλος"
-
-#~ msgctxt "Static pages table header url"
-#~ msgid "URL"
-#~ msgstr "URL"
-
-#~ msgctxt "Attribute detail action"
-#~ msgid "Remove attribute"
-#~ msgstr "Αφαιρέστε χαρακτηριστικό"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Remove"
-#~ msgstr "Αφαίρεση"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Attribute detail page title"
-#~ msgid "Add new attribute"
-#~ msgstr "Προσθήκη νέου χαρακτηριστικού"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Add new attribute"
-#~ msgstr "Προσθήκη νέου χαρακτηριστικού"
-
-#~ msgctxt "Attribute list add button text"
-#~ msgid "Add attribute"
-#~ msgstr "Προσθήκη χαρακτηριστικού"
-
-#~ msgctxt "Dashboard attributes list table header name"
-#~ msgid "Name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Empty attribute list message"
-#~ msgid "No attributes found."
-#~ msgstr "Δεν βρέθηκαν χαρακτηριστικά."
-
-#~ msgid "No attributes found."
-#~ msgstr "Δεν βρέθηκαν χαρακτηριστικά."
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Products"
-#~ msgstr "Προϊόντα"
-
-#~ msgctxt "Product field"
-#~ msgid "Published"
-#~ msgstr "Δημοσιευμένο"
-
-#~ msgid "Variant"
-#~ msgstr "Παραλλαγή"
-
-#~ msgid "Name"
-#~ msgstr "Όνομα"
-
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Product form page title"
-#~ msgid "Add new product"
-#~ msgstr "Προσθήκη νέου προϊόντος"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Add new product"
-#~ msgstr "Προσθήκη νέου προϊόντος"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgid "Shipping"
-#~ msgstr "Αποστολή"
-
-#~ msgctxt "Product list add button text"
-#~ msgid "Add product"
-#~ msgstr "Προσθήκη προϊόντος"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Price"
-#~ msgstr "Τιμή"
-
-#~ msgctxt "Empty product list message"
-#~ msgid "No products found."
-#~ msgstr "Δεν βρέθηκαν προϊόντα."
-
-#~ msgctxt "Image form text"
-#~ msgid "Add image"
-#~ msgstr "Προσθήκη εικόνας"
-
-#~ msgctxt "Image form text"
-#~ msgid "Image"
-#~ msgstr "Εικόνα"
-
-#~ msgctxt "Image form text"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Image form breadcrumbs"
-#~ msgid "Add image"
-#~ msgstr "Προσθήκη εικόνας"
-
-#, python-format
-#~ msgctxt "Image form breadcrumbs"
-#~ msgid "Add image for %(product)s"
-#~ msgstr "Προσθήκη εικόνας για %(product)s"
-
-#~ msgctxt "Add image button text"
-#~ msgid "Add image"
-#~ msgstr "Προσθήκη εικόνας"
-
-#~ msgctxt "Image card text"
-#~ msgid "No description"
-#~ msgstr "Χωρίς περιγραφή"
-
-#~ msgctxt "Dashboard remove action"
-#~ msgid "Remove"
-#~ msgstr "Αφαίρεση"
-
-#~ msgctxt "Image gallery upload box text"
-#~ msgid "Drop images here to upload"
-#~ msgstr "Μετακινείστε εικόνες εδώ για ανέβασμα"
-
-#~ msgctxt "Empty image gallery message"
-#~ msgid "No description"
-#~ msgstr "Χωρίς περιγραφή"
-
-#~ msgctxt "Product type list add button text"
-#~ msgid "Add product type"
-#~ msgstr "Προσθήκη τύπου προϊόντων"
-
-#~ msgctxt "Dashboard product types list table header name"
-#~ msgid "Name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Product attributes"
-#~ msgstr "Χαρακτηριστικά προϊόντος"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Variant attributes"
-#~ msgstr "Χαρακτηριστικά παραλλαγών"
-
-#~ msgctxt "Empty product type list message"
-#~ msgid "No product types found."
-#~ msgstr "Δεν βρέθηκαν τύποι προϊόντων."
-
-#~ msgid "No product types found."
-#~ msgstr "Δεν βρέθηκαν τύποι προϊόντων."
-
-#~ msgctxt "Variant form page title"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Variant form page title"
-#~ msgid "Add variant"
-#~ msgstr "Προσθήκη παραλλαγής"
-
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Add variant"
-#~ msgstr "Προσθήκη παραλλαγής"
-
-#~ msgid "No products found."
-#~ msgstr "Δεν βρέθηκαν προϊόντα."
-
-#~ msgctxt "Search page title"
-#~ msgid "Search results"
-#~ msgstr "Αναζήτηση αποτελεσμάτων"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search results"
-#~ msgstr "Αναζήτηση αποτελεσμάτων"
-
-#~ msgctxt "Search results list products"
-#~ msgid "Products"
-#~ msgstr "Προϊόντα"
-
-#~ msgctxt "Dashboard shipping zones"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Shipping zone form page title"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, list of countries within of shipping zone"
-#~ msgid "Countries"
-#~ msgstr "Χώρες"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Price"
-#~ msgstr "Τιμή"
-
-#~ msgctxt "Attribute value remove action"
-#~ msgid "Remove"
-#~ msgstr "Αφαίρεση"
-
-#~ msgctxt "Dashboard shipping method edit page"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Τρόπος αποστολής"
-
-#~ msgctxt "Dashboard authorization key list"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Authorization key breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Description"
-#~ msgstr "Περιγραφή"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Key"
-#~ msgstr "Κλειδί"
-
-#~ msgctxt "Authorization key edit action"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Authorization key remove action"
-#~ msgid "Remove"
-#~ msgstr "Αφαίρεση"
-
-#~ msgctxt "Dashboard site settings"
-#~ msgid "Edit"
-#~ msgstr "Επεξεργασία"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Email"
-#~ msgstr "Ηλεκτρονικό ταχυδρομείο"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Location"
-#~ msgstr "Τοποθεσία"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Name"
-#~ msgstr "Όνομα"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Value"
-#~ msgstr "Αξία"
-
-#~ msgctxt "Taxes table header"
-#~ msgid "Country name"
-#~ msgstr "Όνομα χώρας"
-
-#~ msgid "File"
-#~ msgstr "Αρχείο"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Billing address"
-#~ msgstr "Διεύθυνση τιμολόγησης"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Quantity"
-#~ msgstr "Ποσότητα"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Price"
-#~ msgstr "Τιμή"
-
-#~ msgctxt "Order details shipment row text"
-#~ msgid "Shipping"
-#~ msgstr "Αποστολή"
-
-#~ msgctxt "Order details total text"
-#~ msgid "Total"
-#~ msgstr "Σύνολο"
-
-#~ msgctxt "Fulfillment tracking number details"
-#~ msgid "Tracking number"
-#~ msgstr "Αριθμός εντοπισμού"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Create an account"
-#~ msgstr "Δημιουργία λογαριασμού"
-
-#~ msgctxt "Payment pending action"
-#~ msgid "I understand, allow me to pay again"
-#~ msgstr "Το κατάλαβα, επιτρέψτε μου να πληρώσω ξανά"
-
-#~ msgctxt "Payment form page title"
-#~ msgid "Payment"
-#~ msgstr "Πληρωμή"
-
-#~ msgctxt "Payment form breadcrumb"
-#~ msgid "Payment"
-#~ msgstr "Πληρωμή"
-
-#~ msgctxt "Payment form title"
-#~ msgid "Payment"
-#~ msgstr "Πληρωμή"
-
-#~ msgctxt "Sale (discount) label for item in product list"
-#~ msgid "Sale"
-#~ msgstr "Πώληση"
-
-#~ msgctxt "Product details primary action"
-#~ msgid "Add to cart"
-#~ msgstr "Προσθήκη στο καλάθι"
-
-#~ msgctxt "Product details title"
-#~ msgid "Description"
-#~ msgstr "Περιγραφή"
-
-#~ msgctxt "Product list filters"
-#~ msgid "Sort by"
-#~ msgstr "Ταξινόμηση ανά"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Shipping"
-#~ msgstr "Αποστολή"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Total"
-#~ msgstr "Σύνολο"
