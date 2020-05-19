@@ -180,6 +180,6 @@ def test_cannot_retry_installation_if_status_is_different_than_failed(
     assert not app_installation_data
     assert len(app_installation_errors) == 1
     assert app_installation_errors[0]["field"] == "id"
-    assert app_installation_errors[0]["code"] == AppErrorCode.FORBIDDEN.name
+    assert app_installation_errors[0]["code"] == AppErrorCode.INVALID_STATUS.name
 
     assert not mocked_task.called

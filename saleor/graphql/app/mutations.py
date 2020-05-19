@@ -272,7 +272,7 @@ class AppRetryInstall(ModelMutation):
 
         if instance.status != JobStatus.FAILED:
             msg = "Cannot retry installation with different status than failed."
-            code = AppErrorCode.FORBIDDEN.value
+            code = AppErrorCode.INVALID_STATUS.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
     @classmethod
