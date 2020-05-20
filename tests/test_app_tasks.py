@@ -25,7 +25,7 @@ def test_install_app_task_wrong_format_of_target_token_url():
     install_app_task(app_installation.id, activate=False)
     app_installation.refresh_from_db()
     assert app_installation.status == JobStatus.FAILED
-    assert app_installation.message == "token_target_url: ['Incorrect format.']"
+    assert app_installation.message == "tokenTargetUrl: ['Incorrect format.']"
     assert not App.objects.all()
 
 
