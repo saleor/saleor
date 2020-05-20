@@ -1,6 +1,8 @@
 from unittest.mock import Mock
 
-from saleor.app.models import AppJob
+import graphene
+
+from saleor.app.models import AppInstallation
 from saleor.core import JobStatus
 from saleor.graphql.core.enums import AppErrorCode, PermissionEnum
 
@@ -8,13 +10,14 @@ from ...utils import get_graphql_content
 
 INSTALL_APP_MUTATION = """
     mutation AppInstall(
-        $name: String, $manifest_url: String, $permissions: [PermissionEnum]){
+        $app_name: String, $manifest_url: String, $permissions: [PermissionEnum]){
         appInstall(
-            input:{name: $name, manifestUrl: $manifest_url, permissions:$permissions}){
-            appJob{
+            input:{appName: $app_name, manifestUrl: $manifest_url,
+                permissions:$permissions}){
+            appInstallation{
                 id
                 status
-                name
+                appName
                 manifestUrl
             }
             appErrors{
@@ -42,18 +45,19 @@ def test_install_app_mutation(
     query = INSTALL_APP_MUTATION
     staff_user.user_permissions.set([permission_manage_apps, permission_manage_orders])
     variables = {
-        "name": "New external integration",
+        "app_name": "New external integration",
         "manifest_url": "http://localhost:3000/manifest",
         "permissions": [PermissionEnum.MANAGE_ORDERS.name],
     }
     response = staff_api_client.post_graphql(query, variables=variables,)
     content = get_graphql_content(response)
-    app_job = AppJob.objects.get()
-    app_job_data = content["data"]["appInstall"]["appJob"]
-    assert int(app_job_data["id"]) == app_job.id
-    assert app_job_data["status"] == JobStatus.PENDING.upper()
-    assert app_job_data["manifestUrl"] == app_job.manifest_url
-    mocked_task.assert_called_with(app_job.pk, True)
+    app_installation = AppInstallation.objects.get()
+    app_installation_data = content["data"]["appInstall"]["appInstallation"]
+    _, app_id = graphene.Node.from_global_id(app_installation_data["id"])
+    assert int(app_id) == app_installation.id
+    assert app_installation_data["status"] == JobStatus.PENDING.upper()
+    assert app_installation_data["manifestUrl"] == app_installation.manifest_url
+    mocked_task.assert_called_with(app_installation.pk, True)
 
 
 def test_install_app_mutation_by_app(
@@ -68,18 +72,19 @@ def test_install_app_mutation_by_app(
         [permission_manage_apps, permission_manage_orders]
     )
     variables = {
-        "name": "New external integration",
+        "app_name": "New external integration",
         "manifest_url": "http://localhost:3000/manifest",
         "permissions": [PermissionEnum.MANAGE_ORDERS.name],
     }
     response = app_api_client.post_graphql(query, variables=variables,)
     content = get_graphql_content(response)
-    app_job = AppJob.objects.get()
-    app_job_data = content["data"]["appInstall"]["appJob"]
-    assert int(app_job_data["id"]) == app_job.id
-    assert app_job_data["status"] == JobStatus.PENDING.upper()
-    assert app_job_data["manifestUrl"] == app_job.manifest_url
-    mocked_task.assert_called_with(app_job.pk, True)
+    app_installation = AppInstallation.objects.get()
+    app_installation_data = content["data"]["appInstall"]["appInstallation"]
+    _, app_id = graphene.Node.from_global_id(app_installation_data["id"])
+    assert int(app_id) == app_installation.id
+    assert app_installation_data["status"] == JobStatus.PENDING.upper()
+    assert app_installation_data["manifestUrl"] == app_installation.manifest_url
+    mocked_task.assert_called_with(app_installation.pk, True)
 
 
 def test_app_install_mutation_out_of_scope_permissions(
@@ -88,7 +93,7 @@ def test_app_install_mutation_out_of_scope_permissions(
     query = INSTALL_APP_MUTATION
     staff_user.user_permissions.set([permission_manage_apps])
     variables = {
-        "name": "New external integration",
+        "app_name": "New external integration",
         "manifest_url": "http://localhost:3000/manifest",
         "permissions": [PermissionEnum.MANAGE_ORDERS.name],
     }
@@ -97,7 +102,7 @@ def test_app_install_mutation_out_of_scope_permissions(
     data = content["data"]["appInstall"]
 
     errors = data["appErrors"]
-    assert not data["appJob"]
+    assert not data["appInstallation"]
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "permissions"
@@ -111,7 +116,7 @@ def test_install_app_mutation_by_app_out_of_scope_permissions(
     query = INSTALL_APP_MUTATION
     app_api_client.app.permissions.set([permission_manage_apps])
     variables = {
-        "name": "New external integration",
+        "app_name": "New external integration",
         "manifest_url": "http://localhost:3000/manifest",
         "permissions": [PermissionEnum.MANAGE_ORDERS.name],
     }
@@ -121,7 +126,7 @@ def test_install_app_mutation_by_app_out_of_scope_permissions(
     data = content["data"]["appInstall"]
 
     errors = data["appErrors"]
-    assert not data["appJob"]
+    assert not data["appInstallation"]
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "permissions"

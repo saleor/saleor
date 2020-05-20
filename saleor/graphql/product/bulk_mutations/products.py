@@ -437,14 +437,15 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
         variant = cls.get_node_or_error(
             info, data["variant_id"], only_type=ProductVariant
         )
-        warehouse_ids = [stock["warehouse"] for stock in stocks]
-        cls.check_for_duplicates(warehouse_ids, errors)
-        if errors:
-            raise ValidationError(errors)
-        warehouses = cls.get_nodes_or_error(
-            warehouse_ids, "warehouse", only_type=Warehouse
-        )
-        cls.update_or_create_variant_stocks(variant, stocks, warehouses)
+        if stocks:
+            warehouse_ids = [stock["warehouse"] for stock in stocks]
+            cls.check_for_duplicates(warehouse_ids, errors)
+            if errors:
+                raise ValidationError(errors)
+            warehouses = cls.get_nodes_or_error(
+                warehouse_ids, "warehouse", only_type=Warehouse
+            )
+            cls.update_or_create_variant_stocks(variant, stocks, warehouses)
         return cls(product_variant=variant)
 
     @classmethod

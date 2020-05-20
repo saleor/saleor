@@ -4,28 +4,24 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# Paul-Sebastian Manole <brokenthorn@gmail.com>, 2019
 # Tudor C <tudorxyz@yahoo.com>, 2019
-# Cosmin Cosma <cosmingcosma@gmail.com>, 2019
-# Tiberiu Ichim <tiberiu.ichim@gmail.com>, 2019
-# Delia Cosma <deliacosma79@gmail.com>, 2019
-# Daniel Rogozan <rogodani@gmail.com>, 2019
+# Cosmin Cosma <cosmingcosma@gmail.com>, 2020
+# Delia Cosma <deliacosma79@gmail.com>, 2020
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-14 04:02-0500\n"
+"POT-Creation-Date: 2020-05-14 03:45-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Daniel Rogozan <rogodani@gmail.com>, 2019\n"
+"Last-Translator: Delia Cosma <deliacosma79@gmail.com>, 2020\n"
 "Language-Team: Romanian (https://www.transifex.com/mirumee/teams/34782/ro/)\n"
-"Language: ro\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?"
-"2:1));\n"
+"Language: ro\n"
+"Plural-Forms: nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
 #, python-format
@@ -43,77 +39,304 @@ msgstr ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 
-#: templates/read_only/read_only_splash.html:48
-msgid "Be aware pirate! <br> Saleor runs in <span>read only mode!</span>"
-msgstr ""
+#: templates/templated_email/account/account_delete.email:4
+msgctxt "Account delete reset e-mail subject"
+msgid "Delete your account"
+msgstr "Ștergeți contul"
 
-#: templates/read_only/read_only_splash.html:49
-#, fuzzy
-#| msgctxt "Close modal action button"
-#| msgid "Close"
-msgid "Close"
-msgstr "Închide"
-
-#: templates/templated_email/compiled/account_delete.html:174
-#: templates/templated_email/compiled/confirm.html:174
-#: templates/templated_email/compiled/confirm_fulfillment.html:174
-#: templates/templated_email/compiled/confirm_order.html:175
-#: templates/templated_email/compiled/confirm_payment.html:174
-#: templates/templated_email/compiled/email_changed_notification.html:174
-#: templates/templated_email/compiled/password_reset.html:174
-#: templates/templated_email/compiled/request_email_change.html:174
-#: templates/templated_email/compiled/set_customer_password.html:174
-#: templates/templated_email/compiled/set_password.html:174
-#: templates/templated_email/compiled/staff_confirm_order.html:175
-#: templates/templated_email/compiled/update_fulfillment.html:174
-msgctxt "Standard e-mail greeting"
-msgid "Hi!"
-msgstr "Salut!"
-
-#: templates/templated_email/compiled/account_delete.html:182
+#: templates/templated_email/account/account_delete.email:9
 #, python-format
-msgctxt "Account delete e-mail text"
+msgctxt "Account delete reset e-mail text"
 msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be "
-"reversed."
+"\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"Click the link below to delete your account.\n"
+"\n"
+"Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:255
-#: templates/templated_email/compiled/confirm.html:255
-#: templates/templated_email/compiled/confirm_fulfillment.html:362
-#: templates/templated_email/compiled/confirm_order.html:465
-#: templates/templated_email/compiled/confirm_payment.html:245
-#: templates/templated_email/compiled/email_changed_notification.html:245
-#: templates/templated_email/compiled/password_reset.html:255
-#: templates/templated_email/compiled/request_email_change.html:255
-#: templates/templated_email/compiled/set_customer_password.html:255
-#: templates/templated_email/compiled/set_password.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:465
-#: templates/templated_email/compiled/update_fulfillment.html:350
+#: templates/templated_email/account/confirm.email:4
+msgctxt "Account confirmation e-mail subject"
+msgid "Account confirmation e-mail"
+msgstr ""
+
+#: templates/templated_email/account/confirm.email:9
+#, python-format
+msgctxt "Account confirmation e-mail text"
+msgid ""
+"\n"
+"In order to log into %(domain)s, you have to confirm your email address first.\n"
+"Please click the link below to do so and log into your account.\n"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:4
+#: templates/templated_email/account/request_email_change.email:4
+msgctxt "Email change e-mail subject"
+msgid "Email change e-mail"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
+"If you didn't request this change, please contact the administrator.\n"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
+msgstr "Resetarea parolei e-mail"
+
+#: templates/templated_email/account/password_reset.email:9
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/account/request_email_change.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:2
+#, python-format
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:6
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:6
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment confirmation email subject"
+msgid "Your order %(order)s has been fulfilled"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:11
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of fulfilled products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:15
+#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:6
+#: templates/templated_email/order/staff_confirm_order.email:6
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr "Detalii comandă"
+
+#: templates/templated_email/order/confirm_order.email:11
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:15
+#: templates/templated_email/order/staff_confirm_order.email:15
+#, python-format
+msgctxt "Order confirmation e-mail payment details"
+msgid ""
+"\n"
+"To see your payment details please visit:\n"
+"%(order_details_url)s\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:23
+#: templates/templated_email/order/staff_confirm_order.email:23
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr "Rezumat sumar"
+
+#: templates/templated_email/order/confirm_order.email:24
+#: templates/templated_email/order/staff_confirm_order.email:24
+msgctxt "Order confirmation e-mail table header"
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/order/staff_confirm_order.email:25
+msgctxt "Order confirmation e-mail table header"
+msgid "Shipping"
+msgstr "Livrare"
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes (included)"
+msgstr "Taxe (incluse)"
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr "Taxe "
+
+#: templates/templated_email/order/confirm_order.email:27
+#: templates/templated_email/order/staff_confirm_order.email:27
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr "Reducere:"
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/staff_confirm_order.email:28
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr "Total"
+
+#: templates/templated_email/order/confirm_order.email:30
+#: templates/templated_email/order/staff_confirm_order.email:30
+#: templates/templated_email/source/confirm_order.mjml:29
+#: templates/templated_email/source/staff_confirm_order.mjml:29
+msgctxt "Order confirmation e-mail billing address"
+msgid "Billing address"
+msgstr "Adresa de facturare"
+
+#: templates/templated_email/order/confirm_order.email:31
+#: templates/templated_email/order/staff_confirm_order.email:31
+#: templates/templated_email/source/confirm_order.mjml:39
+#: templates/templated_email/source/staff_confirm_order.mjml:39
+msgctxt "Order confirmation e-mail text"
+msgid "No billing address"
+msgstr "Nicio adresă de facturare"
+
+#: templates/templated_email/order/confirm_order.email:33
+#: templates/templated_email/order/staff_confirm_order.email:33
+#: templates/templated_email/source/confirm_order.mjml:30
+#: templates/templated_email/source/staff_confirm_order.mjml:30
+msgctxt "Order confirmation e-mail shipping address"
+msgid "Shipping address"
+msgstr "Adresa de livrare"
+
+#: templates/templated_email/order/confirm_order.email:34
+#: templates/templated_email/order/staff_confirm_order.email:34
+#: templates/templated_email/source/confirm_order.mjml:46
+#: templates/templated_email/source/staff_confirm_order.mjml:46
+msgctxt "Order confirmation e-mail text"
+msgid "No shipping required"
+msgstr "Nu este nevoie de livrare"
+
+#: templates/templated_email/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr "Detalii de plată"
+
+#: templates/templated_email/order/payment/confirm_payment.email:9
+msgctxt "Payment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your payment.\n"
+"Your payment was successfully charged.\n"
+msgstr ""
+
+#: templates/templated_email/order/staff_confirm_order.email:11
+msgctxt "Order confirmation staff e-mail text"
+msgid ""
+"\n"
+"Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment update email subject"
+msgid "Shipping update for order %(order)s"
+msgstr "Livrare actualizata pentru comanda %(order)s"
+
+#: templates/templated_email/order/update_fulfillment.email:11
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:15
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid ""
+"You can track your shipment with the following code: %(tracking_number)s."
+msgstr ""
+
+#: templates/templated_email/shared/_footer.email:2
+#: templates/templated_email/source/shared/footer.mjml:4
 msgctxt "Base email text"
 msgid "This is an automatically generated e-mail, please do not reply."
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:317
-#: templates/templated_email/compiled/confirm.html:317
-#: templates/templated_email/compiled/confirm_fulfillment.html:424
-#: templates/templated_email/compiled/confirm_order.html:527
-#: templates/templated_email/compiled/confirm_payment.html:307
-#: templates/templated_email/compiled/email_changed_notification.html:307
-#: templates/templated_email/compiled/password_reset.html:317
-#: templates/templated_email/compiled/request_email_change.html:317
-#: templates/templated_email/compiled/set_customer_password.html:317
-#: templates/templated_email/compiled/set_password.html:317
-#: templates/templated_email/compiled/staff_confirm_order.html:527
-#: templates/templated_email/compiled/update_fulfillment.html:412
+#: templates/templated_email/shared/_footer.email:5
+#: templates/templated_email/source/shared/footer.mjml:13
 #, python-format
 msgctxt "Base email footer"
 msgid "Sincerely, %(site_name)s"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm.html:182
+#: templates/templated_email/shared/_header.email:2
+#: templates/templated_email/source/account_delete.mjml:13
+#: templates/templated_email/source/confirm.mjml:13
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+#: templates/templated_email/source/confirm_order.mjml:14
+#: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/email_changed_notification.mjml:13
+#: templates/templated_email/source/password_reset.mjml:13
+#: templates/templated_email/source/request_email_change.mjml:13
+#: templates/templated_email/source/set_customer_password.mjml:13
+#: templates/templated_email/source/set_password.mjml:13
+#: templates/templated_email/source/staff_confirm_order.mjml:14
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Standard e-mail greeting"
+msgid "Hi!"
+msgstr "Salut!"
+
+#: templates/templated_email/source/account_delete.mjml:16
+#, python-format
+msgctxt "Account delete e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"deletion of your user account at %(domain)s.<br/> Click the link below to "
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
+msgstr ""
+
+#: templates/templated_email/source/confirm.mjml:16
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
@@ -121,4190 +344,153 @@ msgid ""
 "first. Please click the link below to do so and log into your account."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:182
+#: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:186
-#, python-format
-msgctxt "Fulfillment confirmation email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_fulfillment.html:198
+#: templates/templated_email/source/confirm_fulfillment.mjml:27
 msgctxt "Fulfillment digital products email text"
-msgid "You can download your digital products by clicking in download link(s)."
+msgid ""
+"You can download your digital products by clicking in download link(s)."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:183
+#: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit: <a href=\"%(order_details_url)s\">"
-"%(order_details_url)s</a>"
+"Thank you for your order. Below is the list of ordered products. To see your"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:255
-msgctxt "E-mail order lines summary table"
-msgid "Subtotal"
-msgstr "Subtotal"
-
-#: templates/templated_email/compiled/confirm_order.html:263
-#: templates/templated_email/compiled/staff_confirm_order.html:263
-msgctxt "E-mail order lines summary table"
-msgid "Shipping"
-msgstr "Livrare"
-
-#: templates/templated_email/compiled/confirm_order.html:272
-#: templates/templated_email/compiled/staff_confirm_order.html:272
-msgctxt "E-mail order lines summary table"
-msgid "Taxes (included)"
-msgstr "Taxe (incluse)"
-
-#: templates/templated_email/compiled/confirm_order.html:274
-#: templates/templated_email/compiled/staff_confirm_order.html:274
-msgctxt "E-mail order lines summary table"
-msgid "Taxes"
-msgstr "Taxe "
-
-#: templates/templated_email/compiled/confirm_order.html:284
-#: templates/templated_email/compiled/staff_confirm_order.html:284
-msgctxt "E-mail order lines summary table"
-msgid "Discount"
-msgstr "Reducere"
-
-#: templates/templated_email/compiled/confirm_order.html:293
-#: templates/templated_email/compiled/staff_confirm_order.html:293
-msgctxt "E-mail order lines summary table"
-msgid "Total"
-msgstr "Total"
-
-#: templates/templated_email/compiled/confirm_order.html:302
-#: templates/templated_email/compiled/staff_confirm_order.html:302
-msgctxt "Ordered item name"
-msgid "Item"
-msgstr "Articol"
-
-#: templates/templated_email/compiled/confirm_order.html:303
-#: templates/templated_email/compiled/staff_confirm_order.html:303
-msgctxt "Quantity ordered of a product"
-msgid "Quantity"
-msgstr "Cantitate"
-
-#: templates/templated_email/compiled/confirm_order.html:304
-#: templates/templated_email/compiled/staff_confirm_order.html:304
-msgctxt "Unit price of a product"
-msgid "Per unit"
-msgstr "Per bucată"
-
-#: templates/templated_email/compiled/confirm_order.html:305
-#: templates/templated_email/compiled/staff_confirm_order.html:305
-msgctxt "Ordered item subtotal (unit price * quantity)"
-msgid "Subtotal"
-msgstr "Subtotal"
-
-#: templates/templated_email/compiled/confirm_order.html:383
-#: templates/templated_email/compiled/staff_confirm_order.html:383
-msgctxt "Order confirmation e-mail billing address"
-msgid "Billing address"
-msgstr "Adresa de facturare"
-
-#: templates/templated_email/compiled/confirm_order.html:384
-#: templates/templated_email/compiled/staff_confirm_order.html:384
-msgctxt "Order confirmation e-mail shipping address"
-msgid "Shipping address"
-msgstr "Adresa de livrare"
-
-#: templates/templated_email/compiled/confirm_order.html:393
-#: templates/templated_email/compiled/staff_confirm_order.html:393
-msgctxt "Order confirmation e-mail text"
-msgid "No billing address"
-msgstr "Nicio adresă de facturare"
-
-#: templates/templated_email/compiled/confirm_order.html:400
-#: templates/templated_email/compiled/staff_confirm_order.html:400
-msgctxt "Order confirmation e-mail text"
-msgid "No shipping required"
-msgstr "Nu este nevoie de livrare"
-
-#: templates/templated_email/compiled/confirm_payment.html:182
+#: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
 msgid "Thank you for your payment. Your payment was successfully charged."
 msgstr ""
 
-#: templates/templated_email/compiled/email_changed_notification.html:182
+#: templates/templated_email/source/email_changed_notification.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
-"for your user account at %(domain)s.<br> If you didn't request this change, "
-"please contact the administrator."
+"for your user account at %(domain)s.<br /> If you didn't request this "
+"change, please contact the administrator."
 msgstr ""
 
-#: templates/templated_email/compiled/password_reset.html:182
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:29
+#: templates/templated_email/source/partials/_order_lines.mjml:59
+msgctxt "Ordered item name"
+msgid "Item"
+msgstr "Articol"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
+#: templates/templated_email/source/partials/_order_lines.mjml:60
+msgctxt "Quantity ordered of a product"
+msgid "Quantity"
+msgstr "Cantitate"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
+msgctxt "Ordered item download links"
+msgid "Download Link"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:12
+msgctxt "E-mail order lines summary table"
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:20
+msgctxt "E-mail order lines summary table"
+msgid "Shipping"
+msgstr "Livrare"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:29
+msgctxt "E-mail order lines summary table"
+msgid "Taxes (included)"
+msgstr "Taxe (incluse)"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:31
+msgctxt "E-mail order lines summary table"
+msgid "Taxes"
+msgstr "Taxe "
+
+#: templates/templated_email/source/partials/_order_lines.mjml:41
+msgctxt "E-mail order lines summary table"
+msgid "Discount"
+msgstr "Reducere"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:50
+msgctxt "E-mail order lines summary table"
+msgid "Total"
+msgstr "Total"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:61
+msgctxt "Unit price of a product"
+msgid "Per unit"
+msgstr "Per bucată"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:62
+msgctxt "Ordered item subtotal (unit price * quantity)"
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: templates/templated_email/source/password_reset.mjml:16
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br> It can be safely ignored "
+"password for your user account at %(domain)s.<br/> It can be safely ignored "
 "if you did not request a password reset. Click the link below to reset your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/request_email_change.html:182
+#: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested an "
-"email change for your user account at %(domain)s.<br> It can be safely "
+"email change for your user account at %(domain)s.<br /> It can be safely "
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
 
-#: templates/templated_email/compiled/set_customer_password.html:182
+#: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your "
-"customer account at %(domain)s.<br> Click the link below to set up your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/set_password.html:182
+#: templates/templated_email/source/set_password.mjml:16
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
-"You're receiving this e-mail because you have to set password for your staff "
-"member account at %(domain)s.<br> Click the link below to set up your "
+"You're receiving this e-mail because you have to set password for your staff"
+" member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/staff_confirm_order.html:183
+#: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
-"Someone placed a new order in your store. To see order details please visit: "
-"<a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+"Someone placed a new order in your store. To see order details please visit:"
+" <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:182
+#: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number."
+"Your shipping status has been updated. Below is the list of ordered products"
+" that have been updated with new tracking number."
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:186
+#: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
 msgstr ""
-
-#~ msgctxt "Form field"
-#~ msgid "Email"
-#~ msgstr "Email"
-
-#~ msgctxt "Password"
-#~ msgid "Password"
-#~ msgstr "Parolă"
-
-#~ msgctxt "Email"
-#~ msgid "Email"
-#~ msgstr "Email"
-
-#~ msgctxt "Registration error"
-#~ msgid "This email has already been registered."
-#~ msgstr "Acest e-mail a fost deja înregistrat."
-
-#~ msgctxt "Customer form: Given name field"
-#~ msgid "Given name"
-#~ msgstr "Prenume"
-
-#~ msgctxt "Customer form: Family name field"
-#~ msgid "Family name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Address field"
-#~ msgid "Area"
-#~ msgstr "Zonă"
-
-#~ msgctxt "Address field"
-#~ msgid "County"
-#~ msgstr "Județ"
-
-#~ msgctxt "Address field"
-#~ msgid "Department"
-#~ msgstr "Departament"
-
-#~ msgctxt "Address field"
-#~ msgid "District"
-#~ msgstr "District"
-
-#~ msgctxt "Address field"
-#~ msgid "Emirate"
-#~ msgstr "Emirat"
-
-#~ msgctxt "Address field"
-#~ msgid "Island"
-#~ msgstr "Insulă"
-
-#~ msgctxt "Address field"
-#~ msgid "Neighborhood"
-#~ msgstr "Cartier"
-
-#~ msgctxt "Address field"
-#~ msgid "Oblast"
-#~ msgstr "Oblast"
-
-#~ msgctxt "Address field"
-#~ msgid "Parish"
-#~ msgstr "Parohie"
-
-#~ msgctxt "Address field"
-#~ msgid "PIN"
-#~ msgstr "PIN"
-
-#~ msgctxt "Address field"
-#~ msgid "Postal code"
-#~ msgstr "Cod poștal"
-
-#~ msgctxt "Address field"
-#~ msgid "Prefecture"
-#~ msgstr "Prefectură"
-
-#~ msgctxt "Address field"
-#~ msgid "Province"
-#~ msgstr "Provincie"
-
-#~ msgctxt "Address field"
-#~ msgid "State"
-#~ msgstr "Stat"
-
-#~ msgctxt "Address field"
-#~ msgid "Suburb"
-#~ msgstr "Suburbie"
-
-#~ msgctxt "Address field"
-#~ msgid "Village/township"
-#~ msgstr "Comună/sat"
-
-#~ msgctxt "Address field"
-#~ msgid "ZIP code"
-#~ msgstr "Cod poștal"
-
-#~ msgctxt "Country"
-#~ msgid "Country"
-#~ msgstr "Țară"
-
-#~ msgctxt "Personal name"
-#~ msgid "Given name"
-#~ msgstr "Prenume"
-
-#~ msgctxt "Personal name"
-#~ msgid "Family name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Company or organization"
-#~ msgid "Company or organization"
-#~ msgstr "Companie sau organizație"
-
-#~ msgctxt "Address"
-#~ msgid "Address"
-#~ msgstr "Adresă"
-
-#~ msgctxt "City"
-#~ msgid "City"
-#~ msgstr "Oraș"
-
-#~ msgctxt "City area"
-#~ msgid "District"
-#~ msgstr "District"
-
-#~ msgctxt "Postal code"
-#~ msgid "Postal code"
-#~ msgstr "Cod poștal"
-
-#~ msgctxt "Country area"
-#~ msgid "State or province"
-#~ msgstr "Stat sau provincie"
-
-#~ msgctxt "Phone number"
-#~ msgid "Phone number"
-#~ msgstr "Număr de telefon"
-
-#~ msgctxt "Address"
-#~ msgid "Street address, P.O. box, company name"
-#~ msgstr "Stradă, căsuță poștală, companie"
-
-#~ msgctxt "Address"
-#~ msgid "Apartment, suite, unit, building, floor, etc"
-#~ msgstr "Apartament, suită, unitate, clădire, etaj, etc."
-
-#~ msgctxt "Address form"
-#~ msgid "This value is invalid for selected country"
-#~ msgstr "Această valoare nu este validă pentru țara selectată"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage customers."
-#~ msgstr "Gestionează clienții."
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage staff."
-#~ msgstr "Gestionează personalul."
-
-#~ msgctxt "Permission description"
-#~ msgid "Impersonate customers."
-#~ msgstr "Impersonează clienți."
-
-#~ msgid "The phone number entered is not valid."
-#~ msgstr "Numărul de telefon introdus nu este valabil."
-
-#~ msgid "You have been successfully logged out."
-#~ msgstr "Ați fost dezactivat cu succes."
-
-#~ msgid "User has been created"
-#~ msgstr "Utilizatorul a fost creat"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Password successfully changed."
-#~ msgstr "Parolă schimbată cu succes."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Account successfully updated."
-#~ msgstr "Cont actualizat cu succes."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully updated."
-#~ msgstr "Adresă actualizată cu succes."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully removed"
-#~ msgstr "Adresa a fost eliminată cu succes"
-
-#~ msgctxt "Storefront message, when user requested his account removed"
-#~ msgid "Please check your inbox for a confirmation e-mail."
-#~ msgstr "Verifică căsuța de e-mail pentru un e-mail de confirmare."
-
-#~ msgctxt "Account deleted"
-#~ msgid ""
-#~ "Your account was deleted successfully. In case of any trouble or "
-#~ "questions feel free to contact us."
-#~ msgstr ""
-#~ "Contul tău a fost șters cu succes. În cazul unor probleme sau întrebări, "
-#~ "nu ezita să ne contactezi."
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Billing"
-#~ msgstr "Facturare"
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Shipping"
-#~ msgstr "Livrare"
-
-#~ msgctxt "Add to checkout form field label"
-#~ msgid "Quantity"
-#~ msgstr "Cantitate"
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently not available."
-#~ msgstr "Ne pare rău. Acest produs nu este disponibil."
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently out of stock."
-#~ msgstr "Ne pare rău. Acest produs nu este în stoc."
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Oops. We could not find that product."
-#~ msgstr "Hopa. Nu am putut găsi produsul respectiv."
-
-#~ msgctxt "Country form field label"
-#~ msgid "Country"
-#~ msgstr "Țară"
-
-#~ msgctxt "Address form field label"
-#~ msgid "Email"
-#~ msgstr "Email"
-
-#~ msgctxt "Shipping addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Introduceți o nouă adresă"
-
-#~ msgctxt "Shipping addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Adresă"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Introduceți o nouă adresă"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Same as shipping"
-#~ msgstr "La fel ca la livrare"
-
-#~ msgctxt "Billing addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Adresă"
-
-#~ msgctxt "Shipping method form field label"
-#~ msgid "Shipping method"
-#~ msgstr "Metodă de livrare"
-
-#~ msgctxt "Voucher form error"
-#~ msgid "Discount code incorrect or expired"
-#~ msgstr "Codul de reducere incorect sau expirat"
-
-#~ msgctxt "Checkout discount form label for voucher field"
-#~ msgid "Gift card or discount code"
-#~ msgstr "Card cadou sau cod de discount"
-
-#~ msgctxt "Checkout warning message"
-#~ msgid ""
-#~ "Sorry. We don't have that many items in stock. Quantity was set to "
-#~ "maximum available for now."
-#~ msgstr ""
-#~ "Scuze. Nu avem multe articole în stoc. Cantitatea a fost setată la "
-#~ "maximum disponibilă pentru moment."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Your order does not require shipping."
-#~ msgstr "Comanda dvs. nu necesită transport."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Please select a shipping method first."
-#~ msgstr "Selectați mai întâi o metodă de expediere."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is not valid in your country."
-#~ msgstr "Această ofertă nu este valabilă în țara dvs."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for selected items."
-#~ msgstr "Această ofertă este valabilă numai pentru elementele selectate."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Voucher expired in meantime. Order placement aborted."
-#~ msgstr "Voucherul a expirat între timp. Ordinul de plasare a fost anulat."
-
-#~ msgctxt "Checkout warning"
-#~ msgid "This voucher has expired. Please review your checkout."
-#~ msgstr "Acest voucher a expirat. Vă rugăm verificați."
-
-#~ msgctxt "Checkout warning"
-#~ msgid "Please review your checkout."
-#~ msgstr "Vă rugăm verificați."
-
-#, python-format
-#~ msgctxt "Number of matching records in the dashboard list"
-#~ msgid "Found %(counter)d matching record"
-#~ msgid_plural "Found %(counter)d matching records"
-#~ msgstr[0] "S-a găsit %(counter)d înregistrare potrivită"
-#~ msgstr[1] "S-au găsit %(counter)d înregistrări potrivite"
-#~ msgstr[2] "S-au găsit %(counter)d înregistrări potrivite"
-
-#~ msgctxt "Country choice"
-#~ msgid "Any Country"
-#~ msgstr "Orice țară"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "accommodation"
-#~ msgstr "cazare"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "admission to cultural events"
-#~ msgstr "admiterea la evenimente culturale"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "admission to entertainment events"
-#~ msgstr "admiterea la evenimente de divertisment"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "admission to sporting events"
-#~ msgstr "admiterea la evenimente sportive"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "advertising"
-#~ msgstr "reclamă"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "agricultural supplies"
-#~ msgstr "produse agricole"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "baby foodstuffs"
-#~ msgstr "alimente pentru copii"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "bikes"
-#~ msgstr "biciclete"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "books"
-#~ msgstr "cărții"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "childrens clothing"
-#~ msgstr "haine pentru copii"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "domestic fuel"
-#~ msgstr "combustibilul intern"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "domestic services"
-#~ msgstr "servicii interne"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "e-books"
-#~ msgstr "e-books"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "foodstuffs"
-#~ msgstr "produse alimentare"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "hotels"
-#~ msgstr "hoteluri"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "medical"
-#~ msgstr "medical"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "newspapers"
-#~ msgstr "presă"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "passenger transport"
-#~ msgstr "transportul de călători"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "pharmaceuticals"
-#~ msgstr "produse farmaceutice"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "property renovations"
-#~ msgstr "imobile renovate"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "restaurants"
-#~ msgstr "restaurante"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "social housing"
-#~ msgstr "locuințe sociale"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "standard"
-#~ msgstr "standard"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "water"
-#~ msgstr "apă"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "wine"
-#~ msgstr "vin"
-
-#~ msgctxt "Impersonation message"
-#~ msgid "You are now logged as {}"
-#~ msgstr "Acum sunteți înregistrat ca {}"
-
-#~ msgctxt "Kilogram weight unit symbol"
-#~ msgid "kg"
-#~ msgstr "kg"
-
-#~ msgctxt "Ounce weight unit symbol"
-#~ msgid "oz"
-#~ msgstr "uncii"
-
-#~ msgctxt "Gram weight unit symbol"
-#~ msgid "g"
-#~ msgstr "gr"
-
-#~ msgctxt "Discount type"
-#~ msgid "%"
-#~ msgstr "%"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific products"
-#~ msgstr "Produse specifice"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific collections of products"
-#~ msgstr "Colecții specifice de produse"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific categories of products"
-#~ msgstr "Categorii specifice de produse"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Shipping"
-#~ msgstr "Livrare"
-
-#~ msgctxt "Voucher type"
-#~ msgid "Free shipping"
-#~ msgstr "Transport gratuit"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off shipping"
-#~ msgstr "%(discount)s din transport"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off %(product_num)d products"
-#~ msgstr "%(discount)s din %(product_num)dproduse"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off %(collections_num)d collections"
-#~ msgstr "%(discount)s din %(collections_num)d colecții"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off %(categories_num)d categories"
-#~ msgstr "%(discount)s din %(categories_num)d categorii"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off"
-#~ msgstr "%(discount)s din"
-
-#, python-format
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for orders over %(amount)s."
-#~ msgstr "Această ofertă este valabilă numai pentru comenzi peste %(amount)s."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is valid only once per customer."
-#~ msgstr "Oferta este valabila o singura data per client‮‭"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage sales and vouchers."
-#~ msgstr "Gestionează vânzările și voucherele."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Discount not applicable for this product"
-#~ msgstr "Reducere nu se aplică pentru acest produs"
-
-#~ msgctxt "Cancel fulfillment mutation error"
-#~ msgid "This fulfillment can't be canceled"
-#~ msgstr "Această livrare nu poate fi anulată"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage navigation."
-#~ msgstr "Gestionează navigația."
-
-#~ msgctxt "Link object type description"
-#~ msgid "URL: "
-#~ msgstr "URL:"
-
-#~ msgctxt "Link object type description"
-#~ msgid "Category: "
-#~ msgstr "Categorie:"
-
-#~ msgctxt "Link object type description"
-#~ msgid "Collection: "
-#~ msgstr "Colecție:"
-
-#~ msgctxt "Link object type description"
-#~ msgid "Page: "
-#~ msgstr "Pagină:"
-
-#~ msgctxt ""
-#~ "Status for a fully editable, not confirmed order created by staff users"
-#~ msgid "Draft"
-#~ msgstr "Proiect"
-
-#~ msgctxt "Status for an order with no items marked as fulfilled"
-#~ msgid "Unfulfilled"
-#~ msgstr "Nelivrată"
-
-#~ msgctxt "Status for an order with some items marked as fulfilled"
-#~ msgid "Partially fulfilled"
-#~ msgstr "Parțial livrată"
-
-#~ msgctxt "Status for an order with all items marked as fulfilled"
-#~ msgid "Fulfilled"
-#~ msgstr "Livrată"
-
-#~ msgctxt "Status for a permanently canceled order"
-#~ msgid "Canceled"
-#~ msgstr "Anulată"
-
-#~ msgctxt "Status for a group of products in an order marked as fulfilled"
-#~ msgid "Fulfilled"
-#~ msgstr "Livrată"
-
-#~ msgctxt ""
-#~ "Status for a fulfilled group of products in an order marked as canceled"
-#~ msgid "Canceled"
-#~ msgstr "Anulată"
-
-#~ msgctxt "Event from a user or anonymous user that placed their order"
-#~ msgid "The order was placed"
-#~ msgstr "Comanda a fost plasata"
-
-#~ msgctxt "Event from a staff user that canceled an order"
-#~ msgid "The order was canceled"
-#~ msgstr "Comanda a fost anulata"
-
-#~ msgctxt "Event from a payment that made the order to be fully paid"
-#~ msgid "The order was fully paid"
-#~ msgstr "Comanda a fost platita integral"
-
-#~ msgctxt "Event from a user that generated an unsuccessful payment"
-#~ msgid "The payment was failed"
-#~ msgstr "Plata a esuat"
-
-#~ msgctxt "Payments form label"
-#~ msgid "Payment Method"
-#~ msgstr "Metodă Plată"
-
-#~ msgctxt "Payment delete form error"
-#~ msgid "Payment does not exist"
-#~ msgstr "Plata nu există"
-
-#~ msgctxt "Payment delete form error"
-#~ msgid "Payment cannot be cancelled."
-#~ msgstr "Plata nu poate fi anulată"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage orders."
-#~ msgstr "Gestionează ordinele."
-
-#, python-format
-#~ msgctxt "Fulfillment str"
-#~ msgid "Fulfillment #%s"
-#~ msgstr "Livrarea #%s"
-
-#~ msgctxt "Connect order with user warning message"
-#~ msgid ""
-#~ "We couldn't assign the order to your account as the email addresses don't "
-#~ "match"
-#~ msgstr ""
-#~ "Nu am putut aloca comanda în contul dvs., deoarece adresele de e-mail nu "
-#~ "se potrivesc"
-
-#~ msgctxt "storefront message"
-#~ msgid "The order is now assigned to your account"
-#~ msgstr "Comanda este acum alocată contului dvs"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage pages."
-#~ msgstr "Gestionează paginile."
-
-#~ msgctxt "Custom payment choice type"
-#~ msgid "Manual"
-#~ msgstr "Manual"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Authorization"
-#~ msgstr "Autorizare"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Refund"
-#~ msgstr "Rambursare"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Capture"
-#~ msgstr "Captură"
-
-#~ msgctxt "Payment status form field"
-#~ msgid "Payment status"
-#~ msgstr "Starea plății"
-
-#~ msgctxt "Razorpay payment error"
-#~ msgid "Order was not charged."
-#~ msgstr "Comanda nu a fost procesată"
-
-#~ msgctxt "Razorpay payment gateway primary button"
-#~ msgid "Pay now with Razorpay"
-#~ msgstr "Plătește acum cu Razorpay"
-
-#~ msgctxt "Razorpay payment gateway secondary title"
-#~ msgid "Total payment"
-#~ msgstr "Total de plată"
-
-#~ msgctxt "Stripe payment error"
-#~ msgid "Order was not authorized."
-#~ msgstr "Comanda nu a fost autorizată"
-
-#~ msgctxt "Stripe payment error"
-#~ msgid "Order was not charged."
-#~ msgstr "Comanda nu a fost procesată"
-
-#~ msgctxt "Stripe payment gateway description"
-#~ msgid "Total payment"
-#~ msgstr "Total de plată"
-
-#~ msgctxt "Mark order as paid validation error"
-#~ msgid "Orders with payments can not be manually marked as paid."
-#~ msgstr "Comenzile cu plată nu pot fi marcate manual ca fiind plătite"
-
-#~ msgctxt "Product status"
-#~ msgid "not published"
-#~ msgstr "nu a fost publicat"
-
-#~ msgctxt "Product status"
-#~ msgid "variants missing"
-#~ msgstr "variantele lipsesc"
-
-#~ msgctxt "Product status"
-#~ msgid "out of stock"
-#~ msgstr "stoc epuizat"
-
-#~ msgctxt "Product status"
-#~ msgid "stock running low"
-#~ msgstr "stocul scăzut"
-
-#~ msgctxt "Product status"
-#~ msgid "not yet available"
-#~ msgstr "nu este încă disponibilă"
-
-#~ msgctxt "Product status"
-#~ msgid "ready for purchase"
-#~ msgstr "gata pentru cumpărare"
-
-#~ msgctxt "Variant status"
-#~ msgid "available"
-#~ msgstr "disponibil"
-
-#~ msgctxt "Variant status"
-#~ msgid "out of stock"
-#~ msgstr "stoc epuizat"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "name"
-#~ msgstr "nume"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "price"
-#~ msgstr "Preț"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "last updated"
-#~ msgstr "ultima actualizare"
-
-#~ msgctxt "Product list sorting form"
-#~ msgid "Sort by"
-#~ msgstr "Sortează după"
-
-#~ msgctxt "Currency amount"
-#~ msgid "Price"
-#~ msgstr "Preț"
-
-#, python-format
-#~ msgctxt "Variant choice field label"
-#~ msgid "%(variant_label)s - %(price)s"
-#~ msgstr "%(variant_label)s - %(price)s"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage products."
-#~ msgstr "Gestionează produsele."
-
-#~ msgctxt "File as a digital product"
-#~ msgid "digital_product"
-#~ msgstr "produs_digital"
-
-#~ msgctxt "Search form label"
-#~ msgid "Query"
-#~ msgstr "Întrebare"
-
-#~ msgid "Arabic"
-#~ msgstr "Arabă"
-
-#~ msgid "Bulgarian"
-#~ msgstr "Bulgară"
-
-#~ msgid "Bengali"
-#~ msgstr "Bengaleză"
-
-#~ msgid "Catalan"
-#~ msgstr "Catalană"
-
-#~ msgid "Czech"
-#~ msgstr "Cehă"
-
-#~ msgid "Danish"
-#~ msgstr "Daneză"
-
-#~ msgid "German"
-#~ msgstr "Germană"
-
-#~ msgid "English"
-#~ msgstr "Engleză"
-
-#~ msgid "Spanish"
-#~ msgstr "Spaniolă"
-
-#~ msgid "Estonian"
-#~ msgstr "Estoniană"
-
-#~ msgid "Persian"
-#~ msgstr "Persană"
-
-#~ msgid "French"
-#~ msgstr "Franceză"
-
-#~ msgid "Hindi"
-#~ msgstr "Indiană"
-
-#~ msgid "Hungarian"
-#~ msgstr "Maghiară"
-
-#~ msgid "Armenian"
-#~ msgstr "Armen"
-
-#~ msgid "Indonesian"
-#~ msgstr "Indonesiană"
-
-#~ msgid "Italian"
-#~ msgstr "Italiană"
-
-#~ msgid "Japanese"
-#~ msgstr "Japoneză"
-
-#~ msgid "Korean"
-#~ msgstr "Koreană"
-
-#~ msgid "Mongolian"
-#~ msgstr "Mongoleză"
-
-#~ msgid "Norwegian"
-#~ msgstr "Norvegiana"
-
-#~ msgid "Dutch"
-#~ msgstr "Olandeză"
-
-#~ msgid "Polish"
-#~ msgstr "Poloneză"
-
-#~ msgid "Brazilian Portuguese"
-#~ msgstr "Portugheză Braziliană"
-
-#~ msgid "Romanian"
-#~ msgstr "Româna"
-
-#~ msgid "Russian"
-#~ msgstr "Rusă"
-
-#~ msgid "Slovak"
-#~ msgstr "Slovacă"
-
-#~ msgid "Serbian"
-#~ msgstr "Sârbă"
-
-#~ msgid "Swahili"
-#~ msgstr "Swahili"
-
-#~ msgid "Swedish"
-#~ msgstr "Suedeză"
-
-#~ msgid "Thai"
-#~ msgstr "Tailandeză"
-
-#~ msgid "Turkish"
-#~ msgstr "Turcă"
-
-#~ msgid "Ukrainian"
-#~ msgstr "Ucrainiană"
-
-#~ msgid "Vietnamese"
-#~ msgstr "Vietnameză"
-
-#~ msgid "Simplified Chinese"
-#~ msgstr "Chineză Simplificată"
-
-#~ msgid "Traditional Chinese"
-#~ msgstr "Chineză Tradițională"
-
-#~ msgctxt "Name of political and economical union of european countries"
-#~ msgid "European Union"
-#~ msgstr "Uniunea Europeană"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage shipping."
-#~ msgstr "Gestionează transportul."
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage settings."
-#~ msgstr "Gestionează setarile."
-
-#~ msgctxt "Eror page not found"
-#~ msgid "Page not found"
-#~ msgstr "Pagina nu a fost gasită"
-
-#~ msgctxt "Change language modal title"
-#~ msgid "Select language"
-#~ msgstr "Selecteaza limba"
-
-#~ msgctxt "Change language action button"
-#~ msgid "Change"
-#~ msgstr "Schimbare"
-
-#~ msgctxt "Account deletetion confirmation page title"
-#~ msgid "Are you sure?"
-#~ msgstr "Ești sigur?"
-
-#~ msgctxt ""
-#~ "Message displayed to the user requesting for his account deletetion"
-#~ msgid "Sorry to see you go!"
-#~ msgstr "Ne pare rău ca pleci!"
-
-#~ msgctxt ""
-#~ "Message displayed to the user requesting for his account deletetion"
-#~ msgid "Are you sure you want to delete your account?"
-#~ msgstr "Sigur dorești să ștergi contul tău.?"
-
-#~ msgctxt "Confirm account deletion button"
-#~ msgid "Delete account"
-#~ msgstr "Șterge cont"
-
-#~ msgctxt "Remove address form action"
-#~ msgid "Remove Address"
-#~ msgstr "Elimină adresa"
-
-#~ msgctxt "Remove address form action"
-#~ msgid "Cancel"
-#~ msgstr "Anulare"
-
-#~ msgctxt "Edit address page title"
-#~ msgid "Edit address"
-#~ msgstr "Editează adresa"
-
-#~ msgctxt "New address page title"
-#~ msgid "New address"
-#~ msgstr "Adresa nouă"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Home"
-#~ msgstr "Acasă"
-
-#~ msgctxt "Edit/new address breadcrumb"
-#~ msgid "Your profile"
-#~ msgstr "Profilul tău"
-
-#~ msgctxt "Edit address breadcrumb"
-#~ msgid "Edit address"
-#~ msgstr "Elimină adresa"
-
-#~ msgctxt "New address breadcrumb"
-#~ msgid "New address"
-#~ msgstr "Adresa nouă"
-
-#~ msgctxt "Edit address title"
-#~ msgid "Edit address"
-#~ msgstr "Editează adresa"
-
-#~ msgctxt "New address title"
-#~ msgid "New address"
-#~ msgstr "Adresa nouă"
-
-#~ msgctxt "Edit/new address primary action"
-#~ msgid "Save changes"
-#~ msgstr "Salvează modificările"
-
-#~ msgctxt "User profile page title"
-#~ msgid "Your profile"
-#~ msgstr "Profilul tău"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your account"
-#~ msgstr "Contul tău"
-
-#~ msgid "My account"
-#~ msgstr "Contul meu"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Recent Orders"
-#~ msgstr "Comenzi Recente"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Change password"
-#~ msgstr "Schimbă parola"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Contact details"
-#~ msgstr "Detalii de contact"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Settings"
-#~ msgstr "Setări"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order"
-#~ msgstr "Comanda"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Date"
-#~ msgstr "Data"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Summary"
-#~ msgstr "Rezumat"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Payment status"
-#~ msgstr "Starea plății"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order status"
-#~ msgstr "Starea comenzii"
-
-#~ msgctxt "Recent orders link text"
-#~ msgid "Details"
-#~ msgstr "Detalii"
-
-#~ msgctxt "No recent orders text"
-#~ msgid "There are not any completed orders yet."
-#~ msgstr "Nu există încă comenzi finalizate."
-
-#~ msgctxt "User profile action"
-#~ msgid "Change password"
-#~ msgstr "Schimbaţi parola"
-
-#~ msgctxt "User profile settings"
-#~ msgid "Personal Data"
-#~ msgstr "Date personale"
-
-#~ msgctxt "User profile action"
-#~ msgid "Update"
-#~ msgstr "Actualizare"
-
-#~ msgctxt "List of adresses in contact details"
-#~ msgid "Addresses"
-#~ msgstr "Adrese"
-
-#~ msgctxt "User address action"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "No addresses text"
-#~ msgid "You will see new addresses here after first successful checkout."
-#~ msgstr "Vei vedea aici adrese noi după primul checkout de succes."
-
-#~ msgctxt "Message informing about the process of account removal"
-#~ msgid ""
-#~ "\n"
-#~ "                  If you'd like to remove your account, please click on "
-#~ "the button below and a confirmation email will be sent to you.\n"
-#~ "                "
-#~ msgstr ""
-#~ "\n"
-#~ "Dacă doriți să eliminați contul dvs., faceți clic pe butonul de mai jos "
-#~ "și vi se va trimite un e-mail de confirmare."
-
-#~ msgctxt "Remove account form action"
-#~ msgid "Remove Account"
-#~ msgstr "Elimină contul"
-
-#~ msgctxt "Login page title"
-#~ msgid "Log in"
-#~ msgstr "Logare"
-
-#~ msgctxt "Login form secondary title"
-#~ msgid "Don't have an account yet?"
-#~ msgstr "Nu ai încă un cont?"
-
-#~ msgctxt "Login form secondary action"
-#~ msgid "Register"
-#~ msgstr "Inregistrează-te"
-
-#~ msgctxt "Login form title"
-#~ msgid "Log in"
-#~ msgstr "Logare"
-
-#, python-format
-#~ msgctxt "Already logged in warning message"
-#~ msgid "You are already logged in as %(user)s."
-#~ msgstr "Ești deja conectat ca %(user)s."
-
-#~ msgctxt "Login form primary action"
-#~ msgid "Log in"
-#~ msgstr "Logare"
-
-#~ msgctxt "Login form secondary link"
-#~ msgid "Forgot password?"
-#~ msgstr "Ai uitat parola?"
-
-#~ msgid "Facebook"
-#~ msgstr "Facebook"
-
-#~ msgid "Google"
-#~ msgstr "Google"
-
-#~ msgctxt "Password change breadcrumb"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Password change form legend"
-#~ msgid "Change Password"
-#~ msgstr "Schimbă parola"
-
-#~ msgctxt "Password change form primary action"
-#~ msgid "Save new password"
-#~ msgstr "Salvează parola nouă"
-
-#~ msgctxt "Password reset page title"
-#~ msgid "Password reset"
-#~ msgstr "Resetează parolă"
-
-#~ msgctxt "Password reset form title"
-#~ msgid "Forgot your password?"
-#~ msgstr "Ai uitat parola?"
-
-#~ msgctxt "Password reset form help text"
-#~ msgid ""
-#~ "Please let us know the email you have used to register or purchase at our "
-#~ "store."
-#~ msgstr ""
-#~ "Spune-ne  adresa de e-mail pe care ai utilizat-o pentru a te înregistra "
-#~ "sau a cumpăra la magazinul nostru."
-
-#~ msgctxt "Password reset primary action"
-#~ msgid "Continue"
-#~ msgstr "Continuă"
-
-#~ msgctxt "Password reset done page title"
-#~ msgid "Password Reset"
-#~ msgstr "Resetează parolă"
-
-#~ msgctxt "Password reset done title"
-#~ msgid "Password Reset"
-#~ msgstr "Resetează parolă"
-
-#~ msgctxt "Password reset done text"
-#~ msgid ""
-#~ "We have sent you an e-mail. Please contact us if you do not receive it "
-#~ "within a few minutes."
-#~ msgstr ""
-#~ "Ți-am trimis un e-mail. Te rog să ne contactezi dacă nu îl primești în "
-#~ "câteva minute."
-
-#~ msgctxt "Password reset from key page title"
-#~ msgid "Change Password"
-#~ msgstr "Schimbă parola"
-
-#~ msgid "Bad Token"
-#~ msgstr "Token greșit"
-
-#, python-format
-#~ msgctxt "Password reset text if key is invalid"
-#~ msgid ""
-#~ "The password reset link was invalid, possibly because it has already been "
-#~ "used.<br> Please request a <a href=\"%(passwd_reset_url)s\">new password "
-#~ "reset</a>."
-#~ msgstr ""
-#~ "Linkul de resetare a parolei a fost invalid, probabil din cauză că a fost "
-#~ "deja folosit.<br> Te rog să <a href=\"%(passwd_reset_url)s\">soliciți o "
-#~ "nouă resetare a parolei</a>."
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Password Reset"
-#~ msgstr "Resetează parolă"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Now you can set new password for you account."
-#~ msgstr "Acum poți seta o nouă parolă pentru contul tău."
-
-#~ msgctxt "Password reset from key form primary action"
-#~ msgid "Continue"
-#~ msgstr "Continuă"
-
-#~ msgctxt "Password reset link expired from key form title"
-#~ msgid "Password Reset Link Expired"
-#~ msgstr "Resetarea parolei a expirat"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid ""
-#~ "Sorry but this link is no longer valid. If you forget your password, "
-#~ "please use link below."
-#~ msgstr ""
-#~ "Ne pare rău, dar acest link nu mai este valabil. Dacă ți-ai uitat parola, "
-#~ "te rog să folosești link-ul de mai jos."
-
-#~ msgctxt "Reset my password link"
-#~ msgid "Reset my password"
-#~ msgstr "Resetează-mi parola"
-
-#~ msgctxt "Password reset from key done page title"
-#~ msgid "Password Changed"
-#~ msgstr "Parolă schimbată"
-
-#~ msgctxt "Password reset from key done title"
-#~ msgid "Password Changed"
-#~ msgstr "Parolă schimbată"
-
-#~ msgid "Your password is now changed."
-#~ msgstr "Parola ta este acum schimbată."
-
-#~ msgctxt "Signup page title"
-#~ msgid "Sign Up"
-#~ msgstr "Înscrie-te"
-
-#~ msgctxt "Signup form secondary title"
-#~ msgid "Already have an account?"
-#~ msgstr "Ai deja un cont?"
-
-#~ msgctxt "Signup form secondary action"
-#~ msgid "Log in"
-#~ msgstr "Logare"
-
-#~ msgctxt "Signup form title"
-#~ msgid "Create an account"
-#~ msgstr "Creează un cont"
-
-#~ msgctxt "Signup form primary action"
-#~ msgid "Create an account"
-#~ msgstr "Creează un cont"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Dashboard"
-#~ msgstr "Dashboard"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Stop impersonating"
-#~ msgstr "Oprește impersonarea"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log out"
-#~ msgstr "Deconectează-te"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Register"
-#~ msgstr "Inregistrează-te"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log in"
-#~ msgstr "Logare"
-
-#~ msgid "Search for product"
-#~ msgstr "Căutați produsul"
-
-#~ msgid "Search"
-#~ msgstr "Căutare"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your cart"
-#~ msgstr "Coșul tău"
-
-#~ msgid "Account"
-#~ msgstr "Cont"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Style guide"
-#~ msgstr "Style guide"
-
-#~ msgctxt "Category breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "Acasă"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Subtotal"
-#~ msgstr "Subtotal"
-
-#~ msgctxt "Checkout shipping cost form"
-#~ msgid "Shipping cost for:"
-#~ msgstr "Costul transportului pentru:"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Total"
-#~ msgstr "Total"
-
-#~ msgctxt "Checkout summary text"
-#~ msgid "Shipment and taxes calculated at checkout"
-#~ msgstr "Livrarea și taxele calculate la checkout"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Checkout"
-#~ msgstr "Verifică"
-
-#~ msgctxt "Checkout top message"
-#~ msgid "Easy and secure!"
-#~ msgstr "Ușor și sigur!"
-
-#~ msgctxt "Checkout title"
-#~ msgid "Checkout"
-#~ msgstr "Verifică"
-
-#~ msgctxt "Order review title"
-#~ msgid "Order review"
-#~ msgstr "Analiza comenzilor"
-
-#~ msgctxt "Order review section"
-#~ msgid "Subtotal"
-#~ msgstr "Subtotal"
-
-#~ msgctxt "Order review section"
-#~ msgid "Shipment"
-#~ msgstr "Expediere"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Taxes (included)"
-#~ msgstr "Taxe (incluse)"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Taxes"
-#~ msgstr "Taxe "
-
-#~ msgctxt "Order review section title"
-#~ msgid "Promo code"
-#~ msgstr "Cod promoțional"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Total"
-#~ msgstr "Total"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Your cart"
-#~ msgstr "Coșul tău"
-
-#~ msgctxt "Checkout breadcrumb"
-#~ msgid "Cart"
-#~ msgstr "Coș"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Product"
-#~ msgstr "Produs"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Quantity"
-#~ msgstr "Cantitate"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Price"
-#~ msgstr "Preț"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Checkout"
-#~ msgstr "Verifică"
-
-#~ msgctxt "checkout page: secondary action, empty the checkout"
-#~ msgid "Clear cart"
-#~ msgstr "Cărucior gol"
-
-#~ msgctxt "Empty checkout message"
-#~ msgid "There are no products in your shopping cart."
-#~ msgstr "Nu exista produse în coșul de cumpărături."
-
-#~ msgctxt "Empty checkout link"
-#~ msgid "Check out our sales"
-#~ msgstr "Verificați vânzările noastre"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "Login"
-#~ msgstr "Logare"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "New customer?"
-#~ msgstr "Client nou?"
-
-#~ msgctxt "Checkout login page new users action"
-#~ msgid "Continue"
-#~ msgstr "Continuă"
-
-#~ msgctxt "Checkout login page new users message"
-#~ msgid "Registration is not required!"
-#~ msgstr "Înregistrarea nu este necesară!"
-
-#~ msgctxt "Checkout login form title"
-#~ msgid "Existing customer? Log in."
-#~ msgstr "Client existent? Logare."
-
-#~ msgctxt "Checkout payment title"
-#~ msgid "Payment"
-#~ msgstr "Plată"
-
-#~ msgctxt "Checkout payment primary action"
-#~ msgid "Place order"
-#~ msgstr "Plasați comanda"
-
-#~ msgctxt "Checkout shipping address title"
-#~ msgid "Shipping address"
-#~ msgstr "Adresa de transport"
-
-#~ msgctxt "Checkout shipping address primary action"
-#~ msgid "Continue"
-#~ msgstr "Continuă"
-
-#~ msgid "Select other address"
-#~ msgstr "Selectează altă adresă"
-
-#~ msgctxt "Checkout shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Metodă de livrare"
-
-#~ msgctxt "Checkout shipping method primary action"
-#~ msgid "Continue"
-#~ msgstr "Continuă"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Same as shipping"
-#~ msgstr "La fel ca la livrare"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Enter a new address"
-#~ msgstr "Introdu o nouă adresă"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "Remove"
-#~ msgstr "Elimină"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "(Remove)"
-#~ msgstr "(Elimină)"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "Use"
-#~ msgstr "Utilizare"
-
-#~ msgctxt "Checkout summary title"
-#~ msgid "Billing address"
-#~ msgstr "Adresa de facturare"
-
-#~ msgctxt "Checkout shipping method"
-#~ msgid "Change shipping method"
-#~ msgstr "Modifică metoda de expediere"
-
-#~ msgctxt "Checkout summary note title"
-#~ msgid "Add a note to your order"
-#~ msgstr "Adaugă o notă la comanda ta"
-
-#~ msgctxt "Checkout summary primary action"
-#~ msgid "Order & Pay"
-#~ msgstr "Comandă și plătește"
-
-#~ msgctxt "Checkout summary without shipping title"
-#~ msgid "Billing address"
-#~ msgstr "Adresa de facturare"
-
-#~ msgctxt "Checkout summary without shipping note title"
-#~ msgid "Add a note to your order"
-#~ msgstr "Adaugă o notă la comanda ta"
-
-#~ msgctxt "Checkout summary without shipping action"
-#~ msgid "Place order"
-#~ msgstr "Plasați comanda"
-
-#~ msgctxt "Checkout dropdown text"
-#~ msgid "Shipment and taxes calculated at checkout"
-#~ msgstr "Livrarea și taxele calculate la checkout"
-
-#~ msgctxt "Checkout dropdown secondary action"
-#~ msgid "Go to cart"
-#~ msgstr "Du-te la coș"
-
-#~ msgctxt "Checkout dropdown primary action"
-#~ msgid "Checkout"
-#~ msgstr "Verifică"
-
-#~ msgctxt "Site breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "Acasă"
-
-#, python-format
-#~ msgctxt "Dashboard default page title"
-#~ msgid "Dashboard - %(site_name)s"
-#~ msgstr "Dashboard - %(site_name)s"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Visit storefront"
-#~ msgstr "Vizitează magazinul"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Style guide"
-#~ msgstr "Ghid stilistic"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Log out"
-#~ msgstr "Deconectați-vă"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search"
-#~ msgstr "Căutare"
-
-#~ msgctxt "Dashboard homepage"
-#~ msgid "Home"
-#~ msgstr "Acasă"
-
-#~ msgctxt "Dashboard catalogue"
-#~ msgid "Catalogue"
-#~ msgstr "Catalog"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Products"
-#~ msgstr "Produse"
-
-#~ msgctxt "Dashboard categories list"
-#~ msgid "Categories"
-#~ msgstr "Categorii"
-
-#~ msgctxt "Dashboard side navigation link"
-#~ msgid "Collections"
-#~ msgstr "Colecții"
-
-#~ msgctxt "Dashboard discounts list"
-#~ msgid "Discounts"
-#~ msgstr "Reduceri"
-
-#~ msgctxt "Dashboard sales (discounts) list"
-#~ msgid "Sales"
-#~ msgstr "Vânzări"
-
-#~ msgctxt "Dashboard vouchers list"
-#~ msgid "Vouchers"
-#~ msgstr "Vouchers"
-
-#~ msgctxt "Dashboard sales. `Sales' is noun of to sell"
-#~ msgid "Sales"
-#~ msgstr "Vânzări"
-
-#~ msgctxt "Dashboard orders list"
-#~ msgid "Orders"
-#~ msgstr "Comenzi"
-
-#~ msgctxt "Dashboard customers list"
-#~ msgid "Customers"
-#~ msgstr "Clienții"
-
-#~ msgctxt "Management section"
-#~ msgid "Staff management"
-#~ msgstr "Managementul personalului"
-
-#~ msgctxt "Dashboard staff members list"
-#~ msgid "Staff members"
-#~ msgstr "Membrii personalului"
-
-#~ msgctxt "Dashboard configuration"
-#~ msgid "Configuration"
-#~ msgstr "Configurație"
-
-#~ msgctxt "Dashboard product types list"
-#~ msgid "Product types"
-#~ msgstr "Tipuri de produse"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Attributes"
-#~ msgstr "Atribute"
-
-#~ msgctxt "Dashboard shipping zones list"
-#~ msgid "Shipping"
-#~ msgstr "Livrare"
-
-#~ msgctxt "Dashboard menus list"
-#~ msgid "Navigation"
-#~ msgstr "Navigare"
-
-#~ msgctxt "Dashboard site settings"
-#~ msgid "Site settings"
-#~ msgstr "Setările site-ului"
-
-#~ msgctxt "Dashboard taxes"
-#~ msgid "Taxes"
-#~ msgstr "Taxe "
-
-#~ msgctxt "Dashboard static pages"
-#~ msgid "Pages"
-#~ msgstr "Pagini"
-
-#~ msgctxt "Dashboard software version"
-#~ msgid "Release:"
-#~ msgstr "Eliberare:"
-
-#~ msgctxt "Dashboard cancel action"
-#~ msgid "Cancel"
-#~ msgstr "Anulare"
-
-#~ msgctxt "Category list page title"
-#~ msgid "Categories"
-#~ msgstr "Categorii"
-
-#~ msgctxt "Category field"
-#~ msgid "Description"
-#~ msgstr "Descriere"
-
-#~ msgctxt "Category detail view action"
-#~ msgid "Edit category"
-#~ msgstr "Editează categoria"
-
-#~ msgctxt "Category detail view action"
-#~ msgid "Remove category"
-#~ msgstr "Elimină categoria"
-
-#~ msgctxt "Title of the subcategories list"
-#~ msgid "Subcategories"
-#~ msgstr "Subcategorii"
-
-#~ msgid "Add"
-#~ msgstr "Adaugă"
-
-#~ msgctxt "Category list table header name"
-#~ msgid "Name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Category list table header description"
-#~ msgid "Description"
-#~ msgstr "Descriere"
-
-#~ msgctxt "Category edit action"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Category list action link"
-#~ msgid "Remove"
-#~ msgstr "Elimină"
-
-#~ msgctxt "Empty list of categories"
-#~ msgid "No subcategories"
-#~ msgstr "Nu există subcategorii"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Edit category"
-#~ msgstr "Editează categoria"
-
-#~ msgctxt "Category detail page title"
-#~ msgid "Add new category"
-#~ msgstr "Adaugă categorii noi"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Add new category"
-#~ msgstr "Adaugă categorii noi"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Category detail breadcrumbs"
-#~ msgid "Add new category"
-#~ msgstr "Adaugă categorii noi"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Update"
-#~ msgstr "Actualizare"
-
-#~ msgctxt "Dashboard create action"
-#~ msgid "Create"
-#~ msgstr "Crează"
-
-#~ msgctxt "Category list add button text"
-#~ msgid "Add category"
-#~ msgstr "Adaugă categorie"
-
-#~ msgctxt "Empty category list message"
-#~ msgid "No categories found."
-#~ msgstr "Nu au fost găsite categorii."
-
-#, python-format
-#~ msgctxt "Remove category modal title"
-#~ msgid "Remove category %(category)s"
-#~ msgstr "Elimină categoria %(category)s"
-
-#~ msgctxt "Delete category form text about descendant categories"
-#~ msgid "The following child categories will be removed:"
-#~ msgstr "Următoarele categorii de copii vor fi eliminate:"
-
-#~ msgctxt "Dashboard delete action"
-#~ msgid "Remove"
-#~ msgstr "Elimină"
-
-#~ msgid "No categories found."
-#~ msgstr "Nu au fost găsite categorii."
-
-#, python-format
-#~ msgctxt "Modal remove collection text"
-#~ msgid "Remove collection %(collection)s"
-#~ msgstr "Eliminați colecția %(collection)s"
-
-#, python-format
-#~ msgctxt "Modal remove collection text"
-#~ msgid ""
-#~ "Are you sure you want to remove collection <strong>%(collection)s</"
-#~ "strong>?"
-#~ msgstr "Sigur dorești să elimini colecția <strong>%(collection)s</strong>?"
-
-#~ msgid "Add new collection"
-#~ msgstr "Adaugă colecția noua"
-
-#~ msgid "Collections"
-#~ msgstr "Colecții"
-
-#~ msgctxt "Collection action"
-#~ msgid "Remove collection"
-#~ msgstr "Elimină colecția"
-
-#~ msgctxt "Collection action"
-#~ msgid "View on site"
-#~ msgstr "Vezi pe site"
-
-#~ msgctxt "Collection form card title: availability sub form"
-#~ msgid "Availability"
-#~ msgstr "Disponibilitate"
-
-#~ msgctxt "Collection secondary action"
-#~ msgid "Cancel"
-#~ msgstr "Anulare"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Update"
-#~ msgstr "Actualizare"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Create"
-#~ msgstr "Crează"
-
-#~ msgctxt "Collection field"
-#~ msgid "Published"
-#~ msgstr "Publicat"
-
-#~ msgctxt "Collection field"
-#~ msgid "Draft"
-#~ msgstr "Proiect"
-
-#~ msgctxt "Collections list page title "
-#~ msgid "Collections"
-#~ msgstr "Colecții"
-
-#~ msgctxt "Collections list add button text"
-#~ msgid "Add collection"
-#~ msgstr "Colecție adăugată"
-
-#~ msgctxt "Collections list table header name"
-#~ msgid "Name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Number of products"
-#~ msgstr "Număr de produse"
-
-#~ msgctxt "Collections list table header"
-#~ msgid "Visibility"
-#~ msgstr "Vizibilitate"
-
-#~ msgid "Products in collection:"
-#~ msgstr "Produse în colectie"
-
-#~ msgctxt "Empty collection list message"
-#~ msgid "No collections found."
-#~ msgstr "Nu s-a găsit colecția"
-
-#~ msgctxt "Homepage collection save"
-#~ msgid "Save"
-#~ msgstr "Salvează"
-
-#~ msgid "No collections found."
-#~ msgstr "Nu s-a găsit colecția"
-
-#~ msgctxt "Customer field"
-#~ msgid "Date joined"
-#~ msgstr "Data înscrierii"
-
-#~ msgctxt "Customer field"
-#~ msgid "Note"
-#~ msgstr "Notă"
-
-#~ msgctxt "Customer action"
-#~ msgid "Edit customer"
-#~ msgstr "Editează clientul"
-
-#~ msgctxt "Customer action"
-#~ msgid "Remove customer"
-#~ msgstr "Elimină clientul"
-
-#~ msgctxt "Customer recent orders table title"
-#~ msgid "Recent orders"
-#~ msgstr "Comenzi recente"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Number"
-#~ msgstr "Număr"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Placed on"
-#~ msgstr "Pus pe"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Order status"
-#~ msgstr "Starea comenzii"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Total"
-#~ msgstr "Total"
-
-#~ msgctxt "Empty customer orders table message"
-#~ msgid "No orders found."
-#~ msgstr "Nu au fost găsite comenzi."
-
-#~ msgctxt "Customer notes card title"
-#~ msgid "Customer notes"
-#~ msgstr "Notele clientului"
-
-#~ msgctxt "Customer without notes message"
-#~ msgid "There are no notes associated with this customer"
-#~ msgstr "Nu există note asociate cu acest client"
-
-#~ msgctxt "Customer notes card action"
-#~ msgid "Add note"
-#~ msgstr "Notă adăugată"
-
-#~ msgctxt "Customer default shipping address card title"
-#~ msgid "Default shipping address"
-#~ msgstr "Adresa de livrare implicită"
-
-#~ msgctxt "Customer without default shipping address message"
-#~ msgid "No default shipping address."
-#~ msgstr "Nu există o adresă de expediere implicită."
-
-#~ msgctxt "Customer default billing address card title"
-#~ msgid "Default billing address"
-#~ msgstr "Adresa de facturare prestabilită"
-
-#~ msgctxt "Customer without default billing address message"
-#~ msgid "No default billing address."
-#~ msgstr "Nu există o adresă de facturare prestabilită."
-
-#~ msgctxt "Dashboard add customer"
-#~ msgid "Add new customer"
-#~ msgstr "Adăugă un client nou"
-
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer"
-#~ msgstr "Client"
-
-#~ msgctxt "Dashboard add customer action"
-#~ msgid "Add customer"
-#~ msgstr "Adaugă client"
-
-#~ msgctxt "Customer details header"
-#~ msgid "Customer details"
-#~ msgstr "Detalii client"
-
-#~ msgctxt "Dashboard add action"
-#~ msgid "Add"
-#~ msgstr "Adaugă"
-
-#~ msgctxt "Customer list add button text"
-#~ msgid "Add customer"
-#~ msgstr "Adaugă client"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Email"
-#~ msgstr "Email"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Location"
-#~ msgstr "Locație"
-
-#~ msgctxt "Empty customers table message"
-#~ msgid "No customers found."
-#~ msgstr "Nu au fost găsiți clienți."
-
-#~ msgctxt "Modal add note title"
-#~ msgid "Add note"
-#~ msgstr "Adaugă nota"
-
-#~ msgctxt "Modal add note primary action"
-#~ msgid "Save note"
-#~ msgstr "Salvează nota"
-
-#, python-format
-#~ msgctxt "Header of modal used for removing customer's account "
-#~ msgid "Remove customer %(customer)s"
-#~ msgstr "Elimină clientul %(customer)s"
-
-#~ msgctxt "Dashboard confirmation modal"
-#~ msgid "Promote to staff member"
-#~ msgstr "Promovează pe angajat"
-
-#~ msgctxt "Dashboard promote action"
-#~ msgid "Promote"
-#~ msgstr "Promovează"
-
-#~ msgid "No customers found."
-#~ msgstr "Nu au fost găsiți clienți."
-
-#~ msgctxt "Sale (discount) page title"
-#~ msgid "Add new sale"
-#~ msgstr "Adaugă vânzari noi"
-
-#~ msgctxt "Dashboard sales (discounts) list."
-#~ msgid "Sales"
-#~ msgstr "Vânzări"
-
-#~ msgctxt "Sale (discount) action"
-#~ msgid "Remove sale"
-#~ msgstr "Elimină vânzări"
-
-#~ msgctxt "Sale (discount) breadcrumbs"
-#~ msgid "Add new sale"
-#~ msgstr "Adaugă vânzari noi"
-
-#~ msgid "Sales"
-#~ msgstr "Vânzări"
-
-#~ msgctxt "Sale (discount) list add button text"
-#~ msgid "Add sale"
-#~ msgstr "Adaugă vânzări"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Start date"
-#~ msgstr "Data de început"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "End date"
-#~ msgstr "Data de încheiere"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Discount"
-#~ msgstr "Reducere"
-
-#~ msgctxt "Empty sales table message"
-#~ msgid "No sales found"
-#~ msgstr "Nu au fost găsite vânzări"
-
-#~ msgctxt "Remove sale (discount) text"
-#~ msgid "Remove sale"
-#~ msgstr "Elimină vânzari"
-
-#~ msgid "No sales found."
-#~ msgstr "Nu au fost găsite vânzări."
-
-#~ msgctxt "Voucher page title"
-#~ msgid "Add new voucher"
-#~ msgstr "Adaugă voucher nou"
-
-#~ msgctxt "Voucher action"
-#~ msgid "Remove voucher"
-#~ msgstr "Elimină voucher"
-
-#~ msgctxt "Voucher breadcrumbs"
-#~ msgid "Add new voucher"
-#~ msgstr "Adaugă voucher nou"
-
-#~ msgctxt "Voucher list add button text"
-#~ msgid "Add voucher"
-#~ msgstr "Adaugă voucher"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Discount"
-#~ msgstr "Reducere"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Start date"
-#~ msgstr "Data de început"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "End date"
-#~ msgstr "Data de încheiere"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Used"
-#~ msgstr "Folosit"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Min amount spent"
-#~ msgstr "Suma minimă cheltuită"
-
-#~ msgctxt "Empty vouchers table message"
-#~ msgid "No vouchers found"
-#~ msgstr "Nu au fost găsite vouchere"
-
-#, python-format
-#~ msgctxt "Remove voucher text"
-#~ msgid "Remove voucher %(voucher)s"
-#~ msgstr "Elimina voucherul %(voucher)s"
-
-#, python-format
-#~ msgctxt "Remove voucher text"
-#~ msgid ""
-#~ "Are you sure you want to remove voucher <strong>%(voucher)s</strong>?"
-#~ msgstr "Sigur dorești să elimini voucherul <strong> %(voucher)s </strong>?"
-
-#~ msgid "No vouchers found."
-#~ msgstr "Nu au fost găsite vouchere."
-
-#, python-format
-#~ msgid ""
-#~ "\n"
-#~ "    Vouchers allows creating promotional codes for all purchases, "
-#~ "specific products or shipping.<br>\n"
-#~ "    You can create vouchers by using the <span class=\"btn-fab-"
-#~ "presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
-#~ "  "
-#~ msgstr ""
-#~ "\n"
-#~ "Voucherele permit crearea de coduri promoționale pentru toate "
-#~ "achizițiile, produsele specifice sau livrare.<br>\n"
-#~ "Puteți crea vouchere utilizând butonul <span class=\"btn-fab-presentation"
-#~ "\"> <svg data-src=\"%(img_path)s\" /> </span>"
-
-#~ msgctxt "Collection availability status"
-#~ msgid "Published"
-#~ msgstr "Publicat"
-
-#~ msgctxt "Collection availability status"
-#~ msgid "Hidden"
-#~ msgstr "Ascuns"
-
-#~ msgctxt "Dashboard card title"
-#~ msgid "Filters"
-#~ msgstr "Filtre"
-
-#~ msgctxt "Category page filters"
-#~ msgid "Clear"
-#~ msgstr "Clar"
-
-#~ msgctxt "Category price filter"
-#~ msgid "Filter"
-#~ msgstr "Filtru"
-
-#~ msgctxt ""
-#~ "Title of the box showing preview from the search engine perspective"
-#~ msgid "Search engine listing preview"
-#~ msgstr "Anunț de afișare a motoarelor de căutare"
-
-#~ msgctxt "Title of the menu items list"
-#~ msgid "Menu items"
-#~ msgstr "Elemente de meniu"
-
-#~ msgctxt "Menu items list table header name"
-#~ msgid "Name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Menu items list table header points to"
-#~ msgid "Points to"
-#~ msgstr "Arata spre"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Status"
-#~ msgstr "Stare"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Published"
-#~ msgstr "Publicat"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Not published"
-#~ msgstr "Nu a fost publicat"
-
-#~ msgctxt "Menu item edit action"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Menu item list action link"
-#~ msgid "Remove"
-#~ msgstr "Elimină"
-
-#~ msgctxt "Empty list of menu items"
-#~ msgid "No menu items"
-#~ msgstr "Nu există elemente de meniu"
-
-#~ msgctxt "Page availability status"
-#~ msgid "Published"
-#~ msgstr "Publicat"
-
-#~ msgctxt "Page availability status"
-#~ msgid "Hidden"
-#~ msgstr "Ascuns"
-
-#, python-format
-#~ msgctxt "Dashboard homepage summary header title"
-#~ msgid "Showing last %(counter)s results"
-#~ msgstr "Se afișează ultimul %(counter)s rezultat"
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Orders ready for shipment"
-#~ msgstr "Comenzi gata de expediere"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Placed on"
-#~ msgstr "Pus pe"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Customer"
-#~ msgstr "Client"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Payment status"
-#~ msgstr "Starea plății"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Order status"
-#~ msgstr "Starea comenzii"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Total"
-#~ msgstr "Total"
-
-#~ msgctxt "Anonymous user account value"
-#~ msgid "Guest"
-#~ msgstr "Oaspete"
-
-#~ msgctxt "Empty order table message"
-#~ msgid "No orders are ready for shipment."
-#~ msgstr "Nu sunt pregătite comenzi pentru expediere."
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Preauthorized payments"
-#~ msgstr "Plățile autorizate"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Order"
-#~ msgstr "Comanda"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Date"
-#~ msgstr "Data"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Customer"
-#~ msgstr "Client"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Amount"
-#~ msgstr "Cantitate"
-
-#~ msgid "Guest"
-#~ msgstr "Oaspete"
-
-#~ msgctxt "Empty Preauthorized payments table message"
-#~ msgid "No preauthorized payments."
-#~ msgstr "Nu există plăți prea autorizate."
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Products with low stock"
-#~ msgstr "Produse cu stoc redus"
-
-#~ msgctxt "Low stock product list"
-#~ msgid "Product name"
-#~ msgstr "Nume produs"
-
-#~ msgctxt "Low stock product list"
-#~ msgid "Stock left"
-#~ msgstr "Stocul rămas"
-
-#~ msgctxt "Empty low stock table message"
-#~ msgid "No products are low in stock."
-#~ msgstr "Nu există produse în stoc."
-
-#~ msgctxt "Menu list page title"
-#~ msgid "Navigation"
-#~ msgstr "Navigare"
-
-#~ msgctxt "Menu detail view action"
-#~ msgid "Edit menu"
-#~ msgstr "Editează meniul"
-
-#~ msgctxt "Menu detail view action"
-#~ msgid "Remove menu"
-#~ msgstr "Elimină meniul"
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Edit menu"
-#~ msgstr "Editează meniul"
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Add new menu"
-#~ msgstr "Adaugă meniu nou"
-
-#~ msgctxt "Menu detail breadcrumbs"
-#~ msgid "Add new menu"
-#~ msgstr "Adaugă meniu nou"
-
-#~ msgctxt "Menu item list page title"
-#~ msgid "Menu items"
-#~ msgstr "Elemente de meniu"
-
-#~ msgctxt "Menu item field"
-#~ msgid "Points to"
-#~ msgstr "Arata spre"
-
-#~ msgctxt "Menu item detail view action"
-#~ msgid "Edit menu item"
-#~ msgstr "Modificați elementul de meniu"
-
-#~ msgctxt "Menu item detail view action"
-#~ msgid "Remove menu item"
-#~ msgstr "Elimină elementul de meniu"
-
-#~ msgctxt "Menu item page title"
-#~ msgid "Edit menu item"
-#~ msgstr "Modificați elementul de meniu"
-
-#~ msgctxt "Menu item page title"
-#~ msgid "Add new menu item"
-#~ msgstr "Adăugați un element de meniu nou"
-
-#~ msgctxt "Dashboard menu items list"
-#~ msgid "Menu items"
-#~ msgstr "Elemente de meniu"
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Add new menu item"
-#~ msgstr "Adăugați un element de meniu nou"
-
-#, python-format
-#~ msgctxt "Remove menu item modal title"
-#~ msgid "Remove menu item %(menu_item)s"
-#~ msgstr "Eliminați elementul de meniu %(menu_item)s"
-
-#~ msgctxt "Remove menu modal text about descendant menu items"
-#~ msgid "The following menu items will be removed:"
-#~ msgstr "Următoarele elemente din meniu vor fi eliminate:"
-
-#~ msgctxt "Menu list add button text"
-#~ msgid "Add menu"
-#~ msgstr "Adaugă meniu"
-
-#~ msgctxt "Menu list table header Menu name"
-#~ msgid "Menu name"
-#~ msgstr "Nume meniu"
-
-#~ msgctxt "Empty menu list message"
-#~ msgid "No menus found."
-#~ msgstr "Nu au fost găsite meniuri."
-
-#~ msgid "Storefront Menus"
-#~ msgstr "Magazine de meniu"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Save"
-#~ msgstr "Salvează"
-
-#, python-format
-#~ msgctxt "Remove menu modal title"
-#~ msgid "Remove menu %(menu)s"
-#~ msgstr "Elimină meniul %(menu)s"
-
-#~ msgid "No menus found."
-#~ msgstr "Nu au fost găsite meniuri."
-
-#~ msgctxt ""
-#~ msgid "Edit address"
-#~ msgstr "Editează adresa"
-
-#~ msgctxt ""
-#~ msgid "Shipping address"
-#~ msgstr "Adresa de transport"
-
-#~ msgctxt ""
-#~ msgid "Billing address"
-#~ msgstr "Adresa de facturare"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Cancel Order"
-#~ msgstr "Anulează comanda"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Remove draft order"
-#~ msgstr "Elimină comanda de proiect"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Print"
-#~ msgstr "Printeaza"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Details"
-#~ msgstr "Detalii"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Payments"
-#~ msgstr "Plăţile"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "History"
-#~ msgstr "Istoric"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Payments"
-#~ msgstr "Plăţile"
-
-#~ msgctxt "Payment status not available"
-#~ msgid "N/A"
-#~ msgstr "N/A"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Outstanding balance"
-#~ msgstr "Balanță neefectuată"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Preauthorized amount"
-#~ msgstr "Sumă prea mare"
-
-#~ msgctxt "Preauthorized amount not available"
-#~ msgid "N/A"
-#~ msgstr "N/A"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Captured amount"
-#~ msgstr "Suma capturată"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Capture"
-#~ msgstr "Captură"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Refund"
-#~ msgstr "Rambursare"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Mark as paid"
-#~ msgstr "Marcă ca plătit"
-
-#~ msgctxt "Order details summary header"
-#~ msgid "Customer"
-#~ msgstr "Client"
-
-#~ msgctxt "Order customer details action title"
-#~ msgid "Edit customer details"
-#~ msgstr "Editează detaliile despre client"
-
-#~ msgctxt "Dashboard edit action"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Missing shipping address message"
-#~ msgid "No shipping address"
-#~ msgstr "Nu există adresa de expediere"
-
-#~ msgctxt "Order billing address same as shipping address"
-#~ msgid "Same as shipping address"
-#~ msgstr "La fel ca adresa de livrare"
-
-#~ msgctxt "Missing billing address message"
-#~ msgid "No billing address"
-#~ msgstr "Nicio adresă de facturare"
-
-#, python-format
-#~ msgctxt "Order table title"
-#~ msgid "Order draft #%(order)s"
-#~ msgstr "Proiectul de comandă #%(order)s"
-
-#, python-format
-#~ msgctxt "Order table title"
-#~ msgid "Order #%(order)s"
-#~ msgstr "Comanda #%(order)s"
-
-#~ msgctxt "Order placed on date"
-#~ msgid "Placed on"
-#~ msgstr "Pus pe"
-
-#~ msgctxt "Order table header"
-#~ msgid "Item"
-#~ msgstr "Articol"
-
-#~ msgctxt "Order table header"
-#~ msgid "Price"
-#~ msgstr "Preț"
-
-#~ msgctxt "Order table header"
-#~ msgid "Quantity"
-#~ msgstr "Cantitate"
-
-#~ msgctxt "Order table header"
-#~ msgid "Total"
-#~ msgstr "Total"
-
-#, python-format
-#~ msgctxt "Order table text"
-#~ msgid "SKU: %(sku)s"
-#~ msgstr "SKU: %(sku)s"
-
-#~ msgctxt "Order table row action"
-#~ msgid "Change quantity"
-#~ msgstr "Schimbă cantitatea"
-
-#~ msgctxt "Order table row action"
-#~ msgid "Remove line"
-#~ msgstr "Elimină linia"
-
-#~ msgctxt "Order totals action"
-#~ msgid "Edit shipping"
-#~ msgstr "Editează livrarea"
-
-#, python-format
-#~ msgctxt "Order totals header"
-#~ msgid "Shipping (%(shipping_name)s)"
-#~ msgstr "Livrarea (%(shipping_name)s)"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Shipping"
-#~ msgstr "Livrare"
-
-#~ msgctxt "Order total taxes"
-#~ msgid "Taxes (included)"
-#~ msgstr "Taxe (incluse)"
-
-#~ msgctxt "Order total taxes"
-#~ msgid "Taxes"
-#~ msgstr "Taxe "
-
-#, python-format
-#~ msgctxt "Order totals header"
-#~ msgid "Discount (%(voucher)s)"
-#~ msgstr "Reducere (%(voucher)s)"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Discount"
-#~ msgstr "Reducere"
-
-#~ msgctxt "Order totals action"
-#~ msgid "Edit voucher"
-#~ msgstr "Editează voucher"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Edit voucher"
-#~ msgstr "Editează voucher"
-
-#~ msgctxt "Order totals action"
-#~ msgid "Edit discount"
-#~ msgstr "Editează reducerea"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Edit discount"
-#~ msgstr "Editează reducerea"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Grand total"
-#~ msgstr "Total general"
-
-#~ msgctxt "Order summary card action title"
-#~ msgid "Fulfill order"
-#~ msgstr "Livrează comandă"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Fulfill"
-#~ msgstr "Livrează"
-
-#~ msgctxt "Order summary card action title"
-#~ msgid "Add product to order"
-#~ msgstr "Adaugă produs la comandă"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Add product"
-#~ msgstr "Adaugă produs"
-
-#~ msgctxt "Order summary card action title"
-#~ msgid "Create order"
-#~ msgstr "Crează comandă"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Create order"
-#~ msgstr "Crează comandă"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Invoice"
-#~ msgstr "Factură fiscală"
-
-#~ msgctxt "Order detail action"
-#~ msgid "View on site"
-#~ msgstr "Vezi pe site"
-
-#, python-format
-#~ msgctxt "Fulfillment table title"
-#~ msgid "Fulfillment #%(fulfillment)s"
-#~ msgstr "Livrarea #%(fulfillment)s"
-
-#, python-format
-#~ msgctxt "Fulfillment table text"
-#~ msgid "Tracking number: %(tracking)s"
-#~ msgstr "Număr de urmărire: %(tracking)s"
-
-#~ msgctxt "Fulfillment summary card action title"
-#~ msgid "Cancel fulfillment"
-#~ msgstr "Anulează livrarea"
-
-#~ msgctxt "Fulfillment summary card action"
-#~ msgid "Cancel"
-#~ msgstr "Anulare"
-
-#~ msgctxt "Fulfillment summary card action title"
-#~ msgid "Edit tracking number"
-#~ msgstr "Editeazi numărul de urmărire"
-
-#~ msgctxt "Fulfillment summary card action"
-#~ msgid "Edit tracking"
-#~ msgstr "Editează urmărirea"
-
-#~ msgctxt "Fulfillment summary card action"
-#~ msgid "Add tracking"
-#~ msgstr "Adăugă urmărirea"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Packing Slips"
-#~ msgstr "Ambalare de ambalaj"
-
-#~ msgctxt "Order notes card title"
-#~ msgid "Order notes"
-#~ msgstr "Note de ordin"
-
-#~ msgctxt "Empty order notes card message"
-#~ msgid "There are no notes associated with this order."
-#~ msgstr "Nu sunt note asociate cu această comandă."
-
-#~ msgctxt "Order notes card action"
-#~ msgid "Add note"
-#~ msgstr "Adaugă note"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Transaction ID"
-#~ msgstr "ID-ul tranzacției"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Date"
-#~ msgstr "Data"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Payment status"
-#~ msgstr "Starea plății"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Amount"
-#~ msgstr "Cantitate"
-
-#, python-format
-#~ msgctxt "Payment item column data"
-#~ msgid "#%(payment_id)s"
-#~ msgstr "#%(payment_id)s"
-
-#~ msgctxt "Empty payment history table message"
-#~ msgid "No payments made for this order."
-#~ msgstr "Nu s-au efectuat plăți pentru această comandă."
-
-#~ msgctxt "Dashboard order fulfillment"
-#~ msgid "Fulfill"
-#~ msgstr "Livrează"
-
-#~ msgctxt "Fulfill order title"
-#~ msgid "Fulfill order"
-#~ msgstr "Livrează comandă"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Item"
-#~ msgstr "Articol"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Quantity"
-#~ msgstr "Cantitate"
-
-#, python-format
-#~ msgctxt "Fulfill order table quantity unfulfilled"
-#~ msgid "of %(quantity_unfulfilled)s"
-#~ msgstr "of %(quantity_unfulfilled)s"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Fulfill"
-#~ msgstr "Livrează"
-
-#~ msgctxt "Order list add button text"
-#~ msgid "Add order"
-#~ msgstr "Adaugă comandă"
-
-#~ msgctxt "Empty order list message"
-#~ msgid "No orders found."
-#~ msgstr "Nu au fost găsite comenzi."
-
-#, python-format
-#~ msgctxt "Modal order add variant title"
-#~ msgid "Add product to %(order)s"
-#~ msgstr "Adăugă produsul la %(order)s"
-
-#~ msgctxt "Modal order add variant primary action"
-#~ msgid "Add"
-#~ msgstr "Adaugă"
-
-#, python-format
-#~ msgctxt "Modal cancel fulfillment title"
-#~ msgid "Cancel fulfillment #%(fulfillment)s"
-#~ msgstr "Anulează livrarea #%(fulfillment)s"
-
-#, python-format
-#~ msgctxt "Modal cancel fulfillment text"
-#~ msgid "Are you sure you want cancel fulfillment #%(fulfillment)s?"
-#~ msgstr "Ești sigur ca dorești sa anulezi livrarea #%(fulfillment)s?"
-
-#~ msgctxt "Modal cancel fulfillment cancel action"
-#~ msgid "Abort"
-#~ msgstr "Anulează"
-
-#~ msgctxt "Modal cancel fulfillment primary action"
-#~ msgid "Cancel Fulfillment"
-#~ msgstr "Anulează Livrarea"
-
-#~ msgctxt "Modal remove order line title"
-#~ msgid "Remove order line"
-#~ msgstr "Elimină linia de comandă"
-
-#~ msgctxt "Modal remove order line text"
-#~ msgid "Are you sure you want remove this order line?"
-#~ msgstr "Sigur doriți să eliminați această linie de comandă?"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Price"
-#~ msgstr "Preț"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Total"
-#~ msgstr "Total"
-
-#~ msgctxt "Modal cancel order title"
-#~ msgid "Cancel order"
-#~ msgstr "Anulează comanda"
-
-#, python-format
-#~ msgctxt "Modal cancel order text"
-#~ msgid "Are you sure you want cancel order %(order)s?"
-#~ msgstr "Sigur dorești să anulezi comanda %(order)s?"
-
-#~ msgctxt "Modal cancel order cancel action"
-#~ msgid "Abort"
-#~ msgstr "Anulează"
-
-#~ msgctxt "Modal cancel order primary action"
-#~ msgid "Cancel Order"
-#~ msgstr "Anulează comanda"
-
-#~ msgctxt "Modal capture payment title"
-#~ msgid "Capture payment"
-#~ msgstr "Captură de plată"
-
-#~ msgctxt "Modal capture payment title"
-#~ msgid "Before this action:"
-#~ msgstr "Înainte de această acțiune:"
-
-#~ msgctxt "Modal capture payment list title"
-#~ msgid "Order total:"
-#~ msgstr "Comandă totală"
-
-#~ msgctxt "Modal capture payment list title"
-#~ msgid "Taxes (included):"
-#~ msgstr "Taxe (incluse):"
-
-#~ msgctxt "Modal capture payment primary action"
-#~ msgid "Capture"
-#~ msgstr "Captură"
-
-#~ msgctxt "Modal change quantity title"
-#~ msgid "Change quantity"
-#~ msgstr "Schimbă cantitatea"
-
-#~ msgctxt "Modal create order title"
-#~ msgid "Create order"
-#~ msgstr "Crează comandă"
-
-#~ msgctxt "Modal create order primary action"
-#~ msgid "Create"
-#~ msgstr "Crează"
-
-#~ msgctxt "Modal edit customer title"
-#~ msgid "Edit customer details"
-#~ msgstr "Modifică detaliile despre client"
-
-#~ msgctxt "Dashboard edit draft order remove action"
-#~ msgid "Remove customer from order"
-#~ msgstr "Elimina clientul din comandă"
-
-#~ msgctxt "Modal edit customer primary action"
-#~ msgid "Update"
-#~ msgstr "Actualizare"
-
-#~ msgctxt "Modal edit discount title"
-#~ msgid "Edit discount"
-#~ msgstr "Editează reducerea"
-
-#~ msgctxt "Modal edit discount primary action"
-#~ msgid "Update"
-#~ msgstr "Actualizare"
-
-#~ msgctxt "Modal edit shipping title"
-#~ msgid "Edit shipping"
-#~ msgstr "Editează livrarea"
-
-#~ msgctxt "Dashboard edit draft order remove action"
-#~ msgid "Remove shipping from order"
-#~ msgstr "Elimină livrarea de la comandă"
-
-#~ msgctxt "Modal edit shipping primary action"
-#~ msgid "Update"
-#~ msgstr "Actualizare"
-
-#~ msgctxt "Modal edit voucher title"
-#~ msgid "Edit voucher"
-#~ msgstr "Editează voucher"
-
-#~ msgctxt "Dashboard edit draft order remove action"
-#~ msgid "Remove voucher from order"
-#~ msgstr "Elimină voucherul din comandă"
-
-#~ msgctxt "Modal edit voucher primary action"
-#~ msgid "Update"
-#~ msgstr "Actualizare"
-
-#~ msgctxt "Modal change fulfillment tracking title"
-#~ msgid "Edit tracking"
-#~ msgstr "Editează urmărirea"
-
-#~ msgctxt "Modal change fulfillment tracking title"
-#~ msgid "Add tracking"
-#~ msgstr "Adăugă urmărirea"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Update"
-#~ msgstr "Actualizare"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Save"
-#~ msgstr "Salvează"
-
-#~ msgctxt "Modal mark order as paid title"
-#~ msgid "Mark order as paid"
-#~ msgstr "Marchează comanda ca fiind plătită"
-
-#~ msgctxt "Modal mark order as paid text"
-#~ msgid "Are you sure you want mark order as paid?"
-#~ msgstr "Sigur dorești sa marchezi comanda ca fiind plătită?"
-
-#~ msgctxt "Modal mark order as paid text"
-#~ msgid "Total received:"
-#~ msgstr "Total primite:"
-
-#~ msgctxt "Modal mark order as paid cancel action"
-#~ msgid "Abort"
-#~ msgstr "Anulează"
-
-#~ msgctxt "Modal mark order as paid primary action"
-#~ msgid "Mark as paid"
-#~ msgstr "Marcă ca plătit"
-
-#~ msgctxt "Modal refund payment title"
-#~ msgid "Refund payment"
-#~ msgstr "Rambursarea plății"
-
-#~ msgctxt "Modal refund payment title"
-#~ msgid "Before this action:"
-#~ msgstr "Înainte de această acțiune:"
-
-#~ msgctxt "Modal refund payment list title"
-#~ msgid "Order total:"
-#~ msgstr "Comandă totală"
-
-#~ msgctxt "Modal refund payment list title"
-#~ msgid "Taxes (included):"
-#~ msgstr "Taxe (incluse):"
-
-#~ msgctxt "Modal refund payment primary action"
-#~ msgid "Refund"
-#~ msgstr "Rambursare"
-
-#~ msgctxt "Modal remove order title"
-#~ msgid "Remove draft order"
-#~ msgstr "Elimină comanda de proiect"
-
-#, python-format
-#~ msgctxt "Modal remove order text"
-#~ msgid "Are you sure you want remove draft order %(order)s?"
-#~ msgstr "Sigur doriți să eliminați comanda de proiect %(order)s?"
-
-#~ msgctxt "Modal remove order cancel action"
-#~ msgid "Abort"
-#~ msgstr "Anulează"
-
-#~ msgctxt "Modal remove order primary action"
-#~ msgid "Remove draft order"
-#~ msgstr "Elimină comanda de proiect"
-
-#, python-format
-#~ msgctxt "Order PDF header"
-#~ msgid "Order #%(order_id)s"
-#~ msgstr "Comanda #%(order_id)s"
-
-#, python-format
-#~ msgctxt "Invoice title"
-#~ msgid "Invoice for Order #%(order_id)s"
-#~ msgstr "Factura pentru Comanda #%(order_id)s"
-
-#~ msgctxt "Order invoice"
-#~ msgid "Invoice"
-#~ msgstr "Factură fiscală"
-
-#~ msgctxt "Invoice shipping address"
-#~ msgid "Shipping address"
-#~ msgstr "Adresa de livrare"
-
-#~ msgctxt "Invoice billing address"
-#~ msgid "Billing address"
-#~ msgstr "Adresa de facturare"
-
-#~ msgctxt "Invoice ordered items header"
-#~ msgid "Items Ordered"
-#~ msgstr "Articole comandate"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Item"
-#~ msgstr "Articol"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Tax rate"
-#~ msgstr "Rata impozitului"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Gross price"
-#~ msgstr "Prețul brut"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Quantity"
-#~ msgstr "Cantitate"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Total"
-#~ msgstr "Total"
-
-#~ msgctxt "Order subtotal net price"
-#~ msgid "Subtotal"
-#~ msgstr "Subtotal"
-
-#~ msgctxt "Order total shipping price header"
-#~ msgid "Shipping"
-#~ msgstr "Livrare"
-
-#~ msgctxt "Order total taxes header"
-#~ msgid "Total taxes (included)"
-#~ msgstr "Taxe totale (incluse):"
-
-#~ msgctxt "Order voucher header"
-#~ msgid "Discount"
-#~ msgstr "Reducere"
-
-#~ msgctxt "Order total price header"
-#~ msgid "Grand total"
-#~ msgstr "Total general"
-
-#~ msgctxt "Packing slips header"
-#~ msgid "Packing Slips"
-#~ msgstr "Ambalare de ambalaj"
-
-#~ msgctxt "Packing slip shipping details"
-#~ msgid "Shipping Details"
-#~ msgstr "Detalii de livrare"
-
-#~ msgctxt "Packing slip shipping details"
-#~ msgid "Billing Details"
-#~ msgstr "Detalii de facturare"
-
-#~ msgctxt "Packing slip shipping address"
-#~ msgid "Shipping address"
-#~ msgstr "Adresa de transport"
-
-#~ msgctxt "Packing slip billing address"
-#~ msgid "Billing address"
-#~ msgstr "Adresa de facturare"
-
-#~ msgctxt "Order invoice"
-#~ msgid "Items Ordered"
-#~ msgstr "Articole comandate"
-
-#~ msgctxt "Order table header"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgid "No orders found."
-#~ msgstr "Nu au fost găsite comenzi."
-
-#~ msgid ""
-#~ "\n"
-#~ "    Orders will appear here after customers complete the checkout.\n"
-#~ "  "
-#~ msgstr ""
-#~ "\n"
-#~ "Comenzile vor apărea aici după ce clienții finalizează checkout-ul."
-
-#~ msgctxt "Pages list page title"
-#~ msgid "Pages"
-#~ msgstr "Pagini"
-
-#~ msgctxt "Pages form breadcrumbs"
-#~ msgid "Pages"
-#~ msgstr "Pagini"
-
-#~ msgctxt "Page URL"
-#~ msgid "Page URL"
-#~ msgstr "Pagină URL"
-
-#~ msgctxt "Page action"
-#~ msgid "Edit page"
-#~ msgstr "Editează pagina"
-
-#~ msgctxt "Page action"
-#~ msgid "Remove page"
-#~ msgstr "Elimină pagina"
-
-#~ msgctxt "Page action"
-#~ msgid "View on site"
-#~ msgstr "Vezi pe site"
-
-#~ msgctxt "Page form page title"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Page form page title"
-#~ msgid "Add new page"
-#~ msgstr "Adaugă pagină nouă"
-
-#~ msgctxt "Dashboard pages list"
-#~ msgid "Pages"
-#~ msgstr "Pagini"
-
-#~ msgctxt "Page form breadcrumbs"
-#~ msgid "Add new page"
-#~ msgstr "Adaugă pagina nouă"
-
-#~ msgctxt "Page form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgid "Cancel"
-#~ msgstr "Anulare"
-
-#~ msgid "Save"
-#~ msgstr "Salvează"
-
-#~ msgid "Create"
-#~ msgstr "Crează"
-
-#~ msgctxt "Page list add button text"
-#~ msgid "Add page"
-#~ msgstr "Adaugă pagină"
-
-#~ msgid "Pages"
-#~ msgstr "Pagini"
-
-#~ msgctxt "Static pages table header name"
-#~ msgid "Title"
-#~ msgstr "Titlu"
-
-#~ msgctxt "Static pages table header url"
-#~ msgid "URL"
-#~ msgstr "URL"
-
-#~ msgctxt "Pages table header"
-#~ msgid "Visibility"
-#~ msgstr "Vizibilitate"
-
-#~ msgctxt "Empty pages list message"
-#~ msgid "No pages found."
-#~ msgstr "Nici o pagină nu a fost găsită."
-
-#, python-format
-#~ msgctxt "Modal remove page text"
-#~ msgid "Remove page %(page)s"
-#~ msgstr "Elimină pagina %(page)s"
-
-#, python-format
-#~ msgctxt "Modal remove page text"
-#~ msgid "Are you sure you want to remove page <strong>%(page)s</strong>?"
-#~ msgstr "Sigur doriți să eliminați pagina <strong>%(page)s</strong>?"
-
-#~ msgid "No pages found."
-#~ msgstr "Nici o pagină nu a fost găsită."
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Attributes"
-#~ msgstr "Atribute"
-
-#~ msgid "Product type"
-#~ msgstr "Tip produs"
-
-#~ msgctxt "Attribute detail action"
-#~ msgid "Edit attribute"
-#~ msgstr "Editează atributul"
-
-#~ msgctxt "Attribute detail action"
-#~ msgid "Remove attribute"
-#~ msgstr "Elimină atributul"
-
-#~ msgid "Attribute values"
-#~ msgstr "Valorile atributelor"
-
-#~ msgid "Display name"
-#~ msgstr "Numele afișat"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Remove"
-#~ msgstr "Elimină"
-
-#~ msgctxt "Empty list of attribute values"
-#~ msgid "No attribute values"
-#~ msgstr "Nu există valori de atribut"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Attribute detail page title"
-#~ msgid "Add new attribute"
-#~ msgstr "Adaugă atribut nou"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Add new attribute"
-#~ msgstr "Adaugă atribut nou"
-
-#~ msgctxt "Attribute list add button text"
-#~ msgid "Add attribute"
-#~ msgstr "Adaugă atribut"
-
-#~ msgctxt "Dashboard attributes list table header name"
-#~ msgid "Name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Name of product type related to the attribute"
-#~ msgid "Product type"
-#~ msgstr "Tip produs"
-
-#~ msgctxt "Dashboard attributes list table header values"
-#~ msgid "Values"
-#~ msgstr "Valori"
-
-#~ msgctxt "Empty attribute list message"
-#~ msgid "No attributes found."
-#~ msgstr "Nu au fost găsite atribute."
-
-#, python-format
-#~ msgctxt "Modal remove attribute text"
-#~ msgid "Remove attribute %(attribute)s"
-#~ msgstr "Elimină atributele %(attribute)s"
-
-#, python-format
-#~ msgctxt "Modal remove attribute text"
-#~ msgid ""
-#~ "Are you sure you want to remove attribute <strong>%(attribute)s</strong>?"
-#~ msgstr ""
-#~ "Sigur dorești să elimini atributul <strong> %(attribute)s </strong>?"
-
-#~ msgctxt "Attribute values form title"
-#~ msgid "Attribute values"
-#~ msgstr "Valorile atributelor"
-
-#~ msgid "No attributes found."
-#~ msgstr "Nu au fost găsite atribute."
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Products"
-#~ msgstr "Produse"
-
-#~ msgctxt "Product field"
-#~ msgid "Published"
-#~ msgstr "Publicat"
-
-#~ msgctxt "Product field"
-#~ msgid "Draft"
-#~ msgstr "Proiect"
-
-#~ msgctxt "Product action"
-#~ msgid "Edit product"
-#~ msgstr "Editează produsul"
-
-#~ msgctxt "Product action"
-#~ msgid "Remove product"
-#~ msgstr "Elimină produsul"
-
-#~ msgctxt "Product action"
-#~ msgid "View on site"
-#~ msgstr "Vezi pe site"
-
-#~ msgid "Variant"
-#~ msgstr "Variantă"
-
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgid "Name"
-#~ msgstr "Nume"
-
-#~ msgid "Status"
-#~ msgstr "Stare"
-
-#~ msgid "Gross price"
-#~ msgstr "Prețul brut"
-
-#~ msgid "Net price"
-#~ msgstr "Preț net"
-
-#~ msgid "Margin"
-#~ msgstr "Margine"
-
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Dashboard product details page"
-#~ msgid "No variants found"
-#~ msgstr "Nu s-au găsit variante"
-
-#~ msgctxt "Product pricing card header"
-#~ msgid "Pricing"
-#~ msgstr "Prețuri"
-
-#, python-format
-#~ msgctxt "Product pricing card header subtitle"
-#~ msgid "Taxes are charged (%(tax_rate)s tax rate)"
-#~ msgstr "Impozitele sunt taxate (%(tax_rate)scota de impozitare)"
-
-#~ msgctxt "Product pricing card header subtitle"
-#~ msgid "Taxes are not charged"
-#~ msgstr "Nu se percep taxe"
-
-#~ msgctxt "Product field"
-#~ msgid "Gross sale price"
-#~ msgstr "Preț de vânzare brut"
-
-#~ msgctxt "Product field"
-#~ msgid "Net sale price"
-#~ msgstr "Preț de vânzare net"
-
-#~ msgctxt "Product field"
-#~ msgid "Gross discounted price"
-#~ msgstr "Prețul redus brut"
-
-#~ msgctxt "Product field"
-#~ msgid "Net discounted price"
-#~ msgstr "Prețul redus net"
-
-#~ msgctxt "Product field"
-#~ msgid "Gross purchase cost"
-#~ msgstr "Costul brut de achiziție"
-
-#~ msgctxt "Product field"
-#~ msgid "Net purchase cost"
-#~ msgstr "Costul net de achiziție"
-
-#~ msgctxt "Product field"
-#~ msgid "Margin"
-#~ msgstr "Margine"
-
-#~ msgctxt "Product variant inventory card header"
-#~ msgid "Inventory"
-#~ msgstr "Inventar"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "Number in stock"
-#~ msgstr "Numărul în stoc"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "Allocated"
-#~ msgstr "Alocate"
-
-#~ msgid "Images"
-#~ msgstr "Imagini"
-
-#~ msgid "Edit images"
-#~ msgstr "Editează imaginile"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Product form page title"
-#~ msgid "Add new product"
-#~ msgstr "Adaugă produs nou"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Add new product"
-#~ msgstr "Adaugă produs nou"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgid "Shipping"
-#~ msgstr "Livrare"
-
-#~ msgid "Attributes"
-#~ msgstr "Atribute"
-
-#, python-format
-#~ msgid ""
-#~ "\n"
-#~ "                    Product Type: %(product_type_name)s\n"
-#~ "                  "
-#~ msgstr ""
-#~ "\n"
-#~ "Tip produs: %(product_type_name)s"
-
-#~ msgctxt "Product list add button text"
-#~ msgid "Add product"
-#~ msgstr "Adaugă produs"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Price"
-#~ msgstr "Preț"
-
-#~ msgctxt "Empty product list message"
-#~ msgid "No products found."
-#~ msgstr "Nu găsești produse."
-
-#, python-format
-#~ msgctxt "Modal remove product text"
-#~ msgid "Remove product %(product)s"
-#~ msgstr "Elimină produsul %(product)s"
-
-#, python-format
-#~ msgctxt "Modal remove product text"
-#~ msgid ""
-#~ "Are you sure you want to remove product <strong>%(product)s</strong>?"
-#~ msgstr "Sigur dorești să elimini produsul <strong>%(product)s</strong>?"
-
-#~ msgctxt "Modal select product types title"
-#~ msgid "Product type"
-#~ msgstr "Tip produs"
-
-#~ msgctxt "Dashboard add action"
-#~ msgid "Create"
-#~ msgstr "Crează"
-
-#~ msgctxt "Image form text"
-#~ msgid "Edit - Image"
-#~ msgstr "Editează - Imagine"
-
-#~ msgctxt "Image form text"
-#~ msgid "Add image"
-#~ msgstr "Adaugă imagine"
-
-#~ msgctxt "Image form text"
-#~ msgid "Image"
-#~ msgstr "Imagine"
-
-#~ msgctxt "Image form text"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Image form breadcrumbs"
-#~ msgid "Add image"
-#~ msgstr "Adaugă imagine"
-
-#, python-format
-#~ msgctxt "Image form breadcrumbs"
-#~ msgid "Add image for %(product)s"
-#~ msgstr "Adaugă imagine pentru %(product)s"
-
-#~ msgctxt "Add image button text"
-#~ msgid "Add image"
-#~ msgstr "Adaugă imagine"
-
-#~ msgctxt "Image card text"
-#~ msgid "No description"
-#~ msgstr "Nici o descriere"
-
-#~ msgctxt "Dashboard remove action"
-#~ msgid "Remove"
-#~ msgstr "Elimină"
-
-#~ msgctxt "Image gallery upload box text"
-#~ msgid "Drop images here to upload"
-#~ msgstr "Pune imagini aici pentru a încărca"
-
-#~ msgctxt "Empty image gallery message"
-#~ msgid "No description"
-#~ msgstr "Nici o descriere"
-
-#~ msgctxt "Modal remove image text"
-#~ msgid "Remove product image"
-#~ msgstr "Elimină imaginea produsului"
-
-#~ msgctxt "Modal remove image text"
-#~ msgid "Are you sure you want to remove product image?"
-#~ msgstr "Sigur dorești să elimini imaginea produsului?"
-
-#~ msgid "Primary Point of Interest"
-#~ msgstr "Punct de Interes Primar"
-
-#~ msgctxt "Image form text"
-#~ msgid "Pick the most relevant part of the image using the red circle."
-#~ msgstr "Alegeți cea mai relevantă parte a imaginii utilizând cercul roșu."
-
-#~ msgctxt "Product type page title"
-#~ msgid "Add new product type"
-#~ msgstr "Adăugă un nou tip de produs"
-
-#~ msgctxt "Product type breadcrumbs"
-#~ msgid "Add new product type"
-#~ msgstr "Adăugă un nou tip de produs"
-
-#~ msgctxt "Product type action"
-#~ msgid "Remove product type"
-#~ msgstr "Elimină tipul de produs"
-
-#~ msgid "Taxes"
-#~ msgstr "Taxe "
-
-#~ msgctxt "Product type help text"
-#~ msgid ""
-#~ "Product Type is a template used for creating new products. It also "
-#~ "controls which attributes can be used during product creation process."
-#~ msgstr ""
-#~ "Tipul de produs este un șablon utilizat pentru crearea de noi produse. "
-#~ "Controlează, de asemenea, care atribute pot fi utilizate în timpul "
-#~ "procesului de creare a produsului."
-
-#~ msgctxt "Product type list add button text"
-#~ msgid "Add product type"
-#~ msgstr "Adăugă tipul de produs"
-
-#~ msgctxt "Dashboard product types list table header name"
-#~ msgid "Name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Product attributes"
-#~ msgstr "Atributele produsului"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Variant attributes"
-#~ msgstr "Variabilele atributelor"
-
-#~ msgctxt "Empty product type list message"
-#~ msgid "No product types found."
-#~ msgstr "Nu s-au găsit tipuri de produse."
-
-#, python-format
-#~ msgctxt "Modal remove product type text"
-#~ msgid "Remove product type %(product_type)s"
-#~ msgstr "Elimină tipul de produs %(product_type)s"
-
-#, python-format
-#~ msgctxt "Modal remove product type text"
-#~ msgid ""
-#~ "Are you sure you want to remove product type <strong>%(product_type)s</"
-#~ "strong>?"
-#~ msgstr ""
-#~ "Sigur dorești să elimini tipul de produs <strong>%(product_type)s</"
-#~ "strong>?"
-
-#~ msgid "No product types found."
-#~ msgstr "Nu s-au găsit tipuri de produse."
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Dashboard action"
-#~ msgid "Edit variant"
-#~ msgstr "Editează varianta"
-
-#~ msgctxt "Dashboard action"
-#~ msgid "Remove variant"
-#~ msgstr "Elimină varianta"
-
-#~ msgctxt "Dashboard action"
-#~ msgid "Select images"
-#~ msgstr "Selectează imagini"
-
-#~ msgctxt "Variant form page title"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Variant form page title"
-#~ msgid "Add variant"
-#~ msgstr "Adaugă varianta"
-
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Add variant"
-#~ msgstr "Adaugă varianta"
-
-#, python-format
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Add variant for %(product)s"
-#~ msgstr "Adaugă varianta pentru%(product)s"
-
-#, python-format
-#~ msgctxt "Dashboard confirmation modal"
-#~ msgid ""
-#~ "\n"
-#~ "  Remove variant %(variant)s\n"
-#~ msgstr ""
-#~ "\n"
-#~ "Elimină varianta%(variant)s\n"
-
-#~ msgctxt "Dashboard modal action"
-#~ msgid "Save"
-#~ msgstr "Salvează"
-
-#~ msgid "No products found."
-#~ msgstr "Nu găsești produse."
-
-#~ msgctxt "Search page title"
-#~ msgid "Search results"
-#~ msgstr "Rezultatele căutării"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search results"
-#~ msgstr "Rezultatele căutării"
-
-#~ msgctxt "Search results list products"
-#~ msgid "Products"
-#~ msgstr "Produse"
-
-#~ msgctxt "Search results list orders"
-#~ msgid "Orders"
-#~ msgstr "Comenzi"
-
-#, python-format
-#~ msgctxt "Dashboard order"
-#~ msgid "Order #%(order_number)s"
-#~ msgstr "Comanda #%(order_number)s"
-
-#, python-format
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer: %(email)s"
-#~ msgstr "Client: %(email)s"
-
-#, python-format
-#~ msgctxt "Dashboard order info"
-#~ msgid "Placed on: %(placed)s"
-#~ msgstr "Plasat pe: %(placed)s"
-
-#~ msgctxt "Search results list users"
-#~ msgid "Users"
-#~ msgstr "Utilizatori"
-
-#, python-format
-#~ msgctxt "Dashboard user"
-#~ msgid "User %(full_name)s"
-#~ msgstr "Utilizator %(full_name)s"
-
-#~ msgctxt "Shipping zone form breadcrumbs"
-#~ msgid "Shipping zones"
-#~ msgstr "Zone livrare"
-
-#~ msgctxt "Shipping zone action"
-#~ msgid "Edit shipping zone"
-#~ msgstr "Editează zonă livrare"
-
-#~ msgctxt "Dashboard shipping zones"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Dashboard shipping zone"
-#~ msgid "Shipping zones"
-#~ msgstr "Zone livrare"
-
-#~ msgctxt "Shipping zone form page title"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Dashboard shipping zones list"
-#~ msgid "Shipping zones"
-#~ msgstr "Zone livrare"
-
-#~ msgctxt "Shipping zone list add button text"
-#~ msgid "Add shipping zone"
-#~ msgstr "Adaugă zonă livrare"
-
-#~ msgctxt "Shipping zones table header, name of the shipping zone"
-#~ msgid "Shipping zone"
-#~ msgstr "Zonă livrare"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, price range of shipping methods within "
-#~ "shipping zone"
-#~ msgid "Price range"
-#~ msgstr "Gama de prețuri"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, list of countries within of shipping zone"
-#~ msgid "Countries"
-#~ msgstr "Țări"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Price"
-#~ msgstr "Preț"
-
-#~ msgctxt "Attribute value remove action"
-#~ msgid "Remove"
-#~ msgstr "Elimină"
-
-#~ msgctxt "Dashboard shipping method edit page"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Shipping zones"
-#~ msgstr "Zone livrare"
-
-#~ msgctxt "Shipping method breadcrumbs"
-#~ msgid "Edit shipping method"
-#~ msgstr "Modifică metoda de livrare"
-
-#~ msgctxt "Shipping method breadcrumbs"
-#~ msgid "Add shipping method"
-#~ msgstr "Adaugă metodă de livrare"
-
-#~ msgctxt "Shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Metodă de livrare"
-
-#~ msgctxt "Dashboard authorization key list"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Add new authorization key page title"
-#~ msgid "Add new authorization key"
-#~ msgstr "Adăugă o nouă cheie de autorizare"
-
-#~ msgctxt "Dashboard site setting detail"
-#~ msgid "Site settings"
-#~ msgstr "Setările site-ului"
-
-#~ msgctxt "Authorization key breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Authorization key breadcrumbs"
-#~ msgid "Add new authorization key"
-#~ msgstr "Adăugă o nouă cheie de autorizare"
-
-#~ msgctxt "Authorization key form title"
-#~ msgid "Authorization key"
-#~ msgstr "Cheie de autorizare"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Domain"
-#~ msgstr "Domeniu"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Header text"
-#~ msgstr "Antet"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Description"
-#~ msgstr "Descriere"
-
-#~ msgctxt "Site settings action"
-#~ msgid "Edit site settings"
-#~ msgstr "Editează setările site-ului"
-
-#~ msgctxt "Title of the authorization keys list"
-#~ msgid "Authorization keys"
-#~ msgstr "Chei de autorizare"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Key"
-#~ msgstr "Cheie"
-
-#~ msgctxt "Authorization key edit action"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#~ msgctxt "Authorization key remove action"
-#~ msgid "Remove"
-#~ msgstr "Elimină"
-
-#~ msgctxt "Empty list of authorization keys"
-#~ msgid "No authorization keys"
-#~ msgstr "Nu există chei de autorizare"
-
-#~ msgctxt "Site settings page title"
-#~ msgid "Add new site settings"
-#~ msgstr "Adăugă setări noi pentru site"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Site settings"
-#~ msgstr "Setările site-ului"
-
-#~ msgctxt "Dashboard site settings"
-#~ msgid "Edit"
-#~ msgstr "Editează"
-
-#, python-format
-#~ msgctxt "Modal delete authorization key text"
-#~ msgid "Delete authorization key %(key)s"
-#~ msgstr "Șterge cheia de autorizare %(key)s"
-
-#, python-format
-#~ msgctxt "Modal delete authorization key text"
-#~ msgid ""
-#~ "Are you sure you want to remove authorization key <strong>%(key)s</"
-#~ "strong>?"
-#~ msgstr ""
-#~ "Sigur dorești să elimini cheia de autorizare <strong>%(key)s</strong>?"
-
-#~ msgctxt "Dashboard add staff member"
-#~ msgid "Add new staff member"
-#~ msgstr "Adăugă un nou membru al personalului"
-
-#~ msgctxt "Dashboard staff"
-#~ msgid "Staff"
-#~ msgstr "Personal"
-
-#~ msgctxt "Dashboard staff list"
-#~ msgid "Staff"
-#~ msgstr "Personal"
-
-#~ msgctxt "Dashboard add staff member action"
-#~ msgid "Add staff member"
-#~ msgstr "Adăugă membru al personalului"
-
-#~ msgctxt "Dashboard staff members list"
-#~ msgid "Staff"
-#~ msgstr "Personal"
-
-#~ msgctxt "Staff members list add button text"
-#~ msgid "Add staff member"
-#~ msgstr "Adăugă membru al personalului"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Email"
-#~ msgstr "Email"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Location"
-#~ msgstr "Locație"
-
-#~ msgctxt "Tax details breadcrumbs"
-#~ msgid "Taxes"
-#~ msgstr "Taxe "
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Name"
-#~ msgstr "Nume"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Value"
-#~ msgstr "Valoare"
-
-#~ msgctxt "Dashboard taxes list"
-#~ msgid "Taxes"
-#~ msgstr "Taxe "
-
-#~ msgctxt "Dashboard configure taxes settings"
-#~ msgid "Configure taxes"
-#~ msgstr "Configurează taxele"
-
-#~ msgctxt "Dashboard site taxes settings form title"
-#~ msgid "Taxes"
-#~ msgstr "Taxe "
-
-#~ msgid "Dashboard"
-#~ msgstr "Dashboard"
-
-#~ msgctxt "Dashboard site taxes settings form help text"
-#~ msgid ""
-#~ "\n"
-#~ "                    If selected, standard tax rate will be charged on a "
-#~ "shipping price.\n"
-#~ "                  "
-#~ msgstr ""
-#~ "\n"
-#~ "Dacă este selectat, taxa standard va fi taxată la un preț de expediere."
-
-#~ msgctxt "Taxes table header"
-#~ msgid "Country code"
-#~ msgstr "Cod țară"
-
-#~ msgctxt "Taxes table header"
-#~ msgid "Country name"
-#~ msgstr "Numele țării"
-
-#~ msgctxt "Taxes site settings title"
-#~ msgid "Configuration"
-#~ msgstr "Configurație"
-
-#~ msgctxt "Site settings field"
-#~ msgid "All products prices are entered with tax included"
-#~ msgstr "Toate prețurile produselor au TVA inclus"
-
-#~ msgctxt "Include taxes in prices setting description"
-#~ msgid "Yes"
-#~ msgstr "Da"
-
-#~ msgctxt "Include taxes in prices setting description"
-#~ msgid "No"
-#~ msgstr "Nu"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Show gross prices to customers in the storefront"
-#~ msgstr "Afișează prețurile brute pentru clienții din magazin"
-
-#~ msgctxt "Show customers gross prices setting description"
-#~ msgid "Yes"
-#~ msgstr "Da"
-
-#~ msgctxt "Show customers gross prices setting description"
-#~ msgid "No"
-#~ msgstr "Nu"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Charge taxes on shipping rates"
-#~ msgstr "Taxele de taxare pentru ratele de expediere"
-
-#~ msgctxt "Charge taxes on shipping rates setting description"
-#~ msgid "Yes"
-#~ msgstr "Da"
-
-#~ msgctxt "Charge taxes on shipping rates setting description"
-#~ msgid "No"
-#~ msgstr "Nu"
-
-#~ msgctxt "Site settings configure taxes action"
-#~ msgid "Configure taxes"
-#~ msgstr "Configurează taxele"
-
-#~ msgctxt "Homepage action"
-#~ msgid "Shop now"
-#~ msgstr "Cumpără acum"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Size & Colours"
-#~ msgstr "Dimensiune și culori"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Digital Downloads"
-#~ msgstr "Descărcări digitale"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Featured products"
-#~ msgstr "Produse recomandate"
-
-#~ msgctxt "Dashboard form labels"
-#~ msgid "(optional)"
-#~ msgstr "(opțional)"
-
-#~ msgid "File"
-#~ msgstr "Fișier"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Shipping address"
-#~ msgstr "Adresa de transport"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Billing address"
-#~ msgstr "Adresa de facturare"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Product"
-#~ msgstr "Produs"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Quantity"
-#~ msgstr "Cantitate"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Price"
-#~ msgstr "Preț"
-
-#~ msgctxt "Order details subtotal row text"
-#~ msgid "Subtotal"
-#~ msgstr "Subtotal"
-
-#~ msgctxt "Order details shipment row text"
-#~ msgid "Shipping"
-#~ msgstr "Livrare"
-
-#~ msgctxt "Order details taxes text"
-#~ msgid "Taxes (included)"
-#~ msgstr "Taxe (incluse)"
-
-#~ msgctxt "Order details taxes text"
-#~ msgid "Taxes"
-#~ msgstr "Taxe "
-
-#~ msgctxt "Order details total text"
-#~ msgid "Total"
-#~ msgstr "Total"
-
-#, python-format
-#~ msgctxt "Order details fulfillment title"
-#~ msgid "Fulfillment #%(fulfillment)s"
-#~ msgstr "Livrarea #%(fulfillment)s"
-
-#~ msgctxt "Fulfillment tracking number details"
-#~ msgid "Tracking number"
-#~ msgstr "Număr de urmărire"
-
-#~ msgctxt "Checkout success page title"
-#~ msgid "Thank you"
-#~ msgstr "Mulțumesc"
-
-#~ msgctxt "Checkout secondary action"
-#~ msgid "Continue shopping"
-#~ msgstr "Continuați cumpărăturile"
-
-#~ msgctxt "Checkout title"
-#~ msgid "Why not to create an account"
-#~ msgstr "De ce să nu creați un cont"
-
-#~ msgid ""
-#~ "Make your shopping experience even better! Save your shipping and payment "
-#~ "details for faster checkout."
-#~ msgstr ""
-#~ "Fă-ți și mai multă experiență de cumpărături! Salvează detaliile de "
-#~ "livrare și de plată pentru o verificare mai rapidă."
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Create an account"
-#~ msgstr "Creează un cont"
-
-#, python-format
-#~ msgctxt "Order details page title"
-#~ msgid "Order %(order)s"
-#~ msgstr "Comanda %(order)s"
-
-#, python-format
-#~ msgctxt "Order details breadcrumb"
-#~ msgid "Order %(order)s"
-#~ msgstr "Comanda %(order)s"
-
-#~ msgctxt "Order details link text"
-#~ msgid "Payment details"
-#~ msgstr "Detalii de plată"
-
-#~ msgctxt "Order details primary action"
-#~ msgid "Pay for order"
-#~ msgstr "Plătiți pentru comandă"
-
-#~ msgctxt "Order note title"
-#~ msgid "Add a note to your order"
-#~ msgstr "Adaugă o notă la comanda ta"
-
-#~ msgctxt "Customer panel - order details: add note submit button"
-#~ msgid "Submit note"
-#~ msgstr "Trimiteți notă"
-
-#, python-format
-#~ msgctxt "Payment details breadcrumb"
-#~ msgid "Order %(order)s"
-#~ msgstr "Comanda %(order)s"
-
-#~ msgctxt "Payment details title"
-#~ msgid "Payment pending"
-#~ msgstr "Plata în așteptare"
-
-#~ msgctxt "Payment pending text"
-#~ msgid ""
-#~ "We are currently waiting for an external service to authorize your "
-#~ "payment for this order."
-#~ msgstr ""
-#~ "În prezent, așteptăm ca un serviciu extern să vă autorizeze plata pentru "
-#~ "această comandă."
-
-#~ msgctxt "Payment status text"
-#~ msgid "Current status:"
-#~ msgstr "Starea curentă:"
-
-#~ msgctxt "Payment pending text"
-#~ msgid ""
-#~ "Unless you are absolutely sure that the process will not complete (for "
-#~ "example you have closed the browser window before paying), you should "
-#~ "wait before attempting a new payment. Please be warned that if you try "
-#~ "again and the previous transaction succeeds you might end up being "
-#~ "charged twice."
-#~ msgstr ""
-#~ "Cu excepția cazului în care sunteți absolut sigur că procesul nu va fi "
-#~ "finalizat (de exemplu, ați închis fereastra browserului înainte de a "
-#~ "plăti), trebuie să așteptați înainte de a încerca o nouă plată. Vă rugăm "
-#~ "să fiți avertizați că, dacă încercați din nou și tranzacția precedentă "
-#~ "este reușită, s-ar putea să fiți taxat de două ori."
-
-#~ msgctxt "Payment pending action"
-#~ msgid "I understand, allow me to pay again"
-#~ msgstr "Înțeleg, permiteți-mi să plătesc din nou"
-
-#~ msgid "Choose payment method"
-#~ msgstr "Alege metodă plată"
-
-#~ msgctxt "Payment details primary action"
-#~ msgid "Proceed to payment"
-#~ msgstr "Continuați să plătiți"
-
-#~ msgctxt "Payment details text"
-#~ msgid "You've authorized transaction. Order is in processing"
-#~ msgstr "Ați autorizat tranzacția. Ordinul este în procesare"
-
-#~ msgctxt "Payment form primary action"
-#~ msgid "Make payment"
-#~ msgstr "Efectuați plata"
-
-#~ msgctxt "Payment form page title"
-#~ msgid "Payment"
-#~ msgstr "Plată"
-
-#~ msgctxt "Payment form breadcrumb"
-#~ msgid "Payment"
-#~ msgstr "Plată"
-
-#~ msgctxt "Payment form title"
-#~ msgid "Payment"
-#~ msgstr "Plată"
-
-#~ msgctxt "Header of the order summary table"
-#~ msgid "Order details"
-#~ msgstr "Detalii comandă"
-
-#~ msgctxt "Payment form (Stripe) secondary action"
-#~ msgid "Change payment"
-#~ msgstr "Schimbă plata"
-
-#~ msgctxt "Payment form (Razorpay) secondary action"
-#~ msgid "Change payment"
-#~ msgstr "Schimbă plata"
-
-#~ msgctxt "Product price filter"
-#~ msgid "from"
-#~ msgstr "din"
-
-#~ msgctxt "Product price filter"
-#~ msgid "to"
-#~ msgstr "la"
-
-#~ msgctxt "Product list page filters"
-#~ msgid "Clear filters"
-#~ msgstr "Ștergeți filtrele"
-
-#~ msgctxt "Sale (discount) label for item in product list"
-#~ msgid "Sale"
-#~ msgstr "Vânzare"
-
-#~ msgctxt "product price range"
-#~ msgid "from"
-#~ msgstr "din"
-
-#~ msgctxt "Product details link text"
-#~ msgid "Edit in dashboard"
-#~ msgstr "Editați în tabloul de bord"
-
-#~ msgctxt "Product details primary action"
-#~ msgid "Add to cart"
-#~ msgstr "Adaugă la coș"
-
-#~ msgctxt "Product details title"
-#~ msgid "Description"
-#~ msgstr "Descriere"
-
-#~ msgctxt "Filter heading title"
-#~ msgid "Filters"
-#~ msgstr "Filtre"
-
-#~ msgctxt "Product list filters"
-#~ msgid "Sort by"
-#~ msgstr "Sortează după"
-
-#~ msgctxt "sort by option"
-#~ msgid "ascending"
-#~ msgstr "ascendent"
-
-#~ msgctxt "sort by option"
-#~ msgid "descending"
-#~ msgstr "descendent"
-
-#~ msgctxt "Search without results text"
-#~ msgid "Sorry, no matches found for your request."
-#~ msgstr "Ne pare rău, nu s-a găsit niciun rezultat pentru solicitarea dvs."
-
-#~ msgctxt "Search without results text"
-#~ msgid "Try again or shop new arrivals."
-#~ msgstr "Încercați din nou sau cumpărați noi sosiri."
-
-#~ msgid "Search:"
-#~ msgstr "Caută:"
-
-#~ msgctxt "Account delete reset e-mail subject"
-#~ msgid "Delete your account"
-#~ msgstr "Ștergeți contul"
-
-#~ msgctxt "Password reset e-mail subject"
-#~ msgid "Password reset e-mail"
-#~ msgstr "Resetarea parolei e-mail"
-
-#~ msgctxt "Order confirmation e-mail subject"
-#~ msgid "Order details"
-#~ msgstr "Detalii comandă"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Order summary"
-#~ msgstr "Rezumat sumar"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Subtotal"
-#~ msgstr "Subtotal"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Shipping"
-#~ msgstr "Livrare"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Taxes (included)"
-#~ msgstr "Taxe (incluse)"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Taxes"
-#~ msgstr "Taxe "
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Discount:"
-#~ msgstr "Reducere:"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Total"
-#~ msgstr "Total"
-
-#~ msgctxt "Payment confirmation subject"
-#~ msgid "Payment details"
-#~ msgstr "Detalii de plată"
-
-#, python-format
-#~ msgctxt "Fulfillment update email subject"
-#~ msgid "Shipping update for order %(order)s"
-#~ msgstr "Livrare actualizata pentru comanda %(order)s"

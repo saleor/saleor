@@ -92,9 +92,10 @@ The `master` branch is the development version of Saleor and it may be unstable.
 
 The current stable version is 2.10 and you should use this version for all three components:
 
-- Saleor: https://github.com/mirumee/saleor/releases/tag/2.10.0-rc.2
-- Dashboard: https://github.com/mirumee/saleor-dashboard/releases/tag/2.10.0-rc.2
-- Storefront: https://github.com/mirumee/saleor-storefront/releases/tag/2.10.0-rc.2
+- Saleor: https://github.com/mirumee/saleor/releases/tag/2.10.0
+- Dashboard: https://github.com/mirumee/saleor-dashboard/releases/tag/2.10.0
+- Storefront: https://github.com/mirumee/saleor-storefront/releases/tag/2.10.0
+
 ## Documentation
 
 Saleor documentation is available here: [docs.saleor.io](https://docs.saleor.io)
