@@ -79,14 +79,25 @@ def test_update_export_file_when_task_finished(export_file):
         assert export_file.updated_at != previous_updated_at
 
 
-@pytest.mark.parametrize("scope", [{"filter": {"is_published": True}}, {"all": ""}])
+@pytest.mark.parametrize(
+    "scope, filet_type",
+    [
+        ({"filter": {"is_published": True}}, FileTypes.CSV),
+        ({"all": ""}, FileTypes.XLSX),
+    ],
+)
 @patch("saleor.csv.utils.export.send_email_with_link_to_download_csv")
 @patch("saleor.csv.utils.export.save_csv_file_in_export_file")
 def test_export_products(
-    save_csv_file_in_export_file_mock, send_email_mock, product_list, export_file, scope
+    save_csv_file_in_export_file_mock,
+    send_email_mock,
+    product_list,
+    export_file,
+    scope,
+    filet_type,
 ):
     export_info = {"fields": [], "warehouses": [], "attributes": []}
-    export_products(export_file.id, scope, export_info)
+    export_products(export_file.id, scope, export_info, filet_type)
 
     save_csv_file_in_export_file_mock.called_once_with(export_file, ANY)
     send_email_mock.called_once_with(export_file)
@@ -99,21 +110,29 @@ def test_export_products_ids(
 ):
     pks = [product.pk for product in product_list[:2]]
     export_info = {"fields": [], "warehouses": [], "attributes": []}
+    file_type = FileTypes.CSV
 
     assert export_file.status == JobStatus.PENDING
     assert not export_file.content_file
 
-    export_products(export_file.id, {"ids": pks}, export_info)
+    export_products(export_file.id, {"ids": pks}, export_info, file_type)
 
     save_csv_file_in_export_file_mock.called_once_with(export_file, ANY)
     send_email_mock.called_once_with(export_file)
 
 
-def test_get_filename():
+def test_get_filename_csv():
     with freeze_time("2000-02-09"):
         file_name = get_filename("test", FileTypes.CSV)
 
         assert file_name == "test_data_09_02_2000.csv"
+
+
+def test_get_filename_xlsx():
+    with freeze_time("2000-02-09"):
+        file_name = get_filename("test", FileTypes.XLSX)
+
+        assert file_name == "test_data_09_02_2000.xlsx"
 
 
 def test_get_product_queryset_all(product_list):
@@ -139,7 +158,7 @@ def get_product_queryset_filter(product_list):
     assert queryset.count() == len(product_list) - 1
 
 
-def test_create_csv_file_and_save_in_export_file(export_file, tmpdir):
+def test_create_csv_file_and_save_in_export_file_csv(export_file, tmpdir):
     from django.conf import settings
 
     settings.MEDIA_ROOT = tmpdir

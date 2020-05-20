@@ -1,9 +1,10 @@
 import graphene
 
-from ...csv import ExportEvents
+from ...csv import ExportEvents, FileTypes
 from ...graphql.core.enums import to_enum
 
 ExportEventEnum = to_enum(ExportEvents)
+FileTypeEnum = to_enum(FileTypes)
 
 
 class ExportScope(graphene.Enum):

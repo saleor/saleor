@@ -14,7 +14,7 @@ from ..product.filters import ProductFilterInput
 from ..product.types import Attribute, Product
 from ..utils import resolve_global_ids_to_primary_keys
 from ..warehouse.types import Warehouse
-from .enums import ExportScope, ProductFieldEnum
+from .enums import ExportScope, FileTypeEnum, ProductFieldEnum
 from .types import ExportFile
 
 
@@ -49,6 +49,7 @@ class ExportProductsInput(graphene.InputObjectType):
         description="Input with info about fields which should be exported.",
         required=True,
     )
+    file_type = FileTypeEnum(description="Type of exported file.", required=True)
 
 
 class ExportProducts(BaseMutation):
@@ -76,9 +77,12 @@ class ExportProducts(BaseMutation):
         input = data["input"]
         scope = cls.get_products_scope(input)
         export_info = cls.get_export_info(input["export_info"])
+        file_type = input["file_type"]
+
         export_file = csv_models.ExportFile.objects.create(created_by=user)
         export_started_event(export_file=export_file, user=user)
-        export_products.delay(export_file.pk, scope, export_info)
+        export_products.delay(export_file.pk, scope, export_info, file_type)
+
         export_file.refresh_from_db()
         return cls(export_file=export_file)
 
