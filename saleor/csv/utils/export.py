@@ -46,7 +46,7 @@ def export_products(
     export_file_id: int,
     scope: Dict[str, Union[str, dict]],
     export_info: Dict[str, list],
-    file_type: str = FileTypes.CSV,
+    file_type: str,
     delimiter: str = ";",
 ):
     file_name = get_filename("product", file_type)

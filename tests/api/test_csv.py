@@ -9,7 +9,7 @@ from saleor.account.models import User
 from saleor.core import JobStatus
 from saleor.csv import ExportEvents
 from saleor.csv.models import ExportEvent, ExportFile
-from saleor.graphql.csv.enums import ExportScope, ProductFieldEnum
+from saleor.graphql.csv.enums import ExportScope, FileTypeEnum, ProductFieldEnum
 from saleor.product.models import Attribute
 from saleor.warehouse.models import Warehouse
 from tests.api.utils import get_graphql_content
@@ -40,12 +40,20 @@ EXPORT_PRODUCTS_MUTATION = """
 @pytest.mark.parametrize(
     "input, called_data",
     [
-        ({"scope": ExportScope.ALL.name, "exportInfo": {}}, {"all": ""}),
+        (
+            {
+                "scope": ExportScope.ALL.name,
+                "exportInfo": {},
+                "fileType": FileTypeEnum.CSV.name,
+            },
+            {"all": ""},
+        ),
         (
             {
                 "scope": ExportScope.FILTER.name,
                 "filter": {"isPublished": True},
                 "exportInfo": {},
+                "fileType": FileTypeEnum.CSV.name,
             },
             {"filter": {"is_published": True}},
         ),
@@ -71,7 +79,9 @@ def test_export_products_mutation(
     data = content["data"]["exportProducts"]
     export_file_data = data["exportFile"]
 
-    export_products_mock.assert_called_once_with(ANY, called_data, {})
+    export_products_mock.assert_called_once_with(
+        ANY, called_data, {}, FileTypeEnum.CSV.value
+    )
 
     assert not data["csvErrors"]
     assert data["exportFile"]["id"]
@@ -106,6 +116,7 @@ def test_export_products_mutation_ids_scope(
                 "warehouses": [],
                 "attributes": [],
             },
+            "fileType": FileTypeEnum.XLSX.name,
         }
     }
 
@@ -121,6 +132,7 @@ def test_export_products_mutation_ids_scope(
 
     assert set(call_args[1]["ids"]) == pks
     assert call_args[2] == {"fields": [ProductFieldEnum.PRICE_OVERRIDE.value]}
+    assert call_args[3] == FileTypeEnum.XLSX.value
 
     assert not data["csvErrors"]
     assert data["exportFile"]["id"]
@@ -165,6 +177,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
                 "warehouses": warehouse_ids,
                 "attributes": attribute_ids,
             },
+            "fileType": FileTypeEnum.CSV.name,
         }
     }
 
@@ -184,6 +197,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
         "warehouses": warehouse_pks,
         "attributes": attribute_pks,
     }
+    assert call_args[3] == FileTypeEnum.CSV.value
 
     assert not data["csvErrors"]
     assert data["exportFile"]["id"]
@@ -197,8 +211,22 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
 @pytest.mark.parametrize(
     "input, error_field",
     [
-        ({"scope": ExportScope.FILTER.name, "exportInfo": {}}, "filter"),
-        ({"scope": ExportScope.IDS.name, "exportInfo": {}}, "ids"),
+        (
+            {
+                "scope": ExportScope.FILTER.name,
+                "exportInfo": {},
+                "fileType": FileTypeEnum.CSV.name,
+            },
+            "filter",
+        ),
+        (
+            {
+                "scope": ExportScope.IDS.name,
+                "exportInfo": {},
+                "fileType": FileTypeEnum.CSV.name,
+            },
+            "ids",
+        ),
     ],
 )
 @patch("saleor.graphql.csv.mutations.export_products.delay")
