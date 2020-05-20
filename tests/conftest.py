@@ -1980,7 +1980,7 @@ def external_app(db):
         name="External App",
         is_active=True,
         type=AppType.EXTERNAL,
-        identificator="mirumee.app.sample",
+        identifier="mirumee.app.sample",
         about_app="About app text.",
         data_privacy="Data privacy text.",
         data_privacy_url="http://www.example.com/privacy/",
