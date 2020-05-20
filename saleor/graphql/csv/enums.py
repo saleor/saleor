@@ -22,3 +22,21 @@ class ExportScope(graphene.Enum):
         if self.name in description_mapping:
             return description_mapping[self.name]
         raise ValueError("Unsupported enum value: %s" % self.value)
+
+
+class ProductFieldEnum(graphene.Enum):
+    NAME = "name"
+    DESCRIPTION = "description"
+    PRODUCT_TYPE = "product type"
+    CATEGORY = "category"
+    VISIBLE = "visible"
+    PRODUCT_WEIGHT = "product weight"
+    COLLECTIONS = "collections"
+    CHARGE_TAXES = "charge taxes"
+    PRICE = "price"
+    PRODUCT_IMAGES = "product images"
+    VARIANT_SKU = "variant sku"
+    PRICE_OVERRIDE = "price override"
+    COST_PRICE = "cost price"
+    VARIANT_WEIGHT = "variant weight"
+    VARIANT_IMAGES = "variant images"
