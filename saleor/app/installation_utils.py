@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db import transaction
 
-from .models import App, AppJob
+from .models import App, AppInstallation
 from .types import AppType
 
 REQUEST_TIMEOUT = 30
@@ -21,42 +21,42 @@ def send_app_token(target_url: str, token: str):
 
 
 def validate_manifest_fields(manifest_data):
-    token_target_url = manifest_data.get("token_target_url")
+    token_target_url = manifest_data.get("tokenTargetUrl")
 
     try:
         url_validator = URLValidator()
         url_validator(token_target_url)
     except ValidationError:
-        raise ValidationError({"token_target_url": "Incorrect format."})
+        raise ValidationError({"tokenTargetUrl": "Incorrect format."})
 
 
 @transaction.atomic
 def install_app(
-    app_job: AppJob, activate: bool = False,
+    app_installation: AppInstallation, activate: bool = False,
 ):
-    response = requests.get(app_job.manifest_url, timeout=REQUEST_TIMEOUT)
+    response = requests.get(app_installation.manifest_url, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
     manifest_data = response.json()
 
     validate_manifest_fields(manifest_data)
 
     app = App.objects.create(
-        name=app_job.app_name,
+        name=app_installation.app_name,
         is_active=activate,
-        identificator=manifest_data.get("identificator"),
-        about_app=manifest_data.get("about_app"),
-        data_privacy=manifest_data.get("data_privacy"),
-        data_privacy_url=manifest_data.get("data_privacy_url"),
-        homepage_url=manifest_data.get("homepage_url"),
-        support_url=manifest_data.get("support_url"),
-        configuration_url=manifest_data.get("configuration_url"),
-        app_url=manifest_data.get("app_url"),
+        identifier=manifest_data.get("id"),
+        about_app=manifest_data.get("about"),
+        data_privacy=manifest_data.get("dataPrivacy"),
+        data_privacy_url=manifest_data.get("dataPrivacyUrl"),
+        homepage_url=manifest_data.get("homepageUrl"),
+        support_url=manifest_data.get("supportUrl"),
+        configuration_url=manifest_data.get("configurationUrl"),
+        app_url=manifest_data.get("appUrl"),
         version=manifest_data.get("version"),
         type=AppType.EXTERNAL,
     )
-    app.permissions.set(app_job.permissions.all())
+    app.permissions.set(app_installation.permissions.all())
     token = app.tokens.create(name="Default token")
     send_app_token(
-        target_url=manifest_data.get("token_target_url"), token=token.auth_token
+        target_url=manifest_data.get("tokenTargetUrl"), token=token.auth_token
     )
     return app

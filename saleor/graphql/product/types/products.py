@@ -188,7 +188,8 @@ class ProductVariant(CountableDjangoObjectType):
         required=True,
         description="Quantity of a product available for sale.",
         deprecation_reason=(
-            "Use the stock field instead. This field will be removed after 2020-07-31."
+            "Use the quantityAvailable field instead. "
+            "This field will be removed after 2020-07-31."
         ),
     )
     price_override = graphene.Field(
@@ -238,7 +239,6 @@ class ProductVariant(CountableDjangoObjectType):
     digital_content = graphene.Field(
         DigitalContent, description="Digital content for the product variant."
     )
-
     stocks = graphene.Field(
         graphene.List(Stock),
         description="Stocks for the product variant.",
@@ -246,6 +246,19 @@ class ProductVariant(CountableDjangoObjectType):
             CountryCodeEnum,
             description="Two-letter ISO 3166-1 country code.",
             required=False,
+        ),
+    )
+    quantity_available = graphene.Int(
+        required=True,
+        description="Quantity of a product available for sale in one checkout.",
+        country_code=graphene.Argument(
+            CountryCodeEnum,
+            description=(
+                "Two-letter ISO 3166-1 country code. When provided, the exact quantity "
+                "from a warehouse operating in shipping zones that contain this "
+                "country will be returned. Otherwise, it will return the maximum "
+                "quantity from all shipping zones."
+            ),
         ),
     )
 
@@ -258,10 +271,17 @@ class ProductVariant(CountableDjangoObjectType):
         model = models.ProductVariant
 
     @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_stocks(root: models.ProductVariant, info, country_code=None):
         if not country_code:
             return root.stocks.annotate_available_quantity().all()
         return root.stocks.annotate_available_quantity().for_country(country_code).all()
+
+    @staticmethod
+    def resolve_quantity_available(
+        root: models.ProductVariant, info, country_code=None
+    ):
+        return get_available_quantity_for_customer(root, country_code)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

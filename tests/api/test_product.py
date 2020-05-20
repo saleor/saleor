@@ -3411,6 +3411,70 @@ def test_variant_availability_without_inventory_tracking_not_available(
     assert variant_data["stockQuantity"] == 0
 
 
+@patch("saleor.graphql.product.types.products.get_available_quantity_for_customer")
+def test_variant_quantity_available_with_country_code(
+    mock_get_available_quantity_for_customer, api_client, variant
+):
+    query = """
+    query variantAvailability($id: ID!, $country: CountryCode) {
+        productVariant(id: $id) {
+            quantityAvailable(countryCode: $country)
+        }
+    }
+    """
+    country = "PL"
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "country": country,
+    }
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data
+    mock_get_available_quantity_for_customer.assert_called_once_with(variant, "PL")
+
+
+@patch("saleor.graphql.product.types.products.get_available_quantity_for_customer")
+def test_variant_quantity_available_without_country_code(
+    mock_get_available_quantity_for_customer, api_client, variant
+):
+    query = """
+    query variantAvailability($id: ID!) {
+        productVariant(id: $id) {
+            quantityAvailable
+        }
+    }
+    """
+    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data
+    mock_get_available_quantity_for_customer.assert_called_once_with(variant, None)
+
+
+@patch("saleor.graphql.product.types.products.get_available_quantity_for_customer")
+def test_variant_quantity_available_with_null_as_country_code(
+    mock_get_available_quantity_for_customer, api_client, variant
+):
+    query = """
+    query variantAvailability($id: ID!, $country: CountryCode) {
+        productVariant(id: $id) {
+            quantityAvailable(countryCode: $country)
+        }
+    }
+    """
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "country": None,
+    }
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data
+    mock_get_available_quantity_for_customer.assert_called_once_with(variant, None)
+
+
 @pytest.mark.parametrize(
     "collection_filter, count",
     [

@@ -352,6 +352,22 @@ class BasePlugin:
                         new_value = new_value.lower() == "true"
                     config_item.update([("value", new_value)])
 
+        # Get new keys that don't exist in current_config and extend it.
+        current_config_keys = set(c_field["name"] for c_field in current_config)
+        configuration_to_update_dict = {
+            c_field["name"]: c_field["value"] for c_field in configuration_to_update
+        }
+        missing_keys = set(configuration_to_update_dict.keys()) - current_config_keys
+        for missing_key in missing_keys:
+            if not config_structure.get(missing_key):
+                continue
+            current_config.append(
+                {
+                    "name": missing_key,
+                    "value": configuration_to_update_dict[missing_key],
+                }
+            )
+
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct.
@@ -397,8 +413,7 @@ class BasePlugin:
         config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
         desired_config_keys = set(config_structure.keys())
 
-        config = configuration or []
-        configured_keys = set(d["name"] for d in config)
+        configured_keys = set(d["name"] for d in configuration)
         missing_keys = desired_config_keys - configured_keys
 
         if not missing_keys:
@@ -409,7 +424,7 @@ class BasePlugin:
             return
 
         update_values = [copy(k) for k in default_config if k["name"] in missing_keys]
-        config.extend(update_values)
+        configuration.extend(update_values)
 
     @classmethod
     def get_default_active(cls):
@@ -418,6 +433,8 @@ class BasePlugin:
     def get_plugin_configuration(
         self, configuration: PluginConfigurationType
     ) -> PluginConfigurationType:
+        if not configuration:
+            configuration = []
         self._update_configuration_structure(configuration)
         if configuration:
             # Let's add a translated descriptions and labels
