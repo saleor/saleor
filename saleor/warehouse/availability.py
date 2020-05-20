@@ -1,7 +1,8 @@
-from typing import TYPE_CHECKING
+from collections import defaultdict
+from typing import TYPE_CHECKING, Dict
 
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 
 from ..core.exceptions import InsufficientStock
@@ -50,15 +51,44 @@ def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:
 
 
 def get_available_quantity_for_customer(
-    variant: "ProductVariant", country_code: str
+    variant: "ProductVariant", country_code: str = None
 ) -> int:
-    """Return maximum checkout line quantity."""
-    stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
+    """Return maximum checkout line quantity.
+
+    Returns maximum checkout quantity for the given variant and country code.
+    If country code is provided, the function returns the exact variant quantity
+    available in warehouses operating in shipping zones containing this country.
+    Otherwise, it returns the maximum quantity from all shipping zones.
+
+    The returned value is limited by `MAX_CHECKOUT_LINE_QUANTITY` setting to
+    limit the quantity of a variant that can be added in one checkout line.
+    """
+    query = Q(product_variant=variant)
+    if country_code:
+        query &= Q(warehouse__shipping_zones__countries__contains=country_code)
+    stocks = (
+        Stock.objects.filter(query)
+        .annotate(
+            available_quantity=Sum("quantity")
+            - Coalesce(Sum("allocations__quantity_allocated"), 0)
+        )
+        .values_list("warehouse__shipping_zones", "available_quantity")
+    )
+
     if not stocks:
         return 0
     if not variant.track_inventory:
         return settings.MAX_CHECKOUT_LINE_QUANTITY
-    return min(_get_available_quantity(stocks), settings.MAX_CHECKOUT_LINE_QUANTITY)
+
+    available_quantity_in_shipping_zones: Dict = defaultdict(int)
+    for shipping_zone_pk, available_quantity in stocks:
+        available_quantity_in_shipping_zones[shipping_zone_pk] += available_quantity
+
+    max_available_quantity = max(
+        available_quantity_in_shipping_zones.items(), key=lambda x: x[1]
+    )[1]
+
+    return min(max_available_quantity, settings.MAX_CHECKOUT_LINE_QUANTITY)
 
 
 def get_quantity_allocated(variant: "ProductVariant", country_code: str) -> int:

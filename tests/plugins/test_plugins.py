@@ -32,6 +32,112 @@ def test_update_config_items_convert_to_bool_value():
     assert get_config_value("Use sandbox", plugin_sample.configuration) is False
 
 
+def test_update_config_items_skips_new_keys_when_doesnt_exsist_in_conf_structure():
+    data_to_update = [
+        {"name": "New-field", "value": "content"},
+    ]
+    plugin_sample = PluginSample(
+        configuration=PluginSample.DEFAULT_CONFIGURATION,
+        active=PluginSample.DEFAULT_ACTIVE,
+    )
+    current_config = PluginSample.DEFAULT_CONFIGURATION
+
+    plugin_sample._update_config_items(data_to_update, current_config)
+    assert not all(
+        [config_field["name"] == "New-field" for config_field in current_config]
+    )
+
+
+def test_update_config_items_adds_new_keys(monkeypatch):
+    # Add new definition of field to CONFIG_STRUCTURE
+    monkeypatch.setattr(
+        PluginSample,
+        "CONFIG_STRUCTURE",
+        {
+            "New-field": {
+                "type": ConfigurationTypeField.STRING,
+                "help_text": "New input field",
+                "label": "New field",
+            },
+            **PluginSample.CONFIG_STRUCTURE,
+        },
+    )
+
+    data_to_update = [
+        {"name": "New-field", "value": "content"},
+    ]
+    plugin_sample = PluginSample(
+        configuration=PluginSample.DEFAULT_CONFIGURATION,
+        active=PluginSample.DEFAULT_ACTIVE,
+    )
+    current_config = [
+        {"name": "Username", "value": "admin"},
+    ]
+
+    plugin_sample._update_config_items(data_to_update, current_config)
+    assert any([config_field["name"] == "New-field" for config_field in current_config])
+
+
+def test_save_plugin_configuration(plugin_configuration):
+    cleaned_data = {"configuration": [{"name": "Username", "value": "new-username"}]}
+    PluginSample.save_plugin_configuration(plugin_configuration, cleaned_data)
+    plugin_configuration.refresh_from_db()
+    configuration = plugin_configuration.configuration
+    configuration_dict = {
+        c_field["name"]: c_field["value"] for c_field in configuration
+    }
+    assert configuration_dict["Username"] == "new-username"
+
+
+def test_save_plugin_configuration_adds_new_field(plugin_configuration, monkeypatch):
+    monkeypatch.setattr(
+        PluginSample,
+        "CONFIG_STRUCTURE",
+        {
+            "Token": {
+                "type": ConfigurationTypeField.PASSWORD,
+                "help_text": "New input field",
+                "label": "New field",
+            },
+            **PluginSample.CONFIG_STRUCTURE,
+        },
+    )
+    cleaned_data = {"configuration": [{"name": "Token", "value": "token-data"}]}
+    PluginSample.save_plugin_configuration(plugin_configuration, cleaned_data)
+    plugin_configuration.refresh_from_db()
+    configuration = plugin_configuration.configuration
+    configuration_dict = {
+        c_field["name"]: c_field["value"] for c_field in configuration
+    }
+    assert configuration_dict.get("Token") == "token-data"
+
+
+def test_save_plugin_configuration_skips_new_field_when_doesnt_exsist_in_conf_structure(
+    plugin_configuration,
+):
+    cleaned_data = {"configuration": [{"name": "Token", "value": "token-data"}]}
+    PluginSample.save_plugin_configuration(plugin_configuration, cleaned_data)
+    plugin_configuration.refresh_from_db()
+    configuration = plugin_configuration.configuration
+    configuration_dict = {
+        c_field["name"]: c_field["value"] for c_field in configuration
+    }
+    assert not configuration_dict.get("Token")
+
+
+def test_base_plugin__update_configuration_structure_when_old_config_is_empty(
+    plugin_configuration,
+):
+    plugin_configuration.configuration = []
+    plugin_configuration.save()
+    PluginSample._update_configuration_structure(plugin_configuration.configuration)
+    plugin_configuration.save()
+    plugin_configuration.refresh_from_db()
+    assert len(plugin_configuration.configuration) == len(
+        PluginSample.DEFAULT_CONFIGURATION
+    )
+
+
 def test_base_plugin__update_configuration_structure_configuration_has_change(
     monkeypatch, plugin_configuration
 ):

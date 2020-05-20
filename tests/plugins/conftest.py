@@ -18,6 +18,7 @@ def plugin_configuration(db):
             "name": PluginSample.PLUGIN_NAME,
         },
     )
+    configuration.refresh_from_db()
     return configuration
 
 

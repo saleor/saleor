@@ -148,10 +148,10 @@ description = "The AWS SDK for Python"
 name = "boto3"
 optional = false
 python-versions = "*"
-version = "1.13.7"
+version = "1.13.11"
 
 [package.dependencies]
-botocore = ">=1.16.7,<1.17.0"
+botocore = ">=1.16.11,<1.17.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.3.0,<0.4.0"
 
@@ -161,7 +161,7 @@ description = "Low-level, data-driven core of boto 3."
 name = "botocore"
 optional = false
 python-versions = "*"
-version = "1.16.7"
+version = "1.16.11"
 
 [package.dependencies]
 docutils = ">=0.10,<0.16"
@@ -178,7 +178,7 @@ description = "Braintree Python Library"
 name = "braintree"
 optional = false
 python-versions = "*"
-version = "3.49.0"
+version = "4.1.0"
 
 [package.dependencies]
 requests = ">=0.11.1,<3.0"
@@ -429,6 +429,14 @@ version = "1.0.4"
 
 [package.dependencies]
 django = "*"
+
+[[package]]
+category = "main"
+description = "Use Cache URLs in your Django application."
+name = "django-cache-url"
+optional = false
+python-versions = "*"
+version = "3.1.2"
 
 [[package]]
 category = "main"
@@ -730,7 +738,7 @@ description = "Faker is a Python package that generates fake data for you."
 name = "faker"
 optional = false
 python-versions = ">=3.4"
-version = "4.0.3"
+version = "4.1.0"
 
 [package.dependencies]
 python-dateutil = ">=2.4"
@@ -1803,7 +1811,7 @@ description = "Python client for Sentry (https://getsentry.com)"
 name = "sentry-sdk"
 optional = false
 python-versions = "*"
-version = "0.14.3"
+version = "0.14.4"
 
 [package.dependencies]
 certifi = "*"
@@ -1818,7 +1826,7 @@ django = ["django (>=1.8)"]
 falcon = ["falcon (>=1.4)"]
 flask = ["flask (>=0.11)", "blinker (>=1.1)"]
 pyspark = ["pyspark (>=2.4.4)"]
-rq = ["0.6"]
+rq = ["rq (>=0.6)"]
 sanic = ["sanic (>=0.8)"]
 sqlalchemy = ["sqlalchemy (>=1.2)"]
 tornado = ["tornado (>=5)"]
@@ -2161,7 +2169,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "66e858025822562713f9a69c78691c7edb9a4f9b1c0ec6c31936ce5b78661417"
+content-hash = "e60402f650659e7db4fe167365d324090756c28c3c9c17723437ea7c30f1078c"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2219,16 +2227,16 @@ black = [
     {file = "black-19.10b0.tar.gz", hash = "sha256:c2edb73a08e9e0e6f65a0e6af18b059b8b1cdd5bef997d7a0b181df93dc81539"},
 ]
 boto3 = [
-    {file = "boto3-1.13.7-py2.py3-none-any.whl", hash = "sha256:9b5d0d3e2a0374fa6786d7e42f42c25b69695b449b816823be46875af9c32e05"},
-    {file = "boto3-1.13.7.tar.gz", hash = "sha256:a9518f580f18b9ca5638be0d7eb90651cceb0fff3524739488763f6dcade1caf"},
+    {file = "boto3-1.13.11-py2.py3-none-any.whl", hash = "sha256:fe7fa987472d8247812add0bc1c00aa2e6631589aa601b01d075d8c595c2292f"},
+    {file = "boto3-1.13.11.tar.gz", hash = "sha256:a7c5c7251b76336e697ccf368f125720e1947d58b218c228b61b5b654187fe4e"},
 ]
 botocore = [
-    {file = "botocore-1.16.7-py2.py3-none-any.whl", hash = "sha256:48f68a27825632b5567796f5e6f46889971d9e48908ba9fdfc319cf78ffe1e91"},
-    {file = "botocore-1.16.7.tar.gz", hash = "sha256:7cd876e6186e845c3667fdcbfd73756f09761c2d5695dfba64b00a08195e7c1f"},
+    {file = "botocore-1.16.11-py2.py3-none-any.whl", hash = "sha256:e7fd44235f3e197558ea8f85f078a6bd05805eea90ed2a00b5cb2646ac800157"},
+    {file = "botocore-1.16.11.tar.gz", hash = "sha256:b82083f1ba65624017d53fa2d2a44aa801ea3da0948fba56ccf4d29a88ef0b71"},
 ]
 braintree = [
-    {file = "braintree-3.49.0-py2.py3-none-any.whl", hash = "sha256:7cdd715a5a61339e4e5dcb5611cf80512d5fdb0e4da69307a64141d3597357f7"},
-    {file = "braintree-3.49.0.tar.gz", hash = "sha256:0c95dbe0b497fd2eafaa08b6282f2b1d547cba3a432f8101424bd06c333348b5"},
+    {file = "braintree-4.1.0-py2.py3-none-any.whl", hash = "sha256:152fa9e3b30a7757db0061e1c022c944216bf881209376b28a3f07043cff009b"},
+    {file = "braintree-4.1.0.tar.gz", hash = "sha256:b8b18fd9d757af8b2dd45e49d1c90cad5692c95283d7bcb610e28d39db0a10bb"},
 ]
 cachetools = [
     {file = "cachetools-4.1.0-py3-none-any.whl", hash = "sha256:de5d88f87781602201cde465d3afe837546663b168e8b39df67411b0bf10cefc"},
@@ -2359,6 +2367,10 @@ django-appconf = [
     {file = "django-appconf-1.0.4.tar.gz", hash = "sha256:be58deb54a43d77d2e1621fe59f787681376d3cd0b8bd8e4758ef6c3a6453380"},
     {file = "django_appconf-1.0.4-py2.py3-none-any.whl", hash = "sha256:1b1d0e1069c843ebe8ae5aa48ec52403b1440402b320c3e3a206a0907e97bb06"},
 ]
+django-cache-url = [
+    {file = "django-cache-url-3.1.2.tar.gz", hash = "sha256:d0ee0d6c5daab92787bff47a4a6f5a6cf97c3c80d81a990820b2af16e12ad65a"},
+    {file = "django_cache_url-3.1.2-py2.py3-none-any.whl", hash = "sha256:889ac5d56105bdf44c0fd8f82c024119e198baf0bf698fdf49b1d5de92d8d4bb"},
+]
 django-countries = [
     {file = "django-countries-6.1.2.tar.gz", hash = "sha256:e2ae9b76f9a0b5f3f365b5b81fe4972df0a5878c930139586f43f7d6d50a9594"},
     {file = "django_countries-6.1.2-py3-none-any.whl", hash = "sha256:2e852c9693818d64d28758a720a0cb8277673ac495af8b855c4dc64940703bd2"},
@@ -2449,8 +2461,8 @@ execnet = [
     {file = "execnet-1.7.1.tar.gz", hash = "sha256:cacb9df31c9680ec5f95553976c4da484d407e85e41c83cb812aa014f0eddc50"},
 ]
 faker = [
-    {file = "Faker-4.0.3-py3-none-any.whl", hash = "sha256:53bf2c8a2de8af271466e7b9cc2f08ecf83c4c947981680eb61080779a0adace"},
-    {file = "Faker-4.0.3.tar.gz", hash = "sha256:7292806948ed848f1bcea1e7b963bae6f398687d1da0ea096e156fea2787f454"},
+    {file = "Faker-4.1.0-py3-none-any.whl", hash = "sha256:34ae397aef03a0a17910452f1e8430d57fa59e2d67b20e9b637218e8f7dd22b3"},
+    {file = "Faker-4.1.0.tar.gz", hash = "sha256:103c46b9701a151299c5bffe6fefcd4fb5fb04c3b5d06bee4952d36255d44ea2"},
 ]
 filelock = [
     {file = "filelock-3.0.12-py3-none-any.whl", hash = "sha256:929b7d63ec5b7d6b71b0fa5ac14e030b3f70b75747cef1b10da9b879fef15836"},
@@ -3008,8 +3020,8 @@ s3transfer = [
     {file = "s3transfer-0.3.3.tar.gz", hash = "sha256:921a37e2aefc64145e7b73d50c71bb4f26f46e4c9f414dc648c6245ff92cf7db"},
 ]
 sentry-sdk = [
-    {file = "sentry-sdk-0.14.3.tar.gz", hash = "sha256:bb90a4e19c7233a580715fc986cc44be2c48fc10b31e71580a2037e1c94b6950"},
-    {file = "sentry_sdk-0.14.3-py2.py3-none-any.whl", hash = "sha256:23808d571d2461a4ce3784ec12bbee5bdb8c026c143fe79d36cef8a6d653e71f"},
+    {file = "sentry-sdk-0.14.4.tar.gz", hash = "sha256:0e5e947d0f7a969314aa23669a94a9712be5a688ff069ff7b9fc36c66adc160c"},
+    {file = "sentry_sdk-0.14.4-py2.py3-none-any.whl", hash = "sha256:799a8bf76b012e3030a881be00e97bc0b922ce35dde699c6537122b751d80e2c"},
 ]
 singledispatch = [
     {file = "singledispatch-3.4.0.3-py2.py3-none-any.whl", hash = "sha256:833b46966687b3de7f438c761ac475213e53b306740f1abfaa86e1d1aae56aa8"},
