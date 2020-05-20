@@ -1146,7 +1146,7 @@ def order_line_with_allocation_in_many_stocks(customer_user, variant_with_many_s
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=2,
+        quantity=3,
         variant=variant,
         unit_price=TaxedMoney(net=net, gross=gross),
         tax_rate=23,
@@ -1157,6 +1157,36 @@ def order_line_with_allocation_in_many_stocks(customer_user, variant_with_many_s
             Allocation(order_line=order_line, stock=stocks[0], quantity_allocated=2),
             Allocation(order_line=order_line, stock=stocks[1], quantity_allocated=1),
         ]
+    )
+
+    return order_line
+
+
+@pytest.fixture
+def order_line_with_one_allocation(customer_user, variant_with_many_stocks):
+    address = customer_user.default_billing_address.get_copy()
+    variant = variant_with_many_stocks
+    stocks = variant.stocks.all().order_by("pk")
+
+    order = Order.objects.create(
+        billing_address=address, user_email=customer_user.email, user=customer_user
+    )
+
+    net = variant.get_price()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    order_line = order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=2,
+        variant=variant,
+        unit_price=TaxedMoney(net=net, gross=gross),
+        tax_rate=23,
+    )
+
+    Allocation.objects.create(
+        order_line=order_line, stock=stocks[0], quantity_allocated=1
     )
 
     return order_line
