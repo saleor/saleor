@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING
+from collections import defaultdict
+from typing import TYPE_CHECKING, Dict
 
 from django.db import transaction
 from django.db.models import F, Sum
@@ -35,10 +36,11 @@ def allocate_stock(
         .values("stock")
         .annotate(Sum("quantity_allocated"))
     )
-    quantity_allocation_for_stocks = {
-        allocation["stock"]: allocation["quantity_allocated__sum"]
-        for allocation in quantity_allocation_list
-    }
+    quantity_allocation_for_stocks: Dict = defaultdict(int)
+    for allocation in quantity_allocation_list:
+        quantity_allocation_for_stocks[allocation["stock"]] += allocation[
+            "quantity_allocated__sum"
+        ]
 
     quantity_allocated = 0
     allocations = []
