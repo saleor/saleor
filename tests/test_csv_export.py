@@ -1,6 +1,6 @@
 import datetime
 import shutil
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import ANY, MagicMock, Mock, patch
 
 import pytest
 import pytz
@@ -27,7 +27,8 @@ def test_on_task_failure(export_file):
     task_id = "task_id"
     args = [export_file.pk, {"all": ""}]
     kwargs = {}
-    info = None
+    info_type = "Test error"
+    info = Mock(type=info_type)
 
     assert export_file.status == JobStatus.PENDING
     assert export_file.created_at
@@ -43,7 +44,7 @@ def test_on_task_failure(export_file):
         export_file=export_file, user=export_file.created_by
     )
     assert export_event.type == ExportEvents.EXPORT_FAILED
-    assert export_event.parameters == {"message": str(exc)}
+    assert export_event.parameters == {"message": str(exc), "error_type": info_type}
 
 
 def test_on_task_success(export_file):
@@ -84,7 +85,8 @@ def test_update_export_file_when_task_finished(export_file):
 def test_export_products(
     save_csv_file_in_export_file_mock, send_email_mock, product_list, export_file, scope
 ):
-    export_products(export_file.id, scope)
+    export_info = {"fields": [], "warehouses": [], "attributes": []}
+    export_products(export_file.id, scope, export_info)
 
     save_csv_file_in_export_file_mock.called_once_with(export_file, ANY)
     send_email_mock.called_once_with(export_file)
@@ -96,11 +98,12 @@ def test_export_products_ids(
     save_csv_file_in_export_file_mock, send_email_mock, product_list, export_file
 ):
     pks = [product.pk for product in product_list[:2]]
+    export_info = {"fields": [], "warehouses": [], "attributes": []}
 
     assert export_file.status == JobStatus.PENDING
     assert not export_file.content_file
 
-    export_products(export_file.id, {"ids": pks})
+    export_products(export_file.id, {"ids": pks}, export_info)
 
     save_csv_file_in_export_file_mock.called_once_with(export_file, ANY)
     send_email_mock.called_once_with(export_file)

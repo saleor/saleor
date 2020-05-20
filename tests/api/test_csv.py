@@ -9,7 +9,9 @@ from saleor.account.models import User
 from saleor.core import JobStatus
 from saleor.csv import ExportEvents
 from saleor.csv.models import ExportEvent, ExportFile
-from saleor.graphql.csv.enums import ExportScope
+from saleor.graphql.csv.enums import ExportScope, ProductFieldEnum
+from saleor.product.models import Attribute
+from saleor.warehouse.models import Warehouse
 from tests.api.utils import get_graphql_content
 
 EXPORT_PRODUCTS_MUTATION = """
@@ -38,9 +40,13 @@ EXPORT_PRODUCTS_MUTATION = """
 @pytest.mark.parametrize(
     "input, called_data",
     [
-        ({"scope": ExportScope.ALL.name}, {"all": ""}),
+        ({"scope": ExportScope.ALL.name, "exportInfo": {}}, {"all": ""}),
         (
-            {"scope": ExportScope.FILTER.name, "filter": {"isPublished": True}},
+            {
+                "scope": ExportScope.FILTER.name,
+                "filter": {"isPublished": True},
+                "exportInfo": {},
+            },
             {"filter": {"is_published": True}},
         ),
     ],
@@ -65,7 +71,7 @@ def test_export_products_mutation(
     data = content["data"]["exportProducts"]
     export_file_data = data["exportFile"]
 
-    export_products_mock.assert_called_once_with(ANY, called_data)
+    export_products_mock.assert_called_once_with(ANY, called_data, {})
 
     assert not data["csvErrors"]
     assert data["exportFile"]["id"]
@@ -91,7 +97,17 @@ def test_export_products_mutation_ids_scope(
         pks.add(str(product.pk))
         ids.append(graphene.Node.to_global_id("Product", product.pk))
 
-    variables = {"input": {"scope": ExportScope.IDS.name, "ids": ids}}
+    variables = {
+        "input": {
+            "scope": ExportScope.IDS.name,
+            "ids": ids,
+            "exportInfo": {
+                "fields": [ProductFieldEnum.PRICE_OVERRIDE.name],
+                "warehouses": [],
+                "attributes": [],
+            },
+        }
+    }
 
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]
@@ -104,6 +120,70 @@ def test_export_products_mutation_ids_scope(
     (call_args, call_kwargs,) = export_products_mock.call_args
 
     assert set(call_args[1]["ids"]) == pks
+    assert call_args[2] == {"fields": [ProductFieldEnum.PRICE_OVERRIDE.value]}
+
+    assert not data["csvErrors"]
+    assert data["exportFile"]["id"]
+    assert export_file_data["createdAt"]
+    assert export_file_data["createdBy"]["email"] == staff_api_client.user.email
+    assert ExportEvent.objects.filter(
+        user=user, type=ExportEvents.EXPORT_PENDING
+    ).exists()
+
+
+@patch("saleor.graphql.csv.mutations.export_products.delay")
+def test_export_products_mutation_with_warehouse_and_attribute_ids(
+    export_products_mock, staff_api_client, product_list, permission_manage_products
+):
+    query = EXPORT_PRODUCTS_MUTATION
+    user = staff_api_client.user
+
+    products = product_list[:2]
+
+    ids = []
+    pks = set()
+    for product in products:
+        pks.add(str(product.pk))
+        ids.append(graphene.Node.to_global_id("Product", product.pk))
+
+    attribute_pks = [str(attr.pk) for attr in Attribute.objects.all()]
+    warehouse_pks = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
+
+    attribute_ids = [
+        graphene.Node.to_global_id("Attribute", pk) for pk in attribute_pks
+    ]
+    warehouse_ids = [
+        graphene.Node.to_global_id("Warehouse", pk) for pk in warehouse_pks
+    ]
+
+    variables = {
+        "input": {
+            "scope": ExportScope.IDS.name,
+            "ids": ids,
+            "exportInfo": {
+                "fields": [ProductFieldEnum.PRICE_OVERRIDE.name],
+                "warehouses": warehouse_ids,
+                "attributes": attribute_ids,
+            },
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["exportProducts"]
+    export_file_data = data["exportFile"]
+
+    export_products_mock.assert_called_once()
+    (call_args, call_kwargs,) = export_products_mock.call_args
+
+    assert set(call_args[1]["ids"]) == pks
+    assert call_args[2] == {
+        "fields": [ProductFieldEnum.PRICE_OVERRIDE.value],
+        "warehouses": warehouse_pks,
+        "attributes": attribute_pks,
+    }
 
     assert not data["csvErrors"]
     assert data["exportFile"]["id"]
@@ -117,8 +197,8 @@ def test_export_products_mutation_ids_scope(
 @pytest.mark.parametrize(
     "input, error_field",
     [
-        ({"scope": ExportScope.FILTER.name}, "filter"),
-        ({"scope": ExportScope.IDS.name}, "ids"),
+        ({"scope": ExportScope.FILTER.name, "exportInfo": {}}, "filter"),
+        ({"scope": ExportScope.IDS.name, "exportInfo": {}}, "ids"),
     ],
 )
 @patch("saleor.graphql.csv.mutations.export_products.delay")

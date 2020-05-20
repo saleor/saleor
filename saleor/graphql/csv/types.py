@@ -23,7 +23,7 @@ class ExportEvent(CountableDjangoObjectType):
     class Meta:
         description = "History log of export file."
         model = models.ExportEvent
-        interfaces = [relay.Node]
+        interfaces = [graphene.relay.Node]
         only_fields = ["id"]
 
     @staticmethod
