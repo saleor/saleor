@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+from measurement.measures import Weight
+
 from saleor.csv.utils.products_data import (
     ProductExportFields,
     add_attribute_info_to_data,
@@ -104,6 +106,9 @@ def test_get_products_data_with_some_of_product_and_variant_fields(
 
 
 def test_prepare_products_data(product, product_with_image, collection, image):
+    product.weight = Weight(kg=5)
+    product.save()
+
     collection.products.add(product)
 
     variant = product.variants.first()
@@ -139,7 +144,9 @@ def test_prepare_products_data(product, product_with_image, collection, image):
         product_data["product_currency"] = product.currency
         product_data["product_type__name"] = product.product_type.name
         product_data["id"] = product.pk
-        product_data["product_weight"] = product.weight
+        product_data["product_weight"] = (
+            "{} g".format(int(product.weight.value * 1000)) if product.weight else ""
+        )
         product_data["charge_taxes"] = product.charge_taxes
         product_data["product_image_path"] = (
             ""
@@ -165,7 +172,11 @@ def test_prepare_products_data(product, product_with_image, collection, image):
             data["variant_currency"] = variant.currency
             data["price_override_amount"] = variant.price_override_amount
             data["cost_price_amount"] = variant.cost_price_amount
-            data["variant_weight"] = variant.weight
+            data["variant_weight"] = (
+                "{} g".foramt(int(variant.weight.value * 1000))
+                if variant.weight
+                else ""
+            )
 
             for stock in variant.stocks.all():
                 slug = stock.warehouse.slug
@@ -362,6 +373,8 @@ def test_prepare_products_relations_data(product_with_image, collection_list):
 
 def test_prepare_variants_data(product):
     variant = product.variants.first()
+    variant.weight = Weight(kg=5)
+    variant.save()
 
     warehouse_headers = set()
     attribute_headers = set()
@@ -384,7 +397,9 @@ def test_prepare_variants_data(product):
         "cost_price_amount": variant.cost_price_amount,
         "price_override_amount": variant.price_override_amount,
         "variant_currency": variant.currency,
-        "variant_weight": variant.weight,
+        "variant_weight": "{} g".format(int(variant.weight.value * 1000))
+        if variant.weight
+        else "",
     }
     assigned_attribute = variant.attributes.first()
     if assigned_attribute:
