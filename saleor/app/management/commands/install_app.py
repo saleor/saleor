@@ -9,12 +9,12 @@ from django.core.validators import URLValidator
 
 from ....core import JobStatus
 from ...installation_utils import install_app
-from ...models import AppJob
+from ...models import AppInstallation
 from .utils import clean_permissions
 
 
 class Command(BaseCommand):
-    help = "Used to create new app."
+    help = "Used to install new app."
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument("manifest-url", help="Url with app manifest.", type=str)
@@ -43,7 +43,7 @@ class Command(BaseCommand):
 
         permissions = clean_permissions(manifest_data.get("permissions", []))
 
-        app_job = AppJob.objects.create(
+        app_job = AppInstallation.objects.create(
             app_name=manifest_data["name"], manifest_url=manifest_url
         )
         if permissions:
