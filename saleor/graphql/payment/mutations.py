@@ -2,6 +2,7 @@ import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
+from ...checkout import calculations
 from ...core.permissions import OrderPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.utils import get_client_ip
@@ -69,11 +70,14 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     @classmethod
     def calculate_total(cls, info, checkout):
         checkout_total = (
-            info.context.plugins.calculate_checkout_total(
-                checkout, lines=list(checkout), discounts=info.context.discounts
+            calculations.checkout_total(
+                checkout=checkout,
+                lines=list(checkout),
+                discounts=info.context.discounts,
             )
             - checkout.get_total_gift_cards_balance()
         )
+
         return max(checkout_total, zero_taxed_money(checkout_total.currency))
 
     @classmethod
