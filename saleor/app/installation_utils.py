@@ -44,7 +44,7 @@ def install_app(
         name=app_installation.app_name,
         is_active=activate,
         identifier=manifest_data.get("id"),
-        about_app=manifest_data.get("aboutApp"),
+        about_app=manifest_data.get("about"),
         data_privacy=manifest_data.get("dataPrivacy"),
         data_privacy_url=manifest_data.get("dataPrivacyUrl"),
         homepage_url=manifest_data.get("homepageUrl"),
