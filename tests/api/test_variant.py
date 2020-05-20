@@ -1708,6 +1708,24 @@ def test_product_variant_stocks_update(
         assert res in expected_result
 
 
+def test_product_variant_stocks_update_with_empty_stock_list(
+    staff_api_client, variant, warehouse, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    stocks = []
+    variables = {"variantId": variant_id, "stocks": stocks}
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_UPDATE_MUTATIONS,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantStocksUpdate"]
+
+    assert not data["bulkStockErrors"]
+    assert len(data["productVariant"]["stocks"]) == len(stocks)
+
+
 def test_variant_stocks_update_stock_duplicated_warehouse(
     staff_api_client, variant, warehouse, permission_manage_products
 ):

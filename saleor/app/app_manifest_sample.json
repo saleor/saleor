@@ -1,17 +1,14 @@
 {
-    "name": "app",
-    "version": "1.0.0",
-    "about_app": "Lorem ipsum",
-    "data_privacy": "Lorem ipsum",
-    "data_privacy_url": "http://localhost:3000/app-data-privacy",
-    "homepage_url": "http://localhost:3000/homepage",
-    "support_url": "http://localhost:3000/support",
-    "configuration_url": "htpp://localhost:3000/configuration",
-    "app_url": "http://localhost:3000/app",
-    "token_target_url": "http://localhost:3000/register",
-    "identificator": "saleor.app.sample",
-    "permissions": [
-      "MANAGE_USERS",
-      "MANAGE_STAFF"
-    ]
+  "id": "saleor.app.sample",
+  "version": "1.0.0",
+  "name": "My Wonderful App",
+  "about": "My Wonderful App is a wonderful App for Saleor.",
+  "permissions": ["MANAGE_USERS", "MANAGE_STAFF"],
+  "appUrl": "http://localhost:3000/app",
+  "configurationUrl": "htpp://localhost:3000/configuration",
+  "tokenTargetUrl": "http://localhost:3000/register",
+  "dataPrivacy": "Lorem ipsum",
+  "dataPrivacyUrl": "http://localhost:3000/app-data-privacy",
+  "homepageUrl": "http://localhost:3000/homepage",
+  "supportUrl": "http://localhost:3000/support"
 }

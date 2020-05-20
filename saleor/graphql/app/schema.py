@@ -8,16 +8,16 @@ from .filters import AppFilter
 from .mutations import (
     AppCreate,
     AppDelete,
-    AppDropFailedInstallation,
+    AppDeleteFailedInstallation,
     AppInstall,
     AppRetryInstall,
     AppTokenCreate,
     AppTokenDelete,
     AppUpdate,
 )
-from .resolvers import resolve_apps, resolve_ongoing_apps_installations
+from .resolvers import resolve_apps, resolve_apps_installations
 from .sorters import AppSortingInput
-from .types import App, AppOngoingInstallation
+from .types import App, AppInstallation
 
 
 class AppFilterInput(FilterInputObjectType):
@@ -26,9 +26,9 @@ class AppFilterInput(FilterInputObjectType):
 
 
 class AppQueries(graphene.ObjectType):
-    apps_ongoing_installations = graphene.List(
-        graphene.NonNull(AppOngoingInstallation),
-        description="List of all ongoing apps installations",
+    apps_installations = graphene.List(
+        graphene.NonNull(AppInstallation),
+        description="List of all apps installations",
         required=True,
     )
     apps = FilterInputConnectionField(
@@ -44,8 +44,8 @@ class AppQueries(graphene.ObjectType):
     )
 
     @permission_required(AppPermission.MANAGE_APPS)
-    def resolve_apps_ongoing_installations(self, info, **kwargs):
-        return resolve_ongoing_apps_installations(info, **kwargs)
+    def resolve_apps_installations(self, info, **kwargs):
+        return resolve_apps_installations(info, **kwargs)
 
     @permission_required(AppPermission.MANAGE_APPS)
     def resolve_apps(self, info, **kwargs):
@@ -66,4 +66,4 @@ class AppMutations(graphene.ObjectType):
 
     app_install = AppInstall.Field()
     app_retry_install = AppRetryInstall.Field()
-    app_drop_failed_installation = AppDropFailedInstallation.Field()
+    app_delete_failed_installation = AppDeleteFailedInstallation.Field()

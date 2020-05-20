@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "saleor"
-version = "2.10.0-rc.2"
+version = "2.10.0"
 description = "A modular, high performance e-commerce storefront built with GraphQL, Django, and ReactJS."
 authors = ["Mirumee Software <hello@mirumee.com>"]
 license = "BSD-3-Clause"
@@ -14,8 +14,8 @@ documentation = "https://docs.getsaleor.com/en/latest/"
 [tool.poetry.dependencies]
 python = "~3.8"
 babel = "~2.8"
-boto3 = "^1.12"
-braintree = "~3.49.0"
+boto3 = "^1.13"
+braintree = "~4.1.0"
 celery = { version = "^4.3.0", extras = ["redis"] }
 dj-database-url = "^0"
 dj-email-url = "^1"
@@ -33,7 +33,7 @@ django-storages = { version = "^1.7.1", extras = [ "google" ] }
 django-templated-email = "^2.3.0"
 django-versatileimagefield = "^2.0"
 draftjs-sanitizer = "^1.0.0"
-faker = "^4.0"
+faker = "^4.1"
 freezegun = "^0"
 google-cloud-storage = "^1.18.0"
 google-i18n-address = "^2.3.5"
@@ -60,6 +60,7 @@ uwsgi = {version = "^2.0.8", platform = "!=win32"}
 weasyprint = ">=48"
 oauthlib = "^3.0"
 jaeger-client = "^4.3.0"
+django-cache-url = "^3.1.2"
 
 [tool.poetry.dev-dependencies]
 black = "19.10b0"

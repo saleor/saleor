@@ -5,6 +5,7 @@ from datetime import timedelta
 
 import dj_database_url
 import dj_email_url
+import django_cache_url
 import jaeger_client
 import jaeger_client.config
 import sentry_sdk
@@ -83,6 +84,7 @@ LANGUAGES = [
     ("es-co", "Colombian Spanish"),
     ("et", "Estonian"),
     ("fa", "Persian"),
+    ("fi", "Finnish"),
     ("fr", "French"),
     ("hi", "Hindi"),
     ("hu", "Hungarian"),
@@ -102,10 +104,11 @@ LANGUAGES = [
     ("ro", "Romanian"),
     ("ru", "Russian"),
     ("sk", "Slovak"),
+    ("sl", "Slovenian"),
     ("sq", "Albanian"),
     ("sr", "Serbian"),
-    ("sw", "Swahili"),
     ("sv", "Swedish"),
+    ("sw", "Swahili"),
     ("th", "Thai"),
     ("tr", "Turkish"),
     ("uk", "Ukrainian"),
@@ -546,3 +549,10 @@ if "JAEGER_AGENT_HOST" in os.environ:
         service_name="saleor",
         validate=True,
     ).initialize_tracer()
+
+
+# Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
+REDIS_URL = os.environ.get("REDIS_URL")
+if REDIS_URL:
+    CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
+CACHES = {"default": django_cache_url.config()}

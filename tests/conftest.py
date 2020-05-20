@@ -21,7 +21,7 @@ from PIL import Image
 from prices import Money, TaxedMoney
 
 from saleor.account.models import Address, StaffNotificationRecipient, User
-from saleor.app.models import App, AppJob
+from saleor.app.models import App, AppInstallation
 from saleor.app.types import AppType
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
@@ -1528,11 +1528,6 @@ def permission_manage_translations():
 
 
 @pytest.fixture
-def permission_manage_webhooks():
-    return Permission.objects.get(codename="manage_webhooks")
-
-
-@pytest.fixture
 def permission_group_manage_users(permission_manage_users, staff_users):
     group = Group.objects.create(name="Manage user groups.")
     group.permissions.add(permission_manage_users)
@@ -1985,7 +1980,7 @@ def external_app(db):
         name="External App",
         is_active=True,
         type=AppType.EXTERNAL,
-        identificator="mirumee.app.sample",
+        identifier="mirumee.app.sample",
         about_app="About app text.",
         data_privacy="Data privacy text.",
         data_privacy_url="http://www.example.com/privacy/",
@@ -2176,8 +2171,8 @@ def allocations(order_list, stock):
 
 
 @pytest.fixture
-def app_job():
-    app_job = AppJob.objects.create(
+def app_installation():
+    app_installation = AppInstallation.objects.create(
         app_name="External App", manifest_url="http://localhost:3000/manifest",
     )
-    return app_job
+    return app_installation

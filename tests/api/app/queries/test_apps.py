@@ -45,7 +45,7 @@ QUERY_APPS_WITH_FILTER = """
 def test_apps_query(
     staff_api_client,
     permission_manage_apps,
-    permission_manage_webhooks,
+    permission_manage_orders,
     app,
     external_app,
     app_filter,
@@ -65,7 +65,7 @@ def test_apps_query(
     response = staff_api_client.post_graphql(
         QUERY_APPS_WITH_FILTER,
         variables,
-        permissions=[permission_manage_apps, permission_manage_webhooks],
+        permissions=[permission_manage_apps, permission_manage_orders],
     )
     content = get_graphql_content(response)
 

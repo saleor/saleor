@@ -106,14 +106,13 @@ class App(CountableDjangoObjectType):
         return root.webhooks.all()
 
 
-class AppOngoingInstallation(CountableDjangoObjectType):
+class AppInstallation(CountableDjangoObjectType):
     class Meta:
-        model = models.AppJob
+        model = models.AppInstallation
         description = "Represents ongoing installation of app."
-        interface = (Job,)
+        interfaces = [graphene.relay.Node, Job]
         permissions = (AppPermission.MANAGE_APPS,)
         only_fields = [
-            "id",
             "status",
             "created_at",
             "updated_at",

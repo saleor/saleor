@@ -208,15 +208,15 @@ class AppDelete(ModelDeleteMutation):
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
 
-class AppDropFailedInstallation(ModelDeleteMutation):
+class AppDeleteFailedInstallation(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
-            description="ID of failed installation to drop.", required=True
+            description="ID of failed installation to delete.", required=True
         )
 
     class Meta:
-        description = "Drop failed installation."
-        model = models.AppJob
+        description = "Delete failed installation."
+        model = models.AppInstallation
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
@@ -233,7 +233,7 @@ class AppDropFailedInstallation(ModelDeleteMutation):
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
         if instance.status != JobStatus.FAILED:
-            msg = "Cannot drop installation with different status than failed."
+            msg = "Cannot delete installation with different status than failed."
             code = AppErrorCode.FORBIDDEN.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
@@ -249,7 +249,7 @@ class AppRetryInstall(ModelMutation):
 
     class Meta:
         description = "Retry failed installation of new app."
-        model = models.AppJob
+        model = models.AppInstallation
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
@@ -272,18 +272,18 @@ class AppRetryInstall(ModelMutation):
 
         if instance.status != JobStatus.FAILED:
             msg = "Cannot retry installation with different status than failed."
-            code = AppErrorCode.FORBIDDEN.value
+            code = AppErrorCode.INVALID_STATUS.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
         activate_after_installation = data.get("activate_after_installation")
-        app_job = cls.get_instance(info, **data)
-        cls.clean_instance(info, app_job)
+        app_installation = cls.get_instance(info, **data)
+        cls.clean_instance(info, app_installation)
 
-        cls.save(info, app_job, cleaned_input=None)
-        install_app_task.delay(app_job.pk, activate_after_installation)
-        return cls.success_response(app_job)
+        cls.save(info, app_installation, cleaned_input=None)
+        install_app_task.delay(app_installation.pk, activate_after_installation)
+        return cls.success_response(app_installation)
 
 
 class AppInstallInput(graphene.InputObjectType):
@@ -308,7 +308,7 @@ class AppInstall(ModelMutation):
 
     class Meta:
         description = "Install new app by using app manifest."
-        model = models.AppJob
+        model = models.AppInstallation
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
