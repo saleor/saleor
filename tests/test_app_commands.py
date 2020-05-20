@@ -4,7 +4,7 @@ import pytest
 import requests
 from django.core.management import call_command
 
-from saleor.app.models import App, AppJob
+from saleor.app.models import App, AppInstallation
 from saleor.core import JobStatus
 from saleor.core.permissions import get_permissions
 
@@ -12,7 +12,7 @@ from saleor.core.permissions import get_permissions
 @pytest.mark.vcr
 def test_creates_app_from_manifest():
     manifest_url = "http://localhost:3000/manifest"
-    call_command("create_app_from_manifest", manifest_url)
+    call_command("install_app", manifest_url)
 
     app = App.objects.get()
 
@@ -24,7 +24,7 @@ def test_creates_app_from_manifest():
 @pytest.mark.vcr
 def test_creates_app_from_manifest_activate_app():
     manifest_url = "http://localhost:3000/manifest"
-    call_command("create_app_from_manifest", manifest_url, activate=True)
+    call_command("install_app", manifest_url, activate=True)
 
     app = App.objects.get()
 
@@ -38,7 +38,7 @@ def test_creates_app_from_manifest_app_has_all_required_permissions():
     manifest_url = "http://localhost:3000/manifest"
     permission_list = ["account.manage_users", "order.manage_orders"]
     expected_permission = get_permissions(permission_list)
-    call_command("create_app_from_manifest", manifest_url)
+    call_command("install_app", manifest_url)
 
     app = App.objects.get()
     assert set(app.permissions.all()) == set(expected_permission)
@@ -53,7 +53,7 @@ def test_creates_app_from_manifest_sends_token(monkeypatch):
     monkeypatch.setattr(requests, "post", mocked_post)
     manifest_url = "http://localhost:3000/manifest"
 
-    call_command("create_app_from_manifest", manifest_url)
+    call_command("install_app", manifest_url)
 
     app = App.objects.get()
     token = app.tokens.all()[0].auth_token
@@ -70,9 +70,9 @@ def test_creates_app_from_manifest_installation_failed():
     manifest_url = "http://localhost:3000/manifest-wrong"
 
     with pytest.raises(Exception):
-        call_command("create_app_from_manifest", manifest_url)
+        call_command("install_app", manifest_url)
 
-    app_job = AppJob.objects.get()
+    app_job = AppInstallation.objects.get()
     assert app_job.status == JobStatus.FAILED
 
 

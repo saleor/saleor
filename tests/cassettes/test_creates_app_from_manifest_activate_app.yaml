@@ -14,13 +14,13 @@ interactions:
     uri: http://localhost:3000/manifest
   response:
     body:
-      string: "{\n  \"name\": \"app\",\n  \"version\": \"1.0.0\",\n  \"about_app\"\
-        : \"Lorem ipsum\",\n  \"data_privacy\": \"Lorem ipsum\",\n  \"data_privacy_url\"\
-        : \"http://localhost:8888/app-data-privacy\",\n  \"homepage_url\": \"http://localhost:8888/homepage\"\
-        ,\n  \"support_url\": \"http://localhost:8888/support\",\n  \"configuration_url\"\
-        : \"htpp://localhost:8888/configuration\",\n  \"app_url\": \"http://localhost:8888/app\"\
-        ,\n  \"token_target_url\": \"http://localhost:3000/register\",\n  \"identificator\"\
-        : \"app2\",\n  \"permissions\": [\n    \"MANAGE_USERS\",\n    \"MANAGE_ORDERS\"\
+      string: "{\n  \"name\": \"app\",\n  \"version\": \"1.0.0\",\n  \"aboutApp\"\
+        : \"Lorem ipsum\",\n  \"dataPrivacy\": \"Lorem ipsum\",\n  \"dataPrivacyUrl\"\
+        : \"http://localhost:8888/app-data-privacy\",\n  \"homepageUrl\": \"http://localhost:8888/homepage\"\
+        ,\n  \"supportUrl\": \"http://localhost:8888/support\",\n  \"configurationUrl\"\
+        : \"htpp://localhost:8888/configuration\",\n  \"appUrl\": \"http://localhost:8888/app\"\
+        ,\n  \"tokenTargetUrl\": \"http://localhost:3000/register\",\n  \"id\": \"\
+        app2\",\n  \"permissions\": [\n    \"MANAGE_USERS\",\n    \"MANAGE_ORDERS\"\
         \n  ]\n}"
     headers:
       Access-Control-Allow-Credentials:
@@ -30,13 +30,13 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '521'
+      - '500'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 14 May 2020 12:38:40 GMT
+      - Wed, 20 May 2020 07:56:35 GMT
       ETag:
-      - W/"209-nZ8IFYM5Y7abK3rAKwcp0Qk6oSw"
+      - W/"1f4-qx17e+bDbZJtTZiNJJshOoM1U6s"
       Expires:
       - '-1'
       Pragma:
@@ -65,13 +65,13 @@ interactions:
     uri: http://localhost:3000/manifest
   response:
     body:
-      string: "{\n  \"name\": \"app\",\n  \"version\": \"1.0.0\",\n  \"about_app\"\
-        : \"Lorem ipsum\",\n  \"data_privacy\": \"Lorem ipsum\",\n  \"data_privacy_url\"\
-        : \"http://localhost:8888/app-data-privacy\",\n  \"homepage_url\": \"http://localhost:8888/homepage\"\
-        ,\n  \"support_url\": \"http://localhost:8888/support\",\n  \"configuration_url\"\
-        : \"htpp://localhost:8888/configuration\",\n  \"app_url\": \"http://localhost:8888/app\"\
-        ,\n  \"token_target_url\": \"http://localhost:3000/register\",\n  \"identificator\"\
-        : \"app2\",\n  \"permissions\": [\n    \"MANAGE_USERS\",\n    \"MANAGE_ORDERS\"\
+      string: "{\n  \"name\": \"app\",\n  \"version\": \"1.0.0\",\n  \"aboutApp\"\
+        : \"Lorem ipsum\",\n  \"dataPrivacy\": \"Lorem ipsum\",\n  \"dataPrivacyUrl\"\
+        : \"http://localhost:8888/app-data-privacy\",\n  \"homepageUrl\": \"http://localhost:8888/homepage\"\
+        ,\n  \"supportUrl\": \"http://localhost:8888/support\",\n  \"configurationUrl\"\
+        : \"htpp://localhost:8888/configuration\",\n  \"appUrl\": \"http://localhost:8888/app\"\
+        ,\n  \"tokenTargetUrl\": \"http://localhost:3000/register\",\n  \"id\": \"\
+        app2\",\n  \"permissions\": [\n    \"MANAGE_USERS\",\n    \"MANAGE_ORDERS\"\
         \n  ]\n}"
     headers:
       Access-Control-Allow-Credentials:
@@ -81,13 +81,13 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '521'
+      - '500'
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 14 May 2020 12:38:40 GMT
+      - Wed, 20 May 2020 07:56:35 GMT
       ETag:
-      - W/"209-nZ8IFYM5Y7abK3rAKwcp0Qk6oSw"
+      - W/"1f4-qx17e+bDbZJtTZiNJJshOoM1U6s"
       Expires:
       - '-1'
       Pragma:
@@ -102,7 +102,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"auth_token": "umPfSpRLbHIAfERSyxcinanPNV0c71"}'
+    body: '{"auth_token": "23tlfEQfMSrESRqUpbCTMy8ay0EwJg"}'
     headers:
       Accept:
       - '*/*'
@@ -122,8 +122,8 @@ interactions:
     uri: http://localhost:3000/register
   response:
     body:
-      string: "{\n  \"auth_token\": \"umPfSpRLbHIAfERSyxcinanPNV0c71\",\n  \"id\"\
-        : 21\n}"
+      string: "{\n  \"auth_token\": \"23tlfEQfMSrESRqUpbCTMy8ay0EwJg\",\n  \"id\"\
+        : 34\n}"
     headers:
       Access-Control-Allow-Credentials:
       - 'true'
@@ -138,13 +138,13 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 14 May 2020 12:38:40 GMT
+      - Wed, 20 May 2020 07:56:35 GMT
       ETag:
-      - W/"40-IeSY594Wsx2DnlKP2tiXVGPvB78"
+      - W/"40-i+NNNM2WFjhlDPsT878oGqgzFoM"
       Expires:
       - '-1'
       Location:
-      - http://localhost:3000/register/21
+      - http://localhost:3000/register/34
       Pragma:
       - no-cache
       Vary:
