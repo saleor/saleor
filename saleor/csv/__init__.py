@@ -24,6 +24,6 @@ class FileTypes:
     XLSX = "xlsx"
 
     CHOICES = [
-        (CSV, "Plain csv file."),
-        (XLSX, "Excel .xlsx file."),
+        (CSV, "Plain CSV file."),
+        (XLSX, "Excel XLSX file."),
     ]
