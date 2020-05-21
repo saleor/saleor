@@ -86,7 +86,8 @@ def test_generate_sample_payload_fulfillment_created(fulfillment):
     )
     assert order.metadata != sample_fulfillment_payload["order"]["metadata"]
     assert (
-        order.private_metadata != sample_fulfillment_payload["order"]["private_metadata"]
+        order.private_metadata
+        != sample_fulfillment_payload["order"]["private_metadata"]
     )
 
     # Remove anonymized data
