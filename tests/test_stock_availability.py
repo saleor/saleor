@@ -24,9 +24,11 @@ def test_check_stock_quantity_out_of_stock(variant_with_many_stocks):
 
 
 def test_check_stock_quantity_with_allocations(
-    variant_with_many_stocks, order_line_with_allocation_in_many_stocks
+    variant_with_many_stocks,
+    order_line_with_allocation_in_many_stocks,
+    order_line_with_one_allocation,
 ):
-    assert check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 4) is None
+    assert check_stock_quantity(variant_with_many_stocks, COUNTRY_CODE, 3) is None
 
 
 def test_check_stock_quantity_with_allocations_out_of_stock(
@@ -59,10 +61,12 @@ def test_get_available_quantity(variant_with_many_stocks):
 
 
 def test_get_available_quantity_with_allocations(
-    variant_with_many_stocks, order_line_with_allocation_in_many_stocks
+    variant_with_many_stocks,
+    order_line_with_allocation_in_many_stocks,
+    order_line_with_one_allocation,
 ):
     available_quantity = get_available_quantity(variant_with_many_stocks, COUNTRY_CODE)
-    assert available_quantity == 4
+    assert available_quantity == 3
 
 
 def test_get_available_quantity_without_stocks(variant_with_many_stocks):
@@ -101,12 +105,14 @@ def test_get_available_quantity_for_customer_with_max(
 
 
 def test_get_available_quantity_for_customer_with_allocations(
-    variant_with_many_stocks, order_line_with_allocation_in_many_stocks
+    variant_with_many_stocks,
+    order_line_with_allocation_in_many_stocks,
+    order_line_with_one_allocation,
 ):
     available_quantity = get_available_quantity_for_customer(
         variant_with_many_stocks, COUNTRY_CODE
     )
-    assert available_quantity == 4
+    assert available_quantity == 3
 
 
 @override_settings(MAX_CHECKOUT_LINE_QUANTITY=15)
