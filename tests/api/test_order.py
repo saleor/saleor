@@ -1466,6 +1466,21 @@ def test_order_add_note_fail_on_empty_message(
     assert data["orderErrors"][0]["code"] == OrderErrorCode.REQUIRED.name
 
 
+MUTATION_ORDER_CANCEL = """
+mutation cancelOrder($id: ID!) {
+    orderCancel(id: $id) {
+        order {
+            status
+        }
+        orderErrors{
+            field
+            code
+        }
+    }
+}
+"""
+
+
 @patch("saleor.graphql.order.mutations.orders.cancel_order")
 @patch("saleor.graphql.order.mutations.orders.clean_order_cancel")
 def test_order_cancel(
@@ -1476,23 +1491,10 @@ def test_order_cancel(
     order_with_lines,
 ):
     order = order_with_lines
-    query = """
-        mutation cancelOrder($id: ID!) {
-            orderCancel(id: $id) {
-                order {
-                    status
-                }
-                orderErrors{
-                    field
-                    code
-                }
-            }
-        }
-    """
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        MUTATION_ORDER_CANCEL, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     data = content["data"]["orderCancel"]
@@ -1512,23 +1514,10 @@ def test_order_cancel_as_app(
     order_with_lines,
 ):
     order = order_with_lines
-    query = """
-        mutation cancelOrder($id: ID!) {
-            orderCancel(id: $id) {
-                order {
-                    status
-                }
-                orderErrors{
-                    field
-                    code
-                }
-            }
-        }
-    """
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = app_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        MUTATION_ORDER_CANCEL, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     data = content["data"]["orderCancel"]
@@ -2187,6 +2176,19 @@ def test_query_draft_order_by_token_as_anonymous_customer(api_client, draft_orde
     assert not content["data"]["orderByToken"]
 
 
+MUTATION_ORDER_BULK_CANCEL = """
+mutation CancelManyOrders($ids: [ID]!) {
+    orderBulkCancel(ids: $ids) {
+        count
+        orderErrors{
+            field
+            code
+        }
+    }
+}
+"""
+
+
 @patch("saleor.graphql.order.bulk_mutations.orders.cancel_order")
 def test_order_bulk_cancel(
     mock_cancel_order,
@@ -2196,17 +2198,6 @@ def test_order_bulk_cancel(
     permission_manage_orders,
     address,
 ):
-    query = """
-        mutation CancelManyOrders($ids: [ID]!) {
-            orderBulkCancel(ids: $ids) {
-                count
-                orderErrors{
-                    field
-                    code
-                }
-            }
-        }
-    """
     orders = order_list
     orders.append(fulfilled_order_with_all_cancelled_fulfillments)
     expected_count = sum(order.can_cancel() for order in orders)
@@ -2214,7 +2205,7 @@ def test_order_bulk_cancel(
         "ids": [graphene.Node.to_global_id("Order", order.id) for order in orders],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        MUTATION_ORDER_BULK_CANCEL, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     data = content["data"]["orderBulkCancel"]
@@ -2222,6 +2213,35 @@ def test_order_bulk_cancel(
     assert not data["orderErrors"]
 
     calls = [call(order=order, user=staff_api_client.user) for order in orders]
+
+    mock_cancel_order.assert_has_calls(calls, any_order=True)
+    mock_cancel_order.call_count == expected_count
+
+
+@patch("saleor.graphql.order.bulk_mutations.orders.cancel_order")
+def test_order_bulk_cancel_as_app(
+    mock_cancel_order,
+    app_api_client,
+    order_list,
+    fulfilled_order_with_all_cancelled_fulfillments,
+    permission_manage_orders,
+    address,
+):
+    orders = order_list
+    orders.append(fulfilled_order_with_all_cancelled_fulfillments)
+    expected_count = sum(order.can_cancel() for order in orders)
+    variables = {
+        "ids": [graphene.Node.to_global_id("Order", order.id) for order in orders],
+    }
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_BULK_CANCEL, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderBulkCancel"]
+    assert data["count"] == expected_count
+    assert not data["orderErrors"]
+
+    calls = [call(order=order, user=AnonymousUser()) for order in orders]
 
     mock_cancel_order.assert_has_calls(calls, any_order=True)
     mock_cancel_order.call_count == expected_count
