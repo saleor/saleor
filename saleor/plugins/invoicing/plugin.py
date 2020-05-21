@@ -1,8 +1,8 @@
-from datetime import datetime
 from typing import Any, Optional
 
-import pytz
+from django.urls import reverse
 
+from ...core.utils import build_absolute_uri
 from ...order.models import Invoice, Order
 from ..base_plugin import BasePlugin
 from . import generate_invoice_number, generate_invoice_pdf
@@ -12,7 +12,7 @@ class InvoicingPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.invoicing"
     PLUGIN_NAME = "Invoicing"
     DEFAULT_ACTIVE = True
-    PLUGIN_DESCRIPTION = "Default saleor plugin that handles invoice creation."
+    PLUGIN_DESCRIPTION = "Built-in saleor plugin that handles invoice creation."
 
     def invoice_request(
         self,
@@ -21,10 +21,12 @@ class InvoicingPlugin(BasePlugin):
         number: Optional[str],
         previous_value: Any,
     ) -> Any:
+        file_hash, creation_date = generate_invoice_pdf(invoice)
+        invoice.created = creation_date
         invoice.update_invoice(number=generate_invoice_number())
-        invoice.created = datetime.now(tz=pytz.utc)
         invoice.save()
-        file_name = generate_invoice_pdf(invoice)
-        invoice.update_invoice(url=f"http://localhost:8000/invoice/{file_name}")
+        invoice.update_invoice(
+            url=build_absolute_uri(reverse("download-invoice", args=[file_hash]))
+        )
         invoice.fullfill_invoice()
         return invoice
