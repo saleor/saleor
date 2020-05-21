@@ -2,11 +2,13 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib.staticfiles.views import serve
+from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 
 from .data_feeds.urls import urlpatterns as feed_urls
 from .graphql.api import schema
 from .graphql.views import GraphQLView
+from .order.views import download_invoice
 from .product.views import digital_product
 
 urlpatterns = [
@@ -16,6 +18,11 @@ urlpatterns = [
         r"^digital-download/(?P<token>[0-9A-Za-z_\-]+)/$",
         digital_product,
         name="digital-product",
+    ),
+    path(
+        "download-invoice/<uuid:invoice_hash>/",
+        download_invoice,
+        name="download-invoice",
     ),
 ]
 

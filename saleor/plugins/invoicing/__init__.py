@@ -3,6 +3,7 @@ import re
 from datetime import datetime
 from uuid import uuid4
 
+import pytz
 from django.conf import settings
 from django.contrib.staticfiles import finders as static_finders
 from django.core.files.base import ContentFile
@@ -73,11 +74,12 @@ def generate_invoice_pdf(invoice):
     rest_of_products = chunk_products(
         all_products[product_limit_first_page:], MAX_PRODUCTS_PER_PAGE
     )
+    cretion_date = datetime.now(tz=pytz.utc)
 
     rendered_template = get_template("invoices/invoice.html").render(
         {
             "invoice": invoice,
-            "creation_date": invoice.created.strftime("%d %b %Y"),
+            "creation_date": cretion_date.strftime("%d %b %Y"),
             "order": invoice.order,
             "logo_path": f"file://{logo_path}",
             "font_path": f"file://{font_path}",
@@ -86,4 +88,6 @@ def generate_invoice_pdf(invoice):
         }
     )
     content_file = ContentFile(HTML(string=rendered_template).write_pdf())
-    return default_storage.save(f"{uuid4()}.pdf", content_file)
+    identifier = uuid4()
+    default_storage.save(f"{identifier}.pdf", content_file)
+    return identifier, cretion_date

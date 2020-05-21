@@ -3026,6 +3026,21 @@ def test_request_invoice(
     ).exists()
 
 
+@patch("saleor.plugins.invoicing.default_storage")
+def test_request_invoice_with_plugin(
+    stor_mock, staff_api_client, permission_manage_orders, order, setup_invoicing
+):
+    stor_mock.save = Mock(return_value=f"{uuid.uuid4()}.pdf")
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", order.pk),
+    }
+    staff_api_client.post_graphql(
+        REQUEST_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    invoice = Invoice.objects.get(order=order)
+    assert invoice.status == InvoiceStatus.READY
+
+
 def test_request_invoice_draft_order(staff_api_client, permission_manage_orders, order):
     order.status = OrderStatus.DRAFT
     order.save()
