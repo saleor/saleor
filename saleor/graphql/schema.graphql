@@ -757,7 +757,6 @@ type Checkout implements Node & ObjectWithMetadata {
   created: DateTime!
   lastChange: DateTime!
   user: User
-  token: UUID!
   quantity: Int!
   billingAddress: Address
   shippingAddress: Address
@@ -780,6 +779,7 @@ type Checkout implements Node & ObjectWithMetadata {
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
   subtotalPrice: TaxedMoney
+  token: UUID!
   totalPrice: TaxedMoney
 }
 
@@ -1609,12 +1609,12 @@ input DigitalContentUploadInput {
 }
 
 type DigitalContentUrl implements Node {
-  token: UUID!
   content: DigitalContent!
   created: DateTime!
   downloadNum: Int!
   id: ID!
   url: String
+  token: UUID!
 }
 
 type DigitalContentUrlCreate {

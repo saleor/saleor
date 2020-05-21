@@ -4446,7 +4446,7 @@ def test_create_product_with_weight_input(
     query = f"""
     mutation createProduct(
             $productType: ID!,
-            $category: ID!
+            $category: ID!,
             $name: String!,
             $sku: String,
             $basePrice: Decimal!)
