@@ -160,6 +160,10 @@ def test_availability(stock, monkeypatch, settings):
 
 
 def test_available_products_only_published(product_list):
+    product = product_list[0]
+    product.is_published = False
+    product.save()
+
     available_products = models.Product.objects.published()
     assert available_products.count() == 2
     assert all([product.is_published for product in available_products])
@@ -171,5 +175,5 @@ def test_available_products_only_available(product_list):
     product.publication_date = date_tomorrow
     product.save()
     available_products = models.Product.objects.published()
-    assert available_products.count() == 1
+    assert available_products.count() == 2
     assert all([product.is_visible for product in available_products])

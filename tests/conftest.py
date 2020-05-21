@@ -928,7 +928,7 @@ def product_list(product_type, category, warehouse):
                     price=Money(20, "USD"),
                     category=category,
                     product_type=product_type,
-                    is_published=False,
+                    is_published=True,
                 ),
                 Product(
                     pk=1489,
