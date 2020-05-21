@@ -6,7 +6,7 @@ DRAFT = "draft"
 CANCELED = "canceled"
 
 
-def create_allocations(apps, schema_editor):
+def remove_invalid_allocations(apps, schema_editor):
     Allocation = apps.get_model("warehouse", "Allocation")
     invalid_allocation = Allocation.objects.filter(
         order_line__order__status__in=[DRAFT, CANCELED]
@@ -21,5 +21,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(create_allocations),
+        migrations.RunPython(remove_invalid_allocations),
     ]
