@@ -109,6 +109,7 @@ LANGUAGES = [
     ("sr", "Serbian"),
     ("sv", "Swedish"),
     ("sw", "Swahili"),
+    ("ta", "Tamil"),
     ("th", "Thai"),
     ("tr", "Turkish"),
     ("uk", "Ukrainian"),

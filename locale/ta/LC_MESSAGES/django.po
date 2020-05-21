@@ -3,19 +3,22 @@
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
+# Translators:
+# Prabhu P <cfprabhu@yahoo.com>, 2020
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-05-21 06:13-0500\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2017-02-08 11:00+0000\n"
+"Last-Translator: Prabhu P <cfprabhu@yahoo.com>, 2020\n"
+"Language-Team: Tamil (https://www.transifex.com/mirumee/teams/34782/ta/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: ta\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
@@ -42,8 +45,7 @@ msgstr ""
 msgctxt "Account delete reset e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
 "Click the link below to delete your account.\n"
 "\n"
 "Please note that this action is permanent and cannot be reversed.\n"
@@ -59,8 +61,7 @@ msgstr ""
 msgctxt "Account confirmation e-mail text"
 msgid ""
 "\n"
-"In order to log into %(domain)s, you have to confirm your email address "
-"first.\n"
+"In order to log into %(domain)s, you have to confirm your email address first.\n"
 "Please click the link below to do so and log into your account.\n"
 msgstr ""
 
@@ -76,8 +77,7 @@ msgctxt "Email change e-mail text"
 msgid ""
 "\n"
 "\n"
-"You're receiving this e-mail because you or someone else has changed email "
-"for your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
 "If you didn't request this change, please contact the administrator.\n"
 msgstr ""
 
@@ -91,10 +91,8 @@ msgstr ""
 msgctxt "Password reset e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.\n"
-"It can be safely ignored if you did not request a password reset. Click the "
-"link below to reset your password.\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
 
 #: templates/templated_email/account/request_email_change.email:9
@@ -103,10 +101,8 @@ msgctxt "Email change e-mail text"
 msgid ""
 "\n"
 "\n"
-"You're receiving this e-mail because you or someone else has requested an "
-"email change for your user account at %(domain)s.\n"
-"It can be safely ignored if you did not request an email change. Click the "
-"link below to confirm new email address.\n"
+"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
 msgstr ""
 
 #: templates/templated_email/dashboard/customer/set_password.email:2
@@ -120,8 +116,7 @@ msgstr ""
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you have to set a password for your "
-"customer account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
 
@@ -136,8 +131,7 @@ msgstr ""
 msgctxt "Set password for staff member e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you have to set a password for your "
-"staff member account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
 
@@ -213,7 +207,7 @@ msgstr ""
 #: templates/templated_email/order/staff_confirm_order.email:26
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes"
-msgstr ""
+msgstr "வரி"
 
 #: templates/templated_email/order/confirm_order.email:27
 #: templates/templated_email/order/staff_confirm_order.email:27
@@ -289,8 +283,7 @@ msgstr ""
 msgctxt "Fulfillment update email text"
 msgid ""
 "\n"
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number.\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
 msgstr ""
 
 #: templates/templated_email/order/update_fulfillment.email:15
@@ -336,8 +329,8 @@ msgctxt "Account delete e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
 "deletion of your user account at %(domain)s.<br/> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be "
-"reversed."
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
 msgstr ""
 
 #: templates/templated_email/source/confirm.mjml:16
@@ -358,22 +351,23 @@ msgstr ""
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid ""
-"You can track your shipment with <a href=\"%(tracking_number)s\">"
-"%(tracking_number)s</a> link."
+"You can track your shipment with <a "
+"href=\"%(tracking_number)s\">%(tracking_number)s</a> link."
 msgstr ""
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:33
 msgctxt "Fulfillment digital products email text"
-msgid "You can download your digital products by clicking in download link(s)."
+msgid ""
+"You can download your digital products by clicking in download link(s)."
 msgstr ""
 
 #: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit: <a href=\"%(order_details_url)s\">"
-"%(order_details_url)s</a>"
+"Thank you for your order. Below is the list of ordered products. To see your"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
 #: templates/templated_email/source/confirm_payment.mjml:16
@@ -426,12 +420,12 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:31
 msgctxt "E-mail order lines summary table"
 msgid "Taxes"
-msgstr ""
+msgstr "வரி"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:41
 msgctxt "E-mail order lines summary table"
 msgid "Discount"
-msgstr ""
+msgstr "தள்ளுபடி"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:50
 msgctxt "E-mail order lines summary table"
@@ -481,8 +475,8 @@ msgstr ""
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
-"You're receiving this e-mail because you have to set password for your staff "
-"member account at %(domain)s.<br/> Click the link below to set up your "
+"You're receiving this e-mail because you have to set password for your staff"
+" member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
@@ -490,13 +484,13 @@ msgstr ""
 #, python-format
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
-"Someone placed a new order in your store. To see order details please visit: "
-"<a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+"Someone placed a new order in your store. To see order details please visit:"
+" <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
 #: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number."
+"Your shipping status has been updated. Below is the list of ordered products"
+" that have been updated with new tracking number."
 msgstr ""
