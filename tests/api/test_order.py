@@ -4,6 +4,7 @@ from unittest.mock import ANY, MagicMock, Mock, call, patch
 
 import graphene
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
@@ -1499,6 +1500,42 @@ def test_order_cancel(
 
     mock_clean_order_cancel.assert_called_once_with(order)
     mock_cancel_order.assert_called_once_with(order=order, user=staff_api_client.user)
+
+
+@patch("saleor.graphql.order.mutations.orders.cancel_order")
+@patch("saleor.graphql.order.mutations.orders.clean_order_cancel")
+def test_order_cancel_as_app(
+    mock_clean_order_cancel,
+    mock_cancel_order,
+    app_api_client,
+    permission_manage_orders,
+    order_with_lines,
+):
+    order = order_with_lines
+    query = """
+        mutation cancelOrder($id: ID!) {
+            orderCancel(id: $id) {
+                order {
+                    status
+                }
+                orderErrors{
+                    field
+                    code
+                }
+            }
+        }
+    """
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderCancel"]
+    assert not data["orderErrors"]
+
+    mock_clean_order_cancel.assert_called_once_with(order)
+    mock_cancel_order.assert_called_once_with(order=order, user=AnonymousUser())
 
 
 def test_order_capture(
