@@ -285,7 +285,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                     )
                 except ProductNotPublished as exc:
                     raise ValidationError(
-                        f"Can't create checkout with unpublished product.",
+                        "Can't create checkout with unpublished product.",
                         code=exc.code,
                     )
         # Save provided addresses and associate them to the checkout
@@ -360,7 +360,7 @@ class CheckoutLinesAdd(BaseMutation):
                     )
                 except ProductNotPublished as exc:
                     raise ValidationError(
-                        f"Can't create checkout with unpublished product.",
+                        "Can't create checkout with unpublished product.",
                         code=exc.code,
                     )
 
