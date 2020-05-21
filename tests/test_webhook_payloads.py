@@ -66,7 +66,7 @@ def test_generate_sample_payload_order(
     assert payload == order_payload
 
 
-def test_generate_sample_playload_fulfillment_created(fulfillment):
+def test_generate_sample_payload_fulfillment_created(fulfillment):
     sample_fulfillment_payload = generate_sample_payload(
         WebhookEventType.FULFILLMENT_CREATED
     )[0]
