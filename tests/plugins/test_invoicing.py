@@ -9,10 +9,6 @@ from saleor.plugins.invoicing import (
 )
 
 
-def test_request_invoice(setup_invoicing):
-    pass
-
-
 def test_chunk_products(product):
     assert chunk_products([product] * 3, 3) == [[product] * 3]
     assert chunk_products([product] * 5, 3) == [[product] * 3, [product] * 2]
