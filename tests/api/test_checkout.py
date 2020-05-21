@@ -754,6 +754,28 @@ def test_checkout_lines_add(
     )
 
 
+def test_checkout_lines_add_with_unpublished_product(
+    user_api_client, checkout_with_item, stock
+):
+    variant = stock.product_variant
+    stock.product_variant.product.is_published = False
+    stock.product_variant.product.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    content = get_graphql_content(response)
+    error = content["data"]["checkoutLinesAdd"]["errors"][0]
+    assert error["message"] == "Can't create checkout with unpublished product."
+
+
 def test_checkout_lines_add_too_many(user_api_client, checkout_with_item, stock):
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
@@ -907,6 +929,28 @@ def test_checkout_lines_update(
     mocked_update_shipping_method.assert_called_once_with(
         checkout, list(checkout), mock.ANY
     )
+
+
+def test_checkout_lines_update_with_unpublished_product(
+    user_api_client, checkout_with_item
+):
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    variant = line.variant
+    variant.product.is_published = False
+    variant.product.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+
+    error = get_graphql_content(response)["data"]["checkoutLinesUpdate"]["errors"][0]
+    assert error["message"] == "Can't create checkout with unpublished product."
 
 
 def test_checkout_lines_update_invalid_checkout_id(user_api_client):

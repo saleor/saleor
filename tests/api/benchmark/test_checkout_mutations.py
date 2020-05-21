@@ -230,6 +230,50 @@ def test_create_checkout(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
+def test_create_checkout_with_unpublished_product(
+    api_client, graphql_address_data, stock, count_queries,
+):
+    stock.product_variant.product.is_published = False
+    stock.product_variant.product.save()
+    query = (
+        FRAGMENT_CHECKOUT
+        + """
+            mutation CreateCheckout($checkoutInput: CheckoutCreateInput!) {
+              checkoutCreate(input: $checkoutInput) {
+                errors {
+                  field
+                  message
+                }
+                checkout {
+                  ...Checkout
+                }
+              }
+            }
+        """
+    )
+
+    variables = {
+        "checkoutInput": {
+            "email": "test@example.com",
+            "shippingAddress": graphql_address_data,
+            "lines": [
+                {
+                    "quantity": 1,
+                    "variantId": Node.to_global_id(
+                        "ProductVariant", stock.product_variant.pk
+                    ),
+                },
+            ],
+        }
+    }
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+
+    error = response["data"]["checkoutCreate"]["errors"][0]
+    assert error["message"] == "Can't create checkout with unpublished product."
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
 def test_add_shipping_to_checkout(
     api_client, checkout_with_shipping_address, shipping_method, count_queries,
 ):
