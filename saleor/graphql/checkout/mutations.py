@@ -24,7 +24,7 @@ from ...checkout.utils import (
     remove_promo_code_from_checkout,
 )
 from ...core import analytics
-from ...core.exceptions import InsufficientStock
+from ...core.exceptions import InsufficientStock, ProductNotPublished
 from ...core.permissions import OrderPermissions
 from ...core.taxes import TaxError
 from ...core.utils.url import validate_storefront_url
@@ -283,7 +283,11 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                     raise ValidationError(
                         f"Insufficient product stock: {exc.item}", code=exc.code
                     )
-
+                except ProductNotPublished as exc:
+                    raise ValidationError(
+                        "Can't create checkout with unpublished product.",
+                        code=exc.code,
+                    )
         # Save provided addresses and associate them to the checkout
         cls.save_addresses(instance, cleaned_input)
 
@@ -353,6 +357,10 @@ class CheckoutLinesAdd(BaseMutation):
                 except InsufficientStock as exc:
                     raise ValidationError(
                         f"Insufficient product stock: {exc.item}", code=exc.code
+                    )
+                except ProductNotPublished as exc:
+                    raise ValidationError(
+                        "Can't add unpublished product.", code=exc.code,
                     )
 
         lines = list(checkout)
