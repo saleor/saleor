@@ -130,4 +130,4 @@ def test_cannot_drop_installation_if_status_is_different_than_failed(
 
     assert len(app_installation_errors) == 1
     assert app_installation_errors[0]["field"] == "id"
-    assert app_installation_errors[0]["code"] == AppErrorCode.FORBIDDEN.name
+    assert app_installation_errors[0]["code"] == AppErrorCode.INVALID_STATUS.name

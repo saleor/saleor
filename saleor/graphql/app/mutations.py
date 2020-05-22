@@ -234,7 +234,7 @@ class AppDeleteFailedInstallation(ModelDeleteMutation):
 
         if instance.status != JobStatus.FAILED:
             msg = "Cannot delete installation with different status than failed."
-            code = AppErrorCode.FORBIDDEN.value
+            code = AppErrorCode.INVALID_STATUS.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
 
