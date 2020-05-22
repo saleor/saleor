@@ -382,7 +382,7 @@ def test_send_email_with_link_to_download_csv(
     csv_emails.send_email_with_link_to_download_csv(export_file, "export_products")
     template = csv_emails.EXPORT_TEMPLATES["export_products"]
     ctx = {
-        "csv_link": f"http://mirumee.com/media/csv_files/{file_mock.name}",
+        "csv_link": f"http://mirumee.com/media/export_files/{file_mock.name}",
         "domain": "mirumee.com",
         "logo_url": "http://mirumee.com/static/images/logo-light.svg",
         "site_name": "mirumee.com",

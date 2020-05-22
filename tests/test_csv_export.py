@@ -2,13 +2,14 @@ import datetime
 import shutil
 from unittest.mock import ANY, MagicMock, Mock, patch
 
+import openpyxl
 import pytest
 import pytz
 from django.core.files import File
 from freezegun import freeze_time
 
 from saleor.core import JobStatus
-from saleor.csv import ExportEvents
+from saleor.csv import ExportEvents, FileTypes
 from saleor.csv.models import ExportEvent, ExportFile
 from saleor.csv.utils.export import (
     create_csv_file_and_save_in_export_file,
@@ -79,14 +80,25 @@ def test_update_export_file_when_task_finished(export_file):
         assert export_file.updated_at != previous_updated_at
 
 
-@pytest.mark.parametrize("scope", [{"filter": {"is_published": True}}, {"all": ""}])
+@pytest.mark.parametrize(
+    "scope, filet_type",
+    [
+        ({"filter": {"is_published": True}}, FileTypes.CSV),
+        ({"all": ""}, FileTypes.XLSX),
+    ],
+)
 @patch("saleor.csv.utils.export.send_email_with_link_to_download_csv")
 @patch("saleor.csv.utils.export.save_csv_file_in_export_file")
 def test_export_products(
-    save_csv_file_in_export_file_mock, send_email_mock, product_list, export_file, scope
+    save_csv_file_in_export_file_mock,
+    send_email_mock,
+    product_list,
+    export_file,
+    scope,
+    filet_type,
 ):
     export_info = {"fields": [], "warehouses": [], "attributes": []}
-    export_products(export_file.id, scope, export_info)
+    export_products(export_file.id, scope, export_info, filet_type)
 
     save_csv_file_in_export_file_mock.called_once_with(export_file, ANY)
     send_email_mock.called_once_with(export_file)
@@ -99,21 +111,29 @@ def test_export_products_ids(
 ):
     pks = [product.pk for product in product_list[:2]]
     export_info = {"fields": [], "warehouses": [], "attributes": []}
+    file_type = FileTypes.CSV
 
     assert export_file.status == JobStatus.PENDING
     assert not export_file.content_file
 
-    export_products(export_file.id, {"ids": pks}, export_info)
+    export_products(export_file.id, {"ids": pks}, export_info, file_type)
 
     save_csv_file_in_export_file_mock.called_once_with(export_file, ANY)
     send_email_mock.called_once_with(export_file)
 
 
-def test_get_filename():
+def test_get_filename_csv():
     with freeze_time("2000-02-09"):
-        file_name = get_filename("test")
+        file_name = get_filename("test", FileTypes.CSV)
 
         assert file_name == "test_data_09_02_2000.csv"
+
+
+def test_get_filename_xlsx():
+    with freeze_time("2000-02-09"):
+        file_name = get_filename("test", FileTypes.XLSX)
+
+        assert file_name == "test_data_09_02_2000.xlsx"
 
 
 def test_get_product_queryset_all(product_list):
@@ -139,7 +159,7 @@ def get_product_queryset_filter(product_list):
     assert queryset.count() == len(product_list) - 1
 
 
-def test_create_csv_file_and_save_in_export_file(export_file, tmpdir):
+def test_create_csv_file_and_save_in_export_file_csv(export_file, tmpdir):
     from django.conf import settings
 
     settings.MEDIA_ROOT = tmpdir
@@ -159,7 +179,13 @@ def test_create_csv_file_and_save_in_export_file(export_file, tmpdir):
     assert not export_file.content_file
 
     create_csv_file_and_save_in_export_file(
-        export_data, headers, csv_headers_mapping, delimiter, export_file, file_name
+        export_data,
+        headers,
+        csv_headers_mapping,
+        delimiter,
+        export_file,
+        file_name,
+        FileTypes.CSV,
     )
 
     csv_file = export_file.content_file
@@ -173,6 +199,63 @@ def test_create_csv_file_and_save_in_export_file(export_file, tmpdir):
     assert ";".join(headers) in file_content
     assert ";".join(export_data[0].values()) in file_content
     assert (";".join(export_data[1].values()) + "; ") in file_content
+
+    shutil.rmtree(tmpdir)
+
+
+def test_create_csv_file_and_save_in_export_file_xlsx(export_file, tmpdir):
+    from django.conf import settings
+
+    settings.MEDIA_ROOT = tmpdir
+
+    export_data = [
+        {"id": "123", "name": "test1", "collections": "coll1"},
+        {"id": "345", "name": "test2"},
+    ]
+    headers = ["id", "name", "collections"]
+    csv_headers_mapping = {"id": "ID", "name": "NAME", "collections": "COLLECTIONS"}
+    delimiter = ";"
+    export_file = export_file
+    file_name = "test.xlsx"
+
+    export_file_csv_upload_dir = ExportFile.content_file.field.upload_to
+
+    assert not export_file.content_file
+
+    create_csv_file_and_save_in_export_file(
+        export_data,
+        headers,
+        csv_headers_mapping,
+        delimiter,
+        export_file,
+        file_name,
+        FileTypes.XLSX,
+    )
+
+    xlsx_file = export_file.content_file
+    assert xlsx_file
+    assert xlsx_file.name == f"{export_file_csv_upload_dir}/{file_name}"
+
+    wb_obj = openpyxl.load_workbook(xlsx_file)
+
+    sheet_obj = wb_obj.active
+    max_col = sheet_obj.max_column
+    max_row = sheet_obj.max_row
+    expected_headers = list(csv_headers_mapping.values())
+    headers = [sheet_obj.cell(row=1, column=i).value for i in range(1, max_col + 1)]
+    data = []
+    for i in range(2, max_row + 1):
+        row = []
+        for j in range(1, max_col + 1):
+            row.append(sheet_obj.cell(row=i, column=j).value)
+        data.append(row)
+
+    assert headers == expected_headers
+    assert list(export_data[0].values()) in data
+    row2 = list(export_data[1].values())
+    # add string with space for collections column
+    row2.append(" ")
+    assert row2 in data
 
     shutil.rmtree(tmpdir)
 

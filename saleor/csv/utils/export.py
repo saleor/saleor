@@ -7,7 +7,7 @@ from django.utils import timezone
 from ...celeryconf import app
 from ...core import JobStatus
 from ...product.models import Product
-from .. import events
+from .. import FileTypes, events
 from ..emails import send_email_with_link_to_download_csv
 from ..models import ExportFile
 from .products_data import get_products_data
@@ -46,22 +46,31 @@ def export_products(
     export_file_id: int,
     scope: Dict[str, Union[str, dict]],
     export_info: Dict[str, list],
+    file_type: str,
     delimiter: str = ";",
 ):
-    file_name = get_filename("product")
+    file_name = get_filename("product", file_type)
     queryset = get_product_queryset(scope)
 
     export_data, csv_headers_mapping, headers = get_products_data(queryset, export_info)
 
     export_file = ExportFile.objects.get(pk=export_file_id)
     create_csv_file_and_save_in_export_file(
-        export_data, headers, csv_headers_mapping, delimiter, export_file, file_name
+        export_data,
+        headers,
+        csv_headers_mapping,
+        delimiter,
+        export_file,
+        file_name,
+        file_type,
     )
     send_email_with_link_to_download_csv(export_file, "export_products")
 
 
-def get_filename(model_name: str) -> str:
-    return "{}_data_{}.csv".format(model_name, timezone.now().strftime("%d_%m_%Y"))
+def get_filename(model_name: str, file_type: str) -> str:
+    return "{}_data_{}.{}".format(
+        model_name, timezone.now().strftime("%d_%m_%Y"), file_type
+    )
 
 
 def get_product_queryset(scope: Dict[str, Union[str, dict]]) -> "QuerySet":
@@ -89,12 +98,16 @@ def create_csv_file_and_save_in_export_file(
     delimiter: str,
     export_file: ExportFile,
     file_name: str,
+    file_type: str,
 ):
     table = etl.fromdicts(export_data, header=headers, missing=" ")
     table = etl.rename(table, csv_headers_mapping)
 
     with NamedTemporaryFile() as temporary_file:
-        etl.tocsv(table, temporary_file.name, delimiter=delimiter)
+        if file_type == FileTypes.CSV:
+            etl.tocsv(table, temporary_file.name, delimiter=delimiter)
+        else:
+            etl.io.xlsx.toxlsx(table, temporary_file.name)
 
         save_csv_file_in_export_file(export_file, temporary_file, file_name)
 

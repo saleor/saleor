@@ -10,7 +10,7 @@ from . import ExportEvents
 
 class ExportFile(Job):
     created_by = models.ForeignKey(User, related_name="jobs", on_delete=models.CASCADE)
-    content_file = models.FileField(upload_to="csv_files", null=True)
+    content_file = models.FileField(upload_to="export_files", null=True)
 
 
 class ExportEvent(models.Model):
