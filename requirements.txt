@@ -4,9 +4,9 @@ asgiref==3.2.7
 babel==2.8.0
 beautifulsoup4==4.7.1
 billiard==3.6.3.0
-boto3==1.13.12
-botocore==1.16.12
-braintree==3.49.0
+boto3==1.13.15
+botocore==1.16.15
+braintree==4.1.0
 cachetools==4.1.0
 cairocffi==1.1.0
 cairosvg==2.4.2
@@ -72,11 +72,11 @@ oauthlib==3.1.0
 openpyxl==3.0.3
 opentracing==2.3.0
 petl==1.3.0
-phonenumberslite==8.12.3
+phonenumberslite==8.12.4
 pillow==7.1.2
 prices==1.0.0
 promise==2.3
-protobuf==3.12.0
+protobuf==3.12.1
 psycopg2-binary==2.8.5
 purl==1.5
 pyasn1==0.4.8
@@ -96,7 +96,7 @@ rx==1.6.1
 s3transfer==0.3.3
 sentry-sdk==0.14.4
 singledispatch==3.4.0.3
-six==1.14.0
+six==1.15.0
 soupsieve==2.0.1
 sqlparse==0.3.1
 stripe==2.48.0
