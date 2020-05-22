@@ -28,6 +28,6 @@ class ReadOnlyException(Exception):
 
 class ProductNotPublished(Exception):
     def __init__(self, context=None):
-        super().__init__("Can't create checkout with unpublished product.")
+        super().__init__("Can't add unpublished product.")
         self.context = context
         self.code = CheckoutErrorCode.PRODUCT_NOT_PUBLISHED
