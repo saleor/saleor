@@ -7,6 +7,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix invalid allocation after migration - #5678 by @fowczarek
 - Fix order mutations as app - #5680 by @fowczarek
 
+- Add our implementation of UUID scalar - #5646 by @koradon
+- Prevent creating checkout/draft order with unpublished product - #5676 by @d-wysocki
 
 ## 2.10.0
 - OpenTracing support - #5188 by @tomaszszymanski129
