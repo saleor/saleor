@@ -785,6 +785,23 @@ def test_validate_draft_order_non_existing_variant(draft_order):
     assert e.value.error_dict["lines"][0].message == msg
 
 
+def test_validate_draft_order_with_unpublished_product(draft_order):
+    order = draft_order
+    line = order.lines.first()
+    variant = line.variant
+    variant.product.is_published = False
+    variant.product.save()
+    line.refresh_from_db()
+
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order, "US")
+    msg = "Can't finalize draft with unpublished product."
+    error = e.value.error_dict["lines"][0]
+
+    assert error.message == msg
+    assert error.code == OrderErrorCode.PRODUCT_NOT_PUBLISHED
+
+
 def test_validate_draft_order_out_of_stock_variant(draft_order):
     order = draft_order
     line = order.lines.first()
