@@ -3,6 +3,10 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+- Fix multiplied stock quantity - #5675 by @fowczarek
+- Fix invalid allocation after migration - #5678 by @fowczarek
+- Fix order mutations as app - #5680 by @fowczarek
+
 
 - Add our implementation of UUID scalar - #5646 by @koradon
 
