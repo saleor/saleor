@@ -18,6 +18,7 @@ def plugin_configuration(db):
             "name": PluginSample.PLUGIN_NAME,
         },
     )
+    configuration.refresh_from_db()
     return configuration
 
 
@@ -85,9 +86,7 @@ def taxes(tax_rates):
 
 
 @pytest.fixture
-def vatlayer(db, settings, tax_rates, taxes):
-    settings.VATLAYER_ACCESS_KEY = "enablevatlayer"
-    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+def vatlayer(db, tax_rates, taxes, setup_vatlayer):
     VAT.objects.create(country_code="PL", data=tax_rates)
 
     tax_rates_2 = {

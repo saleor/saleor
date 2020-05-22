@@ -1,6 +1,6 @@
 {
   "name": "saleor",
-  "version": "0.0.0",
+  "version": "2.10.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/mirumee/saleor.git"
@@ -10,14 +10,13 @@
   "bugs": {
     "url": "https://github.com/mirumee/saleor/issues"
   },
-  "homepage": "http://getsaleor.com/",
+  "homepage": "http://saleor.io/",
   "dependencies": {},
   "devDependencies": {
     "mjml": "^4.6.2"
   },
   "scripts": {
     "build-schema": "python manage.py get_graphql_schema > saleor/graphql/schema.graphql",
-    "heroku-postbuild": "npm run build-emails",
     "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled"
   }
 }

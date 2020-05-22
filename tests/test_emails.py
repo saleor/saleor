@@ -5,14 +5,12 @@ import pytest
 from django.core import mail
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files import File
-from django.templatetags.static import static
 from templated_email import get_connection
 
 import saleor.account.emails as account_emails
 import saleor.csv.emails as csv_emails
 import saleor.order.emails as emails
 from saleor.core.emails import get_email_context, prepare_url
-from saleor.core.utils import build_absolute_uri
 from saleor.csv import ExportEvents
 from saleor.csv.models import ExportEvent
 from saleor.order.utils import add_variant_to_draft_order
@@ -20,12 +18,10 @@ from saleor.order.utils import add_variant_to_draft_order
 
 def test_get_email_context(site_settings):
     site = site_settings.site
-    logo_url = build_absolute_uri(static("images/logo-light.svg"))
 
     expected_send_kwargs = {"from_email": site_settings.default_from_email}
     proper_context = {
         "domain": site.domain,
-        "logo_url": logo_url,
         "site_name": site.name,
     }
 
@@ -45,10 +41,10 @@ def test_collect_data_for_order_confirmation_email(order):
     assert "schema_markup" in email_context
 
 
-def test_collect_data_for_fullfillment_email(fulfilled_order):
+def test_collect_data_for_fulfillment_email(fulfilled_order):
     template = emails.CONFIRM_FULFILLMENT_TEMPLATE
     fulfillment = fulfilled_order.fulfillments.first()
-    fulfillment_data = emails.collect_data_for_fullfillment_email(
+    fulfillment_data = emails.collect_data_for_fulfillment_email(
         fulfilled_order.pk, template, fulfillment.pk
     )
     email_context = fulfillment_data["context"]
@@ -232,7 +228,47 @@ def test_send_fulfillment_emails(
 ):
     fulfillment = fulfilled_order.fulfillments.first()
     send_email(order_pk=fulfilled_order.pk, fulfillment_pk=fulfillment.pk)
-    email_data = emails.collect_data_for_fullfillment_email(
+    email_data = emails.collect_data_for_fulfillment_email(
+        fulfilled_order.pk, template, fulfillment.pk
+    )
+
+    recipients = [fulfilled_order.get_customer_email()]
+
+    expected_call_kwargs = {
+        "context": email_data["context"],
+        "from_email": site_settings.default_from_email,
+        "template_name": template,
+    }
+
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=recipients, **expected_call_kwargs
+    )
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+@pytest.mark.parametrize(
+    "send_email,template",
+    [
+        (
+            emails.send_fulfillment_confirmation,
+            emails.CONFIRM_FULFILLMENT_TEMPLATE,
+        ),  # noqa
+        (emails.send_fulfillment_update, emails.UPDATE_FULFILLMENT_TEMPLATE),
+    ],
+)
+@mock.patch("saleor.order.emails.send_templated_mail")
+def test_send_fulfillment_emails_with_tracking_number_as_url(
+    mocked_templated_email, template, send_email, fulfilled_order, site_settings
+):
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment.tracking_number = "https://www.example.com"
+    fulfillment.save()
+    assert fulfillment.is_tracking_number_url
+    send_email(order_pk=fulfilled_order.pk, fulfillment_pk=fulfillment.pk)
+    email_data = emails.collect_data_for_fulfillment_email(
         fulfilled_order.pk, template, fulfillment.pk
     )
 
@@ -313,7 +349,6 @@ def test_send_email_request_change(
     )
     ctx = {
         "domain": "mirumee.com",
-        "logo_url": "http://mirumee.com/static/images/logo-light.svg",
         "redirect_url": "localhost?token=token_example",
         "site_name": "mirumee.com",
     }
@@ -344,7 +379,6 @@ def test_send_email_changed_notification(
     account_emails.send_user_change_email_notification(old_email)
     ctx = {
         "domain": "mirumee.com",
-        "logo_url": "http://mirumee.com/static/images/logo-light.svg",
         "site_name": "mirumee.com",
     }
     recipients = [old_email]
@@ -384,7 +418,6 @@ def test_send_email_with_link_to_download_csv(
     ctx = {
         "csv_link": f"http://mirumee.com/media/export_files/{file_mock.name}",
         "domain": "mirumee.com",
-        "logo_url": "http://mirumee.com/static/images/logo-light.svg",
         "site_name": "mirumee.com",
     }
     recipients = [export_file.created_by.email]
@@ -394,7 +427,6 @@ def test_send_email_with_link_to_download_csv(
         "template_name": template,
     }
 
-    # mocked_templated_email.assert_called_once()
     mocked_templated_email.assert_called_once_with(
         recipient_list=recipients, **expected_call_kwargs
     )

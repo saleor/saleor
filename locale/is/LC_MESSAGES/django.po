@@ -4,23 +4,21 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# Samúel Jón Gunnarsson <samuel.jon.gunnarsson@gmail.com>, 2019
+# Samúel Jón Gunnarsson <samuel.jon.gunnarsson@gmail.com>, 2020
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-14 04:02-0500\n"
+"POT-Creation-Date: 2020-05-14 03:45-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Samúel Jón Gunnarsson <samuel.jon.gunnarsson@gmail.com>, "
-"2019\n"
-"Language-Team: Icelandic (https://www.transifex.com/mirumee/teams/34782/"
-"is/)\n"
-"Language: is\n"
+"Last-Translator: Samúel Jón Gunnarsson <samuel.jon.gunnarsson@gmail.com>, 2020\n"
+"Language-Team: Icelandic (https://www.transifex.com/mirumee/teams/34782/is/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: is\n"
 "Plural-Forms: nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
@@ -39,77 +37,304 @@ msgstr ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 
-#: templates/read_only/read_only_splash.html:48
-msgid "Be aware pirate! <br> Saleor runs in <span>read only mode!</span>"
+#: templates/templated_email/account/account_delete.email:4
+msgctxt "Account delete reset e-mail subject"
+msgid "Delete your account"
 msgstr ""
 
-#: templates/read_only/read_only_splash.html:49
-#, fuzzy
-#| msgctxt "Close modal action button"
-#| msgid "Close"
-msgid "Close"
-msgstr "Loka"
-
-#: templates/templated_email/compiled/account_delete.html:174
-#: templates/templated_email/compiled/confirm.html:174
-#: templates/templated_email/compiled/confirm_fulfillment.html:174
-#: templates/templated_email/compiled/confirm_order.html:175
-#: templates/templated_email/compiled/confirm_payment.html:174
-#: templates/templated_email/compiled/email_changed_notification.html:174
-#: templates/templated_email/compiled/password_reset.html:174
-#: templates/templated_email/compiled/request_email_change.html:174
-#: templates/templated_email/compiled/set_customer_password.html:174
-#: templates/templated_email/compiled/set_password.html:174
-#: templates/templated_email/compiled/staff_confirm_order.html:175
-#: templates/templated_email/compiled/update_fulfillment.html:174
-msgctxt "Standard e-mail greeting"
-msgid "Hi!"
-msgstr "Hæ!"
-
-#: templates/templated_email/compiled/account_delete.html:182
+#: templates/templated_email/account/account_delete.email:9
 #, python-format
-msgctxt "Account delete e-mail text"
+msgctxt "Account delete reset e-mail text"
 msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be "
-"reversed."
+"\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"Click the link below to delete your account.\n"
+"\n"
+"Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:255
-#: templates/templated_email/compiled/confirm.html:255
-#: templates/templated_email/compiled/confirm_fulfillment.html:362
-#: templates/templated_email/compiled/confirm_order.html:465
-#: templates/templated_email/compiled/confirm_payment.html:245
-#: templates/templated_email/compiled/email_changed_notification.html:245
-#: templates/templated_email/compiled/password_reset.html:255
-#: templates/templated_email/compiled/request_email_change.html:255
-#: templates/templated_email/compiled/set_customer_password.html:255
-#: templates/templated_email/compiled/set_password.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:465
-#: templates/templated_email/compiled/update_fulfillment.html:350
+#: templates/templated_email/account/confirm.email:4
+msgctxt "Account confirmation e-mail subject"
+msgid "Account confirmation e-mail"
+msgstr ""
+
+#: templates/templated_email/account/confirm.email:9
+#, python-format
+msgctxt "Account confirmation e-mail text"
+msgid ""
+"\n"
+"In order to log into %(domain)s, you have to confirm your email address first.\n"
+"Please click the link below to do so and log into your account.\n"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:4
+#: templates/templated_email/account/request_email_change.email:4
+msgctxt "Email change e-mail subject"
+msgid "Email change e-mail"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
+"If you didn't request this change, please contact the administrator.\n"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:9
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/account/request_email_change.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:2
+#, python-format
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:6
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:6
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment confirmation email subject"
+msgid "Your order %(order)s has been fulfilled"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:11
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of fulfilled products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:15
+#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:6
+#: templates/templated_email/order/staff_confirm_order.email:6
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:11
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:15
+#: templates/templated_email/order/staff_confirm_order.email:15
+#, python-format
+msgctxt "Order confirmation e-mail payment details"
+msgid ""
+"\n"
+"To see your payment details please visit:\n"
+"%(order_details_url)s\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:23
+#: templates/templated_email/order/staff_confirm_order.email:23
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr "Samantekt pöntunar"
+
+#: templates/templated_email/order/confirm_order.email:24
+#: templates/templated_email/order/staff_confirm_order.email:24
+msgctxt "Order confirmation e-mail table header"
+msgid "Subtotal"
+msgstr "Millisumma"
+
+#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/order/staff_confirm_order.email:25
+msgctxt "Order confirmation e-mail table header"
+msgid "Shipping"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:27
+#: templates/templated_email/order/staff_confirm_order.email:27
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr "Afsláttur:"
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/staff_confirm_order.email:28
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr "Samtals"
+
+#: templates/templated_email/order/confirm_order.email:30
+#: templates/templated_email/order/staff_confirm_order.email:30
+#: templates/templated_email/source/confirm_order.mjml:29
+#: templates/templated_email/source/staff_confirm_order.mjml:29
+msgctxt "Order confirmation e-mail billing address"
+msgid "Billing address"
+msgstr "Greiðslustaður"
+
+#: templates/templated_email/order/confirm_order.email:31
+#: templates/templated_email/order/staff_confirm_order.email:31
+#: templates/templated_email/source/confirm_order.mjml:39
+#: templates/templated_email/source/staff_confirm_order.mjml:39
+msgctxt "Order confirmation e-mail text"
+msgid "No billing address"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:33
+#: templates/templated_email/order/staff_confirm_order.email:33
+#: templates/templated_email/source/confirm_order.mjml:30
+#: templates/templated_email/source/staff_confirm_order.mjml:30
+msgctxt "Order confirmation e-mail shipping address"
+msgid "Shipping address"
+msgstr "Afhendingarstaður"
+
+#: templates/templated_email/order/confirm_order.email:34
+#: templates/templated_email/order/staff_confirm_order.email:34
+#: templates/templated_email/source/confirm_order.mjml:46
+#: templates/templated_email/source/staff_confirm_order.mjml:46
+msgctxt "Order confirmation e-mail text"
+msgid "No shipping required"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:9
+msgctxt "Payment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your payment.\n"
+"Your payment was successfully charged.\n"
+msgstr ""
+
+#: templates/templated_email/order/staff_confirm_order.email:11
+msgctxt "Order confirmation staff e-mail text"
+msgid ""
+"\n"
+"Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment update email subject"
+msgid "Shipping update for order %(order)s"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:11
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:15
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid ""
+"You can track your shipment with the following code: %(tracking_number)s."
+msgstr ""
+
+#: templates/templated_email/shared/_footer.email:2
+#: templates/templated_email/source/shared/footer.mjml:4
 msgctxt "Base email text"
 msgid "This is an automatically generated e-mail, please do not reply."
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:317
-#: templates/templated_email/compiled/confirm.html:317
-#: templates/templated_email/compiled/confirm_fulfillment.html:424
-#: templates/templated_email/compiled/confirm_order.html:527
-#: templates/templated_email/compiled/confirm_payment.html:307
-#: templates/templated_email/compiled/email_changed_notification.html:307
-#: templates/templated_email/compiled/password_reset.html:317
-#: templates/templated_email/compiled/request_email_change.html:317
-#: templates/templated_email/compiled/set_customer_password.html:317
-#: templates/templated_email/compiled/set_password.html:317
-#: templates/templated_email/compiled/staff_confirm_order.html:527
-#: templates/templated_email/compiled/update_fulfillment.html:412
+#: templates/templated_email/shared/_footer.email:5
+#: templates/templated_email/source/shared/footer.mjml:13
 #, python-format
 msgctxt "Base email footer"
 msgid "Sincerely, %(site_name)s"
 msgstr "Virðingafyllst, %(site_name)s"
 
-#: templates/templated_email/compiled/confirm.html:182
+#: templates/templated_email/shared/_header.email:2
+#: templates/templated_email/source/account_delete.mjml:13
+#: templates/templated_email/source/confirm.mjml:13
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+#: templates/templated_email/source/confirm_order.mjml:14
+#: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/email_changed_notification.mjml:13
+#: templates/templated_email/source/password_reset.mjml:13
+#: templates/templated_email/source/request_email_change.mjml:13
+#: templates/templated_email/source/set_customer_password.mjml:13
+#: templates/templated_email/source/set_password.mjml:13
+#: templates/templated_email/source/staff_confirm_order.mjml:14
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Standard e-mail greeting"
+msgid "Hi!"
+msgstr "Hæ!"
+
+#: templates/templated_email/source/account_delete.mjml:16
+#, python-format
+msgctxt "Account delete e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"deletion of your user account at %(domain)s.<br/> Click the link below to "
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
+msgstr ""
+
+#: templates/templated_email/source/confirm.mjml:16
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
@@ -117,2154 +342,153 @@ msgid ""
 "first. Please click the link below to do so and log into your account."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:182
+#: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:186
-#, python-format
-msgctxt "Fulfillment confirmation email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_fulfillment.html:198
+#: templates/templated_email/source/confirm_fulfillment.mjml:27
 msgctxt "Fulfillment digital products email text"
-msgid "You can download your digital products by clicking in download link(s)."
+msgid ""
+"You can download your digital products by clicking in download link(s)."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:183
+#: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit: <a href=\"%(order_details_url)s\">"
-"%(order_details_url)s</a>"
+"Thank you for your order. Below is the list of ordered products. To see your"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:255
-msgctxt "E-mail order lines summary table"
-msgid "Subtotal"
-msgstr "Millisumma"
-
-#: templates/templated_email/compiled/confirm_order.html:263
-#: templates/templated_email/compiled/staff_confirm_order.html:263
-msgctxt "E-mail order lines summary table"
-msgid "Shipping"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:272
-#: templates/templated_email/compiled/staff_confirm_order.html:272
-msgctxt "E-mail order lines summary table"
-msgid "Taxes (included)"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:274
-#: templates/templated_email/compiled/staff_confirm_order.html:274
-msgctxt "E-mail order lines summary table"
-msgid "Taxes"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:284
-#: templates/templated_email/compiled/staff_confirm_order.html:284
-msgctxt "E-mail order lines summary table"
-msgid "Discount"
-msgstr "Afsláttur"
-
-#: templates/templated_email/compiled/confirm_order.html:293
-#: templates/templated_email/compiled/staff_confirm_order.html:293
-msgctxt "E-mail order lines summary table"
-msgid "Total"
-msgstr "Samtals"
-
-#: templates/templated_email/compiled/confirm_order.html:302
-#: templates/templated_email/compiled/staff_confirm_order.html:302
-msgctxt "Ordered item name"
-msgid "Item"
-msgstr "Hlutur"
-
-#: templates/templated_email/compiled/confirm_order.html:303
-#: templates/templated_email/compiled/staff_confirm_order.html:303
-msgctxt "Quantity ordered of a product"
-msgid "Quantity"
-msgstr "Magn"
-
-#: templates/templated_email/compiled/confirm_order.html:304
-#: templates/templated_email/compiled/staff_confirm_order.html:304
-msgctxt "Unit price of a product"
-msgid "Per unit"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:305
-#: templates/templated_email/compiled/staff_confirm_order.html:305
-msgctxt "Ordered item subtotal (unit price * quantity)"
-msgid "Subtotal"
-msgstr "Millisumma"
-
-#: templates/templated_email/compiled/confirm_order.html:383
-#: templates/templated_email/compiled/staff_confirm_order.html:383
-msgctxt "Order confirmation e-mail billing address"
-msgid "Billing address"
-msgstr "Greiðslustaður"
-
-#: templates/templated_email/compiled/confirm_order.html:384
-#: templates/templated_email/compiled/staff_confirm_order.html:384
-msgctxt "Order confirmation e-mail shipping address"
-msgid "Shipping address"
-msgstr "Afhendingarstaður"
-
-#: templates/templated_email/compiled/confirm_order.html:393
-#: templates/templated_email/compiled/staff_confirm_order.html:393
-msgctxt "Order confirmation e-mail text"
-msgid "No billing address"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:400
-#: templates/templated_email/compiled/staff_confirm_order.html:400
-msgctxt "Order confirmation e-mail text"
-msgid "No shipping required"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_payment.html:182
+#: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
 msgid "Thank you for your payment. Your payment was successfully charged."
 msgstr ""
 
-#: templates/templated_email/compiled/email_changed_notification.html:182
+#: templates/templated_email/source/email_changed_notification.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
-"for your user account at %(domain)s.<br> If you didn't request this change, "
-"please contact the administrator."
+"for your user account at %(domain)s.<br /> If you didn't request this "
+"change, please contact the administrator."
 msgstr ""
 
-#: templates/templated_email/compiled/password_reset.html:182
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:29
+#: templates/templated_email/source/partials/_order_lines.mjml:59
+msgctxt "Ordered item name"
+msgid "Item"
+msgstr "Hlutur"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
+#: templates/templated_email/source/partials/_order_lines.mjml:60
+msgctxt "Quantity ordered of a product"
+msgid "Quantity"
+msgstr "Magn"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
+msgctxt "Ordered item download links"
+msgid "Download Link"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:12
+msgctxt "E-mail order lines summary table"
+msgid "Subtotal"
+msgstr "Millisumma"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:20
+msgctxt "E-mail order lines summary table"
+msgid "Shipping"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:29
+msgctxt "E-mail order lines summary table"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:31
+msgctxt "E-mail order lines summary table"
+msgid "Taxes"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:41
+msgctxt "E-mail order lines summary table"
+msgid "Discount"
+msgstr "Afsláttur"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:50
+msgctxt "E-mail order lines summary table"
+msgid "Total"
+msgstr "Samtals"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:61
+msgctxt "Unit price of a product"
+msgid "Per unit"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:62
+msgctxt "Ordered item subtotal (unit price * quantity)"
+msgid "Subtotal"
+msgstr "Millisumma"
+
+#: templates/templated_email/source/password_reset.mjml:16
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br> It can be safely ignored "
+"password for your user account at %(domain)s.<br/> It can be safely ignored "
 "if you did not request a password reset. Click the link below to reset your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/request_email_change.html:182
+#: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested an "
-"email change for your user account at %(domain)s.<br> It can be safely "
+"email change for your user account at %(domain)s.<br /> It can be safely "
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
 
-#: templates/templated_email/compiled/set_customer_password.html:182
+#: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your "
-"customer account at %(domain)s.<br> Click the link below to set up your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/set_password.html:182
+#: templates/templated_email/source/set_password.mjml:16
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
-"You're receiving this e-mail because you have to set password for your staff "
-"member account at %(domain)s.<br> Click the link below to set up your "
+"You're receiving this e-mail because you have to set password for your staff"
+" member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/staff_confirm_order.html:183
+#: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
-"Someone placed a new order in your store. To see order details please visit: "
-"<a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+"Someone placed a new order in your store. To see order details please visit:"
+" <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:182
+#: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number."
+"Your shipping status has been updated. Below is the list of ordered products"
+" that have been updated with new tracking number."
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:186
+#: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
 msgstr ""
-
-#~ msgctxt ""
-#~ "Event from a customer that got the password reset link sent by email"
-#~ msgid "Password reset link was sent to the customer"
-#~ msgstr "Endursetningarhlekkur var sendur á viðskiptavin"
-
-#~ msgctxt "Event from a customer that reset their password"
-#~ msgid "The account password was reset"
-#~ msgstr "Lykilorð fyrir aðgang var endursett"
-
-#~ msgctxt "Event from a customer that placed an order"
-#~ msgid "An order was placed"
-#~ msgstr "Pöntun var framkvæmd"
-
-#~ msgctxt "Event from a customer that added a note to one of their orders"
-#~ msgid "A note was added"
-#~ msgstr "Athugasemd var bætt við"
-
-#~ msgctxt "Event from a customer that downloaded an ordered digital good"
-#~ msgid "A digital good was downloaded"
-#~ msgstr "Stafrænni vöru var niðurhalað"
-
-#~ msgctxt "Event from a staff user that deleted a customer"
-#~ msgid "A customer was deleted"
-#~ msgstr "Viðskiptavin var eytt"
-
-#~ msgctxt "Event from a staff user assigned a new name to a customer"
-#~ msgid "A customer's name was edited"
-#~ msgstr "Nafn viðskiptavinar var breytt"
-
-#~ msgctxt "Event from a staff user assigned a new email address to a customer"
-#~ msgid "A customer's email address was edited"
-#~ msgstr "Netfang viðskiptavinar var breytt"
-
-#~ msgctxt "Event from a staff user assigned a new email address to a customer"
-#~ msgid "A note was added to the customer"
-#~ msgstr "Athugasemd var bætt við viðskiptavin"
-
-#~ msgctxt "Form field"
-#~ msgid "Email"
-#~ msgstr "Netfang"
-
-#~ msgctxt "Password"
-#~ msgid "Password"
-#~ msgstr "Lykilorð"
-
-#~ msgctxt "Email"
-#~ msgid "Email"
-#~ msgstr "Netfang"
-
-#~ msgctxt "Registration error"
-#~ msgid "This email has already been registered."
-#~ msgstr "Þetta netfang er núþegar skráð."
-
-#~ msgctxt "Customer form: Given name field"
-#~ msgid "Given name"
-#~ msgstr "Fornafn"
-
-#~ msgctxt "Customer form: Family name field"
-#~ msgid "Family name"
-#~ msgstr "Eftirnafn"
-
-#~ msgctxt "Address field"
-#~ msgid "Area"
-#~ msgstr "Svæði"
-
-#~ msgctxt "Address field"
-#~ msgid "County"
-#~ msgstr "Sýsla"
-
-#~ msgctxt "Address field"
-#~ msgid "Department"
-#~ msgstr "Deild"
-
-#~ msgctxt "Address field"
-#~ msgid "Island"
-#~ msgstr "Eyja"
-
-#~ msgctxt "Address field"
-#~ msgid "Neighborhood"
-#~ msgstr "Nágrenni"
-
-#~ msgctxt "Address field"
-#~ msgid "Parish"
-#~ msgstr "Sókn"
-
-#~ msgctxt "Address field"
-#~ msgid "PIN"
-#~ msgstr "PIN"
-
-#~ msgctxt "Address field"
-#~ msgid "Postal code"
-#~ msgstr "Póstnúmer"
-
-#~ msgctxt "Address field"
-#~ msgid "State"
-#~ msgstr "Fylki"
-
-#~ msgctxt "Address field"
-#~ msgid "Suburb"
-#~ msgstr "Úthverfi"
-
-#~ msgctxt "Address field"
-#~ msgid "ZIP code"
-#~ msgstr "Póstnúmer"
-
-#~ msgctxt "Country"
-#~ msgid "Country"
-#~ msgstr "Land"
-
-#~ msgctxt "Personal name"
-#~ msgid "Given name"
-#~ msgstr "Fornafn"
-
-#~ msgctxt "Personal name"
-#~ msgid "Family name"
-#~ msgstr "Eftirnafn"
-
-#~ msgctxt "Company or organization"
-#~ msgid "Company or organization"
-#~ msgstr "Fyrirtæki eða stofnun"
-
-#~ msgctxt "Address"
-#~ msgid "Address"
-#~ msgstr "Heimilisfang"
-
-#~ msgctxt "City"
-#~ msgid "City"
-#~ msgstr "Borg"
-
-#~ msgctxt "Postal code"
-#~ msgid "Postal code"
-#~ msgstr "Póstnúmer"
-
-#~ msgctxt "Phone number"
-#~ msgid "Phone number"
-#~ msgstr "Símanúmer"
-
-#~ msgctxt "Address"
-#~ msgid "Street address, P.O. box, company name"
-#~ msgstr "Götunafn, pósthólf, nafn fyrirtækis "
-
-#~ msgctxt "Address"
-#~ msgid "Apartment, suite, unit, building, floor, etc"
-#~ msgstr "Íbúð, eining, bygging, hæð, osfrv."
-
-#~ msgid "The phone number entered is not valid."
-#~ msgstr "Innslegið símanúmer var ekki gilt."
-
-#~ msgid "User has been created"
-#~ msgstr "Notandi var stofnaður"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Password successfully changed."
-#~ msgstr "Lykilorði var breytt."
-
-#~ msgctxt "Add to checkout form field label"
-#~ msgid "Quantity"
-#~ msgstr "Magn"
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Oops. We could not find that product."
-#~ msgstr "Úps, við fundum ekki þessa tilteknu vöru."
-
-#~ msgctxt "Country form field label"
-#~ msgid "Country"
-#~ msgstr "Land"
-
-#~ msgctxt "Address form field label"
-#~ msgid "Email"
-#~ msgstr "Netfang"
-
-#~ msgctxt "Shipping addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Sláðu inn nýtt heimilisfang"
-
-#~ msgctxt "Shipping addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Heimilisfang"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Sláðu inn nýtt heimilisfang"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Same as shipping"
-#~ msgstr "Sama og afhendingarstaður"
-
-#~ msgctxt "Billing addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Heimilisfang"
-
-#~ msgctxt "Shipping method form field label"
-#~ msgid "Shipping method"
-#~ msgstr "Sendingaraðferð"
-
-#~ msgctxt "Checkout discount form label for voucher field"
-#~ msgid "Gift card or discount code"
-#~ msgstr "Gjafakort eða afsláttarkóði"
-
-#~ msgctxt "Gift card not applicable"
-#~ msgid "Gift card has expired. Order placement cancelled."
-#~ msgstr "Gjafakort er útrunnið. Hætt var við pöntun."
-
-#, python-format
-#~ msgctxt "Checkout warning"
-#~ msgid "Unable to calculate taxes - %s"
-#~ msgstr "Ekki tókst að reikna skatt - %s"
-
-#~ msgctxt "Impersonation message"
-#~ msgid "You are now logged as {}"
-#~ msgstr "Þú ert innskráð/ur sem {}"
-
-#~ msgctxt "Kilogram weight unit symbol"
-#~ msgid "kg"
-#~ msgstr "kg"
-
-#~ msgctxt "Pound weight unit symbol"
-#~ msgid "lb"
-#~ msgstr "lb"
-
-#~ msgctxt "Ounce weight unit symbol"
-#~ msgid "oz"
-#~ msgstr "únsa"
-
-#~ msgctxt "Gram weight unit symbol"
-#~ msgid "g"
-#~ msgstr "g"
-
-#~ msgctxt "Discount type"
-#~ msgid "%"
-#~ msgstr "%"
-
-#~ msgctxt "Voucher type"
-#~ msgid "Free shipping"
-#~ msgstr "Frí sending"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off shipping"
-#~ msgstr "%(discount)s af sendingu"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off"
-#~ msgstr "%(discount)s af"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "bikes"
-#~ msgstr "reiðhjól"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "books"
-#~ msgstr "bækur"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "childrens clothing"
-#~ msgstr "Barnaföt"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "e-books"
-#~ msgstr "rafbækur"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "hotels"
-#~ msgstr "hótel"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "newspapers"
-#~ msgstr "fréttablöð"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "restaurants"
-#~ msgstr "veitingastaðir"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "water"
-#~ msgstr "Vatn"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "wine"
-#~ msgstr "Áfengi"
-
-#~ msgctxt "Link object type description"
-#~ msgid "Category: "
-#~ msgstr "Flokkur:"
-
-#~ msgctxt "Link object type description"
-#~ msgid "Page: "
-#~ msgstr "Síða:"
-
-#~ msgctxt ""
-#~ "Status for a fully editable, not confirmed order created by staff users"
-#~ msgid "Draft"
-#~ msgstr "Drög"
-
-#~ msgctxt "Status for a permanently canceled order"
-#~ msgid "Canceled"
-#~ msgstr "Hætt við"
-
-#~ msgctxt ""
-#~ "Status for a fulfilled group of products in an order marked as canceled"
-#~ msgid "Canceled"
-#~ msgstr "Hætt við"
-
-#~ msgctxt "Payments form label"
-#~ msgid "Payment Method"
-#~ msgstr "Greiðslumáti"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Refund"
-#~ msgstr "Endurgreiða"
-
-#~ msgctxt "payment status"
-#~ msgid "Partially charged"
-#~ msgstr "Greitt að hluta"
-
-#~ msgctxt "payment status"
-#~ msgid "Fully charged"
-#~ msgstr "Greitt að fullu"
-
-#~ msgctxt "payment status"
-#~ msgid "Partially refunded"
-#~ msgstr "Endurgreitt að hluta"
-
-#~ msgctxt "payment status"
-#~ msgid "Fully refunded"
-#~ msgstr "Endurgreitt að fullu"
-
-#~ msgctxt "Payment status form field"
-#~ msgid "Payment status"
-#~ msgstr "Greiðslustaða"
-
-#~ msgctxt "Razorpay payment gateway primary button"
-#~ msgid "Pay now with Razorpay"
-#~ msgstr "Greiða núna með Razorpay"
-
-#~ msgctxt "Razorpay payment gateway secondary title"
-#~ msgid "Total payment"
-#~ msgstr "Heildargreiðsla"
-
-#~ msgctxt "Stripe payment gateway description"
-#~ msgid "Total payment"
-#~ msgstr "Heildargreiðsla"
-
-#~ msgctxt "Product status"
-#~ msgid "out of stock"
-#~ msgstr "ekki á lager"
-
-#~ msgctxt "Variant status"
-#~ msgid "out of stock"
-#~ msgstr "ekki á lager"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "name"
-#~ msgstr "nafn"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "price"
-#~ msgstr "verð"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "last updated"
-#~ msgstr "síðast uppfært"
-
-#~ msgctxt "Product list sorting form"
-#~ msgid "Sort by"
-#~ msgstr "Sía eftir"
-
-#~ msgctxt "Currency amount"
-#~ msgid "Price"
-#~ msgstr "Verð"
-
-#~ msgctxt "Search form label"
-#~ msgid "Query"
-#~ msgstr "Fyrirspurn"
-
-#~ msgid "Danish"
-#~ msgstr "Danska"
-
-#~ msgid "German"
-#~ msgstr "Þýska"
-
-#~ msgid "Greek"
-#~ msgstr "Gríska"
-
-#~ msgid "Hungarian"
-#~ msgstr "Ungverska"
-
-#~ msgid "Icelandic"
-#~ msgstr "Íslenska"
-
-#~ msgid "Polish"
-#~ msgstr "Pólska"
-
-#~ msgid "Portuguese"
-#~ msgstr "Portúgalska"
-
-#~ msgid "Brazilian Portuguese"
-#~ msgstr "Brasilísk portúgalska"
-
-#~ msgid "Russian"
-#~ msgstr "Rússneska"
-
-#~ msgctxt "Change language modal title"
-#~ msgid "Select language"
-#~ msgstr "Veldu tungumál"
-
-#~ msgctxt "Change language action button"
-#~ msgid "Change"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Account deletetion confirmation page title"
-#~ msgid "Are you sure?"
-#~ msgstr "Ertu viss?"
-
-#~ msgctxt ""
-#~ "Message displayed to the user requesting for his account deletetion"
-#~ msgid "Sorry to see you go!"
-#~ msgstr "Leitt að sjá þig fara!"
-
-#~ msgctxt "Confirm account deletion button"
-#~ msgid "Delete account"
-#~ msgstr "Eyða aðgangi"
-
-#~ msgctxt "Remove address form action"
-#~ msgid "Cancel"
-#~ msgstr "Hætta við"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Home"
-#~ msgstr "Heim"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Recent Orders"
-#~ msgstr "Nýlegar pantanir"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Change password"
-#~ msgstr "Breyta lykilorði"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Settings"
-#~ msgstr "Stillingar"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order"
-#~ msgstr "Pöntun"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Date"
-#~ msgstr "Dagsetning"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Summary"
-#~ msgstr "Samantekt"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Payment status"
-#~ msgstr "Greiðslustaða"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order status"
-#~ msgstr "Staða pöntunar"
-
-#~ msgctxt "User profile action"
-#~ msgid "Change password"
-#~ msgstr "Breyta lykilorði"
-
-#~ msgctxt "User profile settings"
-#~ msgid "Personal Data"
-#~ msgstr "Persónuleg gögn"
-
-#~ msgctxt "User profile action"
-#~ msgid "Update"
-#~ msgstr "Uppfæra"
-
-#~ msgctxt "List of adresses in contact details"
-#~ msgid "Addresses"
-#~ msgstr "Heimilisföng"
-
-#~ msgctxt "User address action"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Login page title"
-#~ msgid "Log in"
-#~ msgstr "Innskrá"
-
-#~ msgctxt "Login form secondary action"
-#~ msgid "Register"
-#~ msgstr "Nýskrá"
-
-#~ msgctxt "Login form title"
-#~ msgid "Log in"
-#~ msgstr "Innskrá"
-
-#, python-format
-#~ msgctxt "Already logged in warning message"
-#~ msgid "You are already logged in as %(user)s."
-#~ msgstr "Þú ert núþegar innskráð/ur sem %(user)s."
-
-#~ msgctxt "Login form primary action"
-#~ msgid "Log in"
-#~ msgstr "Innskrá"
-
-#~ msgctxt "Login form secondary link"
-#~ msgid "Forgot password?"
-#~ msgstr "Gleymt lykilorð?"
-
-#~ msgid "Facebook"
-#~ msgstr "Facebook"
-
-#~ msgid "Google"
-#~ msgstr "Google"
-
-#~ msgctxt "Password change breadcrumb"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Password change form legend"
-#~ msgid "Change Password"
-#~ msgstr "Breyta lykilorði"
-
-#~ msgctxt "Password change form primary action"
-#~ msgid "Save new password"
-#~ msgstr "Vista nýtt lykilorð"
-
-#~ msgctxt "Password reset page title"
-#~ msgid "Password reset"
-#~ msgstr "Endursetja lykilorð"
-
-#~ msgctxt "Password reset form title"
-#~ msgid "Forgot your password?"
-#~ msgstr "Gleymdirðu lykilorðinu þínu?"
-
-#~ msgctxt "Password reset primary action"
-#~ msgid "Continue"
-#~ msgstr "Halda áfram"
-
-#~ msgctxt "Password reset done page title"
-#~ msgid "Password Reset"
-#~ msgstr "Endursetja lykilorð"
-
-#~ msgctxt "Password reset done title"
-#~ msgid "Password Reset"
-#~ msgstr "Endursetja lykilorð"
-
-#~ msgctxt "Password reset from key page title"
-#~ msgid "Change Password"
-#~ msgstr "Breyta lykilorði"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Password Reset"
-#~ msgstr "Endursetja lykilorð"
-
-#~ msgctxt "Password reset from key form primary action"
-#~ msgid "Continue"
-#~ msgstr "Halda áfram"
-
-#~ msgctxt "Password reset from key done page title"
-#~ msgid "Password Changed"
-#~ msgstr "Lykilorði var breytt"
-
-#~ msgctxt "Password reset from key done title"
-#~ msgid "Password Changed"
-#~ msgstr "Lykilorði var breytt"
-
-#~ msgid "Your password is now changed."
-#~ msgstr "Lykilorðinu þínu hefur nú verið breytt."
-
-#~ msgctxt "Signup form secondary action"
-#~ msgid "Log in"
-#~ msgstr "Innskrá"
-
-#~ msgctxt "Signup form title"
-#~ msgid "Create an account"
-#~ msgstr "Stofna aðgang"
-
-#~ msgctxt "Signup form primary action"
-#~ msgid "Create an account"
-#~ msgstr "Stofna aðgang"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log out"
-#~ msgstr "Skrá út"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Register"
-#~ msgstr "Nýskrá"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log in"
-#~ msgstr "Innskrá"
-
-#~ msgid "Search for product"
-#~ msgstr "Leita eftir vöru"
-
-#~ msgid "Search"
-#~ msgstr "Leita"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your cart"
-#~ msgstr "Karfan þín"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Style guide"
-#~ msgstr "Stílsnið"
-
-#~ msgctxt "Category breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "Heim"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Subtotal"
-#~ msgstr "Millisumma"
-
-#~ msgctxt "Checkout shipping cost form"
-#~ msgid "Shipping cost for:"
-#~ msgstr "Sendingarkostnaður fyrir:"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Total"
-#~ msgstr "Samtals"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Checkout"
-#~ msgstr "Ganga frá pöntun"
-
-#~ msgctxt "Checkout top message"
-#~ msgid "Easy and secure!"
-#~ msgstr "Einfalt og öruggt!"
-
-#~ msgctxt "Checkout title"
-#~ msgid "Checkout"
-#~ msgstr "Ganga frá pöntun"
-
-#~ msgctxt "Order review section"
-#~ msgid "Subtotal"
-#~ msgstr "Millisumma"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Total"
-#~ msgstr "Samtals"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Your cart"
-#~ msgstr "Karfan þín"
-
-#~ msgctxt "Checkout breadcrumb"
-#~ msgid "Cart"
-#~ msgstr "Karfa"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Product"
-#~ msgstr "Vara"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Quantity"
-#~ msgstr "Magn"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Price"
-#~ msgstr "Verð"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Checkout"
-#~ msgstr "Ganga frá pöntun"
-
-#~ msgctxt "checkout page: secondary action, empty the checkout"
-#~ msgid "Clear cart"
-#~ msgstr "Hreinsa körfu"
-
-#~ msgctxt "Empty checkout message"
-#~ msgid "There are no products in your shopping cart."
-#~ msgstr "Það eru engar vörur í körfunni þinni."
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "Login"
-#~ msgstr "Innskrá"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "New customer?"
-#~ msgstr "Nýr viðskiptavinur?"
-
-#~ msgctxt "Checkout login page new users action"
-#~ msgid "Continue"
-#~ msgstr "Halda áfram"
-
-#~ msgctxt "Checkout payment title"
-#~ msgid "Payment"
-#~ msgstr "Greiðsla"
-
-#~ msgctxt "Checkout shipping address title"
-#~ msgid "Shipping address"
-#~ msgstr "Afhendingarstaður"
-
-#~ msgctxt "Checkout shipping address primary action"
-#~ msgid "Continue"
-#~ msgstr "Halda áfram"
-
-#~ msgid "Select other address"
-#~ msgstr "Velja annað heimilisfang"
-
-#~ msgctxt "Checkout shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Sendingaraðferð"
-
-#~ msgctxt "Checkout shipping method primary action"
-#~ msgid "Continue"
-#~ msgstr "Halda áfram"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Same as shipping"
-#~ msgstr "Sama og afhendingarstaður"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Enter a new address"
-#~ msgstr "Sláðu inn nýtt heimilisfang"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "Remove"
-#~ msgstr "Fjarlægja"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "(Remove)"
-#~ msgstr "(fjarlægja)"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "Use"
-#~ msgstr "Nota"
-
-#~ msgctxt "Checkout summary title"
-#~ msgid "Billing address"
-#~ msgstr "Greiðslustaður"
-
-#~ msgctxt "Checkout summary primary action"
-#~ msgid "Order & Pay"
-#~ msgstr "Panta og greiða"
-
-#~ msgctxt "Checkout summary without shipping title"
-#~ msgid "Billing address"
-#~ msgstr "Greiðslustaður"
-
-#~ msgctxt "Checkout dropdown primary action"
-#~ msgid "Checkout"
-#~ msgstr "Ganga frá pöntun"
-
-#~ msgctxt "Site breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "Heim"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Style guide"
-#~ msgstr "Stílsnið"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Log out"
-#~ msgstr "Skrá út"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search"
-#~ msgstr "Leita"
-
-#~ msgctxt "Dashboard homepage"
-#~ msgid "Home"
-#~ msgstr "Heim"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Products"
-#~ msgstr "Vörur"
-
-#~ msgctxt "Dashboard categories list"
-#~ msgid "Categories"
-#~ msgstr "Flokkar"
-
-#~ msgctxt "Dashboard discounts list"
-#~ msgid "Discounts"
-#~ msgstr "Afslættir"
-
-#~ msgctxt "Dashboard sales (discounts) list"
-#~ msgid "Sales"
-#~ msgstr "Útsölur"
-
-#~ msgctxt "Dashboard sales. `Sales' is noun of to sell"
-#~ msgid "Sales"
-#~ msgstr "Útsölur"
-
-#~ msgctxt "Dashboard orders list"
-#~ msgid "Orders"
-#~ msgstr "Pantanir"
-
-#~ msgctxt "Dashboard customers list"
-#~ msgid "Customers"
-#~ msgstr "Viðskiptavinir"
-
-#~ msgctxt "Dashboard product types list"
-#~ msgid "Product types"
-#~ msgstr "Vörugerðir"
-
-#~ msgctxt "Dashboard static pages"
-#~ msgid "Pages"
-#~ msgstr "Síður"
-
-#~ msgctxt "Dashboard software version"
-#~ msgid "Release:"
-#~ msgstr "Útgáfa:"
-
-#~ msgctxt "Dashboard cancel action"
-#~ msgid "Cancel"
-#~ msgstr "Hætta við"
-
-#~ msgctxt "Category list page title"
-#~ msgid "Categories"
-#~ msgstr "Flokkar"
-
-#~ msgctxt "Category field"
-#~ msgid "Description"
-#~ msgstr "Lýsing"
-
-#~ msgctxt "Title of the subcategories list"
-#~ msgid "Subcategories"
-#~ msgstr "Undirflokkar"
-
-#~ msgid "Add"
-#~ msgstr "Bæta við"
-
-#~ msgctxt "Category list table header name"
-#~ msgid "Name"
-#~ msgstr "Nafn"
-
-#~ msgctxt "Category list table header description"
-#~ msgid "Description"
-#~ msgstr "Lýsing"
-
-#~ msgctxt "Category edit action"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Category list action link"
-#~ msgid "Remove"
-#~ msgstr "Fjarlægja"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Update"
-#~ msgstr "Uppfæra"
-
-#~ msgctxt "Dashboard create action"
-#~ msgid "Create"
-#~ msgstr "Stofna"
-
-#~ msgctxt "Empty category list message"
-#~ msgid "No categories found."
-#~ msgstr "Engir flokkar fundust."
-
-#~ msgctxt "Dashboard delete action"
-#~ msgid "Remove"
-#~ msgstr "Fjarlægja"
-
-#~ msgid "No categories found."
-#~ msgstr "Engir flokkar fundust."
-
-#~ msgctxt "Collection action"
-#~ msgid "View on site"
-#~ msgstr "Skoða á vefnum"
-
-#~ msgctxt "Collection secondary action"
-#~ msgid "Cancel"
-#~ msgstr "Hætta við"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Update"
-#~ msgstr "Uppfæra"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Create"
-#~ msgstr "Stofna"
-
-#~ msgctxt "Collection field"
-#~ msgid "Published"
-#~ msgstr "Birt"
-
-#~ msgctxt "Collection field"
-#~ msgid "Draft"
-#~ msgstr "Drög"
-
-#~ msgctxt "Collections list table header name"
-#~ msgid "Name"
-#~ msgstr "Nafn"
-
-#~ msgctxt "Collections list table header"
-#~ msgid "Visibility"
-#~ msgstr "Sýnileiki"
-
-#~ msgctxt "Homepage collection save"
-#~ msgid "Save"
-#~ msgstr "Vista"
-
-#~ msgctxt "Customer field"
-#~ msgid "Note"
-#~ msgstr "Athugasemd"
-
-#~ msgctxt "Customer action"
-#~ msgid "Edit customer"
-#~ msgstr "Breyta viðskiptavin"
-
-#~ msgctxt "Customer action"
-#~ msgid "Remove customer"
-#~ msgstr "Fjarlægja viðskiptavin"
-
-#~ msgctxt "Customer recent orders table title"
-#~ msgid "Recent orders"
-#~ msgstr "Nýlegar pantanir"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Order status"
-#~ msgstr "Staða pöntunar"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Total"
-#~ msgstr "Samtals"
-
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer"
-#~ msgstr "Viðskiptavinur"
-
-#~ msgctxt "Dashboard add customer action"
-#~ msgid "Add customer"
-#~ msgstr "Bæta við viðskiptavin"
-
-#~ msgctxt "Dashboard add action"
-#~ msgid "Add"
-#~ msgstr "Bæta við"
-
-#~ msgctxt "Customer list add button text"
-#~ msgid "Add customer"
-#~ msgstr "Bæta við viðskiptavin"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Name"
-#~ msgstr "Nafn"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Email"
-#~ msgstr "Netfang"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Location"
-#~ msgstr "Staðsetning"
-
-#~ msgctxt "Dashboard sales (discounts) list."
-#~ msgid "Sales"
-#~ msgstr "Útsölur"
-
-#~ msgid "Sales"
-#~ msgstr "Útsölur"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Name"
-#~ msgstr "Nafn"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Start date"
-#~ msgstr "Upphafsdagsetning"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "End date"
-#~ msgstr "Endadagsetning"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Discount"
-#~ msgstr "Afsláttur"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Name"
-#~ msgstr "Nafn"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Discount"
-#~ msgstr "Afsláttur"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Start date"
-#~ msgstr "Upphafsdagsetning"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "End date"
-#~ msgstr "Endadagsetning"
-
-#~ msgctxt "Collection availability status"
-#~ msgid "Published"
-#~ msgstr "Birt"
-
-#~ msgctxt "Collection availability status"
-#~ msgid "Hidden"
-#~ msgstr "Falið"
-
-#~ msgctxt "Dashboard card title"
-#~ msgid "Filters"
-#~ msgstr "Afmarkanir"
-
-#~ msgctxt "Category page filters"
-#~ msgid "Clear"
-#~ msgstr "Hreinsa"
-
-#~ msgctxt "Category price filter"
-#~ msgid "Filter"
-#~ msgstr "Afmörkun"
-
-#~ msgctxt "Menu items list table header name"
-#~ msgid "Name"
-#~ msgstr "Nafn"
-
-#~ msgctxt "Menu items list table header points to"
-#~ msgid "Points to"
-#~ msgstr "Bendir á"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Status"
-#~ msgstr "Staða"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Published"
-#~ msgstr "Birt"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Not published"
-#~ msgstr "Ekki birt"
-
-#~ msgctxt "Menu item edit action"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Menu item list action link"
-#~ msgid "Remove"
-#~ msgstr "Fjarlægja"
-
-#~ msgctxt "Page availability status"
-#~ msgid "Published"
-#~ msgstr "Birt"
-
-#~ msgctxt "Page availability status"
-#~ msgid "Hidden"
-#~ msgstr "Falið"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Customer"
-#~ msgstr "Viðskiptavinur"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Payment status"
-#~ msgstr "Greiðslustaða"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Order status"
-#~ msgstr "Staða pöntunar"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Total"
-#~ msgstr "Samtals"
-
-#~ msgctxt "Anonymous user account value"
-#~ msgid "Guest"
-#~ msgstr "Gestur"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Order"
-#~ msgstr "Pöntun"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Date"
-#~ msgstr "Dagsetning"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Customer"
-#~ msgstr "Viðskiptavinur"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Amount"
-#~ msgstr "Upphæð"
-
-#~ msgid "Guest"
-#~ msgstr "Gestur"
-
-#~ msgctxt "Low stock product list"
-#~ msgid "Product name"
-#~ msgstr "Nafn vöru"
-
-#~ msgctxt "Empty low stock table message"
-#~ msgid "No products are low in stock."
-#~ msgstr "Engar vörur með lága birgðastöðu"
-
-#~ msgctxt "Menu item field"
-#~ msgid "Points to"
-#~ msgstr "Bendir á"
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Menu list table header Menu name"
-#~ msgid "Menu name"
-#~ msgstr "Nafn á valmynd"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Save"
-#~ msgstr "Vista"
-
-#~ msgctxt ""
-#~ msgid "Shipping address"
-#~ msgstr "Afhendingarstaður"
-
-#~ msgctxt ""
-#~ msgid "Billing address"
-#~ msgstr "Greiðslustaður"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Cancel Order"
-#~ msgstr "Hætta við pöntun"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Print"
-#~ msgstr "Prenta"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Payments"
-#~ msgstr "Greiðslur"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "History"
-#~ msgstr "Saga"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Payments"
-#~ msgstr "Greiðslur"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Refund"
-#~ msgstr "Endurgreiða"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Mark as paid"
-#~ msgstr "Merkja sem greitt"
-
-#~ msgctxt "Order details summary header"
-#~ msgid "Customer"
-#~ msgstr "Viðskiptavinur"
-
-#~ msgctxt "Dashboard edit action"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Order table header"
-#~ msgid "Item"
-#~ msgstr "Hlutur"
-
-#~ msgctxt "Order table header"
-#~ msgid "Price"
-#~ msgstr "Verð"
-
-#~ msgctxt "Order table header"
-#~ msgid "Quantity"
-#~ msgstr "Magn"
-
-#~ msgctxt "Order table header"
-#~ msgid "Total"
-#~ msgstr "Samtals"
-
-#~ msgctxt "Order table row action"
-#~ msgid "Change quantity"
-#~ msgstr "Breyta magni"
-
-#~ msgctxt "Order table row action"
-#~ msgid "Remove line"
-#~ msgstr "Fjarlægja línu"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Discount"
-#~ msgstr "Afsláttur"
-
-#~ msgctxt "Order totals action"
-#~ msgid "Edit discount"
-#~ msgstr "Breyta afslætti"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Edit discount"
-#~ msgstr "Breyta afslætti"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Grand total"
-#~ msgstr "Samtals"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Add product"
-#~ msgstr "Bæta við vöru"
-
-#~ msgctxt "Order summary card action title"
-#~ msgid "Create order"
-#~ msgstr "Stofna pöntun"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Create order"
-#~ msgstr "Stofna pöntun"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Invoice"
-#~ msgstr "Reikningur"
-
-#~ msgctxt "Order detail action"
-#~ msgid "View on site"
-#~ msgstr "Skoða á vefnum"
-
-#~ msgctxt "Fulfillment summary card action"
-#~ msgid "Cancel"
-#~ msgstr "Hætta við"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Date"
-#~ msgstr "Dagsetning"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Payment status"
-#~ msgstr "Greiðslustaða"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Amount"
-#~ msgstr "Upphæð"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Item"
-#~ msgstr "Hlutur"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Quantity"
-#~ msgstr "Magn"
-
-#, python-format
-#~ msgctxt "Fulfill order table quantity unfulfilled"
-#~ msgid "of %(quantity_unfulfilled)s"
-#~ msgstr "af %(quantity_unfulfilled)s"
-
-#~ msgctxt "Modal order add variant primary action"
-#~ msgid "Add"
-#~ msgstr "Bæta við"
-
-#~ msgctxt "Modal cancel fulfillment cancel action"
-#~ msgid "Abort"
-#~ msgstr "Hætta við"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "SKU"
-#~ msgstr "VN"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Price"
-#~ msgstr "Verð"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Total"
-#~ msgstr "Samtals"
-
-#~ msgctxt "Modal cancel order title"
-#~ msgid "Cancel order"
-#~ msgstr "Hætta við pöntun"
-
-#~ msgctxt "Modal cancel order cancel action"
-#~ msgid "Abort"
-#~ msgstr "Hætta við"
-
-#~ msgctxt "Modal cancel order primary action"
-#~ msgid "Cancel Order"
-#~ msgstr "Hætta við pöntun"
-
-#~ msgctxt "Modal change quantity title"
-#~ msgid "Change quantity"
-#~ msgstr "Breyta magni"
-
-#~ msgctxt "Modal create order title"
-#~ msgid "Create order"
-#~ msgstr "Stofna pöntun"
-
-#~ msgctxt "Modal create order primary action"
-#~ msgid "Create"
-#~ msgstr "Stofna"
-
-#~ msgctxt "Modal edit customer primary action"
-#~ msgid "Update"
-#~ msgstr "Uppfæra"
-
-#~ msgctxt "Modal edit discount title"
-#~ msgid "Edit discount"
-#~ msgstr "Breyta afslætti"
-
-#~ msgctxt "Modal edit discount primary action"
-#~ msgid "Update"
-#~ msgstr "Uppfæra"
-
-#~ msgctxt "Modal edit shipping primary action"
-#~ msgid "Update"
-#~ msgstr "Uppfæra"
-
-#~ msgctxt "Modal edit voucher primary action"
-#~ msgid "Update"
-#~ msgstr "Uppfæra"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Update"
-#~ msgstr "Uppfæra"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Save"
-#~ msgstr "Vista"
-
-#~ msgctxt "Modal mark order as paid cancel action"
-#~ msgid "Abort"
-#~ msgstr "Hætta við"
-
-#~ msgctxt "Modal mark order as paid primary action"
-#~ msgid "Mark as paid"
-#~ msgstr "Merkja sem greitt"
-
-#~ msgctxt "Modal refund payment primary action"
-#~ msgid "Refund"
-#~ msgstr "Endurgreiða"
-
-#~ msgctxt "Modal remove order cancel action"
-#~ msgid "Abort"
-#~ msgstr "Hætta við"
-
-#~ msgctxt "Order invoice"
-#~ msgid "Invoice"
-#~ msgstr "Reikningur"
-
-#~ msgctxt "Invoice shipping address"
-#~ msgid "Shipping address"
-#~ msgstr "Afhendingarstaður"
-
-#~ msgctxt "Invoice billing address"
-#~ msgid "Billing address"
-#~ msgstr "Greiðslustaður"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Item"
-#~ msgstr "Hlutur"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "SKU"
-#~ msgstr "VN"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Gross price"
-#~ msgstr "Brúttóverð"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Quantity"
-#~ msgstr "Magn"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Total"
-#~ msgstr "Samtals"
-
-#~ msgctxt "Order subtotal net price"
-#~ msgid "Subtotal"
-#~ msgstr "Millisumma"
-
-#~ msgctxt "Order voucher header"
-#~ msgid "Discount"
-#~ msgstr "Afsláttur"
-
-#~ msgctxt "Order total price header"
-#~ msgid "Grand total"
-#~ msgstr "Samtals"
-
-#~ msgctxt "Packing slip shipping address"
-#~ msgid "Shipping address"
-#~ msgstr "Afhendingarstaður"
-
-#~ msgctxt "Packing slip billing address"
-#~ msgid "Billing address"
-#~ msgstr "Greiðslustaður"
-
-#~ msgctxt "Order table header"
-#~ msgid "SKU"
-#~ msgstr "VN"
-
-#~ msgctxt "Pages list page title"
-#~ msgid "Pages"
-#~ msgstr "Síður"
-
-#~ msgctxt "Pages form breadcrumbs"
-#~ msgid "Pages"
-#~ msgstr "Síður"
-
-#~ msgctxt "Page action"
-#~ msgid "Edit page"
-#~ msgstr "Breyta síðu"
-
-#~ msgctxt "Page action"
-#~ msgid "Remove page"
-#~ msgstr "Fjarlægja síðu"
-
-#~ msgctxt "Page action"
-#~ msgid "View on site"
-#~ msgstr "Skoða á vefnum"
-
-#~ msgctxt "Page form page title"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Page form page title"
-#~ msgid "Add new page"
-#~ msgstr "Bæta við nýrri síðu"
-
-#~ msgctxt "Dashboard pages list"
-#~ msgid "Pages"
-#~ msgstr "Síður"
-
-#~ msgctxt "Page form breadcrumbs"
-#~ msgid "Add new page"
-#~ msgstr "Bæta við nýrri síðu"
-
-#~ msgctxt "Page form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgid "Cancel"
-#~ msgstr "Hætta við"
-
-#~ msgid "Save"
-#~ msgstr "Vista"
-
-#~ msgid "Create"
-#~ msgstr "Stofna"
-
-#~ msgctxt "Page list add button text"
-#~ msgid "Add page"
-#~ msgstr "Bæta við síðu"
-
-#~ msgid "Pages"
-#~ msgstr "Síður"
-
-#~ msgctxt "Static pages table header name"
-#~ msgid "Title"
-#~ msgstr "Titill"
-
-#~ msgctxt "Static pages table header url"
-#~ msgid "URL"
-#~ msgstr "SLÓÐ"
-
-#~ msgctxt "Pages table header"
-#~ msgid "Visibility"
-#~ msgstr "Sýnileiki"
-
-#~ msgctxt "Empty pages list message"
-#~ msgid "No pages found."
-#~ msgstr "Engar síður fundust."
-
-#~ msgid "No pages found."
-#~ msgstr "Engar síður fundust."
-
-#~ msgid "Product types"
-#~ msgstr "Vörugerðir"
-
-#~ msgid "Display name"
-#~ msgstr "Birta nafn"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Remove"
-#~ msgstr "Fjarlægja"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Dashboard attributes list table header name"
-#~ msgid "Name"
-#~ msgstr "Nafn"
-
-#~ msgctxt "Name of product types related to the attribute"
-#~ msgid "Product types"
-#~ msgstr "Vörugerðir"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Products"
-#~ msgstr "Vörur"
-
-#~ msgctxt "Product field"
-#~ msgid "Published"
-#~ msgstr "Birt"
-
-#~ msgctxt "Product field"
-#~ msgid "Draft"
-#~ msgstr "Drög"
-
-#~ msgctxt "Product action"
-#~ msgid "View on site"
-#~ msgstr "Skoða á vefnum"
-
-#~ msgid "Variant"
-#~ msgstr "Afbrigði"
-
-#~ msgid "SKU"
-#~ msgstr "VN"
-
-#~ msgid "Name"
-#~ msgstr "Nafn"
-
-#~ msgid "Status"
-#~ msgstr "Staða"
-
-#~ msgid "Gross price"
-#~ msgstr "Brúttóverð"
-
-#~ msgid "Net price"
-#~ msgstr "Nettóverð"
-
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "Number in stock"
-#~ msgstr "Fjöldi á lager"
-
-#~ msgid "Images"
-#~ msgstr "Myndir"
-
-#~ msgid "Edit images"
-#~ msgstr "Breyta myndum"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Product form page title"
-#~ msgid "Add new product"
-#~ msgstr "Bæta við nýrri vöru"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Add new product"
-#~ msgstr "Bæta við nýrri vöru"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Product list add button text"
-#~ msgid "Add product"
-#~ msgstr "Bæta við vöru"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Name"
-#~ msgstr "Nafn"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Price"
-#~ msgstr "Verð"
-
-#~ msgctxt "Empty product list message"
-#~ msgid "No products found."
-#~ msgstr "Engar vörur fundust."
-
-#~ msgctxt "Modal select product types title"
-#~ msgid "Product type"
-#~ msgstr "Gerð vöru"
-
-#~ msgctxt "Dashboard add action"
-#~ msgid "Create"
-#~ msgstr "Stofna"
-
-#~ msgctxt "Image form text"
-#~ msgid "Add image"
-#~ msgstr "Bæta við mynd"
-
-#~ msgctxt "Image form text"
-#~ msgid "Image"
-#~ msgstr "Mynd"
-
-#~ msgctxt "Image form text"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Image form breadcrumbs"
-#~ msgid "Add image"
-#~ msgstr "Bæta við mynd"
-
-#, python-format
-#~ msgctxt "Image form breadcrumbs"
-#~ msgid "Add image for %(product)s"
-#~ msgstr "Bæta við mynd fyrir %(product)s"
-
-#~ msgctxt "Add image button text"
-#~ msgid "Add image"
-#~ msgstr "Bæta við mynd"
-
-#~ msgctxt "Image card text"
-#~ msgid "No description"
-#~ msgstr "Engin lýsing"
-
-#~ msgctxt "Dashboard remove action"
-#~ msgid "Remove"
-#~ msgstr "Fjarlægja"
-
-#~ msgctxt "Image gallery upload box text"
-#~ msgid "Drop images here to upload"
-#~ msgstr "Slepptu myndum hér til að hlaða upp"
-
-#~ msgctxt "Empty image gallery message"
-#~ msgid "No description"
-#~ msgstr "Engin lýsing"
-
-#~ msgctxt "Modal remove image text"
-#~ msgid "Remove product image"
-#~ msgstr "Fjarlægja vörumynd"
-
-#~ msgctxt "Modal remove image text"
-#~ msgid "Are you sure you want to remove product image?"
-#~ msgstr "Ertu viss um að þú viljir fjarlægja vörumyndina?"
-
-#~ msgctxt "Product type page title"
-#~ msgid "Add new product type"
-#~ msgstr "Bæta við nýrri vörugerð"
-
-#~ msgctxt "Product type breadcrumbs"
-#~ msgid "Add new product type"
-#~ msgstr "Bæta við nýrri vörugerð"
-
-#~ msgctxt "Product type action"
-#~ msgid "Remove product type"
-#~ msgstr "Fjarlægja vörugerð"
-
-#~ msgctxt "Dashboard product types list table header name"
-#~ msgid "Name"
-#~ msgstr "Nafn"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "SKU"
-#~ msgstr "VN"
-
-#~ msgid "No images"
-#~ msgstr "Engar myndir"
-
-#~ msgctxt "Dashboard action"
-#~ msgid "Select images"
-#~ msgstr "Veldu myndir"
-
-#~ msgctxt "Variant form page title"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Dashboard modal action"
-#~ msgid "Save"
-#~ msgstr "Vista"
-
-#~ msgid "No products found."
-#~ msgstr "Engar vörur fundust."
-
-#~ msgctxt "Search page title"
-#~ msgid "Search results"
-#~ msgstr "Leitarniðurstöður"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search results"
-#~ msgstr "Leitarniðurstöður"
-
-#~ msgctxt "Search results list products"
-#~ msgid "Products"
-#~ msgstr "Vörur"
-
-#~ msgctxt "Search results list orders"
-#~ msgid "Orders"
-#~ msgstr "Pantanir"
-
-#~ msgctxt "Search results list users"
-#~ msgid "Users"
-#~ msgstr "Notendur"
-
-#, python-format
-#~ msgctxt "Dashboard user"
-#~ msgid "User %(full_name)s"
-#~ msgstr "Notandi %(full_name)s"
-
-#~ msgctxt "Dashboard shipping zones"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Shipping zone form page title"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, price range of shipping methods within "
-#~ "shipping zone"
-#~ msgid "Price range"
-#~ msgstr "Verðbil"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, list of countries within of shipping zone"
-#~ msgid "Countries"
-#~ msgstr "Lönd"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Name"
-#~ msgstr "Nafn"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Price"
-#~ msgstr "Verð"
-
-#~ msgctxt "Attribute value remove action"
-#~ msgid "Remove"
-#~ msgstr "Fjarlægja"
-
-#~ msgctxt "Dashboard shipping method edit page"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Sendingaraðferð"
-
-#~ msgctxt "Dashboard authorization key list"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Authorization key breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Description"
-#~ msgstr "Lýsing"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Name"
-#~ msgstr "Nafn"
-
-#~ msgctxt "Authorization key edit action"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Authorization key remove action"
-#~ msgid "Remove"
-#~ msgstr "Fjarlægja"
-
-#~ msgctxt "Dashboard site settings"
-#~ msgid "Edit"
-#~ msgstr "Breyta"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Name"
-#~ msgstr "Nafn"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Email"
-#~ msgstr "Netfang"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Location"
-#~ msgstr "Staðsetning"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Name"
-#~ msgstr "Nafn"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Value"
-#~ msgstr "Gildi"
-
-#~ msgctxt "Taxes table header"
-#~ msgid "Country code"
-#~ msgstr "Landsnúmer"
-
-#~ msgctxt "Taxes table header"
-#~ msgid "Country name"
-#~ msgstr "Nafn lands"
-
-#~ msgctxt "Include taxes in prices setting description"
-#~ msgid "Yes"
-#~ msgstr "Já"
-
-#~ msgctxt "Include taxes in prices setting description"
-#~ msgid "No"
-#~ msgstr "Nei"
-
-#~ msgctxt "Show customers gross prices setting description"
-#~ msgid "Yes"
-#~ msgstr "Já"
-
-#~ msgctxt "Show customers gross prices setting description"
-#~ msgid "No"
-#~ msgstr "Nei"
-
-#~ msgctxt "Charge taxes on shipping rates setting description"
-#~ msgid "Yes"
-#~ msgstr "Já"
-
-#~ msgctxt "Charge taxes on shipping rates setting description"
-#~ msgid "No"
-#~ msgstr "Nei"
-
-#~ msgctxt "Dashboard form labels"
-#~ msgid "(optional)"
-#~ msgstr "(valkvæmt)"
-
-#~ msgid "File"
-#~ msgstr "Skrá"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Shipping address"
-#~ msgstr "Afhendingarstaður"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Billing address"
-#~ msgstr "Greiðslustaður"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Product"
-#~ msgstr "Vara"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Quantity"
-#~ msgstr "Magn"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Price"
-#~ msgstr "Verð"
-
-#~ msgctxt "Order details subtotal row text"
-#~ msgid "Subtotal"
-#~ msgstr "Millisumma"
-
-#~ msgctxt "Order details total text"
-#~ msgid "Total"
-#~ msgstr "Samtals"
-
-#~ msgctxt "Fulfillment tracking number details"
-#~ msgid "Tracking number"
-#~ msgstr "Rakningarnúmer"
-
-#~ msgctxt "Checkout success page title"
-#~ msgid "Thank you"
-#~ msgstr "Takk fyrir"
-
-#~ msgctxt "Checkout secondary action"
-#~ msgid "Continue shopping"
-#~ msgstr "Halda áfram að versla"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Create an account"
-#~ msgstr "Stofna aðgang"
-
-#~ msgctxt "Order details primary action"
-#~ msgid "Pay for order"
-#~ msgstr "Greiða fyrir pöntun"
-
-#, python-format
-#~ msgctxt "Payment details page title"
-#~ msgid "Pay for order %(order)s"
-#~ msgstr "Greiða fyrir pöntun %(order)s"
-
-#~ msgctxt "Payment details title"
-#~ msgid "Payment pending"
-#~ msgstr "Beðið eftir greiðslu"
-
-#~ msgctxt "Payment status text"
-#~ msgid "Current status:"
-#~ msgstr "Núverandi staða:"
-
-#, python-format
-#~ msgctxt "Payment details title"
-#~ msgid "Pay for order %(order)s"
-#~ msgstr "Greiða fyrir pöntun %(order)s"
-
-#~ msgid "Choose payment method"
-#~ msgstr "Veldu greiðslumáta"
-
-#~ msgctxt "Payment form primary action"
-#~ msgid "Make payment"
-#~ msgstr "Framkvæma greiðslu"
-
-#~ msgctxt "Payment form page title"
-#~ msgid "Payment"
-#~ msgstr "Greiðsla"
-
-#~ msgctxt "Payment form breadcrumb"
-#~ msgid "Payment"
-#~ msgstr "Greiðsla"
-
-#~ msgctxt "Payment form title"
-#~ msgid "Payment"
-#~ msgstr "Greiðsla"
-
-#~ msgctxt "Payment form (Stripe) secondary action"
-#~ msgid "Change payment"
-#~ msgstr "Breyta greiðslu"
-
-#~ msgctxt "Payment form (Razorpay) secondary action"
-#~ msgid "Change payment"
-#~ msgstr "Breyta greiðslu"
-
-#~ msgctxt "Product price filter"
-#~ msgid "from"
-#~ msgstr "frá"
-
-#~ msgctxt "Product price filter"
-#~ msgid "to"
-#~ msgstr "til"
-
-#~ msgctxt "Product list page filters"
-#~ msgid "Clear filters"
-#~ msgstr "Hreinsa afmörkun"
-
-#~ msgctxt "Apply filters button"
-#~ msgid "Update results"
-#~ msgstr "Uppfæra niðurstöður"
-
-#~ msgctxt "product price range"
-#~ msgid "from"
-#~ msgstr "frá"
-
-#~ msgctxt "Product details primary action"
-#~ msgid "Add to cart"
-#~ msgstr "Bæta við í körfu"
-
-#~ msgctxt "Product details title"
-#~ msgid "Description"
-#~ msgstr "Lýsing"
-
-#~ msgctxt "Filter heading title"
-#~ msgid "Filters"
-#~ msgstr "Afmarkanir"
-
-#~ msgctxt "Product list filters"
-#~ msgid "Sort by"
-#~ msgstr "Sía eftir"
-
-#~ msgid "Search:"
-#~ msgstr "Leita:"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Order summary"
-#~ msgstr "Samantekt pöntunar"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Subtotal"
-#~ msgstr "Millisumma"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Discount:"
-#~ msgstr "Afsláttur:"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Total"
-#~ msgstr "Samtals"

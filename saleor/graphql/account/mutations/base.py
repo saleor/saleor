@@ -228,7 +228,7 @@ class PasswordChange(BaseMutation):
         return PasswordChange(user=user)
 
 
-class BaseAddressUpdate(ModelMutation):
+class BaseAddressUpdate(ModelMutation, I18nMixin):
     """Base mutation for address update used by staff and account."""
 
     user = graphene.Field(
@@ -254,12 +254,20 @@ class BaseAddressUpdate(ModelMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
-        response = super().perform_mutation(root, info, **data)
-        user = response.address.user_addresses.first()
-        address = info.context.plugins.change_user_address(response.address, None, user)
-        response.user = user
-        response.address = address
-        return response
+        instance = cls.get_instance(info, **data)
+        cleaned_input = cls.clean_input(
+            info=info, instance=instance, data=data.get("input")
+        )
+        address = cls.validate_address(cleaned_input, instance=instance)
+        user = address.user_addresses.first()
+        cls.clean_instance(info, address)
+        cls.save(info, address, cleaned_input)
+        cls._save_m2m(info, address, cleaned_input)
+        address = info.context.plugins.change_user_address(address, None, user)
+        success_response = cls.success_response(address)
+        success_response.user = user
+        success_response.address = address
+        return success_response
 
 
 class BaseAddressDelete(ModelDeleteMutation):

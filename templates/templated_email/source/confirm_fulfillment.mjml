@@ -17,9 +17,15 @@
             Thank you for your order. Below is the list of fulfilled products.
           {% endblocktrans %}
           {% if fulfillment.tracking_number %}
-            {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment confirmation email text" %}
-              You can track your shipment with {{ tracking_number }} code.
-            {% endblocktrans %}
+            {% if fulfillment.is_tracking_number_url %}
+              {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment confirmation email text" %}
+                You can track your shipment with <a href="{{ tracking_number }}">{{ tracking_number }}</a> link.
+              {% endblocktrans %}
+            {% else %}
+              {% blocktrans trimmed with tracking_number=fulfillment.tracking_number context "Fulfillment confirmation email text" %}
+                You can track your shipment with {{ tracking_number }} code.
+              {% endblocktrans %}
+            {% endif %}
           {% endif %}
         </mj-text>
         <mj-text>

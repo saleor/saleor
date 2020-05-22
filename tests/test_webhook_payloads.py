@@ -66,8 +66,8 @@ def test_generate_sample_payload_order(
     assert payload == order_payload
 
 
-def test_generate_sample_playload_fulfillment_created(fulfillment):
-    sample_fulfilment_payload = generate_sample_payload(
+def test_generate_sample_payload_fulfillment_created(fulfillment):
+    sample_fulfillment_payload = generate_sample_payload(
         WebhookEventType.FULFILLMENT_CREATED
     )[0]
     fulfillment_payload = json.loads(generate_fulfillment_payload(fulfillment))[0]
@@ -76,28 +76,29 @@ def test_generate_sample_playload_fulfillment_created(fulfillment):
     obj_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
     order_id = graphene.Node.to_global_id("Order", order.id)
 
-    assert obj_id == sample_fulfilment_payload["id"]
+    assert obj_id == sample_fulfillment_payload["id"]
     # Check anonymized data differ
-    assert order_id == sample_fulfilment_payload["order"]["id"]
-    assert order.user_email != sample_fulfilment_payload["order"]["user_email"]
+    assert order_id == sample_fulfillment_payload["order"]["id"]
+    assert order.user_email != sample_fulfillment_payload["order"]["user_email"]
     assert (
         order.shipping_address.street_address_1
-        != sample_fulfilment_payload["order"]["shipping_address"]["street_address_1"]
+        != sample_fulfillment_payload["order"]["shipping_address"]["street_address_1"]
     )
-    assert order.metadata != sample_fulfilment_payload["order"]["metadata"]
+    assert order.metadata != sample_fulfillment_payload["order"]["metadata"]
     assert (
-        order.private_metadata != sample_fulfilment_payload["order"]["private_metadata"]
+        order.private_metadata
+        != sample_fulfillment_payload["order"]["private_metadata"]
     )
 
     # Remove anonymized data
-    sample_fulfilment_payload["order"] = _remove_anonymized_order_data(
-        sample_fulfilment_payload["order"]
+    sample_fulfillment_payload["order"] = _remove_anonymized_order_data(
+        sample_fulfillment_payload["order"]
     )
     fulfillment_payload["order"] = _remove_anonymized_order_data(
         fulfillment_payload["order"]
     )
     # Compare the payloads
-    assert sample_fulfilment_payload == fulfillment_payload
+    assert sample_fulfillment_payload == fulfillment_payload
 
 
 @pytest.mark.parametrize(

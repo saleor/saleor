@@ -33,6 +33,7 @@ dj-database-url==0.5.0
 dj-email-url==1.0.0
 django==3.0.6
 django-appconf==1.0.4
+django-cache-url==3.1.2
 django-countries==6.1.2
 django-debug-toolbar==2.2
 django-debug-toolbar-request-history==0.1.1
