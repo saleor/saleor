@@ -714,8 +714,9 @@ MUTATION_CHECKOUT_LINES_ADD = """
                     }
                 }
             }
-            errors {
+            checkoutErrors {
                 field
+                code
                 message
             }
         }
@@ -743,7 +744,7 @@ def test_checkout_lines_add(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
-    assert not data["errors"]
+    assert not data["checkoutErrors"]
     checkout.refresh_from_db()
     line = checkout.lines.latest("pk")
     assert line.variant == variant
@@ -752,6 +753,29 @@ def test_checkout_lines_add(
     mocked_update_shipping_method.assert_called_once_with(
         checkout, list(checkout), mock.ANY
     )
+
+
+def test_checkout_lines_add_with_unpublished_product(
+    user_api_client, checkout_with_item, stock
+):
+    variant = stock.product_variant
+    stock.product_variant.product.is_published = False
+    stock.product_variant.product.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    content = get_graphql_content(response)
+    error = content["data"]["checkoutLinesAdd"]["checkoutErrors"][0]
+    assert error["message"] == "Can't add unpublished product."
+    assert error["code"] == "PRODUCT_NOT_PUBLISHED"
 
 
 def test_checkout_lines_add_too_many(user_api_client, checkout_with_item, stock):
@@ -766,9 +790,13 @@ def test_checkout_lines_add_too_many(user_api_client, checkout_with_item, stock)
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     content = get_graphql_content(response)["data"]["checkoutLinesAdd"]
 
-    assert content["errors"]
-    assert content["errors"] == [
-        {"field": "quantity", "message": "Cannot add more than 50 times this item."}
+    assert content["checkoutErrors"]
+    assert content["checkoutErrors"] == [
+        {
+            "field": "quantity",
+            "message": "Cannot add more than 50 times this item.",
+            "code": "QUANTITY_GREATER_THAN_LIMIT",
+        }
     ]
 
 
@@ -784,7 +812,7 @@ def test_checkout_lines_add_empty_checkout(user_api_client, checkout, stock):
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
-    assert not data["errors"]
+    assert not data["checkoutErrors"]
     checkout.refresh_from_db()
     line = checkout.lines.first()
     assert line.variant == variant
@@ -805,7 +833,7 @@ def test_checkout_lines_add_variant_without_inventory_tracking(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
-    assert not data["errors"]
+    assert not data["checkoutErrors"]
     checkout.refresh_from_db()
     line = checkout.lines.first()
     assert line.variant == variant
@@ -824,10 +852,10 @@ def test_checkout_lines_add_check_lines_quantity(user_api_client, checkout, stoc
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
-    assert data["errors"][0]["message"] == (
+    assert data["checkoutErrors"][0]["message"] == (
         "Could not add item Test product (SKU_A). Only 15 remaining in stock."
     )
-    assert data["errors"][0]["field"] == "quantity"
+    assert data["checkoutErrors"][0]["field"] == "quantity"
 
 
 def test_checkout_lines_invalid_variant_id(user_api_client, checkout, stock):
@@ -847,8 +875,8 @@ def test_checkout_lines_invalid_variant_id(user_api_client, checkout, stock):
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
     error_msg = "Could not resolve to a node with the global id list of '%s'."
-    assert data["errors"][0]["message"] == error_msg % [invalid_variant_id]
-    assert data["errors"][0]["field"] == "variantId"
+    assert data["checkoutErrors"][0]["message"] == error_msg % [invalid_variant_id]
+    assert data["checkoutErrors"][0]["field"] == "variantId"
 
 
 MUTATION_CHECKOUT_LINES_UPDATE = """
@@ -864,8 +892,9 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
                     }
                 }
             }
-            errors {
+            checkoutErrors {
                 field
+                code
                 message
             }
         }
@@ -897,7 +926,7 @@ def test_checkout_lines_update(
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLinesUpdate"]
-    assert not data["errors"]
+    assert not data["checkoutErrors"]
     checkout.refresh_from_db()
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
@@ -909,12 +938,70 @@ def test_checkout_lines_update(
     )
 
 
+def test_create_checkout_with_unpublished_product(
+    user_api_client, checkout_with_item, stock
+):
+    variant = stock.product_variant
+    variant.product.is_published = False
+    variant.product.save()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    query = """
+            mutation CreateCheckout($checkoutInput: CheckoutCreateInput!) {
+              checkoutCreate(input: $checkoutInput) {
+                checkoutErrors {
+                  code
+                  message
+                }
+                checkout {
+                  id
+                }
+              }
+            }
+        """
+    variables = {
+        "checkoutInput": {
+            "email": "test@example.com",
+            "lines": [{"variantId": variant_id, "quantity": 1}],
+        }
+    }
+    response = get_graphql_content(user_api_client.post_graphql(query, variables))
+    error = response["data"]["checkoutCreate"]["checkoutErrors"][0]
+
+    assert error["message"] == "Can't create checkout with unpublished product."
+    assert error["code"] == "PRODUCT_NOT_PUBLISHED"
+
+
+def test_checkout_lines_update_with_unpublished_product(
+    user_api_client, checkout_with_item
+):
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    variant = line.variant
+    variant.product.is_published = False
+    variant.product.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+
+    content = get_graphql_content(response)
+    error = content["data"]["checkoutLinesUpdate"]["checkoutErrors"][0]
+    assert error["message"] == "Can't add unpublished product."
+    assert error["code"] == "PRODUCT_NOT_PUBLISHED"
+
+
 def test_checkout_lines_update_invalid_checkout_id(user_api_client):
     variables = {"checkoutId": "test", "lines": []}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesUpdate"]
-    assert data["errors"][0]["field"] == "checkoutId"
+    assert data["checkoutErrors"][0]["field"] == "checkoutId"
 
 
 def test_checkout_lines_update_check_lines_quantity(
@@ -935,10 +1022,10 @@ def test_checkout_lines_update_check_lines_quantity(
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLinesUpdate"]
-    assert data["errors"][0]["message"] == (
+    assert data["checkoutErrors"][0]["message"] == (
         "Could not add item Test product (123). Only 10 remaining in stock."
     )
-    assert data["errors"][0]["field"] == "quantity"
+    assert data["checkoutErrors"][0]["field"] == "quantity"
 
 
 def test_checkout_lines_update_with_chosen_shipping(
@@ -960,7 +1047,7 @@ def test_checkout_lines_update_with_chosen_shipping(
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLinesUpdate"]
-    assert not data["errors"]
+    assert not data["checkoutErrors"]
     checkout.refresh_from_db()
     assert checkout.quantity == 1
 
@@ -1038,7 +1125,7 @@ def test_checkout_line_delete_by_zero_quantity(
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLinesUpdate"]
-    assert not data["errors"]
+    assert not data["checkoutErrors"]
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
     mocked_update_shipping_method.assert_called_once_with(
