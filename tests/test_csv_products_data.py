@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from measurement.measures import Weight
 
 from saleor.csv.utils.products_data import (
@@ -8,9 +6,11 @@ from saleor.csv.utils.products_data import (
     add_collection_info_to_data,
     add_image_uris_to_data,
     add_warehouse_info_to_data,
-    get_export_fields_and_headers,
+    get_attributes_headers,
+    get_export_fields_and_headers_info,
+    get_product_export_fields_and_headers,
     get_products_data,
-    prepare_products_data,
+    get_warehouses_headers,
     prepare_products_relations_data,
     prepare_variants_data,
 )
@@ -19,93 +19,8 @@ from saleor.product.models import Attribute, Product, VariantImage
 from saleor.warehouse.models import Warehouse
 
 
-@patch("saleor.csv.utils.products_data.prepare_products_data")
-def test_get_products_data(mock_prepare_products_data, product_list):
-    exp_data = [{"test1": "test"}]
-    attr_and_warehouse_headers = ["attr1", "test warehouse", "attr2"]
-    mock_prepare_products_data.return_value = (exp_data, attr_and_warehouse_headers)
-    queryset = Product.objects.all()
-    export_info = {"fields": ProductFieldEnum.__enum__._value2member_map_.keys()}
-    export_data, csv_headers_mapping, headers = get_products_data(queryset, export_info)
-
-    expected_csv_headers = {
-        value: key
-        for mapping in ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()
-        for key, value in mapping.items()
-    }
-    del expected_csv_headers["id"]
-    expected_headers = (
-        ["id"] + list(expected_csv_headers.keys()) + attr_and_warehouse_headers
-    )
-
-    assert export_data == exp_data
-    assert csv_headers_mapping == expected_csv_headers
-    assert set(headers) == set(expected_headers)
-
-
-@patch("saleor.csv.utils.products_data.prepare_products_data")
-def test_get_products_data_with_empty_warehouses_and_attributes_lists(
-    mock_prepare_products_data, product_list
-):
-    exp_data = [{"test1": "test"}]
-    attr_and_warehouse_headers = ["attr1", "test warehouse", "attr2"]
-    mock_prepare_products_data.return_value = (exp_data, attr_and_warehouse_headers)
-    queryset = Product.objects.all()
-    export_info = {
-        "fields": ProductFieldEnum.__enum__._value2member_map_.keys(),
-        "warehouses": [],
-        "attributes": [],
-    }
-    export_data, csv_headers_mapping, headers = get_products_data(queryset, export_info)
-
-    expected_csv_headers = {
-        value: key
-        for mapping in ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()
-        for key, value in mapping.items()
-    }
-    del expected_csv_headers["id"]
-    expected_headers = (
-        ["id"] + list(expected_csv_headers.keys()) + attr_and_warehouse_headers
-    )
-
-    assert export_data == exp_data
-    assert csv_headers_mapping == expected_csv_headers
-    assert set(headers) == set(expected_headers)
-
-
-@patch("saleor.csv.utils.products_data.prepare_products_data")
-def test_get_products_data_with_some_of_product_and_variant_fields(
-    mock_prepare_products_data, product_list
-):
-    exp_data = [{"test1": "test"}]
-    mock_prepare_products_data.return_value = (exp_data, [])
-    queryset = Product.objects.all()
-    export_info = {
-        "fields": [
-            ProductFieldEnum.COLLECTIONS.value,
-            ProductFieldEnum.PRICE.value,
-            ProductFieldEnum.PRICE_OVERRIDE.value,
-        ],
-        "warehouses": [],
-        "attributes": [],
-    }
-    export_data, csv_headers_mapping, headers = get_products_data(queryset, export_info)
-
-    expected_csv_headers = {
-        "collections__slug": "collections",
-        "price_amount": "price",
-        "product_currency": "product currency",
-        "price_override_amount": "price override",
-        "variant_currency": "variant currency",
-    }
-    expected_headers = ["id"] + list(expected_csv_headers.keys())
-
-    assert export_data == exp_data
-    assert csv_headers_mapping == expected_csv_headers
-    assert set(headers) == set(expected_headers)
-
-
-def test_prepare_products_data(product, product_with_image, collection, image):
+def test_get_products_data(product, product_with_image, collection, image):
+    # given
     product.weight = Weight(kg=5)
     product.save()
 
@@ -125,12 +40,14 @@ def test_prepare_products_data(product, product_with_image, collection, image):
     for variant in product.variants.all():
         for attr in variant.attributes.all():
             attribute_ids.append(str(attr.assignment.attribute.pk))
-    result_data, headers = prepare_products_data(
+
+    # when
+    result_data = get_products_data(
         products, export_fields, warehouse_ids, attribute_ids
     )
 
+    # then
     expected_data = []
-    expected_headers = set()
     for product in products.order_by("pk"):
         product_data = {}
         product_data["collections__slug"] = (
@@ -158,7 +75,6 @@ def test_prepare_products_data(product, product_with_image, collection, image):
         if assigned_attribute:
             header = f"{assigned_attribute.attribute.slug} (product attribute)"
             product_data[header] = assigned_attribute.values.first().slug
-            expected_headers.add(header)
 
         for variant in product.variants.all():
             data = {}
@@ -184,33 +100,30 @@ def test_prepare_products_data(product, product_with_image, collection, image):
                     f"{slug} (warehouse quantity)",
                 ]
                 data[warehouse_headers[0]] = stock.quantity
-                expected_headers.update(warehouse_headers)
 
             assigned_attribute = variant.attributes.first()
             if assigned_attribute:
                 header = f"{assigned_attribute.attribute.slug} (variant attribute)"
                 data[header] = assigned_attribute.values.first().slug
-                expected_headers.add(header)
 
             expected_data.append(data)
 
     assert result_data == expected_data
-    assert set(headers) == expected_headers
 
 
-def test_prepare_products_data_for_specified_attributes(
+def test_get_products_data_for_specified_attributes(
     product, product_with_variant_with_two_attributes
 ):
+    # given
     products = Product.objects.all()
     export_fields = {"id", "sku"}
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()][:1]
 
-    result_data, headers = prepare_products_data(
-        products, export_fields, [], attribute_ids
-    )
+    # when
+    result_data = get_products_data(products, export_fields, [], attribute_ids)
 
+    # then
     expected_data = []
-    expected_headers = set()
     for product in products.order_by("pk"):
         product_data = {}
         product_data["id"] = product.pk
@@ -220,7 +133,6 @@ def test_prepare_products_data_for_specified_attributes(
                 header = f"{assigned_attribute.attribute.slug} (product attribute)"
                 if str(assigned_attribute.attribute.pk) in attribute_ids:
                     product_data[header] = assigned_attribute.values.first().slug
-                    expected_headers.add(header)
 
         for variant in product.variants.all():
             data = {}
@@ -230,17 +142,16 @@ def test_prepare_products_data_for_specified_attributes(
                 header = f"{assigned_attribute.attribute.slug} (variant attribute)"
                 if str(assigned_attribute.attribute.pk) in attribute_ids:
                     data[header] = assigned_attribute.values.first().slug
-                    expected_headers.add(header)
 
             expected_data.append(data)
 
     assert result_data == expected_data
-    assert set(headers) == expected_headers
 
 
-def test_prepare_products_data_for_specified_warehouses(
+def test_get_products_data_for_specified_warehouses(
     product, product_with_image, variant_with_many_stocks
 ):
+    # given
     product.variants.add(variant_with_many_stocks)
 
     products = Product.objects.all()
@@ -248,12 +159,13 @@ def test_prepare_products_data_for_specified_warehouses(
     warehouse_ids = [str(warehouse.pk) for warehouse in Warehouse.objects.all()][:2]
     attribute_ids = []
 
-    result_data, headers = prepare_products_data(
+    # when
+    result_data = get_products_data(
         products, export_fields, warehouse_ids, attribute_ids
     )
 
+    # then
     expected_data = []
-    expected_headers = set()
     for product in products.order_by("pk"):
         product_data = {}
         product_data["id"] = product.pk
@@ -270,21 +182,20 @@ def test_prepare_products_data_for_specified_warehouses(
                         f"{slug} (warehouse quantity)",
                     ]
                     data[warehouse_headers[0]] = stock.quantity
-                    expected_headers.update(warehouse_headers)
 
             expected_data.append(data)
 
     for res in result_data:
         assert res in expected_data
-    assert set(headers) == expected_headers
 
 
-def test_prepare_products_data_for_specified_warehouses_and_attributes(
+def test_get_products_data_for_specified_warehouses_and_attributes(
     product,
     variant_with_many_stocks,
     product_with_image,
     product_with_variant_with_two_attributes,
 ):
+    # given
     product.variants.add(variant_with_many_stocks)
 
     products = Product.objects.all()
@@ -292,12 +203,13 @@ def test_prepare_products_data_for_specified_warehouses_and_attributes(
     warehouse_ids = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()]
 
-    result_data, headers = prepare_products_data(
+    # when
+    result_data = get_products_data(
         products, export_fields, warehouse_ids, attribute_ids
     )
 
+    # then
     expected_data = []
-    expected_headers = set()
     for product in products.order_by("pk"):
         product_data = {}
         product_data["id"] = product.pk
@@ -307,7 +219,6 @@ def test_prepare_products_data_for_specified_warehouses_and_attributes(
                 header = f"{assigned_attribute.attribute.slug} (product attribute)"
                 if str(assigned_attribute.attribute.pk) in attribute_ids:
                     product_data[header] = assigned_attribute.values.first().slug
-                    expected_headers.add(header)
 
         for variant in product.variants.all():
             data = {}
@@ -321,21 +232,19 @@ def test_prepare_products_data_for_specified_warehouses_and_attributes(
                         f"{slug} (warehouse quantity)",
                     ]
                     data[warehouse_headers[0]] = stock.quantity
-                    expected_headers.update(warehouse_headers)
 
             for assigned_attribute in variant.attributes.all():
                 header = f"{assigned_attribute.attribute.slug} (variant attribute)"
                 if str(assigned_attribute.attribute.pk) in attribute_ids:
                     data[header] = assigned_attribute.values.first().slug
-                    expected_headers.add(header)
 
             expected_data.append(data)
 
     assert result_data == expected_data
-    assert set(headers) == expected_headers
 
 
 def test_prepare_products_relations_data(product_with_image, collection_list):
+    # given
     pk = product_with_image.pk
     collection_list[0].products.add(product_with_image)
     collection_list[1].products.add(product_with_image)
@@ -348,8 +257,10 @@ def test_prepare_products_relations_data(product_with_image, collection_list):
         for attr in product_with_image.attributes.all()
     ]
 
-    result, result_headers = prepare_products_relations_data(qs, fields, attribute_ids)
+    # when
+    result = prepare_products_relations_data(qs, fields, attribute_ids)
 
+    # then
     collections = ", ".join(
         sorted([collection.slug for collection in collection_list[:2]])
     )
@@ -372,12 +283,10 @@ def test_prepare_products_relations_data(product_with_image, collection_list):
 
 
 def test_prepare_variants_data(product):
+    # given
     variant = product.variants.first()
     variant.weight = Weight(kg=5)
     variant.save()
-
-    warehouse_headers = set()
-    attribute_headers = set()
 
     data = {"id": 123, "name": "test_product"}
     variant_fields = set(
@@ -388,10 +297,12 @@ def test_prepare_variants_data(product):
         str(attr.assignment.attribute.pk) for attr in variant.attributes.all()
     ]
 
-    result_data, res_attribute_headers, res_warehouse_headers = prepare_variants_data(
+    # when
+    result_data = prepare_variants_data(
         product.pk, data, variant_fields, warhouse_ids, attribute_ids
     )
 
+    # then
     variant_data = {
         "sku": variant.sku,
         "cost_price_amount": variant.cost_price_amount,
@@ -405,7 +316,6 @@ def test_prepare_variants_data(product):
     if assigned_attribute:
         header = f"{assigned_attribute.attribute.slug} (variant attribute)"
         variant_data[header] = assigned_attribute.values.first().slug
-        attribute_headers.add(header)
 
     for stock in variant.stocks.all():
         slug = stock.warehouse.slug
@@ -413,76 +323,98 @@ def test_prepare_variants_data(product):
             f"{slug} (warehouse quantity)",
         ]
         variant_data[headers[0]] = stock.quantity
-        warehouse_headers.update(headers)
 
     expected_result = {**data, **variant_data}
 
     assert result_data == [expected_result]
-    assert res_attribute_headers == attribute_headers
-    assert res_warehouse_headers == warehouse_headers
 
 
 def test_add_collection_info_to_data(product):
+    # given
     pk = product.pk
     collection = "test_collection"
     input_data = {pk: {}}
+
+    # when
     result = add_collection_info_to_data(product.pk, collection, input_data)
 
+    # then
     assert result[pk]["collections__slug"] == {collection}
 
 
 def test_add_collection_info_to_data_update_collections(product):
+    # given
     pk = product.pk
     existing_collection = "test2"
     collection = "test_collection"
     input_data = {pk: {"collections__slug": {existing_collection}}}
+
+    # when
     result = add_collection_info_to_data(product.pk, collection, input_data)
 
+    # then
     assert result[pk]["collections__slug"] == {collection, existing_collection}
 
 
 def test_add_collection_info_to_data_no_collection(product):
+    # given
     pk = product.pk
     collection = None
     input_data = {pk: {}}
+
+    # when
     result = add_collection_info_to_data(product.pk, collection, input_data)
 
+    # then
     assert result == input_data
 
 
 def test_add_image_uris_to_data(product):
+    # given
     pk = product.pk
     image_path = "test/path/image.jpg"
     field = "variant_images"
     input_data = {pk: {}}
+
+    # when
     result = add_image_uris_to_data(product.pk, image_path, field, input_data)
 
+    # then
     assert result[pk][field] == {"http://mirumee.com/media/" + image_path}
 
 
 def test_add_image_uris_to_data_update_images(product):
+    # given
     pk = product.pk
     old_path = "http://mirumee.com/media/test/image0.jpg"
     image_path = "test/path/image.jpg"
     input_data = {pk: {"product_images": {old_path}}}
     field = "product_images"
+
+    # when
     result = add_image_uris_to_data(product.pk, image_path, field, input_data)
 
+    # then
     assert result[pk][field] == {"http://mirumee.com/media/" + image_path, old_path}
 
 
 def test_add_image_uris_to_data_no_image_path(product):
+    # given
     pk = product.pk
     image_path = None
     input_data = {pk: {"name": "test"}}
+
+    # when
     result = add_image_uris_to_data(
         product.pk, image_path, "product_images", input_data
     )
 
+    # then
     assert result == input_data
 
 
 def test_add_attribute_info_to_data(product):
+    # given
     pk = product.pk
     slug = "test_attribute_slug"
     value = "test value"
@@ -491,17 +423,19 @@ def test_add_attribute_info_to_data(product):
         "value": value,
     }
     input_data = {pk: {}}
-    result, header = add_attribute_info_to_data(
+
+    # when
+    result = add_attribute_info_to_data(
         product.pk, attribute_data, "product attribute", input_data
     )
 
+    # then
     expected_header = f"{slug} (product attribute)"
-
-    assert header == expected_header
-    assert result[pk][header] == {value}
+    assert result[pk][expected_header] == {value}
 
 
 def test_add_attribute_info_to_data_update_attribute_data(product):
+    # given
     pk = product.pk
     slug = "test_attribute_slug"
     value = "test value"
@@ -512,30 +446,36 @@ def test_add_attribute_info_to_data_update_attribute_data(product):
         "value": value,
     }
     input_data = {pk: {expected_header: {"value1"}}}
-    result, header = add_attribute_info_to_data(
+
+    # when
+    result = add_attribute_info_to_data(
         product.pk, attribute_data, "variant attribute", input_data
     )
 
-    assert header == expected_header
-    assert result[pk][header] == {value, "value1"}
+    # then
+    assert result[pk][expected_header] == {value, "value1"}
 
 
 def test_add_attribute_info_to_data_no_slug(product):
+    # given
     pk = product.pk
     attribute_data = {
         "slug": None,
         "value": None,
     }
     input_data = {pk: {}}
-    result, header = add_attribute_info_to_data(
+
+    # when
+    result = add_attribute_info_to_data(
         product.pk, attribute_data, "variant attribute", input_data
     )
 
-    assert not header
+    # then
     assert result == input_data
 
 
 def test_add_warehouse_info_to_data(product):
+    # given
     pk = product.pk
     slug = "test_warehouse"
     warehouse_data = {
@@ -544,14 +484,17 @@ def test_add_warehouse_info_to_data(product):
         "qty_alc": 10,
     }
     input_data = {pk: {}}
-    result, headers = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
 
+    # when
+    result = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
+
+    # then
     expected_header = f"{slug} (warehouse quantity)"
     assert result[pk][expected_header] == 12
-    assert headers == expected_header
 
 
 def test_add_warehouse_info_to_data_data_not_changed(product):
+    # given
     pk = product.pk
     slug = "test_warehouse"
     warehouse_data = {
@@ -565,13 +508,16 @@ def test_add_warehouse_info_to_data_data_not_changed(product):
             f"{slug} (warehouse quantity allocated)": 8,
         }
     }
-    result, headers = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
 
+    # when
+    result = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
+
+    # then
     assert result == input_data
-    assert headers is None
 
 
 def test_add_warehouse_info_to_data_data_no_slug(product):
+    # given
     pk = product.pk
     warehouse_data = {
         "slug": None,
@@ -579,13 +525,16 @@ def test_add_warehouse_info_to_data_data_no_slug(product):
         "qty_alc": None,
     }
     input_data = {pk: {}}
-    result, headers = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
 
+    # when
+    result = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
+
+    # then
     assert result == input_data
-    assert headers is None
 
 
 def test_get_export_fields_and_headers_fields_with_price():
+    # given
     export_info = {
         "fields": [
             ProductFieldEnum.PRICE.value,
@@ -595,8 +544,13 @@ def test_get_export_fields_and_headers_fields_with_price():
         ],
         "warehoses": [],
     }
-    export_fields, csv_headers_mapping = get_export_fields_and_headers(export_info)
 
+    # when
+    export_fields, csv_headers_mapping = get_product_export_fields_and_headers(
+        export_info
+    )
+
+    # then
     expected_mapping = {
         "price_amount": "price",
         "product_currency": "product currency",
@@ -606,19 +560,15 @@ def test_get_export_fields_and_headers_fields_with_price():
         "description": "description",
     }
 
-    assert set(export_fields) == {
-        "price_override_amount",
-        "variant_currency",
-        "collections__slug",
-        "id",
-        "product_currency",
-        "price_amount",
-        "description",
-    }
+    expected_fields = set(expected_mapping.keys())
+    expected_fields.add("id")
+
+    assert set(export_fields) == expected_fields
     assert csv_headers_mapping == expected_mapping
 
 
 def test_get_export_fields_and_headers_fields_without_price():
+    # given
     export_info = {
         "fields": [
             ProductFieldEnum.COLLECTIONS.value,
@@ -627,8 +577,13 @@ def test_get_export_fields_and_headers_fields_without_price():
         ],
         "warehoses": [],
     }
-    export_fields, csv_headers_mapping = get_export_fields_and_headers(export_info)
 
+    # when
+    export_fields, csv_headers_mapping = get_product_export_fields_and_headers(
+        export_info
+    )
+
+    # then
     expected_mapping = {
         "collections__slug": "collections",
         "description": "description",
@@ -640,7 +595,119 @@ def test_get_export_fields_and_headers_fields_without_price():
 
 
 def test_get_export_fields_and_headers_no_fields():
-    export_fields, csv_headers_mapping = get_export_fields_and_headers({})
+    export_fields, csv_headers_mapping = get_product_export_fields_and_headers({})
 
     assert export_fields == ["id"]
     assert csv_headers_mapping == {}
+
+
+def test_get_attributes_headers(product_with_multiple_values_attributes):
+    # given
+    attribute_ids = Attribute.objects.values_list("id", flat=True)
+    export_info = {"attributes": attribute_ids}
+
+    # when
+    attributes_headers = get_attributes_headers(export_info)
+
+    # then
+    product_headers = []
+    variant_headers = []
+    for attr in Attribute.objects.all():
+        if attr.product_types.exists():
+            product_headers.append(f"{attr.slug} (product attribute)")
+        if attr.product_variant_types.exists():
+            variant_headers.append(f"{attr.slug} (variant attribute)")
+
+    expected_headers = product_headers + variant_headers
+    assert attributes_headers == expected_headers
+
+
+def test_get_attributes_headers_lack_of_attributes_ids():
+    # given
+    export_info = {}
+
+    # when
+    attributes_headers = get_attributes_headers(export_info)
+
+    # then
+    assert attributes_headers == []
+
+
+def test_get_warehouses_headers(warehouses):
+    # given
+    warehouse_ids = [warehouses[0].pk]
+    export_info = {"warehouses": warehouse_ids}
+
+    # when
+    warehouse_headers = get_warehouses_headers(export_info)
+
+    # then
+    assert warehouse_headers == [f"{warehouses[0].slug} (warehouse quantity)"]
+
+
+def test_get_warehouses_headers_lack_of_warehouse_ids():
+    # given
+    export_info = {}
+
+    # when
+    warehouse_headers = get_warehouses_headers(export_info)
+
+    # then
+    assert warehouse_headers == []
+
+
+def test_get_export_fields_and_headers_info(
+    warehouses, product_with_multiple_values_attributes
+):
+    # given
+    warehouse_ids = [w.pk for w in warehouses]
+    attribute_ids = [attr.pk for attr in Attribute.objects.all()]
+    export_info = {
+        "fields": [
+            ProductFieldEnum.PRICE.value,
+            ProductFieldEnum.PRICE_OVERRIDE.value,
+            ProductFieldEnum.COLLECTIONS.value,
+            ProductFieldEnum.DESCRIPTION.value,
+        ],
+        "warehouses": warehouse_ids,
+        "attributes": attribute_ids,
+    }
+
+    expected_mapping = {
+        "price_amount": "price",
+        "product_currency": "product currency",
+        "price_override_amount": "price override",
+        "variant_currency": "variant currency",
+        "collections__slug": "collections",
+        "description": "description",
+    }
+
+    # when
+    export_fields, csv_headers_mapping, headers = get_export_fields_and_headers_info(
+        export_info
+    )
+
+    # then
+    expected_fields = set(expected_mapping.keys())
+    expected_fields.add("id")
+
+    product_headers = []
+    variant_headers = []
+    for attr in Attribute.objects.all():
+        if attr.product_types.exists():
+            product_headers.append(f"{attr.slug} (product attribute)")
+        if attr.product_variant_types.exists():
+            variant_headers.append(f"{attr.slug} (variant attribute)")
+
+    warehouse_headers = [f"{w.slug} (warehouse quantity)" for w in warehouses]
+    excepted_headers = (
+        ["id"]
+        + list(expected_fields)
+        + product_headers
+        + variant_headers
+        + warehouse_headers
+    )
+
+    assert expected_mapping == csv_headers_mapping
+    assert set(export_fields) == expected_fields
+    assert set(headers) == set(excepted_headers)

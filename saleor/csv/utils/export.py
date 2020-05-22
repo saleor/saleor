@@ -10,7 +10,7 @@ from ...product.models import Product
 from .. import FileTypes, events
 from ..emails import send_email_with_link_to_download_csv, send_export_failed_info
 from ..models import ExportFile
-from .products_data import get_products_data
+from .products_data import get_export_fields_and_headers_info, get_products_data
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -53,7 +53,16 @@ def export_products(
     file_name = get_filename("product", file_type)
     queryset = get_product_queryset(scope)
 
-    export_data, csv_headers_mapping, headers = get_products_data(queryset, export_info)
+    export_fields, csv_headers_mapping, headers = get_export_fields_and_headers_info(
+        export_info
+    )
+
+    export_data = get_products_data(
+        queryset,
+        set(export_fields),
+        export_info.get("warehouses"),
+        export_info.get("attributes"),
+    )
 
     export_file = ExportFile.objects.get(pk=export_file_id)
     create_csv_file_and_save_in_export_file(

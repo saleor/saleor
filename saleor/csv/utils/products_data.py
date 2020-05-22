@@ -7,7 +7,8 @@ from django.db.models import Case, CharField, F, Value as V, When
 from django.db.models.functions import Concat
 
 from ...core.utils import build_absolute_uri
-from ...product.models import ProductVariant
+from ...product.models import Attribute, ProductVariant
+from ...warehouse.models import Warehouse
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -57,37 +58,39 @@ class ProductExportFields:
     }
 
 
-def get_products_data(
-    queryset: "QuerySet", export_info: Dict[str, list],
-) -> Tuple[List[Dict[str, Union[str, bool]]], Dict[str, str], List[str]]:
-    export_fields, csv_headers_mapping = get_export_fields_and_headers(export_info)
-    product_headers = export_fields
+def get_export_fields_and_headers_info(export_info: Dict[str, list]):
+    """Get export fields, all headers and headers mapping.
 
-    warehouse_ids = export_info.get("warehouses")
-    attribute_ids = export_info.get("attributes")
-    export_data, attributes_and_warehouse_headers = prepare_products_data(
-        queryset, set(export_fields), warehouse_ids, attribute_ids
+    Based on export_info returns exported fields, fields to headers mapping and
+    all headers.
+    Headers contains product, variant, attribute and warehouse headers.
+    """
+    export_fields, csv_headers_mapping = get_product_export_fields_and_headers(
+        export_info
     )
+    attributes_headers = get_attributes_headers(export_info)
+    warehouses_headers = get_warehouses_headers(export_info)
 
-    headers = product_headers + attributes_and_warehouse_headers
-    return export_data, csv_headers_mapping, headers
+    headers = export_fields + attributes_headers + warehouses_headers
+    return export_fields, csv_headers_mapping, headers
 
 
-def get_export_fields_and_headers(export_info: Dict[str, list]):
+def get_product_export_fields_and_headers(export_info: Dict[str, list]):
     """Get export fields from export info and prepare headers mapping.
 
     Based on given fields headers from export info, export fields set and
     headers mapping is prepared.
     """
-    fields_mapping = dict(
-        ChainMap(*reversed(ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()))  # type: ignore
-    )
     export_fields = ["id"]
     csv_headers_mapping: Dict[str, str] = {}
 
     fields = export_info.get("fields")
     if not fields:
         return export_fields, csv_headers_mapping
+
+    fields_mapping = dict(
+        ChainMap(*reversed(ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()))  # type: ignore
+    )
 
     for field in fields:
         lookup_field = fields_mapping[field]
@@ -106,20 +109,61 @@ def get_export_fields_and_headers(export_info: Dict[str, list]):
     return export_fields, csv_headers_mapping
 
 
-def prepare_products_data(
+def get_attributes_headers(export_info: Dict[str, list]):
+    """Get headers for exported attributes.
+
+    Headers are build from slug and contains information if it's a product or variant
+    attribute. Respectively for product: "slug-value (product attribute)"
+    and for variant: "slug-value (variant attribute)".
+    """
+
+    attribute_ids = export_info.get("attributes")
+    if not attribute_ids:
+        return []
+
+    attributes = Attribute.objects.filter(pk__in=attribute_ids)
+
+    products_headers = (
+        attributes.filter(product_types__isnull=False)
+        .annotate(header=Concat("slug", V(" (product attribute)")))
+        .values_list("header", flat=True)
+    )
+
+    variant_headers = (
+        attributes.filter(product_variant_types__isnull=False)
+        .annotate(header=Concat("slug", V(" (variant attribute)")))
+        .values_list("header", flat=True)
+    )
+
+    return list(products_headers) + list(variant_headers)
+
+
+def get_warehouses_headers(export_info: Dict[str, list]):
+    warehouse_ids = export_info.get("warehouses")
+    if not warehouse_ids:
+        return []
+
+    warehouses_headers = (
+        Warehouse.objects.filter(pk__in=warehouse_ids)
+        .annotate(header=Concat("slug", V(" (warehouse quantity)")))
+        .values_list("header", flat=True)
+    )
+
+    return list(warehouses_headers)
+
+
+def get_products_data(
     queryset: "QuerySet",
     export_fields: Set[str],
     warehouse_ids: Optional[List[int]],
     attribute_ids: Optional[List[int]],
-) -> Tuple[List[Dict[str, Union[str, bool]]], List[str]]:
+) -> List[Dict[str, Union[str, bool]]]:
     """Create data list of products and their variants with fields values.
 
     It return list with product and variant data which can be used as import to
     csv writer and list of attribute and warehouse headers.
     """
 
-    variants_attributes_fields: Set[str] = set()
-    warehouse_fields: Set[str] = set()
     products_with_variants_data = []
 
     product_fields = set(
@@ -136,7 +180,7 @@ def prepare_products_data(
         ),
     ).values(*product_export_fields)
 
-    product_relations_data, products_attributes_fields = get_products_relations_data(
+    product_relations_data = get_products_relations_data(
         queryset, export_fields, attribute_ids
     )
 
@@ -145,7 +189,7 @@ def prepare_products_data(
     )
     variant_export_fields = export_fields & variant_fields
     export_variant_data = variant_export_fields or attribute_ids or warehouse_ids
-    for product_data in products_data:
+    for product_data in products_data.iterator():
         pk = product_data["id"]
         relations_data: Dict[str, str] = product_relations_data.get(pk, {})
         data = {**product_data, **relations_data}
@@ -154,20 +198,12 @@ def prepare_products_data(
             products_with_variants_data.append(data)
             continue
 
-        variants_data, *headers = prepare_variants_data(
+        variants_data = prepare_variants_data(
             pk, data, variant_export_fields, warehouse_ids, attribute_ids
         )
         products_with_variants_data.extend(variants_data)
-        variants_attributes_fields.update(headers[0])
-        warehouse_fields.update(headers[1])
 
-    attribute_and_warehouse_headers: list = (
-        sorted(products_attributes_fields)
-        + sorted(variants_attributes_fields)
-        + sorted(warehouse_fields)
-    )
-
-    return products_with_variants_data, attribute_and_warehouse_headers
+    return products_with_variants_data
 
 
 def get_products_relations_data(
@@ -189,23 +225,20 @@ def get_products_relations_data(
             queryset, relations_fields, attribute_ids
         )
 
-    return {}, set()
+    return {}
 
 
 def prepare_products_relations_data(
     queryset: "QuerySet", fields: Set[str], attribute_ids: Optional[List[int]]
-) -> Tuple[Dict[int, Dict[str, str]], set]:
+) -> Dict[int, Dict[str, str]]:
     """Prepare data about products relation fields for given queryset.
 
     It return dict where key is a product pk, value is a dict with relation fields data.
     It also returns set with attribute headers.
     """
     result_data: Dict[int, dict] = defaultdict(dict)
-    attributes_headers: Set[str] = set()
     if attribute_ids:
-        result_data, attributes_headers = prepare_attribute_products_data(
-            queryset, attribute_ids
-        )
+        result_data = prepare_attribute_products_data(queryset, attribute_ids)
 
     if fields:
         fields.add("pk")
@@ -214,7 +247,7 @@ def prepare_products_relations_data(
             product_image_path=F("images__image"),
         ).values(*fields)
 
-        for data in relations_data:
+        for data in relations_data.iterator():
             pk = data.get("pk")
             collection = data.get("collections__slug")
             image = data.pop("product_image_path", None)
@@ -228,13 +261,12 @@ def prepare_products_relations_data(
         pk: {header: ", ".join(sorted(values)) for header, values in data.items()}
         for pk, data in result_data.items()
     }
-    return result, attributes_headers
+    return result
 
 
 def prepare_attribute_products_data(
     queryset: "QuerySet", attribute_ids: Optional[List[int]],
 ):
-    attributes_headers = set()
     result_data: Dict[int, dict] = defaultdict(dict)
 
     attribute_fields = ProductExportFields.ATTRIBUTE_FIELDS
@@ -245,19 +277,17 @@ def prepare_attribute_products_data(
         attributes__assignment__attribute__pk__in=attribute_ids
     ).values(*fields)
 
-    for data in attribute_data:
+    for data in attribute_data.iterator():
         pk = data.get("pk")
         attribute = {
             "slug": data[attribute_fields["slug"]],
             "value": data[attribute_fields["value"]],
         }
-        result_data, attribute_header = add_attribute_info_to_data(
+        result_data = add_attribute_info_to_data(
             pk, attribute, "product attribute", result_data
         )
-        if attribute_header:
-            attributes_headers.add(attribute_header)
 
-    return result_data, attributes_headers
+    return result_data
 
 
 def add_collection_info_to_data(
@@ -286,7 +316,7 @@ def prepare_variants_data(
     variant_fields: Set[str],
     warehouse_ids: Optional[List[int]],
     attribute_ids: Optional[List[int]],
-) -> Tuple[List[dict], set, set]:
+) -> List[dict]:
     """Prepare variants data for product with given pk.
 
     This function gets product pk and prepared data about product"s variants.
@@ -315,7 +345,7 @@ def prepare_variants_data(
         .values(*variant_fields)
     )
 
-    result_data, variant_attributes_headers, warehouse_headers = update_variant_data(
+    result_data = update_variant_data(
         variants_data, product_data, warehouse_ids, attribute_ids
     )
 
@@ -326,15 +356,15 @@ def prepare_variants_data(
         }
         for pk, data in result_data.items()
     ]
-    return result, variant_attributes_headers, warehouse_headers
+    return result
 
 
 def update_variant_data(
-    variants_data: List[Dict[str, Union[str, int]]],
+    variants_data: "QuerySet",
     product_data: dict,
     warehouse_ids: Optional[List[int]],
     attribute_ids: Optional[List[int]],
-) -> Tuple[Dict[int, dict], set, set]:
+) -> Dict[int, dict]:
     """Update variant data with info about relations fields.
 
     This function gets dict with variants data and updated it with info
@@ -344,11 +374,9 @@ def update_variant_data(
     warehouse_fields = ProductExportFields.WAREHOUSE_FIELDS
     attribute_fields = ProductExportFields.ATTRIBUTE_FIELDS
 
-    variant_attributes_headers = set()
-    warehouse_headers = set()
     result_data: Dict[int, dict] = defaultdict(dict)
 
-    for data in variants_data:
+    for data in variants_data.iterator():
         pk: int = data.pop("pk")  # type: ignore
         attribute_data: dict = {}
         warehouse_data: dict = {}
@@ -373,24 +401,18 @@ def update_variant_data(
             result_data[pk] = data
 
         if attribute_ids and attribute_pk in attribute_ids:
-            result_data, attribute_header = add_attribute_info_to_data(
+            result_data = add_attribute_info_to_data(
                 pk, attribute_data, "variant attribute", result_data
             )
-            if attribute_header:
-                variant_attributes_headers.add(attribute_header)
 
         if warehouse_ids and warehouse_pk in warehouse_ids:
-            result_data, header = add_warehouse_info_to_data(
-                pk, warehouse_data, result_data
-            )
-            if header:
-                warehouse_headers.add(header)
+            result_data = add_warehouse_info_to_data(pk, warehouse_data, result_data)
 
         result_data = add_image_uris_to_data(
             pk, image, "variant_image_path", result_data
         )
 
-    return result_data, variant_attributes_headers, warehouse_headers
+    return result_data
 
 
 def add_image_uris_to_data(
@@ -416,7 +438,7 @@ def add_attribute_info_to_data(
     attribute_data: Dict[str, Optional[Union[str]]],
     attribute_owner: str,
     result_data: Dict[int, dict],
-) -> Tuple[Dict[int, dict], Optional[str]]:
+) -> Dict[int, dict]:
     """Add info about attribute to variant or product data.
 
     This functions adds info about attribute to dict with variant or product data.
@@ -432,14 +454,14 @@ def add_attribute_info_to_data(
             result_data[pk][header].add(attribute_data["value"])  # type: ignore
         else:
             result_data[pk][header] = {attribute_data["value"]}
-    return result_data, header
+    return result_data
 
 
 def add_warehouse_info_to_data(
     pk: int,
     warehouse_data: Dict[str, Union[Optional[str]]],
     result_data: Dict[int, dict],
-) -> Tuple[Dict[int, dict], Optional[str]]:
+) -> Dict[int, dict]:
     """Add info about stock quantity to variant data.
 
     This functions adds info about stock quantity to dict with variant data.
@@ -454,4 +476,4 @@ def add_warehouse_info_to_data(
             result_data[pk][warehouse_qty_header] = warehouse_data["qty"]
             warehouse_header = warehouse_qty_header
 
-    return result_data, warehouse_header
+    return result_data
