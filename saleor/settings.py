@@ -8,6 +8,7 @@ import dj_email_url
 import django_cache_url
 import jaeger_client
 import jaeger_client.config
+import pkg_resources
 import sentry_sdk
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
@@ -517,6 +518,15 @@ PLUGINS = [
     "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
     "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
 ]
+
+# Plugin discovery
+installed_plugins = pkg_resources.iter_entry_points("saleor.plugins")
+for entry_point in installed_plugins:
+    plugin_path = "{}.{}".format(entry_point.module_name, entry_point.attrs[0])
+    if plugin_path not in PLUGINS:
+        if entry_point.name not in INSTALLED_APPS:
+            INSTALLED_APPS.append(entry_point.name)
+        PLUGINS.append(plugin_path)
 
 if (
     not DEBUG
