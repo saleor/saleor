@@ -774,7 +774,7 @@ def test_checkout_lines_add_with_unpublished_product(
 
     content = get_graphql_content(response)
     error = content["data"]["checkoutLinesAdd"]["checkoutErrors"][0]
-    assert error["message"] == "Can't create checkout with unpublished product."
+    assert error["message"] == "Can't add unpublished product."
     assert error["code"] == "PRODUCT_NOT_PUBLISHED"
 
 
@@ -992,7 +992,7 @@ def test_checkout_lines_update_with_unpublished_product(
 
     content = get_graphql_content(response)
     error = content["data"]["checkoutLinesUpdate"]["checkoutErrors"][0]
-    assert error["message"] == "Can't create checkout with unpublished product."
+    assert error["message"] == "Can't add unpublished product."
     assert error["code"] == "PRODUCT_NOT_PUBLISHED"
 
 
