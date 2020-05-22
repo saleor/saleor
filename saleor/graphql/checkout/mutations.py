@@ -360,8 +360,7 @@ class CheckoutLinesAdd(BaseMutation):
                     )
                 except ProductNotPublished as exc:
                     raise ValidationError(
-                        "Can't create checkout with unpublished product.",
-                        code=exc.code,
+                        "Can't add unpublished product.", code=exc.code,
                     )
 
         lines = list(checkout)
