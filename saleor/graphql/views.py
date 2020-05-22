@@ -22,8 +22,9 @@ from graphql.error import (
     format_error as format_graphql_error,
 )
 from graphql.execution import ExecutionResult
-from graphql_jwt.exceptions import PermissionDenied
+from graphql_jwt.exceptions import JSONWebTokenError
 
+from ..core.exceptions import ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
@@ -58,7 +59,7 @@ class GraphQLView(View):
     middleware = None
     root_value = None
 
-    HANDLED_EXCEPTIONS = (GraphQLError, PermissionDenied)
+    HANDLED_EXCEPTIONS = (GraphQLError, JSONWebTokenError, ReadOnlyException)
 
     def __init__(
         self, schema=None, executor=None, middleware=None, root_value=None, backend=None
@@ -138,9 +139,7 @@ class GraphQLView(View):
                 else:
                     continue
                 span.set_tag("http.client_ip", ip)
-                span.log_kv(
-                    {"http.client_ip_originated_from": settings.REAL_IP_ENVIRON}
-                )
+                span.set_tag("http.client_ip_originated_from", settings.REAL_IP_ENVIRON)
                 break
 
             response = self._handle_query(request)
@@ -217,13 +216,10 @@ class GraphQLView(View):
                 return error
 
             if document is not None:
-                span.log_kv(
-                    {
-                        "query": document.document_string[
-                            : settings.OPENTRACING_MAX_QUERY_LENGTH_LOG
-                        ]
-                    }
-                )
+                raw_query_string = document.document_string[
+                    : settings.OPENTRACING_MAX_QUERY_LENGTH_LOG
+                ]
+                span.set_tag("graphql.query", raw_query_string)
 
             extra_options: Dict[str, Optional[Any]] = {}
 

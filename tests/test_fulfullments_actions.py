@@ -196,6 +196,46 @@ def test_create_fulfillments_with_one_line_empty_quantity(
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
+def test_create_fulfillments_with_variant_without_inventory_tracking(
+    mock_email_fulfillment,
+    staff_user,
+    order_with_line_without_inventory_tracking,
+    warehouse,
+):
+    order = order_with_line_without_inventory_tracking
+    order_line = order.lines.get()
+    stock = order_line.variant.stocks.get()
+    stock_quantity_before = stock.quantity
+    fulfillment_lines_for_warehouses = {
+        str(warehouse.pk): [{"order_line": order_line, "quantity": 2}]
+    }
+
+    [fulfillment] = create_fulfillments(
+        staff_user, order, fulfillment_lines_for_warehouses, True
+    )
+
+    order.refresh_from_db()
+    fulfillment_lines = FulfillmentLine.objects.filter(
+        fulfillment__order=order
+    ).order_by("pk")
+    assert fulfillment_lines[0].stock == order_line.variant.stocks.get()
+    assert fulfillment_lines[0].quantity == 2
+
+    assert order.status == OrderStatus.PARTIALLY_FULFILLED
+    assert order.fulfillments.get() == fulfillment
+
+    order_line = order.lines.get()
+    assert order_line.quantity_fulfilled == 2
+
+    stock.refresh_from_db()
+    assert stock_quantity_before == stock.quantity
+
+    mock_email_fulfillment.assert_called_once_with(
+        order, order.fulfillments.get(), staff_user
+    )
+
+
+@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_without_allocations(
     mock_email_fulfillment, staff_user, order_with_lines, warehouse,
 ):
@@ -324,6 +364,47 @@ def test_create_fulfillments_warehouse_without_stock(
             order_line__order=order, quantity_allocated__gt=0
         ).count()
         == 2
+    )
+
+    mock_email_fulfillment.assert_not_called()
+
+
+@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
+def test_create_fulfillments_with_variant_without_inventory_tracking_and_without_stock(
+    mock_email_fulfillment,
+    staff_user,
+    order_with_line_without_inventory_tracking,
+    warehouse_no_shipping_zone,
+):
+    order = order_with_line_without_inventory_tracking
+    order_line = order.lines.get()
+    fulfillment_lines_for_warehouses = {
+        str(warehouse_no_shipping_zone.pk): [{"order_line": order_line, "quantity": 2}]
+    }
+
+    with pytest.raises(InsufficientStock) as exc:
+        create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
+
+    assert exc.value.item == order_line.variant
+    assert exc.value.context == {
+        "order_line": order_line,
+        "warehouse_pk": str(warehouse_no_shipping_zone.pk),
+    }
+
+    order.refresh_from_db()
+    assert FulfillmentLine.objects.filter(fulfillment__order=order).count() == 0
+
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.fulfillments.all().count() == 0
+
+    order_line = order.lines.get()
+    assert order_line.quantity_fulfilled == 0
+
+    assert (
+        Allocation.objects.filter(
+            order_line__order=order, quantity_allocated__gt=0
+        ).count()
+        == 0
     )
 
     mock_email_fulfillment.assert_not_called()

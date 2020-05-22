@@ -44,7 +44,7 @@ def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
     return False
 
 
-def order_needs_automatic_fullfilment(order: Order) -> bool:
+def order_needs_automatic_fulfillment(order: Order) -> bool:
     """Check if order has digital products which should be automatically fulfilled."""
     for line in order.lines.digital():
         if order_line_needs_automatic_fulfillment(line):
@@ -288,9 +288,9 @@ def restock_fulfillment_lines(fulfillment, warehouse):
     for line in fulfillment:
         if line.order_line.variant and line.order_line.variant.track_inventory:
             increase_stock(line.order_line, warehouse, line.quantity, allocate=True)
-            order_line = line.order_line
-            order_line.quantity_fulfilled -= line.quantity
-            order_lines.append(order_line)
+        order_line = line.order_line
+        order_line.quantity_fulfilled -= line.quantity
+        order_lines.append(order_line)
     OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
 
 

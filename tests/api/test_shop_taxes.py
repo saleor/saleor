@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import Mock
 
 import pytest
 from django_prices_vatlayer.models import VAT
@@ -53,8 +53,7 @@ def taxes(tax_rates):
 
 
 @pytest.fixture
-def vatlayer(db, settings, tax_rates, taxes):
-    settings.VATLAYER_ACCESS_KEY = "enablevatlayer"
+def vatlayer(db, tax_rates, taxes, setup_vatlayer):
     VAT.objects.create(country_code="PL", data=tax_rates)
 
     tax_rates_2 = {
@@ -147,17 +146,17 @@ def test_shop_fetch_tax_rates_no_api_access_key(
     data = content["data"]["shopFetchTaxRates"]
     error_message = (
         "Could not fetch tax rates. "
-        "Make sure you have supplied a valid API Access Key."
+        "Make sure you have supplied a valid credential for your tax plugin."
     )
     assert data["errors"][0]["message"] == error_message
 
 
-@patch("saleor.graphql.shop.mutations.call_command")
 def test_shop_fetch_tax_rates(
-    mock_call_command, staff_api_client, permission_manage_settings, settings
+    monkeypatch, staff_api_client, permission_manage_settings, setup_vatlayer
 ):
-    settings.VATLAYER_ACCESS_KEY = "KEY"
+    mocked_fetch = Mock()
+    monkeypatch.setattr("saleor.plugins.vatlayer.plugin.fetch_rates", mocked_fetch)
     staff_api_client.user.user_permissions.add(permission_manage_settings)
     response = staff_api_client.post_graphql(MUTATION_SHOP_FETCH_TAX_RATES)
     get_graphql_content(response)
-    mock_call_command.assert_called_once_with("get_vat_rates")
+    mocked_fetch.assert_called_once_with("vatlayer_access_key")

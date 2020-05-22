@@ -502,7 +502,7 @@ type AttributeValue implements Node {
   id: ID!
   name: String
   slug: String
-  type: AttributeValueType
+  type: AttributeValueType @deprecated(reason: "Use the `inputType` field to determine the type of attribute's value. This field will be removed after 2020-07-31.")
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
   inputType: AttributeInputTypeEnum
 }
@@ -757,7 +757,6 @@ type Checkout implements Node & ObjectWithMetadata {
   created: DateTime!
   lastChange: DateTime!
   user: User
-  token: UUID!
   quantity: Int!
   billingAddress: Address
   shippingAddress: Address
@@ -780,6 +779,7 @@ type Checkout implements Node & ObjectWithMetadata {
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
   subtotalPrice: TaxedMoney
+  token: UUID!
   totalPrice: TaxedMoney
 }
 
@@ -1621,12 +1621,12 @@ input DigitalContentUploadInput {
 }
 
 type DigitalContentUrl implements Node {
-  token: UUID!
   content: DigitalContent!
   created: DateTime!
   downloadNum: Int!
   id: ID!
   url: String
+  token: UUID!
 }
 
 type DigitalContentUrlCreate {
@@ -2067,6 +2067,7 @@ enum LanguageCodeEnum {
   ES_CO
   ET
   FA
+  FI
   FR
   HI
   HU
@@ -2086,10 +2087,12 @@ enum LanguageCodeEnum {
   RO
   RU
   SK
+  SL
   SQ
   SR
-  SW
   SV
+  SW
+  TA
   TH
   TR
   UK
@@ -3207,6 +3210,9 @@ enum PaymentErrorCode {
   INVALID
   NOT_FOUND
   PARTIAL_PAYMENT_NOT_ALLOWED
+  SHIPPING_ADDRESS_NOT_SET
+  INVALID_SHIPPING_METHOD
+  SHIPPING_METHOD_NOT_SET
   PAYMENT_ERROR
   REQUIRED
   UNIQUE
@@ -3848,7 +3854,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
   quantity: Int! @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   quantityAllocated: Int @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
-  stockQuantity: Int! @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
+  stockQuantity: Int! @deprecated(reason: "Use the quantityAvailable field instead. This field will be removed after 2020-07-31.")
   priceOverride: Money
   pricing: VariantPricingInfo
   isAvailable: Boolean @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
@@ -3861,6 +3867,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
   stocks(countryCode: CountryCode): [Stock]
+  quantityAvailable(countryCode: CountryCode): Int!
 }
 
 type ProductVariantBulkCreate {
@@ -4015,10 +4022,10 @@ type Query {
   attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   attribute(id: ID!): Attribute
   categories(filter: CategoryFilterInput, sortBy: CategorySortingInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  category(id: ID!): Category
-  collection(id: ID!): Collection
+  category(id: ID, slug: String): Category
+  collection(id: ID, slug: String): Collection
   collections(filter: CollectionFilterInput, sortBy: CollectionSortingInput, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
-  product(id: ID!): Product
+  product(id: ID, slug: String): Product
   products(filter: ProductFilterInput, sortBy: ProductOrder, stockAvailability: StockAvailability, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
   productTypes(filter: ProductTypeFilterInput, sortBy: ProductTypeSortingInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
@@ -4489,7 +4496,7 @@ type Shop {
   availablePaymentGateways: [PaymentGateway!]!
   geolocalization: Geolocalization
   authorizationKeys: [AuthorizationKey]!
-  countries(languageCode: LanguageCodeEnum): [CountryDisplay]!
+  countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
   currencies: [String]!
   defaultCurrency: String!
   defaultCountry: CountryDisplay
@@ -4696,7 +4703,6 @@ type Stock implements Node {
   productVariant: ProductVariant!
   quantity: Int!
   id: ID!
-  stockQuantity: Int!
   quantityAllocated: Int!
 }
 

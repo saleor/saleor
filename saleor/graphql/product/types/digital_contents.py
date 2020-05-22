@@ -4,6 +4,7 @@ from graphene import relay
 from ....core.permissions import ProductPermissions
 from ....product import models
 from ...core.connection import CountableDjangoObjectType
+from ...core.scalars import UUID
 from ...decorators import permission_required
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
@@ -11,10 +12,13 @@ from ...meta.types import ObjectWithMetadata
 
 class DigitalContentUrl(CountableDjangoObjectType):
     url = graphene.String(description="URL for digital content.")
+    token = graphene.Field(
+        UUID, description=("UUID of digital content."), required=True
+    )
 
     class Meta:
         model = models.DigitalContentUrl
-        only_fields = ["content", "created", "download_num", "token"]
+        only_fields = ["content", "created", "download_num"]
         interfaces = (relay.Node,)
 
     @staticmethod

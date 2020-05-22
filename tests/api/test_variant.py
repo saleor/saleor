@@ -1427,6 +1427,7 @@ VARIANT_STOCKS_CREATE_MUTATION = """
     mutation ProductVariantStocksCreate($variantId: ID!, $stocks: [StockInput!]!){
         productVariantStocksCreate(variantId: $variantId, stocks: $stocks){
             productVariant{
+                id
                 stocks {
                     quantity
                     quantityAllocated
@@ -1495,6 +1496,25 @@ def test_variant_stocks_create(
         result.append(stock)
     for res in result:
         assert res in expected_result
+
+
+def test_variant_stocks_create_empty_stock_input(
+    staff_api_client, variant, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {"variantId": variant_id, "stocks": []}
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_CREATE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantStocksCreate"]
+
+    assert not data["bulkStockErrors"]
+    assert len(data["productVariant"]["stocks"]) == variant.stocks.count()
+    assert data["productVariant"]["id"] == variant_id
 
 
 def test_variant_stocks_create_stock_already_exists(
@@ -1686,6 +1706,24 @@ def test_product_variant_stocks_update(
         result.append(stock)
     for res in result:
         assert res in expected_result
+
+
+def test_product_variant_stocks_update_with_empty_stock_list(
+    staff_api_client, variant, warehouse, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    stocks = []
+    variables = {"variantId": variant_id, "stocks": stocks}
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_UPDATE_MUTATIONS,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantStocksUpdate"]
+
+    assert not data["bulkStockErrors"]
+    assert len(data["productVariant"]["stocks"]) == len(stocks)
 
 
 def test_variant_stocks_update_stock_duplicated_warehouse(

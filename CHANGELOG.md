@@ -3,6 +3,12 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 ## [Unreleased]
+- Fix multiplied stock quantity - #5675 by @fowczarek
+- Fix invalid allocation after migration - #5678 by @fowczarek
+- Fix order mutations as app - #5680 by @fowczarek
+
+
+- Add our implementation of UUID scalar - #5646 by @koradon
 
 ## 2.10.0
 
@@ -106,6 +112,16 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extend errors in `OrderFulfill` mutation - #5553 by @fowczarek
 - Refactor `OrderCancel` mutation for multiple warehouses - #5554 by @fowczarek
 - Add negative weight validation - #5564 by @fowczarek
+- Add error when user pass empty object as address - #5585 by @fowczarek
+- Fix payment creation without shipping method - #5444 by @d-wysocki
+- Fix checkout and order flow with variant without inventory tracking - #5599 by @fowczarek
+- Fixed JWT expired token being flagged as unhandled error rather than handled. - #5603 by @NyanKiyoshi
+- Refactor read-only middleware - #5602 by @maarcingebala
+- Fix availability for variants without inventory tracking - #5605 by @fowczarek
+- Drop support for configuring Vatlayer plugin from settings file. - #5614 by @korycins
+- Add ability to query category, collection or product by slug - #5574 by @koradon
+- Add `quantityAvailable` field to `ProductVariant` type - #5628 by @fowczarek
+- Use tags rather than time-based logs for information on requests - #5608 by @NyanKiyoshi
 
 ## 2.9.0
 
