@@ -17,3 +17,13 @@ class ExportEvents:
             "Email with link to download csv file was sent to the customer.",
         ),
     ]
+
+
+class FileTypes:
+    CSV = "csv"
+    XLSX = "xlsx"
+
+    CHOICES = [
+        (CSV, "Plain CSV file."),
+        (XLSX, "Excel XLSX file."),
+    ]

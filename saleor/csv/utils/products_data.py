@@ -3,7 +3,8 @@ from collections import ChainMap, defaultdict
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union
 
 from django.conf import settings
-from django.db.models import F
+from django.db.models import Case, CharField, F, Value as V, When
+from django.db.models.functions import Concat
 
 from ...core.utils import build_absolute_uri
 from ...product.models import ProductVariant
@@ -127,7 +128,12 @@ def prepare_products_data(
     product_export_fields = export_fields & product_fields
 
     products_data = queryset.annotate(
-        product_currency=F("currency"), product_weight=F("weight")
+        product_currency=F("currency"),
+        product_weight=Case(
+            When(weight__isnull=False, then=Concat("weight", V(" g"))),
+            default=V(""),
+            output_field=CharField(),
+        ),
     ).values(*product_export_fields)
 
     product_relations_data, products_attributes_fields = get_products_relations_data(
@@ -298,8 +304,12 @@ def prepare_variants_data(
         ProductVariant.objects.filter(product__pk=pk)
         .annotate(
             variant_currency=F("currency"),
-            variant_weight=F("weight"),
             variant_image_path=F("images__image"),
+            variant_weight=Case(
+                When(weight__isnull=False, then=Concat("weight", V(" g"))),
+                default=V(""),
+                output_field=CharField(),
+            ),
         )
         .order_by("sku")
         .values(*variant_fields)

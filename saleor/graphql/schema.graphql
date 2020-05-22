@@ -1829,12 +1829,18 @@ input ExportProductsInput {
   filter: ProductFilterInput
   ids: [ID!]
   exportInfo: ExportInfoInput!
+  fileType: FileTypesEnum!
 }
 
 enum ExportScope {
   ALL
   IDS
   FILTER
+}
+
+enum FileTypesEnum {
+  CSV
+  XLSX
 }
 
 type Fulfillment implements Node & ObjectWithMetadata {
