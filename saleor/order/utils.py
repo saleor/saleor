@@ -44,7 +44,7 @@ def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
     return False
 
 
-def order_needs_automatic_fullfilment(order: Order) -> bool:
+def order_needs_automatic_fulfillment(order: Order) -> bool:
     """Check if order has digital products which should be automatically fulfilled."""
     for line in order.lines.digital():
         if order_line_needs_automatic_fulfillment(line):

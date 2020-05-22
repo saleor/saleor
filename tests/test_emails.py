@@ -37,10 +37,10 @@ def test_collect_data_for_order_confirmation_email(order):
     assert "schema_markup" in email_context
 
 
-def test_collect_data_for_fullfillment_email(fulfilled_order):
+def test_collect_data_for_fulfillment_email(fulfilled_order):
     template = emails.CONFIRM_FULFILLMENT_TEMPLATE
     fulfillment = fulfilled_order.fulfillments.first()
-    fulfillment_data = emails.collect_data_for_fullfillment_email(
+    fulfillment_data = emails.collect_data_for_fulfillment_email(
         fulfilled_order.pk, template, fulfillment.pk
     )
     email_context = fulfillment_data["context"]
@@ -224,7 +224,7 @@ def test_send_fulfillment_emails(
 ):
     fulfillment = fulfilled_order.fulfillments.first()
     send_email(order_pk=fulfilled_order.pk, fulfillment_pk=fulfillment.pk)
-    email_data = emails.collect_data_for_fullfillment_email(
+    email_data = emails.collect_data_for_fulfillment_email(
         fulfilled_order.pk, template, fulfillment.pk
     )
 
@@ -264,7 +264,7 @@ def test_send_fulfillment_emails_with_tracking_number_as_url(
     fulfillment.save()
     assert fulfillment.is_tracking_number_url
     send_email(order_pk=fulfilled_order.pk, fulfillment_pk=fulfillment.pk)
-    email_data = emails.collect_data_for_fullfillment_email(
+    email_data = emails.collect_data_for_fulfillment_email(
         fulfilled_order.pk, template, fulfillment.pk
     )
 

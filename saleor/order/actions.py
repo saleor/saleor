@@ -44,7 +44,7 @@ def handle_fully_paid_order(order: "Order"):
         )
         send_payment_confirmation.delay(order.pk)
 
-        if utils.order_needs_automatic_fullfilment(order):
+        if utils.order_needs_automatic_fulfillment(order):
             automatically_fulfill_digital_lines(order)
     try:
         analytics.report_order(order.tracking_client_id, order)
