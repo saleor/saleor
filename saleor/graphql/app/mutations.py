@@ -1,15 +1,19 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 
 from ...app import models
 from ...app.error_codes import AppErrorCode
+from ...app.tasks import install_app_task
+from ...core import JobStatus
 from ...core.permissions import AppPermission, get_permissions
-from ..account.utils import can_manage_app, get_out_of_scope_permissions
+from ..account.utils import can_manage_app
 from ..core.enums import PermissionEnum
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import AppError
 from ..utils import get_user_or_app_from_context, requestor_is_superuser
 from .types import App, AppToken
+from .utils import ensure_can_manage_permissions
 
 
 class AppInput(graphene.InputObjectType):
@@ -126,26 +130,8 @@ class AppCreate(ModelMutation):
             requestor = get_user_or_app_from_context(info.context)
             permissions = cleaned_input.pop("permissions")
             cleaned_input["permissions"] = get_permissions(permissions)
-            cls.ensure_can_manage_permissions(requestor, permissions)
+            ensure_can_manage_permissions(requestor, permissions)
         return cleaned_input
-
-    @classmethod
-    def ensure_can_manage_permissions(cls, requestor, permission_items):
-        """Check if requestor can manage permissions from input.
-
-        Requestor cannot manage permissions witch he doesn't have.
-        """
-        if requestor_is_superuser(requestor):
-            return
-        missing_permissions = get_out_of_scope_permissions(requestor, permission_items)
-        if missing_permissions:
-            # add error
-            error_msg = "You can't add permission that you don't have."
-            code = AppErrorCode.OUT_OF_SCOPE_PERMISSION.value
-            params = {"permissions": missing_permissions}
-            raise ValidationError(
-                {"permissions": ValidationError(error_msg, code=code, params=params)}
-            )
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -192,7 +178,7 @@ class AppUpdate(ModelMutation):
         if "permissions" in cleaned_input:
             permissions = cleaned_input.pop("permissions")
             cleaned_input["permissions"] = get_permissions(permissions)
-            AppCreate.ensure_can_manage_permissions(requestor, permissions)
+            ensure_can_manage_permissions(requestor, permissions)
         return cleaned_input
 
 
@@ -220,3 +206,139 @@ class AppDelete(ModelDeleteMutation):
             msg = "You can't delete this app."
             code = AppErrorCode.OUT_OF_SCOPE_APP.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
+
+
+class AppDeleteFailedInstallation(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            description="ID of failed installation to delete.", required=True
+        )
+
+    class Meta:
+        description = "Delete failed installation."
+        model = models.AppInstallation
+        permissions = (AppPermission.MANAGE_APPS,)
+        error_type_class = AppError
+        error_type_field = "app_errors"
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        requestor = get_user_or_app_from_context(info.context)
+        permissions = instance.permissions.all()
+        if not requestor_is_superuser(requestor) and not requestor.has_perms(
+            permissions
+        ):
+            msg = "You don't have enough permission to perform this action."
+            code = AppErrorCode.OUT_OF_SCOPE_APP.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+
+        if instance.status != JobStatus.FAILED:
+            msg = "Cannot delete installation with different status than failed."
+            code = AppErrorCode.INVALID_STATUS.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+
+
+class AppRetryInstall(ModelMutation):
+    class Arguments:
+        id = graphene.ID(description="ID of failed installation.", required=True)
+        activate_after_installation = graphene.Boolean(
+            default_value=True,
+            required=False,
+            description="Determine if app will be set active or not.",
+        )
+
+    class Meta:
+        description = "Retry failed installation of new app."
+        model = models.AppInstallation
+        permissions = (AppPermission.MANAGE_APPS,)
+        error_type_class = AppError
+        error_type_field = "app_errors"
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        instance.status = JobStatus.PENDING
+        instance.save()
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        requestor = get_user_or_app_from_context(info.context)
+        permissions = instance.permissions.all()
+        if not requestor_is_superuser(requestor) and not requestor.has_perms(
+            permissions
+        ):
+            msg = "You don't have enough permission to perform this action."
+            code = AppErrorCode.OUT_OF_SCOPE_APP.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+
+        if instance.status != JobStatus.FAILED:
+            msg = "Cannot retry installation with different status than failed."
+            code = AppErrorCode.INVALID_STATUS.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        activate_after_installation = data.get("activate_after_installation")
+        app_installation = cls.get_instance(info, **data)
+        cls.clean_instance(info, app_installation)
+
+        cls.save(info, app_installation, cleaned_input=None)
+        install_app_task.delay(app_installation.pk, activate_after_installation)
+        return cls.success_response(app_installation)
+
+
+class AppInstallInput(graphene.InputObjectType):
+    app_name = graphene.String(description="Name of the app to install.")
+    manifest_url = graphene.String(description="Url to app's manifest in JSON format.")
+    activate_after_installation = graphene.Boolean(
+        default_value=True,
+        required=False,
+        description="Determine if app will be set active or not.",
+    )
+    permissions = graphene.List(
+        PermissionEnum,
+        description="List of permission code names to assign to this app.",
+    )
+
+
+class AppInstall(ModelMutation):
+    class Arguments:
+        input = AppInstallInput(
+            required=True, description="Fields required to install a new app.",
+        )
+
+    class Meta:
+        description = "Install new app by using app manifest."
+        model = models.AppInstallation
+        permissions = (AppPermission.MANAGE_APPS,)
+        error_type_class = AppError
+        error_type_field = "app_errors"
+
+    @classmethod
+    def clean_manifest_url(self, url):
+        url_validator = URLValidator()
+        try:
+            url_validator(url)
+        except (ValidationError, AttributeError):
+            msg = "Enter a valid URL."
+            code = AppErrorCode.INVALID.value
+            raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
+
+    @classmethod
+    def clean_input(cls, info, instance, data, input_cls=None):
+        manifest_url = data.get("manifest_url")
+        cls.clean_manifest_url(manifest_url)
+
+        cleaned_input = super().clean_input(info, instance, data, input_cls)
+
+        # clean and prepare permissions
+        if "permissions" in cleaned_input:
+            requestor = get_user_or_app_from_context(info.context)
+            permissions = cleaned_input.pop("permissions")
+            cleaned_input["permissions"] = get_permissions(permissions)
+            ensure_can_manage_permissions(requestor, permissions)
+        return cleaned_input
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        activate_after_installation = cleaned_input["activate_after_installation"]
+        install_app_task.delay(instance.pk, activate_after_installation)

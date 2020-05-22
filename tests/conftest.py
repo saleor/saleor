@@ -21,7 +21,8 @@ from PIL import Image
 from prices import Money, TaxedMoney
 
 from saleor.account.models import Address, StaffNotificationRecipient, User
-from saleor.app.models import App
+from saleor.app.models import App, AppInstallation
+from saleor.app.types import AppType
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
@@ -1968,7 +1969,28 @@ def other_description_json():
 
 @pytest.fixture
 def app(db):
-    return App.objects.create(name="Sample app objects", is_active=True)
+    app = App.objects.create(name="Sample app objects", is_active=True)
+    app.tokens.create(name="Default")
+    return app
+
+
+@pytest.fixture
+def external_app(db):
+    app = App.objects.create(
+        name="External App",
+        is_active=True,
+        type=AppType.EXTERNAL,
+        identifier="mirumee.app.sample",
+        about_app="About app text.",
+        data_privacy="Data privacy text.",
+        data_privacy_url="http://www.example.com/privacy/",
+        homepage_url="http://www.example.com/homepage/",
+        support_url="http://www.example.com/support/contact/",
+        configuration_url="http://www.example.com/app-configuration/",
+        app_url="http://www.example.com/app/",
+    )
+    app.tokens.create(name="Default")
+    return app
 
 
 @pytest.fixture
@@ -2146,3 +2168,11 @@ def allocations(order_list, stock):
             ),
         ]
     )
+
+
+@pytest.fixture
+def app_installation():
+    app_installation = AppInstallation.objects.create(
+        app_name="External App", manifest_url="http://localhost:3000/manifest",
+    )
+    return app_installation
