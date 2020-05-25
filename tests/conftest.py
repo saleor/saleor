@@ -36,7 +36,7 @@ from saleor.discount.models import (
     VoucherTranslation,
 )
 from saleor.giftcard.models import GiftCard
-from saleor.graphql.order.enums import InvoiceStatus
+from saleor.graphql.invoice.enums import InvoiceStatus
 from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 from saleor.menu.utils import update_menu
 from saleor.order import OrderStatus
@@ -184,10 +184,7 @@ def setup_vatlayer(settings):
 @pytest.fixture
 def setup_invoicing(settings):
     settings.PLUGINS = ["saleor.plugins.invoicing.plugin.InvoicingPlugin"]
-    data = {
-        "active": True,
-    }
-    PluginConfiguration.objects.create(identifier=InvoicingPlugin.PLUGIN_ID, **data)
+    PluginConfiguration.objects.create(identifier=InvoicingPlugin.PLUGIN_ID)
     return settings
 
 

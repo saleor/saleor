@@ -17,6 +17,7 @@ from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import permission_required
 from ..giftcard.types import GiftCard
+from ..invoice.types import Invoice
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
@@ -282,14 +283,6 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_translated_variant_name(root: models.OrderLine, _info):
         return root.translated_variant_name
-
-
-class Invoice(CountableDjangoObjectType):
-    class Meta:
-        description = "Represents an Invoice."
-        interfaces = [relay.Node]
-        model = models.Invoice
-        only_fields = ["id", "number", "url", "status"]
 
 
 class Order(CountableDjangoObjectType):

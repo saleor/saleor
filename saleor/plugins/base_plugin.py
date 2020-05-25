@@ -14,7 +14,8 @@ if TYPE_CHECKING:
     from ..discount import DiscountInfo
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
-    from ..order.models import Fulfillment, Invoice, OrderLine, Order
+    from ..order.models import Fulfillment, OrderLine, Order
+    from ..invoice.models import Invoice
     from ..payment.interface import GatewayResponse, PaymentData, CustomerSource
 
 
