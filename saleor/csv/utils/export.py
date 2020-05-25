@@ -1,11 +1,14 @@
+import os
 from tempfile import NamedTemporaryFile
-from typing import IO, TYPE_CHECKING, Dict, List, Union
+from typing import IO, TYPE_CHECKING, Dict, List, Set, Union
 
 import petl as etl
+from django.conf import settings
 from django.utils import timezone
 
 from ...celeryconf import app
 from ...core import JobStatus
+from ...core.utils import build_absolute_uri
 from ...product.models import Product
 from .. import FileTypes, events
 from ..emails import send_email_with_link_to_download_csv, send_export_failed_info
@@ -17,10 +20,17 @@ if TYPE_CHECKING:
     from django.db.models import QuerySet
 
 
+BATCH_SIZE = 10000
+
+
 def on_task_failure(self, exc, task_id, args, kwargs, einfo):
     export_file_id = args[0]
     export_file = ExportFile.objects.get(pk=export_file_id)
-    update_export_file_when_task_finished(export_file, JobStatus.FAILED)
+
+    export_file.content_file = None
+    export_file.status = JobStatus.FAILED
+    export_file.save(update_fields=["status", "updated_at", "content_file"])
+
     events.export_failed_event(
         export_file=export_file,
         user=export_file.created_by,
@@ -32,14 +42,12 @@ def on_task_failure(self, exc, task_id, args, kwargs, einfo):
 
 def on_task_success(self, retval, task_id, args, kwargs):
     export_file_id = args[0]
+
     export_file = ExportFile.objects.get(pk=export_file_id)
-    update_export_file_when_task_finished(export_file, JobStatus.SUCCESS)
-    events.export_success_event(export_file=export_file, user=export_file.created_by)
-
-
-def update_export_file_when_task_finished(export_file: ExportFile, status: JobStatus):
-    export_file.status = status  # type: ignore
+    export_file.status = JobStatus.SUCCESS
     export_file.save(update_fields=["status", "updated_at"])
+
+    events.export_success_event(export_file=export_file, user=export_file.created_by)
 
 
 @app.task(on_success=on_task_success, on_failure=on_task_failure)
@@ -56,17 +64,12 @@ def export_products(
     export_fields, csv_headers_mapping, headers = get_export_fields_and_headers_info(
         export_info
     )
-
-    export_data = get_products_data(
-        queryset,
-        set(export_fields),
-        export_info.get("warehouses"),
-        export_info.get("attributes"),
-    )
-
     export_file = ExportFile.objects.get(pk=export_file_id)
-    create_csv_file_and_save_in_export_file(
-        export_data,
+
+    export_products_in_batches(
+        queryset,
+        export_info,
+        set(export_fields),
         headers,
         csv_headers_mapping,
         delimiter,
@@ -94,11 +97,66 @@ def get_product_queryset(scope: Dict[str, Union[str, dict]]) -> "QuerySet":
     elif "filter" in scope:
         queryset = ProductFilter(data=scope["filter"], queryset=queryset).qs
 
-    queryset = queryset.order_by("pk").prefetch_related(
-        "attributes", "variants", "collections", "images", "product_type", "category"
-    )
+    queryset = queryset.order_by("pk")
 
     return queryset
+
+
+def export_products_in_batches(
+    queryset: "QuerySet",
+    export_info: Dict[str, list],
+    export_fields: Set[str],
+    headers: List[str],
+    csv_headers_mapping: Dict[str, str],
+    delimiter: str,
+    export_file: ExportFile,
+    file_name: str,
+    file_type: str,
+):
+    products_count = queryset.count()
+    warehouses = export_info.get("warehouses")
+    attributes = export_info.get("attributes")
+
+    create_file = True
+    counter = 0
+    while counter < products_count:
+        qs = queryset[counter : counter + BATCH_SIZE]
+        # filter cancel limiting the query, so we need to ensure that only part of
+        # products will be fetch from database
+        product_batch = (
+            Product.objects.filter(pk__in=qs.values_list("pk", flat=True))
+            .order_by("pk")
+            .prefetch_related(
+                "attributes",
+                "variants",
+                "collections",
+                "images",
+                "product_type",
+                "category",
+            )
+        )
+
+        export_data = get_products_data(
+            product_batch, export_fields, warehouses, attributes,
+        )
+
+        if create_file:
+            create_csv_file_and_save_in_export_file(
+                export_data,
+                headers,
+                csv_headers_mapping,
+                delimiter,
+                export_file,
+                file_name,
+                file_type,
+            )
+            create_file = False
+        else:
+            append_to_file(export_data, headers, export_file, file_type, delimiter)
+
+        counter += BATCH_SIZE
+
+    send_email_with_link_to_download_csv(export_file, "export_products")
 
 
 def create_csv_file_and_save_in_export_file(
@@ -120,6 +178,21 @@ def create_csv_file_and_save_in_export_file(
             etl.io.xlsx.toxlsx(table, temporary_file.name)
 
         save_csv_file_in_export_file(export_file, temporary_file, file_name)
+
+
+def append_to_file(
+    export_data: List[Dict[str, Union[str, bool]]],
+    headers: List[str],
+    export_file: ExportFile,
+    file_type: str,
+    delimiter: str,
+):
+    table = etl.fromdicts(export_data, header=headers, missing=" ")
+
+    if file_type == FileTypes.CSV:
+        etl.io.csv.appendcsv(table, export_file.content_file, delimiter=delimiter)
+    else:
+        etl.io.xlsx.appendxlsx(table, export_file.content_file.path)
 
 
 def save_csv_file_in_export_file(
