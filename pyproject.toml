@@ -61,6 +61,7 @@ oauthlib = "^3.0"
 jaeger-client = "^4.3.0"
 django-cache-url = "^3.1.2"
 pyjwt = "^1.7.1"
+python-json-logger = "^0.1.11"
 pytimeparse = "^1.1.8"
 
 [tool.poetry.dev-dependencies]

@@ -136,6 +136,7 @@ pytest-mock==3.1.1
 pytest-vcr==1.0.2
 pytest-xdist==1.32.0
 python-dateutil==2.8.1
+python-json-logger==0.1.11
 python-magic==0.4.18
 python-magic-bin==0.4.14; sys_platform == "win32"
 python-slugify==4.0.0
