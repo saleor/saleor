@@ -8,7 +8,6 @@ from saleor.product.models import (
     ProductTranslation,
     ProductVariantTranslation,
 )
-from saleor.shipping.models import ShippingMethodTranslation
 
 
 @pytest.fixture
@@ -26,13 +25,6 @@ def attribute_value_translation_fr(translated_attribute):
     value = translated_attribute.attribute.values.first()
     return AttributeValueTranslation.objects.create(
         language_code="fr", attribute_value=value, name="French name"
-    )
-
-
-@pytest.fixture
-def shipping_method_translation_fr(shipping_method):
-    return ShippingMethodTranslation.objects.create(
-        language_code="fr", shipping_method=shipping_method, name="French name"
     )
 
 
@@ -129,11 +121,3 @@ def test_voucher_translation(settings, voucher, voucher_translation_fr):
     assert not voucher.translated.name == "French name"
     settings.LANGUAGE_CODE = "fr"
     assert voucher.translated.name == "French name"
-
-
-def shipping_method_translation(
-    settings, shipping_method, shipping_method_translation_fr
-):
-    assert not shipping_method.translated.name == "French name"
-    settings.LANGUAGE_CODE = "fr"
-    assert shipping_method.translated.name == "French name"
