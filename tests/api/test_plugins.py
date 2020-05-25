@@ -6,9 +6,9 @@ from saleor.plugins.base_plugin import ConfigurationTypeField
 from saleor.plugins.error_codes import PluginErrorCode
 from saleor.plugins.manager import get_plugins_manager
 from saleor.plugins.models import PluginConfiguration
+from saleor.plugins.tests.sample_plugins import PluginSample
+from saleor.plugins.tests.utils import get_config_value
 from tests.api.utils import assert_no_permission, get_graphql_content
-from tests.plugins.sample_plugins import PluginSample
-from tests.plugins.utils import get_config_value
 
 
 @pytest.fixture
@@ -43,7 +43,7 @@ PLUGINS_QUERY = """
 def test_query_plugin_configurations(staff_api_client_can_manage_plugins, settings):
 
     # Enable test plugin
-    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
+    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     response = staff_api_client_can_manage_plugins.post_graphql(PLUGINS_QUERY)
     content = get_graphql_content(response)
 
@@ -98,7 +98,7 @@ def test_query_plugins_hides_secret_fields(
     settings,
 ):
 
-    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
+    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     configuration = copy.deepcopy(plugin.configuration)
@@ -132,7 +132,7 @@ def test_query_plugins_hides_secret_fields(
 
 
 def test_query_plugin_configurations_as_customer_user(user_api_client, settings):
-    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
+    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     response = user_api_client.post_graphql(PLUGINS_QUERY)
 
     assert_no_permission(response)
@@ -295,7 +295,7 @@ def test_plugin_configuration_update(
     staff_api_client_can_manage_plugins, settings, active, updated_configuration_item
 ):
 
-    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
+    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     old_configuration = copy.deepcopy(plugin.configuration)
@@ -343,7 +343,7 @@ def test_plugin_configuration_update_containing_invalid_plugin_id(
 def test_plugin_update_saves_boolean_as_boolean(
     staff_api_client_can_manage_plugins, settings
 ):
-    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
+    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     use_sandbox = get_config_value("Use sandbox", plugin.configuration)
@@ -375,9 +375,9 @@ def test_plugins_query_with_filter(
     plugin_filter, count, staff_api_client_can_manage_plugins, settings
 ):
     settings.PLUGINS = [
-        "tests.plugins.sample_plugins.PluginSample",
-        "tests.plugins.sample_plugins.PluginInactive",
-        "tests.plugins.sample_plugins.ActivePlugin",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.ActivePlugin",
     ]
     query = """
         query ($filter: PluginFilterInput) {
@@ -398,7 +398,7 @@ def test_plugins_query_with_filter(
 
 
 def test_plugin_configuration_update_as_customer_user(user_api_client, settings):
-    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
+    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
 
@@ -450,9 +450,9 @@ def test_query_plugins_with_sort(
     plugin_sort, result_order, staff_api_client_can_manage_plugins, settings
 ):
     settings.PLUGINS = [
-        "tests.plugins.sample_plugins.PluginSample",
-        "tests.plugins.sample_plugins.PluginInactive",
-        "tests.plugins.sample_plugins.ActivePlugin",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.ActivePlugin",
     ]
     variables = {"sort_by": plugin_sort}
     response = staff_api_client_can_manage_plugins.post_graphql(

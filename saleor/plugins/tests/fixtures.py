@@ -4,7 +4,7 @@ from django_prices_vatlayer.utils import get_tax_for_rate
 
 from saleor.plugins.base_plugin import ConfigurationTypeField
 from saleor.plugins.models import PluginConfiguration
-from tests.plugins.sample_plugins import PluginInactive, PluginSample
+from saleor.plugins.tests.sample_plugins import PluginInactive, PluginSample
 
 
 @pytest.fixture

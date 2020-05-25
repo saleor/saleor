@@ -1,12 +1,12 @@
 from saleor.plugins.anonymize.plugin import AnonymizePlugin
 from saleor.plugins.base_plugin import ConfigurationTypeField
 from saleor.plugins.manager import get_plugins_manager
-from tests.plugins.sample_plugins import PluginSample
-from tests.plugins.utils import get_config_value
+from saleor.plugins.tests.sample_plugins import PluginSample
+from saleor.plugins.tests.utils import get_config_value
 
 
 def test_update_config_items_keeps_bool_value(plugin_configuration, settings):
-    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
+    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     data_to_update = [
         {"name": "Username", "value": "new_admin@example.com"},
         {"name": "Use sandbox", "value": False},
@@ -163,7 +163,7 @@ def test_base_plugin__update_configuration_structure_configuration_has_change(
 
 
 def test_base_plugin__append_config_structure_to_config(settings):
-    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
+    settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     config = [

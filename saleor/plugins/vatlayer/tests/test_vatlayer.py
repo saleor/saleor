@@ -246,7 +246,6 @@ def test_calculate_checkout_total(
     )
 
 
-@pytest.mark.vcr
 @pytest.mark.parametrize(
     "with_discount, expected_net, expected_gross, taxes_in_prices",
     [
