@@ -11,7 +11,7 @@ from django.core.files.storage import default_storage
 from django.template.loader import get_template
 from weasyprint import HTML
 
-from ...order.models import Invoice
+from ...invoice.models import Invoice
 
 
 def make_full_invoice_number(number=1):

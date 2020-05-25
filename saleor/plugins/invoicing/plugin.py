@@ -3,7 +3,8 @@ from typing import Any, Optional
 from django.urls import reverse
 
 from ...core.utils import build_absolute_uri
-from ...order.models import Invoice, Order
+from ...invoice.models import Invoice
+from ...order.models import Order
 from ..base_plugin import BasePlugin
 from . import generate_invoice_number, generate_invoice_pdf
 

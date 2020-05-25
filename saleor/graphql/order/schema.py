@@ -28,8 +28,6 @@ from .mutations.fulfillments import (
     OrderFulfill,
 )
 from .mutations.orders import (
-    CreateInvoice,
-    DeleteInvoice,
     OrderAddNote,
     OrderCancel,
     OrderCapture,
@@ -42,10 +40,6 @@ from .mutations.orders import (
     OrderUpdatePrivateMeta,
     OrderUpdateShipping,
     OrderVoid,
-    RequestDeleteInvoice,
-    RequestInvoice,
-    SendInvoiceEmail,
-    UpdateInvoice,
 )
 from .resolvers import (
     resolve_draft_orders,
@@ -224,12 +218,3 @@ class OrderMutations(graphene.ObjectType):
     order_void = OrderVoid.Field()
 
     order_bulk_cancel = OrderBulkCancel.Field()
-
-
-class InvoiceMutations(graphene.ObjectType):
-    request_invoice = RequestInvoice.Field()
-    request_delete_invoice = RequestDeleteInvoice.Field()
-    create_invoice = CreateInvoice.Field()
-    delete_invoice = DeleteInvoice.Field()
-    update_invoice = UpdateInvoice.Field()
-    send_invoice_email = SendInvoiceEmail.Field()
