@@ -1,29 +1,10 @@
 from unittest import mock
-from urllib.parse import urlencode
 
 import pytest
-from django.core import mail
-from django.core.exceptions import ImproperlyConfigured
 from templated_email import get_connection
 
-import saleor.account.emails as account_emails
 import saleor.order.emails as emails
-from saleor.core.emails import get_email_context, prepare_url
 from saleor.order.utils import add_variant_to_draft_order
-
-
-def test_get_email_context(site_settings):
-    site = site_settings.site
-
-    expected_send_kwargs = {"from_email": site_settings.default_from_email}
-    proper_context = {
-        "domain": site.domain,
-        "site_name": site.name,
-    }
-
-    send_kwargs, received_context = get_email_context()
-    assert send_kwargs == expected_send_kwargs
-    assert proper_context == received_context
 
 
 def test_collect_data_for_order_confirmation_email(order):
@@ -276,116 +257,6 @@ def test_send_fulfillment_emails_with_tracking_number_as_url(
         "template_name": template,
     }
 
-    mocked_templated_email.assert_called_once_with(
-        recipient_list=recipients, **expected_call_kwargs
-    )
-
-    # Render the email to ensure there is no error
-    email_connection = get_connection()
-    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
-
-
-def test_email_having_display_name_in_settings(customer_user, site_settings, settings):
-    expected_from_email = "Info <hello@mirumee.com>"
-
-    site_settings.default_mail_sender_name = None
-    site_settings.default_mail_sender_address = None
-
-    settings.DEFAULT_FROM_EMAIL = expected_from_email
-
-    assert site_settings.default_from_email == expected_from_email
-
-
-def test_email_with_email_not_configured_raises_error(settings, site_settings):
-    """Ensure an exception is thrown when not default sender is set;
-    both missing in the settings.py and in the site settings table.
-    """
-    site_settings.default_mail_sender_address = None
-    settings.DEFAULT_FROM_EMAIL = None
-
-    with pytest.raises(ImproperlyConfigured) as exc:
-        _ = site_settings.default_from_email
-
-    assert exc.value.args == ("No sender email address has been set-up",)
-
-
-def test_send_set_password_email(staff_user, site_settings):
-    password_set_url = "https://www.example.com"
-    template_name = "dashboard/staff/set_password"
-    recipient_email = staff_user.email
-
-    account_emails._send_set_password_email(
-        recipient_email, password_set_url, template_name
-    )
-
-    assert len(mail.outbox) == 1
-    sended_message = mail.outbox[0].body
-    assert password_set_url in sended_message
-
-
-def test_prepare_url():
-    redirect_url = "https://www.example.com"
-    params = urlencode({"param1": "abc", "param2": "xyz"})
-    result = prepare_url(params, redirect_url)
-    assert result == "https://www.example.com?param1=abc&param2=xyz"
-
-
-@mock.patch("saleor.account.emails.send_templated_mail")
-def test_send_email_request_change(
-    mocked_templated_email, site_settings, customer_user
-):
-    new_email = "example@example.com"
-    template = account_emails.REQUEST_EMAIL_CHANGE_TEMPLATE
-    redirect_url = "localhost"
-    token = "token_example"
-    event_parameters = {"old_email": customer_user.email, "new_email": new_email}
-
-    account_emails._send_request_email_change_email(
-        new_email, redirect_url, customer_user.pk, token, event_parameters
-    )
-    ctx = {
-        "domain": "mirumee.com",
-        "redirect_url": "localhost?token=token_example",
-        "site_name": "mirumee.com",
-    }
-    recipients = [new_email]
-
-    expected_call_kwargs = {
-        "context": ctx,
-        "from_email": site_settings.default_from_email,
-        "template_name": template,
-    }
-
-    # mocked_templated_email.assert_called_once()
-    mocked_templated_email.assert_called_once_with(
-        recipient_list=recipients, **expected_call_kwargs
-    )
-
-    # Render the email to ensure there is no error
-    email_connection = get_connection()
-    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
-
-
-@mock.patch("saleor.account.emails.send_templated_mail")
-def test_send_email_changed_notification(
-    mocked_templated_email, site_settings, customer_user
-):
-    old_email = "example@example.com"
-    template = account_emails.EMAIL_CHANGED_NOTIFICATION_TEMPLATE
-    account_emails.send_user_change_email_notification(old_email)
-    ctx = {
-        "domain": "mirumee.com",
-        "site_name": "mirumee.com",
-    }
-    recipients = [old_email]
-
-    expected_call_kwargs = {
-        "context": ctx,
-        "from_email": site_settings.default_from_email,
-        "template_name": template,
-    }
-
-    # mocked_templated_email.assert_called_once()
     mocked_templated_email.assert_called_once_with(
         recipient_list=recipients, **expected_call_kwargs
     )
