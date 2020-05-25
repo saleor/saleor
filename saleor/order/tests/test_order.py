@@ -32,8 +32,7 @@ from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
 from saleor.product.models import Collection
 from saleor.warehouse.models import Stock
-
-from .utils import get_quantity_allocated_for_stock
+from tests.utils import get_quantity_allocated_for_stock
 
 
 def test_total_setter():
