@@ -6,7 +6,9 @@ from ..core.types import FilterInputObjectType
 from ..decorators import permission_required
 from .filters import AppFilter
 from .mutations import (
+    AppActivate,
     AppCreate,
+    AppDeactivate,
     AppDelete,
     AppDeleteFailedInstallation,
     AppFetchManifest,
@@ -70,3 +72,6 @@ class AppMutations(graphene.ObjectType):
     app_delete_failed_installation = AppDeleteFailedInstallation.Field()
 
     app_fetch_manifest = AppFetchManifest.Field()
+
+    app_activate = AppActivate.Field()
+    app_deactivate = AppDeactivate.Field()

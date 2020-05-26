@@ -213,6 +213,12 @@ type App implements Node & ObjectWithMetadata {
   version: String
 }
 
+type AppActivate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  appErrors: [AppError!]!
+  app: App
+}
+
 type AppCountableConnection {
   pageInfo: PageInfo!
   edges: [AppCountableEdge!]!
@@ -227,6 +233,12 @@ type AppCountableEdge {
 type AppCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   authToken: String
+  appErrors: [AppError!]!
+  app: App
+}
+
+type AppDeactivate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   appErrors: [AppError!]!
   app: App
 }
@@ -2561,6 +2573,8 @@ type Mutation {
   appRetryInstall(activateAfterInstallation: Boolean = true, id: ID!): AppRetryInstall
   appDeleteFailedInstallation(id: ID!): AppDeleteFailedInstallation
   appFetchManifest(manifestUrl: String!): AppFetchManifest
+  appActivate(id: ID!): AppActivate
+  appDeactivate(id: ID!): AppDeactivate
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(token: String!, email: String!, password: String!): SetPassword
