@@ -17,6 +17,7 @@ from saleor.csv.utils.export import (
     append_to_file,
     create_csv_file_and_save_in_export_file,
     export_products,
+    export_products_in_batches,
     get_filename,
     get_product_queryset,
     on_task_failure,
@@ -24,6 +25,7 @@ from saleor.csv.utils.export import (
     save_csv_file_in_export_file,
 )
 from saleor.graphql.csv.enums import ProductFieldEnum
+from saleor.product.models import Product
 
 
 @patch("saleor.csv.utils.export.send_export_failed_info")
@@ -370,5 +372,129 @@ def test_append_to_file_for_xlsx(export_file, tmpdir, media_root):
     # add string with space for collections column
     row2.append(" ")
     assert row2 in data
+
+    shutil.rmtree(tmpdir)
+
+
+@patch("saleor.csv.utils.export.BATCH_SIZE", 1)
+def test_export_products_in_batches_for_csv(
+    product_list, export_file, tmpdir, media_root
+):
+    # given
+    qs = Product.objects.all()
+    export_info = {
+        "fields": [ProductFieldEnum.NAME.value, ProductFieldEnum.VARIANT_SKU.value],
+        "warehouses": [],
+        "attributes": [],
+    }
+    export_fields = ["id", "name", "sku"]
+    csv_headers_mapping = {"name": "name", "sku": "variant sku"}
+    headers = ["id"] + list(csv_headers_mapping.keys())
+    file_name = "test.csv"
+
+    assert not export_file.content_file
+
+    # when
+    export_products_in_batches(
+        qs,
+        export_info,
+        set(export_fields),
+        headers,
+        csv_headers_mapping,
+        ";",
+        export_file,
+        file_name,
+        FileTypes.CSV,
+    )
+
+    # then
+    export_file.refresh_from_db()
+    assert export_file.content_file
+
+    expected_data = []
+    for product in qs.order_by("pk"):
+        product_data = []
+        product_data.append(str(product.pk))
+        product_data.append(product.name)
+
+        for variant in product.variants.all():
+            product_data.append(str(variant.sku))
+            expected_data.append(product_data)
+
+    csv_file = export_file.content_file
+    file_content = csv_file.read().decode().split("\r\n")
+
+    # ensure headers are in file
+    assert ";".join(["id"] + list(csv_headers_mapping.values())) in file_content
+
+    for row in expected_data:
+        assert ";".join(row) in file_content
+
+    shutil.rmtree(tmpdir)
+
+
+@patch("saleor.csv.utils.export.BATCH_SIZE", 1)
+def test_export_products_in_batches_for_xlsx(
+    product_list, export_file, tmpdir, media_root
+):
+    # given
+    qs = Product.objects.all()
+    export_info = {
+        "fields": [ProductFieldEnum.NAME.value, ProductFieldEnum.VARIANT_SKU.value],
+        "warehouses": [],
+        "attributes": [],
+    }
+    export_fields = ["id", "name", "sku"]
+    csv_headers_mapping = {"name": "name", "sku": "variant sku"}
+    headers = ["id"] + list(csv_headers_mapping.keys())
+    file_name = "test.xlsx"
+
+    assert not export_file.content_file
+
+    # when
+    export_products_in_batches(
+        qs,
+        export_info,
+        set(export_fields),
+        headers,
+        csv_headers_mapping,
+        ";",
+        export_file,
+        file_name,
+        FileTypes.XLSX,
+    )
+
+    # then
+    export_file.refresh_from_db()
+    assert export_file.content_file
+
+    expected_data = []
+    for product in qs.order_by("pk"):
+        product_data = []
+        product_data.append(product.pk)
+        product_data.append(product.name)
+
+        for variant in product.variants.all():
+            product_data.append(variant.sku)
+            expected_data.append(product_data)
+
+    xlsx_file = export_file.content_file
+    wb_obj = openpyxl.load_workbook(xlsx_file)
+
+    sheet_obj = wb_obj.active
+    max_col = sheet_obj.max_column
+    max_row = sheet_obj.max_row
+    expected_headers = ["id"] + list(csv_headers_mapping.values())
+    headers = [sheet_obj.cell(row=1, column=i).value for i in range(1, max_col + 1)]
+    data = []
+    for i in range(2, max_row + 1):
+        row = []
+        for j in range(1, max_col + 1):
+            row.append(sheet_obj.cell(row=i, column=j).value)
+        data.append(row)
+
+    assert headers == expected_headers
+    for row in expected_data:
+        assert row in data
 
     shutil.rmtree(tmpdir)
