@@ -2,10 +2,8 @@ import graphene
 
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import DigitalContent, ProductVariant
-from tests.api.utils import get_graphql_content
+from tests.api.utils import get_graphql_content, get_multipart_request_body
 from tests.utils import create_image
-
-from .utils import get_multipart_request_body
 
 
 def test_fetch_all_digital_contents(
