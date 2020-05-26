@@ -10,8 +10,7 @@ from saleor.graphql.webhook.enums import (
 )
 from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.models import Webhook
-
-from .utils import assert_no_permission, get_graphql_content
+from tests.api.utils import assert_no_permission, get_graphql_content
 
 WEBHOOK_CREATE_BY_APP = """
     mutation webhookCreate($name: String, $target_url: String,
