@@ -3,8 +3,7 @@ import pytest
 
 from saleor.graphql.shipping.types import ShippingMethodTypeEnum
 from saleor.shipping.error_codes import ShippingErrorCode
-
-from ..api.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 
 def test_shipping_zone_query(
