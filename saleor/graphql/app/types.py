@@ -13,6 +13,24 @@ from ..webhook.types import Webhook
 from .enums import AppTypeEnum
 
 
+class Manifest(graphene.ObjectType):
+    identifier = graphene.String(required=True)
+    version = graphene.String(required=True)
+    name = graphene.String(required=True)
+    about = graphene.String()
+    permissions = graphene.List(Permission)
+    app_url = graphene.String()
+    configuration_url = graphene.String()
+    token_target_url = graphene.String()
+    data_privacy = graphene.String()
+    data_privacy_url = graphene.String()
+    homepage_url = graphene.String()
+    support_url = graphene.String()
+
+    class Meta:
+        description = "The manifest definition."
+
+
 class AppToken(CountableDjangoObjectType):
     name = graphene.String(description="Name of the authenticated token.")
     auth_token = graphene.String(description="Last 4 characters of the token.")

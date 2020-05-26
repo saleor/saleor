@@ -255,11 +255,21 @@ enum AppErrorCode {
   GRAPHQL_ERROR
   INVALID
   INVALID_STATUS
+  INVALID_PERMISSION
+  INVALID_MANIFEST_URL
+  INVALID_MANIFEST_FORMAT
+  MANIFEST_URL_CANT_CONNECT
   NOT_FOUND
   REQUIRED
   UNIQUE
   OUT_OF_SCOPE_APP
   OUT_OF_SCOPE_PERMISSION
+}
+
+type AppFetchManifest {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  manifest: Manifest
+  appErrors: [AppError!]!
 }
 
 input AppFilterInput {
@@ -2058,6 +2068,21 @@ type LanguageDisplay {
   language: String!
 }
 
+type Manifest {
+  identifier: String!
+  version: String!
+  name: String!
+  about: String
+  permissions: [Permission]
+  appUrl: String
+  configurationUrl: String
+  tokenTargetUrl: String
+  dataPrivacy: String
+  dataPrivacyUrl: String
+  homepageUrl: String
+  supportUrl: String
+}
+
 type Margin {
   start: Int
   stop: Int
@@ -2535,6 +2560,7 @@ type Mutation {
   appInstall(input: AppInstallInput!): AppInstall
   appRetryInstall(activateAfterInstallation: Boolean = true, id: ID!): AppRetryInstall
   appDeleteFailedInstallation(id: ID!): AppDeleteFailedInstallation
+  appFetchManifest(manifestUrl: String!): AppFetchManifest
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(token: String!, email: String!, password: String!): SetPassword

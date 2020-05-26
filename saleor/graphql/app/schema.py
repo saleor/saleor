@@ -9,6 +9,7 @@ from .mutations import (
     AppCreate,
     AppDelete,
     AppDeleteFailedInstallation,
+    AppFetchManifest,
     AppInstall,
     AppRetryInstall,
     AppTokenCreate,
@@ -67,3 +68,5 @@ class AppMutations(graphene.ObjectType):
     app_install = AppInstall.Field()
     app_retry_install = AppRetryInstall.Field()
     app_delete_failed_installation = AppDeleteFailedInstallation.Field()
+
+    app_fetch_manifest = AppFetchManifest.Field()
