@@ -233,11 +233,6 @@ class AppActivate(ModelMutation):
             code = AppErrorCode.OUT_OF_SCOPE_APP.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
-        if app.is_active:
-            msg = "App is already active."
-            code = AppErrorCode.INVALID.value
-            raise ValidationError({"id": ValidationError(msg, code=code)})
-
     @classmethod
     def perform_mutation(cls, root, info, **data):
         app = cls.get_instance(info, **data)
@@ -264,11 +259,6 @@ class AppDeactivate(ModelMutation):
         if not requestor_is_superuser(requestor) and not can_manage_app(requestor, app):
             msg = "You don't have enough permission to perform this action."
             code = AppErrorCode.OUT_OF_SCOPE_APP.value
-            raise ValidationError({"id": ValidationError(msg, code=code)})
-
-        if not app.is_active:
-            msg = "App is already deactivated."
-            code = AppErrorCode.INVALID.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
     @classmethod
