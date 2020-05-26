@@ -1,4 +1,7 @@
+from typing import List
+
 import graphene
+import requests
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 
@@ -6,13 +9,21 @@ from ...app import models
 from ...app.error_codes import AppErrorCode
 from ...app.tasks import install_app_task
 from ...core import JobStatus
-from ...core.permissions import AppPermission, get_permissions
+from ...core.permissions import (
+    AppPermission,
+    get_permissions,
+    get_permissions_enum_list,
+)
 from ..account.utils import can_manage_app
 from ..core.enums import PermissionEnum
-from ..core.mutations import ModelDeleteMutation, ModelMutation
+from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import AppError
-from ..utils import get_user_or_app_from_context, requestor_is_superuser
-from .types import App, AppToken
+from ..utils import (
+    format_permissions_for_display,
+    get_user_or_app_from_context,
+    requestor_is_superuser,
+)
+from .types import App, AppToken, Manifest
 from .utils import ensure_can_manage_permissions
 
 
@@ -320,7 +331,7 @@ class AppInstall(ModelMutation):
             url_validator(url)
         except (ValidationError, AttributeError):
             msg = "Enter a valid URL."
-            code = AppErrorCode.INVALID.value
+            code = AppErrorCode.INVALID_MANIFEST_URL.value
             raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
 
     @classmethod
@@ -342,3 +353,98 @@ class AppInstall(ModelMutation):
     def post_save_action(cls, info, instance, cleaned_input):
         activate_after_installation = cleaned_input["activate_after_installation"]
         install_app_task.delay(instance.pk, activate_after_installation)
+
+
+class AppFetchManifest(BaseMutation):
+    manifest = graphene.Field(Manifest)
+
+    class Arguments:
+        manifest_url = graphene.String(required=True)
+
+    class Meta:
+        description = "Fetch and validate manifest."
+        permissions = (AppPermission.MANAGE_APPS,)
+        error_type_class = AppError
+        error_type_field = "app_errors"
+
+    @classmethod
+    def success_response(cls, instance):
+        """Return a success response."""
+        return cls(**{"manifest": instance, "errors": []})
+
+    @classmethod
+    def fetch_manifest(cls, manifest_url):
+        try:
+            response = requests.get(manifest_url)
+            response.raise_for_status()
+            return response.json()
+        except requests.HTTPError:
+            msg = "Unable to fetch manifest data."
+            code = AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
+            raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
+        except ValueError:
+            msg = "Incorrect structure of manifest."
+            code = AppErrorCode.INVALID_MANIFEST_FORMAT.value
+            raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
+        except Exception:
+            msg = "Can't fetch manifest data. Please try later."
+            code = AppErrorCode.INVALID.valuer
+            raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
+
+    @classmethod
+    def clean_manifest_url(cls, manifest_url):
+        url_validator = URLValidator()
+        try:
+            url_validator(manifest_url)
+        except (ValidationError, AttributeError):
+            msg = "Enter a valid URL."
+            code = AppErrorCode.INVALID_MANIFEST_URL.value
+            raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
+
+    @classmethod
+    def construct_instance(cls, instance, cleaned_data):
+        return Manifest(
+            identifier=cleaned_data.get("id"),
+            name=cleaned_data.get("name"),
+            about=cleaned_data.get("about"),
+            data_privacy=cleaned_data.get("dataPrivacy"),
+            data_privacy_url=cleaned_data.get("dataPrivacyUrl"),
+            homepage_url=cleaned_data.get("homepageUrl"),
+            support_url=cleaned_data.get("supportUrl"),
+            configuration_url=cleaned_data.get("configurationUrl"),
+            app_url=cleaned_data.get("appUrl"),
+            version=cleaned_data.get("version"),
+            token_target_url=cleaned_data.get("tokenTargetUrl"),
+            permissions=cleaned_data.get("permissions"),
+        )
+
+    @classmethod
+    def clean_permissions(cls, required_permissions: List[str]):
+        missing_permissions = []
+        all_permissions = {perm[0]: perm[1] for perm in get_permissions_enum_list()}
+        for perm in required_permissions:
+            if not all_permissions.get(perm):
+                missing_permissions.append(perm)
+        if missing_permissions:
+            error_msg = "Given permissions don't exist"
+            code = AppErrorCode.INVALID_PERMISSION.value
+            params = {"permissions": missing_permissions}
+            raise ValidationError(
+                {"permissions": ValidationError(error_msg, code=code, params=params)}
+            )
+
+        permissions = get_permissions(
+            [all_permissions[perm] for perm in required_permissions]
+        )
+        return format_permissions_for_display(permissions)
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        manifest_url = data.get("manifest_url")
+        cls.clean_manifest_url(manifest_url)
+        manifest_data = cls.fetch_manifest(manifest_url)
+        manifest_data["permissions"] = cls.clean_permissions(
+            manifest_data.get("permissions")
+        )
+        instance = cls.construct_instance(instance=None, cleaned_data=manifest_data)
+        return cls.success_response(instance)
