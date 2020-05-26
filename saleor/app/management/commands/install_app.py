@@ -19,7 +19,10 @@ class Command(BaseCommand):
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument("manifest-url", help="Url with app manifest.", type=str)
         parser.add_argument(
-            "--activate-after-installation", action="store_true", dest="activate"
+            "--activate",
+            action="store_true",
+            dest="activate",
+            help="Activates the app after installation",
         )
 
     def validate_manifest_url(self, manifest_url: str):
