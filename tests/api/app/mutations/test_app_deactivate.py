@@ -38,32 +38,6 @@ def test_deactivate_app(app, staff_api_client, permission_manage_apps):
     assert not app.is_active
 
 
-def test_cannot_deactivate_already_deactivated_app(
-    app, staff_api_client, permission_manage_apps
-):
-    app.is_active = False
-    app.save()
-    query = APP_DEACTIVATE_MUTATION
-    id = graphene.Node.to_global_id("App", app.id)
-    variables = {
-        "id": id,
-    }
-    response = staff_api_client.post_graphql(
-        query, variables=variables, permissions=(permission_manage_apps,)
-    )
-    content = get_graphql_content(response)
-    app_data = content["data"]["appDeactivate"]["app"]
-    app_errors = content["data"]["appDeactivate"]["appErrors"]
-
-    app.refresh_from_db()
-
-    assert not app_data
-    assert len(app_errors) == 1
-    assert app_errors[0]["field"] == "id"
-    assert app_errors[0]["code"] == AppErrorCode.INVALID.name
-    assert not app.is_active
-
-
 def test_deactivate_app_by_app(app, app_api_client, permission_manage_apps):
     app = App.objects.create(name="Sample app objects", is_active=True)
     query = APP_DEACTIVATE_MUTATION

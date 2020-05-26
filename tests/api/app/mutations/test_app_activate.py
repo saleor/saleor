@@ -53,32 +53,6 @@ def test_activate_app_by_app(app, app_api_client, permission_manage_apps):
     assert app.is_active
 
 
-def test_cannot_activate_already_activated_app(
-    app, staff_api_client, permission_manage_apps
-):
-    app.is_active = True
-    app.save()
-    query = APP_ACTIVATE_MUTATION
-    id = graphene.Node.to_global_id("App", app.id)
-    variables = {
-        "id": id,
-    }
-    response = staff_api_client.post_graphql(
-        query, variables=variables, permissions=(permission_manage_apps,)
-    )
-    content = get_graphql_content(response)
-    app_data = content["data"]["appActivate"]["app"]
-    app_errors = content["data"]["appActivate"]["appErrors"]
-
-    app.refresh_from_db()
-
-    assert not app_data
-    assert len(app_errors) == 1
-    assert app_errors[0]["field"] == "id"
-    assert app_errors[0]["code"] == AppErrorCode.INVALID.name
-    assert app.is_active
-
-
 def test_activate_app_missing_permission(
     app, staff_api_client, permission_manage_orders
 ):
