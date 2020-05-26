@@ -1,6 +1,6 @@
 import os
 from collections import ChainMap, defaultdict
-from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 
 from django.conf import settings
 from django.db.models import Case, CharField, F, Value as V, When
@@ -469,11 +469,9 @@ def add_warehouse_info_to_data(
     """
 
     slug = warehouse_data["slug"]
-    warehouse_header = None
     if slug:
         warehouse_qty_header = f"{slug} (warehouse quantity)"
         if warehouse_qty_header not in result_data[pk]:
             result_data[pk][warehouse_qty_header] = warehouse_data["qty"]
-            warehouse_header = warehouse_qty_header
 
     return result_data
