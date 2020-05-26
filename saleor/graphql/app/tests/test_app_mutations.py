@@ -3,8 +3,7 @@ import graphene
 from saleor.app.error_codes import AppErrorCode
 from saleor.app.models import App, AppToken
 from saleor.graphql.core.enums import PermissionEnum
-
-from .utils import assert_no_permission, get_graphql_content
+from tests.api.utils import assert_no_permission, get_graphql_content
 
 APP_CREATE_MUTATION = """
     mutation AppCreate(
