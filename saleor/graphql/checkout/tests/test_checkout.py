@@ -28,9 +28,8 @@ from saleor.payment import TransactionKind
 from saleor.payment.interface import GatewayResponse
 from saleor.plugins.manager import PluginsManager
 from saleor.warehouse.models import Stock
-
-from ..utils import get_available_quantity_for_stock
-from .utils import assert_no_permission, get_graphql_content
+from tests.api.utils import assert_no_permission, get_graphql_content
+from tests.utils import get_available_quantity_for_stock
 
 
 @pytest.fixture(autouse=True)

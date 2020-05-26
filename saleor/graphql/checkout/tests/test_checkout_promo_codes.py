@@ -7,11 +7,12 @@ from prices import Money
 from saleor.checkout import calculations
 from saleor.checkout.utils import add_voucher_to_checkout
 from saleor.discount import DiscountInfo, VoucherType
-from tests.api.test_checkout import (
+from tests.api.utils import get_graphql_content
+
+from .test_checkout import (
     MUTATION_CHECKOUT_LINES_DELETE,
     MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
 )
-from tests.api.utils import get_graphql_content
 
 
 def test_checkout_lines_delete_with_not_applicable_voucher(
