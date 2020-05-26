@@ -29,7 +29,10 @@ from .utils import ensure_can_manage_permissions
 
 class AppInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the app.")
-    is_active = graphene.Boolean(description="Determine if this app should be enabled.")
+    is_active = graphene.Boolean(
+        description="DEPRECATED: Use the `appActivate` and `appDeactivate` mutations "
+        "instead. This field will be removed after 2020-07-31.",
+    )
     permissions = graphene.List(
         PermissionEnum,
         description="List of permission code names to assign to this app.",
@@ -217,6 +220,65 @@ class AppDelete(ModelDeleteMutation):
             msg = "You can't delete this app."
             code = AppErrorCode.OUT_OF_SCOPE_APP.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
+
+
+class AppActivate(ModelMutation):
+    class Arguments:
+        id = graphene.ID(description="ID of app to activate.", required=True)
+
+    class Meta:
+        description = "Activate the app."
+        model = models.App
+        permissions = (AppPermission.MANAGE_APPS,)
+        error_type_class = AppError
+        error_type_field = "app_errors"
+
+    @classmethod
+    def clean_instance(cls, info, app: App):
+        requestor = get_user_or_app_from_context(info.context)
+        permissions = app.permissions.all()
+        if not requestor_is_superuser(requestor) and not requestor.has_perms(
+            permissions
+        ):
+            msg = "You don't have enough permission to perform this action."
+            code = AppErrorCode.OUT_OF_SCOPE_APP.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        app = cls.get_instance(info, **data)
+        cls.clean_instance(info, app)
+        app.is_active = True
+        cls.save(info, app, cleaned_input=None)
+        return cls.success_response(app)
+
+
+class AppDeactivate(ModelMutation):
+    class Arguments:
+        id = graphene.ID(description="ID of app to deactivate.", required=True)
+
+    class Meta:
+        description = "Deactivate the app."
+        model = models.App
+        permissions = (AppPermission.MANAGE_APPS,)
+        error_type_class = AppError
+        error_type_field = "app_errors"
+
+    @classmethod
+    def clean_instance(cls, info, app: App):
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor_is_superuser(requestor) and not can_manage_app(requestor, app):
+            msg = "You don't have enough permission to perform this action."
+            code = AppErrorCode.OUT_OF_SCOPE_APP.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        app = cls.get_instance(info, **data)
+        cls.clean_instance(info, app)
+        app.is_active = False
+        cls.save(info, app, cleaned_input=None)
+        return cls.success_response(app)
 
 
 class AppDeleteFailedInstallation(ModelDeleteMutation):
