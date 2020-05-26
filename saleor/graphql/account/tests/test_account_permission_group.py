@@ -5,8 +5,7 @@ from django.contrib.auth.models import Group
 from saleor.account.error_codes import PermissionGroupErrorCode
 from saleor.account.models import User
 from saleor.core.permissions import AccountPermissions, AppPermission, OrderPermissions
-
-from .utils import assert_no_permission, get_graphql_content
+from tests.api.utils import assert_no_permission, get_graphql_content
 
 PERMISSION_GROUP_CREATE_MUTATION = """
     mutation PermissionGroupCreate(

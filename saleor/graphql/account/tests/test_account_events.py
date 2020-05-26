@@ -3,8 +3,7 @@ from django.db import models
 
 from saleor.account import events as account_events
 from saleor.account.models import User
-
-from .utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 QUERY_CUSTOMER_EVENTS = """
 query customerEvents($customerId: ID!) {
