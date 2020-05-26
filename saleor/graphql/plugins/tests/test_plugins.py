@@ -176,7 +176,7 @@ def test_query_plugin_hides_secret_fields(
     settings,
 ):
 
-    settings.PLUGINS = ["tests.api.test_plugins.PluginSample"]
+    settings.PLUGINS = ["saleor.graphql.plugins.tests.test_plugins.PluginSample"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
     configuration = copy.deepcopy(plugin.configuration)
@@ -211,7 +211,7 @@ def test_query_plugin_hides_secret_fields(
 def test_query_plugin_configuration(
     staff_api_client, permission_manage_plugins, settings
 ):
-    settings.PLUGINS = ["tests.api.test_plugins.PluginSample"]
+    settings.PLUGINS = ["saleor.graphql.plugins.tests.test_plugins.PluginSample"]
     manager = get_plugins_manager()
     sample_plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
 
@@ -241,7 +241,7 @@ def test_query_plugin_configuration_for_invalid_plugin_name(
 
 
 def test_query_plugin_configuration_as_customer_user(user_api_client, settings):
-    settings.PLUGINS = ["tests.api.test_plugins.PluginSample"]
+    settings.PLUGINS = ["saleor.graphql.plugins.tests.test_plugins.PluginSample"]
     manager = get_plugins_manager()
     sample_plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
 
