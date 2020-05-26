@@ -7,9 +7,7 @@ from django.core.exceptions import ValidationError
 from saleor.graphql.menu.mutations import NavigationType, _validate_menu_item_instance
 from saleor.menu.models import Menu, MenuItem
 from saleor.product.models import Category
-from tests.api.utils import get_graphql_content
-
-from .utils import assert_no_permission, menu_item_to_json
+from tests.api.utils import assert_no_permission, get_graphql_content, menu_item_to_json
 
 
 def test_validate_menu_item_instance(category, page):
