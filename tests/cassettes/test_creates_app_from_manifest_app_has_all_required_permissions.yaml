@@ -1,0 +1,159 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.23.0
+    method: GET
+    uri: http://localhost:3000/manifest
+  response:
+    body:
+      string: "{\n  \"name\": \"app\",\n  \"version\": \"1.0.0\",\n  \"aboutApp\"\
+        : \"Lorem ipsum\",\n  \"dataPrivacy\": \"Lorem ipsum\",\n  \"dataPrivacyUrl\"\
+        : \"http://localhost:8888/app-data-privacy\",\n  \"homepageUrl\": \"http://localhost:8888/homepage\"\
+        ,\n  \"supportUrl\": \"http://localhost:8888/support\",\n  \"configurationUrl\"\
+        : \"htpp://localhost:8888/configuration\",\n  \"appUrl\": \"http://localhost:8888/app\"\
+        ,\n  \"tokenTargetUrl\": \"http://localhost:3000/register\",\n  \"id\": \"\
+        app2\",\n  \"permissions\": [\n    \"MANAGE_USERS\",\n    \"MANAGE_ORDERS\"\
+        \n  ]\n}"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '500'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 20 May 2020 07:56:35 GMT
+      ETag:
+      - W/"1f4-qx17e+bDbZJtTZiNJJshOoM1U6s"
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+      Vary:
+      - Origin, Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Powered-By:
+      - Express
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.23.0
+    method: GET
+    uri: http://localhost:3000/manifest
+  response:
+    body:
+      string: "{\n  \"name\": \"app\",\n  \"version\": \"1.0.0\",\n  \"aboutApp\"\
+        : \"Lorem ipsum\",\n  \"dataPrivacy\": \"Lorem ipsum\",\n  \"dataPrivacyUrl\"\
+        : \"http://localhost:8888/app-data-privacy\",\n  \"homepageUrl\": \"http://localhost:8888/homepage\"\
+        ,\n  \"supportUrl\": \"http://localhost:8888/support\",\n  \"configurationUrl\"\
+        : \"htpp://localhost:8888/configuration\",\n  \"appUrl\": \"http://localhost:8888/app\"\
+        ,\n  \"tokenTargetUrl\": \"http://localhost:3000/register\",\n  \"id\": \"\
+        app2\",\n  \"permissions\": [\n    \"MANAGE_USERS\",\n    \"MANAGE_ORDERS\"\
+        \n  ]\n}"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '500'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 20 May 2020 07:56:35 GMT
+      ETag:
+      - W/"1f4-qx17e+bDbZJtTZiNJJshOoM1U6s"
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+      Vary:
+      - Origin, Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Powered-By:
+      - Express
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"auth_token": "woTsA9BIEc0dl93Q2YeIMwuWTlkzgb"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '48'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.23.0
+      x-saleor-domain:
+      - mirumee.com
+    method: POST
+    uri: http://localhost:3000/register
+  response:
+    body:
+      string: "{\n  \"auth_token\": \"woTsA9BIEc0dl93Q2YeIMwuWTlkzgb\",\n  \"id\"\
+        : 35\n}"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Expose-Headers:
+      - Location
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '64'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 20 May 2020 07:56:35 GMT
+      ETag:
+      - W/"40-aCOF0hheZTFao6o1LNBg5/9AcHc"
+      Expires:
+      - '-1'
+      Location:
+      - http://localhost:3000/register/35
+      Pragma:
+      - no-cache
+      Vary:
+      - Origin, X-HTTP-Method-Override, Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Powered-By:
+      - Express
+    status:
+      code: 201
+      message: Created
+version: 1
