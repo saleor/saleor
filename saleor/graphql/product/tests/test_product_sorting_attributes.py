@@ -6,8 +6,7 @@ import pytest
 from saleor.core.taxes import zero_money
 from saleor.product import models as product_models
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
-
-from ..api.utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 HERE = os.path.realpath(os.path.dirname(__file__))
 
