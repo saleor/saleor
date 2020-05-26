@@ -1,14 +1,11 @@
-import os
 from tempfile import NamedTemporaryFile
 from typing import IO, TYPE_CHECKING, Dict, List, Set, Union
 
 import petl as etl
-from django.conf import settings
 from django.utils import timezone
 
 from ...celeryconf import app
 from ...core import JobStatus
-from ...core.utils import build_absolute_uri
 from ...product.models import Product
 from .. import FileTypes, events
 from ..emails import send_email_with_link_to_download_csv, send_export_failed_info
