@@ -25,7 +25,10 @@ class Command(BaseCommand):
             "Argument can be specified multiple times.",
         )
         parser.add_argument(
-            "--activate-after-installation", action="store_true", dest="activate"
+            "--activate",
+            action="store_true",
+            dest="activate",
+            help="Activates the app after installation",
         )
         parser.add_argument(
             "--target-url",
