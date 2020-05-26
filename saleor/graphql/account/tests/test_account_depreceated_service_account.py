@@ -6,8 +6,7 @@ from freezegun import freeze_time
 from saleor.account.error_codes import AccountErrorCode
 from saleor.app.models import App, AppToken
 from saleor.graphql.core.enums import PermissionEnum
-
-from .utils import assert_no_permission, get_graphql_content
+from tests.api.utils import assert_no_permission, get_graphql_content
 
 
 @pytest.fixture
