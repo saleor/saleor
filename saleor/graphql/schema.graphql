@@ -1770,6 +1770,7 @@ enum ExportEventsEnum {
   EXPORT_FAILED
   EXPORT_DELETED
   EXPORTED_FILE_SENT
+  EXPORT_FAILED_INFO_SENT
 }
 
 type ExportFile implements Node & Job {

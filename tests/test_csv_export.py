@@ -23,7 +23,8 @@ from saleor.csv.utils.export import (
 )
 
 
-def test_on_task_failure(export_file):
+@patch("saleor.csv.utils.export.send_export_failed_info")
+def test_on_task_failure(send_export_failed_info_mock, export_file):
     exc = Exception("Test")
     task_id = "task_id"
     args = [export_file.pk, {"all": ""}]
@@ -41,11 +42,17 @@ def test_on_task_failure(export_file):
     assert export_file.status == JobStatus.FAILED
     assert export_file.created_at
     assert export_file.updated_at != previous_updated_at
-    export_event = ExportEvent.objects.get(
-        export_file=export_file, user=export_file.created_by
+    export_failed_event = ExportEvent.objects.get(
+        export_file=export_file,
+        user=export_file.created_by,
+        type=ExportEvents.EXPORT_FAILED,
     )
-    assert export_event.type == ExportEvents.EXPORT_FAILED
-    assert export_event.parameters == {"message": str(exc), "error_type": info_type}
+    assert export_failed_event.parameters == {
+        "message": str(exc),
+        "error_type": info_type,
+    }
+
+    send_export_failed_info_mock.called_once_with(export_file, "export_failed")
 
 
 def test_on_task_success(export_file):
