@@ -99,6 +99,30 @@ def get_product_queryset(scope: Dict[str, Union[str, dict]]) -> "QuerySet":
     return queryset
 
 
+def queryset_in_batches(queryset):
+    """Slice a queryset into batches.
+
+    Input queryset should be sorted be pk.
+    """
+    start_pk = 0
+
+    while True:
+        if not queryset.filter(pk__gt=start_pk).exists():
+            break
+
+        qs = queryset.filter(pk__gt=start_pk)
+
+        pks = qs.values_list("pk", flat=True)
+        try:
+            end_pk = pks[BATCH_SIZE - 1]
+        except IndexError:
+            end_pk = pks.last()
+
+        yield qs.filter(pk__lte=end_pk)
+
+        start_pk = end_pk
+
+
 def export_products_in_batches(
     queryset: "QuerySet",
     export_info: Dict[str, list],
@@ -110,27 +134,19 @@ def export_products_in_batches(
     file_name: str,
     file_type: str,
 ):
-    products_count = queryset.count()
     warehouses = export_info.get("warehouses")
     attributes = export_info.get("attributes")
 
     create_file = True
-    counter = 0
-    while counter < products_count:
-        qs = queryset[counter : counter + BATCH_SIZE]
-        # filter cancel limiting the query, so we need to ensure that only part of
-        # products will be fetch from database
-        product_batch = (
-            Product.objects.filter(pk__in=qs.values_list("pk", flat=True))
-            .order_by("pk")
-            .prefetch_related(
-                "attributes",
-                "variants",
-                "collections",
-                "images",
-                "product_type",
-                "category",
-            )
+
+    for batch in queryset_in_batches(queryset):
+        product_batch = batch.prefetch_related(
+            "attributes",
+            "variants",
+            "collections",
+            "images",
+            "product_type",
+            "category",
         )
 
         export_data = get_products_data(
@@ -150,8 +166,6 @@ def export_products_in_batches(
             create_file = False
         else:
             append_to_file(export_data, headers, export_file, file_type, delimiter)
-
-        counter += BATCH_SIZE
 
     send_email_with_link_to_download_csv(export_file, "export_products")
 
