@@ -1,4 +1,7 @@
+from unittest.mock import Mock
+
 import pytest
+import requests
 
 from tests.api.utils import assert_no_permission, get_graphql_content
 
@@ -135,4 +138,29 @@ def test_app_fetch_manifest_wrong_format_of_response(
         "field": "manifestUrl",
         "message": "Incorrect structure of manifest.",
         "code": "INVALID_MANIFEST_FORMAT",
+    }
+
+
+def test_app_fetch_manifest_handle_exception(
+    staff_user, staff_api_client, permission_manage_apps, monkeypatch
+):
+    mocked_get = Mock()
+    mocked_get.side_effect = Exception()
+
+    monkeypatch.setattr(requests, "get", mocked_get)
+    manifest_url = "http://localhost:3000/manifest-wrong-format"
+    query = APP_FETCH_MANIFEST_MUTATION
+    variables = {
+        "manifest_url": manifest_url,
+    }
+    staff_user.user_permissions.set([permission_manage_apps])
+    response = staff_api_client.post_graphql(query, variables=variables,)
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["appErrors"]
+
+    assert len(errors) == 1
+    assert errors[0] == {
+        "code": "INVALID",
+        "field": "manifestUrl",
+        "message": "Can't fetch manifest data. Please try later.",
     }
