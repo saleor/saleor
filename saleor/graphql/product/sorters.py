@@ -131,7 +131,6 @@ class CollectionSortingInput(SortInputObjectType):
 
 class ProductOrderField(graphene.Enum):
     NAME = ["name", "slug"]
-    PRICE = ["price_amount", "name", "slug"]
     MINIMAL_PRICE = ["minimal_variant_price_amount", "name", "slug"]
     DATE = ["updated_at", "name", "slug"]
     TYPE = ["product_type__name", "name", "slug"]
@@ -142,7 +141,6 @@ class ProductOrderField(graphene.Enum):
         # pylint: disable=no-member
         descriptions = {
             ProductOrderField.NAME.name: "name",
-            ProductOrderField.PRICE.name: "price",
             ProductOrderField.TYPE.name: "type",
             ProductOrderField.MINIMAL_PRICE.name: (
                 "a minimal price of a product's variant"

@@ -298,9 +298,6 @@ class ProductFilter(django_filters.FilterSet):
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
     has_category = django_filters.BooleanFilter(method=filter_has_category)
-    price = ObjectTypeFilter(
-        input_class=PriceRangeInput, method=filter_price, field_name="price_amount"
-    )
     minimal_price = ObjectTypeFilter(
         input_class=PriceRangeInput,
         method=filter_minimal_price,
@@ -324,7 +321,6 @@ class ProductFilter(django_filters.FilterSet):
             "collections",
             "categories",
             "has_category",
-            "price",
             "attributes",
             "stock_availability",
             "product_type",

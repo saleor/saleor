@@ -3,10 +3,11 @@ from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Union
 
 import opentracing
 from django.conf import settings
-from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
+from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from saleor.product.models import Collection, Product, ProductVariant
 
+from ...core.taxes import zero_money
 from ...core.utils import to_local_currency
 from ...discount import DiscountInfo
 from ...discount.utils import calculate_discounted_price
@@ -114,12 +115,6 @@ def _get_product_price_range(
     return price_range_local, discount_local_currency
 
 
-def get_variant_base_price(*, variant: ProductVariant, product: Product):
-    return (
-        variant.price_override if variant.price_override is not None else product.price
-    )
-
-
 def get_variant_price(
     *,
     variant: ProductVariant,
@@ -129,7 +124,7 @@ def get_variant_price(
 ):
     return calculate_discounted_price(
         product=product,
-        price=get_variant_base_price(variant=variant, product=product),
+        price=variant.price,
         collections=collections,
         discounts=discounts,
     )
@@ -142,6 +137,7 @@ def get_product_price_range(
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo]
 ) -> MoneyRange:
+    zero = Money(0, settings.DEFAULT_CURRENCY)
     with opentracing.global_tracer().start_active_span("get_product_price_range"):
         if variants:
             prices = [
@@ -154,13 +150,8 @@ def get_product_price_range(
                 for variant in variants
             ]
             return MoneyRange(min(prices), max(prices))
-        price = calculate_discounted_price(
-            product=product,
-            price=product.price,
-            collections=collections,
-            discounts=discounts,
-        )
-        return MoneyRange(start=price, stop=price)
+
+        return MoneyRange(zero, zero)
 
 
 def get_product_availability(

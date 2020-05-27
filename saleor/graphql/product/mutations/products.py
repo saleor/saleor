@@ -516,7 +516,6 @@ class ProductInput(graphene.InputObjectType):
     )
     name = graphene.String(description="Product name.")
     slug = graphene.String(description="Product slug.")
-    base_price = Decimal(description="Product price.")
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
@@ -831,23 +830,6 @@ class ProductCreate(ModelMutation):
         except ValidationError as error:
             error.code = ProductErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
-        # Try to get price from "basePrice" or "price" field. Once "price" is removed
-        # from the schema, only "basePrice" should be used here.
-        price = data.get("base_price", data.get("price"))
-        if price is not None:
-            if price < 0:
-                raise ValidationError(
-                    {
-                        "basePrice": ValidationError(
-                            "Product base price cannot be lower than 0.",
-                            code=ProductErrorCode.INVALID,
-                        )
-                    }
-                )
-            cleaned_input["price_amount"] = price
-            if instance.minimal_variant_price_amount is None:
-                # Set the default "minimal_variant_price" to the "price"
-                cleaned_input["minimal_variant_price_amount"] = price
 
         # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
         tax_rate = cleaned_input.pop("tax_rate", "")
@@ -1097,7 +1079,7 @@ class ProductVariantInput(graphene.InputObjectType):
         description="List of attributes specific to this variant.",
     )
     cost_price = Decimal(description="Cost price of the variant.")
-    price_override = Decimal(description="Special price of the particular variant.")
+    price = Decimal(description="Price of the particular variant.")
     sku = graphene.String(description="Stock keeping unit.")
     track_inventory = graphene.Boolean(
         description=(
@@ -1194,18 +1176,17 @@ class ProductVariantCreate(ModelMutation):
                 )
             cleaned_input["cost_price_amount"] = cost_price
 
-        if "price_override" in cleaned_input:
-            price_override = cleaned_input.pop("price_override")
-            if price_override and price_override < 0:
-                raise ValidationError(
-                    {
-                        "priceOverride": ValidationError(
-                            "Product price cannot be lower than 0.",
-                            code=ProductErrorCode.INVALID.value,
-                        )
-                    }
-                )
-            cleaned_input["price_override_amount"] = price_override
+        price = cleaned_input.pop("price")
+        if price < 0:
+            raise ValidationError(
+                {
+                    "price": ValidationError(
+                        "Product price cannot be lower than 0.",
+                        code=ProductErrorCode.INVALID.value,
+                    )
+                }
+            )
+        cleaned_input["price_amount"] = price
 
         stocks = cleaned_input.get("stocks")
         if stocks:
