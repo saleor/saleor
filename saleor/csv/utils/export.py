@@ -8,7 +8,7 @@ from ...celeryconf import app
 from ...core import JobStatus
 from ...product.models import Product
 from .. import FileTypes, events
-from ..emails import send_email_with_link_to_download_csv
+from ..emails import send_email_with_link_to_download_csv, send_export_failed_info
 from ..models import ExportFile
 from .products_data import get_products_data
 
@@ -27,6 +27,7 @@ def on_task_failure(self, exc, task_id, args, kwargs, einfo):
         message=str(exc),
         error_type=str(einfo.type),
     )
+    send_export_failed_info(export_file, "export_failed")
 
 
 def on_task_success(self, retval, task_id, args, kwargs):
@@ -64,7 +65,7 @@ def export_products(
         file_name,
         file_type,
     )
-    send_email_with_link_to_download_csv(export_file, "export_products")
+    send_email_with_link_to_download_csv(export_file, "export_products_success")
 
 
 def get_filename(model_name: str, file_type: str) -> str:
