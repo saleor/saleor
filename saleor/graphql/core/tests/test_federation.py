@@ -1,7 +1,7 @@
 import graphene
 import pytest
 
-from .utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture
