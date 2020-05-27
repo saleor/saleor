@@ -3319,7 +3319,6 @@ type Product implements Node & ObjectWithMetadata {
   thumbnail(size: Int): Image
   pricing: ProductPricingInfo
   isAvailable: Boolean
-  basePrice: Money
   minimalVariantPrice: Money
   taxType: TaxType
   attributes: [SelectedAttribute!]!
@@ -3391,7 +3390,6 @@ input ProductCreateInput {
   isPublished: Boolean
   name: String
   slug: String
-  basePrice: Decimal
   taxCode: String
   seo: SeoInput
   weight: WeightScalar
@@ -3433,7 +3431,6 @@ input ProductFilterInput {
   collections: [ID]
   categories: [ID]
   hasCategory: Boolean
-  price: PriceRangeInput
   attributes: [AttributeInput]
   stockAvailability: StockAvailability
   productType: ID
@@ -3505,7 +3502,6 @@ input ProductInput {
   isPublished: Boolean
   name: String
   slug: String
-  basePrice: Decimal
   taxCode: String
   seo: SeoInput
   weight: WeightScalar
@@ -3521,7 +3517,6 @@ input ProductOrder {
 
 enum ProductOrderField {
   NAME
-  PRICE
   MINIMAL_PRICE
   DATE
   TYPE
@@ -3726,7 +3721,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   quantity: Int! @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   quantityAllocated: Int @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   stockQuantity: Int! @deprecated(reason: "Use the quantityAvailable field instead. This field will be removed after 2020-07-31.")
-  priceOverride: Money
+  price: Money
   pricing: VariantPricingInfo
   isAvailable: Boolean @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   attributes: [SelectedAttribute!]!
@@ -3751,7 +3746,7 @@ type ProductVariantBulkCreate {
 input ProductVariantBulkCreateInput {
   attributes: [AttributeValueInput]!
   costPrice: Decimal
-  priceOverride: Decimal
+  price: Decimal
   sku: String!
   trackInventory: Boolean
   weight: WeightScalar
@@ -3796,7 +3791,7 @@ type ProductVariantCreate {
 input ProductVariantCreateInput {
   attributes: [AttributeValueInput]!
   costPrice: Decimal
-  priceOverride: Decimal
+  price: Decimal
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
@@ -3813,7 +3808,7 @@ type ProductVariantDelete {
 input ProductVariantInput {
   attributes: [AttributeValueInput]
   costPrice: Decimal
-  priceOverride: Decimal
+  price: Decimal
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
