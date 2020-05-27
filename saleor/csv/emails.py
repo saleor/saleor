@@ -11,7 +11,10 @@ if TYPE_CHECKING:
     from .models import ExportFile
 
 
-EXPORT_TEMPLATES = {"export_products": "csv/export_products_csv"}
+EXPORT_TEMPLATES = {
+    "export_products_success": "csv/export_products_csv",
+    "export_failed": "csv/export_failed",
+}
 
 
 @app.task
@@ -26,3 +29,18 @@ def send_email_with_link_to_download_csv(export_file: "ExportFile", template_nam
         **send_kwargs,
     )
     events.export_file_sent_event(export_file=export_file, user=export_file.created_by)
+
+
+@app.task
+def send_export_failed_info(export_file: "ExportFile", template_name: str):
+    recipient_email = export_file.created_by.email
+    send_kwargs, ctx = get_email_context()
+    send_templated_mail(
+        template_name=EXPORT_TEMPLATES[template_name],
+        recipient_list=[recipient_email],
+        context=ctx,
+        **send_kwargs,
+    )
+    events.export_failed_info_sent_event(
+        export_file=export_file, user=export_file.created_by
+    )
