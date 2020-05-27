@@ -393,7 +393,7 @@ class AppInstall(ModelMutation):
             url_validator(url)
         except (ValidationError, AttributeError):
             msg = "Enter a valid URL."
-            code = AppErrorCode.INVALID_MANIFEST_URL.value
+            code = AppErrorCode.INVALID_URL_FORMAT.value
             raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
 
     @classmethod
@@ -450,7 +450,7 @@ class AppFetchManifest(BaseMutation):
             raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
         except Exception:
             msg = "Can't fetch manifest data. Please try later."
-            code = AppErrorCode.INVALID.valuer
+            code = AppErrorCode.INVALID.value
             raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
 
     @classmethod
@@ -460,7 +460,7 @@ class AppFetchManifest(BaseMutation):
             url_validator(manifest_url)
         except (ValidationError, AttributeError):
             msg = "Enter a valid URL."
-            code = AppErrorCode.INVALID_MANIFEST_URL.value
+            code = AppErrorCode.INVALID_URL_FORMAT.value
             raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
 
     @classmethod
