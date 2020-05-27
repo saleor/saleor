@@ -432,7 +432,7 @@ class AppFetchManifest(BaseMutation):
     @classmethod
     def success_response(cls, instance):
         """Return a success response."""
-        return cls(**{"manifest": instance, "errors": []})
+        return cls(manifest=instance, errors=[])
 
     @classmethod
     def fetch_manifest(cls, manifest_url):
