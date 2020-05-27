@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Union
 
 import opentracing
 from django.conf import settings
-from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from saleor.product.models import Collection, Product, ProductVariant
 
@@ -137,7 +137,6 @@ def get_product_price_range(
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo]
 ) -> MoneyRange:
-    zero = Money(0, settings.DEFAULT_CURRENCY)
     with opentracing.global_tracer().start_active_span("get_product_price_range"):
         if variants:
             prices = [
@@ -151,7 +150,7 @@ def get_product_price_range(
             ]
             return MoneyRange(min(prices), max(prices))
 
-        return MoneyRange(zero, zero)
+        return MoneyRange(zero_money(), zero_money())
 
 
 def get_product_availability(
