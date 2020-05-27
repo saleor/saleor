@@ -6,6 +6,7 @@ class ExportEvents:
     EXPORT_FAILED = "export_failed"
     EXPORT_DELETED = "export_deleted"
     EXPORTED_FILE_SENT = "exported_file_sent"
+    EXPORT_FAILED_INFO_SENT = "Export_failed_info_sent"
 
     CHOICES = [
         (EXPORT_PENDING, "Data export was started."),
@@ -14,7 +15,11 @@ class ExportEvents:
         (EXPORT_DELETED, "Export file was started."),
         (
             EXPORTED_FILE_SENT,
-            "Email with link to download csv file was sent to the customer.",
+            "Email with link to download file was sent to the customer.",
+        ),
+        (
+            EXPORT_FAILED_INFO_SENT,
+            "Email with info that export failed was sent to the customer.",
         ),
     ]
 

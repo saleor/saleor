@@ -41,3 +41,9 @@ def export_file_sent_event(*, export_file: "ExportFile", user: User):
     ExportEvent.objects.create(
         export_file=export_file, user=user, type=ExportEvents.EXPORTED_FILE_SENT
     )
+
+
+def export_failed_info_sent_event(*, export_file: "ExportFile", user: User):
+    ExportEvent.objects.create(
+        export_file=export_file, user=user, type=ExportEvents.EXPORT_FAILED_INFO_SENT
+    )

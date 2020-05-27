@@ -8,12 +8,13 @@
 {% include 'templated_email/shared/_header.email' %}
 
 {% blocktrans context "Export products e-mail text" %}
-Your file with products data is ready to download: {{ csv_link }}
+Sorry, we cannot finish product export, some unexpected errors occurred.
+Please try again.
 {% endblocktrans %}
 
 {% include 'templated_email/shared/_footer.email' %}
 {% endblock %}
 
 {% block html %}
-{% include 'templated_email/compiled/export_products_csv.html' %}
+{% include 'templated_email/compiled/export_failed.html' %}
 {% endblock %}
