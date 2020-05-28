@@ -74,7 +74,6 @@ def export_products(
         file_name,
         file_type,
     )
-    send_email_with_link_to_download_csv(export_file, "export_products_success")
 
 
 def get_filename(model_name: str, file_type: str) -> str:
@@ -167,7 +166,7 @@ def export_products_in_batches(
         else:
             append_to_file(export_data, headers, export_file, file_type, delimiter)
 
-    send_email_with_link_to_download_csv(export_file, "export_products")
+    send_email_with_link_to_download_csv(export_file, "export_products_success")
 
 
 def create_csv_file_and_save_in_export_file(
