@@ -1,5 +1,5 @@
 pytest_plugins = [
-    "tests.fixtures",
+    "saleor.tests.fixtures",
     "saleor.plugins.tests.fixtures",
-    "tests.api.fixtures",
+    "saleor.graphql.tests.fixtures",
 ]
