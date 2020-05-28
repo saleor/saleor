@@ -6,8 +6,7 @@ from freezegun import freeze_time
 
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import Sale, Voucher
-
-from ..utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture

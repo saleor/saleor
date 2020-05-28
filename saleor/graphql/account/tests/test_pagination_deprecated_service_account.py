@@ -1,12 +1,11 @@
 import pytest
 
 from saleor.app.models import App
-
-from ..utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture()
-def apps_for_pagination():
+def service_accounts_for_pagination():
     apps = App.objects.bulk_create(
         [
             App(name="Account1", is_active=True),
@@ -19,12 +18,12 @@ def apps_for_pagination():
     return apps
 
 
-QUERY_APP_PAGINATION = """
+QUERY_SERVICE_ACCOUNT_PAGINATION = """
     query (
         $first: Int, $last: Int, $after: String, $before: String,
-        $sortBy: AppSortingInput, $filter: AppFilterInput
+        $sortBy: ServiceAccountSortingInput, $filter: ServiceAccountFilterInput
     ){
-        apps(
+        serviceAccounts(
             first: $first, last: $last, after: $after, before: $before,
             sortBy: $sortBy, filter: $filter
         ) {
@@ -45,7 +44,7 @@ QUERY_APP_PAGINATION = """
 
 
 @pytest.mark.parametrize(
-    "sort_by, apps_order",
+    "sort_by, service_account_order",
     [
         ({"field": "NAME", "direction": "ASC"}, ["Account1", "Account2", "Account3"]),
         (
@@ -54,23 +53,29 @@ QUERY_APP_PAGINATION = """
         ),
     ],
 )
-def test_apps_pagination_with_sorting(
-    sort_by, apps_order, staff_api_client, apps_for_pagination, permission_manage_apps,
+def test_service_account_pagination_with_sorting(
+    sort_by,
+    service_account_order,
+    staff_api_client,
+    service_accounts_for_pagination,
+    permission_manage_apps,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_apps)
     page_size = 3
     variables = {"first": page_size, "after": None, "sortBy": sort_by}
-    response = staff_api_client.post_graphql(QUERY_APP_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_SERVICE_ACCOUNT_PAGINATION, variables,
+    )
     content = get_graphql_content(response)
-    nodes = content["data"]["apps"]["edges"]
-    assert apps_order[0] == nodes[0]["node"]["name"]
-    assert apps_order[1] == nodes[1]["node"]["name"]
-    assert apps_order[2] == nodes[2]["node"]["name"]
+    nodes = content["data"]["serviceAccounts"]["edges"]
+    assert service_account_order[0] == nodes[0]["node"]["name"]
+    assert service_account_order[1] == nodes[1]["node"]["name"]
+    assert service_account_order[2] == nodes[2]["node"]["name"]
     assert len(nodes) == page_size
 
 
 @pytest.mark.parametrize(
-    "filter_by, apps_order",
+    "filter_by, service_account_order",
     [
         ({"search": "Account"}, ["Account1", "Account2"]),
         ({"search": "AccountAccount"}, ["AccountAccount1", "AccountAccount2"]),
@@ -78,20 +83,22 @@ def test_apps_pagination_with_sorting(
         ({"search": "Account1"}, ["Account1", "AccountAccount1"]),
     ],
 )
-def test_apps_pagination_with_filtering(
+def test_service_account_pagination_with_filtering(
     filter_by,
-    apps_order,
+    service_account_order,
     staff_api_client,
-    apps_for_pagination,
+    service_accounts_for_pagination,
     permission_manage_apps,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_apps)
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": filter_by}
-    response = staff_api_client.post_graphql(QUERY_APP_PAGINATION, variables,)
+    response = staff_api_client.post_graphql(
+        QUERY_SERVICE_ACCOUNT_PAGINATION, variables,
+    )
     content = get_graphql_content(response)
 
-    nodes = content["data"]["apps"]["edges"]
-    assert apps_order[0] == nodes[0]["node"]["name"]
-    assert apps_order[1] == nodes[1]["node"]["name"]
+    nodes = content["data"]["serviceAccounts"]["edges"]
+    assert service_account_order[0] == nodes[0]["node"]["name"]
+    assert service_account_order[1] == nodes[1]["node"]["name"]
     assert len(nodes) == page_size

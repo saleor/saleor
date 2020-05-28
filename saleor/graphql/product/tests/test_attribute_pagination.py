@@ -9,8 +9,7 @@ from saleor.product.models import (
     Product,
     ProductType,
 )
-
-from ..utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture
