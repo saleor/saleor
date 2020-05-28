@@ -290,6 +290,12 @@ input AppTokenInput {
   app: ID!
 }
 
+type AppTokenVerify {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  valid: Boolean!
+  appErrors: [AppError!]!
+}
+
 type AppUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   appErrors: [AppError!]!
@@ -2469,6 +2475,7 @@ type Mutation {
   appDelete(id: ID!): AppDelete
   appTokenCreate(input: AppTokenInput!): AppTokenCreate
   appTokenDelete(id: ID!): AppTokenDelete
+  appTokenVerify(token: String!): AppTokenVerify
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(token: String!, email: String!, password: String!): SetPassword
