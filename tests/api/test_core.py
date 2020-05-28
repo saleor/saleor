@@ -22,7 +22,7 @@ from saleor.graphql.core.utils import (
 )
 from saleor.graphql.product import types as product_types
 from saleor.graphql.utils import get_database_id, requestor_is_superuser
-from saleor.graphql.utils.filters import filter_range_field, reporting_period_to_date
+from saleor.graphql.utils.filters import reporting_period_to_date
 from saleor.product.models import Category, Product
 from tests.api.utils import _get_graphql_content_from_response, get_graphql_content
 
@@ -402,26 +402,6 @@ def test_validate_slug_and_generate_if_needed_not_raises_errors(
 def test_validate_slug_and_generate_if_needed_generate_slug(cleaned_input):
     category = Category(name="test")
     validate_slug_and_generate_if_needed(category, "name", cleaned_input)
-
-
-@pytest.mark.parametrize(
-    "value, count, product_indexes",
-    [
-        ({"lte": 50, "gte": 25}, 1, [2]),
-        ({"lte": 25}, 2, [0, 1]),
-        ({"lte": 10}, 1, [0]),
-        ({"gte": 40}, 0, []),
-    ],
-)
-def test_filter_range_field(value, count, product_indexes, product_list):
-    qs = Product.objects.all().order_by("pk")
-    field = "price_amount"
-
-    result = filter_range_field(qs, field, value)
-
-    expected_products = [qs[index] for index in product_indexes]
-    assert result.count() == count
-    assert list(result) == expected_products
 
 
 def test_get_duplicated_values():

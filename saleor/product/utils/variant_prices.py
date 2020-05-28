@@ -14,7 +14,10 @@ def _get_product_minimal_variant_price(product, discounts) -> Optional[Money]:
     minimal_variant_price = None
     for variant in product.variants.all():
         variant_price = variant.get_price(discounts=discounts)
-        minimal_variant_price = min(minimal_variant_price, variant_price)
+        if minimal_variant_price is None:
+            minimal_variant_price = variant_price
+        else:
+            minimal_variant_price = min(minimal_variant_price, variant_price)
     return minimal_variant_price
 
 
