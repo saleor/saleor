@@ -13,8 +13,7 @@ from saleor.product.models import (
 )
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
 from saleor.warehouse.models import Stock
-
-from ..utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture
