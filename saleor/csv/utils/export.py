@@ -58,20 +58,20 @@ def export_products(
     file_name = get_filename("product", file_type)
     queryset = get_product_queryset(scope)
 
-    export_fields, csv_headers_mapping, headers = get_export_fields_and_headers_info(
+    export_fields, file_headers, data_headers = get_export_fields_and_headers_info(
         export_info
     )
     export_file = ExportFile.objects.get(pk=export_file_id)
+
+    create_file_with_headers(file_headers, delimiter, export_file, file_name, file_type)
 
     export_products_in_batches(
         queryset,
         export_info,
         set(export_fields),
-        headers,
-        csv_headers_mapping,
+        data_headers,
         delimiter,
         export_file,
-        file_name,
         file_type,
     )
 
@@ -127,16 +127,12 @@ def export_products_in_batches(
     export_info: Dict[str, list],
     export_fields: Set[str],
     headers: List[str],
-    csv_headers_mapping: Dict[str, str],
     delimiter: str,
     export_file: ExportFile,
-    file_name: str,
     file_type: str,
 ):
     warehouses = export_info.get("warehouses")
     attributes = export_info.get("attributes")
-
-    create_file = True
 
     for batch in queryset_in_batches(queryset):
         product_batch = batch.prefetch_related(
@@ -152,34 +148,19 @@ def export_products_in_batches(
             product_batch, export_fields, warehouses, attributes,
         )
 
-        if create_file:
-            create_csv_file_and_save_in_export_file(
-                export_data,
-                headers,
-                csv_headers_mapping,
-                delimiter,
-                export_file,
-                file_name,
-                file_type,
-            )
-            create_file = False
-        else:
-            append_to_file(export_data, headers, export_file, file_type, delimiter)
+        append_to_file(export_data, headers, export_file, file_type, delimiter)
 
     send_email_with_link_to_download_csv(export_file, "export_products_success")
 
 
-def create_csv_file_and_save_in_export_file(
-    export_data: List[Dict[str, Union[str, bool]]],
-    headers: List[str],
-    csv_headers_mapping: Dict[str, str],
+def create_file_with_headers(
+    file_headers: List[str],
     delimiter: str,
     export_file: ExportFile,
     file_name: str,
     file_type: str,
 ):
-    table = etl.fromdicts(export_data, header=headers, missing=" ")
-    table = etl.rename(table, csv_headers_mapping)
+    table = etl.wrap([file_headers])
 
     with NamedTemporaryFile() as temporary_file:
         if file_type == FileTypes.CSV:

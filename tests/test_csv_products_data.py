@@ -546,25 +546,31 @@ def test_get_export_fields_and_headers_fields_with_price():
     }
 
     # when
-    export_fields, csv_headers_mapping = get_product_export_fields_and_headers(
-        export_info
-    )
+    export_fields, file_headers = get_product_export_fields_and_headers(export_info)
 
     # then
-    expected_mapping = {
-        "price_amount": "price",
-        "product_currency": "product currency",
-        "price_override_amount": "price override",
-        "variant_currency": "variant currency",
-        "collections__slug": "collections",
-        "description": "description",
-    }
+    expected_headers = [
+        "id",
+        "price",
+        "product currency",
+        "price override",
+        "variant currency",
+        "collections",
+        "description",
+    ]
 
-    expected_fields = set(expected_mapping.keys())
-    expected_fields.add("id")
+    expected_fields = [
+        "id",
+        "price_amount",
+        "product_currency",
+        "price_override_amount",
+        "variant_currency",
+        "collections__slug",
+        "description",
+    ]
 
-    assert set(export_fields) == expected_fields
-    assert csv_headers_mapping == expected_mapping
+    assert export_fields == expected_fields
+    assert file_headers == expected_headers
 
 
 def test_get_export_fields_and_headers_fields_without_price():
@@ -579,26 +585,20 @@ def test_get_export_fields_and_headers_fields_without_price():
     }
 
     # when
-    export_fields, csv_headers_mapping = get_product_export_fields_and_headers(
-        export_info
-    )
+    export_fields, file_headers = get_product_export_fields_and_headers(export_info)
 
     # then
-    expected_mapping = {
-        "collections__slug": "collections",
-        "description": "description",
-        "sku": "variant sku",
-    }
+    expected_headers = ["id", "collections", "description", "variant sku"]
 
     assert set(export_fields) == {"collections__slug", "id", "sku", "description"}
-    assert csv_headers_mapping == expected_mapping
+    assert file_headers == expected_headers
 
 
 def test_get_export_fields_and_headers_no_fields():
-    export_fields, csv_headers_mapping = get_product_export_fields_and_headers({})
+    export_fields, file_headers = get_product_export_fields_and_headers({})
 
     assert export_fields == ["id"]
-    assert csv_headers_mapping == {}
+    assert file_headers == ["id"]
 
 
 def test_get_attributes_headers(product_with_multiple_values_attributes):
@@ -673,27 +673,35 @@ def test_get_export_fields_and_headers_info(
         "attributes": attribute_ids,
     }
 
-    expected_mapping = {
-        "price_amount": "price",
-        "product_currency": "product currency",
-        "price_override_amount": "price override",
-        "variant_currency": "variant currency",
-        "collections__slug": "collections",
-        "description": "description",
-    }
+    expected_file_headers = [
+        "id",
+        "price",
+        "product currency",
+        "price override",
+        "variant currency",
+        "collections",
+        "description",
+    ]
 
     # when
-    export_fields, csv_headers_mapping, headers = get_export_fields_and_headers_info(
+    export_fields, file_headers, data_headers = get_export_fields_and_headers_info(
         export_info
     )
 
     # then
-    expected_fields = set(expected_mapping.keys())
-    expected_fields.add("id")
+    expected_fields = [
+        "id",
+        "price_amount",
+        "product_currency",
+        "price_override_amount",
+        "variant_currency",
+        "collections__slug",
+        "description",
+    ]
 
     product_headers = []
     variant_headers = []
-    for attr in Attribute.objects.all():
+    for attr in Attribute.objects.all().order_by("slug"):
         if attr.product_types.exists():
             product_headers.append(f"{attr.slug} (product attribute)")
         if attr.product_variant_types.exists():
@@ -701,13 +709,11 @@ def test_get_export_fields_and_headers_info(
 
     warehouse_headers = [f"{w.slug} (warehouse quantity)" for w in warehouses]
     excepted_headers = (
-        ["id"]
-        + list(expected_fields)
-        + product_headers
-        + variant_headers
-        + warehouse_headers
+        expected_fields + product_headers + variant_headers + warehouse_headers
     )
 
-    assert expected_mapping == csv_headers_mapping
-    assert set(export_fields) == expected_fields
-    assert set(headers) == set(excepted_headers)
+    expected_file_headers += product_headers + variant_headers + warehouse_headers
+
+    assert expected_file_headers == file_headers
+    assert set(export_fields) == set(expected_fields)
+    assert data_headers == excepted_headers
