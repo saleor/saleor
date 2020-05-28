@@ -29,8 +29,8 @@ from saleor.payment.models import Payment
 from saleor.plugins.manager import PluginsManager
 from saleor.shipping.models import ShippingMethod
 from saleor.warehouse.models import Allocation, Stock
+from saleor.warehouse.tests.utils import get_available_quantity_for_stock
 from tests.api.utils import assert_no_permission, get_graphql_content
-from tests.utils import get_available_quantity_for_stock
 
 
 @pytest.fixture

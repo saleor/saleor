@@ -66,6 +66,7 @@ from saleor.product.models import (
     ProductVariant,
     ProductVariantTranslation,
 )
+from saleor.product.tests.utils import create_image
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
 from saleor.shipping.models import (
     ShippingMethod,
@@ -79,7 +80,6 @@ from saleor.warehouse.models import Allocation, Stock, Warehouse
 from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.models import Webhook
 from saleor.wishlist.models import Wishlist
-from tests.utils import create_image
 
 
 class CaptureQueriesContext(BaseCaptureQueriesContext):

@@ -17,8 +17,8 @@ from saleor.order.actions import (
 from saleor.order.models import Fulfillment
 from saleor.payment import ChargeStatus, PaymentError
 from saleor.product.models import DigitalContent
+from saleor.product.tests.utils import create_image
 from saleor.warehouse.models import Allocation, Stock
-from tests.utils import create_image
 
 
 @pytest.fixture
