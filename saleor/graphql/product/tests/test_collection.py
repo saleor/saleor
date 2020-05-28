@@ -8,8 +8,8 @@ from graphql_relay import to_global_id
 
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import Collection
+from saleor.product.tests.utils import create_image, create_pdf_file_with_image_ext
 from tests.api.utils import get_graphql_content, get_multipart_request_body
-from tests.utils import create_image, create_pdf_file_with_image_ext
 
 QUERY_COLLECTION = """
     query ($id: ID, $slug: String){

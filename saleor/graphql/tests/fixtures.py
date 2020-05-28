@@ -12,8 +12,8 @@ from graphql_jwt.shortcuts import get_token
 from saleor.account.models import User
 from saleor.app.models import App
 from saleor.graphql.views import handled_errors_logger, unhandled_errors_logger
+from saleor.tests.utils import flush_post_commit_hooks
 from tests.api.utils import assert_no_permission
-from tests.utils import flush_post_commit_hooks
 
 API_PATH = reverse("api")
 

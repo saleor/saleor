@@ -31,13 +31,13 @@ from saleor.graphql.account.mutations.staff import (
 )
 from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import FulfillmentStatus, Order
+from saleor.product.tests.utils import create_image
 from tests.api.utils import (
     assert_no_permission,
     convert_dict_keys_to_camel_case,
     get_graphql_content,
     get_multipart_request_body,
 )
-from tests.utils import create_image
 
 
 @pytest.fixture

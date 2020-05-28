@@ -2,8 +2,8 @@ import graphene
 
 from saleor.core.permissions import ProductPermissions
 from saleor.warehouse.models import Stock
+from saleor.warehouse.tests.utils import get_quantity_allocated_for_stock
 from tests.api.utils import assert_no_permission, get_graphql_content
-from tests.utils import get_quantity_allocated_for_stock
 
 QUERY_STOCK = """
 query stock($id: ID!) {

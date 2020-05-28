@@ -29,6 +29,7 @@ from saleor.product.models import (
     ProductVariant,
 )
 from saleor.product.tasks import update_variants_names
+from saleor.product.tests.utils import create_image, create_pdf_file_with_image_ext
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
 from saleor.warehouse.models import Allocation, Stock, Warehouse
 from tests.api.utils import (
@@ -36,7 +37,6 @@ from tests.api.utils import (
     get_graphql_content,
     get_multipart_request_body,
 )
-from tests.utils import create_image, create_pdf_file_with_image_ext
 
 
 @pytest.fixture
