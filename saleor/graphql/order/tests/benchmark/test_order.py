@@ -1,7 +1,10 @@
 import pytest
 
-from ..utils import get_graphql_content
-from .test_checkout_mutations import FRAGMENT_ADDRESS, FRAGMENT_PRODUCT_VARIANT
+from saleor.graphql.checkout.tests.benchmark.test_checkout_mutations import (
+    FRAGMENT_ADDRESS,
+    FRAGMENT_PRODUCT_VARIANT,
+)
+from tests.api.utils import get_graphql_content
 
 FRAGMENT_ORDER_DETAILS = (
     FRAGMENT_ADDRESS
