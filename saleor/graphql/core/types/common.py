@@ -9,6 +9,7 @@ from ..enums import (
     DiscountErrorCode,
     GiftCardErrorCode,
     InvoiceErrorCode,
+    InvoiceStatusEnum,
     JobStatusEnum,
     MenuErrorCode,
     MetadataErrorCode,
@@ -287,6 +288,24 @@ class TaxType(graphene.ObjectType):
 
 class Job(graphene.Interface):
     status = JobStatusEnum(description="Job status.", required=True)
+    created_at = graphene.DateTime(
+        description="Created date time of job in ISO 8601 format.", required=True
+    )
+    updated_at = graphene.DateTime(
+        description="Date time of job last update in ISO 8601 format.", required=True
+    )
+
+    @classmethod
+    def resolve_type(cls, instance, _info):
+        """Map a data object to a Graphene type."""
+        MODEL_TO_TYPE_MAP = {
+            # <DjangoModel>: <GrapheneType>
+        }
+        return MODEL_TO_TYPE_MAP.get(type(instance))
+
+
+class InvoiceJobInterface(Job):
+    status = InvoiceStatusEnum(description="Job status.", required=True)
     created_at = graphene.DateTime(
         description="Created date time of job in ISO 8601 format.", required=True
     )

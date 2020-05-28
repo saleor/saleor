@@ -37,6 +37,7 @@ from saleor.discount.models import (
 )
 from saleor.giftcard.models import GiftCard
 from saleor.graphql.invoice.enums import InvoiceStatus
+from saleor.invoice.models import InvoiceJob
 from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 from saleor.menu.utils import update_menu
 from saleor.order import OrderStatus
@@ -1312,12 +1313,12 @@ def order_events(order):
 @pytest.fixture
 def fulfilled_order(order_with_lines):
     order = order_with_lines
-    order.invoices.create(
+    invoice = order.invoices.create(
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
-        status=InvoiceStatus.READY,
         created=datetime.datetime.now(tz=pytz.utc),
     )
+    InvoiceJob.objects.create(invoice=invoice, status=InvoiceStatus.READY)
     fulfillment = order.fulfillments.create(tracking_number="123")
     line_1 = order.lines.first()
     stock_1 = line_1.allocations.get().stock
