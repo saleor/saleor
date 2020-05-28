@@ -265,7 +265,7 @@ def prepare_products_relations_data(
 
 
 def prepare_attribute_products_data(
-    queryset: "QuerySet", attribute_ids: Optional[List[int]],
+    queryset: "QuerySet", attribute_ids: List[int],
 ):
     result_data: Dict[int, dict] = defaultdict(dict)
 
@@ -273,19 +273,19 @@ def prepare_attribute_products_data(
     fields = set(attribute_fields.values())
     fields.add("pk")
 
-    attribute_data = queryset.filter(
-        attributes__assignment__attribute__pk__in=attribute_ids
-    ).values(*fields)
+    attribute_data = queryset.values(*fields)
 
     for data in attribute_data.iterator():
         pk = data.get("pk")
-        attribute = {
-            "slug": data[attribute_fields["slug"]],
-            "value": data[attribute_fields["value"]],
-        }
-        result_data = add_attribute_info_to_data(
-            pk, attribute, "product attribute", result_data
-        )
+        attribute_pk = data.pop(attribute_fields["attribute_pk"])
+        if str(attribute_pk) in attribute_ids:
+            attribute = {
+                "slug": data[attribute_fields["slug"]],
+                "value": data[attribute_fields["value"]],
+            }
+            result_data = add_attribute_info_to_data(
+                pk, attribute, "product attribute", result_data
+            )
 
     return result_data
 
