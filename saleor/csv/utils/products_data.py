@@ -65,14 +65,13 @@ def get_export_fields_and_headers_info(export_info: Dict[str, list]):
     all headers.
     Headers contains product, variant, attribute and warehouse headers.
     """
-    export_fields, csv_headers_mapping = get_product_export_fields_and_headers(
-        export_info
-    )
+    export_fields, file_headers = get_product_export_fields_and_headers(export_info)
     attributes_headers = get_attributes_headers(export_info)
     warehouses_headers = get_warehouses_headers(export_info)
 
-    headers = export_fields + attributes_headers + warehouses_headers
-    return export_fields, csv_headers_mapping, headers
+    data_headers = export_fields + attributes_headers + warehouses_headers
+    file_headers += attributes_headers + warehouses_headers
+    return export_fields, file_headers, data_headers
 
 
 def get_product_export_fields_and_headers(export_info: Dict[str, list]):
@@ -82,11 +81,11 @@ def get_product_export_fields_and_headers(export_info: Dict[str, list]):
     headers mapping is prepared.
     """
     export_fields = ["id"]
-    csv_headers_mapping: Dict[str, str] = {}
+    file_headers = ["id"]
 
     fields = export_info.get("fields")
     if not fields:
-        return export_fields, csv_headers_mapping
+        return export_fields, file_headers
 
     fields_mapping = dict(
         ChainMap(*reversed(ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()))  # type: ignore
@@ -95,18 +94,18 @@ def get_product_export_fields_and_headers(export_info: Dict[str, list]):
     for field in fields:
         lookup_field = fields_mapping[field]
         export_fields.append(lookup_field)
-        csv_headers_mapping[lookup_field] = field
+        file_headers.append(field)
         # if price is exported, currency is needed too
         if field == "price":
             lookup_field = fields_mapping["product currency"]
             export_fields.append(lookup_field)
-            csv_headers_mapping[lookup_field] = "product currency"
+            file_headers.append("product currency")
         elif field == "price override":
             lookup_field = fields_mapping["variant currency"]
             export_fields.append(lookup_field)
-            csv_headers_mapping[lookup_field] = "variant currency"
+            file_headers.append("variant currency")
 
-    return export_fields, csv_headers_mapping
+    return export_fields, file_headers
 
 
 def get_attributes_headers(export_info: Dict[str, list]):
@@ -121,7 +120,7 @@ def get_attributes_headers(export_info: Dict[str, list]):
     if not attribute_ids:
         return []
 
-    attributes = Attribute.objects.filter(pk__in=attribute_ids)
+    attributes = Attribute.objects.filter(pk__in=attribute_ids).order_by("slug")
 
     products_headers = (
         attributes.filter(product_types__isnull=False)
@@ -145,6 +144,7 @@ def get_warehouses_headers(export_info: Dict[str, list]):
 
     warehouses_headers = (
         Warehouse.objects.filter(pk__in=warehouse_ids)
+        .order_by("slug")
         .annotate(header=Concat("slug", V(" (warehouse quantity)")))
         .values_list("header", flat=True)
     )
