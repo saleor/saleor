@@ -5,8 +5,7 @@ import pytest
 
 from saleor.graphql.core.connection import CountableDjangoObjectType
 from saleor.graphql.core.fields import FilterInputConnectionField
-
-from .models import Book
+from saleor.tests.models import Book
 
 
 class BookType(CountableDjangoObjectType):
