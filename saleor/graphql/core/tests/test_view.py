@@ -6,7 +6,7 @@ from django.test import override_settings
 
 from saleor.demo.views import EXAMPLE_QUERY
 from saleor.graphql.product.types import Product
-from tests.api.fixtures import API_PATH
+from saleor.graphql.tests.fixtures import API_PATH
 from tests.api.utils import _get_graphql_content_from_response, get_graphql_content
 
 
