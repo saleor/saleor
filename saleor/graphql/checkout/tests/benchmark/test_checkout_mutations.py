@@ -3,8 +3,7 @@ from graphene import Node
 
 from saleor.checkout import calculations
 from saleor.checkout.models import Checkout
-
-from ..utils import get_graphql_content
+from tests.api.utils import get_graphql_content
 
 FRAGMENT_PRICE = """
     fragment Price on TaxedMoney {
