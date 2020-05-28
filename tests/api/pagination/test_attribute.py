@@ -1,6 +1,5 @@
 import graphene
 import pytest
-from prices import Money
 
 from saleor.product.models import (
     Attribute,
@@ -52,10 +51,7 @@ def attributes_for_pagination(collection, category):
 
     product_type = ProductType.objects.create(name="My Product Type")
     product = Product.objects.create(
-        name="Test product",
-        product_type=product_type,
-        price=Money("10.00", "USD"),
-        category=category,
+        name="Test product", product_type=product_type, category=category,
     )
     collection.products.add(product)
     AttributeVariant.objects.bulk_create(

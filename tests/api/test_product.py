@@ -3667,7 +3667,6 @@ def test_categories_query_with_sort(
     Product.objects.create(
         name="Test",
         slug="test",
-        price=Money(10, "USD"),
         product_type=product_type,
         category=cat1,
         is_published=True,
@@ -3690,7 +3689,6 @@ def test_categories_query_with_sort(
     Product.objects.create(
         name="Test2",
         slug="test2",
-        price=Money(10, "USD"),
         product_type=product_type,
         category=subsubcat,
         is_published=True,

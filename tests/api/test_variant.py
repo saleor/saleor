@@ -3,7 +3,6 @@ from uuid import uuid4
 
 import graphene
 import pytest
-from graphene.utils.str_converters import to_camel_case
 
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import ProductVariant
@@ -46,7 +45,7 @@ def test_fetch_variant(staff_api_client, product, permission_manage_products):
                 id
             }
             name
-            priceOverride {
+            price {
                 currency
                 amount
             }
@@ -76,7 +75,7 @@ def test_create_variant(
             $productId: ID!,
             $sku: String!,
             $stocks: [StockInput!],
-            $priceOverride: Decimal,
+            $price: Decimal,
             $costPrice: Decimal,
             $attributes: [AttributeValueInput]!,
             $weight: WeightScalar,
@@ -86,7 +85,7 @@ def test_create_variant(
                         product: $productId,
                         sku: $sku,
                         stocks: $stocks,
-                        priceOverride: $priceOverride,
+                        price: $price,
                         costPrice: $costPrice,
                         attributes: $attributes,
                         trackInventory: $trackInventory,
@@ -107,7 +106,7 @@ def test_create_variant(
                                 slug
                             }
                         }
-                        priceOverride {
+                        price {
                             currency
                             amount
                             localized
@@ -134,7 +133,7 @@ def test_create_variant(
     """
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
-    price_override = 1.32
+    price = 1.32
     cost_price = 3.22
     weight = 10.22
     variant_slug = product_type.variant_attributes.first().slug
@@ -154,7 +153,7 @@ def test_create_variant(
         "sku": sku,
         "stocks": stocks,
         "costPrice": cost_price,
-        "priceOverride": price_override,
+        "price": price,
         "weight": weight,
         "attributes": [{"id": variant_id, "values": [variant_value]}],
         "trackInventory": True,
@@ -167,7 +166,7 @@ def test_create_variant(
     data = content["productVariant"]
     assert data["name"] == variant_value
     assert data["costPrice"]["amount"] == cost_price
-    assert data["priceOverride"]["amount"] == price_override
+    assert data["price"]["amount"] == price
     assert data["sku"] == sku
     assert data["attributes"][0]["attribute"]["slug"] == variant_slug
     assert data["attributes"][0]["values"][0]["slug"] == variant_value
@@ -332,7 +331,7 @@ def test_create_product_variant_update_with_new_attributes(
           $id: ID!
           $attributes: [AttributeValueInput]
           $costPrice: Decimal
-          $priceOverride: Decimal
+          $price: Decimal
           $sku: String
           $trackInventory: Boolean!
         ) {
@@ -341,7 +340,7 @@ def test_create_product_variant_update_with_new_attributes(
             input: {
               attributes: $attributes
               costPrice: $costPrice
-              priceOverride: $priceOverride
+              price: $price
               sku: $sku
               trackInventory: $trackInventory
             }
@@ -381,7 +380,7 @@ def test_create_product_variant_update_with_new_attributes(
         "attributes": [{"id": size_attribute_id, "values": ["XXXL"]}],
         "costPrice": 10,
         "id": variant_id,
-        "priceOverride": 0,
+        "price": 0,
         "sku": "21599567",
         "trackInventory": True,
     }
@@ -490,9 +489,8 @@ def test_update_product_variant_with_negative_weight(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
-@pytest.mark.parametrize("field", ("cost_price", "price_override"))
-def test_update_product_variant_unset_amounts(
-    staff_api_client, product, permission_manage_products, field
+def test_update_product_variant_unset_cost_price(
+    staff_api_client, product, permission_manage_products
 ):
     """Ensure setting nullable amounts to null is properly handled
     (setting the amount to none) and doesn't override the currency.
@@ -501,24 +499,17 @@ def test_update_product_variant_unset_amounts(
         mutation updateVariant (
             $id: ID!,
             $sku: String!,
-            $costPrice: Decimal,
-            $priceOverride: Decimal) {
+            $costPrice: Decimal) {
                 productVariantUpdate(
                     id: $id,
                     input: {
                         sku: $sku,
                         costPrice: $costPrice,
-                        priceOverride: $priceOverride
                     }) {
                     productVariant {
                         name
                         sku
                         costPrice {
-                            currency
-                            amount
-                            localized
-                        }
-                        priceOverride {
                             currency
                             amount
                             localized
@@ -532,9 +523,7 @@ def test_update_product_variant_unset_amounts(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     sku = variant.sku
 
-    camel_case_field_name = to_camel_case(field)
-
-    variables = {"id": variant_id, "sku": sku, camel_case_field_name: None}
+    variables = {"id": variant_id, "sku": sku, "costPrice": None}
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -542,11 +531,11 @@ def test_update_product_variant_unset_amounts(
     variant.refresh_from_db()
 
     assert variant.currency is not None
-    assert getattr(variant, field) is None
+    assert getattr(variant, "cost_price") is None
 
     content = get_graphql_content(response)
     data = content["data"]["productVariantUpdate"]["productVariant"]
-    assert data[camel_case_field_name] is None
+    assert data["costPrice"] is None
 
 
 QUERY_UPDATE_VARIANT_ATTRIBUTES = """
@@ -927,6 +916,9 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
             productVariants{
                 id
                 sku
+                price {
+                    amount
+                }
                 stocks {
                     warehouse {
                         slug
@@ -953,10 +945,10 @@ def test_product_variant_bulk_create_by_attribute_id(
         {
             "sku": sku,
             "costPrice": None,
-            "priceOverride": None,
             "weight": 2.5,
             "trackInventory": True,
             "attributes": [{"id": attribut_id, "values": [attribute_value.name]}],
+            "price": 10,
         }
     ]
 
@@ -973,11 +965,10 @@ def test_product_variant_bulk_create_by_attribute_id(
     assert attribute_value_count == size_attribute.values.count()
     product_variant = ProductVariant.objects.get(sku=sku)
     assert not product_variant.cost_price
-    assert not product_variant.price_override
 
 
 @pytest.mark.parametrize(
-    "price_field", ("priceOverride", "costPrice",),
+    "price_field", ("price", "costPrice",),
 )
 def test_product_variant_bulk_create_by_attribute_id_with_invalid_price(
     staff_api_client, product, size_attribute, permission_manage_products, price_field
@@ -991,8 +982,9 @@ def test_product_variant_bulk_create_by_attribute_id_with_invalid_price(
         "weight": 2.5,
         "trackInventory": True,
         "attributes": [{"id": attribut_id, "values": [attribute_value.name]}],
+        "price": 10,
+        price_field: "-1",
     }
-    variant[price_field] = "-1"
 
     variables = {"productId": product_id, "variants": [variant]}
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -1010,7 +1002,7 @@ def test_product_variant_bulk_create_empty_attribute(
 ):
     product_variant_count = ProductVariant.objects.count()
     product_id = graphene.Node.to_global_id("Product", product.pk)
-    variants = [{"sku": str(uuid4())[:12], "attributes": []}]
+    variants = [{"sku": str(uuid4())[:12], "attributes": [], "price": 10}]
 
     variables = {"productId": product_id, "variants": variants}
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -1036,10 +1028,12 @@ def test_product_variant_bulk_create_with_new_attribute_value(
         {
             "sku": str(uuid4())[:12],
             "attributes": [{"id": size_attribute_id, "values": [attribute_value.name]}],
+            "price": 10,
         },
         {
             "sku": str(uuid4())[:12],
             "attributes": [{"id": size_attribute_id, "values": ["Test-attribute"]}],
+            "price": 10,
         },
     ]
 
@@ -1076,6 +1070,7 @@ def test_product_variant_bulk_create_stocks_input(
                 }
             ],
             "attributes": [{"id": size_attribute_id, "values": [attribute_value.name]}],
+            "price": 10,
         },
         {
             "sku": str(uuid4())[:12],
@@ -1094,6 +1089,7 @@ def test_product_variant_bulk_create_stocks_input(
                     ),
                 },
             ],
+            "price": 10,
         },
     ]
 
@@ -1118,6 +1114,7 @@ def test_product_variant_bulk_create_stocks_input(
                     "quantity": variants[0]["stocks"][0]["quantity"],
                 }
             ],
+            "price": {"amount": 10.0},
         },
         {
             "sku": variants[1]["sku"],
@@ -1131,6 +1128,7 @@ def test_product_variant_bulk_create_stocks_input(
                     "quantity": variants[1]["stocks"][1]["quantity"],
                 },
             ],
+            "price": {"amount": 10.0},
         },
     ]
     for variant_data in data["productVariants"]:
@@ -1157,6 +1155,7 @@ def test_product_variant_bulk_create_duplicated_warehouses(
                 }
             ],
             "attributes": [{"id": size_attribute_id, "values": [attribute_value.name]}],
+            "price": 10,
         },
         {
             "sku": str(uuid4())[:12],
@@ -1165,6 +1164,7 @@ def test_product_variant_bulk_create_duplicated_warehouses(
                 {"quantity": 15, "warehouse": warehouse1_id},
                 {"quantity": 15, "warehouse": warehouse1_id},
             ],
+            "price": 10,
         },
     ]
 
@@ -1203,10 +1203,12 @@ def test_product_variant_bulk_create_duplicated_sku(
         {
             "sku": sku,
             "attributes": [{"id": size_attribute_id, "values": ["Test-value"]}],
+            "price": 10,
         },
         {
             "sku": sku2,
             "attributes": [{"id": size_attribute_id, "values": ["Test-valuee"]}],
+            "price": 10,
         },
     ]
 
@@ -1237,10 +1239,12 @@ def test_product_variant_bulk_create_duplicated_sku_in_input(
         {
             "sku": sku,
             "attributes": [{"id": size_attribute_id, "values": ["Test-value"]}],
+            "price": 10,
         },
         {
             "sku": sku,
             "attributes": [{"id": size_attribute_id, "values": ["Test-value2"]}],
+            "price": 10,
         },
     ]
 
@@ -1274,18 +1278,22 @@ def test_product_variant_bulk_create_many_errors(
         {
             "sku": str(uuid4())[:12],
             "attributes": [{"id": size_attribute_id, "values": ["Test-value1"]}],
+            "price": 10,
         },
         {
             "sku": str(uuid4())[:12],
             "attributes": [{"id": size_attribute_id, "values": ["Test-value4"]}],
+            "price": 10,
         },
         {
             "sku": sku,
             "attributes": [{"id": size_attribute_id, "values": ["Test-value2"]}],
+            "price": 10,
         },
         {
             "sku": str(uuid4())[:12],
             "attributes": [{"id": invalid_attribute_id, "values": ["Test-value3"]}],
+            "price": 10,
         },
     ]
 
@@ -1338,6 +1346,7 @@ def test_product_variant_bulk_create_two_variants_duplicated_attribute_value(
                 {"id": color_attribute_id, "values": ["red"]},
                 {"id": size_attribute_id, "values": ["small"]},
             ],
+            "price": 10,
         }
     ]
     variables = {"productId": product_id, "variants": variants}
@@ -1372,8 +1381,8 @@ def test_product_variant_bulk_create_two_variants_duplicated_attribute_value_in_
         {"id": size_attribute_id, "values": [size_attribute.values.last().slug]},
     ]
     variants = [
-        {"sku": str(uuid4())[:12], "attributes": attributes},
-        {"sku": str(uuid4())[:12], "attributes": attributes},
+        {"sku": str(uuid4())[:12], "attributes": attributes, "price": 10},
+        {"sku": str(uuid4())[:12], "attributes": attributes, "price": 10},
     ]
     variables = {"productId": product_id, "variants": variants}
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -1409,6 +1418,7 @@ def test_product_variant_bulk_create_two_variants_duplicated_one_attribute_value
                 {"id": color_attribute_id, "values": ["red"]},
                 {"id": size_attribute_id, "values": ["big"]},
             ],
+            "price": 10,
         }
     ]
     variables = {"productId": product_id, "variants": variants}

@@ -3,7 +3,6 @@ import os.path
 import graphene
 import pytest
 
-from saleor.core.taxes import zero_money
 from saleor.product import models as product_models
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
 
@@ -100,7 +99,6 @@ def products_structures(category):
                     slug=f"{attrs[0]}-apple-{attrs[1]}-({i})",
                     product_type=pt_apples,
                     category=category,
-                    price=zero_money(),
                     is_published=True,
                 )
                 for i, attrs in enumerate(zip(COLORS, TRADEMARKS))
@@ -116,7 +114,6 @@ def products_structures(category):
                     slug=f"{attrs[0]}-orange-{attrs[1]}-({i})",
                     product_type=pt_oranges,
                     category=category,
-                    price=zero_money(),
                     is_published=True,
                 )
                 for i, attrs in enumerate(zip(COLORS, TRADEMARKS))
@@ -129,7 +126,6 @@ def products_structures(category):
         slug="oopsie-dummy",
         product_type=pt_other,
         category=category,
-        price=zero_money(),
         is_published=True,
     )
     product_models.Product.objects.create(
@@ -137,7 +133,6 @@ def products_structures(category):
         slug="another-dummy",
         product_type=pt_other,
         category=category,
-        price=zero_money(),
         is_published=True,
     )
     dummy_attr_value = attr_value(dummy_attr, DUMMIES[0])
@@ -474,7 +469,6 @@ def test_sort_product_not_having_attribute_data(api_client, category, count_quer
     expected_results = ["Z", "Y", "A"]
     product_create_kwargs = {
         "category": category,
-        "price": zero_money(),
         "is_published": True,
     }
 

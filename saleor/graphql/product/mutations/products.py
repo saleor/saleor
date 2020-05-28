@@ -1175,18 +1175,18 @@ class ProductVariantCreate(ModelMutation):
                     }
                 )
             cleaned_input["cost_price_amount"] = cost_price
-
-        price = cleaned_input.pop("price")
-        if price < 0:
-            raise ValidationError(
-                {
-                    "price": ValidationError(
-                        "Product price cannot be lower than 0.",
-                        code=ProductErrorCode.INVALID.value,
-                    )
-                }
-            )
-        cleaned_input["price_amount"] = price
+        if "price" in cleaned_input:
+            price = cleaned_input.pop("price")
+            if price is not None and price < 0:
+                raise ValidationError(
+                    {
+                        "price": ValidationError(
+                            "Product price cannot be lower than 0.",
+                            code=ProductErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            cleaned_input["price_amount"] = price
 
         stocks = cleaned_input.get("stocks")
         if stocks:
