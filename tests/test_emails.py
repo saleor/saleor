@@ -7,9 +7,10 @@ from django.core.exceptions import ImproperlyConfigured
 from templated_email import get_connection
 
 import saleor.account.emails as account_emails
+import saleor.invoice.emails as invoice_emails
 import saleor.order.emails as emails
 from saleor.core.emails import get_email_context, prepare_url
-from saleor.order.models import Invoice, InvoiceStatus
+from saleor.invoice.models import Invoice
 from saleor.order.utils import add_variant_to_draft_order
 
 
@@ -41,10 +42,10 @@ def test_collect_data_for_order_confirmation_email(order):
 def test_collect_invoice_data_for_email(order):
     number = "01/12/2020/TEST"
     url = "http://www.example.com"
-    invoice = Invoice.objects.create(
-        number=number, url=url, status=InvoiceStatus.READY, order=order
+    invoice = Invoice.objects.create(number=number, url=url, order=order)
+    email_data = invoice_emails.collect_invoice_data_for_email(
+        invoice.pk, "order/send_invoice"
     )
-    email_data = emails.collect_invoice_data_for_email(invoice.pk, "order/send_invoice")
     email_context = email_data["context"]
     assert email_context["number"] == number
     assert email_context["download_url"] == url

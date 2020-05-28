@@ -1438,7 +1438,7 @@ type CountryDisplay {
 type CreateInvoice {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
-  invoice: Invoice
+  invoiceJob: InvoiceJob
 }
 
 input CreateInvoiceInput {
@@ -1549,7 +1549,7 @@ scalar Decimal
 type DeleteInvoice {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
-  invoice: Invoice
+  invoiceJob: InvoiceJob
 }
 
 type DeleteMetadata {
@@ -1959,7 +1959,6 @@ type Invoice implements Node {
   id: ID!
   number: String
   url: String
-  status: String!
 }
 
 type InvoiceError {
@@ -1974,6 +1973,27 @@ enum InvoiceErrorCode {
   URL_OR_NUMBER_NOT_SET
   NOT_FOUND
   INVALID_STATUS
+}
+
+type InvoiceJob implements Node & InvoiceJobInterface {
+  id: ID!
+  status: InvoiceStatusEnum!
+  invoice: Invoice
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+interface InvoiceJobInterface {
+  status: InvoiceStatusEnum!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum InvoiceStatusEnum {
+  PENDING
+  PENDING_DELETE
+  DELETED
+  READY
 }
 
 scalar JSONString
@@ -4011,7 +4031,7 @@ enum ReportingPeriod {
 type RequestDeleteInvoice {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
-  invoice: Invoice
+  invoiceJob: InvoiceJob
 }
 
 type RequestEmailChange {
@@ -4023,7 +4043,7 @@ type RequestEmailChange {
 type RequestInvoice {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
-  invoice: Invoice
+  invoiceJob: InvoiceJob
 }
 
 type RequestPasswordReset {
@@ -4154,7 +4174,7 @@ type SelectedAttribute {
 type SendInvoiceEmail {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
-  invoice: Invoice
+  invoiceJob: InvoiceJob
 }
 
 input SeoInput {
@@ -4806,7 +4826,7 @@ scalar UUID
 type UpdateInvoice {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
-  invoice: Invoice
+  invoiceJob: InvoiceJob
 }
 
 input UpdateInvoiceInput {

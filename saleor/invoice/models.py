@@ -3,7 +3,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.timezone import now
 
-from ..core.models import ModelWithMetadata
+from ..core.models import Job, ModelWithMetadata
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..graphql.invoice.enums import InvoiceStatus
 from ..order.models import Order
@@ -12,7 +12,7 @@ from . import InvoiceEvents
 
 class InvoiceQueryset(models.QuerySet):
     def ready(self):
-        return self.filter(status=InvoiceStatus.READY)
+        return self.filter(job__status=InvoiceStatus.READY)
 
 
 class Invoice(ModelWithMetadata):
@@ -22,7 +22,6 @@ class Invoice(ModelWithMetadata):
     number = models.CharField(max_length=255, null=True)
     created = models.DateTimeField(null=True)
     url = models.URLField(null=True, max_length=2048)
-    status = models.CharField(max_length=32, default=InvoiceStatus.PENDING)
     objects = InvoiceQueryset.as_manager()
 
     def update_invoice(self, number=None, url=None):
@@ -32,9 +31,14 @@ class Invoice(ModelWithMetadata):
             self.url = url
         self.save()
 
-    def fullfill_invoice(self):
-        self.status = InvoiceStatus.READY
-        self.save()
+
+class InvoiceJob(Job):
+    status = models.CharField(
+        max_length=32, default=InvoiceStatus.PENDING, choices=InvoiceStatus.CHOICES
+    )
+    invoice = models.OneToOneField(
+        Invoice, on_delete=models.CASCADE, related_name="job"
+    )
 
 
 class InvoiceEvent(models.Model):
