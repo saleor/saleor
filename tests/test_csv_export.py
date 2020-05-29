@@ -346,7 +346,7 @@ def test_export_products_in_batches_for_csv(
         "attributes": [],
     }
     file_name = "test.csv"
-    export_fields = ["id", "name", "sku"]
+    export_fields = ["id", "name", "variants__sku"]
     expected_headers = ["id", "name", "variant sku"]
 
     table = etl.wrap([expected_headers])
@@ -408,7 +408,7 @@ def test_export_products_in_batches_for_xlsx(
         "warehouses": [],
         "attributes": [],
     }
-    export_fields = ["id", "name", "sku"]
+    export_fields = ["id", "name", "variants__sku"]
     expected_headers = ["id", "name", "variant sku"]
     file_name = "test.xlsx"
 
