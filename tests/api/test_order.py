@@ -12,6 +12,7 @@ from saleor.account.models import CustomerEvent
 from saleor.core.permissions import OrderPermissions
 from saleor.core.taxes import zero_taxed_money
 from saleor.graphql.core.enums import ReportingPeriod
+from saleor.graphql.invoice.enums import InvoiceStatus
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
@@ -159,10 +160,14 @@ def test_order_query(
                             amount
                         }
                     }
-                    invoices {
+                    invoiceJobs {
                         id
-                        number
-                        url
+                        status
+                        invoice {
+                            id
+                            url
+                            number
+                        }
                     }
                     availableShippingMethods {
                         id
@@ -184,9 +189,10 @@ def test_order_query(
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    invoice = order_data["invoices"][0]
-    assert invoice["url"] == "http://www.example.com/invoice.pdf"
-    assert invoice["number"] == "01/12/2020/TEST"
+    invoice_job = order_data["invoiceJobs"][0]
+    assert invoice_job["status"] == InvoiceStatus.READY.upper()
+    assert invoice_job["invoice"]["url"] == "http://www.example.com/invoice.pdf"
+    assert invoice_job["invoice"]["number"] == "01/12/2020/TEST"
     assert order_data["number"] == str(order.pk)
     assert order_data["canFinalize"] is True
     assert order_data["status"] == order.status.upper()

@@ -5,6 +5,7 @@ from graphql_jwt.exceptions import PermissionDenied
 
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ...core.taxes import display_gross_prices
+from ...invoice import models as invoice_models
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
@@ -17,7 +18,7 @@ from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import permission_required
 from ..giftcard.types import GiftCard
-from ..invoice.types import Invoice
+from ..invoice.types import InvoiceJob
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
@@ -304,8 +305,8 @@ class Order(CountableDjangoObjectType):
         required=False,
         description="Shipping methods that can be used with this order.",
     )
-    invoices = graphene.List(
-        Invoice, required=False, description="List of order invoices."
+    invoice_jobs = graphene.List(
+        InvoiceJob, required=False, description="List of order invoices."
     )
     number = graphene.String(description="User-friendly number of an order.")
     is_paid = graphene.Boolean(description="Informs if an order is fully paid.")
@@ -498,8 +499,10 @@ class Order(CountableDjangoObjectType):
         return available
 
     @staticmethod
-    def resolve_invoices(root: models.Order, info):
-        return root.invoices.ready()
+    def resolve_invoice_jobs(root: models.Order, info):
+        return invoice_models.InvoiceJob.objects.filter(
+            invoice__pk__in=root.invoices.all()
+        )
 
     @staticmethod
     def resolve_is_shipping_required(root: models.Order, _info):
