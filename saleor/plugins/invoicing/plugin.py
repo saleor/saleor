@@ -7,7 +7,7 @@ from ...graphql.invoice.enums import InvoiceStatus
 from ...invoice.models import InvoiceJob
 from ...order.models import Order
 from ..base_plugin import BasePlugin
-from . import generate_invoice_number, generate_invoice_pdf
+from .utils import generate_invoice_number, generate_invoice_pdf
 
 
 class InvoicingPlugin(BasePlugin):
