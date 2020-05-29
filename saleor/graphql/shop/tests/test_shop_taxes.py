@@ -5,7 +5,7 @@ from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
 
 from saleor.graphql.core.utils import str_to_enum
-from tests.api.utils import get_graphql_content
+from saleor.graphql.tests.utils import get_graphql_content
 
 # FIXME we are going to rewrite tax section. Currently, below tests are connected only
 #  with vatlayer. After we introduce approach for taxes and API, we should rebuild this

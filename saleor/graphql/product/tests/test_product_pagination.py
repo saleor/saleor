@@ -4,6 +4,7 @@ import graphene
 import pytest
 from prices import Money
 
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.product.models import (
     Category,
     Collection,
@@ -13,7 +14,6 @@ from saleor.product.models import (
 )
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
 from saleor.warehouse.models import Stock
-from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture

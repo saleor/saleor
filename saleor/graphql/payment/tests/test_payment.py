@@ -6,11 +6,11 @@ from django_countries.fields import Country
 
 from saleor.checkout import calculations
 from saleor.graphql.payment.enums import OrderAction, PaymentChargeStatusEnum
+from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
 from saleor.payment.error_codes import PaymentErrorCode
 from saleor.payment.interface import CreditCardInfo, CustomerSource, TokenConfig
 from saleor.payment.models import ChargeStatus, Payment, TransactionKind
 from saleor.payment.utils import fetch_customer_id, store_customer_id
-from tests.api.utils import assert_no_permission, get_graphql_content
 
 VOID_QUERY = """
     mutation PaymentVoid($paymentId: ID!) {

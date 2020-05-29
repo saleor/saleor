@@ -4,7 +4,7 @@ from saleor.graphql.checkout.tests.benchmark.test_checkout_mutations import (
     FRAGMENT_ADDRESS,
     FRAGMENT_PRODUCT_VARIANT,
 )
-from tests.api.utils import get_graphql_content
+from saleor.graphql.tests.utils import get_graphql_content
 
 FRAGMENT_ORDER_DETAILS = (
     FRAGMENT_ADDRESS

@@ -3,6 +3,7 @@ from unittest.mock import patch
 import graphene
 import pytest
 
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.product.models import (
     Attribute,
     AttributeValue,
@@ -13,7 +14,6 @@ from saleor.product.models import (
     ProductType,
     ProductVariant,
 )
-from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture

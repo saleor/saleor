@@ -1,8 +1,9 @@
 import graphene
 import pytest
 
+from saleor.graphql.menu.tests.utils import menu_item_to_json
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.menu.models import Menu, MenuItem
-from tests.api.utils import get_graphql_content, menu_item_to_json
 
 
 @pytest.fixture

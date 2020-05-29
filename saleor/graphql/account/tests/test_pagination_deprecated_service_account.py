@@ -1,7 +1,7 @@
 import pytest
 
 from saleor.app.models import App
-from tests.api.utils import get_graphql_content
+from saleor.graphql.tests.utils import get_graphql_content
 
 
 @pytest.fixture()

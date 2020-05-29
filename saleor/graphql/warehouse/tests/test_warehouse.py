@@ -2,9 +2,9 @@ import graphene
 import pytest
 
 from saleor.account.models import Address
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.warehouse.error_codes import WarehouseErrorCode
 from saleor.warehouse.models import Warehouse
-from tests.api.utils import get_graphql_content
 
 QUERY_WAREHOUSES = """
 query {

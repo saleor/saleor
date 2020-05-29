@@ -3,8 +3,8 @@ import pytest
 from freezegun import freeze_time
 
 from saleor.app.models import App
+from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
 from saleor.webhook.models import Webhook
-from tests.api.utils import assert_no_permission, get_graphql_content
 
 QUERY_APPS_WITH_FILTER = """
     query ($filter: AppFilterInput ){

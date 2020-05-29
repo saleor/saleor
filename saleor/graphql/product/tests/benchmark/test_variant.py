@@ -3,9 +3,9 @@ from uuid import uuid4
 import graphene
 import pytest
 
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.product.models import ProductVariant
 from saleor.warehouse.models import Stock
-from tests.api.utils import get_graphql_content
 
 
 @pytest.mark.django_db

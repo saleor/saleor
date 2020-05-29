@@ -7,7 +7,7 @@ from prices import Money
 from saleor.checkout import calculations
 from saleor.checkout.utils import add_voucher_to_checkout
 from saleor.discount import DiscountInfo, VoucherType
-from tests.api.utils import get_graphql_content
+from saleor.graphql.tests.utils import get_graphql_content
 
 from .test_checkout import (
     MUTATION_CHECKOUT_LINES_DELETE,

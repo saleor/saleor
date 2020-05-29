@@ -1,7 +1,7 @@
 import pytest
 from graphene import Node
 
-from tests.api.utils import get_graphql_content
+from saleor.graphql.tests.utils import get_graphql_content
 
 
 @pytest.mark.django_db

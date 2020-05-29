@@ -21,10 +21,13 @@ from saleor.graphql.core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from saleor.graphql.product import types as product_types
+from saleor.graphql.tests.utils import (
+    _get_graphql_content_from_response,
+    get_graphql_content,
+)
 from saleor.graphql.utils import get_database_id, requestor_is_superuser
 from saleor.graphql.utils.filters import filter_range_field, reporting_period_to_date
 from saleor.product.models import Category, Product
-from tests.api.utils import _get_graphql_content_from_response, get_graphql_content
 
 
 def test_clean_seo_fields():

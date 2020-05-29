@@ -23,13 +23,13 @@ from saleor.graphql.checkout.utils import (
     clean_checkout_payment,
     clean_checkout_shipping,
 )
+from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
 from saleor.order.models import Order
 from saleor.payment import TransactionKind
 from saleor.payment.interface import GatewayResponse
 from saleor.plugins.manager import PluginsManager
 from saleor.warehouse.models import Stock
 from saleor.warehouse.tests.utils import get_available_quantity_for_stock
-from tests.api.utils import assert_no_permission, get_graphql_content
 
 
 @pytest.fixture(autouse=True)

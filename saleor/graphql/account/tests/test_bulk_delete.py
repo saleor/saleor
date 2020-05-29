@@ -6,7 +6,7 @@ from django.contrib.auth.models import Group
 from saleor.account.error_codes import AccountErrorCode
 from saleor.account.models import User
 from saleor.core.permissions import AccountPermissions, OrderPermissions
-from tests.api.utils import assert_no_permission, get_graphql_content
+from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
 
 
 @patch(

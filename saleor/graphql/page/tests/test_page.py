@@ -6,9 +6,9 @@ from django.utils import timezone
 from django.utils.text import slugify
 from freezegun import freeze_time
 
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.page.error_codes import PageErrorCode
 from saleor.page.models import Page
-from tests.api.utils import get_graphql_content
 
 PAGE_QUERY = """
     query PageQuery($id: ID, $slug: String) {
