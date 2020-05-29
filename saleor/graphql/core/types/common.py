@@ -9,13 +9,13 @@ from ..enums import (
     DiscountErrorCode,
     GiftCardErrorCode,
     InvoiceErrorCode,
-    InvoiceStatusEnum,
     JobStatusEnum,
     MenuErrorCode,
     MetadataErrorCode,
     OrderErrorCode,
     PageErrorCode,
     PaymentErrorCode,
+    PendingTargetEnum,
     PermissionEnum,
     PermissionGroupErrorCode,
     PluginErrorCode,
@@ -305,18 +305,6 @@ class Job(graphene.Interface):
 
 
 class InvoiceJobInterface(Job):
-    status = InvoiceStatusEnum(description="Job status.", required=True)
-    created_at = graphene.DateTime(
-        description="Created date time of job in ISO 8601 format.", required=True
+    pending_target = PendingTargetEnum(
+        description="What pending status should mutate into.", required=True
     )
-    updated_at = graphene.DateTime(
-        description="Date time of job last update in ISO 8601 format.", required=True
-    )
-
-    @classmethod
-    def resolve_type(cls, instance, _info):
-        """Map a data object to a Graphene type."""
-        MODEL_TO_TYPE_MAP = {
-            # <DjangoModel>: <GrapheneType>
-        }
-        return MODEL_TO_TYPE_MAP.get(type(instance))

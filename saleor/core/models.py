@@ -5,6 +5,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import F, Max, Q
 
+from ..graphql.invoice.enums import PendingTarget
 from . import JobStatus
 from .permissions import ProductPermissions
 from .utils.json_serializer import CustomJsonEncoder
@@ -119,6 +120,7 @@ class Job(models.Model):
     status = models.CharField(
         max_length=50, choices=JobStatus.CHOICES, default=JobStatus.PENDING
     )
+    pending_target = models.CharField(max_length=50, choices=PendingTarget.CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

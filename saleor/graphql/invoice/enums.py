@@ -1,12 +1,8 @@
-class InvoiceStatus:
-    PENDING = "pending"
-    PENDING_DELETE = "pending_delete"
-    DELETED = "deleted"
-    READY = "ready"
+class PendingTarget:
+    DELETE = "delete"
+    COMPLETE = "complete"
 
     CHOICES = [
-        (PENDING, "pending"),
-        (PENDING_DELETE, "pending_delete"),
-        (DELETED, "deleted"),
-        (READY, "ready"),
+        (DELETE, "delete"),
+        (COMPLETE, "complete"),
     ]

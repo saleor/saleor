@@ -20,7 +20,7 @@ from ...shipping import error_codes as shipping_error_codes
 from ...warehouse import error_codes as warehouse_error_codes
 from ...webhook import error_codes as webhook_error_codes
 from ...wishlist import error_codes as wishlist_error_codes
-from ..invoice.enums import InvoiceStatus
+from ..invoice.enums import PendingTarget
 from .utils import str_to_enum
 
 # FIXME CoreTaxRateType should be removed after we will drop old api fields dedicated
@@ -79,7 +79,7 @@ TaxRateType = graphene.Enum(
 )
 
 JobStatusEnum = to_enum(JobStatus)
-InvoiceStatusEnum = to_enum(InvoiceStatus)
+PendingTargetEnum = to_enum(PendingTarget)
 PermissionEnum = graphene.Enum("PermissionEnum", get_permissions_enum_list())
 WeightUnitsEnum = graphene.Enum(
     "WeightUnitsEnum", [(str_to_enum(unit[0]), unit[0]) for unit in WeightUnits.CHOICES]

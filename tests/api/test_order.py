@@ -9,10 +9,10 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from saleor.account.models import CustomerEvent
+from saleor.core import JobStatus
 from saleor.core.permissions import OrderPermissions
 from saleor.core.taxes import zero_taxed_money
 from saleor.graphql.core.enums import ReportingPeriod
-from saleor.graphql.invoice.enums import InvoiceStatus
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
@@ -190,7 +190,7 @@ def test_order_query(
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
     invoice_job = order_data["invoiceJobs"][0]
-    assert invoice_job["status"] == InvoiceStatus.READY.upper()
+    assert invoice_job["status"] == JobStatus.SUCCESS.upper()
     assert invoice_job["invoice"]["url"] == "http://www.example.com/invoice.pdf"
     assert invoice_job["invoice"]["number"] == "01/12/2020/TEST"
     assert order_data["number"] == str(order.pk)
