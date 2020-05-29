@@ -3,7 +3,7 @@ import uuid
 from typing import Set
 
 from django.db import models
-from django.db.models import F, Sum
+from django.db.models import F, Q, Sum
 from django.db.models.functions import Coalesce
 
 from ..account.models import Address
@@ -29,12 +29,10 @@ class Warehouse(models.Model):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True)
     company_name = models.CharField(blank=True, max_length=255)
-
     shipping_zones = models.ManyToManyField(
         ShippingZone, blank=True, related_name="warehouses"
     )
     address = models.ForeignKey(Address, on_delete=models.PROTECT)
-
     email = models.EmailField(blank=True, default="")
 
     objects = WarehouseQueryset.as_manager()
@@ -66,7 +64,8 @@ class StockQuerySet(models.QuerySet):
     def for_country(self, country_code: str):
         query_warehouse = models.Subquery(
             Warehouse.objects.filter(
-                shipping_zones__countries__contains=country_code
+                Q(shipping_zones__countries__contains=country_code)
+                | Q(shipping_zones__default=True)
             ).values("pk")
         )
         return self.select_related("product_variant", "warehouse").filter(
