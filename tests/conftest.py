@@ -26,6 +26,7 @@ from saleor.app.models import App
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
+from saleor.core import JobStatus
 from saleor.core.payments import PaymentInterface
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
 from saleor.discount.models import (
@@ -36,7 +37,6 @@ from saleor.discount.models import (
     VoucherTranslation,
 )
 from saleor.giftcard.models import GiftCard
-from saleor.graphql.invoice.enums import InvoiceStatus
 from saleor.invoice.models import InvoiceJob
 from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 from saleor.menu.utils import update_menu
@@ -1318,7 +1318,7 @@ def fulfilled_order(order_with_lines):
         number="01/12/2020/TEST",
         created=datetime.datetime.now(tz=pytz.utc),
     )
-    InvoiceJob.objects.create(invoice=invoice, status=InvoiceStatus.READY)
+    InvoiceJob.objects.create(invoice=invoice, status=JobStatus.SUCCESS)
     fulfillment = order.fulfillments.create(tracking_number="123")
     line_1 = order.lines.first()
     stock_1 = line_1.allocations.get().stock

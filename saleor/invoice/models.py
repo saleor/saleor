@@ -3,16 +3,16 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.timezone import now
 
+from ..core import JobStatus
 from ..core.models import Job, ModelWithMetadata
 from ..core.utils.json_serializer import CustomJsonEncoder
-from ..graphql.invoice.enums import InvoiceStatus
 from ..order.models import Order
 from . import InvoiceEvents
 
 
 class InvoiceQueryset(models.QuerySet):
     def ready(self):
-        return self.filter(job__status=InvoiceStatus.READY)
+        return self.filter(job__status=JobStatus.SUCCESS)
 
 
 class Invoice(ModelWithMetadata):
@@ -34,7 +34,7 @@ class Invoice(ModelWithMetadata):
 
 class InvoiceJob(Job):
     status = models.CharField(
-        max_length=32, default=InvoiceStatus.PENDING, choices=InvoiceStatus.CHOICES
+        max_length=32, default=JobStatus.PENDING, choices=JobStatus.CHOICES
     )
     invoice = models.OneToOneField(
         Invoice, on_delete=models.CASCADE, related_name="job"

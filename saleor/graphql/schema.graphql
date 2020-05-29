@@ -1977,26 +1977,28 @@ enum InvoiceErrorCode {
 
 type InvoiceJob implements Node & InvoiceJobInterface {
   id: ID!
-  status: InvoiceStatusEnum!
+  status: JobStatusEnum!
   invoice: Invoice
   createdAt: DateTime!
   updatedAt: DateTime!
+  pendingTarget: PendingTargetEnum!
 }
 
 interface InvoiceJobInterface {
-  status: InvoiceStatusEnum!
+  status: JobStatusEnum!
   createdAt: DateTime!
   updatedAt: DateTime!
-}
-
-enum InvoiceStatusEnum {
-  PENDING
-  PENDING_DELETE
-  DELETED
-  READY
+  pendingTarget: PendingTargetEnum!
 }
 
 scalar JSONString
+
+enum JobStatusEnum {
+  PENDING
+  SUCCESS
+  FAILED
+  DELETED
+}
 
 enum LanguageCodeEnum {
   AR
@@ -3203,6 +3205,11 @@ type PaymentVoid {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   payment: Payment
   paymentErrors: [PaymentError!]!
+}
+
+enum PendingTargetEnum {
+  DELETE
+  COMPLETE
 }
 
 type Permission {

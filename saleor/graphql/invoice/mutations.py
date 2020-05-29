@@ -1,14 +1,15 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...core import JobStatus
 from ...core.permissions import OrderPermissions
+from ...graphql.invoice.enums import PendingTarget
 from ...invoice import events, models
 from ...invoice.emails import send_invoice
 from ...invoice.error_codes import InvoiceErrorCode
 from ...order import OrderStatus
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import InvoiceError
-from ..invoice.enums import InvoiceStatus
 from ..invoice.types import InvoiceJob
 from ..order.types import Order
 
@@ -59,7 +60,9 @@ class RequestInvoice(ModelMutation):
         cls.clean_instance(info, order)
 
         invoice = models.Invoice.objects.create(order=order, number=data.get("number"))
-        job = models.InvoiceJob.objects.create(invoice=invoice)
+        job = models.InvoiceJob.objects.create(
+            invoice=invoice, pending_target=PendingTarget.COMPLETE
+        )
 
         info.context.plugins.invoice_request(
             order=order, invoice_job=job, number=data.get("number")
@@ -137,7 +140,7 @@ class CreateInvoice(ModelMutation):
         invoice.order = instance
         invoice.save()
         job = models.InvoiceJob.objects.create(
-            invoice=invoice, status=InvoiceStatus.READY
+            invoice=invoice, status=JobStatus.SUCCESS
         )
         events.invoice_created_event(
             user=info.context.user,
@@ -164,7 +167,8 @@ class RequestDeleteInvoice(ModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         invoice_job = cls.get_node_or_error(info, data["id"], only_type=InvoiceJob)
-        invoice_job.status = InvoiceStatus.PENDING_DELETE
+        invoice_job.status = JobStatus.PENDING
+        invoice_job.pending_target = PendingTarget.DELETE
         invoice_job.save()
         info.context.plugins.invoice_delete(invoice_job)
         events.invoice_requested_deletion(
@@ -235,7 +239,7 @@ class UpdateInvoice(ModelMutation):
         instance.invoice.update_invoice(
             number=cleaned_input.get("number"), url=cleaned_input.get("url")
         )
-        instance.status = InvoiceStatus.READY
+        instance.status = JobStatus.SUCCESS
         instance.save()
         return UpdateInvoice(invoiceJob=instance)
 
@@ -255,7 +259,7 @@ class SendInvoiceEmail(ModelMutation):
     def clean_instance(cls, info, instance):
         error_code = None
 
-        if instance.status != InvoiceStatus.READY:
+        if instance.status != JobStatus.SUCCESS:
             error_code = InvoiceErrorCode.NOT_READY
         elif not instance.invoice.url or not instance.invoice.number:
             error_code = InvoiceErrorCode.URL_OR_NUMBER_NOT_SET

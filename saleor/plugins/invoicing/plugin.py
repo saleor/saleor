@@ -2,8 +2,8 @@ from typing import Any, Optional
 
 from django.urls import reverse
 
+from ...core import JobStatus
 from ...core.utils import build_absolute_uri
-from ...graphql.invoice.enums import InvoiceStatus
 from ...invoice.models import InvoiceJob
 from ...order.models import Order
 from ..base_plugin import BasePlugin
@@ -30,6 +30,6 @@ class InvoicingPlugin(BasePlugin):
         invoice_job.invoice.update_invoice(
             url=build_absolute_uri(reverse("download-invoice", args=[file_hash]))
         )
-        invoice_job.status = InvoiceStatus.READY
+        invoice_job.status = JobStatus.SUCCESS
         invoice_job.save()
         return invoice_job
