@@ -18,6 +18,18 @@ def test_stocks_for_country(variant_with_many_stocks):
     assert COUNTRY_CODE in warehouse2.countries
 
 
+def test_stocks_for_default_shipping_zone(variant, warehouse):
+    shipping_zone = warehouse.shipping_zones.get()
+    shipping_zone.countries = []
+    shipping_zone.default = True
+    shipping_zone.save(update_fields=["countries", "default"])
+    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=1)
+    warehouse.refresh_from_db()
+
+    stock_qs = Stock.objects.for_country("PL")
+    assert stock_qs
+
+
 def test_stock_for_country_does_not_exists(product, warehouse):
     shipping_zone = warehouse.shipping_zones.first()
     shipping_zone.countries = [COUNTRY_CODE]
