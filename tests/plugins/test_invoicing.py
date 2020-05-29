@@ -2,7 +2,7 @@ from datetime import datetime
 from unittest.mock import Mock, patch
 from uuid import UUID
 
-from saleor.plugins.invoicing import (
+from saleor.plugins.invoicing.utils import (
     chunk_products,
     generate_invoice_pdf,
     get_product_limit_first_page,
@@ -25,10 +25,10 @@ def test_get_product_limit_first_page(product):
     assert get_product_limit_first_page([product] * 16) == 4
 
 
-@patch("saleor.plugins.invoicing.static_finders")
-@patch("saleor.plugins.invoicing.get_template")
-@patch("saleor.plugins.invoicing.default_storage")
-@patch("saleor.plugins.invoicing.os")
+@patch("saleor.plugins.invoicing.utils.static_finders")
+@patch("saleor.plugins.invoicing.utils.get_template")
+@patch("saleor.plugins.invoicing.utils.default_storage")
+@patch("saleor.plugins.invoicing.utils.os")
 def test_generate_invoice_pdf_for_order(
     os_mock, storage_mock, get_template_mock, static_mock, fulfilled_order
 ):
