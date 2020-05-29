@@ -5,6 +5,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ## [Unreleased]
 
 - Add our implementation of UUID scalar - #5646 by @koradon
+- Add AppTokenVerify mutation -  #5716 by @korycins
 
 ## 2.10.1
 
