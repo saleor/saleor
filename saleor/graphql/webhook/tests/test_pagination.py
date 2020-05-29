@@ -1,8 +1,8 @@
 import pytest
 
 from saleor.app.models import App
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.webhook.models import Webhook
-from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture

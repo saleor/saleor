@@ -14,6 +14,7 @@ from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
 from saleor.graphql.product.filters import filter_attributes_by_product_types
 from saleor.graphql.product.mutations.attributes import validate_value_is_unique
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.product import AttributeInputType
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import (
@@ -28,7 +29,6 @@ from saleor.product.models import (
     ProductVariant,
 )
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from tests.api.utils import get_graphql_content
 
 
 def test_validate_value_is_unique(color_attribute):

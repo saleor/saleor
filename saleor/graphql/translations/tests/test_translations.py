@@ -2,9 +2,9 @@ import graphene
 import pytest
 from django.contrib.auth.models import Permission
 
+from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
 from saleor.graphql.translations.schema import TranslatableKinds
 from saleor.graphql.translations.types import LanguageCodeEnum
-from tests.api.utils import assert_no_permission, get_graphql_content
 
 
 def test_product_translation(user_api_client, product):

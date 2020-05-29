@@ -1,7 +1,7 @@
 import graphene
 
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.order import OrderStatus, models as order_models
-from tests.api.utils import get_graphql_content
 
 MUTATION_DELETE_ORDER_LINES = """
 mutation draftOrderLinesBulkDelete($ids: [ID]!) {

@@ -8,9 +8,9 @@ from saleor.account.models import Address
 from saleor.core.error_codes import ShopErrorCode
 from saleor.core.permissions import get_permissions_codename
 from saleor.graphql.core.utils import str_to_enum
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.site import AuthenticationBackends
 from saleor.site.models import Site
-from tests.api.utils import get_graphql_content
 
 
 def test_query_authorization_keys(

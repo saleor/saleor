@@ -15,6 +15,11 @@ from saleor.core.taxes import TaxType
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.bulk_mutations.products import ProductVariantStocksUpdate
 from saleor.graphql.product.utils import create_stocks
+from saleor.graphql.tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_multipart_request_body,
+)
 from saleor.plugins.manager import PluginsManager
 from saleor.product import AttributeInputType
 from saleor.product.error_codes import ProductErrorCode
@@ -32,11 +37,6 @@ from saleor.product.tasks import update_variants_names
 from saleor.product.tests.utils import create_image, create_pdf_file_with_image_ext
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
 from saleor.warehouse.models import Allocation, Stock, Warehouse
-from tests.api.utils import (
-    assert_no_permission,
-    get_graphql_content,
-    get_multipart_request_body,
-)
 
 
 @pytest.fixture

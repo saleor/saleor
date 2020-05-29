@@ -2,6 +2,7 @@ import graphene
 import pytest
 from prices import Money
 
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.product.models import (
     Attribute,
     AttributeProduct,
@@ -9,7 +10,6 @@ from saleor.product.models import (
     Product,
     ProductType,
 )
-from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture

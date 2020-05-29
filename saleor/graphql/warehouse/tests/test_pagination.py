@@ -1,8 +1,8 @@
 import graphene
 import pytest
 
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.warehouse.models import Warehouse
-from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture

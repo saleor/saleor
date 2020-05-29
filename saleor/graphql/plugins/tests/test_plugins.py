@@ -2,13 +2,13 @@ import copy
 
 import pytest
 
+from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
 from saleor.plugins.base_plugin import ConfigurationTypeField
 from saleor.plugins.error_codes import PluginErrorCode
 from saleor.plugins.manager import get_plugins_manager
 from saleor.plugins.models import PluginConfiguration
 from saleor.plugins.tests.sample_plugins import PluginSample
 from saleor.plugins.tests.utils import get_config_value
-from tests.api.utils import assert_no_permission, get_graphql_content
 
 
 @pytest.fixture

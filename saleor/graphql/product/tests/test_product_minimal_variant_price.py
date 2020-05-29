@@ -6,8 +6,8 @@ from graphql_relay import from_global_id, to_global_id
 from prices import Money
 
 from saleor.graphql.discount.enums import DiscountValueTypeEnum
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.product.error_codes import ProductErrorCode
-from tests.api.utils import get_graphql_content
 
 
 def test_product_create_sets_minimal_variant_price(

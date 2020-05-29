@@ -1,6 +1,6 @@
 import graphene
 
-from tests.api.utils import get_graphql_content
+from saleor.graphql.tests.utils import get_graphql_content
 
 GET_SORTED_PRODUCTS_COLLECTION_QUERY = """
 query CollectionProducts($id: ID!) {

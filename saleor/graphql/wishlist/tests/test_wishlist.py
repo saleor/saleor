@@ -1,8 +1,8 @@
 import graphene
 import pytest
 
+from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
 from saleor.wishlist.models import Wishlist
-from tests.api.utils import assert_no_permission, get_graphql_content
 
 
 @pytest.mark.skip(reason="Wishlist temporary removed from api")

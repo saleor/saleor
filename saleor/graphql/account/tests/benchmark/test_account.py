@@ -6,7 +6,7 @@ from django.contrib.auth.models import Group
 from django.core.files import File
 
 from saleor.account.models import User
-from tests.api.utils import get_graphql_content
+from saleor.graphql.tests.utils import get_graphql_content
 
 
 @pytest.mark.django_db

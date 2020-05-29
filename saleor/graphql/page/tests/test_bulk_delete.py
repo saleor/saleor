@@ -1,7 +1,7 @@
 import graphene
 
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.page.models import Page
-from tests.api.utils import get_graphql_content
 
 
 def test_delete_pages(staff_api_client, page_list, permission_manage_pages):

@@ -1,7 +1,7 @@
 import pytest
 
+from saleor.graphql.tests.utils import get_graphql_content
 from saleor.menu.models import Menu, MenuItem
-from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture
