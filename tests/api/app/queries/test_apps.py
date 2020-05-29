@@ -28,7 +28,7 @@ QUERY_APPS_WITH_FILTER = """
                     aboutApp
                     dataPrivacy
                     dataPrivacyUrl
-                    homepageUrl
+                    homepageOnMarketplaceUrl
                     supportUrl
                     configurationUrl
                     appUrl

@@ -206,7 +206,7 @@ type App implements Node & ObjectWithMetadata {
   aboutApp: String
   dataPrivacy: String
   dataPrivacyUrl: String
-  homepageUrl: String
+  homepageOnMarketplaceUrl: String
   supportUrl: String
   configurationUrl: String
   appUrl: String

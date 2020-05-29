@@ -27,7 +27,7 @@ class App(ModelWithMetadata):
     about_app = models.TextField(blank=True, null=True)
     data_privacy = models.TextField(blank=True, null=True)
     data_privacy_url = models.URLField(blank=True, null=True)
-    homepage_url = models.URLField(blank=True, null=True)
+    homepage_on_marketplace_url = models.URLField(blank=True, null=True)
     support_url = models.URLField(blank=True, null=True)
     configuration_url = models.URLField(blank=True, null=True)
     app_url = models.URLField(blank=True, null=True)

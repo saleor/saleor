@@ -1984,7 +1984,7 @@ def external_app(db):
         about_app="About app text.",
         data_privacy="Data privacy text.",
         data_privacy_url="http://www.example.com/privacy/",
-        homepage_url="http://www.example.com/homepage/",
+        homepage_on_marketplace_url="http://www.example.com/homepage/",
         support_url="http://www.example.com/support/contact/",
         configuration_url="http://www.example.com/app-configuration/",
         app_url="http://www.example.com/app/",

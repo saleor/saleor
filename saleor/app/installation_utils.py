@@ -47,7 +47,7 @@ def install_app(
         about_app=manifest_data.get("about"),
         data_privacy=manifest_data.get("dataPrivacy"),
         data_privacy_url=manifest_data.get("dataPrivacyUrl"),
-        homepage_url=manifest_data.get("homepageUrl"),
+        homepage_on_marketplace_url=manifest_data.get("homepageOnMarketUrl"),
         support_url=manifest_data.get("supportUrl"),
         configuration_url=manifest_data.get("configurationUrl"),
         app_url=manifest_data.get("appUrl"),

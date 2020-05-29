@@ -26,7 +26,7 @@ QUERY_APP = """
             aboutApp
             dataPrivacy
             dataPrivacyUrl
-            homepageUrl
+            homepageOnMarketplaceUrl
             supportUrl
             configurationUrl
             appUrl
@@ -73,7 +73,7 @@ def test_app_query(
     assert app_data["aboutApp"] == app.about_app
     assert app_data["dataPrivacy"] == app.data_privacy
     assert app_data["dataPrivacyUrl"] == app.data_privacy_url
-    assert app_data["homepageUrl"] == app.homepage_url
+    assert app_data["homepageOnMarketplaceUrl"] == app.homepage_on_marketplace_url
     assert app_data["supportUrl"] == app.support_url
     assert app_data["configurationUrl"] == app.configuration_url
     assert app_data["appUrl"] == app.app_url

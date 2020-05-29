@@ -55,7 +55,9 @@ class App(CountableDjangoObjectType):
     data_privacy_url = graphene.String(
         description="Url to details about the privacy policy on the app owner page."
     )
-    homepage_url = graphene.String(description="Homepage of the app.")
+    homepage_on_marketplace_url = graphene.String(
+        description="Homepage of the app on the marketplace."
+    )
     support_url = graphene.String(description="Support page for the app.")
     configuration_url = graphene.String(
         description="Url to iframe with the configuration for the app."
