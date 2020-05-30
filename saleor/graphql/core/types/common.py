@@ -15,7 +15,6 @@ from ..enums import (
     OrderErrorCode,
     PageErrorCode,
     PaymentErrorCode,
-    PendingTargetEnum,
     PermissionEnum,
     PermissionGroupErrorCode,
     PluginErrorCode,
@@ -302,9 +301,3 @@ class Job(graphene.Interface):
             # <DjangoModel>: <GrapheneType>
         }
         return MODEL_TO_TYPE_MAP.get(type(instance))
-
-
-class InvoiceJobInterface(Job):
-    pending_target = PendingTargetEnum(
-        description="What pending status should mutate into.", required=True
-    )

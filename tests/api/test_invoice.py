@@ -14,9 +14,16 @@ from .utils import assert_no_permission, get_graphql_content
 REQUEST_INVOICE_MUTATION = """
     mutation RequestInvoice($orderId: ID!, $number: String) {
         requestInvoice(
-            orderId: $orderId,
+            orderId: $orderId
             number: $number
         ) {
+            invoiceJob {
+                status
+                invoice {
+                    number
+                    url
+                }
+            }
             invoiceErrors {
                 field
                 code
@@ -36,7 +43,7 @@ CREATE_INVOICE_MUTATION = """
             }
         ) {
             invoiceJob {
-                status,
+                status
                 invoice {
                     number
                     url
@@ -82,9 +89,9 @@ DELETE_INVOICE_MUTATION = """
 UPDATE_INVOICE_MUTATION = """
     mutation UpdateInvoice($id: ID!, $number: String, $url: String) {
         updateInvoice(
-            id: $id,
+            id: $id
             input: {
-                number: $number,
+                number: $number
                 url: $url
             }
         ) {
@@ -92,6 +99,7 @@ UPDATE_INVOICE_MUTATION = """
                 invoice {
                     number
                     url
+                    metadata
                 }
             }
             invoiceErrors {
@@ -126,9 +134,10 @@ def test_request_invoice(
         "orderId": graphene.Node.to_global_id("Order", order.pk),
         "number": number,
     }
-    staff_api_client.post_graphql(
+    response = staff_api_client.post_graphql(
         REQUEST_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )
+    content = get_graphql_content(response)
     invoice = Invoice.objects.filter(number=number, order=order.pk).first()
     invoice_job = InvoiceJob.objects.get(
         invoice__id=invoice.pk, status=JobStatus.PENDING
@@ -142,6 +151,10 @@ def test_request_invoice(
         order=invoice.order,
         parameters__number=number,
     ).exists()
+    assert (
+        content["data"]["requestInvoice"]["invoiceJob"]["status"]
+        == JobStatus.PENDING.upper()
+    )
     assert invoice_job.pending_target == PendingTarget.COMPLETE
 
 
@@ -298,7 +311,8 @@ def test_delete_invoice_invalid_id(
 
 
 def test_update_invoice(staff_api_client, permission_manage_orders, order):
-    invoice = Invoice.objects.create(order=order)
+    metadata = {"test_key": "test_val"}
+    invoice = Invoice.objects.create(order=order, metadata=metadata)
     invoice_job = InvoiceJob.objects.create(invoice=invoice)
     number = "01/12/2020/TEST"
     url = "http://www.example.com"
@@ -317,6 +331,10 @@ def test_update_invoice(staff_api_client, permission_manage_orders, order):
     assert (
         invoice.number
         == content["data"]["updateInvoice"]["invoiceJob"]["invoice"]["number"]
+    )
+    assert (
+        eval(content["data"]["updateInvoice"]["invoiceJob"]["invoice"]["metadata"])
+        == metadata
     )
     assert (
         invoice.url == content["data"]["updateInvoice"]["invoiceJob"]["invoice"]["url"]

@@ -2,7 +2,7 @@ import graphene
 
 from ...invoice import models
 from ..core.connection import CountableDjangoObjectType
-from ..core.types.common import InvoiceJobInterface
+from ..core.types.common import Job
 
 
 class Invoice(CountableDjangoObjectType):
@@ -10,7 +10,7 @@ class Invoice(CountableDjangoObjectType):
         description = "Represents an Invoice."
         interfaces = [graphene.relay.Node]
         model = models.Invoice
-        only_fields = ["id", "number", "url"]
+        only_fields = ["id", "number", "url", "metadata"]
 
 
 class InvoiceJob(CountableDjangoObjectType):
@@ -18,6 +18,6 @@ class InvoiceJob(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents an invoice job."
-        interfaces = [graphene.relay.Node, InvoiceJobInterface]
+        interfaces = [graphene.relay.Node, Job]
         model = models.InvoiceJob
-        only_fields = ["id", "status", "invoice"]
+        only_fields = ["id", "status", "invoice", "pending_target"]

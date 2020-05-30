@@ -1957,6 +1957,7 @@ input IntRangeInput {
 
 type Invoice implements Node {
   id: ID!
+  metadata: JSONString
   number: String
   url: String
 }
@@ -1975,23 +1976,27 @@ enum InvoiceErrorCode {
   INVALID_STATUS
 }
 
-type InvoiceJob implements Node & InvoiceJobInterface {
+type InvoiceJob implements Node & Job {
   id: ID!
   status: JobStatusEnum!
   invoice: Invoice
+  pendingTarget: InvoiceJobPendingTarget!
   createdAt: DateTime!
   updatedAt: DateTime!
-  pendingTarget: PendingTargetEnum!
 }
 
-interface InvoiceJobInterface {
-  status: JobStatusEnum!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  pendingTarget: PendingTargetEnum!
+enum InvoiceJobPendingTarget {
+  DELETE
+  COMPLETE
 }
 
 scalar JSONString
+
+interface Job {
+  status: JobStatusEnum!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
 
 enum JobStatusEnum {
   PENDING
@@ -3205,11 +3210,6 @@ type PaymentVoid {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   payment: Payment
   paymentErrors: [PaymentError!]!
-}
-
-enum PendingTargetEnum {
-  DELETE
-  COMPLETE
 }
 
 type Permission {
