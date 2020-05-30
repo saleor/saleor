@@ -1,5 +1,4 @@
-import uuid
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import graphene
 
@@ -156,22 +155,6 @@ def test_request_invoice(
         == JobStatus.PENDING.upper()
     )
     assert invoice_job.pending_target == PendingTarget.COMPLETE
-
-
-@patch("saleor.plugins.invoicing.utils.default_storage")
-def test_request_invoice_with_plugin(
-    stor_mock, staff_api_client, permission_manage_orders, order, setup_invoicing
-):
-    stor_mock.save = Mock(return_value=f"{uuid.uuid4()}.pdf")
-    variables = {
-        "orderId": graphene.Node.to_global_id("Order", order.pk),
-    }
-    staff_api_client.post_graphql(
-        REQUEST_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
-    job = InvoiceJob.objects.get(invoice__order=order)
-    assert job.status == JobStatus.SUCCESS
-    assert job.pending_target == PendingTarget.COMPLETE
 
 
 def test_request_invoice_draft_order(staff_api_client, permission_manage_orders, order):
@@ -447,9 +430,7 @@ def test_create_invoice_no_billing_address(
         CREATE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    assert not Invoice.objects.filter(
-        order_id=order.pk, url=url, number=number
-    ).exists()
+    assert not Invoice.objects.filter(order_id=order.pk, number=number).exists()
     error = content["data"]["createInvoice"]["invoiceErrors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.NOT_READY.name
@@ -471,9 +452,7 @@ def test_create_invoice_for_draft_order(
         CREATE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    assert not Invoice.objects.filter(
-        order_id=order.pk, url=url, number=number
-    ).exists()
+    assert not Invoice.objects.filter(order_id=order.pk, number=number).exists()
     error = content["data"]["createInvoice"]["invoiceErrors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.INVALID_STATUS.name

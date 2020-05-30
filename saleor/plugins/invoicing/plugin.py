@@ -1,9 +1,9 @@
 from typing import Any, Optional
+from uuid import uuid4
 
-from django.urls import reverse
+from django.core.files.base import ContentFile
 
 from ...core import JobStatus
-from ...core.utils import build_absolute_uri
 from ...invoice.models import InvoiceJob
 from ...order.models import Order
 from ..base_plugin import BasePlugin
@@ -23,12 +23,12 @@ class InvoicingPlugin(BasePlugin):
         number: Optional[str],
         previous_value: Any,
     ) -> Any:
-        file_hash, creation_date = generate_invoice_pdf(invoice_job.invoice)
+        file_content, creation_date = generate_invoice_pdf(invoice_job.invoice)
         invoice_job.invoice.created = creation_date
         invoice_job.invoice.update_invoice(number=generate_invoice_number())
         invoice_job.invoice.save()
-        invoice_job.invoice.update_invoice(
-            url=build_absolute_uri(reverse("download-invoice", args=[file_hash]))
+        invoice_job.invoice.invoice_file.save(
+            f"{uuid4()}.pdf", ContentFile(file_content)
         )
         invoice_job.status = JobStatus.SUCCESS
         invoice_job.save()

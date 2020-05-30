@@ -5,6 +5,7 @@ from django.utils.timezone import now
 
 from ..core import JobStatus
 from ..core.models import Job, ModelWithMetadata
+from ..core.utils import build_absolute_uri
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..graphql.invoice.enums import PendingTarget
 from ..order.models import Order
@@ -22,8 +23,19 @@ class Invoice(ModelWithMetadata):
     )
     number = models.CharField(max_length=255, null=True)
     created = models.DateTimeField(null=True)
-    url = models.URLField(null=True, max_length=2048)
+    external_url = models.URLField(null=True, max_length=2048)
+    invoice_file = models.FileField(upload_to="invoices")
     objects = InvoiceQueryset.as_manager()
+
+    @property
+    def url(self):
+        if self.invoice_file:
+            return build_absolute_uri(self.invoice_file.url)
+        return self.external_url
+
+    @url.setter
+    def url(self, value):
+        self.external_url = value
 
     def update_invoice(self, number=None, url=None):
         if number is not None:

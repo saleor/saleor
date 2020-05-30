@@ -6,6 +6,8 @@ from ..core.types.common import Job
 
 
 class Invoice(CountableDjangoObjectType):
+    url = graphene.String()
+
     class Meta:
         description = "Represents an Invoice."
         interfaces = [graphene.relay.Node]

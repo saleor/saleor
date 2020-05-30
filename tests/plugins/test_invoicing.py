@@ -1,6 +1,5 @@
 from datetime import datetime
 from unittest.mock import Mock, patch
-from uuid import UUID
 
 from saleor.plugins.invoicing.utils import (
     chunk_products,
@@ -25,20 +24,19 @@ def test_get_product_limit_first_page(product):
     assert get_product_limit_first_page([product] * 16) == 4
 
 
+@patch("saleor.plugins.invoicing.utils.HTML")
 @patch("saleor.plugins.invoicing.utils.static_finders")
 @patch("saleor.plugins.invoicing.utils.get_template")
-@patch("saleor.plugins.invoicing.utils.default_storage")
 @patch("saleor.plugins.invoicing.utils.os")
 def test_generate_invoice_pdf_for_order(
-    os_mock, storage_mock, get_template_mock, static_mock, fulfilled_order
+    os_mock, get_template_mock, static_mock, HTML_mock, fulfilled_order
 ):
     file_path = "/dev/null"
     static_mock.find.return_value = file_path
-    storage_mock.save = Mock()
     get_template_mock.return_value.render = Mock(return_value="<html></html>")
     os_mock.path.join.return_value = "test"
 
-    generate_invoice_pdf(fulfilled_order.invoices.first())
+    content, creation = generate_invoice_pdf(fulfilled_order.invoices.first())
 
     get_template_mock.return_value.render.assert_called_once_with(
         {
@@ -51,7 +49,6 @@ def test_generate_invoice_pdf_for_order(
             "rest_of_products": [],
         }
     )
-
-    file_name, extension = storage_mock.save.call_args[0][0].split(".")
-    assert UUID(file_name, version=4)
-    assert extension == "pdf"
+    HTML_mock.assert_called_once_with(
+        string=get_template_mock.return_value.render.return_value
+    )
