@@ -1,13 +1,10 @@
 import os
 import re
 from datetime import datetime
-from uuid import uuid4
 
 import pytz
 from django.conf import settings
 from django.contrib.staticfiles import finders as static_finders
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
 from django.template.loader import get_template
 from weasyprint import HTML
 
@@ -74,7 +71,6 @@ def generate_invoice_pdf(invoice):
         all_products[product_limit_first_page:], MAX_PRODUCTS_PER_PAGE
     )
     cretion_date = datetime.now(tz=pytz.utc)
-
     rendered_template = get_template("invoices/invoice.html").render(
         {
             "invoice": invoice,
@@ -86,7 +82,4 @@ def generate_invoice_pdf(invoice):
             "rest_of_products": rest_of_products,
         }
     )
-    content_file = ContentFile(HTML(string=rendered_template).write_pdf())
-    identifier = uuid4()
-    default_storage.save(f"{identifier}.pdf", content_file)
-    return identifier, cretion_date
+    return HTML(string=rendered_template).write_pdf(), cretion_date

@@ -182,13 +182,6 @@ def setup_vatlayer(settings):
     return settings
 
 
-@pytest.fixture
-def setup_invoicing(settings):
-    settings.PLUGINS = ["saleor.plugins.invoicing.plugin.InvoicingPlugin"]
-    PluginConfiguration.objects.create(identifier=InvoicingPlugin.PLUGIN_ID)
-    return settings
-
-
 @pytest.fixture(autouse=True)
 def setup_dummy_gateway(settings):
     settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
