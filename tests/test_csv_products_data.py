@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from measurement.measures import Weight
 
 from saleor.csv.utils.products_data import (
@@ -10,11 +12,20 @@ from saleor.csv.utils.products_data import (
     get_export_fields_and_headers_info,
     get_product_export_fields_and_headers,
     get_products_data,
+    get_products_relations_data,
+    get_variants_relations_data,
     get_warehouses_headers,
     prepare_products_relations_data,
+    prepare_variants_relations_data,
 )
 from saleor.graphql.csv.enums import ProductFieldEnum
-from saleor.product.models import Attribute, Product, ProductVariant, VariantImage
+from saleor.product.models import (
+    Attribute,
+    Product,
+    ProductImage,
+    ProductVariant,
+    VariantImage,
+)
 from saleor.warehouse.models import Warehouse
 
 
@@ -254,6 +265,58 @@ def test_get_products_data_for_specified_warehouses_and_attributes(
     assert result_data == expected_data
 
 
+@patch("saleor.csv.utils.products_data.prepare_products_relations_data")
+def test_get_products_relations_data(prepare_products_data_mocked, product_list):
+    # given
+    qs = Product.objects.all()
+    export_fields = {
+        "collections__slug" "images__image",
+        "name",
+        "description",
+    }
+    attribute_ids = []
+
+    # when
+    get_products_relations_data(qs, export_fields, attribute_ids)
+
+    # then
+    prepare_products_data_mocked.called_once_with(
+        qs, {"collections__slug", "images__image"}, attribute_ids
+    )
+
+
+@patch("saleor.csv.utils.products_data.prepare_products_relations_data")
+def test_get_products_relations_data_no_relations_fields(
+    prepare_products_data_mocked, product_list
+):
+    # given
+    qs = Product.objects.all()
+    export_fields = {"name", "description"}
+    attribute_ids = []
+
+    # when
+    get_products_relations_data(qs, export_fields, attribute_ids)
+
+    # then
+    prepare_products_data_mocked.assert_not_called()
+
+
+@patch("saleor.csv.utils.products_data.prepare_products_relations_data")
+def test_get_products_relations_data_attribute_ids(
+    prepare_products_data_mocked, product_list
+):
+    # given
+    qs = Product.objects.all()
+    export_fields = {"name", "description"}
+    attribute_ids = list(Attribute.objects.values_list("pk", flat=True))
+
+    # when
+    get_products_relations_data(qs, export_fields, attribute_ids)
+
+    # then
+    prepare_products_data_mocked.called_once_with(qs, {}, attribute_ids)
+
+
 def test_prepare_products_relations_data(product_with_image, collection_list):
     # given
     pk = product_with_image.pk
@@ -287,6 +350,280 @@ def test_prepare_products_relations_data(product_with_image, collection_list):
     if assigned_attribute:
         header = f"{assigned_attribute.attribute.slug} (product attribute)"
         expected_result[pk][header] = assigned_attribute.values.first().slug
+
+    assert result == expected_result
+
+
+def test_prepare_products_relations_data_only_fields(
+    product_with_image, collection_list
+):
+    # given
+    pk = product_with_image.pk
+    collection_list[0].products.add(product_with_image)
+    collection_list[1].products.add(product_with_image)
+    qs = Product.objects.all()
+    fields = {"collections__slug"}
+    attribute_ids = []
+
+    # when
+    result = prepare_products_relations_data(qs, fields, attribute_ids)
+
+    # then
+    collections = ", ".join(
+        sorted([collection.slug for collection in collection_list[:2]])
+    )
+    expected_result = {pk: {"collections__slug": collections}}
+
+    assert result == expected_result
+
+
+def test_prepare_products_relations_data_only_attributes_ids(
+    product_with_image, collection_list
+):
+    # given
+    pk = product_with_image.pk
+    collection_list[0].products.add(product_with_image)
+    collection_list[1].products.add(product_with_image)
+    qs = Product.objects.all()
+    fields = {"name"}
+    attribute_ids = [
+        str(attr.assignment.attribute.pk)
+        for attr in product_with_image.attributes.all()
+    ]
+
+    # when
+    result = prepare_products_relations_data(qs, fields, attribute_ids)
+
+    # then
+    expected_result = {pk: {}}
+
+    assigned_attribute = product_with_image.attributes.first()
+    if assigned_attribute:
+        header = f"{assigned_attribute.attribute.slug} (product attribute)"
+        expected_result[pk][header] = assigned_attribute.values.first().slug
+
+    assert result == expected_result
+
+
+@patch("saleor.csv.utils.products_data.prepare_variants_relations_data")
+def test_get_variants_relations_data(prepare_variants_data_mocked, product_list):
+    # given
+    qs = Product.objects.all()
+    export_fields = {
+        "collections__slug",
+        "variants__sku",
+        "variants__images__image",
+    }
+    attribute_ids = []
+    warehouse_ids = []
+
+    # when
+    get_variants_relations_data(qs, export_fields, attribute_ids, warehouse_ids)
+
+    # then
+    prepare_variants_data_mocked.called_once_with(
+        qs, {ProductFieldEnum.VARIANT_IMAGES.value}, attribute_ids, warehouse_ids
+    )
+
+
+@patch("saleor.csv.utils.products_data.prepare_variants_relations_data")
+def test_get_variants_relations_data_no_relations_fields(
+    prepare_variants_data_mocked, product_list
+):
+    # given
+    qs = Product.objects.all()
+    export_fields = {"name", "variants__sku"}
+    attribute_ids = []
+    warehouse_ids = []
+
+    # when
+    get_variants_relations_data(qs, export_fields, attribute_ids, warehouse_ids)
+
+    # then
+    prepare_variants_data_mocked.assert_not_called()
+
+
+@patch("saleor.csv.utils.products_data.prepare_variants_relations_data")
+def test_get_variants_relations_data_attribute_ids(
+    prepare_variants_data_mocked, product_list
+):
+    # given
+    qs = Product.objects.all()
+    export_fields = {"name", "variants__sku"}
+    attribute_ids = list(Attribute.objects.values_list("pk", flat=True))
+    warehouse_ids = []
+
+    # when
+    get_variants_relations_data(qs, export_fields, attribute_ids, warehouse_ids)
+
+    # then
+    prepare_variants_data_mocked.called_once_with(qs, {}, attribute_ids, warehouse_ids)
+
+
+@patch("saleor.csv.utils.products_data.prepare_variants_relations_data")
+def test_get_variants_relations_data_warehouse_ids(
+    prepare_variants_data_mocked, product_list, warehouses
+):
+    # given
+    qs = Product.objects.all()
+    export_fields = {"name", "variants__sku"}
+    attribute_ids = []
+    warehouse_ids = list(Warehouse.objects.values_list("pk", flat=True))
+
+    # when
+    get_variants_relations_data(qs, export_fields, attribute_ids, warehouse_ids)
+
+    # then
+    prepare_variants_data_mocked.called_once_with(qs, {}, attribute_ids, warehouse_ids)
+
+
+@patch("saleor.csv.utils.products_data.prepare_variants_relations_data")
+def test_get_variants_relations_data_attributes_and_warehouses_ids(
+    prepare_variants_data_mocked, product_list, warehouses
+):
+    # given
+    qs = Product.objects.all()
+    export_fields = {"name", "description"}
+    attribute_ids = list(Attribute.objects.values_list("pk", flat=True))
+    warehouse_ids = list(Warehouse.objects.values_list("pk", flat=True))
+
+    # when
+    get_variants_relations_data(qs, export_fields, attribute_ids, warehouse_ids)
+
+    # then
+    prepare_variants_data_mocked.called_once_with(qs, {}, attribute_ids, warehouse_ids)
+
+
+def test_prepare_variants_relations_data(
+    product_with_variant_with_two_attributes, image, media_root
+):
+    # given
+    qs = Product.objects.all()
+    variant = product_with_variant_with_two_attributes.variants.first()
+    product_image = ProductImage.objects.create(
+        product=product_with_variant_with_two_attributes, image=image
+    )
+    VariantImage.objects.create(variant=variant, image=product_image)
+
+    fields = {"variants__images__image"}
+    attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()]
+    warehouse_ids = [str(w.pk) for w in Warehouse.objects.all()]
+
+    # when
+    result = prepare_variants_relations_data(qs, fields, attribute_ids, warehouse_ids)
+
+    # then
+    pk = variant.pk
+    images = ", ".join(
+        [
+            "http://mirumee.com/media/" + image.image.name
+            for image in variant.images.all()
+        ]
+    )
+    expected_result = {pk: {"variants__images__image": images}}
+
+    for assigned_attribute in variant.attributes.all():
+        header = f"{assigned_attribute.attribute.slug} (variant attribute)"
+        if str(assigned_attribute.attribute.pk) in attribute_ids:
+            expected_result[pk][header] = assigned_attribute.values.first().slug
+
+    for stock in variant.stocks.all():
+        if str(stock.warehouse.pk) in warehouse_ids:
+            slug = stock.warehouse.slug
+            warehouse_headers = [
+                f"{slug} (warehouse quantity)",
+            ]
+            expected_result[pk][warehouse_headers[0]] = stock.quantity
+
+    assert result == expected_result
+
+
+def test_prepare_variants_relations_data_only_fields(
+    product_with_variant_with_two_attributes, image, media_root
+):
+    # given
+    qs = Product.objects.all()
+    variant = product_with_variant_with_two_attributes.variants.first()
+    product_image = ProductImage.objects.create(
+        product=product_with_variant_with_two_attributes, image=image
+    )
+    VariantImage.objects.create(variant=variant, image=product_image)
+
+    fields = {"variants__images__image"}
+    attribute_ids = []
+    warehouse_ids = []
+
+    # when
+    result = prepare_variants_relations_data(qs, fields, attribute_ids, warehouse_ids)
+
+    # then
+    pk = variant.pk
+    images = ", ".join(
+        [
+            "http://mirumee.com/media/" + image.image.name
+            for image in variant.images.all()
+        ]
+    )
+    expected_result = {pk: {"variants__images__image": images}}
+
+    assert result == expected_result
+
+
+def test_prepare_variants_relations_data_attributes_ids(
+    product_with_variant_with_two_attributes, image, media_root
+):
+    # given
+    qs = Product.objects.all()
+    variant = product_with_variant_with_two_attributes.variants.first()
+    product_image = ProductImage.objects.create(
+        product=product_with_variant_with_two_attributes, image=image
+    )
+    VariantImage.objects.create(variant=variant, image=product_image)
+
+    fields = set()
+    attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()]
+    warehouse_ids = []
+
+    # when
+    result = prepare_variants_relations_data(qs, fields, attribute_ids, warehouse_ids)
+
+    # then
+    pk = variant.pk
+    expected_result = {pk: {}}
+
+    for assigned_attribute in variant.attributes.all():
+        header = f"{assigned_attribute.attribute.slug} (variant attribute)"
+        if str(assigned_attribute.attribute.pk) in attribute_ids:
+            expected_result[pk][header] = assigned_attribute.values.first().slug
+
+    assert result == expected_result
+
+
+def test_prepare_variants_relations_data_warehouse_ids(
+    product_with_single_variant, image, media_root
+):
+    # given
+    qs = Product.objects.all()
+    variant = product_with_single_variant.variants.first()
+
+    fields = set()
+    attribute_ids = []
+    warehouse_ids = [str(w.pk) for w in Warehouse.objects.all()]
+
+    # when
+    result = prepare_variants_relations_data(qs, fields, attribute_ids, warehouse_ids)
+
+    # then
+    pk = variant.pk
+    expected_result = {pk: {}}
+
+    for stock in variant.stocks.all():
+        if str(stock.warehouse.pk) in warehouse_ids:
+            slug = stock.warehouse.slug
+            warehouse_headers = [
+                f"{slug} (warehouse quantity)",
+            ]
+            expected_result[pk][warehouse_headers[0]] = stock.quantity
 
     assert result == expected_result
 
