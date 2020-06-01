@@ -555,6 +555,7 @@ class ProductCreateInput(ProductInput):
         ),
         required=False,
     )
+    base_price = Decimal(description="Default price for product variant.",)
 
 
 T_INPUT_MAP = List[Tuple[models.Attribute, List[str]]]
@@ -934,8 +935,13 @@ class ProductCreate(ModelMutation):
                 "track_inventory", site_settings.track_inventory_by_default
             )
             sku = cleaned_input.get("sku")
+            variant_price = cleaned_input.get("base_price")
+
             variant = models.ProductVariant.objects.create(
-                product=instance, track_inventory=track_inventory, sku=sku
+                product=instance,
+                track_inventory=track_inventory,
+                sku=sku,
+                price_amount=variant_price,
             )
             stocks = cleaned_input.get("stocks")
             if stocks:

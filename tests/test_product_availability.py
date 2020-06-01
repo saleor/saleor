@@ -29,8 +29,8 @@ def test_product_availability_status(unavailable_product, warehouse):
     status = get_product_availability_status(product, "US")
     assert status == ProductAvailabilityStatus.VARIANTS_MISSSING
 
-    variant_1 = product.variants.create(sku="test-1")
-    variant_2 = product.variants.create(sku="test-2")
+    variant_1 = product.variants.create(sku="test-1", price_amount=10)
+    variant_2 = product.variants.create(sku="test-2", price_amount=10)
     # create empty stock records
     stock_1 = Stock.objects.create(
         product_variant=variant_1, warehouse=warehouse, quantity=0
@@ -67,7 +67,7 @@ def test_variant_is_out_of_stock_when_product_is_unavalable(
     product = unavailable_product
     product.product_type.has_variants = True
 
-    variant = product.variants.create(sku="test")
+    variant = product.variants.create(sku="test", price_amount=10)
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=0)
 
     status = get_variant_availability_status(variant, "US")

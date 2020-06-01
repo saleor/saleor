@@ -302,30 +302,9 @@ class ProductVariant(CountableDjangoObjectType):
         return root.cost_price
 
     @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_price(root: models.ProductVariant, *_args):
         return root.price
-
-    # @staticmethod
-    # @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    # def resolve_base_price(root: models.ProductVariant, _info):
-    #     return root.price
-    #
-    # @staticmethod
-    # def resolve_price(root: models.ProductVariant, info):
-    #     context = info.context
-    #
-    #     def calculate_price(discounts):
-    #         price_range = root.get_price_range(discounts)
-    #         price = info.context.plugins.apply_taxes_to_product(
-    #             root, price_range.start, info.context.country
-    #         )
-    #         return price.net
-    #
-    #     return (
-    #         DiscountsByDateTimeLoader(context)
-    #         .load(info.context.request_time)
-    #         .then(calculate_price)
-    #     )
 
     @staticmethod
     def resolve_pricing(root: models.ProductVariant, info):

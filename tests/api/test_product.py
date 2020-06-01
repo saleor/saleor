@@ -280,8 +280,6 @@ def test_product_query(staff_api_client, product, permission_manage_products, st
     assert product_data["name"] == product.name
     assert product_data["url"] == ""
     assert product_data["slug"] == product.slug
-    gross = product_data["pricing"]["priceRange"]["start"]["gross"]
-    assert float(gross["amount"]) == float(product.price.amount)
     from saleor.product.utils.costs import get_product_costs_data
 
     purchase_cost, margin = get_product_costs_data(product)
@@ -456,7 +454,6 @@ def test_products_query_with_filter_collection(
 @pytest.mark.parametrize(
     "products_filter",
     [
-        {"price": {"gte": 5.0, "lte": 9.0}},
         {"minimalPrice": {"gte": 1.0, "lte": 2.0}},
         {"isPublished": False},
         {"search": "Juice1"},
@@ -469,16 +466,15 @@ def test_products_query_with_filter(
     product,
     permission_manage_products,
 ):
-    assert product.price == Money("10.00", "USD")
-    assert product.minimal_variant_price == Money("10.00", "USD")
     assert product.is_published is True
     assert "Juice1" not in product.name
+    product.minimal_variant_price = Money("10.00", "USD")
+    product.save()
 
     second_product = product
     second_product.id = None
     second_product.name = "Apple Juice1"
     second_product.slug = "apple-juice1"
-    second_product.price = Money("6.00", "USD")
     second_product.minimal_variant_price = Money("1.99", "USD")
     second_product.is_published = products_filter.get("isPublished", True)
     second_product.save()
@@ -791,48 +787,18 @@ SORT_PRODUCTS_QUERY = """
 
 def test_sort_products(user_api_client, product):
     # set price and update date of the first product
-    product.price = Money("10.00", "USD")
-    product.minimal_variant_price = Money("10.00", "USD")
+    product.minimal_variant_price_amount = 10
     product.updated_at = datetime.utcnow()
     product.save()
 
     # Create the second product with higher price and date
     product.pk = None
     product.slug = "second-product"
-    product.price = Money("20.00", "USD")
-    product.minimal_variant_price = Money("20.00", "USD")
+    product.minimal_variant_amount = 20
     product.updated_at = datetime.utcnow()
     product.save()
 
     query = SORT_PRODUCTS_QUERY
-
-    # Test sorting by PRICE, ascending
-    asc_price_query = query % {"sort_by_product_order": "{field: PRICE, direction:ASC}"}
-    response = user_api_client.post_graphql(asc_price_query)
-    content = get_graphql_content(response)
-    edges = content["data"]["products"]["edges"]
-    price1 = edges[0]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
-        "amount"
-    ]
-    price2 = edges[1]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
-        "amount"
-    ]
-    assert price1 < price2
-
-    # Test sorting by PRICE, descending
-    desc_price_query = query % {
-        "sort_by_product_order": "{field: PRICE, direction:DESC}"
-    }
-    response = user_api_client.post_graphql(desc_price_query)
-    content = get_graphql_content(response)
-    edges = content["data"]["products"]["edges"]
-    price1 = edges[0]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
-        "amount"
-    ]
-    price2 = edges[1]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
-        "amount"
-    ]
-    assert price1 > price2
 
     # Test sorting by MINIMAL_PRICE, ascending
     asc_price_query = query % {
@@ -949,9 +915,6 @@ CREATE_PRODUCT_MUTATION = """
                             }
                             name
                             slug
-                            basePrice {
-                                amount
-                            }
                             productType {
                                 name
                             }
@@ -1051,7 +1014,6 @@ def test_create_product(
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
-    assert str(data["product"]["basePrice"]["amount"]) == product_price
     values = (
         data["product"]["attributes"][0]["values"][0]["slug"],
         data["product"]["attributes"][1]["values"][0]["slug"],
@@ -1114,7 +1076,6 @@ def test_create_product_no_slug_in_input(
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
-    assert str(data["product"]["basePrice"]["amount"]) == product_price
 
 
 def test_create_product_no_category_id(
@@ -1165,7 +1126,6 @@ def test_create_product_no_category_id(
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"] is None
-    assert str(data["product"]["basePrice"]["amount"]) == product_price
 
 
 def test_create_product_with_negative_weight(
@@ -1230,6 +1190,9 @@ QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
                     sku
                     trackInventory
                     quantity
+                    price {
+                        amount
+                    }
                 }
                 category {
                     name
@@ -1282,6 +1245,7 @@ def test_create_product_without_variants(
     assert data["product"]["category"]["name"] == category.name
     assert data["product"]["variants"][0]["sku"] == sku
     assert data["product"]["variants"][0]["trackInventory"] == track_inventory
+    assert data["product"]["variants"][0]["price"]["amount"] == product_price
 
 
 def test_create_product_without_variants_sku_validation(
@@ -1498,7 +1462,6 @@ def test_update_product(
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
             $taxCode: String!,
-            $basePrice: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productUpdate(
                     id: $productId,
@@ -1510,7 +1473,6 @@ def test_update_product(
                         isPublished: $isPublished,
                         chargeTaxes: $chargeTaxes,
                         taxCode: $taxCode,
-                        basePrice: $basePrice,
                         attributes: $attributes
                     }) {
                         product {
@@ -1526,9 +1488,6 @@ def test_update_product(
                             }
                             name
                             slug
-                            basePrice {
-                                amount
-                            }
                             productType {
                                 name
                             }
@@ -1560,8 +1519,6 @@ def test_update_product(
     product_is_published = True
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
-    product_price = "33.12"
-    assert str(product.price.amount) == "10.00"
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
@@ -1581,7 +1538,6 @@ def test_update_product(
         "isPublished": product_is_published,
         "chargeTaxes": product_charge_taxes,
         "taxCode": product_tax_rate,
-        "basePrice": product_price,
         "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
     }
 
@@ -1597,7 +1553,6 @@ def test_update_product(
     assert data["product"]["isPublished"] == product_is_published
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
-    assert str(data["product"]["basePrice"]["amount"]) == product_price
     assert not data["product"]["category"]["name"] == category.name
 
     attributes = data["product"]["attributes"]
@@ -1763,44 +1718,44 @@ def test_update_product_slug_and_name(
         assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
-UPDATE_PRODUCT_PRICE_MUTATION = """
-    mutation($id: ID!, $basePrice: Decimal) {
-        productUpdate(
-            id: $id
-            input: {
-                basePrice: $basePrice
-            }
-        ) {
-            product{
-                name
-                slug
-            }
-            productErrors {
-                field
-                message
-                code
-            }
-        }
-    }
-"""
-
-
-def test_update_product_invalid_price(
-    staff_api_client, product, permission_manage_products,
-):
-
-    node_id = graphene.Node.to_global_id("Product", product.id)
-    variables = {"basePrice": Decimal("-19"), "id": node_id}
-    response = staff_api_client.post_graphql(
-        UPDATE_PRODUCT_PRICE_MUTATION,
-        variables,
-        permissions=[permission_manage_products],
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productUpdate"]
-    errors = data["productErrors"]
-    assert errors[0]["field"] == "basePrice"
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+# UPDATE_PRODUCT_PRICE_MUTATION = """
+#     mutation($id: ID!, $variantPrice: Decimal) {
+#         productUpdate(
+#             id: $id
+#             input: {
+#                 variantPrice: $variantPrice
+#             }
+#         ) {
+#             product{
+#                 name
+#                 slug
+#             }
+#             productErrors {
+#                 field
+#                 message
+#                 code
+#             }
+#         }
+#     }
+# """
+#
+#
+# def test_update_product_invalid_price(
+#     staff_api_client, product, permission_manage_products,
+# ):
+#
+#     node_id = graphene.Node.to_global_id("Product", product.id)
+#     variables = {"variantPrice": Decimal("-19"), "id": node_id}
+#     response = staff_api_client.post_graphql(
+#         UPDATE_PRODUCT_PRICE_MUTATION,
+#         variables,
+#         permissions=[permission_manage_products],
+#     )
+#     content = get_graphql_content(response)
+#     data = content["data"]["productUpdate"]
+#     errors = data["productErrors"]
+#     assert errors[0]["field"] == "variantPrice"
+#     assert errors[0]["code"] == ProductErrorCode.INVALID.name
 
 
 SET_ATTRIBUTES_TO_PRODUCT_QUERY = """
@@ -3191,20 +3146,14 @@ def test_product_variants_no_ids_list(user_api_client, variant):
 
 
 @pytest.mark.parametrize(
-    "product_price, variant_override, api_variant_price",
-    [(100, None, 100), (100, 200, 200), (100, 0, 0)],
+    "variant_override, api_variant_price", [(200, 200), (0, 0)],
 )
 def test_product_variant_price(
-    product_price, variant_override, api_variant_price, user_api_client, variant, stock
+    variant_override, api_variant_price, user_api_client, variant, stock
 ):
     # Set price override on variant that is different than product price
     product = variant.product
-    product.price = Money(amount=product_price, currency="USD")
-    product.save()
-    if variant_override is not None:
-        product.variants.update(price_override_amount=variant_override, currency="USD")
-    else:
-        product.variants.update(price_override_amount=None)
+    product.variants.update(price_amount=variant_override, currency="USD")
     # Drop other variants
     # product.variants.exclude(id=variant.pk).delete()
 
@@ -3276,12 +3225,7 @@ def test_report_product_sales(
 
 @pytest.mark.parametrize(
     "field, is_nested",
-    (
-        ("basePrice", True),
-        ("purchaseCost", True),
-        ("margin", True),
-        ("privateMeta", True),
-    ),
+    (("purchaseCost", True), ("margin", True), ("privateMeta", True),),
 )
 def test_product_restricted_fields_permissions(
     staff_api_client,
@@ -3316,7 +3260,7 @@ def test_product_restricted_fields_permissions(
         ("digitalContent", True),
         ("margin", False),
         ("costPrice", True),
-        ("priceOverride", True),
+        ("price", True),
         ("quantityOrdered", False),
         ("privateMeta", True),
     ),
@@ -3928,28 +3872,28 @@ def test_bulk_unpublish_products(
     assert not any(product.is_published for product in product_list)
 
 
-def test_product_base_price_permission(
-    staff_api_client, permission_manage_products, product
-):
-    query = """
-    query basePrice($productID: ID!) {
-        product(id: $productID) {
-            basePrice {
-                amount
-            }
-        }
-    }
-    """
-    product_id = graphene.Node.to_global_id("Product", product.id)
-
-    variables = {"productID": product_id}
-    permissions = [permission_manage_products]
-
-    response = staff_api_client.post_graphql(query, variables, permissions)
-    content = get_graphql_content(response)
-
-    assert "basePrice" in content["data"]["product"]
-    assert content["data"]["product"]["basePrice"]["amount"] == product.price.amount
+# def test_product_base_price_permission(
+#     staff_api_client, permission_manage_products, product
+# ):
+#     query = """
+#     query basePrice($productID: ID!) {
+#         product(id: $productID) {
+#             basePrice {
+#                 amount
+#             }
+#         }
+#     }
+#     """
+#     product_id = graphene.Node.to_global_id("Product", product.id)
+#
+#     variables = {"productID": product_id}
+#     permissions = [permission_manage_products]
+#
+#     response = staff_api_client.post_graphql(query, variables, permissions)
+#     content = get_graphql_content(response)
+#
+#     assert "basePrice" in content["data"]["product"]
+#     assert content["data"]["product"]["basePrice"]["amount"] == product.price.amount
 
 
 QUERY_AVAILABLE_ATTRIBUTES = """
@@ -4342,7 +4286,7 @@ mutation createProduct(
         $category: ID!
         $name: String!,
         $sku: String,
-        $basePrice: Decimal!
+        $basePrice: Decimal!,
         $weight: WeightScalar)
     {
         productCreate(
@@ -4350,8 +4294,8 @@ mutation createProduct(
                 category: $category,
                 productType: $productType,
                 name: $name,
-                sku: $sku,
                 basePrice: $basePrice,
+                sku: $sku,
                 weight: $weight
             })
         {
@@ -4402,8 +4346,8 @@ def test_create_product_with_weight_variable(
         "category": category_id,
         "productType": product_type_id,
         "name": "Test",
-        "sku": "23434",
         "basePrice": Decimal("19"),
+        "sku": "23434",
         "weight": weight,
     }
     response = staff_api_client.post_graphql(
