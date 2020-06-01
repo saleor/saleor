@@ -3,11 +3,11 @@ from collections import ChainMap, defaultdict
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 
 from django.conf import settings
-from django.db.models import Case, CharField, F, Value as V, When
+from django.db.models import Case, CharField, Value as V, When
 from django.db.models.functions import Concat
 
 from ...core.utils import build_absolute_uri
-from ...product.models import Attribute, ProductVariant
+from ...product.models import Attribute
 from ...warehouse.models import Warehouse
 
 if TYPE_CHECKING:
@@ -142,6 +142,10 @@ def get_attributes_headers(export_info: Dict[str, list]):
 
 
 def get_warehouses_headers(export_info: Dict[str, list]):
+    """Get headers for exported warehouses.
+
+    Headers are build from slug. Example: "slug-value (warehouse quantity)"
+    """
     warehouse_ids = export_info.get("warehouses")
     if not warehouse_ids:
         return []
@@ -228,7 +232,7 @@ def get_products_relations_data(
 
     If any many to many fields are in export_fields or some attribute_ids exists then
     dict with product relations fields is returned.
-    Otherwise it returns empty dict and set.
+    Otherwise it returns empty dict.
     """
     many_to_many_fields = set(
         ProductExportFields.HEADERS_TO_FIELDS_MAPPING["product_many_to_many"].values()
@@ -248,7 +252,6 @@ def prepare_products_relations_data(
     """Prepare data about products relation fields for given queryset.
 
     It return dict where key is a product pk, value is a dict with relation fields data.
-    It also returns set with attribute headers.
     """
     attribute_fields = ProductExportFields.PRODUCT_ATTRIBUTE_FIELDS
     result_data: Dict[int, dict] = defaultdict(dict)
@@ -296,12 +299,10 @@ def get_variants_relations_data(
 ):
     """Get data about variants relations fields.
 
-    If any many to many fields are in export_fields or some attribute_ids exists then
-    dict with product relations fields is returned. It also returns set with
-    attribute headers.
-    Otherwise it returns empty dict and set.
+    If any many to many fields are in export_fields or some attribute_ids or
+    warehouse_ids exists then dict with variant relations fields is returned.
+    Otherwise it returns empty dict.
     """
-    # TODO: change docstring
     many_to_many_fields = set(
         ProductExportFields.HEADERS_TO_FIELDS_MAPPING["variant_many_to_many"].values()
     )
@@ -320,6 +321,10 @@ def prepare_variants_relations_data(
     attribute_ids: Optional[List[int]],
     warehouse_ids: Optional[List[int]],
 ):
+    """Prepare data about variants relation fields for given queryset.
+
+    It return dict where key is a product pk, value is a dict with relation fields data.
+    """
     warehouse_fields = ProductExportFields.WAREHOUSE_FIELDS
     attribute_fields = ProductExportFields.VARIANT_ATTRIBUTE_FIELDS
 
