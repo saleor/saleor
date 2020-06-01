@@ -17,10 +17,11 @@ class InvoiceQueryset(models.QuerySet):
         return self.filter(job__status=JobStatus.SUCCESS)
 
 
-class Invoice(ModelWithMetadata):
+class Invoice(ModelWithMetadata, Job):
     order = models.ForeignKey(
         Order, related_name="invoices", null=True, on_delete=models.SET_NULL
     )
+    pending_target = models.CharField(max_length=50, choices=PendingTarget.CHOICES)
     number = models.CharField(max_length=255, null=True)
     created = models.DateTimeField(null=True)
     external_url = models.URLField(null=True, max_length=2048)
@@ -43,13 +44,6 @@ class Invoice(ModelWithMetadata):
         if url is not None:
             self.url = url
         self.save()
-
-
-class InvoiceJob(Job):
-    invoice = models.OneToOneField(
-        Invoice, on_delete=models.CASCADE, related_name="job"
-    )
-    pending_target = models.CharField(max_length=50, choices=PendingTarget.CHOICES)
 
 
 class InvoiceEvent(models.Model):

@@ -1438,7 +1438,7 @@ type CountryDisplay {
 type CreateInvoice {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
-  invoiceJob: InvoiceJob
+  invoice: Invoice
 }
 
 input CreateInvoiceInput {
@@ -1549,7 +1549,7 @@ scalar Decimal
 type DeleteInvoice {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
-  invoiceJob: InvoiceJob
+  invoice: Invoice
 }
 
 type DeleteMetadata {
@@ -1955,10 +1955,14 @@ input IntRangeInput {
   lte: Int
 }
 
-type Invoice implements Node {
+type Invoice implements Job {
   id: ID!
   metadata: JSONString
+  status: JobStatusEnum!
+  pendingTarget: InvoicePendingTarget!
   number: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
   url: String
 }
 
@@ -1976,16 +1980,7 @@ enum InvoiceErrorCode {
   INVALID_STATUS
 }
 
-type InvoiceJob implements Node & Job {
-  id: ID!
-  status: JobStatusEnum!
-  invoice: Invoice
-  pendingTarget: InvoiceJobPendingTarget!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
-enum InvoiceJobPendingTarget {
+enum InvoicePendingTarget {
   DELETE
   COMPLETE
 }
@@ -2638,7 +2633,7 @@ type Order implements Node & ObjectWithMetadata {
   lines: [OrderLine]!
   actions: [OrderAction]!
   availableShippingMethods: [ShippingMethod]
-  invoiceJobs: [InvoiceJob]
+  invoiceModels: [Invoice]
   number: String
   isPaid: Boolean
   paymentStatus: PaymentChargeStatusEnum
@@ -4038,7 +4033,7 @@ enum ReportingPeriod {
 type RequestDeleteInvoice {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
-  invoiceJob: InvoiceJob
+  invoice: Invoice
 }
 
 type RequestEmailChange {
@@ -4050,7 +4045,7 @@ type RequestEmailChange {
 type RequestInvoice {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
-  invoiceJob: InvoiceJob
+  invoice: Invoice
 }
 
 type RequestPasswordReset {
@@ -4181,7 +4176,7 @@ type SelectedAttribute {
 type SendInvoiceEmail {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
-  invoiceJob: InvoiceJob
+  invoice: Invoice
 }
 
 input SeoInput {
@@ -4833,7 +4828,7 @@ scalar UUID
 type UpdateInvoice {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
-  invoiceJob: InvoiceJob
+  invoice: Invoice
 }
 
 input UpdateInvoiceInput {

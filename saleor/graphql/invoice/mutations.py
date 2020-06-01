@@ -10,14 +10,14 @@ from ...invoice.error_codes import InvoiceErrorCode
 from ...order import OrderStatus
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import InvoiceError
-from ..invoice.types import InvoiceJob
+from ..invoice.types import Invoice
 from ..order.types import Order
 
 
 class RequestInvoice(ModelMutation):
     class Meta:
         description = "Request an invoice for the order."
-        model = models.InvoiceJob
+        model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -59,19 +59,20 @@ class RequestInvoice(ModelMutation):
         )
         cls.clean_instance(info, order)
 
-        invoice = models.Invoice.objects.create(order=order, number=data.get("number"))
-        job = models.InvoiceJob.objects.create(
-            invoice=invoice, pending_target=PendingTarget.COMPLETE
+        invoice = models.Invoice.objects.create(
+            order=order,
+            number=data.get("number"),
+            pending_target=PendingTarget.COMPLETE,
         )
 
         info.context.plugins.invoice_request(
-            order=order, invoice_job=job, number=data.get("number")
+            order=order, invoice=invoice, number=data.get("number")
         )
         events.invoice_requested_event(
             user=info.context.user, order=order, number=data.get("number")
         )
         invoice.refresh_from_db()
-        return RequestInvoice(invoiceJob=job)
+        return RequestInvoice(invoice=invoice)
 
 
 class CreateInvoiceInput(graphene.InputObjectType):
@@ -90,7 +91,7 @@ class CreateInvoice(ModelMutation):
 
     class Meta:
         description = "Creates an invoice."
-        model = models.InvoiceJob
+        model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -138,17 +139,15 @@ class CreateInvoice(ModelMutation):
         cleaned_input = cls.clean_input(info, instance, data)
         invoice = models.Invoice(**cleaned_input)
         invoice.order = instance
+        invoice.status = JobStatus.SUCCESS
         invoice.save()
-        job = models.InvoiceJob.objects.create(
-            invoice=invoice, status=JobStatus.SUCCESS
-        )
         events.invoice_created_event(
             user=info.context.user,
             invoice=invoice,
             number=cleaned_input["number"],
             url=cleaned_input["url"],
         )
-        return CreateInvoice(invoiceJob=job)
+        return CreateInvoice(invoice=invoice)
 
 
 class RequestDeleteInvoice(ModelMutation):
@@ -159,22 +158,20 @@ class RequestDeleteInvoice(ModelMutation):
 
     class Meta:
         description = "Requests deletion of an invoice."
-        model = models.InvoiceJob
+        model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        invoice_job = cls.get_node_or_error(info, data["id"], only_type=InvoiceJob)
-        invoice_job.status = JobStatus.PENDING
-        invoice_job.pending_target = PendingTarget.DELETE
-        invoice_job.save()
-        info.context.plugins.invoice_delete(invoice_job)
-        events.invoice_requested_deletion(
-            user=info.context.user, invoice=invoice_job.invoice
-        )
-        return RequestDeleteInvoice(invoiceJob=invoice_job)
+        invoice = cls.get_node_or_error(info, data["id"], only_type=Invoice)
+        invoice.status = JobStatus.PENDING
+        invoice.pending_target = PendingTarget.DELETE
+        invoice.save()
+        info.context.plugins.invoice_delete(invoice)
+        events.invoice_requested_deletion_event(user=info.context.user, invoice=invoice)
+        return RequestDeleteInvoice(invoice=invoice)
 
 
 class DeleteInvoice(ModelDeleteMutation):
@@ -183,18 +180,16 @@ class DeleteInvoice(ModelDeleteMutation):
 
     class Meta:
         description = "Deletes an invoice."
-        model = models.InvoiceJob
+        model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        invoice_job = cls.get_instance(info, **data)
+        invoice = cls.get_instance(info, **data)
         response = super().perform_mutation(_root, info, **data)
-        events.invoice_deleted_event(
-            user=info.context.user, invoice_id=invoice_job.invoice.pk
-        )
+        events.invoice_deleted_event(user=info.context.user, invoice_id=invoice.pk)
         return response
 
 
@@ -212,15 +207,15 @@ class UpdateInvoice(ModelMutation):
 
     class Meta:
         description = "Updates an invoice."
-        model = models.InvoiceJob
+        model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
-        number = instance.invoice.number or data["input"].get("number")
-        url = instance.invoice.url or data["input"].get("url")
+        number = instance.number or data["input"].get("number")
+        url = instance.url or data["input"].get("url")
         if not number or not url:
             raise ValidationError(
                 {
@@ -236,12 +231,12 @@ class UpdateInvoice(ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         cleaned_input = cls.clean_input(info, instance, data)
-        instance.invoice.update_invoice(
+        instance.update_invoice(
             number=cleaned_input.get("number"), url=cleaned_input.get("url")
         )
         instance.status = JobStatus.SUCCESS
         instance.save()
-        return UpdateInvoice(invoiceJob=instance)
+        return UpdateInvoice(invoice=instance)
 
 
 class SendInvoiceEmail(ModelMutation):
@@ -250,7 +245,7 @@ class SendInvoiceEmail(ModelMutation):
 
     class Meta:
         description = "Send an invoice by email."
-        model = models.InvoiceJob
+        model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
@@ -261,7 +256,7 @@ class SendInvoiceEmail(ModelMutation):
 
         if instance.status != JobStatus.SUCCESS:
             error_code = InvoiceErrorCode.NOT_READY
-        elif not instance.invoice.url or not instance.invoice.number:
+        elif not instance.url or not instance.number:
             error_code = InvoiceErrorCode.URL_OR_NUMBER_NOT_SET
 
         if error_code:
@@ -274,5 +269,5 @@ class SendInvoiceEmail(ModelMutation):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
         send_invoice.delay(instance.pk)
-        events.invoice_sent_event(user=info.context.user, invoice=instance.invoice)
-        return SendInvoiceEmail(invoiceJob=instance)
+        events.invoice_sent_event(user=info.context.user, invoice=instance)
+        return SendInvoiceEmail(invoice=instance)

@@ -5,7 +5,7 @@ import graphene
 from saleor.core import JobStatus
 from saleor.graphql.invoice.enums import PendingTarget
 from saleor.invoice.error_codes import InvoiceErrorCode
-from saleor.invoice.models import Invoice, InvoiceEvent, InvoiceEvents, InvoiceJob
+from saleor.invoice.models import Invoice, InvoiceEvent, InvoiceEvents
 from saleor.order import OrderStatus
 
 from .utils import assert_no_permission, get_graphql_content
@@ -16,12 +16,10 @@ REQUEST_INVOICE_MUTATION = """
             orderId: $orderId
             number: $number
         ) {
-            invoiceJob {
+            invoice {
                 status
-                invoice {
-                    number
-                    url
-                }
+                number
+                url
             }
             invoiceErrors {
                 field
@@ -41,12 +39,10 @@ CREATE_INVOICE_MUTATION = """
                 url: $url
             }
         ) {
-            invoiceJob {
+            invoice {
                 status
-                invoice {
-                    number
-                    url
-                }
+                number
+                url
             }
             invoiceErrors {
                 field
@@ -94,12 +90,10 @@ UPDATE_INVOICE_MUTATION = """
                 url: $url
             }
         ) {
-            invoiceJob {
-                invoice {
-                    number
-                    url
-                    metadata
-                }
+            invoice {
+                number
+                url
+                metadata
             }
             invoiceErrors {
                 field
@@ -137,13 +131,11 @@ def test_request_invoice(
         REQUEST_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    invoice = Invoice.objects.filter(number=number, order=order.pk).first()
-    invoice_job = InvoiceJob.objects.get(
-        invoice__id=invoice.pk, status=JobStatus.PENDING
-    )
+    invoice = Invoice.objects.filter(
+        number=number, order=order.pk, status=JobStatus.PENDING
+    ).first()
     assert invoice
-    assert invoice_job
-    plugin_mock.assert_called_once_with(order, invoice_job, number, previous_value=None)
+    plugin_mock.assert_called_once_with(order, invoice, number, previous_value=None)
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.REQUESTED,
         user=staff_api_client.user,
@@ -151,10 +143,10 @@ def test_request_invoice(
         parameters__number=number,
     ).exists()
     assert (
-        content["data"]["requestInvoice"]["invoiceJob"]["status"]
+        content["data"]["requestInvoice"]["invoice"]["status"]
         == JobStatus.PENDING.upper()
     )
-    assert invoice_job.pending_target == PendingTarget.COMPLETE
+    assert invoice.pending_target == PendingTarget.COMPLETE
 
 
 def test_request_invoice_draft_order(staff_api_client, permission_manage_orders, order):
@@ -220,14 +212,12 @@ def test_request_delete_invoice(
     plugin_mock, staff_api_client, permission_manage_orders, order
 ):
     invoice = Invoice.objects.create(order=order)
-    invoice_job = InvoiceJob.objects.create(invoice=invoice)
-    variables = {"id": graphene.Node.to_global_id("InvoiceJob", invoice_job.pk)}
+    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     staff_api_client.post_graphql(REQUEST_DELETE_INVOICE_MUTATION, variables)
     invoice.refresh_from_db()
-    job = InvoiceJob.objects.get(invoice__id=invoice.pk, status=JobStatus.PENDING)
-    assert job.pending_target == PendingTarget.DELETE
-    plugin_mock.assert_called_once_with(invoice_job, previous_value=None)
+    assert invoice.pending_target == PendingTarget.DELETE
+    plugin_mock.assert_called_once_with(invoice, previous_value=None)
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.REQUESTED_DELETION,
         user=staff_api_client.user,
@@ -240,7 +230,7 @@ def test_request_delete_invoice(
 def test_request_delete_invoice_invalid_id(
     plugin_mock, staff_api_client, permission_manage_orders
 ):
-    variables = {"id": graphene.Node.to_global_id("InvoiceJob", 1337)}
+    variables = {"id": graphene.Node.to_global_id("Invoice", 1337)}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(REQUEST_DELETE_INVOICE_MUTATION, variables)
     content = get_graphql_content(response)
@@ -263,14 +253,13 @@ def test_request_delete_invoice_no_permission(
 
 def test_delete_invoice(staff_api_client, permission_manage_orders, order):
     invoice = Invoice.objects.create(order=order)
-    invoice_job = InvoiceJob.objects.create(invoice=invoice)
-    variables = {"id": graphene.Node.to_global_id("InvoiceJob", invoice_job.pk)}
+    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
     response = staff_api_client.post_graphql(
         DELETE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     assert not content["data"]["deleteInvoice"]["invoiceErrors"]
-    assert not InvoiceJob.objects.filter(invoice__id=invoice.pk).exists()
+    assert not Invoice.objects.filter(id=invoice.pk).exists()
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.DELETED,
         user=staff_api_client.user,
@@ -282,7 +271,7 @@ def test_delete_invoice(staff_api_client, permission_manage_orders, order):
 def test_delete_invoice_invalid_id(
     plugin_mock, staff_api_client, permission_manage_orders
 ):
-    variables = {"id": graphene.Node.to_global_id("InvoiceJob", 1337)}
+    variables = {"id": graphene.Node.to_global_id("Invoice", 1337)}
     response = staff_api_client.post_graphql(
         DELETE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )
@@ -296,11 +285,10 @@ def test_delete_invoice_invalid_id(
 def test_update_invoice(staff_api_client, permission_manage_orders, order):
     metadata = {"test_key": "test_val"}
     invoice = Invoice.objects.create(order=order, metadata=metadata)
-    invoice_job = InvoiceJob.objects.create(invoice=invoice)
     number = "01/12/2020/TEST"
     url = "http://www.example.com"
     variables = {
-        "id": graphene.Node.to_global_id("InvoiceJob", invoice_job.pk),
+        "id": graphene.Node.to_global_id("Invoice", invoice.pk),
         "number": number,
         "url": url,
     }
@@ -309,28 +297,18 @@ def test_update_invoice(staff_api_client, permission_manage_orders, order):
     )
     content = get_graphql_content(response)
     invoice.refresh_from_db()
-    invoice_job.refresh_from_db()
-    assert invoice_job.status == JobStatus.SUCCESS
-    assert (
-        invoice.number
-        == content["data"]["updateInvoice"]["invoiceJob"]["invoice"]["number"]
-    )
-    assert (
-        eval(content["data"]["updateInvoice"]["invoiceJob"]["invoice"]["metadata"])
-        == metadata
-    )
-    assert (
-        invoice.url == content["data"]["updateInvoice"]["invoiceJob"]["invoice"]["url"]
-    )
+    assert invoice.status == JobStatus.SUCCESS
+    assert invoice.number == content["data"]["updateInvoice"]["invoice"]["number"]
+    assert eval(content["data"]["updateInvoice"]["invoice"]["metadata"]) == metadata
+    assert invoice.url == content["data"]["updateInvoice"]["invoice"]["url"]
 
 
 def test_update_invoice_single_value(staff_api_client, permission_manage_orders, order):
     number = "01/12/2020/TEST"
     invoice = Invoice.objects.create(order=order, number=number)
-    invoice_job = InvoiceJob.objects.create(invoice=invoice)
     url = "http://www.example.com"
     variables = {
-        "id": graphene.Node.to_global_id("InvoiceJob", invoice_job.pk),
+        "id": graphene.Node.to_global_id("Invoice", invoice.pk),
         "url": url,
     }
     response = staff_api_client.post_graphql(
@@ -338,22 +316,18 @@ def test_update_invoice_single_value(staff_api_client, permission_manage_orders,
     )
     content = get_graphql_content(response)
     invoice.refresh_from_db()
-    invoice_job.refresh_from_db()
-    assert invoice_job.status == JobStatus.SUCCESS
+    assert invoice.status == JobStatus.SUCCESS
     assert invoice.number == number
-    assert (
-        invoice.url == content["data"]["updateInvoice"]["invoiceJob"]["invoice"]["url"]
-    )
+    assert invoice.url == content["data"]["updateInvoice"]["invoice"]["url"]
 
 
 def test_update_invoice_missing_number(
     staff_api_client, permission_manage_orders, order
 ):
     invoice = Invoice.objects.create(order=order)
-    invoice_job = InvoiceJob.objects.create(invoice=invoice)
     url = "http://www.example.com"
     variables = {
-        "id": graphene.Node.to_global_id("InvoiceJob", invoice_job.pk),
+        "id": graphene.Node.to_global_id("Invoice", invoice.pk),
         "url": url,
     }
     response = staff_api_client.post_graphql(
@@ -361,16 +335,15 @@ def test_update_invoice_missing_number(
     )
     content = get_graphql_content(response)
     invoice.refresh_from_db()
-    invoice_job.refresh_from_db()
     error = content["data"]["updateInvoice"]["invoiceErrors"][0]
     assert error["code"] == InvoiceErrorCode.URL_OR_NUMBER_NOT_SET.name
     assert error["field"] == "invoice"
     assert invoice.url is None
-    assert invoice_job.status == JobStatus.PENDING
+    assert invoice.status == JobStatus.PENDING
 
 
 def test_update_invoice_invalid_id(staff_api_client, permission_manage_orders):
-    variables = {"id": "SW52b2ljZUpvYjoxMzM3", "number": "01/12/2020/TEST"}
+    variables = {"id": "SW52b2ljZToxMzM3", "number": "01/12/2020/TEST"}
     response = staff_api_client.post_graphql(
         UPDATE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )
@@ -392,23 +365,17 @@ def test_create_invoice(staff_api_client, permission_manage_orders, order):
         CREATE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    job = InvoiceJob.objects.get(invoice__order__id=order.pk, status=JobStatus.SUCCESS)
+    invoice = Invoice.objects.get(order=order, status=JobStatus.SUCCESS)
+    assert invoice.url == content["data"]["createInvoice"]["invoice"]["url"]
+    assert invoice.number == content["data"]["createInvoice"]["invoice"]["number"]
     assert (
-        job.invoice.url
-        == content["data"]["createInvoice"]["invoiceJob"]["invoice"]["url"]
-    )
-    assert (
-        job.invoice.number
-        == content["data"]["createInvoice"]["invoiceJob"]["invoice"]["number"]
-    )
-    assert (
-        job.status.upper() == content["data"]["createInvoice"]["invoiceJob"]["status"]
+        invoice.status.upper() == content["data"]["createInvoice"]["invoice"]["status"]
     )
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.CREATED,
         user=staff_api_client.user,
-        invoice=job.invoice,
-        order=job.invoice.order,
+        invoice=invoice,
+        order=invoice.order,
         parameters__number=number,
         parameters__url=url,
     ).exists()
@@ -493,8 +460,8 @@ def test_create_invoice_empty_params(staff_api_client, permission_manage_orders,
         "code": InvoiceErrorCode.REQUIRED.name,
     }
 
-    assert not InvoiceJob.objects.filter(
-        invoice__order__id=order.pk, status=JobStatus.SUCCESS
+    assert not Invoice.objects.filter(
+        order__id=order.pk, status=JobStatus.SUCCESS
     ).exists()
 
 
@@ -502,15 +469,16 @@ def test_create_invoice_empty_params(staff_api_client, permission_manage_orders,
 def test_send_invoice(email_mock, staff_api_client, permission_manage_orders, order):
     number = "01/12/2020/TEST"
     url = "http://www.example.com"
-    invoice = Invoice.objects.create(order=order, number=number, url=url)
-    invoice_job = InvoiceJob.objects.create(invoice=invoice, status=JobStatus.SUCCESS)
-    variables = {"id": graphene.Node.to_global_id("InvoiceJob", invoice_job.pk)}
+    invoice = Invoice.objects.create(
+        order=order, number=number, url=url, status=JobStatus.SUCCESS
+    )
+    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
     response = staff_api_client.post_graphql(
         SEND_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     assert not content["data"]["sendInvoiceEmail"]["invoiceErrors"]
-    email_mock.assert_called_with(invoice_job.pk)
+    email_mock.assert_called_with(invoice.pk)
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.SENT,
         user=staff_api_client.user,
@@ -523,9 +491,10 @@ def test_send_invoice(email_mock, staff_api_client, permission_manage_orders, or
 def test_send_pending_invoice(
     email_mock, staff_api_client, permission_manage_orders, order
 ):
-    invoice = Invoice.objects.create(order=order, number=None, url=None)
-    invoice_job = InvoiceJob.objects.create(invoice=invoice, status=JobStatus.PENDING)
-    variables = {"id": graphene.Node.to_global_id("InvoiceJob", invoice_job.pk)}
+    invoice = Invoice.objects.create(
+        order=order, number=None, url=None, status=JobStatus.PENDING
+    )
+    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
     response = staff_api_client.post_graphql(
         SEND_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )
@@ -539,9 +508,10 @@ def test_send_pending_invoice(
 def test_send_not_ready_invoice(
     email_mock, staff_api_client, permission_manage_orders, order
 ):
-    invoice = Invoice.objects.create(order=order, number=None, url=None)
-    invoice_job = InvoiceJob.objects.create(invoice=invoice, status=JobStatus.SUCCESS)
-    variables = {"id": graphene.Node.to_global_id("InvoiceJob", invoice_job.pk)}
+    invoice = Invoice.objects.create(
+        order=order, number=None, url=None, status=JobStatus.SUCCESS
+    )
+    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
     response = staff_api_client.post_graphql(
         SEND_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
     from ..order.models import Fulfillment, OrderLine, Order
-    from ..invoice.models import Invoice, InvoiceJob
+    from ..invoice.models import Invoice
     from ..payment.interface import GatewayResponse, PaymentData, CustomerSource
 
 
@@ -216,7 +216,7 @@ class BasePlugin:
     def invoice_request(
         self,
         order: "Order",
-        invoice_job: "InvoiceJob",
+        invoice: "Invoice",
         number: Optional[str],
         previous_value: Any,
     ) -> Any:
@@ -226,7 +226,7 @@ class BasePlugin:
         """
         return NotImplemented
 
-    def invoice_delete(self, invoice_job: "InvoiceJob", previous_value: Any):
+    def invoice_delete(self, invoice: "Invoice", previous_value: Any):
         """Trigger before invoice is deleted.
 
         Perform any extra logic before the invoice gets deleted.
