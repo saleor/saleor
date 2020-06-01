@@ -1,6 +1,6 @@
 import os
 from collections import ChainMap, defaultdict
-from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union
 
 from django.conf import settings
 from django.db.models import Case, CharField, Value as V, When
@@ -62,7 +62,9 @@ class ProductExportFields:
     }
 
 
-def get_export_fields_and_headers_info(export_info: Dict[str, list]):
+def get_export_fields_and_headers_info(
+    export_info: Dict[str, list]
+) -> Tuple[List[str], List[str], List[str]]:
     """Get export fields, all headers and headers mapping.
 
     Based on export_info returns exported fields, fields to headers mapping and
@@ -78,7 +80,9 @@ def get_export_fields_and_headers_info(export_info: Dict[str, list]):
     return export_fields, file_headers, data_headers
 
 
-def get_product_export_fields_and_headers(export_info: Dict[str, list]):
+def get_product_export_fields_and_headers(
+    export_info: Dict[str, list]
+) -> Tuple[List[str], List[str]]:
     """Get export fields from export info and prepare headers mapping.
 
     Based on given fields headers from export info, export fields set and
@@ -112,7 +116,7 @@ def get_product_export_fields_and_headers(export_info: Dict[str, list]):
     return export_fields, file_headers
 
 
-def get_attributes_headers(export_info: Dict[str, list]):
+def get_attributes_headers(export_info: Dict[str, list]) -> List[str]:
     """Get headers for exported attributes.
 
     Headers are build from slug and contains information if it's a product or variant
@@ -141,7 +145,7 @@ def get_attributes_headers(export_info: Dict[str, list]):
     return list(products_headers) + list(variant_headers)
 
 
-def get_warehouses_headers(export_info: Dict[str, list]):
+def get_warehouses_headers(export_info: Dict[str, list]) -> List[str]:
     """Get headers for exported warehouses.
 
     Headers are build from slug. Example: "slug-value (warehouse quantity)"
@@ -227,7 +231,7 @@ def get_products_data(
 
 def get_products_relations_data(
     queryset: "QuerySet", export_fields: Set[str], attribute_ids: Optional[List[int]]
-):
+) -> Dict[int, Dict[str, str]]:
     """Get data about product relations fields.
 
     If any many to many fields are in export_fields or some attribute_ids exists then
@@ -296,7 +300,7 @@ def get_variants_relations_data(
     export_fields: Set[str],
     attribute_ids: Optional[List[int]],
     warehouse_ids: Optional[List[int]],
-):
+) -> Dict[int, Dict[str, str]]:
     """Get data about variants relations fields.
 
     If any many to many fields are in export_fields or some attribute_ids or
@@ -320,7 +324,7 @@ def prepare_variants_relations_data(
     fields: Set[str],
     attribute_ids: Optional[List[int]],
     warehouse_ids: Optional[List[int]],
-):
+) -> Dict[int, Dict[str, str]]:
     """Prepare data about variants relation fields for given queryset.
 
     It return dict where key is a product pk, value is a dict with relation fields data.
