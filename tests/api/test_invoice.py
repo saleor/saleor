@@ -93,7 +93,10 @@ UPDATE_INVOICE_MUTATION = """
             invoice {
                 number
                 url
-                metadata
+                metadata {
+                    key
+                    value
+                }
             }
             invoiceErrors {
                 field
@@ -283,7 +286,8 @@ def test_delete_invoice_invalid_id(
 
 
 def test_update_invoice(staff_api_client, permission_manage_orders, order):
-    metadata = {"test_key": "test_val"}
+    test_key = "test_key"
+    metadata = {test_key: "test_val"}
     invoice = Invoice.objects.create(order=order, metadata=metadata)
     number = "01/12/2020/TEST"
     url = "http://www.example.com"
@@ -299,7 +303,9 @@ def test_update_invoice(staff_api_client, permission_manage_orders, order):
     invoice.refresh_from_db()
     assert invoice.status == JobStatus.SUCCESS
     assert invoice.number == content["data"]["updateInvoice"]["invoice"]["number"]
-    assert eval(content["data"]["updateInvoice"]["invoice"]["metadata"]) == metadata
+    response_metadata = content["data"]["updateInvoice"]["invoice"]["metadata"][0]
+    assert response_metadata["key"] == test_key
+    assert response_metadata["value"] == metadata[test_key]
     assert invoice.url == content["data"]["updateInvoice"]["invoice"]["url"]
 
 
