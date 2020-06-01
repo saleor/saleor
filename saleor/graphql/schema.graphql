@@ -3397,6 +3397,7 @@ input ProductCreateInput {
   trackInventory: Boolean
   productType: ID!
   stocks: [StockInput!]
+  basePrice: Decimal
 }
 
 type ProductDelete {

@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock, Mock
 
 import pytest
-from prices import Money
 
 from saleor.product import AttributeInputType
 from saleor.product.models import AttributeValue, Product, ProductType, ProductVariant
@@ -19,12 +18,9 @@ def variant_with_no_attributes(category):
         name="Test product type", has_variants=True, is_shipping_required=True
     )
     product = Product.objects.create(
-        name="Test product",
-        price=Money(10, "USD"),
-        product_type=product_type,
-        category=category,
+        name="Test product", product_type=product_type, category=category,
     )
-    variant = ProductVariant.objects.create(product=product, sku="123")
+    variant = ProductVariant.objects.create(product=product, sku="123", price_amount=10)
     return variant
 
 

@@ -28,19 +28,21 @@ def test_filtering_by_attribute(db, color_attribute, category, settings):
     product_a = models.Product.objects.create(
         name="Test product a",
         slug="test-product-a",
-        price=Money(10, settings.DEFAULT_CURRENCY),
+        # price=Money(10, settings.DEFAULT_CURRENCY),
         product_type=product_type_a,
         category=category,
     )
-    models.ProductVariant.objects.create(product=product_a, sku="1234")
+    models.ProductVariant.objects.create(product=product_a, sku="1234", price_amount=10)
     product_b = models.Product.objects.create(
         name="Test product b",
         slug="test-product-b",
-        price=Money(10, settings.DEFAULT_CURRENCY),
+        # price=Money(10, settings.DEFAULT_CURRENCY),
         product_type=product_type_b,
         category=category,
     )
-    variant_b = models.ProductVariant.objects.create(product=product_b, sku="12345")
+    variant_b = models.ProductVariant.objects.create(
+        product=product_b, sku="12345", price_amount=10
+    )
     color = color_attribute.values.first()
     color_2 = color_attribute.values.last()
 
@@ -89,48 +91,21 @@ def test_get_price(
     discount_info,
 ):
     product = models.Product.objects.create(
-        product_type=product_type,
-        category=category,
-        price=Money(Decimal("15.00"), "USD"),
+        product_type=product_type, category=category,
     )
-    variant = product.variants.create()
+    variant = product.variants.create(price_amount=15)
 
     price = variant.get_price(discounts=[discount_info] if include_discounts else [])
 
     assert price.amount == expected_price
 
 
-def test_product_get_price_variant_has_no_price(product_type, category, site_settings):
-    site_settings.include_taxes_in_prices = False
-    site_settings.save()
-    product = models.Product.objects.create(
-        product_type=product_type, category=category, price=Money("10.00", "USD")
-    )
-    variant = product.variants.create()
-
-    price = variant.get_price()
-
-    assert price == Money("10.00", "USD")
-
-
-def test_product_get_price_variant_with_price(product_type, category):
-    product = models.Product.objects.create(
-        product_type=product_type, category=category, price=Money("10.00", "USD")
-    )
-    variant = product.variants.create(price_override=Money("20.00", "USD"))
-
-    price = variant.get_price()
-
-    assert price == Money("20.00", "USD")
-
-
 def test_product_get_price_range_with_variants(product_type, category):
     product = models.Product.objects.create(
-        product_type=product_type, category=category, price=Money("15.00", "USD")
+        product_type=product_type, category=category
     )
-    product.variants.create(sku="1")
-    product.variants.create(sku="2", price_override=Money("20.00", "USD"))
-    product.variants.create(sku="3", price_override=Money("11.00", "USD"))
+    product.variants.create(sku="2", price=Money("20.00", "USD"))
+    product.variants.create(sku="3", price=Money("11.00", "USD"))
 
     price = product.get_price_range()
 
@@ -141,54 +116,23 @@ def test_product_get_price_range_with_variants(product_type, category):
 
 def test_product_get_price_range_no_variants(product_type, category):
     product = models.Product.objects.create(
-        product_type=product_type, category=category, price=Money("10.00", "USD")
+        product_type=product_type, category=category
     )
 
     price = product.get_price_range()
 
-    expected_price = Money("10.00", "USD")
-    assert price == MoneyRange(start=expected_price, stop=expected_price)
+    assert price is None
 
 
 def test_product_get_price_do_not_charge_taxes(product_type, category, discount_info):
     product = models.Product.objects.create(
-        product_type=product_type,
-        category=category,
-        price=Money("10.00", "USD"),
-        charge_taxes=False,
+        product_type=product_type, category=category, charge_taxes=False,
     )
-    variant = product.variants.create()
+    variant = product.variants.create(price_amount=10)
 
     price = variant.get_price(discounts=[discount_info])
 
     assert price == Money("5.00", "USD")
-
-
-def test_product_get_price_range_do_not_charge_taxes(
-    product_type, category, discount_info
-):
-    product = models.Product.objects.create(
-        product_type=product_type,
-        category=category,
-        price=Money("10.00", "USD"),
-        charge_taxes=False,
-    )
-
-    price = product.get_price_range(discounts=[discount_info])
-
-    expected_price = MoneyRange(start=Money("5.00", "USD"), stop=Money("5.00", "USD"))
-    assert price == expected_price
-
-
-@pytest.mark.parametrize("price_override", ["15.00", "0.00"])
-def test_variant_base_price(product, price_override):
-    variant = product.variants.get()
-    assert variant.base_price == product.price
-
-    variant.price_override = Money(price_override, "USD")
-    variant.save()
-
-    assert variant.base_price == variant.price_override
 
 
 def test_digital_product_view(client, digital_content_url):
@@ -286,7 +230,7 @@ def test_digital_product_view_url_expired(client, digital_content):
 )
 def test_costs_get_margin_for_variant(variant, price, cost):
     variant.cost_price = cost
-    variant.price_override = price
+    variant.price = price
     assert not get_margin_for_variant(variant)
 
 

@@ -139,28 +139,30 @@ def test_sale_applies_to_correct_products(product_type, category):
     product = Product.objects.create(
         name="Test Product",
         slug="test-product",
-        price=Money(10, "USD"),
         description="",
         pk=111,
         product_type=product_type,
         category=category,
     )
-    variant = ProductVariant.objects.create(product=product, sku="firstvar")
+    variant = ProductVariant.objects.create(
+        product=product, sku="firstvar", price_amount=10
+    )
     product2 = Product.objects.create(
         name="Second product",
         slug="second-product",
-        price=Money(15, "USD"),
         description="",
         product_type=product_type,
         category=category,
     )
-    sec_variant = ProductVariant.objects.create(product=product2, sku="secvar", pk=111)
+    sec_variant = ProductVariant.objects.create(
+        product=product2, sku="secvar", pk=111, price_amount=10
+    )
     sale = Sale(name="Test sale", value=3, type=DiscountValueType.FIXED)
     discount = DiscountInfo(
         sale=sale, product_ids={product.id}, category_ids=set(), collection_ids=set()
     )
     product_discount = get_product_discount_on_sale(variant.product, set(), discount)
-    discounted_price = product_discount(product.price)
+    discounted_price = product_discount(variant.price)
     assert discounted_price == Money(7, "USD")
     with pytest.raises(NotApplicable):
         get_product_discount_on_sale(sec_variant.product, set(), discount)

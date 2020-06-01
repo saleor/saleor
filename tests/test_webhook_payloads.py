@@ -127,6 +127,7 @@ def test_generate_sample_customer_payload(customer_user):
 
 
 def test_generate_sample_product_payload(variant):
+    variant.product.refresh_from_db()
     payload = generate_sample_payload(WebhookEventType.PRODUCT_CREATED)
     assert payload == json.loads(generate_product_payload(variant.product))
 
