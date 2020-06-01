@@ -65,7 +65,7 @@ def test_get_products_data(product, product_with_image, collection, image):
 
     # when
     result_data = get_products_data(
-        products, export_fields, warehouse_ids, attribute_ids
+        products, export_fields, attribute_ids, warehouse_ids
     )
 
     # then
@@ -142,7 +142,7 @@ def test_get_products_data_for_specified_attributes(
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()][:1]
 
     # when
-    result_data = get_products_data(products, export_fields, [], attribute_ids)
+    result_data = get_products_data(products, export_fields, attribute_ids, [])
 
     # then
     expected_data = []
@@ -183,7 +183,7 @@ def test_get_products_data_for_specified_warehouses(
 
     # when
     result_data = get_products_data(
-        products, export_fields, warehouse_ids, attribute_ids
+        products, export_fields, attribute_ids, warehouse_ids
     )
 
     # then
@@ -227,7 +227,7 @@ def test_get_products_data_for_specified_warehouses_and_attributes(
 
     # when
     result_data = get_products_data(
-        products, export_fields, warehouse_ids, attribute_ids
+        products, export_fields, attribute_ids, warehouse_ids
     )
 
     # then

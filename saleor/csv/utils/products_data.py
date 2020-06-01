@@ -163,8 +163,8 @@ def get_warehouses_headers(export_info: Dict[str, list]):
 def get_products_data(
     queryset: "QuerySet",
     export_fields: Set[str],
-    warehouse_ids: Optional[List[int]],
     attribute_ids: Optional[List[int]],
+    warehouse_ids: Optional[List[int]],
 ) -> List[Dict[str, Union[str, bool]]]:
     """Create data list of products and their variants with fields values.
 
