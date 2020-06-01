@@ -57,7 +57,7 @@ def get_product_limit_first_page(products):
 
 
 def generate_invoice_pdf(invoice):
-    logo_path = static_finders.find("images/logo.svg")
+    logo_path = static_finders.find(settings.INVOICE_LOGO_PATH)
     font_path = os.path.join(
         settings.PROJECT_ROOT, "templates", "invoices", "inter.ttf"
     )

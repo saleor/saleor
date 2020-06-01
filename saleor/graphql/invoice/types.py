@@ -7,7 +7,7 @@ from ..meta.types import ObjectWithMetadata
 
 
 class Invoice(CountableDjangoObjectType):
-    url = graphene.String()
+    url = graphene.String(description="URL to download an invoice.")
 
     class Meta:
         description = "Represents an Invoice."

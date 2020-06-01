@@ -16,7 +16,7 @@ from ..order.types import Order
 
 class RequestInvoice(ModelMutation):
     class Meta:
-        description = "Request an invoice for the order."
+        description = "Request an invoice for the order using plugin."
         model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
@@ -27,7 +27,8 @@ class RequestInvoice(ModelMutation):
             required=True, description="ID of the order related to invoice."
         )
         number = graphene.String(
-            required=False, description="Invoice number (optional)."
+            required=False,
+            description="Invoice number, if not provided it will be generated.",
         )
 
     @classmethod
@@ -90,7 +91,7 @@ class CreateInvoice(ModelMutation):
         )
 
     class Meta:
-        description = "Creates an invoice."
+        description = "Creates a ready to send invoice."
         model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
