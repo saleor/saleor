@@ -145,7 +145,7 @@ def export_products_in_batches(
         )
 
         export_data = get_products_data(
-            product_batch, export_fields, warehouses, attributes,
+            product_batch, export_fields, attributes, warehouses
         )
 
         append_to_file(export_data, headers, export_file, file_type, delimiter)
