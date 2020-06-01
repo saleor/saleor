@@ -24,7 +24,9 @@ def invoice_requested_event(
     )
 
 
-def invoice_requested_deletion(*, user: UserType, invoice: Invoice) -> InvoiceEvent:
+def invoice_requested_deletion_event(
+    *, user: UserType, invoice: Invoice
+) -> InvoiceEvent:
     if not _user_is_valid(user):
         user = None
     return InvoiceEvent.objects.create(

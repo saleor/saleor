@@ -160,14 +160,11 @@ def test_order_query(
                             amount
                         }
                     }
-                    invoiceJobs {
+                    invoices {
                         id
                         status
-                        invoice {
-                            id
-                            url
-                            number
-                        }
+                        url
+                        number
                     }
                     availableShippingMethods {
                         id
@@ -189,10 +186,10 @@ def test_order_query(
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    invoice_job = order_data["invoiceJobs"][0]
-    assert invoice_job["status"] == JobStatus.SUCCESS.upper()
-    assert invoice_job["invoice"]["url"] == "http://www.example.com/invoice.pdf"
-    assert invoice_job["invoice"]["number"] == "01/12/2020/TEST"
+    invoice = order_data["invoices"][0]
+    assert invoice["status"] == JobStatus.SUCCESS.upper()
+    assert invoice["url"] == "http://www.example.com/invoice.pdf"
+    assert invoice["number"] == "01/12/2020/TEST"
     assert order_data["number"] == str(order.pk)
     assert order_data["canFinalize"] is True
     assert order_data["status"] == order.status.upper()

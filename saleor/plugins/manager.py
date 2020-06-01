@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
     from ..order.models import Fulfillment, OrderLine, Order
-    from ..invoice.models import Invoice, InvoiceJob
+    from ..invoice.models import Invoice
     from ..payment.interface import (
         PaymentData,
         TokenConfig,
@@ -229,18 +229,16 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins("order_created", default_value, order)
 
     def invoice_request(
-        self, order: "Order", invoice_job: "InvoiceJob", number: Optional[str]
+        self, order: "Order", invoice: "Invoice", number: Optional[str]
     ):
         default_value = None
         return self.__run_method_on_plugins(
-            "invoice_request", default_value, order, invoice_job, number
+            "invoice_request", default_value, order, invoice, number
         )
 
-    def invoice_delete(self, invoice_job: "InvoiceJob"):
+    def invoice_delete(self, invoice: "Invoice"):
         default_value = None
-        return self.__run_method_on_plugins(
-            "invoice_delete", default_value, invoice_job
-        )
+        return self.__run_method_on_plugins("invoice_delete", default_value, invoice)
 
     def order_fully_paid(self, order: "Order"):
         default_value = None

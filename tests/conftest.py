@@ -37,7 +37,7 @@ from saleor.discount.models import (
     VoucherTranslation,
 )
 from saleor.giftcard.models import GiftCard
-from saleor.invoice.models import InvoiceJob
+from saleor.invoice.models import Invoice
 from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 from saleor.menu.utils import update_menu
 from saleor.order import OrderStatus
@@ -1310,8 +1310,8 @@ def fulfilled_order(order_with_lines):
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
         created=datetime.datetime.now(tz=pytz.utc),
+        status=JobStatus.SUCCESS,
     )
-    InvoiceJob.objects.create(invoice=invoice, status=JobStatus.SUCCESS)
     fulfillment = order.fulfillments.create(tracking_number="123")
     line_1 = order.lines.first()
     stock_1 = line_1.allocations.get().stock

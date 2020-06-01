@@ -10,16 +10,6 @@ class Invoice(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents an Invoice."
-        interfaces = [graphene.relay.Node]
+        interfaces = [Job]
         model = models.Invoice
-        only_fields = ["id", "number", "url", "metadata"]
-
-
-class InvoiceJob(CountableDjangoObjectType):
-    invoice = graphene.Field(Invoice, description="Invoice object related to the job.")
-
-    class Meta:
-        description = "Represents an invoice job."
-        interfaces = [graphene.relay.Node, Job]
-        model = models.InvoiceJob
-        only_fields = ["id", "status", "invoice", "pending_target"]
+        only_fields = ["id", "number", "url", "status", "pending_target", "metadata"]

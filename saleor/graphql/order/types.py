@@ -18,7 +18,7 @@ from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import permission_required
 from ..giftcard.types import GiftCard
-from ..invoice.types import InvoiceJob
+from ..invoice.types import Invoice
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
@@ -305,8 +305,8 @@ class Order(CountableDjangoObjectType):
         required=False,
         description="Shipping methods that can be used with this order.",
     )
-    invoice_jobs = graphene.List(
-        InvoiceJob, required=False, description="List of order invoices."
+    invoice_models = graphene.List(
+        Invoice, required=False, description="List of order invoices."
     )
     number = graphene.String(description="User-friendly number of an order.")
     is_paid = graphene.Boolean(description="Informs if an order is fully paid.")
@@ -499,8 +499,8 @@ class Order(CountableDjangoObjectType):
         return available
 
     @staticmethod
-    def resolve_invoice_jobs(root: models.Order, info):
-        return invoice_models.InvoiceJob.objects.filter(
+    def resolve_invoices(root: models.Order, info):
+        return invoice_models.Invoice.objects.filter(
             invoice__pk__in=root.invoices.all()
         )
 
