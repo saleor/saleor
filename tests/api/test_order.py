@@ -163,7 +163,7 @@ def test_order_query(
                     invoices {
                         id
                         status
-                        url
+                        externalUrl
                         number
                     }
                     availableShippingMethods {
@@ -188,7 +188,7 @@ def test_order_query(
     order_data = content["data"]["orders"]["edges"][0]["node"]
     invoice = order_data["invoices"][0]
     assert invoice["status"] == JobStatus.SUCCESS.upper()
-    assert invoice["url"] == "http://www.example.com/invoice.pdf"
+    assert invoice["externalUrl"] == "http://www.example.com/invoice.pdf"
     assert invoice["number"] == "01/12/2020/TEST"
     assert order_data["number"] == str(order.pk)
     assert order_data["canFinalize"] is True

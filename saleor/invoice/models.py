@@ -21,6 +21,7 @@ class Invoice(ModelWithMetadata, Job):
     order = models.ForeignKey(
         Order, related_name="invoices", null=True, on_delete=models.SET_NULL
     )
+    # pending_target explains how status will change (pending -> deleted / success).
     pending_target = models.CharField(max_length=50, choices=PendingTarget.CHOICES)
     number = models.CharField(max_length=255, null=True)
     created = models.DateTimeField(null=True)
@@ -42,8 +43,7 @@ class Invoice(ModelWithMetadata, Job):
         if number is not None:
             self.number = number
         if url is not None:
-            self.url = url
-        self.save()
+            self.external_url = url
 
 
 class InvoiceEvent(models.Model):

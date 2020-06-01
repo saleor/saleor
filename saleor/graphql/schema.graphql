@@ -1961,6 +1961,7 @@ type Invoice implements Job {
   status: JobStatusEnum!
   pendingTarget: InvoicePendingTarget!
   number: String
+  externalUrl: String
   createdAt: DateTime!
   updatedAt: DateTime!
   url: String
@@ -2633,7 +2634,7 @@ type Order implements Node & ObjectWithMetadata {
   lines: [OrderLine]!
   actions: [OrderAction]!
   availableShippingMethods: [ShippingMethod]
-  invoiceModels: [Invoice]
+  invoices: [Invoice]
   number: String
   isPaid: Boolean
   paymentStatus: PaymentChargeStatusEnum

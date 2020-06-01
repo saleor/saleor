@@ -5,7 +5,6 @@ from graphql_jwt.exceptions import PermissionDenied
 
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ...core.taxes import display_gross_prices
-from ...invoice import models as invoice_models
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
@@ -305,7 +304,7 @@ class Order(CountableDjangoObjectType):
         required=False,
         description="Shipping methods that can be used with this order.",
     )
-    invoice_models = graphene.List(
+    invoices = graphene.List(
         Invoice, required=False, description="List of order invoices."
     )
     number = graphene.String(description="User-friendly number of an order.")
@@ -500,9 +499,7 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_invoices(root: models.Order, info):
-        return invoice_models.Invoice.objects.filter(
-            invoice__pk__in=root.invoices.all()
-        )
+        return root.invoices.all()
 
     @staticmethod
     def resolve_is_shipping_required(root: models.Order, _info):

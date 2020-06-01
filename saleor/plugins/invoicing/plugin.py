@@ -26,8 +26,16 @@ class InvoicingPlugin(BasePlugin):
         file_content, creation_date = generate_invoice_pdf(invoice)
         invoice.created = creation_date
         invoice.update_invoice(number=generate_invoice_number())
-        invoice.save()
         invoice.invoice_file.save(f"{uuid4()}.pdf", ContentFile(file_content))
         invoice.status = JobStatus.SUCCESS
-        invoice.save()
+        invoice.save(
+            update_fields=[
+                "created",
+                "number",
+                "url",
+                "invoice_file",
+                "status",
+                "updated_at",
+            ]
+        )
         return invoice

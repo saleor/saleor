@@ -12,4 +12,11 @@ class Invoice(CountableDjangoObjectType):
         description = "Represents an Invoice."
         interfaces = [Job]
         model = models.Invoice
-        only_fields = ["id", "number", "url", "status", "pending_target", "metadata"]
+        only_fields = [
+            "id",
+            "number",
+            "external_url",
+            "status",
+            "pending_target",
+            "metadata",
+        ]

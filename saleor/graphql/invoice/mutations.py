@@ -36,7 +36,7 @@ class RequestInvoice(ModelMutation):
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Provided order status cannot be draft.",
+                        "Cannot request an invoice for draft order.",
                         code=InvoiceErrorCode.INVALID_STATUS,
                     )
                 }
@@ -46,7 +46,7 @@ class RequestInvoice(ModelMutation):
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Billing address is not set on order.",
+                        "Cannot request an invoice for order without billing address.",
                         code=InvoiceErrorCode.NOT_READY,
                     )
                 }
@@ -109,22 +109,22 @@ class CreateInvoice(ModelMutation):
         return data["input"]
 
     @classmethod
-    def clean_instance(cls, info, instance):
-        if instance.status == OrderStatus.DRAFT:
+    def clean_order(cls, info, order):
+        if order.status == OrderStatus.DRAFT:
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Provided order status cannot be draft.",
+                        "Cannot request an invoice for draft order.",
                         code=InvoiceErrorCode.INVALID_STATUS,
                     )
                 }
             )
 
-        if not instance.billing_address:
+        if not order.billing_address:
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Billing address is not set on order.",
+                        "Cannot request an invoice for order without billing address.",
                         code=InvoiceErrorCode.NOT_READY,
                     )
                 }
@@ -132,13 +132,13 @@ class CreateInvoice(ModelMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        instance = cls.get_node_or_error(
+        order = cls.get_node_or_error(
             info, data["order_id"], only_type=Order, field="orderId"
         )
-        cls.clean_instance(info, instance)
-        cleaned_input = cls.clean_input(info, instance, data)
+        cls.clean_order(info, order)
+        cleaned_input = cls.clean_input(info, order, data)
         invoice = models.Invoice(**cleaned_input)
-        invoice.order = instance
+        invoice.order = order
         invoice.status = JobStatus.SUCCESS
         invoice.save()
         events.invoice_created_event(
@@ -168,7 +168,7 @@ class RequestDeleteInvoice(ModelMutation):
         invoice = cls.get_node_or_error(info, data["id"], only_type=Invoice)
         invoice.status = JobStatus.PENDING
         invoice.pending_target = PendingTarget.DELETE
-        invoice.save()
+        invoice.save(update_fields=["status", "pending_target", "updated_at"])
         info.context.plugins.invoice_delete(invoice)
         events.invoice_requested_deletion_event(user=info.context.user, invoice=invoice)
         return RequestDeleteInvoice(invoice=invoice)
@@ -215,7 +215,7 @@ class UpdateInvoice(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         number = instance.number or data["input"].get("number")
-        url = instance.url or data["input"].get("url")
+        url = instance.external_url or data["input"].get("url")
         if not number or not url:
             raise ValidationError(
                 {
@@ -235,7 +235,7 @@ class UpdateInvoice(ModelMutation):
             number=cleaned_input.get("number"), url=cleaned_input.get("url")
         )
         instance.status = JobStatus.SUCCESS
-        instance.save()
+        instance.save(update_fields=["external_url", "number", "updated_at", "status"])
         return UpdateInvoice(invoice=instance)
 
 
@@ -256,7 +256,7 @@ class SendInvoiceEmail(ModelMutation):
 
         if instance.status != JobStatus.SUCCESS:
             error_code = InvoiceErrorCode.NOT_READY
-        elif not instance.url or not instance.number:
+        elif not instance.external_url or not instance.number:
             error_code = InvoiceErrorCode.URL_OR_NUMBER_NOT_SET
 
         if error_code:
