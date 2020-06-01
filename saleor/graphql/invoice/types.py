@@ -3,6 +3,7 @@ import graphene
 from ...invoice import models
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Job
+from ..meta.types import ObjectWithMetadata
 
 
 class Invoice(CountableDjangoObjectType):
@@ -10,7 +11,7 @@ class Invoice(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents an Invoice."
-        interfaces = [Job]
+        interfaces = [ObjectWithMetadata, Job]
         model = models.Invoice
         only_fields = [
             "id",
