@@ -98,7 +98,11 @@ class AppTokenDelete(ModelDeleteMutation):
 
 
 class AppTokenVerify(BaseMutation):
-    valid = graphene.Boolean(default_value=False, required=True)
+    valid = graphene.Boolean(
+        default_value=False,
+        required=True,
+        description="Determine if token is valid or not.",
+    )
 
     class Arguments:
         token = graphene.String(description="App token to verify.", required=True)
