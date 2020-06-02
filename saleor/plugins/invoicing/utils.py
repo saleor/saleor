@@ -32,7 +32,7 @@ def generate_invoice_number():
     try:
         last_number = parse_invoice_number(last_invoice)
         return make_full_invoice_number(last_number + 1)
-    except (IndexError, ValueError):
+    except (IndexError, ValueError, AttributeError):
         return make_full_invoice_number()
 
 
