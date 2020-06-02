@@ -160,12 +160,6 @@ def test_order_query(
                             amount
                         }
                     }
-                    invoices {
-                        id
-                        status
-                        externalUrl
-                        number
-                    }
                     availableShippingMethods {
                         id
                         price {
@@ -186,10 +180,6 @@ def test_order_query(
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    invoice = order_data["invoices"][0]
-    assert invoice["status"] == JobStatus.SUCCESS.upper()
-    assert invoice["externalUrl"] == "http://www.example.com/invoice.pdf"
-    assert invoice["number"] == "01/12/2020/TEST"
     assert order_data["number"] == str(order.pk)
     assert order_data["canFinalize"] is True
     assert order_data["status"] == order.status.upper()
@@ -224,6 +214,50 @@ def test_order_query(
         method["minimumOrderPrice"]["amount"]
     )
     assert expected_method.type.upper() == method["type"]
+
+
+ORDERS_WITH_INVOICES_QUERY = """
+    query OrdersQuery {
+        orders(first: 5) {
+            edges {
+                node {
+                    invoices {
+                        status
+                        externalUrl
+                        number
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_order_query_invoices(
+    user_api_client, permission_manage_orders, fulfilled_order
+):
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+    response = user_api_client.post_graphql(ORDERS_WITH_INVOICES_QUERY)
+    content = get_graphql_content(response)
+    edges = content["data"]["orders"]["edges"]
+    assert len(edges) == 1
+    assert edges[0]["node"]["invoices"] == [
+        {
+            "status": JobStatus.SUCCESS.upper(),
+            "externalUrl": "http://www.example.com/invoice.pdf",
+            "number": "01/12/2020/TEST",
+        }
+    ]
+
+
+def test_order_query_invoices_staff_no_permission(staff_api_client):
+    response = staff_api_client.post_graphql(ORDERS_WITH_INVOICES_QUERY)
+    assert_no_permission(response)
+
+
+def test_order_query_invoices_customer_user(user_api_client):
+    response = user_api_client.post_graphql(ORDERS_WITH_INVOICES_QUERY)
+    assert_no_permission(response)
 
 
 @pytest.mark.parametrize(
