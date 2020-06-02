@@ -230,7 +230,7 @@ def test_add_private_metadata_for_invoice(staff_api_client, permission_manage_or
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMetadata"]["item"], invoice, str(invoice.id)
+        response["data"]["updatePrivateMetadata"]["item"], invoice, invoice_id
     )
 
 
@@ -246,7 +246,7 @@ def test_add_public_metadata_for_invoice(staff_api_client, permission_manage_ord
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], invoice, str(invoice.id)
+        response["data"]["updateMetadata"]["item"], invoice, invoice_id
     )
 
 

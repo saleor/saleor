@@ -1955,7 +1955,7 @@ input IntRangeInput {
   lte: Int
 }
 
-type Invoice implements ObjectWithMetadata & Job {
+type Invoice implements ObjectWithMetadata & Job & Node {
   id: ID!
   metadata: [MetadataItem]!
   status: JobStatusEnum!

@@ -11,7 +11,7 @@ class Invoice(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents an Invoice."
-        interfaces = [ObjectWithMetadata, Job]
+        interfaces = [ObjectWithMetadata, Job, graphene.relay.Node]
         model = models.Invoice
         only_fields = [
             "id",

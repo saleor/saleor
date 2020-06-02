@@ -90,6 +90,7 @@ UPDATE_INVOICE_MUTATION = """
             }
         ) {
             invoice {
+                id
                 number
                 url
                 metadata {
@@ -288,8 +289,9 @@ def test_update_invoice(staff_api_client, permission_manage_orders, order):
     invoice = Invoice.objects.create(order=order, metadata=metadata)
     number = "01/12/2020/TEST"
     url = "http://www.example.com"
+    graphene_invoice_id = graphene.Node.to_global_id("Invoice", invoice.pk)
     variables = {
-        "id": graphene.Node.to_global_id("Invoice", invoice.pk),
+        "id": graphene_invoice_id,
         "number": number,
         "url": url,
     }
@@ -304,6 +306,7 @@ def test_update_invoice(staff_api_client, permission_manage_orders, order):
     assert response_metadata["key"] == test_key
     assert response_metadata["value"] == metadata[test_key]
     assert invoice.url == content["data"]["updateInvoice"]["invoice"]["url"]
+    assert content["data"]["updateInvoice"]["invoice"]["id"] == graphene_invoice_id
 
 
 def test_update_invoice_single_value(staff_api_client, permission_manage_orders, order):
