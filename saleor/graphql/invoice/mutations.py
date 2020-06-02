@@ -30,9 +30,9 @@ class RequestInvoice(ModelMutation):
             description="Invoice number, if not provided it will be generated.",
         )
 
-    @classmethod
-    def clean_instance(cls, info, instance):
-        if instance.status == OrderStatus.DRAFT:
+    @staticmethod
+    def clean_order(order):
+        if order.status == OrderStatus.DRAFT:
             raise ValidationError(
                 {
                     "orderId": ValidationError(
@@ -42,7 +42,7 @@ class RequestInvoice(ModelMutation):
                 }
             )
 
-        if not instance.billing_address:
+        if not order.billing_address:
             raise ValidationError(
                 {
                     "orderId": ValidationError(
@@ -57,7 +57,7 @@ class RequestInvoice(ModelMutation):
         order = cls.get_node_or_error(
             info, data["order_id"], only_type=Order, field="orderId"
         )
-        cls.clean_instance(info, order)
+        cls.clean_order(order)
 
         invoice = models.Invoice.objects.create(order=order, number=data.get("number"),)
 
@@ -72,7 +72,7 @@ class RequestInvoice(ModelMutation):
 
 
 class CreateInvoiceInput(graphene.InputObjectType):
-    number = graphene.String(required=True, description="Invoice number")
+    number = graphene.String(required=True, description="Invoice number.")
     url = graphene.String(required=True, description="URL of an invoice to download.")
 
 
