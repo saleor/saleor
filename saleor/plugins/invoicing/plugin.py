@@ -32,13 +32,6 @@ class InvoicingPlugin(BasePlugin):
         )
         invoice.status = JobStatus.SUCCESS
         invoice.save(
-            update_fields=[
-                "created",
-                "number",
-                "url",
-                "invoice_file",
-                "status",
-                "updated_at",
-            ]
+            update_fields=["created", "number", "invoice_file", "status", "updated_at"]
         )
         return invoice

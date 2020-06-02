@@ -1978,7 +1978,8 @@ type InvoiceError {
 enum InvoiceErrorCode {
   REQUIRED
   NOT_READY
-  URL_OR_NUMBER_NOT_SET
+  URL_NOT_SET
+  NUMBER_NOT_SET
   NOT_FOUND
   INVALID_STATUS
 }

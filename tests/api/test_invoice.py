@@ -339,8 +339,8 @@ def test_update_invoice_missing_number(
     content = get_graphql_content(response)
     invoice.refresh_from_db()
     error = content["data"]["updateInvoice"]["invoiceErrors"][0]
-    assert error["code"] == InvoiceErrorCode.URL_OR_NUMBER_NOT_SET.name
-    assert error["field"] == "invoice"
+    assert error["code"] == InvoiceErrorCode.NUMBER_NOT_SET.name
+    assert error["field"] == "number"
     assert invoice.url is None
     assert invoice.status == JobStatus.PENDING
 
@@ -520,8 +520,5 @@ def test_send_not_ready_invoice(
     )
     content = get_graphql_content(response)
     errors = content["data"]["sendInvoiceEmail"]["invoiceErrors"]
-    [{"field": None, "code": "URL_OR_NUMBER_NOT_SET"}]
-    assert errors == [
-        {"field": None, "code": InvoiceErrorCode.URL_OR_NUMBER_NOT_SET.name}
-    ]
+    assert errors == [{"field": None, "code": InvoiceErrorCode.URL_NOT_SET.name}]
     email_mock.assert_not_called()

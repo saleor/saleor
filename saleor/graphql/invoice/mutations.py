@@ -211,15 +211,22 @@ class UpdateInvoice(ModelMutation):
     def clean_input(cls, info, instance, data):
         number = instance.number or data["input"].get("number")
         url = instance.external_url or data["input"].get("url")
-        if not number or not url:
-            raise ValidationError(
-                {
-                    "invoice": ValidationError(
-                        "URL and number need to be set after update operation.",
-                        code=InvoiceErrorCode.URL_OR_NUMBER_NOT_SET,
-                    )
-                }
+
+        validation_errors = {}
+        if not number:
+            validation_errors["number"] = ValidationError(
+                "Number need to be set after update operation.",
+                code=InvoiceErrorCode.NUMBER_NOT_SET,
             )
+        if not url:
+            validation_errors["url"] = ValidationError(
+                "URL need to be set after update operation.",
+                code=InvoiceErrorCode.URL_NOT_SET,
+            )
+
+        if validation_errors:
+            raise ValidationError(validation_errors)
+
         return data["input"]
 
     @classmethod
@@ -251,8 +258,10 @@ class SendInvoiceEmail(ModelMutation):
 
         if instance.status != JobStatus.SUCCESS:
             error_code = InvoiceErrorCode.NOT_READY
-        elif not instance.external_url or not instance.number:
-            error_code = InvoiceErrorCode.URL_OR_NUMBER_NOT_SET
+        elif not instance.external_url:
+            error_code = InvoiceErrorCode.URL_NOT_SET
+        elif not instance.number:
+            error_code = InvoiceErrorCode.NUMBER_NOT_SET
 
         if error_code:
             raise ValidationError(
