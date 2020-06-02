@@ -499,7 +499,10 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_invoices(root: models.Order, info):
-        return root.invoices.all()
+        user = info.context.user
+        if user == root.user or user.has_perm(OrderPermissions.MANAGE_ORDERS):
+            return root.invoices.all()
+        raise PermissionDenied()
 
     @staticmethod
     def resolve_is_shipping_required(root: models.Order, _info):

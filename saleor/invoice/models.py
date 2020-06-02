@@ -7,7 +7,6 @@ from ..core import JobStatus
 from ..core.models import Job, ModelWithMetadata
 from ..core.utils import build_absolute_uri
 from ..core.utils.json_serializer import CustomJsonEncoder
-from ..graphql.invoice.enums import PendingTarget
 from ..order.models import Order
 from . import InvoiceEvents
 
@@ -21,8 +20,6 @@ class Invoice(ModelWithMetadata, Job):
     order = models.ForeignKey(
         Order, related_name="invoices", null=True, on_delete=models.SET_NULL
     )
-    # pending_target explains how status will change (pending -> deleted / success).
-    pending_target = models.CharField(max_length=50, choices=PendingTarget.CHOICES)
     number = models.CharField(max_length=255, null=True)
     created = models.DateTimeField(null=True)
     external_url = models.URLField(null=True, max_length=2048)

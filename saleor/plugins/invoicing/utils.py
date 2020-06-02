@@ -4,7 +4,6 @@ from datetime import datetime
 
 import pytz
 from django.conf import settings
-from django.contrib.staticfiles import finders as static_finders
 from django.template.loader import get_template
 from weasyprint import HTML
 
@@ -57,7 +56,6 @@ def get_product_limit_first_page(products):
 
 
 def generate_invoice_pdf(invoice):
-    logo_path = static_finders.find(settings.INVOICE_LOGO_PATH)
     font_path = os.path.join(
         settings.PROJECT_ROOT, "templates", "invoices", "inter.ttf"
     )
@@ -76,7 +74,6 @@ def generate_invoice_pdf(invoice):
             "invoice": invoice,
             "creation_date": creation_date.strftime("%d %b %Y"),
             "order": invoice.order,
-            "logo_path": f"file://{logo_path}",
             "font_path": f"file://{font_path}",
             "products_first_page": products_first_page,
             "rest_of_products": rest_of_products,

@@ -25,14 +25,11 @@ def test_get_product_limit_first_page(product):
 
 
 @patch("saleor.plugins.invoicing.utils.HTML")
-@patch("saleor.plugins.invoicing.utils.static_finders")
 @patch("saleor.plugins.invoicing.utils.get_template")
 @patch("saleor.plugins.invoicing.utils.os")
 def test_generate_invoice_pdf_for_order(
-    os_mock, get_template_mock, static_mock, HTML_mock, fulfilled_order
+    os_mock, get_template_mock, HTML_mock, fulfilled_order
 ):
-    file_path = "/dev/null"
-    static_mock.find.return_value = file_path
     get_template_mock.return_value.render = Mock(return_value="<html></html>")
     os_mock.path.join.return_value = "test"
 
@@ -43,7 +40,6 @@ def test_generate_invoice_pdf_for_order(
             "invoice": fulfilled_order.invoices.first(),
             "creation_date": datetime.today().strftime("%d %b %Y"),
             "order": fulfilled_order,
-            "logo_path": f"file://{file_path}",
             "font_path": "file://test",
             "products_first_page": list(fulfilled_order.lines.all()),
             "rest_of_products": [],
