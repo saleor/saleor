@@ -4,6 +4,7 @@ from ....account.error_codes import AccountErrorCode, PermissionGroupErrorCode
 from ....app.error_codes import AppErrorCode
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.error_codes import ShopErrorCode
+from ....csv.error_codes import CsvErrorCode
 from ....discount.error_codes import DiscountErrorCode
 from ....giftcard.error_codes import GiftCardErrorCode
 from ....menu.error_codes import MenuErrorCode
@@ -45,6 +46,7 @@ SALEOR_ERROR_CODE_ENUMS = [
     AccountErrorCode,
     AppErrorCode,
     CheckoutErrorCode,
+    CsvErrorCode,
     DiscountErrorCode,
     PluginErrorCode,
     GiftCardErrorCode,
