@@ -380,7 +380,7 @@ PAYMENT_MODEL = "order.Payment"
 
 MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
 
-TEST_RUNNER = "tests.runner.PytestTestRunner"
+TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
