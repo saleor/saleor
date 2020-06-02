@@ -27,6 +27,7 @@ from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
     add_voucher_usage_by_customer,
     decrease_voucher_usage,
+    get_discounted_lines,
     get_products_voucher_discount,
     increase_voucher_usage,
     remove_voucher_usage_by_customer,
@@ -258,28 +259,8 @@ def get_prices_of_discounted_specific_product(
     Product must be assigned directly to the discounted category, assigning
     product to child category won't work.
     """
-    discounted_products = voucher.products.all()
-    discounted_categories = set(voucher.categories.all())
-    discounted_collections = set(voucher.collections.all())
-
     line_prices = []
-    discounted_lines = []
-    if discounted_products or discounted_collections or discounted_categories:
-        for line in lines:
-            line_product = line.variant.product
-            line_category = line.variant.product.category
-            line_collections = set(line.variant.product.collections.all())
-            if line.variant and (
-                line_product in discounted_products
-                or line_category in discounted_categories
-                or line_collections.intersection(discounted_collections)
-            ):
-                discounted_lines.append(line)
-    else:
-        # If there's no discounted products, collections or categories,
-        # it means that all products are discounted
-        discounted_lines.extend(list(lines))
-
+    discounted_lines = get_discounted_lines(lines, voucher)
     for line in discounted_lines:
         line_total = calculations.checkout_line_total(
             line=line, discounts=discounts or []

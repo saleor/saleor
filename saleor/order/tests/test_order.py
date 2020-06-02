@@ -579,6 +579,39 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
         get_voucher_discount_for_order(order)
 
 
+@pytest.mark.parametrize(
+    "discount_value, discount_type, apply_once_per_order, discount_amount",
+    [
+        (5, DiscountValueType.FIXED, True, "5"),
+        (5, DiscountValueType.FIXED, False, "25"),
+        (10000, DiscountValueType.FIXED, True, "12.3"),
+        (10000, DiscountValueType.FIXED, False, "86.1"),
+        (10, DiscountValueType.PERCENTAGE, True, "1.23"),
+        (10, DiscountValueType.PERCENTAGE, False, "8.61"),
+    ],
+)
+def test_get_discount_for_order_specific_products_voucher(
+    order_with_lines,
+    discount_value,
+    discount_type,
+    apply_once_per_order,
+    discount_amount,
+):
+    voucher = Voucher.objects.create(
+        code="unique",
+        type=VoucherType.SPECIFIC_PRODUCT,
+        discount_value_type=discount_type,
+        discount_value=discount_value,
+        apply_once_per_order=apply_once_per_order,
+    )
+    voucher.products.add(order_with_lines.lines.first().variant.product)
+    voucher.products.add(order_with_lines.lines.last().variant.product)
+    order_with_lines.voucher = voucher
+    order_with_lines.save()
+    discount = get_voucher_discount_for_order(order_with_lines)
+    assert discount == Money(discount_amount, "USD")
+
+
 def test_product_voucher_checkout_discount_raises_not_applicable(
     order_with_lines, product_with_images
 ):
