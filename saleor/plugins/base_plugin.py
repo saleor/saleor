@@ -234,6 +234,10 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def invoice_sent(self, invoice: "Invoice", email: str, previous_value: Any):
+        """Trigger after invoice is sent."""
+        return NotImplemented
+
     def assign_tax_code_to_object_meta(
         self, obj: Union["Product", "ProductType"], tax_code: str, previous_value: Any
     ):
