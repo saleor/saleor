@@ -105,18 +105,16 @@ def queryset_in_batches(queryset):
     """
     start_pk = 0
 
-    while queryset.filter(pk__gt=start_pk).exists():
-        qs = queryset.filter(pk__gt=start_pk)
+    while True:
+        qs = queryset.filter(pk__gt=start_pk)[:BATCH_SIZE]
+        pks = list(qs.values_list("pk", flat=True))
 
-        pks = qs.values_list("pk", flat=True)
-        try:
-            end_pk = pks[BATCH_SIZE - 1]
-        except IndexError:
-            end_pk = pks.last()
+        if not pks:
+            break
 
-        yield qs.filter(pk__lte=end_pk)
+        yield pks
 
-        start_pk = end_pk
+        start_pk = pks[-1]
 
 
 def export_products_in_batches(
@@ -131,8 +129,8 @@ def export_products_in_batches(
     warehouses = export_info.get("warehouses")
     attributes = export_info.get("attributes")
 
-    for batch in queryset_in_batches(queryset):
-        product_batch = batch.prefetch_related(
+    for batch_pks in queryset_in_batches(queryset):
+        product_batch = Product.objects.filter(pk__in=batch_pks).prefetch_related(
             "attributes",
             "variants",
             "collections",
