@@ -3,7 +3,6 @@ from unittest.mock import patch
 import graphene
 
 from saleor.core import JobStatus
-from saleor.graphql.invoice.enums import PendingTarget
 from saleor.invoice.error_codes import InvoiceErrorCode
 from saleor.invoice.models import Invoice, InvoiceEvent, InvoiceEvents
 from saleor.order import OrderStatus
@@ -149,7 +148,6 @@ def test_request_invoice(
         content["data"]["requestInvoice"]["invoice"]["status"]
         == JobStatus.PENDING.upper()
     )
-    assert invoice.pending_target == PendingTarget.COMPLETE
 
 
 def test_request_invoice_draft_order(staff_api_client, permission_manage_orders, order):
@@ -219,7 +217,6 @@ def test_request_delete_invoice(
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     staff_api_client.post_graphql(REQUEST_DELETE_INVOICE_MUTATION, variables)
     invoice.refresh_from_db()
-    assert invoice.pending_target == PendingTarget.DELETE
     plugin_mock.assert_called_once_with(invoice, previous_value=None)
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.REQUESTED_DELETION,

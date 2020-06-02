@@ -18,6 +18,5 @@ class Invoice(CountableDjangoObjectType):
             "number",
             "external_url",
             "status",
-            "pending_target",
             "metadata",
         ]

@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 
 from ...core import JobStatus
 from ...core.permissions import OrderPermissions
-from ...graphql.invoice.enums import PendingTarget
 from ...invoice import events, models
 from ...invoice.emails import send_invoice
 from ...invoice.error_codes import InvoiceErrorCode
@@ -60,11 +59,7 @@ class RequestInvoice(ModelMutation):
         )
         cls.clean_instance(info, order)
 
-        invoice = models.Invoice.objects.create(
-            order=order,
-            number=data.get("number"),
-            pending_target=PendingTarget.COMPLETE,
-        )
+        invoice = models.Invoice.objects.create(order=order, number=data.get("number"),)
 
         info.context.plugins.invoice_request(
             order=order, invoice=invoice, number=data.get("number")
@@ -168,8 +163,7 @@ class RequestDeleteInvoice(ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         invoice = cls.get_node_or_error(info, data["id"], only_type=Invoice)
         invoice.status = JobStatus.PENDING
-        invoice.pending_target = PendingTarget.DELETE
-        invoice.save(update_fields=["status", "pending_target", "updated_at"])
+        invoice.save(update_fields=["status", "updated_at"])
         info.context.plugins.invoice_delete(invoice)
         events.invoice_requested_deletion_event(user=info.context.user, invoice=invoice)
         return RequestDeleteInvoice(invoice=invoice)

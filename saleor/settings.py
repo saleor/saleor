@@ -557,5 +557,3 @@ REDIS_URL = os.environ.get("REDIS_URL")
 if REDIS_URL:
     CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
 CACHES = {"default": django_cache_url.config()}
-
-INVOICE_LOGO_PATH = os.environ.get("INVOICE_LOGO_PATH", "images/logo.svg")

@@ -1959,7 +1959,6 @@ type Invoice implements ObjectWithMetadata & Job {
   id: ID!
   metadata: [MetadataItem]!
   status: JobStatusEnum!
-  pendingTarget: InvoicePendingTarget!
   number: String
   externalUrl: String
   privateMetadata: [MetadataItem]!
@@ -1982,11 +1981,6 @@ enum InvoiceErrorCode {
   URL_OR_NUMBER_NOT_SET
   NOT_FOUND
   INVALID_STATUS
-}
-
-enum InvoicePendingTarget {
-  DELETE
-  COMPLETE
 }
 
 scalar JSONString
