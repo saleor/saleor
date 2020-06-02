@@ -10,6 +10,7 @@ from ..core.utils.anonymization import (
     anonymize_order,
     generate_fake_user,
 )
+from ..invoice.models import Invoice
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order
 from ..order.utils import get_order_country
@@ -103,6 +104,12 @@ def generate_order_payload(order: "Order"):
         },
     )
     return order_data
+
+
+def generate_invoice_payload(invoice: "Invoice"):
+    serializer = PayloadSerializer()
+    invoice_fields = ("id", "number", "external_url", "created")
+    return serializer.serialize([invoice], fields=invoice_fields,)
 
 
 def generate_checkout_payload(checkout: "Checkout"):
