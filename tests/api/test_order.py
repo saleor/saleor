@@ -21,6 +21,7 @@ from saleor.graphql.order.mutations.orders import (
 )
 from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
+from saleor.invoice.models import Invoice
 from saleor.order import OrderStatus, events as order_events
 from saleor.order.error_codes import OrderErrorCode
 from saleor.order.models import Order, OrderEvent
@@ -258,6 +259,41 @@ def test_order_query_invoices_staff_no_permission(staff_api_client):
 def test_order_query_invoices_customer_user(user_api_client):
     response = user_api_client.post_graphql(ORDERS_WITH_INVOICES_QUERY)
     assert_no_permission(response)
+
+
+def test_order_query_invoices_customer_user_by_token(
+    api_client, fulfilled_order, staff_user
+):
+    # create an order and invoice for different user
+    different_order = Order.objects.create(
+        user=staff_user, status=OrderStatus.FULFILLED
+    )
+    Invoice.objects.create(
+        order=different_order, number="1/01/2020", external_url="http://example.com"
+    )
+
+    # check if OrderByToken will retrieve only invoices only for that order.
+    query = """
+    query OrderByToken($token: UUID!) {
+        orderByToken(token: $token) {
+            invoices {
+                id
+                number
+                externalUrl
+            }
+        }
+    }
+    """
+    response = api_client.post_graphql(query, {"token": fulfilled_order.token})
+    content = get_graphql_content(response)
+    invoice = fulfilled_order.invoices.first()
+    assert content["data"]["orderByToken"]["invoices"] == [
+        {
+            "id": graphene.Node.to_global_id("Invoice", invoice.pk),
+            "number": invoice.number,
+            "externalUrl": invoice.external_url,
+        }
+    ]
 
 
 @pytest.mark.parametrize(
