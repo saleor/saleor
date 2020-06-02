@@ -105,10 +105,7 @@ def queryset_in_batches(queryset):
     """
     start_pk = 0
 
-    while True:
-        if not queryset.filter(pk__gt=start_pk).exists():
-            break
-
+    while queryset.filter(pk__gt=start_pk).exists():
         qs = queryset.filter(pk__gt=start_pk)
 
         pks = qs.values_list("pk", flat=True)
