@@ -61,6 +61,19 @@ def validate_order_lines(order, country):
                 )
 
 
+def validate_product_is_published(order):
+    for line in order:
+        if not line.variant.product.is_published:
+            raise ValidationError(
+                {
+                    "lines": ValidationError(
+                        "Can't finalize draft with unpublished product.",
+                        code=OrderErrorCode.PRODUCT_NOT_PUBLISHED,
+                    )
+                }
+            )
+
+
 def validate_draft_order(order, country):
     """Check if the given order contains the proper data.
 
@@ -68,6 +81,7 @@ def validate_draft_order(order, country):
     - Shipping address and method are set up,
     - Product variants for order lines still exists in database.
     - Product variants are availale in requested quantity.
+    - Product variants are published.
 
     Returns a list of errors if any were found.
     """
@@ -75,3 +89,4 @@ def validate_draft_order(order, country):
         validate_shipping_method(order)
     validate_total_quantity(order)
     validate_order_lines(order, country)
+    validate_product_is_published(order)

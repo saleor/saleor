@@ -153,6 +153,7 @@ class AvataxPlugin(BasePlugin):
             sub_net += Decimal(line.get("lineAmount", 0.0))
         sub_total_gross = Money(sub_net + sub_tax, currency)
         sub_total_net = Money(sub_net, currency)
+
         return TaxedMoney(net=sub_total_net, gross=sub_total_gross)
 
     def calculate_checkout_subtotal(
@@ -168,7 +169,6 @@ class AvataxPlugin(BasePlugin):
         base_subtotal = previous_value
         if not _validate_checkout(checkout):
             return base_subtotal
-
         response = get_checkout_tax_data(checkout, discounts, self.config)
         if not response or "error" in response:
             return base_subtotal
@@ -189,6 +189,7 @@ class AvataxPlugin(BasePlugin):
 
         shipping_gross = Money(amount=shipping_net + shipping_tax, currency=currency)
         shipping_net = Money(amount=shipping_net, currency=currency)
+
         return TaxedMoney(net=shipping_net, gross=shipping_gross)
 
     def calculate_checkout_shipping(
