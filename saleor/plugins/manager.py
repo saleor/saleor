@@ -20,7 +20,8 @@ if TYPE_CHECKING:
     from ..checkout.models import Checkout, CheckoutLine
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
-    from ..order.models import Fulfillment, Invoice, OrderLine, Order
+    from ..order.models import Fulfillment, OrderLine, Order
+    from ..invoice.models import Invoice
     from ..payment.interface import (
         PaymentData,
         TokenConfig,

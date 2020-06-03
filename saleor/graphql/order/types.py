@@ -5,6 +5,7 @@ from graphql_jwt.exceptions import PermissionDenied
 
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ...core.taxes import display_gross_prices
+from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
@@ -17,6 +18,7 @@ from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import permission_required
 from ..giftcard.types import GiftCard
+from ..invoice.types import Invoice
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
@@ -284,14 +286,6 @@ class OrderLine(CountableDjangoObjectType):
         return root.translated_variant_name
 
 
-class Invoice(CountableDjangoObjectType):
-    class Meta:
-        description = "Represents an Invoice."
-        interfaces = [relay.Node]
-        model = models.Invoice
-        only_fields = ["id", "number", "url"]
-
-
 class Order(CountableDjangoObjectType):
     fulfillments = graphene.List(
         Fulfillment, required=True, description="List of shipments for the order."
@@ -506,7 +500,10 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_invoices(root: models.Order, info):
-        return root.invoices.ready()
+        requester = get_user_or_app_from_context(info.context)
+        if requester == root.user or requester.has_perm(OrderPermissions.MANAGE_ORDERS):
+            return root.invoices.all()
+        raise PermissionDenied()
 
     @staticmethod
     def resolve_is_shipping_required(root: models.Order, _info):
