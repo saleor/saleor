@@ -5,6 +5,7 @@ from graphql_jwt.exceptions import PermissionDenied
 
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ...core.taxes import display_gross_prices
+from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
@@ -499,9 +500,8 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_invoices(root: models.Order, info):
-        if info.operation.name.value == "OrderByToken" or info.context.user.has_perm(
-            OrderPermissions.MANAGE_ORDERS
-        ):
+        requester = get_user_or_app_from_context(info.context)
+        if requester == root.user or requester.has_perm(OrderPermissions.MANAGE_ORDERS):
             return root.invoices.all()
         raise PermissionDenied()
 
