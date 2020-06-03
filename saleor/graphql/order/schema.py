@@ -3,6 +3,7 @@ import graphene
 from ...core.permissions import OrderPermissions
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
+from ..core.scalars import UUID
 from ..core.types import FilterInputObjectType, TaxedMoney
 from ..decorators import permission_required
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
@@ -117,9 +118,7 @@ class OrderQueries(graphene.ObjectType):
     order_by_token = graphene.Field(
         Order,
         description="Look up an order by token.",
-        token=graphene.Argument(
-            graphene.UUID, description="The order's token.", required=True
-        ),
+        token=graphene.Argument(UUID, description="The order's token.", required=True),
     )
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)

@@ -54,15 +54,11 @@ def _get_weight_type_display(min_weight, max_weight):
         max_weight = convert_weight(max_weight, default_unit)
 
     if max_weight is None:
-        return (
-            "Applies to orders heavier than the threshold",
-            "%(min_weight)s and up" % {"min_weight": min_weight},
-        )
-    return ("Applies to orders of total weight within this range",)
-    "%(min_weight)s to %(max_weight)s" % {
+        return ("%(min_weight)s and up" % {"min_weight": min_weight},)
+    return "%(min_weight)s to %(max_weight)s" % {
         "min_weight": min_weight,
         "max_weight": max_weight,
-    },
+    }
 
 
 class ShippingZone(models.Model):

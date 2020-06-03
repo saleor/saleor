@@ -4,7 +4,18 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Add our implementation of UUID scalar - #5646 by @koradon
+- Fix specific product voucher in draft orders - #5727 by @fowczarek
+
+## 2.10.1
+
+- Fix multiplied stock quantity - #5675 by @fowczarek
+- Fix invalid allocation after migration - #5678 by @fowczarek
+- Fix order mutations as app - #5680 by @fowczarek
+- Prevent creating checkout/draft order with unpublished product - #5676 by @d-wysocki
+
 ## 2.10.0
+
 - OpenTracing support - #5188 by @tomaszszymanski129
 - Account confirmation email - #5126 by @tomaszszymanski129
 - Relocate `Checkout` and `CheckoutLine` methods into separate module and update checkout related plugins to use them - #4980 by @krzysztofwolski

@@ -2,6 +2,7 @@ import graphene
 
 from ...core.permissions import CheckoutPermissions
 from ..core.fields import BaseDjangoConnectionField, PrefetchingConnectionField
+from ..core.scalars import UUID
 from ..decorators import permission_required
 from ..payment.mutations import CheckoutPaymentCreate
 from .mutations import (
@@ -31,7 +32,7 @@ class CheckoutQueries(graphene.ObjectType):
     checkout = graphene.Field(
         Checkout,
         description="Look up a checkout by token.",
-        token=graphene.Argument(graphene.UUID, description="The checkout's token."),
+        token=graphene.Argument(UUID, description="The checkout's token."),
     )
     # FIXME we could optimize the below field
     checkouts = BaseDjangoConnectionField(Checkout, description="List of checkouts.")
