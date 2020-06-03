@@ -470,8 +470,7 @@ def test_create_invoice_empty_params(staff_api_client, permission_manage_orders,
     ).exists()
 
 
-@patch("saleor.invoice.emails.send_invoice.delay")
-def test_send_invoice(email_mock, staff_api_client, permission_manage_orders, order):
+def test_send_invoice(staff_api_client, permission_manage_orders, order):
     number = "01/12/2020/TEST"
     url = "http://www.example.com"
     invoice = Invoice.objects.create(
@@ -483,7 +482,6 @@ def test_send_invoice(email_mock, staff_api_client, permission_manage_orders, or
     )
     content = get_graphql_content(response)
     assert not content["data"]["sendInvoiceEmail"]["invoiceErrors"]
-    email_mock.assert_called_with(invoice.pk)
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.SENT,
         user=staff_api_client.user,
