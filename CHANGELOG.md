@@ -5,6 +5,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ## [Unreleased]
 
 - Add our implementation of UUID scalar - #5646 by @koradon
+- Fix specific product voucher in draft orders - #5727 by @fowczarek
 
 ## 2.10.1
 
