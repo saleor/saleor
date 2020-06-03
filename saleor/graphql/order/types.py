@@ -500,18 +500,10 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_invoices(root: models.Order, info):
-        # deny access for anonymous order
-        if root is None or root.user is None:
-            return PermissionDenied()
-        # resolve invoice for logged-in customer
-        if root.user == info.context.user:
-            return root.invoices.all()
-        # resolve invoice for staff user or app
         requester = get_user_or_app_from_context(info.context)
-        if requester.has_perm(OrderPermissions.MANAGE_ORDERS):
+        if requester == root.user or requester.has_perm(OrderPermissions.MANAGE_ORDERS):
             return root.invoices.all()
-
-        return PermissionDenied()
+        raise PermissionDenied()
 
     @staticmethod
     def resolve_is_shipping_required(root: models.Order, _info):
