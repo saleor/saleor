@@ -220,7 +220,7 @@ def test_checkout_quantity_changed(
 
 
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
-def test_invoice_requeste(mocked_webhook_trigger, settings, fulfilled_order):
+def test_invoice_request(mocked_webhook_trigger, settings, fulfilled_order):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
     invoice = fulfilled_order.invoices.first()

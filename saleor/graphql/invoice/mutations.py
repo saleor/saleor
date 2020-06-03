@@ -272,7 +272,5 @@ class SendInvoiceEmail(ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
-        send_invoice.delay(instance.pk)
-        events.invoice_sent_event(user=info.context.user, invoice=instance)
-        info.context.plugins.invoice_sent(instance, instance.order.user.email)
+        send_invoice.delay(instance.pk, info.context.user.pk)
         return SendInvoiceEmail(invoice=instance)
