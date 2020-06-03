@@ -1,4 +1,5 @@
 from functools import wraps
+from typing import Iterable, List
 
 from django.conf import settings
 from django.db import transaction
@@ -9,7 +10,11 @@ from ..account.models import User
 from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..discount.models import NotApplicable, Voucher, VoucherType
-from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
+from ..discount.utils import (
+    get_discounted_lines,
+    get_products_voucher_discount,
+    validate_voucher_in_order,
+)
 from ..order import OrderStatus
 from ..order.models import Order, OrderLine
 from ..plugins.manager import get_plugins_manager
@@ -306,13 +311,34 @@ def get_valid_shipping_methods_for_order(order: Order):
     )
 
 
-def get_products_voucher_discount_for_order(voucher: Voucher) -> Money:
+def get_prices_of_discounted_specific_product(
+    lines: Iterable[OrderLine], voucher: Voucher,
+) -> List[Money]:
+    """Get prices of variants belonging to the discounted specific products.
+
+    Specific products are products, collections and categories.
+    Product must be assigned directly to the discounted category, assigning
+    product to child category won't work.
+    """
+    line_prices = []
+    discounted_lines = get_discounted_lines(lines, voucher)
+
+    for line in discounted_lines:
+        line_prices.extend([line.unit_price_gross] * line.quantity)
+
+    return line_prices
+
+
+def get_products_voucher_discount_for_order(order: Order) -> Money:
     """Calculate products discount value for a voucher, depending on its type."""
     prices = None
+    voucher = order.voucher
+    if voucher and voucher.type == VoucherType.SPECIFIC_PRODUCT:
+        prices = get_prices_of_discounted_specific_product(order.lines.all(), voucher)
     if not prices:
         msg = "This offer is only valid for selected items."
         raise NotApplicable(msg)
-    return get_products_voucher_discount(voucher, prices)
+    return get_products_voucher_discount(voucher, prices)  # type: ignore
 
 
 def get_voucher_discount_for_order(order: Order) -> Money:
@@ -329,7 +355,7 @@ def get_voucher_discount_for_order(order: Order) -> Money:
     if order.voucher.type == VoucherType.SHIPPING:
         return order.voucher.get_discount_amount_for(order.shipping_price)
     if order.voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        return get_products_voucher_discount_for_order(order.voucher)
+        return get_products_voucher_discount_for_order(order)
     raise NotImplementedError("Unknown discount type")
 
 
