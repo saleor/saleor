@@ -3,11 +3,12 @@ from collections import ChainMap, defaultdict
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union
 
 from django.conf import settings
-from django.db.models import Case, CharField, F, Value as V, When
+from django.db.models import Case, CharField, Value as V, When
 from django.db.models.functions import Concat
 
 from ...core.utils import build_absolute_uri
-from ...product.models import ProductVariant
+from ...product.models import Attribute
+from ...warehouse.models import Warehouse
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -18,7 +19,7 @@ class ProductExportFields:
     """Data structure with fields for product export."""
 
     HEADERS_TO_FIELDS_MAPPING = {
-        "product_fields": {
+        "fields": {
             "id": "id",
             "name": "name",
             "description": "description",
@@ -28,157 +29,214 @@ class ProductExportFields:
             "charge taxes": "charge_taxes",
             "product weight": "product_weight",
             "price": "price_amount",
-            "product currency": "product_currency",
+            "product currency": "currency",
+            "variant sku": "variants__sku",
+            "variant weight": "variant_weight",
+            "cost price": "variants__cost_price_amount",
+            "price override": "variants__price_override_amount",
+            "variant currency": "variants__currency",
         },
         "product_many_to_many": {
             "collections": "collections__slug",
-            "product images": "product_image_path",
+            "product images": "images__image",
         },
-        "variant_fields": {
-            "variant sku": "sku",
-            "variant weight": "variant_weight",
-            "variant images": "variant_image_path",
-            "cost price": "cost_price_amount",
-            "price override": "price_override_amount",
-            "variant currency": "variant_currency",
-        },
+        "variant_many_to_many": {"variant images": "variants__images__image",},
     }
 
-    WAREHOUSE_FIELDS = {
-        "slug": "stocks__warehouse__slug",
-        "quantity": "stocks__quantity",
-        "warehouse_pk": "stocks__warehouse__id",
-    }
-
-    ATTRIBUTE_FIELDS = {
+    PRODUCT_ATTRIBUTE_FIELDS = {
         "value": "attributes__values__slug",
         "slug": "attributes__assignment__attribute__slug",
         "attribute_pk": "attributes__assignment__attribute__pk",
     }
 
+    WAREHOUSE_FIELDS = {
+        "slug": "variants__stocks__warehouse__slug",
+        "quantity": "variants__stocks__quantity",
+        "warehouse_pk": "variants__stocks__warehouse__id",
+    }
 
-def get_products_data(
-    queryset: "QuerySet", export_info: Dict[str, list],
-) -> Tuple[List[Dict[str, Union[str, bool]]], Dict[str, str], List[str]]:
-    export_fields, csv_headers_mapping = get_export_fields_and_headers(export_info)
-    product_headers = export_fields
-
-    warehouse_ids = export_info.get("warehouses")
-    attribute_ids = export_info.get("attributes")
-    export_data, attributes_and_warehouse_headers = prepare_products_data(
-        queryset, set(export_fields), warehouse_ids, attribute_ids
-    )
-
-    headers = product_headers + attributes_and_warehouse_headers
-    return export_data, csv_headers_mapping, headers
+    VARIANT_ATTRIBUTE_FIELDS = {
+        "value": "variants__attributes__values__slug",
+        "slug": "variants__attributes__assignment__attribute__slug",
+        "attribute_pk": "variants__attributes__assignment__attribute__pk",
+    }
 
 
-def get_export_fields_and_headers(export_info: Dict[str, list]):
+def get_export_fields_and_headers_info(
+    export_info: Dict[str, list]
+) -> Tuple[List[str], List[str], List[str]]:
+    """Get export fields, all headers and headers mapping.
+
+    Based on export_info returns exported fields, fields to headers mapping and
+    all headers.
+    Headers contains product, variant, attribute and warehouse headers.
+    """
+    export_fields, file_headers = get_product_export_fields_and_headers(export_info)
+    attributes_headers = get_attributes_headers(export_info)
+    warehouses_headers = get_warehouses_headers(export_info)
+
+    data_headers = export_fields + attributes_headers + warehouses_headers
+    file_headers += attributes_headers + warehouses_headers
+    return export_fields, file_headers, data_headers
+
+
+def get_product_export_fields_and_headers(
+    export_info: Dict[str, list]
+) -> Tuple[List[str], List[str]]:
     """Get export fields from export info and prepare headers mapping.
 
     Based on given fields headers from export info, export fields set and
     headers mapping is prepared.
     """
-    fields_mapping = dict(
-        ChainMap(*reversed(ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()))  # type: ignore
-    )
     export_fields = ["id"]
-    csv_headers_mapping: Dict[str, str] = {}
+    file_headers = ["id"]
 
     fields = export_info.get("fields")
     if not fields:
-        return export_fields, csv_headers_mapping
+        return export_fields, file_headers
+
+    fields_mapping = dict(
+        ChainMap(*reversed(ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()))  # type: ignore
+    )
 
     for field in fields:
         lookup_field = fields_mapping[field]
         export_fields.append(lookup_field)
-        csv_headers_mapping[lookup_field] = field
+        file_headers.append(field)
         # if price is exported, currency is needed too
         if field == "price":
             lookup_field = fields_mapping["product currency"]
             export_fields.append(lookup_field)
-            csv_headers_mapping[lookup_field] = "product currency"
+            file_headers.append("product currency")
         elif field == "price override":
             lookup_field = fields_mapping["variant currency"]
             export_fields.append(lookup_field)
-            csv_headers_mapping[lookup_field] = "variant currency"
+            file_headers.append("variant currency")
 
-    return export_fields, csv_headers_mapping
+    return export_fields, file_headers
 
 
-def prepare_products_data(
+def get_attributes_headers(export_info: Dict[str, list]) -> List[str]:
+    """Get headers for exported attributes.
+
+    Headers are build from slug and contains information if it's a product or variant
+    attribute. Respectively for product: "slug-value (product attribute)"
+    and for variant: "slug-value (variant attribute)".
+    """
+
+    attribute_ids = export_info.get("attributes")
+    if not attribute_ids:
+        return []
+
+    attributes = Attribute.objects.filter(pk__in=attribute_ids).order_by("slug")
+
+    products_headers = (
+        attributes.filter(product_types__isnull=False)
+        .annotate(header=Concat("slug", V(" (product attribute)")))
+        .values_list("header", flat=True)
+    )
+
+    variant_headers = (
+        attributes.filter(product_variant_types__isnull=False)
+        .annotate(header=Concat("slug", V(" (variant attribute)")))
+        .values_list("header", flat=True)
+    )
+
+    return list(products_headers) + list(variant_headers)
+
+
+def get_warehouses_headers(export_info: Dict[str, list]) -> List[str]:
+    """Get headers for exported warehouses.
+
+    Headers are build from slug. Example: "slug-value (warehouse quantity)"
+    """
+    warehouse_ids = export_info.get("warehouses")
+    if not warehouse_ids:
+        return []
+
+    warehouses_headers = (
+        Warehouse.objects.filter(pk__in=warehouse_ids)
+        .order_by("slug")
+        .annotate(header=Concat("slug", V(" (warehouse quantity)")))
+        .values_list("header", flat=True)
+    )
+
+    return list(warehouses_headers)
+
+
+def get_products_data(
     queryset: "QuerySet",
     export_fields: Set[str],
-    warehouse_ids: Optional[List[int]],
     attribute_ids: Optional[List[int]],
-) -> Tuple[List[Dict[str, Union[str, bool]]], List[str]]:
+    warehouse_ids: Optional[List[int]],
+) -> List[Dict[str, Union[str, bool]]]:
     """Create data list of products and their variants with fields values.
 
     It return list with product and variant data which can be used as import to
     csv writer and list of attribute and warehouse headers.
     """
 
-    variants_attributes_fields: Set[str] = set()
-    warehouse_fields: Set[str] = set()
     products_with_variants_data = []
 
     product_fields = set(
-        ProductExportFields.HEADERS_TO_FIELDS_MAPPING["product_fields"].values()
+        ProductExportFields.HEADERS_TO_FIELDS_MAPPING["fields"].values()
     )
     product_export_fields = export_fields & product_fields
+    product_export_fields.add("variants__id")
 
-    products_data = queryset.annotate(
-        product_currency=F("currency"),
-        product_weight=Case(
-            When(weight__isnull=False, then=Concat("weight", V(" g"))),
-            default=V(""),
-            output_field=CharField(),
-        ),
-    ).values(*product_export_fields)
+    products_data = (
+        queryset.annotate(
+            product_weight=Case(
+                When(weight__isnull=False, then=Concat("weight", V(" g"))),
+                default=V(""),
+                output_field=CharField(),
+            ),
+            variant_weight=Case(
+                When(
+                    variants__weight__isnull=False,
+                    then=Concat("variants__weight", V(" g")),
+                ),
+                default=V(""),
+                output_field=CharField(),
+            ),
+        )
+        .order_by("pk", "variants__pk")
+        .values(*product_export_fields)
+        .distinct("pk", "variants__pk")
+    )
 
-    product_relations_data, products_attributes_fields = get_products_relations_data(
+    products_relations_data = get_products_relations_data(
         queryset, export_fields, attribute_ids
     )
 
-    variant_fields = set(
-        ProductExportFields.HEADERS_TO_FIELDS_MAPPING["variant_fields"].values()
+    variants_relations_data = get_variants_relations_data(
+        queryset, export_fields, attribute_ids, warehouse_ids
     )
-    variant_export_fields = export_fields & variant_fields
-    export_variant_data = variant_export_fields or attribute_ids or warehouse_ids
+
     for product_data in products_data:
         pk = product_data["id"]
-        relations_data: Dict[str, str] = product_relations_data.get(pk, {})
-        data = {**product_data, **relations_data}
+        variant_pk = product_data.pop("variants__id")
 
-        if not export_variant_data:
-            products_with_variants_data.append(data)
-            continue
-
-        variants_data, *headers = prepare_variants_data(
-            pk, data, variant_export_fields, warehouse_ids, attribute_ids
+        product_relations_data: Dict[str, str] = products_relations_data.get(pk, {})
+        variant_relations_data: Dict[str, str] = variants_relations_data.get(
+            variant_pk, {}
         )
-        products_with_variants_data.extend(variants_data)
-        variants_attributes_fields.update(headers[0])
-        warehouse_fields.update(headers[1])
 
-    attribute_and_warehouse_headers: list = (
-        sorted(products_attributes_fields)
-        + sorted(variants_attributes_fields)
-        + sorted(warehouse_fields)
-    )
+        data = {**product_data, **product_relations_data, **variant_relations_data}
 
-    return products_with_variants_data, attribute_and_warehouse_headers
+        products_with_variants_data.append(data)
+
+    return products_with_variants_data
 
 
 def get_products_relations_data(
     queryset: "QuerySet", export_fields: Set[str], attribute_ids: Optional[List[int]]
-):
+) -> Dict[int, Dict[str, str]]:
     """Get data about product relations fields.
 
     If any many to many fields are in export_fields or some attribute_ids exists then
-    dict with product relations fields is returned. It also returns set with
-    attribute headers.
-    Otherwise it returns empty dict and set.
+    dict with product relations fields is returned.
+    Otherwise it returns empty dict.
     """
     many_to_many_fields = set(
         ProductExportFields.HEADERS_TO_FIELDS_MAPPING["product_many_to_many"].values()
@@ -189,75 +247,141 @@ def get_products_relations_data(
             queryset, relations_fields, attribute_ids
         )
 
-    return {}, set()
+    return {}
 
 
 def prepare_products_relations_data(
     queryset: "QuerySet", fields: Set[str], attribute_ids: Optional[List[int]]
-) -> Tuple[Dict[int, Dict[str, str]], set]:
+) -> Dict[int, Dict[str, str]]:
     """Prepare data about products relation fields for given queryset.
 
     It return dict where key is a product pk, value is a dict with relation fields data.
-    It also returns set with attribute headers.
     """
+    attribute_fields = ProductExportFields.PRODUCT_ATTRIBUTE_FIELDS
     result_data: Dict[int, dict] = defaultdict(dict)
-    attributes_headers: Set[str] = set()
+
+    fields.add("pk")
     if attribute_ids:
-        result_data, attributes_headers = prepare_attribute_products_data(
-            queryset, attribute_ids
-        )
+        fields.update(ProductExportFields.PRODUCT_ATTRIBUTE_FIELDS.values())
 
-    if fields:
-        fields.add("pk")
+    relations_data = queryset.values(*fields)
 
-        relations_data = queryset.annotate(
-            product_image_path=F("images__image"),
-        ).values(*fields)
+    for data in relations_data.iterator():
+        pk = data.get("pk")
+        collection = data.get("collections__slug")
+        image = data.pop("images__image", None)
 
-        for data in relations_data:
-            pk = data.get("pk")
-            collection = data.get("collections__slug")
-            image = data.pop("product_image_path", None)
+        result_data = add_image_uris_to_data(pk, image, "images__image", result_data)
+        result_data = add_collection_info_to_data(pk, collection, result_data)
 
-            result_data = add_image_uris_to_data(
-                pk, image, "product_image_path", result_data
+        # handle attributes
+        attribute_data: dict = {}
+
+        attribute_pk = str(data.pop(attribute_fields["attribute_pk"], ""))
+        attribute_data = {
+            "slug": data.pop(attribute_fields["slug"], None),
+            "value": data.pop(attribute_fields["value"], None),
+        }
+
+        if attribute_ids and attribute_pk in attribute_ids:
+            result_data = add_attribute_info_to_data(
+                pk, attribute_data, "product attribute", result_data
             )
-            result_data = add_collection_info_to_data(pk, collection, result_data)
 
     result: Dict[int, Dict[str, str]] = {
         pk: {header: ", ".join(sorted(values)) for header, values in data.items()}
         for pk, data in result_data.items()
     }
-    return result, attributes_headers
+    return result
 
 
-def prepare_attribute_products_data(
-    queryset: "QuerySet", attribute_ids: Optional[List[int]],
-):
-    attributes_headers = set()
-    result_data: Dict[int, dict] = defaultdict(dict)
+def get_variants_relations_data(
+    queryset: "QuerySet",
+    export_fields: Set[str],
+    attribute_ids: Optional[List[int]],
+    warehouse_ids: Optional[List[int]],
+) -> Dict[int, Dict[str, str]]:
+    """Get data about variants relations fields.
 
-    attribute_fields = ProductExportFields.ATTRIBUTE_FIELDS
-    fields = set(attribute_fields.values())
-    fields.add("pk")
-
-    attribute_data = queryset.filter(
-        attributes__assignment__attribute__pk__in=attribute_ids
-    ).values(*fields)
-
-    for data in attribute_data:
-        pk = data.get("pk")
-        attribute = {
-            "slug": data[attribute_fields["slug"]],
-            "value": data[attribute_fields["value"]],
-        }
-        result_data, attribute_header = add_attribute_info_to_data(
-            pk, attribute, "product attribute", result_data
+    If any many to many fields are in export_fields or some attribute_ids or
+    warehouse_ids exists then dict with variant relations fields is returned.
+    Otherwise it returns empty dict.
+    """
+    many_to_many_fields = set(
+        ProductExportFields.HEADERS_TO_FIELDS_MAPPING["variant_many_to_many"].values()
+    )
+    relations_fields = export_fields & many_to_many_fields
+    if relations_fields or attribute_ids or warehouse_ids:
+        return prepare_variants_relations_data(
+            queryset, relations_fields, attribute_ids, warehouse_ids
         )
-        if attribute_header:
-            attributes_headers.add(attribute_header)
 
-    return result_data, attributes_headers
+    return {}
+
+
+def prepare_variants_relations_data(
+    queryset: "QuerySet",
+    fields: Set[str],
+    attribute_ids: Optional[List[int]],
+    warehouse_ids: Optional[List[int]],
+) -> Dict[int, Dict[str, str]]:
+    """Prepare data about variants relation fields for given queryset.
+
+    It return dict where key is a product pk, value is a dict with relation fields data.
+    """
+    warehouse_fields = ProductExportFields.WAREHOUSE_FIELDS
+    attribute_fields = ProductExportFields.VARIANT_ATTRIBUTE_FIELDS
+
+    result_data: Dict[int, dict] = defaultdict(dict)
+    fields.add("variants__pk")
+
+    if attribute_ids:
+        fields.update(ProductExportFields.VARIANT_ATTRIBUTE_FIELDS.values())
+    if warehouse_ids:
+        fields.update(ProductExportFields.WAREHOUSE_FIELDS.values())
+
+    relations_data = queryset.values(*fields)
+
+    for data in relations_data.iterator():
+        pk = data.get("variants__pk")
+        image = data.pop("variants__images__image", None)
+
+        result_data = add_image_uris_to_data(
+            pk, image, "variants__images__image", result_data
+        )
+
+        # handle attribute and warehouse data
+        attribute_data: dict = {}
+        warehouse_data: dict = {}
+
+        attribute_pk = str(data.pop(attribute_fields["attribute_pk"], ""))
+        attribute_data = {
+            "slug": data.pop(attribute_fields["slug"], None),
+            "value": data.pop(attribute_fields["value"], None),
+        }
+
+        warehouse_pk = str(data.pop(warehouse_fields["warehouse_pk"], ""))
+        warehouse_data = {
+            "slug": data.pop(warehouse_fields["slug"], None),
+            "qty": data.pop(warehouse_fields["quantity"], None),
+        }
+
+        if attribute_ids and attribute_pk in attribute_ids:
+            result_data = add_attribute_info_to_data(
+                pk, attribute_data, "variant attribute", result_data
+            )
+
+        if warehouse_ids and warehouse_pk in warehouse_ids:
+            result_data = add_warehouse_info_to_data(pk, warehouse_data, result_data)
+
+    result: Dict[int, Dict[str, str]] = {
+        pk: {
+            header: ", ".join(sorted(values)) if isinstance(values, set) else values
+            for header, values in data.items()
+        }
+        for pk, data in result_data.items()
+    }
+    return result
 
 
 def add_collection_info_to_data(
@@ -278,119 +402,6 @@ def add_collection_info_to_data(
         else:
             result_data[pk][header] = {collection}
     return result_data
-
-
-def prepare_variants_data(
-    pk: int,
-    product_data: dict,
-    variant_fields: Set[str],
-    warehouse_ids: Optional[List[int]],
-    attribute_ids: Optional[List[int]],
-) -> Tuple[List[dict], set, set]:
-    """Prepare variants data for product with given pk.
-
-    This function gets product pk and prepared data about product"s variants.
-    Returned data contains info about variant fields and relations.
-    It also return sets with variant attributes and warehouse headers.
-    """
-    variant_fields.add("pk")
-
-    if attribute_ids:
-        variant_fields.update(ProductExportFields.ATTRIBUTE_FIELDS.values())
-    if warehouse_ids:
-        variant_fields.update(ProductExportFields.WAREHOUSE_FIELDS.values())
-
-    variants_data = (
-        ProductVariant.objects.filter(product__pk=pk)
-        .annotate(
-            variant_currency=F("currency"),
-            variant_image_path=F("images__image"),
-            variant_weight=Case(
-                When(weight__isnull=False, then=Concat("weight", V(" g"))),
-                default=V(""),
-                output_field=CharField(),
-            ),
-        )
-        .order_by("sku")
-        .values(*variant_fields)
-    )
-
-    result_data, variant_attributes_headers, warehouse_headers = update_variant_data(
-        variants_data, product_data, warehouse_ids, attribute_ids
-    )
-
-    result = [
-        {
-            header: ", ".join(sorted(values)) if isinstance(values, set) else values
-            for header, values in data.items()
-        }
-        for pk, data in result_data.items()
-    ]
-    return result, variant_attributes_headers, warehouse_headers
-
-
-def update_variant_data(
-    variants_data: List[Dict[str, Union[str, int]]],
-    product_data: dict,
-    warehouse_ids: Optional[List[int]],
-    attribute_ids: Optional[List[int]],
-) -> Tuple[Dict[int, dict], set, set]:
-    """Update variant data with info about relations fields.
-
-    This function gets dict with variants data and updated it with info
-    about relations fields.
-    It return dict with updated info and sets of attributes and warehouse headers.
-    """
-    warehouse_fields = ProductExportFields.WAREHOUSE_FIELDS
-    attribute_fields = ProductExportFields.ATTRIBUTE_FIELDS
-
-    variant_attributes_headers = set()
-    warehouse_headers = set()
-    result_data: Dict[int, dict] = defaultdict(dict)
-
-    for data in variants_data:
-        pk: int = data.pop("pk")  # type: ignore
-        attribute_data: dict = {}
-        warehouse_data: dict = {}
-
-        attribute_pk = str(data.pop(attribute_fields["attribute_pk"], ""))
-        attribute_data = {
-            "slug": data.pop(attribute_fields["slug"], None),
-            "value": data.pop(attribute_fields["value"], None),
-        }
-
-        warehouse_pk = str(data.pop(warehouse_fields["warehouse_pk"], ""))
-        warehouse_data = {
-            "slug": data.pop(warehouse_fields["slug"], None),
-            "qty": data.pop(warehouse_fields["quantity"], None),
-        }
-
-        image: str = data.pop("variant_image_path", None)  # type: ignore
-
-        if pk not in result_data:
-            # add product data to variant row
-            data.update(product_data)
-            result_data[pk] = data
-
-        if attribute_ids and attribute_pk in attribute_ids:
-            result_data, attribute_header = add_attribute_info_to_data(
-                pk, attribute_data, "variant attribute", result_data
-            )
-            if attribute_header:
-                variant_attributes_headers.add(attribute_header)
-
-        if warehouse_ids and warehouse_pk in warehouse_ids:
-            result_data, header = add_warehouse_info_to_data(
-                pk, warehouse_data, result_data
-            )
-            if header:
-                warehouse_headers.add(header)
-
-        result_data = add_image_uris_to_data(
-            pk, image, "variant_image_path", result_data
-        )
-
-    return result_data, variant_attributes_headers, warehouse_headers
 
 
 def add_image_uris_to_data(
@@ -416,7 +427,7 @@ def add_attribute_info_to_data(
     attribute_data: Dict[str, Optional[Union[str]]],
     attribute_owner: str,
     result_data: Dict[int, dict],
-) -> Tuple[Dict[int, dict], Optional[str]]:
+) -> Dict[int, dict]:
     """Add info about attribute to variant or product data.
 
     This functions adds info about attribute to dict with variant or product data.
@@ -432,14 +443,14 @@ def add_attribute_info_to_data(
             result_data[pk][header].add(attribute_data["value"])  # type: ignore
         else:
             result_data[pk][header] = {attribute_data["value"]}
-    return result_data, header
+    return result_data
 
 
 def add_warehouse_info_to_data(
     pk: int,
     warehouse_data: Dict[str, Union[Optional[str]]],
     result_data: Dict[int, dict],
-) -> Tuple[Dict[int, dict], Optional[str]]:
+) -> Dict[int, dict]:
     """Add info about stock quantity to variant data.
 
     This functions adds info about stock quantity to dict with variant data.
@@ -447,11 +458,9 @@ def add_warehouse_info_to_data(
     """
 
     slug = warehouse_data["slug"]
-    warehouse_header = None
     if slug:
         warehouse_qty_header = f"{slug} (warehouse quantity)"
         if warehouse_qty_header not in result_data[pk]:
             result_data[pk][warehouse_qty_header] = warehouse_data["qty"]
-            warehouse_header = warehouse_qty_header
 
-    return result_data, warehouse_header
+    return result_data
