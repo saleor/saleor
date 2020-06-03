@@ -4,7 +4,6 @@ from typing import IO, TYPE_CHECKING, Dict, List, Set, Union
 import petl as etl
 from django.utils import timezone
 
-from ...celeryconf import app
 from ...core import JobStatus
 from ...product.models import Product
 from .. import FileTypes, events
@@ -20,36 +19,8 @@ if TYPE_CHECKING:
 BATCH_SIZE = 10000
 
 
-def on_task_failure(self, exc, task_id, args, kwargs, einfo):
-    export_file_id = args[0]
-    export_file = ExportFile.objects.get(pk=export_file_id)
-
-    export_file.content_file = None
-    export_file.status = JobStatus.FAILED
-    export_file.save(update_fields=["status", "updated_at", "content_file"])
-
-    events.export_failed_event(
-        export_file=export_file,
-        user=export_file.created_by,
-        message=str(exc),
-        error_type=str(einfo.type),
-    )
-    send_export_failed_info(export_file, "export_failed")
-
-
-def on_task_success(self, retval, task_id, args, kwargs):
-    export_file_id = args[0]
-
-    export_file = ExportFile.objects.get(pk=export_file_id)
-    export_file.status = JobStatus.SUCCESS
-    export_file.save(update_fields=["status", "updated_at"])
-
-    events.export_success_event(export_file=export_file, user=export_file.created_by)
-
-
-@app.task(on_success=on_task_success, on_failure=on_task_failure)
 def export_products(
-    export_file_id: int,
+    export_file: ExportFile,
     scope: Dict[str, Union[str, dict]],
     export_info: Dict[str, list],
     file_type: str,
@@ -61,7 +32,6 @@ def export_products(
     export_fields, file_headers, data_headers = get_export_fields_and_headers_info(
         export_info
     )
-    export_file = ExportFile.objects.get(pk=export_file_id)
 
     create_file_with_headers(file_headers, delimiter, export_file, file_name, file_type)
 

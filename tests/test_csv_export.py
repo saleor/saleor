@@ -13,6 +13,7 @@ from freezegun import freeze_time
 from saleor.core import JobStatus
 from saleor.csv import ExportEvents, FileTypes
 from saleor.csv.models import ExportEvent, ExportFile
+from saleor.csv.tasks import export_products_task, on_task_failure, on_task_success
 from saleor.csv.utils.export import (
     append_to_file,
     create_file_with_headers,
@@ -20,12 +21,25 @@ from saleor.csv.utils.export import (
     export_products_in_batches,
     get_filename,
     get_product_queryset,
-    on_task_failure,
-    on_task_success,
     save_csv_file_in_export_file,
 )
 from saleor.graphql.csv.enums import ProductFieldEnum
 from saleor.product.models import Product
+
+
+@patch("saleor.csv.tasks.export_products")
+def test_export_products_task(export_products_mock, export_file):
+    # given
+    scope = {"all": ""}
+    export_info = {"fields": "name"}
+    file_type = FileTypes.CSV
+    delimiter = ";"
+
+    # when
+    export_products_task(export_file.id, scope, export_info, file_type, delimiter)
+
+    # then
+    export_products_mock.called_once_with()
 
 
 @patch("saleor.csv.utils.export.send_export_failed_info")
@@ -111,7 +125,7 @@ def test_export_products(
         "warehouses": [],
         "attributes": [],
     }
-    export_products(export_file.id, scope, export_info, file_type)
+    export_products(export_file, scope, export_info, file_type)
 
     export_products_in_batches_mock.called_once_with(
         ANY,
@@ -141,7 +155,7 @@ def test_export_products_ids(
     assert export_file.status == JobStatus.PENDING
     assert not export_file.content_file
 
-    export_products(export_file.id, {"ids": pks}, export_info, file_type)
+    export_products(export_file, {"ids": pks}, export_info, file_type)
 
     save_csv_file_in_export_file_mock.called_once_with(export_file, ANY)
     send_email_mock.called_once_with(export_file)
