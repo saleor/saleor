@@ -26,6 +26,7 @@ from saleor.app.models import App
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
+from saleor.core import JobStatus
 from saleor.core.payments import PaymentInterface
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
 from saleor.discount.models import (
@@ -36,7 +37,7 @@ from saleor.discount.models import (
     VoucherTranslation,
 )
 from saleor.giftcard.models import GiftCard
-from saleor.graphql.order.enums import InvoiceStatus
+from saleor.invoice.models import Invoice
 from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 from saleor.menu.utils import update_menu
 from saleor.order import OrderStatus
@@ -47,6 +48,7 @@ from saleor.order.utils import recalculate_order
 from saleor.page.models import Page, PageTranslation
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
+from saleor.plugins.invoicing.plugin import InvoicingPlugin
 from saleor.plugins.models import PluginConfiguration
 from saleor.plugins.vatlayer.plugin import VatlayerPlugin
 from saleor.product import AttributeInputType
@@ -1304,11 +1306,11 @@ def order_events(order):
 @pytest.fixture
 def fulfilled_order(order_with_lines):
     order = order_with_lines
-    order.invoices.create(
+    invoice = order.invoices.create(
         url="http://www.example.com/invoice.pdf",
         number="01/12/2020/TEST",
-        status=InvoiceStatus.READY,
         created=datetime.datetime.now(tz=pytz.utc),
+        status=JobStatus.SUCCESS,
     )
     fulfillment = order.fulfillments.create(tracking_number="123")
     line_1 = order.lines.first()
