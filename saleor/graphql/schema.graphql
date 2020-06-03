@@ -502,7 +502,7 @@ type AttributeValue implements Node {
   id: ID!
   name: String
   slug: String
-  type: AttributeValueType
+  type: AttributeValueType @deprecated(reason: "Use the `inputType` field to determine the type of attribute's value. This field will be removed after 2020-07-31.")
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
   inputType: AttributeInputTypeEnum
 }
@@ -757,7 +757,6 @@ type Checkout implements Node & ObjectWithMetadata {
   created: DateTime!
   lastChange: DateTime!
   user: User
-  token: UUID!
   quantity: Int!
   billingAddress: Address
   shippingAddress: Address
@@ -780,6 +779,7 @@ type Checkout implements Node & ObjectWithMetadata {
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
   subtotalPrice: TaxedMoney
+  token: UUID!
   totalPrice: TaxedMoney
 }
 
@@ -867,6 +867,7 @@ enum CheckoutErrorCode {
   BILLING_ADDRESS_NOT_SET
   CHECKOUT_NOT_FULLY_PAID
   GRAPHQL_ERROR
+  PRODUCT_NOT_PUBLISHED
   INSUFFICIENT_STOCK
   INVALID
   INVALID_SHIPPING_METHOD
@@ -1626,12 +1627,12 @@ input DigitalContentUploadInput {
 }
 
 type DigitalContentUrl implements Node {
-  token: UUID!
   content: DigitalContent!
   created: DateTime!
   downloadNum: Int!
   id: ID!
   url: String
+  token: UUID!
 }
 
 type DigitalContentUrlCreate {
@@ -2039,6 +2040,7 @@ enum LanguageCodeEnum {
   SR
   SV
   SW
+  TA
   TH
   TR
   UK
@@ -2737,6 +2739,7 @@ enum OrderErrorCode {
   FULFILL_ORDER_LINE
   GRAPHQL_ERROR
   INVALID
+  PRODUCT_NOT_PUBLISHED
   NOT_FOUND
   ORDER_NO_SHIPPING_ADDRESS
   PAYMENT_ERROR

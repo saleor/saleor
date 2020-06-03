@@ -61,7 +61,7 @@ def prepare_order_details_url(order: Order, redirect_url: str) -> str:
     return prepare_url(params, redirect_url)
 
 
-def collect_data_for_fullfillment_email(order_pk, template, fulfillment_pk):
+def collect_data_for_fulfillment_email(order_pk, template, fulfillment_pk):
     fulfillment = Fulfillment.objects.get(pk=fulfillment_pk)
     email_data = collect_data_for_email(order_pk, template)
     lines = fulfillment.lines.all()
@@ -103,7 +103,7 @@ def send_staff_order_confirmation(order_pk, redirect_url):
 
 @app.task
 def send_fulfillment_confirmation(order_pk, fulfillment_pk):
-    email_data = collect_data_for_fullfillment_email(
+    email_data = collect_data_for_fulfillment_email(
         order_pk, CONFIRM_FULFILLMENT_TEMPLATE, fulfillment_pk
     )
     send_templated_mail(**email_data)
@@ -126,7 +126,7 @@ def send_fulfillment_confirmation_to_customer(order, fulfillment, user):
 
 @app.task
 def send_fulfillment_update(order_pk, fulfillment_pk):
-    email_data = collect_data_for_fullfillment_email(
+    email_data = collect_data_for_fulfillment_email(
         order_pk, UPDATE_FULFILLMENT_TEMPLATE, fulfillment_pk
     )
     send_templated_mail(**email_data)

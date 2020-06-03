@@ -1,5 +1,6 @@
 from decimal import Decimal
 from operator import attrgetter
+from re import match
 from typing import Optional
 from uuid import uuid4
 
@@ -457,6 +458,10 @@ class Fulfillment(ModelWithMetadata):
 
     def get_total_quantity(self):
         return sum([line.quantity for line in self])
+
+    @property
+    def is_tracking_number_url(self):
+        return bool(match(r"^[-\w]+://", self.tracking_number))
 
 
 class FulfillmentLine(models.Model):
