@@ -20,11 +20,12 @@ def _get_quantity_allocated(stocks: StockQuerySet) -> int:
 
 def _get_available_quantity(stocks: StockQuerySet) -> int:
     results = stocks.aggregate(
-        total_quantity=Coalesce(Sum("quantity"), 0),
+        total_quantity=Coalesce(Sum("quantity", distinct=True), 0),
         quantity_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0),
     )
     total_quantity = results["total_quantity"]
     quantity_allocated = results["quantity_allocated"]
+
     return max(total_quantity - quantity_allocated, 0)
 
 
@@ -69,7 +70,7 @@ def get_available_quantity_for_customer(
     stocks = (
         Stock.objects.filter(query)
         .annotate(
-            available_quantity=Sum("quantity")
+            available_quantity=Sum("quantity", distinct=True)
             - Coalesce(Sum("allocations__quantity_allocated"), 0)
         )
         .values_list("warehouse__shipping_zones", "available_quantity")
