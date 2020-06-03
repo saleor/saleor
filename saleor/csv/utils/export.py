@@ -8,19 +8,19 @@ from ...core import JobStatus
 from ...product.models import Product
 from .. import FileTypes, events
 from ..emails import send_email_with_link_to_download_csv, send_export_failed_info
-from ..models import ExportFile
 from .products_data import get_export_fields_and_headers_info, get_products_data
 
 if TYPE_CHECKING:
     # flake8: noqa
     from django.db.models import QuerySet
+    from ..models import ExportFile
 
 
 BATCH_SIZE = 10000
 
 
 def export_products(
-    export_file: ExportFile,
+    export_file: "ExportFile",
     scope: Dict[str, Union[str, dict]],
     export_info: Dict[str, list],
     file_type: str,
@@ -93,7 +93,7 @@ def export_products_in_batches(
     export_fields: Set[str],
     headers: List[str],
     delimiter: str,
-    export_file: ExportFile,
+    export_file: "ExportFile",
     file_type: str,
 ):
     warehouses = export_info.get("warehouses")
@@ -121,7 +121,7 @@ def export_products_in_batches(
 def create_file_with_headers(
     file_headers: List[str],
     delimiter: str,
-    export_file: ExportFile,
+    export_file: "ExportFile",
     file_name: str,
     file_type: str,
 ):
@@ -139,7 +139,7 @@ def create_file_with_headers(
 def append_to_file(
     export_data: List[Dict[str, Union[str, bool]]],
     headers: List[str],
-    export_file: ExportFile,
+    export_file: "ExportFile",
     file_type: str,
     delimiter: str,
 ):
@@ -152,6 +152,6 @@ def append_to_file(
 
 
 def save_csv_file_in_export_file(
-    export_file: ExportFile, temporary_file: IO[bytes], file_name: str
+    export_file: "ExportFile", temporary_file: IO[bytes], file_name: str
 ):
     export_file.content_file.save(file_name, temporary_file)
