@@ -16,28 +16,23 @@ from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money
 
-from saleor.account import events as account_events
-from saleor.account.error_codes import AccountErrorCode
-from saleor.account.models import Address, User
-from saleor.account.utils import create_jwt_token
-from saleor.checkout import AddressType
-from saleor.core.permissions import AccountPermissions, OrderPermissions
-from saleor.graphql.account.mutations.base import INVALID_TOKEN
-from saleor.graphql.account.mutations.staff import (
-    CustomerDelete,
-    StaffDelete,
-    StaffUpdate,
-    UserDelete,
-)
-from saleor.graphql.account.tests.utils import convert_dict_keys_to_camel_case
-from saleor.graphql.core.utils import str_to_enum
-from saleor.graphql.tests.utils import (
+from ....account import events as account_events
+from ....account.error_codes import AccountErrorCode
+from ....account.models import Address, User
+from ....account.utils import create_jwt_token
+from ....checkout import AddressType
+from ....core.permissions import AccountPermissions, OrderPermissions
+from ....order.models import FulfillmentStatus, Order
+from ....product.tests.utils import create_image
+from ...core.utils import str_to_enum
+from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
     get_multipart_request_body,
 )
-from saleor.order.models import FulfillmentStatus, Order
-from saleor.product.tests.utils import create_image
+from ..mutations.base import INVALID_TOKEN
+from ..mutations.staff import CustomerDelete, StaffDelete, StaffUpdate, UserDelete
+from ..tests.utils import convert_dict_keys_to_camel_case
 
 
 @pytest.fixture

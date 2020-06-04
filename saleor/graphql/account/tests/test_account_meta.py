@@ -4,7 +4,7 @@ import json
 import graphene
 import pytest
 
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 PRIVATE_META_NAMESPACE = ""
 PUBLIC_META_NAMESPACE = ""
