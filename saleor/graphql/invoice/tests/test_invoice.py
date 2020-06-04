@@ -4,6 +4,7 @@ import graphene
 
 from saleor.core import JobStatus
 from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
+from saleor.invoice.emails import collect_invoice_data_for_email
 from saleor.invoice.error_codes import InvoiceErrorCode
 from saleor.invoice.models import Invoice, InvoiceEvent, InvoiceEvents
 from saleor.order import OrderStatus
@@ -482,7 +483,8 @@ def test_send_invoice(email_mock, staff_api_client, permission_manage_orders, or
         SEND_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    assert email_mock.called
+    call_args = collect_invoice_data_for_email(invoice, "order/send_invoice")
+    email_mock.assert_called_once_with(**call_args)
     assert not content["data"]["sendInvoiceEmail"]["invoiceErrors"]
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.SENT,
