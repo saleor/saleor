@@ -46,7 +46,7 @@ class ExportFile(CountableDjangoObjectType):
     url = graphene.String(description="The URL of field to download.")
     events = graphene.List(
         graphene.NonNull(ExportEvent),
-        description="List of events associated with the order.",
+        description="List of events associated with the export.",
     )
 
     class Meta:
