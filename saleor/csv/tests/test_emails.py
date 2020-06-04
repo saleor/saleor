@@ -8,7 +8,7 @@ from saleor.csv.models import ExportEvent
 
 
 @mock.patch("saleor.csv.emails.send_templated_mail")
-def test_send_email_with_link_to_download_csv(
+def test_send_email_with_link_to_download_file(
     mocked_templated_email, site_settings, export_file, tmpdir
 ):
     from django.conf import settings
@@ -21,7 +21,7 @@ def test_send_email_with_link_to_download_csv(
     export_file.content_file = file_mock
     export_file.save()
 
-    emails.send_email_with_link_to_download_csv(export_file, "export_products_success")
+    emails.send_email_with_link_to_download_file(export_file, "export_products_success")
     template = emails.EXPORT_TEMPLATES["export_products_success"]
     ctx = {
         "csv_link": f"http://mirumee.com/media/export_files/{file_mock.name}",
