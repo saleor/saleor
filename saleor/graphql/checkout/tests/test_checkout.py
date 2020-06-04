@@ -8,28 +8,25 @@ import pytest
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
-from saleor.account.models import User
-from saleor.checkout import calculations
-from saleor.checkout.error_codes import CheckoutErrorCode
-from saleor.checkout.models import Checkout
-from saleor.checkout.utils import is_fully_paid
-from saleor.core.payments import PaymentInterface
-from saleor.core.taxes import zero_money
-from saleor.graphql.checkout.mutations import (
+from ....account.models import User
+from ....checkout import calculations
+from ....checkout.error_codes import CheckoutErrorCode
+from ....checkout.models import Checkout
+from ....checkout.utils import is_fully_paid
+from ....core.payments import PaymentInterface
+from ....core.taxes import zero_money
+from ....order.models import Order
+from ....payment import TransactionKind
+from ....payment.interface import GatewayResponse
+from ....plugins.manager import PluginsManager
+from ....warehouse.models import Stock
+from ....warehouse.tests.utils import get_available_quantity_for_stock
+from ...checkout.mutations import (
     clean_shipping_method,
     update_checkout_shipping_method_if_invalid,
 )
-from saleor.graphql.checkout.utils import (
-    clean_checkout_payment,
-    clean_checkout_shipping,
-)
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
-from saleor.order.models import Order
-from saleor.payment import TransactionKind
-from saleor.payment.interface import GatewayResponse
-from saleor.plugins.manager import PluginsManager
-from saleor.warehouse.models import Stock
-from saleor.warehouse.tests.utils import get_available_quantity_for_stock
+from ...checkout.utils import clean_checkout_payment, clean_checkout_shipping
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 
 @pytest.fixture(autouse=True)

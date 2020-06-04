@@ -1,9 +1,9 @@
 import pytest
 
-from saleor.checkout import calculations
-from saleor.checkout.utils import add_variant_to_checkout
-from saleor.payment import ChargeStatus, TransactionKind
-from saleor.payment.models import Payment
+from .....checkout import calculations
+from .....checkout.utils import add_variant_to_checkout
+from .....payment import ChargeStatus, TransactionKind
+from .....payment.models import Payment
 
 
 @pytest.fixture
