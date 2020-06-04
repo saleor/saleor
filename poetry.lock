@@ -511,20 +511,6 @@ graphene-django = ">=2.0.0"
 
 [[package]]
 category = "main"
-description = "JSON Web Token for Django GraphQL"
-name = "django-graphql-jwt"
-optional = false
-python-versions = "*"
-version = "0.3.0"
-
-[package.dependencies]
-Django = ">=1.11"
-PyJWT = ">=1.5.0"
-graphene-django = ">=2.0.0"
-graphql-core = ">=2.1,<3"
-
-[[package]]
-category = "main"
 description = "script tag with additional attributes for django.forms.Media"
 name = "django-js-asset"
 optional = false
@@ -2169,7 +2155,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "c915d2269bc031ef39c08d5806e77d5637852aecd3fa0037687434f9c76fc757"
+content-hash = "0b716b15e52775f0fa662feb204de9a592d68e8724f204da898d422708b24915"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2393,10 +2379,6 @@ django-filter = [
 ]
 django-graphiql-debug-toolbar = [
     {file = "django-graphiql-debug-toolbar-0.1.4.tar.gz", hash = "sha256:946fba21418b3fd57e7e357d4cd110fb7881e08d3b7a0a8a00400fa2e75965f5"},
-]
-django-graphql-jwt = [
-    {file = "django-graphql-jwt-0.3.0.tar.gz", hash = "sha256:c9c611d98510b57146c21484478eae793249553af3766a593e8f25ce73d3255a"},
-    {file = "django_graphql_jwt-0.3.0-py2.py3-none-any.whl", hash = "sha256:bcf0882a492e2148cba7cba3c39cf57834f736a2c289b66852239faf9b59b61e"},
 ]
 django-js-asset = [
     {file = "django-js-asset-1.2.2.tar.gz", hash = "sha256:c163ae80d2e0b22d8fb598047cd0dcef31f81830e127cfecae278ad574167260"},
