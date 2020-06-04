@@ -1,6 +1,6 @@
 import pytest
 
-from saleor.plugins.checks import check_plugins
+from ..checks import check_plugins
 
 
 @pytest.mark.parametrize(
