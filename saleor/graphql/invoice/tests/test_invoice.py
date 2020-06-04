@@ -470,7 +470,8 @@ def test_create_invoice_empty_params(staff_api_client, permission_manage_orders,
     ).exists()
 
 
-def test_send_invoice(staff_api_client, permission_manage_orders, order):
+@patch("saleor.invoice.emails.send_templated_mail")
+def test_send_invoice(email_mock, staff_api_client, permission_manage_orders, order):
     number = "01/12/2020/TEST"
     url = "http://www.example.com"
     invoice = Invoice.objects.create(
@@ -481,6 +482,7 @@ def test_send_invoice(staff_api_client, permission_manage_orders, order):
         SEND_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
+    assert email_mock.called
     assert not content["data"]["sendInvoiceEmail"]["invoiceErrors"]
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.SENT,
