@@ -3,7 +3,6 @@ from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
-from graphql_jwt.exceptions import PermissionDenied
 
 from ....account import events as account_events, models
 from ....account.emails import (
@@ -11,6 +10,7 @@ from ....account.emails import (
     send_user_password_reset_email_with_url,
 )
 from ....account.error_codes import AccountErrorCode
+from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
 from ....core.utils.url import validate_storefront_url
 from ....order.utils import match_orders_with_new_user

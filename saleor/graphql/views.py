@@ -22,10 +22,9 @@ from graphql.error import (
     format_error as format_graphql_error,
 )
 from graphql.execution import ExecutionResult
-from graphql_jwt.exceptions import PermissionDenied
 from jwt.exceptions import PyJWTError
 
-from ..core.exceptions import ReadOnlyException
+from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
