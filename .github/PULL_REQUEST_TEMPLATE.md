@@ -8,10 +8,11 @@ I want to merge this change because...
 * [ ] New/Updated API fields or mutations
 * [ ] Deprecated API fields or mutations
 * [ ] Removed API types, fields, or mutations
+* [ ] Documentation needs to be updated
 
 # Pull Request Checklist
 
-<!-- Please keep this section. It will make maintainer's life easier. -->
+<!-- Please keep this section. It will make the maintainer's life easier. -->
 
 * [ ] Privileged queries and mutations are guarded by proper permission checks
 * [ ] Database queries are optimized and the number of queries is constant

@@ -11,8 +11,8 @@ beautifulsoup4==4.7.1
 beautifultable==0.7.0
 billiard==3.6.3.0
 black==19.10b0
-boto3==1.13.15
-botocore==1.16.15
+boto3==1.13.19
+botocore==1.16.19
 braintree==4.1.0
 cachetools==4.1.0
 cairocffi==1.1.0
@@ -60,7 +60,7 @@ et-xmlfile==1.0.1
 execnet==1.7.1
 faker==4.1.0
 filelock==3.0.12
-flake8==3.8.1
+flake8==3.8.2
 freezegun==0.3.15
 google-api-core==1.17.0
 google-auth==1.15.0
@@ -130,7 +130,7 @@ pylint-plugin-utils==0.6
 pyparsing==2.4.7
 pyphen==0.9.5
 pytest==5.4.2
-pytest-cov==2.8.1
+pytest-cov==2.9.0
 pytest-django==3.9.0
 pytest-django-queries==1.1.0
 pytest-forked==1.1.3

@@ -8,7 +8,7 @@ from django_countries import countries
 
 from .models import Address
 from .validators import validate_possible_number
-from .widgets import DatalistTextWidget, PhonePrefixWidget
+from .widgets import DatalistTextWidget
 
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
@@ -107,7 +107,7 @@ class AddressForm(forms.ModelForm):
             "street_address_2": "Apartment, suite, unit, building, floor, etc",
         }
 
-    phone = PossiblePhoneNumberFormField(widget=PhonePrefixWidget, required=False)
+    phone = PossiblePhoneNumberFormField(required=False)
 
     def __init__(self, *args, **kwargs):
         autocomplete_type = kwargs.pop("autocomplete_type", None)

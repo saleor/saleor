@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 class PaymentInterface(ABC):
     @abstractmethod
-    def list_payment_gateways(self, active_only: bool) -> List[dict]:
+    def list_payment_gateways(self, active_only: bool = True) -> List[dict]:
         pass
 
     @abstractmethod
