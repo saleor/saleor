@@ -269,7 +269,7 @@ def test_append_to_file_for_xlsx(export_file, tmpdir, media_root):
 
 
 @patch("saleor.csv.utils.export.BATCH_SIZE", 1)
-@patch("saleor.csv.utils.export.send_email_with_link_to_download_csv")
+@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 def test_export_products_in_batches_for_csv(
     save_csv_file_in_export_file_mock, product_list, export_file, tmpdir, media_root
 ):
@@ -332,7 +332,7 @@ def test_export_products_in_batches_for_csv(
 
 
 @patch("saleor.csv.utils.export.BATCH_SIZE", 1)
-@patch("saleor.csv.utils.export.send_email_with_link_to_download_csv")
+@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 def test_export_products_in_batches_for_xlsx(
     save_csv_file_in_export_file_mock, product_list, export_file, tmpdir, media_root
 ):

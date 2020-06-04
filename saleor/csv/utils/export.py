@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from ...product.models import Product
 from .. import FileTypes
-from ..emails import send_email_with_link_to_download_csv, send_export_failed_info
+from ..emails import send_email_with_link_to_download_file, send_export_failed_info
 from .products_data import get_export_fields_and_headers_info, get_products_data
 
 if TYPE_CHECKING:
@@ -114,7 +114,7 @@ def export_products_in_batches(
 
         append_to_file(export_data, headers, export_file, file_type, delimiter)
 
-    send_email_with_link_to_download_csv(export_file, "export_products_success")
+    send_email_with_link_to_download_file(export_file, "export_products_success")
 
 
 def create_file_with_headers(

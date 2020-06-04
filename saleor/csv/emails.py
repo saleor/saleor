@@ -12,13 +12,15 @@ if TYPE_CHECKING:
 
 
 EXPORT_TEMPLATES = {
-    "export_products_success": "csv/export_products_csv",
+    "export_products_success": "csv/export_products_file",
     "export_failed": "csv/export_failed",
 }
 
 
 @app.task
-def send_email_with_link_to_download_csv(export_file: "ExportFile", template_name: str):
+def send_email_with_link_to_download_file(
+    export_file: "ExportFile", template_name: str
+):
     recipient_email = export_file.created_by.email
     send_kwargs, ctx = get_email_context()
     ctx["csv_link"] = build_absolute_uri(export_file.content_file.url)
