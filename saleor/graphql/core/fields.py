@@ -192,7 +192,6 @@ class FilterInputConnectionField(PrefetchingConnectionField):
         on_resolve = partial(cls.resolve_connection, connection, args)
 
         filter_input = args.get(filters_name)
-
         if filter_input and filterset_class:
             instance = filterset_class(
                 data=dict(filter_input), queryset=iterable, request=info.context
