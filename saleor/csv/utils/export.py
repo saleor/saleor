@@ -4,52 +4,22 @@ from typing import IO, TYPE_CHECKING, Dict, List, Set, Union
 import petl as etl
 from django.utils import timezone
 
-from ...celeryconf import app
-from ...core import JobStatus
 from ...product.models import Product
-from .. import FileTypes, events
+from .. import FileTypes
 from ..emails import send_email_with_link_to_download_csv, send_export_failed_info
-from ..models import ExportFile
 from .products_data import get_export_fields_and_headers_info, get_products_data
 
 if TYPE_CHECKING:
     # flake8: noqa
     from django.db.models import QuerySet
+    from ..models import ExportFile
 
 
 BATCH_SIZE = 10000
 
 
-def on_task_failure(self, exc, task_id, args, kwargs, einfo):
-    export_file_id = args[0]
-    export_file = ExportFile.objects.get(pk=export_file_id)
-
-    export_file.content_file = None
-    export_file.status = JobStatus.FAILED
-    export_file.save(update_fields=["status", "updated_at", "content_file"])
-
-    events.export_failed_event(
-        export_file=export_file,
-        user=export_file.created_by,
-        message=str(exc),
-        error_type=str(einfo.type),
-    )
-    send_export_failed_info(export_file, "export_failed")
-
-
-def on_task_success(self, retval, task_id, args, kwargs):
-    export_file_id = args[0]
-
-    export_file = ExportFile.objects.get(pk=export_file_id)
-    export_file.status = JobStatus.SUCCESS
-    export_file.save(update_fields=["status", "updated_at"])
-
-    events.export_success_event(export_file=export_file, user=export_file.created_by)
-
-
-@app.task(on_success=on_task_success, on_failure=on_task_failure)
 def export_products(
-    export_file_id: int,
+    export_file: "ExportFile",
     scope: Dict[str, Union[str, dict]],
     export_info: Dict[str, list],
     file_type: str,
@@ -61,7 +31,6 @@ def export_products(
     export_fields, file_headers, data_headers = get_export_fields_and_headers_info(
         export_info
     )
-    export_file = ExportFile.objects.get(pk=export_file_id)
 
     create_file_with_headers(file_headers, delimiter, export_file, file_name, file_type)
 
@@ -123,7 +92,7 @@ def export_products_in_batches(
     export_fields: Set[str],
     headers: List[str],
     delimiter: str,
-    export_file: ExportFile,
+    export_file: "ExportFile",
     file_type: str,
 ):
     warehouses = export_info.get("warehouses")
@@ -151,7 +120,7 @@ def export_products_in_batches(
 def create_file_with_headers(
     file_headers: List[str],
     delimiter: str,
-    export_file: ExportFile,
+    export_file: "ExportFile",
     file_name: str,
     file_type: str,
 ):
@@ -169,7 +138,7 @@ def create_file_with_headers(
 def append_to_file(
     export_data: List[Dict[str, Union[str, bool]]],
     headers: List[str],
-    export_file: ExportFile,
+    export_file: "ExportFile",
     file_type: str,
     delimiter: str,
 ):
@@ -182,6 +151,6 @@ def append_to_file(
 
 
 def save_csv_file_in_export_file(
-    export_file: ExportFile, temporary_file: IO[bytes], file_name: str
+    export_file: "ExportFile", temporary_file: IO[bytes], file_name: str
 ):
     export_file.content_file.save(file_name, temporary_file)
