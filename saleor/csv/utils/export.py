@@ -4,9 +4,8 @@ from typing import IO, TYPE_CHECKING, Dict, List, Set, Union
 import petl as etl
 from django.utils import timezone
 
-from ...core import JobStatus
 from ...product.models import Product
-from .. import FileTypes, events
+from .. import FileTypes
 from ..emails import send_email_with_link_to_download_csv, send_export_failed_info
 from .products_data import get_export_fields_and_headers_info, get_products_data
 
