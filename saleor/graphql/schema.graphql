@@ -62,6 +62,10 @@ enum AccountErrorCode {
   PASSWORD_TOO_SIMILAR
   REQUIRED
   UNIQUE
+  JWT_SIGNATURE_EXPIRED
+  JWT_INVALID_TOKEN
+  JWT_DECODE_ERROR
+  JWT_MISSING_TOKEN
 }
 
 input AccountInput {
@@ -1437,10 +1441,11 @@ type CountryDisplay {
 }
 
 type CreateToken {
-  token: String
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  accountErrors: [AccountError!]!
+  token: String
+  refreshToken: String
   user: User
+  accountErrors: [AccountError!]!
 }
 
 type CreditCard {
@@ -2443,9 +2448,6 @@ type Mutation {
   voucherCataloguesAdd(id: ID!, input: CatalogueInput!): VoucherAddCatalogues
   voucherCataloguesRemove(id: ID!, input: CatalogueInput!): VoucherRemoveCatalogues
   voucherTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): VoucherTranslate
-  tokenCreate(email: String!, password: String!): CreateToken
-  tokenRefresh(token: String!): RefreshToken
-  tokenVerify(token: String!): VerifyToken
   checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID!, redirectUrl: String, storeSource: Boolean = false): CheckoutComplete
@@ -2469,9 +2471,12 @@ type Mutation {
   appDelete(id: ID!): AppDelete
   appTokenCreate(input: AppTokenInput!): AppTokenCreate
   appTokenDelete(id: ID!): AppTokenDelete
+  tokenCreate(email: String!, password: String!): CreateToken
+  tokenRefresh(refreshToken: String): RefreshToken
+  tokenVerify(token: String!): VerifyToken
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
-  setPassword(token: String!, email: String!, password: String!): SetPassword
+  setPassword(email: String!, password: String!, token: String!): SetPassword
   passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
   requestEmailChange(newEmail: String!, password: String!, redirectUrl: String!): RequestEmailChange
   confirmEmailChange(token: String!): ConfirmEmailChange
@@ -3952,8 +3957,10 @@ type ReducedRate {
 }
 
 type RefreshToken {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   token: String
-  payload: GenericScalar
+  user: User
+  accountErrors: [AccountError!]!
 }
 
 input ReorderInput {
@@ -4203,10 +4210,11 @@ type ServiceAccountUpdatePrivateMeta {
 }
 
 type SetPassword {
-  token: String
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  accountErrors: [AccountError!]!
+  token: String
+  refreshToken: String
   user: User
+  accountErrors: [AccountError!]!
 }
 
 type ShippingError {
@@ -4898,8 +4906,11 @@ type VariantPricingInfo {
 }
 
 type VerifyToken {
-  payload: GenericScalar
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   user: User
+  isValid: Boolean
+  payload: GenericScalar
+  accountErrors: [AccountError!]!
 }
 
 type Voucher implements Node {

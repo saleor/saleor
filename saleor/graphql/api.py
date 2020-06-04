@@ -3,7 +3,7 @@ from graphene_federation import build_schema
 from .account.schema import AccountMutations, AccountQueries
 from .app.schema import AppMutations, AppQueries
 from .checkout.schema import CheckoutMutations, CheckoutQueries
-from .core.schema import CoreMutations, CoreQueries
+from .core.schema import CoreQueries
 from .discount.schema import DiscountMutations, DiscountQueries
 from .giftcard.schema import GiftCardMutations, GiftCardQueries
 from .menu.schema import MenuMutations, MenuQueries
@@ -47,7 +47,6 @@ class Mutation(
     AccountMutations,
     AppMutations,
     CheckoutMutations,
-    CoreMutations,
     DiscountMutations,
     PluginsMutations,
     GiftCardMutations,

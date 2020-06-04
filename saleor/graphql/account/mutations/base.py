@@ -18,13 +18,13 @@ from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import (
     BaseMutation,
-    CreateToken,
     ModelDeleteMutation,
     ModelMutation,
     validation_error_to_error_type,
 )
 from ...core.types.common import AccountError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from .jwt import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
@@ -49,12 +49,16 @@ class SetPassword(CreateToken):
         token = graphene.String(
             description="A one-time token required to set the password.", required=True
         )
+        email = graphene.String(required=True)
+        password = graphene.String(required=True)
 
     class Meta:
         description = (
             "Sets the user's password from the token sent by email "
             "using the RequestPasswordReset mutation."
         )
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def mutate(cls, root, info, **data):

@@ -2,28 +2,21 @@ from itertools import chain
 from typing import Tuple, Union
 
 import graphene
-from django.contrib.auth import get_user_model
 from django.core.exceptions import (
     NON_FIELD_ERRORS,
     ImproperlyConfigured,
     ValidationError,
 )
 from django.db.models.fields.files import FileField
-from django.utils import timezone
 from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
-from graphql_jwt import ObtainJSONWebToken, Refresh, Verify
-from graphql_jwt.exceptions import JSONWebTokenError, PermissionDenied
+from graphql_jwt.exceptions import PermissionDenied
 
-from ...account import models
-from ...account.error_codes import AccountErrorCode
 from ...core.permissions import AccountPermissions
-from ..account.types import User
 from ..utils import get_nodes
 from .types import Error, Upload
-from .types.common import AccountError
 from .utils import from_global_id_strict_type, snake_to_camel_case
 from .utils.error_codes import get_error_code_from_error
 
@@ -604,95 +597,3 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
     @classmethod
     def bulk_action(cls, queryset):
         queryset.delete()
-
-
-class CreateToken(ObtainJSONWebToken):
-    """Mutation that authenticates a user and returns token and user data.
-
-    It overrides the default graphql_jwt.ObtainJSONWebToken to wrap potential
-    authentication errors in our Error type, which is consistent to how the rest of
-    the mutation works.
-    """
-
-    errors = graphene.List(
-        graphene.NonNull(Error),
-        required=True,
-        deprecation_reason=(
-            "Use typed errors with error codes. This field will be removed after "
-            "2020-07-31."
-        ),
-    )
-    account_errors = graphene.List(
-        graphene.NonNull(AccountError),
-        description="List of errors that occurred executing the mutation.",
-        required=True,
-    )
-    user = graphene.Field(User, description="A user instance.")
-
-    @classmethod
-    def mutate(cls, root, info, **kwargs):
-        try:
-            result = super().mutate(root, info, **kwargs)
-        except JSONWebTokenError as e:
-            errors = [Error(message=str(e))]
-            account_errors = [
-                AccountError(
-                    field="email",
-                    message="Please, enter valid credentials",
-                    code=AccountErrorCode.INVALID_CREDENTIALS,
-                )
-            ]
-            return CreateToken(errors=errors, account_errors=account_errors)
-        except ValidationError as e:
-            errors = validation_error_to_error_type(e)
-            return cls.handle_typed_errors(errors)
-        else:
-            user = result.user
-            user.last_login = timezone.now()
-            user.save(update_fields=["last_login"])
-            return result
-
-    @classmethod
-    def handle_typed_errors(cls, errors: list):
-        account_errors = [
-            AccountError(field=e.field, message=e.message, code=code)
-            for e, code, _params in errors
-        ]
-        return cls(errors=[e[0] for e in errors], account_errors=account_errors)
-
-    @classmethod
-    def resolve(cls, root, info, **kwargs):
-        return cls(user=info.context.user, errors=[], account_errors=[])
-
-
-class RefreshToken(Refresh):
-    """Mutation that refresh user token.
-
-    It overrides the default graphql_jwt.Refresh to update user's last_login field.
-    """
-
-    @classmethod
-    def mutate(cls, root, info, **kwargs):
-        result = super().mutate(root, info, **kwargs)
-        user = graphene.Node.get_node_from_global_id(info, result.payload["user_id"])
-        user.last_login = timezone.now()
-        user.save(update_fields=["last_login"])
-        return result
-
-
-class VerifyToken(Verify):
-    """Mutation that confirms if token is valid and also returns user data."""
-
-    user = graphene.Field(User)
-
-    def resolve_user(self, _info, **_kwargs):
-        username_field = get_user_model().USERNAME_FIELD
-        kwargs = {username_field: self.payload.get(username_field)}
-        return models.User.objects.get(**kwargs)
-
-    @classmethod
-    def mutate(cls, root, info, token, **kwargs):
-        try:
-            return super().mutate(root, info, token, **kwargs)
-        except JSONWebTokenError:
-            return None

@@ -34,7 +34,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
         app_models.App: app_types.App,
         account_models.User: account_types.User,
     }
-    return MODEL_TO_TYPE_MAP.get(type(instance), None)
+    return MODEL_TO_TYPE_MAP.get(instance.__class__, None)
 
 
 def resolve_metadata(metadata: dict):

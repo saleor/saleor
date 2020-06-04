@@ -1,7 +1,6 @@
 import ast
 import os.path
 import warnings
-from datetime import timedelta
 
 import dj_database_url
 import dj_email_url
@@ -212,6 +211,7 @@ MIDDLEWARE = [
     "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
     "saleor.core.middleware.plugins",
+    "saleor.core.middleware.jwt_refresh_token_middleware",
 ]
 
 INSTALLED_APPS = [
@@ -378,7 +378,6 @@ PAYMENT_HOST = get_host
 PAYMENT_MODEL = "order.Payment"
 
 MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
-
 TEST_RUNNER = "tests.runner.PytestTestRunner"
 
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
@@ -456,18 +455,9 @@ DEFAULT_PLACEHOLDER = "images/placeholder255x255.png"
 SEARCH_BACKEND = "saleor.search.backends.postgresql"
 
 AUTHENTICATION_BACKENDS = [
-    "graphql_jwt.backends.JSONWebTokenBackend",
+    "saleor.core.auth_backend.JSONWebTokenBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
-
-# Django GraphQL JWT settings
-GRAPHQL_JWT = {
-    "JWT_PAYLOAD_HANDLER": "saleor.graphql.utils.create_jwt_payload",
-    # How long until a token expires, default is 5m from graphql_jwt.settings
-    "JWT_EXPIRATION_DELTA": timedelta(minutes=5),
-    # Whether the JWT tokens should expire or not
-    "JWT_VERIFY_EXPIRATION": get_bool_from_env("JWT_VERIFY_EXPIRATION", False),
-}
 
 # CELERY SETTINGS
 CELERY_BROKER_URL = (
