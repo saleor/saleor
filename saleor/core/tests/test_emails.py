@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 
-from saleor.core.emails import get_email_context, prepare_url
+from ..emails import get_email_context, prepare_url
 
 
 def test_get_email_context(site_settings):
