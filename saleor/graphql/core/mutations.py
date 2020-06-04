@@ -12,8 +12,8 @@ from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
-from graphql_jwt.exceptions import PermissionDenied
 
+from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ..utils import get_nodes
 from .types import Error, Upload

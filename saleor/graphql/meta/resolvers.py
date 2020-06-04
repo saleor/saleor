@@ -1,10 +1,9 @@
 from operator import itemgetter
 
-from graphql_jwt.exceptions import PermissionDenied
-
 from ...account import models as account_models
 from ...app import models as app_models
 from ...checkout import models as checkout_models
+from ...core.exceptions import PermissionDenied
 from ...core.models import ModelWithMetadata
 from ...order import models as order_models
 from ...product import models as product_models

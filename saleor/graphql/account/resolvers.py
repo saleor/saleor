@@ -3,10 +3,10 @@ from typing import Optional
 
 import graphene
 from django.contrib.auth import models as auth_models
-from graphql_jwt.exceptions import PermissionDenied
 from i18naddress import get_validation_rules
 
 from ...account import models
+from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
