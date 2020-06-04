@@ -199,10 +199,10 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
 @pytest.mark.parametrize("is_staff", (False, True))
 def test_resolve_attributes_with_hidden(
     user_api_client,
+    staff_api_client,
     product,
     color_attribute,
     size_attribute,
-    staff_user,
     is_staff,
     permission_manage_products,
 ):
@@ -221,10 +221,10 @@ def test_resolve_attributes_with_hidden(
     expected_variant_attribute_count = variant.attributes.count() - 1
 
     if is_staff:
-        api_client.user = staff_user
+        api_client = staff_api_client
+        api_client.user.user_permissions.add(permission_manage_products)
         expected_product_attribute_count += 1
         expected_variant_attribute_count += 1
-        staff_user.user_permissions.add(permission_manage_products)
 
     # Hide one product and variant attribute from the storefront
     for attribute in (product_attribute, variant_attribute):

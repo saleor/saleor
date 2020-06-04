@@ -1,10 +1,10 @@
 import re
 import uuid
 from collections import defaultdict
+from datetime import timedelta
 from unittest.mock import ANY, MagicMock, Mock, patch
 
 import graphene
-import jwt
 import pytest
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
@@ -12,15 +12,14 @@ from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.validators import URLValidator
 from django.test import override_settings
-from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money
 
 from saleor.account import events as account_events
 from saleor.account.error_codes import AccountErrorCode
 from saleor.account.models import Address, User
-from saleor.account.utils import create_jwt_token
 from saleor.checkout import AddressType
+from saleor.core.jwt import create_token
 from saleor.core.permissions import AccountPermissions, OrderPermissions
 from saleor.graphql.account.mutations.base import INVALID_TOKEN
 from saleor.graphql.account.mutations.staff import (
@@ -77,80 +76,6 @@ def query_staff_users_with_filter():
     }
     """
     return query
-
-
-def test_create_token_mutation(api_client, staff_user, settings):
-    query = """
-    mutation TokenCreate($email: String!, $password: String!) {
-        tokenCreate(email: $email, password: $password) {
-            token
-            errors {
-                field
-                message
-            }
-        }
-    }
-    """
-    variables = {"email": staff_user.email, "password": "password"}
-    time = timezone.now()
-    with freeze_time(time):
-        response = api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    token_data = content["data"]["tokenCreate"]
-    token = jwt.decode(token_data["token"], settings.SECRET_KEY)
-    staff_user.refresh_from_db()
-    assert staff_user.last_login == time
-    assert token["email"] == staff_user.email
-    assert token["user_id"] == graphene.Node.to_global_id("User", staff_user.id)
-
-    assert token_data["errors"] == []
-
-    incorrect_variables = {"email": staff_user.email, "password": "incorrect"}
-    response = api_client.post_graphql(query, incorrect_variables)
-    content = get_graphql_content(response)
-    token_data = content["data"]["tokenCreate"]
-    errors = token_data["errors"]
-    assert errors
-    assert not errors[0]["field"]
-    assert not token_data["token"]
-
-
-def test_token_create_user_data(permission_manage_orders, staff_api_client, staff_user):
-    query = """
-    mutation TokenCreate($email: String!, $password: String!) {
-        tokenCreate(email: $email, password: $password) {
-            user {
-                id
-                email
-                permissions {
-                    code
-                    name
-                }
-                userPermissions {
-                    code
-                    name
-                }
-            }
-        }
-    }
-    """
-
-    permission = permission_manage_orders
-    staff_user.user_permissions.add(permission)
-    name = permission.name
-    user_id = graphene.Node.to_global_id("User", staff_user.id)
-
-    variables = {"email": staff_user.email, "password": "password"}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    token_data = content["data"]["tokenCreate"]
-    assert token_data["user"]["id"] == user_id
-    assert token_data["user"]["email"] == staff_user.email
-    assert token_data["user"]["userPermissions"][0]["name"] == name
-    assert token_data["user"]["userPermissions"][0]["code"] == "MANAGE_ORDERS"
-    # deprecated, to remove in #5389
-    assert token_data["user"]["permissions"][0]["name"] == name
-    assert token_data["user"]["permissions"][0]["code"] == "MANAGE_ORDERS"
 
 
 FULL_USER_QUERY = """
@@ -2484,6 +2409,7 @@ SET_PASSWORD_MUTATION = """
                 id
             }
             token
+            refreshToken
         }
     }
 """
@@ -4193,12 +4119,13 @@ mutation emailUpdate($token: String!) {
 
 def test_email_update(user_api_client, customer_user):
     new_email = "new_email@example.com"
-    token_kwargs = {
+    payload = {
         "old_email": customer_user.email,
         "new_email": new_email,
         "user_pk": customer_user.pk,
     }
-    token = create_jwt_token(token_kwargs)
+
+    token = create_token(payload, timedelta(hours=1))
     variables = {"token": token}
 
     response = user_api_client.post_graphql(EMAIL_UPDATE_QUERY, variables)
@@ -4208,12 +4135,12 @@ def test_email_update(user_api_client, customer_user):
 
 
 def test_email_update_to_existing_email(user_api_client, customer_user, staff_user):
-    token_kwargs = {
+    payload = {
         "old_email": customer_user.email,
         "new_email": staff_user.email,
         "user_pk": customer_user.pk,
     }
-    token = create_jwt_token(token_kwargs)
+    token = create_token(payload, timedelta(hours=1))
     variables = {"token": token}
 
     response = user_api_client.post_graphql(EMAIL_UPDATE_QUERY, variables)

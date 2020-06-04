@@ -7,10 +7,10 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.serializers.json import DjangoJSONEncoder
 from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
-from graphql_jwt.shortcuts import get_token
 
 from saleor.account.models import User
 from saleor.app.models import App
+from saleor.core.jwt import create_access_token
 from saleor.graphql.views import handled_errors_logger, unhandled_errors_logger
 
 from ..utils import flush_post_commit_hooks
@@ -31,7 +31,7 @@ class ApiClient(Client):
         self.app_token = None
         self.app = app
         if not user.is_anonymous:
-            self.token = get_token(user)
+            self.token = create_access_token(user)
         elif app:
             token = app.tokens.first()
             self.app_token = token.auth_token if token else None
@@ -53,7 +53,7 @@ class ApiClient(Client):
     def user(self, user):
         self._user = user
         if not user.is_anonymous:
-            self.token = get_token(user)
+            self.token = create_access_token(user)
 
     def post(self, data=None, **kwargs):
         """Send a POST request.
