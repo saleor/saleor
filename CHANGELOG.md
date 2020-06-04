@@ -6,6 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Add our implementation of UUID scalar - #5646 by @koradon
 - Fix specific product voucher in draft orders - #5727 by @fowczarek
+- Add products csv export - #5255 by @IKarbowiak
 
 ## 2.10.1
 
@@ -81,7 +82,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix access to order query when request from service account - #5258 by @fowczarek
 - Customer shouldn't be able to see draft orders by token - #5259 by @fowczarek
 - Customer shouldn't be able to query checkout with another customer - #5268 by @fowczarek
-- Add products csv export - #5255 by @IKarbowiak
 - Added integration support of Jaeger Tracing - #5282 by @NyanKiyoshi
 - Return `null` when querying `me` as an anonymous user - #5231 as @maarcingebala
 - Add `fulfillment created` webhook - @szewczykmira
