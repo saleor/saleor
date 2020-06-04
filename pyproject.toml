@@ -22,7 +22,6 @@ dj-email-url = "^1"
 django = "^3.0.6"
 django-countries = "^6.1"
 django-filter = "^2.2"
-django-graphql-jwt = "0.3.0" # https://github.com/mirumee/saleor/issues/4652
 django-measurement = "^3.0"
 django-mptt = "^0"
 django-phonenumber-field = "^4.0"
@@ -61,6 +60,7 @@ weasyprint = ">=48"
 oauthlib = "^3.0"
 jaeger-client = "^4.3.0"
 django-cache-url = "^3.1.2"
+pyjwt = "^1.7.1"
 
 [tool.poetry.dev-dependencies]
 black = "19.10b0"
