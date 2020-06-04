@@ -32,4 +32,4 @@ def send_invoice(invoice_pk, staff_user_pk):
     send_templated_mail(**email_data)
     events.invoice_sent_event(user=User.objects.get(pk=staff_user_pk), invoice=invoice)
     manager = get_plugins_manager()
-    manager.invoice_sent(invoice, invoice.order.user.email)
+    manager.invoice_sent(invoice, invoice.order.user_email or invoice.order.user.email)

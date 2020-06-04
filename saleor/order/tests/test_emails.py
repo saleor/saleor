@@ -25,7 +25,7 @@ def test_collect_invoice_data_for_email(order):
     url = "http://www.example.com"
     invoice = Invoice.objects.create(number=number, url=url, order=order)
     email_data = invoice_emails.collect_invoice_data_for_email(
-        invoice.pk, "order/send_invoice"
+        invoice, "order/send_invoice"
     )
     email_context = email_data["context"]
     assert email_context["number"] == number
