@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from saleor.seo.schema.email import (
+from ..schema.email import (
     get_order_confirmation_markup,
     get_organization,
     get_product_data,
