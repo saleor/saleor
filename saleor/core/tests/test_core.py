@@ -10,11 +10,16 @@ from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
 from measurement.measures import Weight
 
-from saleor.account.models import Address, User
-from saleor.account.utils import create_superuser
-from saleor.core.storages import S3MediaStorage
-from saleor.core.templatetags.placeholder import placeholder
-from saleor.core.utils import (
+from ...account.models import Address, User
+from ...account.utils import create_superuser
+from ...discount.models import Sale, Voucher
+from ...giftcard.models import GiftCard
+from ...order.models import Order
+from ...product.models import ProductImage, ProductType
+from ...shipping.models import ShippingZone
+from ..storages import S3MediaStorage
+from ..templatetags.placeholder import placeholder
+from ..utils import (
     Country,
     build_absolute_uri,
     create_thumbnails,
@@ -24,12 +29,7 @@ from saleor.core.utils import (
     get_currency_for_country,
     random_data,
 )
-from saleor.core.weight import WeightUnits, convert_weight
-from saleor.discount.models import Sale, Voucher
-from saleor.giftcard.models import GiftCard
-from saleor.order.models import Order
-from saleor.product.models import ProductImage, ProductType
-from saleor.shipping.models import ShippingZone
+from ..weight import WeightUnits, convert_weight
 
 type_schema = {
     "Vegetable": {

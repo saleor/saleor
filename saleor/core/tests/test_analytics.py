@@ -1,7 +1,7 @@
 from decimal import Decimal
 from unittest import mock
 
-from saleor.core.analytics import get_order_payloads, report_order, report_view
+from ..analytics import get_order_payloads, report_order, report_view
 
 
 def test_get_order_payloads(order_with_lines):
