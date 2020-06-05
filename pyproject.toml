@@ -19,7 +19,7 @@ braintree = "~4.1.0"
 celery = { version = "^4.3.0", extras = ["redis"] }
 dj-database-url = "^0"
 dj-email-url = "^1"
-django = "^3.0.6"
+django = "^3.0.7"
 django-countries = "^6.1"
 django-filter = "^2.2"
 django-graphql-jwt = "0.3.0" # https://github.com/mirumee/saleor/issues/4652
