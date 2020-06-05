@@ -5,7 +5,14 @@ from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
 from ..decorators import permission_required
 from .filters import AppFilter
-from .mutations import AppCreate, AppDelete, AppTokenCreate, AppTokenDelete, AppUpdate
+from .mutations import (
+    AppCreate,
+    AppDelete,
+    AppTokenCreate,
+    AppTokenDelete,
+    AppTokenVerify,
+    AppUpdate,
+)
 from .resolvers import resolve_apps
 from .sorters import AppSortingInput
 from .types import App
@@ -45,3 +52,4 @@ class AppMutations(graphene.ObjectType):
 
     app_token_create = AppTokenCreate.Field()
     app_token_delete = AppTokenDelete.Field()
+    app_token_verify = AppTokenVerify.Field()
