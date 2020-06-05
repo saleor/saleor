@@ -685,6 +685,7 @@ def product(product_type, category, warehouse):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-11",
+        minimal_variant_price_amount="10.00",
         product_type=product_type,
         category=category,
         is_published=True,
@@ -849,7 +850,11 @@ def variant_without_inventory_tracking(
 @pytest.fixture
 def variant(product) -> ProductVariant:
     product_variant = ProductVariant.objects.create(
-        product=product, sku="SKU_A", cost_price=Money(1, "USD"), price_amount=10
+        product=product,
+        sku="SKU_A",
+        cost_price=Money(1, "USD"),
+        price_amount=10,
+        price=Money(10, "USD"),
     )
     return product_variant
 
