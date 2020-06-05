@@ -797,8 +797,38 @@ def test_sort_products(user_api_client, product):
     product.minimal_variant_amount = 20
     product.updated_at = datetime.utcnow()
     product.save()
+    ProductVariant.objects.create(
+        product=product, sku="1234", cost_price=Money("1.00", "USD"), price_amount=20
+    )
 
     query = SORT_PRODUCTS_QUERY
+
+    asc_price_query = query % {"sort_by_product_order": "{field: PRICE, direction:ASC}"}
+    response = user_api_client.post_graphql(asc_price_query)
+    content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    price1 = edges[0]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    price2 = edges[1]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    assert price1 < price2
+
+    # Test sorting by PRICE, descending
+    desc_price_query = query % {
+        "sort_by_product_order": "{field: PRICE, direction:DESC}"
+    }
+    response = user_api_client.post_graphql(desc_price_query)
+    content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    price1 = edges[0]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    price2 = edges[1]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    assert price1 > price2
 
     # Test sorting by MINIMAL_PRICE, ascending
     asc_price_query = query % {
@@ -1716,46 +1746,6 @@ def test_update_product_slug_and_name(
         assert errors
         assert errors[0]["field"] == error_field
         assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
-
-
-# UPDATE_PRODUCT_PRICE_MUTATION = """
-#     mutation($id: ID!, $variantPrice: Decimal) {
-#         productUpdate(
-#             id: $id
-#             input: {
-#                 variantPrice: $variantPrice
-#             }
-#         ) {
-#             product{
-#                 name
-#                 slug
-#             }
-#             productErrors {
-#                 field
-#                 message
-#                 code
-#             }
-#         }
-#     }
-# """
-#
-#
-# def test_update_product_invalid_price(
-#     staff_api_client, product, permission_manage_products,
-# ):
-#
-#     node_id = graphene.Node.to_global_id("Product", product.id)
-#     variables = {"variantPrice": Decimal("-19"), "id": node_id}
-#     response = staff_api_client.post_graphql(
-#         UPDATE_PRODUCT_PRICE_MUTATION,
-#         variables,
-#         permissions=[permission_manage_products],
-#     )
-#     content = get_graphql_content(response)
-#     data = content["data"]["productUpdate"]
-#     errors = data["productErrors"]
-#     assert errors[0]["field"] == "variantPrice"
-#     assert errors[0]["code"] == ProductErrorCode.INVALID.name
 
 
 SET_ATTRIBUTES_TO_PRODUCT_QUERY = """
@@ -3870,30 +3860,6 @@ def test_bulk_unpublish_products(
 
     assert content["data"]["productBulkPublish"]["count"] == len(product_list)
     assert not any(product.is_published for product in product_list)
-
-
-# def test_product_base_price_permission(
-#     staff_api_client, permission_manage_products, product
-# ):
-#     query = """
-#     query basePrice($productID: ID!) {
-#         product(id: $productID) {
-#             basePrice {
-#                 amount
-#             }
-#         }
-#     }
-#     """
-#     product_id = graphene.Node.to_global_id("Product", product.id)
-#
-#     variables = {"productID": product_id}
-#     permissions = [permission_manage_products]
-#
-#     response = staff_api_client.post_graphql(query, variables, permissions)
-#     content = get_graphql_content(response)
-#
-#     assert "basePrice" in content["data"]["product"]
-#     assert content["data"]["product"]["basePrice"]["amount"] == product.price.amount
 
 
 QUERY_AVAILABLE_ATTRIBUTES = """

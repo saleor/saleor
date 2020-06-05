@@ -84,7 +84,6 @@ def test_update_products_minimal_variant_prices_task(product_list):
 
 
 def test_product_variant_objects_create_updates_minimal_variant_price(product):
-    product.refresh_from_db()
     assert product.minimal_variant_price == Money("10.00", "USD")
     ProductVariant.objects.create(product=product, sku="1", price=Money("1.00", "USD"))
     product.refresh_from_db()
