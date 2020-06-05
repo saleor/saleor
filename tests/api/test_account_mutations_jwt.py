@@ -8,8 +8,6 @@ from saleor.account.error_codes import AccountErrorCode
 from saleor.core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_ALGORITHM,
-    JWT_EXPIRATION_DELTA,
-    JWT_REFRESH_EXPIRATION_DELTA,
     JWT_REFRESH_TOKEN_COOKIE_NAME,
     JWT_REFRESH_TYPE,
     JWT_SECRET,
@@ -41,7 +39,7 @@ MUTATION_CREATE_TOKEN = """
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_create_token(api_client, customer_user):
+def test_create_token(api_client, customer_user, settings):
     variables = {"email": customer_user.email, "password": customer_user._password}
     response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
     content = get_graphql_content(response)
@@ -59,27 +57,29 @@ def test_create_token(api_client, customer_user):
     assert payload["email"] == customer_user.email
     assert payload["user_id"] == graphene.Node.to_global_id("User", customer_user.id)
     assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
-    expected_expiration_datetime = datetime.utcnow() + JWT_EXPIRATION_DELTA
+    expected_expiration_datetime = datetime.utcnow() + settings.JWT_EXPIRATION_DELTA
     assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
     assert payload["type"] == JWT_ACCESS_TYPE
 
     payload = decode(refreshToken, JWT_SECRET, algorithms=JWT_ALGORITHM)
     assert payload["email"] == customer_user.email
     assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
-    expected_expiration_datetime = datetime.utcnow() + JWT_REFRESH_EXPIRATION_DELTA
+    expected_expiration_datetime = (
+        datetime.utcnow() + settings.JWT_REFRESH_EXPIRATION_DELTA
+    )
     assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
     assert payload["type"] == JWT_REFRESH_TYPE
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_create_token_sets_cookie(api_client, customer_user):
+def test_create_token_sets_cookie(api_client, customer_user, settings):
     variables = {"email": customer_user.email, "password": customer_user._password}
     response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
 
     expected_refresh_token = create_refresh_token(customer_user)
     refresh_token = response.cookies["refreshToken"]
     assert refresh_token.value == expected_refresh_token
-    expected_expires = datetime.utcnow() + JWT_REFRESH_EXPIRATION_DELTA
+    expected_expires = datetime.utcnow() + settings.JWT_REFRESH_EXPIRATION_DELTA
     expected_expires += timedelta(seconds=1)
     expires = datetime.strptime(refresh_token["expires"], "%a, %d %b %Y  %H:%M:%S %Z")
     assert expires == expected_expires
@@ -157,9 +157,7 @@ MUTATION_TOKEN_REFRESH = """
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_refresh_token_get_token_from_cookie(
-    api_client, customer_user,
-):
+def test_refresh_token_get_token_from_cookie(api_client, customer_user, settings):
     refresh_token = create_refresh_token(customer_user)
     variables = {"token": None}
     api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME] = refresh_token
@@ -178,13 +176,13 @@ def test_refresh_token_get_token_from_cookie(
     assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
     assert (
         datetime.fromtimestamp(payload["exp"])
-        == datetime.utcnow() + JWT_EXPIRATION_DELTA
+        == datetime.utcnow() + settings.JWT_EXPIRATION_DELTA
     )
     assert payload["type"] == JWT_ACCESS_TYPE
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_refresh_token_get_token_from_input(api_client, customer_user):
+def test_refresh_token_get_token_from_input(api_client, customer_user, settings):
     refresh_token = create_refresh_token(customer_user)
     variables = {"token": refresh_token}
     response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
@@ -201,7 +199,7 @@ def test_refresh_token_get_token_from_input(api_client, customer_user):
     assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
     assert (
         datetime.fromtimestamp(payload["exp"])
-        == datetime.utcnow() + JWT_EXPIRATION_DELTA
+        == datetime.utcnow() + settings.JWT_EXPIRATION_DELTA
     )
     assert payload["type"] == JWT_ACCESS_TYPE
 
