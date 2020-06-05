@@ -9,8 +9,8 @@ from ....payment.error_codes import PaymentErrorCode
 from ....payment.interface import CreditCardInfo, CustomerSource, TokenConfig
 from ....payment.models import ChargeStatus, Payment, TransactionKind
 from ....payment.utils import fetch_customer_id, store_customer_id
-from ...payment.enums import OrderAction, PaymentChargeStatusEnum
 from ...tests.utils import assert_no_permission, get_graphql_content
+from ..enums import OrderAction, PaymentChargeStatusEnum
 
 VOID_QUERY = """
     mutation PaymentVoid($paymentId: ID!) {

@@ -28,9 +28,9 @@ from ...order.mutations.orders import (
     clean_refund_payment,
     try_payment_action,
 )
-from ...order.utils import validate_draft_order
 from ...payment.types import PaymentChargeStatusEnum
 from ...tests.utils import assert_no_permission, get_graphql_content
+from ..utils import validate_draft_order
 
 
 @pytest.fixture

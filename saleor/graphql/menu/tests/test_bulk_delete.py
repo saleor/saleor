@@ -2,8 +2,8 @@ import graphene
 import pytest
 
 from ....menu.models import Menu, MenuItem
-from ...menu.tests.utils import menu_item_to_json
 from ...tests.utils import get_graphql_content
+from .utils import menu_item_to_json
 
 
 @pytest.fixture
