@@ -9,28 +9,28 @@ from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from saleor.account.models import CustomerEvent
-from saleor.core.permissions import OrderPermissions
-from saleor.core.taxes import zero_taxed_money
-from saleor.graphql.core.enums import ReportingPeriod
-from saleor.graphql.order.mutations.orders import (
+from ....account.models import CustomerEvent
+from ....core.permissions import OrderPermissions
+from ....core.taxes import zero_taxed_money
+from ....order import OrderStatus, events as order_events
+from ....order.error_codes import OrderErrorCode
+from ....order.models import Order, OrderEvent
+from ....payment import ChargeStatus, CustomPaymentChoices, PaymentError
+from ....payment.models import Payment
+from ....plugins.manager import PluginsManager
+from ....shipping.models import ShippingMethod
+from ....warehouse.models import Allocation, Stock
+from ....warehouse.tests.utils import get_available_quantity_for_stock
+from ...core.enums import ReportingPeriod
+from ...order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
     clean_refund_payment,
     try_payment_action,
 )
-from saleor.graphql.order.utils import validate_draft_order
-from saleor.graphql.payment.types import PaymentChargeStatusEnum
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
-from saleor.order import OrderStatus, events as order_events
-from saleor.order.error_codes import OrderErrorCode
-from saleor.order.models import Order, OrderEvent
-from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
-from saleor.payment.models import Payment
-from saleor.plugins.manager import PluginsManager
-from saleor.shipping.models import ShippingMethod
-from saleor.warehouse.models import Allocation, Stock
-from saleor.warehouse.tests.utils import get_available_quantity_for_stock
+from ...order.utils import validate_draft_order
+from ...payment.types import PaymentChargeStatusEnum
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 
 @pytest.fixture
