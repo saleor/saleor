@@ -1,14 +1,12 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List, Optional
 
 import graphene
 import jwt
 
-from saleor.account.models import User
+from ..account.models import User
+from ..settings import JWT_EXPIRATION_DELTA, JWT_REFRESH_EXPIRATION_DELTA, JWT_SECRET
 
-JWT_EXPIRATION_DELTA = timedelta(seconds=100)
-JWT_REFRESH_EXPIRATION_DELTA = timedelta(hours=100)
-JWT_SECRET = "ABC"
 JWT_ALGORITHM = "HS256"
 JWT_AUTH_HEADER = "HTTP_AUTHORIZATION"
 JWT_AUTH_HEADER_PREFIX = "JWT"

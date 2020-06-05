@@ -1,6 +1,7 @@
 import ast
 import os.path
 import warnings
+from datetime import timedelta
 
 import dj_database_url
 import dj_email_url
@@ -547,3 +548,16 @@ REDIS_URL = os.environ.get("REDIS_URL")
 if REDIS_URL:
     CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
 CACHES = {"default": django_cache_url.config()}
+
+JWT_EXPIRATION_DELTA = timedelta(
+    seconds=os.environ.get("JWT_EXPIRATION_DELTA", 5 * 60)  # type: ignore
+)
+
+
+JWT_REFRESH_EXPIRATION_DELTA = timedelta(  # 30 days
+    seconds=os.environ.get(  # type: ignore
+        "JWT_REFRESH_EXPIRATION_DELTA", 60 * 60 * 24 * 30
+    )
+)
+
+JWT_SECRET = os.environ.get("JWT_SECRET", SECRET_KEY)
