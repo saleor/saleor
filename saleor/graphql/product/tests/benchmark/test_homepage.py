@@ -1,6 +1,6 @@
 import pytest
 
-from saleor.graphql.tests.utils import get_graphql_content
+from ....tests.utils import get_graphql_content
 
 
 @pytest.mark.django_db
