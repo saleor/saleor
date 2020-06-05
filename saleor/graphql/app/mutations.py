@@ -6,7 +6,7 @@ from ...app.error_codes import AppErrorCode
 from ...core.permissions import AppPermission, get_permissions
 from ..account.utils import can_manage_app, get_out_of_scope_permissions
 from ..core.enums import PermissionEnum
-from ..core.mutations import ModelDeleteMutation, ModelMutation
+from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import AppError
 from ..utils import get_user_or_app_from_context, requestor_is_superuser
 from .types import App, AppToken
@@ -95,6 +95,30 @@ class AppTokenDelete(ModelDeleteMutation):
             msg = "You can't delete this app token."
             code = AppErrorCode.OUT_OF_SCOPE_APP.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
+
+
+class AppTokenVerify(BaseMutation):
+    valid = graphene.Boolean(
+        default_value=False,
+        required=True,
+        description="Determine if token is valid or not.",
+    )
+
+    class Arguments:
+        token = graphene.String(description="App token to verify.", required=True)
+
+    class Meta:
+        description = "Verify provided app token."
+        error_type_class = AppError
+        error_type_field = "app_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        token = data.get("token")
+        app_token = models.AppToken.objects.filter(
+            auth_token=token, app__is_active=True
+        ).first()
+        return AppTokenVerify(valid=bool(app_token))
 
 
 class AppCreate(ModelMutation):
