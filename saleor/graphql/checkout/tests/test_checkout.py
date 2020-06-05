@@ -21,12 +21,12 @@ from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager
 from ....warehouse.models import Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
-from ...checkout.mutations import (
+from ...tests.utils import assert_no_permission, get_graphql_content
+from ..mutations import (
     clean_shipping_method,
     update_checkout_shipping_method_if_invalid,
 )
-from ...checkout.utils import clean_checkout_payment, clean_checkout_shipping
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ..utils import clean_checkout_payment, clean_checkout_shipping
 
 
 @pytest.fixture(autouse=True)

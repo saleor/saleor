@@ -9,8 +9,8 @@ from django_countries import countries
 from ....discount import DiscountValueType, VoucherType
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import Sale, Voucher
-from ...discount.enums import DiscountValueTypeEnum, VoucherTypeEnum
 from ...tests.utils import get_graphql_content
+from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 
 @pytest.fixture
