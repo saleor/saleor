@@ -107,7 +107,7 @@ class DiscountError(Error):
 
 
 class CsvError(Error):
-    code = CsvErrorCode(description="The error code.")
+    code = CsvErrorCode(description="The error code.", required=True)
 
 
 class MenuError(Error):

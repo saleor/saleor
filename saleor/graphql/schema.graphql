@@ -1454,7 +1454,7 @@ type CreditCard {
 type CsvError {
   field: String
   message: String
-  code: CsvErrorCode
+  code: CsvErrorCode!
 }
 
 enum CsvErrorCode {
