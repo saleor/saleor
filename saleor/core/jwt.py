@@ -73,6 +73,8 @@ def get_token_from_request(request):
     return auth[1]
 
 
-def get_user_from_token(token):
+def get_user_from_access_token(token):
     payload = jwt_decode(token)
+    if payload["type"] != JWT_ACCESS_TYPE:
+        return None
     return User.objects.filter(email=payload["email"], is_active=True).first()

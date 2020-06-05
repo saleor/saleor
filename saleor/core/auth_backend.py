@@ -1,5 +1,5 @@
 from ..account.models import User
-from .jwt import get_token_from_request, get_user_from_token
+from .jwt import get_token_from_request, get_user_from_access_token
 
 
 class JSONWebTokenBackend:
@@ -10,8 +10,7 @@ class JSONWebTokenBackend:
         token = get_token_from_request(request)
         if not token:
             return None
-        # user_can_authenticate
-        return get_user_from_token(token)
+        return get_user_from_access_token(token)
 
     def get_user(self, user_id):
         try:
