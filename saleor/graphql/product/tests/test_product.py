@@ -284,7 +284,7 @@ def test_product_query(staff_api_client, product, permission_manage_products, st
     assert product_data["slug"] == product.slug
     gross = product_data["pricing"]["priceRange"]["start"]["gross"]
     assert float(gross["amount"]) == float(product.price.amount)
-    from saleor.product.utils.costs import get_product_costs_data
+    from ....product.utils.costs import get_product_costs_data
 
     purchase_cost, margin = get_product_costs_data(product)
     assert purchase_cost.start.amount == product_data["purchaseCost"]["start"]["amount"]
