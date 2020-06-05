@@ -8,16 +8,10 @@ from django.db.models import Q
 from django.template.defaultfilters import slugify
 from graphene.utils.str_converters import to_camel_case
 
-from saleor.core.taxes import zero_money
-from saleor.graphql.core.utils import snake_to_camel_case
-from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
-from saleor.graphql.product.filters import filter_attributes_by_product_types
-from saleor.graphql.product.mutations.attributes import validate_value_is_unique
-from saleor.graphql.product.types.attributes import resolve_attribute_value_type
-from saleor.graphql.tests.utils import get_graphql_content
-from saleor.product import AttributeInputType
-from saleor.product.error_codes import ProductErrorCode
-from saleor.product.models import (
+from ....core.taxes import zero_money
+from ....product import AttributeInputType
+from ....product.error_codes import ProductErrorCode
+from ....product.models import (
     Attribute,
     AttributeProduct,
     AttributeValue,
@@ -28,7 +22,13 @@ from saleor.product.models import (
     ProductType,
     ProductVariant,
 )
-from saleor.product.utils.attributes import associate_attribute_values_to_instance
+from ....product.utils.attributes import associate_attribute_values_to_instance
+from ...core.utils import snake_to_camel_case
+from ...tests.utils import get_graphql_content
+from ..enums import AttributeTypeEnum, AttributeValueType
+from ..filters import filter_attributes_by_product_types
+from ..mutations.attributes import validate_value_is_unique
+from ..types.attributes import resolve_attribute_value_type
 
 
 def test_validate_value_is_unique(color_attribute):
