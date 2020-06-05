@@ -192,7 +192,14 @@ class ProductVariant(CountableDjangoObjectType):
             "This field will be removed after 2020-07-31."
         ),
     )
-    price = graphene.Field(Money, description=("Base price of a product variant."),)
+    price = graphene.Field(
+        Money,
+        description=(
+            "Base price of a product variant. "
+            "This field is restricted for admins. "
+            "Use the pricing field to get the public price for customers."
+        ),
+    )
 
     pricing = graphene.Field(
         VariantPricingInfo,
