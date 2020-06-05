@@ -872,6 +872,79 @@ def test_get_export_fields_and_headers_fields_with_price():
     assert file_headers == expected_headers
 
 
+def test_get_export_fields_and_headers_fields_with_cost_price():
+    # given
+    export_info = {
+        "fields": [
+            ProductFieldEnum.NAME.value,
+            ProductFieldEnum.COST_PRICE.value,
+            ProductFieldEnum.COLLECTIONS.value,
+        ],
+        "warehoses": [],
+    }
+
+    # when
+    export_fields, file_headers = get_product_export_fields_and_headers(export_info)
+
+    # then
+    expected_headers = [
+        "id",
+        "name",
+        "cost price",
+        "variant currency",
+        "collections",
+    ]
+
+    expected_fields = [
+        "id",
+        "name",
+        "variants__cost_price_amount",
+        "variants__currency",
+        "collections__slug",
+    ]
+
+    assert export_fields == expected_fields
+    assert file_headers == expected_headers
+
+
+def test_get_export_fields_and_headers_fields_with_cost_price_and_price_override():
+    # given
+    export_info = {
+        "fields": [
+            ProductFieldEnum.NAME.value,
+            ProductFieldEnum.PRICE_OVERRIDE.value,
+            ProductFieldEnum.COST_PRICE.value,
+            ProductFieldEnum.COLLECTIONS.value,
+        ],
+        "warehoses": [],
+    }
+
+    # when
+    export_fields, file_headers = get_product_export_fields_and_headers(export_info)
+
+    # then
+    expected_headers = [
+        "id",
+        "name",
+        "price override",
+        "variant currency",
+        "cost price",
+        "collections",
+    ]
+
+    expected_fields = [
+        "id",
+        "name",
+        "variants__price_override_amount",
+        "variants__currency",
+        "variants__cost_price_amount",
+        "collections__slug",
+    ]
+
+    assert export_fields == expected_fields
+    assert file_headers == expected_headers
+
+
 def test_get_export_fields_and_headers_fields_without_price():
     # given
     export_info = {

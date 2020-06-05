@@ -108,10 +108,11 @@ def get_product_export_fields_and_headers(
             lookup_field = fields_mapping["product currency"]
             export_fields.append(lookup_field)
             file_headers.append("product currency")
-        elif field == "price override":
+        elif field == "price override" or field == "cost price":
             lookup_field = fields_mapping["variant currency"]
-            export_fields.append(lookup_field)
-            file_headers.append("variant currency")
+            if lookup_field not in export_fields:
+                export_fields.append(lookup_field)
+                file_headers.append("variant currency")
 
     return export_fields, file_headers
 
