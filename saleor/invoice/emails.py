@@ -10,14 +10,13 @@ from .models import Invoice
 
 def collect_invoice_data_for_email(invoice, template):
     """Collect the required data for sending emails."""
-    recipient_email = invoice.order.user_email or invoice.order.user.email
     send_kwargs, email_context = get_email_context()
 
     email_context["number"] = invoice.number
     email_context["download_url"] = invoice.url
 
     return {
-        "recipient_list": [recipient_email],
+        "recipient_list": [invoice.order.get_email()],
         "template_name": template,
         "context": email_context,
         **send_kwargs,
@@ -32,4 +31,4 @@ def send_invoice(invoice_pk, staff_user_pk):
     send_templated_mail(**email_data)
     events.invoice_sent_event(user=User.objects.get(pk=staff_user_pk), invoice=invoice)
     manager = get_plugins_manager()
-    manager.invoice_sent(invoice, invoice.order.user_email or invoice.order.user.email)
+    manager.invoice_sent(invoice, invoice.order.get_email())
