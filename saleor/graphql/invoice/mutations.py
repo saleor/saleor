@@ -270,7 +270,7 @@ class SendInvoiceEmail(ModelMutation):
                 "Provided invoice needs to have an invoice number.",
                 code=InvoiceErrorCode.NUMBER_NOT_SET,
             )
-        if not instance.order.get_email():
+        if not instance.order.get_customer_email():
             validation_errors["order"] = ValidationError(
                 "Provided invoice order needs an email address.",
                 code=InvoiceErrorCode.EMAIL_NOT_SET,

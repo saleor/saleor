@@ -16,7 +16,7 @@ def collect_invoice_data_for_email(invoice, template):
     email_context["download_url"] = invoice.url
 
     return {
-        "recipient_list": [invoice.order.get_email()],
+        "recipient_list": [invoice.order.get_customer_email()],
         "template_name": template,
         "context": email_context,
         **send_kwargs,
@@ -31,4 +31,4 @@ def send_invoice(invoice_pk, staff_user_pk):
     send_templated_mail(**email_data)
     events.invoice_sent_event(user=User.objects.get(pk=staff_user_pk), invoice=invoice)
     manager = get_plugins_manager()
-    manager.invoice_sent(invoice, invoice.order.get_email())
+    manager.invoice_sent(invoice, invoice.order.get_customer_email())
