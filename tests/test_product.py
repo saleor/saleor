@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 from freezegun import freeze_time
-from prices import Money, MoneyRange
+from prices import Money
 
 from saleor.account import events as account_events
 from saleor.product import models
@@ -96,30 +96,6 @@ def test_get_price(
     price = variant.get_price(discounts=[discount_info] if include_discounts else [])
 
     assert price.amount == expected_price
-
-
-def test_product_get_price_range_with_variants(product_type, category):
-    product = models.Product.objects.create(
-        product_type=product_type, category=category
-    )
-    product.variants.create(sku="2", price=Money("20.00", "USD"))
-    product.variants.create(sku="3", price=Money("11.00", "USD"))
-
-    price = product.get_price_range()
-
-    start = Money("11.00", "USD")
-    stop = Money("20.00", "USD")
-    assert price == MoneyRange(start=start, stop=stop)
-
-
-def test_product_get_price_range_no_variants(product_type, category):
-    product = models.Product.objects.create(
-        product_type=product_type, category=category
-    )
-
-    price = product.get_price_range()
-
-    assert price is None
 
 
 def test_product_get_price_do_not_charge_taxes(product_type, category, discount_info):

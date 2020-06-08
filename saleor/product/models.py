@@ -293,17 +293,6 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
         images = list(self.images.all())
         return images[0] if images else None
 
-    def get_price_range(
-        self, discounts: Optional[Iterable[DiscountInfo]] = None
-    ) -> Optional[MoneyRange]:
-        import opentracing
-
-        with opentracing.global_tracer().start_active_span("get_price_range"):
-            if self.variants.all():
-                prices = [variant.get_price(discounts) for variant in self]
-                return MoneyRange(min(prices), max(prices))
-            return None
-
     @staticmethod
     def sort_by_attribute_fields() -> list:
         return ["concatenated_values_order", "concatenated_values", "name"]
