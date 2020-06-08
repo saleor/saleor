@@ -7,19 +7,19 @@ from django.core.exceptions import ValidationError
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from saleor.checkout import calculations
-from saleor.checkout.utils import add_variant_to_checkout
-from saleor.core.taxes import quantize_price, zero_taxed_money
-from saleor.plugins.manager import get_plugins_manager
-from saleor.plugins.models import PluginConfiguration
-from saleor.plugins.vatlayer import (
+from ....checkout import calculations
+from ....checkout.utils import add_variant_to_checkout
+from ....core.taxes import quantize_price, zero_taxed_money
+from ...manager import get_plugins_manager
+from ...models import PluginConfiguration
+from ...vatlayer import (
     DEFAULT_TAX_RATE_NAME,
     apply_tax_to_price,
     get_tax_rate_by_name,
     get_taxed_shipping_price,
     get_taxes_for_country,
 )
-from saleor.plugins.vatlayer.plugin import VatlayerPlugin
+from ..plugin import VatlayerPlugin
 
 
 def get_url_path(url):

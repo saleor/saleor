@@ -1,9 +1,9 @@
 import graphene
 import pytest
 
-from saleor.graphql.shipping.types import ShippingMethodTypeEnum
-from saleor.graphql.tests.utils import get_graphql_content
-from saleor.shipping.error_codes import ShippingErrorCode
+from ....shipping.error_codes import ShippingErrorCode
+from ...tests.utils import get_graphql_content
+from ..types import ShippingMethodTypeEnum
 
 
 def test_shipping_zone_query(

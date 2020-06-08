@@ -6,14 +6,14 @@ import pytest
 from freezegun import freeze_time
 from prices import Money, MoneyRange
 
-from saleor.account import events as account_events
-from saleor.product import models
-from saleor.product.filters import filter_products_by_attributes_values
-from saleor.product.models import DigitalContentUrl
-from saleor.product.thumbnails import create_product_thumbnails
-from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.product.utils.costs import get_margin_for_variant
-from saleor.product.utils.digital_products import increment_download_count
+from ...account import events as account_events
+from .. import models
+from ..filters import filter_products_by_attributes_values
+from ..models import DigitalContentUrl
+from ..thumbnails import create_product_thumbnails
+from ..utils.attributes import associate_attribute_values_to_instance
+from ..utils.costs import get_margin_for_variant
+from ..utils.digital_products import increment_download_count
 
 
 def test_filtering_by_attribute(db, color_attribute, category, settings):

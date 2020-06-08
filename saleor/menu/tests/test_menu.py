@@ -1,12 +1,7 @@
 from unittest import mock
 
-from saleor.menu.models import MenuItem, MenuItemTranslation
-from saleor.menu.utils import (
-    get_menu_as_json,
-    get_menu_item_as_dict,
-    update_menu,
-    update_menus,
-)
+from ..models import MenuItem, MenuItemTranslation
+from ..utils import get_menu_as_json, get_menu_item_as_dict, update_menu, update_menus
 
 
 def test_get_menu_item_as_dict(menu):

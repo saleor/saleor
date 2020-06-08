@@ -3,10 +3,10 @@ import os.path
 import graphene
 import pytest
 
-from saleor.core.taxes import zero_money
-from saleor.graphql.tests.utils import get_graphql_content
-from saleor.product import models as product_models
-from saleor.product.utils.attributes import associate_attribute_values_to_instance
+from ....core.taxes import zero_money
+from ....product import models as product_models
+from ....product.utils.attributes import associate_attribute_values_to_instance
+from ...tests.utils import get_graphql_content
 
 HERE = os.path.realpath(os.path.dirname(__file__))
 

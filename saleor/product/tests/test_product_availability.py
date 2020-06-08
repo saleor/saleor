@@ -4,14 +4,14 @@ from unittest.mock import Mock
 import pytest
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from saleor.plugins.manager import PluginsManager
-from saleor.product import ProductAvailabilityStatus, VariantAvailabilityStatus, models
-from saleor.product.utils.availability import (
+from ...plugins.manager import PluginsManager
+from ...warehouse.models import Stock
+from .. import ProductAvailabilityStatus, VariantAvailabilityStatus, models
+from ..utils.availability import (
     get_product_availability,
     get_product_availability_status,
     get_variant_availability_status,
 )
-from saleor.warehouse.models import Stock
 
 
 def test_product_availability_status(unavailable_product, warehouse):
