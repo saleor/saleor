@@ -4,20 +4,20 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from prices import Money, TaxedMoney
 
-from saleor.core.weight import zero_weight
-from saleor.discount.models import (
-    DiscountValueType,
-    NotApplicable,
-    Voucher,
-    VoucherType,
-)
-from saleor.discount.utils import validate_voucher_in_order
-from saleor.order import OrderEvents, OrderStatus, models
-from saleor.order.emails import send_fulfillment_confirmation_to_customer
-from saleor.order.events import OrderEvent, OrderEventsEmails, email_sent_event
-from saleor.order.models import Order
-from saleor.order.templatetags.order_lines import display_translated_order_line_name
-from saleor.order.utils import (
+from ...core.weight import zero_weight
+from ...discount.models import DiscountValueType, NotApplicable, Voucher, VoucherType
+from ...discount.utils import validate_voucher_in_order
+from ...payment import ChargeStatus
+from ...payment.models import Payment
+from ...product.models import Collection
+from ...warehouse.models import Stock
+from ...warehouse.tests.utils import get_quantity_allocated_for_stock
+from .. import OrderEvents, OrderStatus, models
+from ..emails import send_fulfillment_confirmation_to_customer
+from ..events import OrderEvent, OrderEventsEmails, email_sent_event
+from ..models import Order
+from ..templatetags.order_lines import display_translated_order_line_name
+from ..utils import (
     add_variant_to_draft_order,
     change_order_line_quantity,
     delete_order_line,
@@ -28,11 +28,6 @@ from saleor.order.utils import (
     update_order_prices,
     update_order_status,
 )
-from saleor.payment import ChargeStatus
-from saleor.payment.models import Payment
-from saleor.product.models import Collection
-from saleor.warehouse.models import Stock
-from saleor.warehouse.tests.utils import get_quantity_allocated_for_stock
 
 
 def test_total_setter():

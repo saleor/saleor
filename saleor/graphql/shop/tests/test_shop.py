@@ -4,13 +4,13 @@ import graphene
 import pytest
 from django_countries import countries
 
-from saleor.account.models import Address
-from saleor.core.error_codes import ShopErrorCode
-from saleor.core.permissions import get_permissions_codename
-from saleor.graphql.core.utils import str_to_enum
-from saleor.graphql.tests.utils import get_graphql_content
-from saleor.site import AuthenticationBackends
-from saleor.site.models import Site
+from ....account.models import Address
+from ....core.error_codes import ShopErrorCode
+from ....core.permissions import get_permissions_codename
+from ....site import AuthenticationBackends
+from ....site.models import Site
+from ...core.utils import str_to_enum
+from ...tests.utils import get_graphql_content
 
 
 def test_query_authorization_keys(

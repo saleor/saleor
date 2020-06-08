@@ -1,7 +1,7 @@
 import pytest
 
-from saleor.discount.models import Sale
-from saleor.product.models import Category
+from .....discount.models import Sale
+from .....product.models import Category
 
 
 @pytest.fixture

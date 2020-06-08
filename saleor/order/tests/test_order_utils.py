@@ -1,9 +1,9 @@
 import pytest
 
-from saleor.order import OrderStatus
-from saleor.order.events import OrderEvents
-from saleor.order.models import Order, OrderEvent
-from saleor.order.utils import change_order_line_quantity, match_orders_with_new_user
+from .. import OrderStatus
+from ..events import OrderEvents
+from ..models import Order, OrderEvent
+from ..utils import change_order_line_quantity, match_orders_with_new_user
 
 
 @pytest.mark.parametrize(

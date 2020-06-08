@@ -3,10 +3,10 @@ from unittest import mock
 import pytest
 from templated_email import get_connection
 
-import saleor.invoice.emails as invoice_emails
-import saleor.order.emails as emails
-from saleor.invoice.models import Invoice
-from saleor.order.utils import add_variant_to_draft_order
+from ...invoice import emails as invoice_emails
+from ...invoice.models import Invoice
+from ...order import emails as emails
+from ..utils import add_variant_to_draft_order
 
 
 def test_collect_data_for_order_confirmation_email(order):

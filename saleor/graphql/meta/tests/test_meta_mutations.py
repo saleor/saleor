@@ -3,10 +3,10 @@ import uuid
 
 import graphene
 
-from saleor.core.error_codes import MetadataErrorCode
-from saleor.core.models import ModelWithMetadata
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
-from saleor.invoice.models import Invoice
+from ....core.error_codes import MetadataErrorCode
+from ....core.models import ModelWithMetadata
+from ....invoice.models import Invoice
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 PRIVATE_KEY = "private_key"
 PRIVATE_VALUE = "private_vale"

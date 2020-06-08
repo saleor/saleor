@@ -3,18 +3,12 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from saleor.checkout.calculations import checkout_total
-from saleor.payment import (
-    ChargeStatus,
-    GatewayError,
-    PaymentError,
-    TransactionKind,
-    gateway,
-)
-from saleor.payment.error_codes import PaymentErrorCode
-from saleor.payment.interface import CreditCardInfo, GatewayConfig, GatewayResponse
-from saleor.payment.models import Payment
-from saleor.payment.utils import (
+from ...checkout.calculations import checkout_total
+from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
+from ..error_codes import PaymentErrorCode
+from ..interface import CreditCardInfo, GatewayConfig, GatewayResponse
+from ..models import Payment
+from ..utils import (
     ALLOWED_GATEWAY_KINDS,
     clean_authorize,
     clean_capture,

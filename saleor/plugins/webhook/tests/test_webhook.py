@@ -4,18 +4,18 @@ import pytest
 import requests
 from django.core.serializers import serialize
 
-from saleor.app.models import App
-from saleor.plugins.manager import get_plugins_manager
-from saleor.plugins.webhook import create_hmac_signature
-from saleor.plugins.webhook.tasks import trigger_webhooks_for_event
-from saleor.webhook.event_types import WebhookEventType
-from saleor.webhook.payloads import (
+from ....app.models import App
+from ....webhook.event_types import WebhookEventType
+from ....webhook.payloads import (
     generate_checkout_payload,
     generate_customer_payload,
     generate_invoice_payload,
     generate_order_payload,
     generate_product_payload,
 )
+from ...manager import get_plugins_manager
+from ...webhook import create_hmac_signature
+from ...webhook.tasks import trigger_webhooks_for_event
 
 
 @pytest.mark.vcr

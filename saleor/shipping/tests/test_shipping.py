@@ -2,8 +2,8 @@ import pytest
 from measurement.measures import Weight
 from prices import Money
 
-from saleor.shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
-from saleor.shipping.utils import default_shipping_zone_exists
+from ..models import ShippingMethod, ShippingMethodType, ShippingZone
+from ..utils import default_shipping_zone_exists
 
 
 def test_shipping_get_total(monkeypatch, shipping_zone):

@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 from unittest.mock import Mock, patch
 
-from saleor.plugins.invoicing.utils import (
+from ....plugins.invoicing.utils import (
     chunk_products,
     generate_invoice_number,
     generate_invoice_pdf,
