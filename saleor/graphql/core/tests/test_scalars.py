@@ -1,4 +1,4 @@
-from saleor.graphql.tests.utils import get_graphql_content
+from ...tests.utils import get_graphql_content
 
 QUERY_CHECKOUT = """
 query getCheckout($token: UUID!) {

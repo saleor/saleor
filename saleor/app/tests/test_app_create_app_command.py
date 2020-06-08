@@ -3,8 +3,8 @@ from unittest.mock import ANY, Mock
 import requests
 from django.core.management import call_command
 
-from saleor.app.models import App
-from saleor.core.permissions import get_permissions
+from ...core.permissions import get_permissions
+from ..models import App
 
 
 def test_creates_app_object():

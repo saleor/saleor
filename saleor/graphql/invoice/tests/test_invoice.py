@@ -2,12 +2,12 @@ from unittest.mock import patch
 
 import graphene
 
-from saleor.core import JobStatus
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
-from saleor.invoice.emails import collect_invoice_data_for_email
-from saleor.invoice.error_codes import InvoiceErrorCode
-from saleor.invoice.models import Invoice, InvoiceEvent, InvoiceEvents
-from saleor.order import OrderStatus
+from ....core import JobStatus
+from ....graphql.tests.utils import assert_no_permission, get_graphql_content
+from ....invoice.emails import collect_invoice_data_for_email
+from ....invoice.error_codes import InvoiceErrorCode
+from ....invoice.models import Invoice, InvoiceEvent, InvoiceEvents
+from ....order import OrderStatus
 
 REQUEST_INVOICE_MUTATION = """
     mutation RequestInvoice($orderId: ID!, $number: String) {

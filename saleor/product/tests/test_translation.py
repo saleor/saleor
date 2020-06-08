@@ -1,6 +1,6 @@
 import pytest
 
-from saleor.product.models import (
+from ..models import (
     AttributeTranslation,
     AttributeValueTranslation,
     CategoryTranslation,

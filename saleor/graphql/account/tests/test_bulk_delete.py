@@ -3,10 +3,10 @@ from unittest.mock import patch
 import graphene
 from django.contrib.auth.models import Group
 
-from saleor.account.error_codes import AccountErrorCode
-from saleor.account.models import User
-from saleor.core.permissions import AccountPermissions, OrderPermissions
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
+from ....account.error_codes import AccountErrorCode
+from ....account.models import User
+from ....core.permissions import AccountPermissions, OrderPermissions
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 
 @patch(

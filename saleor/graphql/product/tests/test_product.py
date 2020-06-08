@@ -11,19 +11,11 @@ from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
 
-from saleor.core.taxes import TaxType
-from saleor.graphql.core.enums import ReportingPeriod
-from saleor.graphql.product.bulk_mutations.products import ProductVariantStocksUpdate
-from saleor.graphql.product.utils import create_stocks
-from saleor.graphql.tests.utils import (
-    assert_no_permission,
-    get_graphql_content,
-    get_multipart_request_body,
-)
-from saleor.plugins.manager import PluginsManager
-from saleor.product import AttributeInputType
-from saleor.product.error_codes import ProductErrorCode
-from saleor.product.models import (
+from ....core.taxes import TaxType
+from ....plugins.manager import PluginsManager
+from ....product import AttributeInputType
+from ....product.error_codes import ProductErrorCode
+from ....product.models import (
     Attribute,
     AttributeValue,
     Category,
@@ -33,10 +25,18 @@ from saleor.product.models import (
     ProductType,
     ProductVariant,
 )
-from saleor.product.tasks import update_variants_names
-from saleor.product.tests.utils import create_image, create_pdf_file_with_image_ext
-from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.warehouse.models import Allocation, Stock, Warehouse
+from ....product.tasks import update_variants_names
+from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
+from ....product.utils.attributes import associate_attribute_values_to_instance
+from ....warehouse.models import Allocation, Stock, Warehouse
+from ...core.enums import ReportingPeriod
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_multipart_request_body,
+)
+from ..bulk_mutations.products import ProductVariantStocksUpdate
+from ..utils import create_stocks
 
 
 @pytest.fixture
@@ -284,7 +284,7 @@ def test_product_query(staff_api_client, product, permission_manage_products, st
     assert product_data["slug"] == product.slug
     gross = product_data["pricing"]["priceRange"]["start"]["gross"]
     assert float(gross["amount"]) == float(product.price.amount)
-    from saleor.product.utils.costs import get_product_costs_data
+    from ....product.utils.costs import get_product_costs_data
 
     purchase_cost, margin = get_product_costs_data(product)
     assert purchase_cost.start.amount == product_data["purchaseCost"]["start"]["amount"]

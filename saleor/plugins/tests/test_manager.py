@@ -4,10 +4,10 @@ import pytest
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
-from saleor.core.taxes import TaxType
-from saleor.plugins.manager import PluginsManager, get_plugins_manager
-from saleor.plugins.models import PluginConfiguration
-from saleor.plugins.tests.sample_plugins import (
+from ...core.taxes import TaxType
+from ..manager import PluginsManager, get_plugins_manager
+from ..models import PluginConfiguration
+from ..tests.sample_plugins import (
     ActivePaymentGateway,
     InactivePaymentGateway,
     PluginInactive,

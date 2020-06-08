@@ -2,8 +2,8 @@ from datetime import date
 
 import graphene
 
-from saleor.giftcard.error_codes import GiftCardErrorCode
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
+from ....giftcard.error_codes import GiftCardErrorCode
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 
 def test_query_gift_card_with_permissions(

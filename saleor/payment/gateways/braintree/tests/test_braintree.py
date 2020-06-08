@@ -7,7 +7,9 @@ from braintree.errors import Errors
 from braintree.validation_error import ValidationError
 from django.core.exceptions import ImproperlyConfigured
 
-from saleor.payment.gateways.braintree import (
+from ....interface import CreditCardInfo, CustomerSource, GatewayConfig, TokenConfig
+from ....utils import create_payment_information
+from .. import (
     TransactionKind,
     authorize,
     capture,
@@ -20,17 +22,7 @@ from saleor.payment.gateways.braintree import (
     refund,
     void,
 )
-from saleor.payment.gateways.braintree.errors import (
-    DEFAULT_ERROR_MESSAGE,
-    BraintreeException,
-)
-from saleor.payment.interface import (
-    CreditCardInfo,
-    CustomerSource,
-    GatewayConfig,
-    TokenConfig,
-)
-from saleor.payment.utils import create_payment_information
+from ..errors import DEFAULT_ERROR_MESSAGE, BraintreeException
 
 DEFAULT_ERROR = "Unable to process transaction. Please try again in a moment"
 

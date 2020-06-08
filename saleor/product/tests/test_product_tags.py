@@ -4,7 +4,7 @@ import pytest
 from django.templatetags.static import static
 from django.test import override_settings
 
-from saleor.product.templatetags.product_images import (
+from ..templatetags.product_images import (
     choose_placeholder,
     get_product_image_thumbnail,
     get_thumbnail,

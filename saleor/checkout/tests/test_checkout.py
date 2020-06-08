@@ -9,12 +9,21 @@ from django_countries.fields import Country
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from saleor.account import CustomerEvents
-from saleor.account.models import Address, CustomerEvent, User
-from saleor.account.utils import store_user_address
-from saleor.checkout import AddressType, calculations
-from saleor.checkout.models import Checkout
-from saleor.checkout.utils import (
+from ...account import CustomerEvents
+from ...account.models import Address, CustomerEvent, User
+from ...account.utils import store_user_address
+from ...core.exceptions import InsufficientStock
+from ...core.taxes import zero_money, zero_taxed_money
+from ...discount import DiscountValueType, VoucherType
+from ...discount.models import NotApplicable, Voucher
+from ...order import OrderEvents, OrderEventsEmails
+from ...order.models import OrderEvent
+from ...plugins.manager import get_plugins_manager
+from ...shipping.models import ShippingZone
+from ...tests.utils import flush_post_commit_hooks
+from .. import AddressType, calculations
+from ..models import Checkout
+from ..utils import (
     add_variant_to_checkout,
     add_voucher_to_checkout,
     change_billing_address_in_checkout,
@@ -28,15 +37,6 @@ from saleor.checkout.utils import (
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
 )
-from saleor.core.exceptions import InsufficientStock
-from saleor.core.taxes import zero_money, zero_taxed_money
-from saleor.discount import DiscountValueType, VoucherType
-from saleor.discount.models import NotApplicable, Voucher
-from saleor.order import OrderEvents, OrderEventsEmails
-from saleor.order.models import OrderEvent
-from saleor.plugins.manager import get_plugins_manager
-from saleor.shipping.models import ShippingZone
-from saleor.tests.utils import flush_post_commit_hooks
 
 
 def test_is_valid_shipping_method(checkout_with_item, address, shipping_zone):

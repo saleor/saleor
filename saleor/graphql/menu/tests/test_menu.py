@@ -4,11 +4,11 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 
-from saleor.graphql.menu.mutations import NavigationType, _validate_menu_item_instance
-from saleor.graphql.menu.tests.utils import menu_item_to_json
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
-from saleor.menu.models import Menu, MenuItem
-from saleor.product.models import Category
+from ....menu.models import Menu, MenuItem
+from ....product.models import Category
+from ...menu.mutations import NavigationType, _validate_menu_item_instance
+from ...menu.tests.utils import menu_item_to_json
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 
 def test_validate_menu_item_instance(category, page):

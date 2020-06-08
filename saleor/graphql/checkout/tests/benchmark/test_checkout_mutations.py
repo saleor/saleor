@@ -1,9 +1,9 @@
 import pytest
 from graphene import Node
 
-from saleor.checkout import calculations
-from saleor.checkout.models import Checkout
-from saleor.graphql.tests.utils import get_graphql_content
+from .....checkout import calculations
+from .....checkout.models import Checkout
+from ....tests.utils import get_graphql_content
 
 FRAGMENT_PRICE = """
     fragment Price on TaxedMoney {
