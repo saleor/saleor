@@ -148,10 +148,10 @@ description = "The AWS SDK for Python"
 name = "boto3"
 optional = false
 python-versions = "*"
-version = "1.13.16"
+version = "1.13.19"
 
 [package.dependencies]
-botocore = ">=1.16.16,<1.17.0"
+botocore = ">=1.16.19,<1.17.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.3.0,<0.4.0"
 
@@ -161,7 +161,7 @@ description = "Low-level, data-driven core of boto 3."
 name = "botocore"
 optional = false
 python-versions = "*"
-version = "1.16.16"
+version = "1.16.19"
 
 [package.dependencies]
 docutils = ">=0.10,<0.16"
@@ -1550,7 +1550,7 @@ description = "pytest: simple powerful testing with Python"
 name = "pytest"
 optional = false
 python-versions = ">=3.5"
-version = "5.4.2"
+version = "5.4.3"
 
 [package.dependencies]
 atomicwrites = ">=1.0"
@@ -2169,7 +2169,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "c915d2269bc031ef39c08d5806e77d5637852aecd3fa0037687434f9c76fc757"
+content-hash = "a34e2c02adde3ad4aa2e4e0ebbe7f1f050572003ad45fe88b18dbd124013ee82"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2227,12 +2227,12 @@ black = [
     {file = "black-19.10b0.tar.gz", hash = "sha256:c2edb73a08e9e0e6f65a0e6af18b059b8b1cdd5bef997d7a0b181df93dc81539"},
 ]
 boto3 = [
-    {file = "boto3-1.13.16-py2.py3-none-any.whl", hash = "sha256:650d67b0d47b7bc0d79f04cc944506823dbbc2f76f60e64ce6d7cdd89f60a2eb"},
-    {file = "boto3-1.13.16.tar.gz", hash = "sha256:2a97c9e8fd2c0f8d8a92262a0ccbd00aad8c4786acb74f620f54164070cb72ff"},
+    {file = "boto3-1.13.19-py2.py3-none-any.whl", hash = "sha256:2e58368d32171f42100353007fb48fe583ea9deafd0ec556aa2bc1ce1582d06d"},
+    {file = "boto3-1.13.19.tar.gz", hash = "sha256:c774003dc13d6de74b5e19d2b84d625da4456e64bd97f44baa1fcf40d808d29a"},
 ]
 botocore = [
-    {file = "botocore-1.16.16-py2.py3-none-any.whl", hash = "sha256:0275023d023f0e3f9c27e5f23c437dd09ee715577cc628cf724e8bfbba2b459e"},
-    {file = "botocore-1.16.16.tar.gz", hash = "sha256:70d52f606bab2867971c0ea0c7723a769d81aa3cfd09f819d2b56e186e64ea0b"},
+    {file = "botocore-1.16.19-py2.py3-none-any.whl", hash = "sha256:7b8b1f082665c8670b9aa70143ee527c5d04939fe027a63ac5958359be20ccb0"},
+    {file = "botocore-1.16.19.tar.gz", hash = "sha256:5cb537e7a4cf2d59a2a8dfbbc8e14ec3bc5b640eb81a1bf3bb0523c0a75e6b1b"},
 ]
 braintree = [
     {file = "braintree-4.1.0-py2.py3-none-any.whl", hash = "sha256:152fa9e3b30a7757db0061e1c022c944216bf881209376b28a3f07043cff009b"},
@@ -2909,8 +2909,8 @@ pyphen = [
     {file = "Pyphen-0.9.5.tar.gz", hash = "sha256:3b633a50873156d777e1f1075ba4d8e96a6ad0a3ca42aa3ea9a6259f93f18921"},
 ]
 pytest = [
-    {file = "pytest-5.4.2-py3-none-any.whl", hash = "sha256:95c710d0a72d91c13fae35dce195633c929c3792f54125919847fdcdf7caa0d3"},
-    {file = "pytest-5.4.2.tar.gz", hash = "sha256:eb2b5e935f6a019317e455b6da83dd8650ac9ffd2ee73a7b657a30873d67a698"},
+    {file = "pytest-5.4.3-py3-none-any.whl", hash = "sha256:5c0db86b698e8f170ba4582a492248919255fcd4c79b1ee64ace34301fb589a1"},
+    {file = "pytest-5.4.3.tar.gz", hash = "sha256:7979331bfcba207414f5e1263b5a0f8f521d0f457318836a7355531ed1a4c7d8"},
 ]
 pytest-cov = [
     {file = "pytest-cov-2.9.0.tar.gz", hash = "sha256:b6a814b8ed6247bd81ff47f038511b57fe1ce7f4cc25b9106f1a4b106f1d9322"},

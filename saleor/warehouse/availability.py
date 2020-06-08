@@ -32,7 +32,7 @@ def _get_available_quantity(stocks: StockQuerySet) -> int:
 def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity: int):
     """Validate if there is stock available for given variant in given country.
 
-    If so - returns None. If there is less stock then required rise InsufficientStock
+    If so - returns None. If there is less stock then required raise InsufficientStock
     exception.
     """
     stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
