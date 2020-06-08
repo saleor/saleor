@@ -240,6 +240,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("invoice_delete", default_value, invoice)
 
+    def invoice_sent(self, invoice: "Invoice", email: str):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "invoice_sent", default_value, invoice, email
+        )
+
     def order_fully_paid(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins("order_fully_paid", default_value, order)

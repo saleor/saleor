@@ -4,6 +4,7 @@ import graphene
 
 from saleor.core import JobStatus
 from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
+from saleor.invoice.emails import collect_invoice_data_for_email
 from saleor.invoice.error_codes import InvoiceErrorCode
 from saleor.invoice.models import Invoice, InvoiceEvent, InvoiceEvents
 from saleor.order import OrderStatus
@@ -470,7 +471,7 @@ def test_create_invoice_empty_params(staff_api_client, permission_manage_orders,
     ).exists()
 
 
-@patch("saleor.invoice.emails.send_invoice.delay")
+@patch("saleor.invoice.emails.send_templated_mail")
 def test_send_invoice(email_mock, staff_api_client, permission_manage_orders, order):
     number = "01/12/2020/TEST"
     url = "http://www.example.com"
@@ -482,8 +483,9 @@ def test_send_invoice(email_mock, staff_api_client, permission_manage_orders, or
         SEND_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
+    call_args = collect_invoice_data_for_email(invoice, "order/send_invoice")
+    email_mock.assert_called_once_with(**call_args)
     assert not content["data"]["sendInvoiceEmail"]["invoiceErrors"]
-    email_mock.assert_called_with(invoice.pk)
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.SENT,
         user=staff_api_client.user,
@@ -492,8 +494,8 @@ def test_send_invoice(email_mock, staff_api_client, permission_manage_orders, or
     ).exists()
 
 
-@patch("saleor.invoice.emails.send_invoice.delay")
-def test_send_pending_invoice(
+@patch("saleor.invoice.emails.send_templated_mail")
+def test_send_invoice_pending(
     email_mock, staff_api_client, permission_manage_orders, order
 ):
     invoice = Invoice.objects.create(
@@ -505,12 +507,16 @@ def test_send_pending_invoice(
     )
     content = get_graphql_content(response)
     errors = content["data"]["sendInvoiceEmail"]["invoiceErrors"]
-    assert errors == [{"field": None, "code": InvoiceErrorCode.NOT_READY.name}]
+    assert errors == [
+        {"field": "invoice", "code": "NOT_READY"},
+        {"field": "url", "code": "URL_NOT_SET"},
+        {"field": "number", "code": "NUMBER_NOT_SET"},
+    ]
     email_mock.assert_not_called()
 
 
-@patch("saleor.invoice.emails.send_invoice.delay")
-def test_send_not_ready_invoice(
+@patch("saleor.invoice.emails.send_templated_mail")
+def test_send_invoice_without_url_and_number(
     email_mock, staff_api_client, permission_manage_orders, order
 ):
     invoice = Invoice.objects.create(
@@ -522,5 +528,31 @@ def test_send_not_ready_invoice(
     )
     content = get_graphql_content(response)
     errors = content["data"]["sendInvoiceEmail"]["invoiceErrors"]
-    assert errors == [{"field": None, "code": InvoiceErrorCode.URL_NOT_SET.name}]
+    assert errors == [
+        {"field": "url", "code": "URL_NOT_SET"},
+        {"field": "number", "code": "NUMBER_NOT_SET"},
+    ]
     email_mock.assert_not_called()
+
+
+@patch("saleor.invoice.emails.send_templated_mail")
+@patch("saleor.order.models.Order.get_customer_email")
+def test_send_invoice_without_email(
+    order_mock, email_mock, staff_api_client, permission_manage_orders, order
+):
+    order_mock.return_value = None
+    invoice = Invoice.objects.create(
+        order=order,
+        number="01/12/2020/TEST",
+        url="http://www.example.com",
+        status=JobStatus.SUCCESS,
+    )
+    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
+    response = staff_api_client.post_graphql(
+        SEND_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    email_mock.assert_not_called()
+    assert order_mock.called
+    errors = content["data"]["sendInvoiceEmail"]["invoiceErrors"]
+    assert errors == [{"field": "order", "code": "EMAIL_NOT_SET"}]

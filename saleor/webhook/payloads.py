@@ -10,6 +10,7 @@ from ..core.utils.anonymization import (
     anonymize_order,
     generate_fake_user,
 )
+from ..invoice.models import Invoice
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order
 from ..order.utils import get_order_country
@@ -32,6 +33,25 @@ ADDRESS_FIELDS = (
     "country",
     "country_area",
     "phone",
+)
+
+ORDER_FIELDS = (
+    "created",
+    "status",
+    "user_email",
+    "shipping_method_name",
+    "shipping_price_net_amount",
+    "shipping_price_gross_amount",
+    "total_net_amount",
+    "total_gross_amount",
+    "shipping_price_net_amount",
+    "shipping_price_gross_amount",
+    "discount_amount",
+    "discount_name",
+    "translated_discount_name",
+    "weight",
+    "private_metadata",
+    "metadata",
 )
 
 
@@ -72,27 +92,9 @@ def generate_order_payload(order: "Order"):
         "tax_rate",
     )
     shipping_method_fields = ("name", "type", "currency", "price_amount")
-    order_fields = (
-        "created",
-        "status",
-        "user_email",
-        "shipping_method_name",
-        "shipping_price_net_amount",
-        "shipping_price_gross_amount",
-        "total_net_amount",
-        "total_gross_amount",
-        "shipping_price_net_amount",
-        "shipping_price_gross_amount",
-        "discount_amount",
-        "discount_name",
-        "translated_discount_name",
-        "weight",
-        "private_metadata",
-        "metadata",
-    )
     order_data = serializer.serialize(
         [order],
-        fields=order_fields,
+        fields=ORDER_FIELDS,
         additional_fields={
             "shipping_method": (lambda o: o.shipping_method, shipping_method_fields),
             "lines": (lambda o: o.lines.all(), line_fields),
@@ -103,6 +105,16 @@ def generate_order_payload(order: "Order"):
         },
     )
     return order_data
+
+
+def generate_invoice_payload(invoice: "Invoice"):
+    serializer = PayloadSerializer()
+    invoice_fields = ("id", "number", "external_url", "created")
+    return serializer.serialize(
+        [invoice],
+        fields=invoice_fields,
+        additional_fields={"order": (lambda i: i.order, ORDER_FIELDS)},
+    )
 
 
 def generate_checkout_payload(checkout: "Checkout"):

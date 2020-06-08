@@ -254,24 +254,34 @@ class SendInvoiceEmail(ModelMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        error_code = None
-
+        validation_errors = {}
         if instance.status != JobStatus.SUCCESS:
-            error_code = InvoiceErrorCode.NOT_READY
-        elif not instance.external_url:
-            error_code = InvoiceErrorCode.URL_NOT_SET
-        elif not instance.number:
-            error_code = InvoiceErrorCode.NUMBER_NOT_SET
-
-        if error_code:
-            raise ValidationError(
-                "Provided invoice is not ready to be sent.", code=error_code
+            validation_errors["invoice"] = ValidationError(
+                "Provided invoice is not ready to be sent.",
+                code=InvoiceErrorCode.NOT_READY,
             )
+        if not instance.url:
+            validation_errors["url"] = ValidationError(
+                "Provided invoice needs to have an URL.",
+                code=InvoiceErrorCode.URL_NOT_SET,
+            )
+        if not instance.number:
+            validation_errors["number"] = ValidationError(
+                "Provided invoice needs to have an invoice number.",
+                code=InvoiceErrorCode.NUMBER_NOT_SET,
+            )
+        if not instance.order.get_customer_email():
+            validation_errors["order"] = ValidationError(
+                "Provided invoice order needs an email address.",
+                code=InvoiceErrorCode.EMAIL_NOT_SET,
+            )
+
+        if validation_errors:
+            raise ValidationError(validation_errors)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
-        send_invoice.delay(instance.pk)
-        events.invoice_sent_event(user=info.context.user, invoice=instance)
+        send_invoice.delay(instance.pk, info.context.user.pk)
         return SendInvoiceEmail(invoice=instance)
