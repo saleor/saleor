@@ -5,7 +5,10 @@ from django.db import transaction
 from ...core.permissions import ShippingPermissions
 from ...shipping import models
 from ...shipping.error_codes import ShippingErrorCode
-from ...shipping.utils import default_shipping_zone_exists
+from ...shipping.utils import (
+    default_shipping_zone_exists,
+    get_countries_without_shipping_zone,
+)
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal, WeightScalar
 from ..core.types.common import ShippingError
@@ -81,7 +84,12 @@ class ShippingZoneMixin:
             )
 
         cleaned_input = super().clean_input(info, instance, data)
-        default = cleaned_input.get("default")
+        cleaned_input = cls.clean_default(instance, cleaned_input)
+        return cleaned_input
+
+    @classmethod
+    def clean_default(cls, instance, data):
+        default = data.get("default")
         if default:
             if default_shipping_zone_exists(instance.pk):
                 raise ValidationError(
@@ -92,11 +100,12 @@ class ShippingZoneMixin:
                         )
                     }
                 )
-            elif cleaned_input.get("countries"):
-                cleaned_input["countries"] = []
+            else:
+                countries = get_countries_without_shipping_zone()
+                data["countries"] = countries
         else:
-            cleaned_input["default"] = False
-        return cleaned_input
+            data["default"] = False
+        return data
 
     @classmethod
     @transaction.atomic
