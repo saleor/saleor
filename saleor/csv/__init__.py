@@ -12,7 +12,7 @@ class ExportEvents:
         (EXPORT_PENDING, "Data export was started."),
         (EXPORT_SUCCESS, "Data export was completed successfully."),
         (EXPORT_FAILED, "Data export failed."),
-        (EXPORT_DELETED, "Export file was started."),
+        (EXPORT_DELETED, "Export file was deleted."),
         (
             EXPORTED_FILE_SENT,
             "Email with link to download file was sent to the customer.",
