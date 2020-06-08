@@ -536,7 +536,7 @@ def test_send_invoice_without_url_and_number(
 
 
 @patch("saleor.invoice.emails.send_templated_mail")
-@patch("saleor.order.models.Order.get_email")
+@patch("saleor.order.models.Order.get_customer_email")
 def test_send_invoice_without_email(
     order_mock, email_mock, staff_api_client, permission_manage_orders, order
 ):

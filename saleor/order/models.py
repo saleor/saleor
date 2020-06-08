@@ -317,9 +317,6 @@ class Order(ModelWithMetadata):
     def total_balance(self):
         return self.total_captured - self.total.gross
 
-    def get_email(self):
-        return self.user_email or (self.user.email if self.user else None)
-
     def get_total_weight(self):
         return self.weight
 
