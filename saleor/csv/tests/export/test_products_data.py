@@ -2,7 +2,16 @@ from unittest.mock import patch
 
 from measurement.measures import Weight
 
-from saleor.csv.utils.products_data import (
+from ....graphql.csv.enums import ProductFieldEnum
+from ....product.models import (
+    Attribute,
+    Product,
+    ProductImage,
+    ProductVariant,
+    VariantImage,
+)
+from ....warehouse.models import Warehouse
+from ...utils.products_data import (
     ProductExportFields,
     add_attribute_info_to_data,
     add_collection_info_to_data,
@@ -18,15 +27,6 @@ from saleor.csv.utils.products_data import (
     prepare_products_relations_data,
     prepare_variants_relations_data,
 )
-from saleor.graphql.csv.enums import ProductFieldEnum
-from saleor.product.models import (
-    Attribute,
-    Product,
-    ProductImage,
-    ProductVariant,
-    VariantImage,
-)
-from saleor.warehouse.models import Warehouse
 
 
 def test_get_products_data(product, product_with_image, collection, image):
