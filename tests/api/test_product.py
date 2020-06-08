@@ -1491,6 +1491,7 @@ def test_update_product(
             $descriptionJson: JSONString!,
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
+            $basePrice: Decimal!,
             $taxCode: String!,
             $attributes: [AttributeValueInput!]) {
                 productUpdate(
@@ -1499,6 +1500,7 @@ def test_update_product(
                         category: $categoryId,
                         name: $name,
                         slug: $slug,
+                        basePrice: $basePrice,
                         descriptionJson: $descriptionJson,
                         isPublished: $isPublished,
                         chargeTaxes: $chargeTaxes,
@@ -1512,6 +1514,11 @@ def test_update_product(
                             descriptionJson
                             isPublished
                             chargeTaxes
+                            variants {
+                                price {
+                                    amount
+                                }
+                            }
                             taxType {
                                 taxCode
                                 description
@@ -1546,6 +1553,7 @@ def test_update_product(
     category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
     product_name = "updated name"
     product_slug = "updated-product"
+    basePrice = 10.00
     product_is_published = True
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
@@ -1564,6 +1572,7 @@ def test_update_product(
         "categoryId": category_id,
         "name": product_name,
         "slug": product_slug,
+        "basePrice": basePrice,
         "descriptionJson": other_description_json,
         "isPublished": product_is_published,
         "chargeTaxes": product_charge_taxes,
@@ -1582,6 +1591,7 @@ def test_update_product(
     assert data["product"]["descriptionJson"] == other_description_json
     assert data["product"]["isPublished"] == product_is_published
     assert data["product"]["chargeTaxes"] == product_charge_taxes
+    assert data["product"]["variants"][0]["price"]["amount"] == basePrice
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
 
