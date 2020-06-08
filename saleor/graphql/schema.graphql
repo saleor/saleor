@@ -3395,9 +3395,9 @@ input ProductCreateInput {
   weight: WeightScalar
   sku: String
   trackInventory: Boolean
+  basePrice: Decimal
   productType: ID!
   stocks: [StockInput!]
-  basePrice: Decimal
 }
 
 type ProductDelete {
@@ -3509,6 +3509,7 @@ input ProductInput {
   weight: WeightScalar
   sku: String
   trackInventory: Boolean
+  basePrice: Decimal
 }
 
 input ProductOrder {

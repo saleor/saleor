@@ -532,6 +532,12 @@ class ProductInput(graphene.InputObjectType):
             "is only used if a product doesn't use variants."
         )
     )
+    base_price = Decimal(
+        description=(
+            "Default price for product variant. "
+            "Note: this field is only used if a product doesn't use variants."
+        )
+    )
 
 
 class StockInput(graphene.InputObjectType):
@@ -555,7 +561,6 @@ class ProductCreateInput(ProductInput):
         ),
         required=False,
     )
-    base_price = Decimal(description="Default price for product variant.",)
 
 
 T_INPUT_MAP = List[Tuple[models.Attribute, List[str]]]
@@ -1016,6 +1021,9 @@ class ProductUpdate(ProductCreate):
             if "sku" in cleaned_input:
                 variant.sku = cleaned_input["sku"]
                 update_fields.append("sku")
+            if "base_price" in cleaned_input:
+                variant.price = cleaned_input["base_price"]
+                update_fields.append("price")
             if update_fields:
                 variant.save(update_fields=update_fields)
         # Recalculate the "minimal variant price"
