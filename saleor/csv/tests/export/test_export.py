@@ -8,10 +8,12 @@ import pytest
 from django.core.files import File
 from freezegun import freeze_time
 
-from saleor.core import JobStatus
-from saleor.csv import FileTypes
-from saleor.csv.models import ExportFile
-from saleor.csv.utils.export import (
+from ....core import JobStatus
+from ....graphql.csv.enums import ProductFieldEnum
+from ....product.models import Product
+from ... import FileTypes
+from ...models import ExportFile
+from ...utils.export import (
     append_to_file,
     create_file_with_headers,
     export_products,
@@ -20,8 +22,6 @@ from saleor.csv.utils.export import (
     get_product_queryset,
     save_csv_file_in_export_file,
 )
-from saleor.graphql.csv.enums import ProductFieldEnum
-from saleor.product.models import Product
 
 
 @pytest.mark.parametrize(
