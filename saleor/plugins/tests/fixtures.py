@@ -2,9 +2,9 @@ import pytest
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
 
-from saleor.plugins.base_plugin import ConfigurationTypeField
-from saleor.plugins.models import PluginConfiguration
-from saleor.plugins.tests.sample_plugins import PluginInactive, PluginSample
+from ..base_plugin import ConfigurationTypeField
+from ..models import PluginConfiguration
+from .sample_plugins import PluginInactive, PluginSample
 
 
 @pytest.fixture

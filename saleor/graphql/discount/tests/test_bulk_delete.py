@@ -1,8 +1,8 @@
 import graphene
 import pytest
 
-from saleor.discount.models import Sale, Voucher
-from saleor.graphql.tests.utils import get_graphql_content
+from ....discount.models import Sale, Voucher
+from ...tests.utils import get_graphql_content
 
 
 @pytest.fixture

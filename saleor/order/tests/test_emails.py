@@ -4,7 +4,8 @@ import pytest
 from templated_email import get_connection
 
 import saleor.order.emails as emails
-from saleor.order.utils import add_variant_to_draft_order
+
+from ..utils import add_variant_to_draft_order
 
 
 def test_collect_data_for_order_confirmation_email(order):

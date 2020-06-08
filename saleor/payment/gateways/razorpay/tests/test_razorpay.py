@@ -4,8 +4,10 @@ from unittest.mock import patch
 import pytest
 from razorpay.errors import BadRequestError, ServerError
 
-from saleor.payment import ChargeStatus, TransactionKind
-from saleor.payment.gateways.razorpay import (
+from .... import ChargeStatus, TransactionKind
+from ....interface import GatewayConfig
+from ....utils import create_payment_information
+from .. import (
     capture,
     check_payment_supported,
     clean_razorpay_response,
@@ -16,8 +18,6 @@ from saleor.payment.gateways.razorpay import (
     logger,
     refund,
 )
-from saleor.payment.interface import GatewayConfig
-from saleor.payment.utils import create_payment_information
 
 TRANSACTION_AMOUNT = Decimal("61.33")
 

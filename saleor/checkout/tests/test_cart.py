@@ -4,10 +4,10 @@ import pytest
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from saleor.checkout import calculations, utils
-from saleor.checkout.models import Checkout
-from saleor.checkout.utils import add_variant_to_checkout
-from saleor.product.models import Category
+from ...product.models import Category
+from .. import calculations, utils
+from ..models import Checkout
+from ..utils import add_variant_to_checkout
 
 
 @pytest.fixture()

@@ -2,15 +2,14 @@
 import graphene
 import pytest
 
-from saleor.account.models import Address
-from saleor.checkout import calculations
-from saleor.checkout.error_codes import CheckoutErrorCode
-from saleor.checkout.models import Checkout
-from saleor.checkout.utils import add_variant_to_checkout
-from saleor.graphql.checkout.mutations import update_checkout_shipping_method_if_invalid
-from saleor.graphql.tests.utils import get_graphql_content
-from saleor.order.models import Order
-
+from ....account.models import Address
+from ....checkout import calculations
+from ....checkout.error_codes import CheckoutErrorCode
+from ....checkout.models import Checkout
+from ....checkout.utils import add_variant_to_checkout
+from ....order.models import Order
+from ...checkout.mutations import update_checkout_shipping_method_if_invalid
+from ...tests.utils import get_graphql_content
 from .test_checkout import (
     MUTATION_CHECKOUT_COMPLETE,
     MUTATION_CHECKOUT_CREATE,

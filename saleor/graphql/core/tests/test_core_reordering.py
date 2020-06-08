@@ -1,7 +1,7 @@
 import pytest
 
-from saleor.graphql.core.utils.reordering import perform_reordering
-from saleor.product import models
+from ....product import models
+from ..utils.reordering import perform_reordering
 
 SortedModel = models.AttributeValue
 

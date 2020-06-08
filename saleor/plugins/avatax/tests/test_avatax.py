@@ -4,17 +4,17 @@ import pytest
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
-from saleor.checkout.utils import add_variant_to_checkout
-from saleor.core.taxes import TaxError, quantize_price
-from saleor.plugins.avatax import (
+from ....checkout.utils import add_variant_to_checkout
+from ....core.taxes import TaxError, quantize_price
+from ...manager import get_plugins_manager
+from ...models import PluginConfiguration
+from .. import (
     AvataxConfiguration,
     checkout_needs_new_fetch,
     generate_request_data_from_checkout,
     get_cached_tax_codes_or_fetch,
 )
-from saleor.plugins.avatax.plugin import AvataxPlugin
-from saleor.plugins.manager import get_plugins_manager
-from saleor.plugins.models import PluginConfiguration
+from ..plugin import AvataxPlugin
 
 
 @pytest.fixture

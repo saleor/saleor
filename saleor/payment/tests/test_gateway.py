@@ -3,9 +3,10 @@ from decimal import Decimal
 import pytest
 
 import saleor.payment.gateway as gateway
-from saleor.payment import ChargeStatus, TransactionKind
-from saleor.payment.interface import GatewayResponse
-from saleor.payment.utils import create_payment_information
+
+from .. import ChargeStatus, TransactionKind
+from ..interface import GatewayResponse
+from ..utils import create_payment_information
 
 RAW_RESPONSE = {"test": "abcdefgheijklmn"}
 PROCESS_PAYMENT_RESPONSE = GatewayResponse(

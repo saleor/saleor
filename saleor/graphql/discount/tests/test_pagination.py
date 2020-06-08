@@ -4,9 +4,9 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from saleor.discount import DiscountValueType, VoucherType
-from saleor.discount.models import Sale, Voucher
-from saleor.graphql.tests.utils import get_graphql_content
+from ....discount import DiscountValueType, VoucherType
+from ....discount.models import Sale, Voucher
+from ...tests.utils import get_graphql_content
 
 
 @pytest.fixture

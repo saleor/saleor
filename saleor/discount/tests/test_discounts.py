@@ -4,11 +4,12 @@ import pytest
 from django.utils import timezone
 from prices import Money
 
-from saleor.checkout.utils import get_voucher_discount_for_checkout
-from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
-from saleor.discount.models import NotApplicable, Sale, Voucher, VoucherCustomer
-from saleor.discount.templatetags.voucher import discount_as_negative
-from saleor.discount.utils import (
+from ...checkout.utils import get_voucher_discount_for_checkout
+from ...product.models import Product, ProductVariant
+from .. import DiscountInfo, DiscountValueType, VoucherType
+from ..models import NotApplicable, Sale, Voucher, VoucherCustomer
+from ..templatetags.voucher import discount_as_negative
+from ..utils import (
     add_voucher_usage_by_customer,
     decrease_voucher_usage,
     get_product_discount_on_sale,
@@ -16,7 +17,6 @@ from saleor.discount.utils import (
     remove_voucher_usage_by_customer,
     validate_voucher,
 )
-from saleor.product.models import Product, ProductVariant
 
 
 @pytest.mark.parametrize(

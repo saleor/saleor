@@ -1,6 +1,6 @@
 import graphene
 
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 PRIVATE_KEY = "private_key"
 PRIVATE_VALUE = "private_vale"
