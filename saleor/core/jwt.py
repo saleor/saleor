@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Optional
 
 import graphene
 import jwt
@@ -23,9 +22,7 @@ def jwt_base_payload(exp_delta):
     return payload
 
 
-def jwt_user_payload(
-    user, token_type, exp_delta, permissions: Optional[List[str]] = None
-):
+def jwt_user_payload(user, token_type, exp_delta, additional_payload=None):
     payload = jwt_base_payload(exp_delta)
     payload.update(
         {
@@ -36,8 +33,8 @@ def jwt_user_payload(
             "is_superuser": user.is_superuser,
         }
     )
-    if permissions:
-        payload["permissions"] = permissions
+    if additional_payload:
+        payload.update(additional_payload)
     return payload
 
 
@@ -54,13 +51,17 @@ def create_token(payload, exp_delta):
     return jwt_encode(payload)
 
 
-def create_access_token(user, permissions=None):
-    payload = jwt_user_payload(user, JWT_ACCESS_TYPE, JWT_EXPIRATION_DELTA, permissions)
+def create_access_token(user, additional_payload=None):
+    payload = jwt_user_payload(
+        user, JWT_ACCESS_TYPE, JWT_EXPIRATION_DELTA, additional_payload
+    )
     return jwt_encode(payload)
 
 
-def create_refresh_token(user):
-    payload = jwt_user_payload(user, JWT_REFRESH_TYPE, JWT_REFRESH_EXPIRATION_DELTA)
+def create_refresh_token(user, additional_payload=None):
+    payload = jwt_user_payload(
+        user, JWT_REFRESH_TYPE, JWT_REFRESH_EXPIRATION_DELTA, additional_payload
+    )
     return jwt_encode(payload)
 
 

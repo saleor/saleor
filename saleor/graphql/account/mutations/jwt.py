@@ -2,6 +2,7 @@ import graphene
 import jwt
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
+from django.middleware.csrf import _compare_salted_tokens, _get_new_csrf_token
 from django.utils import timezone
 from graphene.types.generic import GenericScalar
 
@@ -9,6 +10,7 @@ from ....account import models
 from ....account.error_codes import AccountErrorCode
 from ....core.jwt import (
     JWT_REFRESH_TOKEN_COOKIE_NAME,
+    JWT_REFRESH_TYPE,
     create_access_token,
     create_refresh_token,
     jwt_decode,
@@ -52,6 +54,9 @@ class CreateToken(BaseMutation):
     refresh_token = graphene.String(
         description="JWT refresh token, required to re-generate access token."
     )
+    csrf_token = graphene.String(
+        description="CSRF token required to re-generate access token."
+    )
     user = graphene.Field(User, description="A user instance.")
 
     @classmethod
@@ -69,13 +74,18 @@ class CreateToken(BaseMutation):
                 }
             )
         access_token = create_access_token(user)
-        refresh_token = create_refresh_token(user)
+        csrf_token = _get_new_csrf_token()
+        refresh_token = create_refresh_token(user, {"csrfToken": csrf_token})
         info.context.refresh_token = refresh_token
         info.context._cached_user = user
         user.last_login = timezone.now()
         user.save(update_fields=["last_login"])
         return cls(
-            errors=[], user=user, token=access_token, refresh_token=refresh_token
+            errors=[],
+            user=user,
+            token=access_token,
+            refresh_token=refresh_token,
+            csrf_token=csrf_token,
         )
 
 
@@ -87,6 +97,9 @@ class RefreshToken(BaseMutation):
 
     class Arguments:
         refresh_token = graphene.String(required=False, description="Refresh token.")
+        csrf_token = graphene.String(
+            required=True, description="CSRF token required to refresh token."
+        )
 
     class Meta:
         description = (
@@ -113,8 +126,7 @@ class RefreshToken(BaseMutation):
         return refresh_token
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
-        refresh_token = cls.get_refresh_token(info, data)
+    def clean_refresh_token(cls, refresh_token):
         if not refresh_token:
             raise ValidationError(
                 {
@@ -125,6 +137,38 @@ class RefreshToken(BaseMutation):
                 }
             )
         payload = cls.get_refresh_token_payload(refresh_token)
+        if payload["type"] != JWT_REFRESH_TYPE:
+            raise ValidationError(
+                {
+                    "refreshToken": ValidationError(
+                        "Incorrect refreshToken",
+                        code=AccountErrorCode.JWT_INVALID_TOKEN.value,
+                    )
+                }
+            )
+        return payload
+
+    @classmethod
+    def clean_csrf_token(cls, csrf_token, payload):
+        is_valid = _compare_salted_tokens(csrf_token, payload["csrfToken"])
+        if not is_valid:
+            raise ValidationError(
+                {
+                    "csrfToken": ValidationError(
+                        "Invalid csrf token",
+                        code=AccountErrorCode.JWT_INVALID_CSRF_TOKEN.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        refresh_token = cls.get_refresh_token(info, data)
+        payload = cls.clean_refresh_token(refresh_token)
+
+        csrf_token = data.get("csrf_token")
+        cls.clean_csrf_token(csrf_token, payload)
+
         user = models.User.objects.filter(email=payload["email"]).first()
         token = create_access_token(user)
         return cls(errors=[], user=user, token=token)

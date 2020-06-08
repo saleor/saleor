@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 import graphene
+from django.middleware.csrf import _get_new_csrf_token
 from freezegun import freeze_time
 from jwt import decode
 
@@ -21,6 +22,7 @@ MUTATION_CREATE_TOKEN = """
         tokenCreate(email: $email, password: $password) {
             token
             refreshToken
+            csrfToken
             user {
                 email
             }
@@ -72,11 +74,17 @@ def test_create_token(api_client, customer_user, settings):
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_create_token_sets_cookie(api_client, customer_user, settings):
+def test_create_token_sets_cookie(api_client, customer_user, settings, monkeypatch):
+    csrf_token = _get_new_csrf_token()
+    monkeypatch.setattr(
+        "saleor.graphql.account.mutations.jwt._get_new_csrf_token", lambda: csrf_token
+    )
     variables = {"email": customer_user.email, "password": customer_user._password}
     response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
 
-    expected_refresh_token = create_refresh_token(customer_user)
+    expected_refresh_token = create_refresh_token(
+        customer_user, {"csrfToken": csrf_token}
+    )
     refresh_token = response.cookies["refreshToken"]
     assert refresh_token.value == expected_refresh_token
     expected_expires = datetime.utcnow() + settings.JWT_REFRESH_EXPIRATION_DELTA
@@ -145,8 +153,8 @@ def test_verify_token_incorrect_token(api_client):
 
 
 MUTATION_TOKEN_REFRESH = """
-    mutation tokenRefresh($token: String){
-        tokenRefresh(refreshToken: $token){
+    mutation tokenRefresh($token: String, $csrf_token: String!){
+        tokenRefresh(refreshToken: $token, csrfToken: $csrf_token){
             token
             accountErrors{
               code
@@ -158,8 +166,9 @@ MUTATION_TOKEN_REFRESH = """
 
 @freeze_time("2020-03-18 12:00:00")
 def test_refresh_token_get_token_from_cookie(api_client, customer_user, settings):
-    refresh_token = create_refresh_token(customer_user)
-    variables = {"token": None}
+    csrf_token = _get_new_csrf_token()
+    refresh_token = create_refresh_token(customer_user, {"csrfToken": csrf_token})
+    variables = {"token": None, "csrf_token": csrf_token}
     api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME] = refresh_token
     api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME]["httponly"] = True
     response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
@@ -183,8 +192,9 @@ def test_refresh_token_get_token_from_cookie(api_client, customer_user, settings
 
 @freeze_time("2020-03-18 12:00:00")
 def test_refresh_token_get_token_from_input(api_client, customer_user, settings):
-    refresh_token = create_refresh_token(customer_user)
-    variables = {"token": refresh_token}
+    csrf_token = _get_new_csrf_token()
+    refresh_token = create_refresh_token(customer_user, {"csrfToken": csrf_token})
+    variables = {"token": refresh_token, "csrf_token": csrf_token}
     response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
     content = get_graphql_content(response)
 
@@ -205,7 +215,7 @@ def test_refresh_token_get_token_from_input(api_client, customer_user, settings)
 
 
 def test_refresh_token_get_token_missing_token(api_client, customer_user):
-    variables = {"token": None}
+    variables = {"token": None, "csrf_token": "token"}
     response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
     content = get_graphql_content(response)
 
@@ -219,11 +229,48 @@ def test_refresh_token_get_token_missing_token(api_client, customer_user):
     assert errors[0]["code"] == AccountErrorCode.JWT_MISSING_TOKEN.name
 
 
+def test_access_token_used_as_a_refresh_token(api_client, customer_user):
+    csrf_token = _get_new_csrf_token()
+    access_token = create_access_token(customer_user, {"csrfToken": csrf_token})
+
+    variables = {"token": access_token, "csrf_token": csrf_token}
+    response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["tokenRefresh"]
+    errors = data["accountErrors"]
+
+    token = data.get("token")
+    assert not token
+
+    assert len(errors) == 1
+    assert errors[0]["code"] == AccountErrorCode.JWT_INVALID_TOKEN.name
+
+
+def test_refresh_token_get_token_incorrect_csrf_token(api_client, customer_user):
+    csrf_token = _get_new_csrf_token()
+    refresh_token = create_refresh_token(customer_user, {"csrfToken": csrf_token})
+    variables = {"token": refresh_token, "csrf_token": "csrf_token"}
+
+    response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["tokenRefresh"]
+    errors = data["accountErrors"]
+
+    token = data.get("token")
+    assert not token
+
+    assert len(errors) == 1
+    assert errors[0]["code"] == AccountErrorCode.JWT_INVALID_CSRF_TOKEN.name
+
+
 def test_refresh_token_when_expired(api_client, customer_user):
     with freeze_time("2018-05-31 12:00:01"):
-        refresh_token = create_refresh_token(customer_user)
+        csrf_token = _get_new_csrf_token()
+        refresh_token = create_refresh_token(customer_user, {"csrfToken": csrf_token})
 
-    variables = {"token": None}
+    variables = {"token": None, "csrf_token": csrf_token}
     api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME] = refresh_token
     api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME]["httponly"] = True
 
@@ -242,9 +289,10 @@ def test_refresh_token_when_expired(api_client, customer_user):
 
 
 def test_refresh_token_when_incorrect_token(api_client, customer_user):
-    refresh_token = create_refresh_token(customer_user)
+    csrf_token = _get_new_csrf_token()
+    refresh_token = create_refresh_token(customer_user, {"csrfToken": csrf_token})
 
-    variables = {"token": None}
+    variables = {"token": None, "csrf_token": csrf_token}
     api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME] = refresh_token + "wrong-token"
     api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME]["httponly"] = True
 
