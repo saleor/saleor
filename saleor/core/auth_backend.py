@@ -14,6 +14,6 @@ class JSONWebTokenBackend:
 
     def get_user(self, user_id):
         try:
-            return User.objects.get(email=user_id)
+            return User.objects.get(email=user_id, is_active=True)
         except User.DoesNotExist:
             return None

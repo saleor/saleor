@@ -66,6 +66,7 @@ enum AccountErrorCode {
   JWT_INVALID_TOKEN
   JWT_DECODE_ERROR
   JWT_MISSING_TOKEN
+  JWT_INVALID_CSRF_TOKEN
 }
 
 input AccountInput {
@@ -1444,6 +1445,7 @@ type CreateToken {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   token: String
   refreshToken: String
+  csrfToken: String
   user: User
   accountErrors: [AccountError!]!
 }
@@ -2472,7 +2474,7 @@ type Mutation {
   appTokenCreate(input: AppTokenInput!): AppTokenCreate
   appTokenDelete(id: ID!): AppTokenDelete
   tokenCreate(email: String!, password: String!): CreateToken
-  tokenRefresh(refreshToken: String): RefreshToken
+  tokenRefresh(csrfToken: String!, refreshToken: String): RefreshToken
   tokenVerify(token: String!): VerifyToken
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
@@ -4213,6 +4215,7 @@ type SetPassword {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   token: String
   refreshToken: String
+  csrfToken: String
   user: User
   accountErrors: [AccountError!]!
 }
