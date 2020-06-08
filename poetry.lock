@@ -4,7 +4,7 @@ description = "Low-level AMQP client for Python (fork of amqplib)."
 name = "amqp"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "2.5.2"
+version = "2.6.0"
 
 [package.dependencies]
 vine = ">=1.1.3,<5.0.0a1"
@@ -232,12 +232,13 @@ category = "main"
 description = "Distributed Task Queue."
 name = "celery"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*,"
-version = "4.4.2"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+version = "4.4.5"
 
 [package.dependencies]
 billiard = ">=3.6.3.0,<4.0"
-kombu = ">=4.6.8,<4.7"
+future = ">=0.18.0"
+kombu = ">=4.6.10,<4.7"
 pytz = ">0.0-dev"
 vine = "1.3.0"
 
@@ -250,10 +251,10 @@ arangodb = ["pyArango (>=1.3.2)"]
 auth = ["cryptography"]
 azureblockblob = ["azure-storage (0.36.0)", "azure-common (1.1.5)", "azure-storage-common (1.1.0)"]
 brotli = ["brotli (>=1.0.0)", "brotlipy (>=0.7.0)"]
-cassandra = ["cassandra-driver"]
+cassandra = ["cassandra-driver (<3.21.0)"]
 consul = ["python-consul"]
 cosmosdbsql = ["pydocumentdb (2.3.2)"]
-couchbase = ["couchbase", "couchbase-cffi"]
+couchbase = ["couchbase-cffi (<3.0.0)", "couchbase (<3.0.0)"]
 couchdb = ["pycouchdb"]
 django = ["Django (>=1.11)"]
 dynamodb = ["boto3 (>=1.9.178)"]
@@ -273,7 +274,7 @@ s3 = ["boto3 (>=1.9.125)"]
 slmq = ["softlayer-messaging (>=1.0.3)"]
 solar = ["ephem"]
 sqlalchemy = ["sqlalchemy"]
-sqs = ["boto3 (>=1.9.125)", "pycurl (7.43.0.2)"]
+sqs = ["boto3 (>=1.9.125)", "pycurl (7.43.0.5)"]
 tblib = ["tblib (>=1.3.0)", "tblib (>=1.5.0)"]
 yaml = ["PyYAML (>=3.10)"]
 zookeeper = ["kazoo (>=1.3.1)"]
@@ -779,6 +780,14 @@ six = "*"
 
 [[package]]
 category = "main"
+description = "Clean single-source support for Python 3 and 2"
+name = "future"
+optional = false
+python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+version = "0.18.2"
+
+[[package]]
+category = "main"
 description = "Google API client core library"
 name = "google-api-core"
 optional = false
@@ -1097,10 +1106,10 @@ description = "Messaging library for Python."
 name = "kombu"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "4.6.8"
+version = "4.6.10"
 
 [package.dependencies]
-amqp = ">=2.5.2,<2.6"
+amqp = ">=2.6.0,<2.7"
 
 [package.extras]
 azureservicebus = ["azure-servicebus (>=0.21.1)"]
@@ -2169,13 +2178,13 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "a34e2c02adde3ad4aa2e4e0ebbe7f1f050572003ad45fe88b18dbd124013ee82"
+content-hash = "a181f6f734ff7293f25dd779c3ba60fda57362e97f7a378c7912bb8125d14ea5"
 python-versions = "~3.8"
 
 [metadata.files]
 amqp = [
-    {file = "amqp-2.5.2-py2.py3-none-any.whl", hash = "sha256:6e649ca13a7df3faacdc8bbb280aa9a6602d22fd9d545336077e573a1f4ff3b8"},
-    {file = "amqp-2.5.2.tar.gz", hash = "sha256:77f1aef9410698d20eaeac5b73a87817365f457a507d82edf292e12cbb83b08d"},
+    {file = "amqp-2.6.0-py2.py3-none-any.whl", hash = "sha256:bb68f8d2bced8f93ccfd07d96c689b716b3227720add971be980accfc2952139"},
+    {file = "amqp-2.6.0.tar.gz", hash = "sha256:24dbaff8ce4f30566bb88976b398e8c4e77637171af3af6f1b9650f48890e60b"},
 ]
 aniso8601 = [
     {file = "aniso8601-7.0.0-py2.py3-none-any.whl", hash = "sha256:d10a4bf949f619f719b227ef5386e31f49a2b6d453004b21f02661ccc8670c7b"},
@@ -2250,8 +2259,8 @@ cairosvg = [
     {file = "CairoSVG-2.4.2.tar.gz", hash = "sha256:4e668f96653326780036ebb0a9ff2bb59a8443d7bcfc51a14aab77b57a8e67ad"},
 ]
 celery = [
-    {file = "celery-4.4.2-py2.py3-none-any.whl", hash = "sha256:5b4b37e276033fe47575107a2775469f0b721646a08c96ec2c61531e4fe45f2a"},
-    {file = "celery-4.4.2.tar.gz", hash = "sha256:108a0bf9018a871620936c33a3ee9f6336a89f8ef0a0f567a9001f4aa361415f"},
+    {file = "celery-4.4.5-py2.py3-none-any.whl", hash = "sha256:d1762d6065522879f341c3d67c2b9fe4615eb79756d59acb1434601d4aca474b"},
+    {file = "celery-4.4.5.tar.gz", hash = "sha256:c3f4173f83ceb5a5c986c5fdaefb9456de3b0729a72a5776e46bd405fda7b647"},
 ]
 certifi = [
     {file = "certifi-2020.4.5.1-py2.py3-none-any.whl", hash = "sha256:1d987a998c75633c40847cc966fcf5904906c920a7f17ef374f5aa4282abd304"},
@@ -2476,6 +2485,9 @@ freezegun = [
     {file = "freezegun-0.3.15-py2.py3-none-any.whl", hash = "sha256:82c757a05b7c7ca3e176bfebd7d6779fd9139c7cb4ef969c38a28d74deef89b2"},
     {file = "freezegun-0.3.15.tar.gz", hash = "sha256:e2062f2c7f95cc276a834c22f1a17179467176b624cc6f936e8bc3be5535ad1b"},
 ]
+future = [
+    {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
+]
 google-api-core = [
     {file = "google-api-core-1.17.0.tar.gz", hash = "sha256:e4082a0b479dc2dee2f8d7b80ea8b5d0184885b773caab15ab1836277a01d689"},
     {file = "google_api_core-1.17.0-py2.py3-none-any.whl", hash = "sha256:c0e430658ed6be902d7ba7095fb0a9cac810270d71bf7ac4484e76c300407aae"},
@@ -2560,8 +2572,8 @@ jsonfield = [
     {file = "jsonfield-3.1.0.tar.gz", hash = "sha256:7e4e84597de21eeaeeaaa7cc5da08c61c48a9b64d0c446b2d71255d01812887a"},
 ]
 kombu = [
-    {file = "kombu-4.6.8-py2.py3-none-any.whl", hash = "sha256:598e7e749d6ab54f646b74b2d2df67755dee13894f73ab02a2a9feb8870c7cb2"},
-    {file = "kombu-4.6.8.tar.gz", hash = "sha256:2d1cda774126a044d91a7ff5fa6d09edf99f46924ab332a810760fe6740e9b76"},
+    {file = "kombu-4.6.10-py2.py3-none-any.whl", hash = "sha256:dc282bb277197d723bccda1a9ba30a27a28c9672d0ab93e9e51bb05a37bd29c3"},
+    {file = "kombu-4.6.10.tar.gz", hash = "sha256:437b9cdea193cc2ed0b8044c85fd0f126bb3615ca2f4d4a35b39de7cacfa3c1a"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.4.3.tar.gz", hash = "sha256:f3900e8a5de27447acbf900b4750b0ddfd7ec1ea7fbaf11dfa911141bc522af0"},
