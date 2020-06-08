@@ -468,7 +468,6 @@ def test_products_query_with_filter(
 ):
     assert product.is_published is True
     assert "Juice1" not in product.name
-    product.minimal_variant_price = Money("10.00", "USD")
     product.save()
 
     second_product = product
@@ -798,7 +797,10 @@ def test_sort_products(user_api_client, product):
     product.updated_at = datetime.utcnow()
     product.save()
     ProductVariant.objects.create(
-        product=product, sku="1234", cost_price=Money("1.00", "USD"), price_amount=20
+        product=product,
+        sku="1234",
+        cost_price=Money("1.00", "USD"),
+        price_amount=Decimal(20),
     )
 
     query = SORT_PRODUCTS_QUERY

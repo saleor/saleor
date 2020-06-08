@@ -91,7 +91,6 @@ def test_product_variant_objects_create_updates_minimal_variant_price(product):
 
 
 def test_product_variant_objects_bulk_create_updates_minimal_variant_price(product):
-    product.refresh_from_db()
     assert product.minimal_variant_price == Money("10.00", "USD")
     ProductVariant.objects.bulk_create(
         [
