@@ -71,27 +71,32 @@ def test_get_products_data(product, product_with_image, collection, image):
     # then
     expected_data = []
     for product in products.order_by("pk"):
-        product_data = {}
-        product_data["collections__slug"] = (
-            "" if not product.collections.all() else product.collections.first().slug
-        )
-        product_data["name"] = product.name
-        product_data["is_published"] = product.is_published
-        product_data["description"] = product.description
-        product_data["category__slug"] = product.category.slug
-        product_data["price_amount"] = product.price_amount
-        product_data["currency"] = product.currency
-        product_data["product_type__name"] = product.product_type.name
-        product_data["id"] = product.pk
-        product_data["product_weight"] = (
-            "{} g".format(int(product.weight.value * 1000)) if product.weight else ""
-        )
-        product_data["charge_taxes"] = product.charge_taxes
-        product_data["images__image"] = (
-            ""
-            if not product.images.all()
-            else "http://mirumee.com{}".format(product.images.first().image.url)
-        )
+        product_data = {
+            "id": product.id,
+            "name": product.name,
+            "is_published": product.is_published,
+            "description": product.description,
+            "category__slug": product.category.slug,
+            "price_amount": product.price_amount,
+            "currency": product.currency,
+            "product_type__name": product.product_type.name,
+            "charge_taxes": product.charge_taxes,
+            "collections__slug": (
+                ""
+                if not product.collections.all()
+                else product.collections.first().slug
+            ),
+            "product_weight": (
+                "{} g".format(int(product.weight.value * 1000))
+                if product.weight
+                else ""
+            ),
+            "images__image": (
+                ""
+                if not product.images.all()
+                else "http://mirumee.com{}".format(product.images.first().image.url)
+            ),
+        }
 
         assigned_attribute = product.attributes.first()
         if assigned_attribute:
@@ -99,22 +104,23 @@ def test_get_products_data(product, product_with_image, collection, image):
             product_data[header] = assigned_attribute.values.first().slug
 
         for variant in product.variants.all():
-            data = {}
+            data = {
+                "variants__sku": variant.sku,
+                "variants__currency": variant.currency,
+                "variants__price_override_amount": variant.price_override_amount,
+                "variants__cost_price_amount": variant.cost_price_amount,
+                "variants__images__image": (
+                    ""
+                    if not variant.images.all()
+                    else "http://mirumee.com{}".format(variant.images.first().image.url)
+                ),
+                "variant_weight": (
+                    "{} g".foramt(int(variant.weight.value * 1000))
+                    if variant.weight
+                    else ""
+                ),
+            }
             data.update(product_data)
-            data["variants__images__image"] = (
-                ""
-                if not variant.images.all()
-                else "http://mirumee.com{}".format(variant.images.first().image.url)
-            )
-            data["variants__sku"] = variant.sku
-            data["variants__currency"] = variant.currency
-            data["variants__price_override_amount"] = variant.price_override_amount
-            data["variants__cost_price_amount"] = variant.cost_price_amount
-            data["variant_weight"] = (
-                "{} g".foramt(int(variant.weight.value * 1000))
-                if variant.weight
-                else ""
-            )
 
             for stock in variant.stocks.all():
                 slug = stock.warehouse.slug
@@ -147,8 +153,7 @@ def test_get_products_data_for_specified_attributes(
     # then
     expected_data = []
     for product in products.order_by("pk"):
-        product_data = {}
-        product_data["id"] = product.pk
+        product_data = {"id": product.pk}
 
         for assigned_attribute in product.attributes.all():
             if assigned_attribute:
@@ -189,13 +194,11 @@ def test_get_products_data_for_specified_warehouses(
     # then
     expected_data = []
     for product in products.order_by("pk"):
-        product_data = {}
-        product_data["id"] = product.pk
+        product_data = {"id": product.pk}
 
         for variant in product.variants.all():
-            data = {}
+            data = {"variants__sku": variant.sku}
             data.update(product_data)
-            data["variants__sku"] = variant.sku
 
             for stock in variant.stocks.all():
                 if str(stock.warehouse.pk) in warehouse_ids:
@@ -233,8 +236,7 @@ def test_get_products_data_for_specified_warehouses_and_attributes(
     # then
     expected_data = []
     for product in products.order_by("pk"):
-        product_data = {}
-        product_data["id"] = product.pk
+        product_data = {"id": product.id}
 
         for assigned_attribute in product.attributes.all():
             if assigned_attribute:
@@ -243,9 +245,8 @@ def test_get_products_data_for_specified_warehouses_and_attributes(
                     product_data[header] = assigned_attribute.values.first().slug
 
         for variant in product.variants.all():
-            data = {}
+            data = {"variants__sku": variant.sku}
             data.update(product_data)
-            data["variants__sku"] = variant.sku
 
             for stock in variant.stocks.all():
                 if str(stock.warehouse.pk) in warehouse_ids:
