@@ -31,3 +31,6 @@ class ExportEvent(models.Model):
     user = models.ForeignKey(
         User, related_name="export_csv_events", on_delete=models.CASCADE, null=True
     )
+    app = models.ForeignKey(
+        App, related_name="export_csv_events", on_delete=models.CASCADE, null=True
+    )

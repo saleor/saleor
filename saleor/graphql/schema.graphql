@@ -1761,7 +1761,8 @@ type ExportEvent implements Node {
   id: ID!
   date: DateTime!
   type: ExportEventsEnum!
-  user: User!
+  user: User
+  app: App
   message: String!
 }
 
@@ -1777,6 +1778,7 @@ enum ExportEventsEnum {
 type ExportFile implements Node & Job {
   id: ID!
   user: User
+  app: App
   status: JobStatusEnum!
   createdAt: DateTime!
   updatedAt: DateTime!
