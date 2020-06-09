@@ -249,6 +249,37 @@ def test_sort_export_files_query_by_user(
     assert nodes[0]["node"]["user"]["email"] == second_staff_user.email
 
 
+def test_sort_export_files_query_by_app(
+    app,
+    staff_api_client,
+    app_export_file,
+    permission_manage_products,
+    permission_manage_apps,
+    permission_manage_users,
+):
+    app2 = App.objects.create(name="App 2", is_active=True)
+    app2.tokens.create(name="Default")
+
+    ExportFile.objects.create(app=app2)
+    query = SORT_EXPORT_FILES_QUERY
+    variables = {"sortBy": {"field": "APP", "direction": "DESC"}}
+
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[
+            permission_manage_products,
+            permission_manage_users,
+            permission_manage_apps,
+        ],
+    )
+    content = get_graphql_content(response)
+    nodes = content["data"]["exportFiles"]["edges"]
+
+    assert len(nodes) == 2
+    assert nodes[0]["node"]["app"]["name"] == app2.name
+
+
 def test_sort_export_files_query_by_created_at_date(
     staff_api_client,
     user_export_file,

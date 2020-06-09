@@ -1810,6 +1810,7 @@ enum ExportFileSortField {
   CREATED_AT
   UPDATED_AT
   USER
+  APP
 }
 
 input ExportFileSortingInput {
