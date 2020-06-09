@@ -3232,17 +3232,13 @@ def test_report_product_sales(
     assert Decimal(amount) == line_b.quantity * line_b.unit_price_gross_amount
 
 
-@pytest.mark.parametrize(
-    "field, is_nested",
-    (("purchaseCost", True), ("margin", True), ("privateMeta", True),),
-)
+@pytest.mark.parametrize("field", ("purchaseCost", "margin", "privateMeta"))
 def test_product_restricted_fields_permissions(
     staff_api_client,
     permission_manage_products,
     permission_manage_orders,
     product,
     field,
-    is_nested,
 ):
     """Ensure non-public (restricted) fields are correctly requiring
     the 'manage_products' permission.
@@ -3254,7 +3250,7 @@ def test_product_restricted_fields_permissions(
         }
     }
     """ % {
-        "field": field if not is_nested else "%s { __typename }" % field
+        "field": "%s { __typename }" % field
     }
     variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
     permissions = [permission_manage_orders, permission_manage_products]
