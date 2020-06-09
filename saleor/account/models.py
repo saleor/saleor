@@ -150,6 +150,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     )
     avatar = VersatileImageField(upload_to="user-avatars", blank=True, null=True)
     jwt_token_key = models.CharField(max_length=12, default=get_random_string)
+
     USERNAME_FIELD = "email"
 
     objects = UserManager()
