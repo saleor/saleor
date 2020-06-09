@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 
 import pytest
 from django.utils import timezone
@@ -145,7 +146,7 @@ def test_sale_applies_to_correct_products(product_type, category):
         category=category,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="firstvar", price_amount=10
+        product=product, sku="firstvar", price_amount=Decimal(10)
     )
     product2 = Product.objects.create(
         name="Second product",
@@ -155,7 +156,7 @@ def test_sale_applies_to_correct_products(product_type, category):
         category=category,
     )
     sec_variant = ProductVariant.objects.create(
-        product=product2, sku="secvar", pk=111, price_amount=10
+        product=product2, sku="secvar", pk=111, price_amount=Decimal(10)
     )
     sale = Sale(name="Test sale", value=3, type=DiscountValueType.FIXED)
     discount = DiscountInfo(

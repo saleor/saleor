@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest.mock import MagicMock, Mock
 
 import pytest
@@ -20,7 +21,9 @@ def variant_with_no_attributes(category):
     product = Product.objects.create(
         name="Test product", product_type=product_type, category=category,
     )
-    variant = ProductVariant.objects.create(product=product, sku="123", price_amount=10)
+    variant = ProductVariant.objects.create(
+        product=product, sku="123", price_amount=Decimal(10)
+    )
     return variant
 
 

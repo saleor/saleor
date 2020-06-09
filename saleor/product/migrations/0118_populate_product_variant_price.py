@@ -37,4 +37,12 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name="productvariant", name="price_override_amount",
         ),
+        migrations.RemoveField(model_name="product", name="price_amount",),
+        migrations.AlterField(
+            model_name="product",
+            name="minimal_variant_price_amount",
+            field=models.DecimalField(
+                blank=True, decimal_places=2, max_digits=12, null=True
+            ),
+        ),
     ]
