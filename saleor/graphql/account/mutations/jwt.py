@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 from django.middleware.csrf import _compare_salted_tokens, _get_new_csrf_token
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from graphene.types.generic import GenericScalar
 
 from ....account.error_codes import AccountErrorCode
@@ -230,3 +231,21 @@ class VerifyToken(BaseMutation):
         payload = cls.get_payload(token)
         user = cls.get_user(payload)
         return cls(errors=[], user=user, is_valid=True, payload=payload)
+
+
+class DeactivateAllUserTokens(BaseMutation):
+    class Meta:
+        description = "Deactivate all existing JWT tokens assigned to user."
+        error_type_class = AccountError
+        error_type_field = "account_errors"
+
+    @classmethod
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        user = info.context.user
+        user.jwt_token_key = get_random_string()
+        user.save()
+        return cls()
