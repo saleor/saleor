@@ -11,8 +11,8 @@ beautifulsoup4==4.7.1
 beautifultable==0.7.0
 billiard==3.6.3.0
 black==19.10b0
-boto3==1.13.16
-botocore==1.16.16
+boto3==1.13.19
+botocore==1.16.19
 braintree==4.1.0
 cachetools==4.1.0
 cairocffi==1.1.0
