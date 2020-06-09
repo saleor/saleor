@@ -274,8 +274,8 @@ class ProductVariant(CountableDjangoObjectType):
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_stocks(root: models.ProductVariant, info, country_code=None):
         if not country_code:
-            return root.stocks.annotate_available_quantity().all()
-        return root.stocks.annotate_available_quantity().for_country(country_code).all()
+            return root.stocks.annotate_available_quantity()
+        return root.stocks.for_country(country_code).annotate_available_quantity()
 
     @staticmethod
     def resolve_quantity_available(
