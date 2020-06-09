@@ -16,8 +16,18 @@ def filter_user(qs, _, value):
     return qs
 
 
+def filter_app(qs, _, value):
+    user_fields = [
+        "app__pk",
+        "app__name",
+    ]
+    qs = filter_by_query_param(qs, value, user_fields)
+    return qs
+
+
 class ExportFileFilter(BaseJobFilter):
     user = django_filters.CharFilter(method=filter_user)
+    app = django_filters.CharFilter(method=filter_app)
 
 
 class ExportFileFilterInput(FilterInputObjectType):
