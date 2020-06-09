@@ -6,10 +6,7 @@ from ...tests.utils import get_graphql_content
 COUNTRY_CODE = "US"
 
 
-def test_variant_availability_without_inventory_tracking(
-    api_client, variant_without_inventory_tracking, settings
-):
-    query = """
+QUERY_DEPRECATED_VARIANT_AVAILABILITY = """
     query variantAvailability($id: ID!) {
         productVariant(id: $id) {
             isAvailable
@@ -17,38 +14,55 @@ def test_variant_availability_without_inventory_tracking(
             quantityAvailable
         }
     }
-    """
+"""
+
+
+def test_variant_availability_without_inventory_tracking(
+    api_client, variant_without_inventory_tracking, settings
+):
     variant = variant_without_inventory_tracking
     variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
-    response = api_client.post_graphql(query, variables)
+    response = api_client.post_graphql(QUERY_DEPRECATED_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
     assert variant_data["isAvailable"] is True
     assert variant_data["stockQuantity"] == settings.MAX_CHECKOUT_LINE_QUANTITY
     assert variant_data["quantityAvailable"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+
+
+def test_variant_availability(api_client, variant_with_many_stocks, settings):
+    variant = variant_with_many_stocks
+    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
+    response = api_client.post_graphql(QUERY_DEPRECATED_VARIANT_AVAILABILITY, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["isAvailable"] is True
+    assert variant_data["stockQuantity"] == 7
+    assert variant_data["quantityAvailable"] == 7
 
 
 def test_variant_availability_without_inventory_tracking_without_stocks(
     api_client, variant_without_inventory_tracking, settings
 ):
-    query = """
-    query variantAvailability($id: ID!) {
-        productVariant(id: $id) {
-            isAvailable
-            stockQuantity
-            quantityAvailable
-        }
-    }
-    """
     variant = variant_without_inventory_tracking
     variant.stocks.all().delete()
     variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
-    response = api_client.post_graphql(query, variables)
+    response = api_client.post_graphql(QUERY_DEPRECATED_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
     assert variant_data["isAvailable"] is True
     assert variant_data["stockQuantity"] == settings.MAX_CHECKOUT_LINE_QUANTITY
     assert variant_data["quantityAvailable"] == settings.MAX_CHECKOUT_LINE_QUANTITY
+
+
+def test_variant_availability_without_stocks(api_client, variant, settings):
+    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
+    response = api_client.post_graphql(QUERY_DEPRECATED_VARIANT_AVAILABILITY, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["isAvailable"] is False
+    assert variant_data["stockQuantity"] == 0
+    assert variant_data["quantityAvailable"] == 0
 
 
 def test_variant_quantity_available_without_country_code(

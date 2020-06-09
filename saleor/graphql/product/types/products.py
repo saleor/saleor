@@ -23,7 +23,6 @@ from ....warehouse.availability import (
     get_available_quantity,
     get_quantity_allocated,
     is_product_in_stock,
-    is_variant_in_stock,
 )
 from ...account.enums import CountryCodeEnum
 from ...core.connection import CountableDjangoObjectType
@@ -359,8 +358,17 @@ class ProductVariant(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_is_available(root: models.ProductVariant, info):
-        country = info.context.country
-        return is_variant_in_stock(root, country)
+        if not root.track_inventory:
+            return True
+
+        def is_variant_in_stock(available_quantity):
+            return available_quantity > 0
+
+        return (
+            AvailableQuantityByProductVariantIdAndCountryCodeLoader(info.context)
+            .load((root.id, info.context.country))
+            .then(is_variant_in_stock)
+        )
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
