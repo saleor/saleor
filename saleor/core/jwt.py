@@ -67,10 +67,10 @@ def create_refresh_token(user, additional_payload=None):
 
 
 def get_token_from_request(request):
-    auth = request.META.get(JWT_AUTH_HEADER, "").split()
+    auth = request.META.get(JWT_AUTH_HEADER, "").split(maxsplit=1)
     prefix = JWT_AUTH_HEADER_PREFIX
 
-    if len(auth) != 2 or auth[0].lower() != prefix.lower():
+    if len(auth) != 2 or auth[0].upper() != prefix:
         return None
     return auth[1]
 
