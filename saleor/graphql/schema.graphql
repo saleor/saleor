@@ -1802,6 +1802,7 @@ input ExportFileFilterInput {
   updatedAt: DateTimeRangeInput
   status: JobStatusEnum
   user: String
+  app: String
 }
 
 enum ExportFileSortField {

@@ -27,6 +27,7 @@ def test_export_products_task(export_products_mock, user_export_file):
 
 @patch("saleor.csv.tasks.send_export_failed_info")
 def test_on_task_failure(send_export_failed_info_mock, user_export_file):
+    # given
     exc = Exception("Test")
     task_id = "task_id"
     args = [user_export_file.pk, {"all": ""}]
@@ -39,8 +40,10 @@ def test_on_task_failure(send_export_failed_info_mock, user_export_file):
     previous_updated_at = user_export_file.updated_at
 
     with freeze_time(datetime.datetime.now()) as frozen_datetime:
+        # when
         on_task_failure(None, exc, task_id, args, kwargs, info)
 
+        # then
         user_export_file.refresh_from_db()
         assert user_export_file.updated_at == pytz.utc.localize(frozen_datetime())
 
@@ -62,6 +65,7 @@ def test_on_task_failure(send_export_failed_info_mock, user_export_file):
 
 
 def test_on_task_success(user_export_file):
+    # given
     task_id = "task_id"
     args = [user_export_file.pk, {"filter": {}}]
     kwargs = {}
@@ -71,8 +75,10 @@ def test_on_task_success(user_export_file):
     previous_updated_at = user_export_file.updated_at
 
     with freeze_time(datetime.datetime.now()) as frozen_datetime:
+        # when
         on_task_success(None, None, task_id, args, kwargs)
 
+        # then
         user_export_file.refresh_from_db()
         assert user_export_file.updated_at == pytz.utc.localize(frozen_datetime())
         assert user_export_file.updated_at != previous_updated_at
