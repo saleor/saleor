@@ -31,7 +31,9 @@ def test_filtering_by_attribute(db, color_attribute, category, settings):
         product_type=product_type_a,
         category=category,
     )
-    models.ProductVariant.objects.create(product=product_a, sku="1234", price_amount=10)
+    models.ProductVariant.objects.create(
+        product=product_a, sku="1234", price_amount=Decimal(10)
+    )
     product_b = models.Product.objects.create(
         name="Test product b",
         slug="test-product-b",
@@ -39,7 +41,7 @@ def test_filtering_by_attribute(db, color_attribute, category, settings):
         category=category,
     )
     variant_b = models.ProductVariant.objects.create(
-        product=product_b, sku="12345", price_amount=10
+        product=product_b, sku="12345", price_amount=Decimal(10)
     )
     color = color_attribute.values.first()
     color_2 = color_attribute.values.last()
@@ -102,7 +104,7 @@ def test_product_get_price_do_not_charge_taxes(product_type, category, discount_
     product = models.Product.objects.create(
         product_type=product_type, category=category, charge_taxes=False,
     )
-    variant = product.variants.create(price_amount=10)
+    variant = product.variants.create(price_amount=Decimal(10))
 
     price = variant.get_price(discounts=[discount_info])
 

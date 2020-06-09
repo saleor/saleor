@@ -459,6 +459,7 @@ def test_products_query_with_filter_collection(
         {"minimalPrice": {"gte": 1.0, "lte": 2.0}},
         {"isPublished": False},
         {"search": "Juice1"},
+        {"price": {"gte": 1.0, "lte": 2.0}},
     ],
 )
 def test_products_query_with_filter(
@@ -470,16 +471,19 @@ def test_products_query_with_filter(
 ):
     assert product.is_published is True
     assert "Juice1" not in product.name
-    product.save()
 
     second_product = product
     second_product.id = None
     second_product.name = "Apple Juice1"
     second_product.slug = "apple-juice1"
-    second_product.minimal_variant_price = Money("1.99", "USD")
     second_product.is_published = products_filter.get("isPublished", True)
     second_product.save()
-
+    second_product.variants.create(
+        product=second_product,
+        sku=second_product.slug,
+        cost_price=Money("1.00", "USD"),
+        price_amount=Decimal(1.99),
+    )
     variables = {"filter": products_filter}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
@@ -807,6 +811,7 @@ def test_sort_products(user_api_client, product):
 
     query = SORT_PRODUCTS_QUERY
 
+    # Test sorting by PRICE, ascending
     asc_price_query = query % {"sort_by_product_order": "{field: PRICE, direction:ASC}"}
     response = user_api_client.post_graphql(asc_price_query)
     content = get_graphql_content(response)
@@ -3150,14 +3155,14 @@ def test_product_variants_no_ids_list(user_api_client, variant):
 
 
 @pytest.mark.parametrize(
-    "variant_override, api_variant_price", [(200, 200), (0, 0)],
+    "variant_price_amount, api_variant_price", [(200, 200), (0, 0)],
 )
 def test_product_variant_price(
-    variant_override, api_variant_price, user_api_client, variant, stock
+    variant_price_amount, api_variant_price, user_api_client, variant, stock
 ):
     # Set price override on variant that is different than product price
     product = variant.product
-    product.variants.update(price_amount=variant_override, currency="USD")
+    product.variants.update(price_amount=variant_price_amount, currency="USD")
     # Drop other variants
     # product.variants.exclude(id=variant.pk).delete()
 

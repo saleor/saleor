@@ -697,7 +697,10 @@ def product(product_type, category, warehouse):
     variant_attr_value = variant_attr.values.first()
 
     variant = ProductVariant.objects.create(
-        product=product, sku="123", cost_price=Money("1.00", "USD"), price_amount=10.00
+        product=product,
+        sku="123",
+        cost_price=Money("1.00", "USD"),
+        price_amount=Decimal(10),
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
@@ -739,7 +742,7 @@ def product_with_two_variants(product_type, category, warehouse):
             product=product,
             sku=f"Product variant #{i}",
             cost_price=Money("1.00", "USD"),
-            price_amount=10,
+            price_amount=Decimal(10),
         )
         for i in (1, 2)
     ]
@@ -779,7 +782,7 @@ def product_with_variant_with_two_attributes(
         product=product,
         sku="prodVar1",
         cost_price=Money("1.00", "USD"),
-        price_amount=10,
+        price_amount=Decimal(10),
     )
 
     associate_attribute_values_to_instance(
@@ -823,7 +826,7 @@ def product_with_default_variant(product_type_without_variant, category, warehou
         is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="1234", track_inventory=True, price_amount=10
+        product=product, sku="1234", track_inventory=True, price_amount=Decimal(10)
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=100)
     return product
@@ -841,7 +844,10 @@ def variant_without_inventory_tracking(
         is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="tracking123", track_inventory=False, price_amount=10
+        product=product,
+        sku="tracking123",
+        track_inventory=False,
+        price_amount=Decimal(10),
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=0)
     return variant
@@ -853,7 +859,7 @@ def variant(product) -> ProductVariant:
         product=product,
         sku="SKU_A",
         cost_price=Money(1, "USD"),
-        price_amount=10,
+        price_amount=Decimal(10),
         price=Money(10, "USD"),
     )
     return product_variant
@@ -872,9 +878,9 @@ def product_variant_list(product):
     return list(
         ProductVariant.objects.bulk_create(
             [
-                ProductVariant(product=product, sku="1", price_amount=10),
-                ProductVariant(product=product, sku="2", price_amount=10),
-                ProductVariant(product=product, sku="3", price_amount=10),
+                ProductVariant(product=product, sku="1", price_amount=Decimal(10)),
+                ProductVariant(product=product, sku="2", price_amount=Decimal(10)),
+                ProductVariant(product=product, sku="3", price_amount=Decimal(10)),
             ]
         )
     )
@@ -896,7 +902,7 @@ def product_without_shipping(category, warehouse):
         is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="SKU_B", price_amount=10
+        product=product, sku="SKU_B", price_amount=Decimal(10)
     )
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=1)
     return product
@@ -952,19 +958,19 @@ def product_list(product_type, category, warehouse):
                     product=products[0],
                     sku=str(uuid.uuid4()).replace("-", ""),
                     track_inventory=True,
-                    price_amount=10,
+                    price_amount=Decimal(10),
                 ),
                 ProductVariant(
                     product=products[1],
                     sku=str(uuid.uuid4()).replace("-", ""),
                     track_inventory=True,
-                    price_amount=20,
+                    price_amount=Decimal(20),
                 ),
                 ProductVariant(
                     product=products[2],
                     sku=str(uuid.uuid4()).replace("-", ""),
                     track_inventory=True,
-                    price_amount=30,
+                    price_amount=Decimal(30),
                 ),
             ]
         )
@@ -1041,7 +1047,7 @@ def unavailable_product_with_variant(product_type, category, warehouse):
     variant_attr_value = variant_attr.values.first()
 
     variant = ProductVariant.objects.create(
-        product=product, sku="123", cost_price=Money(1, "USD"), price_amount=10
+        product=product, sku="123", cost_price=Money(1, "USD"), price_amount=Decimal(10)
     )
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
 
@@ -1233,7 +1239,10 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="SKU_A", cost_price=Money(1, "USD"), price_amount=10
+        product=product,
+        sku="SKU_A",
+        cost_price=Money(1, "USD"),
+        price_amount=Decimal(10),
     )
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
@@ -1864,7 +1873,10 @@ def digital_content(category, media_root, warehouse) -> DigitalContent:
         is_published=True,
     )
     product_variant = ProductVariant.objects.create(
-        product=product, sku="SKU_554", cost_price=Money(1, "USD"), price_amount=10
+        product=product,
+        sku="SKU_554",
+        cost_price=Money(1, "USD"),
+        price_amount=Decimal(10),
     )
     Stock.objects.create(
         product_variant=product_variant, warehouse=warehouse, quantity=5,

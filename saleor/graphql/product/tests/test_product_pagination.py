@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 
 import graphene
 import pytest
@@ -329,19 +330,31 @@ def products_for_pagination(product_type, color_attribute, category, warehouse):
                 product=products[0],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
-                price_amount=10,
+                price_amount=Decimal(10),
+            ),
+            ProductVariant(
+                product=products[1],
+                sku=str(uuid.uuid4()).replace("-", ""),
+                track_inventory=True,
+                price_amount=Decimal(15),
             ),
             ProductVariant(
                 product=products[2],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
-                price_amount=8,
+                price_amount=Decimal(8),
+            ),
+            ProductVariant(
+                product=products[3],
+                sku=str(uuid.uuid4()).replace("-", ""),
+                track_inventory=True,
+                price_amount=Decimal(7),
             ),
             ProductVariant(
                 product=products[4],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
-                price_amount=15,
+                price_amount=Decimal(15),
             ),
         ]
     )
@@ -392,6 +405,10 @@ QUERY_PRODUCTS_PAGINATION = """
         (
             {"field": "TYPE", "direction": "ASC"},
             ["Product1", "Product3", "ProductProduct2"],
+        ),
+        (
+            {"field": "PRICE", "direction": "ASC"},
+            ["Product2", "ProductProduct2", "Product1"],
         ),
         (
             {"field": "PUBLISHED", "direction": "ASC"},
@@ -453,7 +470,8 @@ def test_products_pagination_with_sorting_by_attribute(
     "filter_by, products_order",
     [
         ({"isPublished": False}, ["Product2", "ProductProduct1"]),
-        ({"stockAvailability": "OUT_OF_STOCK"}, ["Product3", "ProductProduct2"]),
+        ({"price": {"gte": 8, "lte": 12}}, ["Product1", "ProductProduct2"]),
+        ({"stockAvailability": "OUT_OF_STOCK"}, ["ProductProduct1", "ProductProduct2"]),
     ],
 )
 def test_products_pagination_with_filtering(
@@ -526,7 +544,7 @@ def test_products_pagination_with_filtering_by_stocks(
     staff_api_client, permission_manage_products, products_for_pagination, warehouse
 ):
     page_size = 2
-    products_order = ["Product3", "ProductProduct2"]
+    products_order = ["ProductProduct1", "ProductProduct2"]
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     filter_by = {"stocks": {"warehouseIds": [warehouse_id], "quantity": {"lte": 10}}}
 
