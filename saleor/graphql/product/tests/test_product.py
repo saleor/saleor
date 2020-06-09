@@ -456,10 +456,10 @@ def test_products_query_with_filter_collection(
 @pytest.mark.parametrize(
     "products_filter",
     [
+        {"price": {"gte": 1.0, "lte": 2.0}},
         {"minimalPrice": {"gte": 1.0, "lte": 2.0}},
         {"isPublished": False},
         {"search": "Juice1"},
-        {"price": {"gte": 1.0, "lte": 2.0}},
     ],
 )
 def test_products_query_with_filter(
@@ -1500,8 +1500,8 @@ def test_update_product(
             $descriptionJson: JSONString!,
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
-            $basePrice: Decimal!,
             $taxCode: String!,
+            $basePrice: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productUpdate(
                     id: $productId,
@@ -1509,11 +1509,11 @@ def test_update_product(
                         category: $categoryId,
                         name: $name,
                         slug: $slug,
-                        basePrice: $basePrice,
                         descriptionJson: $descriptionJson,
                         isPublished: $isPublished,
                         chargeTaxes: $chargeTaxes,
                         taxCode: $taxCode,
+                        basePrice: $basePrice,
                         attributes: $attributes
                     }) {
                         product {
@@ -1581,11 +1581,11 @@ def test_update_product(
         "categoryId": category_id,
         "name": product_name,
         "slug": product_slug,
-        "basePrice": basePrice,
         "descriptionJson": other_description_json,
         "isPublished": product_is_published,
         "chargeTaxes": product_charge_taxes,
         "taxCode": product_tax_rate,
+        "basePrice": basePrice,
         "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
     }
 
@@ -4275,8 +4275,8 @@ mutation createProduct(
                 category: $category,
                 productType: $productType,
                 name: $name,
-                basePrice: $basePrice,
                 sku: $sku,
+                basePrice: $basePrice,
                 weight: $weight
             })
         {
@@ -4327,8 +4327,8 @@ def test_create_product_with_weight_variable(
         "category": category_id,
         "productType": product_type_id,
         "name": "Test",
-        "basePrice": Decimal("19"),
         "sku": "23434",
+        "basePrice": Decimal("19"),
         "weight": weight,
     }
     response = staff_api_client.post_graphql(

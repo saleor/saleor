@@ -8,15 +8,12 @@ from django.db import models
 from django.db.models import Case, Count, F, FilteredRelation, Q, Value, When
 from django.urls import reverse
 from django.utils.encoding import smart_text
-from django.utils.text import slugify
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from draftjs_sanitizer import clean_draft_js
 from measurement.measures import Weight
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
-from prices import MoneyRange
-from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.db.fields import SanitizedJSONField
