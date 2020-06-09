@@ -6,13 +6,13 @@ from django.middleware.csrf import _compare_salted_tokens, _get_new_csrf_token
 from django.utils import timezone
 from graphene.types.generic import GenericScalar
 
-from ....account import models
 from ....account.error_codes import AccountErrorCode
 from ....core.jwt import (
     JWT_REFRESH_TOKEN_COOKIE_NAME,
     JWT_REFRESH_TYPE,
     create_access_token,
     create_refresh_token,
+    get_user_from_payload,
     jwt_decode,
 )
 from ...core.mutations import BaseMutation
@@ -36,6 +36,15 @@ def get_payload(token):
             "Invalid token", code=AccountErrorCode.JWT_INVALID_TOKEN.value
         )
     return payload
+
+
+def get_user(payload):
+    user = get_user_from_payload(payload)
+    if not user:
+        raise ValidationError(
+            "token invalid", code=AccountErrorCode.JWT_INVALID_TOKEN.value
+        )
+    return user
 
 
 class CreateToken(BaseMutation):
@@ -162,6 +171,14 @@ class RefreshToken(BaseMutation):
             )
 
     @classmethod
+    def get_user(cls, payload):
+        try:
+            user = get_user(payload)
+        except ValidationError as e:
+            raise ValidationError({"refreshToken": e})
+        return user
+
+    @classmethod
     def perform_mutation(cls, root, info, **data):
         refresh_token = cls.get_refresh_token(info, data)
         payload = cls.clean_refresh_token(refresh_token)
@@ -169,7 +186,7 @@ class RefreshToken(BaseMutation):
         csrf_token = data.get("csrf_token")
         cls.clean_csrf_token(csrf_token, payload)
 
-        user = models.User.objects.filter(email=payload["email"]).first()
+        user = get_user(payload)
         token = create_access_token(user)
         return cls(errors=[], user=user, token=token)
 
@@ -200,8 +217,16 @@ class VerifyToken(BaseMutation):
         return payload
 
     @classmethod
+    def get_user(cls, payload):
+        try:
+            user = get_user(payload)
+        except ValidationError as e:
+            raise ValidationError({"token": e})
+        return user
+
+    @classmethod
     def perform_mutation(cls, root, info, **data):
         token = data["token"]
         payload = cls.get_payload(token)
-        user = models.User.objects.filter(email=payload["email"]).first()
+        user = cls.get_user(payload)
         return cls(errors=[], user=user, is_valid=True, payload=payload)

@@ -71,6 +71,7 @@ def test_create_token(api_client, customer_user, settings):
     )
     assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
     assert payload["type"] == JWT_REFRESH_TYPE
+    assert payload["token"] == customer_user.jwt_token_key
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -152,6 +153,20 @@ def test_verify_token_incorrect_token(api_client):
     assert not data["user"]
 
 
+def test_verify_token_invalidated_by_user(api_client, customer_user):
+    variables = {"token": create_access_token(customer_user)}
+    customer_user.jwt_token_key = "new token"
+    customer_user.save()
+    response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["tokenVerify"]
+    errors = data["accountErrors"]
+
+    assert not data["isValid"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == AccountErrorCode.JWT_INVALID_TOKEN.name
+
+
 MUTATION_TOKEN_REFRESH = """
     mutation tokenRefresh($token: String, $csrf_token: String!){
         tokenRefresh(refreshToken: $token, csrfToken: $csrf_token){
@@ -188,6 +203,7 @@ def test_refresh_token_get_token_from_cookie(api_client, customer_user, settings
         == datetime.utcnow() + settings.JWT_EXPIRATION_DELTA
     )
     assert payload["type"] == JWT_ACCESS_TYPE
+    assert payload["token"] == customer_user.jwt_token_key
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -308,3 +324,24 @@ def test_refresh_token_when_incorrect_token(api_client, customer_user):
 
     assert len(errors) == 1
     assert errors[0]["code"] == AccountErrorCode.JWT_DECODE_ERROR.name
+
+
+def test_refresh_token_when_user_deactivated_token(api_client, customer_user):
+    csrf_token = _get_new_csrf_token()
+    refresh_token = create_refresh_token(customer_user, {"csrfToken": csrf_token})
+    customer_user.jwt_token_key = "new_key"
+    customer_user.save()
+    variables = {"token": None, "csrf_token": csrf_token}
+    api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME] = refresh_token
+    api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME]["httponly"] = True
+
+    response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
+    content = get_graphql_content(response)
+    print(content)
+
+    data = content["data"]["tokenRefresh"]
+    errors = data["accountErrors"]
+
+    assert not data["token"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == AccountErrorCode.JWT_INVALID_TOKEN.name
