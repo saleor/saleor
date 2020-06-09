@@ -4,8 +4,8 @@ asgiref==3.2.7
 babel==2.8.0
 beautifulsoup4==4.7.1
 billiard==3.6.3.0
-boto3==1.13.16
-botocore==1.16.16
+boto3==1.13.19
+botocore==1.16.19
 braintree==4.1.0
 cachetools==4.1.0
 cairocffi==1.1.0
