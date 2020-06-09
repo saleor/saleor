@@ -70,7 +70,7 @@ class CreateToken(BaseMutation):
     user = graphene.Field(User, description="A user instance.")
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def get_user(cls, info, data):
         user = authenticate(
             request=info.context, username=data["email"], password=data["password"],
         )
@@ -83,6 +83,11 @@ class CreateToken(BaseMutation):
                     )
                 }
             )
+        return user
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        user = cls.get_user(info, data)
         access_token = create_access_token(user)
         csrf_token = _get_new_csrf_token()
         refresh_token = create_refresh_token(user, {"csrfToken": csrf_token})
