@@ -36,19 +36,23 @@ EXPORT_FILE_QUERY = """
 
 def test_query_export_file(
     staff_api_client,
-    export_file,
+    user_export_file,
     permission_manage_products,
     permission_manage_apps,
-    export_event,
+    user_export_event,
 ):
+    # given
     query = EXPORT_FILE_QUERY
-    variables = {"id": graphene.Node.to_global_id("ExportFile", export_file.pk)}
+    variables = {"id": graphene.Node.to_global_id("ExportFile", user_export_file.pk)}
 
+    # when
     response = staff_api_client.post_graphql(
         query,
         variables=variables,
         permissions=[permission_manage_products, permission_manage_apps],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["exportFile"]
 
@@ -61,32 +65,26 @@ def test_query_export_file(
     assert len(data["events"]) == 1
     event = data["events"][0]
     assert event["date"]
-    assert event["message"] == export_event.parameters.get("message")
+    assert event["message"] == user_export_event.parameters.get("message")
     assert event["type"] == ExportEvents.EXPORT_FAILED.upper()
-    assert event["user"]["email"] == export_event.user.email
+    assert event["user"]["email"] == user_export_event.user.email
     assert event["app"] is None
 
 
 def test_query_export_file_export_file_with_app(
     app,
     staff_api_client,
-    export_file,
+    app_export_file,
     permission_manage_products,
     permission_manage_apps,
     permission_manage_users,
-    export_event,
+    app_export_event,
 ):
-    export_file.user = None
-    export_file.app = app
-    export_file.save(update_fields=["user", "app"])
-
-    export_event.user = None
-    export_event.app = app
-    export_event.save(update_fields=["user", "app"])
-
+    # given
     query = EXPORT_FILE_QUERY
-    variables = {"id": graphene.Node.to_global_id("ExportFile", export_file.pk)}
+    variables = {"id": graphene.Node.to_global_id("ExportFile", app_export_file.pk)}
 
+    # when
     response = staff_api_client.post_graphql(
         query,
         variables=variables,
@@ -96,6 +94,8 @@ def test_query_export_file_export_file_with_app(
             permission_manage_apps,
         ],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["exportFile"]
 
@@ -108,7 +108,7 @@ def test_query_export_file_export_file_with_app(
     assert len(data["events"]) == 1
     event = data["events"][0]
     assert event["date"]
-    assert event["message"] == export_event.parameters.get("message")
+    assert event["message"] == app_export_event.parameters.get("message")
     assert event["type"] == ExportEvents.EXPORT_FAILED.upper()
     assert event["user"] is None
     assert event["app"]["name"] == app.name
@@ -116,15 +116,17 @@ def test_query_export_file_export_file_with_app(
 
 def test_query_export_file_as_app(
     app_api_client,
-    export_file,
+    user_export_file,
     permission_manage_products,
     permission_manage_users,
     permission_manage_apps,
-    export_event,
+    user_export_event,
 ):
+    # given
     query = EXPORT_FILE_QUERY
-    variables = {"id": graphene.Node.to_global_id("ExportFile", export_file.pk)}
+    variables = {"id": graphene.Node.to_global_id("ExportFile", user_export_file.pk)}
 
+    # when
     response = app_api_client.post_graphql(
         query,
         variables=variables,
@@ -134,6 +136,8 @@ def test_query_export_file_as_app(
             permission_manage_apps,
         ],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["exportFile"]
 
@@ -142,11 +146,11 @@ def test_query_export_file_as_app(
     assert data["updatedAt"]
     assert data["app"] is None
     assert not data["url"]
-    assert data["user"]["email"] == export_file.user.email
+    assert data["user"]["email"] == user_export_file.user.email
     assert len(data["events"]) == 1
     event = data["events"][0]
     assert event["date"]
-    assert event["message"] == export_event.parameters.get("message")
+    assert event["message"] == user_export_event.parameters.get("message")
     assert event["type"] == ExportEvents.EXPORT_FAILED.upper()
-    assert event["user"]["email"] == export_event.user.email
+    assert event["user"]["email"] == user_export_event.user.email
     assert event["app"] is None
