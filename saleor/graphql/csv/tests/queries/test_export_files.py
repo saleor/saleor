@@ -150,7 +150,10 @@ def test_filter_export_files_by_user(
 
 
 def test_sort_export_files_query_by_user(
-    staff_api_client, export_file, permission_manage_products, permission_manage_users
+    staff_api_client,
+    user_export_file,
+    permission_manage_products,
+    permission_manage_users,
 ):
     second_staff_user = User.objects.create_user(
         email="staff_test2@example.com",
@@ -176,10 +179,10 @@ def test_sort_export_files_query_by_user(
 
 
 def test_sort_export_files_query_by_created_at_date(
-    staff_api_client, export_file, permission_manage_products, staff_user
+    staff_api_client, user_export_file, permission_manage_products, staff_user
 ):
     second_export_file = ExportFile.objects.create(user=staff_user)
-    second_export_file.created_at = export_file.created_at - datetime.timedelta(
+    second_export_file.created_at = user_export_file.created_at - datetime.timedelta(
         minutes=10
     )
     second_export_file.save()
@@ -200,15 +203,15 @@ def test_sort_export_files_query_by_created_at_date(
 
 
 def test_sort_export_files_query_by_updated_at_date(
-    staff_api_client, export_file, permission_manage_products, staff_user
+    staff_api_client, user_export_file, permission_manage_products, staff_user
 ):
-    export_file.updated_at = datetime.datetime(
+    user_export_file.updated_at = datetime.datetime(
         2010, 2, 19, tzinfo=timezone.get_current_timezone()
     )
-    export_file.save()
+    user_export_file.save()
 
     second_export_file = ExportFile.objects.create(user=staff_user)
-    second_export_file.updated_at = export_file.updated_at + datetime.timedelta(
+    second_export_file.updated_at = user_export_file.updated_at + datetime.timedelta(
         minutes=10
     )
     second_export_file.save()
@@ -224,7 +227,7 @@ def test_sort_export_files_query_by_updated_at_date(
 
     assert len(nodes) == 2
     assert nodes[0]["node"]["id"] == graphene.Node.to_global_id(
-        "ExportFile", export_file.pk
+        "ExportFile", user_export_file.pk
     )
 
 
