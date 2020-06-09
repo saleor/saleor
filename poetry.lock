@@ -1313,7 +1313,7 @@ description = "Python version of Google's common library for parsing, formatting
 name = "phonenumberslite"
 optional = false
 python-versions = "*"
-version = "8.12.4"
+version = "8.12.5"
 
 [[package]]
 category = "main"
@@ -2178,7 +2178,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "1c98ec34076f7051d50429e4fe97d257325c761d9a1620b40d693124b69fda9b"
+content-hash = "5633f948b14f7beddc997a85e581772549770e5182521fff1c7c01018a2e2ee5"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2745,8 +2745,8 @@ pathspec = [
     {file = "pathspec-0.8.0.tar.gz", hash = "sha256:da45173eb3a6f2a5a487efba21f050af2b41948be6ab52b6a1e3ff22bb8b7061"},
 ]
 phonenumberslite = [
-    {file = "phonenumberslite-8.12.4-py2.py3-none-any.whl", hash = "sha256:071ff1c6830233e57a1821d6dbb702c2d841a72fe4c9e6b6f087d566b532533e"},
-    {file = "phonenumberslite-8.12.4.tar.gz", hash = "sha256:ddf2f33ccb221b16fe25a022978e45d25a7c31c2ad5c506ab92a640001d85847"},
+    {file = "phonenumberslite-8.12.5-py2.py3-none-any.whl", hash = "sha256:7e101c2d0be6ead83e2706c355aaba236df97e9a7b78aed5bda5d4b0eee11178"},
+    {file = "phonenumberslite-8.12.5.tar.gz", hash = "sha256:6e1d31d8a5ad1fe280c3f7ba5b9c08da82245d59946ee06856712ef704f59e19"},
 ]
 pillow = [
     {file = "Pillow-7.1.2-cp35-cp35m-macosx_10_10_intel.whl", hash = "sha256:ae2b270f9a0b8822b98655cb3a59cdb1bd54a34807c6c56b76dd2e786c3b7db3"},
