@@ -26,6 +26,7 @@ def jwt_user_payload(user, token_type, exp_delta, additional_payload=None):
     payload = jwt_base_payload(exp_delta)
     payload.update(
         {
+            "token": user.jwt_token_key,
             "email": user.email,
             "type": token_type,
             "user_id": graphene.Node.to_global_id("User", user.id),
@@ -74,8 +75,15 @@ def get_token_from_request(request):
     return auth[1]
 
 
+def get_user_from_payload(payload):
+    user = User.objects.filter(email=payload["email"], is_active=True).first()
+    if user and user.jwt_token_key == payload["token"]:
+        return user
+    return None
+
+
 def get_user_from_access_token(token):
     payload = jwt_decode(token)
     if payload["type"] != JWT_ACCESS_TYPE:
         return None
-    return User.objects.filter(email=payload["email"], is_active=True).first()
+    return get_user_from_payload(payload)
