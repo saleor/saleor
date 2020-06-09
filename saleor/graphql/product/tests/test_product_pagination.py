@@ -403,12 +403,12 @@ QUERY_PRODUCTS_PAGINATION = """
             ["ProductProduct2", "ProductProduct1", "Product3"],
         ),
         (
-            {"field": "TYPE", "direction": "ASC"},
-            ["Product1", "Product3", "ProductProduct2"],
-        ),
-        (
             {"field": "PRICE", "direction": "ASC"},
             ["Product2", "ProductProduct2", "Product1"],
+        ),
+        (
+            {"field": "TYPE", "direction": "ASC"},
+            ["Product1", "Product3", "ProductProduct2"],
         ),
         (
             {"field": "PUBLISHED", "direction": "ASC"},
