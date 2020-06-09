@@ -2,9 +2,9 @@ from datetime import datetime
 
 import graphene
 import jwt
+from django.conf import settings
 
 from ..account.models import User
-from ..settings import JWT_EXPIRATION_DELTA, JWT_REFRESH_EXPIRATION_DELTA, JWT_SECRET
 
 JWT_ALGORITHM = "HS256"
 JWT_AUTH_HEADER = "HTTP_AUTHORIZATION"
@@ -14,15 +14,19 @@ JWT_REFRESH_TYPE = "refresh"
 JWT_REFRESH_TOKEN_COOKIE_NAME = "refreshToken"
 
 
-def jwt_base_payload(exp_delta):
+def jwt_base_payload(exp_delta=None):
     payload = {
-        "exp": datetime.utcnow() + exp_delta,
         "iat": datetime.utcnow(),
     }
+    if exp_delta:
+        payload["exp"] = datetime.utcnow() + exp_delta
     return payload
 
 
 def jwt_user_payload(user, token_type, exp_delta, additional_payload=None):
+    if settings.JWT_DONT_EXPIRE:
+        exp_delta = None
+
     payload = jwt_base_payload(exp_delta)
     payload.update(
         {
@@ -40,11 +44,11 @@ def jwt_user_payload(user, token_type, exp_delta, additional_payload=None):
 
 
 def jwt_encode(payload):
-    return jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM,).decode("utf-8")
+    return jwt.encode(payload, settings.JWT_SECRET, JWT_ALGORITHM,).decode("utf-8")
 
 
 def jwt_decode(token):
-    return jwt.decode(token, JWT_SECRET, algorithms=JWT_ALGORITHM)
+    return jwt.decode(token, settings.JWT_SECRET, algorithms=JWT_ALGORITHM)
 
 
 def create_token(payload, exp_delta):
@@ -54,14 +58,17 @@ def create_token(payload, exp_delta):
 
 def create_access_token(user, additional_payload=None):
     payload = jwt_user_payload(
-        user, JWT_ACCESS_TYPE, JWT_EXPIRATION_DELTA, additional_payload
+        user, JWT_ACCESS_TYPE, settings.JWT_EXPIRATION_DELTA, additional_payload
     )
     return jwt_encode(payload)
 
 
 def create_refresh_token(user, additional_payload=None):
     payload = jwt_user_payload(
-        user, JWT_REFRESH_TYPE, JWT_REFRESH_EXPIRATION_DELTA, additional_payload
+        user,
+        JWT_REFRESH_TYPE,
+        settings.JWT_REFRESH_EXPIRATION_DELTA,
+        additional_payload,
     )
     return jwt_encode(payload)
 

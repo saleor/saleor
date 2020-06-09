@@ -561,6 +561,9 @@ if REDIS_URL:
     CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
 CACHES = {"default": django_cache_url.config()}
 
+# Default True because storefront and dashboard don't support expiration of token
+JWT_DONT_EXPIRE = get_bool_from_env("JWT_DONT_EXPIRE", True)
+
 JWT_EXPIRATION_DELTA = timedelta(
     seconds=os.environ.get("JWT_EXPIRATION_DELTA", 5 * 60)  # type: ignore
 )

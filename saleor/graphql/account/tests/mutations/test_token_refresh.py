@@ -9,7 +9,6 @@ from .....core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_ALGORITHM,
     JWT_REFRESH_TOKEN_COOKIE_NAME,
-    JWT_SECRET,
     create_access_token,
     create_refresh_token,
 )
@@ -29,6 +28,7 @@ MUTATION_TOKEN_REFRESH = """
 
 @freeze_time("2020-03-18 12:00:00")
 def test_refresh_token_get_token_from_cookie(api_client, customer_user, settings):
+    print(settings.JWT_DONT_EXPIRE)
     csrf_token = _get_new_csrf_token()
     refresh_token = create_refresh_token(customer_user, {"csrfToken": csrf_token})
     variables = {"token": None, "csrf_token": csrf_token}
@@ -43,7 +43,7 @@ def test_refresh_token_get_token_from_cookie(api_client, customer_user, settings
     assert not errors
     token = data.get("token")
     assert token
-    payload = decode(token, JWT_SECRET, algorithms=JWT_ALGORITHM)
+    payload = decode(token, settings.JWT_SECRET, algorithms=JWT_ALGORITHM)
     assert payload["email"] == customer_user.email
     assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
     assert (
@@ -68,7 +68,7 @@ def test_refresh_token_get_token_from_input(api_client, customer_user, settings)
     assert not errors
     token = data.get("token")
     assert token
-    payload = decode(token, JWT_SECRET, algorithms=JWT_ALGORITHM)
+    payload = decode(token, settings.JWT_SECRET, algorithms=JWT_ALGORITHM)
     assert payload["email"] == customer_user.email
     assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
     assert (
