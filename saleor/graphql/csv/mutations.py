@@ -73,14 +73,19 @@ class ExportProducts(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
-        user = info.context.user
         input = data["input"]
         scope = cls.get_products_scope(input)
         export_info = cls.get_export_info(input["export_info"])
         file_type = input["file_type"]
 
-        export_file = csv_models.ExportFile.objects.create(user=user)
-        export_started_event(export_file=export_file, user=user)
+        app = info.context.app
+        if app:
+            kwargs = {"app": app}
+        else:
+            kwargs = {"user": info.context.user}
+
+        export_file = csv_models.ExportFile.objects.create(**kwargs)
+        export_started_event(export_file=export_file, **kwargs)
         export_products_task.delay(export_file.pk, scope, export_info, file_type)
 
         export_file.refresh_from_db()
