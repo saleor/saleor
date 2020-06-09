@@ -19,7 +19,7 @@ FILTER_EXPORT_FILES_QUERY = """
                     createdAt
                     updatedAt
                     url
-                    createdBy{
+                    user{
                         email
                     }
                 }
@@ -39,7 +39,7 @@ SORT_EXPORT_FILES_QUERY = """
                     updatedAt
                     createdAt
                     url
-                    createdBy{
+                    user{
                         email
                     }
                 }
@@ -134,11 +134,11 @@ def test_filter_export_files_by_user(
         is_active=True,
     )
 
-    export_file_list[1].created_by = second_staff_user
+    export_file_list[1].user = second_staff_user
     export_file_list[1].save()
 
     query = FILTER_EXPORT_FILES_QUERY
-    variables = {"filter": {"createdBy": staff_user.email}}
+    variables = {"filter": {"user": staff_user.email}}
 
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]
@@ -159,9 +159,9 @@ def test_sort_export_files_query_by_user(
         is_active=True,
     )
 
-    ExportFile.objects.create(created_by=second_staff_user)
+    ExportFile.objects.create(user=second_staff_user)
     query = SORT_EXPORT_FILES_QUERY
-    variables = {"sortBy": {"field": "CREATED_BY", "direction": "DESC"}}
+    variables = {"sortBy": {"field": "USER", "direction": "DESC"}}
 
     response = staff_api_client.post_graphql(
         query,
@@ -172,13 +172,13 @@ def test_sort_export_files_query_by_user(
     nodes = content["data"]["exportFiles"]["edges"]
 
     assert len(nodes) == 2
-    assert nodes[0]["node"]["createdBy"]["email"] == second_staff_user.email
+    assert nodes[0]["node"]["user"]["email"] == second_staff_user.email
 
 
 def test_sort_export_files_query_by_created_at_date(
     staff_api_client, export_file, permission_manage_products, staff_user
 ):
-    second_export_file = ExportFile.objects.create(created_by=staff_user)
+    second_export_file = ExportFile.objects.create(user=staff_user)
     second_export_file.created_at = export_file.created_at - datetime.timedelta(
         minutes=10
     )
@@ -207,7 +207,7 @@ def test_sort_export_files_query_by_updated_at_date(
     )
     export_file.save()
 
-    second_export_file = ExportFile.objects.create(created_by=staff_user)
+    second_export_file = ExportFile.objects.create(user=staff_user)
     second_export_file.updated_at = export_file.updated_at + datetime.timedelta(
         minutes=10
     )

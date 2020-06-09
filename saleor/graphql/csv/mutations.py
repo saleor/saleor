@@ -79,7 +79,7 @@ class ExportProducts(BaseMutation):
         export_info = cls.get_export_info(input["export_info"])
         file_type = input["file_type"]
 
-        export_file = csv_models.ExportFile.objects.create(created_by=user)
+        export_file = csv_models.ExportFile.objects.create(user=user)
         export_started_event(export_file=export_file, user=user)
         export_products_task.delay(export_file.pk, scope, export_info, file_type)
 
