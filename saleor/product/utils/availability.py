@@ -7,7 +7,6 @@ from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from saleor.product.models import Collection, Product, ProductVariant
 
-from ...core.taxes import zero_money
 from ...core.utils import to_local_currency
 from ...discount import DiscountInfo
 from ...discount.utils import calculate_discounted_price
