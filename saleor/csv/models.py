@@ -3,13 +3,19 @@ from django.db import models
 from django.utils import timezone
 
 from ..account.models import User
+from ..app.models import App
 from ..core.models import Job
 from ..core.utils.json_serializer import CustomJsonEncoder
 from . import ExportEvents
 
 
 class ExportFile(Job):
-    created_by = models.ForeignKey(User, related_name="jobs", on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, related_name="export_files", on_delete=models.CASCADE, null=True
+    )
+    app = models.ForeignKey(
+        App, related_name="export_files", on_delete=models.CASCADE, null=True
+    )
     content_file = models.FileField(upload_to="export_files", null=True)
 
 
@@ -23,5 +29,5 @@ class ExportEvent(models.Model):
         ExportFile, related_name="events", on_delete=models.CASCADE
     )
     user = models.ForeignKey(
-        User, related_name="export_csv_events", on_delete=models.CASCADE
+        User, related_name="export_csv_events", on_delete=models.CASCADE, null=True
     )

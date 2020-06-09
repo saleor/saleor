@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from ...product.models import Product
 from .. import FileTypes
-from ..emails import send_email_with_link_to_download_file, send_export_failed_info
+from ..emails import send_email_with_link_to_download_file
 from .products_data import get_export_fields_and_headers_info, get_products_data
 
 if TYPE_CHECKING:

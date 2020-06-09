@@ -12,7 +12,7 @@ EXPORT_FILE_QUERY = """
             createdAt
             updatedAt
             url
-            createdBy{
+            user{
                 email
             }
             events{
@@ -44,7 +44,7 @@ def test_query_export_file(
     assert data["createdAt"]
     assert data["updatedAt"]
     assert not data["url"]
-    assert data["createdBy"]["email"] == staff_api_client.user.email
+    assert data["user"]["email"] == staff_api_client.user.email
     assert len(data["events"]) == 1
     event = data["events"][0]
     assert event["date"]
@@ -75,7 +75,7 @@ def test_query_export_file_as_app(
     assert data["createdAt"]
     assert data["updatedAt"]
     assert not data["url"]
-    assert data["createdBy"]["email"] == export_file.created_by.email
+    assert data["user"]["email"] == export_file.user.email
     assert len(data["events"]) == 1
     event = data["events"][0]
     assert event["date"]

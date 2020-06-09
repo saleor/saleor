@@ -25,7 +25,7 @@ def test_export_products_task(export_products_mock, export_file):
     export_products_mock.called_once_with()
 
 
-@patch("saleor.csv.utils.export.send_export_failed_info")
+@patch("saleor.csv.tasks.send_export_failed_info")
 def test_on_task_failure(send_export_failed_info_mock, export_file):
     exc = Exception("Test")
     task_id = "task_id"
@@ -49,9 +49,7 @@ def test_on_task_failure(send_export_failed_info_mock, export_file):
     assert export_file.created_at
     assert export_file.updated_at != previous_updated_at
     export_failed_event = ExportEvent.objects.get(
-        export_file=export_file,
-        user=export_file.created_by,
-        type=ExportEvents.EXPORT_FAILED,
+        export_file=export_file, user=export_file.user, type=ExportEvents.EXPORT_FAILED,
     )
     assert export_failed_event.parameters == {
         "message": str(exc),
@@ -81,6 +79,6 @@ def test_on_task_success(export_file):
     assert export_file.created_at
     assert ExportEvent.objects.filter(
         export_file=export_file,
-        user=export_file.created_by,
+        user=export_file.user,
         type=ExportEvents.EXPORT_SUCCESS,
     )

@@ -24,7 +24,7 @@ def test_send_email_with_link_to_download_file(
         "domain": "mirumee.com",
         "site_name": "mirumee.com",
     }
-    recipients = [export_file.created_by.email]
+    recipients = [export_file.user.email]
     expected_call_kwargs = {
         "context": ctx,
         "from_email": site_settings.default_from_email,
@@ -41,7 +41,7 @@ def test_send_email_with_link_to_download_file(
 
     assert ExportEvent.objects.filter(
         export_file=export_file,
-        user=export_file.created_by,
+        user=export_file.user,
         type=ExportEvents.EXPORTED_FILE_SENT,
     )
 
@@ -62,7 +62,7 @@ def test_send_export_failed_info(
         "domain": "mirumee.com",
         "site_name": "mirumee.com",
     }
-    recipients = [export_file.created_by.email]
+    recipients = [export_file.user.email]
     expected_call_kwargs = {
         "context": ctx,
         "from_email": site_settings.default_from_email,
@@ -79,6 +79,6 @@ def test_send_export_failed_info(
 
     assert ExportEvent.objects.filter(
         export_file=export_file,
-        user=export_file.created_by,
+        user=export_file.user,
         type=ExportEvents.EXPORT_FAILED_INFO_SENT,
     )

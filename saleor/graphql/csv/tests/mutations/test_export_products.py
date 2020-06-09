@@ -19,7 +19,7 @@ EXPORT_PRODUCTS_MUTATION = """
                 createdAt
                 updatedAt
                 url
-                createdBy {
+                user {
                     email
                 }
             }
@@ -82,7 +82,7 @@ def test_export_products_mutation(
     assert not data["csvErrors"]
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
-    assert export_file_data["createdBy"]["email"] == staff_api_client.user.email
+    assert export_file_data["user"]["email"] == staff_api_client.user.email
     assert ExportEvent.objects.filter(
         user=user, type=ExportEvents.EXPORT_PENDING
     ).exists()
@@ -133,7 +133,7 @@ def test_export_products_mutation_ids_scope(
     assert not data["csvErrors"]
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
-    assert export_file_data["createdBy"]["email"] == staff_api_client.user.email
+    assert export_file_data["user"]["email"] == staff_api_client.user.email
     assert ExportEvent.objects.filter(
         user=user, type=ExportEvents.EXPORT_PENDING
     ).exists()
@@ -198,7 +198,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
     assert not data["csvErrors"]
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
-    assert export_file_data["createdBy"]["email"] == staff_api_client.user.email
+    assert export_file_data["user"]["email"] == staff_api_client.user.email
     assert ExportEvent.objects.filter(
         user=user, type=ExportEvents.EXPORT_PENDING
     ).exists()

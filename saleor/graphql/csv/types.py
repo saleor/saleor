@@ -53,7 +53,7 @@ class ExportFile(CountableDjangoObjectType):
         description = "Represents a job data of exported file."
         interfaces = [graphene.relay.Node, Job]
         model = models.ExportFile
-        only_fields = ["id", "created_by", "url"]
+        only_fields = ["id", "user", "url"]
 
     @staticmethod
     def resolve_url(root: models.ExportFile, info):
@@ -63,12 +63,12 @@ class ExportFile(CountableDjangoObjectType):
         return info.context.build_absolute_uri(content_file.url)
 
     @staticmethod
-    def resolve_created_by(root: models.ExportFile, info):
+    def resolve_user(root: models.ExportFile, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor == root.created_by or requestor.has_perm(
+        if requestor == root.user or requestor.has_perm(
             AccountPermissions.MANAGE_USERS
         ):
-            return root.created_by
+            return root.user
         raise PermissionDenied()
 
     @staticmethod
