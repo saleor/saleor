@@ -22,6 +22,9 @@ EXPORT_PRODUCTS_MUTATION = """
                 user {
                     email
                 }
+                app {
+                    name
+                }
             }
             csvErrors {
                 field
@@ -61,6 +64,7 @@ def test_export_products_mutation(
     staff_api_client,
     product_list,
     permission_manage_products,
+    permission_manage_apps,
     input,
     called_data,
 ):
@@ -69,7 +73,9 @@ def test_export_products_mutation(
     variables = {"input": input}
 
     response = staff_api_client.post_graphql(
-        query, variables=variables, permissions=[permission_manage_products]
+        query,
+        variables=variables,
+        permissions=[permission_manage_products, permission_manage_apps],
     )
     content = get_graphql_content(response)
     data = content["data"]["exportProducts"]
@@ -83,14 +89,65 @@ def test_export_products_mutation(
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
     assert export_file_data["user"]["email"] == staff_api_client.user.email
+    assert export_file_data["app"] is None
     assert ExportEvent.objects.filter(
-        user=user, type=ExportEvents.EXPORT_PENDING
+        user=user, app=None, type=ExportEvents.EXPORT_PENDING
+    ).exists()
+
+
+@patch("saleor.graphql.csv.mutations.export_products_task.delay")
+def test_export_products_mutation_by_app(
+    export_products_mock,
+    app_api_client,
+    product_list,
+    permission_manage_products,
+    permission_manage_apps,
+    permission_manage_users,
+):
+    query = EXPORT_PRODUCTS_MUTATION
+    app = app_api_client.app
+    variables = {
+        "input": {
+            "scope": ExportScope.ALL.name,
+            "exportInfo": {},
+            "fileType": FileTypeEnum.CSV.name,
+        }
+    }
+
+    response = app_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[
+            permission_manage_products,
+            permission_manage_apps,
+            permission_manage_users,
+        ],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["exportProducts"]
+    export_file_data = data["exportFile"]
+
+    export_products_mock.assert_called_once_with(
+        ANY, {"all": ""}, {}, FileTypeEnum.CSV.value
+    )
+
+    assert not data["csvErrors"]
+    assert data["exportFile"]["id"]
+    assert export_file_data["createdAt"]
+    assert export_file_data["user"] is None
+    assert export_file_data["app"]["name"] == app.name
+    assert ExportEvent.objects.filter(
+        user=None, app=app, type=ExportEvents.EXPORT_PENDING
     ).exists()
 
 
 @patch("saleor.graphql.csv.mutations.export_products_task.delay")
 def test_export_products_mutation_ids_scope(
-    export_products_mock, staff_api_client, product_list, permission_manage_products
+    export_products_mock,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    permission_manage_apps,
 ):
     query = EXPORT_PRODUCTS_MUTATION
     user = staff_api_client.user
@@ -117,7 +174,9 @@ def test_export_products_mutation_ids_scope(
     }
 
     response = staff_api_client.post_graphql(
-        query, variables=variables, permissions=[permission_manage_products]
+        query,
+        variables=variables,
+        permissions=[permission_manage_products, permission_manage_apps],
     )
     content = get_graphql_content(response)
     data = content["data"]["exportProducts"]
@@ -134,14 +193,19 @@ def test_export_products_mutation_ids_scope(
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
     assert export_file_data["user"]["email"] == staff_api_client.user.email
+    assert export_file_data["app"] is None
     assert ExportEvent.objects.filter(
-        user=user, type=ExportEvents.EXPORT_PENDING
+        user=user, app=None, type=ExportEvents.EXPORT_PENDING
     ).exists()
 
 
 @patch("saleor.graphql.csv.mutations.export_products_task.delay")
 def test_export_products_mutation_with_warehouse_and_attribute_ids(
-    export_products_mock, staff_api_client, product_list, permission_manage_products
+    export_products_mock,
+    staff_api_client,
+    product_list,
+    permission_manage_products,
+    permission_manage_apps,
 ):
     query = EXPORT_PRODUCTS_MUTATION
     user = staff_api_client.user
@@ -178,7 +242,9 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
     }
 
     response = staff_api_client.post_graphql(
-        query, variables=variables, permissions=[permission_manage_products]
+        query,
+        variables=variables,
+        permissions=[permission_manage_products, permission_manage_apps],
     )
     content = get_graphql_content(response)
     data = content["data"]["exportProducts"]
@@ -199,8 +265,9 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
     assert export_file_data["user"]["email"] == staff_api_client.user.email
+    assert export_file_data["app"] is None
     assert ExportEvent.objects.filter(
-        user=user, type=ExportEvents.EXPORT_PENDING
+        user=user, app=None, type=ExportEvents.EXPORT_PENDING
     ).exists()
 
 
