@@ -10,7 +10,6 @@ from django.db.models import Model, QuerySet
 from ...core.permissions import MenuPermissions, SitePermissions
 from ...menu import models
 from ...menu.error_codes import MenuErrorCode
-from ...menu.utils import update_menu
 from ...page import models as page_models
 from ...product import models as product_models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -209,11 +208,6 @@ class MenuItemCreate(ModelMutation):
             )
         return cleaned_input
 
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
-        instance.save()
-        update_menu(instance.menu)
-
 
 class MenuItemUpdate(MenuItemCreate):
     class Arguments:
@@ -253,12 +247,6 @@ class MenuItemDelete(ModelDeleteMutation):
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        response = super().perform_mutation(_root, info, **data)
-        update_menu(response.menuItem.menu)
-        return response
 
 
 @dataclass(frozen=True)
