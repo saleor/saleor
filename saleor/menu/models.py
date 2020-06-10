@@ -1,4 +1,3 @@
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
@@ -12,7 +11,6 @@ from ..product.models import Category, Collection
 
 class Menu(models.Model):
     name = models.CharField(max_length=128)
-    json_content = JSONField(blank=True, default=dict)
 
     class Meta:
         ordering = ("pk",)
