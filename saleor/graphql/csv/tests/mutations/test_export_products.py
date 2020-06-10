@@ -102,7 +102,7 @@ def test_export_products_mutation_by_app(
     product_list,
     permission_manage_products,
     permission_manage_apps,
-    permission_manage_users,
+    permission_manage_staff,
 ):
     query = EXPORT_PRODUCTS_MUTATION
     app = app_api_client.app
@@ -120,7 +120,7 @@ def test_export_products_mutation_by_app(
         permissions=[
             permission_manage_products,
             permission_manage_apps,
-            permission_manage_users,
+            permission_manage_staff,
         ],
     )
     content = get_graphql_content(response)

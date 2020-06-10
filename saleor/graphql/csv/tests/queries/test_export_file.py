@@ -76,7 +76,7 @@ def test_query_export_file_by_app(
     user_export_file,
     permission_manage_products,
     permission_manage_apps,
-    permission_manage_users,
+    permission_manage_staff,
     user_export_event,
 ):
     # given
@@ -90,7 +90,7 @@ def test_query_export_file_by_app(
         permissions=[
             permission_manage_products,
             permission_manage_apps,
-            permission_manage_users,
+            permission_manage_staff,
         ],
     )
 
@@ -119,7 +119,7 @@ def test_query_export_file_export_file_with_app(
     app_export_file,
     permission_manage_products,
     permission_manage_apps,
-    permission_manage_users,
+    permission_manage_staff,
     app_export_event,
 ):
     # given
@@ -132,7 +132,7 @@ def test_query_export_file_export_file_with_app(
         variables=variables,
         permissions=[
             permission_manage_products,
-            permission_manage_users,
+            permission_manage_staff,
             permission_manage_apps,
         ],
     )
@@ -160,7 +160,7 @@ def test_query_export_file_as_app(
     app_api_client,
     user_export_file,
     permission_manage_products,
-    permission_manage_users,
+    permission_manage_staff,
     permission_manage_apps,
     user_export_event,
 ):
@@ -174,7 +174,7 @@ def test_query_export_file_as_app(
         variables=variables,
         permissions=[
             permission_manage_products,
-            permission_manage_users,
+            permission_manage_staff,
             permission_manage_apps,
         ],
     )

@@ -33,10 +33,8 @@ class ExportEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_user(root: models.ExportEvent, info):
         requestor = get_user_or_app_from_context(info.context)
-        if (
-            requestor == root.user
-            or requestor.has_perm(AccountPermissions.MANAGE_USERS)
-            or requestor.has_perm(AccountPermissions.MANAGE_STAFF)
+        if requestor == root.user or requestor.has_perm(
+            AccountPermissions.MANAGE_STAFF
         ):
             return root.user
         raise PermissionDenied()
@@ -76,10 +74,8 @@ class ExportFile(CountableDjangoObjectType):
     @staticmethod
     def resolve_user(root: models.ExportFile, info):
         requestor = get_user_or_app_from_context(info.context)
-        if (
-            requestor == root.user
-            or requestor.has_perm(AccountPermissions.MANAGE_USERS)
-            or requestor.has_perm(AccountPermissions.MANAGE_STAFF)
+        if requestor == root.user or requestor.has_perm(
+            AccountPermissions.MANAGE_STAFF
         ):
             return root.user
         raise PermissionDenied()

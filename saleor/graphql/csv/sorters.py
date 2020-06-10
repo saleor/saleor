@@ -7,8 +7,6 @@ class ExportFileSortField(graphene.Enum):
     STATUS = ["status"]
     CREATED_AT = ["created_at"]
     UPDATED_AT = ["updated_at"]
-    USER = ["user__id"]
-    APP = ["app__id"]
 
     @property
     def description(self):
