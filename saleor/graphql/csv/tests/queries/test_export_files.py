@@ -183,7 +183,7 @@ def test_filter_export_files_by_app(
     permission_manage_staff,
     app,
 ):
-    app2 = App.objects.create(name="Sample app object 2", is_active=True)
+    app2 = App.objects.create(name="Another app", is_active=True)
     app2.tokens.create(name="Default")
 
     export_file_list[0].user = None
@@ -198,7 +198,7 @@ def test_filter_export_files_by_app(
     ExportFile.objects.bulk_update(export_file_list[:3], ["app", "user"])
 
     query = FILTER_EXPORT_FILES_QUERY
-    variables = {"filter": {"app": app.pk}}
+    variables = {"filter": {"app": app.name}}
 
     response = staff_api_client.post_graphql(
         query,

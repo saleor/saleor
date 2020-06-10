@@ -16,11 +16,10 @@ def filter_user(qs, _, value):
 
 
 def filter_app(qs, _, value):
-    user_fields = [
-        "app__pk",
+    app_fields = [
         "app__name",
     ]
-    qs = filter_by_query_param(qs, value, user_fields)
+    qs = filter_by_query_param(qs, value, app_fields)
     return qs
 
 

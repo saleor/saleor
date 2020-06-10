@@ -1,18 +1,20 @@
 from typing import TYPE_CHECKING, Optional
 
-from ..account.models import User
 from . import ExportEvents
 from .models import ExportEvent
 
 if TYPE_CHECKING:
     from .models import ExportFile
     from ..app.models import App
+    from ..account.models import User
 
-UserType = Optional[User]
+
+UserType = Optional["User"]
+AppType = Optional["App"]
 
 
 def export_started_event(
-    *, export_file: "ExportFile", user: UserType = None, app: "App" = None
+    *, export_file: "ExportFile", user: UserType = None, app: AppType = None
 ):
     ExportEvent.objects.create(
         export_file=export_file, user=user, app=app, type=ExportEvents.EXPORT_PENDING
@@ -20,7 +22,7 @@ def export_started_event(
 
 
 def export_success_event(
-    *, export_file: "ExportFile", user: UserType = None, app: "App" = None
+    *, export_file: "ExportFile", user: UserType = None, app: AppType = None
 ):
     ExportEvent.objects.create(
         export_file=export_file, user=user, app=app, type=ExportEvents.EXPORT_SUCCESS
@@ -31,7 +33,7 @@ def export_failed_event(
     *,
     export_file: "ExportFile",
     user: UserType = None,
-    app: "App" = None,
+    app: AppType = None,
     message: str,
     error_type: str
 ):
@@ -45,7 +47,7 @@ def export_failed_event(
 
 
 def export_deleted_event(
-    *, export_file: "ExportFile", user: UserType = None, app: "App" = None
+    *, export_file: "ExportFile", user: UserType = None, app: AppType = None
 ):
     ExportEvent.objects.create(
         export_file=export_file, user=user, app=app, type=ExportEvents.EXPORT_DELETED
