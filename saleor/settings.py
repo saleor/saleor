@@ -68,7 +68,7 @@ DATABASES = {
 }
 
 
-TIME_ZONE = "America/Chicago"
+TIME_ZONE = "UTC"
 LANGUAGE_CODE = "en"
 LANGUAGES = [
     ("ar", "Arabic"),
