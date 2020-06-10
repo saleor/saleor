@@ -48,6 +48,6 @@ def test_verify_token_invalidated_by_user(api_client, customer_user):
     data = content["data"]["tokenVerify"]
     errors = data["accountErrors"]
 
-    assert not data["isValid"]
+    assert data["isValid"] is False
     assert len(errors) == 1
     assert errors[0]["code"] == AccountErrorCode.JWT_INVALID_TOKEN.name
