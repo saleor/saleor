@@ -2188,8 +2188,14 @@ def allocations(order_list, stock):
 
 
 @pytest.fixture
-def export_file(staff_user):
-    job = ExportFile.objects.create(created_by=staff_user)
+def user_export_file(staff_user):
+    job = ExportFile.objects.create(user=staff_user)
+    return job
+
+
+@pytest.fixture
+def app_export_file(app):
+    job = ExportFile.objects.create(app=app)
     return job
 
 
@@ -2198,11 +2204,11 @@ def export_file_list(staff_user):
     export_file_list = list(
         ExportFile.objects.bulk_create(
             [
-                ExportFile(created_by=staff_user),
-                ExportFile(created_by=staff_user,),
-                ExportFile(created_by=staff_user, status=JobStatus.SUCCESS,),
-                ExportFile(created_by=staff_user, status=JobStatus.SUCCESS),
-                ExportFile(created_by=staff_user, status=JobStatus.FAILED,),
+                ExportFile(user=staff_user),
+                ExportFile(user=staff_user,),
+                ExportFile(user=staff_user, status=JobStatus.SUCCESS,),
+                ExportFile(user=staff_user, status=JobStatus.SUCCESS),
+                ExportFile(user=staff_user, status=JobStatus.FAILED,),
             ]
         )
     )
@@ -2237,10 +2243,20 @@ def export_file_list(staff_user):
 
 
 @pytest.fixture
-def export_event(export_file):
+def user_export_event(user_export_file):
     return ExportEvent.objects.create(
         type=ExportEvents.EXPORT_FAILED,
-        export_file=export_file,
-        user=export_file.created_by,
+        export_file=user_export_file,
+        user=user_export_file.user,
+        parameters={"message": "Example error message"},
+    )
+
+
+@pytest.fixture
+def app_export_event(app_export_file):
+    return ExportEvent.objects.create(
+        type=ExportEvents.EXPORT_FAILED,
+        export_file=app_export_file,
+        app=app_export_file.app,
         parameters={"message": "Example error message"},
     )
