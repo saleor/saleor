@@ -22,7 +22,7 @@ def test_verify_token(api_client, customer_user):
     response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
     content = get_graphql_content(response)
     data = content["data"]["tokenVerify"]
-    assert data["isValid"]
+    assert data["isValid"] is True
     user_email = content["data"]["tokenVerify"]["user"]["email"]
     assert customer_user.email == user_email
 
@@ -35,7 +35,7 @@ def test_verify_token_incorrect_token(api_client):
     errors = data["accountErrors"]
     assert len(errors) == 1
     assert errors[0]["code"] == AccountErrorCode.JWT_DECODE_ERROR.name
-    assert not data["isValid"]
+    assert data["isValid"] is False
     assert not data["user"]
 
 
