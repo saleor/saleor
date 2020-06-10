@@ -2,8 +2,6 @@ from collections import defaultdict
 from typing import DefaultDict, Iterable, List, Optional, Tuple
 
 from django.conf import settings
-from django.db.models import Q, Sum
-from django.db.models.functions import Coalesce
 
 from ...warehouse.models import Stock
 from ..core.dataloaders import DataLoader
@@ -46,18 +44,12 @@ class AvailableQuantityByProductVariantIdAndCountryCodeLoader(
     def batch_load_country(
         self, country_code: CountryCode, variant_ids: Iterable[int]
     ) -> Iterable[Tuple[int, int]]:
-        filters = Q(product_variant_id__in=variant_ids)
+        results = Stock.objects.filter(product_variant_id__in=variant_ids)
         if country_code:
-            filters &= Q(warehouse__shipping_zones__countries__contains=country_code)
-        results = (
-            Stock.objects.filter(filters)
-            .annotate(
-                available_quantity=Sum("quantity", distinct=True)
-                - Coalesce(Sum("allocations__quantity_allocated"), 0),
-            )
-            .values_list(
-                "product_variant_id", "warehouse__shipping_zones", "available_quantity"
-            )
+            results.filter(warehouse__shipping_zones__countries__contains=country_code)
+        results = results.annotate_available_quantity()
+        results = results.values_list(
+            "product_variant_id", "warehouse__shipping_zones", "available_quantity"
         )
 
         # A single country code (or a missing country code) can return results from
