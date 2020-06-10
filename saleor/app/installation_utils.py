@@ -2,7 +2,6 @@ import requests
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.db import transaction
 
 from .models import App, AppInstallation
 from .types import AppType
@@ -30,7 +29,6 @@ def validate_manifest_fields(manifest_data):
         raise ValidationError({"tokenTargetUrl": "Incorrect format."})
 
 
-@transaction.atomic
 def install_app(
     app_installation: AppInstallation, activate: bool = False,
 ):
@@ -56,7 +54,12 @@ def install_app(
     )
     app.permissions.set(app_installation.permissions.all())
     token = app.tokens.create(name="Default token")
-    send_app_token(
-        target_url=manifest_data.get("tokenTargetUrl"), token=token.auth_token
-    )
+
+    try:
+        send_app_token(
+            target_url=manifest_data.get("tokenTargetUrl"), token=token.auth_token
+        )
+    except requests.RequestException as e:
+        app.delete()
+        raise e
     return app
