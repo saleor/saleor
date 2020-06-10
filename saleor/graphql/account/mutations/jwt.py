@@ -43,7 +43,7 @@ def get_user(payload):
     user = get_user_from_payload(payload)
     if not user:
         raise ValidationError(
-            "token invalid", code=AccountErrorCode.JWT_INVALID_TOKEN.value
+            "Invalid token", code=AccountErrorCode.JWT_INVALID_TOKEN.value
         )
     return user
 
