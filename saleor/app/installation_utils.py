@@ -50,7 +50,7 @@ def install_app(
         configuration_url=manifest_data.get("configurationUrl"),
         app_url=manifest_data.get("appUrl"),
         version=manifest_data.get("version"),
-        type=AppType.EXTERNAL,
+        type=AppType.THIRDPARTY,
     )
     app.permissions.set(app_installation.permissions.all())
     token = app.tokens.create(name="Default token")

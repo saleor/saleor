@@ -359,8 +359,8 @@ input AppTokenInput {
 }
 
 enum AppTypeEnum {
-  CUSTOM
-  EXTERNAL
+  LOCAL
+  THIRDPARTY
 }
 
 type AppUpdate {
