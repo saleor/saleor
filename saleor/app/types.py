@@ -1,5 +1,5 @@
 class AppType:
-    CUSTOM = "custom"
-    EXTERNAL = "external"
+    LOCAL = "local"
+    THIRDPARTY = "thirdparty"
 
-    CHOICES = [(CUSTOM, "custom"), (EXTERNAL, "EXTERNAL")]
+    CHOICES = [(LOCAL, "local"), (THIRDPARTY, "thirdparty")]

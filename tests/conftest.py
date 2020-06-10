@@ -1979,7 +1979,7 @@ def external_app(db):
     app = App.objects.create(
         name="External App",
         is_active=True,
-        type=AppType.EXTERNAL,
+        type=AppType.THIRDPARTY,
         identifier="mirumee.app.sample",
         about_app="About app text.",
         data_privacy="Data privacy text.",
