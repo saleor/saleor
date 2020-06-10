@@ -148,10 +148,10 @@ description = "The AWS SDK for Python"
 name = "boto3"
 optional = false
 python-versions = "*"
-version = "1.13.25"
+version = "1.13.26"
 
 [package.dependencies]
-botocore = ">=1.16.25,<1.17.0"
+botocore = ">=1.16.26,<1.17.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.3.0,<0.4.0"
 
@@ -161,7 +161,7 @@ description = "Low-level, data-driven core of boto 3."
 name = "botocore"
 optional = false
 python-versions = "*"
-version = "1.16.25"
+version = "1.16.26"
 
 [package.dependencies]
 docutils = ">=0.10,<0.16"
@@ -778,7 +778,7 @@ description = "Google API client core library"
 name = "google-api-core"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
-version = "1.19.1"
+version = "1.20.0"
 
 [package.dependencies]
 google-auth = ">=1.14.0,<2.0dev"
@@ -1326,7 +1326,7 @@ description = "A framework for managing and maintaining multi-language pre-commi
 name = "pre-commit"
 optional = false
 python-versions = ">=3.6.1"
-version = "2.5.0"
+version = "2.5.1"
 
 [package.dependencies]
 cfgv = ">=2.0.0"
@@ -2164,7 +2164,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "92d583aded572499e528c8ac53e27e1953bc0a4c7edc166d864e1fc82048b375"
+content-hash = "dc280acacec0c02be4625d3e845cb37d428880f798674c486bb7c1ae0c623b6a"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2222,12 +2222,12 @@ black = [
     {file = "black-19.10b0.tar.gz", hash = "sha256:c2edb73a08e9e0e6f65a0e6af18b059b8b1cdd5bef997d7a0b181df93dc81539"},
 ]
 boto3 = [
-    {file = "boto3-1.13.25-py2.py3-none-any.whl", hash = "sha256:89ad0d7bb0a619fa5b10d4b23bba8f2f97ee500055038da2723a96d4f0f97447"},
-    {file = "boto3-1.13.25.tar.gz", hash = "sha256:1c37c727e0e6f872f5262a893a1ed5422ef0f1ed6075d35b809e20c3072dad5b"},
+    {file = "boto3-1.13.26-py2.py3-none-any.whl", hash = "sha256:1100727d3e56c2b89250f532940daddad658cd39035ad044d0244dea2416f8fc"},
+    {file = "boto3-1.13.26.tar.gz", hash = "sha256:76022d2a895ba3faa2550e6e4e0ea9dc9227d8d3bcb5ab6775a904a4d628d090"},
 ]
 botocore = [
-    {file = "botocore-1.16.25-py2.py3-none-any.whl", hash = "sha256:66a92cc8cb070483d1c013748a96b9bf76cfb8dbcba9ffd942dae749e432afe1"},
-    {file = "botocore-1.16.25.tar.gz", hash = "sha256:b55b3acab42b58c24481a9fbb33d53fb7d8d03dfc0338af0132f6c5010006d0d"},
+    {file = "botocore-1.16.26-py2.py3-none-any.whl", hash = "sha256:34f4324d15245482a78f1f1b71861982f3e30ed22245bf2e1ec112b5dac5b349"},
+    {file = "botocore-1.16.26.tar.gz", hash = "sha256:318b487b9496bf162883fce9ce137b1cd864a968bb0c9e70e0e44c4a62cf2d3c"},
 ]
 braintree = [
     {file = "braintree-4.1.0-py2.py3-none-any.whl", hash = "sha256:152fa9e3b30a7757db0061e1c022c944216bf881209376b28a3f07043cff009b"},
@@ -2472,8 +2472,8 @@ future = [
     {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
 ]
 google-api-core = [
-    {file = "google-api-core-1.19.1.tar.gz", hash = "sha256:6ce7609320449ad8680312395b89396a7d6951032f1886bb1a16534e4ff3867d"},
-    {file = "google_api_core-1.19.1-py2.py3-none-any.whl", hash = "sha256:30beef3c1a98789e380e157ed915fc57f8fb53b22c2410b20e9f9aad332741bc"},
+    {file = "google-api-core-1.20.0.tar.gz", hash = "sha256:eec2c302b50e6db0c713fb84b71b8d75cfad5dc6d4dffc78e9f69ba0008f5ede"},
+    {file = "google_api_core-1.20.0-py2.py3-none-any.whl", hash = "sha256:65ca5396393b3e592c49cba968380b6d2534d9c78b25fedbedea9dd1c6c50249"},
 ]
 google-auth = [
     {file = "google-auth-1.16.1.tar.gz", hash = "sha256:2f1a6bc3031fc7cd0c1aeb225ad34febcb60268f71f5df75d5976dd20a52c002"},
@@ -2761,8 +2761,8 @@ pluggy = [
     {file = "pluggy-0.13.1.tar.gz", hash = "sha256:15b2acde666561e1298d71b523007ed7364de07029219b604cf808bfa1c765b0"},
 ]
 pre-commit = [
-    {file = "pre_commit-2.5.0-py2.py3-none-any.whl", hash = "sha256:e02328d2a61dc6e0b20a40b6eecda2655b998fed7f561cac5993cbd8bdb3fbde"},
-    {file = "pre_commit-2.5.0.tar.gz", hash = "sha256:3f16110d2e5136de8bae11a32e496cc193a68cf02bcf11dba61d8e6aff06efc5"},
+    {file = "pre_commit-2.5.1-py2.py3-none-any.whl", hash = "sha256:c5c8fd4d0e1c363723aaf0a8f9cba0f434c160b48c4028f4bae6d219177945b3"},
+    {file = "pre_commit-2.5.1.tar.gz", hash = "sha256:da463cf8f0e257f9af49047ba514f6b90dbd9b4f92f4c8847a3ccd36834874c7"},
 ]
 prices = [
     {file = "prices-1.0.0.tar.gz", hash = "sha256:1e920a2f3b8d610985e7effcecd2b9ccfe58798c4c9641f76f6b5eb4a4bcd91b"},
