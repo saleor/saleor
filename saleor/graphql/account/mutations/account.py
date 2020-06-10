@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 import graphene
 import jwt
 from django.conf import settings
@@ -12,6 +10,7 @@ from ....account.error_codes import AccountErrorCode
 from ....checkout import AddressType
 from ....core.jwt import create_token, jwt_decode
 from ....core.utils.url import validate_storefront_url
+from ....settings import REQUEST_EMAIL_CHANGE_TOKEN_EXPIRATION_DELTA
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -416,7 +415,7 @@ class RequestEmailChange(BaseMutation):
             "new_email": new_email,
             "user_pk": user.pk,
         }
-        token = create_token(token_payload, timedelta(hours=1))
+        token = create_token(token_payload, REQUEST_EMAIL_CHANGE_TOKEN_EXPIRATION_DELTA)
         emails.send_user_change_email_url(redirect_url, user, new_email, token)
         return RequestEmailChange(user=user)
 

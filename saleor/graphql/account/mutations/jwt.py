@@ -52,8 +52,8 @@ class CreateToken(BaseMutation):
     """Mutation that authenticates a user and returns token and user data."""
 
     class Arguments:
-        email = graphene.String(required=True)
-        password = graphene.String(required=True)
+        email = graphene.String(required=True, description="Email of a user.")
+        password = graphene.String(required=True, description="Password of a user.")
 
     class Meta:
         description = "Create JWT token."
@@ -202,7 +202,9 @@ class VerifyToken(BaseMutation):
 
     user = graphene.Field(User, description="User assigned to token.")
     is_valid = graphene.Boolean(
-        default_value=False, description="Determine if token is valid or not."
+        required=True,
+        default_value=False,
+        description="Determine if token is valid or not.",
     )
     payload = GenericScalar(description="JWT payload.")
 
@@ -240,7 +242,7 @@ class VerifyToken(BaseMutation):
 
 class DeactivateAllUserTokens(BaseMutation):
     class Meta:
-        description = "Deactivate all existing JWT tokens assigned to user."
+        description = "Deactivate all JWT tokens of the currently authenticated user."
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -252,5 +254,5 @@ class DeactivateAllUserTokens(BaseMutation):
     def perform_mutation(cls, root, info, **data):
         user = info.context.user
         user.jwt_token_key = get_random_string()
-        user.save()
+        user.save(update_fields=["jwt_token_key"])
         return cls()
