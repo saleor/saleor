@@ -24,7 +24,8 @@ def on_task_failure(self, exc, task_id, args, kwargs, einfo):
         error_type=str(einfo.type),
     )
 
-    send_export_failed_info(export_file, "export_failed")
+    if export_file.user:
+        send_export_failed_info(export_file, export_file.user.email, "export_failed")
 
 
 def on_task_success(self, retval, task_id, args, kwargs):

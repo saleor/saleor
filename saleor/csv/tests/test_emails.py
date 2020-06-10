@@ -20,7 +20,7 @@ def test_send_email_with_link_to_download_file(
 
     # when
     emails.send_email_with_link_to_download_file(
-        user_export_file, "export_products_success"
+        user_export_file, user_export_file.user.email, "export_products_success"
     )
 
     # then
@@ -53,41 +53,27 @@ def test_send_email_with_link_to_download_file(
 
 
 @mock.patch("saleor.csv.emails.send_templated_mail")
-def test_send_email_with_link_to_download_file_for_app(
-    mocked_templated_email, app_export_file, app
-):
-    # when
-    emails.send_email_with_link_to_download_file(
-        app_export_file, "export_products_success"
-    )
-
-    # then
-    mocked_templated_email.assert_not_called()
-
-    assert not ExportEvent.objects.filter(
-        export_file=app_export_file,
-        user=app_export_file.user,
-        type=ExportEvents.EXPORTED_FILE_SENT,
-    ).exists()
-
-
-@mock.patch("saleor.csv.emails.send_templated_mail")
 def test_send_export_failed_info(
     mocked_templated_email, site_settings, user_export_file, tmpdir, media_root
 ):
+    # given
     file_mock = mock.MagicMock(spec=File)
     file_mock.name = "temp_file.csv"
 
     user_export_file.content_file = file_mock
     user_export_file.save()
+    recipients = [user_export_file.user.email]
 
-    emails.send_export_failed_info(user_export_file, "export_failed")
+    # when
+    emails.send_export_failed_info(user_export_file, recipients[0], "export_failed")
+
+    # then
     template = emails.EXPORT_TEMPLATES["export_failed"]
     ctx = {
         "domain": "mirumee.com",
         "site_name": "mirumee.com",
     }
-    recipients = [user_export_file.user.email]
+
     expected_call_kwargs = {
         "context": ctx,
         "from_email": site_settings.default_from_email,
@@ -107,18 +93,3 @@ def test_send_export_failed_info(
         user=user_export_file.user,
         type=ExportEvents.EXPORT_FAILED_INFO_SENT,
     )
-
-
-@mock.patch("saleor.csv.emails.send_templated_mail")
-def test_send_export_failed_info_for_app(mocked_templated_email, app_export_file, app):
-    # when
-    emails.send_export_failed_info(app_export_file, "export_failed")
-
-    # then
-    mocked_templated_email.assert_not_called()
-
-    assert not ExportEvent.objects.filter(
-        export_file=app_export_file,
-        user=app_export_file.user,
-        type=ExportEvents.EXPORTED_FILE_SENT,
-    ).exists()

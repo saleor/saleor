@@ -64,6 +64,45 @@ def test_on_task_failure(send_export_failed_info_mock, user_export_file):
     send_export_failed_info_mock.called_once_with(user_export_file, "export_failed")
 
 
+@patch("saleor.csv.tasks.send_export_failed_info")
+def test_on_task_failure_for_app(send_export_failed_info_mock, app_export_file):
+    # given
+    exc = Exception("Test")
+    task_id = "task_id"
+    args = [app_export_file.pk, {"all": ""}]
+    kwargs = {}
+    info_type = "Test error"
+    info = Mock(type=info_type)
+
+    assert app_export_file.status == JobStatus.PENDING
+    assert app_export_file.created_at
+    previous_updated_at = app_export_file.updated_at
+
+    with freeze_time(datetime.datetime.now()) as frozen_datetime:
+        # when
+        on_task_failure(None, exc, task_id, args, kwargs, info)
+
+        # then
+        app_export_file.refresh_from_db()
+        assert app_export_file.updated_at == pytz.utc.localize(frozen_datetime())
+
+    assert app_export_file.updated_at != previous_updated_at
+    assert app_export_file.status == JobStatus.FAILED
+    assert app_export_file.created_at
+    assert app_export_file.updated_at != previous_updated_at
+    export_failed_event = ExportEvent.objects.get(
+        export_file=app_export_file,
+        user=app_export_file.user,
+        type=ExportEvents.EXPORT_FAILED,
+    )
+    assert export_failed_event.parameters == {
+        "message": str(exc),
+        "error_type": info_type,
+    }
+
+    send_export_failed_info_mock.assert_not_called()
+
+
 def test_on_task_success(user_export_file):
     # given
     task_id = "task_id"

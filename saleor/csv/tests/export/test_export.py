@@ -25,50 +25,58 @@ from ...utils.export import (
 
 
 @pytest.mark.parametrize(
-    "scope, file_type",
-    [
-        ({"filter": {"is_published": True}}, FileTypes.CSV),
-        ({"all": ""}, FileTypes.XLSX),
-    ],
+    "file_type", [FileTypes.CSV, FileTypes.XLSX],
 )
 @patch("saleor.csv.utils.export.create_file_with_headers")
 @patch("saleor.csv.utils.export.export_products_in_batches")
+@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 def test_export_products(
+    send_email_mock,
     export_products_in_batches_mock,
-    create_file_with_headers,
+    create_file_with_headers_mock,
     product_list,
     user_export_file,
-    scope,
     file_type,
 ):
+    # given
     export_info = {
         "fields": [ProductFieldEnum.NAME.value],
         "warehouses": [],
         "attributes": [],
     }
-    export_products(user_export_file, scope, export_info, file_type)
 
+    # when
+    export_products(user_export_file, {"all": ""}, export_info, file_type)
+
+    # then
+    create_file_with_headers_mock.called_once_with(
+        ["id", "name"], ";", user_export_file, ANY, file_type
+    )
     export_products_in_batches_mock.called_once_with(
-        ANY,
+        Product.objects.all(),
         export_info,
         {"id", "name"},
         ["id", "name"],
-        {"id": "id", "name": "name"},
         ";",
-        ANY,
-        ANY,
+        user_export_file,
         file_type,
     )
-    create_file_with_headers.called_once_with(
-        ["id", "name"], ";", user_export_file, ANY, file_type
+    send_email_mock.called_once_with(
+        user_export_file, user_export_file.user.email, "export_products_success"
     )
 
 
-@patch("saleor.csv.utils.export.export_products_in_batches")
 @patch("saleor.csv.utils.export.create_file_with_headers")
+@patch("saleor.csv.utils.export.export_products_in_batches")
+@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 def test_export_products_ids(
-    save_csv_file_in_export_file_mock, send_email_mock, product_list, user_export_file
+    send_email_mock,
+    export_products_in_batches_mock,
+    create_file_with_headers_mock,
+    product_list,
+    user_export_file,
 ):
+    # given
     pks = [product.pk for product in product_list[:2]]
     export_info = {"fields": [], "warehouses": [], "attributes": []}
     file_type = FileTypes.CSV
@@ -76,10 +84,105 @@ def test_export_products_ids(
     assert user_export_file.status == JobStatus.PENDING
     assert not user_export_file.content_file
 
+    # when
     export_products(user_export_file, {"ids": pks}, export_info, file_type)
 
-    save_csv_file_in_export_file_mock.called_once_with(user_export_file, ANY)
-    send_email_mock.called_once_with(user_export_file)
+    # then
+    create_file_with_headers_mock.called_once_with(
+        ["id"], ";", user_export_file, ANY, file_type
+    )
+    export_products_in_batches_mock.called_once_with(
+        Product.objects.filter(pk__in=pks),
+        export_info,
+        {"id"},
+        ["id"],
+        ";",
+        user_export_file,
+        file_type,
+    )
+    send_email_mock.called_once_with(
+        user_export_file, user_export_file.user.email, "export_products_success"
+    )
+
+
+@patch("saleor.csv.utils.export.create_file_with_headers")
+@patch("saleor.csv.utils.export.export_products_in_batches")
+@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
+def test_export_products_filter(
+    send_email_mock,
+    export_products_in_batches_mock,
+    create_file_with_headers_mock,
+    product_list,
+    user_export_file,
+):
+    # given
+    product_list[0].is_published = False
+    product_list[0].save(update_fields=["is_published"])
+
+    export_info = {"fields": [], "warehouses": [], "attributes": []}
+    file_type = FileTypes.CSV
+
+    assert user_export_file.status == JobStatus.PENDING
+    assert not user_export_file.content_file
+
+    # when
+    export_products(
+        user_export_file, {"filter": {"is_published": True}}, export_info, file_type
+    )
+
+    # then
+    create_file_with_headers_mock.called_once_with(
+        ["id"], ";", user_export_file, ANY, file_type
+    )
+    export_products_in_batches_mock.called_once_with(
+        Product.objects.filter(is_published=True),
+        export_info,
+        {"id"},
+        ["id"],
+        ";",
+        user_export_file,
+        file_type,
+    )
+    send_email_mock.called_once_with(
+        user_export_file, user_export_file.user.email, "export_products_success"
+    )
+
+
+@patch("saleor.csv.utils.export.create_file_with_headers")
+@patch("saleor.csv.utils.export.export_products_in_batches")
+@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
+def test_export_products_by_app(
+    send_email_mock,
+    export_products_in_batches_mock,
+    create_file_with_headers_mock,
+    product_list,
+    app_export_file,
+):
+    # given
+    export_info = {
+        "fields": [ProductFieldEnum.NAME.value],
+        "warehouses": [],
+        "attributes": [],
+    }
+    file_type = FileTypes.CSV
+
+    # when
+    export_products(app_export_file, {"all": ""}, export_info, file_type)
+
+    # then
+    create_file_with_headers_mock.called_once_with(
+        ["id", "name"], ";", app_export_file, ANY, file_type
+    )
+    export_products_in_batches_mock.called_once_with(
+        Product.objects.all(),
+        export_info,
+        {"id", "name"},
+        ["id", "name"],
+        ";",
+        app_export_file,
+        file_type,
+    )
+    send_email_mock.assert_not_called()
 
 
 def test_get_filename_csv():
@@ -273,13 +376,8 @@ def test_append_to_file_for_xlsx(user_export_file, tmpdir, media_root):
 
 
 @patch("saleor.csv.utils.export.BATCH_SIZE", 1)
-@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 def test_export_products_in_batches_for_csv(
-    save_csv_file_in_export_file_mock,
-    product_list,
-    user_export_file,
-    tmpdir,
-    media_root,
+    product_list, user_export_file, tmpdir, media_root,
 ):
     # given
     qs = Product.objects.all()
@@ -334,19 +432,12 @@ def test_export_products_in_batches_for_csv(
     for row in expected_data:
         assert ";".join(row) in file_content
 
-    save_csv_file_in_export_file_mock.called_once_with(user_export_file, ANY)
-
     shutil.rmtree(tmpdir)
 
 
 @patch("saleor.csv.utils.export.BATCH_SIZE", 1)
-@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 def test_export_products_in_batches_for_xlsx(
-    save_csv_file_in_export_file_mock,
-    product_list,
-    user_export_file,
-    tmpdir,
-    media_root,
+    product_list, user_export_file, tmpdir, media_root,
 ):
     # given
     qs = Product.objects.all()
@@ -409,7 +500,5 @@ def test_export_products_in_batches_for_xlsx(
     assert headers == expected_headers
     for row in expected_data:
         assert row in data
-
-    save_csv_file_in_export_file_mock.called_once_with(user_export_file, ANY)
 
     shutil.rmtree(tmpdir)
