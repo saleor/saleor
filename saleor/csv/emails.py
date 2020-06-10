@@ -19,12 +19,8 @@ EXPORT_TEMPLATES = {
 
 @app.task
 def send_email_with_link_to_download_file(
-    export_file: "ExportFile", template_name: str
+    export_file: "ExportFile", recipient_email: str, template_name: str
 ):
-    user = export_file.user
-    if not user:
-        return
-    recipient_email = user.email
     send_kwargs, ctx = get_email_context()
     ctx["csv_link"] = build_absolute_uri(export_file.content_file.url)
     send_templated_mail(
@@ -33,15 +29,13 @@ def send_email_with_link_to_download_file(
         context=ctx,
         **send_kwargs,
     )
-    events.export_file_sent_event(export_file=export_file, user=user)
+    events.export_file_sent_event(export_file=export_file, user=export_file.user)
 
 
 @app.task
-def send_export_failed_info(export_file: "ExportFile", template_name: str):
-    user = export_file.user
-    if not user:
-        return
-    recipient_email = user.email
+def send_export_failed_info(
+    export_file: "ExportFile", recipient_email: str, template_name: str
+):
     send_kwargs, ctx = get_email_context()
     send_templated_mail(
         template_name=EXPORT_TEMPLATES[template_name],
@@ -49,4 +43,4 @@ def send_export_failed_info(export_file: "ExportFile", template_name: str):
         context=ctx,
         **send_kwargs,
     )
-    events.export_failed_info_sent_event(export_file=export_file, user=user)
+    events.export_failed_info_sent_event(export_file=export_file, user=export_file.user)

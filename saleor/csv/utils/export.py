@@ -44,6 +44,11 @@ def export_products(
         file_type,
     )
 
+    if export_file.user:
+        send_email_with_link_to_download_file(
+            export_file, export_file.user.email, "export_products_success"
+        )
+
 
 def get_filename(model_name: str, file_type: str) -> str:
     return "{}_data_{}.{}".format(
@@ -113,8 +118,6 @@ def export_products_in_batches(
         )
 
         append_to_file(export_data, headers, export_file, file_type, delimiter)
-
-    send_email_with_link_to_download_file(export_file, "export_products_success")
 
 
 def create_file_with_headers(
