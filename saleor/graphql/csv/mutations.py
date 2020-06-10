@@ -79,10 +79,7 @@ class ExportProducts(BaseMutation):
         file_type = input["file_type"]
 
         app = info.context.app
-        if app:
-            kwargs = {"app": app}
-        else:
-            kwargs = {"user": info.context.user}
+        kwargs = {"app": app} if app else {"user": info.context.user}
 
         export_file = csv_models.ExportFile.objects.create(**kwargs)
         export_started_event(export_file=export_file, **kwargs)

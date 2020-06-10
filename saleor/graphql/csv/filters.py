@@ -7,7 +7,6 @@ from ..utils.filters import filter_by_query_param
 
 def filter_user(qs, _, value):
     user_fields = [
-        "user__pk",
         "user__first_name",
         "user__last_name",
         "user__email",
