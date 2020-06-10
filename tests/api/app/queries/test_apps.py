@@ -2,6 +2,7 @@ import pytest
 from freezegun import freeze_time
 
 from saleor.app.models import App
+from saleor.graphql.app.enums import AppTypeEnum
 from saleor.webhook.models import Webhook
 
 from ...utils import assert_no_permission, get_graphql_content
@@ -40,7 +41,14 @@ QUERY_APPS_WITH_FILTER = """
 
 
 @pytest.mark.parametrize(
-    "app_filter, count", (({"search": "Sample"}, 1), ({"isActive": False}, 1), ({}, 2)),
+    "app_filter, count",
+    (
+        ({"search": "Sample"}, 1),
+        ({"isActive": False}, 1),
+        ({}, 2),
+        ({"type": AppTypeEnum.THIRDPARTY.name}, 1),
+        ({"type": AppTypeEnum.LOCAL.name}, 1),
+    ),
 )
 def test_apps_query(
     staff_api_client,
