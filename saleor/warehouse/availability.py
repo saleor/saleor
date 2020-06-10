@@ -64,6 +64,8 @@ def get_available_quantity_for_customer(
     The returned value is limited by `MAX_CHECKOUT_LINE_QUANTITY` setting to
     limit the quantity of a variant that can be added in one checkout line.
     """
+    if not variant.track_inventory:
+        return settings.MAX_CHECKOUT_LINE_QUANTITY
 
     stocks = Stock.objects.filter(product_variant=variant)
     if country_code:
@@ -73,8 +75,6 @@ def get_available_quantity_for_customer(
 
     if not stocks:
         return 0
-    if not variant.track_inventory:
-        return settings.MAX_CHECKOUT_LINE_QUANTITY
 
     available_quantity_in_shipping_zones: Dict = defaultdict(int)
     for shipping_zone_pk, available_quantity in stocks:
