@@ -54,4 +54,4 @@ PATTERNS_IGNORED_IN_QUERY_CAPTURES: List[Union[Pattern, SimpleLazyObject]] = [
 
 INSTALLED_APPS.append("saleor.tests")  # noqa: F405
 
-JWT_DONT_EXPIRE = False
+JWT_EXPIRE = True

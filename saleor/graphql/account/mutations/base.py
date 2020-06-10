@@ -49,8 +49,8 @@ class SetPassword(CreateToken):
         token = graphene.String(
             description="A one-time token required to set the password.", required=True
         )
-        email = graphene.String(required=True)
-        password = graphene.String(required=True)
+        email = graphene.String(required=True, description="Email of a user.")
+        password = graphene.String(required=True, description="Password of a user.")
 
     class Meta:
         description = (

@@ -4924,7 +4924,7 @@ type VariantPricingInfo {
 type VerifyToken {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   user: User
-  isValid: Boolean
+  isValid: Boolean!
   payload: GenericScalar
   accountErrors: [AccountError!]!
 }

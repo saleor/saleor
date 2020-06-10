@@ -59,7 +59,6 @@ class GraphQLView(View):
     middleware = None
     root_value = None
 
-    # TODO Remove unneeded exceptions
     HANDLED_EXCEPTIONS = (GraphQLError, PyJWTError, ReadOnlyException, PermissionDenied)
 
     def __init__(

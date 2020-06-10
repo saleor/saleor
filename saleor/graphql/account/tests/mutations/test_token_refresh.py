@@ -28,7 +28,6 @@ MUTATION_TOKEN_REFRESH = """
 
 @freeze_time("2020-03-18 12:00:00")
 def test_refresh_token_get_token_from_cookie(api_client, customer_user, settings):
-    print(settings.JWT_DONT_EXPIRE)
     csrf_token = _get_new_csrf_token()
     refresh_token = create_refresh_token(customer_user, {"csrfToken": csrf_token})
     variables = {"token": None, "csrf_token": csrf_token}
