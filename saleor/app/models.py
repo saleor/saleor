@@ -14,7 +14,7 @@ class App(ModelWithMetadata):
     created = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     type = models.CharField(
-        choices=AppType.CHOICES, default=AppType.CUSTOM, max_length=60
+        choices=AppType.CHOICES, default=AppType.LOCAL, max_length=60
     )
     identifier = models.CharField(blank=True, null=True, max_length=256)
     permissions = models.ManyToManyField(
