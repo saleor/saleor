@@ -25,61 +25,164 @@ from ...utils.export import (
 
 
 @pytest.mark.parametrize(
-    "scope, file_type",
-    [
-        ({"filter": {"is_published": True}}, FileTypes.CSV),
-        ({"all": ""}, FileTypes.XLSX),
-    ],
+    "file_type", [FileTypes.CSV, FileTypes.XLSX],
 )
 @patch("saleor.csv.utils.export.create_file_with_headers")
 @patch("saleor.csv.utils.export.export_products_in_batches")
+@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 def test_export_products(
+    send_email_mock,
     export_products_in_batches_mock,
-    create_file_with_headers,
+    create_file_with_headers_mock,
     product_list,
-    export_file,
-    scope,
+    user_export_file,
     file_type,
 ):
+    # given
     export_info = {
         "fields": [ProductFieldEnum.NAME.value],
         "warehouses": [],
         "attributes": [],
     }
-    export_products(export_file, scope, export_info, file_type)
 
+    # when
+    export_products(user_export_file, {"all": ""}, export_info, file_type)
+
+    # then
+    create_file_with_headers_mock.called_once_with(
+        ["id", "name"], ";", user_export_file, ANY, file_type
+    )
     export_products_in_batches_mock.called_once_with(
-        ANY,
+        Product.objects.all(),
         export_info,
         {"id", "name"},
         ["id", "name"],
-        {"id": "id", "name": "name"},
         ";",
-        ANY,
-        ANY,
+        user_export_file,
         file_type,
     )
-    create_file_with_headers.called_once_with(
-        ["id", "name"], ";", export_file, ANY, file_type
+    send_email_mock.called_once_with(
+        user_export_file, user_export_file.user.email, "export_products_success"
     )
 
 
-@patch("saleor.csv.utils.export.export_products_in_batches")
 @patch("saleor.csv.utils.export.create_file_with_headers")
+@patch("saleor.csv.utils.export.export_products_in_batches")
+@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 def test_export_products_ids(
-    save_csv_file_in_export_file_mock, send_email_mock, product_list, export_file
+    send_email_mock,
+    export_products_in_batches_mock,
+    create_file_with_headers_mock,
+    product_list,
+    user_export_file,
 ):
+    # given
     pks = [product.pk for product in product_list[:2]]
     export_info = {"fields": [], "warehouses": [], "attributes": []}
     file_type = FileTypes.CSV
 
-    assert export_file.status == JobStatus.PENDING
-    assert not export_file.content_file
+    assert user_export_file.status == JobStatus.PENDING
+    assert not user_export_file.content_file
 
-    export_products(export_file, {"ids": pks}, export_info, file_type)
+    # when
+    export_products(user_export_file, {"ids": pks}, export_info, file_type)
 
-    save_csv_file_in_export_file_mock.called_once_with(export_file, ANY)
-    send_email_mock.called_once_with(export_file)
+    # then
+    create_file_with_headers_mock.called_once_with(
+        ["id"], ";", user_export_file, ANY, file_type
+    )
+    export_products_in_batches_mock.called_once_with(
+        Product.objects.filter(pk__in=pks),
+        export_info,
+        {"id"},
+        ["id"],
+        ";",
+        user_export_file,
+        file_type,
+    )
+    send_email_mock.called_once_with(
+        user_export_file, user_export_file.user.email, "export_products_success"
+    )
+
+
+@patch("saleor.csv.utils.export.create_file_with_headers")
+@patch("saleor.csv.utils.export.export_products_in_batches")
+@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
+def test_export_products_filter(
+    send_email_mock,
+    export_products_in_batches_mock,
+    create_file_with_headers_mock,
+    product_list,
+    user_export_file,
+):
+    # given
+    product_list[0].is_published = False
+    product_list[0].save(update_fields=["is_published"])
+
+    export_info = {"fields": [], "warehouses": [], "attributes": []}
+    file_type = FileTypes.CSV
+
+    assert user_export_file.status == JobStatus.PENDING
+    assert not user_export_file.content_file
+
+    # when
+    export_products(
+        user_export_file, {"filter": {"is_published": True}}, export_info, file_type
+    )
+
+    # then
+    create_file_with_headers_mock.called_once_with(
+        ["id"], ";", user_export_file, ANY, file_type
+    )
+    export_products_in_batches_mock.called_once_with(
+        Product.objects.filter(is_published=True),
+        export_info,
+        {"id"},
+        ["id"],
+        ";",
+        user_export_file,
+        file_type,
+    )
+    send_email_mock.called_once_with(
+        user_export_file, user_export_file.user.email, "export_products_success"
+    )
+
+
+@patch("saleor.csv.utils.export.create_file_with_headers")
+@patch("saleor.csv.utils.export.export_products_in_batches")
+@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
+def test_export_products_by_app(
+    send_email_mock,
+    export_products_in_batches_mock,
+    create_file_with_headers_mock,
+    product_list,
+    app_export_file,
+):
+    # given
+    export_info = {
+        "fields": [ProductFieldEnum.NAME.value],
+        "warehouses": [],
+        "attributes": [],
+    }
+    file_type = FileTypes.CSV
+
+    # when
+    export_products(app_export_file, {"all": ""}, export_info, file_type)
+
+    # then
+    create_file_with_headers_mock.called_once_with(
+        ["id", "name"], ";", app_export_file, ANY, file_type
+    )
+    export_products_in_batches_mock.called_once_with(
+        Product.objects.all(),
+        export_info,
+        {"id", "name"},
+        ["id", "name"],
+        ";",
+        app_export_file,
+        file_type,
+    )
+    send_email_mock.assert_not_called()
 
 
 def test_get_filename_csv():
@@ -119,19 +222,21 @@ def get_product_queryset_filter(product_list):
     assert queryset.count() == len(product_list) - 1
 
 
-def test_create_file_with_headers_csv(export_file, tmpdir, media_root):
+def test_create_file_with_headers_csv(user_export_file, tmpdir, media_root):
     # given
     file_headers = ["id", "name", "collections"]
     file_name = "test.csv"
     export_file_csv_upload_dir = ExportFile.content_file.field.upload_to
 
-    assert not export_file.content_file
+    assert not user_export_file.content_file
 
     # when
-    create_file_with_headers(file_headers, ";", export_file, file_name, FileTypes.CSV)
+    create_file_with_headers(
+        file_headers, ";", user_export_file, file_name, FileTypes.CSV
+    )
 
     # then
-    csv_file = export_file.content_file
+    csv_file = user_export_file.content_file
     assert csv_file
     assert csv_file.name == f"{export_file_csv_upload_dir}/{file_name}"
 
@@ -142,19 +247,21 @@ def test_create_file_with_headers_csv(export_file, tmpdir, media_root):
     shutil.rmtree(tmpdir)
 
 
-def test_create_file_with_headers_xlsx(export_file, tmpdir, media_root):
+def test_create_file_with_headers_xlsx(user_export_file, tmpdir, media_root):
     # given
     file_headers = ["id", "name", "collections"]
     file_name = "test.xlsx"
     export_file_csv_upload_dir = ExportFile.content_file.field.upload_to
 
-    assert not export_file.content_file
+    assert not user_export_file.content_file
 
     # when
-    create_file_with_headers(file_headers, ";", export_file, file_name, FileTypes.XLSX)
+    create_file_with_headers(
+        file_headers, ";", user_export_file, file_name, FileTypes.XLSX
+    )
 
     # then
-    xlsx_file = export_file.content_file
+    xlsx_file = user_export_file.content_file
     assert xlsx_file
     assert xlsx_file.name == f"{export_file_csv_upload_dir}/{file_name}"
 
@@ -169,22 +276,22 @@ def test_create_file_with_headers_xlsx(export_file, tmpdir, media_root):
     shutil.rmtree(tmpdir)
 
 
-def test_save_csv_file_in_export_file(export_file, tmpdir, media_root):
+def test_save_csv_file_in_export_file(user_export_file, tmpdir, media_root):
     file_mock = MagicMock(spec=File)
     file_mock.name = "temp_file.csv"
     file_name = "test.csv"
 
-    assert not export_file.content_file
+    assert not user_export_file.content_file
 
-    save_csv_file_in_export_file(export_file, file_mock, file_name)
+    save_csv_file_in_export_file(user_export_file, file_mock, file_name)
 
-    export_file.refresh_from_db()
-    assert export_file.content_file
+    user_export_file.refresh_from_db()
+    assert user_export_file.content_file
 
     shutil.rmtree(tmpdir)
 
 
-def test_append_to_file_for_csv(export_file, tmpdir, media_root):
+def test_append_to_file_for_csv(user_export_file, tmpdir, media_root):
     # given
     export_data = [
         {"id": "123", "name": "test1", "collections": "coll1"},
@@ -199,15 +306,15 @@ def test_append_to_file_for_csv(export_file, tmpdir, media_root):
 
     with NamedTemporaryFile() as temp_file:
         etl.tocsv(table, temp_file.name, delimiter=delimiter)
-        export_file.content_file.save(file_name, temp_file)
+        user_export_file.content_file.save(file_name, temp_file)
 
     # when
-    append_to_file(export_data, headers, export_file, FileTypes.CSV, delimiter)
+    append_to_file(export_data, headers, user_export_file, FileTypes.CSV, delimiter)
 
     # then
-    export_file.refresh_from_db()
+    user_export_file.refresh_from_db()
 
-    csv_file = export_file.content_file
+    csv_file = user_export_file.content_file
     file_content = csv_file.read().decode().split("\r\n")
     assert ";".join(headers) in file_content
     assert ";".join(export_data[0].values()) in file_content
@@ -216,7 +323,7 @@ def test_append_to_file_for_csv(export_file, tmpdir, media_root):
     shutil.rmtree(tmpdir)
 
 
-def test_append_to_file_for_xlsx(export_file, tmpdir, media_root):
+def test_append_to_file_for_xlsx(user_export_file, tmpdir, media_root):
     # given
     export_data = [
         {"id": "123", "name": "test1", "collections": "coll1"},
@@ -233,17 +340,17 @@ def test_append_to_file_for_xlsx(export_file, tmpdir, media_root):
 
     with NamedTemporaryFile() as temp_file:
         etl.io.xlsx.toxlsx(table, temp_file.name)
-        export_file.content_file.save(file_name, temp_file)
+        user_export_file.content_file.save(file_name, temp_file)
 
     # when
     append_to_file(
-        export_data, expected_headers, export_file, FileTypes.XLSX, delimiter
+        export_data, expected_headers, user_export_file, FileTypes.XLSX, delimiter
     )
 
     # then
-    export_file.refresh_from_db()
+    user_export_file.refresh_from_db()
 
-    xlsx_file = export_file.content_file
+    xlsx_file = user_export_file.content_file
     wb_obj = openpyxl.load_workbook(xlsx_file)
 
     sheet_obj = wb_obj.active
@@ -269,9 +376,8 @@ def test_append_to_file_for_xlsx(export_file, tmpdir, media_root):
 
 
 @patch("saleor.csv.utils.export.BATCH_SIZE", 1)
-@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 def test_export_products_in_batches_for_csv(
-    save_csv_file_in_export_file_mock, product_list, export_file, tmpdir, media_root
+    product_list, user_export_file, tmpdir, media_root,
 ):
     # given
     qs = Product.objects.all()
@@ -288,9 +394,9 @@ def test_export_products_in_batches_for_csv(
 
     with NamedTemporaryFile() as temp_file:
         etl.tocsv(table, temp_file.name, delimiter=";")
-        export_file.content_file.save(file_name, temp_file)
+        user_export_file.content_file.save(file_name, temp_file)
 
-    assert export_file.content_file
+    assert user_export_file.content_file
 
     # when
     export_products_in_batches(
@@ -299,13 +405,13 @@ def test_export_products_in_batches_for_csv(
         set(export_fields),
         export_fields,
         ";",
-        export_file,
+        user_export_file,
         FileTypes.CSV,
     )
 
     # then
-    export_file.refresh_from_db()
-    csv_file = export_file.content_file
+    user_export_file.refresh_from_db()
+    csv_file = user_export_file.content_file
     assert csv_file
 
     expected_data = []
@@ -326,15 +432,12 @@ def test_export_products_in_batches_for_csv(
     for row in expected_data:
         assert ";".join(row) in file_content
 
-    save_csv_file_in_export_file_mock.called_once_with(export_file, ANY)
-
     shutil.rmtree(tmpdir)
 
 
 @patch("saleor.csv.utils.export.BATCH_SIZE", 1)
-@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 def test_export_products_in_batches_for_xlsx(
-    save_csv_file_in_export_file_mock, product_list, export_file, tmpdir, media_root
+    product_list, user_export_file, tmpdir, media_root,
 ):
     # given
     qs = Product.objects.all()
@@ -351,9 +454,9 @@ def test_export_products_in_batches_for_xlsx(
 
     with NamedTemporaryFile() as temp_file:
         etl.io.xlsx.toxlsx(table, temp_file.name)
-        export_file.content_file.save(file_name, temp_file)
+        user_export_file.content_file.save(file_name, temp_file)
 
-    assert export_file.content_file
+    assert user_export_file.content_file
 
     # when
     export_products_in_batches(
@@ -362,13 +465,13 @@ def test_export_products_in_batches_for_xlsx(
         set(export_fields),
         export_fields,
         ";",
-        export_file,
+        user_export_file,
         FileTypes.XLSX,
     )
 
     # then
-    export_file.refresh_from_db()
-    assert export_file.content_file
+    user_export_file.refresh_from_db()
+    assert user_export_file.content_file
 
     expected_data = []
     for product in qs.order_by("pk"):
@@ -380,7 +483,7 @@ def test_export_products_in_batches_for_xlsx(
             product_data.append(variant.sku)
             expected_data.append(product_data)
 
-    xlsx_file = export_file.content_file
+    xlsx_file = user_export_file.content_file
     wb_obj = openpyxl.load_workbook(xlsx_file)
 
     sheet_obj = wb_obj.active
@@ -397,7 +500,5 @@ def test_export_products_in_batches_for_xlsx(
     assert headers == expected_headers
     for row in expected_data:
         assert row in data
-
-    save_csv_file_in_export_file_mock.called_once_with(export_file, ANY)
 
     shutil.rmtree(tmpdir)

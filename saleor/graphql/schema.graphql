@@ -1761,7 +1761,8 @@ type ExportEvent implements Node {
   id: ID!
   date: DateTime!
   type: ExportEventsEnum!
-  user: User!
+  user: User
+  app: App
   message: String!
 }
 
@@ -1776,7 +1777,8 @@ enum ExportEventsEnum {
 
 type ExportFile implements Node & Job {
   id: ID!
-  createdBy: User!
+  user: User
+  app: App
   status: JobStatusEnum!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -1799,14 +1801,14 @@ input ExportFileFilterInput {
   createdAt: DateTimeRangeInput
   updatedAt: DateTimeRangeInput
   status: JobStatusEnum
-  createdBy: String
+  user: String
+  app: String
 }
 
 enum ExportFileSortField {
   STATUS
   CREATED_AT
   UPDATED_AT
-  CREATED_BY
 }
 
 input ExportFileSortingInput {

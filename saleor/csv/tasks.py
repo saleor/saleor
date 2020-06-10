@@ -18,11 +18,14 @@ def on_task_failure(self, exc, task_id, args, kwargs, einfo):
 
     events.export_failed_event(
         export_file=export_file,
-        user=export_file.created_by,
+        user=export_file.user,
+        app=export_file.app,
         message=str(exc),
         error_type=str(einfo.type),
     )
-    send_export_failed_info(export_file, "export_failed")
+
+    if export_file.user:
+        send_export_failed_info(export_file, export_file.user.email, "export_failed")
 
 
 def on_task_success(self, retval, task_id, args, kwargs):
@@ -32,7 +35,9 @@ def on_task_success(self, retval, task_id, args, kwargs):
     export_file.status = JobStatus.SUCCESS
     export_file.save(update_fields=["status", "updated_at"])
 
-    events.export_success_event(export_file=export_file, user=export_file.created_by)
+    events.export_success_event(
+        export_file=export_file, user=export_file.user, app=export_file.app
+    )
 
 
 @app.task(on_success=on_task_success, on_failure=on_task_failure)

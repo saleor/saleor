@@ -1,9 +1,10 @@
 import graphene
 from graphql_jwt.exceptions import PermissionDenied
 
-from ...core.permissions import AccountPermissions
+from ...core.permissions import AccountPermissions, AppPermission
 from ...csv import models
 from ..account.types import User
+from ..app.types import App
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Job
 from ..utils import get_user_or_app_from_context
@@ -16,7 +17,10 @@ class ExportEvent(CountableDjangoObjectType):
     )
     type = ExportEventEnum(description="Export event type.", required=True)
     user = graphene.Field(
-        User, description="User who performed the action.", required=True
+        User, description="User who performed the action.", required=False
+    )
+    app = graphene.Field(
+        App, description="App which performed the action.", required=False
     )
     message = graphene.String(description="Content of the event.", required=True,)
 
@@ -29,12 +33,17 @@ class ExportEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_user(root: models.ExportEvent, info):
         requestor = get_user_or_app_from_context(info.context)
-        if (
-            requestor == root.user
-            or requestor.has_perm(AccountPermissions.MANAGE_USERS)
-            or requestor.has_perm(AccountPermissions.MANAGE_STAFF)
+        if requestor == root.user or requestor.has_perm(
+            AccountPermissions.MANAGE_STAFF
         ):
             return root.user
+        raise PermissionDenied()
+
+    @staticmethod
+    def resolve_app(root: models.ExportEvent, info):
+        requestor = get_user_or_app_from_context(info.context)
+        if requestor == root.app or requestor.has_perm(AppPermission.MANAGE_APPS):
+            return root.app
         raise PermissionDenied()
 
     @staticmethod
@@ -53,7 +62,7 @@ class ExportFile(CountableDjangoObjectType):
         description = "Represents a job data of exported file."
         interfaces = [graphene.relay.Node, Job]
         model = models.ExportFile
-        only_fields = ["id", "created_by", "url"]
+        only_fields = ["id", "user", "app", "url"]
 
     @staticmethod
     def resolve_url(root: models.ExportFile, info):
@@ -63,12 +72,19 @@ class ExportFile(CountableDjangoObjectType):
         return info.context.build_absolute_uri(content_file.url)
 
     @staticmethod
-    def resolve_created_by(root: models.ExportFile, info):
+    def resolve_user(root: models.ExportFile, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor == root.created_by or requestor.has_perm(
-            AccountPermissions.MANAGE_USERS
+        if requestor == root.user or requestor.has_perm(
+            AccountPermissions.MANAGE_STAFF
         ):
-            return root.created_by
+            return root.user
+        raise PermissionDenied()
+
+    @staticmethod
+    def resolve_app(root: models.ExportFile, info):
+        requestor = get_user_or_app_from_context(info.context)
+        if requestor == root.app or requestor.has_perm(AppPermission.MANAGE_APPS):
+            return root.app
         raise PermissionDenied()
 
     @staticmethod
