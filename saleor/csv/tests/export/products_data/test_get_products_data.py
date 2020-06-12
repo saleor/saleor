@@ -3,6 +3,11 @@ from measurement.measures import Weight
 from .....product.models import Attribute, Product, ProductVariant, VariantImage
 from .....warehouse.models import Warehouse
 from ....utils.products_data import ProductExportFields, get_products_data
+from .utils import (
+    add_product_attribute_data_to_expected_data,
+    add_stocks_to_expected_data,
+    add_variant_attribute_data_to_expected_data,
+)
 
 
 def test_get_products_data(product, product_with_image, collection, image):
@@ -74,10 +79,9 @@ def test_get_products_data(product, product_with_image, collection, image):
             ),
         }
 
-        assigned_attribute = product.attributes.first()
-        if assigned_attribute:
-            header = f"{assigned_attribute.attribute.slug} (product attribute)"
-            product_data[header] = assigned_attribute.values.first().slug
+        product_data = add_product_attribute_data_to_expected_data(
+            product_data, product, attribute_ids
+        )
 
         for variant in product.variants.all():
             data = {
@@ -98,17 +102,10 @@ def test_get_products_data(product, product_with_image, collection, image):
             }
             data.update(product_data)
 
-            for stock in variant.stocks.all():
-                slug = stock.warehouse.slug
-                warehouse_headers = [
-                    f"{slug} (warehouse quantity)",
-                ]
-                data[warehouse_headers[0]] = stock.quantity
-
-            assigned_attribute = variant.attributes.first()
-            if assigned_attribute:
-                header = f"{assigned_attribute.attribute.slug} (variant attribute)"
-                data[header] = assigned_attribute.values.first().slug
+            data = add_stocks_to_expected_data(data, variant, warehouse_ids)
+            data = add_variant_attribute_data_to_expected_data(
+                data, variant, attribute_ids
+            )
 
             expected_data.append(data)
 
@@ -131,20 +128,17 @@ def test_get_products_data_for_specified_attributes(
     for product in products.order_by("pk"):
         product_data = {"id": product.pk}
 
-        for assigned_attribute in product.attributes.all():
-            if assigned_attribute:
-                header = f"{assigned_attribute.attribute.slug} (product attribute)"
-                if str(assigned_attribute.attribute.pk) in attribute_ids:
-                    product_data[header] = assigned_attribute.values.first().slug
+        product_data = add_product_attribute_data_to_expected_data(
+            product_data, product, attribute_ids
+        )
 
         for variant in product.variants.all():
             data = {}
             data.update(product_data)
             data["variants__sku"] = variant.sku
-            for assigned_attribute in variant.attributes.all():
-                header = f"{assigned_attribute.attribute.slug} (variant attribute)"
-                if str(assigned_attribute.attribute.pk) in attribute_ids:
-                    data[header] = assigned_attribute.values.first().slug
+            data = add_variant_attribute_data_to_expected_data(
+                data, variant, attribute_ids
+            )
 
             expected_data.append(data)
 
@@ -176,13 +170,7 @@ def test_get_products_data_for_specified_warehouses(
             data = {"variants__sku": variant.sku}
             data.update(product_data)
 
-            for stock in variant.stocks.all():
-                if str(stock.warehouse.pk) in warehouse_ids:
-                    slug = stock.warehouse.slug
-                    warehouse_headers = [
-                        f"{slug} (warehouse quantity)",
-                    ]
-                    data[warehouse_headers[0]] = stock.quantity
+            data = add_stocks_to_expected_data(data, variant, warehouse_ids)
 
             expected_data.append(data)
 
@@ -214,28 +202,18 @@ def test_get_products_data_for_specified_warehouses_and_attributes(
     for product in products.order_by("pk"):
         product_data = {"id": product.id}
 
-        for assigned_attribute in product.attributes.all():
-            if assigned_attribute:
-                header = f"{assigned_attribute.attribute.slug} (product attribute)"
-                if str(assigned_attribute.attribute.pk) in attribute_ids:
-                    product_data[header] = assigned_attribute.values.first().slug
+        product_data = add_product_attribute_data_to_expected_data(
+            product_data, product, attribute_ids
+        )
 
         for variant in product.variants.all():
             data = {"variants__sku": variant.sku}
             data.update(product_data)
 
-            for stock in variant.stocks.all():
-                if str(stock.warehouse.pk) in warehouse_ids:
-                    slug = stock.warehouse.slug
-                    warehouse_headers = [
-                        f"{slug} (warehouse quantity)",
-                    ]
-                    data[warehouse_headers[0]] = stock.quantity
-
-            for assigned_attribute in variant.attributes.all():
-                header = f"{assigned_attribute.attribute.slug} (variant attribute)"
-                if str(assigned_attribute.attribute.pk) in attribute_ids:
-                    data[header] = assigned_attribute.values.first().slug
+            data = add_stocks_to_expected_data(data, variant, warehouse_ids)
+            data = add_variant_attribute_data_to_expected_data(
+                data, variant, attribute_ids
+            )
 
             expected_data.append(data)
 
