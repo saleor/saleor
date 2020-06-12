@@ -115,6 +115,30 @@ class AppTokenDelete(ModelDeleteMutation):
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
 
+class AppTokenVerify(BaseMutation):
+    valid = graphene.Boolean(
+        default_value=False,
+        required=True,
+        description="Determine if token is valid or not.",
+    )
+
+    class Arguments:
+        token = graphene.String(description="App token to verify.", required=True)
+
+    class Meta:
+        description = "Verify provided app token."
+        error_type_class = AppError
+        error_type_field = "app_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        token = data.get("token")
+        app_token = models.AppToken.objects.filter(
+            auth_token=token, app__is_active=True
+        ).first()
+        return AppTokenVerify(valid=bool(app_token))
+
+
 class AppCreate(ModelMutation):
     auth_token = graphene.types.String(
         description="The newly created authentication token."

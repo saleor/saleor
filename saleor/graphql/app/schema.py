@@ -16,6 +16,7 @@ from .mutations import (
     AppRetryInstall,
     AppTokenCreate,
     AppTokenDelete,
+    AppTokenVerify,
     AppUpdate,
 )
 from .resolvers import resolve_apps, resolve_apps_installations
@@ -66,6 +67,7 @@ class AppMutations(graphene.ObjectType):
 
     app_token_create = AppTokenCreate.Field()
     app_token_delete = AppTokenDelete.Field()
+    app_token_verify = AppTokenVerify.Field()
 
     app_install = AppInstall.Field()
     app_retry_install = AppRetryInstall.Field()
