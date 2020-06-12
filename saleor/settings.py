@@ -568,6 +568,6 @@ JWT_TTL_ACCESS = timedelta(seconds=parse(os.environ.get("JWT_TTL_ACCESS", "5 min
 JWT_TTL_REFRESH = timedelta(seconds=parse(os.environ.get("JWT_TTL_REFRESH", "30 days")))
 
 
-REQUEST_EMAIL_CHANGE_TOKEN_EXPIRATION = timedelta(
-    seconds=parse(os.environ.get("REQUEST_EMAIL_CHANGE_TOKEN_EXPIRATION", "1 hour")),
+JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
+    seconds=parse(os.environ.get("JWT_TTL_REQUEST_EMAIL_CHANGE", "1 hour")),
 )
