@@ -47,7 +47,7 @@ def test_refresh_token_get_token_from_cookie(api_client, customer_user, settings
     assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
     assert (
         datetime.fromtimestamp(payload["exp"])
-        == datetime.utcnow() + settings.JWT_EXPIRATION_DELTA
+        == datetime.utcnow() + settings.JWT_TTL_ACCESS
     )
     assert payload["type"] == JWT_ACCESS_TYPE
     assert payload["token"] == customer_user.jwt_token_key
@@ -72,7 +72,7 @@ def test_refresh_token_get_token_from_input(api_client, customer_user, settings)
     assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
     assert (
         datetime.fromtimestamp(payload["exp"])
-        == datetime.utcnow() + settings.JWT_EXPIRATION_DELTA
+        == datetime.utcnow() + settings.JWT_TTL_ACCESS
     )
     assert payload["type"] == JWT_ACCESS_TYPE
 
