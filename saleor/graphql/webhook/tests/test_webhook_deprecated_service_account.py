@@ -1,11 +1,10 @@
 import graphene
 import pytest
 
-from saleor.app.models import App
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
-from saleor.graphql.webhook.enums import WebhookEventTypeEnum
-from saleor.webhook.models import Webhook
-
+from ....app.models import App
+from ....webhook.models import Webhook
+from ...tests.utils import assert_no_permission, get_graphql_content
+from ..enums import WebhookEventTypeEnum
 from .test_webhook import QUERY_WEBHOOKS_WITH_SORT
 
 WEBHOOK_CREATE_BY_STAFF = """

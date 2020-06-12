@@ -1,9 +1,10 @@
 import pytest
+from django_countries import countries
 from measurement.measures import Weight
 from prices import Money
 
-from saleor.shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
-from saleor.shipping.utils import default_shipping_zone_exists
+from ..models import ShippingMethod, ShippingMethodType, ShippingZone
+from ..utils import default_shipping_zone_exists, get_countries_without_shipping_zone
 
 
 def test_shipping_get_total(monkeypatch, shipping_zone):
@@ -126,6 +127,9 @@ def test_use_default_shipping_zone(shipping_zone):
     shipping_zone.save()
 
     default_zone = ShippingZone.objects.create(default=True, name="Default")
+    default_zone.countries = get_countries_without_shipping_zone()
+    default_zone.save(update_fields=["countries"])
+
     weight_method = default_zone.shipping_methods.create(
         minimum_order_weight=Weight(kg=1),
         maximum_order_weight=Weight(kg=10),
@@ -142,3 +146,8 @@ def test_default_shipping_zone_exists(shipping_zone):
     shipping_zone.save()
     assert default_shipping_zone_exists()
     assert not default_shipping_zone_exists(shipping_zone.pk)
+
+
+def test_get_countries_without_shipping_zone(shipping_zone_without_countries):
+    countries_no_shipping_zone = set(get_countries_without_shipping_zone())
+    assert {c.code for c in countries} == countries_no_shipping_zone

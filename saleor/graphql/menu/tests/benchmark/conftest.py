@@ -1,6 +1,6 @@
 import pytest
 
-from saleor.menu.utils import update_menu
+from .....menu.utils import update_menu
 
 
 @pytest.fixture

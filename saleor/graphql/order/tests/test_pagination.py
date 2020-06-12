@@ -6,9 +6,9 @@ import pytest
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from saleor.graphql.tests.utils import get_graphql_content
-from saleor.order.models import Order, OrderStatus
-from saleor.payment import ChargeStatus
+from ....order.models import Order, OrderStatus
+from ....payment import ChargeStatus
+from ...tests.utils import get_graphql_content
 
 
 @pytest.fixture()

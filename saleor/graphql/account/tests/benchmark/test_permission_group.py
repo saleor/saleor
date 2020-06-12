@@ -2,8 +2,8 @@ import graphene
 import pytest
 from django.contrib.auth.models import Group
 
-from saleor.core.permissions import AccountPermissions
-from saleor.graphql.tests.utils import get_graphql_content
+from .....core.permissions import AccountPermissions
+from ....tests.utils import get_graphql_content
 
 
 @pytest.mark.django_db

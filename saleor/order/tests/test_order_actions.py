@@ -4,8 +4,12 @@ from unittest.mock import patch
 import pytest
 from prices import Money, TaxedMoney
 
-from saleor.order import FulfillmentStatus, OrderEvents, OrderEventsEmails, OrderStatus
-from saleor.order.actions import (
+from ...payment import ChargeStatus, PaymentError
+from ...product.models import DigitalContent
+from ...product.tests.utils import create_image
+from ...warehouse.models import Allocation, Stock
+from .. import FulfillmentStatus, OrderEvents, OrderEventsEmails, OrderStatus
+from ..actions import (
     automatically_fulfill_digital_lines,
     cancel_fulfillment,
     cancel_order,
@@ -14,11 +18,7 @@ from saleor.order.actions import (
     handle_fully_paid_order,
     mark_order_as_paid,
 )
-from saleor.order.models import Fulfillment
-from saleor.payment import ChargeStatus, PaymentError
-from saleor.product.models import DigitalContent
-from saleor.product.tests.utils import create_image
-from saleor.warehouse.models import Allocation, Stock
+from ..models import Fulfillment
 
 
 @pytest.fixture
