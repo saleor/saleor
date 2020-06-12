@@ -1,8 +1,8 @@
 import graphene
 
-from saleor.core import JobStatus
-from saleor.csv import ExportEvents
-from saleor.graphql.tests.utils import get_graphql_content
+from .....core import JobStatus
+from .....csv import ExportEvents
+from ....tests.utils import get_graphql_content
 
 EXPORT_FILE_QUERY = """
     query($id: ID!){

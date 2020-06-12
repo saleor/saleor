@@ -3,12 +3,12 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 
-from saleor.csv import ExportEvents
-from saleor.csv.models import ExportEvent
-from saleor.graphql.csv.enums import ExportScope, FileTypeEnum, ProductFieldEnum
-from saleor.graphql.tests.utils import get_graphql_content
-from saleor.product.models import Attribute
-from saleor.warehouse.models import Warehouse
+from .....csv import ExportEvents
+from .....csv.models import ExportEvent
+from .....product.models import Attribute
+from .....warehouse.models import Warehouse
+from ....tests.utils import get_graphql_content
+from ...enums import ExportScope, FileTypeEnum, ProductFieldEnum
 
 EXPORT_PRODUCTS_MUTATION = """
     mutation ExportProducts($input: ExportProductsInput!){
