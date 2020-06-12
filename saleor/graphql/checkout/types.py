@@ -8,6 +8,7 @@ from ...core.permissions import AccountPermissions, CheckoutPermissions
 from ...core.taxes import display_gross_prices, zero_taxed_money
 from ...plugins.manager import get_plugins_manager
 from ..core.connection import CountableDjangoObjectType
+from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
 from ..decorators import permission_required
 from ..discount.dataloaders import DiscountsByDateTimeLoader
@@ -109,6 +110,7 @@ class Checkout(CountableDjangoObjectType):
         TaxedMoney,
         description="The price of the checkout before shipping, with taxes included.",
     )
+    token = graphene.Field(UUID, description=("The checkout's token."), required=True)
     total_price = graphene.Field(
         TaxedMoney,
         description=(
@@ -129,7 +131,6 @@ class Checkout(CountableDjangoObjectType):
             "quantity",
             "shipping_address",
             "shipping_method",
-            "token",
             "translated_discount_name",
             "user",
             "voucher_code",

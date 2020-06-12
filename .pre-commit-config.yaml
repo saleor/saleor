@@ -29,6 +29,7 @@ repos:
     hooks:
       - id: pydocstyle
         files: ^saleor/
+        exclude: tests/
 
   - repo: https://github.com/prettier/prettier
     rev: 1.18.2
@@ -42,6 +43,7 @@ repos:
     hooks:
       - id: mypy
         language: system
+        exclude: tests/
 
   - repo: local
     hooks:
