@@ -19,7 +19,7 @@ braintree = "~4.1.0"
 celery = { version = "^4.4.5", extras = ["redis"] }
 dj-database-url = "^0"
 dj-email-url = "^1"
-django = "^3.0.6"
+django = "3.0.6"
 django-countries = "^6.1"
 django-filter = "^2.3"
 django-measurement = "^3.0"
@@ -61,6 +61,7 @@ oauthlib = "^3.0"
 jaeger-client = "^4.3.0"
 django-cache-url = "^3.1.2"
 pyjwt = "^1.7.1"
+pytimeparse = "^1.1.8"
 
 [tool.poetry.dev-dependencies]
 black = "19.10b0"
