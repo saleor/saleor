@@ -33,10 +33,6 @@ def order_created(order: "Order", user: "User", from_draft: bool = False):
     events.order_created_event(order=order, user=user, from_draft=from_draft)
     manager = get_plugins_manager()
     manager.order_created(order)
-    handle_post_checkout_events(order=order, user=user)
-
-
-def handle_post_checkout_events(order: "Order", user: "User"):
     payment = order.get_last_payment()
     if payment:
         if order.is_captured():
