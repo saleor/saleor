@@ -8,6 +8,7 @@ from ....order import events, models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
+    handle_fully_paid_order,
     mark_order_as_paid,
     order_captured,
     order_refunded,
@@ -391,7 +392,8 @@ class OrderCapture(BaseMutation):
         try_payment_action(
             order, info.context.user, payment, gateway.capture, payment, amount
         )
-
+        if order.is_fully_paid():
+            handle_fully_paid_order(order)
         order_captured(order, info.context.user, amount, payment)
         return OrderCapture(order=order)
 
