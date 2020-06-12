@@ -137,7 +137,7 @@ class RefreshToken(BaseMutation):
     def get_refresh_token(cls, info, data):
         request = info.context
         refresh_token = request.COOKIES.get(JWT_REFRESH_TOKEN_COOKIE_NAME, None)
-        refresh_token = refresh_token or data.get("refresh_token")
+        refresh_token = data.get("refresh_token") or refresh_token
         return refresh_token
 
     @classmethod
