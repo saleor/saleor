@@ -52,13 +52,13 @@ def jwt_user_payload(
 
 def jwt_encode(payload: Dict[str, Any]) -> str:
     return jwt.encode(
-        payload, settings.JWT_SECRET, JWT_ALGORITHM,  # type: ignore
+        payload, settings.SECRET_KEY, JWT_ALGORITHM,  # type: ignore
     ).decode("utf-8")
 
 
 def jwt_decode(token: str) -> Dict[str, Any]:
     return jwt.decode(
-        token, settings.JWT_SECRET, algorithms=JWT_ALGORITHM  # type: ignore
+        token, settings.SECRET_KEY, algorithms=JWT_ALGORITHM  # type: ignore
     )
 
 
