@@ -42,7 +42,7 @@ def test_refresh_token_get_token_from_cookie(api_client, customer_user, settings
     assert not errors
     token = data.get("token")
     assert token
-    payload = decode(token, settings.JWT_SECRET, algorithms=JWT_ALGORITHM)
+    payload = decode(token, settings.SECRET_KEY, algorithms=JWT_ALGORITHM)
     assert payload["email"] == customer_user.email
     assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
     assert (
@@ -67,7 +67,7 @@ def test_refresh_token_get_token_from_input(api_client, customer_user, settings)
     assert not errors
     token = data.get("token")
     assert token
-    payload = decode(token, settings.JWT_SECRET, algorithms=JWT_ALGORITHM)
+    payload = decode(token, settings.SECRET_KEY, algorithms=JWT_ALGORITHM)
     assert payload["email"] == customer_user.email
     assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
     assert (
