@@ -374,6 +374,42 @@ def test_mutation_create_warehouse(
     assert created_warehouse["slug"] == warehouse.slug
 
 
+def test_mutation_create_warehouse_does_not_create_when_name_is_empty_string(
+    staff_api_client, permission_manage_products, shipping_zone
+):
+    Warehouse.objects.all().delete()
+    variables = {
+        "input": {
+            "name": "  ",
+            "slug": "test-warhouse",
+            "companyName": "Amazing Company Inc",
+            "email": "test-admin@example.com",
+            "address": {
+                "streetAddress1": "Teczowa 8",
+                "city": "Wroclaw",
+                "country": "PL",
+                "postalCode": "53-601",
+            },
+            "shippingZones": [
+                graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
+            ],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_WAREHOUSE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["createWarehouse"]
+    errors = data["warehouseErrors"]
+    assert Warehouse.objects.count() == 0
+    assert len(errors) == 1
+    assert errors[0]["field"] == "name"
+    assert errors[0]["code"] == WarehouseErrorCode.REQUIRED.name
+
+
 def test_create_warehouse_creates_address(
     staff_api_client, permission_manage_products, shipping_zone
 ):
@@ -564,14 +600,16 @@ def test_update_warehouse_slug_exists(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, input_name, error_message, error_field",
+    "input_slug, expected_slug, input_name, expected_name, error_message, error_field",
     [
-        ("test-slug", "test-slug", "New name", None, None),
-        ("", "", "New name", "Slug value cannot be blank.", "slug"),
-        (None, "", "New name", "Slug value cannot be blank.", "slug"),
-        ("test-slug", "", None, "This field cannot be blank.", "name"),
-        ("test-slug", "", "", "This field cannot be blank.", "name"),
-        (None, None, None, "Slug value cannot be blank.", "slug"),
+        ("test-slug", "test-slug", "New name", "New name", None, None),
+        ("test-slug", "test-slug", " stripped ", "stripped", None, None,),
+        ("", "", "New name", "New name", "Slug value cannot be blank.", "slug"),
+        (None, "", "New name", "New name", "Slug value cannot be blank.", "slug"),
+        ("test-slug", "", None, None, "This field cannot be blank.", "name"),
+        ("test-slug", "", "", None, "This field cannot be blank.", "name"),
+        (None, None, None, None, "Slug value cannot be blank.", "slug"),
+        ("test-slug", "test-slug", "  ", None, "Name value cannot be blank", "name"),
     ],
 )
 def test_update_warehouse_slug_and_name(
@@ -581,6 +619,7 @@ def test_update_warehouse_slug_and_name(
     input_slug,
     expected_slug,
     input_name,
+    expected_name,
     error_message,
     error_field,
 ):
@@ -602,8 +641,10 @@ def test_update_warehouse_slug_and_name(
     data = content["data"]["updateWarehouse"]
     errors = data["warehouseErrors"]
     if not error_message:
-        assert data["warehouse"]["name"] == input_name == warehouse.name
-        assert data["warehouse"]["slug"] == input_slug == warehouse.slug
+        assert data["warehouse"]["name"] == expected_name == warehouse.name
+        assert (
+            data["warehouse"]["slug"] == input_slug == warehouse.slug == expected_slug
+        )
     else:
         assert errors
         assert errors[0]["field"] == error_field

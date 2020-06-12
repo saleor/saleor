@@ -8,7 +8,10 @@ from ...warehouse.validation import validate_warehouse_count  # type: ignore
 from ..account.i18n import I18nMixin
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import WarehouseError
-from ..core.utils import validate_slug_and_generate_if_needed
+from ..core.utils import (
+    validate_and_strip_field_str_value,
+    validate_slug_and_generate_if_needed,
+)
 from ..shipping.types import ShippingZone
 from .types import Warehouse, WarehouseCreateInput, WarehouseUpdateInput
 
@@ -35,6 +38,13 @@ class WarehouseMixin:
         except ValidationError as error:
             error.code = WarehouseErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
+
+        try:
+            cleaned_input = validate_and_strip_field_str_value(cleaned_input, "name")
+        except ValidationError as error:
+            error.code = WarehouseErrorCode.REQUIRED.value
+            raise ValidationError({"name": error})
+
         shipping_zones = cleaned_input.get("shipping_zones", [])
         if not validate_warehouse_count(shipping_zones, instance):
             msg = "Shipping zone can be assigned only to one warehouse."
