@@ -17,11 +17,12 @@ JWT_REFRESH_TOKEN_COOKIE_NAME = "refreshToken"
 
 
 def jwt_base_payload(exp_delta: Optional[timedelta] = None) -> Dict[str, Any]:
+    utc_now = datetime.utcnow()
     payload = {
-        "iat": datetime.utcnow(),
+        "iat": utc_now,
     }
     if exp_delta:
-        payload["exp"] = datetime.utcnow() + exp_delta
+        payload["exp"] = utc_now + exp_delta
     return payload
 
 
@@ -42,7 +43,6 @@ def jwt_user_payload(
             "type": token_type,
             "user_id": graphene.Node.to_global_id("User", user.id),
             "is_staff": user.is_staff,
-            "is_superuser": user.is_superuser,
         }
     )
     if additional_payload:

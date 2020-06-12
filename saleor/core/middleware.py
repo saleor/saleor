@@ -12,7 +12,7 @@ from django_countries.fields import Country
 from ..discount.utils import fetch_discounts
 from ..plugins.manager import get_plugins_manager
 from . import analytics
-from .jwt import JWT_REFRESH_TOKEN_COOKIE_NAME
+from .jwt import JWT_REFRESH_TOKEN_COOKIE_NAME, jwt_decode
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
 
 logger = logging.getLogger(__name__)
@@ -126,7 +126,10 @@ def jwt_refresh_token_middleware(get_response):
         response = get_response(request)
         jwt_refresh_token = getattr(request, "refresh_token", None)
         if jwt_refresh_token:
-            expires = datetime.utcnow() + settings.JWT_REFRESH_EXPIRATION_DELTA
+            expires = None
+            if settings.JWT_EXPIRE:
+                refresh_token_payload = jwt_decode(jwt_refresh_token)
+                expires = datetime.utcfromtimestamp(refresh_token_payload["exp"])
             response.set_cookie(
                 JWT_REFRESH_TOKEN_COOKIE_NAME,
                 jwt_refresh_token,
