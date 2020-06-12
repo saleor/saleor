@@ -6,11 +6,11 @@ import pytest
 from django.utils import timezone
 from django_countries import countries
 
-from saleor.discount import DiscountValueType, VoucherType
-from saleor.discount.error_codes import DiscountErrorCode
-from saleor.discount.models import Sale, Voucher
-from saleor.graphql.discount.enums import DiscountValueTypeEnum, VoucherTypeEnum
-from saleor.graphql.tests.utils import get_graphql_content
+from ....discount import DiscountValueType, VoucherType
+from ....discount.error_codes import DiscountErrorCode
+from ....discount.models import Sale, Voucher
+from ...tests.utils import get_graphql_content
+from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 
 @pytest.fixture

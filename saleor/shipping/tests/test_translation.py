@@ -1,6 +1,6 @@
 import pytest
 
-from saleor.shipping.models import ShippingMethodTranslation
+from ..models import ShippingMethodTranslation
 
 
 @pytest.fixture

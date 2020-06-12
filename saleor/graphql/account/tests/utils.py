@@ -1,4 +1,4 @@
-from saleor.graphql.core.utils import snake_to_camel_case
+from ...core.utils import snake_to_camel_case
 
 
 def convert_dict_keys_to_camel_case(d):

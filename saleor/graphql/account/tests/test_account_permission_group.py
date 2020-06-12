@@ -2,10 +2,10 @@ import graphene
 import pytest
 from django.contrib.auth.models import Group
 
-from saleor.account.error_codes import PermissionGroupErrorCode
-from saleor.account.models import User
-from saleor.core.permissions import AccountPermissions, AppPermission, OrderPermissions
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
+from ....account.error_codes import PermissionGroupErrorCode
+from ....account.models import User
+from ....core.permissions import AccountPermissions, AppPermission, OrderPermissions
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 PERMISSION_GROUP_CREATE_MUTATION = """
     mutation PermissionGroupCreate(

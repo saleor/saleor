@@ -5,8 +5,10 @@ All notable, unreleased changes to this project will be documented in this file.
 ## [Unreleased]
 
 - Add our implementation of UUID scalar - #5646 by @koradon
+- Add AppTokenVerify mutation - #5716 by @korycins
 - Fix specific product voucher in draft orders - #5727 by @fowczarek
 - Add products csv export - #5255 by @IKarbowiak
+- Explicit country assignment in default shipping zones - #5736 by @maarcingebala
 
 ## 2.10.1
 

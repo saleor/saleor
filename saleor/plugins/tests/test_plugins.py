@@ -1,8 +1,8 @@
-from saleor.plugins.anonymize.plugin import AnonymizePlugin
-from saleor.plugins.base_plugin import ConfigurationTypeField
-from saleor.plugins.manager import get_plugins_manager
-from saleor.plugins.tests.sample_plugins import PluginSample
-from saleor.plugins.tests.utils import get_config_value
+from ..anonymize.plugin import AnonymizePlugin
+from ..base_plugin import ConfigurationTypeField
+from ..manager import get_plugins_manager
+from ..tests.sample_plugins import PluginSample
+from ..tests.utils import get_config_value
 
 
 def test_update_config_items_keeps_bool_value(plugin_configuration, settings):

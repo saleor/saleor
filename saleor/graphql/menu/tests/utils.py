@@ -1,4 +1,4 @@
-from saleor.menu.utils import get_menu_item_as_dict
+from ....menu.utils import get_menu_item_as_dict
 
 
 def menu_item_to_json(menu_item):

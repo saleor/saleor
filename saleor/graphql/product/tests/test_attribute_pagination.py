@@ -2,14 +2,14 @@ import graphene
 import pytest
 from prices import Money
 
-from saleor.graphql.tests.utils import get_graphql_content
-from saleor.product.models import (
+from ....product.models import (
     Attribute,
     AttributeProduct,
     AttributeVariant,
     Product,
     ProductType,
 )
+from ...tests.utils import get_graphql_content
 
 
 @pytest.fixture

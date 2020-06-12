@@ -4,14 +4,14 @@ import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
 
-from saleor.core.exceptions import InsufficientStock
-from saleor.core.permissions import OrderPermissions
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
-from saleor.order import OrderStatus
-from saleor.order.error_codes import OrderErrorCode
-from saleor.order.events import OrderEvents
-from saleor.order.models import FulfillmentStatus
-from saleor.warehouse.models import Allocation, Stock
+from ....core.exceptions import InsufficientStock
+from ....core.permissions import OrderPermissions
+from ....order import OrderStatus
+from ....order.error_codes import OrderErrorCode
+from ....order.events import OrderEvents
+from ....order.models import FulfillmentStatus
+from ....warehouse.models import Allocation, Stock
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_FULFILL_QUERY = """
 mutation fulfillOrder(
