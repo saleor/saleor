@@ -4,11 +4,11 @@ import graphene
 import pytest
 from django.utils import timezone
 
-from saleor.account.models import User
-from saleor.app.models import App
-from saleor.core import JobStatus
-from saleor.csv.models import ExportFile
-from saleor.graphql.tests.utils import get_graphql_content
+from .....account.models import User
+from .....app.models import App
+from .....core import JobStatus
+from .....csv.models import ExportFile
+from ....tests.utils import get_graphql_content
 
 FILTER_EXPORT_FILES_QUERY = """
     query($filter: ExportFileFilterInput!){

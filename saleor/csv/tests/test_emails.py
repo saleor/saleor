@@ -3,8 +3,8 @@ from unittest import mock
 from django.core.files import File
 from templated_email import get_connection
 
-from saleor.csv import ExportEvents, emails
-from saleor.csv.models import ExportEvent
+from .. import ExportEvents, emails
+from ..models import ExportEvent
 
 
 @mock.patch("saleor.csv.emails.send_templated_mail")

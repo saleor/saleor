@@ -4,10 +4,10 @@ from unittest.mock import Mock, patch
 import pytz
 from freezegun import freeze_time
 
-from saleor.core import JobStatus
-from saleor.csv import ExportEvents, FileTypes
-from saleor.csv.models import ExportEvent
-from saleor.csv.tasks import export_products_task, on_task_failure, on_task_success
+from ...core import JobStatus
+from .. import ExportEvents, FileTypes
+from ..models import ExportEvent
+from ..tasks import export_products_task, on_task_failure, on_task_success
 
 
 @patch("saleor.csv.tasks.export_products")
