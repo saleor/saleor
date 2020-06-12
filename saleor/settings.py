@@ -13,6 +13,7 @@ import sentry_sdk
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from django_prices.utils.formatting import get_currency_fraction
+from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -563,20 +564,11 @@ CACHES = {"default": django_cache_url.config()}
 
 # Default False because storefront and dashboard don't support expiration of token
 JWT_EXPIRE = get_bool_from_env("JWT_EXPIRE", False)
-JWT_EXPIRATION_DELTA = timedelta(
-    seconds=os.environ.get("JWT_EXPIRATION_DELTA", 5 * 60)  # type: ignore
-)
+JWT_TTL_ACCESS = timedelta(seconds=parse(os.environ.get("JWT_TTL_ACCESS", "5 minutes")))
+JWT_TTL_REFRESH = timedelta(seconds=parse(os.environ.get("JWT_TTL_REFRESH", "30 days")))
 
 
-JWT_REFRESH_EXPIRATION_DELTA = timedelta(  # 30 days
-    seconds=os.environ.get(  # type: ignore
-        "JWT_REFRESH_EXPIRATION_DELTA", 60 * 60 * 24 * 30
-    )
-)
-
-REQUEST_EMAIL_CHANGE_TOKEN_EXPIRATION_DELTA = timedelta(
-    seconds=os.environ.get(  # type: ignore
-        "REQUEST_EMAIL_CHANGE_TOKEN_EXPIRATION_DELTA", 60 * 60
-    ),
+REQUEST_EMAIL_CHANGE_TOKEN_EXPIRATION = timedelta(
+    seconds=parse(os.environ.get("REQUEST_EMAIL_CHANGE_TOKEN_EXPIRATION", "1 hour")),
 )
 JWT_SECRET = os.environ.get("JWT_SECRET", SECRET_KEY)

@@ -71,7 +71,7 @@ def create_access_token(
     user: User, additional_payload: Optional[Dict[str, Any]] = None
 ) -> str:
     payload = jwt_user_payload(
-        user, JWT_ACCESS_TYPE, settings.JWT_EXPIRATION_DELTA, additional_payload
+        user, JWT_ACCESS_TYPE, settings.JWT_TTL_ACCESS, additional_payload
     )
     return jwt_encode(payload)
 
@@ -80,10 +80,7 @@ def create_refresh_token(
     user: User, additional_payload: Optional[Dict[str, Any]] = None
 ) -> str:
     payload = jwt_user_payload(
-        user,
-        JWT_REFRESH_TYPE,
-        settings.JWT_REFRESH_EXPIRATION_DELTA,
-        additional_payload,
+        user, JWT_REFRESH_TYPE, settings.JWT_TTL_REFRESH, additional_payload,
     )
     return jwt_encode(payload)
 
