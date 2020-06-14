@@ -8,6 +8,7 @@ from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
+from django.utils import timezone
 from django_countries.fields import Country, CountryField
 from django_prices.models import MoneyField
 from prices import Money
@@ -95,6 +96,7 @@ class Checkout(ModelWithMetadata):
     translated_discount_name = models.CharField(max_length=255, blank=True, null=True)
     voucher_code = models.CharField(max_length=12, blank=True, null=True)
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="checkouts")
+    expires = models.DateTimeField(blank=True, null=True)
 
     objects = CheckoutQueryset.as_manager()
 
@@ -162,6 +164,11 @@ class Checkout(ModelWithMetadata):
         if not country_code == saved_country.code:
             self.set_country(country_code, commit=True)
         return country_code
+
+    def expired(self) -> bool:
+        if self.expires and self.expires > timezone.now():
+            return False
+        return True
 
 
 class CheckoutLine(models.Model):

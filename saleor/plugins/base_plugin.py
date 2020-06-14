@@ -295,6 +295,14 @@ class BasePlugin:
         """Triggered when ShopFetchTaxRates mutation is called."""
         return NotImplemented
 
+    def variant_added_to_checkout(self, checkout: "Checkout",
+                                  checkout_line: "CheckoutLine", previous_value: Any):
+        """Triggered after add_variant_to_checkout function is finished.
+        Overwrite this method if you need to trigger specific logic after a variant is
+        added to checkout.
+        """
+        return NotImplemented
+
     def authorize_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":

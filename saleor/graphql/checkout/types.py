@@ -124,6 +124,7 @@ class Checkout(CountableDjangoObjectType):
             "billing_address",
             "created",
             "discount_name",
+            "expires",
             "gift_cards",
             "is_shipping_required",
             "last_change",

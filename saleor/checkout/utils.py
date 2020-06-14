@@ -148,13 +148,17 @@ def add_variant_to_checkout(
     if new_quantity == 0:
         if line is not None:
             line.delete()
+            line = None
     elif line is None:
-        checkout.lines.create(checkout=checkout, variant=variant, quantity=new_quantity)
+        line = checkout.lines.create(checkout=checkout, variant=variant, quantity=new_quantity)
     elif new_quantity > 0:
         line.quantity = new_quantity
         line.save(update_fields=["quantity"])
 
     update_checkout_quantity(checkout)
+
+    manager = get_plugins_manager()
+    manager.variant_added_to_checkout(checkout=checkout, checkout_line=line)
 
 
 def _check_new_checkout_address(checkout, address, address_type):
@@ -751,7 +755,7 @@ def create_order(
     for line in order_lines:  # type: OrderLine
         variant = line.variant
         if variant and variant.track_inventory:
-            allocate_stock(line, checkout.get_country(), line.quantity)
+            allocate_stock(line, checkout.get_country(), line.quantity, checkout)
 
     # Add gift cards to the order
     for gift_card in checkout.gift_cards.select_for_update():

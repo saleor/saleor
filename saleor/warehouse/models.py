@@ -2,11 +2,13 @@ import itertools
 import uuid
 from typing import Set
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 
 from ..account.models import Address
+from ..checkout.models import CheckoutLine
 from ..order.models import OrderLine
 from ..product.models import Product, ProductVariant
 from ..shipping.models import ShippingZone
@@ -114,8 +116,15 @@ class Stock(models.Model):
 class Allocation(models.Model):
     order_line = models.ForeignKey(
         OrderLine,
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="allocations",
+    )
+    checkout_line = models.ForeignKey(
+        CheckoutLine,
+        null=True,
+        blank=True,
         on_delete=models.CASCADE,
         related_name="allocations",
     )
@@ -128,6 +137,13 @@ class Allocation(models.Model):
     )
     quantity_allocated = models.PositiveIntegerField(default=0)
 
+    def clean(self):
+        if self.order_line is None and self.checkout_line is None:
+            raise ValidationError("Order line or checkout line is required")
+
     class Meta:
-        unique_together = [["order_line", "stock"]]
+        constraints = [
+            models.UniqueConstraint(fields=['order_line', 'stock'], name='order stock constraint'),
+            models.UniqueConstraint(fields=['checkout_line', 'stock'], name='checkout stock constraint'),
+        ]
         ordering = ("pk",)

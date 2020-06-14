@@ -773,6 +773,7 @@ type Checkout implements Node & ObjectWithMetadata {
   translatedDiscountName: String
   voucherCode: String
   giftCards: [GiftCard]
+  expires: DateTime
   id: ID!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!

@@ -1,20 +1,22 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, Union
 
 from django.db import transaction
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 
 from ..core.exceptions import AllocationError, InsufficientStock
+from ..checkout.models import CheckoutLine, Checkout
+from ..order.models import OrderLine, Order
 from .models import Allocation, Stock, Warehouse
-
-if TYPE_CHECKING:
-    from ..order.models import OrderLine, Order
 
 
 @transaction.atomic
 def allocate_stock(
-    order_line: "OrderLine", country_code: str, quantity: int,
+        line: Union["OrderLine", "CheckoutLine"],
+        country_code: str,
+        quantity: int,
+        checkout: "Checkout" = None,
 ):
     """Allocate stocks for given `order_line` in given country.
 
@@ -24,12 +26,38 @@ def allocate_stock(
     Iterate by stocks and allocate as many items as needed or available in stock
     for order line, until allocated all required quantity for the order line.
     If there is less quantity in stocks then rise InsufficientStock exception.
+    If type of line is CheckoutLine, function deletes previous allocations if
+    quantity differ from current allocations amount.
     """
     stocks = (
         Stock.objects.select_for_update(of=("self",))
-        .get_variant_stocks_for_country(country_code, order_line.variant)
-        .order_by("pk")
+            .get_variant_stocks_for_country(country_code, line.variant)
+            .order_by("pk")
     )
+
+    if type(line) == CheckoutLine:
+        checkout_allocations = Allocation.objects.filter(stock__in=stocks, checkout_line=line)
+        if checkout_allocations is not None:
+            # checkout_allocations._raw_delete(checkout_allocations.db)
+            checkout_allocations.delete()
+
+    if type(line) == OrderLine and checkout.user:
+        if not checkout.expired():
+            checkout_line = checkout.lines.get(variant=line.variant)
+            if checkout_line:
+                checkout_allocations = Allocation.objects.filter(stock__in=stocks, checkout_line=checkout_line)
+                quantity_allocated_for_checkout = 0
+                for allocation in checkout_allocations:
+                    quantity_allocated_for_checkout += allocation.quantity_allocated
+
+                if quantity != quantity_allocated_for_checkout:
+                    checkout_allocations.delete()
+                else:
+                    for allocation in checkout_allocations:
+                        allocation.checkout_line = None
+                        allocation.order_line = line
+                        allocation.save(update_fields=["checkout_line", "order_line"])
+                    return
 
     quantity_allocation_list = list(
         Allocation.objects.filter(stock__in=stocks, quantity_allocated__gt=0,)
@@ -54,20 +82,29 @@ def allocate_stock(
             (quantity - quantity_allocated), quantity_available_in_stock
         )
         if quantity_to_allocate > 0:
-            allocations.append(
-                Allocation(
-                    order_line=order_line,
-                    stock=stock,
-                    quantity_allocated=quantity_to_allocate,
+            if type(line) == OrderLine:
+                allocations.append(
+                    Allocation(
+                        order_line=line,
+                        stock=stock,
+                        quantity_allocated=quantity_to_allocate,
+                    )
                 )
-            )
+            if type(line) == CheckoutLine:
+                allocations.append(
+                    Allocation(
+                        checkout_line=line,
+                        stock=stock,
+                        quantity_allocated=quantity_to_allocate,
+                    )
+                )
 
             quantity_allocated += quantity_to_allocate
             if quantity_allocated == quantity:
                 Allocation.objects.bulk_create(allocations)
                 break
     if not quantity_allocated == quantity:
-        raise InsufficientStock(order_line.variant)
+        raise InsufficientStock(line.variant)
 
 
 @transaction.atomic
@@ -82,8 +119,8 @@ def deallocate_stock(order_line: "OrderLine", quantity: int):
     """
     allocations = (
         order_line.allocations.select_related("stock")
-        .select_for_update(of=("self", "stock",))
-        .order_by("stock__pk")
+            .select_for_update(of=("self", "stock",))
+            .order_by("stock__pk")
     )
     quantity_dealocated = 0
     for allocation in allocations:
@@ -92,7 +129,7 @@ def deallocate_stock(order_line: "OrderLine", quantity: int):
         )
         if quantity_to_deallocate > 0:
             allocation.quantity_allocated = (
-                F("quantity_allocated") - quantity_to_deallocate
+                    F("quantity_allocated") - quantity_to_deallocate
             )
             quantity_dealocated += quantity_to_deallocate
             if quantity_dealocated == quantity:
@@ -104,10 +141,10 @@ def deallocate_stock(order_line: "OrderLine", quantity: int):
 
 @transaction.atomic
 def increase_stock(
-    order_line: "OrderLine",
-    warehouse: Warehouse,
-    quantity: int,
-    allocate: bool = False,
+        order_line: "OrderLine",
+        warehouse: Warehouse,
+        quantity: int,
+        allocate: bool = False,
 ):
     """Increse stock quantity for given `order_line` in a given warehouse.
 
@@ -121,8 +158,8 @@ def increase_stock(
     """
     stock = (
         Stock.objects.select_for_update(of=("self",))
-        .filter(warehouse=warehouse, product_variant=order_line.variant)
-        .first()
+            .filter(warehouse=warehouse, product_variant=order_line.variant)
+            .first()
     )
     if stock:
         stock.increase_stock(quantity, commit=True)
@@ -159,8 +196,8 @@ def decrease_stock(order_line: "OrderLine", quantity: int, warehouse_pk: str):
     try:
         stock = (
             order_line.variant.stocks.select_for_update()  # type: ignore
-            .prefetch_related("allocations")
-            .get(warehouse__pk=warehouse_pk)
+                .prefetch_related("allocations")
+                .get(warehouse__pk=warehouse_pk)
         )
     except Stock.DoesNotExist:
         error_context = {"order_line": order_line, "warehouse_pk": warehouse_pk}

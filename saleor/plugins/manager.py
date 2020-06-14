@@ -416,6 +416,11 @@ class PluginsManager(PaymentInterface):
         default_value = False
         return self.__run_method_on_plugins("fetch_taxes_data", default_value)
 
+    def variant_added_to_checkout(self, checkout: "Checkout", checkout_line: "CheckoutLine"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "variant_added_to_checkout", default_value, checkout, checkout_line,
+        )
 
 def get_plugins_manager(
     manager_path: str = None, plugins: List[str] = None
