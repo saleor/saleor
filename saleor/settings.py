@@ -68,7 +68,7 @@ DATABASES = {
 }
 
 
-TIME_ZONE = "America/Chicago"
+TIME_ZONE = "UTC"
 LANGUAGE_CODE = "en"
 LANGUAGES = [
     ("ar", "Arabic"),
@@ -471,6 +471,7 @@ GRAPHQL_JWT = {
 }
 
 # CELERY SETTINGS
+CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_URL = (
     os.environ.get("CELERY_BROKER_URL", os.environ.get("CLOUDAMQP_URL")) or ""
 )
