@@ -1,8 +1,16 @@
+from datetime import timedelta
+
 import graphene
 from graphene_federation import key
 
 from ...app import models
-from ...core.permissions import AppPermission
+from ...core.jwt import (
+    JWT_ACCESS_TYPE,
+    PERMISSION_LIMITS_FIELD,
+    jwt_encode,
+    jwt_user_payload,
+)
+from ...core.permissions import PERMISSIONS_ENUMS, AppPermission, get_permissions
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import Permission
 from ..core.types.common import Job
@@ -80,6 +88,9 @@ class App(CountableDjangoObjectType):
     )
     app_url = graphene.String(description="Url to iframe with the app.")
     version = graphene.String(description="Version number of the app.")
+    access_token = graphene.String(
+        description="JWT token used to authenticate by thridparty app."
+    )
 
     class Meta:
         description = "Represents app data."
@@ -122,6 +133,46 @@ class App(CountableDjangoObjectType):
     @staticmethod
     def resolve_webhooks(root: models.App, _info):
         return root.webhooks.all()
+
+    @staticmethod
+    def resolve_access_token(root: models.App, info):
+        if root.type != AppTypeEnum.THIRDPARTY.value:
+            return None
+
+        user = info.context.user
+        if user.is_anonymous:
+            return None
+
+        permissions_dict = {
+            enum.codename: enum.name
+            for permission_enum in PERMISSIONS_ENUMS
+            for enum in permission_enum
+        }
+        app_permissions = root.permissions.all()
+        app_permission_enums = {
+            permissions_dict[perm.codename] for perm in app_permissions
+        }
+
+        if user.is_superuser:
+            user_permissions = get_permissions()
+        else:
+            user_permissions = user.user_permissions.all()
+
+        user_permission_enums = {
+            permissions_dict[perm.codename] for perm in user_permissions
+        }
+        app_id = graphene.Node.to_global_id("App", root.id)
+        additional_payload = {
+            "app": app_id,
+            PERMISSION_LIMITS_FIELD: list(app_permission_enums & user_permission_enums),
+        }
+        payload = jwt_user_payload(
+            user,
+            JWT_ACCESS_TYPE,
+            exp_delta=timedelta(hours=1),
+            additional_payload=additional_payload,
+        )
+        return jwt_encode(payload)
 
 
 class AppInstallation(CountableDjangoObjectType):

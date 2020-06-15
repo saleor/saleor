@@ -15,6 +15,8 @@ JWT_ACCESS_TYPE = "access"
 JWT_REFRESH_TYPE = "refresh"
 JWT_REFRESH_TOKEN_COOKIE_NAME = "refreshToken"
 
+PERMISSION_LIMITS_FIELD = "permission_limits"
+
 
 def jwt_base_payload(exp_delta: Optional[timedelta] = None) -> Dict[str, Any]:
     utc_now = datetime.utcnow()
@@ -105,4 +107,8 @@ def get_user_from_access_token(token: str) -> Optional[User]:
     payload = jwt_decode(token)
     if payload["type"] != JWT_ACCESS_TYPE:
         return None
-    return get_user_from_payload(payload)
+    permission_limits = payload.get(PERMISSION_LIMITS_FIELD, None)
+    user = get_user_from_payload(payload)
+    if permission_limits is not None:
+        user.permission_limits = permission_limits  # type: ignore
+    return user
