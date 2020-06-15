@@ -2486,7 +2486,7 @@ type Mutation {
   appTokenDelete(id: ID!): AppTokenDelete
   appTokenVerify(token: String!): AppTokenVerify
   tokenCreate(email: String!, password: String!): CreateToken
-  tokenRefresh(csrfToken: String!, refreshToken: String): RefreshToken
+  tokenRefresh(csrfToken: String, refreshToken: String): RefreshToken
   tokenVerify(token: String!): VerifyToken
   tokensDeactivateAll: DeactivateAllUserTokens
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset

@@ -113,14 +113,19 @@ class RefreshToken(BaseMutation):
     class Arguments:
         refresh_token = graphene.String(required=False, description="Refresh token.")
         csrf_token = graphene.String(
-            required=True, description="CSRF token required to refresh token."
+            required=False,
+            description=(
+                "CSRF token required to refresh token. This argument is "
+                "required when refreshToken is provided as a cookie."
+            ),
         )
 
     class Meta:
         description = (
-            "Refresh JWT token. Mutation tries to take refreshToken from "
-            f"the http-only cookie {JWT_REFRESH_TOKEN_COOKIE_NAME}. If it "
-            "fails it will try to take refreshToken provided as an argument."
+            "Refresh JWT token. Mutation tries to take refreshToken from the input."
+            "If it fails it will try to take refreshToken from the http-only cookie -"
+            f"{JWT_REFRESH_TOKEN_COOKIE_NAME}. csrfToken is required when refreshToken "
+            "is provided as a cookie."
         )
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -189,8 +194,10 @@ class RefreshToken(BaseMutation):
         refresh_token = cls.get_refresh_token(info, data)
         payload = cls.clean_refresh_token(refresh_token)
 
-        csrf_token = data.get("csrf_token")
-        cls.clean_csrf_token(csrf_token, payload)
+        # None when we got refresh_token from cookie.
+        if not data.get("refresh_token"):
+            csrf_token = data.get("csrf_token")
+            cls.clean_csrf_token(csrf_token, payload)
 
         user = get_user(payload)
         token = create_access_token(user)
