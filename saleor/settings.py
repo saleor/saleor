@@ -230,6 +230,7 @@ INSTALLED_APPS = [
     "saleor.discount",
     "saleor.giftcard",
     "saleor.product",
+    "saleor.channel",
     "saleor.checkout",
     "saleor.core",
     "saleor.graphql",
