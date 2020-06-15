@@ -15,7 +15,7 @@ from .....core.jwt import (
 from ....tests.utils import get_graphql_content
 
 MUTATION_TOKEN_REFRESH = """
-    mutation tokenRefresh($token: String, $csrf_token: String!){
+    mutation tokenRefresh($token: String, $csrf_token: String){
         tokenRefresh(refreshToken: $token, csrfToken: $csrf_token){
             token
             accountErrors{
@@ -57,7 +57,7 @@ def test_refresh_token_get_token_from_cookie(api_client, customer_user, settings
 def test_refresh_token_get_token_from_input(api_client, customer_user, settings):
     csrf_token = _get_new_csrf_token()
     refresh_token = create_refresh_token(customer_user, {"csrfToken": csrf_token})
-    variables = {"token": refresh_token, "csrf_token": csrf_token}
+    variables = {"token": refresh_token, "csrf_token": None}
     response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
     content = get_graphql_content(response)
 
@@ -113,8 +113,9 @@ def test_access_token_used_as_a_refresh_token(api_client, customer_user):
 def test_refresh_token_get_token_incorrect_csrf_token(api_client, customer_user):
     csrf_token = _get_new_csrf_token()
     refresh_token = create_refresh_token(customer_user, {"csrfToken": csrf_token})
-    variables = {"token": refresh_token, "csrf_token": "csrf_token"}
-
+    variables = {"token": None, "csrf_token": "csrf_token"}
+    api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME] = refresh_token
+    api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME]["httponly"] = True
     response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
     content = get_graphql_content(response)
 
