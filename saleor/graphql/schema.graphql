@@ -780,7 +780,7 @@ type ChannelCreate {
 input ChannelCreateInput {
   name: String!
   slug: String!
-  currency: String!
+  currencyCode: String!
 }
 
 type ChannelError {
