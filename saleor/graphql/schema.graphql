@@ -773,6 +773,7 @@ type Channel {
 
 type ChannelCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  channelErrors: [ChannelError!]!
   channel: Channel
 }
 
@@ -780,6 +781,21 @@ input ChannelCreateInput {
   name: String!
   slug: String!
   currency: String!
+}
+
+type ChannelError {
+  field: String
+  message: String
+  code: ChannelErrorCode!
+}
+
+enum ChannelErrorCode {
+  ALREADY_EXISTS
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
 }
 
 type Checkout implements Node & ObjectWithMetadata {
