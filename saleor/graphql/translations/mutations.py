@@ -104,7 +104,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
-        input = NameTranslationInput(required=True)
+        input = TranslationInput(required=True)
 
     class Meta:
         description = "Creates/Updates translations for Product Variant."

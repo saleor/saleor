@@ -421,6 +421,10 @@ class ProductVariantQueryset(models.QuerySet):
 class ProductVariant(ModelWithMetadata):
     sku = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True, default="")
+    description_json = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_draft_js
+    )
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
         default=settings.DEFAULT_CURRENCY,
@@ -516,6 +520,10 @@ class ProductVariantTranslation(models.Model):
         ProductVariant, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True, default="")
+    description_json = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_draft_js
+    )
 
     translated = TranslationProxy()
 

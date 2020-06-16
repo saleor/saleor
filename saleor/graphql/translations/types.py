@@ -16,6 +16,7 @@ from .enums import LanguageCodeEnum
 from .fields import TranslationField
 
 BASIC_TRANSLATABLE_FIELDS = ["id", "name"]
+MEDIUM_TRANSLATABLE_FIELDS = ["id", "name", "description", "description_json"]
 EXTENDED_TRANSLATABLE_FIELDS = [
     "id",
     "name",
@@ -103,7 +104,7 @@ class ProductVariantTranslation(BaseTranslationType):
     class Meta:
         model = product_models.ProductVariantTranslation
         interfaces = [graphene.relay.Node]
-        only_fields = BASIC_TRANSLATABLE_FIELDS
+        only_fields = MEDIUM_TRANSLATABLE_FIELDS
 
 
 class ProductVariantTranslatableContent(CountableDjangoObjectType):
@@ -120,7 +121,7 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
     class Meta:
         model = product_models.ProductVariant
         interfaces = [graphene.relay.Node]
-        only_fields = BASIC_TRANSLATABLE_FIELDS
+        only_fields = MEDIUM_TRANSLATABLE_FIELDS
 
     @staticmethod
     def resolve_product_variant(root: product_models.ProductVariant, info):
