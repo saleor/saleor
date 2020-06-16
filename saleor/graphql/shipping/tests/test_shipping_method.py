@@ -1,9 +1,10 @@
 import graphene
 import pytest
 
-from saleor.graphql.shipping.types import ShippingMethodTypeEnum
-from saleor.graphql.tests.utils import get_graphql_content
-from saleor.shipping.error_codes import ShippingErrorCode
+from ....shipping.error_codes import ShippingErrorCode
+from ....shipping.utils import get_countries_without_shipping_zone
+from ...tests.utils import get_graphql_content
+from ..types import ShippingMethodTypeEnum
 
 
 def test_shipping_zone_query(
@@ -169,6 +170,7 @@ def test_create_shipping_zone_without_warehouses(
 def test_create_default_shipping_zone(
     staff_api_client, warehouse, permission_manage_shipping
 ):
+    unassigned_countries = set(get_countries_without_shipping_zone())
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     variables = {
         "default": True,
@@ -184,9 +186,10 @@ def test_create_default_shipping_zone(
     assert not data["shippingErrors"]
     zone = data["shippingZone"]
     assert zone["name"] == "test shipping"
-    assert zone["countries"] == []
     assert zone["warehouses"][0]["name"] == warehouse.name
     assert zone["default"] is True
+    zone_countries = {c.code for c in zone["countries"]}
+    assert zone_countries == unassigned_countries
 
 
 def test_create_duplicated_default_shipping_zone(

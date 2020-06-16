@@ -1,9 +1,9 @@
 import graphene
 from django.db import models
 
-from saleor.account import events as account_events
-from saleor.account.models import User
-from saleor.graphql.tests.utils import get_graphql_content
+from ....account import events as account_events
+from ....account.models import User
+from ...tests.utils import get_graphql_content
 
 QUERY_CUSTOMER_EVENTS = """
 query customerEvents($customerId: ID!) {

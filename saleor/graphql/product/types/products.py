@@ -2,6 +2,7 @@ from dataclasses import asdict
 from typing import List, Union
 
 import graphene
+from django.conf import settings
 from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
@@ -20,10 +21,8 @@ from ....product.utils.availability import (
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
 from ....warehouse.availability import (
     get_available_quantity,
-    get_available_quantity_for_customer,
     get_quantity_allocated,
     is_product_in_stock,
-    is_variant_in_stock,
 )
 from ...account.enums import CountryCodeEnum
 from ...core.connection import CountableDjangoObjectType
@@ -43,6 +42,9 @@ from ...translations.types import (
 )
 from ...utils import get_database_id
 from ...utils.filters import reporting_period_to_date
+from ...warehouse.dataloaders import (
+    AvailableQuantityByProductVariantIdAndCountryCodeLoader,
+)
 from ...warehouse.types import Stock
 from ..dataloaders import (
     CategoryByIdLoader,
@@ -283,14 +285,19 @@ class ProductVariant(CountableDjangoObjectType):
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_stocks(root: models.ProductVariant, info, country_code=None):
         if not country_code:
-            return root.stocks.annotate_available_quantity().all()
-        return root.stocks.annotate_available_quantity().for_country(country_code).all()
+            return root.stocks.annotate_available_quantity()
+        return root.stocks.for_country(country_code).annotate_available_quantity()
 
     @staticmethod
     def resolve_quantity_available(
         root: models.ProductVariant, info, country_code=None
     ):
-        return get_available_quantity_for_customer(root, country_code)
+        if not root.track_inventory:
+            return settings.MAX_CHECKOUT_LINE_QUANTITY
+
+        return AvailableQuantityByProductVariantIdAndCountryCodeLoader(
+            info.context
+        ).load((root.id, country_code))
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -299,7 +306,12 @@ class ProductVariant(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_stock_quantity(root: models.ProductVariant, info):
-        return get_available_quantity_for_customer(root, info.context.country)
+        if not root.track_inventory:
+            return settings.MAX_CHECKOUT_LINE_QUANTITY
+
+        return AvailableQuantityByProductVariantIdAndCountryCodeLoader(
+            info.context
+        ).load((root.id, info.context.country))
 
     @staticmethod
     def resolve_attributes(root: models.ProductVariant, info):
@@ -355,8 +367,17 @@ class ProductVariant(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_is_available(root: models.ProductVariant, info):
-        country = info.context.country
-        return is_variant_in_stock(root, country)
+        if not root.track_inventory:
+            return True
+
+        def is_variant_in_stock(available_quantity):
+            return available_quantity > 0
+
+        return (
+            AvailableQuantityByProductVariantIdAndCountryCodeLoader(info.context)
+            .load((root.id, info.context.country))
+            .then(is_variant_in_stock)
+        )
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -464,6 +485,9 @@ class Product(CountableDjangoObjectType):
     collections = graphene.List(
         lambda: Collection, description="List of collections for the product."
     )
+    extras = graphene.List(
+        lambda: Product, description="List of products that are extras to this one."
+    )
     translation = TranslationField(ProductTranslation, type_name="product")
 
     class Meta:
@@ -485,6 +509,7 @@ class Product(CountableDjangoObjectType):
             "seo_title",
             "updated_at",
             "weight",
+            "extra_to",
         ]
 
     @staticmethod
@@ -613,6 +638,10 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     def resolve_collections(root: models.Product, *_args):
         return root.collections.all()
+
+    @staticmethod
+    def resolve_extras(root: models.Product, *_args):
+        return root.extras.all()
 
     @classmethod
     def get_node(cls, info, pk):

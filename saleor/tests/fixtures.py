@@ -20,35 +20,34 @@ from django_countries import countries
 from PIL import Image
 from prices import Money, TaxedMoney
 
-from saleor.account.models import Address, StaffNotificationRecipient, User
-from saleor.app.models import App
-from saleor.checkout import utils
-from saleor.checkout.models import Checkout
-from saleor.checkout.utils import add_variant_to_checkout
-from saleor.core.payments import PaymentInterface
-from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
-from saleor.discount.models import (
+from ..account.models import Address, StaffNotificationRecipient, User
+from ..app.models import App
+from ..checkout import utils
+from ..checkout.models import Checkout
+from ..checkout.utils import add_variant_to_checkout
+from ..core.payments import PaymentInterface
+from ..discount import DiscountInfo, DiscountValueType, VoucherType
+from ..discount.models import (
     Sale,
     SaleTranslation,
     Voucher,
     VoucherCustomer,
     VoucherTranslation,
 )
-from saleor.giftcard.models import GiftCard
-from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
-from saleor.menu.utils import update_menu
-from saleor.order import OrderStatus
-from saleor.order.actions import cancel_fulfillment, fulfill_order_line
-from saleor.order.events import OrderEvents
-from saleor.order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
-from saleor.order.utils import recalculate_order
-from saleor.page.models import Page, PageTranslation
-from saleor.payment import ChargeStatus, TransactionKind
-from saleor.payment.models import Payment
-from saleor.plugins.models import PluginConfiguration
-from saleor.plugins.vatlayer.plugin import VatlayerPlugin
-from saleor.product import AttributeInputType
-from saleor.product.models import (
+from ..giftcard.models import GiftCard
+from ..menu.models import Menu, MenuItem, MenuItemTranslation
+from ..order import OrderStatus
+from ..order.actions import cancel_fulfillment, fulfill_order_line
+from ..order.events import OrderEvents
+from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
+from ..order.utils import recalculate_order
+from ..page.models import Page, PageTranslation
+from ..payment import ChargeStatus, TransactionKind
+from ..payment.models import Payment
+from ..plugins.models import PluginConfiguration
+from ..plugins.vatlayer.plugin import VatlayerPlugin
+from ..product import AttributeInputType
+from ..product.models import (
     Attribute,
     AttributeTranslation,
     AttributeValue,
@@ -66,20 +65,20 @@ from saleor.product.models import (
     ProductVariant,
     ProductVariantTranslation,
 )
-from saleor.product.tests.utils import create_image
-from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.shipping.models import (
+from ..product.tests.utils import create_image
+from ..product.utils.attributes import associate_attribute_values_to_instance
+from ..shipping.models import (
     ShippingMethod,
     ShippingMethodTranslation,
     ShippingMethodType,
     ShippingZone,
 )
-from saleor.site import AuthenticationBackends
-from saleor.site.models import AuthorizationKey, SiteSettings
-from saleor.warehouse.models import Allocation, Stock, Warehouse
-from saleor.webhook.event_types import WebhookEventType
-from saleor.webhook.models import Webhook
-from saleor.wishlist.models import Wishlist
+from ..site import AuthenticationBackends
+from ..site.models import AuthorizationKey, SiteSettings
+from ..warehouse.models import Allocation, Stock, Warehouse
+from ..webhook.event_types import WebhookEventType
+from ..webhook.models import Webhook
+from ..wishlist.models import Wishlist
 
 
 class CaptureQueriesContext(BaseCaptureQueriesContext):
@@ -203,11 +202,9 @@ def site_settings(db, settings) -> SiteSettings:
     main_menu = Menu.objects.get_or_create(
         name=settings.DEFAULT_MENUS["top_menu_name"]
     )[0]
-    update_menu(main_menu)
     secondary_menu = Menu.objects.get_or_create(
         name=settings.DEFAULT_MENUS["bottom_menu_name"]
     )[0]
-    update_menu(secondary_menu)
     obj.top_menu = main_menu
     obj.bottom_menu = secondary_menu
     obj.save()
@@ -1689,14 +1686,12 @@ def model_form_class():
 
 @pytest.fixture
 def menu(db):
-    return Menu.objects.get_or_create(name="test-navbar", json_content={})[0]
+    return Menu.objects.get_or_create(name="test-navbar")[0]
 
 
 @pytest.fixture
 def menu_item(menu):
-    item = MenuItem.objects.create(menu=menu, name="Link 1", url="http://example.com/")
-    update_menu(menu)
-    return item
+    return MenuItem.objects.create(menu=menu, name="Link 1", url="http://example.com/")
 
 
 @pytest.fixture
@@ -1704,7 +1699,6 @@ def menu_item_list(menu):
     menu_item_1 = MenuItem.objects.create(menu=menu, name="Link 1")
     menu_item_2 = MenuItem.objects.create(menu=menu, name="Link 2")
     menu_item_3 = MenuItem.objects.create(menu=menu, name="Link 3")
-    update_menu(menu)
     return menu_item_1, menu_item_2, menu_item_3
 
 
@@ -1714,7 +1708,6 @@ def menu_with_items(menu, category, collection):
     menu_item = menu.items.create(name="Link 2", url="http://example.com/")
     menu.items.create(name=category.name, category=category, parent=menu_item)
     menu.items.create(name=collection.name, collection=collection, parent=menu_item)
-    update_menu(menu)
     return menu
 
 

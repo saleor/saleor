@@ -4,8 +4,10 @@ from math import isclose
 
 import pytest
 
-from saleor.payment import ChargeStatus
-from saleor.payment.gateways.stripe import (
+from .... import ChargeStatus
+from ....interface import CreditCardInfo, CustomerSource, GatewayConfig
+from ....utils import create_payment_information
+from .. import (
     TransactionKind,
     _get_client,
     authorize,
@@ -16,8 +18,6 @@ from saleor.payment.gateways.stripe import (
     refund,
     void,
 )
-from saleor.payment.interface import CreditCardInfo, CustomerSource, GatewayConfig
-from saleor.payment.utils import create_payment_information
 
 TRANSACTION_AMOUNT = Decimal(42.42)
 TRANSACTION_REFUND_AMOUNT = Decimal(24.24)

@@ -4,14 +4,14 @@ from unittest.mock import Mock
 
 from django.utils.encoding import smart_text
 
-from saleor.data_feeds.google_merchant import (
+from ...product.models import AttributeValue, Category
+from ..google_merchant import (
     get_feed_items,
     item_attributes,
     item_availability,
     item_google_product_category,
     write_feed,
 )
-from saleor.product.models import AttributeValue, Category
 
 
 def test_saleor_feed_items(product, site_settings):

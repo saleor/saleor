@@ -2,10 +2,10 @@ from unittest.mock import patch
 
 import pytest
 
-from saleor.core.exceptions import InsufficientStock
-from saleor.order.actions import create_fulfillments
-from saleor.order.models import FulfillmentLine, OrderStatus
-from saleor.warehouse.models import Allocation, Stock
+from ...core.exceptions import InsufficientStock
+from ...warehouse.models import Allocation, Stock
+from ..actions import create_fulfillments
+from ..models import FulfillmentLine, OrderStatus
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)

@@ -290,6 +290,12 @@ input AppTokenInput {
   app: ID!
 }
 
+type AppTokenVerify {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  valid: Boolean!
+  appErrors: [AppError!]!
+}
+
 type AppUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   appErrors: [AppError!]!
@@ -2469,6 +2475,7 @@ type Mutation {
   appDelete(id: ID!): AppDelete
   appTokenCreate(input: AppTokenInput!): AppTokenCreate
   appTokenDelete(id: ID!): AppTokenDelete
+  appTokenVerify(token: String!): AppTokenVerify
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(token: String!, email: String!, password: String!): SetPassword
@@ -3311,6 +3318,7 @@ type Product implements Node & ObjectWithMetadata {
   updatedAt: DateTime
   chargeTaxes: Boolean!
   weight: Weight
+  extraTo: Product
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
@@ -3329,6 +3337,7 @@ type Product implements Node & ObjectWithMetadata {
   variants: [ProductVariant]
   images: [ProductImage]
   collections: [Collection]
+  extras: [Product]
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
 }
 
@@ -3399,6 +3408,7 @@ input ProductCreateInput {
   trackInventory: Boolean
   productType: ID!
   stocks: [StockInput!]
+  extraTo: ID
 }
 
 type ProductDelete {
@@ -3439,6 +3449,7 @@ input ProductFilterInput {
   productType: ID
   stocks: ProductStockFilterInput
   search: String
+  extraTo: ID
   minimalPrice: PriceRangeInput
   productTypes: [ID]
 }

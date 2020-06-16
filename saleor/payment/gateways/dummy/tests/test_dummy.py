@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from saleor.payment import ChargeStatus, PaymentError, TransactionKind, gateway
+from .... import ChargeStatus, PaymentError, TransactionKind, gateway
 
 
 @pytest.fixture(autouse=True)

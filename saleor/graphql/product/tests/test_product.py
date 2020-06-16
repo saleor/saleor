@@ -11,19 +11,11 @@ from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
 
-from saleor.core.taxes import TaxType
-from saleor.graphql.core.enums import ReportingPeriod
-from saleor.graphql.product.bulk_mutations.products import ProductVariantStocksUpdate
-from saleor.graphql.product.utils import create_stocks
-from saleor.graphql.tests.utils import (
-    assert_no_permission,
-    get_graphql_content,
-    get_multipart_request_body,
-)
-from saleor.plugins.manager import PluginsManager
-from saleor.product import AttributeInputType
-from saleor.product.error_codes import ProductErrorCode
-from saleor.product.models import (
+from ....core.taxes import TaxType
+from ....plugins.manager import PluginsManager
+from ....product import AttributeInputType
+from ....product.error_codes import ProductErrorCode
+from ....product.models import (
     Attribute,
     AttributeValue,
     Category,
@@ -33,10 +25,18 @@ from saleor.product.models import (
     ProductType,
     ProductVariant,
 )
-from saleor.product.tasks import update_variants_names
-from saleor.product.tests.utils import create_image, create_pdf_file_with_image_ext
-from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.warehouse.models import Allocation, Stock, Warehouse
+from ....product.tasks import update_variants_names
+from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
+from ....product.utils.attributes import associate_attribute_values_to_instance
+from ....warehouse.models import Allocation, Stock, Warehouse
+from ...core.enums import ReportingPeriod
+from ...tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_multipart_request_body,
+)
+from ..bulk_mutations.products import ProductVariantStocksUpdate
+from ..utils import create_stocks
 
 
 @pytest.fixture
@@ -284,7 +284,7 @@ def test_product_query(staff_api_client, product, permission_manage_products, st
     assert product_data["slug"] == product.slug
     gross = product_data["pricing"]["priceRange"]["start"]["gross"]
     assert float(gross["amount"]) == float(product.price.amount)
-    from saleor.product.utils.costs import get_product_costs_data
+    from ....product.utils.costs import get_product_costs_data
 
     purchase_cost, margin = get_product_costs_data(product)
     assert purchase_cost.start.amount == product_data["purchaseCost"]["start"]["amount"]
@@ -3370,111 +3370,6 @@ def test_variant_digital_content(
     content = get_graphql_content(response)
     assert "digitalContent" in content["data"]["productVariant"]
     assert "id" in content["data"]["productVariant"]["digitalContent"]
-
-
-def test_variant_availability_without_inventory_tracking(
-    api_client, variant_without_inventory_tracking, settings
-):
-    query = """
-    query variantAvailability($id: ID!) {
-        productVariant(id: $id) {
-            isAvailable
-            stockQuantity
-        }
-    }
-    """
-    variant = variant_without_inventory_tracking
-    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
-    response = api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    variant_data = content["data"]["productVariant"]
-    assert variant_data["isAvailable"] is True
-    assert variant_data["stockQuantity"] == settings.MAX_CHECKOUT_LINE_QUANTITY
-
-
-def test_variant_availability_without_inventory_tracking_not_available(
-    api_client, variant_without_inventory_tracking, settings
-):
-    query = """
-    query variantAvailability($id: ID!) {
-        productVariant(id: $id) {
-            isAvailable
-            stockQuantity
-        }
-    }
-    """
-    variant = variant_without_inventory_tracking
-    variant.stocks.all().delete()
-    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
-    response = api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    variant_data = content["data"]["productVariant"]
-    assert variant_data["isAvailable"] is False
-    assert variant_data["stockQuantity"] == 0
-
-
-@patch("saleor.graphql.product.types.products.get_available_quantity_for_customer")
-def test_variant_quantity_available_with_country_code(
-    mock_get_available_quantity_for_customer, api_client, variant
-):
-    query = """
-    query variantAvailability($id: ID!, $country: CountryCode) {
-        productVariant(id: $id) {
-            quantityAvailable(countryCode: $country)
-        }
-    }
-    """
-    country = "PL"
-    variables = {
-        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
-        "country": country,
-    }
-    response = api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    variant_data = content["data"]["productVariant"]
-    assert variant_data
-    mock_get_available_quantity_for_customer.assert_called_once_with(variant, "PL")
-
-
-@patch("saleor.graphql.product.types.products.get_available_quantity_for_customer")
-def test_variant_quantity_available_without_country_code(
-    mock_get_available_quantity_for_customer, api_client, variant
-):
-    query = """
-    query variantAvailability($id: ID!) {
-        productVariant(id: $id) {
-            quantityAvailable
-        }
-    }
-    """
-    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
-    response = api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    variant_data = content["data"]["productVariant"]
-    assert variant_data
-    mock_get_available_quantity_for_customer.assert_called_once_with(variant, None)
-
-
-@patch("saleor.graphql.product.types.products.get_available_quantity_for_customer")
-def test_variant_quantity_available_with_null_as_country_code(
-    mock_get_available_quantity_for_customer, api_client, variant
-):
-    query = """
-    query variantAvailability($id: ID!, $country: CountryCode) {
-        productVariant(id: $id) {
-            quantityAvailable(countryCode: $country)
-        }
-    }
-    """
-    variables = {
-        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
-        "country": None,
-    }
-    response = api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    variant_data = content["data"]["productVariant"]
-    assert variant_data
-    mock_get_available_quantity_for_customer.assert_called_once_with(variant, None)
 
 
 @pytest.mark.parametrize(

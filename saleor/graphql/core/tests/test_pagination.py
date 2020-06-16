@@ -3,9 +3,9 @@ import math
 import graphene
 import pytest
 
-from saleor.graphql.core.connection import CountableDjangoObjectType
-from saleor.graphql.core.fields import FilterInputConnectionField
-from saleor.tests.models import Book
+from ....tests.models import Book
+from ..connection import CountableDjangoObjectType
+from ..fields import FilterInputConnectionField
 
 
 class BookType(CountableDjangoObjectType):
