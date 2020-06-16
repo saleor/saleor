@@ -5,6 +5,7 @@ from ...translations.enums import LanguageCodeEnum
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
+    ChannelErrorCode,
     CheckoutErrorCode,
     DiscountErrorCode,
     ExportErrorCode,
@@ -98,6 +99,10 @@ class StaffError(AccountError):
         description="List of user IDs which causes the error.",
         required=False,
     )
+
+
+class ChannelError(Error):
+    code = ChannelErrorCode(description="The error code.", required=True)
 
 
 class CheckoutError(Error):
