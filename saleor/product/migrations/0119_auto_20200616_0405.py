@@ -8,7 +8,7 @@ import saleor.core.db.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("product", "0117_auto_20200423_0737"),
+        ("product", "0118_product_extra_to"),
     ]
 
     operations = [

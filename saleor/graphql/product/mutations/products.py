@@ -1111,6 +1111,12 @@ class ProductVariantInput(graphene.InputObjectType):
         )
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
+    description = graphene.String(
+        description="Product Variant description (HTML/text).", required=False
+    )
+    description_json = graphene.JSONString(
+        description="Product Variant description (JSON).", required=False
+    )
 
 
 class ProductVariantCreateInput(ProductVariantInput):

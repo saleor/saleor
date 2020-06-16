@@ -2369,7 +2369,7 @@ type Mutation {
   productVariantStocksDelete(variantId: ID!, warehouseIds: [ID!]): ProductVariantStocksDelete
   productVariantStocksUpdate(stocks: [StockInput!]!, variantId: ID!): ProductVariantStocksUpdate
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
-  productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
+  productVariantTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
   productVariantUpdateMetadata(id: ID!, input: MetaInput!): ProductVariantUpdateMeta @deprecated(reason: "Use the `updateMetadata` mutation instead. This field will be removed after 2020-07-31.")
   productVariantClearMetadata(id: ID!, input: MetaPath!): ProductVariantClearMeta @deprecated(reason: "Use the `deleteMetadata` mutation instead. This field will be removed after 2020-07-31.")
   productVariantUpdatePrivateMetadata(id: ID!, input: MetaInput!): ProductVariantUpdatePrivateMeta @deprecated(reason: "Use the `updatePrivateMetadata` mutation instead. This field will be removed after 2020-07-31.")
@@ -3726,6 +3726,8 @@ type ProductUpdatePrivateMeta {
 type ProductVariant implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
+  description: String!
+  descriptionJson: JSONString!
   sku: String!
   product: Product!
   trackInventory: Boolean!
@@ -3766,6 +3768,8 @@ input ProductVariantBulkCreateInput {
   sku: String!
   trackInventory: Boolean
   weight: WeightScalar
+  description: String
+  descriptionJson: JSONString
   stocks: [StockInput!]
 }
 
@@ -3811,6 +3815,8 @@ input ProductVariantCreateInput {
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
+  description: String
+  descriptionJson: JSONString
   product: ID!
   stocks: [StockInput!]
 }
@@ -3828,6 +3834,8 @@ input ProductVariantInput {
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
+  description: String
+  descriptionJson: JSONString
 }
 
 type ProductVariantStocksCreate {
@@ -3851,6 +3859,8 @@ type ProductVariantStocksUpdate {
 type ProductVariantTranslatableContent implements Node {
   id: ID!
   name: String!
+  description: String!
+  descriptionJson: JSONString!
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   productVariant: ProductVariant
 }
@@ -3864,6 +3874,8 @@ type ProductVariantTranslate {
 type ProductVariantTranslation implements Node {
   id: ID!
   name: String!
+  description: String!
+  descriptionJson: JSONString!
   language: LanguageDisplay!
 }
 
