@@ -3318,6 +3318,7 @@ type Product implements Node & ObjectWithMetadata {
   updatedAt: DateTime
   chargeTaxes: Boolean!
   weight: Weight
+  extraTo: Product
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
@@ -3336,6 +3337,7 @@ type Product implements Node & ObjectWithMetadata {
   variants: [ProductVariant]
   images: [ProductImage]
   collections: [Collection]
+  extras: [Product]
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
 }
 
@@ -3406,6 +3408,7 @@ input ProductCreateInput {
   trackInventory: Boolean
   productType: ID!
   stocks: [StockInput!]
+  extraTo: ID
 }
 
 type ProductDelete {
@@ -3446,6 +3449,7 @@ input ProductFilterInput {
   productType: ID
   stocks: ProductStockFilterInput
   search: String
+  extraTo: ID
   minimalPrice: PriceRangeInput
   productTypes: [ID]
 }

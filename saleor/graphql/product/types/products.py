@@ -476,6 +476,9 @@ class Product(CountableDjangoObjectType):
     collections = graphene.List(
         lambda: Collection, description="List of collections for the product."
     )
+    extras = graphene.List(
+        lambda: Product, description="List of products that are extras to this one."
+    )
     translation = TranslationField(ProductTranslation, type_name="product")
 
     class Meta:
@@ -497,6 +500,7 @@ class Product(CountableDjangoObjectType):
             "seo_title",
             "updated_at",
             "weight",
+            "extra_to",
         ]
 
     @staticmethod
@@ -625,6 +629,10 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     def resolve_collections(root: models.Product, *_args):
         return root.collections.all()
+
+    @staticmethod
+    def resolve_extras(root: models.Product, *_args):
+        return root.extras.all()
 
     @classmethod
     def get_node(cls, info, pk):

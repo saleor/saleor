@@ -291,6 +291,9 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
+    extra_to = models.ForeignKey(
+        "self", related_name="extras", on_delete=models.CASCADE, blank=True, null=True,
+    )
     objects = ProductsQueryset.as_manager()
     translated = TranslationProxy()
 

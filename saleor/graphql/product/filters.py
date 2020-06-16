@@ -316,6 +316,7 @@ class ProductFilter(django_filters.FilterSet):
     product_types = GlobalIDMultipleChoiceFilter(field_name="product_type")
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
+    extra_to = GlobalIDFilter()
 
     class Meta:
         model = Product
@@ -330,6 +331,7 @@ class ProductFilter(django_filters.FilterSet):
             "product_type",
             "stocks",
             "search",
+            "extra_to",
         ]
 
 

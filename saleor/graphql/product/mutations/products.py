@@ -556,6 +556,11 @@ class ProductCreateInput(ProductInput):
         ),
         required=False,
     )
+    extra_to = graphene.ID(
+        description="ID of the product that product is extra to.",
+        name="extraTo",
+        required=False,
+    )
 
 
 T_INPUT_MAP = List[Tuple[models.Attribute, List[str]]]
