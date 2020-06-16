@@ -6,7 +6,7 @@ from ..core.connection import CountableDjangoObjectType
 
 class Channel(CountableDjangoObjectType):
     class Meta:
-        descritpion = "TODO: fill"
+        description = "Represents channel."
         model = models.Channel
         interface = [relay.Node]
         only_fields = ["id", "name", "slug", "currency_code"]
