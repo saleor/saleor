@@ -1,4 +1,5 @@
 import uuid
+import warnings
 from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, patch
@@ -556,7 +557,10 @@ def expected_dummy_gateway():
     return {
         "id": "mirumee.payments.dummy",
         "name": "Dummy",
-        "config": [{"field": "store_customer_card", "value": "false"}],
+        "config": [
+            {"field": "store_customer_card", "value": "false"},
+            {"field": "supported_currencies", "value": "['USD']"},
+        ],
     }
 
 
@@ -577,8 +581,13 @@ def test_checkout_available_payment_gateways(
         }
     }
     """
+    expected_warning = "Default currency for Dummy is used."
     variables = {"token": str(checkout_with_item.token)}
-    response = api_client.post_graphql(query, variables)
+    with warnings.catch_warnings(record=True) as warns:
+        response = api_client.post_graphql(query, variables)
+
+        assert any([str(warning.message) == expected_warning for warning in warns])
+
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
     assert data["availablePaymentGateways"] == [expected_dummy_gateway]

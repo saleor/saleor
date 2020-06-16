@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, List
 
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
+from ..utils import get_supported_currencies
 from . import (
     GatewayConfig,
     authorize,
@@ -42,6 +43,7 @@ class BraintreeGatewayPlugin(BasePlugin):
         {"name": "Store customers card", "value": False},
         {"name": "Automatic payment capture", "value": True},
         {"name": "Require 3D secure", "value": False},
+        {"name": "Supported currencies", "value": []},
     ]
 
     CONFIG_STRUCTURE = {
@@ -81,6 +83,11 @@ class BraintreeGatewayPlugin(BasePlugin):
             "help_text": "Determines if Saleor should enforce 3D secure during payment.",
             "label": "Require 3D secure",
         },
+        "Supported currencies": {
+            "type": ConfigurationTypeField.LIST,
+            "help_text": "Determines currencies supported by gateway",
+            "label": "Supported currencies",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -89,6 +96,7 @@ class BraintreeGatewayPlugin(BasePlugin):
         self.config = GatewayConfig(
             gateway_name=GATEWAY_NAME,
             auto_capture=configuration["Automatic payment capture"],
+            supported_currencies=configuration["Supported currencies"],
             connection_params={
                 "sandbox_mode": configuration["Use sandbox"],
                 "merchant_id": configuration["Merchant ID"],
@@ -147,7 +155,9 @@ class BraintreeGatewayPlugin(BasePlugin):
     @require_active_plugin
     def get_payment_config(self, previous_value):
         config = self._get_gateway_config()
+        currencies = get_supported_currencies(config, GATEWAY_NAME)
         return [
             {"field": "store_customer_card", "value": config.store_customer},
             {"field": "client_token", "value": get_client_token(config=config)},
+            {"field": "supported_currencies", "value": currencies},
         ]
