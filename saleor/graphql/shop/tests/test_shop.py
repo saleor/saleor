@@ -682,6 +682,7 @@ def test_query_geolocalization(user_api_client):
     assert data["country"] is None
 
 
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_query_available_payment_gateways(user_api_client):
     query = """
         query {
