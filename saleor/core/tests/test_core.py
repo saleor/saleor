@@ -56,7 +56,9 @@ type_schema = {
     ],
 )
 def test_get_country_by_ip(ip_data, expected_country, monkeypatch):
-    monkeypatch.setattr("saleor.core.utils.georeader.get", Mock(return_value=ip_data))
+    monkeypatch.setattr(
+        "saleor.core.utils._get_geo_data_by_ip", Mock(return_value=ip_data)
+    )
     country = get_country_by_ip("127.0.0.1")
     assert country == expected_country
 

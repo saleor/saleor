@@ -68,8 +68,15 @@ def is_valid_ipv6(ip: str) -> bool:
     return True
 
 
+def _get_geo_data_by_ip(ip_address):
+    # This function is here to make it easier to mock the GeoIP
+    # as the georeader object below can be a native platform library
+    # that does not support monkeypatching.
+    return georeader.get(ip_address)
+
+
 def get_country_by_ip(ip_address):
-    geo_data = georeader.get(ip_address)
+    geo_data = _get_geo_data_by_ip(ip_address)
     if geo_data and "country" in geo_data and "iso_code" in geo_data["country"]:
         country_iso_code = geo_data["country"]["iso_code"]
         if country_iso_code in countries:
