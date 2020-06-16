@@ -10,7 +10,9 @@ from .types import Channel  # noqa: F401
 class ChannelCreateInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the channel.", required=True)
     slug = graphene.String(description="Slug of the channel.", required=True)
-    currency = graphene.String(description="Currency of the channel.", required=True)
+    currency_code = graphene.String(
+        description="Currency of the channel.", required=True
+    )
 
 
 class ChannelCreate(ModelMutation):
