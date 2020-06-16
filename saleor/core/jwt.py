@@ -7,12 +7,15 @@ from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
 
 from ..account.models import User
+from ..app.models import App
+from .permissions import PERMISSIONS_ENUMS, get_permissions
 
 JWT_ALGORITHM = "HS256"
 JWT_AUTH_HEADER = "HTTP_AUTHORIZATION"
 JWT_AUTH_HEADER_PREFIX = "JWT"
 JWT_ACCESS_TYPE = "access"
 JWT_REFRESH_TYPE = "refresh"
+JWT_THIRDPARTY_ACCESS_TYPE = "thirdparty"
 JWT_REFRESH_TOKEN_COOKIE_NAME = "refreshToken"
 
 PERMISSION_LIMITS_FIELD = "permission_limits"
@@ -105,10 +108,49 @@ def get_user_from_payload(payload: Dict[str, Any]) -> Optional[User]:
 
 def get_user_from_access_token(token: str) -> Optional[User]:
     payload = jwt_decode(token)
-    if payload["type"] != JWT_ACCESS_TYPE:
+    if payload["type"] not in [JWT_ACCESS_TYPE, JWT_THIRDPARTY_ACCESS_TYPE]:
         return None
     permission_limits = payload.get(PERMISSION_LIMITS_FIELD, None)
     user = get_user_from_payload(payload)
     if permission_limits is not None:
         user.permission_limits = permission_limits  # type: ignore
     return user
+
+
+def create_access_token_for_app(app: "App", user: "User"):
+    """Create access token for app.
+
+    App can use user jwt token to proceed given operation on the Saleor side.
+    The token which can be used by App has additional field defining the permissions
+    assigned to it. The permissions set is the intersection of user permissions and
+    app permissions.
+    """
+
+    permissions_dict = {
+        enum.codename: enum.name
+        for permission_enum in PERMISSIONS_ENUMS
+        for enum in permission_enum
+    }
+    app_permissions = app.permissions.all()
+    app_permission_enums = {permissions_dict[perm.codename] for perm in app_permissions}
+
+    if user.is_superuser:
+        user_permissions = get_permissions()
+    else:
+        user_permissions = user.user_permissions.all()
+
+    user_permission_enums = {
+        permissions_dict[perm.codename] for perm in user_permissions
+    }
+    app_id = graphene.Node.to_global_id("App", app.id)
+    additional_payload = {
+        "app": app_id,
+        PERMISSION_LIMITS_FIELD: list(app_permission_enums & user_permission_enums),
+    }
+    payload = jwt_user_payload(
+        user,
+        JWT_THIRDPARTY_ACCESS_TYPE,
+        exp_delta=settings.JWT_TTL_APP_ACCESS,
+        additional_payload=additional_payload,
+    )
+    return jwt_encode(payload)
