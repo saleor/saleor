@@ -1022,8 +1022,8 @@ class ProductUpdate(ProductCreate):
                 variant.sku = cleaned_input["sku"]
                 update_fields.append("sku")
             if "base_price" in cleaned_input:
-                variant.price = cleaned_input["base_price"]
-                update_fields.append("price")
+                variant.price_amount = cleaned_input["base_price"]
+                update_fields.append("price_amount")
             if update_fields:
                 variant.save(update_fields=update_fields)
         # Recalculate the "minimal variant price"
