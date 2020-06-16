@@ -1,6 +1,8 @@
 import graphene
 import pytest
+from freezegun import freeze_time
 
+from .....core.jwt import create_access_token_for_app
 from .....webhook.event_types import WebhookEventType
 from .....webhook.models import Webhook
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -29,11 +31,13 @@ QUERY_APP = """
             supportUrl
             configurationUrl
             appUrl
+            accessToken
         }
     }
     """
 
 
+@freeze_time("2012-01-14 11:00:00")
 @pytest.mark.parametrize("app_type", ("external", "custom"))
 def test_app_query(
     app_type,
@@ -76,6 +80,12 @@ def test_app_query(
     assert app_data["supportUrl"] == app.support_url
     assert app_data["configurationUrl"] == app.configuration_url
     assert app_data["appUrl"] == app.app_url
+    if app_type == "external":
+        assert app_data["accessToken"] == create_access_token_for_app(
+            app, staff_api_client.user
+        )
+    else:
+        assert app_data["accessToken"] is None
 
 
 def test_app_query_no_permission(

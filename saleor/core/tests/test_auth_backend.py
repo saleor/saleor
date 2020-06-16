@@ -1,5 +1,6 @@
 import jwt
 import pytest
+from django.contrib.auth.models import Permission
 from freezegun import freeze_time
 from jwt import ExpiredSignatureError, InvalidSignatureError
 
@@ -8,6 +9,7 @@ from ..jwt import (
     JWT_ACCESS_TYPE,
     JWT_ALGORITHM,
     create_access_token,
+    create_access_token_for_app,
     create_refresh_token,
     jwt_user_payload,
 )
@@ -82,3 +84,38 @@ def test_user_deactivated_token(rf, staff_user):
     request = rf.request(HTTP_AUTHORIZATION=f"JWT {access_token}")
     backend = JSONWebTokenBackend()
     assert backend.authenticate(request) is None
+
+
+@pytest.mark.parametrize(
+    "user_permissions, app_permissions, expected_limited_permissions",
+    [
+        (
+            ["manage_apps", "manage_checkouts"],
+            ["manage_checkouts"],
+            ["MANAGE_CHECKOUTS"],
+        ),
+        ([], ["manage_checkouts"], []),
+        ([], [], []),
+        (["manage_apps"], ["manage_checkouts"], []),
+        (["manage_checkouts"], [], []),
+        (
+            ["manage_orders", "manage_checkouts", "manage_apps"],
+            ["manage_checkouts", "manage_apps"],
+            ["MANAGE_CHECKOUTS", "MANAGE_APPS"],
+        ),
+    ],
+)
+def test_user_with_permission_limits(
+    user_permissions, app_permissions, expected_limited_permissions, rf, staff_user, app
+):
+    staff_user.user_permissions.set(
+        Permission.objects.filter(codename__in=user_permissions)
+    )
+    app.permissions.set(Permission.objects.filter(codename__in=app_permissions))
+    access_token_for_app = create_access_token_for_app(app, staff_user)
+    request = rf.request(HTTP_AUTHORIZATION=f"JWT {access_token_for_app}")
+    backend = JSONWebTokenBackend()
+    user = backend.authenticate(request)
+    assert user == staff_user
+    permission_limits = getattr(user, "permission_limits", None)
+    assert set(permission_limits) == set(expected_limited_permissions)
