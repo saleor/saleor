@@ -56,7 +56,7 @@ sentry-sdk = "^0"
 stripe = "^2.47.0"
 text-unidecode = "^1.2"
 tqdm = "^4.46"
-uwsgi = {version = "^2.0.8", platform = "!=win32"}
+uwsgi = {version = "^2.0.19", platform = "!=win32"}
 weasyprint = ">=48"
 oauthlib = "^3.0"
 jaeger-client = "^4.3.0"
