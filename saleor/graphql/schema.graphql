@@ -764,6 +764,24 @@ type CategoryUpdatePrivateMeta {
   category: Category
 }
 
+type Channel {
+  id: ID!
+  name: String!
+  slug: String!
+  currencyCode: String!
+}
+
+type ChannelCreate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  channel: Channel
+}
+
+input ChannelCreateInput {
+  name: String!
+  slug: String!
+  currency: String!
+}
+
 type Checkout implements Node & ObjectWithMetadata {
   created: DateTime!
   lastChange: DateTime!
@@ -2479,6 +2497,7 @@ type Mutation {
   checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearMeta @deprecated(reason: "Use the `deleteMetadata` mutation. This field will be removed after 2020-07-31.")
   checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta @deprecated(reason: "Use the `updatePrivateMetadata` mutation. This field will be removed after 2020-07-31.")
   checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearPrivateMeta @deprecated(reason: "Use the `deletePrivateMetadata` mutation. This field will be removed after 2020-07-31.")
+  channelCreate(input: ChannelCreateInput!): ChannelCreate
   appCreate(input: AppInput!): AppCreate
   appUpdate(id: ID!, input: AppInput!): AppUpdate
   appDelete(id: ID!): AppDelete

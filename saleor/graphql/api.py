@@ -2,6 +2,7 @@ from graphene_federation import build_schema
 
 from .account.schema import AccountMutations, AccountQueries
 from .app.schema import AppMutations, AppQueries
+from .channel.schema import ChannelMutations
 from .checkout.schema import CheckoutMutations, CheckoutQueries
 from .core.schema import CoreQueries
 from .discount.schema import DiscountMutations, DiscountQueries
@@ -46,6 +47,7 @@ class Query(
 class Mutation(
     AccountMutations,
     AppMutations,
+    ChannelMutations,
     CheckoutMutations,
     DiscountMutations,
     PluginsMutations,
