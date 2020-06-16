@@ -109,8 +109,27 @@ class ActivePlugin(BasePlugin):
 
 class ActivePaymentGateway(BasePlugin):
     PLUGIN_ID = "gateway.active"
-    CLIENT_CONFIG = [{"field": "foo", "value": "bar"}]
+    CLIENT_CONFIG = [
+        {"field": "foo", "value": "bar"},
+        {"field": "supported_currencies", "value": ["USD"]},
+    ]
     PLUGIN_NAME = "braintree"
+    DEFAULT_ACTIVE = True
+
+    def process_payment(self, payment_information, previous_value):
+        pass
+
+    def get_payment_config(self, previous_value):
+        return self.CLIENT_CONFIG
+
+
+class ActiveDummyPaymentGateway(BasePlugin):
+    PLUGIN_ID = "dummy.active"
+    CLIENT_CONFIG = [
+        {"field": "foo", "value": "bar"},
+        {"field": "supported_currencies", "value": ["PLN", "USD"]},
+    ]
+    PLUGIN_NAME = "dummy"
     DEFAULT_ACTIVE = True
 
     def process_payment(self, payment_information, previous_value):

@@ -64,6 +64,7 @@ def gateway_config():
     return GatewayConfig(
         gateway_name="Dummy",
         auto_capture=True,
+        supported_currencies=["USD"],
         connection_params={"secret-key": "nobodylikesspanishinqusition"},
     )
 
