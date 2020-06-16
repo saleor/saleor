@@ -4,7 +4,7 @@ from ...channel import models
 from ...core.permissions import ChannelPermission
 from ..core.mutations import ModelMutation
 from ..core.types.common import ChannelError
-from .types import Channel  # noqa: F401
+from .types import Channel  # noqa: F401 # lgtm [py/unused-import]
 
 
 class ChannelCreateInput(graphene.InputObjectType):
