@@ -14,9 +14,15 @@
           {% trans "Hi!" context "Standard e-mail greeting" %}
         </mj-text>
         <mj-text>
-          {% blocktrans trimmed context "Order confirmation e-mail text" %}
-            Thank you for your order. Below is the list of ordered products. To see your payment details please visit: <a href="{{ order_details_url }}">{{ order_details_url }}</a>
-          {% endblocktrans %}
+          {% if order_details_url %}
+            {% blocktrans trimmed context "Order confirmation e-mail text with payment details" %}
+              Thank you for your order. Below is the list of ordered products. To see your payment details please visit: <a href="{{ order_details_url }}">{{ order_details_url }}</a>
+            {% endblocktrans %}
+          {% else %}
+            {% blocktrans trimmed context "Order confirmation e-mail text" %}
+              Thank you for your order. Below is the list of ordered products.
+            {% endblocktrans %}
+          {% endif %}
         </mj-text>
       </mj-column>
     </mj-section>
