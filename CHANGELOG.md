@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix specific product voucher in draft orders - #5727 by @fowczarek
 - Add products csv export - #5255 by @IKarbowiak
 - Explicit country assignment in default shipping zones - #5736 by @maarcingebala
+- Drop `json_content` field from the `Menu` model - #5761 by @maarcingebala
 
 ## 2.10.1
 
