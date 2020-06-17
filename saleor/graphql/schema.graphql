@@ -1838,7 +1838,7 @@ input ExportProductsInput {
   scope: ExportScope!
   filter: ProductFilterInput
   ids: [ID!]
-  exportInfo: ExportInfoInput!
+  exportInfo: ExportInfoInput
   fileType: FileTypesEnum!
 }
 

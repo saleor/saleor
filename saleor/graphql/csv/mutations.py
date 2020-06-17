@@ -47,7 +47,7 @@ class ExportProductsInput(graphene.InputObjectType):
     )
     export_info = ExportInfoInput(
         description="Input with info about fields which should be exported.",
-        required=True,
+        required=False,
     )
     file_type = FileTypeEnum(description="Type of exported file.", required=True)
 
