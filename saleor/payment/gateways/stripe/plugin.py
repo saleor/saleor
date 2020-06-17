@@ -45,17 +45,17 @@ class StripeGatewayPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         "Public API key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": "Provide Stripe public API key",
+            "help_text": "Provide Stripe public API key.",
             "label": "Public API key",
         },
         "Secret API key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": "Provide Stripe secret API key",
+            "help_text": "Provide Stripe secret API key.",
             "label": "Secret API key",
         },
         "Store customers card": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should store cards on payments"
+            "help_text": "Determines if Saleor should store cards on payments."
             "in Stripe customer.",
             "label": "Store customers card",
         },
@@ -66,7 +66,7 @@ class StripeGatewayPlugin(BasePlugin):
         },
         "Supported currencies": {
             "type": ConfigurationTypeField.LIST,
-            "help_text": "Determines currencies supported by gateway",
+            "help_text": "Determines currencies supported by gateway.",
             "label": "Supported currencies",
         },
     }

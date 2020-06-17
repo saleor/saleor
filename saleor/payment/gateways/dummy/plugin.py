@@ -52,7 +52,7 @@ class DummyGatewayPlugin(BasePlugin):
         },
         "Supported currencies": {
             "type": ConfigurationTypeField.LIST,
-            "help_text": "Determines currencies supported by gateway",
+            "help_text": "Determines currencies supported by gateway.",
             "label": "Supported currencies",
         },
     }
