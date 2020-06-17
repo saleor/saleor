@@ -581,7 +581,11 @@ def test_checkout_available_payment_gateways(
         }
     }
     """
-    expected_warning = "Default currency for Dummy is used."
+    expected_warning = (
+        "Default currency used for Dummy. "
+        "DEFAULT_CURRENCY setting is deprecated, "
+        "please configure supported currencies for this gateway."
+    )
     variables = {"token": str(checkout_with_item.token)}
     with warnings.catch_warnings(record=True) as warns:
         response = api_client.post_graphql(query, variables)
