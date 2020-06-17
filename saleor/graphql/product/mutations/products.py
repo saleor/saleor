@@ -841,10 +841,6 @@ class ProductCreate(ModelMutation):
             )
 
         clean_seo_fields(cleaned_input)
-        # cls.clean_sku(product_type, cleaned_input)
-        # stocks = cleaned_input.get("stocks")
-        # if stocks:
-        #     cls.check_for_duplicates_in_stocks(stocks)
         return cleaned_input
 
     @classmethod
@@ -909,23 +905,6 @@ class ProductCreate(ModelMutation):
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        # if not instance.product_type.has_variants:
-        #     site_settings = info.context.site.settings
-        #     track_inventory = cleaned_input.get(
-        #         "track_inventory", site_settings.track_inventory_by_default
-        #     )
-        #     sku = cleaned_input.get("sku")
-        #     variant_price = cleaned_input.get("base_price")
-        #
-        #     variant = models.ProductVariant.objects.create(
-        #         product=instance,
-        #         track_inventory=track_inventory,
-        #         sku=sku,
-        #         price_amount=variant_price,
-        #     )
-        #     stocks = cleaned_input.get("stocks")
-        #     if stocks:
-        #         cls.create_variant_stocks(variant, stocks)
 
         attributes = cleaned_input.get("attributes")
         if attributes:
