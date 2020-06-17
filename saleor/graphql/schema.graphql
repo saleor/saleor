@@ -287,6 +287,7 @@ type AppFetchManifest {
 input AppFilterInput {
   search: String
   isActive: Boolean
+  type: AppTypeEnum
 }
 
 input AppInput {
