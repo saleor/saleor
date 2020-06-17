@@ -7,9 +7,9 @@ from ...core.permissions import ProductPermissions
 from ...csv import models as csv_models
 from ...csv.events import export_started_event
 from ...csv.tasks import export_products_task
-from ..core.enums import CsvErrorCode
+from ..core.enums import ExportErrorCode
 from ..core.mutations import BaseMutation
-from ..core.types.common import CsvError
+from ..core.types.common import ExportError
 from ..product.filters import ProductFilterInput
 from ..product.types import Attribute, Product
 from ..utils import resolve_global_ids_to_primary_keys
@@ -68,8 +68,8 @@ class ExportProducts(BaseMutation):
     class Meta:
         description = "Export products to csv file."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = CsvError
-        error_type_field = "csv_errors"
+        error_type_class = ExportError
+        error_type_field = "export_errors"
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -105,7 +105,7 @@ class ExportProducts(BaseMutation):
                 {
                     "ids": ValidationError(
                         "You must provide at least one product id.",
-                        code=CsvErrorCode.REQUIRED.value,
+                        code=ExportErrorCode.REQUIRED.value,
                     )
                 }
             )
@@ -120,7 +120,7 @@ class ExportProducts(BaseMutation):
                 {
                     "filter": ValidationError(
                         "You must provide filter input.",
-                        code=CsvErrorCode.REQUIRED.value,
+                        code=ExportErrorCode.REQUIRED.value,
                     )
                 }
             )
