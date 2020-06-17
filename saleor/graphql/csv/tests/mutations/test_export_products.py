@@ -26,7 +26,7 @@ EXPORT_PRODUCTS_MUTATION = """
                     name
                 }
             }
-            csvErrors {
+            exportErrors {
                 field
                 code
                 message
@@ -85,7 +85,7 @@ def test_export_products_mutation(
         ANY, called_data, {}, FileTypeEnum.CSV.value
     )
 
-    assert not data["csvErrors"]
+    assert not data["exportErrors"]
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
     assert export_file_data["user"]["email"] == staff_api_client.user.email
@@ -131,7 +131,7 @@ def test_export_products_mutation_by_app(
         ANY, {"all": ""}, {}, FileTypeEnum.CSV.value
     )
 
-    assert not data["csvErrors"]
+    assert not data["exportErrors"]
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
     assert export_file_data["user"] is None
@@ -189,7 +189,7 @@ def test_export_products_mutation_ids_scope(
     assert call_args[2] == {"fields": [ProductFieldEnum.PRICE_OVERRIDE.value]}
     assert call_args[3] == FileTypeEnum.XLSX.value
 
-    assert not data["csvErrors"]
+    assert not data["exportErrors"]
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
     assert export_file_data["user"]["email"] == staff_api_client.user.email
@@ -261,7 +261,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
     }
     assert call_args[3] == FileTypeEnum.CSV.value
 
-    assert not data["csvErrors"]
+    assert not data["exportErrors"]
     assert data["exportFile"]["id"]
     assert export_file_data["createdAt"]
     assert export_file_data["user"]["email"] == staff_api_client.user.email
@@ -310,11 +310,11 @@ def test_export_products_mutation_failed(
     )
     content = get_graphql_content(response)
     data = content["data"]["exportProducts"]
-    errors = data["csvErrors"]
+    errors = data["exportErrors"]
 
     export_products_mock.assert_not_called()
 
-    assert data["csvErrors"]
+    assert data["exportErrors"]
     assert errors[0]["field"] == error_field
     assert not ExportEvent.objects.filter(
         user=user, type=ExportEvents.EXPORT_PENDING

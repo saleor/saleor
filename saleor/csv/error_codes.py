@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class CsvErrorCode(Enum):
+class ExportErrorCode(Enum):
     INVALID = "invalid"
     NOT_FOUND = "not_found"
     REQUIRED = "required"

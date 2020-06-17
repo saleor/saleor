@@ -6,8 +6,8 @@ from ..enums import (
     AccountErrorCode,
     AppErrorCode,
     CheckoutErrorCode,
-    CsvErrorCode,
     DiscountErrorCode,
+    ExportErrorCode,
     GiftCardErrorCode,
     JobStatusEnum,
     MenuErrorCode,
@@ -106,8 +106,8 @@ class DiscountError(Error):
     code = DiscountErrorCode(description="The error code.", required=True)
 
 
-class CsvError(Error):
-    code = CsvErrorCode(description="The error code.", required=True)
+class ExportError(Error):
+    code = ExportErrorCode(description="The error code.", required=True)
 
 
 class MenuError(Error):

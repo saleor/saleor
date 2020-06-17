@@ -1457,18 +1457,6 @@ type CreditCard {
   expYear: Int!
 }
 
-type CsvError {
-  field: String
-  message: String
-  code: CsvErrorCode!
-}
-
-enum CsvErrorCode {
-  INVALID
-  NOT_FOUND
-  REQUIRED
-}
-
 type CustomerBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
@@ -1763,6 +1751,18 @@ type Error {
   message: String
 }
 
+type ExportError {
+  field: String
+  message: String
+  code: ExportErrorCode!
+}
+
+enum ExportErrorCode {
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
 type ExportEvent implements Node {
   id: ID!
   date: DateTime!
@@ -1831,7 +1831,7 @@ input ExportInfoInput {
 type ExportProducts {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   exportFile: ExportFile
-  csvErrors: [CsvError!]!
+  exportErrors: [ExportError!]!
 }
 
 input ExportProductsInput {
