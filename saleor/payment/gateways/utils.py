@@ -11,5 +11,9 @@ def get_supported_currencies(config: "GatewayConfig", gateway_name: str) -> List
     currencies = config.supported_currencies
     if not currencies:
         currencies = [settings.DEFAULT_CURRENCY]
-        warnings.warn(f"Default currency for {gateway_name} is used.")
+        warnings.warn(
+            f"Default currency used for {gateway_name}. "
+            "DEFAULT_CURRENCY setting is deprecated, "
+            "please configure supported currencies for this gateway."
+        )
     return currencies
