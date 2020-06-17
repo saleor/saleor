@@ -49,17 +49,17 @@ class BraintreeGatewayPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         "Public API key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": "Provide Braintree public API key",
+            "help_text": "Provide Braintree public API key.",
             "label": "Public API key",
         },
         "Secret API key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": "Provide Braintree secret API key",
+            "help_text": "Provide Braintree secret API key.",
             "label": "Secret API key",
         },
         "Merchant ID": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": "Provide Braintree merchant ID",
+            "help_text": "Provide Braintree merchant ID.",
             "label": "Merchant ID",
         },
         "Use sandbox": {
@@ -69,7 +69,7 @@ class BraintreeGatewayPlugin(BasePlugin):
         },
         "Store customers card": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should store cards on payments"
+            "help_text": "Determines if Saleor should store cards on payments."
             " in Braintree customer.",
             "label": "Store customers card",
         },
@@ -85,7 +85,7 @@ class BraintreeGatewayPlugin(BasePlugin):
         },
         "Supported currencies": {
             "type": ConfigurationTypeField.LIST,
-            "help_text": "Determines currencies supported by gateway",
+            "help_text": "Determines currencies supported by gateway.",
             "label": "Supported currencies",
         },
     }
