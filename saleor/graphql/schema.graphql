@@ -3709,11 +3709,7 @@ input ProductCreateInput {
   taxCode: String
   seo: SeoInput
   weight: WeightScalar
-  sku: String
-  trackInventory: Boolean
-  basePrice: Decimal
   productType: ID!
-  stocks: [StockInput!]
 }
 
 type ProductDelete {
@@ -3840,9 +3836,6 @@ input ProductInput {
   taxCode: String
   seo: SeoInput
   weight: WeightScalar
-  sku: String
-  trackInventory: Boolean
-  basePrice: Decimal
 }
 
 input ProductOrder {

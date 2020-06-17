@@ -519,25 +519,6 @@ class ProductInput(graphene.InputObjectType):
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
-    sku = graphene.String(
-        description=(
-            "Stock keeping unit of a product. Note: this field is only used if "
-            "a product doesn't use variants."
-        )
-    )
-    track_inventory = graphene.Boolean(
-        description=(
-            "Determines if the inventory of this product should be tracked. If false, "
-            "the quantity won't change when customers buy this item. Note: this field "
-            "is only used if a product doesn't use variants."
-        )
-    )
-    base_price = Decimal(
-        description=(
-            "Default price for product variant. "
-            "Note: this field is only used if a product doesn't use variants."
-        )
-    )
 
 
 class StockInput(graphene.InputObjectType):
@@ -552,14 +533,6 @@ class ProductCreateInput(ProductInput):
         description="ID of the type that product belongs to.",
         name="productType",
         required=True,
-    )
-    stocks = graphene.List(
-        graphene.NonNull(StockInput),
-        description=(
-            "Stocks of a product available for sale. Note: this field is "
-            "only used if a product doesn't use variants."
-        ),
-        required=False,
     )
 
 
@@ -868,10 +841,10 @@ class ProductCreate(ModelMutation):
             )
 
         clean_seo_fields(cleaned_input)
-        cls.clean_sku(product_type, cleaned_input)
-        stocks = cleaned_input.get("stocks")
-        if stocks:
-            cls.check_for_duplicates_in_stocks(stocks)
+        # cls.clean_sku(product_type, cleaned_input)
+        # stocks = cleaned_input.get("stocks")
+        # if stocks:
+        #     cls.check_for_duplicates_in_stocks(stocks)
         return cleaned_input
 
     @classmethod
@@ -936,23 +909,23 @@ class ProductCreate(ModelMutation):
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        if not instance.product_type.has_variants:
-            site_settings = info.context.site.settings
-            track_inventory = cleaned_input.get(
-                "track_inventory", site_settings.track_inventory_by_default
-            )
-            sku = cleaned_input.get("sku")
-            variant_price = cleaned_input.get("base_price")
-
-            variant = models.ProductVariant.objects.create(
-                product=instance,
-                track_inventory=track_inventory,
-                sku=sku,
-                price_amount=variant_price,
-            )
-            stocks = cleaned_input.get("stocks")
-            if stocks:
-                cls.create_variant_stocks(variant, stocks)
+        # if not instance.product_type.has_variants:
+        #     site_settings = info.context.site.settings
+        #     track_inventory = cleaned_input.get(
+        #         "track_inventory", site_settings.track_inventory_by_default
+        #     )
+        #     sku = cleaned_input.get("sku")
+        #     variant_price = cleaned_input.get("base_price")
+        #
+        #     variant = models.ProductVariant.objects.create(
+        #         product=instance,
+        #         track_inventory=track_inventory,
+        #         sku=sku,
+        #         price_amount=variant_price,
+        #     )
+        #     stocks = cleaned_input.get("stocks")
+        #     if stocks:
+        #         cls.create_variant_stocks(variant, stocks)
 
         attributes = cleaned_input.get("attributes")
         if attributes:
@@ -1014,23 +987,6 @@ class ProductUpdate(ProductCreate):
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        if not instance.product_type.has_variants:
-            variant = instance.variants.first()
-            update_fields = []
-            if "track_inventory" in cleaned_input:
-                variant.track_inventory = cleaned_input["track_inventory"]
-                update_fields.append("track_inventory")
-            if "sku" in cleaned_input:
-                variant.sku = cleaned_input["sku"]
-                update_fields.append("sku")
-            if "base_price" in cleaned_input:
-                variant.price_amount = cleaned_input["base_price"]
-                update_fields.append("price_amount")
-            if update_fields:
-                variant.save(update_fields=update_fields)
-        # Recalculate the "minimal variant price"
-        update_product_minimal_variant_price_task.delay(instance.pk)
-
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)

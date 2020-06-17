@@ -1050,7 +1050,6 @@ def test_create_product(
     size_attribute,
     description_json,
     permission_manage_products,
-    settings,
     monkeypatch,
 ):
     query = CREATE_PRODUCT_MUTATION
@@ -1064,7 +1063,6 @@ def test_create_product(
     product_is_published = True
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
-    product_price = "22.33"
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
@@ -1094,7 +1092,6 @@ def test_create_product(
             "isPublished": product_is_published,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
-            "basePrice": product_price,
             "attributes": [
                 {"id": color_attr_id, "values": [color_value_slug]},
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
@@ -1144,7 +1141,6 @@ def test_create_product_no_slug_in_input(
     product_name = "test name"
     product_is_published = True
     product_tax_rate = "STANDARD"
-    product_price = "22.33"
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
@@ -1162,7 +1158,6 @@ def test_create_product_no_slug_in_input(
             "slug": input_slug,
             "isPublished": product_is_published,
             "taxCode": product_tax_rate,
-            "basePrice": product_price,
         }
     }
 
@@ -1195,7 +1190,6 @@ def test_create_product_no_category_id(
     product_name = "test name"
     product_is_published = False
     product_tax_rate = "STANDARD"
-    product_price = "22.33"
     input_slug = "test-slug"
 
     # Mock tax interface with fake response from tax gateway
@@ -1212,7 +1206,6 @@ def test_create_product_no_category_id(
             "slug": input_slug,
             "isPublished": product_is_published,
             "taxCode": product_tax_rate,
-            "basePrice": product_price,
         }
     }
 
@@ -1304,34 +1297,19 @@ QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
     mutation createProduct(
         $productTypeId: ID!,
         $categoryId: ID!
-        $name: String!,
-        $basePrice: Decimal!,
-        $sku: String,
-        $trackInventory: Boolean)
+        $name: String!)
     {
         productCreate(
             input: {
                 category: $categoryId,
                 productType: $productTypeId,
                 name: $name,
-                basePrice: $basePrice,
-                sku: $sku,
-                trackInventory: $trackInventory
             })
         {
             product {
                 id
                 name
                 slug
-                variants{
-                    id
-                    sku
-                    trackInventory
-                    quantity
-                    price {
-                        amount
-                    }
-                }
                 category {
                     name
                 }
@@ -1358,17 +1336,11 @@ def test_create_product_without_variants(
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_name = "test name"
     product_slug = "test-name"
-    product_price = 10
-    sku = "sku"
-    track_inventory = True
 
     variables = {
         "productTypeId": product_type_id,
         "categoryId": category_id,
         "name": product_name,
-        "basePrice": product_price,
-        "sku": sku,
-        "trackInventory": track_inventory,
     }
 
     response = staff_api_client.post_graphql(
@@ -1381,76 +1353,6 @@ def test_create_product_without_variants(
     assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
-    assert data["product"]["variants"][0]["sku"] == sku
-    assert data["product"]["variants"][0]["trackInventory"] == track_inventory
-    assert data["product"]["variants"][0]["price"]["amount"] == product_price
-
-
-def test_create_product_without_variants_sku_validation(
-    staff_api_client, product_type_without_variant, category, permission_manage_products
-):
-    query = QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS
-
-    product_type = product_type_without_variant
-    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
-    category_id = graphene.Node.to_global_id("Category", category.pk)
-    product_name = "test name"
-    product_price = 10
-    quantity = 1
-    track_inventory = True
-
-    variables = {
-        "productTypeId": product_type_id,
-        "categoryId": category_id,
-        "name": product_name,
-        "basePrice": product_price,
-        "sku": None,
-        "quantity": quantity,
-        "trackInventory": track_inventory,
-    }
-
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productCreate"]
-    assert data["errors"][0]["field"] == "sku"
-    assert data["errors"][0]["message"] == "This field cannot be blank."
-
-
-def test_create_product_without_variants_sku_duplication(
-    staff_api_client,
-    product_type_without_variant,
-    category,
-    permission_manage_products,
-    product_with_default_variant,
-):
-    query = QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS
-
-    product_type = product_type_without_variant
-    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
-    category_id = graphene.Node.to_global_id("Category", category.pk)
-    product_name = "test name"
-    product_price = 10
-    track_inventory = True
-    sku = "1234"
-
-    variables = {
-        "productTypeId": product_type_id,
-        "categoryId": category_id,
-        "name": product_name,
-        "basePrice": product_price,
-        "sku": sku,
-        "trackInventory": track_inventory,
-    }
-
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productCreate"]
-    assert data["errors"][0]["field"] == "sku"
-    assert data["errors"][0]["message"] == "Product with this SKU already exists."
 
 
 def test_product_create_without_product_type(
@@ -1460,7 +1362,6 @@ def test_product_create_without_product_type(
     mutation createProduct($categoryId: ID!) {
         productCreate(input: {
                 name: "Product",
-                basePrice: "2.5",
                 productType: "",
                 category: $categoryId}) {
             product {
@@ -1491,7 +1392,6 @@ def test_product_create_without_category_and_true_is_published_value(
     mutation createProduct($productTypeId: ID!) {
         productCreate(input: {
                 name: "Product",
-                basePrice: "2.5",
                 productType: $productTypeId,
                 isPublished: true
             }) {
@@ -1530,7 +1430,6 @@ def test_product_create_with_collections_webhook(
     mutation createProduct($productTypeId: ID!, $collectionId: ID!, $categoryId: ID!) {
         productCreate(input: {
                 name: "Product",
-                basePrice: "2.5",
                 productType: $productTypeId,
                 isPublished: true,
                 collections: [$collectionId],
@@ -1600,7 +1499,6 @@ def test_update_product(
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
             $taxCode: String!,
-            $basePrice: Decimal!,
             $attributes: [AttributeValueInput!]) {
                 productUpdate(
                     id: $productId,
@@ -1612,7 +1510,6 @@ def test_update_product(
                         isPublished: $isPublished,
                         chargeTaxes: $chargeTaxes,
                         taxCode: $taxCode,
-                        basePrice: $basePrice,
                         attributes: $attributes
                     }) {
                         product {
@@ -1661,7 +1558,6 @@ def test_update_product(
     category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
     product_name = "updated name"
     product_slug = "updated-product"
-    basePrice = 10.00
     product_is_published = True
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
@@ -1684,7 +1580,6 @@ def test_update_product(
         "isPublished": product_is_published,
         "chargeTaxes": product_charge_taxes,
         "taxCode": product_tax_rate,
-        "basePrice": basePrice,
         "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
     }
 
@@ -1699,7 +1594,6 @@ def test_update_product(
     assert data["product"]["descriptionJson"] == other_description_json
     assert data["product"]["isPublished"] == product_is_published
     assert data["product"]["chargeTaxes"] == product_charge_taxes
-    assert data["product"]["variants"][0]["price"]["amount"] == basePrice
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
 
@@ -2021,99 +1915,6 @@ def test_update_product_with_no_attribute_slug_or_id(
     assert data["productErrors"] == [
         {"field": "attributes", "code": ProductErrorCode.REQUIRED.name, "message": ANY}
     ]
-
-
-def test_update_product_without_variants(
-    staff_api_client, product_with_default_variant, permission_manage_products
-):
-    query = """
-    mutation updateProduct(
-        $productId: ID!,
-        $sku: String,
-        $trackInventory: Boolean)
-    {
-        productUpdate(
-            id: $productId,
-            input: {
-                sku: $sku,
-                trackInventory: $trackInventory,
-            })
-        {
-            product {
-                id
-                variants{
-                    id
-                    sku
-                    trackInventory
-                }
-            }
-            errors {
-                message
-                field
-            }
-        }
-    }
-    """
-
-    product = product_with_default_variant
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    product_sku = "test_sku"
-    product_track_inventory = False
-
-    variables = {
-        "productId": product_id,
-        "sku": product_sku,
-        "trackInventory": product_track_inventory,
-    }
-
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productUpdate"]
-    assert data["errors"] == []
-    product = data["product"]["variants"][0]
-    assert product["sku"] == product_sku
-    assert product["trackInventory"] == product_track_inventory
-
-
-def test_update_product_without_variants_sku_duplication(
-    staff_api_client, product_with_default_variant, permission_manage_products, product
-):
-    query = """
-    mutation updateProduct(
-        $productId: ID!,
-        $sku: String)
-    {
-        productUpdate(
-            id: $productId,
-            input: {
-                sku: $sku
-            })
-        {
-            product {
-                id
-            }
-            errors {
-                message
-                field
-            }
-        }
-    }"""
-    product = product_with_default_variant
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    product_sku = "123"
-
-    variables = {"productId": product_id, "sku": product_sku}
-
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productUpdate"]
-    assert data["errors"]
-    assert data["errors"][0]["field"] == "sku"
-    assert data["errors"][0]["message"] == "Product with this SKU already exists."
 
 
 def test_update_product_with_negative_weight(
@@ -4093,75 +3894,6 @@ mutation createProduct(
     """
 
 
-def test_create_product_without_variant_creates_stocks(
-    staff_api_client,
-    category,
-    permission_manage_products,
-    product_type_without_variant,
-    warehouse,
-):
-    category_id = graphene.Node.to_global_id("Category", category.pk)
-    product_type_id = graphene.Node.to_global_id(
-        "ProductType", product_type_without_variant.pk
-    )
-    stocks = [
-        {
-            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
-            "quantity": 20,
-        }
-    ]
-    variables = {
-        "category": category_id,
-        "productType": product_type_id,
-        "name": "Test",
-        "stocks": stocks,
-        "sku": "23434",
-        "trackInventory": True,
-        "basePrice": Decimal("19"),
-    }
-    response = staff_api_client.post_graphql(
-        MUTATION_CREATE_PRODUCT_WITH_STOCKS,
-        variables,
-        permissions=[permission_manage_products],
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productCreate"]
-    quantity = data["product"]["variants"][0]["stockQuantity"]
-    assert quantity == 20
-
-
-def test_create_product_with_variants_does_not_create_stock(
-    staff_api_client, category, product_type, permission_manage_products, warehouse
-):
-    category_id = graphene.Node.to_global_id("Category", category.pk)
-    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
-    stocks = [
-        {
-            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
-            "quantity": 20,
-        }
-    ]
-    variables = {
-        "category": category_id,
-        "productType": product_type_id,
-        "name": "Test",
-        "quantity": 8,
-        "stocks": stocks,
-        "sku": "23434",
-        "trackInventory": True,
-        "basePrice": Decimal("19"),
-    }
-    response = staff_api_client.post_graphql(
-        MUTATION_CREATE_PRODUCT_WITH_STOCKS,
-        variables,
-        permissions=[permission_manage_products],
-    )
-    content = get_graphql_content(response)
-    variants = content["data"]["productCreate"]["product"]["variants"]
-    assert len(variants) == 0
-    assert not Stock.objects.exists()
-
-
 def test_create_stocks_failed(product_with_single_variant, warehouse):
     variant = product_with_single_variant.variants.first()
 
@@ -4247,8 +3979,6 @@ mutation createProduct(
         $productType: ID!,
         $category: ID!
         $name: String!,
-        $sku: String,
-        $basePrice: Decimal!,
         $weight: WeightScalar)
     {
         productCreate(
@@ -4256,8 +3986,6 @@ mutation createProduct(
                 category: $category,
                 productType: $productType,
                 name: $name,
-                sku: $sku,
-                basePrice: $basePrice,
                 weight: $weight
             })
         {
@@ -4308,8 +4036,6 @@ def test_create_product_with_weight_variable(
         "category": category_id,
         "productType": product_type_id,
         "name": "Test",
-        "sku": "23434",
-        "basePrice": Decimal("19"),
         "weight": weight,
     }
     response = staff_api_client.post_graphql(
@@ -4351,17 +4077,13 @@ def test_create_product_with_weight_input(
     mutation createProduct(
             $productType: ID!,
             $category: ID!,
-            $name: String!,
-            $sku: String,
-            $basePrice: Decimal!)
+            $name: String!)
         {{
             productCreate(
                 input: {{
                     category: $category,
                     productType: $productType,
                     name: $name,
-                    sku: $sku,
-                    basePrice: $basePrice,
                     weight: {weight}
                 }})
             {{
@@ -4388,8 +4110,6 @@ def test_create_product_with_weight_input(
         "category": category_id,
         "productType": product_type_id,
         "name": "Test",
-        "sku": "23434",
-        "basePrice": Decimal("19"),
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products],
