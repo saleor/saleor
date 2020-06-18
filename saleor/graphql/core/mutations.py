@@ -36,17 +36,6 @@ def get_model_name(model):
     return model_name[:1].lower() + model_name[1:]
 
 
-def get_output_fields(model, return_field_name):
-    """Return mutation output field for model instance."""
-    model_type = registry.get_type_for_model(model)
-    if not model_type:
-        raise ImproperlyConfigured(
-            "Unable to find type for model %s in graphene registry" % model.__name__
-        )
-    fields = {return_field_name: graphene.Field(model_type)}
-    return fields
-
-
 def get_error_fields(error_type_class, error_type_field):
     return {
         error_type_field: graphene.Field(
@@ -357,12 +346,19 @@ class ModelMutation(BaseMutation):
             return_field_name = get_model_name(model)
         if arguments is None:
             arguments = {}
-        fields = get_output_fields(model, return_field_name)
 
         _meta.model = model
         _meta.return_field_name = return_field_name
         _meta.exclude = exclude
         super().__init_subclass_with_meta__(_meta=_meta, **options)
+
+        model_type = cls.get_type_for_model()
+        if not model_type:
+            raise ImproperlyConfigured(
+                "Unable to find type for model %s in graphene registry" % model.__name__
+            )
+        fields = {return_field_name: graphene.Field(model_type)}
+
         cls._update_mutation_arguments_and_fields(arguments=arguments, fields=fields)
 
     @classmethod
