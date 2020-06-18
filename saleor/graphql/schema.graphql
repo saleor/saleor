@@ -4370,7 +4370,7 @@ input ShippingZoneUpdateInput {
 }
 
 type Shop {
-  availablePaymentGateways: [PaymentGateway!]!
+  availablePaymentGateways(currency: String): [PaymentGateway!]!
   geolocalization: Geolocalization
   authorizationKeys: [AuthorizationKey]!
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
