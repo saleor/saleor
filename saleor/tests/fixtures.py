@@ -183,6 +183,13 @@ def setup_dummy_gateway(settings):
     return settings
 
 
+@pytest.fixture
+def add_sample_gateway(settings):
+    settings.PLUGINS += [
+        "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway"
+    ]
+
+
 @pytest.fixture(autouse=True)
 def site_settings(db, settings) -> SiteSettings:
     """Create a site and matching site settings.

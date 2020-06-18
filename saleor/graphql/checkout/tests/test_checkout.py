@@ -31,19 +31,6 @@ from ..mutations import (
 from ..utils import clean_checkout_payment, clean_checkout_shipping
 
 
-@pytest.fixture(autouse=True)
-def setup_dummy_gateway(settings):
-    settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
-    return settings
-
-
-@pytest.fixture
-def add_sample_gateway(settings):
-    settings.PLUGINS += [
-        "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway"
-    ]
-
-
 def test_clean_shipping_method_after_shipping_address_changes_stay_the_same(
     checkout_with_single_item, address, shipping_method, other_shipping_method
 ):
