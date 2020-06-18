@@ -392,9 +392,9 @@ class OrderCapture(BaseMutation):
         try_payment_action(
             order, info.context.user, payment, gateway.capture, payment, amount
         )
+        order_captured(order, info.context.user, amount, payment)
         if order.is_fully_paid():
             handle_fully_paid_order(order)
-        order_captured(order, info.context.user, amount, payment)
         return OrderCapture(order=order)
 
 
