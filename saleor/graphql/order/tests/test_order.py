@@ -1576,10 +1576,6 @@ def test_order_capture(
     assert data["isPaid"]
     assert data["totalCaptured"]["amount"] == float(amount)
 
-    from pprint import pprint
-
-    pprint(order.events.all())
-
     event_captured, event_order_fully_paid, event_email_sent = order.events.all()
 
     assert event_captured.type == order_events.OrderEvents.PAYMENT_CAPTURED
