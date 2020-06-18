@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix specific product voucher in draft orders - #5727 by @fowczarek
 - Explicit country assignment in default shipping zones - #5736 by @maarcingebala
 - Drop `json_content` field from the `Menu` model - #5761 by @maarcingebala
+- Add missing OrderEvents during checkout flow - #5684 by @koradon
 
 ## 2.10.1
 
@@ -16,7 +17,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix invalid allocation after migration - #5678 by @fowczarek
 - Fix order mutations as app - #5680 by @fowczarek
 - Prevent creating checkout/draft order with unpublished product - #5676 by @d-wysocki
-- Add missing OrderEvents during checkout flow - #5684 by @koradon
 
 ## 2.10.0
 
