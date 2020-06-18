@@ -9,7 +9,6 @@ from django.db import transaction
 
 from ..account.models import User
 from ..checkout.models import Checkout
-from ..order.actions import handle_fully_paid_order
 from ..order.models import Order
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
@@ -221,9 +220,6 @@ def gateway_postprocess(transaction, payment):
             payment.charge_status = ChargeStatus.FULLY_CHARGED
 
         payment.save(update_fields=["charge_status", "captured_amount", "modified"])
-        order = payment.order
-        if order and order.is_fully_paid():
-            handle_fully_paid_order(order)
 
     elif transaction_kind == TransactionKind.VOID:
         payment.is_active = False
