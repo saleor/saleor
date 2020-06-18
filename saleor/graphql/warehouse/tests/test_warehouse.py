@@ -339,7 +339,6 @@ def test_query_warehouses_with_filters_and_no_id(
 def test_mutation_create_warehouse(
     staff_api_client, permission_manage_products, shipping_zone
 ):
-    Warehouse.objects.all().delete()
     variables = {
         "input": {
             "name": "Test warehouse",
@@ -377,7 +376,6 @@ def test_mutation_create_warehouse(
 def test_mutation_create_warehouse_does_not_create_when_name_is_empty_string(
     staff_api_client, permission_manage_products, shipping_zone
 ):
-    Warehouse.objects.all().delete()
     variables = {
         "input": {
             "name": "  ",

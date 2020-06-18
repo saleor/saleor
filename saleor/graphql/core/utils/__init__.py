@@ -110,13 +110,12 @@ def get_duplicated_values(values):
     return {value for value in values if values.count(value) > 1}
 
 
-def validate_and_strip_field_str_value(cleaned_input, field_name: str):
+def validate_required_string_field(cleaned_input, field_name: str):
     """Strip and validate field value."""
-    if field_name in cleaned_input:
-        field_value = cleaned_input.get(field_name)
-        field_value = field_value.strip() if field_value else ""
-        if field_value:
-            cleaned_input[field_name] = field_value
-        else:
-            raise ValidationError(f"{field_name.capitalize()} is required.")
+    field_value = cleaned_input.get(field_name)
+    field_value = field_value.strip() if field_value else ""
+    if field_value:
+        cleaned_input[field_name] = field_value
+    else:
+        raise ValidationError(f"{field_name.capitalize()} is required.")
     return cleaned_input
