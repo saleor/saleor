@@ -320,8 +320,15 @@ class PluginsManager(PaymentInterface):
             if payment_method in type(plugin).__dict__
         ]
 
-    def list_payment_gateways(self, active_only: bool = True) -> List[dict]:
+    def list_payment_gateways(
+        self, currency: Optional[str] = None, active_only: bool = True
+    ) -> List[dict]:
         payment_plugins = self.list_payment_plugin_names(active_only=active_only)
+        # if currency is given return only gateways which support given currency
+        if currency:
+            return self.__get_payment_gateways_for_specific_currency(
+                currency, payment_plugins
+            )
         return [
             {
                 "id": plugin_id,
@@ -330,6 +337,23 @@ class PluginsManager(PaymentInterface):
             }
             for plugin_id, plugin_name in payment_plugins
         ]
+
+    def __get_payment_gateways_for_specific_currency(
+        self, currency: str, payment_plugins: List[tuple]
+    ) -> List[dict]:
+        """Return only gateways which support given currency."""
+        gateways = []
+        for plugin_id, plugin_name in payment_plugins:
+            config = self.__get_payment_config(plugin_id)
+            for item in config:
+                if (
+                    item["field"] == "supported_currencies"
+                    and currency in item["value"]
+                ):
+                    gateways.append(
+                        {"id": plugin_id, "name": plugin_name, "config": config}
+                    )
+        return gateways
 
     def __get_payment_config(self, gateway: str) -> List[dict]:
         method_name = "get_payment_config"

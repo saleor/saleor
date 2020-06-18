@@ -8,6 +8,7 @@ from ...core.taxes import TaxType
 from ..manager import PluginsManager, get_plugins_manager
 from ..models import PluginConfiguration
 from ..tests.sample_plugins import (
+    ActiveDummyPaymentGateway,
     ActivePaymentGateway,
     InactivePaymentGateway,
     PluginInactive,
@@ -286,3 +287,50 @@ def test_manager_serve_list_all_payment_gateways():
     ]
     manager = PluginsManager(plugins=plugins)
     assert manager.list_payment_gateways(active_only=False) == expected_gateways
+
+
+def test_manager_serve_list_all_payment_gateways_specified_currency():
+    expected_gateways = [
+        {
+            "id": ActiveDummyPaymentGateway.PLUGIN_ID,
+            "name": ActiveDummyPaymentGateway.PLUGIN_NAME,
+            "config": ActiveDummyPaymentGateway.CLIENT_CONFIG,
+        },
+    ]
+
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.ActivePaymentGateway",
+        "saleor.plugins.tests.sample_plugins.InactivePaymentGateway",
+        "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    assert (
+        manager.list_payment_gateways(currency="PLN", active_only=False)
+        == expected_gateways
+    )
+
+
+def test_manager_serve_list_all_payment_gateways_specified_currency_two_gateways():
+    expected_gateways = [
+        {
+            "id": ActivePaymentGateway.PLUGIN_ID,
+            "name": ActivePaymentGateway.PLUGIN_NAME,
+            "config": ActivePaymentGateway.CLIENT_CONFIG,
+        },
+        {
+            "id": ActiveDummyPaymentGateway.PLUGIN_ID,
+            "name": ActiveDummyPaymentGateway.PLUGIN_NAME,
+            "config": ActiveDummyPaymentGateway.CLIENT_CONFIG,
+        },
+    ]
+
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.ActivePaymentGateway",
+        "saleor.plugins.tests.sample_plugins.InactivePaymentGateway",
+        "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    assert (
+        manager.list_payment_gateways(currency="USD", active_only=False)
+        == expected_gateways
+    )
