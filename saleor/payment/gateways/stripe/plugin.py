@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, List
 
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
+from ..utils import get_supported_currencies
 from . import (
     GatewayConfig,
     authorize,
@@ -38,22 +39,23 @@ class StripeGatewayPlugin(BasePlugin):
         {"name": "Secret API key", "value": None},
         {"name": "Store customers card", "value": False},
         {"name": "Automatic payment capture", "value": True},
+        {"name": "Supported currencies", "value": []},
     ]
 
     CONFIG_STRUCTURE = {
         "Public API key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": "Provide Stripe public API key",
+            "help_text": "Provide Stripe public API key.",
             "label": "Public API key",
         },
         "Secret API key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": "Provide Stripe secret API key",
+            "help_text": "Provide Stripe secret API key.",
             "label": "Secret API key",
         },
         "Store customers card": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should store cards on payments"
+            "help_text": "Determines if Saleor should store cards on payments "
             "in Stripe customer.",
             "label": "Store customers card",
         },
@@ -61,6 +63,11 @@ class StripeGatewayPlugin(BasePlugin):
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": "Determines if Saleor should automaticaly capture payments.",
             "label": "Automatic payment capture",
+        },
+        "Supported currencies": {
+            "type": ConfigurationTypeField.LIST,
+            "help_text": "Determines currencies supported by gateway.",
+            "label": "Supported currencies",
         },
     }
 
@@ -70,6 +77,7 @@ class StripeGatewayPlugin(BasePlugin):
         self.config = GatewayConfig(
             gateway_name=GATEWAY_NAME,
             auto_capture=configuration["Automatic payment capture"],
+            supported_currencies=configuration["Supported currencies"],
             connection_params={
                 "public_key": configuration["Public API key"],
                 "private_key": configuration["Secret API key"],
@@ -121,7 +129,9 @@ class StripeGatewayPlugin(BasePlugin):
     @require_active_plugin
     def get_payment_config(self, previous_value):
         config = self._get_gateway_config()
+        currencies = get_supported_currencies(config, GATEWAY_NAME)
         return [
             {"field": "api_key", "value": config.connection_params["public_key"]},
             {"field": "store_customer_card", "value": config.store_customer},
+            {"field": "supported_currencies", "value": currencies},
         ]

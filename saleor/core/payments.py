@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -13,7 +13,9 @@ if TYPE_CHECKING:
 
 class PaymentInterface(ABC):
     @abstractmethod
-    def list_payment_gateways(self, active_only: bool = True) -> List[dict]:
+    def list_payment_gateways(
+        self, currency: Optional[str] = None, active_only: bool = True
+    ) -> List[dict]:
         pass
 
     @abstractmethod

@@ -1167,6 +1167,7 @@ input ConfigurationItemInput {
 enum ConfigurationTypeFieldEnum {
   STRING
   BOOLEAN
+  LIST
   SECRET
   PASSWORD
 }
