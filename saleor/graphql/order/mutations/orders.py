@@ -22,6 +22,7 @@ from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID, Decimal
 from ...core.types.common import OrderError
+from ...core.utils import validate_required_string_field
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...meta.deprecated.types import MetaInput, MetaPath
 from ...order.mutations.draft_orders import DraftOrderUpdate
@@ -283,8 +284,9 @@ class OrderAddNote(BaseMutation):
 
     @classmethod
     def clean_input(cls, _info, _instance, data):
-        message = data["input"]["message"].strip()
-        if not message:
+        try:
+            cleaned_input = validate_required_string_field(data["input"], "message")
+        except ValidationError:
             raise ValidationError(
                 {
                     "message": ValidationError(
@@ -292,17 +294,14 @@ class OrderAddNote(BaseMutation):
                     )
                 }
             )
-        data["input"]["message"] = message
-        return data
+        return cleaned_input
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         cleaned_input = cls.clean_input(info, order, data)
         event = events.order_note_added_event(
-            order=order,
-            user=info.context.user,
-            message=cleaned_input["input"]["message"],
+            order=order, user=info.context.user, message=cleaned_input["message"],
         )
         return OrderAddNote(order=order, event=event)
 
