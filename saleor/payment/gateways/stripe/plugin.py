@@ -55,7 +55,7 @@ class StripeGatewayPlugin(BasePlugin):
         },
         "Store customers card": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should store cards on payments."
+            "help_text": "Determines if Saleor should store cards on payments "
             "in Stripe customer.",
             "label": "Store customers card",
         },

@@ -69,7 +69,7 @@ class BraintreeGatewayPlugin(BasePlugin):
         },
         "Store customers card": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should store cards on payments."
+            "help_text": "Determines if Saleor should store cards on payments"
             " in Braintree customer.",
             "label": "Store customers card",
         },
