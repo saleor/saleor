@@ -9,7 +9,7 @@ from ..account.i18n import I18nMixin
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import WarehouseError
 from ..core.utils import (
-    validate_and_strip_field_str_value,
+    validate_required_string_field,
     validate_slug_and_generate_if_needed,
 )
 from ..shipping.types import ShippingZone
@@ -39,11 +39,12 @@ class WarehouseMixin:
             error.code = WarehouseErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
 
-        try:
-            cleaned_input = validate_and_strip_field_str_value(cleaned_input, "name")
-        except ValidationError as error:
-            error.code = WarehouseErrorCode.REQUIRED.value
-            raise ValidationError({"name": error})
+        if "name" in cleaned_input:
+            try:
+                cleaned_input = validate_required_string_field(cleaned_input, "name")
+            except ValidationError as error:
+                error.code = WarehouseErrorCode.REQUIRED.value
+                raise ValidationError({"name": error})
 
         shipping_zones = cleaned_input.get("shipping_zones", [])
         if not validate_warehouse_count(shipping_zones, instance):
