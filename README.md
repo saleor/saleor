@@ -85,7 +85,7 @@ Help us out… If you love free stuff and great software, give us a star! 🌟
 
 Saleor requires Python 3.8, Node.js 10.0+, PostgreSQL and OS-specific dependency tools.
 
-[See the Saleor docs](https://docs.saleor.io/docs/getting-started/intro/) for step-by-step installation and deployment instructions.
+[See the Saleor docs](https://docs.saleor.io/docs/developer/installation) for step-by-step installation and deployment instructions.
 
 Note:
 The `master` branch is the development version of Saleor and it may be unstable. To use the latest stable version, download it from the [Releases](https://github.com/mirumee/saleor/releases/) page or switch to a release tag.
