@@ -80,10 +80,6 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
 
 
 class WarehouseShippingZoneAssign(WarehouseMixin, ModelMutation, I18nMixin):
-    warehouse = graphene.Field(
-        Warehouse, description="A warehouse to add shipping zone."
-    )
-
     class Meta:
         model = models.Warehouse
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
@@ -110,10 +106,6 @@ class WarehouseShippingZoneAssign(WarehouseMixin, ModelMutation, I18nMixin):
 
 
 class WarehouseShippingZoneUnassign(WarehouseMixin, ModelMutation, I18nMixin):
-    warehouse = graphene.Field(
-        Warehouse, description="A warehouse to add shipping zone."
-    )
-
     class Meta:
         model = models.Warehouse
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
