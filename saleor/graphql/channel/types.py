@@ -8,5 +8,5 @@ class Channel(CountableDjangoObjectType):
     class Meta:
         description = "Represents channel."
         model = models.Channel
-        interface = [relay.Node]
+        interfaces = [relay.Node]
         only_fields = ["id", "name", "slug", "currency_code"]

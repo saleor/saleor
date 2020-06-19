@@ -839,7 +839,7 @@ type CategoryUpdatePrivateMeta {
   category: Category
 }
 
-type Channel {
+type Channel implements Node {
   id: ID!
   name: String!
   slug: String!
@@ -4300,6 +4300,8 @@ type Query {
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
+  channel(id: ID): Channel
+  channels: [Channel!]
   appsInstallations: [AppInstallation!]!
   apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
   app(id: ID!): App
