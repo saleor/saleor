@@ -1,6 +1,6 @@
 import graphene
-from graphql_jwt.exceptions import PermissionDenied
 
+from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, GiftcardPermissions
 from ...giftcard import models
 from ..core.connection import CountableDjangoObjectType

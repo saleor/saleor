@@ -1,9 +1,9 @@
 import graphene
 from django.core.exceptions import ValidationError
-from graphql_jwt.exceptions import PermissionDenied
 
 from ...core import models
 from ...core.error_codes import MetadataErrorCode
+from ...core.exceptions import PermissionDenied
 from ..core.mutations import BaseMutation
 from ..core.types.common import MetadataError
 from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP

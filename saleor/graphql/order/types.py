@@ -1,8 +1,8 @@
 import graphene
 from django.core.exceptions import ValidationError
 from graphene import relay
-from graphql_jwt.exceptions import PermissionDenied
 
+from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ...core.taxes import display_gross_prices
 from ...order import OrderStatus, models
