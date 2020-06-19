@@ -40,6 +40,12 @@ from .mutations.base import (
     UserClearMeta,
     UserUpdateMeta,
 )
+from .mutations.jwt import (
+    CreateToken,
+    DeactivateAllUserTokens,
+    RefreshToken,
+    VerifyToken,
+)
 from .mutations.permission_group import (
     PermissionGroupCreate,
     PermissionGroupDelete,
@@ -219,6 +225,11 @@ class AccountQueries(graphene.ObjectType):
 
 class AccountMutations(graphene.ObjectType):
     # Base mutations
+    token_create = CreateToken.Field()
+    token_refresh = RefreshToken.Field()
+    token_verify = VerifyToken.Field()
+    tokens_deactivate_all = DeactivateAllUserTokens.Field()
+
     request_password_reset = RequestPasswordReset.Field()
     confirm_account = ConfirmAccount.Field()
     set_password = SetPassword.Field()
