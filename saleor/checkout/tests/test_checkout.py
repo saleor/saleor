@@ -86,12 +86,11 @@ def test_last_change_update_foregin_key(checkout, shipping_method):
         assert checkout.last_change == pytz.utc.localize(frozen_datetime())
 
 
-@pytest.mark.parametrize("is_anonymous_user", (True, False))
-def test_create_order_creates_expected_events(
-    request_checkout_with_item, customer_user, shipping_method, is_anonymous_user
+def test_create_order_captured_payment_creates_expected_events(
+    request_checkout_with_item, customer_user, shipping_method, payment_txn_captured,
 ):
     checkout = request_checkout_with_item
-    checkout_user = None if is_anonymous_user else customer_user
+    checkout_user = customer_user
 
     # Ensure not events are existing prior
     assert not OrderEvent.objects.exists()
@@ -102,6 +101,7 @@ def test_create_order_creates_expected_events(
     checkout.billing_address = customer_user.default_billing_address
     checkout.shipping_address = customer_user.default_shipping_address
     checkout.shipping_method = shipping_method
+    checkout.payments.add(payment_txn_captured)
     checkout.save()
 
     # Place checkout
@@ -113,35 +113,89 @@ def test_create_order_creates_expected_events(
             tracking_code="tracking_code",
             discounts=None,
         ),
-        user=customer_user if not is_anonymous_user else AnonymousUser(),
+        user=customer_user,
         redirect_url="https://www.example.com",
     )
     flush_post_commit_hooks()
 
     # Ensure only two events were created, and retrieve them
-    placement_event, email_sent_event = order.events.all()  # type: OrderEvent
+    order_events = order.events.all()
+
+    (
+        order_placed_event,
+        payment_captured_event,
+        order_fully_paid_event,
+        payment_email_sent_event,
+        order_placed_email_sent_event,
+    ) = order_events  # type: OrderEvent
 
     # Ensure the correct order event was created
-    assert placement_event.type == OrderEvents.PLACED  # is the event the expected type
-    assert placement_event.user == checkout_user  # is the user anonymous/ the customer
-    assert placement_event.order is order  # is the associated backref order valid
-    assert placement_event.date  # ensure a date was set
-    assert not placement_event.parameters  # should not have any additional parameters
+    # is the event the expected type
+    assert order_placed_event.type == OrderEvents.PLACED
+    # is the user anonymous/ the customer
+    assert order_placed_event.user == checkout_user
+    # is the associated backref order valid
+    assert order_placed_event.order is order
+    # ensure a date was set
+    assert order_placed_event.date
+    # should not have any additional parameters
+    assert not order_placed_event.parameters
+
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert payment_captured_event.type == OrderEvents.PAYMENT_CAPTURED
+    # is the user anonymous/ the customer
+    assert payment_captured_event.user == checkout_user
+    # is the associated backref order valid
+    assert payment_captured_event.order is order
+    # ensure a date was set
+    assert payment_captured_event.date
+    # should not have any additional parameters
+    assert "amount" in payment_captured_event.parameters.keys()
+    assert "payment_id" in payment_captured_event.parameters.keys()
+    assert "payment_gateway" in payment_captured_event.parameters.keys()
+
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert order_fully_paid_event.type == OrderEvents.ORDER_FULLY_PAID
+    # is the user anonymous/ the customer
+    assert order_fully_paid_event.user == checkout_user
+    # is the associated backref order valid
+    assert order_fully_paid_event.order is order
+    # ensure a date was set
+    assert order_fully_paid_event.date
+    # should not have any additional parameters
+    assert not order_fully_paid_event.parameters
 
     # Ensure the correct email sent event was created
-    assert email_sent_event.type == OrderEvents.EMAIL_SENT  # should be email sent event
-    assert email_sent_event.user == checkout_user  # ensure the user is none or valid
-    assert email_sent_event.order is order  # ensure the mail event is related to order
-    assert email_sent_event.date  # ensure a date was set
-    assert email_sent_event.parameters == {  # ensure the correct parameters were set
+    # should be email sent event
+    assert payment_email_sent_event.type == OrderEvents.EMAIL_SENT
+    # ensure the user is none or valid
+    assert payment_email_sent_event.user == checkout_user
+    # ensure the mail event is related to order
+    assert payment_email_sent_event.order is order
+    # ensure a date was set
+    assert payment_email_sent_event.date
+    # ensure the correct parameters were set
+    assert payment_email_sent_event.parameters == {
+        "email": order.get_customer_email(),
+        "email_type": OrderEventsEmails.PAYMENT,
+    }
+
+    # Ensure the correct email sent event was created
+    # should be email sent event
+    assert order_placed_email_sent_event.type == OrderEvents.EMAIL_SENT
+    # ensure the user is none or valid
+    assert order_placed_email_sent_event.user == checkout_user
+    # ensure the mail event is related to order
+    assert order_placed_email_sent_event.order is order
+    # ensure a date was set
+    assert order_placed_email_sent_event.date
+    # ensure the correct parameters were set
+    assert order_placed_email_sent_event.parameters == {
         "email": order.get_customer_email(),
         "email_type": OrderEventsEmails.ORDER,
     }
-
-    # Check no event was created if the user was anonymous
-    if is_anonymous_user:
-        assert not CustomerEvent.objects.exists()  # should not have created any event
-        return  # we are done testing as the user is anonymous
 
     # Ensure the correct customer event was created if the user was not anonymous
     placement_event = customer_user.events.get()  # type: CustomerEvent
@@ -152,6 +206,302 @@ def test_create_order_creates_expected_events(
     assert not placement_event.parameters  # should not have any additional parameters
 
     # mock_send_staff_order_confirmation.assert_called_once_with(order.pk)
+
+
+def test_create_order_captured_payment_creates_expected_events_anonymous_user(
+    request_checkout_with_item, customer_user, shipping_method, payment_txn_captured,
+):
+    checkout = request_checkout_with_item
+    checkout_user = None
+
+    # Ensure not events are existing prior
+    assert not OrderEvent.objects.exists()
+    assert not CustomerEvent.objects.exists()
+
+    # Prepare valid checkout
+    checkout.user = checkout_user
+    checkout.email = "test@example.com"
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_shipping_address
+    checkout.shipping_method = shipping_method
+    checkout.payments.add(payment_txn_captured)
+    checkout.save()
+
+    # Place checkout
+    order = create_order(
+        checkout=checkout,
+        order_data=prepare_order_data(
+            checkout=checkout,
+            lines=list(checkout),
+            tracking_code="tracking_code",
+            discounts=None,
+        ),
+        user=AnonymousUser(),
+        redirect_url="https://www.example.com",
+    )
+    flush_post_commit_hooks()
+
+    # Ensure only two events were created, and retrieve them
+    order_events = order.events.all()
+
+    (
+        order_placed_event,
+        payment_captured_event,
+        order_fully_paid_event,
+        payment_email_sent_event,
+        order_placed_email_sent_event,
+    ) = order_events  # type: OrderEvent
+
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert order_placed_event.type == OrderEvents.PLACED
+    # is the user anonymous/ the customer
+    assert order_placed_event.user == checkout_user
+    # is the associated backref order valid
+    assert order_placed_event.order is order
+    # ensure a date was set
+    assert order_placed_event.date
+    # should not have any additional parameters
+    assert not order_placed_event.parameters
+
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert payment_captured_event.type == OrderEvents.PAYMENT_CAPTURED
+    # is the user anonymous/ the customer
+    assert payment_captured_event.user == checkout_user
+    # is the associated backref order valid
+    assert payment_captured_event.order is order
+    # ensure a date was set
+    assert payment_captured_event.date
+    # should not have any additional parameters
+    assert "amount" in payment_captured_event.parameters.keys()
+    assert "payment_id" in payment_captured_event.parameters.keys()
+    assert "payment_gateway" in payment_captured_event.parameters.keys()
+
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert order_fully_paid_event.type == OrderEvents.ORDER_FULLY_PAID
+    # is the user anonymous/ the customer
+    assert order_fully_paid_event.user == checkout_user
+    # is the associated backref order valid
+    assert order_fully_paid_event.order is order
+    # ensure a date was set
+    assert order_fully_paid_event.date
+    # should not have any additional parameters
+    assert not order_fully_paid_event.parameters
+
+    # Ensure the correct email sent event was created
+    # should be email sent event
+    assert payment_email_sent_event.type == OrderEvents.EMAIL_SENT
+    # ensure the user is none or valid
+    assert payment_email_sent_event.user == checkout_user
+    # ensure the mail event is related to order
+    assert payment_email_sent_event.order is order
+    # ensure a date was set
+    assert payment_email_sent_event.date
+    # ensure the correct parameters were set
+    assert payment_email_sent_event.parameters == {
+        "email": order.get_customer_email(),
+        "email_type": OrderEventsEmails.PAYMENT,
+    }
+
+    # Ensure the correct email sent event was created
+    # should be email sent event
+    assert order_placed_email_sent_event.type == OrderEvents.EMAIL_SENT
+    # ensure the user is none or valid
+    assert order_placed_email_sent_event.user == checkout_user
+    # ensure the mail event is related to order
+    assert order_placed_email_sent_event.order is order
+    # ensure a date was set
+    assert order_placed_email_sent_event.date
+    # ensure the correct parameters were set
+    assert order_placed_email_sent_event.parameters == {
+        "email": order.get_customer_email(),
+        "email_type": OrderEventsEmails.ORDER,
+    }
+
+    # Check no event was created if the user was anonymous
+    assert not CustomerEvent.objects.exists()  # should not have created any event
+
+
+def test_create_order_preauth_payment_creates_expected_events(
+    request_checkout_with_item, customer_user, shipping_method, payment_txn_preauth,
+):
+    checkout = request_checkout_with_item
+    checkout_user = customer_user
+
+    # Ensure not events are existing prior
+    assert not OrderEvent.objects.exists()
+    assert not CustomerEvent.objects.exists()
+
+    # Prepare valid checkout
+    checkout.user = checkout_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_shipping_address
+    checkout.shipping_method = shipping_method
+    checkout.payments.add(payment_txn_preauth)
+    checkout.save()
+
+    # Place checkout
+    order = create_order(
+        checkout=checkout,
+        order_data=prepare_order_data(
+            checkout=checkout,
+            lines=list(checkout),
+            tracking_code="tracking_code",
+            discounts=None,
+        ),
+        user=customer_user,
+        redirect_url="https://www.example.com",
+    )
+    flush_post_commit_hooks()
+
+    # Ensure only two events were created, and retrieve them
+    order_events = order.events.all()
+
+    (
+        order_placed_event,
+        payment_authorized_event,
+        order_placed_email_sent_event,
+    ) = order_events  # type: OrderEvent
+
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert order_placed_event.type == OrderEvents.PLACED
+    # is the user anonymous/ the customer
+    assert order_placed_event.user == checkout_user
+    # is the associated backref order valid
+    assert order_placed_event.order is order
+    # ensure a date was set
+    assert order_placed_event.date
+    # should not have any additional parameters
+    assert not order_placed_event.parameters
+
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert payment_authorized_event.type == OrderEvents.PAYMENT_AUTHORIZED
+    # is the user anonymous/ the customer
+    assert payment_authorized_event.user == checkout_user
+    # is the associated backref order valid
+    assert payment_authorized_event.order is order
+    # ensure a date was set
+    assert payment_authorized_event.date
+    # should not have any additional parameters
+    assert "amount" in payment_authorized_event.parameters.keys()
+    assert "payment_id" in payment_authorized_event.parameters.keys()
+    assert "payment_gateway" in payment_authorized_event.parameters.keys()
+
+    # Ensure the correct email sent event was created
+    # should be email sent event
+    assert order_placed_email_sent_event.type == OrderEvents.EMAIL_SENT
+    # ensure the user is none or valid
+    assert order_placed_email_sent_event.user == checkout_user
+    # ensure the mail event is related to order
+    assert order_placed_email_sent_event.order is order
+    # ensure a date was set
+    assert order_placed_email_sent_event.date
+    # ensure the correct parameters were set
+    assert order_placed_email_sent_event.parameters == {
+        "email": order.get_customer_email(),
+        "email_type": OrderEventsEmails.ORDER,
+    }
+
+    # Ensure the correct customer event was created if the user was not anonymous
+    placement_event = customer_user.events.get()  # type: CustomerEvent
+    assert placement_event.type == CustomerEvents.PLACED_ORDER  # check the event type
+    assert placement_event.user == customer_user  # check the backref is valid
+    assert placement_event.order == order  # check the associated order is valid
+    assert placement_event.date  # ensure a date was set
+    assert not placement_event.parameters  # should not have any additional parameters
+
+    # mock_send_staff_order_confirmation.assert_called_once_with(order.pk)
+
+
+def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
+    request_checkout_with_item, customer_user, shipping_method, payment_txn_preauth,
+):
+    checkout = request_checkout_with_item
+    checkout_user = None
+
+    # Ensure not events are existing prior
+    assert not OrderEvent.objects.exists()
+    assert not CustomerEvent.objects.exists()
+
+    # Prepare valid checkout
+    checkout.user = checkout_user
+    checkout.email = "test@example.com"
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_shipping_address
+    checkout.shipping_method = shipping_method
+    checkout.payments.add(payment_txn_preauth)
+    checkout.save()
+
+    # Place checkout
+    order = create_order(
+        checkout=checkout,
+        order_data=prepare_order_data(
+            checkout=checkout,
+            lines=list(checkout),
+            tracking_code="tracking_code",
+            discounts=None,
+        ),
+        user=AnonymousUser(),
+        redirect_url="https://www.example.com",
+    )
+    flush_post_commit_hooks()
+
+    # Ensure only two events were created, and retrieve them
+    order_events = order.events.all()
+
+    (
+        order_placed_event,
+        payment_captured_event,
+        order_placed_email_sent_event,
+    ) = order_events  # type: OrderEvent
+
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert order_placed_event.type == OrderEvents.PLACED
+    # is the user anonymous/ the customer
+    assert order_placed_event.user == checkout_user
+    # is the associated backref order valid
+    assert order_placed_event.order is order
+    # ensure a date was set
+    assert order_placed_event.date
+    # should not have any additional parameters
+    assert not order_placed_event.parameters
+
+    # Ensure the correct order event was created
+    # is the event the expected type
+    assert payment_captured_event.type == OrderEvents.PAYMENT_AUTHORIZED
+    # is the user anonymous/ the customer
+    assert payment_captured_event.user == checkout_user
+    # is the associated backref order valid
+    assert payment_captured_event.order is order
+    # ensure a date was set
+    assert payment_captured_event.date
+    # should not have any additional parameters
+    assert "amount" in payment_captured_event.parameters.keys()
+    assert "payment_id" in payment_captured_event.parameters.keys()
+    assert "payment_gateway" in payment_captured_event.parameters.keys()
+
+    # Ensure the correct email sent event was created
+    # should be email sent event
+    assert order_placed_email_sent_event.type == OrderEvents.EMAIL_SENT
+    # ensure the user is none or valid
+    assert order_placed_email_sent_event.user == checkout_user
+    # ensure the mail event is related to order
+    assert order_placed_email_sent_event.order is order
+    # ensure a date was set
+    assert order_placed_email_sent_event.date
+    # ensure the correct parameters were set
+    assert order_placed_email_sent_event.parameters == {
+        "email": order.get_customer_email(),
+        "email_type": OrderEventsEmails.ORDER,
+    }
+
+    # Check no event was created if the user was anonymous
+    assert not CustomerEvent.objects.exists()  # should not have created any event
 
 
 def test_create_order_insufficient_stock(

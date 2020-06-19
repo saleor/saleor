@@ -5,7 +5,6 @@ from django.db.models import Value
 from django.db.models.functions import Concat
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
-from graphql_jwt.utils import jwt_payload
 from graphql_relay import from_global_id
 
 from ..core.enums import PermissionEnum
@@ -121,14 +120,6 @@ def format_permissions_for_display(permissions):
         for data in permissions_data
     ]
     return formatted_permissions
-
-
-def create_jwt_payload(user, context=None):
-    payload = jwt_payload(user, context)
-    payload["user_id"] = graphene.Node.to_global_id("User", user.id)
-    payload["is_staff"] = user.is_staff
-    payload["is_superuser"] = user.is_superuser
-    return payload
 
 
 def get_user_or_app_from_context(context):

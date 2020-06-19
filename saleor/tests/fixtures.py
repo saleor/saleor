@@ -1285,7 +1285,7 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
     )
 
     order.shipping_address = order.billing_address.get_copy()
-    method = shipping_zone.shipping_methods.get()
+    method = shipping_zone.shipping_methods.first()
     order.shipping_method_name = method.name
     order.shipping_method = method
 

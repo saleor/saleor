@@ -2,10 +2,10 @@ import graphene
 from django.contrib.auth import get_user_model, models as auth_models
 from graphene import relay
 from graphene_federation import key
-from graphql_jwt.exceptions import PermissionDenied
 
 from ...account import models
 from ...checkout.utils import get_user_checkout
+from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ...order import models as order_models
 from ..checkout.types import Checkout

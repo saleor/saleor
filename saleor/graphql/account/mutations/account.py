@@ -1,4 +1,5 @@
 import graphene
+import jwt
 from django.conf import settings
 from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
@@ -6,9 +7,10 @@ from django.core.exceptions import ValidationError
 
 from ....account import emails, events as account_events, models, utils
 from ....account.error_codes import AccountErrorCode
-from ....account.utils import create_jwt_token, decode_jwt_token
 from ....checkout import AddressType
+from ....core.jwt import create_token, jwt_decode
 from ....core.utils.url import validate_storefront_url
+from ....settings import JWT_TTL_REQUEST_EMAIL_CHANGE
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -408,12 +410,12 @@ class RequestEmailChange(BaseMutation):
             raise ValidationError(
                 {"redirect_url": error}, code=AccountErrorCode.INVALID
             )
-        token_kwargs = {
+        token_payload = {
             "old_email": user.email,
             "new_email": new_email,
             "user_pk": user.pk,
         }
-        token = create_jwt_token(token_kwargs)
+        token = create_token(token_payload, JWT_TTL_REQUEST_EMAIL_CHANGE)
         emails.send_user_change_email_url(redirect_url, user, new_email, token)
         return RequestEmailChange(user=user)
 
@@ -436,12 +438,28 @@ class ConfirmEmailChange(BaseMutation):
         return context.user.is_authenticated
 
     @classmethod
+    def get_token_payload(cls, token):
+        try:
+            payload = jwt_decode(token)
+        except jwt.PyJWTError:
+            raise ValidationError(
+                {
+                    "token": ValidationError(
+                        "Invalid or expired token.",
+                        code=AccountErrorCode.JWT_INVALID_TOKEN,
+                    )
+                }
+            )
+        return payload
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         user = info.context.user
         token = data["token"]
-        decoded_token = decode_jwt_token(token)
-        new_email = decoded_token["new_email"]
-        old_email = decoded_token["old_email"]
+
+        payload = cls.get_token_payload(token)
+        new_email = payload["new_email"]
+        old_email = payload["old_email"]
 
         if models.User.objects.filter(email=new_email).exists():
             raise ValidationError(

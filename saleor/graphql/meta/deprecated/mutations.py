@@ -3,10 +3,21 @@ import graphene
 from django.core.exceptions import ImproperlyConfigured
 from graphene_django.registry import get_global_registry
 
-from ...core.mutations import BaseMutation, get_model_name, get_output_fields
+from ...core.mutations import BaseMutation, get_model_name
 from .types import MetaInput, MetaPath
 
 registry = get_global_registry()
+
+
+def get_output_fields(model, return_field_name):
+    """Return mutation output field for model instance."""
+    model_type = registry.get_type_for_model(model)
+    if not model_type:
+        raise ImproperlyConfigured(
+            "Unable to find type for model %s in graphene registry" % model.__name__
+        )
+    fields = {return_field_name: graphene.Field(model_type)}
+    return fields
 
 
 class MetaUpdateOptions(graphene.types.mutation.MutationOptions):

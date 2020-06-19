@@ -39,7 +39,7 @@ description = "ASGI specs, helper code, and adapters"
 name = "asgiref"
 optional = false
 python-versions = ">=3.5"
-version = "3.2.9"
+version = "3.2.10"
 
 [package.extras]
 tests = ["pytest", "pytest-asyncio"]
@@ -148,10 +148,10 @@ description = "The AWS SDK for Python"
 name = "boto3"
 optional = false
 python-versions = "*"
-version = "1.14.4"
+version = "1.14.6"
 
 [package.dependencies]
-botocore = ">=1.17.4,<1.18.0"
+botocore = ">=1.17.6,<1.18.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.3.0,<0.4.0"
 
@@ -161,7 +161,7 @@ description = "Low-level, data-driven core of boto 3."
 name = "botocore"
 optional = false
 python-versions = "*"
-version = "1.17.4"
+version = "1.17.6"
 
 [package.dependencies]
 docutils = ">=0.10,<0.16"
@@ -512,20 +512,6 @@ graphene-django = ">=2.0.0"
 
 [[package]]
 category = "main"
-description = "JSON Web Token for Django GraphQL"
-name = "django-graphql-jwt"
-optional = false
-python-versions = "*"
-version = "0.3.0"
-
-[package.dependencies]
-Django = ">=1.11"
-PyJWT = ">=1.5.0"
-graphene-django = ">=2.0.0"
-graphql-core = ">=2.1,<3"
-
-[[package]]
-category = "main"
 description = "script tag with additional attributes for django.forms.Media"
 name = "django-js-asset"
 optional = false
@@ -822,10 +808,10 @@ description = "Google API client core library"
 name = "google-api-core"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
-version = "1.20.1"
+version = "1.21.0"
 
 [package.dependencies]
-google-auth = ">=1.14.0,<2.0dev"
+google-auth = ">=1.18.0,<2.0dev"
 googleapis-common-protos = ">=1.6.0,<2.0dev"
 protobuf = ">=3.12.0"
 pytz = "*"
@@ -844,7 +830,7 @@ description = "Google Authentication Library"
 name = "google-auth"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
-version = "1.17.2"
+version = "1.18.0"
 
 [package.dependencies]
 cachetools = ">=2.0.0,<5.0"
@@ -1374,7 +1360,7 @@ description = "Python version of Google's common library for parsing, formatting
 name = "phonenumberslite"
 optional = false
 python-versions = "*"
-version = "8.12.5"
+version = "8.12.6"
 
 [[package]]
 category = "main"
@@ -1786,6 +1772,14 @@ unidecode = ["Unidecode (>=1.1.1)"]
 
 [[package]]
 category = "main"
+description = "Time expression parser"
+name = "pytimeparse"
+optional = false
+python-versions = "*"
+version = "1.1.8"
+
+[[package]]
+category = "main"
 description = "World timezone definitions, modern and historical"
 name = "pytz"
 optional = false
@@ -1836,7 +1830,7 @@ description = "Python HTTP for Humans."
 name = "requests"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "2.23.0"
+version = "2.24.0"
 
 [package.dependencies]
 certifi = ">=2017.4.17"
@@ -1885,7 +1879,7 @@ description = "Python client for Sentry (https://getsentry.com)"
 name = "sentry-sdk"
 optional = false
 python-versions = "*"
-version = "0.14.4"
+version = "0.15.1"
 
 [package.dependencies]
 certifi = "*"
@@ -2139,7 +2133,7 @@ marker = "sys_platform != \"win32\""
 name = "uwsgi"
 optional = false
 python-versions = "*"
-version = "2.0.19"
+version = "2.0.19.1"
 
 [[package]]
 category = "dev"
@@ -2244,7 +2238,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "4cc8adf6a992f59053250c83dc117177e9a3c74dc6ef81172176caf593dfc236"
+content-hash = "cc5ec869de4a06c72d1085e08aeb0a98c5553d3fa466903504d25b3e00a902e7"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2265,8 +2259,8 @@ appdirs = [
     {file = "appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41"},
 ]
 asgiref = [
-    {file = "asgiref-3.2.9-py3-none-any.whl", hash = "sha256:f803d8b4962cc338d48a72fa498c52f913b160eb16712e2ecdf2a81904daead9"},
-    {file = "asgiref-3.2.9.tar.gz", hash = "sha256:7ea1922cfd63c4ac7687069f8bb0e7768ab9b7fc78ff227577d4240b52d6cb7a"},
+    {file = "asgiref-3.2.10-py3-none-any.whl", hash = "sha256:9fc6fb5d39b8af147ba40765234fa822b39818b12cc80b35ad9b0cef3a476aed"},
+    {file = "asgiref-3.2.10.tar.gz", hash = "sha256:7e51911ee147dd685c3c8b805c0ad0cb58d360987b56953878f8c06d2d1c6f1a"},
 ]
 astroid = [
     {file = "astroid-2.4.2-py3-none-any.whl", hash = "sha256:bc58d83eb610252fd8de6363e39d4f1d0619c894b0ed24603b881c02e64c7386"},
@@ -2302,12 +2296,12 @@ black = [
     {file = "black-19.10b0.tar.gz", hash = "sha256:c2edb73a08e9e0e6f65a0e6af18b059b8b1cdd5bef997d7a0b181df93dc81539"},
 ]
 boto3 = [
-    {file = "boto3-1.14.4-py2.py3-none-any.whl", hash = "sha256:26c25a5d8483dbc5f7e1eeff9fadc6f5a200778ee642f8f5b827d5c78c4c5ca2"},
-    {file = "boto3-1.14.4.tar.gz", hash = "sha256:91f4c004bd3726007dd55d271a0e25ee5bf4d4861a4bddee318c23750773a4d0"},
+    {file = "boto3-1.14.6-py2.py3-none-any.whl", hash = "sha256:f02c0c02f632285da124e560934145de64690000bf6348df8f1eb45239f0e9df"},
+    {file = "boto3-1.14.6.tar.gz", hash = "sha256:6a9cdab2db28330ffa3e6f08bb2bc07bc757d2019e4acf0c8376b72c63e7cc6b"},
 ]
 botocore = [
-    {file = "botocore-1.17.4-py2.py3-none-any.whl", hash = "sha256:25d568c4adff31f6f717a7679f799615946cc4ec3a0466ec287ac26dd11c153e"},
-    {file = "botocore-1.17.4.tar.gz", hash = "sha256:59cd8fda5f55e7c334efe514859b7a6a9e92aa00aef0c3ef65f20a2c2bf525ae"},
+    {file = "botocore-1.17.6-py2.py3-none-any.whl", hash = "sha256:c8b5143e2eaac20ce0d7238fd8ef33f7969139ccd616edb54fd3a482cdfd0e6c"},
+    {file = "botocore-1.17.6.tar.gz", hash = "sha256:a5737a5215f9db23344752a4d2a43646c104e6d500a2d6f9409624d2e58c92f1"},
 ]
 braintree = [
     {file = "braintree-4.1.0-py2.py3-none-any.whl", hash = "sha256:152fa9e3b30a7757db0061e1c022c944216bf881209376b28a3f07043cff009b"},
@@ -2470,10 +2464,6 @@ django-filter = [
 django-graphiql-debug-toolbar = [
     {file = "django-graphiql-debug-toolbar-0.1.4.tar.gz", hash = "sha256:946fba21418b3fd57e7e357d4cd110fb7881e08d3b7a0a8a00400fa2e75965f5"},
 ]
-django-graphql-jwt = [
-    {file = "django-graphql-jwt-0.3.0.tar.gz", hash = "sha256:c9c611d98510b57146c21484478eae793249553af3766a593e8f25ce73d3255a"},
-    {file = "django_graphql_jwt-0.3.0-py2.py3-none-any.whl", hash = "sha256:bcf0882a492e2148cba7cba3c39cf57834f736a2c289b66852239faf9b59b61e"},
-]
 django-js-asset = [
     {file = "django-js-asset-1.2.2.tar.gz", hash = "sha256:c163ae80d2e0b22d8fb598047cd0dcef31f81830e127cfecae278ad574167260"},
     {file = "django_js_asset-1.2.2-py2.py3-none-any.whl", hash = "sha256:8ec12017f26eec524cab436c64ae73033368a372970af4cf42d9354fcb166bdd"},
@@ -2567,12 +2557,12 @@ gitpython = [
     {file = "GitPython-3.1.3.tar.gz", hash = "sha256:e107af4d873daed64648b4f4beb89f89f0cfbe3ef558fc7821ed2331c2f8da1a"},
 ]
 google-api-core = [
-    {file = "google-api-core-1.20.1.tar.gz", hash = "sha256:6b757736bbc699db858794e9b71e2bbf17996075773a40551ef5e6b0fad2a2f9"},
-    {file = "google_api_core-1.20.1-py2.py3-none-any.whl", hash = "sha256:b310709c325f5f9acee8feb2344c76d23577a07f4c6f4a0272c5e39d09850827"},
+    {file = "google-api-core-1.21.0.tar.gz", hash = "sha256:fea9a434068406ddabe2704988d24d6c5bde3ecfc40823a34f43892d017b14f6"},
+    {file = "google_api_core-1.21.0-py2.py3-none-any.whl", hash = "sha256:7b65e8e5ee59bd7517eab2bf9b3008e7b50fd9fb591d4efd780ead6859cd904b"},
 ]
 google-auth = [
-    {file = "google-auth-1.17.2.tar.gz", hash = "sha256:e634b649967d83c02dd386ecae9ce4a571528d59d51a4228757e45f5404a060b"},
-    {file = "google_auth-1.17.2-py2.py3-none-any.whl", hash = "sha256:25d3c4e457db5504c62b3e329e8e67d2c29a0cecec3aa5347ced030d8700a75d"},
+    {file = "google-auth-1.18.0.tar.gz", hash = "sha256:d6b390d3bb0969061ffec7e5766c45c1b39e13c302691e35029f1ad1ccd8ca3b"},
+    {file = "google_auth-1.18.0-py2.py3-none-any.whl", hash = "sha256:5e3f540b7b0b892000d542cea6b818b837c230e9a4db9337bb2973bcae0fc078"},
 ]
 google-cloud-core = [
     {file = "google-cloud-core-1.3.0.tar.gz", hash = "sha256:878f9ad080a40cdcec85b92242c4b5819eeb8f120ebc5c9f640935e24fc129d8"},
@@ -2833,8 +2823,8 @@ petl = [
     {file = "petl-1.3.0.tar.gz", hash = "sha256:943a6e3211616d25ebc4dcd900ca4f96f53ccd9dbb612271a23a7efdaf3f8c00"},
 ]
 phonenumberslite = [
-    {file = "phonenumberslite-8.12.5-py2.py3-none-any.whl", hash = "sha256:7e101c2d0be6ead83e2706c355aaba236df97e9a7b78aed5bda5d4b0eee11178"},
-    {file = "phonenumberslite-8.12.5.tar.gz", hash = "sha256:6e1d31d8a5ad1fe280c3f7ba5b9c08da82245d59946ee06856712ef704f59e19"},
+    {file = "phonenumberslite-8.12.6-py2.py3-none-any.whl", hash = "sha256:f898bff9cb2fe6a0f6e6d6d8d27e550acf77af4cf20ec22f4f02c0a399ae6f39"},
+    {file = "phonenumberslite-8.12.6.tar.gz", hash = "sha256:19c8f083676061ca5848104aaecfd0d6378d1fc9b37d3777a8636fce05bca6d1"},
 ]
 pillow = [
     {file = "Pillow-7.1.2-cp35-cp35m-macosx_10_10_intel.whl", hash = "sha256:ae2b270f9a0b8822b98655cb3a59cdb1bd54a34807c6c56b76dd2e786c3b7db3"},
@@ -3055,6 +3045,10 @@ python-magic-bin = [
 python-slugify = [
     {file = "python-slugify-4.0.0.tar.gz", hash = "sha256:a8fc3433821140e8f409a9831d13ae5deccd0b033d4744d94b31fea141bdd84c"},
 ]
+pytimeparse = [
+    {file = "pytimeparse-1.1.8-py2.py3-none-any.whl", hash = "sha256:04b7be6cc8bd9f5647a6325444926c3ac34ee6bc7e69da4367ba282f076036bd"},
+    {file = "pytimeparse-1.1.8.tar.gz", hash = "sha256:e86136477be924d7e670646a98561957e8ca7308d44841e21f5ddea757556a0a"},
+]
 pytz = [
     {file = "pytz-2020.1-py2.py3-none-any.whl", hash = "sha256:a494d53b6d39c3c6e44c3bec237336e14305e4f29bbf800b599253057fbb79ed"},
     {file = "pytz-2020.1.tar.gz", hash = "sha256:c35965d010ce31b23eeb663ed3cc8c906275d6be1a34393a1d73a41febf4a048"},
@@ -3104,8 +3098,8 @@ regex = [
     {file = "regex-2020.6.8.tar.gz", hash = "sha256:e9b64e609d37438f7d6e68c2546d2cb8062f3adb27e6336bc129b51be20773ac"},
 ]
 requests = [
-    {file = "requests-2.23.0-py2.py3-none-any.whl", hash = "sha256:43999036bfa82904b6af1d99e4882b560e5e2c68e5c4b0aa03b655f3d7d73fee"},
-    {file = "requests-2.23.0.tar.gz", hash = "sha256:b3f43d496c6daba4493e7c431722aeb7dbc6288f52a6e04e7b6023b0247817e6"},
+    {file = "requests-2.24.0-py2.py3-none-any.whl", hash = "sha256:fe75cc94a9443b9246fc7049224f75604b113c36acb93f87b80ed42c44cbb898"},
+    {file = "requests-2.24.0.tar.gz", hash = "sha256:b3559a131db72c33ee969480840fff4bb6dd111de7dd27c8ee1f820f4f00231b"},
 ]
 rsa = [
     {file = "rsa-4.6-py3-none-any.whl", hash = "sha256:6166864e23d6b5195a5cfed6cd9fed0fe774e226d8f854fcb23b7bbef0350233"},
@@ -3120,8 +3114,8 @@ s3transfer = [
     {file = "s3transfer-0.3.3.tar.gz", hash = "sha256:921a37e2aefc64145e7b73d50c71bb4f26f46e4c9f414dc648c6245ff92cf7db"},
 ]
 sentry-sdk = [
-    {file = "sentry-sdk-0.14.4.tar.gz", hash = "sha256:0e5e947d0f7a969314aa23669a94a9712be5a688ff069ff7b9fc36c66adc160c"},
-    {file = "sentry_sdk-0.14.4-py2.py3-none-any.whl", hash = "sha256:799a8bf76b012e3030a881be00e97bc0b922ce35dde699c6537122b751d80e2c"},
+    {file = "sentry-sdk-0.15.1.tar.gz", hash = "sha256:3ac0c430761b3cb7682ce612151d829f8644bb3830d4e530c75b02ceb745ff49"},
+    {file = "sentry_sdk-0.15.1-py2.py3-none-any.whl", hash = "sha256:06825c15a78934e78941ea25910db71314c891608a46492fc32c15902c6b2119"},
 ]
 singledispatch = [
     {file = "singledispatch-3.4.0.3-py2.py3-none-any.whl", hash = "sha256:833b46966687b3de7f438c761ac475213e53b306740f1abfaa86e1d1aae56aa8"},
@@ -3234,7 +3228,7 @@ urllib3 = [
     {file = "urllib3-1.25.9.tar.gz", hash = "sha256:3018294ebefce6572a474f0604c2021e33b3fd8006ecd11d62107a5d2a963527"},
 ]
 uwsgi = [
-    {file = "uWSGI-2.0.19.tar.gz", hash = "sha256:a2d9e3ad86cb4fdc69ad58ba39c2b6f90a950f8a015d9075bc8d18804f4af8da"},
+    {file = "uWSGI-2.0.19.1.tar.gz", hash = "sha256:faa85e053c0b1be4d5585b0858d3a511d2cd10201802e8676060fd0a109e5869"},
 ]
 vcrpy = [
     {file = "vcrpy-4.0.2-py2.py3-none-any.whl", hash = "sha256:c4ddf1b92c8a431901c56a1738a2c797d965165a96348a26f4b2bbc5fa6d36d9"},
