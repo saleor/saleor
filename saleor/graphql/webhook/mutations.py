@@ -7,7 +7,6 @@ from ...webhook.error_codes import WebhookErrorCode
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import WebhookError
 from .enums import WebhookEventTypeEnum
-from .types import Webhook
 
 
 class WebhookCreateInput(graphene.InputObjectType):
@@ -124,8 +123,6 @@ class WebhookUpdateInput(graphene.InputObjectType):
 
 
 class WebhookUpdate(ModelMutation):
-    webhook = graphene.Field(Webhook)
-
     class Arguments:
         id = graphene.ID(required=True, description="ID of a webhook to update.")
         input = WebhookUpdateInput(
@@ -164,8 +161,6 @@ class WebhookUpdate(ModelMutation):
 
 
 class WebhookDelete(ModelDeleteMutation):
-    webhook = graphene.Field(Webhook)
-
     class Arguments:
         id = graphene.ID(required=True, description="ID of a webhook to delete.")
 

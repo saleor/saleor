@@ -37,7 +37,6 @@ from ..discount.models import (
 )
 from ..giftcard.models import GiftCard
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
-from ..menu.utils import update_menu
 from ..order import OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_line
 from ..order.events import OrderEvents
@@ -204,11 +203,9 @@ def site_settings(db, settings) -> SiteSettings:
     main_menu = Menu.objects.get_or_create(
         name=settings.DEFAULT_MENUS["top_menu_name"]
     )[0]
-    update_menu(main_menu)
     secondary_menu = Menu.objects.get_or_create(
         name=settings.DEFAULT_MENUS["bottom_menu_name"]
     )[0]
-    update_menu(secondary_menu)
     obj.top_menu = main_menu
     obj.bottom_menu = secondary_menu
     obj.save()
@@ -1285,7 +1282,7 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
     )
 
     order.shipping_address = order.billing_address.get_copy()
-    method = shipping_zone.shipping_methods.get()
+    method = shipping_zone.shipping_methods.first()
     order.shipping_method_name = method.name
     order.shipping_method = method
 
@@ -1685,14 +1682,12 @@ def model_form_class():
 
 @pytest.fixture
 def menu(db):
-    return Menu.objects.get_or_create(name="test-navbar", json_content={})[0]
+    return Menu.objects.get_or_create(name="test-navbar")[0]
 
 
 @pytest.fixture
 def menu_item(menu):
-    item = MenuItem.objects.create(menu=menu, name="Link 1", url="http://example.com/")
-    update_menu(menu)
-    return item
+    return MenuItem.objects.create(menu=menu, name="Link 1", url="http://example.com/")
 
 
 @pytest.fixture
@@ -1700,7 +1695,6 @@ def menu_item_list(menu):
     menu_item_1 = MenuItem.objects.create(menu=menu, name="Link 1")
     menu_item_2 = MenuItem.objects.create(menu=menu, name="Link 2")
     menu_item_3 = MenuItem.objects.create(menu=menu, name="Link 3")
-    update_menu(menu)
     return menu_item_1, menu_item_2, menu_item_3
 
 
@@ -1710,7 +1704,6 @@ def menu_with_items(menu, category, collection):
     menu_item = menu.items.create(name="Link 2", url="http://example.com/")
     menu.items.create(name=category.name, category=category, parent=menu_item)
     menu.items.create(name=collection.name, collection=collection, parent=menu_item)
-    update_menu(menu)
     return menu
 
 

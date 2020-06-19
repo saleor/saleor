@@ -122,8 +122,6 @@ class ShippingZoneMixin:
 
 
 class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
-    shipping_zone = graphene.Field(ShippingZone, description="Created shipping zone.")
-
     class Arguments:
         input = ShippingZoneCreateInput(
             description="Fields required to create a shipping zone.", required=True
@@ -138,8 +136,6 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
 
 
 class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
-    shipping_zone = graphene.Field(ShippingZone, description="Updated shipping zone.")
-
     class Arguments:
         id = graphene.ID(description="ID of a shipping zone to update.", required=True)
         input = ShippingZoneUpdateInput(
