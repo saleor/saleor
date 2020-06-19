@@ -1,14 +1,11 @@
-import pytest
 from django.core.handlers.base import BaseHandler
 from freezegun import freeze_time
 
 from ..jwt import JWT_REFRESH_TOKEN_COOKIE_NAME, create_refresh_token
 
 
-@pytest.mark.parametrize("expire", [True, False])
 @freeze_time("2020-03-18 12:00:00")
-def test_jwt_refresh_token_middleware(expire, rf, customer_user, settings):
-    settings.JWT_EXPIRE = expire
+def test_jwt_refresh_token_middleware(rf, customer_user, settings):
     refresh_token = create_refresh_token(customer_user)
     settings.MIDDLEWARE = [
         "saleor.core.middleware.jwt_refresh_token_middleware",
