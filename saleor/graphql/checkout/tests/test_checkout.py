@@ -559,8 +559,8 @@ def expected_dummy_gateway():
     }
 
 
-GET_CHECKOUT_QUERY = """
-query getCheckout($token: UUID!) {
+GET_CHECKOUT_PAYMENTS_QUERY = """
+query getCheckoutPayments($token: UUID!) {
     checkout(token: $token) {
         availablePaymentGateways {
             id
@@ -578,7 +578,7 @@ query getCheckout($token: UUID!) {
 def test_checkout_available_payment_gateways(
     api_client, checkout_with_item, expected_dummy_gateway
 ):
-    query = GET_CHECKOUT_QUERY
+    query = GET_CHECKOUT_PAYMENTS_QUERY
     expected_warning = (
         "Default currency used for Dummy. "
         "DEFAULT_CURRENCY setting is deprecated, "
@@ -597,12 +597,12 @@ def test_checkout_available_payment_gateways(
 
 @pytest.mark.filterwarnings("ignore::UserWarning")
 def test_checkout_available_payment_gateways_currency_specified_USD(
-    api_client, checkout_with_item, expected_dummy_gateway, add_sample_gateway
+    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway
 ):
     checkout_with_item.currency = "USD"
     checkout_with_item.save(update_fields=["currency"])
 
-    query = GET_CHECKOUT_QUERY
+    query = GET_CHECKOUT_PAYMENTS_QUERY
 
     variables = {"token": str(checkout_with_item.token)}
     response = api_client.post_graphql(query, variables)
@@ -617,12 +617,12 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
 
 @pytest.mark.filterwarnings("ignore::UserWarning")
 def test_checkout_available_payment_gateways_currency_specified_PLN(
-    api_client, checkout_with_item, expected_dummy_gateway, add_sample_gateway
+    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway
 ):
     checkout_with_item.currency = "PLN"
     checkout_with_item.save(update_fields=["currency"])
 
-    query = GET_CHECKOUT_QUERY
+    query = GET_CHECKOUT_PAYMENTS_QUERY
 
     variables = {"token": str(checkout_with_item.token)}
     response = api_client.post_graphql(query, variables)

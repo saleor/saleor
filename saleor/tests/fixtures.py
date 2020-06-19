@@ -184,7 +184,7 @@ def setup_dummy_gateway(settings):
 
 
 @pytest.fixture
-def add_sample_gateway(settings):
+def sample_gateway(settings):
     settings.PLUGINS += [
         "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway"
     ]
