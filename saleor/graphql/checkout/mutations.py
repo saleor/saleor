@@ -225,6 +225,13 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         user = info.context.user
         country = info.context.country.code
 
+        # set country to one from shipping address
+        shipping_address = cleaned_input.get("shipping_address")
+        if shipping_address and shipping_address.country:
+            if shipping_address.country != country:
+                country = shipping_address.country
+        cleaned_input["country"] = country
+
         # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
         if lines:
@@ -267,8 +274,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     def save(cls, info, instance: models.Checkout, cleaned_input):
         # Create the checkout object
         instance.save()
-        country = info.context.country
-        instance.set_country(country.code, commit=True)
+        country = cleaned_input["country"]
+        instance.set_country(country, commit=True)
 
         # Retrieve the lines to create
         variants = cleaned_input.get("variants")
