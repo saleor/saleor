@@ -2766,6 +2766,7 @@ enum OrderEventsEnum {
   ORDER_FULLY_PAID
   UPDATED_ADDRESS
   EMAIL_SENT
+  PAYMENT_AUTHORIZED
   PAYMENT_CAPTURED
   PAYMENT_REFUNDED
   PAYMENT_VOIDED
@@ -3189,8 +3190,8 @@ enum PermissionEnum {
 
 type PermissionGroupCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  group: Group
   permissionGroupErrors: [PermissionGroupError!]!
+  group: Group
 }
 
 input PermissionGroupCreateInput {
@@ -3239,8 +3240,8 @@ input PermissionGroupSortingInput {
 
 type PermissionGroupUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  group: Group
   permissionGroupErrors: [PermissionGroupError!]!
+  group: Group
 }
 
 input PermissionGroupUpdateInput {
@@ -4354,8 +4355,8 @@ type ShippingZoneCountableEdge {
 
 type ShippingZoneCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  shippingZone: ShippingZone
   shippingErrors: [ShippingError!]!
+  shippingZone: ShippingZone
 }
 
 input ShippingZoneCreateInput {
@@ -4373,8 +4374,8 @@ type ShippingZoneDelete {
 
 type ShippingZoneUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  shippingZone: ShippingZone
   shippingErrors: [ShippingError!]!
+  shippingZone: ShippingZone
 }
 
 input ShippingZoneUpdateInput {
@@ -5146,14 +5147,14 @@ input WarehouseFilterInput {
 
 type WarehouseShippingZoneAssign {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  warehouse: Warehouse
   warehouseErrors: [WarehouseError!]!
+  warehouse: Warehouse
 }
 
 type WarehouseShippingZoneUnassign {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  warehouse: Warehouse
   warehouseErrors: [WarehouseError!]!
+  warehouse: Warehouse
 }
 
 enum WarehouseSortField {
@@ -5219,8 +5220,8 @@ input WebhookCreateInput {
 
 type WebhookDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  webhook: Webhook
   webhookErrors: [WebhookError!]!
+  webhook: Webhook
 }
 
 type WebhookError {
@@ -5286,8 +5287,8 @@ input WebhookSortingInput {
 
 type WebhookUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  webhook: Webhook
   webhookErrors: [WebhookError!]!
+  webhook: Webhook
 }
 
 input WebhookUpdateInput {
