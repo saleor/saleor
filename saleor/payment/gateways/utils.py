@@ -1,3 +1,4 @@
+import re
 import warnings
 from typing import TYPE_CHECKING, List
 
@@ -8,12 +9,15 @@ if TYPE_CHECKING:
 
 
 def get_supported_currencies(config: "GatewayConfig", gateway_name: str) -> List[str]:
-    currencies = config.supported_currencies
-    if not currencies:
+    supp_currencies = config.supported_currencies
+    if not supp_currencies:
         currencies = [settings.DEFAULT_CURRENCY]
         warnings.warn(
             f"Default currency used for {gateway_name}. "
             "DEFAULT_CURRENCY setting is deprecated, "
             "please configure supported currencies for this gateway."
         )
+    else:
+        currencies = re.split(r",\s*", supp_currencies)
+
     return currencies
