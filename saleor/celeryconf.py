@@ -9,8 +9,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saleor.settings")
 
 app = Celery("saleor")
 
-CELERY_TIMEZONE = "UTC"
-
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 app.autodiscover_tasks(lambda: discover_plugins_modules(settings.PLUGINS))
