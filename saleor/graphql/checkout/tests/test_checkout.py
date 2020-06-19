@@ -527,6 +527,34 @@ def test_checkout_create_check_lines_quantity_multiple_warehouse(
     assert data["errors"][0]["field"] == "quantity"
 
 
+def test_checkout_create_check_lines_quantity_from_shipping_address_country(
+    user_api_client,
+    variant_with_many_stocks_different_shipping_zones,
+    graphql_address_data,
+):
+    variant = variant_with_many_stocks_different_shipping_zones
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    shipping_address["country"] = "US"
+    shipping_address["countryArea"] = "New York"
+    shipping_address["postalCode"] = 10001
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+    assert data["created"] == True
+    checkout = Checkout.objects.first()
+    assert checkout.country == "US"
+
+
 def test_checkout_create_check_lines_quantity(
     user_api_client, stock, graphql_address_data
 ):
