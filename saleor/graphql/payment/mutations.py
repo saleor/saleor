@@ -10,6 +10,7 @@ from ...graphql.checkout.utils import clean_billing_address, clean_checkout_ship
 from ...payment import PaymentError, gateway, models
 from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment
+from ...plugins.manager import get_plugins_manager
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..checkout.types import Checkout
@@ -106,6 +107,21 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
+    def validate_gateway(cls, gateway_id, currency):
+        available_gateways = get_plugins_manager().list_payment_gateways(
+            currency=currency
+        )
+        if not any([gateway["id"] == gateway_id for gateway in available_gateways]):
+            raise ValidationError(
+                {
+                    "gateway": ValidationError(
+                        "This gateway does not support checkout currency.",
+                        code=PaymentErrorCode.NOT_SUPPORTED_GATEWAY.value,
+                    )
+                }
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, checkout_id, **data):
         checkout_id = from_global_id_strict_type(
             checkout_id, only_type=Checkout, field="checkout_id"
@@ -115,6 +131,9 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         ).get(pk=checkout_id)
 
         data = data["input"]
+        gateway = data["gateway"]
+
+        cls.validate_gateway(gateway, checkout.currency)
 
         checkout_total = cls.calculate_total(info, checkout)
         amount = data.get("amount", checkout_total.gross.amount)
@@ -126,7 +145,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         extra_data = {"customer_user_agent": info.context.META.get("HTTP_USER_AGENT")}
 
         payment = create_payment(
-            gateway=data["gateway"],
+            gateway=gateway,
             payment_token=data["token"],
             total=amount,
             currency=settings.DEFAULT_CURRENCY,
