@@ -11,20 +11,30 @@ def gateway_config():
     return GatewayConfig(
         gateway_name="Dummy",
         auto_capture=True,
-        supported_currencies=[],
+        supported_currencies="",
         connection_params={"secret-key": "dummy"},
     )
 
 
-def test_get_supported_currencies(gateway_config):
+@pytest.mark.parametrize(
+    "supported_currencies, expected_currencies",
+    [
+        ("PLN, USD, EUR", ["PLN", "USD", "EUR"]),
+        ("PLN,EUR", ["PLN", "EUR"]),
+        ("USD", ["USD"]),
+    ],
+)
+def test_get_supported_currencies(
+    supported_currencies, expected_currencies, gateway_config
+):
     # given
-    gateway_config.supported_currencies = ["PLN", "USD"]
+    gateway_config.supported_currencies = supported_currencies
 
     # when
     currencies = get_supported_currencies(gateway_config, "Test")
 
     # then
-    assert currencies == ["PLN", "USD"]
+    assert currencies == expected_currencies
 
 
 def test_get_supported_currencies_default_currency(gateway_config):

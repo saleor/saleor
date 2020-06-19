@@ -1,5 +1,4 @@
 import uuid
-import warnings
 from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, patch
@@ -579,16 +578,8 @@ def test_checkout_available_payment_gateways(
     api_client, checkout_with_item, expected_dummy_gateway
 ):
     query = GET_CHECKOUT_PAYMENTS_QUERY
-    expected_warning = (
-        "Default currency used for Dummy. "
-        "DEFAULT_CURRENCY setting is deprecated, "
-        "please configure supported currencies for this gateway."
-    )
     variables = {"token": str(checkout_with_item.token)}
-    with warnings.catch_warnings(record=True) as warns:
-        response = api_client.post_graphql(query, variables)
-
-        assert any([str(warning.message) == expected_warning for warning in warns])
+    response = api_client.post_graphql(query, variables)
 
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
