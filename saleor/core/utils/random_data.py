@@ -209,7 +209,6 @@ def create_products(products_data, placeholder_dir, create_images):
             continue
 
         defaults = product["fields"]
-        set_field_as_money(defaults, "price")
         defaults["weight"] = get_weight(defaults["weight"])
         defaults["category_id"] = defaults.pop("category")
         defaults["product_type_id"] = defaults.pop("product_type")
