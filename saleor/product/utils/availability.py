@@ -14,9 +14,8 @@ from ...plugins.manager import get_plugins_manager
 from ...warehouse.availability import (
     are_all_product_variants_in_stock,
     is_product_in_stock,
-    is_variant_in_stock,
 )
-from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
+from .. import ProductAvailabilityStatus
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -65,12 +64,6 @@ def get_product_availability_status(
     if not is_visible and product.publication_date is not None:
         return ProductAvailabilityStatus.NOT_YET_AVAILABLE
     return ProductAvailabilityStatus.READY_FOR_PURCHASE
-
-
-def get_variant_availability_status(variant, country):
-    if not is_variant_in_stock(variant, country):
-        return VariantAvailabilityStatus.OUT_OF_STOCK
-    return VariantAvailabilityStatus.AVAILABLE
 
 
 def _get_total_discount_from_range(

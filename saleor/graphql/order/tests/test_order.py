@@ -1576,22 +1576,23 @@ def test_order_capture(
     assert data["isPaid"]
     assert data["totalCaptured"]["amount"] == float(amount)
 
-    event_order_paid = order.events.first()
-    assert event_order_paid.type == order_events.OrderEvents.ORDER_FULLY_PAID
-    assert event_order_paid.user is None
+    event_captured, event_order_fully_paid, event_email_sent = order.events.all()
 
-    event_email_sent, event_captured = list(order.events.all())[-2:]
-    assert event_email_sent.user is None
-    assert event_email_sent.parameters == {
-        "email": order.user_email,
-        "email_type": order_events.OrderEventsEmails.PAYMENT,
-    }
     assert event_captured.type == order_events.OrderEvents.PAYMENT_CAPTURED
     assert event_captured.user == staff_user
     assert event_captured.parameters == {
         "amount": str(amount),
         "payment_gateway": "mirumee.payments.dummy",
         "payment_id": "",
+    }
+
+    assert event_order_fully_paid.type == order_events.OrderEvents.ORDER_FULLY_PAID
+    assert event_order_fully_paid.user is None
+
+    assert event_email_sent.user is None
+    assert event_email_sent.parameters == {
+        "email": order.user_email,
+        "email_type": order_events.OrderEventsEmails.PAYMENT,
     }
 
 

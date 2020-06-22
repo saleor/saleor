@@ -7,9 +7,9 @@ from django.db import transaction
 from django.db.models import Q, QuerySet
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
-from graphql_jwt.exceptions import PermissionDenied
 from graphql_relay import from_global_id
 
+from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode

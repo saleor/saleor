@@ -33,14 +33,26 @@ def order_created(order: "Order", user: "User", from_draft: bool = False):
     events.order_created_event(order=order, user=user, from_draft=from_draft)
     manager = get_plugins_manager()
     manager.order_created(order)
+    payment = order.get_last_payment()
+    if payment:
+        if order.is_captured():
+            order_captured(
+                order=order, user=user, amount=payment.total, payment=payment
+            )
+        elif order.is_pre_authorized():
+            order_authorized(
+                order=order, user=user, amount=payment.total, payment=payment
+            )
+        if order.is_fully_paid():
+            handle_fully_paid_order(order=order, user=user)
 
 
-def handle_fully_paid_order(order: "Order"):
-    events.order_fully_paid_event(order=order)
+def handle_fully_paid_order(order: "Order", user: "User" = None):
+    events.order_fully_paid_event(order=order, user=user)
 
     if order.get_customer_email():
         events.email_sent_event(
-            order=order, user=None, email_type=events.OrderEventsEmails.PAYMENT
+            order=order, user=user, email_type=events.OrderEventsEmails.PAYMENT
         )
         send_payment_confirmation.delay(order.pk)
 
@@ -113,6 +125,15 @@ def order_fulfilled(
 
 def order_shipping_updated(order: "Order"):
     recalculate_order(order)
+    get_plugins_manager().order_updated(order)
+
+
+def order_authorized(
+    order: "Order", user: "User", amount: "Decimal", payment: "Payment"
+):
+    events.payment_authorized_event(
+        order=order, user=user, amount=amount, payment=payment
+    )
     get_plugins_manager().order_updated(order)
 
 

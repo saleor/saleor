@@ -22,9 +22,9 @@ from graphql.error import (
     format_error as format_graphql_error,
 )
 from graphql.execution import ExecutionResult
-from graphql_jwt.exceptions import JSONWebTokenError
+from jwt.exceptions import PyJWTError
 
-from ..core.exceptions import ReadOnlyException
+from ..core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
@@ -59,7 +59,7 @@ class GraphQLView(View):
     middleware = None
     root_value = None
 
-    HANDLED_EXCEPTIONS = (GraphQLError, JSONWebTokenError, ReadOnlyException)
+    HANDLED_EXCEPTIONS = (GraphQLError, PyJWTError, ReadOnlyException, PermissionDenied)
 
     def __init__(
         self, schema=None, executor=None, middleware=None, root_value=None, backend=None
