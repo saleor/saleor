@@ -1,3 +1,5 @@
+from jwt.exceptions import PyJWTError
+
 from ..checkout.error_codes import CheckoutErrorCode
 
 
@@ -39,3 +41,7 @@ class PermissionDenied(Exception):
         if message is None:
             message = default_message
         super().__init__(message)
+
+
+class ExpiredUserSignatureError(PyJWTError):
+    pass
