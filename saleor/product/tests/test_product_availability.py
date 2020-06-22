@@ -1,16 +1,15 @@
 import datetime
+from decimal import Decimal
 from unittest.mock import Mock
 
-import pytest
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...plugins.manager import PluginsManager
 from ...warehouse.models import Stock
-from .. import ProductAvailabilityStatus, VariantAvailabilityStatus, models
+from .. import ProductAvailabilityStatus, models
 from ..utils.availability import (
     get_product_availability,
     get_product_availability_status,
-    get_variant_availability_status,
 )
 
 
@@ -29,8 +28,8 @@ def test_product_availability_status(unavailable_product, warehouse):
     status = get_product_availability_status(product, "US")
     assert status == ProductAvailabilityStatus.VARIANTS_MISSSING
 
-    variant_1 = product.variants.create(sku="test-1")
-    variant_2 = product.variants.create(sku="test-2")
+    variant_1 = product.variants.create(sku="test-1", price_amount=Decimal(10))
+    variant_2 = product.variants.create(sku="test-2", price_amount=Decimal(10))
     # create empty stock records
     stock_1 = Stock.objects.create(
         product_variant=variant_1, warehouse=warehouse, quantity=0
@@ -59,58 +58,6 @@ def test_product_availability_status(unavailable_product, warehouse):
     product.save()
     status = get_product_availability_status(product, "US")
     assert status == ProductAvailabilityStatus.NOT_YET_AVAILABLE
-
-
-def test_variant_is_out_of_stock_when_product_is_unavalable(
-    unavailable_product, warehouse
-):
-    product = unavailable_product
-    product.product_type.has_variants = True
-
-    variant = product.variants.create(sku="test")
-    Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=0)
-
-    status = get_variant_availability_status(variant, "US")
-    assert status == VariantAvailabilityStatus.OUT_OF_STOCK
-
-
-@pytest.mark.parametrize(
-    "current_stock, expected_status",
-    (
-        (0, VariantAvailabilityStatus.OUT_OF_STOCK),
-        (1, VariantAvailabilityStatus.AVAILABLE),
-    ),
-)
-def test_variant_availability_status(stock, current_stock, expected_status):
-    stock.quantity = current_stock
-    stock.save(update_fields=["quantity"])
-    variant = stock.product_variant
-
-    status = get_variant_availability_status(variant, "US")
-    assert status == expected_status
-
-
-def test_variant_is_still_available_when_another_variant_is_unavailable(
-    product_variant_list, warehouse
-):
-    """
-    Ensure a variant is not incorrectly flagged as out of stock when another variant
-    from the parent product is unavailable.
-    """
-
-    unavailable_variant, available_variant = product_variant_list[:2]
-    Stock.objects.create(
-        product_variant=unavailable_variant, warehouse=warehouse, quantity=0
-    )
-    Stock.objects.create(
-        product_variant=available_variant, warehouse=warehouse, quantity=1,
-    )
-
-    status = get_variant_availability_status(available_variant, "US")
-    assert status == VariantAvailabilityStatus.AVAILABLE
-
-    status = get_variant_availability_status(unavailable_variant, "US")
-    assert status == VariantAvailabilityStatus.OUT_OF_STOCK
 
 
 def test_availability(stock, monkeypatch, settings):
@@ -177,3 +124,28 @@ def test_available_products_only_available(product_list):
     available_products = models.Product.objects.published()
     assert available_products.count() == 2
     assert all([product.is_visible for product in available_products])
+
+
+def test_available_products_with_variants(product_list):
+    product = product_list[0]
+    product.variants.all().delete()
+
+    available_products = models.Product.objects.published_with_variants()
+    assert available_products.count() == 2
+
+
+def test_visible_to_customer_user(customer_user, product_list):
+    product = product_list[0]
+    product.variants.all().delete()
+
+    available_products = models.Product.objects.visible_to_user(customer_user)
+    assert available_products.count() == 2
+
+
+def test_visible_to_staff_user(customer_user, product_list, permission_manage_products):
+    product = product_list[0]
+    product.variants.all().delete()
+    customer_user.user_permissions.add(permission_manage_products)
+
+    available_products = models.Product.objects.visible_to_user(customer_user)
+    assert available_products.count() == 3

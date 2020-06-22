@@ -7,7 +7,6 @@ from django.core.exceptions import ValidationError
 from ....menu.models import Menu, MenuItem
 from ....product.models import Category
 from ...menu.mutations import NavigationType, _validate_menu_item_instance
-from ...menu.tests.utils import menu_item_to_json
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 
@@ -426,11 +425,6 @@ def test_create_menu_item(staff_api_client, menu, permission_manage_menus):
     assert data["url"] == url
     assert data["menu"]["name"] == menu.name
 
-    menu.refresh_from_db()
-    item = menu.items.get(name=name)
-    item_json = menu_item_to_json(item)
-    assert item_json in menu.json_content
-
 
 def test_update_menu_item(
     staff_api_client, menu, menu_item, page, permission_manage_menus
@@ -459,11 +453,6 @@ def test_update_menu_item(
     data = content["data"]["menuItemUpdate"]["menuItem"]
     assert data["page"]["id"] == page_id
 
-    menu_item.refresh_from_db()
-    menu.refresh_from_db()
-    item_json = menu_item_to_json(menu_item)
-    assert item_json in menu.json_content
-
 
 def test_delete_menu_item(staff_api_client, menu_item, permission_manage_menus):
     query = """
@@ -475,11 +464,6 @@ def test_delete_menu_item(staff_api_client, menu_item, permission_manage_menus):
             }
         }
         """
-    menu = menu_item.menu
-    item_json = menu_item_to_json(menu_item)
-    menu_json = menu.json_content
-    assert item_json in menu_json
-
     menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.pk)
     variables = {"id": menu_item_id}
     response = staff_api_client.post_graphql(
@@ -490,9 +474,6 @@ def test_delete_menu_item(staff_api_client, menu_item, permission_manage_menus):
     assert data["name"] == menu_item.name
     with pytest.raises(menu_item._meta.model.DoesNotExist):
         menu_item.refresh_from_db()
-
-    menu.refresh_from_db()
-    assert item_json not in menu.json_content
 
 
 def test_add_more_than_one_item(

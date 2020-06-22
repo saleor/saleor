@@ -2,6 +2,7 @@ from dataclasses import asdict
 from typing import List, Union
 
 import graphene
+from django.conf import settings
 from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
@@ -20,10 +21,8 @@ from ....product.utils.availability import (
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
 from ....warehouse.availability import (
     get_available_quantity,
-    get_available_quantity_for_customer,
     get_quantity_allocated,
     is_product_in_stock,
-    is_variant_in_stock,
 )
 from ...account.enums import CountryCodeEnum
 from ...core.connection import CountableDjangoObjectType
@@ -43,6 +42,9 @@ from ...translations.types import (
 )
 from ...utils import get_database_id
 from ...utils.filters import reporting_period_to_date
+from ...warehouse.dataloaders import (
+    AvailableQuantityByProductVariantIdAndCountryCodeLoader,
+)
 from ...warehouse.types import Stock
 from ..dataloaders import (
     CategoryByIdLoader,
@@ -192,13 +194,15 @@ class ProductVariant(CountableDjangoObjectType):
             "This field will be removed after 2020-07-31."
         ),
     )
-    price_override = graphene.Field(
+    price = graphene.Field(
         Money,
         description=(
-            "Override the base price of a product if necessary. A value of `null` "
-            "indicates that the default product price is used."
+            "Base price of a product variant. "
+            "This field is restricted for admins. "
+            "Use the pricing field to get the public price for customers."
         ),
     )
+
     pricing = graphene.Field(
         VariantPricingInfo,
         description=(
@@ -274,14 +278,19 @@ class ProductVariant(CountableDjangoObjectType):
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_stocks(root: models.ProductVariant, info, country_code=None):
         if not country_code:
-            return root.stocks.annotate_available_quantity().all()
-        return root.stocks.annotate_available_quantity().for_country(country_code).all()
+            return root.stocks.annotate_available_quantity()
+        return root.stocks.for_country(country_code).annotate_available_quantity()
 
     @staticmethod
     def resolve_quantity_available(
         root: models.ProductVariant, info, country_code=None
     ):
-        return get_available_quantity_for_customer(root, country_code)
+        if not root.track_inventory:
+            return settings.MAX_CHECKOUT_LINE_QUANTITY
+
+        return AvailableQuantityByProductVariantIdAndCountryCodeLoader(
+            info.context
+        ).load((root.id, country_code))
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -290,7 +299,12 @@ class ProductVariant(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_stock_quantity(root: models.ProductVariant, info):
-        return get_available_quantity_for_customer(root, info.context.country)
+        if not root.track_inventory:
+            return settings.MAX_CHECKOUT_LINE_QUANTITY
+
+        return AvailableQuantityByProductVariantIdAndCountryCodeLoader(
+            info.context
+        ).load((root.id, info.context.country))
 
     @staticmethod
     def resolve_attributes(root: models.ProductVariant, info):
@@ -307,8 +321,9 @@ class ProductVariant(CountableDjangoObjectType):
         return root.cost_price
 
     @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_price(root: models.ProductVariant, *_args):
-        return root.base_price
+        return root.price
 
     @staticmethod
     def resolve_pricing(root: models.ProductVariant, info):
@@ -346,13 +361,17 @@ class ProductVariant(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_is_available(root: models.ProductVariant, info):
-        country = info.context.country
-        return is_variant_in_stock(root, country)
+        if not root.track_inventory:
+            return True
 
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_price_override(root: models.ProductVariant, *_args):
-        return root.price_override
+        def is_variant_in_stock(available_quantity):
+            return available_quantity > 0
+
+        return (
+            AvailableQuantityByProductVariantIdAndCountryCodeLoader(info.context)
+            .load((root.id, info.context.country))
+            .then(is_variant_in_stock)
+        )
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -427,7 +446,6 @@ class Product(CountableDjangoObjectType):
     is_available = graphene.Boolean(
         description="Whether the product is in stock and visible or not."
     )
-    base_price = graphene.Field(Money, description="The product's default base price.")
     minimal_variant_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
     )
@@ -546,28 +564,6 @@ class Product(CountableDjangoObjectType):
         country = info.context.country
         in_stock = is_product_in_stock(root, country)
         return root.is_visible and in_stock
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_base_price(root: models.Product, _info):
-        return root.price
-
-    @staticmethod
-    def resolve_price(root: models.Product, info):
-        context = info.context
-
-        def calculate_price(discounts):
-            price_range = root.get_price_range(discounts)
-            price = info.context.plugins.apply_taxes_to_product(
-                root, price_range.start, info.context.country
-            )
-            return price.net
-
-        return (
-            DiscountsByDateTimeLoader(context)
-            .load(info.context.request_time)
-            .then(calculate_price)
-        )
 
     @staticmethod
     def resolve_attributes(root: models.Product, info):

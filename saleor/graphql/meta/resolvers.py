@@ -1,10 +1,9 @@
 from operator import itemgetter
 
-from graphql_jwt.exceptions import PermissionDenied
-
 from ...account import models as account_models
 from ...app import models as app_models
 from ...checkout import models as checkout_models
+from ...core.exceptions import PermissionDenied
 from ...core.models import ModelWithMetadata
 from ...order import models as order_models
 from ...product import models as product_models
@@ -37,7 +36,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
         app_models.App: app_types.App,
         account_models.User: account_types.User,
     }
-    return MODEL_TO_TYPE_MAP.get(type(instance), None)
+    return MODEL_TO_TYPE_MAP.get(instance.__class__, None)
 
 
 def resolve_metadata(metadata: dict):
