@@ -31,3 +31,23 @@ class ChannelCreate(ModelMutation):
     @classmethod
     def get_type_for_model(cls):
         return Channel
+
+
+class ChannelUpdateInput(graphene.InputObjectType):
+    name = graphene.String(description="Name of the channel.")
+    slug = graphene.String(description="Slug of the channel.")
+
+
+class ChannelUpdate(ModelMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of a channel to update.")
+        input = ChannelUpdateInput(
+            description="Fields required to update a channel.", required=True
+        )
+
+    class Meta:
+        description = "Update a channel."
+        model = models.Channel
+        permissions = (ChannelPermission.MANAGE_CHANNELS,)
+        error_type_class = ChannelError
+        error_type_field = "channel_errors"
