@@ -38,7 +38,6 @@ from ...discount.models import Sale, Voucher
 from ...discount.utils import fetch_discounts
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
-from ...menu.utils import update_menu
 from ...order.models import Fulfillment, Order, OrderLine
 from ...order.utils import update_order_status
 from ...page.models import Page
@@ -1204,8 +1203,6 @@ def create_menus():
     )
 
     yield "Created footer menu"
-    update_menu(top_menu)
-    update_menu(bottom_menu)
     site = Site.objects.get_current()
     site_settings = site.settings
     site_settings.top_menu = top_menu

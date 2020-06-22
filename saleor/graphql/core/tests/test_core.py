@@ -7,9 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from graphene import InputField
-from graphql_jwt.shortcuts import get_token
 
-from ....account.error_codes import AccountErrorCode
 from ....product.models import Category, Product
 from ...product import types as product_types
 from ...tests.utils import _get_graphql_content_from_response, get_graphql_content
@@ -286,83 +284,6 @@ def test_mutation_invalid_permission_in_meta(_mocked, should_fail, permissions_v
         _run_test()
 
     assert exc.value.args[0] == "Permissions should be a tuple or a string in Meta"
-
-
-MUTATION_CREATE_TOKEN = """
-    mutation tokenCreate($email: String!, $password: String!){
-        tokenCreate(email: $email, password: $password) {
-            token
-            user {
-                email
-            }
-            errors {
-                field
-                message
-            }
-            accountErrors {
-                field
-                message
-                code
-            }
-        }
-    }
-"""
-
-
-def test_create_token(api_client, customer_user):
-    variables = {"email": customer_user.email, "password": customer_user._password}
-    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
-    content = get_graphql_content(response)
-    user_email = content["data"]["tokenCreate"]["user"]["email"]
-    assert customer_user.email == user_email
-    assert content["data"]["tokenCreate"]["token"]
-    assert content["data"]["tokenCreate"]["accountErrors"] == []
-
-
-def test_create_token_invalid_password(api_client, customer_user):
-    variables = {"email": customer_user.email, "password": "wrongpassword"}
-    expected_error_code = AccountErrorCode.INVALID_CREDENTIALS.value.upper()
-    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
-    content = get_graphql_content(response)
-    response_error = content["data"]["tokenCreate"]["accountErrors"][0]
-    assert response_error["code"] == expected_error_code
-    assert response_error["field"] == "email"
-
-
-def test_create_token_invalid_email(api_client, customer_user):
-    variables = {"email": "wrongemail", "password": "wrongpassword"}
-    expected_error_code = AccountErrorCode.INVALID_CREDENTIALS.value.upper()
-    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
-    content = get_graphql_content(response)
-    response_error = content["data"]["tokenCreate"]["accountErrors"][0]
-    assert response_error["code"] == expected_error_code
-    assert response_error["field"] == "email"
-
-
-MUTATION_TOKEN_VERIFY = """
-    mutation tokenVerify($token: String!){
-        tokenVerify(token: $token){
-            user{
-                email
-            }
-        }
-    }
-"""
-
-
-def test_verify_token(api_client, customer_user):
-    variables = {"token": get_token(customer_user)}
-    response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
-    content = get_graphql_content(response)
-    user_email = content["data"]["tokenVerify"]["user"]["email"]
-    assert customer_user.email == user_email
-
-
-def test_verify_token_incorrect_token(api_client):
-    variables = {"token": "incorrect_token"}
-    response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
-    content = get_graphql_content(response)
-    assert not content["data"]["tokenVerify"]
 
 
 @pytest.mark.parametrize(

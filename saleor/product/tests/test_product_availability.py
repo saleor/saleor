@@ -2,16 +2,14 @@ import datetime
 from decimal import Decimal
 from unittest.mock import Mock
 
-import pytest
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...plugins.manager import PluginsManager
 from ...warehouse.models import Stock
-from .. import ProductAvailabilityStatus, VariantAvailabilityStatus, models
+from .. import ProductAvailabilityStatus, models
 from ..utils.availability import (
     get_product_availability,
     get_product_availability_status,
-    get_variant_availability_status,
 )
 
 
@@ -60,58 +58,6 @@ def test_product_availability_status(unavailable_product, warehouse):
     product.save()
     status = get_product_availability_status(product, "US")
     assert status == ProductAvailabilityStatus.NOT_YET_AVAILABLE
-
-
-def test_variant_is_out_of_stock_when_product_is_unavalable(
-    unavailable_product, warehouse
-):
-    product = unavailable_product
-    product.product_type.has_variants = True
-
-    variant = product.variants.create(sku="test", price_amount=Decimal(10))
-    Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=0)
-
-    status = get_variant_availability_status(variant, "US")
-    assert status == VariantAvailabilityStatus.OUT_OF_STOCK
-
-
-@pytest.mark.parametrize(
-    "current_stock, expected_status",
-    (
-        (0, VariantAvailabilityStatus.OUT_OF_STOCK),
-        (1, VariantAvailabilityStatus.AVAILABLE),
-    ),
-)
-def test_variant_availability_status(stock, current_stock, expected_status):
-    stock.quantity = current_stock
-    stock.save(update_fields=["quantity"])
-    variant = stock.product_variant
-
-    status = get_variant_availability_status(variant, "US")
-    assert status == expected_status
-
-
-def test_variant_is_still_available_when_another_variant_is_unavailable(
-    product_variant_list, warehouse
-):
-    """
-    Ensure a variant is not incorrectly flagged as out of stock when another variant
-    from the parent product is unavailable.
-    """
-
-    unavailable_variant, available_variant = product_variant_list[:2]
-    Stock.objects.create(
-        product_variant=unavailable_variant, warehouse=warehouse, quantity=0
-    )
-    Stock.objects.create(
-        product_variant=available_variant, warehouse=warehouse, quantity=1,
-    )
-
-    status = get_variant_availability_status(available_variant, "US")
-    assert status == VariantAvailabilityStatus.AVAILABLE
-
-    status = get_variant_availability_status(unavailable_variant, "US")
-    assert status == VariantAvailabilityStatus.OUT_OF_STOCK
 
 
 def test_availability(stock, monkeypatch, settings):

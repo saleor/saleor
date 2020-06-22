@@ -1,6 +1,6 @@
 import graphene
-from graphql_jwt.exceptions import PermissionDenied
 
+from ...core.exceptions import PermissionDenied
 from ...core.permissions import WebhookPermissions
 from ...webhook import models, payloads
 from ...webhook.event_types import WebhookEventType
