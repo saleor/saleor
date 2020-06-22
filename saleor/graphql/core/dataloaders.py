@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Generic, Iterable, List, TypeVar, Union
 
 import opentracing
 import opentracing.tags
@@ -6,8 +6,11 @@ from django.http import HttpRequest
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
 
+K = TypeVar("K")
+R = TypeVar("R")
 
-class DataLoader(BaseLoader):
+
+class DataLoader(BaseLoader, Generic[K, R]):
     context_key = None
     context = None
 
@@ -29,7 +32,7 @@ class DataLoader(BaseLoader):
             self.user = context.user
             super().__init__()
 
-    def batch_load_fn(self, keys):
+    def batch_load_fn(self, keys: Iterable[K]) -> Promise[List[R]]:
         with opentracing.global_tracer().start_active_span(
             self.__class__.__name__
         ) as scope:
@@ -40,5 +43,5 @@ class DataLoader(BaseLoader):
                 return Promise.resolve(results)
             return results
 
-    def batch_load(self, keys: List[Any]):
+    def batch_load(self, keys: Iterable[K]) -> Union[Promise[List[R]], List[R]]:
         raise NotImplementedError()

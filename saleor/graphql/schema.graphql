@@ -62,6 +62,11 @@ enum AccountErrorCode {
   PASSWORD_TOO_SIMILAR
   REQUIRED
   UNIQUE
+  JWT_SIGNATURE_EXPIRED
+  JWT_INVALID_TOKEN
+  JWT_DECODE_ERROR
+  JWT_MISSING_TOKEN
+  JWT_INVALID_CSRF_TOKEN
 }
 
 input AccountInput {
@@ -1443,10 +1448,12 @@ type CountryDisplay {
 }
 
 type CreateToken {
-  token: String
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  accountErrors: [AccountError!]!
+  token: String
+  refreshToken: String
+  csrfToken: String
   user: User
+  accountErrors: [AccountError!]!
 }
 
 type CreditCard {
@@ -1538,6 +1545,11 @@ scalar DateTime
 input DateTimeRangeInput {
   gte: DateTime
   lte: DateTime
+}
+
+type DeactivateAllUserTokens {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  accountErrors: [AccountError!]!
 }
 
 scalar Decimal
@@ -2449,9 +2461,6 @@ type Mutation {
   voucherCataloguesAdd(id: ID!, input: CatalogueInput!): VoucherAddCatalogues
   voucherCataloguesRemove(id: ID!, input: CatalogueInput!): VoucherRemoveCatalogues
   voucherTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): VoucherTranslate
-  tokenCreate(email: String!, password: String!): CreateToken
-  tokenRefresh(token: String!): RefreshToken
-  tokenVerify(token: String!): VerifyToken
   checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID!, redirectUrl: String, storeSource: Boolean = false): CheckoutComplete
@@ -2476,9 +2485,13 @@ type Mutation {
   appTokenCreate(input: AppTokenInput!): AppTokenCreate
   appTokenDelete(id: ID!): AppTokenDelete
   appTokenVerify(token: String!): AppTokenVerify
+  tokenCreate(email: String!, password: String!): CreateToken
+  tokenRefresh(csrfToken: String, refreshToken: String): RefreshToken
+  tokenVerify(token: String!): VerifyToken
+  tokensDeactivateAll: DeactivateAllUserTokens
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
-  setPassword(token: String!, email: String!, password: String!): SetPassword
+  setPassword(email: String!, password: String!, token: String!): SetPassword
   passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
   requestEmailChange(newEmail: String!, password: String!, redirectUrl: String!): RequestEmailChange
   confirmEmailChange(token: String!): ConfirmEmailChange
@@ -2753,6 +2766,7 @@ enum OrderEventsEnum {
   ORDER_FULLY_PAID
   UPDATED_ADDRESS
   EMAIL_SENT
+  PAYMENT_AUTHORIZED
   PAYMENT_CAPTURED
   PAYMENT_REFUNDED
   PAYMENT_VOIDED
@@ -3176,8 +3190,8 @@ enum PermissionEnum {
 
 type PermissionGroupCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  group: Group
   permissionGroupErrors: [PermissionGroupError!]!
+  group: Group
 }
 
 input PermissionGroupCreateInput {
@@ -3226,8 +3240,8 @@ input PermissionGroupSortingInput {
 
 type PermissionGroupUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  group: Group
   permissionGroupErrors: [PermissionGroupError!]!
+  group: Group
 }
 
 input PermissionGroupUpdateInput {
@@ -3958,8 +3972,10 @@ type ReducedRate {
 }
 
 type RefreshToken {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   token: String
-  payload: GenericScalar
+  user: User
+  accountErrors: [AccountError!]!
 }
 
 input ReorderInput {
@@ -4209,10 +4225,12 @@ type ServiceAccountUpdatePrivateMeta {
 }
 
 type SetPassword {
-  token: String
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  accountErrors: [AccountError!]!
+  token: String
+  refreshToken: String
+  csrfToken: String
   user: User
+  accountErrors: [AccountError!]!
 }
 
 type ShippingError {
@@ -4336,8 +4354,8 @@ type ShippingZoneCountableEdge {
 
 type ShippingZoneCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  shippingZone: ShippingZone
   shippingErrors: [ShippingError!]!
+  shippingZone: ShippingZone
 }
 
 input ShippingZoneCreateInput {
@@ -4355,8 +4373,8 @@ type ShippingZoneDelete {
 
 type ShippingZoneUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  shippingZone: ShippingZone
   shippingErrors: [ShippingError!]!
+  shippingZone: ShippingZone
 }
 
 input ShippingZoneUpdateInput {
@@ -4904,8 +4922,11 @@ type VariantPricingInfo {
 }
 
 type VerifyToken {
-  payload: GenericScalar
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   user: User
+  isValid: Boolean!
+  payload: GenericScalar
+  accountErrors: [AccountError!]!
 }
 
 type Voucher implements Node {
@@ -5125,14 +5146,14 @@ input WarehouseFilterInput {
 
 type WarehouseShippingZoneAssign {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  warehouse: Warehouse
   warehouseErrors: [WarehouseError!]!
+  warehouse: Warehouse
 }
 
 type WarehouseShippingZoneUnassign {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  warehouse: Warehouse
   warehouseErrors: [WarehouseError!]!
+  warehouse: Warehouse
 }
 
 enum WarehouseSortField {
@@ -5198,8 +5219,8 @@ input WebhookCreateInput {
 
 type WebhookDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  webhook: Webhook
   webhookErrors: [WebhookError!]!
+  webhook: Webhook
 }
 
 type WebhookError {
@@ -5265,8 +5286,8 @@ input WebhookSortingInput {
 
 type WebhookUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  webhook: Webhook
   webhookErrors: [WebhookError!]!
+  webhook: Webhook
 }
 
 input WebhookUpdateInput {

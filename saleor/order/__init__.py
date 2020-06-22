@@ -46,6 +46,7 @@ class OrderEvents:
 
     EMAIL_SENT = "email_sent"
 
+    PAYMENT_AUTHORIZED = "payment_authorized"
     PAYMENT_CAPTURED = "payment_captured"
     PAYMENT_REFUNDED = "payment_refunded"
     PAYMENT_VOIDED = "payment_voided"
@@ -72,6 +73,7 @@ class OrderEvents:
         (ORDER_FULLY_PAID, "The order was fully paid"),
         (UPDATED_ADDRESS, "The address from the placed order was updated"),
         (EMAIL_SENT, "The email was sent"),
+        (PAYMENT_AUTHORIZED, "The payment was authorized"),
         (PAYMENT_CAPTURED, "The payment was captured"),
         (PAYMENT_REFUNDED, "The payment was refunded"),
         (PAYMENT_VOIDED, "The payment was voided"),
