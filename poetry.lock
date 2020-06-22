@@ -148,10 +148,10 @@ description = "The AWS SDK for Python"
 name = "boto3"
 optional = false
 python-versions = "*"
-version = "1.14.6"
+version = "1.14.7"
 
 [package.dependencies]
-botocore = ">=1.17.6,<1.18.0"
+botocore = ">=1.17.7,<1.18.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.3.0,<0.4.0"
 
@@ -161,7 +161,7 @@ description = "Low-level, data-driven core of boto 3."
 name = "botocore"
 optional = false
 python-versions = "*"
-version = "1.17.6"
+version = "1.17.7"
 
 [package.dependencies]
 docutils = ">=0.10,<0.16"
@@ -2260,12 +2260,12 @@ black = [
     {file = "black-19.10b0.tar.gz", hash = "sha256:c2edb73a08e9e0e6f65a0e6af18b059b8b1cdd5bef997d7a0b181df93dc81539"},
 ]
 boto3 = [
-    {file = "boto3-1.14.6-py2.py3-none-any.whl", hash = "sha256:f02c0c02f632285da124e560934145de64690000bf6348df8f1eb45239f0e9df"},
-    {file = "boto3-1.14.6.tar.gz", hash = "sha256:6a9cdab2db28330ffa3e6f08bb2bc07bc757d2019e4acf0c8376b72c63e7cc6b"},
+    {file = "boto3-1.14.7-py2.py3-none-any.whl", hash = "sha256:fe6f7f58fa53c4dd86432315717c989a65a5a8748e6219a53725be1041c4a113"},
+    {file = "boto3-1.14.7.tar.gz", hash = "sha256:4856c8cb4150b900cc7dccbdf16f542fb8c12e97b17639979e58760847f7cf35"},
 ]
 botocore = [
-    {file = "botocore-1.17.6-py2.py3-none-any.whl", hash = "sha256:c8b5143e2eaac20ce0d7238fd8ef33f7969139ccd616edb54fd3a482cdfd0e6c"},
-    {file = "botocore-1.17.6.tar.gz", hash = "sha256:a5737a5215f9db23344752a4d2a43646c104e6d500a2d6f9409624d2e58c92f1"},
+    {file = "botocore-1.17.7-py2.py3-none-any.whl", hash = "sha256:e582e3ba61d812e8dd0939c0455c6f68cf41587506a3a30deafc54825087de01"},
+    {file = "botocore-1.17.7.tar.gz", hash = "sha256:cce790e65368d28dfd715558daea6890922716efa69d3a4c76d80348a71ad460"},
 ]
 braintree = [
     {file = "braintree-4.1.0-py2.py3-none-any.whl", hash = "sha256:152fa9e3b30a7757db0061e1c022c944216bf881209376b28a3f07043cff009b"},
@@ -3053,7 +3053,7 @@ requests = [
     {file = "requests-2.24.0.tar.gz", hash = "sha256:b3559a131db72c33ee969480840fff4bb6dd111de7dd27c8ee1f820f4f00231b"},
 ]
 rsa = [
-    {file = "rsa-4.6-py2.py3-none-any.whl", hash = "sha256:23778f5523461cf86ae075f9482a99317f362bca752ae57cb118044066f4026f"},
+    {file = "rsa-4.6-py3-none-any.whl", hash = "sha256:6166864e23d6b5195a5cfed6cd9fed0fe774e226d8f854fcb23b7bbef0350233"},
     {file = "rsa-4.6.tar.gz", hash = "sha256:109ea5a66744dd859bf16fe904b8d8b627adafb9408753161e766a92e7d681fa"},
 ]
 rx = [
