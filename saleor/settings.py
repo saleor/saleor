@@ -13,6 +13,7 @@ import sentry_sdk
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from django_prices.utils.formatting import get_currency_fraction
+from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -68,7 +69,7 @@ DATABASES = {
 }
 
 
-TIME_ZONE = "America/Chicago"
+TIME_ZONE = "UTC"
 LANGUAGE_CODE = "en"
 LANGUAGES = [
     ("ar", "Arabic"),
@@ -213,6 +214,7 @@ MIDDLEWARE = [
     "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
     "saleor.core.middleware.plugins",
+    "saleor.core.middleware.jwt_refresh_token_middleware",
 ]
 
 INSTALLED_APPS = [
@@ -383,6 +385,7 @@ MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50
 
 TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
+
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
 ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
@@ -397,6 +400,7 @@ AWS_LOCATION = os.environ.get("AWS_LOCATION", "")
 AWS_MEDIA_BUCKET_NAME = os.environ.get("AWS_MEDIA_BUCKET_NAME")
 AWS_MEDIA_CUSTOM_DOMAIN = os.environ.get("AWS_MEDIA_CUSTOM_DOMAIN")
 AWS_QUERYSTRING_AUTH = get_bool_from_env("AWS_QUERYSTRING_AUTH", False)
+AWS_QUERYSTRING_EXPIRE = get_bool_from_env("AWS_QUERYSTRING_EXPIRE", 3600)
 AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_STATIC_CUSTOM_DOMAIN")
 AWS_S3_ENDPOINT_URL = os.environ.get("AWS_S3_ENDPOINT_URL", None)
 AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", None)
@@ -458,20 +462,12 @@ DEFAULT_PLACEHOLDER = "images/placeholder255x255.png"
 SEARCH_BACKEND = "saleor.search.backends.postgresql"
 
 AUTHENTICATION_BACKENDS = [
-    "graphql_jwt.backends.JSONWebTokenBackend",
+    "saleor.core.auth_backend.JSONWebTokenBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-# Django GraphQL JWT settings
-GRAPHQL_JWT = {
-    "JWT_PAYLOAD_HANDLER": "saleor.graphql.utils.create_jwt_payload",
-    # How long until a token expires, default is 5m from graphql_jwt.settings
-    "JWT_EXPIRATION_DELTA": timedelta(minutes=5),
-    # Whether the JWT tokens should expire or not
-    "JWT_VERIFY_EXPIRATION": get_bool_from_env("JWT_VERIFY_EXPIRATION", False),
-}
-
 # CELERY SETTINGS
+CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_URL = (
     os.environ.get("CELERY_BROKER_URL", os.environ.get("CLOUDAMQP_URL")) or ""
 )
@@ -568,3 +564,13 @@ REDIS_URL = os.environ.get("REDIS_URL")
 if REDIS_URL:
     CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
 CACHES = {"default": django_cache_url.config()}
+
+# Default False because storefront and dashboard don't support expiration of token
+JWT_EXPIRE = get_bool_from_env("JWT_EXPIRE", False)
+JWT_TTL_ACCESS = timedelta(seconds=parse(os.environ.get("JWT_TTL_ACCESS", "5 minutes")))
+JWT_TTL_REFRESH = timedelta(seconds=parse(os.environ.get("JWT_TTL_REFRESH", "30 days")))
+
+
+JWT_TTL_REQUEST_EMAIL_CHANGE = timedelta(
+    seconds=parse(os.environ.get("JWT_TTL_REQUEST_EMAIL_CHANGE", "1 hour")),
+)

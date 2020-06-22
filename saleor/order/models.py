@@ -244,6 +244,15 @@ class Order(ModelWithMetadata):
             .exists()
         )
 
+    def is_captured(self):
+        return (
+            self.payments.filter(
+                is_active=True, transactions__kind=TransactionKind.CAPTURE
+            )
+            .filter(transactions__is_success=True)
+            .exists()
+        )
+
     @property
     def quantity_fulfilled(self):
         return sum([line.quantity_fulfilled for line in self])

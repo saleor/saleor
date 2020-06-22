@@ -1,8 +1,7 @@
 from typing import Any, List
 
-from graphql_jwt.exceptions import PermissionDenied
-
 from ...account import models as account_models
+from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,
     AppPermission,

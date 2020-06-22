@@ -8,7 +8,6 @@ from django.db.models import Q
 from django.template.defaultfilters import slugify
 from graphene.utils.str_converters import to_camel_case
 
-from ....core.taxes import zero_money
 from ....product import AttributeInputType
 from ....product.error_codes import ProductErrorCode
 from ....product.models import (
@@ -199,10 +198,10 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
 @pytest.mark.parametrize("is_staff", (False, True))
 def test_resolve_attributes_with_hidden(
     user_api_client,
+    staff_api_client,
     product,
     color_attribute,
     size_attribute,
-    staff_user,
     is_staff,
     permission_manage_products,
 ):
@@ -221,10 +220,10 @@ def test_resolve_attributes_with_hidden(
     expected_variant_attribute_count = variant.attributes.count() - 1
 
     if is_staff:
-        api_client.user = staff_user
+        api_client = staff_api_client
+        api_client.user.user_permissions.add(permission_manage_products)
         expected_product_attribute_count += 1
         expected_variant_attribute_count += 1
-        staff_user.user_permissions.add(permission_manage_products)
 
     # Hide one product and variant attribute from the storefront
     for attribute in (product_attribute, variant_attribute):
@@ -395,7 +394,6 @@ def test_attributes_in_collection_query(
         name="Another Product",
         product_type=other_product_type,
         category=other_category,
-        price=zero_money(),
         is_published=True,
     )
 

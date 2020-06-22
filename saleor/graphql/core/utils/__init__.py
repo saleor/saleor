@@ -108,3 +108,14 @@ def get_duplicates_ids(first_list, second_list):
 def get_duplicated_values(values):
     """Return set of duplicated values."""
     return {value for value in values if values.count(value) > 1}
+
+
+def validate_required_string_field(cleaned_input, field_name: str):
+    """Strip and validate field value."""
+    field_value = cleaned_input.get(field_name)
+    field_value = field_value.strip() if field_value else ""
+    if field_value:
+        cleaned_input[field_name] = field_value
+    else:
+        raise ValidationError(f"{field_name.capitalize()} is required.")
+    return cleaned_input

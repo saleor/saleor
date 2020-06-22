@@ -20,7 +20,6 @@ from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import PermissionGroupError
 from ...core.utils import get_duplicates_ids
-from ..types import Group
 
 if TYPE_CHECKING:
     from ....account.models import User
@@ -44,8 +43,6 @@ class PermissionGroupCreateInput(PermissionGroupInput):
 
 
 class PermissionGroupCreate(ModelMutation):
-    group = graphene.Field(Group, description="The newly created group.")
-
     class Arguments:
         input = PermissionGroupCreateInput(
             description="Input fields to create permission group.", required=True
@@ -181,8 +178,6 @@ class PermissionGroupUpdateInput(PermissionGroupInput):
 
 
 class PermissionGroupUpdate(PermissionGroupCreate):
-    group = graphene.Field(Group, description="Group which was edited.")
-
     class Arguments:
         id = graphene.ID(description="ID of the group to update.", required=True)
         input = PermissionGroupUpdateInput(

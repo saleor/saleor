@@ -6,8 +6,13 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Invoices backend - #5732 by @tomaszszymanski129
 - Add our implementation of UUID scalar - #5646 by @koradon
-- Add AppTokenVerify mutation -  #5716 by @korycins
+- Add AppTokenVerify mutation - #5716 by @korycins
 - Fix specific product voucher in draft orders - #5727 by @fowczarek
+- Explicit country assignment in default shipping zones - #5736 by @maarcingebala
+- Drop `json_content` field from the `Menu` model - #5761 by @maarcingebala
+- Refactor JWT support - #5734 by @korycins
+- Strip warehouse name in mutations - #5766 by @koradon
+- Add missing OrderEvents during checkout flow - #5684 by @koradon
 
 ## 2.10.1
 
