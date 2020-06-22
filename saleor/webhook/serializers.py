@@ -14,7 +14,7 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
             {
                 "sku": variant.sku,
                 "quantity": line.quantity,
-                "base_price": str(variant.base_price.amount),
+                "base_price": str(variant.price.amount),
                 "currency": variant.currency,
                 "full_name": variant.display_product(),
                 "product_name": product.name,

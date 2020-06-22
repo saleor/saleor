@@ -47,7 +47,7 @@ query {
 
 
 def test_get_variant_pricing_on_sale(api_client, sale, product):
-    price = product.price
+    price = product.variants.first().price
     discounted_price = price.amount - sale.value
 
     response = api_client.post_graphql(QUERY_GET_VARIANT_PRICING, {})
@@ -75,6 +75,8 @@ def test_get_variant_pricing_on_sale(api_client, sale, product):
 
 
 def test_get_variant_pricing_not_on_sale(api_client, product):
+    price = product.variants.first().price
+
     response = api_client.post_graphql(QUERY_GET_VARIANT_PRICING, {})
     content = get_graphql_content(response)
 
@@ -90,12 +92,12 @@ def test_get_variant_pricing_not_on_sale(api_client, product):
     assert pricing["discount"] is None
 
     # check the undiscounted price
-    assert pricing["priceUndiscounted"]["currency"] == product.price.currency
-    assert pricing["priceUndiscounted"]["net"]["amount"] == product.price.amount
+    assert pricing["priceUndiscounted"]["currency"] == price.currency
+    assert pricing["priceUndiscounted"]["net"]["amount"] == price.amount
 
     # check the discounted price
-    assert pricing["price"]["currency"] == product.price.currency
-    assert pricing["price"]["net"]["amount"] == product.price.amount
+    assert pricing["price"]["currency"] == price.currency
+    assert pricing["price"]["net"]["amount"] == price.amount
 
 
 def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):

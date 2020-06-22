@@ -79,14 +79,14 @@ def test_real_query(user_api_client, product):
     attr_value = product_attr.values.first()
     query = """
     query Root($categoryId: ID!, $sortBy: ProductOrder, $first: Int,
-            $attributesFilter: [AttributeInput], $minPrice: Float, $maxPrice: Float) {
+            $attributesFilter: [AttributeInput]) {
 
         category(id: $categoryId) {
             ...CategoryPageFragmentQuery
             __typename
         }
         products(first: $first, sortBy: $sortBy, filter: {categories: [$categoryId],
-            attributes: $attributesFilter, price: {gte: $minPrice, lte: $maxPrice}}) {
+            attributes: $attributesFilter}) {
 
             ...ProductListFragmentQuery
             __typename
