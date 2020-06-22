@@ -1,3 +1,5 @@
+import json
+
 from django.middleware.csrf import _get_new_csrf_token
 from freezegun import freeze_time
 
@@ -52,7 +54,12 @@ def test_deactivate_all_user_tokens_access_token(user_api_client, customer_user)
 
     query = "{me { id }}"
     response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
+    content = json.loads(response.content.decode("utf8"))
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["extensions"]["exception"]["code"] == (
+        "ExpiredUserSignatureError"
+    )
+
     assert content["data"]["me"] is None
 
 
