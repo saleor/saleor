@@ -124,12 +124,12 @@ class ActivePaymentGateway(BasePlugin):
 
 
 class ActiveDummyPaymentGateway(BasePlugin):
-    PLUGIN_ID = "dummy.active"
+    PLUGIN_ID = "sampleDummy.active"
     CLIENT_CONFIG = [
         {"field": "foo", "value": "bar"},
         {"field": "supported_currencies", "value": ["PLN", "USD"]},
     ]
-    PLUGIN_NAME = "dummy"
+    PLUGIN_NAME = "SampleDummy"
     DEFAULT_ACTIVE = True
 
     def process_payment(self, payment_information, previous_value):
