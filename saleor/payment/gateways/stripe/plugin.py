@@ -67,7 +67,7 @@ class StripeGatewayPlugin(BasePlugin):
         "Supported currencies": {
             "type": ConfigurationTypeField.STRING,
             "help_text": "Determines currencies supported by gateway."
-            " Please enter currencies separated by a comma.",
+            " Please enter currency codes separated by a comma.",
             "label": "Supported currencies",
         },
     }
