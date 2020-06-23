@@ -1,4 +1,3 @@
-import re
 import warnings
 from typing import TYPE_CHECKING, List
 
@@ -18,6 +17,6 @@ def get_supported_currencies(config: "GatewayConfig", gateway_name: str) -> List
             "please configure supported currencies for this gateway."
         )
     else:
-        currencies = re.split(r",\s*", supp_currencies)
+        currencies = [c.strip() for c in supp_currencies.split(",")]
 
     return currencies

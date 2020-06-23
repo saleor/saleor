@@ -21,6 +21,7 @@ def gateway_config():
     [
         ("PLN, USD, EUR", ["PLN", "USD", "EUR"]),
         ("PLN,EUR", ["PLN", "EUR"]),
+        (" PLN,EUR ", ["PLN", "EUR"]),
         ("USD", ["USD"]),
     ],
 )
