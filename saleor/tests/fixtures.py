@@ -416,24 +416,6 @@ def user_checkout_with_items(user_checkout, product_list):
 
 
 @pytest.fixture
-def request_checkout(checkout, monkeypatch):
-    # FIXME: Fixtures should not have any side effects
-    monkeypatch.setattr(
-        utils,
-        "get_checkout_from_request",
-        lambda request, checkout_queryset=None: checkout,
-    )
-    return checkout
-
-
-@pytest.fixture
-def request_checkout_with_item(product, request_checkout):
-    variant = product.variants.get()
-    add_variant_to_checkout(request_checkout, variant)
-    return request_checkout
-
-
-@pytest.fixture
 def order(customer_user):
     address = customer_user.default_billing_address.get_copy()
     return Order.objects.create(
