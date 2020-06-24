@@ -1,12 +1,17 @@
 import pytest
 from django.contrib.auth.models import Permission
 
-from ...core.permissions import AppPermission, CheckoutPermissions, OrderPermissions
+from ...core.permissions import (
+    AppPermission,
+    CheckoutPermissions,
+    OrderPermissions,
+    get_permissions_from_names,
+)
 from ..decorators import _permission_required
 
 
 @pytest.mark.parametrize(
-    "permissions_required, permission_limits, user_permissions, access_granted",
+    "permissions_required, effective_permissions, user_permissions, access_granted",
     [
         ([AppPermission.MANAGE_APPS], ["MANAGE_APPS"], ["manage_apps"], True),
         (
@@ -26,9 +31,9 @@ from ..decorators import _permission_required
         ([CheckoutPermissions.MANAGE_CHECKOUTS], ["MANAGE_APPS"], [], False),
     ],
 )
-def test_permission_required_with_permission_limits(
+def test_permission_required_with_limited_permissions(
     permissions_required,
-    permission_limits,
+    effective_permissions,
     user_permissions,
     access_granted,
     staff_user,
@@ -37,7 +42,7 @@ def test_permission_required_with_permission_limits(
     staff_user.user_permissions.set(
         Permission.objects.filter(codename__in=user_permissions)
     )
-    staff_user.permission_limits = permission_limits
+    staff_user.effective_permissions = get_permissions_from_names(effective_permissions)
     request = rf.request()
     request.user = staff_user
     has_perms = _permission_required(permissions_required, request)

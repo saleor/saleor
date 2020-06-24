@@ -13,6 +13,7 @@ from ..jwt import (
     create_refresh_token,
     jwt_user_payload,
 )
+from ..permissions import get_permissions_from_names
 
 
 def test_user_authenticated(rf, staff_user):
@@ -105,7 +106,7 @@ def test_user_deactivated_token(rf, staff_user):
         ),
     ],
 )
-def test_user_with_permission_limits(
+def test_user_with_limited_permissions(
     user_permissions, app_permissions, expected_limited_permissions, rf, staff_user, app
 ):
     staff_user.user_permissions.set(
@@ -117,5 +118,6 @@ def test_user_with_permission_limits(
     backend = JSONWebTokenBackend()
     user = backend.authenticate(request)
     assert user == staff_user
-    permission_limits = getattr(user, "permission_limits", None)
-    assert set(permission_limits) == set(expected_limited_permissions)
+    user_permissions = user.effective_permissions
+    limited_permissions = get_permissions_from_names(expected_limited_permissions)
+    assert set(user_permissions) == set(limited_permissions)

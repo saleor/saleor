@@ -8,7 +8,7 @@ from django.core.handlers.wsgi import WSGIRequest
 
 from ..account.models import User
 from ..app.models import App
-from .permissions import PERMISSIONS_ENUMS, get_permissions
+from .permissions import get_permission_names, get_permissions_from_names
 
 JWT_ALGORITHM = "HS256"
 JWT_AUTH_HEADER = "HTTP_AUTHORIZATION"
@@ -18,7 +18,7 @@ JWT_REFRESH_TYPE = "refresh"
 JWT_THIRDPARTY_ACCESS_TYPE = "thirdparty"
 JWT_REFRESH_TOKEN_COOKIE_NAME = "refreshToken"
 
-PERMISSION_LIMITS_FIELD = "permission_limits"
+PERMISSIONS_FIELD = "permissions"
 
 
 def jwt_base_payload(exp_delta: Optional[timedelta] = None) -> Dict[str, Any]:
@@ -110,10 +110,10 @@ def get_user_from_access_token(token: str) -> Optional[User]:
     payload = jwt_decode(token)
     if payload["type"] not in [JWT_ACCESS_TYPE, JWT_THIRDPARTY_ACCESS_TYPE]:
         return None
-    permission_limits = payload.get(PERMISSION_LIMITS_FIELD, None)
+    permissions = payload.get(PERMISSIONS_FIELD, None)
     user = get_user_from_payload(payload)
-    if permission_limits is not None:
-        user.permission_limits = permission_limits  # type: ignore
+    if user and permissions is not None:
+        user.effective_permissions = get_permissions_from_names(permissions)
     return user
 
 
@@ -125,27 +125,15 @@ def create_access_token_for_app(app: "App", user: "User"):
     assigned to it. The permissions set is the intersection of user permissions and
     app permissions.
     """
-
-    permissions_dict = {
-        enum.codename: enum.name
-        for permission_enum in PERMISSIONS_ENUMS
-        for enum in permission_enum
-    }
     app_permissions = app.permissions.all()
-    app_permission_enums = {permissions_dict[perm.codename] for perm in app_permissions}
+    app_permission_enums = get_permission_names(app_permissions)
 
-    if user.is_superuser:
-        user_permissions = get_permissions()
-    else:
-        user_permissions = user.user_permissions.all()
-
-    user_permission_enums = {
-        permissions_dict[perm.codename] for perm in user_permissions
-    }
+    permissions = user.effective_permissions
+    user_permission_enums = get_permission_names(permissions)
     app_id = graphene.Node.to_global_id("App", app.id)
     additional_payload = {
         "app": app_id,
-        PERMISSION_LIMITS_FIELD: list(app_permission_enums & user_permission_enums),
+        PERMISSIONS_FIELD: list(app_permission_enums & user_permission_enums),
     }
     payload = jwt_user_payload(
         user,
