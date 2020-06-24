@@ -488,6 +488,10 @@ OPENTRACING_MAX_QUERY_LENGTH_LOG = 2000
 # Slugs for menus precreated in Django migrations
 DEFAULT_MENUS = {"top_menu_name": "navbar", "bottom_menu_name": "footer"}
 
+# Slug for channel precreated in Django migrations
+DEFAULT_CHANNEL_SLUG = os.environ.get("DEFAULT_CHANNEL_SLUG", "saleor-default-channel")
+
+
 #  Sentry
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
