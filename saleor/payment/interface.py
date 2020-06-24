@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 
 @dataclass
@@ -86,7 +86,7 @@ class GatewayConfig:
 
     gateway_name: str
     auto_capture: bool
-    supported_currencies: List[str]
+    supported_currencies: str
     # Each gateway has different connection data so we are not able to create
     # a unified structure
     connection_params: Dict[str, Any]

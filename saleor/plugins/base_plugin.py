@@ -24,13 +24,11 @@ PluginConfigurationType = List[dict]
 class ConfigurationTypeField:
     STRING = "String"
     BOOLEAN = "Boolean"
-    LIST = "List"
     SECRET = "Secret"
     PASSWORD = "Password"
     CHOICES = [
         (STRING, "Field is a String"),
         (BOOLEAN, "Field is a Boolean"),
-        (LIST, "Field is a List"),
         (SECRET, "Field is a Secret"),
         (PASSWORD, "Field is a Password"),
     ]
