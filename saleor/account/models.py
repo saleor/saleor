@@ -4,11 +4,12 @@ from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
+    Permission,
     PermissionsMixin,
 )
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from django.db.models import Q, Value
+from django.db.models import Q, QuerySet, Value
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -161,6 +162,32 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
             (AccountPermissions.MANAGE_USERS.codename, "Manage customers."),
             (AccountPermissions.MANAGE_STAFF.codename, "Manage staff."),
         )
+
+    def __init__(self, *args, **kwargs):
+        super(User, self).__init__(*args, **kwargs)
+        self._effective_permissions = None
+
+    @property
+    def effective_permissions(self) -> "QuerySet[Permission]":
+        if self._effective_permissions is None:
+            if self.is_superuser:
+                self._effective_permissions = Permission.objects.prefetch_related(
+                    "content_type"
+                ).all()
+            else:
+                permissions = self.user_permissions.prefetch_related(
+                    "content_type"
+                ).all()
+                self._effective_permissions = permissions | Permission.objects.filter(
+                    group__user=self
+                )
+        return self._effective_permissions
+
+    @effective_permissions.setter
+    def effective_permissions(self, value: "QuerySet[Permission]"):
+        self._effective_permissions = value
+        # Drop cache for authentication backend
+        self._effective_permissions_cache = None
 
     def get_full_name(self):
         if self.first_name or self.last_name:

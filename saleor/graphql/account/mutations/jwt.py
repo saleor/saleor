@@ -1,12 +1,12 @@
 import graphene
 import jwt
-from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 from django.middleware.csrf import _compare_salted_tokens, _get_new_csrf_token
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from graphene.types.generic import GenericScalar
 
+from ....account import models
 from ....account.error_codes import AccountErrorCode
 from ....core.jwt import (
     JWT_REFRESH_TOKEN_COOKIE_NAME,
@@ -71,10 +71,8 @@ class CreateToken(BaseMutation):
 
     @classmethod
     def get_user(cls, info, data):
-        user = authenticate(
-            request=info.context, username=data["email"], password=data["password"],
-        )
-        if not user:
+        user = models.User.objects.filter(email=data["email"]).first()
+        if not user or not user.is_active or not user.check_password(data["password"]):
             raise ValidationError(
                 {
                     "email": ValidationError(

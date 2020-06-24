@@ -5,7 +5,6 @@ from typing import Iterable, Union
 from graphql.execution.base import ResolveInfo
 
 from ..core.exceptions import PermissionDenied
-from ..core.jwt import PERMISSION_LIMITS_FIELD
 from ..core.permissions import AccountPermissions
 
 
@@ -36,17 +35,8 @@ def account_passes_test(test_func):
     return decorator
 
 
-def _user_has_perms(context, perms: Iterable[Enum]):
-    limited_perms = getattr(context.user, PERMISSION_LIMITS_FIELD, None)
-    if isinstance(limited_perms, list):
-        wanted_perms = {perm.name for perm in perms}
-        limited_has_perms = (set(limited_perms) & wanted_perms) == wanted_perms
-        return limited_has_perms and context.user.has_perms(perms)
-    return context.user.has_perms(perms)
-
-
 def _permission_required(perms: Iterable[Enum], context):
-    if _user_has_perms(context, perms):
+    if context.user.has_perms(perms):
         return True
     app = getattr(context, "app", None)
     if app:

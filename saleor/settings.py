@@ -462,7 +462,6 @@ SEARCH_BACKEND = "saleor.search.backends.postgresql"
 
 AUTHENTICATION_BACKENDS = [
     "saleor.core.auth_backend.JSONWebTokenBackend",
-    "django.contrib.auth.backends.ModelBackend",
 ]
 
 # CELERY SETTINGS
