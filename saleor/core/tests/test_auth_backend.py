@@ -4,7 +4,6 @@ from freezegun import freeze_time
 from jwt import ExpiredSignatureError, InvalidSignatureError, InvalidTokenError
 
 from ..auth_backend import JSONWebTokenBackend
-from ..exceptions import ExpiredUserSignatureError
 from ..jwt import (
     JWT_ACCESS_TYPE,
     JWT_ALGORITHM,
@@ -86,7 +85,7 @@ def test_user_deactivated_token(rf, staff_user):
     staff_user.save()
     request = rf.request(HTTP_AUTHORIZATION=f"JWT {access_token}")
     backend = JSONWebTokenBackend()
-    with pytest.raises(ExpiredUserSignatureError):
+    with pytest.raises(InvalidTokenError):
         backend.authenticate(request)
 
 

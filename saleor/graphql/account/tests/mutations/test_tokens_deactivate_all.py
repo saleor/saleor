@@ -48,7 +48,6 @@ def test_deactivate_all_user_tokens_access_token(user_api_client, customer_user)
     user_api_client.token = token
     response = user_api_client.post_graphql(MUTATION_DEACTIVATE_ALL_USER_TOKENS)
     content = get_graphql_content(response)
-
     errors = content["data"]["tokensDeactivateAll"]["accountErrors"]
     assert not errors
 
@@ -57,7 +56,7 @@ def test_deactivate_all_user_tokens_access_token(user_api_client, customer_user)
     content = json.loads(response.content.decode("utf8"))
     assert len(content["errors"]) == 1
     assert content["errors"][0]["extensions"]["exception"]["code"] == (
-        "ExpiredUserSignatureError"
+        "InvalidTokenError"
     )
 
     assert content["data"]["me"] is None

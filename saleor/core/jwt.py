@@ -8,7 +8,6 @@ from django.core.handlers.wsgi import WSGIRequest
 from jwt import InvalidTokenError
 
 from ..account.models import User
-from .exceptions import ExpiredUserSignatureError
 
 JWT_ALGORITHM = "HS256"
 JWT_AUTH_HEADER = "HTTP_AUTHORIZATION"
@@ -101,7 +100,7 @@ def get_user_from_payload(payload: Dict[str, Any]) -> Optional[User]:
             "Invalid token. Create new one by using tokenCreate mutation."
         )
     if user.jwt_token_key != user_jwt_token:
-        raise ExpiredUserSignatureError(
+        raise InvalidTokenError(
             "User requested to expire this token. Create new one by using tokenCreate "
             "mutation."
         )
