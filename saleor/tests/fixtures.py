@@ -67,6 +67,7 @@ from ..product.models import (
     DigitalContent,
     DigitalContentUrl,
     Product,
+    ProductChannelListing,
     ProductImage,
     ProductTranslation,
     ProductType,
@@ -633,7 +634,7 @@ def categories_tree(db, product_type):  # pylint: disable=W0613
         slug="test-product-10",
         product_type=product_type,
         category=child,
-        is_published=True,
+        # is_published=True,
     )
 
     associate_attribute_values_to_instance(product, product_attr, attr_value)
@@ -641,7 +642,9 @@ def categories_tree(db, product_type):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def categories_tree_with_published_products(categories_tree, product):
+def categories_tree_with_published_products(
+    categories_tree, product, channel_USD, channel_PLN
+):
     parent = categories_tree
     parent_product = product
     parent_product.category = parent
@@ -649,10 +652,26 @@ def categories_tree_with_published_products(categories_tree, product):
     child = parent.children.first()
     child_product = child.products.first()
 
+    product_channel_listings = []
     for product in [child_product, parent_product]:
-        product.publication_date = datetime.date.today()
-        product.is_published = True
         product.save()
+        product_channel_listings.append(
+            ProductChannelListing(
+                product=product,
+                channel=channel_USD,
+                publication_date=datetime.date.today(),
+                is_published=True,
+            )
+        )
+        product_channel_listings.append(
+            ProductChannelListing(
+                product=product,
+                channel=channel_PLN,
+                publication_date=datetime.date.today(),
+                is_published=True,
+            )
+        )
+    ProductChannelListing.objects.bulk_create(product_channel_listings)
     return parent
 
 
@@ -713,7 +732,7 @@ def product_type_without_variant():
 
 
 @pytest.fixture
-def product(product_type, category, warehouse):
+def product(product_type, category, warehouse, channel_USD):
     product_attr = product_type.product_attributes.first()
     product_attr_value = product_attr.values.first()
 
@@ -723,8 +742,12 @@ def product(product_type, category, warehouse):
         minimal_variant_price_amount="10.00",
         product_type=product_type,
         category=category,
-        is_published=True,
+        # is_published=True,
     )
+
+    # ProductChannelListing.objects.create(
+    #     product=product, channel=channel_USD, is_published=True,
+    # )
 
     associate_attribute_values_to_instance(product, product_attr, product_attr_value)
 
@@ -750,7 +773,7 @@ def product_with_single_variant(product_type, category, warehouse):
         slug="test-product-with-single-variant",
         product_type=product_type,
         category=category,
-        is_published=True,
+        # is_published=True,
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -810,7 +833,7 @@ def product_with_variant_with_two_attributes(
         slug="test-product-with-two-variant",
         product_type=product_type,
         category=category,
-        is_published=True,
+        # is_published=True,
     )
 
     variant = ProductVariant.objects.create(
@@ -858,7 +881,7 @@ def product_with_default_variant(product_type_without_variant, category, warehou
         slug="test-product-3",
         product_type=product_type_without_variant,
         category=category,
-        is_published=True,
+        # is_published=True,
     )
     variant = ProductVariant.objects.create(
         product=product, sku="1234", track_inventory=True, price_amount=Decimal(10)
@@ -876,7 +899,7 @@ def variant_without_inventory_tracking(
         slug="test-product-without-tracking",
         product_type=product_type_without_variant,
         category=category,
-        is_published=True,
+        # is_published=True,
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -952,7 +975,7 @@ def product_without_shipping(category, warehouse):
         slug="test-product-4",
         product_type=product_type,
         category=category,
-        is_published=True,
+        # is_published=True,
     )
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_B", price_amount=Decimal(10)
@@ -983,7 +1006,7 @@ def product_list(product_type, category, warehouse):
                     slug="test-product-a",
                     category=category,
                     product_type=product_type,
-                    is_published=True,
+                    # is_published=True,
                 ),
                 Product(
                     pk=1487,
@@ -991,7 +1014,7 @@ def product_list(product_type, category, warehouse):
                     slug="test-product-b",
                     category=category,
                     product_type=product_type,
-                    is_published=True,
+                    # is_published=True,
                 ),
                 Product(
                     pk=1489,
@@ -999,7 +1022,7 @@ def product_list(product_type, category, warehouse):
                     slug="test-product-c",
                     category=category,
                     product_type=product_type,
-                    is_published=True,
+                    # is_published=True,
                 ),
             ]
         )
@@ -1042,14 +1065,14 @@ def product_list(product_type, category, warehouse):
 @pytest.fixture
 def product_list_unpublished(product_list):
     products = Product.objects.filter(pk__in=[product.pk for product in product_list])
-    products.update(is_published=False)
+    # products.update(is_published=False)
     return products
 
 
 @pytest.fixture
 def product_list_published(product_list):
     products = Product.objects.filter(pk__in=[product.pk for product in product_list])
-    products.update(is_published=True)
+    # products.update(is_published=True)
     return products
 
 
@@ -1080,7 +1103,7 @@ def unavailable_product(product_type, category):
         name="Test product",
         slug="test-product-5",
         product_type=product_type,
-        is_published=False,
+        # is_published=False,
         category=category,
     )
     return product
@@ -1092,7 +1115,7 @@ def unavailable_product_with_variant(product_type, category, warehouse):
         name="Test product",
         slug="test-product-6",
         product_type=product_type,
-        is_published=False,
+        # is_published=False,
         category=category,
     )
 
@@ -1115,7 +1138,7 @@ def product_with_images(product_type, category, media_root):
         slug="test-product-7",
         product_type=product_type,
         category=category,
-        is_published=True,
+        # is_published=True,
     )
     file_mock_0 = MagicMock(spec=File, name="FileMock0")
     file_mock_0.name = "image0.jpg"
@@ -1289,7 +1312,7 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         slug="test-product-8",
         product_type=product_type,
         category=category,
-        is_published=True,
+        # is_published=True,
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -1321,7 +1344,7 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         slug="test-product-9",
         product_type=product_type,
         category=category,
-        is_published=True,
+        # is_published=True,
     )
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_B", cost_price=Money(2, "USD"), price_amount=20
@@ -1930,7 +1953,7 @@ def digital_content(category, media_root, warehouse) -> DigitalContent:
         slug="test-digital-product",
         product_type=product_type,
         category=category,
-        is_published=True,
+        # is_published=True,
     )
     product_variant = ProductVariant.objects.create(
         product=product,

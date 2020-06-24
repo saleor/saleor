@@ -4,7 +4,7 @@ from ....channel.models import Channel
 
 
 @pytest.fixture
-def channel(db):
+def channel_USD(db):
     return Channel.objects.create(name="Main Channel", slug="main", currency_code="USD")
 
 

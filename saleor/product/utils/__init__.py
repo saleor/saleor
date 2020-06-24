@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import transaction
 
 from ...core.taxes import TaxedMoney, zero_taxed_money
-from ...product.models import Product
+from ..models import Product, ProductChannelListing
 from ..tasks import update_products_minimal_variant_prices_task
 
 if TYPE_CHECKING:
@@ -46,7 +46,9 @@ def delete_categories(categories_ids: List[str]):
     for category in categories:
         products = products | collect_categories_tree_products(category)
 
-    products.update(is_published=False, publication_date=None)
+    ProductChannelListing.objects.filter(product__in=products).update(
+        is_published=False, publication_date=None
+    )
     product_ids = list(products.values_list("id", flat=True))
     categories.delete()
     update_products_minimal_variant_prices_task.delay(product_ids=product_ids)

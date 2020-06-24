@@ -40,5 +40,6 @@ def test_delete_categories(
     for product in product_list:
         product.refresh_from_db()
         assert not product.category
-        assert not product.is_published
-        assert not product.publication_date
+        for product_channel_listing in product.channel_listing.all():
+            assert not product_channel_listing.is_published
+            assert not product_channel_listing.publication_date

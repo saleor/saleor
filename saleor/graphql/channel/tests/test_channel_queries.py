@@ -14,7 +14,7 @@ query {
 
 
 def test_query_channels_as_staff_user(
-    staff_api_client, permission_manage_channels, channel, channel_PLN
+    staff_api_client, permission_manage_channels, channel_USD, channel_PLN
 ):
     # given
 
@@ -33,14 +33,14 @@ def test_query_channels_as_staff_user(
         "currencyCode": channel_PLN.currency_code,
     } in channels
     assert {
-        "slug": channel.slug,
-        "name": channel.name,
-        "currencyCode": channel.currency_code,
+        "slug": channel_USD.slug,
+        "name": channel_USD.name,
+        "currencyCode": channel_USD.currency_code,
     } in channels
 
 
 def test_query_channels_as_app(
-    app_api_client, permission_manage_channels, channel, channel_PLN
+    app_api_client, permission_manage_channels, channel_USD, channel_PLN
 ):
     # given
 
@@ -59,13 +59,13 @@ def test_query_channels_as_app(
         "currencyCode": channel_PLN.currency_code,
     } in channels
     assert {
-        "slug": channel.slug,
-        "name": channel.name,
-        "currencyCode": channel.currency_code,
+        "slug": channel_USD.slug,
+        "name": channel_USD.name,
+        "currencyCode": channel_USD.currency_code,
     } in channels
 
 
-def test_query_channels_as_customer(user_api_client, channel, channel_PLN):
+def test_query_channels_as_customer(user_api_client, channel_USD, channel_PLN):
     # given
 
     # when
@@ -75,7 +75,7 @@ def test_query_channels_as_customer(user_api_client, channel, channel_PLN):
     assert_no_permission(response)
 
 
-def test_query_channels_as_anonymous(api_client, channel, channel_PLN):
+def test_query_channels_as_anonymous(api_client, channel_USD, channel_PLN):
     # given
 
     # when
@@ -98,10 +98,10 @@ query getChannel($id: ID!){
 
 
 def test_query_channel_as_staff_user(
-    staff_api_client, permission_manage_channels, channel
+    staff_api_client, permission_manage_channels, channel_USD
 ):
     # given
-    channel_id = graphene.Node.to_global_id("Channel", channel.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {"id": channel_id}
 
     # when
@@ -113,14 +113,14 @@ def test_query_channel_as_staff_user(
     # then
     channel_data = content["data"]["channel"]
     assert channel_data["id"] == channel_id
-    assert channel_data["name"] == channel.name
-    assert channel_data["slug"] == channel.slug
-    assert channel_data["currencyCode"] == channel.currency_code
+    assert channel_data["name"] == channel_USD.name
+    assert channel_data["slug"] == channel_USD.slug
+    assert channel_data["currencyCode"] == channel_USD.currency_code
 
 
-def test_query_channel_as_app(app_api_client, permission_manage_channels, channel):
+def test_query_channel_as_app(app_api_client, permission_manage_channels, channel_USD):
     # given
-    channel_id = graphene.Node.to_global_id("Channel", channel.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {"id": channel_id}
 
     # when
@@ -132,14 +132,14 @@ def test_query_channel_as_app(app_api_client, permission_manage_channels, channe
     # then
     channel_data = content["data"]["channel"]
     assert channel_data["id"] == channel_id
-    assert channel_data["name"] == channel.name
-    assert channel_data["slug"] == channel.slug
-    assert channel_data["currencyCode"] == channel.currency_code
+    assert channel_data["name"] == channel_USD.name
+    assert channel_data["slug"] == channel_USD.slug
+    assert channel_data["currencyCode"] == channel_USD.currency_code
 
 
-def test_query_channel_as_customer(user_api_client, channel):
+def test_query_channel_as_customer(user_api_client, channel_USD):
     # given
-    channel_id = graphene.Node.to_global_id("Channel", channel.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {"id": channel_id}
 
     # when
@@ -149,9 +149,9 @@ def test_query_channel_as_customer(user_api_client, channel):
     assert_no_permission(response)
 
 
-def test_query_channel_as_anonymous(api_client, channel):
+def test_query_channel_as_anonymous(api_client, channel_USD):
     # given
-    channel_id = graphene.Node.to_global_id("Channel", channel.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {"id": channel_id}
 
     # when
