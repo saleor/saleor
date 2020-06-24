@@ -29,7 +29,7 @@ class RazorpayGatewayPlugin(BasePlugin):
         {"name": "Secret API key", "value": None},
         {"name": "Store customers card", "value": False},
         {"name": "Automatic payment capture", "value": True},
-        {"name": "Supported currencies", "value": []},
+        {"name": "Supported currencies", "value": ""},
     ]
 
     CONFIG_STRUCTURE = {
@@ -55,8 +55,9 @@ class RazorpayGatewayPlugin(BasePlugin):
             "label": "Automatic payment capture",
         },
         "Supported currencies": {
-            "type": ConfigurationTypeField.LIST,
-            "help_text": "Determines currencies supported by gateway.",
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Determines currencies supported by gateway."
+            " Please enter currency codes separated by a comma.",
             "label": "Supported currencies",
         },
     }

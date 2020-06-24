@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+from django.conf import settings
+
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
 from ..utils import get_supported_currencies
@@ -37,7 +39,7 @@ class DummyGatewayPlugin(BasePlugin):
     DEFAULT_CONFIGURATION = [
         {"name": "Store customers card", "value": False},
         {"name": "Automatic payment capture", "value": True},
-        {"name": "Supported currencies", "value": []},
+        {"name": "Supported currencies", "value": settings.DEFAULT_CURRENCY},
     ]
     CONFIG_STRUCTURE = {
         "Store customers card": {
@@ -51,8 +53,9 @@ class DummyGatewayPlugin(BasePlugin):
             "label": "Automatic payment capture",
         },
         "Supported currencies": {
-            "type": ConfigurationTypeField.LIST,
-            "help_text": "Determines currencies supported by gateway.",
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Determines currencies supported by gateway."
+            " Please enter currency codes separated by a comma.",
             "label": "Supported currencies",
         },
     }
