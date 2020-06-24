@@ -16,6 +16,7 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
+from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import (
     ModelWithMetadata,
@@ -227,7 +228,7 @@ class ProductsQueryset(PublishedQuerySet):
         )
 
 
-class Product(SeoModel, ModelWithMetadata, PublishableModel):
+class Product(SeoModel, ModelWithMetadata):
     product_type = models.ForeignKey(
         ProductType, related_name="products", on_delete=models.CASCADE
     )
@@ -329,6 +330,27 @@ class ProductTranslation(SeoModelTranslation):
             self.name,
             self.product_id,
         )
+
+
+class ProductChannelListing(PublishableModel):
+    product = models.ForeignKey(
+        Product,
+        null=False,
+        blank=False,
+        related_name="channel_listing",
+        on_delete=models.CASCADE,
+    )
+    channel = models.ForeignKey(
+        Channel,
+        null=False,
+        blank=False,
+        related_name="product_listing",
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        unique_together = [["product", "channel"]]
+        ordering = ("pk",)
 
 
 class ProductVariantQueryset(models.QuerySet):
