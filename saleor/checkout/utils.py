@@ -42,7 +42,7 @@ from ..order.emails import send_order_confirmation, send_staff_order_confirmatio
 from ..order.models import Order, OrderLine
 from ..plugins.manager import get_plugins_manager
 from ..shipping.models import ShippingMethod
-from ..warehouse.availability import check_stock_quantity
+from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
 from ..warehouse.management import allocate_stock
 from . import AddressType
 from .models import Checkout, CheckoutLine
@@ -65,17 +65,6 @@ def get_user_checkout(
             },
         )
     return checkout_queryset.filter(user=user).first(), False
-
-
-def update_checkout_quantity(checkout):
-    """Update the total quantity in checkout."""
-    total_lines = checkout.lines.aggregate(total_quantity=Sum("quantity"))[
-        "total_quantity"
-    ]
-    if not total_lines:
-        total_lines = 0
-    checkout.quantity = total_lines
-    checkout.save(update_fields=["quantity"])
 
 
 def check_variant_in_stock(
@@ -129,7 +118,45 @@ def add_variant_to_checkout(
         line.quantity = new_quantity
         line.save(update_fields=["quantity"])
 
-    update_checkout_quantity(checkout)
+    checkout = update_checkout_quantity(checkout)
+    return checkout
+
+
+def add_variants_to_checkout(checkout, variants, quantities):
+    """Add variants to checkout.
+
+    Suitable for new checkouts as it always creates new checkout lines without checking
+    if there are any existing ones already.
+    """
+
+    # check quantities
+    country_code = checkout.get_country()
+    check_stock_quantity_bulk(variants, country_code, quantities)
+
+    # create checkout lines
+    lines = []
+    for variant, quantity in zip(variants, quantities):
+        lines.append(
+            CheckoutLine(checkout=checkout, variant=variant, quantity=quantity)
+        )
+    checkout.lines.bulk_create(lines)
+    checkout = update_checkout_quantity(checkout)
+    return checkout
+
+
+def update_checkout_quantity(checkout):
+    """Update the total quantity in checkout.
+
+    Returns the checkout object with updated total quantity but doesn't save the
+    instance in the database. Runs `checkout_quantity_changed` plugins hook.
+    """
+    total_lines = checkout.lines.aggregate(total_quantity=Sum("quantity"))[
+        "total_quantity"
+    ]
+    if not total_lines:
+        total_lines = 0
+    checkout.quantity = total_lines
+    return checkout
 
 
 def _check_new_checkout_address(checkout, address, address_type):

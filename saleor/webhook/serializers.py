@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
     data = []
-    for line in checkout.lines.prefetch_related("variant__product").all():
+    for line in checkout.lines.select_related("variant__product").all():
         variant = line.variant
         product = variant.product
         data.append(
