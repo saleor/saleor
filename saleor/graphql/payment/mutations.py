@@ -115,7 +115,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             raise ValidationError(
                 {
                     "gateway": ValidationError(
-                        "This gateway does not support checkout currency.",
+                        f"The gateway {gateway_id} does not support checkout currency.",
                         code=PaymentErrorCode.NOT_SUPPORTED_GATEWAY.value,
                     )
                 }
