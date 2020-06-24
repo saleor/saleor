@@ -10,9 +10,20 @@ def migrate_products_publishable_data(apps, schema_editor):
     ProductChannelListing = apps.get_model("product", "ProductChannelListing")
 
     if Product.objects.exists():
-        channel = Channel.objects.get()
+        channels_dict = {}
 
         for product in Product.objects.iterator():
+            currency = product.currency
+            channel = channels_dict.get(currency)
+            if not channel:
+                channel, _ = Channel.objects.get_or_create(
+                    currency_code=currency,
+                    defaults={
+                        "name": f"Channel {currency}",
+                        "slug": f"channel-{currency.lower()}",
+                    },
+                )
+                channels_dict[currency] = channel
             ProductChannelListing.objects.create(
                 product=product,
                 channel=channel,
@@ -60,7 +71,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"ordering": ("pk",), "unique_together": {("product", "channel")},},
+            options={"ordering": ("pk",), "unique_together": {("product", "channel")}},
         ),
         migrations.RunPython(migrate_products_publishable_data),
         migrations.RemoveField(model_name="product", name="is_published",),

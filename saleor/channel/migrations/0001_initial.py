@@ -4,25 +4,41 @@ from django.conf import settings
 from django.db import migrations, models
 
 
+def get_default_currency(Checkout, Order, Product, ShippingMethod, Voucher):
+    latest_product = Product.objects.order_by("-pk").first()
+    if latest_product:
+        return latest_product.currency
+    latest_voucher = Voucher.objects.order_by("-pk").first()
+    if latest_voucher:
+        return latest_voucher.currency
+    latest_shipping_method = ShippingMethod.objects.order_by("-pk").first()
+    if latest_shipping_method:
+        return latest_shipping_method.currency
+    latest_order = Order.objects.order_by("-pk").first()
+    if latest_order:
+        return latest_order.currency
+    latest_checkout = Checkout.objects.order_by("-pk").first()
+    if latest_checkout:
+        return latest_checkout.currency
+    return None
+
+
 def create_default_channel(apps, schema_editor):
     Channel = apps.get_model("channel", "Channel")
     Checkout = apps.get_model("checkout", "Checkout")
     Order = apps.get_model("order", "Order")
     Product = apps.get_model("product", "Product")
-    Sale = apps.get_model("discount", "Sale")
+    ShippingMethod = apps.get_model("shipping", "ShippingMethod")
     Voucher = apps.get_model("discount", "Voucher")
 
-    if (
-        Product.objects.exists()
-        or Order.objects.exists()
-        or Sale.objects.exists()
-        or Voucher.objects.exists()
-        or Checkout.objects.exists()
-    ):
+    default_currency = get_default_currency(
+        Checkout, Order, Product, ShippingMethod, Voucher
+    )
+    if default_currency:
         Channel.objects.create(
             name="Default channel",
             slug=settings.DEFAULT_CHANNEL_SLUG,
-            currency_code=settings.DEFAULT_CURRENCY,
+            currency_code=default_currency,
         )
 
 
@@ -35,6 +51,7 @@ class Migration(migrations.Migration):
         ("discount", "0019_auto_20200217_0350"),
         ("order", "0084_auto_20200522_0522"),
         ("product", "0118_populate_product_variant_price"),
+        ("shipping", "0018_default_zones_countries"),
     ]
 
     operations = [
