@@ -101,8 +101,7 @@ def get_user_from_payload(payload: Dict[str, Any]) -> Optional[User]:
         )
     if user.jwt_token_key != user_jwt_token:
         raise InvalidTokenError(
-            "User requested to expire this token. Create new one by using tokenCreate "
-            "mutation."
+            "Invalid token. Create new one by using tokenCreate mutation."
         )
     return user
 
