@@ -11,7 +11,6 @@ from ...account import models as account_models
 from ...core.permissions import SitePermissions, get_permissions
 from ...core.utils import get_client_ip, get_country_by_ip
 from ...plugins.manager import get_plugins_manager
-from ...product import models as product_models
 from ...site import models as site_models
 from ..account.types import Address, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
@@ -21,6 +20,7 @@ from ..core.utils import str_to_enum
 from ..decorators import permission_required
 from ..menu.dataloaders import MenuByIdLoader
 from ..menu.types import Menu
+from ..product.dataloaders.products import CollectionByIdLoader
 from ..product.types import Collection
 from ..translations.enums import LanguageCodeEnum
 from ..translations.fields import TranslationField
@@ -226,8 +226,7 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_homepage_collection(_, info):
         collection_pk = info.context.site.settings.homepage_collection_id
-        qs = product_models.Collection.objects.all()
-        return qs.filter(pk=collection_pk).first()
+        return CollectionByIdLoader(info.context).load(collection_pk)
 
     @staticmethod
     def resolve_languages(_, _info):
