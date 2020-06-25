@@ -19,7 +19,7 @@ from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 from versatileimagefield.fields import VersatileImageField
 
 from ..core.models import ModelWithMetadata
-from ..core.permissions import AccountPermissions, BasePermissionEnum
+from ..core.permissions import AccountPermissions, BasePermissionEnum, get_permissions
 from ..core.utils.json_serializer import CustomJsonEncoder
 from . import CustomerEvents
 from .validators import validate_possible_number
@@ -171,15 +171,12 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     @property
     def effective_permissions(self) -> "QuerySet[Permission]":
         if self._effective_permissions is None:
-            if self.is_superuser:
-                self._effective_permissions = Permission.objects.prefetch_related(
-                    "content_type"
-                ).all()
-            else:
-                permissions = self.user_permissions.prefetch_related(
-                    "content_type"
-                ).all()
-                self._effective_permissions = permissions | Permission.objects.filter(
+            self._effective_permissions = get_permissions()
+            if not self.is_superuser:
+                self._effective_permissions = self._effective_permissions.filter(
+                    user=self
+                )
+                self._effective_permissions |= Permission.objects.filter(
                     group__user=self
                 )
         return self._effective_permissions
