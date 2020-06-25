@@ -113,7 +113,9 @@ def get_user_from_access_token(token: str) -> Optional[User]:
     permissions = payload.get(PERMISSIONS_FIELD, None)
     user = get_user_from_payload(payload)
     if user and permissions is not None:
-        user.effective_permissions = get_permissions_from_names(permissions)
+        user.effective_permissions = user.effective_permissions.intersection(
+            get_permissions_from_names(permissions)
+        )
     return user
 
 

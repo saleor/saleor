@@ -121,3 +121,26 @@ def test_user_with_limited_permissions(
     user_permissions = user.effective_permissions
     limited_permissions = get_permissions_from_names(expected_limited_permissions)
     assert set(user_permissions) == set(limited_permissions)
+
+
+def test_user_doesnt_have_permissions_from_token(staff_user, app, rf):
+    staff_user.user_permissions.set(
+        Permission.objects.filter(
+            codename__in=["manage_apps", "manage_checkouts", "manage_orders"]
+        )
+    )
+    app.permissions.set(
+        Permission.objects.filter(codename__in=["manage_apps", "manage_checkouts"])
+    )
+    access_token_for_app = create_access_token_for_app(app, staff_user)
+
+    expected_permissions = Permission.objects.filter(codename__in=["manage_checkouts"])
+
+    # user doesn't have the same permissions as in the token
+    staff_user.user_permissions.set(expected_permissions)
+
+    request = rf.request(HTTP_AUTHORIZATION=f"JWT {access_token_for_app}")
+    backend = JSONWebTokenBackend()
+    user = backend.authenticate(request)
+    assert user == staff_user
+    assert set(user.effective_permissions) == set(expected_permissions)
