@@ -505,7 +505,7 @@ def shipping_zones(db):
         price=Money(10, "USD"),
         shipping_zone=shipping_zone,
     )
-    shipping_zone_usa = ShippingZone.objects.create(name="USA", countries=["USA"])
+    shipping_zone_usa = ShippingZone.objects.create(name="USA", countries=["US"])
     shipping_zone_usa.shipping_methods.create(
         name="DHL",
         minimum_order_price=Money(0, "USD"),
@@ -2127,9 +2127,9 @@ def warehouses_with_shipping_zone(warehouses, shipping_zone):
 
 
 @pytest.fixture
-def warehouses_with_different_shipping_zone(warehouses, shipping_zone):
-    warehouses[0].shipping_zones.add(shipping_zone)
-    warehouses[1].shipping_zones.add(shipping_zone)
+def warehouses_with_different_shipping_zone(warehouses, shipping_zones):
+    warehouses[0].shipping_zones.add(shipping_zones[0])
+    warehouses[1].shipping_zones.add(shipping_zones[1])
     return warehouses
 
 
