@@ -550,7 +550,7 @@ def test_checkout_create_check_lines_quantity_from_shipping_address_country(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
-    assert data["created"] == True
+    assert data["created"] is True
     checkout = Checkout.objects.first()
     assert checkout.country == "US"
 
