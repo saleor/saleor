@@ -1,14 +1,18 @@
 from collections import defaultdict
+from typing import DefaultDict, Dict, Iterable, List, Optional, Tuple
 
 from ....product.models import (
     Category,
     Collection,
     CollectionProduct,
     Product,
+    ProductChannelListing,
     ProductImage,
     ProductVariant,
 )
 from ...core.dataloaders import DataLoader
+
+ProductIdAndChannelSlug = Tuple[int, str]
 
 
 class CategoryByIdLoader(DataLoader):
@@ -25,6 +29,55 @@ class ProductByIdLoader(DataLoader):
     def batch_load(self, keys):
         products = Product.objects.visible_to_user(self.user).in_bulk(keys)
         return [products.get(product_id) for product_id in keys]
+
+
+class ProductChannelListingByProductIdAndChanneSlugLoader(
+    DataLoader[ProductIdAndChannelSlug, ProductChannelListing]
+):
+    context_key = "productchannelisting_by_product_and_channel"
+
+    def batch_load(self, keys):
+        # Split the list of keys by channel first. A typical query will only touch
+        # a handful of unique countries but may access thousands of product variants
+        # so it's cheaper to execute one query per channel.
+        product_channel_listing_by_channel: DefaultDict[str, List[int]] = defaultdict(
+            list
+        )
+        for product_id, channel_slug in keys:
+            product_channel_listing_by_channel[channel_slug].append(product_id)
+
+        # For each channel execute a single query for all product variants.
+        product_channel_listing_by_product_and_channel: DefaultDict[
+            ProductIdAndChannelSlug, Optional[ProductChannelListing]
+        ] = defaultdict()
+        for channel_slug, product_ids in product_channel_listing_by_channel.items():
+            product_channel_listings = self.batch_load_channel(
+                channel_slug, product_ids
+            )
+            for product_id, product_channel_listing in product_channel_listings:
+                product_channel_listing_by_product_and_channel[
+                    (product_id, channel_slug)
+                ] = product_channel_listing
+
+        return [product_channel_listing_by_product_and_channel[key] for key in keys]
+
+    def batch_load_channel(
+        self, channel_slug: str, products_ids: Iterable[int]
+    ) -> Iterable[Tuple[int, Optional[ProductChannelListing]]]:
+        product_channel_listings = ProductChannelListing.objects.filter(
+            channel__slug=channel_slug, product_id__in=products_ids
+        )
+
+        product_channel_listings_map: Dict[int, ProductChannelListing] = {}
+        for product_channel_listing in product_channel_listings.iterator():
+            product_channel_listings_map[
+                product_channel_listing.product.id
+            ] = product_channel_listing
+
+        return [
+            (products_id, product_channel_listings_map.get(products_id))
+            for products_id in products_ids
+        ]
 
 
 class ImagesByProductIdLoader(DataLoader):

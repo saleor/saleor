@@ -745,9 +745,9 @@ def product(product_type, category, warehouse, channel_USD):
         # is_published=True,
     )
 
-    # ProductChannelListing.objects.create(
-    #     product=product, channel=channel_USD, is_published=True,
-    # )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True,
+    )
 
     associate_attribute_values_to_instance(product, product_attr, product_attr_value)
 
@@ -1098,13 +1098,16 @@ def product_with_image(product, image, media_root):
 
 
 @pytest.fixture
-def unavailable_product(product_type, category):
+def unavailable_product(product_type, category, channel_USD):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-5",
         product_type=product_type,
         # is_published=False,
         category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=False
     )
     return product
 

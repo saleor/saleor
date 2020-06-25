@@ -5,7 +5,12 @@ import opentracing
 from django.conf import settings
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from saleor.product.models import Collection, Product, ProductVariant
+from saleor.product.models import (
+    Collection,
+    Product,
+    ProductChannelListing,
+    ProductVariant,
+)
 
 from ...core.utils import to_local_currency
 from ...discount import DiscountInfo
@@ -119,6 +124,7 @@ def get_product_price_range(
 def get_product_availability(
     *,
     product: Product,
+    channel_listing: Optional[ProductChannelListing],
     variants: Iterable[ProductVariant],
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo],
@@ -170,7 +176,8 @@ def get_product_availability(
                 discounted, undiscounted, local_currency
             )
 
-        is_on_sale = product.is_visible and discount is not None
+        is_visible = channel_listing is not None and channel_listing.is_visible
+        is_on_sale = is_visible and discount is not None
 
         return ProductAvailability(
             on_sale=is_on_sale,

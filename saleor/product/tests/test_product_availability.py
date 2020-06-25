@@ -10,12 +10,14 @@ from ..utils.availability import get_product_availability
 
 def test_availability(stock, monkeypatch, settings):
     product = stock.product_variant.product
+    channel_listing = product.channel_listing.first()
     taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
     monkeypatch.setattr(
         PluginsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
     )
     availability = get_product_availability(
         product=product,
+        channel_listing=channel_listing,
         variants=product.variants.all(),
         collections=[],
         discounts=[],
@@ -33,6 +35,7 @@ def test_availability(stock, monkeypatch, settings):
     settings.OPENEXCHANGERATES_API_KEY = "fake-key"
     availability = get_product_availability(
         product=product,
+        channel_listing=channel_listing,
         variants=product.variants.all(),
         collections=[],
         discounts=[],
@@ -43,6 +46,7 @@ def test_availability(stock, monkeypatch, settings):
 
     availability = get_product_availability(
         product=product,
+        channel_listing=channel_listing,
         variants=product.variants.all(),
         collections=[],
         discounts=[],
