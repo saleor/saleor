@@ -1,11 +1,26 @@
 import uuid
+from typing import Optional
 
-from ... import ChargeStatus, TransactionKind
+from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
+
+PREAUTHORIZED_TOKENS = ["4111111111111111", "4111111111111112"]
+
+TOKEN_VALIDATION_MAPPING = {
+    "4000000000000069": "Card expired",
+    "4000000000009995": "Insufficient funds",
+    "4000000000000127": "Incorrect csv",
+    "4000000000000002": "Card declined",
+    "4111111111111111": "Card declined",
+}
 
 
 def dummy_success():
     return True
+
+
+def validate_token(token: Optional[str]):
+    return TOKEN_VALIDATION_MAPPING.get(token, None) if token else None
 
 
 def get_client_token(**_):
@@ -48,10 +63,8 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
 
 def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     """Perform capture transaction."""
-    error = None
-    success = dummy_success()
-    if not success:
-        error = "Unable to process capture"
+    error = validate_token(payment_information.token)
+    success = not error
 
     return GatewayResponse(
         is_success=success,
@@ -104,21 +117,7 @@ def process_payment(
     """Process the payment."""
     token = payment_information.token
 
-    # Process payment normally if payment token is valid
-    if token not in dict(ChargeStatus.CHOICES):
-        return capture(payment_information, config)
+    if token in PREAUTHORIZED_TOKENS and not config.auto_capture:
+        return authorize(payment_information, config)
 
-    # Process payment by charge status which is selected in the payment form
-    # Note that is for testing by dummy gateway only
-    charge_status = token
-    authorize_response = authorize(payment_information, config)
-    if charge_status == ChargeStatus.NOT_CHARGED:
-        return authorize_response
-
-    if not config.auto_capture:
-        return authorize_response
-
-    capture_response = capture(payment_information, config)
-    if charge_status == ChargeStatus.FULLY_REFUNDED:
-        return refund(payment_information, config)
-    return capture_response
+    return capture(payment_information, config)

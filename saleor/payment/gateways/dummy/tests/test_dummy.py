@@ -3,6 +3,7 @@ from decimal import Decimal
 import pytest
 
 from .... import ChargeStatus, PaymentError, TransactionKind, gateway
+from .. import PREAUTHORIZED_TOKENS, process_payment
 
 
 @pytest.fixture(autouse=True)
@@ -99,13 +100,22 @@ def test_void_gateway_error(payment_txn_preauth, monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "amount, charge_status",
-    [("98.40", ChargeStatus.FULLY_CHARGED), (70, ChargeStatus.PARTIALLY_CHARGED)],
+    "amount, charge_status, token",
+    [
+        ("98.40", ChargeStatus.FULLY_CHARGED, "1111111111111111"),
+        (70, ChargeStatus.PARTIALLY_CHARGED, "2222222222222222"),
+        (70, ChargeStatus.PARTIALLY_CHARGED, "fake"),
+    ],
 )
-def test_capture_success(amount, charge_status, payment_txn_preauth):
+def test_capture_success(amount, charge_status, token, payment_txn_preauth):
+    transaction = payment_txn_preauth.transactions.last()
+    transaction.token = token
+    transaction.save()
+
     txn = gateway.capture(payment=payment_txn_preauth, amount=Decimal(amount))
     assert txn.is_success
     assert txn.payment == payment_txn_preauth
+    assert not txn.error
     payment_txn_preauth.refresh_from_db()
     assert payment_txn_preauth.charge_status == charge_status
     assert payment_txn_preauth.is_active
@@ -134,13 +144,27 @@ def test_capture_failed(
         assert txn is None
 
 
-def test_capture_gateway_error(payment_txn_preauth, monkeypatch):
-    monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
-    with pytest.raises(PaymentError):
-        txn = gateway.capture(payment=payment_txn_preauth, amount=80)
-        assert txn.kind == TransactionKind.CAPTURE
-        assert not txn.is_success
-        assert txn.payment == payment_txn_preauth
+@pytest.mark.parametrize(
+    "token, error",
+    [
+        ("4000000000000069", "Card expired"),
+        ("4000000000009995", "Insufficient funds"),
+        ("4000000000000127", "Incorrect csv"),
+        ("4000000000000002", "Card declined"),
+        ("4111111111111111", "Card declined"),
+    ],
+)
+def test_capture_error_in_response(token, error, payment_txn_preauth):
+    # given
+    transaction = payment_txn_preauth.transactions.last()
+    transaction.token = token
+    transaction.save()
+
+    # when
+    with pytest.raises(PaymentError) as e:
+        gateway.capture(payment=payment_txn_preauth)
+
+    e._excinfo[1].message == error
 
 
 @pytest.mark.parametrize(
@@ -212,3 +236,83 @@ def test_refund_gateway_error(payment_txn_captured, monkeypatch):
     assert txn.payment == payment
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == Decimal("80.00")
+
+
+@pytest.mark.parametrize("token", ["111", PREAUTHORIZED_TOKENS[1]])
+def test_process_payment_success(token, payment_dummy):
+    # when
+    txn = gateway.process_payment(payment=payment_dummy, token=token)
+
+    # then
+    assert txn.is_success
+    assert txn.payment == payment_dummy
+    assert txn.kind == TransactionKind.CAPTURE
+    assert not txn.error
+    payment_dummy.refresh_from_db()
+    assert payment_dummy.is_active
+
+
+@pytest.mark.parametrize(
+    "token, error",
+    [
+        ("4000000000000069", "Card expired"),
+        ("4000000000009995", "Insufficient funds"),
+        ("4000000000000127", "Incorrect csv"),
+        ("4000000000000002", "Card declined"),
+        ("4111111111111111", "Card declined"),
+    ],
+)
+def test_process_payment_failed(token, error, payment_dummy):
+    # when
+    with pytest.raises(PaymentError) as e:
+        gateway.process_payment(payment=payment_dummy, token=token)
+
+    e._excinfo[1].message == error
+
+
+@pytest.mark.parametrize("token", PREAUTHORIZED_TOKENS)
+def test_process_payment_pre_authorized(
+    token, payment_dummy, dummy_gateway_config, monkeypatch
+):
+    # given
+    dummy_gateway_config.auto_capture = False
+    monkeypatch.setattr(
+        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin._get_gateway_config",
+        lambda _: dummy_gateway_config,
+    )
+
+    # when
+    txn = gateway.process_payment(payment=payment_dummy, token=token)
+
+    # then
+    assert txn.is_success
+    assert txn.payment == payment_dummy
+    assert txn.kind == TransactionKind.AUTH
+    assert not txn.error
+    payment_dummy.refresh_from_db()
+    assert payment_dummy.is_active
+
+
+@pytest.mark.parametrize(
+    "token, error",
+    [
+        ("4000000000000069", "Card expired"),
+        ("4000000000009995", "Insufficient funds"),
+        ("4000000000000127", "Incorrect csv"),
+        ("4000000000000002", "Card declined"),
+        ("4111111111111111", "Card declined"),
+    ],
+)
+def test_process_payment_method_error_in_response(
+    token, error, dummy_gateway_config, dummy_payment_data
+):
+    # given
+    dummy_payment_data.token = token
+
+    # when
+    response = process_payment(dummy_payment_data, dummy_gateway_config)
+
+    # then
+    assert not response.is_success
+    assert response.kind == TransactionKind.CAPTURE
+    assert response.error == error
