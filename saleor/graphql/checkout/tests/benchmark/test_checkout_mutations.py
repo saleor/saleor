@@ -155,7 +155,6 @@ FRAGMENT_CHECKOUT = (
 
 
 @pytest.mark.django_db
-@pytest.mark.filterwarnings("ignore::UserWarning")
 @pytest.mark.count_queries(autouse=False)
 def test_create_checkout(
     api_client,
@@ -229,7 +228,6 @@ def test_create_checkout(
 
 
 @pytest.mark.django_db
-@pytest.mark.filterwarnings("ignore::UserWarning")
 @pytest.mark.count_queries(autouse=False)
 def test_add_shipping_to_checkout(
     api_client, checkout_with_shipping_address, shipping_method, count_queries,
@@ -263,7 +261,6 @@ def test_add_shipping_to_checkout(
 
 
 @pytest.mark.django_db
-@pytest.mark.filterwarnings("ignore::UserWarning")
 @pytest.mark.count_queries(autouse=False)
 def test_add_billing_address_to_checkout(
     api_client, graphql_address_data, checkout_with_shipping_method, count_queries
@@ -373,7 +370,6 @@ def test_update_checkout_lines(
 
 
 @pytest.mark.django_db
-@pytest.mark.filterwarnings("ignore::UserWarning")
 @pytest.mark.count_queries(autouse=False)
 def test_checkout_shipping_address_update(
     api_client, graphql_address_data, checkout_with_variant, count_queries
@@ -407,7 +403,6 @@ def test_checkout_shipping_address_update(
 
 
 @pytest.mark.django_db
-@pytest.mark.filterwarnings("ignore::UserWarning")
 @pytest.mark.count_queries(autouse=False)
 def test_checkout_email_update(api_client, checkout_with_variant, count_queries):
     query = (
@@ -437,7 +432,6 @@ def test_checkout_email_update(api_client, checkout_with_variant, count_queries)
 
 
 @pytest.mark.django_db
-@pytest.mark.filterwarnings("ignore::UserWarning")
 @pytest.mark.count_queries(autouse=False)
 def test_checkout_voucher_code(
     api_client, checkout_with_billing_address, voucher, count_queries

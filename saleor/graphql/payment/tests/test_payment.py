@@ -740,7 +740,6 @@ def set_dummy_customer_id(customer_user, dummy_customer_id):
     return customer_user
 
 
-@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_list_payment_sources(
     mocker, dummy_customer_id, set_dummy_customer_id, user_api_client
 ):
