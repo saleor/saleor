@@ -5,7 +5,6 @@ import graphene
 import jwt
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
-from jwt import InvalidTokenError
 
 from ..account.models import User
 
@@ -96,11 +95,11 @@ def get_user_from_payload(payload: Dict[str, Any]) -> Optional[User]:
     user = User.objects.filter(email=payload["email"], is_active=True).first()
     user_jwt_token = payload.get("token")
     if not user_jwt_token or not user:
-        raise InvalidTokenError(
+        raise jwt.InvalidTokenError(
             "Invalid token. Create new one by using tokenCreate mutation."
         )
     if user.jwt_token_key != user_jwt_token:
-        raise InvalidTokenError(
+        raise jwt.InvalidTokenError(
             "Invalid token. Create new one by using tokenCreate mutation."
         )
     return user
@@ -110,7 +109,7 @@ def get_user_from_access_token(token: str) -> Optional[User]:
     payload = jwt_decode(token)
     jwt_type = payload.get("type")
     if jwt_type != JWT_ACCESS_TYPE:
-        raise InvalidTokenError(
+        raise jwt.InvalidTokenError(
             "Invalid token. Create new one by using tokenCreate mutation."
         )
     return get_user_from_payload(payload)
