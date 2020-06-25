@@ -1,6 +1,7 @@
 from typing import Union
 
 from django.conf import settings
+from django.contrib.auth.models import _user_has_perm  # type: ignore
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -204,8 +205,12 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
 
     def has_perm(self, perm: Union[BasePermissionEnum, str], obj=None):  # type: ignore
         # This method is overridden to accept perm as BasePermissionEnum
-        perm_value = perm.value if hasattr(perm, "value") else perm  # type: ignore
-        return super().has_perm(perm_value, obj)
+        perm = perm.value if hasattr(perm, "value") else perm  # type: ignore
+
+        # Active superusers have all permissions.
+        if self.is_active and self.is_superuser and not self._effective_permissions:
+            return True
+        return _user_has_perm(self, perm, obj)
 
 
 class CustomerNote(models.Model):
