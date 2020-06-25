@@ -515,9 +515,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def process_checkout_lines(
-        cls, lines, country
-    ) -> Tuple[List[product_models.ProductVariant], List[int]]:
+    def process_checkout_lines(cls, lines, country) -> None:
         variant_ids = [line.variant.id for line in lines]
         variants = list(
             product_models.ProductVariant.objects.filter(
@@ -527,8 +525,6 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         quantities = [line.quantity for line in lines]
 
         check_lines_quantity(variants, quantities, country)
-
-        return variants, quantities
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_address):
