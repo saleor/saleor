@@ -2,6 +2,7 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
+
 ## [Unreleased]
 
 - Add our implementation of UUID scalar - #5646 by @koradon
@@ -9,9 +10,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix specific product voucher in draft orders - #5727 by @fowczarek
 - Explicit country assignment in default shipping zones - #5736 by @maarcingebala
 - Drop `json_content` field from the `Menu` model - #5761 by @maarcingebala
-- Refactor JWT support - These changes could require a handling JWT token in the storefront. Storefront needs to handle a case when the backend returns the exception about the invalid token. - #5734, #5816 by @korycins
 - Strip warehouse name in mutations - #5766 by @koradon
 - Add missing OrderEvents during checkout flow - #5684 by @koradon
+    ### Breaking Changes
+   - Refactor JWT support - These changes could require a handling JWT token in the storefront. Storefront needs to handle a case when the backend returns the exception about the invalid token. - #5734, #5816 by @korycins
+
 
 ## 2.10.1
 
