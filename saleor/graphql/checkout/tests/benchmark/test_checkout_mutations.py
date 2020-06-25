@@ -494,7 +494,7 @@ def test_checkout_payment_charge(
                 checkout=checkout_with_billing_address,
                 lines=list(checkout_with_billing_address),
             ).gross.amount,
-            "gateway": "Dummy",
+            "gateway": "mirumee.payments.dummy",
             "token": "charged",
         },
     }

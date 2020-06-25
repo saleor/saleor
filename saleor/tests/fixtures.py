@@ -220,7 +220,7 @@ def site_settings(db, settings) -> SiteSettings:
 
 @pytest.fixture
 def checkout(db):
-    checkout = Checkout.objects.create()
+    checkout = Checkout.objects.create(currency="USD")
     checkout.set_country("US", commit=True)
     return checkout
 
@@ -409,6 +409,7 @@ def user_checkout(customer_user):
         billing_address=customer_user.default_billing_address,
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
+        currency="USD",
     )
     return checkout
 
