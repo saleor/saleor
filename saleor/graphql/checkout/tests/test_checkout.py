@@ -12,7 +12,7 @@ from ....account.models import User
 from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout
-from ....checkout.utils import is_fully_paid
+from ....checkout.utils import add_variant_to_checkout, is_fully_paid
 from ....core.payments import PaymentInterface
 from ....core.taxes import zero_money
 from ....order.models import Order
@@ -527,7 +527,7 @@ def test_checkout_create_check_lines_quantity_multiple_warehouse(
     assert data["errors"][0]["field"] == "quantity"
 
 
-def test_checkout_create_check_lines_quantity_from_shipping_address_country(
+def test_checkout_create_sets_country_from_shipping_address_country(
     user_api_client,
     variant_with_many_stocks_different_shipping_zones,
     graphql_address_data,
@@ -553,6 +553,40 @@ def test_checkout_create_check_lines_quantity_from_shipping_address_country(
     assert data["created"] is True
     checkout = Checkout.objects.first()
     assert checkout.country == "US"
+
+
+def test_checkout_create_check_lines_quantity_different_shipping_zone_insufficient_stocks(  # NOQA
+    user_api_client,
+    variant_with_many_stocks_different_shipping_zones,
+    graphql_address_data,
+):
+    variant = variant_with_many_stocks_different_shipping_zones
+    stock = Stock.objects.filter(
+        warehouse__shipping_zones__countries__contains="US", product_variant=variant
+    ).first()
+    stock.quantity = 0
+    stock.save()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    shipping_address["country"] = "US"
+    shipping_address["countryArea"] = "New York"
+    shipping_address["postalCode"] = 10001
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+    assert not data["checkout"]
+    errors = data["checkoutErrors"]
+    assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert errors[0]["field"] == "quantity"
 
 
 def test_checkout_create_check_lines_quantity(
@@ -1304,6 +1338,92 @@ def test_checkout_shipping_address_update(
     mocked_update_shipping_method.assert_called_once_with(
         checkout, list(checkout), mock.ANY
     )
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+def test_checkout_shipping_address_update_changes_checkout_country(
+    mocked_update_shipping_method,
+    user_api_client,
+    variant_with_many_stocks_different_shipping_zones,
+    graphql_address_data,
+):
+    variant = variant_with_many_stocks_different_shipping_zones
+    checkout = Checkout.objects.create()
+    checkout.set_country("PL", commit=True)
+    add_variant_to_checkout(checkout, variant, 1)
+    assert checkout.shipping_address is None
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    shipping_address = graphql_address_data
+    shipping_address["country"] = "US"
+    shipping_address["countryArea"] = "New York"
+    shipping_address["postalCode"] = "10001"
+    variables = {"checkoutId": checkout_id, "shippingAddress": shipping_address}
+
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.shipping_address is not None
+    assert checkout.shipping_address.first_name == shipping_address["firstName"]
+    assert checkout.shipping_address.last_name == shipping_address["lastName"]
+    assert (
+        checkout.shipping_address.street_address_1 == shipping_address["streetAddress1"]
+    )
+    assert (
+        checkout.shipping_address.street_address_2 == shipping_address["streetAddress2"]
+    )
+    assert checkout.shipping_address.postal_code == shipping_address["postalCode"]
+    assert checkout.shipping_address.country == shipping_address["country"]
+    assert checkout.shipping_address.city == shipping_address["city"].upper()
+    mocked_update_shipping_method.assert_called_once_with(
+        checkout, list(checkout), mock.ANY
+    )
+    assert checkout.country == shipping_address["country"]
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+def test_checkout_shipping_address_update_insufficient_stocks(
+    mocked_update_shipping_method,
+    user_api_client,
+    variant_with_many_stocks_different_shipping_zones,
+    graphql_address_data,
+):
+    variant = variant_with_many_stocks_different_shipping_zones
+    checkout = Checkout.objects.create()
+    checkout.set_country("PL", commit=True)
+    add_variant_to_checkout(checkout, variant, 1)
+    stock = Stock.objects.filter(
+        warehouse__shipping_zones__countries__contains="US", product_variant=variant
+    ).first()
+    stock.quantity = 0
+    stock.save()
+    assert checkout.shipping_address is None
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    shipping_address = graphql_address_data
+    shipping_address["country"] = "US"
+    shipping_address["countryArea"] = "New York"
+    shipping_address["postalCode"] = "10001"
+    variables = {"checkoutId": checkout_id, "shippingAddress": shipping_address}
+
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    errors = data["checkoutErrors"]
+    assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert errors[0]["field"] == "quantity"
 
 
 def test_checkout_shipping_address_with_invalid_phone_number_returns_error(

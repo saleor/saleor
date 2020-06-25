@@ -519,9 +519,11 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         cls, lines, country
     ) -> Tuple[List[product_models.ProductVariant], List[int]]:
         variant_ids = [line.variant.id for line in lines]
-        variants = product_models.ProductVariant.objects.filter(
-            id__in=variant_ids
-        ).prefetch_related("product__product_type")
+        variants = list(
+            product_models.ProductVariant.objects.filter(
+                id__in=variant_ids
+            ).prefetch_related("product__product_type")
+        )
         quantities = [line.quantity for line in lines]
 
         check_lines_quantity(variants, quantities, country)
@@ -567,9 +569,9 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         if shipping_address and shipping_address.country:
             if shipping_address.country != country:
                 country = shipping_address.country
-        checkout.set_country(country)
+        checkout.set_country(country, commit=True)
 
-        # Resolve and process the lines, retrieving the variants and quantities
+        # Resolve and process the lines, validating variants quantities
         if lines:
             cls.process_checkout_lines(lines, country)
 
