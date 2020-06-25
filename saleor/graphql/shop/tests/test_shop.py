@@ -694,7 +694,6 @@ AVAILABLE_PAYMENT_GATEWAYS_QUERY = """
 """
 
 
-@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_query_available_payment_gateways(user_api_client, sample_gateway):
     query = AVAILABLE_PAYMENT_GATEWAYS_QUERY
     response = user_api_client.post_graphql(query)
@@ -707,7 +706,6 @@ def test_query_available_payment_gateways(user_api_client, sample_gateway):
     assert {gateway["name"] for gateway in data} == {"Dummy", "SampleDummy"}
 
 
-@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_query_available_payment_gateways_specified_currency_USD(
     user_api_client, sample_gateway
 ):
@@ -722,7 +720,6 @@ def test_query_available_payment_gateways_specified_currency_USD(
     assert {gateway["name"] for gateway in data} == {"Dummy", "SampleDummy"}
 
 
-@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_query_available_payment_gateways_specified_currency_PLN(
     user_api_client, sample_gateway
 ):
