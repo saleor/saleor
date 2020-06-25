@@ -469,6 +469,10 @@ def test_payment_capture_gateway_error(
     staff_api_client, permission_manage_orders, payment_txn_preauth, monkeypatch
 ):
     payment = payment_txn_preauth
+    transaction = payment.transactions.last()
+    transaction.token = "4000000000000069"
+    transaction.save()
+
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
@@ -478,7 +482,7 @@ def test_payment_capture_gateway_error(
     )
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
-    assert data["errors"] == [{"field": None, "message": "Unable to process capture"}]
+    assert data["errors"] == [{"field": None, "message": "Card expired"}]
 
     payment_txn_preauth.refresh_from_db()
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
