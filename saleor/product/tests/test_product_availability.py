@@ -1,63 +1,11 @@
 import datetime
-from decimal import Decimal
 from unittest.mock import Mock
 
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...plugins.manager import PluginsManager
-from ...warehouse.models import Stock
-from .. import ProductAvailabilityStatus, models
-from ..utils.availability import (
-    get_product_availability,
-    get_product_availability_status,
-)
-
-
-def test_product_availability_status(unavailable_product, warehouse):
-    product = unavailable_product
-    product.product_type.has_variants = True
-
-    # product is not published
-    status = get_product_availability_status(product, "US")
-    assert status == ProductAvailabilityStatus.NOT_PUBLISHED
-
-    product.is_published = True
-    product.save()
-
-    # product has no variants
-    status = get_product_availability_status(product, "US")
-    assert status == ProductAvailabilityStatus.VARIANTS_MISSSING
-
-    variant_1 = product.variants.create(sku="test-1", price_amount=Decimal(10))
-    variant_2 = product.variants.create(sku="test-2", price_amount=Decimal(10))
-    # create empty stock records
-    stock_1 = Stock.objects.create(
-        product_variant=variant_1, warehouse=warehouse, quantity=0
-    )
-    stock_2 = Stock.objects.create(
-        product_variant=variant_2, warehouse=warehouse, quantity=0
-    )
-
-    status = get_product_availability_status(product, "US")
-    assert status == ProductAvailabilityStatus.OUT_OF_STOCK
-
-    # assign quantity to only one stock record
-    stock_1.quantity = 5
-    stock_1.save()
-    status = get_product_availability_status(product, "US")
-    assert status == ProductAvailabilityStatus.LOW_STOCK
-
-    # both stock records have some quantity
-    stock_2.quantity = 5
-    stock_2.save()
-    status = get_product_availability_status(product, "US")
-    assert status == ProductAvailabilityStatus.READY_FOR_PURCHASE
-
-    # set product availability date from future
-    product.publication_date = datetime.date.today() + datetime.timedelta(days=1)
-    product.save()
-    status = get_product_availability_status(product, "US")
-    assert status == ProductAvailabilityStatus.NOT_YET_AVAILABLE
+from .. import models
+from ..utils.availability import get_product_availability
 
 
 def test_availability(stock, monkeypatch, settings):

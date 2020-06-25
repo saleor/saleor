@@ -11,11 +11,6 @@ from ...core.utils import to_local_currency
 from ...discount import DiscountInfo
 from ...discount.utils import calculate_discounted_price
 from ...plugins.manager import get_plugins_manager
-from ...warehouse.availability import (
-    are_all_product_variants_in_stock,
-    is_product_in_stock,
-)
-from .. import ProductAvailabilityStatus
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -40,30 +35,6 @@ class VariantAvailability:
     discount: Optional[TaxedMoney]
     price_local_currency: Optional[TaxedMoney]
     discount_local_currency: Optional[TaxedMoney]
-
-
-def get_product_availability_status(
-    product: "Product", country: str
-) -> ProductAvailabilityStatus:
-    is_visible = product.is_visible
-    are_all_variants_in_stock = are_all_product_variants_in_stock(product, country)
-    is_in_stock = is_product_in_stock(product, country)
-    requires_variants = product.product_type.has_variants
-
-    if not product.is_published:
-        return ProductAvailabilityStatus.NOT_PUBLISHED
-    if requires_variants and not product.variants.exists():
-        # We check the requires_variants flag here in order to not show this
-        # status with product types that don't require variants, as in that
-        # case variants are hidden from the UI and user doesn't manage them.
-        return ProductAvailabilityStatus.VARIANTS_MISSSING
-    if not is_in_stock:
-        return ProductAvailabilityStatus.OUT_OF_STOCK
-    if not are_all_variants_in_stock:
-        return ProductAvailabilityStatus.LOW_STOCK
-    if not is_visible and product.publication_date is not None:
-        return ProductAvailabilityStatus.NOT_YET_AVAILABLE
-    return ProductAvailabilityStatus.READY_FOR_PURCHASE
 
 
 def _get_total_discount_from_range(
