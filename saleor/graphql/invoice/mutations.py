@@ -13,7 +13,7 @@ from ..invoice.types import Invoice
 from ..order.types import Order
 
 
-class RequestInvoice(ModelMutation):
+class InvoiceRequest(ModelMutation):
     class Meta:
         description = "Request an invoice for the order using plugin."
         model = models.Invoice
@@ -68,20 +68,20 @@ class RequestInvoice(ModelMutation):
             user=info.context.user, order=order, number=data.get("number")
         )
         invoice.refresh_from_db()
-        return RequestInvoice(invoice=invoice)
+        return InvoiceRequest(invoice=invoice)
 
 
-class CreateInvoiceInput(graphene.InputObjectType):
+class InvoiceCreateInput(graphene.InputObjectType):
     number = graphene.String(required=True, description="Invoice number.")
     url = graphene.String(required=True, description="URL of an invoice to download.")
 
 
-class CreateInvoice(ModelMutation):
+class InvoiceCreate(ModelMutation):
     class Arguments:
         order_id = graphene.ID(
             required=True, description="ID of the order related to invoice."
         )
-        input = CreateInvoiceInput(
+        input = InvoiceCreateInput(
             required=True, description="Fields required when creating an invoice."
         )
 
@@ -143,10 +143,10 @@ class CreateInvoice(ModelMutation):
             number=cleaned_input["number"],
             url=cleaned_input["url"],
         )
-        return CreateInvoice(invoice=invoice)
+        return InvoiceCreate(invoice=invoice)
 
 
-class RequestDeleteInvoice(ModelMutation):
+class InvoiceRequestDelete(ModelMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description="ID of an invoice to request the deletion."
@@ -166,10 +166,10 @@ class RequestDeleteInvoice(ModelMutation):
         invoice.save(update_fields=["status", "updated_at"])
         info.context.plugins.invoice_delete(invoice)
         events.invoice_requested_deletion_event(user=info.context.user, invoice=invoice)
-        return RequestDeleteInvoice(invoice=invoice)
+        return InvoiceRequestDelete(invoice=invoice)
 
 
-class DeleteInvoice(ModelDeleteMutation):
+class InvoiceDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to delete.")
 
@@ -193,7 +193,7 @@ class UpdateInvoiceInput(graphene.InputObjectType):
     url = graphene.String(description="URL of an invoice to download.")
 
 
-class UpdateInvoice(ModelMutation):
+class InvoiceUpdate(ModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to update.")
         input = UpdateInvoiceInput(
@@ -238,10 +238,10 @@ class UpdateInvoice(ModelMutation):
         )
         instance.status = JobStatus.SUCCESS
         instance.save(update_fields=["external_url", "number", "updated_at", "status"])
-        return UpdateInvoice(invoice=instance)
+        return InvoiceUpdate(invoice=instance)
 
 
-class SendInvoiceEmail(ModelMutation):
+class InvoiceSendEmail(ModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to be sent.")
 
@@ -284,4 +284,4 @@ class SendInvoiceEmail(ModelMutation):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
         send_invoice.delay(instance.pk, info.context.user.pk)
-        return SendInvoiceEmail(invoice=instance)
+        return InvoiceSendEmail(invoice=instance)

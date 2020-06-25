@@ -9,9 +9,9 @@ from ....invoice.error_codes import InvoiceErrorCode
 from ....invoice.models import Invoice, InvoiceEvent, InvoiceEvents
 from ....order import OrderStatus
 
-REQUEST_INVOICE_MUTATION = """
-    mutation RequestInvoice($orderId: ID!, $number: String) {
-        requestInvoice(
+INVOICE_REQUEST_MUTATION = """
+    mutation InvoiceRequest($orderId: ID!, $number: String) {
+        invoiceRequest(
             orderId: $orderId
             number: $number
         ) {
@@ -29,9 +29,9 @@ REQUEST_INVOICE_MUTATION = """
 """
 
 
-CREATE_INVOICE_MUTATION = """
-    mutation CreateInvoice($orderId: ID!, $number: String!, $url: String!) {
-        createInvoice(
+INVOICE_CREATE_MUTATION = """
+    mutation InvoiceCreate($orderId: ID!, $number: String!, $url: String!) {
+        invoiceCreate(
             orderId: $orderId,
             input: {
                 number: $number,
@@ -52,9 +52,9 @@ CREATE_INVOICE_MUTATION = """
 """
 
 
-REQUEST_DELETE_INVOICE_MUTATION = """
-    mutation RequestDeleteInvoice($id: ID!) {
-        requestDeleteInvoice(
+INVOICE_REQUEST_DELETE_MUTATION = """
+    mutation invoiceRequestDelete($id: ID!) {
+        invoiceRequestDelete(
             id: $id
         ) {
             invoiceErrors {
@@ -66,9 +66,9 @@ REQUEST_DELETE_INVOICE_MUTATION = """
 """
 
 
-DELETE_INVOICE_MUTATION = """
-    mutation DeleteInvoice($id: ID!) {
-        deleteInvoice(
+INVOICE_DELETE_MUTATION = """
+    mutation invoiceDelete($id: ID!) {
+        invoiceDelete(
             id: $id
         ) {
             invoiceErrors {
@@ -80,9 +80,9 @@ DELETE_INVOICE_MUTATION = """
 """
 
 
-UPDATE_INVOICE_MUTATION = """
-    mutation UpdateInvoice($id: ID!, $number: String, $url: String) {
-        updateInvoice(
+INVOICE_UPDATE_MUTATION = """
+    mutation invoiceUpdate($id: ID!, $number: String, $url: String) {
+        invoiceUpdate(
             id: $id
             input: {
                 number: $number
@@ -107,9 +107,9 @@ UPDATE_INVOICE_MUTATION = """
 """
 
 
-SEND_INVOICE_MUTATION = """
-    mutation SendInvoice($id: ID!) {
-        sendInvoiceEmail(
+INVOICE_SEND_EMAIL_MUTATION = """
+    mutation invoiceSendEmail($id: ID!) {
+        invoiceSendEmail(
             id: $id
         ) {
             invoiceErrors {
@@ -131,7 +131,7 @@ def test_request_invoice(
         "number": number,
     }
     response = staff_api_client.post_graphql(
-        REQUEST_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_REQUEST_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     invoice = Invoice.objects.filter(
@@ -146,7 +146,7 @@ def test_request_invoice(
         parameters__number=number,
     ).exists()
     assert (
-        content["data"]["requestInvoice"]["invoice"]["status"]
+        content["data"]["invoiceRequest"]["invoice"]["status"]
         == JobStatus.PENDING.upper()
     )
 
@@ -160,11 +160,11 @@ def test_request_invoice_draft_order(staff_api_client, permission_manage_orders,
         "number": number,
     }
     response = staff_api_client.post_graphql(
-        REQUEST_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_REQUEST_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(number=number, order=order.pk).exists()
-    error = content["data"]["requestInvoice"]["invoiceErrors"][0]
+    error = content["data"]["invoiceRequest"]["invoiceErrors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.INVALID_STATUS.name
 
@@ -180,11 +180,11 @@ def test_request_invoice_no_billing_address(
         "number": number,
     }
     response = staff_api_client.post_graphql(
-        REQUEST_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_REQUEST_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(number=number, order=order.pk).exists()
-    error = content["data"]["requestInvoice"]["invoiceErrors"][0]
+    error = content["data"]["invoiceRequest"]["invoiceErrors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.NOT_READY.name
 
@@ -192,7 +192,7 @@ def test_request_invoice_no_billing_address(
 def test_request_invoice_no_number(staff_api_client, permission_manage_orders, order):
     variables = {"orderId": graphene.Node.to_global_id("Order", order.pk)}
     staff_api_client.post_graphql(
-        REQUEST_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_REQUEST_MUTATION, variables, permissions=[permission_manage_orders]
     )
     invoice = Invoice.objects.get(order=order.pk)
     assert invoice.number is None
@@ -201,10 +201,10 @@ def test_request_invoice_no_number(staff_api_client, permission_manage_orders, o
 def test_request_invoice_invalid_order(staff_api_client, permission_manage_orders):
     variables = {"orderId": "T3JkZXI6MTMzNzEzMzc=", "number": "01/12/2020/TEST"}
     response = staff_api_client.post_graphql(
-        REQUEST_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_REQUEST_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["requestInvoice"]["invoiceErrors"][0]
+    error = content["data"]["invoiceRequest"]["invoiceErrors"][0]
     assert error["code"] == InvoiceErrorCode.NOT_FOUND.name
     assert error["field"] == "orderId"
 
@@ -216,7 +216,7 @@ def test_request_delete_invoice(
     invoice = Invoice.objects.create(order=order)
     variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    staff_api_client.post_graphql(REQUEST_DELETE_INVOICE_MUTATION, variables)
+    staff_api_client.post_graphql(INVOICE_REQUEST_DELETE_MUTATION, variables)
     invoice.refresh_from_db()
     plugin_mock.assert_called_once_with(invoice, previous_value=None)
     assert InvoiceEvent.objects.filter(
@@ -233,9 +233,9 @@ def test_request_delete_invoice_invalid_id(
 ):
     variables = {"id": graphene.Node.to_global_id("Invoice", 1337)}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    response = staff_api_client.post_graphql(REQUEST_DELETE_INVOICE_MUTATION, variables)
+    response = staff_api_client.post_graphql(INVOICE_REQUEST_DELETE_MUTATION, variables)
     content = get_graphql_content(response)
-    error = content["data"]["requestDeleteInvoice"]["invoiceErrors"][0]
+    error = content["data"]["invoiceRequestDelete"]["invoiceErrors"][0]
     assert error["code"] == InvoiceErrorCode.NOT_FOUND.name
     assert error["field"] == "id"
     plugin_mock.assert_not_called()
@@ -247,7 +247,7 @@ def test_request_delete_invoice_no_permission(
 ):
     invoice = Invoice.objects.create(order=order)
     variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
-    response = staff_api_client.post_graphql(REQUEST_DELETE_INVOICE_MUTATION, variables)
+    response = staff_api_client.post_graphql(INVOICE_REQUEST_DELETE_MUTATION, variables)
     assert_no_permission(response)
     plugin_mock.assert_not_called()
 
@@ -256,10 +256,10 @@ def test_delete_invoice(staff_api_client, permission_manage_orders, order):
     invoice = Invoice.objects.create(order=order)
     variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
     response = staff_api_client.post_graphql(
-        DELETE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_DELETE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    assert not content["data"]["deleteInvoice"]["invoiceErrors"]
+    assert not content["data"]["invoiceDelete"]["invoiceErrors"]
     assert not Invoice.objects.filter(id=invoice.pk).exists()
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.DELETED,
@@ -274,10 +274,10 @@ def test_delete_invoice_invalid_id(
 ):
     variables = {"id": graphene.Node.to_global_id("Invoice", 1337)}
     response = staff_api_client.post_graphql(
-        DELETE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_DELETE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["deleteInvoice"]["invoiceErrors"][0]
+    error = content["data"]["invoiceDelete"]["invoiceErrors"][0]
     assert error["code"] == InvoiceErrorCode.NOT_FOUND.name
     assert error["field"] == "id"
     plugin_mock.assert_not_called()
@@ -296,17 +296,17 @@ def test_update_invoice(staff_api_client, permission_manage_orders, order):
         "url": url,
     }
     response = staff_api_client.post_graphql(
-        UPDATE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_UPDATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     invoice.refresh_from_db()
     assert invoice.status == JobStatus.SUCCESS
-    assert invoice.number == content["data"]["updateInvoice"]["invoice"]["number"]
-    response_metadata = content["data"]["updateInvoice"]["invoice"]["metadata"][0]
+    assert invoice.number == content["data"]["invoiceUpdate"]["invoice"]["number"]
+    response_metadata = content["data"]["invoiceUpdate"]["invoice"]["metadata"][0]
     assert response_metadata["key"] == test_key
     assert response_metadata["value"] == metadata[test_key]
-    assert invoice.url == content["data"]["updateInvoice"]["invoice"]["url"]
-    assert content["data"]["updateInvoice"]["invoice"]["id"] == graphene_invoice_id
+    assert invoice.url == content["data"]["invoiceUpdate"]["invoice"]["url"]
+    assert content["data"]["invoiceUpdate"]["invoice"]["id"] == graphene_invoice_id
 
 
 def test_update_invoice_single_value(staff_api_client, permission_manage_orders, order):
@@ -318,13 +318,13 @@ def test_update_invoice_single_value(staff_api_client, permission_manage_orders,
         "url": url,
     }
     response = staff_api_client.post_graphql(
-        UPDATE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_UPDATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     invoice.refresh_from_db()
     assert invoice.status == JobStatus.SUCCESS
     assert invoice.number == number
-    assert invoice.url == content["data"]["updateInvoice"]["invoice"]["url"]
+    assert invoice.url == content["data"]["invoiceUpdate"]["invoice"]["url"]
 
 
 def test_update_invoice_missing_number(
@@ -337,11 +337,11 @@ def test_update_invoice_missing_number(
         "url": url,
     }
     response = staff_api_client.post_graphql(
-        UPDATE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_UPDATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     invoice.refresh_from_db()
-    error = content["data"]["updateInvoice"]["invoiceErrors"][0]
+    error = content["data"]["invoiceUpdate"]["invoiceErrors"][0]
     assert error["code"] == InvoiceErrorCode.NUMBER_NOT_SET.name
     assert error["field"] == "number"
     assert invoice.url is None
@@ -351,10 +351,10 @@ def test_update_invoice_missing_number(
 def test_update_invoice_invalid_id(staff_api_client, permission_manage_orders):
     variables = {"id": "SW52b2ljZToxMzM3", "number": "01/12/2020/TEST"}
     response = staff_api_client.post_graphql(
-        UPDATE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_UPDATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["updateInvoice"]["invoiceErrors"][0]
+    error = content["data"]["invoiceUpdate"]["invoiceErrors"][0]
     assert error["code"] == InvoiceErrorCode.NOT_FOUND.name
     assert error["field"] == "id"
 
@@ -368,14 +368,14 @@ def test_create_invoice(staff_api_client, permission_manage_orders, order):
         "url": url,
     }
     response = staff_api_client.post_graphql(
-        CREATE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_CREATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     invoice = Invoice.objects.get(order=order, status=JobStatus.SUCCESS)
-    assert invoice.url == content["data"]["createInvoice"]["invoice"]["url"]
-    assert invoice.number == content["data"]["createInvoice"]["invoice"]["number"]
+    assert invoice.url == content["data"]["invoiceCreate"]["invoice"]["url"]
+    assert invoice.number == content["data"]["invoiceCreate"]["invoice"]["number"]
     assert (
-        invoice.status.upper() == content["data"]["createInvoice"]["invoice"]["status"]
+        invoice.status.upper() == content["data"]["invoiceCreate"]["invoice"]["status"]
     )
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.CREATED,
@@ -400,11 +400,11 @@ def test_create_invoice_no_billing_address(
         "url": url,
     }
     response = staff_api_client.post_graphql(
-        CREATE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_CREATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(order_id=order.pk, number=number).exists()
-    error = content["data"]["createInvoice"]["invoiceErrors"][0]
+    error = content["data"]["invoiceCreate"]["invoiceErrors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.NOT_READY.name
 
@@ -422,11 +422,11 @@ def test_create_invoice_for_draft_order(
         "url": url,
     }
     response = staff_api_client.post_graphql(
-        CREATE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_CREATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(order_id=order.pk, number=number).exists()
-    error = content["data"]["createInvoice"]["invoiceErrors"][0]
+    error = content["data"]["invoiceCreate"]["invoiceErrors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.INVALID_STATUS.name
 
@@ -438,10 +438,10 @@ def test_create_invoice_invalid_id(staff_api_client, permission_manage_orders):
         "url": "http://www.example.com",
     }
     response = staff_api_client.post_graphql(
-        CREATE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_CREATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    error = content["data"]["createInvoice"]["invoiceErrors"][0]
+    error = content["data"]["invoiceCreate"]["invoiceErrors"][0]
     assert error["code"] == InvoiceErrorCode.NOT_FOUND.name
     assert error["field"] == "orderId"
 
@@ -453,10 +453,10 @@ def test_create_invoice_empty_params(staff_api_client, permission_manage_orders,
         "url": "",
     }
     response = staff_api_client.post_graphql(
-        CREATE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_CREATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["createInvoice"]["invoiceErrors"]
+    errors = content["data"]["invoiceCreate"]["invoiceErrors"]
     assert errors[0] == {
         "field": "url",
         "code": InvoiceErrorCode.REQUIRED.name,
@@ -480,12 +480,12 @@ def test_send_invoice(email_mock, staff_api_client, permission_manage_orders, or
     )
     variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
     response = staff_api_client.post_graphql(
-        SEND_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_SEND_EMAIL_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     call_args = collect_invoice_data_for_email(invoice, "order/send_invoice")
     email_mock.assert_called_once_with(**call_args)
-    assert not content["data"]["sendInvoiceEmail"]["invoiceErrors"]
+    assert not content["data"]["invoiceSendEmail"]["invoiceErrors"]
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.SENT,
         user=staff_api_client.user,
@@ -503,10 +503,10 @@ def test_send_invoice_pending(
     )
     variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
     response = staff_api_client.post_graphql(
-        SEND_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_SEND_EMAIL_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["sendInvoiceEmail"]["invoiceErrors"]
+    errors = content["data"]["invoiceSendEmail"]["invoiceErrors"]
     assert errors == [
         {"field": "invoice", "code": "NOT_READY"},
         {"field": "url", "code": "URL_NOT_SET"},
@@ -524,10 +524,10 @@ def test_send_invoice_without_url_and_number(
     )
     variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
     response = staff_api_client.post_graphql(
-        SEND_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_SEND_EMAIL_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["sendInvoiceEmail"]["invoiceErrors"]
+    errors = content["data"]["invoiceSendEmail"]["invoiceErrors"]
     assert errors == [
         {"field": "url", "code": "URL_NOT_SET"},
         {"field": "number", "code": "NUMBER_NOT_SET"},
@@ -549,10 +549,10 @@ def test_send_invoice_without_email(
     )
     variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
     response = staff_api_client.post_graphql(
-        SEND_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+        INVOICE_SEND_EMAIL_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     email_mock.assert_not_called()
     assert order_mock.called
-    errors = content["data"]["sendInvoiceEmail"]["invoiceErrors"]
+    errors = content["data"]["invoiceSendEmail"]["invoiceErrors"]
     assert errors == [{"field": "order", "code": "EMAIL_NOT_SET"}]

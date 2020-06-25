@@ -1,19 +1,19 @@
 import graphene
 
 from .mutations import (
-    CreateInvoice,
-    DeleteInvoice,
-    RequestDeleteInvoice,
-    RequestInvoice,
-    SendInvoiceEmail,
-    UpdateInvoice,
+    InvoiceCreate,
+    InvoiceDelete,
+    InvoiceRequest,
+    InvoiceRequestDelete,
+    InvoiceSendEmail,
+    InvoiceUpdate,
 )
 
 
 class InvoiceMutations(graphene.ObjectType):
-    request_invoice = RequestInvoice.Field()
-    request_delete_invoice = RequestDeleteInvoice.Field()
-    create_invoice = CreateInvoice.Field()
-    delete_invoice = DeleteInvoice.Field()
-    update_invoice = UpdateInvoice.Field()
-    send_invoice_email = SendInvoiceEmail.Field()
+    invoice_request = InvoiceRequest.Field()
+    invoice_request_delete = InvoiceRequestDelete.Field()
+    invoice_create = InvoiceCreate.Field()
+    invoice_delete = InvoiceDelete.Field()
+    invoice_update = InvoiceUpdate.Field()
+    invoice_send_email = InvoiceSendEmail.Field()
