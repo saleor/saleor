@@ -27,6 +27,27 @@ class ProductByIdLoader(DataLoader):
         return [products.get(product_id) for product_id in keys]
 
 
+class ProductByVariantIdLoader(DataLoader):
+    context_key = "product_by_variant_id"
+
+    def batch_load(self, keys):
+        def with_variants(variants):
+            product_ids = [variant.product_id for variant in variants]
+            return ProductByIdLoader(self.context).load_many(product_ids)
+
+        return (
+            ProductVariantByIdLoader(self.context).load_many(keys).then(with_variants)
+        )
+
+        # fixme: check this solution below
+
+        # return (
+        #     Product.objects.visible_to_user(self.user)
+        #     .filter(variants__in=keys)
+        #     .distinct()
+        # )
+
+
 class ImagesByProductIdLoader(DataLoader):
     context_key = "images_by_product"
 
@@ -92,3 +113,40 @@ class CollectionsByProductIdLoader(DataLoader):
             .load_many(set(cid for pid, cid in product_collection_pairs))
             .then(map_collections)
         )
+
+
+class CollectionsByVariantIdLoader(DataLoader):
+    context_key = "collections_by_variant"
+
+    def batch_load(self, keys):
+        def with_variants(variants):
+            product_ids = [variant.product_id for variant in variants]
+            return CollectionsByProductIdLoader(self.context).load_many(product_ids)
+
+        return (
+            ProductVariantByIdLoader(self.context).load_many(keys).then(with_variants)
+        )
+
+        # fixme: check this solution below
+
+        # product_collection_pairs = list(
+        #     CollectionProduct.objects.filter(product__variants__in=keys)
+        #     .order_by("id")
+        #     .values_list("product_id", "collection_id")
+        # )
+        # product_collection_map = defaultdict(list)
+        # for pid, cid in product_collection_pairs:
+        #     product_collection_map[pid].append(cid)
+
+        # def map_collections(collections):
+        #     collection_map = {c.id: c for c in collections}
+        #     return [
+        #         [collection_map[cid] for cid in product_collection_map[pid]]
+        #         for pid in keys
+        #     ]
+
+        # return (
+        #     CollectionByIdLoader(self.context)
+        #     .load_many(set(cid for pid, cid in product_collection_pairs))
+        #     .then(map_collections)
+        # )

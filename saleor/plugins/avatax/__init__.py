@@ -223,6 +223,7 @@ def get_checkout_lines_data(
             continue
         name = line.variant.product.name
         product = line.variant.product
+        collections = product.collections.all()
         product_type = line.variant.product.product_type
         tax_code = retrieve_tax_code_from_meta(product)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
@@ -230,7 +231,7 @@ def get_checkout_lines_data(
             data=data,
             quantity=line.quantity,
             amount=base_calculations.base_checkout_line_total(
-                line, discounts
+                line, line.variant, product, collections, discounts
             ).gross.amount,
             tax_code=tax_code,
             item_code=line.variant.sku,

@@ -410,11 +410,16 @@ class ProductVariant(ModelWithMetadata):
     def is_visible(self) -> bool:
         return self.product.is_visible
 
-    def get_price(self, discounts: Optional[Iterable[DiscountInfo]] = None) -> "Money":
+    def get_price(
+        self,
+        product,
+        collections: Iterable["Collection"],
+        discounts: Optional[Iterable[DiscountInfo]] = None,
+    ) -> "Money":
         return calculate_discounted_price(
-            product=self.product,
+            product=product,
             price=self.price,
-            collections=self.product.collections.all(),
+            collections=collections,
             discounts=discounts,
         )
 

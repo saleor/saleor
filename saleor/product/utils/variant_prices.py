@@ -12,8 +12,11 @@ from ..models import Product
 def _get_product_minimal_variant_price(product, discounts) -> Optional[Money]:
     # Start with the product's price as the minimal one
     minimal_variant_price = None
+    collections = product.collections.all()
     for variant in product.variants.all():
-        variant_price = variant.get_price(discounts=discounts)
+        variant_price = variant.get_price(
+            product=variant.product, collections=collections, discounts=discounts
+        )
         if minimal_variant_price is None:
             minimal_variant_price = variant_price
         else:

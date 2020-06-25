@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ...checkout.models import Checkout, CheckoutLine
     from ...order.models import Order, OrderLine
-    from ...product.models import Product, ProductType
+    from ...product.models import Collection, Product, ProductType, ProductVariant
     from ..models import PluginConfiguration
 
 
@@ -267,6 +267,9 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_line_total(
         self,
         checkout_line: "CheckoutLine",
+        variant: "ProductVariant",
+        product: "Product",
+        collections: Iterable["Collection"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -282,7 +285,7 @@ class AvataxPlugin(BasePlugin):
         taxes_data = get_checkout_tax_data(checkout, discounts, self.config)
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
-            if line.get("itemCode") == checkout_line.variant.sku:
+            if line.get("itemCode") == variant.sku:
                 tax = Decimal(line.get("tax", 0.0))
                 line_net = Decimal(line["lineAmount"])
                 line_gross = Money(amount=line_net + tax, currency=currency)

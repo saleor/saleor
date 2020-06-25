@@ -177,12 +177,14 @@ def item_google_product_category(item: ProductVariant, category_paths):
 
 
 def item_price(item: ProductVariant):
-    price = item.get_price(discounts=None)
+    collections = item.product.collections.all()
+    price = item.get_price(item.product, collections, discounts=None)
     return "%s %s" % (price.amount, price.currency)
 
 
 def item_sale_price(item: ProductVariant, discounts: Iterable[DiscountInfo]):
-    sale_price = item.get_price(discounts=discounts)
+    collections = item.product.collections.all()
+    sale_price = item.get_price(item.product, collections, discounts=discounts)
     return "%s %s" % (sale_price.amount, sale_price.currency)
 
 

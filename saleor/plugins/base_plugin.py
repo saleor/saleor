@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from ..core.taxes import TaxType
     from ..checkout.models import Checkout, CheckoutLine
     from ..discount import DiscountInfo
-    from ..product.models import Product, ProductType
+    from ..product.models import Collection, Product, ProductType, ProductVariant
     from ..account.models import Address, User
     from ..order.models import Fulfillment, OrderLine, Order
     from ..invoice.models import Invoice
@@ -135,6 +135,9 @@ class BasePlugin:
     def calculate_checkout_line_total(
         self,
         checkout_line: "CheckoutLine",
+        variant: "ProductVariant",
+        product: "Product",
+        collections: List["Collection"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:

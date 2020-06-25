@@ -458,7 +458,7 @@ def create_order_lines(order, discounts, how_many=10):
         variant = next(variants_iter)
         product = variant.product
         quantity = random.randrange(1, 5)
-        unit_price = variant.get_price(discounts)
+        unit_price = variant.get_price(product, product.collections.all(), discounts)
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         lines.append(
             OrderLine(

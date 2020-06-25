@@ -15,6 +15,11 @@ from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..giftcard.types import GiftCard
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
+from ..product.dataloaders import (
+    CollectionsByVariantIdLoader,
+    ProductByVariantIdLoader,
+    ProductVariantByIdLoader,
+)
 from ..shipping.types import ShippingMethod
 from .dataloaders import CheckoutLinesByCheckoutTokenLoader
 
@@ -65,16 +70,29 @@ class CheckoutLine(CountableDjangoObjectType):
         filter_fields = ["id"]
 
     @staticmethod
-    def resolve_total_price(self, info):
-        def calculate_total_price(discounts):
+    def resolve_variant(root: models.CheckoutLine, info):
+        return ProductVariantByIdLoader(info.context).load(root.variant_id)
+
+    @staticmethod
+    def resolve_total_price(root: models.CheckoutLine, info):
+        def calculate_line_total_price(data):
+            variant, product, collections, discounts = data
             return info.context.plugins.calculate_checkout_line_total(
-                checkout_line=self, discounts=discounts
+                checkout_line=root,
+                variant=variant,
+                product=product,
+                collections=collections,
+                discounts=discounts,
             )
 
-        return (
-            DiscountsByDateTimeLoader(info.context)
-            .load(info.context.request_time)
-            .then(calculate_total_price)
+        variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
+        product = ProductByVariantIdLoader(info.context).load(root.variant_id)
+        collections = CollectionsByVariantIdLoader(info.context).load(root.variant_id)
+        discounts = DiscountsByDateTimeLoader(info.context).load(
+            info.context.request_time
+        )
+        return Promise.all([variant, product, collections, discounts]).then(
+            calculate_line_total_price
         )
 
     @staticmethod
@@ -208,7 +226,7 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_lines(root: models.Checkout, *_args):
-        return root.lines.prefetch_related("variant")
+        return root.lines.all()
 
     @staticmethod
     def resolve_available_shipping_methods(root: models.Checkout, info):

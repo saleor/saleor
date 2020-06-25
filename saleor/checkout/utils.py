@@ -265,7 +265,11 @@ def get_prices_of_discounted_specific_product(
     discounted_lines = get_discounted_lines(lines, voucher)
     for line in discounted_lines:
         line_total = calculations.checkout_line_total(
-            line=line, discounts=discounts or []
+            line=line,
+            variant=line.variant,
+            product=line.variant.product,
+            collections=line.variant.product.collections.all(),
+            discounts=discounts or [],
         ).gross
         line_unit_price = quantize_price(
             (line_total / line.quantity), line_total.currency
@@ -620,6 +624,7 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
     quantity = checkout_line.quantity
     variant = checkout_line.variant
     product = variant.product
+    collections = product.collections.all()
     country = checkout_line.checkout.get_country()
     check_stock_quantity(variant, country, quantity)
 
@@ -636,7 +641,9 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
         translated_variant_name = ""
 
     manager = get_plugins_manager()
-    total_line_price = manager.calculate_checkout_line_total(checkout_line, discounts)
+    total_line_price = manager.calculate_checkout_line_total(
+        checkout_line, variant, product, collections, discounts
+    )
     unit_price = quantize_price(
         total_line_price / checkout_line.quantity, total_line_price.currency
     )

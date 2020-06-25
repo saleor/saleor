@@ -119,7 +119,9 @@ def update_order_prices(order, discounts):
     manager = get_plugins_manager()
     for line in order:  # type: OrderLine
         if line.variant:
-            unit_price = line.variant.get_price(discounts)
+            product = line.variant.product
+            collections = product.collections.all()
+            unit_price = line.variant.get_price(product, collections, discounts)
             unit_price = TaxedMoney(unit_price, unit_price)
             line.unit_price = unit_price
             line.save(
@@ -179,9 +181,10 @@ def add_variant_to_draft_order(order, variant, quantity, discounts=None):
         line.quantity += quantity
         line.save(update_fields=["quantity"])
     except OrderLine.DoesNotExist:
-        unit_price = variant.get_price(discounts)
-        unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         product = variant.product
+        collections = product.collections.all()
+        unit_price = variant.get_price(product, collections, discounts)
+        unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         product_name = str(product)
         variant_name = str(variant)
         translated_product_name = str(product.translated)
