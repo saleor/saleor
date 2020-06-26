@@ -558,7 +558,7 @@ def test_checkout_create_sets_country_from_shipping_address_country(
 
 
 @override_settings(DEFAULT_COUNTRY="DE")
-def test_checkout_create_check_lines_quantity_different_shipping_zone_insufficient_stocks(  # NOQA
+def test_checkout_create_check_lines_quantity_for_zone_insufficient_stocks(
     user_api_client,
     variant_with_many_stocks_different_shipping_zones,
     graphql_address_data,
