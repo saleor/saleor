@@ -790,13 +790,16 @@ def product_with_single_variant(product_type, category, warehouse):
 
 
 @pytest.fixture
-def product_with_two_variants(product_type, category, warehouse):
+def product_with_two_variants(product_type, category, warehouse, channel_USD):
     product = Product.objects.create(
         name="Test product with two variants",
         slug="test-product-with-two-variant",
         product_type=product_type,
         category=category,
-        is_published=True,
+    )
+
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True,
     )
 
     variants = [
@@ -879,13 +882,17 @@ def product_with_multiple_values_attributes(product, product_type, category) -> 
 
 
 @pytest.fixture
-def product_with_default_variant(product_type_without_variant, category, warehouse):
+def product_with_default_variant(
+    product_type_without_variant, category, warehouse, channel_USD
+):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-3",
         product_type=product_type_without_variant,
         category=category,
-        # is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True,
     )
     variant = ProductVariant.objects.create(
         product=product, sku="1234", track_inventory=True, price_amount=Decimal(10)
@@ -967,7 +974,7 @@ def product_variant_list(product):
 
 
 @pytest.fixture
-def product_without_shipping(category, warehouse):
+def product_without_shipping(category, warehouse, channel_USD):
     product_type = ProductType.objects.create(
         name="Type with no shipping",
         slug="no-shipping",
@@ -979,7 +986,9 @@ def product_without_shipping(category, warehouse):
         slug="test-product-4",
         product_type=product_type,
         category=category,
-        # is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True
     )
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_B", price_amount=Decimal(10)

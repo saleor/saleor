@@ -437,10 +437,6 @@ class ProductVariant(ModelWithMetadata):
     def __str__(self) -> str:
         return self.name or self.sku
 
-    @property
-    def is_visible(self) -> bool:
-        return self.product.is_visible
-
     def get_price(self, discounts: Optional[Iterable[DiscountInfo]] = None) -> "Money":
         return calculate_discounted_price(
             product=self.product,
