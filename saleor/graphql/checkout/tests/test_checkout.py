@@ -18,6 +18,7 @@ from ....core.payments import PaymentInterface
 from ....core.taxes import zero_money
 from ....order.models import Order
 from ....payment import TransactionKind
+from ....payment.gateways.dummy import TOKEN_VALIDATION_MAPPING
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
@@ -1878,6 +1879,53 @@ def test_checkout_complete_without_inventory_tracking(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))
+def test_checkout_complete_error_in_gateway_response(
+    token,
+    error,
+    user_api_client,
+    checkout_with_gift_card,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_gift_card
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.token = token
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert len(data["errors"])
+    assert data["errors"][0]["message"] == error
+    assert payment.transactions.count() == 1
+    assert Order.objects.count() == orders_count
 
 
 ERROR_GATEWAY_RESPONSE = GatewayResponse(
