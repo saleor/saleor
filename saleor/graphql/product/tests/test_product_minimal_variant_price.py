@@ -3,10 +3,63 @@ from unittest.mock import patch
 import graphene
 from freezegun import freeze_time
 from graphql_relay import from_global_id, to_global_id
+from prices import Money
 
 from ....product.error_codes import ProductErrorCode
 from ...discount.enums import DiscountValueTypeEnum
 from ...tests.utils import get_graphql_content
+
+
+@patch(
+    "saleor.graphql.product.mutations.products"
+    ".update_product_minimal_variant_price_task"
+)
+def test_product_update_updates_minimal_variant_price(
+    mock_update_product_minimal_variant_price_task,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    assert product.minimal_variant_price == Money("10.00", "USD")
+    query = """
+        mutation ProductUpdate(
+            $productId: ID!,
+            $basePrice: Decimal!,
+        ) {
+            productUpdate(
+                id: $productId
+                input: {
+                    basePrice: $basePrice
+                }
+            ) {
+                product {
+                    name
+                    minimalVariantPrice {
+                        amount
+                    }
+                }
+                errors {
+                    message
+                    field
+                }
+            }
+        }
+    """
+    product_id = to_global_id("Product", product.pk)
+    product_price = "1.99"
+    variables = {"productId": product_id, "basePrice": product_price}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    assert response.status_code == 200
+
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    mock_update_product_minimal_variant_price_task.delay.assert_called_once_with(
+        product.pk
+    )
 
 
 @patch(
