@@ -3,7 +3,23 @@ from decimal import Decimal
 import pytest
 
 from .... import ChargeStatus, PaymentError, TransactionKind, gateway
-from .. import PREAUTHORIZED_TOKENS, TOKEN_VALIDATION_MAPPING, process_payment
+from .. import (
+    PREAUTHORIZED_TOKENS,
+    TOKEN_VALIDATION_MAPPING,
+    authorize,
+    capture,
+    process_payment,
+    refund,
+    void,
+)
+
+NO_LONGER_ACTIVE = "This payment is no longer active."
+CANNOT_BE_AUTHORIZED_AGAIN = "Charged transactions cannot be authorized again."
+LACK_OF_SUCCESSFUL_TRANSACTION = "Cannot find successful auth transaction."
+CANNOT_BE_CAPTURED = "This payment cannot be captured."
+CANNOT_REFUND_MORE_THAN_CAPTURE = "Cannot refund more than captured."
+AMOUNT_SHOULD_BE_POSITIVE = "Amount should be a positive number."
+CANNOT_CHARGE_MORE_THAN_UNCAPTURED = "Unable to charge more than un-captured amount."
 
 
 @pytest.fixture(autouse=True)
@@ -22,36 +38,49 @@ def test_authorize_success(payment_dummy):
 
 
 @pytest.mark.parametrize(
-    "is_active, charge_status",
+    "is_active, charge_status, error",
     [
-        (False, ChargeStatus.NOT_CHARGED),
-        (False, ChargeStatus.PARTIALLY_CHARGED),
-        (False, ChargeStatus.FULLY_CHARGED),
-        (False, ChargeStatus.PARTIALLY_REFUNDED),
-        (False, ChargeStatus.FULLY_REFUNDED),
-        (True, ChargeStatus.PARTIALLY_CHARGED),
-        (True, ChargeStatus.FULLY_CHARGED),
-        (True, ChargeStatus.PARTIALLY_REFUNDED),
-        (True, ChargeStatus.FULLY_REFUNDED),
+        (False, ChargeStatus.NOT_CHARGED, NO_LONGER_ACTIVE),
+        (False, ChargeStatus.PARTIALLY_CHARGED, NO_LONGER_ACTIVE),
+        (False, ChargeStatus.FULLY_CHARGED, NO_LONGER_ACTIVE),
+        (False, ChargeStatus.PARTIALLY_REFUNDED, NO_LONGER_ACTIVE),
+        (False, ChargeStatus.FULLY_REFUNDED, NO_LONGER_ACTIVE),
+        (True, ChargeStatus.PARTIALLY_CHARGED, CANNOT_BE_AUTHORIZED_AGAIN),
+        (True, ChargeStatus.FULLY_CHARGED, CANNOT_BE_AUTHORIZED_AGAIN),
+        (True, ChargeStatus.PARTIALLY_REFUNDED, CANNOT_BE_AUTHORIZED_AGAIN),
+        (True, ChargeStatus.FULLY_REFUNDED, CANNOT_BE_AUTHORIZED_AGAIN),
     ],
 )
-def test_authorize_failed(is_active, charge_status, payment_dummy):
+def test_authorize_failed(is_active, charge_status, error, payment_dummy):
     payment = payment_dummy
     payment.is_active = is_active
     payment.charge_status = charge_status
     payment.save()
-    with pytest.raises(PaymentError):
-        txn = gateway.authorize(payment=payment, token="Fake")
-        assert txn is None
+    with pytest.raises(PaymentError) as e:
+        gateway.authorize(payment=payment, token="Fake")
+
+    assert e._excinfo[1].message == error
 
 
 def test_authorize_gateway_error(payment_dummy, monkeypatch):
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
-    with pytest.raises(PaymentError):
-        txn = gateway.authorize(payment=payment_dummy, token="Fake")
-        assert txn.kind == TransactionKind.AUTH
-        assert not txn.is_success
-        assert txn.payment == payment_dummy
+    with pytest.raises(PaymentError) as e:
+        gateway.authorize(payment=payment_dummy, token="Fake")
+
+    assert e._excinfo[1].message == "Unable to authorize transaction"
+
+
+def test_authorize_method_error(dummy_payment_data, dummy_gateway_config, monkeypatch):
+    # given
+    monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
+
+    # when
+    response = authorize(dummy_payment_data, dummy_gateway_config)
+
+    # then
+    assert not response.is_success
+    assert response.kind == TransactionKind.AUTH
+    assert response.error == "Unable to authorize transaction"
 
 
 def test_void_success(payment_txn_preauth):
@@ -67,36 +96,49 @@ def test_void_success(payment_txn_preauth):
 
 
 @pytest.mark.parametrize(
-    "is_active, charge_status",
+    "is_active, charge_status, error",
     [
-        (False, ChargeStatus.NOT_CHARGED),
-        (False, ChargeStatus.PARTIALLY_CHARGED),
-        (False, ChargeStatus.FULLY_CHARGED),
-        (False, ChargeStatus.PARTIALLY_REFUNDED),
-        (False, ChargeStatus.FULLY_REFUNDED),
-        (True, ChargeStatus.PARTIALLY_CHARGED),
-        (True, ChargeStatus.FULLY_CHARGED),
-        (True, ChargeStatus.PARTIALLY_REFUNDED),
-        (True, ChargeStatus.FULLY_REFUNDED),
+        (False, ChargeStatus.NOT_CHARGED, NO_LONGER_ACTIVE),
+        (False, ChargeStatus.PARTIALLY_CHARGED, NO_LONGER_ACTIVE),
+        (False, ChargeStatus.FULLY_CHARGED, NO_LONGER_ACTIVE),
+        (False, ChargeStatus.PARTIALLY_REFUNDED, NO_LONGER_ACTIVE),
+        (False, ChargeStatus.FULLY_REFUNDED, NO_LONGER_ACTIVE),
+        (True, ChargeStatus.PARTIALLY_CHARGED, LACK_OF_SUCCESSFUL_TRANSACTION),
+        (True, ChargeStatus.FULLY_CHARGED, LACK_OF_SUCCESSFUL_TRANSACTION),
+        (True, ChargeStatus.PARTIALLY_REFUNDED, LACK_OF_SUCCESSFUL_TRANSACTION),
+        (True, ChargeStatus.FULLY_REFUNDED, LACK_OF_SUCCESSFUL_TRANSACTION),
     ],
 )
-def test_void_failed(is_active, charge_status, payment_dummy):
+def test_void_failed(is_active, charge_status, error, payment_dummy):
     payment = payment_dummy
     payment.is_active = is_active
     payment.charge_status = charge_status
     payment.save()
-    with pytest.raises(PaymentError):
-        txn = gateway.void(payment=payment)
-        assert txn is None
+    with pytest.raises(PaymentError) as e:
+        gateway.void(payment=payment)
+
+    assert e._excinfo[1].message == error
 
 
 def test_void_gateway_error(payment_txn_preauth, monkeypatch):
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
-    with pytest.raises(PaymentError):
-        txn = gateway.void(payment=payment_txn_preauth)
-        assert txn.kind == TransactionKind.VOID
-        assert not txn.is_success
-        assert txn.payment == payment_txn_preauth
+    with pytest.raises(PaymentError) as e:
+        gateway.void(payment=payment_txn_preauth)
+
+    assert e._excinfo[1].message == "Unable to void the transaction."
+
+
+def test_void_method_error(dummy_payment_data, dummy_gateway_config, monkeypatch):
+    # given
+    monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
+
+    # when
+    response = void(dummy_payment_data, dummy_gateway_config)
+
+    # then
+    assert not response.is_success
+    assert response.kind == TransactionKind.VOID
+    assert response.error == "Unable to void the transaction."
 
 
 @pytest.mark.parametrize(
@@ -122,26 +164,27 @@ def test_capture_success(amount, charge_status, token, payment_txn_preauth):
 
 
 @pytest.mark.parametrize(
-    "amount, captured_amount, charge_status, is_active",
+    "amount, captured_amount, charge_status, is_active, error",
     [
-        (80, 0, ChargeStatus.NOT_CHARGED, False),
-        (120, 0, ChargeStatus.NOT_CHARGED, True),
-        (80, 20, ChargeStatus.PARTIALLY_CHARGED, True),
-        (80, 80, ChargeStatus.FULLY_CHARGED, True),
-        (80, 0, ChargeStatus.FULLY_REFUNDED, True),
+        (80, 0, ChargeStatus.NOT_CHARGED, False, NO_LONGER_ACTIVE),
+        (120, 0, ChargeStatus.NOT_CHARGED, True, CANNOT_CHARGE_MORE_THAN_UNCAPTURED),
+        (80, 20, ChargeStatus.PARTIALLY_CHARGED, True, CANNOT_BE_CAPTURED),
+        (80, 80, ChargeStatus.FULLY_CHARGED, True, CANNOT_BE_CAPTURED),
+        (80, 0, ChargeStatus.FULLY_REFUNDED, True, CANNOT_BE_CAPTURED),
     ],
 )
 def test_capture_failed(
-    amount, captured_amount, charge_status, is_active, payment_dummy
+    amount, captured_amount, charge_status, error, is_active, payment_dummy
 ):
     payment = payment_dummy
     payment.is_active = is_active
     payment.captured_amount = captured_amount
     payment.charge_status = charge_status
     payment.save()
-    with pytest.raises(PaymentError):
-        txn = gateway.capture(payment=payment, amount=amount)
-        assert txn is None
+    with pytest.raises(PaymentError) as e:
+        gateway.capture(payment=payment, amount=amount)
+
+    assert e._excinfo[1].message == error
 
 
 @pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))
@@ -155,7 +198,23 @@ def test_capture_error_in_response(token, error, payment_txn_preauth):
     with pytest.raises(PaymentError) as e:
         gateway.capture(payment=payment_txn_preauth)
 
-    e._excinfo[1].message == error
+    assert e._excinfo[1].message == error
+
+
+@pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))
+def test_capture_method_error(
+    token, error, dummy_payment_data, dummy_gateway_config, monkeypatch
+):
+    # given
+    dummy_payment_data.token = token
+
+    # when
+    response = capture(dummy_payment_data, dummy_gateway_config)
+
+    # then
+    assert not response.is_success
+    assert response.kind == TransactionKind.CAPTURE
+    assert response.error == error
 
 
 @pytest.mark.parametrize(
@@ -190,25 +249,26 @@ def test_refund_success(
 
 
 @pytest.mark.parametrize(
-    "initial_captured_amount, refund_amount, initial_charge_status",
+    "initial_captured_amount, refund_amount, initial_charge_status, error",
     [
-        (0, 10, ChargeStatus.NOT_CHARGED),
-        (10, 20, ChargeStatus.PARTIALLY_CHARGED),
-        (10, 20, ChargeStatus.FULLY_CHARGED),
-        (10, 20, ChargeStatus.PARTIALLY_REFUNDED),
-        (80, 0, ChargeStatus.FULLY_REFUNDED),
+        (0, 10, ChargeStatus.NOT_CHARGED, CANNOT_REFUND_MORE_THAN_CAPTURE),
+        (10, 20, ChargeStatus.PARTIALLY_CHARGED, CANNOT_REFUND_MORE_THAN_CAPTURE),
+        (10, 20, ChargeStatus.FULLY_CHARGED, CANNOT_REFUND_MORE_THAN_CAPTURE),
+        (10, 20, ChargeStatus.PARTIALLY_REFUNDED, CANNOT_REFUND_MORE_THAN_CAPTURE),
+        (80, 0, ChargeStatus.FULLY_REFUNDED, AMOUNT_SHOULD_BE_POSITIVE),
     ],
 )
 def test_refund_failed(
-    initial_captured_amount, refund_amount, initial_charge_status, payment_dummy
+    initial_captured_amount, refund_amount, error, initial_charge_status, payment_dummy
 ):
     payment = payment_dummy
     payment.charge_status = initial_charge_status
     payment.captured_amount = Decimal(initial_captured_amount)
     payment.save()
-    with pytest.raises(PaymentError):
-        txn = gateway.refund(payment=payment, amount=Decimal(refund_amount))
-        assert txn is None
+    with pytest.raises(PaymentError) as e:
+        gateway.refund(payment=payment, amount=Decimal(refund_amount))
+
+    assert e._excinfo[1].message == error
 
 
 def test_refund_gateway_error(payment_txn_captured, monkeypatch):
@@ -249,7 +309,20 @@ def test_process_payment_failed(token, error, payment_dummy):
     with pytest.raises(PaymentError) as e:
         gateway.process_payment(payment=payment_dummy, token=token)
 
-    e._excinfo[1].message == error
+    assert e._excinfo[1].message == error
+
+
+def test_refund_method_error(dummy_payment_data, dummy_gateway_config, monkeypatch):
+    # given
+    monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
+
+    # when
+    response = refund(dummy_payment_data, dummy_gateway_config)
+
+    # then
+    assert not response.is_success
+    assert response.kind == TransactionKind.REFUND
+    assert response.error == "Unable to process refund"
 
 
 def test_process_payment_pre_authorized(
@@ -313,7 +386,7 @@ def test_process_payment_pre_authorized_and_capture_error(
     with pytest.raises(PaymentError) as e:
         gateway.process_payment(payment=payment_dummy, token=token)
 
-    e._excinfo[1].message == TOKEN_VALIDATION_MAPPING[token]
+    assert e._excinfo[1].message == TOKEN_VALIDATION_MAPPING[token]
 
 
 @pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))

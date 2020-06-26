@@ -462,7 +462,7 @@ def test_payment_capture_with_payment_non_authorized_yet(
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
     assert data["errors"] == [
-        {"field": None, "message": "Cannot find successful auth transaction"}
+        {"field": None, "message": "Cannot find successful auth transaction."}
     ]
 
 
