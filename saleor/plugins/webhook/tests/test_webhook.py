@@ -41,7 +41,7 @@ def test_trigger_webhooks_for_event(
     }
 
     mock_request.assert_called_once_with(
-        webhook.target_url, data=expected_data, headers=expected_headers, timeout=10
+        webhook.target_url, json=expected_data, headers=expected_headers, timeout=10
     )
 
 
@@ -128,7 +128,7 @@ def test_trigger_webhooks_for_event_with_secret_key(
     }
 
     mock_request.assert_called_once_with(
-        webhook.target_url, data=expected_data, headers=expected_headers, timeout=10
+        webhook.target_url, json=expected_data, headers=expected_headers, timeout=10
     )
 
 
