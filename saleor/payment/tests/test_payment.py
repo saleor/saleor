@@ -278,7 +278,7 @@ def test_gateway_refund_errors(payment_txn_captured):
     payment = payment_txn_captured
     with pytest.raises(PaymentError) as exc:
         gateway.refund(payment, Decimal("1000000"))
-    assert exc.value.message == "Cannot refund more than captured"
+    assert exc.value.message == "Cannot refund more than captured."
 
     with pytest.raises(PaymentError) as exc:
         gateway.refund(payment, Decimal("0"))

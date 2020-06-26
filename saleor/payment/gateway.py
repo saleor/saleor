@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 ERROR_MSG = "Oops! Something went wrong."
-GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
+GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful."
 
 
 def raise_payment_error(fn: Callable) -> Callable:
@@ -227,7 +227,7 @@ def _get_past_transaction_token(
 ):
     txn = payment.transactions.filter(kind=kind, is_success=True).first()
     if txn is None:
-        raise PaymentError(f"Cannot find successful {kind} transaction")
+        raise PaymentError(f"Cannot find successful {kind} transaction.")
     return txn.token
 
 
@@ -235,4 +235,4 @@ def _validate_refund_amount(payment: Payment, amount: Decimal):
     if amount <= 0:
         raise PaymentError("Amount should be a positive number.")
     if amount > payment.captured_amount:
-        raise PaymentError("Cannot refund more than captured")
+        raise PaymentError("Cannot refund more than captured.")
