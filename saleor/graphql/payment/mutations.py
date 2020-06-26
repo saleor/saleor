@@ -9,8 +9,7 @@ from ...core.utils import get_client_ip
 from ...graphql.checkout.utils import clean_billing_address, clean_checkout_shipping
 from ...payment import PaymentError, gateway, models
 from ...payment.error_codes import PaymentErrorCode
-from ...payment.utils import create_payment
-from ...plugins.manager import get_plugins_manager
+from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..checkout.types import Checkout
@@ -108,10 +107,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def validate_gateway(cls, gateway_id, currency):
-        available_gateways = get_plugins_manager().list_payment_gateways(
-            currency=currency
-        )
-        if not any([gateway["id"] == gateway_id for gateway in available_gateways]):
+        if not is_currency_supported(currency, gateway_id):
             raise ValidationError(
                 {
                     "gateway": ValidationError(

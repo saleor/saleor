@@ -15,6 +15,7 @@ from ..utils import (
     create_payment,
     create_payment_information,
     create_transaction,
+    is_currency_supported,
     validate_gateway_response,
 )
 
@@ -456,3 +457,21 @@ def test_validate_gateway_response_not_json_serializable(gateway_response):
         validate_gateway_response(gateway_response)
 
     assert str(e.value) == "Gateway response needs to be json serializable"
+
+
+@pytest.mark.parametrize(
+    "currency, exp_response", [("EUR", True), ("USD", True), ("PLN", False)],
+)
+def test_is_currency_supported(currency, exp_response, gateway_config, monkeypatch):
+    # given
+    gateway_config.supported_currencies = "USD, EUR"
+    monkeypatch.setattr(
+        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin._get_gateway_config",
+        lambda _: gateway_config,
+    )
+
+    # when
+    response = is_currency_supported(currency, "mirumee.payments.dummy")
+
+    # then
+    assert response == exp_response
