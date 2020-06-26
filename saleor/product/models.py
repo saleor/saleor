@@ -112,15 +112,15 @@ class ProductType(ModelWithMetadata):
 
 
 class ProductsQueryset(models.QuerySet):
-    def collection_sorted(self, user: "User"):
-        qs = self.visible_to_user(user)
+    def collection_sorted(self, user: "User", channel_slug: str):
+        qs = self.visible_to_user(user, channel_slug)
         qs = qs.order_by(
             F("collectionproduct__sort_order").asc(nulls_last=True),
             F("collectionproduct__id"),
         )
         return qs
 
-    def published(self, channel_slug):
+    def published(self, channel_slug: str):
         today = datetime.date.today()
         return self.filter(
             Q(channel_listing__publication_date__lte=today)
@@ -129,11 +129,11 @@ class ProductsQueryset(models.QuerySet):
             channel_listing__is_published=True,
         )
 
-    def published_with_variants(self, channel_slug):
+    def published_with_variants(self, channel_slug: str):
         published = self.published(channel_slug)
         return published.filter(variants__isnull=False)
 
-    def visible_to_user(self, user, channel_slug):
+    def visible_to_user(self, user: "User", channel_slug: str):
         if self.user_has_access_to_all(user):
             return self.all()
         return self.published_with_variants(channel_slug)

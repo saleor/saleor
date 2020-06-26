@@ -657,14 +657,17 @@ def categories_tree_with_published_products(
     product_channel_listings = []
     for product in [child_product, parent_product]:
         product.save()
-        product_channel_listings.append(
-            ProductChannelListing(
-                product=product,
-                channel=channel_USD,
-                publication_date=datetime.date.today(),
-                is_published=True,
+        if not ProductChannelListing.objects.filter(
+            product=product, channel=channel_USD
+        ).exists():
+            product_channel_listings.append(
+                ProductChannelListing(
+                    product=product,
+                    channel=channel_USD,
+                    publication_date=datetime.date.today(),
+                    is_published=True,
+                )
             )
-        )
         product_channel_listings.append(
             ProductChannelListing(
                 product=product,
