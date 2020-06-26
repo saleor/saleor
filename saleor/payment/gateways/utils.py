@@ -8,6 +8,11 @@ if TYPE_CHECKING:
 
 
 def get_supported_currencies(config: "GatewayConfig", gateway_name: str) -> List[str]:
+    """Return supported currencies for given gateway configuration.
+
+    If supported currencies are not specified, the default currency is used
+    and a warning is raised.
+    """
     supp_currencies = config.supported_currencies
     if not supp_currencies:
         currencies = [settings.DEFAULT_CURRENCY]

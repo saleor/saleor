@@ -11,6 +11,7 @@ from ..account.models import User
 from ..checkout.models import Checkout
 from ..order.actions import handle_fully_paid_order
 from ..order.models import Order
+from ..plugins.manager import get_plugins_manager
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .error_codes import PaymentErrorCode
 from .interface import AddressData, GatewayResponse, PaymentData
@@ -280,3 +281,9 @@ def get_payment_token(payment: Payment):
     if auth_transaction is None:
         raise PaymentError("Cannot process unauthorized transaction")
     return auth_transaction.token
+
+
+def is_currency_supported(currency: str, gateway_id: str):
+    """Return true if the given gateway supports given currency."""
+    available_gateways = get_plugins_manager().list_payment_gateways(currency=currency)
+    return any([gateway["id"] == gateway_id for gateway in available_gateways])
