@@ -844,36 +844,6 @@ class ProductCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def clean_sku(cls, product_type, cleaned_input):
-        """Validate SKU input field.
-
-        When creating products that don't use variants, SKU is required in
-        the input in order to create the default variant underneath.
-        See the documentation for `has_variants` field for details:
-        http://docs.getsaleor.com/en/latest/architecture/products.html#product-types
-        """
-        if product_type and not product_type.has_variants:
-            input_sku = cleaned_input.get("sku")
-            if not input_sku:
-                raise ValidationError(
-                    {
-                        "sku": ValidationError(
-                            "This field cannot be blank.",
-                            code=ProductErrorCode.REQUIRED,
-                        )
-                    }
-                )
-            elif models.ProductVariant.objects.filter(sku=input_sku).exists():
-                raise ValidationError(
-                    {
-                        "sku": ValidationError(
-                            "Product with this SKU already exists.",
-                            code=ProductErrorCode.ALREADY_EXISTS,
-                        )
-                    }
-                )
-
-    @classmethod
     def check_for_duplicates_in_stocks(cls, stocks_data):
         warehouse_ids = [stock["warehouse"] for stock in stocks_data]
         duplicates = get_duplicated_values(warehouse_ids)
@@ -944,23 +914,6 @@ class ProductUpdate(ProductCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
-
-    @classmethod
-    def clean_sku(cls, product_type, cleaned_input):
-        input_sku = cleaned_input.get("sku")
-        if (
-            not product_type.has_variants
-            and input_sku
-            and models.ProductVariant.objects.filter(sku=input_sku).exists()
-        ):
-            raise ValidationError(
-                {
-                    "sku": ValidationError(
-                        "Product with this SKU already exists.",
-                        code=ProductErrorCode.ALREADY_EXISTS,
-                    )
-                }
-            )
 
     @classmethod
     @transaction.atomic
