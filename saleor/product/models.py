@@ -1,3 +1,4 @@
+import datetime
 from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
@@ -18,12 +19,7 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
-from ..core.models import (
-    ModelWithMetadata,
-    PublishableModel,
-    PublishedQuerySet,
-    SortableModel,
-)
+from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
 from ..core.permissions import ProductPermissions
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
@@ -115,7 +111,7 @@ class ProductType(ModelWithMetadata):
         )
 
 
-class ProductsQueryset(PublishedQuerySet):
+class ProductsQueryset(models.QuerySet):
     def collection_sorted(self, user: "User"):
         qs = self.visible_to_user(user)
         qs = qs.order_by(
@@ -124,14 +120,27 @@ class ProductsQueryset(PublishedQuerySet):
         )
         return qs
 
-    def published_with_variants(self):
-        published = self.published()
+    def published(self, channel_slug):
+        today = datetime.date.today()
+        return self.filter(
+            Q(channel_listing__publication_date__lte=today)
+            | Q(channel_listing__publication_date__isnull=True),
+            channel_listing__channel__slug=channel_slug,
+            channel_listing__is_published=True,
+        )
+
+    def published_with_variants(self, channel_slug):
+        published = self.published(channel_slug)
         return published.filter(variants__isnull=False)
 
-    def visible_to_user(self, user):
+    def visible_to_user(self, user, channel_slug):
         if self.user_has_access_to_all(user):
             return self.all()
-        return self.published_with_variants()
+        return self.published_with_variants(channel_slug)
+
+    @staticmethod
+    def user_has_access_to_all(user):
+        return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
 
     def sort_by_attribute(
         self, attribute_pk: Union[int, str], descending: bool = False

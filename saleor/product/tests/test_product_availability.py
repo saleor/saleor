@@ -58,46 +58,101 @@ def test_availability(stock, monkeypatch, settings):
     assert availability.price_range_undiscounted.stop.tax.amount
 
 
-def test_available_products_only_published(product_list):
-    product = product_list[0]
-    product.is_published = False
-    product.save()
+def test_available_products_only_published(product_list, channel_USD):
+    channel_listing = product_list[0].channel_listing.get()
+    channel_listing.is_published = False
+    channel_listing.save(update_fields=["is_published"])
 
-    available_products = models.Product.objects.published()
+    available_products = models.Product.objects.published(channel_USD.slug)
     assert available_products.count() == 2
-    assert all([product.is_published for product in available_products])
+    assert all(
+        [
+            product.channel_listing.get(channel__slug=channel_USD.slug).is_published
+            for product in available_products
+        ]
+    )
 
 
-def test_available_products_only_available(product_list):
-    product = product_list[0]
+def test_available_products_only_available(product_list, channel_USD):
+    channel_listing = product_list[0].channel_listing.get()
     date_tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-    product.publication_date = date_tomorrow
-    product.save()
-    available_products = models.Product.objects.published()
+    channel_listing.publication_date = date_tomorrow
+    channel_listing.save(update_fields=["publication_date"])
+
+    available_products = models.Product.objects.published(channel_USD.slug)
     assert available_products.count() == 2
-    assert all([product.is_visible for product in available_products])
+    assert all(
+        [
+            product.channel_listing.get(channel__slug=channel_USD.slug).is_published
+            for product in available_products
+        ]
+    )
 
 
-def test_available_products_with_variants(product_list):
+def test_available_products_available_from_yesterday(product_list, channel_USD):
+    channel_listing = product_list[0].channel_listing.get()
+    date_tomorrow = datetime.date.today() - datetime.timedelta(days=1)
+    channel_listing.publication_date = date_tomorrow
+    channel_listing.save(update_fields=["publication_date"])
+
+    available_products = models.Product.objects.published(channel_USD.slug)
+    assert available_products.count() == 3
+    assert all(
+        [
+            product.channel_listing.get(channel__slug=channel_USD.slug).is_published
+            for product in available_products
+        ]
+    )
+
+
+def test_available_products_available_without_channel_listings(
+    product_list, channel_PLN
+):
+    available_products = models.Product.objects.published(channel_PLN.slug)
+    assert available_products.count() == 0
+
+
+def test_available_products_available_with_many_channels(
+    product_list_with_many_channels, channel_USD, channel_PLN
+):
+    models.ProductChannelListing.objects.filter(
+        product__in=product_list_with_many_channels, channel=channel_PLN
+    ).update(is_published=False)
+
+    available_products = models.Product.objects.published(channel_PLN.slug)
+    assert available_products.count() == 0
+    available_products = models.Product.objects.published(channel_USD.slug)
+    assert available_products.count() == 3
+
+
+def test_available_products_with_variants(product_list, channel_USD):
     product = product_list[0]
     product.variants.all().delete()
 
-    available_products = models.Product.objects.published_with_variants()
+    available_products = models.Product.objects.published_with_variants(
+        channel_USD.slug
+    )
     assert available_products.count() == 2
 
 
-def test_visible_to_customer_user(customer_user, product_list):
+def test_visible_to_customer_user(customer_user, product_list, channel_USD):
     product = product_list[0]
     product.variants.all().delete()
 
-    available_products = models.Product.objects.visible_to_user(customer_user)
+    available_products = models.Product.objects.visible_to_user(
+        customer_user, channel_USD.slug
+    )
     assert available_products.count() == 2
 
 
-def test_visible_to_staff_user(customer_user, product_list, permission_manage_products):
+def test_visible_to_staff_user(
+    customer_user, product_list, channel_USD, permission_manage_products
+):
     product = product_list[0]
     product.variants.all().delete()
     customer_user.user_permissions.add(permission_manage_products)
 
-    available_products = models.Product.objects.visible_to_user(customer_user)
+    available_products = models.Product.objects.visible_to_user(
+        customer_user, channel_USD.slug
+    )
     assert available_products.count() == 3

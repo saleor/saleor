@@ -538,7 +538,7 @@ class Product(CountableDjangoObjectType):
         context = info.context
         channel_listing = ProductChannelListingByProductIdAndChanneSlugLoader(
             context
-        ).load((root.id, temporaryChannelId2))
+        ).load((root.id, temporaryChannelId))
         variants = ProductVariantsByProductIdLoader(context).load(root.id)
         collections = CollectionsByProductIdLoader(context).load(root.id)
 
