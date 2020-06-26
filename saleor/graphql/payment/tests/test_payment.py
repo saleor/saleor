@@ -6,6 +6,7 @@ from django_countries.fields import Country
 
 from ....checkout import calculations
 from ....payment.error_codes import PaymentErrorCode
+from ....payment.gateways.dummy import TOKEN_VALIDATION_MAPPING
 from ....payment.interface import CreditCardInfo, CustomerSource, TokenConfig
 from ....payment.models import ChargeStatus, Payment, TransactionKind
 from ....payment.utils import fetch_customer_id, store_customer_id
@@ -468,9 +469,10 @@ def test_payment_capture_with_payment_non_authorized_yet(
 def test_payment_capture_gateway_error(
     staff_api_client, permission_manage_orders, payment_txn_preauth, monkeypatch
 ):
+    token, error = list(TOKEN_VALIDATION_MAPPING.items())[0]
     payment = payment_txn_preauth
     transaction = payment.transactions.last()
-    transaction.token = "4000000000000069"
+    transaction.token = token
     transaction.save()
 
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
@@ -482,7 +484,7 @@ def test_payment_capture_gateway_error(
     )
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
-    assert data["errors"] == [{"field": None, "message": "Card expired"}]
+    assert data["errors"] == [{"field": None, "message": error}]
 
     payment_txn_preauth.refresh_from_db()
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
