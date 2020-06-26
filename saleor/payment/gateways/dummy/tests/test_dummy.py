@@ -252,11 +252,11 @@ def test_process_payment_failed(token, error, payment_dummy):
     e._excinfo[1].message == error
 
 
-@pytest.mark.parametrize("token", PREAUTHORIZED_TOKENS)
 def test_process_payment_pre_authorized(
-    token, payment_dummy, dummy_gateway_config, monkeypatch
+    payment_dummy, dummy_gateway_config, monkeypatch
 ):
     # given
+    token = PREAUTHORIZED_TOKENS[1]
     dummy_gateway_config.auto_capture = False
     monkeypatch.setattr(
         "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin._get_gateway_config",
@@ -273,6 +273,47 @@ def test_process_payment_pre_authorized(
     assert not txn.error
     payment_dummy.refresh_from_db()
     assert payment_dummy.is_active
+
+
+def test_process_payment_pre_authorized_and_capture(
+    payment_dummy, dummy_gateway_config, monkeypatch
+):
+    # given
+    token = PREAUTHORIZED_TOKENS[1]
+    dummy_gateway_config.auto_capture = True
+    monkeypatch.setattr(
+        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin._get_gateway_config",
+        lambda _: dummy_gateway_config,
+    )
+
+    # when
+    txn = gateway.process_payment(payment=payment_dummy, token=token)
+
+    # then
+    assert txn.is_success
+    assert txn.payment == payment_dummy
+    assert txn.kind == TransactionKind.CAPTURE
+    assert not txn.error
+    payment_dummy.refresh_from_db()
+    assert payment_dummy.is_active
+
+
+def test_process_payment_pre_authorized_and_capture_error(
+    payment_dummy, dummy_gateway_config, monkeypatch
+):
+    # given
+    token = PREAUTHORIZED_TOKENS[0]
+    dummy_gateway_config.auto_capture = True
+    monkeypatch.setattr(
+        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin._get_gateway_config",
+        lambda _: dummy_gateway_config,
+    )
+
+    # when
+    with pytest.raises(PaymentError) as e:
+        gateway.process_payment(payment=payment_dummy, token=token)
+
+    e._excinfo[1].message == TOKEN_VALIDATION_MAPPING[token]
 
 
 @pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))
