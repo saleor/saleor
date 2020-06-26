@@ -2,11 +2,11 @@ import uuid
 from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, patch
-from django.test import override_settings
 
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from django.test import override_settings
 from prices import Money, TaxedMoney
 
 from ....account.models import User
