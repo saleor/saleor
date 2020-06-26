@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 
 from .... import ChargeStatus, PaymentError, TransactionKind, gateway
-from .. import PREAUTHORIZED_TOKENS, process_payment
+from .. import PREAUTHORIZED_TOKENS, TOKEN_VALIDATION_MAPPING, process_payment
 
 
 @pytest.fixture(autouse=True)
@@ -144,16 +144,7 @@ def test_capture_failed(
         assert txn is None
 
 
-@pytest.mark.parametrize(
-    "token, error",
-    [
-        ("4000000000000069", "Card expired"),
-        ("4000000000009995", "Insufficient funds"),
-        ("4000000000000127", "Incorrect csv"),
-        ("4000000000000002", "Card declined"),
-        ("4111111111111111", "Card declined"),
-    ],
-)
+@pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))
 def test_capture_error_in_response(token, error, payment_txn_preauth):
     # given
     transaction = payment_txn_preauth.transactions.last()
@@ -252,16 +243,7 @@ def test_process_payment_success(token, payment_dummy):
     assert payment_dummy.is_active
 
 
-@pytest.mark.parametrize(
-    "token, error",
-    [
-        ("4000000000000069", "Card expired"),
-        ("4000000000009995", "Insufficient funds"),
-        ("4000000000000127", "Incorrect csv"),
-        ("4000000000000002", "Card declined"),
-        ("4111111111111111", "Card declined"),
-    ],
-)
+@pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))
 def test_process_payment_failed(token, error, payment_dummy):
     # when
     with pytest.raises(PaymentError) as e:
@@ -293,16 +275,7 @@ def test_process_payment_pre_authorized(
     assert payment_dummy.is_active
 
 
-@pytest.mark.parametrize(
-    "token, error",
-    [
-        ("4000000000000069", "Card expired"),
-        ("4000000000009995", "Insufficient funds"),
-        ("4000000000000127", "Incorrect csv"),
-        ("4000000000000002", "Card declined"),
-        ("4111111111111111", "Card declined"),
-    ],
-)
+@pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))
 def test_process_payment_method_error_in_response(
     token, error, dummy_gateway_config, dummy_payment_data
 ):
