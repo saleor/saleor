@@ -28,7 +28,7 @@ def test_trigger_webhooks_for_event(
     permission_manage_products,
 ):
     webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = "https://webhook.site/f0fc9979-cbd4-47b7-8705-1acb03fff1d0"
+    webhook.target_url = "https://webhook.site/82aa4765-6e5b-4478-b1e1-120a8c9d6668"
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
@@ -111,7 +111,7 @@ def test_trigger_webhooks_for_event_with_secret_key(
     mock_request, webhook, order_with_lines, permission_manage_orders
 ):
     webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = "https://webhook.site/f0fc9979-cbd4-47b7-8705-1acb03fff1d0"
+    webhook.target_url = "https://webhook.site/82aa4765-6e5b-4478-b1e1-120a8c9d6668"
     webhook.secret_key = "secret_key"
     webhook.save()
 
