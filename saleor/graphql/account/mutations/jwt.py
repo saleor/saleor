@@ -1,3 +1,5 @@
+from typing import Optional
+
 import graphene
 import jwt
 from django.core.exceptions import ValidationError
@@ -70,9 +72,20 @@ class CreateToken(BaseMutation):
     user = graphene.Field(User, description="A user instance.")
 
     @classmethod
+    def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
+        user = models.User.objects.filter(email=email).first()
+        if not user:
+            return None
+        if not user.is_active:
+            return None
+        if not user.check_password(password):
+            return None
+        return user
+
+    @classmethod
     def get_user(cls, info, data):
-        user = models.User.objects.filter(email=data["email"]).first()
-        if not user or not user.is_active or not user.check_password(data["password"]):
+        user = cls._retrieve_user_from_credentials(data["email"], data["password"])
+        if not user:
             raise ValidationError(
                 {
                     "email": ValidationError(
