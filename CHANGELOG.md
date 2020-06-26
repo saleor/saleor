@@ -2,8 +2,14 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-
 ## [Unreleased]
+
+### Breaking Changes
+
+- Refactor JWT support - These changes could require a handling JWT token in the storefront. Storefront needs to handle a case when the backend returns the exception about the invalid token. - #5734, #5816 by @korycins
+- New logging setup will now output JSON logs in production mode for ease of feeding them into log collection systems like Logstash or CloudWatch Logs - #5699 by @patrys
+
+### Fixes
 
 - Add our implementation of UUID scalar - #5646 by @koradon
 - Add AppTokenVerify mutation - #5716 by @korycins
@@ -12,9 +18,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `json_content` field from the `Menu` model - #5761 by @maarcingebala
 - Strip warehouse name in mutations - #5766 by @koradon
 - Add missing OrderEvents during checkout flow - #5684 by @koradon
-    ### Breaking Changes
-   - Refactor JWT support - These changes could require a handling JWT token in the storefront. Storefront needs to handle a case when the backend returns the exception about the invalid token. - #5734, #5816 by @korycins
-
 
 ## 2.10.1
 
