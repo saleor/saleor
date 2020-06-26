@@ -2,6 +2,7 @@ import uuid
 from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, patch
+from django.test import override_settings
 
 import graphene
 import pytest
@@ -527,6 +528,7 @@ def test_checkout_create_check_lines_quantity_multiple_warehouse(
     assert data["errors"][0]["field"] == "quantity"
 
 
+@override_settings(DEFAULT_COUNTRY="DE")
 def test_checkout_create_sets_country_from_shipping_address_country(
     user_api_client,
     variant_with_many_stocks_different_shipping_zones,
@@ -555,6 +557,7 @@ def test_checkout_create_sets_country_from_shipping_address_country(
     assert checkout.country == "US"
 
 
+@override_settings(DEFAULT_COUNTRY="DE")
 def test_checkout_create_check_lines_quantity_different_shipping_zone_insufficient_stocks(  # NOQA
     user_api_client,
     variant_with_many_stocks_different_shipping_zones,
@@ -1345,6 +1348,7 @@ def test_checkout_shipping_address_update(
     "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
+@override_settings(DEFAULT_COUNTRY="DE")
 def test_checkout_shipping_address_update_changes_checkout_country(
     mocked_update_shipping_method,
     user_api_client,
@@ -1393,6 +1397,7 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
+@override_settings(DEFAULT_COUNTRY="DE")
 def test_checkout_shipping_address_update_insufficient_stocks(
     mocked_update_shipping_method,
     user_api_client,
