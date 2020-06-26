@@ -192,6 +192,7 @@ def get_product_availability(
 def get_variant_availability(
     variant: ProductVariant,
     product: Product,
+    channel_listing: Optional[ProductChannelListing],
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo],
     country: Optional[str] = None,
@@ -231,7 +232,8 @@ def get_variant_availability(
             price_local_currency = None
             discount_local_currency = None
 
-        is_on_sale = product.is_visible and discount is not None
+        is_visible = channel_listing is not None and channel_listing.is_visible
+        is_on_sale = is_visible and discount is not None
 
         return VariantAvailability(
             on_sale=is_on_sale,

@@ -328,25 +328,35 @@ class ProductVariant(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_pricing(root: models.ProductVariant, info):
+        # TODO: Implement geting channel slug from top level resolver
+        temporaryChannelId = "saleor-default-channel"
+
         context = info.context
         product = ProductByIdLoader(context).load(root.product_id)
+        channel_listing = ProductChannelListingByProductIdAndChanneSlugLoader(
+            context
+        ).load((root.product_id, temporaryChannelId))
         collections = CollectionsByProductIdLoader(context).load(root.product_id)
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_product(product):
-                def calculate_pricing_with_collections(collections):
-                    availability = get_variant_availability(
-                        variant=root,
-                        product=product,
-                        collections=collections,
-                        discounts=discounts,
-                        country=context.country,
-                        local_currency=context.currency,
-                        plugins=context.plugins,
-                    )
-                    return VariantPricingInfo(**asdict(availability))
+                def calculate_pricing_with_channel_listings(channel_listing):
+                    def calculate_pricing_with_collections(collections):
+                        availability = get_variant_availability(
+                            variant=root,
+                            product=product,
+                            channel_listing=channel_listing,
+                            collections=collections,
+                            discounts=discounts,
+                            country=context.country,
+                            local_currency=context.currency,
+                            plugins=context.plugins,
+                        )
+                        return VariantPricingInfo(**asdict(availability))
 
-                return collections.then(calculate_pricing_with_collections)
+                    return collections.then(calculate_pricing_with_collections)
+
+                return channel_listing.then(calculate_pricing_with_channel_listings)
 
             return product.then(calculate_pricing_with_product)
 
