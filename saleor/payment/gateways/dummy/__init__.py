@@ -117,7 +117,9 @@ def process_payment(
     """Process the payment."""
     token = payment_information.token
 
-    if token in PREAUTHORIZED_TOKENS and not config.auto_capture:
-        return authorize(payment_information, config)
+    if token in PREAUTHORIZED_TOKENS:
+        authorize_response = authorize(payment_information, config)
+        if not config.auto_capture:
+            return authorize_response
 
     return capture(payment_information, config)
