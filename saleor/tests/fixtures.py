@@ -478,6 +478,31 @@ def shipping_zone(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def shipping_zones(db):
+    shipping_zone_poland, shipping_zone_usa = ShippingZone.objects.bulk_create(
+        [
+            ShippingZone(name="Poland", countries=["PL"]),
+            ShippingZone(name="USA", countries=["US"]),
+        ]
+    )
+    shipping_zone_poland.shipping_methods.create(
+        name="DHL",
+        minimum_order_price=Money(0, "USD"),
+        type=ShippingMethodType.PRICE_BASED,
+        price=Money(10, "USD"),
+        shipping_zone=shipping_zone,
+    )
+    shipping_zone_usa.shipping_methods.create(
+        name="DHL",
+        minimum_order_price=Money(0, "USD"),
+        type=ShippingMethodType.PRICE_BASED,
+        price=Money(10, "USD"),
+        shipping_zone=shipping_zone,
+    )
+    return [shipping_zone_poland, shipping_zone_usa]
+
+
+@pytest.fixture
 def shipping_zone_without_countries(db):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(name="Europe", countries=[])
     shipping_zone.shipping_methods.create(
@@ -847,8 +872,26 @@ def variant(product) -> ProductVariant:
 @pytest.fixture
 def variant_with_many_stocks(variant, warehouses_with_shipping_zone):
     warehouses = warehouses_with_shipping_zone
-    Stock.objects.create(warehouse=warehouses[0], product_variant=variant, quantity=4)
-    Stock.objects.create(warehouse=warehouses[1], product_variant=variant, quantity=3)
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=warehouses[0], product_variant=variant, quantity=4),
+            Stock(warehouse=warehouses[1], product_variant=variant, quantity=3),
+        ]
+    )
+    return variant
+
+
+@pytest.fixture
+def variant_with_many_stocks_different_shipping_zones(
+    variant, warehouses_with_different_shipping_zone
+):
+    warehouses = warehouses_with_different_shipping_zone
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=warehouses[0], product_variant=variant, quantity=4),
+            Stock(warehouse=warehouses[1], product_variant=variant, quantity=3),
+        ]
+    )
     return variant
 
 
@@ -2086,6 +2129,13 @@ def warehouses(address):
 def warehouses_with_shipping_zone(warehouses, shipping_zone):
     warehouses[0].shipping_zones.add(shipping_zone)
     warehouses[1].shipping_zones.add(shipping_zone)
+    return warehouses
+
+
+@pytest.fixture
+def warehouses_with_different_shipping_zone(warehouses, shipping_zones):
+    warehouses[0].shipping_zones.add(shipping_zones[0])
+    warehouses[1].shipping_zones.add(shipping_zones[1])
     return warehouses
 
 
