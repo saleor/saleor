@@ -560,12 +560,13 @@ def test_checkout_create_check_lines_quantity_different_shipping_zone_insufficie
     variant_with_many_stocks_different_shipping_zones,
     graphql_address_data,
 ):
+    """Check if insufficient stock exception will be raised.
+    If item from checkout will not have enough quantity in correct shipping zone for
+    shipping address INSUFICIENT_STOCK checkout error should be raised."""
     variant = variant_with_many_stocks_different_shipping_zones
-    stock = Stock.objects.filter(
+    Stock.objects.filter(
         warehouse__shipping_zones__countries__contains="US", product_variant=variant
-    ).first()
-    stock.quantity = 0
-    stock.save()
+    ).update(quantity=0)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
     shipping_address = graphql_address_data
@@ -1402,11 +1403,9 @@ def test_checkout_shipping_address_update_insufficient_stocks(
     checkout = Checkout.objects.create()
     checkout.set_country("PL", commit=True)
     add_variant_to_checkout(checkout, variant, 1)
-    stock = Stock.objects.filter(
+    Stock.objects.filter(
         warehouse__shipping_zones__countries__contains="US", product_variant=variant
-    ).first()
-    stock.quantity = 0
-    stock.save()
+    ).update(quantity=0)
     assert checkout.shipping_address is None
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
