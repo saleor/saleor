@@ -497,7 +497,12 @@ def shipping_zone(db):  # pylint: disable=W0613
 
 @pytest.fixture
 def shipping_zones(db):
-    shipping_zone_poland = ShippingZone.objects.create(name="Poland", countries=["PL"])
+    shipping_zone_poland, shipping_zone_usa = ShippingZone.objects.bulk_create(
+        [
+            ShippingZone(name="Poland", countries=["PL"]),
+            ShippingZone(name="USA", countries=["US"]),
+        ]
+    )
     shipping_zone_poland.shipping_methods.create(
         name="DHL",
         minimum_order_price=Money(0, "USD"),
@@ -505,7 +510,6 @@ def shipping_zones(db):
         price=Money(10, "USD"),
         shipping_zone=shipping_zone,
     )
-    shipping_zone_usa = ShippingZone.objects.create(name="USA", countries=["US"])
     shipping_zone_usa.shipping_methods.create(
         name="DHL",
         minimum_order_price=Money(0, "USD"),
@@ -875,8 +879,12 @@ def variant(product) -> ProductVariant:
 @pytest.fixture
 def variant_with_many_stocks(variant, warehouses_with_shipping_zone):
     warehouses = warehouses_with_shipping_zone
-    Stock.objects.create(warehouse=warehouses[0], product_variant=variant, quantity=4)
-    Stock.objects.create(warehouse=warehouses[1], product_variant=variant, quantity=3)
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=warehouses[0], product_variant=variant, quantity=4),
+            Stock(warehouse=warehouses[1], product_variant=variant, quantity=3),
+        ]
+    )
     return variant
 
 
@@ -885,8 +893,12 @@ def variant_with_many_stocks_different_shipping_zones(
     variant, warehouses_with_different_shipping_zone
 ):
     warehouses = warehouses_with_different_shipping_zone
-    Stock.objects.create(warehouse=warehouses[0], product_variant=variant, quantity=4)
-    Stock.objects.create(warehouse=warehouses[1], product_variant=variant, quantity=3)
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=warehouses[0], product_variant=variant, quantity=4),
+            Stock(warehouse=warehouses[1], product_variant=variant, quantity=3),
+        ]
+    )
     return variant
 
 
