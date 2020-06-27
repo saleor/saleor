@@ -8,10 +8,12 @@ from django.contrib.syndication.views import add_domain
 from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.utils.encoding import smart_text
+from django_countries.fields import Country
 
-from ..core.taxes import zero_money
+from ..core.taxes import charge_taxes_on_shipping
 from ..discount import DiscountInfo
 from ..discount.utils import fetch_discounts
+from ..plugins.manager import get_plugins_manager
 from ..product.models import Attribute, AttributeValue, Category, ProductVariant
 from ..warehouse.availability import is_variant_in_stock
 
@@ -123,8 +125,12 @@ def item_tax(item: ProductVariant, discounts: Iterable[DiscountInfo]):
     Read more:
     https://support.google.com/merchants/answer/6324454
     """
-    # FIXME https://github.com/mirumee/saleor/issues/4311
-    return "US::%s:y" % zero_money()
+    country = Country(settings.DEFAULT_COUNTRY)
+    tax_rate = get_plugins_manager().get_tax_rate_percentage_value(
+        item.product.product_type, country
+    )
+    tax_ship = "yes" if charge_taxes_on_shipping() else "no"
+    return "%s::%s:%s" % (country.code, tax_rate, tax_ship)
 
 
 def item_group_id(item: ProductVariant):
