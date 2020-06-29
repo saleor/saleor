@@ -121,7 +121,7 @@ def item_brand(item: ProductVariant, attributes_dict, attribute_values_dict):
 def item_tax(
     item: ProductVariant,
     discounts: Iterable[DiscountInfo],
-    is_charge_taxes_on_shipping: bool,
+    current_site: Site,
 ):
     """Return item tax.
 
@@ -133,8 +133,11 @@ def item_tax(
     tax_rate = get_plugins_manager().get_tax_rate_percentage_value(
         item.product.product_type, country
     )
-    tax_ship = "yes" if is_charge_taxes_on_shipping else "no"
-    return "%s::%s:%s" % (country.code, tax_rate, tax_ship)
+    if tax_rate:
+        is_charge_taxes_on_shipping = current_site.settings.charge_taxes_on_shipping
+        tax_ship = "yes" if is_charge_taxes_on_shipping else "no"
+        return "%s::%s:%s" % (country.code, tax_rate, tax_ship)
+    return None
 
 
 def item_group_id(item: ProductVariant):
@@ -192,7 +195,6 @@ def item_attributes(
     discounts: Iterable[DiscountInfo],
     attributes_dict,
     attribute_values_dict,
-    is_charge_taxes_on_shipping: bool,
 ):
     product_data = {
         "id": item_id(item),
@@ -215,7 +217,7 @@ def item_attributes(
     if sale_price != price:
         product_data["sale_price"] = sale_price
 
-    tax = item_tax(item, discounts, is_charge_taxes_on_shipping)
+    tax = item_tax(item, discounts, current_site)
     if tax:
         product_data["tax"] = tax
 
@@ -248,7 +250,6 @@ def write_feed(file_obj):
             discounts,
             attributes_dict,
             attribute_values_dict,
-            is_charge_taxes_on_shipping,
         )
         writer.writerow(item_data)
 
