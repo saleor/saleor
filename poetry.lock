@@ -1247,10 +1247,10 @@ description = "Optional static typing for Python"
 name = "mypy"
 optional = false
 python-versions = ">=3.5"
-version = "0.740"
+version = "0.782"
 
 [package.dependencies]
-mypy-extensions = ">=0.4.0,<0.5.0"
+mypy-extensions = ">=0.4.3,<0.5.0"
 typed-ast = ">=1.4.0,<1.5.0"
 typing-extensions = ">=3.7.4"
 
@@ -1701,6 +1701,14 @@ version = "2.8.1"
 
 [package.dependencies]
 six = ">=1.5"
+
+[[package]]
+category = "main"
+description = "A python library adding a json log formatter"
+name = "python-json-logger"
+optional = false
+python-versions = ">=2.7"
+version = "0.1.11"
 
 [[package]]
 category = "main"
@@ -2209,7 +2217,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "325c34bd65cf0af27a5942bc9410d9dbfd677f06646a99b49580c78f66d0d43e"
+content-hash = "94e751689347ba75faea5f406dbc6dc6fdd0ff060679fbb3282dc6f7a98a62b1"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2696,6 +2704,11 @@ markupsafe = [
     {file = "MarkupSafe-1.1.1-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:ba59edeaa2fc6114428f1637ffff42da1e311e29382d81b339c1817d37ec93c6"},
     {file = "MarkupSafe-1.1.1-cp37-cp37m-win32.whl", hash = "sha256:b00c1de48212e4cc9603895652c5c410df699856a2853135b3967591e4beebc2"},
     {file = "MarkupSafe-1.1.1-cp37-cp37m-win_amd64.whl", hash = "sha256:9bf40443012702a1d2070043cb6291650a0841ece432556f784f004937f0f32c"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:6788b695d50a51edb699cb55e35487e430fa21f1ed838122d722e0ff0ac5ba15"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-manylinux1_i686.whl", hash = "sha256:cdb132fc825c38e1aeec2c8aa9338310d29d337bebbd7baa06889d09a60a1fa2"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:13d3144e1e340870b25e7b10b98d779608c02016d5184cfb9927a9f10c689f42"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-win32.whl", hash = "sha256:596510de112c685489095da617b5bcbbac7dd6384aeebeda4df6025d0256a81b"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-win_amd64.whl", hash = "sha256:e8313f01ba26fbbe36c7be1966a7b7424942f670f38e666995b88d012765b9be"},
     {file = "MarkupSafe-1.1.1.tar.gz", hash = "sha256:29872e92839765e546828bb7754a68c418d927cd064fd4708fab9fe9c8bb116b"},
 ]
 maxminddb = [
@@ -2738,20 +2751,20 @@ multidict = [
     {file = "multidict-4.7.6.tar.gz", hash = "sha256:fbb77a75e529021e7c4a8d4e823d88ef4d23674a202be4f5addffc72cbb91430"},
 ]
 mypy = [
-    {file = "mypy-0.740-cp35-cp35m-macosx_10_6_x86_64.whl", hash = "sha256:9371290aa2cad5ad133e4cdc43892778efd13293406f7340b9ffe99d5ec7c1d9"},
-    {file = "mypy-0.740-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:b428f883d2b3fe1d052c630642cc6afddd07d5cd7873da948644508be3b9d4a7"},
-    {file = "mypy-0.740-cp35-cp35m-win_amd64.whl", hash = "sha256:ace6ac1d0f87d4072f05b5468a084a45b4eda970e4d26704f201e06d47ab2990"},
-    {file = "mypy-0.740-cp36-cp36m-macosx_10_6_x86_64.whl", hash = "sha256:d7574e283f83c08501607586b3167728c58e8442947e027d2d4c7dcd6d82f453"},
-    {file = "mypy-0.740-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:d5bf0e6ec8ba346a2cf35cb55bf4adfddbc6b6576fcc9e10863daa523e418dbb"},
-    {file = "mypy-0.740-cp36-cp36m-win_amd64.whl", hash = "sha256:1521c186a3d200c399bd5573c828ea2db1362af7209b2adb1bb8532cea2fb36f"},
-    {file = "mypy-0.740-cp37-cp37m-macosx_10_6_x86_64.whl", hash = "sha256:dc889c84241a857c263a2b1cd1121507db7d5b5f5e87e77147097230f374d10b"},
-    {file = "mypy-0.740-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:6ed3b9b3fdc7193ea7aca6f3c20549b377a56f28769783a8f27191903a54170f"},
-    {file = "mypy-0.740-cp37-cp37m-win_amd64.whl", hash = "sha256:31a046ab040a84a0fc38bc93694876398e62bc9f35eca8ccbf6418b7297f4c00"},
-    {file = "mypy-0.740-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:672e418425d957e276c291930a3921b4a6413204f53fe7c37cad7bc57b9a3391"},
-    {file = "mypy-0.740-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:3b1a411909c84b2ae9b8283b58b48541654b918e8513c20a400bb946aa9111ae"},
-    {file = "mypy-0.740-cp38-cp38-win_amd64.whl", hash = "sha256:540c9caa57a22d0d5d3c69047cc9dd0094d49782603eb03069821b41f9e970e9"},
-    {file = "mypy-0.740-py3-none-any.whl", hash = "sha256:f4748697b349f373002656bf32fede706a0e713d67bfdcf04edf39b1f61d46eb"},
-    {file = "mypy-0.740.tar.gz", hash = "sha256:48c8bc99380575deb39f5d3400ebb6a8a1cb5cc669bbba4d3bb30f904e0a0e7d"},
+    {file = "mypy-0.782-cp35-cp35m-macosx_10_6_x86_64.whl", hash = "sha256:2c6cde8aa3426c1682d35190b59b71f661237d74b053822ea3d748e2c9578a7c"},
+    {file = "mypy-0.782-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:9c7a9a7ceb2871ba4bac1cf7217a7dd9ccd44c27c2950edbc6dc08530f32ad4e"},
+    {file = "mypy-0.782-cp35-cp35m-win_amd64.whl", hash = "sha256:c05b9e4fb1d8a41d41dec8786c94f3b95d3c5f528298d769eb8e73d293abc48d"},
+    {file = "mypy-0.782-cp36-cp36m-macosx_10_6_x86_64.whl", hash = "sha256:6731603dfe0ce4352c555c6284c6db0dc935b685e9ce2e4cf220abe1e14386fd"},
+    {file = "mypy-0.782-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:f05644db6779387ccdb468cc47a44b4356fc2ffa9287135d05b70a98dc83b89a"},
+    {file = "mypy-0.782-cp36-cp36m-win_amd64.whl", hash = "sha256:b7fbfabdbcc78c4f6fc4712544b9b0d6bf171069c6e0e3cb82440dd10ced3406"},
+    {file = "mypy-0.782-cp37-cp37m-macosx_10_6_x86_64.whl", hash = "sha256:3fdda71c067d3ddfb21da4b80e2686b71e9e5c72cca65fa216d207a358827f86"},
+    {file = "mypy-0.782-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:d7df6eddb6054d21ca4d3c6249cae5578cb4602951fd2b6ee2f5510ffb098707"},
+    {file = "mypy-0.782-cp37-cp37m-win_amd64.whl", hash = "sha256:a4a2cbcfc4cbf45cd126f531dedda8485671545b43107ded25ce952aac6fb308"},
+    {file = "mypy-0.782-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:6bb93479caa6619d21d6e7160c552c1193f6952f0668cdda2f851156e85186fc"},
+    {file = "mypy-0.782-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:81c7908b94239c4010e16642c9102bfc958ab14e36048fa77d0be3289dda76ea"},
+    {file = "mypy-0.782-cp38-cp38-win_amd64.whl", hash = "sha256:5dd13ff1f2a97f94540fd37a49e5d255950ebcdf446fb597463a40d0df3fac8b"},
+    {file = "mypy-0.782-py3-none-any.whl", hash = "sha256:e0b61738ab504e656d1fe4ff0c0601387a5489ca122d55390ade31f9ca0e252d"},
+    {file = "mypy-0.782.tar.gz", hash = "sha256:eff7d4a85e9eea55afa34888dfeaccde99e7520b51f867ac28a48492c0b1130c"},
 ]
 mypy-extensions = [
     {file = "mypy_extensions-0.4.3-py2.py3-none-any.whl", hash = "sha256:090fedd75945a69ae91ce1303b5824f428daf5a028d2f6ab8a299250a846f15d"},
@@ -2985,6 +2998,9 @@ pytest-xdist = [
 python-dateutil = [
     {file = "python-dateutil-2.8.1.tar.gz", hash = "sha256:73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c"},
     {file = "python_dateutil-2.8.1-py2.py3-none-any.whl", hash = "sha256:75bb3f31ea686f1197762692a9ee6a7550b59fc6ca3a1f4b5d7e32fb98e2da2a"},
+]
+python-json-logger = [
+    {file = "python-json-logger-0.1.11.tar.gz", hash = "sha256:b7a31162f2a01965a5efb94453ce69230ed208468b0bbc7fdfc56e6d8df2e281"},
 ]
 python-magic = [
     {file = "python-magic-0.4.18.tar.gz", hash = "sha256:b757db2a5289ea3f1ced9e60f072965243ea43a2221430048fd8cacab17be0ce"},
