@@ -6,12 +6,12 @@ from django.utils.encoding import smart_text
 
 from ...product.models import AttributeValue, Category
 from ..google_merchant import (
+    charge_taxes_on_shipping,
     get_feed_items,
     item_attributes,
     item_availability,
     item_google_product_category,
     write_feed,
-    charge_taxes_on_shipping,
 )
 
 
