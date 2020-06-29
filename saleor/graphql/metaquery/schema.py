@@ -33,15 +33,6 @@ class MetadataQueries(graphene.ObjectType):
                                            privateMetadataValue=None, metadataValue=None):
         validate_one_of_args_is_in_query("privateMetadataKey", privateMetadataKey, "metadataKey", metadataKey)
 
-        # params = {}
-        # if privateMetadataKey and privateMetadataValue:
-        #     params["privateMetadataKey"] = privateMetadataKey
-        #     params["privateMetadataValue"] = privateMetadataValue
-        #
-        # if metadataKey and metadataValue:
-        #     params["metadataKey"] = metadataKey
-        #     params["metadataValue"] = metadataValue
-
         return resolve_product_type_by_metadata(privateMetadataKey, metadataKey,
                                                 privateMetadataValue, metadataValue)
 
