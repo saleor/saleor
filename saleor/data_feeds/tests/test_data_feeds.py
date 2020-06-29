@@ -11,10 +11,12 @@ from ..google_merchant import (
     item_availability,
     item_google_product_category,
     write_feed,
+    charge_taxes_on_shipping,
 )
 
 
 def test_saleor_feed_items(product, site_settings):
+    is_charge_taxes_on_shipping = charge_taxes_on_shipping()
     valid_variant = product.variants.first()
     items = get_feed_items()
     assert len(items) == 1
@@ -34,6 +36,7 @@ def test_saleor_feed_items(product, site_settings):
         discounts,
         attributes_dict,
         attribute_values_dict,
+        is_charge_taxes_on_shipping,
     )
     assert attributes.get("mpn") == valid_variant.sku
     assert attributes.get("availability") == "in stock"
