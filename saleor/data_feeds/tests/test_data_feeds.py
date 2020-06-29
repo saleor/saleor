@@ -11,6 +11,7 @@ from ..google_merchant import (
     item_attributes,
     item_availability,
     item_google_product_category,
+    item_tax,
     write_feed,
 )
 
@@ -40,7 +41,6 @@ def test_saleor_feed_items(product, site_settings):
     )
     assert attributes.get("mpn") == valid_variant.sku
     assert attributes.get("availability") == "in stock"
-    assert attributes.get("tax") == "US::0:yes"
 
 
 def test_saleor_get_feed_items_having_no_stock_info(variant, site_settings):
@@ -57,6 +57,12 @@ def test_category_formatter(db):
     sub_category_item = Mock(product=Mock(category=sub_category))
     assert item_google_product_category(main_category_item, {}) == "Main"
     assert item_google_product_category(sub_category_item, {}) == "Main > Sub"
+
+
+def test_tax_formatter(variant, site_settings):
+    discounts = []
+    is_charge_taxes_on_shipping = charge_taxes_on_shipping()
+    assert item_tax(variant, discounts, is_charge_taxes_on_shipping) == "US::0:yes"
 
 
 def test_write_feed(product, monkeypatch):
