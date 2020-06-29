@@ -10,7 +10,6 @@ from ..google_merchant import (
     item_attributes,
     item_availability,
     item_google_product_category,
-    item_tax,
     write_feed,
 )
 
