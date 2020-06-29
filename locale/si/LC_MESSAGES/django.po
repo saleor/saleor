@@ -4,8 +4,7 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# Patryk Zawadzki <patrys@room-303.com>, 2018
-# Roy Waterman <shopsupport@knijter.nl>, 2020
+# Sampath Weerasekara <weera.ravee@gmail.com>, 2020
 #
 #, fuzzy
 msgid ""
@@ -14,19 +13,19 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-06-17 16:44+0000\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Roy Waterman <shopsupport@knijter.nl>, 2020\n"
-"Language-Team: Dutch (https://www.transifex.com/mirumee/teams/34782/nl/)\n"
+"Last-Translator: Sampath Weerasekara <weera.ravee@gmail.com>, 2020\n"
+"Language-Team: Sinhala (https://www.transifex.com/mirumee/teams/34782/si/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: nl\n"
+"Language: si\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
 #, python-format
 msgctxt "Address data"
 msgid "%(first_name)s %(last_name)s"
-msgstr "%(first_name)s %(last_name)s"
+msgstr "%(first_name)sමුල් නම%(last_name)sඅවසන් නම"
 
 #: saleor/account/templatetags/i18n_address_tags.py:16
 #, python-format
@@ -34,14 +33,12 @@ msgctxt "Address data"
 msgid ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
-msgstr ""
-"%(street_address_1)s\n"
-"%(street_address_2)s"
+msgstr "%(street_address_1)sවීථි ලිපිනය 1 %(street_address_2)s වීථි ලිපිනය 2"
 
 #: templates/templated_email/account/account_delete.email:4
 msgctxt "Account delete reset e-mail subject"
 msgid "Delete your account"
-msgstr ""
+msgstr "ඔබගේ ගිණුම මකන්න"
 
 #: templates/templated_email/account/account_delete.email:9
 #, python-format
@@ -53,11 +50,16 @@ msgid ""
 "\n"
 "Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
+"\n"
+"ඔබට මෙම විද්‍යුත් තැපෑල ලැබෙන්නේ ඔබ හෝ වෙනත් අයෙකු ඔබගේ පරිශීලක ගිණුම %(domain)s මකා දැමීමට ඉල්ලා ඇති නිසාය.\n"
+"ඔබගේ ගිණුම මකා දැමීමට පහත සබැඳිය ක්ලික් කරන්න.\n"
+"\n"
+"මෙම ක්‍රියාව ස්ථිර බවත් එය ආපසු හැරවිය නොහැකි බවත් කරුණාවෙන් සලකන්න.\n"
 
 #: templates/templated_email/account/confirm.email:4
 msgctxt "Account confirmation e-mail subject"
 msgid "Account confirmation e-mail"
-msgstr ""
+msgstr "ගිණුම් තහවුරු කිරීමේ විද්‍යුත් තැපෑල"
 
 #: templates/templated_email/account/confirm.email:9
 #, python-format
@@ -67,12 +69,15 @@ msgid ""
 "In order to log into %(domain)s, you have to confirm your email address first.\n"
 "Please click the link below to do so and log into your account.\n"
 msgstr ""
+"\n"
+"%(domain)s ඇතුල් වීම සඳහා, ඔබ මුලින්ම ඔබගේ විද්‍යුත් තැපැල් ලිපිනය තහවුරු කළ යුතුය.\n"
+"එසේ කිරීමට කරුණාකර පහත සබැඳිය ක්ලික් කර ඔබගේ ගිණුමට පිවිසෙන්න.\n"
 
 #: templates/templated_email/account/email_changed_notification.email:4
 #: templates/templated_email/account/request_email_change.email:4
 msgctxt "Email change e-mail subject"
 msgid "Email change e-mail"
-msgstr ""
+msgstr "විද්‍යුත් තැපැල් වෙනස් කිරීමේ විද්‍යුත් තැපෑල"
 
 #: templates/templated_email/account/email_changed_notification.email:9
 #, python-format
@@ -83,11 +88,15 @@ msgid ""
 "You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
 "If you didn't request this change, please contact the administrator.\n"
 msgstr ""
+"\n"
+"\n"
+"ඔබට මෙම විද්‍යුත් තැපෑල ලැබෙන්නේ ඔබ හෝ වෙනත් අයෙකු ඔබගේ පරිශීලක ගිණුම %(domain)s සඳහා විද්‍යුත් තැපෑල වෙනස් කර ඇති බැවිනි.\n"
+"ඔබ මෙම වෙනස ඉල්ලා නොසිටියේ නම්, කරුණාකර පරිපාලක අමතන්න.\n"
 
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
 msgid "Password reset e-mail"
-msgstr ""
+msgstr "මුරපදය යළි පිහිටුවීමේ විද්‍යුත් තැපෑල"
 
 #: templates/templated_email/account/password_reset.email:9
 #, python-format
@@ -97,6 +106,9 @@ msgid ""
 "You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
 "It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"ඔබට මෙම විද්‍යුත් තැපෑල ලැබෙන්නේ ඔබ හෝ වෙනත් අයෙකු ඔබගේ පරිශීලක ගිණුම %(domain)sසඳහා මුරපදයක් ඉල්ලා ඇති බැවිනි.\n"
+"ඔබ මුරපද යළි පිහිටුවීම ඉල්ලා නොසිටියේ නම් එය ආරක්ෂිතව නොසලකා හැරිය හැක. ඔබගේ මුරපදය නැවත සැකසීමට පහත සබැඳිය ක්ලික් කරන්න.\n"
 
 #: templates/templated_email/account/request_email_change.email:9
 #, python-format
@@ -187,19 +199,19 @@ msgstr ""
 #: templates/templated_email/order/staff_confirm_order.email:25
 msgctxt "Order confirmation e-mail table header"
 msgid "Order summary"
-msgstr "Samenvatting bestelling"
+msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:26
 #: templates/templated_email/order/staff_confirm_order.email:26
 msgctxt "Order confirmation e-mail table header"
 msgid "Subtotal"
-msgstr "Subtotaal"
+msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:27
 #: templates/templated_email/order/staff_confirm_order.email:27
 msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
-msgstr "Verzending"
+msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:28
 #: templates/templated_email/order/staff_confirm_order.email:28
@@ -223,7 +235,7 @@ msgstr ""
 #: templates/templated_email/order/staff_confirm_order.email:30
 msgctxt "Order confirmation e-mail table header"
 msgid "Total"
-msgstr "Totaal"
+msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:32
 #: templates/templated_email/order/staff_confirm_order.email:32
@@ -231,7 +243,7 @@ msgstr "Totaal"
 #: templates/templated_email/source/staff_confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
-msgstr "Factuuradres"
+msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:33
 #: templates/templated_email/order/staff_confirm_order.email:33
@@ -247,7 +259,7 @@ msgstr ""
 #: templates/templated_email/source/staff_confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
-msgstr "Verzendadres"
+msgstr ""
 
 #: templates/templated_email/order/confirm_order.email:36
 #: templates/templated_email/order/staff_confirm_order.email:36
@@ -399,13 +411,13 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:59
 msgctxt "Ordered item name"
 msgid "Item"
-msgstr "Artikel"
+msgstr ""
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
 #: templates/templated_email/source/partials/_order_lines.mjml:60
 msgctxt "Quantity ordered of a product"
 msgid "Quantity"
-msgstr "Hoeveelheid"
+msgstr ""
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
 msgctxt "Ordered item download links"
@@ -415,12 +427,12 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:12
 msgctxt "E-mail order lines summary table"
 msgid "Subtotal"
-msgstr "Subtotaal"
+msgstr ""
 
 #: templates/templated_email/source/partials/_order_lines.mjml:20
 msgctxt "E-mail order lines summary table"
 msgid "Shipping"
-msgstr "Verzending"
+msgstr ""
 
 #: templates/templated_email/source/partials/_order_lines.mjml:29
 msgctxt "E-mail order lines summary table"
@@ -435,12 +447,12 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:41
 msgctxt "E-mail order lines summary table"
 msgid "Discount"
-msgstr "Korting"
+msgstr ""
 
 #: templates/templated_email/source/partials/_order_lines.mjml:50
 msgctxt "E-mail order lines summary table"
 msgid "Total"
-msgstr "Totaal"
+msgstr ""
 
 #: templates/templated_email/source/partials/_order_lines.mjml:61
 msgctxt "Unit price of a product"
@@ -450,7 +462,7 @@ msgstr ""
 #: templates/templated_email/source/partials/_order_lines.mjml:62
 msgctxt "Ordered item subtotal (unit price * quantity)"
 msgid "Subtotal"
-msgstr "Subtotaal"
+msgstr ""
 
 #: templates/templated_email/source/password_reset.mjml:16
 #, python-format
