@@ -551,10 +551,8 @@ def expected_dummy_gateway():
     return {
         "id": "mirumee.payments.dummy",
         "name": "Dummy",
-        "config": [
-            {"field": "store_customer_card", "value": "false"},
-            {"field": "supported_currencies", "value": "['USD']"},
-        ],
+        "config": [{"field": "store_customer_card", "value": "false"}],
+        "currencies": ["USD"],
     }
 
 
@@ -568,6 +566,7 @@ query getCheckoutPayments($token: UUID!) {
                 field
                 value
             }
+            currencies
         }
     }
 }

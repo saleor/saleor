@@ -128,11 +128,14 @@ class StripeGatewayPlugin(BasePlugin):
         return previous_value
 
     @require_active_plugin
+    def get_supported_currencies(self, previous_value):
+        config = self._get_gateway_config()
+        return get_supported_currencies(config, GATEWAY_NAME)
+
+    @require_active_plugin
     def get_payment_config(self, previous_value):
         config = self._get_gateway_config()
-        currencies = get_supported_currencies(config, GATEWAY_NAME)
         return [
             {"field": "api_key", "value": config.connection_params["public_key"]},
             {"field": "store_customer_card", "value": config.store_customer},
-            {"field": "supported_currencies", "value": currencies},
         ]

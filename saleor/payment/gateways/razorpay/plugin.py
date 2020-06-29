@@ -101,10 +101,11 @@ class RazorpayGatewayPlugin(BasePlugin):
         return process_payment(payment_information, self._get_gateway_config())
 
     @require_active_plugin
+    def get_supported_currencies(self, previous_value):
+        config = self._get_gateway_config()
+        return get_supported_currencies(config, GATEWAY_NAME)
+
+    @require_active_plugin
     def get_payment_config(self, previous_value):
         config = self._get_gateway_config()
-        currencies = get_supported_currencies(config, GATEWAY_NAME)
-        return [
-            {"field": "api_key", "value": config.connection_params["public_key"]},
-            {"field": "supported_currencies", "value": currencies},
-        ]
+        return [{"field": "api_key", "value": config.connection_params["public_key"]}]

@@ -3119,6 +3119,7 @@ type PaymentGateway {
   name: String!
   id: ID!
   config: [GatewayConfigLine!]!
+  currencies: [String]!
 }
 
 input PaymentInput {

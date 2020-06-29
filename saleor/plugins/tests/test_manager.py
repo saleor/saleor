@@ -257,6 +257,7 @@ def test_manager_serve_list_of_payment_gateways():
         "id": ActivePaymentGateway.PLUGIN_ID,
         "name": ActivePaymentGateway.PLUGIN_NAME,
         "config": ActivePaymentGateway.CLIENT_CONFIG,
+        "currencies": ActivePaymentGateway.SUPPORTED_CURRENCIES,
     }
     plugins = [
         "saleor.plugins.tests.sample_plugins.PluginSample",
@@ -273,11 +274,13 @@ def test_manager_serve_list_all_payment_gateways():
             "id": ActivePaymentGateway.PLUGIN_ID,
             "name": ActivePaymentGateway.PLUGIN_NAME,
             "config": ActivePaymentGateway.CLIENT_CONFIG,
+            "currencies": ActivePaymentGateway.SUPPORTED_CURRENCIES,
         },
         {
             "id": InactivePaymentGateway.PLUGIN_ID,
             "name": InactivePaymentGateway.PLUGIN_NAME,
             "config": [],
+            "currencies": [],
         },
     ]
 
@@ -295,6 +298,7 @@ def test_manager_serve_list_all_payment_gateways_specified_currency():
             "id": ActiveDummyPaymentGateway.PLUGIN_ID,
             "name": ActiveDummyPaymentGateway.PLUGIN_NAME,
             "config": ActiveDummyPaymentGateway.CLIENT_CONFIG,
+            "currencies": ActiveDummyPaymentGateway.SUPPORTED_CURRENCIES,
         },
     ]
 
@@ -316,11 +320,13 @@ def test_manager_serve_list_all_payment_gateways_specified_currency_two_gateways
             "id": ActivePaymentGateway.PLUGIN_ID,
             "name": ActivePaymentGateway.PLUGIN_NAME,
             "config": ActivePaymentGateway.CLIENT_CONFIG,
+            "currencies": ActivePaymentGateway.SUPPORTED_CURRENCIES,
         },
         {
             "id": ActiveDummyPaymentGateway.PLUGIN_ID,
             "name": ActiveDummyPaymentGateway.PLUGIN_NAME,
             "config": ActiveDummyPaymentGateway.CLIENT_CONFIG,
+            "currencies": ActiveDummyPaymentGateway.SUPPORTED_CURRENCIES,
         },
     ]
 
