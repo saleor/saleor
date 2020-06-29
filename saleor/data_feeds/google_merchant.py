@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.encoding import smart_text
 from django_countries.fields import Country
 
+from ..core.taxes import charge_taxes_on_shipping
 from ..discount import DiscountInfo
 from ..discount.utils import fetch_discounts
 from ..plugins.manager import get_plugins_manager
@@ -118,7 +119,9 @@ def item_brand(item: ProductVariant, attributes_dict, attribute_values_dict):
 
 
 def item_tax(
-    item: ProductVariant, discounts: Iterable[DiscountInfo], current_site: Site,
+    item: ProductVariant,
+    discounts: Iterable[DiscountInfo],
+    is_charge_taxes_on_shipping: bool,
 ):
     """Return item tax.
 
@@ -131,7 +134,6 @@ def item_tax(
         item.product.product_type, country
     )
     if tax_rate:
-        is_charge_taxes_on_shipping = current_site.settings.charge_taxes_on_shipping
         tax_ship = "yes" if is_charge_taxes_on_shipping else "no"
         return "%s::%s:%s" % (country.code, tax_rate, tax_ship)
     return None
@@ -192,6 +194,7 @@ def item_attributes(
     discounts: Iterable[DiscountInfo],
     attributes_dict,
     attribute_values_dict,
+    is_charge_taxes_on_shipping: bool,
 ):
     product_data = {
         "id": item_id(item),
@@ -214,7 +217,7 @@ def item_attributes(
     if sale_price != price:
         product_data["sale_price"] = sale_price
 
-    tax = item_tax(item, discounts, current_site)
+    tax = item_tax(item, discounts, is_charge_taxes_on_shipping)
     if tax:
         product_data["tax"] = tax
 
@@ -227,6 +230,7 @@ def item_attributes(
 
 def write_feed(file_obj):
     """Write feed contents info provided file object."""
+    is_charge_taxes_on_shipping = charge_taxes_on_shipping()
     writer = csv.DictWriter(file_obj, ATTRIBUTES, dialect=csv.excel_tab)
     writer.writeheader()
     categories = Category.objects.all()
@@ -246,6 +250,7 @@ def write_feed(file_obj):
             discounts,
             attributes_dict,
             attribute_values_dict,
+            is_charge_taxes_on_shipping,
         )
         writer.writerow(item_data)
 
