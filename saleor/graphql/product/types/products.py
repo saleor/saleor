@@ -52,6 +52,7 @@ from ..dataloaders import (
     ImagesByProductIdLoader,
     ProductByIdLoader,
     ProductChannelListingByProductIdAndChanneSlugLoader,
+    ProductChannelListingByProductIdLoader,
     ProductVariantsByProductIdLoader,
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
@@ -59,6 +60,7 @@ from ..dataloaders import (
 from ..filters import AttributeFilterInput
 from ..resolvers import resolve_attributes
 from .attributes import Attribute, SelectedAttribute
+from .channels import ProductChannelListing
 from .digital_contents import DigitalContent
 
 
@@ -468,6 +470,10 @@ class Product(CountableDjangoObjectType):
         required=True,
         description="List of attributes assigned to this product.",
     )
+    channel_listing = graphene.List(
+        graphene.NonNull(ProductChannelListing),
+        description="List of availability in channels for the product.",
+    )
     purchase_cost = graphene.Field(MoneyRange)
     margin = graphene.Field(Margin)
     image_by_id = graphene.Field(
@@ -617,6 +623,11 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     def resolve_variants(root: models.Product, info, **_kwargs):
         return ProductVariantsByProductIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    def resolve_channel_listing(root: models.Product, info, **_kwargs):
+        return ProductChannelListingByProductIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_collections(root: models.Product, *_args):

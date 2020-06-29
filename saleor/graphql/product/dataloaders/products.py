@@ -31,6 +31,33 @@ class ProductByIdLoader(DataLoader):
         return [products.get(product_id) for product_id in keys]
 
 
+class ProductChannelListingByProductId(DataLoader[int, ProductChannelListing]):
+    context_key = "productchannelisting_by_id"
+
+    def batch_load(self, keys):
+        product_channel_listings = ProductChannelListing.objects.in_bulk(keys)
+        return [product_channel_listings.get(key) for key in keys]
+
+
+class ProductChannelListingByProductIdLoader(DataLoader[int, ProductChannelListing]):
+    context_key = "productchannelisting_by_product"
+
+    def batch_load(self, keys):
+        product_channel_listings = ProductChannelListing.objects.filter(
+            product_id__in=keys
+        )
+        product_channel_listings_map = defaultdict(list)
+        product_channel_listing_loader = ProductChannelListingByProductId(self.context)
+        for product_channel_listing in product_channel_listings.iterator():
+            product_channel_listings_map[product_channel_listing.product_id].append(
+                product_channel_listing
+            )
+            product_channel_listing_loader.prime(
+                product_channel_listing.id, product_channel_listing
+            )
+        return [product_channel_listings_map.get(product_id, []) for product_id in keys]
+
+
 class ProductChannelListingByProductIdAndChanneSlugLoader(
     DataLoader[ProductIdAndChannelSlug, ProductChannelListing]
 ):

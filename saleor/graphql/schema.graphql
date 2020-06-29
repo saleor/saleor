@@ -3676,8 +3676,6 @@ type Product implements Node & ObjectWithMetadata {
   name: String!
   description: String!
   descriptionJson: JSONString!
-  publicationDate: Date
-  isPublished: Boolean!
   productType: ProductType!
   slug: String!
   category: Category
@@ -3695,6 +3693,7 @@ type Product implements Node & ObjectWithMetadata {
   minimalVariantPrice: Money
   taxType: TaxType
   attributes: [SelectedAttribute!]!
+  channelListing: [ProductChannelListing!]
   purchaseCost: MoneyRange
   margin: Margin
   imageById(id: ID): ProductImage
@@ -3721,6 +3720,13 @@ type ProductBulkPublish {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
   productErrors: [ProductError!]!
+}
+
+type ProductChannelListing implements Node {
+  id: ID!
+  publicationDate: Date
+  isPublished: Boolean!
+  channel: Channel!
 }
 
 type ProductClearMeta {
