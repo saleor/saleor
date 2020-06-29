@@ -4,7 +4,6 @@ from unittest.mock import Mock
 
 from django.utils.encoding import smart_text
 
-from ...core.taxes import charge_taxes_on_shipping
 from ...product.models import AttributeValue, Category
 from ..google_merchant import (
     get_feed_items,
