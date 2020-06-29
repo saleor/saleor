@@ -42,7 +42,7 @@ ATTRIBUTES = [
     "description",
 ]
 
-IS_CHARGE_TAXES_ON_SHIPPING = charge_taxes_on_shipping()
+IS_CHARGE_TAXES_ON_SHIPPING = False
 
 
 def get_feed_file_url():
@@ -225,6 +225,7 @@ def item_attributes(
 
 def write_feed(file_obj):
     """Write feed contents info provided file object."""
+    IS_CHARGE_TAXES_ON_SHIPPING = charge_taxes_on_shipping()
     writer = csv.DictWriter(file_obj, ATTRIBUTES, dialect=csv.excel_tab)
     writer.writeheader()
     categories = Category.objects.all()
