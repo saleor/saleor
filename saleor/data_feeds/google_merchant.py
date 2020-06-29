@@ -121,7 +121,7 @@ def item_brand(item: ProductVariant, attributes_dict, attribute_values_dict):
 def item_tax(
     item: ProductVariant,
     discounts: Iterable[DiscountInfo],
-    is_charge_taxes_on_shipping: bool
+    is_charge_taxes_on_shipping: bool,
 ):
     """Return item tax.
 
