@@ -10,7 +10,6 @@ from django.utils import timezone
 from django.utils.encoding import smart_text
 from django_countries.fields import Country
 
-from ..core.taxes import charge_taxes_on_shipping
 from ..discount import DiscountInfo
 from ..discount.utils import fetch_discounts
 from ..plugins.manager import get_plugins_manager
@@ -119,9 +118,7 @@ def item_brand(item: ProductVariant, attributes_dict, attribute_values_dict):
 
 
 def item_tax(
-    item: ProductVariant,
-    discounts: Iterable[DiscountInfo],
-    current_site: Site,
+    item: ProductVariant, discounts: Iterable[DiscountInfo], current_site: Site,
 ):
     """Return item tax.
 
@@ -230,7 +227,6 @@ def item_attributes(
 
 def write_feed(file_obj):
     """Write feed contents info provided file object."""
-    is_charge_taxes_on_shipping = charge_taxes_on_shipping()
     writer = csv.DictWriter(file_obj, ATTRIBUTES, dialect=csv.excel_tab)
     writer.writeheader()
     categories = Category.objects.all()
