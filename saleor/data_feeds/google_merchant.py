@@ -42,6 +42,8 @@ ATTRIBUTES = [
     "description",
 ]
 
+IS_CHARGE_TAXES_ON_SHIPPING = charge_taxes_on_shipping()
+
 
 def get_feed_file_url():
     return default_storage.url(FILE_PATH)
@@ -129,7 +131,7 @@ def item_tax(item: ProductVariant, discounts: Iterable[DiscountInfo]):
     tax_rate = get_plugins_manager().get_tax_rate_percentage_value(
         item.product.product_type, country
     )
-    tax_ship = "yes" if charge_taxes_on_shipping() else "no"
+    tax_ship = "yes" if IS_CHARGE_TAXES_ON_SHIPPING else "no"
     return "%s::%s:%s" % (country.code, tax_rate, tax_ship)
 
 
