@@ -73,17 +73,13 @@ class CreateToken(BaseMutation):
 
     @classmethod
     def _retrieve_user_from_credentials(cls, email, password) -> Optional[models.User]:
-        user = models.User.objects.filter(email=email).first()
-        if not user:
-            return None
-        if not user.is_active:
-            return None
-        if not user.check_password(password):
-            return None
-        return user
+        user = models.User.objects.filter(email=email, is_active=True).first()
+        if user and user.check_password(password):
+            return user
+        return None
 
     @classmethod
-    def get_user(cls, info, data):
+    def get_user(cls, _info, data):
         user = cls._retrieve_user_from_credentials(data["email"], data["password"])
         if not user:
             raise ValidationError(
