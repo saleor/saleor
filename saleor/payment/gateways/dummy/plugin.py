@@ -115,10 +115,11 @@ class DummyGatewayPlugin(BasePlugin):
         return get_client_token()
 
     @require_active_plugin
+    def get_supported_currencies(self, previous_value):
+        config = self._get_gateway_config()
+        return get_supported_currencies(config, GATEWAY_NAME)
+
+    @require_active_plugin
     def get_payment_config(self, previous_value):
         config = self._get_gateway_config()
-        currencies = get_supported_currencies(config, GATEWAY_NAME)
-        return [
-            {"field": "store_customer_card", "value": config.store_customer},
-            {"field": "supported_currencies", "value": currencies},
-        ]
+        return [{"field": "store_customer_card", "value": config.store_customer}]

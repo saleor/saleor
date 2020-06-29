@@ -35,6 +35,11 @@ class PaymentGateway(graphene.ObjectType):
         required=True,
         description="Payment gateway client configuration.",
     )
+    currencies = graphene.List(
+        graphene.String,
+        required=True,
+        description="Payment gateway supported currencies.",
+    )
 
     class Meta:
         description = (
