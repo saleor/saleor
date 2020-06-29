@@ -40,6 +40,7 @@ def test_saleor_feed_items(product, site_settings):
     )
     assert attributes.get("mpn") == valid_variant.sku
     assert attributes.get("availability") == "in stock"
+    assert attributes.get("tax") == 'US::0:yes'
 
 
 def test_saleor_get_feed_items_having_no_stock_info(variant, site_settings):
