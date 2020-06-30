@@ -17,13 +17,13 @@ from ..google_merchant import (
 )
 
 
-def test_saleor_feed_items(product, site_settings):
+def test_saleor_feed_items(product, discount_info, site_settings):
     is_charge_taxes_on_shipping = charge_taxes_on_shipping()
     valid_variant = product.variants.first()
     items = get_feed_items()
     assert len(items) == 1
     categories = Category.objects.all()
-    discounts = []
+    discounts = [discount_info]
     category_paths = {}
     attributes_dict = {}
     current_site = site_settings.site
@@ -43,6 +43,8 @@ def test_saleor_feed_items(product, site_settings):
     assert attributes.get("mpn") == valid_variant.sku
     assert attributes.get("availability") == "in stock"
     assert attributes.get("tax") is None
+    assert attributes.get("price") == "10.00 USD"
+    assert attributes.get("sale_price") == "5.00 USD"
 
 
 def test_saleor_get_feed_items_having_no_stock_info(variant, site_settings):
