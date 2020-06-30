@@ -1,9 +1,9 @@
 import csv
-from django_prices_vatlayer.models import VAT
 from io import StringIO
 from unittest.mock import Mock
 
 from django.utils.encoding import smart_text
+from django_prices_vatlayer.models import VAT
 
 from ...core.taxes import charge_taxes_on_shipping
 from ...product.models import AttributeValue, Category
