@@ -12,6 +12,8 @@ from ....payment.utils import fetch_customer_id, store_customer_id
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..enums import OrderAction, PaymentChargeStatusEnum
 
+DUMMY_GATEWAY = "mirumee.payments.dummy"
+
 VOID_QUERY = """
     mutation PaymentVoid($paymentId: ID!) {
         paymentVoid(paymentId: $paymentId) {
@@ -102,7 +104,7 @@ def test_checkout_add_payment_without_shipping_method_and_not_shipping_required(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "Dummy",
+            "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
         },
@@ -138,7 +140,7 @@ def test_checkout_add_payment_without_shipping_method_with_shipping_required(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "Dummy",
+            "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
         },
@@ -165,7 +167,7 @@ def test_checkout_add_payment_with_shipping_method_and_shipping_required(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "Dummy",
+            "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
         },
@@ -201,7 +203,7 @@ def test_checkout_add_payment(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "Dummy",
+            "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
         },
@@ -237,7 +239,7 @@ def test_checkout_add_payment_default_amount(
 
     variables = {
         "checkoutId": checkout_id,
-        "input": {"gateway": "DUMMY", "token": "sample-token"},
+        "input": {"gateway": DUMMY_GATEWAY, "token": "sample-token"},
     }
     response = user_api_client.post_graphql(CREATE_QUERY, variables)
     content = get_graphql_content(response)
@@ -265,7 +267,7 @@ def test_checkout_add_payment_bad_amount(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "DUMMY",
+            "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": str(
                 calculations.checkout_total(
@@ -284,6 +286,28 @@ def test_checkout_add_payment_bad_amount(
     )
 
 
+def test_checkout_add_payment_not_supported_gateways(
+    user_api_client, checkout_without_shipping_required, address
+):
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.currency = "EUR"
+    checkout.save(update_fields=["billing_address", "currency"])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "input": {"gateway": DUMMY_GATEWAY, "token": "sample-token", "amount": "10.0"},
+    }
+    response = user_api_client.post_graphql(CREATE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+    assert (
+        data["paymentErrors"][0]["code"] == PaymentErrorCode.NOT_SUPPORTED_GATEWAY.name
+    )
+    assert data["paymentErrors"][0]["field"] == "gateway"
+
+
 def test_use_checkout_billing_address_as_payment_billing(
     user_api_client, checkout_without_shipping_required, address
 ):
@@ -293,7 +317,7 @@ def test_use_checkout_billing_address_as_payment_billing(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "Dummy",
+            "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
         },
@@ -709,7 +733,7 @@ def set_braintree_customer_id(customer_user, braintree_customer_id):
 
 @pytest.fixture
 def set_dummy_customer_id(customer_user, dummy_customer_id):
-    gateway_name = "mirumee.payments.dummy"
+    gateway_name = DUMMY_GATEWAY
     store_customer_id(customer_user, gateway_name, dummy_customer_id)
     return customer_user
 
@@ -717,7 +741,7 @@ def set_dummy_customer_id(customer_user, dummy_customer_id):
 def test_list_payment_sources(
     mocker, dummy_customer_id, set_dummy_customer_id, user_api_client
 ):
-    gateway = "mirumee.payments.dummy"
+    gateway = DUMMY_GATEWAY
     query = """
     {
         me {
