@@ -18,6 +18,7 @@ from .shop.schema import ShopMutations, ShopQueries
 from .translations.schema import TranslationQueries
 from .warehouse.schema import StockQueries, WarehouseMutations, WarehouseQueries
 from .webhook.schema import WebhookMutations, WebhookQueries
+from .metaquery.schema import MetadataQueries
 
 
 class Query(
@@ -39,6 +40,7 @@ class Query(
     TranslationQueries,
     WarehouseQueries,
     WebhookQueries,
+    MetadataQueries,
 ):
     pass
 
