@@ -6,7 +6,7 @@ from django_countries.fields import Country
 
 from ....checkout import calculations
 from ....payment.error_codes import PaymentErrorCode
-from ....payment.gateways.dummy import TOKEN_VALIDATION_MAPPING
+from ....payment.gateways.dummy import TOKEN_EXPIRED, TOKEN_VALIDATION_MAPPING
 from ....payment.interface import CreditCardInfo, CustomerSource, TokenConfig
 from ....payment.models import ChargeStatus, Payment, TransactionKind
 from ....payment.utils import fetch_customer_id, store_customer_id
@@ -469,7 +469,8 @@ def test_payment_capture_with_payment_non_authorized_yet(
 def test_payment_capture_gateway_error(
     staff_api_client, permission_manage_orders, payment_txn_preauth, monkeypatch
 ):
-    token, error = list(TOKEN_VALIDATION_MAPPING.items())[0]
+    token = TOKEN_EXPIRED
+    error = TOKEN_VALIDATION_MAPPING[token]
     payment = payment_txn_preauth
     transaction = payment.transactions.last()
     transaction.token = token
