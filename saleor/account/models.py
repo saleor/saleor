@@ -174,10 +174,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
             self._effective_permissions = get_permissions()
             if not self.is_superuser:
                 self._effective_permissions = self._effective_permissions.filter(
-                    user=self
-                )
-                self._effective_permissions |= Permission.objects.filter(
-                    group__user=self
+                    Q(user=self) | Q(group__user=self)
                 )
         return self._effective_permissions
 
