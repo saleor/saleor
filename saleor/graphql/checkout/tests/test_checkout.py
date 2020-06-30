@@ -20,6 +20,7 @@ from ....order.models import Order
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager
+from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....warehouse.models import Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -28,12 +29,6 @@ from ..mutations import (
     update_checkout_shipping_method_if_invalid,
 )
 from ..utils import clean_checkout_payment, clean_checkout_shipping
-
-
-@pytest.fixture(autouse=True)
-def setup_dummy_gateway(settings):
-    settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
-    return settings
 
 
 def test_clean_shipping_method_after_shipping_address_changes_stay_the_same(
@@ -623,31 +618,74 @@ def expected_dummy_gateway():
         "id": "mirumee.payments.dummy",
         "name": "Dummy",
         "config": [{"field": "store_customer_card", "value": "false"}],
+        "currencies": ["USD"],
     }
+
+
+GET_CHECKOUT_PAYMENTS_QUERY = """
+query getCheckoutPayments($token: UUID!) {
+    checkout(token: $token) {
+        availablePaymentGateways {
+            id
+            name
+            config {
+                field
+                value
+            }
+            currencies
+        }
+    }
+}
+"""
 
 
 def test_checkout_available_payment_gateways(
     api_client, checkout_with_item, expected_dummy_gateway
 ):
-    query = """
-    query getCheckout($token: UUID!) {
-        checkout(token: $token) {
-           availablePaymentGateways {
-               id
-               name
-               config {
-                   field
-                   value
-               }
-           }
-        }
-    }
-    """
+    query = GET_CHECKOUT_PAYMENTS_QUERY
     variables = {"token": str(checkout_with_item.token)}
     response = api_client.post_graphql(query, variables)
+
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
     assert data["availablePaymentGateways"] == [expected_dummy_gateway]
+
+
+def test_checkout_available_payment_gateways_currency_specified_USD(
+    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway
+):
+    checkout_with_item.currency = "USD"
+    checkout_with_item.save(update_fields=["currency"])
+
+    query = GET_CHECKOUT_PAYMENTS_QUERY
+
+    variables = {"token": str(checkout_with_item.token)}
+    response = api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+    assert {gateway["id"] for gateway in data["availablePaymentGateways"]} == {
+        expected_dummy_gateway["id"],
+        ActiveDummyPaymentGateway.PLUGIN_ID,
+    }
+
+
+def test_checkout_available_payment_gateways_currency_specified_PLN(
+    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway
+):
+    checkout_with_item.currency = "PLN"
+    checkout_with_item.save(update_fields=["currency"])
+
+    query = GET_CHECKOUT_PAYMENTS_QUERY
+
+    variables = {"token": str(checkout_with_item.token)}
+    response = api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+    assert (
+        data["availablePaymentGateways"][0]["id"] == ActiveDummyPaymentGateway.PLUGIN_ID
+    )
 
 
 def test_checkout_available_shipping_methods(

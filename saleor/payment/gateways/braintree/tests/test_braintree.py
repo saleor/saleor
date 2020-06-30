@@ -84,6 +84,7 @@ def gateway_config():
             "public_key": "456",
             "private_key": "789",
         },
+        supported_currencies="USD",
     )
 
 

@@ -331,6 +331,9 @@ class BasePlugin:
     def get_payment_config(self, previous_value):
         return NotImplemented
 
+    def get_supported_currencies(self, previous_value):
+        return NotImplemented
+
     @classmethod
     def _update_config_items(
         cls, configuration_to_update: List[dict], current_config: List[dict]
