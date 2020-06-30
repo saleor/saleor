@@ -35,6 +35,7 @@ class MenuPermissions(BasePermissionEnum):
     MANAGE_MENUS = "menu.manage_menus"
 
 
+# Depreacted. It will be removed in Saleor 3.0
 class CheckoutPermissions(BasePermissionEnum):
     MANAGE_CHECKOUTS = "checkout.manage_checkouts"
 

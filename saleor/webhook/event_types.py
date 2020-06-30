@@ -20,6 +20,7 @@ class WebhookEventType:
 
     PRODUCT_CREATED = "product_created"
 
+    # This event is deprecated. It will be removed in Saleor 3.0
     CHECKOUT_QUANTITY_CHANGED = "checkout_quantity_changed"
 
     DISPLAY_LABELS = {
@@ -31,6 +32,7 @@ class WebhookEventType:
         ORDER_FULFILLED: "Order fulfilled",
         CUSTOMER_CREATED: "Customer created",
         PRODUCT_CREATED: "Product created",
+        # CHECKOUT_QUANTITY_CHANGED is deprecated. It will be removed in Saleor 3.0
         CHECKOUT_QUANTITY_CHANGED: "Checkout quantity changed",
         FULFILLMENT_CREATED: "Fulfillment_created",
     }
@@ -44,6 +46,7 @@ class WebhookEventType:
         (ORDER_FULFILLED, DISPLAY_LABELS[ORDER_FULFILLED]),
         (CUSTOMER_CREATED, DISPLAY_LABELS[CUSTOMER_CREATED]),
         (PRODUCT_CREATED, DISPLAY_LABELS[PRODUCT_CREATED]),
+        # CHECKOUT_QUANTITY_CHANGED is deprecated. It will be removed in Saleor 3.0
         (CHECKOUT_QUANTITY_CHANGED, DISPLAY_LABELS[CHECKOUT_QUANTITY_CHANGED]),
         (FULFILLMENT_CREATED, DISPLAY_LABELS[FULFILLMENT_CREATED]),
     ]
