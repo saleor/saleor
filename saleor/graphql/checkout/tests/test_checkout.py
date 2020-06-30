@@ -134,16 +134,13 @@ def test_checkout_create_triggers_webhooks(
     }
     assert not Checkout.objects.exists()
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
-    get_graphql_content(response)["data"]["checkoutCreate"]
+    get_graphql_content(response)
 
     assert mocked_webhook_trigger.called
 
 
-def test_checkout_create(
-    _mocked_webhook_trigger, api_client, stock, graphql_address_data, settings
-):
+def test_checkout_create(api_client, stock, graphql_address_data, settings):
     """Create checkout object using GraphQL API."""
-    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
