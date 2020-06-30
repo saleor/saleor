@@ -261,7 +261,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         # Set checkout country
         country = cleaned_input["country"]
-        instance.set_country(country.code)
+        instance.set_country(country)
 
         # Create checkout lines
         variants = cleaned_input.get("variants")
