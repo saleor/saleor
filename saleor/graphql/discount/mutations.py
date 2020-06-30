@@ -9,6 +9,7 @@ from ...product.tasks import (
     update_products_minimal_variant_prices_of_catalogues_task,
     update_products_minimal_variant_prices_of_discount_task,
 )
+from ...product.utils.product_variants import products_variant_exist
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal
 from ..core.types.common import DiscountError
@@ -50,6 +51,7 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         products = input.get("products", [])
         if products:
             products = cls.get_nodes_or_error(products, "products", Product)
+            products_variant_exist(products)
             node.products.add(*products)
         categories = input.get("categories", [])
         if categories:
@@ -67,6 +69,7 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         products = input.get("products", [])
         if products:
             products = cls.get_nodes_or_error(products, "products", Product)
+            products_variant_exist(products)
             node.products.remove(*products)
         categories = input.get("categories", [])
         if categories:

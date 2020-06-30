@@ -28,6 +28,10 @@ from ....product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
 )
+from ....product.utils.product_variants import (
+    product_variant_exist,
+    products_variant_exist,
+)
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
@@ -360,6 +364,7 @@ class CollectionAddProducts(BaseMutation):
             info, collection_id, field="collection_id", only_type=Collection
         )
         products = cls.get_nodes_or_error(products, "products", Product)
+        products_variant_exist(products)
         collection.products.add(*products)
         if collection.sale_set.exists():
             # Updated the db entries, recalculating discounts of affected products
@@ -842,16 +847,6 @@ class ProductCreate(ModelMutation):
 
         clean_seo_fields(cleaned_input)
         return cleaned_input
-
-    @classmethod
-    def check_for_duplicates_in_stocks(cls, stocks_data):
-        warehouse_ids = [stock["warehouse"] for stock in stocks_data]
-        duplicates = get_duplicated_values(warehouse_ids)
-        if duplicates:
-            error_msg = "Duplicated warehouse ID: {}".format(duplicates.join(", "))
-            raise ValidationError(
-                {"stocks": ValidationError(error_msg, code=ProductErrorCode.UNIQUE)}
-            )
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -1483,6 +1478,7 @@ class ProductImageCreate(BaseMutation):
         product = cls.get_node_or_error(
             info, data["product"], field="product", only_type=Product
         )
+
         image_data = info.context.FILES.get(data["image"])
         validate_image_file(image_data, "image")
 
@@ -1548,6 +1544,7 @@ class ProductImageReorder(BaseMutation):
         product = cls.get_node_or_error(
             info, product_id, field="product_id", only_type=Product
         )
+        product_variant_exist(product)
         if len(images_ids) != product.images.count():
             raise ValidationError(
                 {

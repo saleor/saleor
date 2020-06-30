@@ -115,6 +115,15 @@ class ProductType(ModelWithMetadata):
 
 
 class ProductsQueryset(PublishedQuerySet):
+    def published_with_variants(self):
+        published = self.published()
+        return published.filter(variants__isnull=False)
+
+    def visible_to_user(self, user):
+        if self.user_has_access_to_all(user):
+            return self.all()
+        return self.published_with_variants()
+
     def collection_sorted(self, user: "User"):
         qs = self.visible_to_user(user)
         qs = qs.order_by(

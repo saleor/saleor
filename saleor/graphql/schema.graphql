@@ -3737,6 +3737,7 @@ enum ProductErrorCode {
   REQUIRED
   UNIQUE
   VARIANT_NO_DIGITAL_CONTENT
+  PRODUCT_WITHOUT_VARIANT
 }
 
 enum ProductFieldEnum {

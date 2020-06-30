@@ -1117,6 +1117,9 @@ def product_with_images(product_type, category, media_root):
         category=category,
         is_published=True,
     )
+    variant = ProductVariant.objects.create(
+        product=product, sku="123", cost_price=Money(1, "USD"), price_amount=Decimal(10)
+    )
     file_mock_0 = MagicMock(spec=File, name="FileMock0")
     file_mock_0.name = "image0.jpg"
     file_mock_1 = MagicMock(spec=File, name="FileMock1")
