@@ -1,5 +1,6 @@
 import graphene
 
+from ...product.utils.product_variants import product_variant_exist
 from ..core.mutations import BaseMutation
 from ..core.types.common import WishlistError
 from ..product.types import Product, ProductVariant
@@ -40,6 +41,7 @@ class WishlistAddProductMutation(_BaseWishlistProductMutation):
         product = cls.get_node_or_error(
             info, product_id, only_type=Product, field="product_id"
         )
+        product_variant_exist(product)
         wishlist.add_product(product)
         wishlist_items = wishlist.items.all()
         return WishlistAddProductMutation(wishlist=wishlist_items)

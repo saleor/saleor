@@ -48,10 +48,6 @@ class PublishedQuerySet(models.QuerySet):
             is_published=True,
         )
 
-    def published_with_variants(self):
-        published = self.published()
-        return published.filter(variants__isnull=False)
-
     @staticmethod
     def user_has_access_to_all(user):
         return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
@@ -59,7 +55,7 @@ class PublishedQuerySet(models.QuerySet):
     def visible_to_user(self, user):
         if self.user_has_access_to_all(user):
             return self.all()
-        return self.published_with_variants()
+        return self.published()
 
 
 class PublishableModel(models.Model):
