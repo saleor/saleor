@@ -5,7 +5,7 @@ from ..error_codes import ProductErrorCode
 
 def product_variant_exist(product):
     if product.variants.first() is None:
-        return ValidationError(
+        raise ValidationError(
             {
                 "product": ValidationError(
                     f"Cannot add product `{product.id}` without variant.",
