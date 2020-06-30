@@ -11,8 +11,8 @@ beautifulsoup4==4.7.1
 beautifultable==0.7.0
 billiard==3.6.3.0
 black==19.10b0
-boto3==1.14.10
-botocore==1.17.10
+boto3==1.14.12
+botocore==1.17.12
 braintree==4.1.0
 cachetools==4.1.0
 cairocffi==1.1.0
@@ -72,7 +72,7 @@ google-measurement-protocol==1.0.0
 google-resumable-media==0.5.1
 googleapis-common-protos==1.52.0
 graphene==2.1.8
-graphene-django==2.10.1
+graphene-django==2.11.0
 graphene-federation==0.1.0
 graphql-core==2.3.2
 graphql-relay==2.0.1
@@ -166,12 +166,13 @@ thrift==0.13.0
 tinycss2==1.0.2
 toml==0.10.1
 tornado==6.0.4
-tox==3.15.2
-tqdm==4.46.1
+tox==3.16.1
+tqdm==4.47.0
 transifex-client==0.13.10
 typed-ast==1.4.1
 typing==3.7.4.1
 typing-extensions==3.7.4.2
+unidecode==1.1.1
 urllib3==1.25.9
 uwsgi==2.0.19.1; sys_platform != "win32"
 vcrpy==4.0.2
