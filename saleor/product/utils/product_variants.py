@@ -8,7 +8,7 @@ def product_variant_exist(product):
         raise ValidationError(
             {
                 "product": ValidationError(
-                    f"Cannot add product `{product.id}` without variant.",
+                    f"Cannot manage product `{product.id}` without variant.",
                 )
             }
         )
