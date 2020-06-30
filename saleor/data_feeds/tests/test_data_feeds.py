@@ -1,4 +1,5 @@
 import csv
+from django_prices_vatlayer.models import VAT
 from io import StringIO
 from unittest.mock import Mock
 
@@ -60,10 +61,12 @@ def test_category_formatter(db):
     assert item_google_product_category(sub_category_item, {}) == "Main > Sub"
 
 
-def test_tax_formatter(variant, site_settings):
+def test_tax_formatter(variant, vatlayer, tax_rates):
     discounts = []
+    VAT.objects.create(country_code="US", data=tax_rates)
     is_charge_taxes_on_shipping = charge_taxes_on_shipping()
-    assert item_tax(variant, discounts, is_charge_taxes_on_shipping) is None
+    item_tax_value = item_tax(variant, discounts, is_charge_taxes_on_shipping)
+    assert item_tax_value == "US::23:yes"
 
 
 def test_write_feed(product, monkeypatch):
