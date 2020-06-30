@@ -11,6 +11,7 @@ from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
 from ..webhook.types import Webhook
 from .enums import AppTypeEnum
+from .resolvers import resolve_access_token
 
 
 class Manifest(graphene.ObjectType):
@@ -80,6 +81,9 @@ class App(CountableDjangoObjectType):
     )
     app_url = graphene.String(description="Url to iframe with the app.")
     version = graphene.String(description="Version number of the app.")
+    access_token = graphene.String(
+        description="JWT token used to authenticate by thridparty app."
+    )
 
     class Meta:
         description = "Represents app data."
@@ -122,6 +126,10 @@ class App(CountableDjangoObjectType):
     @staticmethod
     def resolve_webhooks(root: models.App, _info):
         return root.webhooks.all()
+
+    @staticmethod
+    def resolve_access_token(root: models.App, info):
+        return resolve_access_token(info, root)
 
 
 class AppInstallation(CountableDjangoObjectType):
