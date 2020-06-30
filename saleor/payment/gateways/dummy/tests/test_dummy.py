@@ -5,6 +5,7 @@ import pytest
 from .... import ChargeStatus, PaymentError, TransactionKind, gateway
 from .. import (
     PREAUTHORIZED_TOKENS,
+    TOKEN_EXPIRED,
     TOKEN_VALIDATION_MAPPING,
     authorize,
     capture,
@@ -375,7 +376,7 @@ def test_process_payment_pre_authorized_and_capture_error(
     payment_dummy, dummy_gateway_config, monkeypatch
 ):
     # given
-    token = PREAUTHORIZED_TOKENS[0]
+    token = TOKEN_EXPIRED
     dummy_gateway_config.auto_capture = True
     monkeypatch.setattr(
         "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin._get_gateway_config",
