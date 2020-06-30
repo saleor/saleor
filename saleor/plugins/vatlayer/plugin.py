@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -73,7 +73,8 @@ class VatlayerPlugin(BasePlugin):
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
-        lines: List["CheckoutLine"],
+        lines: List,
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -82,7 +83,7 @@ class VatlayerPlugin(BasePlugin):
 
         return (
             calculations.checkout_subtotal(
-                checkout=checkout, lines=lines, discounts=discounts
+                checkout=checkout, lines=lines, address=address, discounts=discounts
             )
             + calculations.checkout_shipping_price(
                 checkout=checkout, lines=lines, discounts=discounts
@@ -145,16 +146,13 @@ class VatlayerPlugin(BasePlugin):
         variant: "ProductVariant",
         product: "Product",
         collections: List["Collection"],
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):
             return previous_value
 
-        address = (
-            checkout_line.checkout.shipping_address
-            or checkout_line.checkout.billing_address
-        )
         price = variant.get_price(product, collections, discounts)
         country = address.country if address else None
         return (

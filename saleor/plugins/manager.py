@@ -99,48 +99,60 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
-        lines: Iterable["CheckoutLine"],
+        lines: Iterable,  # FIXME: add type
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
 
         default_value = base_calculations.base_checkout_total(
-            subtotal=self.calculate_checkout_subtotal(checkout, lines, discounts),
+            subtotal=self.calculate_checkout_subtotal(
+                checkout, lines, address, discounts
+            ),
             shipping_price=self.calculate_checkout_shipping(checkout, lines, discounts),
             discount=checkout.discount,
             currency=checkout.currency,
         )
         return self.__run_method_on_plugins(
-            "calculate_checkout_total", default_value, checkout, lines, discounts
+            "calculate_checkout_total",
+            default_value,
+            checkout,
+            lines,
+            address,
+            discounts,
         )
 
     def calculate_checkout_subtotal(
         self,
         checkout: "Checkout",
-        lines: Iterable["CheckoutLine"],
+        lines: Iterable,
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         line_totals = [
             self.calculate_checkout_line_total(
-                line,
-                line.variant,
-                line.variant.product,
-                line.variant.product.collections.all(),
+                line_info.line,
+                line_info.variant,
+                line_info.product,
+                line_info.collections,
+                address,
                 discounts,
             )
-            for line in lines
+            for line_info in lines
         ]
         default_value = base_calculations.base_checkout_subtotal(
             line_totals, checkout.currency
         )
         return self.__run_method_on_plugins(
-            "calculate_checkout_subtotal", default_value, checkout, lines, discounts
+            "calculate_checkout_subtotal",
+            default_value,
+            checkout,
+            lines,
+            address,
+            discounts,
         )
 
     def calculate_checkout_shipping(
-        self,
-        checkout: "Checkout",
-        lines: Iterable["CheckoutLine"],
-        discounts: Iterable[DiscountInfo],
+        self, checkout: "Checkout", lines: Iterable, discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         default_value = base_calculations.base_checkout_shipping_price(checkout, lines)
         return self.__run_method_on_plugins(
@@ -165,6 +177,7 @@ class PluginsManager(PaymentInterface):
         variant: "ProductVariant",
         product: "Product",
         collections: Iterable["Collection"],
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ):
         default_value = base_calculations.base_checkout_line_total(
@@ -177,6 +190,7 @@ class PluginsManager(PaymentInterface):
             variant,
             product,
             collections,
+            address,
             discounts,
         )
 

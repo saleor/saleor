@@ -84,6 +84,7 @@ class BasePlugin:
         self,
         checkout: "Checkout",
         lines: List["CheckoutLine"],
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -98,6 +99,7 @@ class BasePlugin:
         self,
         checkout: "Checkout",
         lines: List["CheckoutLine"],
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -138,6 +140,7 @@ class BasePlugin:
         variant: "ProductVariant",
         product: "Product",
         collections: List["Collection"],
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:

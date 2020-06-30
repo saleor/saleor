@@ -126,8 +126,9 @@ def validate_voucher_for_checkout(
     lines: Iterable["CheckoutLine"],
     discounts: Optional[Iterable[DiscountInfo]],
 ):
+    address = checkout.shipping_address or checkout.billing_address
     subtotal = calculations.checkout_subtotal(
-        checkout=checkout, lines=lines, discounts=discounts
+        checkout=checkout, lines=lines, address=address, discounts=discounts
     )
 
     customer_email = checkout.get_customer_email()

@@ -263,12 +263,21 @@ def get_prices_of_discounted_specific_product(
     """
     line_prices = []
     discounted_lines = get_discounted_lines(lines, voucher)
+
+    # FIXME: figure out a better way to get the checkout/address
+    checkout = lines[0].checkout if lines else None
+    if checkout:
+        address = checkout.shipping_address or checkout.billing_address
+    else:
+        address = None
+
     for line in discounted_lines:
         line_total = calculations.checkout_line_total(
             line=line,
             variant=line.variant,
             product=line.variant.product,
             collections=line.variant.product.collections.all(),
+            address=address,
             discounts=discounts or [],
         ).gross
         line_unit_price = quantize_price(
@@ -291,8 +300,9 @@ def get_voucher_discount_for_checkout(
     """
     validate_voucher_for_checkout(voucher, checkout, lines, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
+        address = checkout.shipping_address or checkout.billing_address
         subtotal = calculations.checkout_subtotal(
-            checkout=checkout, lines=lines, discounts=discounts
+            checkout=checkout, lines=lines, address=address, discounts=discounts
         ).gross
         return voucher.get_discount_amount_for(subtotal)
     if voucher.type == VoucherType.SHIPPING:
@@ -338,8 +348,9 @@ def recalculate_checkout_discount(
         except NotApplicable:
             remove_voucher_from_checkout(checkout)
         else:
+            address = checkout.shipping_address or checkout.billing_address
             subtotal = calculations.checkout_subtotal(
-                checkout=checkout, lines=lines, discounts=discounts
+                checkout=checkout, lines=lines, address=address, discounts=discounts
             ).gross
             checkout.discount = (
                 min(discount, subtotal)
@@ -475,10 +486,10 @@ def get_valid_shipping_methods_for_checkout(
     country_code: Optional[str] = None,
 ):
     manager = get_plugins_manager()
+    address = checkout.shipping_address or checkout.billing_address
+    subtotal = manager.calculate_checkout_subtotal(checkout, lines, address, discounts)
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
-        checkout,
-        price=manager.calculate_checkout_subtotal(checkout, lines, discounts).gross,
-        country_code=country_code,
+        checkout, price=subtotal.gross, country_code=country_code,
     )
 
 
@@ -625,7 +636,13 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
     variant = checkout_line.variant
     product = variant.product
     collections = product.collections.all()
-    country = checkout_line.checkout.get_country()
+    checkout = checkout_line.checkout
+
+    country = checkout.get_country()
+    # FIXME: address is used for tax calculations, make sure the right one is used here
+    # and it makes sense with checkout country
+    address = checkout.shipping_address or checkout.billing_address
+
     check_stock_quantity(variant, country, quantity)
 
     product_name = str(product)
@@ -642,7 +659,7 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
 
     manager = get_plugins_manager()
     total_line_price = manager.calculate_checkout_line_total(
-        checkout_line, variant, product, collections, discounts
+        checkout_line, variant, product, collections, address, discounts
     )
     unit_price = quantize_price(
         total_line_price / checkout_line.quantity, total_line_price.currency
@@ -678,8 +695,11 @@ def prepare_order_data(
     order_data = {}
 
     manager = get_plugins_manager()
+
+    address = checkout.shipping_address or checkout.billing_address
+
     taxed_total = calculations.checkout_total(
-        checkout=checkout, lines=lines, discounts=discounts
+        checkout=checkout, lines=lines, address=address, discounts=discounts
     )
     cards_total = checkout.get_total_gift_cards_balance()
     taxed_total.gross -= cards_total
@@ -712,7 +732,9 @@ def prepare_order_data(
     # assign gift cards to the order
 
     order_data["total_price_left"] = (
-        manager.calculate_checkout_subtotal(checkout, list(checkout), discounts)
+        manager.calculate_checkout_subtotal(
+            checkout, list(checkout), address, discounts
+        )
         + shipping_total
         - checkout.discount
     ).gross
@@ -796,8 +818,11 @@ def is_fully_paid(
     """
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
+    address = checkout.shipping_address or checkout.billing_address
     checkout_total = (
-        calculations.checkout_total(checkout=checkout, lines=lines, discounts=discounts)
+        calculations.checkout_total(
+            checkout=checkout, lines=lines, address=address, discounts=discounts
+        )
         - checkout.get_total_gift_cards_balance()
     )
     checkout_total = max(

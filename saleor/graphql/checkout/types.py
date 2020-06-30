@@ -21,7 +21,10 @@ from ..product.dataloaders import (
     ProductVariantByIdLoader,
 )
 from ..shipping.types import ShippingMethod
-from .dataloaders import CheckoutLinesByCheckoutTokenLoader
+from .dataloaders import (
+    CheckoutLinesByCheckoutTokenLoader,
+    CheckoutLinesInfoByCheckoutTokenLoader,
+)
 
 
 class GatewayConfigLine(graphene.ObjectType):
@@ -75,6 +78,8 @@ class CheckoutLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_total_price(root: models.CheckoutLine, info):
+        address = root.checkout.shipping_address or root.checkout.billing_address
+
         def calculate_line_total_price(data):
             variant, product, collections, discounts = data
             return info.context.plugins.calculate_checkout_line_total(
@@ -82,6 +87,7 @@ class CheckoutLine(CountableDjangoObjectType):
                 variant=variant,
                 product=product,
                 collections=collections,
+                address=address,
                 discounts=discounts,
             )
 
@@ -177,17 +183,19 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_total_price(root: models.Checkout, info):
+        address = root.shipping_address or root.billing_address
+
         def calculate_total_price(data):
             lines, discounts = data
             taxed_total = (
                 calculations.checkout_total(
-                    checkout=root, lines=lines, discounts=discounts
+                    checkout=root, lines=lines, address=address, discounts=discounts
                 )
                 - root.get_total_gift_cards_balance()
             )
             return max(taxed_total, zero_taxed_money())
 
-        lines = CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
+        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
@@ -196,13 +204,15 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_subtotal_price(root: models.Checkout, info):
+        address = root.shipping_address or root.billing_address
+
         def calculate_subtotal_price(data):
             lines, discounts = data
             return calculations.checkout_subtotal(
-                checkout=root, lines=lines, discounts=discounts
+                checkout=root, lines=lines, address=address, discounts=discounts
             )
 
-        lines = CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
+        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )

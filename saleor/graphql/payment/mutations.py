@@ -70,10 +70,12 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def calculate_total(cls, info, checkout):
+        address = checkout.shipping_address or checkout.billing_address
         checkout_total = (
             calculations.checkout_total(
                 checkout=checkout,
                 lines=list(checkout),
+                address=address,
                 discounts=info.context.discounts,
             )
             - checkout.get_total_gift_cards_balance()

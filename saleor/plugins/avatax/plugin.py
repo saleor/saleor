@@ -1,7 +1,7 @@
 import logging
 from dataclasses import asdict
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 from urllib.parse import urljoin
 
 from django.core.exceptions import ValidationError
@@ -30,6 +30,7 @@ from .tasks import api_post_request_task
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from ...account.models import Address
     from ...checkout.models import Checkout, CheckoutLine
     from ...order.models import Order, OrderLine
     from ...product.models import Collection, Product, ProductType, ProductVariant
@@ -115,7 +116,8 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
-        lines: Iterable["CheckoutLine"],
+        lines: Iterable,
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -160,6 +162,7 @@ class AvataxPlugin(BasePlugin):
         self,
         checkout: "Checkout",
         lines: Iterable["CheckoutLine"],
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -270,6 +273,7 @@ class AvataxPlugin(BasePlugin):
         variant: "ProductVariant",
         product: "Product",
         collections: Iterable["Collection"],
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
