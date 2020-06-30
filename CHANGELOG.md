@@ -18,6 +18,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `json_content` field from the `Menu` model - #5761 by @maarcingebala
 - Strip warehouse name in mutations - #5766 by @koradon
 - Add missing OrderEvents during checkout flow - #5684 by @koradon
+- Update google merchant to get tax rate based by plugin manager - #5823 by @gabmartinez
 
 ## 2.10.1
 
