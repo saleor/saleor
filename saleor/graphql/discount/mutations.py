@@ -69,7 +69,6 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         products = input.get("products", [])
         if products:
             products = cls.get_nodes_or_error(products, "products", Product)
-            products_variant_exist(products)
             node.products.remove(*products)
         categories = input.get("categories", [])
         if categories:
