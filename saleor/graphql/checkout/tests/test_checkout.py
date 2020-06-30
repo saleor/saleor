@@ -115,8 +115,35 @@ MUTATION_CHECKOUT_CREATE = """
 """
 
 
-def test_checkout_create(api_client, stock, graphql_address_data):
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_checkout_create_triggers_webhooks(
+    mocked_webhook_trigger, user_api_client, stock, graphql_address_data, settings
+):
     """Create checkout object using GraphQL API."""
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    get_graphql_content(response)["data"]["checkoutCreate"]
+
+    assert mocked_webhook_trigger.called
+
+
+def test_checkout_create(
+    _mocked_webhook_trigger, api_client, stock, graphql_address_data, settings
+):
+    """Create checkout object using GraphQL API."""
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
