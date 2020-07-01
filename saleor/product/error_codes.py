@@ -14,4 +14,4 @@ class ProductErrorCode(Enum):
     REQUIRED = "required"
     UNIQUE = "unique"
     VARIANT_NO_DIGITAL_CONTENT = "variant_no_digital_content"
-    PRODUCT_WITHOUT_VARIANT = "product_without_variant"
+    CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT = "CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT"

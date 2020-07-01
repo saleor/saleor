@@ -28,10 +28,7 @@ from ....product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
 )
-from ....product.utils.product_variants import (
-    product_variant_exist,
-    products_variant_exist,
-)
+from ....product.utils.product_variants import get_products_without_variants
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
@@ -363,13 +360,23 @@ class CollectionAddProducts(BaseMutation):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
         )
+        products_without_variants = get_products_without_variants(products)
+        if products_without_variants:
+            raise ValidationError(
+                {
+                    "products": ValidationError(
+                        f"Cannot manage products without variants. "
+                        f"Products ids: {products_without_variants}.",
+                        code=ProductErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT,
+                    )
+                }
+            )
         products = cls.get_nodes_or_error(products, "products", Product)
-        products_variant_exist(products)
         collection.products.add(*products)
         if collection.sale_set.exists():
             # Updated the db entries, recalculating discounts of affected products
             update_products_minimal_variant_prices_of_catalogues_task.delay(
-                product_ids=[p.pk for p in products]
+                product_ids=[pq.pk for pq in products]
             )
         return CollectionAddProducts(collection=collection)
 
@@ -1544,7 +1551,6 @@ class ProductImageReorder(BaseMutation):
         product = cls.get_node_or_error(
             info, product_id, field="product_id", only_type=Product
         )
-        product_variant_exist(product)
         if len(images_ids) != product.images.count():
             raise ValidationError(
                 {
