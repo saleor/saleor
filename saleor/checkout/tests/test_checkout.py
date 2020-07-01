@@ -18,6 +18,7 @@ from ...discount import DiscountValueType, VoucherType
 from ...discount.models import NotApplicable, Voucher
 from ...order import OrderEvents, OrderEventsEmails
 from ...order.models import OrderEvent
+from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...shipping.models import ShippingZone
 from ...tests.utils import flush_post_commit_hooks
@@ -1404,3 +1405,18 @@ def test_store_user_address_create_new_address_if_not_associated(address):
 
     assert user.addresses.count() == expected_user_addresses_count
     assert user.default_billing_address_id != address.pk
+
+
+def test_get_last_active_payments(checkout_with_payments):
+    # given
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy",
+        is_active=True,
+        checkout=checkout_with_payments,
+    )
+
+    # when
+    last_payment = checkout_with_payments.get_last_active_payment()
+
+    # then
+    assert last_payment.pk == payment.pk
