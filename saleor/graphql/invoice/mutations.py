@@ -14,6 +14,8 @@ from ..order.types import Order
 
 
 class InvoiceRequest(ModelMutation):
+    order = graphene.Field(Order, description="Order related to an invoice.")
+
     class Meta:
         description = "Request an invoice for the order using plugin."
         model = models.Invoice
@@ -68,7 +70,7 @@ class InvoiceRequest(ModelMutation):
             user=info.context.user, order=order, number=data.get("number")
         )
         invoice.refresh_from_db()
-        return InvoiceRequest(invoice=invoice)
+        return InvoiceRequest(invoice=invoice, order=order)
 
 
 class InvoiceCreateInput(graphene.InputObjectType):
