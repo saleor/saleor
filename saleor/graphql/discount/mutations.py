@@ -5,11 +5,12 @@ from ...core.permissions import DiscountPermissions
 from ...core.utils.promo_code import generate_promo_code, is_available_promo_code
 from ...discount import models
 from ...discount.error_codes import DiscountErrorCode
+from ...product.error_codes import ProductErrorCode
 from ...product.tasks import (
     update_products_minimal_variant_prices_of_catalogues_task,
     update_products_minimal_variant_prices_of_discount_task,
 )
-from ...product.utils.product_variants import products_variant_exist
+from ...product.utils.product_variants import get_products_without_variants
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal
 from ..core.types.common import DiscountError
@@ -50,8 +51,18 @@ class BaseDiscountCatalogueMutation(BaseMutation):
     def add_catalogues_to_node(cls, node, input):
         products = input.get("products", [])
         if products:
+            products_without_variants = get_products_without_variants(products)
+            if products_without_variants:
+                raise ValidationError(
+                    {
+                        "products": ValidationError(
+                            f"Cannot manage products without variants. "
+                            f"Products ids: {products_without_variants}.",
+                            code=ProductErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT,
+                        )
+                    }
+                )
             products = cls.get_nodes_or_error(products, "products", Product)
-            products_variant_exist(products)
             node.products.add(*products)
         categories = input.get("categories", [])
         if categories:
