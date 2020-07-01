@@ -14,6 +14,9 @@ INVOICE_REQUEST_MUTATION = """
             orderId: $orderId
             number: $number
         ) {
+            order {
+                id
+            }
             invoice {
                 status
                 number
@@ -33,8 +36,9 @@ def test_invoice_request(
     plugin_mock, staff_api_client, permission_manage_orders, order
 ):
     number = "01/12/2020/TEST"
+    graphene_order_id = graphene.Node.to_global_id("Order", order.pk)
     variables = {
-        "orderId": graphene.Node.to_global_id("Order", order.pk),
+        "orderId": graphene_order_id,
         "number": number,
     }
     response = staff_api_client.post_graphql(
@@ -56,6 +60,7 @@ def test_invoice_request(
         content["data"]["invoiceRequest"]["invoice"]["status"]
         == JobStatus.PENDING.upper()
     )
+    assert content["data"]["invoiceRequest"]["order"]["id"] == graphene_order_id
 
 
 def test_invoice_request_draft_order(staff_api_client, permission_manage_orders, order):
