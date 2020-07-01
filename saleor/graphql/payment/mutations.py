@@ -9,7 +9,7 @@ from ...core.utils import get_client_ip
 from ...graphql.checkout.utils import clean_billing_address, clean_checkout_shipping
 from ...payment import PaymentError, gateway, models
 from ...payment.error_codes import PaymentErrorCode
-from ...payment.utils import create_payment
+from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..checkout.types import Checkout
@@ -106,6 +106,18 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
+    def validate_gateway(cls, gateway_id, currency):
+        if not is_currency_supported(currency, gateway_id):
+            raise ValidationError(
+                {
+                    "gateway": ValidationError(
+                        f"The gateway {gateway_id} does not support checkout currency.",
+                        code=PaymentErrorCode.NOT_SUPPORTED_GATEWAY.value,
+                    )
+                }
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, checkout_id, **data):
         checkout_id = from_global_id_strict_type(
             checkout_id, only_type=Checkout, field="checkout_id"
@@ -115,6 +127,9 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         ).get(pk=checkout_id)
 
         data = data["input"]
+        gateway = data["gateway"]
+
+        cls.validate_gateway(gateway, checkout.currency)
 
         checkout_total = cls.calculate_total(info, checkout)
         amount = data.get("amount", checkout_total.gross.amount)
@@ -126,7 +141,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         extra_data = {"customer_user_agent": info.context.META.get("HTTP_USER_AGENT")}
 
         payment = create_payment(
-            gateway=data["gateway"],
+            gateway=gateway,
             payment_token=data["token"],
             total=amount,
             currency=settings.DEFAULT_CURRENCY,

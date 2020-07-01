@@ -187,6 +187,13 @@ def setup_dummy_gateway(settings):
     return settings
 
 
+@pytest.fixture
+def sample_gateway(settings):
+    settings.PLUGINS += [
+        "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway"
+    ]
+
+
 @pytest.fixture(autouse=True)
 def site_settings(db, settings) -> SiteSettings:
     """Create a site and matching site settings.
@@ -217,7 +224,7 @@ def site_settings(db, settings) -> SiteSettings:
 
 @pytest.fixture
 def checkout(db):
-    checkout = Checkout.objects.create()
+    checkout = Checkout.objects.create(currency="USD")
     checkout.set_country("US", commit=True)
     return checkout
 
@@ -406,6 +413,7 @@ def user_checkout(customer_user):
         billing_address=customer_user.default_billing_address,
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
+        currency="USD",
     )
     return checkout
 
@@ -417,24 +425,6 @@ def user_checkout_with_items(user_checkout, product_list):
         add_variant_to_checkout(user_checkout, variant, 1)
     user_checkout.refresh_from_db()
     return user_checkout
-
-
-@pytest.fixture
-def request_checkout(checkout, monkeypatch):
-    # FIXME: Fixtures should not have any side effects
-    monkeypatch.setattr(
-        utils,
-        "get_checkout_from_request",
-        lambda request, checkout_queryset=None: checkout,
-    )
-    return checkout
-
-
-@pytest.fixture
-def request_checkout_with_item(product, request_checkout):
-    variant = product.variants.get()
-    add_variant_to_checkout(request_checkout, variant)
-    return request_checkout
 
 
 @pytest.fixture
@@ -497,6 +487,31 @@ def shipping_zone(db):  # pylint: disable=W0613
         shipping_zone=shipping_zone,
     )
     return shipping_zone
+
+
+@pytest.fixture
+def shipping_zones(db):
+    shipping_zone_poland, shipping_zone_usa = ShippingZone.objects.bulk_create(
+        [
+            ShippingZone(name="Poland", countries=["PL"]),
+            ShippingZone(name="USA", countries=["US"]),
+        ]
+    )
+    shipping_zone_poland.shipping_methods.create(
+        name="DHL",
+        minimum_order_price=Money(0, "USD"),
+        type=ShippingMethodType.PRICE_BASED,
+        price=Money(10, "USD"),
+        shipping_zone=shipping_zone,
+    )
+    shipping_zone_usa.shipping_methods.create(
+        name="DHL",
+        minimum_order_price=Money(0, "USD"),
+        type=ShippingMethodType.PRICE_BASED,
+        price=Money(10, "USD"),
+        shipping_zone=shipping_zone,
+    )
+    return [shipping_zone_poland, shipping_zone_usa]
 
 
 @pytest.fixture
@@ -869,8 +884,26 @@ def variant(product) -> ProductVariant:
 @pytest.fixture
 def variant_with_many_stocks(variant, warehouses_with_shipping_zone):
     warehouses = warehouses_with_shipping_zone
-    Stock.objects.create(warehouse=warehouses[0], product_variant=variant, quantity=4)
-    Stock.objects.create(warehouse=warehouses[1], product_variant=variant, quantity=3)
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=warehouses[0], product_variant=variant, quantity=4),
+            Stock(warehouse=warehouses[1], product_variant=variant, quantity=3),
+        ]
+    )
+    return variant
+
+
+@pytest.fixture
+def variant_with_many_stocks_different_shipping_zones(
+    variant, warehouses_with_different_shipping_zone
+):
+    warehouses = warehouses_with_different_shipping_zone
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=warehouses[0], product_variant=variant, quantity=4),
+            Stock(warehouse=warehouses[1], product_variant=variant, quantity=3),
+        ]
+    )
     return variant
 
 
@@ -2114,6 +2147,13 @@ def warehouses(address):
 def warehouses_with_shipping_zone(warehouses, shipping_zone):
     warehouses[0].shipping_zones.add(shipping_zone)
     warehouses[1].shipping_zones.add(shipping_zone)
+    return warehouses
+
+
+@pytest.fixture
+def warehouses_with_different_shipping_zone(warehouses, shipping_zones):
+    warehouses[0].shipping_zones.add(shipping_zones[0])
+    warehouses[1].shipping_zones.add(shipping_zones[1])
     return warehouses
 
 

@@ -27,6 +27,7 @@ def gateway_config():
     return GatewayConfig(
         gateway_name="razorpay",
         auto_capture=False,
+        supported_currencies="USD",
         connection_params={
             "public_key": "public",
             "private_key": "secret",
