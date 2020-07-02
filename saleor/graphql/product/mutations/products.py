@@ -886,14 +886,6 @@ class ProductCreate(ModelMutation):
             AttributeAssignmentMixin.save(instance, attributes)
 
     @classmethod
-    def create_variant_stocks(cls, variant, stocks):
-        warehouse_ids = [stock["warehouse"] for stock in stocks]
-        warehouses = cls.get_nodes_or_error(
-            warehouse_ids, "warehouse", only_type=Warehouse
-        )
-        create_stocks(variant, stocks, warehouses)
-
-    @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
         collections = cleaned_data.get("collections", None)
         if collections is not None:
