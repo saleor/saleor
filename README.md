@@ -85,7 +85,7 @@ Help us out… If you love free stuff and great software, give us a star! 🌟
 
 Saleor requires Python 3.8, Node.js 10.0+, PostgreSQL and OS-specific dependency tools.
 
-[See the Saleor docs](https://docs.saleor.io/docs/getting-started/intro/) for step-by-step installation and deployment instructions.
+[See the Saleor docs](https://docs.saleor.io/docs/developer/installation) for step-by-step installation and deployment instructions.
 
 Note:
 The `master` branch is the development version of Saleor and it may be unstable. To use the latest stable version, download it from the [Releases](https://github.com/mirumee/saleor/releases/) page or switch to a release tag.
@@ -94,7 +94,7 @@ The current stable version is 2.10 and you should use this version for all three
 
 - Saleor: https://github.com/mirumee/saleor/releases/tag/2.10.1
 - Dashboard: https://github.com/mirumee/saleor-dashboard/releases/tag/2.10.0
-- Storefront: https://github.com/mirumee/saleor-storefront/releases/tag/2.10.0
+- Storefront: https://github.com/mirumee/saleor-storefront/releases/tag/2.10.3
 
 ## Documentation
 
@@ -135,7 +135,7 @@ Login credentials: `admin@example.com`/`admin`
 
 We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labeled [`Help Wanted`](https://github.com/mirumee/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
 
-If nothing grabs your attention, check [our roadmap](https://github.com/mirumee/saleor/projects/6) or come up with your feature. Just drop us a line or [open an issue](https://github.com/mirumee/saleor/issues/new) and we’ll work out how to handle it.
+If nothing grabs your attention, check [our roadmap](https://github.com/mirumee/saleor/projects/12) or come up with your feature. Just drop us a line or [open an issue](https://github.com/mirumee/saleor/issues/new) and we’ll work out how to handle it.
 
 Get more details in our [Contributing Guide](https://docs.saleor.io/docs/developer/community/contributing).
 

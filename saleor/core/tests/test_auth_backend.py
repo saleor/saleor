@@ -2,7 +2,7 @@ import jwt
 import pytest
 from django.contrib.auth.models import Permission
 from freezegun import freeze_time
-from jwt import ExpiredSignatureError, InvalidSignatureError
+from jwt import ExpiredSignatureError, InvalidSignatureError, InvalidTokenError
 
 from ..auth_backend import JSONWebTokenBackend
 from ..jwt import (
@@ -11,6 +11,7 @@ from ..jwt import (
     create_access_token,
     create_access_token_for_app,
     create_refresh_token,
+    jwt_encode,
     jwt_user_payload,
 )
 from ..permissions import get_permissions_from_names
@@ -30,14 +31,16 @@ def test_user_deactivated(rf, staff_user):
     access_token = create_access_token(staff_user)
     request = rf.request(HTTP_AUTHORIZATION=f"JWT {access_token}")
     backend = JSONWebTokenBackend()
-    assert backend.authenticate(request) is None
+    with pytest.raises(InvalidTokenError):
+        backend.authenticate(request)
 
 
 def test_incorect_type_of_token(rf, staff_user):
     token = create_refresh_token(staff_user)
     request = rf.request(HTTP_AUTHORIZATION=f"JWT {token}")
     backend = JSONWebTokenBackend()
-    assert backend.authenticate(request) is None
+    with pytest.raises(InvalidTokenError):
+        backend.authenticate(request)
 
 
 def test_incorrect_token(rf, staff_user, settings):
@@ -75,7 +78,8 @@ def test_user_doesnt_exist(rf, staff_user):
     staff_user.delete()
     request = rf.request(HTTP_AUTHORIZATION=f"JWT {access_token}")
     backend = JSONWebTokenBackend()
-    assert backend.authenticate(request) is None
+    with pytest.raises(InvalidTokenError):
+        backend.authenticate(request)
 
 
 def test_user_deactivated_token(rf, staff_user):
@@ -84,7 +88,8 @@ def test_user_deactivated_token(rf, staff_user):
     staff_user.save()
     request = rf.request(HTTP_AUTHORIZATION=f"JWT {access_token}")
     backend = JSONWebTokenBackend()
-    assert backend.authenticate(request) is None
+    with pytest.raises(InvalidTokenError):
+        backend.authenticate(request)
 
 
 @pytest.mark.parametrize(
@@ -144,3 +149,29 @@ def test_user_doesnt_have_permissions_from_token(staff_user, app, rf):
     user = backend.authenticate(request)
     assert user == staff_user
     assert set(user.effective_permissions) == set(expected_permissions)
+
+
+def test_user_payload_doesnt_have_user_token(rf, staff_user, settings):
+    access_payload = jwt_user_payload(
+        staff_user, JWT_ACCESS_TYPE, settings.JWT_TTL_ACCESS
+    )
+    del access_payload["token"]
+    access_token = jwt_encode(access_payload)
+
+    request = rf.request(HTTP_AUTHORIZATION=f"JWT {access_token}")
+    backend = JSONWebTokenBackend()
+    with pytest.raises(InvalidTokenError):
+        backend.authenticate(request)
+
+
+def test_user_has_old_token_type(rf, staff_user, settings):
+    settings.JWT_EXPIRE = False
+    access_token = (
+        "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwiZ"
+        "XhwIjoxNTYwMTczNDI2LCJvcmlnSWF0IjoxNTYwMTczMTI2fQ.QrYkGfEqnwC-d--EHATAfXoWURJf"
+        "lFfbntR7BESI9mg"
+    )
+    request = rf.request(HTTP_AUTHORIZATION=f"JWT {access_token}")
+    backend = JSONWebTokenBackend()
+    with pytest.raises(InvalidTokenError):
+        backend.authenticate(request)

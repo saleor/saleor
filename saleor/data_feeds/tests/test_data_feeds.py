@@ -3,23 +3,27 @@ from io import StringIO
 from unittest.mock import Mock
 
 from django.utils.encoding import smart_text
+from django_prices_vatlayer.models import VAT
 
+from ...core.taxes import charge_taxes_on_shipping
 from ...product.models import AttributeValue, Category
 from ..google_merchant import (
     get_feed_items,
     item_attributes,
     item_availability,
     item_google_product_category,
+    item_tax,
     write_feed,
 )
 
 
-def test_saleor_feed_items(product, site_settings):
+def test_saleor_feed_items(product, discount_info, site_settings):
+    is_charge_taxes_on_shipping = charge_taxes_on_shipping()
     valid_variant = product.variants.first()
     items = get_feed_items()
     assert len(items) == 1
     categories = Category.objects.all()
-    discounts = []
+    discounts = [discount_info]
     category_paths = {}
     attributes_dict = {}
     current_site = site_settings.site
@@ -34,9 +38,13 @@ def test_saleor_feed_items(product, site_settings):
         discounts,
         attributes_dict,
         attribute_values_dict,
+        is_charge_taxes_on_shipping,
     )
     assert attributes.get("mpn") == valid_variant.sku
     assert attributes.get("availability") == "in stock"
+    assert attributes.get("tax") is None
+    assert attributes.get("price") == "10.00 USD"
+    assert attributes.get("sale_price") == "5.00 USD"
 
 
 def test_saleor_get_feed_items_having_no_stock_info(variant, site_settings):
@@ -53,6 +61,14 @@ def test_category_formatter(db):
     sub_category_item = Mock(product=Mock(category=sub_category))
     assert item_google_product_category(main_category_item, {}) == "Main"
     assert item_google_product_category(sub_category_item, {}) == "Main > Sub"
+
+
+def test_tax_formatter(variant, vatlayer, tax_rates):
+    discounts = []
+    VAT.objects.create(country_code="US", data=tax_rates)
+    is_charge_taxes_on_shipping = charge_taxes_on_shipping()
+    item_tax_value = item_tax(variant, discounts, is_charge_taxes_on_shipping)
+    assert item_tax_value == "US::23:yes"
 
 
 def test_write_feed(product, monkeypatch):

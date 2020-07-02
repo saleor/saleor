@@ -87,9 +87,9 @@ def test_last_change_update_foregin_key(checkout, shipping_method):
 
 
 def test_create_order_captured_payment_creates_expected_events(
-    request_checkout_with_item, customer_user, shipping_method, payment_txn_captured,
+    checkout_with_item, customer_user, shipping_method, payment_txn_captured,
 ):
-    checkout = request_checkout_with_item
+    checkout = checkout_with_item
     checkout_user = customer_user
 
     # Ensure not events are existing prior
@@ -209,9 +209,9 @@ def test_create_order_captured_payment_creates_expected_events(
 
 
 def test_create_order_captured_payment_creates_expected_events_anonymous_user(
-    request_checkout_with_item, customer_user, shipping_method, payment_txn_captured,
+    checkout_with_item, customer_user, shipping_method, payment_txn_captured,
 ):
-    checkout = request_checkout_with_item
+    checkout = checkout_with_item
     checkout_user = None
 
     # Ensure not events are existing prior
@@ -325,9 +325,9 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
 
 
 def test_create_order_preauth_payment_creates_expected_events(
-    request_checkout_with_item, customer_user, shipping_method, payment_txn_preauth,
+    checkout_with_item, customer_user, shipping_method, payment_txn_preauth,
 ):
-    checkout = request_checkout_with_item
+    checkout = checkout_with_item
     checkout_user = customer_user
 
     # Ensure not events are existing prior
@@ -418,9 +418,9 @@ def test_create_order_preauth_payment_creates_expected_events(
 
 
 def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
-    request_checkout_with_item, customer_user, shipping_method, payment_txn_preauth,
+    checkout_with_item, customer_user, shipping_method, payment_txn_preauth,
 ):
-    checkout = request_checkout_with_item
+    checkout = checkout_with_item
     checkout_user = None
 
     # Ensure not events are existing prior
@@ -505,19 +505,19 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
 
 
 def test_create_order_insufficient_stock(
-    request_checkout, customer_user, product_without_shipping
+    checkout, customer_user, product_without_shipping
 ):
     variant = product_without_shipping.variants.get()
-    add_variant_to_checkout(request_checkout, variant, 10, check_quantity=False)
-    request_checkout.user = customer_user
-    request_checkout.billing_address = customer_user.default_billing_address
-    request_checkout.shipping_address = customer_user.default_billing_address
-    request_checkout.save()
+    add_variant_to_checkout(checkout, variant, 10, check_quantity=False)
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.save()
 
     with pytest.raises(InsufficientStock):
         prepare_order_data(
-            checkout=request_checkout,
-            lines=list(request_checkout),
+            checkout=checkout,
+            lines=list(checkout),
             tracking_code="tracking_code",
             discounts=None,
         )
@@ -683,22 +683,22 @@ def test_create_order_with_many_gift_cards(
     )
 
 
-def test_note_in_created_order(request_checkout_with_item, address, customer_user):
-    request_checkout_with_item.shipping_address = address
-    request_checkout_with_item.note = "test_note"
-    request_checkout_with_item.save()
+def test_note_in_created_order(checkout_with_item, address, customer_user):
+    checkout_with_item.shipping_address = address
+    checkout_with_item.note = "test_note"
+    checkout_with_item.save()
     order = create_order(
-        checkout=request_checkout_with_item,
+        checkout=checkout_with_item,
         order_data=prepare_order_data(
-            checkout=request_checkout_with_item,
-            lines=list(request_checkout_with_item),
+            checkout=checkout_with_item,
+            lines=list(checkout_with_item),
             tracking_code="tracking_code",
             discounts=None,
         ),
         user=customer_user,
         redirect_url="https://www.example.com",
     )
-    assert order.customer_note == request_checkout_with_item.note
+    assert order.customer_note == checkout_with_item.note
 
 
 @pytest.mark.parametrize(

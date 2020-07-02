@@ -45,7 +45,7 @@ class BaseConnectionField(graphene.ConnectionField):
 
 class BaseDjangoConnectionField(DjangoConnectionField):
     @classmethod
-    def resolve_connection(cls, connection, args, iterable):
+    def resolve_connection(cls, connection, args, iterable, max_limit=None):
         common_args = {
             "connection_type": connection,
             "edge_type": connection.Edge,
@@ -189,7 +189,9 @@ class FilterInputConnectionField(PrefetchingConnectionField):
         # but iterable might be promise
         iterable = queryset_resolver(connection, iterable, info, args)
 
-        on_resolve = partial(cls.resolve_connection, connection, args)
+        on_resolve = partial(
+            cls.resolve_connection, connection, args, max_limit=max_limit
+        )
 
         filter_input = args.get(filters_name)
         if filter_input and filterset_class:

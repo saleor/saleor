@@ -1,9 +1,9 @@
 import os.path
+from decimal import Decimal
 
 import graphene
 import pytest
 
-from ....core.taxes import zero_money
 from ....product import models as product_models
 from ....product.utils.attributes import associate_attribute_values_to_instance
 from ...tests.utils import get_graphql_content
@@ -99,14 +99,16 @@ def products_structures(category):
                     slug=f"{attrs[0]}-apple-{attrs[1]}-({i})",
                     product_type=pt_apples,
                     category=category,
-                    price=zero_money(),
                     is_published=True,
                 )
                 for i, attrs in enumerate(zip(COLORS, TRADEMARKS))
             ]
         )
     )
-
+    for product_apple in apples:
+        product_models.ProductVariant.objects.create(
+            product=product_apple, sku=product_apple.slug, price_amount=Decimal(10)
+        )
     oranges = list(
         product_models.Product.objects.bulk_create(
             [
@@ -115,29 +117,35 @@ def products_structures(category):
                     slug=f"{attrs[0]}-orange-{attrs[1]}-({i})",
                     product_type=pt_oranges,
                     category=category,
-                    price=zero_money(),
                     is_published=True,
                 )
                 for i, attrs in enumerate(zip(COLORS, TRADEMARKS))
             ]
         )
     )
-
+    for product_orange in oranges:
+        product_models.ProductVariant.objects.create(
+            product=product_orange, sku=product_orange.slug, price_amount=Decimal(10)
+        )
     dummy = product_models.Product.objects.create(
         name="Oopsie Dummy",
         slug="oopsie-dummy",
         product_type=pt_other,
         category=category,
-        price=zero_money(),
         is_published=True,
     )
-    product_models.Product.objects.create(
+    product_models.ProductVariant.objects.create(
+        product=dummy, sku=dummy.slug, price_amount=Decimal(10)
+    )
+    other_dummy = product_models.Product.objects.create(
         name="Another Dummy but first in ASC and has no attribute value",
         slug="another-dummy",
         product_type=pt_other,
         category=category,
-        price=zero_money(),
         is_published=True,
+    )
+    product_models.ProductVariant.objects.create(
+        product=other_dummy, sku=other_dummy.slug, price_amount=Decimal(10)
     )
     dummy_attr_value = attr_value(dummy_attr, DUMMIES[0])
     associate_attribute_values_to_instance(dummy, dummy_attr, *dummy_attr_value)
@@ -473,7 +481,6 @@ def test_sort_product_not_having_attribute_data(api_client, category, count_quer
     expected_results = ["Z", "Y", "A"]
     product_create_kwargs = {
         "category": category,
-        "price": zero_money(),
         "is_published": True,
     }
 
