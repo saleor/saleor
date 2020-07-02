@@ -1409,7 +1409,7 @@ def test_store_user_address_create_new_address_if_not_associated(address):
     assert user.default_billing_address_id != address.pk
 
 
-def test_get_last_active_payments(checkout_with_payments):
+def test_get_last_active_payment(checkout_with_payments):
     # given
     payment = Payment.objects.create(
         gateway="mirumee.payments.dummy",
