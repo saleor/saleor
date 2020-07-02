@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 import opentracing
 from django.conf import settings
@@ -309,33 +309,47 @@ class PluginsManager(PaymentInterface):
             plugins = self.plugins
         return [plugin for plugin in plugins if plugin.active]
 
-    def list_payment_plugin_names(self, active_only: bool = False) -> List[tuple]:
+    def list_payment_plugin(self, active_only: bool = False) -> Dict[str, "BasePlugin"]:
         payment_method = "process_payment"
         plugins = self.plugins
         if active_only:
             plugins = self.get_active_plugins()
-        return [
-            (plugin.PLUGIN_ID, plugin.PLUGIN_NAME)
+        return {
+            plugin.PLUGIN_ID: plugin
             for plugin in plugins
             if payment_method in type(plugin).__dict__
-        ]
+        }
 
-    def list_payment_gateways(self, active_only: bool = True) -> List[dict]:
-        payment_plugins = self.list_payment_plugin_names(active_only=active_only)
-        return [
+    def list_payment_gateways(
+        self, currency: Optional[str] = None, active_only: bool = True
+    ) -> List[dict]:
+        payment_plugins = self.list_payment_plugin(active_only=active_only)
+        # if currency is given return only gateways which support given currency
+        gateways = [
             {
                 "id": plugin_id,
-                "name": plugin_name,
-                "config": self.__get_payment_config(plugin_id),
+                "name": plugin.PLUGIN_NAME,
+                "config": self.__get_payment_config(plugin),
+                "currencies": self.__get_payment_currencies(plugin),
             }
-            for plugin_id, plugin_name in payment_plugins
+            for plugin_id, plugin in payment_plugins.items()
         ]
+        if currency:
+            return [
+                gtw for gtw in gateways if currency in gtw["currencies"]  # type: ignore
+            ]
+        return gateways
 
-    def __get_payment_config(self, gateway: str) -> List[dict]:
+    def __get_payment_currencies(self, gateway: "BasePlugin") -> List[str]:
+        """Return gateway supported currencies."""
+        method_name = "get_supported_currencies"
+        default_value: list = []
+        return self.__run_method_on_single_plugin(gateway, method_name, default_value)
+
+    def __get_payment_config(self, gateway: "BasePlugin") -> List[dict]:
         method_name = "get_payment_config"
         default_value: list = []
-        gtw = self.get_plugin(gateway)
-        return self.__run_method_on_single_plugin(gtw, method_name, default_value)
+        return self.__run_method_on_single_plugin(gateway, method_name, default_value)
 
     def __run_payment_method(
         self,

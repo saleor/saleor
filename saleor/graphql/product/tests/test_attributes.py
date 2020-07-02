@@ -8,7 +8,6 @@ from django.db.models import Q
 from django.template.defaultfilters import slugify
 from graphene.utils.str_converters import to_camel_case
 
-from ....core.taxes import zero_money
 from ....product import AttributeInputType
 from ....product.error_codes import ProductErrorCode
 from ....product.models import (
@@ -395,7 +394,6 @@ def test_attributes_in_collection_query(
         name="Another Product",
         product_type=other_product_type,
         category=other_category,
-        price=zero_money(),
         is_published=True,
     )
 

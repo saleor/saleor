@@ -194,13 +194,15 @@ class ProductVariant(CountableDjangoObjectType):
             "This field will be removed after 2020-07-31."
         ),
     )
-    price_override = graphene.Field(
+    price = graphene.Field(
         Money,
         description=(
-            "Override the base price of a product if necessary. A value of `null` "
-            "indicates that the default product price is used."
+            "Base price of a product variant. "
+            "This field is restricted for admins. "
+            "Use the pricing field to get the public price for customers."
         ),
     )
+
     pricing = graphene.Field(
         VariantPricingInfo,
         description=(
@@ -319,8 +321,9 @@ class ProductVariant(CountableDjangoObjectType):
         return root.cost_price
 
     @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_price(root: models.ProductVariant, *_args):
-        return root.base_price
+        return root.price
 
     @staticmethod
     def resolve_pricing(root: models.ProductVariant, info):
@@ -369,11 +372,6 @@ class ProductVariant(CountableDjangoObjectType):
             .load((root.id, info.context.country))
             .then(is_variant_in_stock)
         )
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_price_override(root: models.ProductVariant, *_args):
-        return root.price_override
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -448,7 +446,6 @@ class Product(CountableDjangoObjectType):
     is_available = graphene.Boolean(
         description="Whether the product is in stock and visible or not."
     )
-    base_price = graphene.Field(Money, description="The product's default base price.")
     minimal_variant_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
     )
@@ -567,28 +564,6 @@ class Product(CountableDjangoObjectType):
         country = info.context.country
         in_stock = is_product_in_stock(root, country)
         return root.is_visible and in_stock
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_base_price(root: models.Product, _info):
-        return root.price
-
-    @staticmethod
-    def resolve_price(root: models.Product, info):
-        context = info.context
-
-        def calculate_price(discounts):
-            price_range = root.get_price_range(discounts)
-            price = info.context.plugins.apply_taxes_to_product(
-                root, price_range.start, info.context.country
-            )
-            return price.net
-
-        return (
-            DiscountsByDateTimeLoader(context)
-            .load(info.context.request_time)
-            .then(calculate_price)
-        )
 
     @staticmethod
     def resolve_attributes(root: models.Product, info):

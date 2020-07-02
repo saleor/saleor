@@ -184,6 +184,13 @@ def setup_dummy_gateway(settings):
     return settings
 
 
+@pytest.fixture
+def sample_gateway(settings):
+    settings.PLUGINS += [
+        "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway"
+    ]
+
+
 @pytest.fixture(autouse=True)
 def site_settings(db, settings) -> SiteSettings:
     """Create a site and matching site settings.
@@ -214,7 +221,7 @@ def site_settings(db, settings) -> SiteSettings:
 
 @pytest.fixture
 def checkout(db):
-    checkout = Checkout.objects.create()
+    checkout = Checkout.objects.create(currency="USD")
     checkout.set_country("US", commit=True)
     return checkout
 
@@ -403,6 +410,7 @@ def user_checkout(customer_user):
         billing_address=customer_user.default_billing_address,
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
+        currency="USD",
     )
     return checkout
 
@@ -414,24 +422,6 @@ def user_checkout_with_items(user_checkout, product_list):
         add_variant_to_checkout(user_checkout, variant, 1)
     user_checkout.refresh_from_db()
     return user_checkout
-
-
-@pytest.fixture
-def request_checkout(checkout, monkeypatch):
-    # FIXME: Fixtures should not have any side effects
-    monkeypatch.setattr(
-        utils,
-        "get_checkout_from_request",
-        lambda request, checkout_queryset=None: checkout,
-    )
-    return checkout
-
-
-@pytest.fixture
-def request_checkout_with_item(product, request_checkout):
-    variant = product.variants.get()
-    add_variant_to_checkout(request_checkout, variant)
-    return request_checkout
 
 
 @pytest.fixture
@@ -494,6 +484,31 @@ def shipping_zone(db):  # pylint: disable=W0613
         shipping_zone=shipping_zone,
     )
     return shipping_zone
+
+
+@pytest.fixture
+def shipping_zones(db):
+    shipping_zone_poland, shipping_zone_usa = ShippingZone.objects.bulk_create(
+        [
+            ShippingZone(name="Poland", countries=["PL"]),
+            ShippingZone(name="USA", countries=["US"]),
+        ]
+    )
+    shipping_zone_poland.shipping_methods.create(
+        name="DHL",
+        minimum_order_price=Money(0, "USD"),
+        type=ShippingMethodType.PRICE_BASED,
+        price=Money(10, "USD"),
+        shipping_zone=shipping_zone,
+    )
+    shipping_zone_usa.shipping_methods.create(
+        name="DHL",
+        minimum_order_price=Money(0, "USD"),
+        type=ShippingMethodType.PRICE_BASED,
+        price=Money(10, "USD"),
+        shipping_zone=shipping_zone,
+    )
+    return [shipping_zone_poland, shipping_zone_usa]
 
 
 @pytest.fixture
@@ -594,7 +609,6 @@ def categories_tree(db, product_type):  # pylint: disable=W0613
     product = Product.objects.create(
         name="Test product",
         slug="test-product-10",
-        price=Money(10, "USD"),
         product_type=product_type,
         category=child,
         is_published=True,
@@ -684,7 +698,7 @@ def product(product_type, category, warehouse):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-11",
-        price=Money("10.00", "USD"),
+        minimal_variant_price_amount="10.00",
         product_type=product_type,
         category=category,
         is_published=True,
@@ -696,7 +710,10 @@ def product(product_type, category, warehouse):
     variant_attr_value = variant_attr.values.first()
 
     variant = ProductVariant.objects.create(
-        product=product, sku="123", cost_price=Money("1.00", "USD")
+        product=product,
+        sku="123",
+        cost_price=Money("1.00", "USD"),
+        price_amount=Decimal(10),
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
@@ -709,13 +726,15 @@ def product_with_single_variant(product_type, category, warehouse):
     product = Product.objects.create(
         name="Test product with single variant",
         slug="test-product-with-single-variant",
-        price=Money("1.99", "USD"),
         product_type=product_type,
         category=category,
         is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="SKU_SINGLE_VARIANT", cost_price=Money("1.00", "USD")
+        product=product,
+        sku="SKU_SINGLE_VARIANT",
+        cost_price=Money("1.00", "USD"),
+        price_amount=1.99,
     )
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=101)
     return product
@@ -726,7 +745,6 @@ def product_with_two_variants(product_type, category, warehouse):
     product = Product.objects.create(
         name="Test product with two variants",
         slug="test-product-with-two-variant",
-        price=Money("10.00", "USD"),
         product_type=product_type,
         category=category,
         is_published=True,
@@ -737,6 +755,7 @@ def product_with_two_variants(product_type, category, warehouse):
             product=product,
             sku=f"Product variant #{i}",
             cost_price=Money("1.00", "USD"),
+            price_amount=Decimal(10),
         )
         for i in (1, 2)
     ]
@@ -767,14 +786,16 @@ def product_with_variant_with_two_attributes(
     product = Product.objects.create(
         name="Test product with two variants",
         slug="test-product-with-two-variant",
-        price=Money("10.00", "USD"),
         product_type=product_type,
         category=category,
         is_published=True,
     )
 
     variant = ProductVariant.objects.create(
-        product=product, sku="prodVar1", cost_price=Money("1.00", "USD")
+        product=product,
+        sku="prodVar1",
+        cost_price=Money("1.00", "USD"),
+        price_amount=Decimal(10),
     )
 
     associate_attribute_values_to_instance(
@@ -813,13 +834,12 @@ def product_with_default_variant(product_type_without_variant, category, warehou
     product = Product.objects.create(
         name="Test product",
         slug="test-product-3",
-        price=Money(10, "USD"),
         product_type=product_type_without_variant,
         category=category,
         is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="1234", track_inventory=True
+        product=product, sku="1234", track_inventory=True, price_amount=Decimal(10)
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=100)
     return product
@@ -832,13 +852,15 @@ def variant_without_inventory_tracking(
     product = Product.objects.create(
         name="Test product without inventory tracking",
         slug="test-product-without-tracking",
-        price=Money(10, "USD"),
         product_type=product_type_without_variant,
         category=category,
         is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="tracking123", track_inventory=False
+        product=product,
+        sku="tracking123",
+        track_inventory=False,
+        price_amount=Decimal(10),
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=0)
     return variant
@@ -847,7 +869,11 @@ def variant_without_inventory_tracking(
 @pytest.fixture
 def variant(product) -> ProductVariant:
     product_variant = ProductVariant.objects.create(
-        product=product, sku="SKU_A", cost_price=Money(1, "USD")
+        product=product,
+        sku="SKU_A",
+        cost_price=Money(1, "USD"),
+        price_amount=Decimal(10),
+        price=Money(10, "USD"),
     )
     return product_variant
 
@@ -855,8 +881,26 @@ def variant(product) -> ProductVariant:
 @pytest.fixture
 def variant_with_many_stocks(variant, warehouses_with_shipping_zone):
     warehouses = warehouses_with_shipping_zone
-    Stock.objects.create(warehouse=warehouses[0], product_variant=variant, quantity=4)
-    Stock.objects.create(warehouse=warehouses[1], product_variant=variant, quantity=3)
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=warehouses[0], product_variant=variant, quantity=4),
+            Stock(warehouse=warehouses[1], product_variant=variant, quantity=3),
+        ]
+    )
+    return variant
+
+
+@pytest.fixture
+def variant_with_many_stocks_different_shipping_zones(
+    variant, warehouses_with_different_shipping_zone
+):
+    warehouses = warehouses_with_different_shipping_zone
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=warehouses[0], product_variant=variant, quantity=4),
+            Stock(warehouse=warehouses[1], product_variant=variant, quantity=3),
+        ]
+    )
     return variant
 
 
@@ -865,9 +909,9 @@ def product_variant_list(product):
     return list(
         ProductVariant.objects.bulk_create(
             [
-                ProductVariant(product=product, sku="1"),
-                ProductVariant(product=product, sku="2"),
-                ProductVariant(product=product, sku="3"),
+                ProductVariant(product=product, sku="1", price_amount=Decimal(10)),
+                ProductVariant(product=product, sku="2", price_amount=Decimal(10)),
+                ProductVariant(product=product, sku="3", price_amount=Decimal(10)),
             ]
         )
     )
@@ -884,12 +928,13 @@ def product_without_shipping(category, warehouse):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-4",
-        price=Money("10.00", "USD"),
         product_type=product_type,
         category=category,
         is_published=True,
     )
-    variant = ProductVariant.objects.create(product=product, sku="SKU_B")
+    variant = ProductVariant.objects.create(
+        product=product, sku="SKU_B", price_amount=Decimal(10)
+    )
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=1)
     return product
 
@@ -914,7 +959,6 @@ def product_list(product_type, category, warehouse):
                     pk=1486,
                     name="Test product 1",
                     slug="test-product-a",
-                    price=Money(10, "USD"),
                     category=category,
                     product_type=product_type,
                     is_published=True,
@@ -923,7 +967,6 @@ def product_list(product_type, category, warehouse):
                     pk=1487,
                     name="Test product 2",
                     slug="test-product-b",
-                    price=Money(20, "USD"),
                     category=category,
                     product_type=product_type,
                     is_published=True,
@@ -932,7 +975,6 @@ def product_list(product_type, category, warehouse):
                     pk=1489,
                     name="Test product 3",
                     slug="test-product-c",
-                    price=Money(30, "USD"),
                     category=category,
                     product_type=product_type,
                     is_published=True,
@@ -947,16 +989,19 @@ def product_list(product_type, category, warehouse):
                     product=products[0],
                     sku=str(uuid.uuid4()).replace("-", ""),
                     track_inventory=True,
+                    price_amount=Decimal(10),
                 ),
                 ProductVariant(
                     product=products[1],
                     sku=str(uuid.uuid4()).replace("-", ""),
                     track_inventory=True,
+                    price_amount=Decimal(20),
                 ),
                 ProductVariant(
                     product=products[2],
                     sku=str(uuid.uuid4()).replace("-", ""),
                     track_inventory=True,
+                    price_amount=Decimal(30),
                 ),
             ]
         )
@@ -1012,7 +1057,6 @@ def unavailable_product(product_type, category):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-5",
-        price=Money("10.00", "USD"),
         product_type=product_type,
         is_published=False,
         category=category,
@@ -1025,7 +1069,6 @@ def unavailable_product_with_variant(product_type, category, warehouse):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-6",
-        price=Money("10.00", "USD"),
         product_type=product_type,
         is_published=False,
         category=category,
@@ -1035,7 +1078,7 @@ def unavailable_product_with_variant(product_type, category, warehouse):
     variant_attr_value = variant_attr.values.first()
 
     variant = ProductVariant.objects.create(
-        product=product, sku="123", cost_price=Money(1, "USD")
+        product=product, sku="123", cost_price=Money(1, "USD"), price_amount=Decimal(10)
     )
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
 
@@ -1048,7 +1091,6 @@ def product_with_images(product_type, category, media_root):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-7",
-        price=Money("10.00", "USD"),
         product_type=product_type,
         category=category,
         is_published=True,
@@ -1223,13 +1265,15 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-8",
-        price=Money("10.00", "USD"),
         product_type=product_type,
         category=category,
         is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="SKU_A", cost_price=Money(1, "USD")
+        product=product,
+        sku="SKU_A",
+        cost_price=Money(1, "USD"),
+        price_amount=Decimal(10),
     )
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
@@ -1253,13 +1297,12 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
     product = Product.objects.create(
         name="Test product 2",
         slug="test-product-9",
-        price=Money("20.00", "USD"),
         product_type=product_type,
         category=category,
         is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="SKU_B", cost_price=Money(2, "USD")
+        product=product, sku="SKU_B", cost_price=Money(2, "USD"), price_amount=20
     )
     stock = Stock.objects.create(
         product_variant=variant, warehouse=warehouse, quantity=2
@@ -1847,13 +1890,15 @@ def digital_content(category, media_root, warehouse) -> DigitalContent:
     product = Product.objects.create(
         name="Test digital product",
         slug="test-digital-product",
-        price=Money("10.00", "USD"),
         product_type=product_type,
         category=category,
         is_published=True,
     )
     product_variant = ProductVariant.objects.create(
-        product=product, sku="SKU_554", cost_price=Money(1, "USD")
+        product=product,
+        sku="SKU_554",
+        cost_price=Money(1, "USD"),
+        price_amount=Decimal(10),
     )
     Stock.objects.create(
         product_variant=product_variant, warehouse=warehouse, quantity=5,
@@ -2109,6 +2154,13 @@ def warehouses(address):
 def warehouses_with_shipping_zone(warehouses, shipping_zone):
     warehouses[0].shipping_zones.add(shipping_zone)
     warehouses[1].shipping_zones.add(shipping_zone)
+    return warehouses
+
+
+@pytest.fixture
+def warehouses_with_different_shipping_zone(warehouses, shipping_zones):
+    warehouses[0].shipping_zones.add(shipping_zones[0])
+    warehouses[1].shipping_zones.add(shipping_zones[1])
     return warehouses
 
 

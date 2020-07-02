@@ -1,8 +1,8 @@
 import uuid
+from decimal import Decimal
 
 import graphene
 import pytest
-from prices import Money
 
 from ....product.models import (
     Category,
@@ -38,21 +38,18 @@ def categories_for_pagination(product_type):
                 name="Prod1",
                 slug="prod1",
                 product_type=product_type,
-                price=Money("10.00", "USD"),
                 category=categories[4],
             ),
             Product(
                 name="Prod2",
                 slug="prod2",
                 product_type=product_type,
-                price=Money("10.00", "USD"),
                 category=categories[4],
             ),
             Product(
                 name="Prod3",
                 slug="prod3",
                 product_type=product_type,
-                price=Money("10.00", "USD"),
                 category=categories[2],
             ),
         ]
@@ -281,7 +278,6 @@ def products_for_pagination(product_type, color_attribute, category, warehouse):
             Product(
                 name="Product1",
                 slug="prod1",
-                price=Money("10.00", "USD"),
                 category=category,
                 product_type=product_type2,
                 is_published=True,
@@ -290,7 +286,6 @@ def products_for_pagination(product_type, color_attribute, category, warehouse):
             Product(
                 name="ProductProduct1",
                 slug="prod_prod1",
-                price=Money("15.00", "USD"),
                 category=category,
                 product_type=product_type,
                 is_published=False,
@@ -298,7 +293,6 @@ def products_for_pagination(product_type, color_attribute, category, warehouse):
             Product(
                 name="ProductProduct2",
                 slug="prod_prod2",
-                price=Money("8.00", "USD"),
                 category=category,
                 product_type=product_type2,
                 is_published=True,
@@ -306,7 +300,6 @@ def products_for_pagination(product_type, color_attribute, category, warehouse):
             Product(
                 name="Product2",
                 slug="prod2",
-                price=Money("7.00", "USD"),
                 category=category,
                 product_type=product_type,
                 is_published=False,
@@ -315,7 +308,6 @@ def products_for_pagination(product_type, color_attribute, category, warehouse):
             Product(
                 name="Product3",
                 slug="prod3",
-                price=Money("15.00", "USD"),
                 category=category,
                 product_type=product_type2,
                 is_published=True,
@@ -338,16 +330,31 @@ def products_for_pagination(product_type, color_attribute, category, warehouse):
                 product=products[0],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
+                price_amount=Decimal(10),
+            ),
+            ProductVariant(
+                product=products[1],
+                sku=str(uuid.uuid4()).replace("-", ""),
+                track_inventory=True,
+                price_amount=Decimal(15),
             ),
             ProductVariant(
                 product=products[2],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
+                price_amount=Decimal(8),
+            ),
+            ProductVariant(
+                product=products[3],
+                sku=str(uuid.uuid4()).replace("-", ""),
+                track_inventory=True,
+                price_amount=Decimal(7),
             ),
             ProductVariant(
                 product=products[4],
                 sku=str(uuid.uuid4()).replace("-", ""),
                 track_inventory=True,
+                price_amount=Decimal(15),
             ),
         ]
     )
@@ -464,7 +471,7 @@ def test_products_pagination_with_sorting_by_attribute(
     [
         ({"isPublished": False}, ["Product2", "ProductProduct1"]),
         ({"price": {"gte": 8, "lte": 12}}, ["Product1", "ProductProduct2"]),
-        ({"stockAvailability": "OUT_OF_STOCK"}, ["Product3", "ProductProduct2"]),
+        ({"stockAvailability": "OUT_OF_STOCK"}, ["ProductProduct1", "ProductProduct2"]),
     ],
 )
 def test_products_pagination_with_filtering(
@@ -537,7 +544,7 @@ def test_products_pagination_with_filtering_by_stocks(
     staff_api_client, permission_manage_products, products_for_pagination, warehouse
 ):
     page_size = 2
-    products_order = ["Product3", "ProductProduct2"]
+    products_order = ["ProductProduct1", "ProductProduct2"]
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     filter_by = {"stocks": {"warehouseIds": [warehouse_id], "quantity": {"lte": 10}}}
 
