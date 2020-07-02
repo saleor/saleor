@@ -23,16 +23,15 @@ from ....product.thumbnails import (
     create_collection_background_image_thumbnails,
     create_product_thumbnails,
 )
-from ....product.utils import delete_categories
+from ....product.utils import delete_categories, get_products_ids_without_variants
 from ....product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
 )
-from ....product.utils.product_variants import get_products_without_variants
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
-from ...core.types.common import ProductError
+from ...core.types.common import CollectionProductError, ProductError
 from ...core.utils import (
     clean_seo_fields,
     from_global_id_strict_type,
@@ -351,7 +350,7 @@ class CollectionAddProducts(BaseMutation):
     class Meta:
         description = "Adds products to a collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
+        error_type_class = CollectionProductError
         error_type_field = "product_errors"
 
     @classmethod
@@ -360,18 +359,8 @@ class CollectionAddProducts(BaseMutation):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
         )
-        products_without_variants = get_products_without_variants(products)
-        if products_without_variants:
-            raise ValidationError(
-                {
-                    "products": ValidationError(
-                        f"Cannot manage products without variants. "
-                        f"Products ids: {products_without_variants}.",
-                        code=ProductErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT,
-                    )
-                }
-            )
         products = cls.get_nodes_or_error(products, "products", Product)
+        cls.clean_products(products)
         collection.products.add(*products)
         if collection.sale_set.exists():
             # Updated the db entries, recalculating discounts of affected products
@@ -379,6 +368,20 @@ class CollectionAddProducts(BaseMutation):
                 product_ids=[pq.pk for pq in products]
             )
         return CollectionAddProducts(collection=collection)
+
+    @classmethod
+    def clean_products(cls, products):
+        products_ids_without_variants = get_products_ids_without_variants(products)
+        if products_ids_without_variants:
+            raise ValidationError(
+                {
+                    "products": ValidationError(
+                        f"Cannot manage products without variants.",
+                        code=ProductErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT,
+                        params={"products": products_ids_without_variants},
+                    )
+                }
+            )
 
 
 class CollectionRemoveProducts(BaseMutation):

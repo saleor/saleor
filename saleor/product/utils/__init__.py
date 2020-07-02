@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db import transaction
 
 from ...core.taxes import TaxedMoney, zero_taxed_money
+from ...product.models import Product
 from ..tasks import update_products_minimal_variant_prices_task
 
 if TYPE_CHECKING:
@@ -58,3 +59,12 @@ def collect_categories_tree_products(category: "Category") -> "QuerySet[Product]
     for descendant in descendants:
         products = products | descendant.products.all()
     return products
+
+
+def get_products_ids_without_variants(products_list: "List[Product]") -> "List[str]":
+    """Return list of product's ids without variants."""
+    products_ids = [product.id for product in products_list]
+    products_ids_without_variants = Product.objects.filter(
+        id__in=products_ids, variants__isnull=True
+    ).values_list("id", flat=True)
+    return list(products_ids_without_variants)

@@ -664,6 +664,40 @@ def test_add_products_to_collection(
     assert data["products"]["totalCount"] == no_products_before + len(product_ids)
 
 
+def test_add_products_to_collection_with_product_without_variants(
+    staff_api_client, collection, product_list, permission_manage_products
+):
+    query = """
+        mutation collectionAddProducts(
+            $id: ID!, $products: [ID]!) {
+            collectionAddProducts(collectionId: $id, products: $products) {
+                collection {
+                    products {
+                        totalCount
+                    }
+                }
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    product_list[0].variants.all().delete()
+    collection_id = to_global_id("Collection", collection.id)
+    product_ids = [to_global_id("Product", product.pk) for product in product_list]
+    variables = {"id": collection_id, "products": product_ids}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["collectionAddProducts"]["productErrors"][0]
+
+    assert error["code"] == ProductErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.value
+    assert error["message"] == "Cannot manage products without variants."
+
+
 def test_remove_products_from_collection(
     staff_api_client, collection, product_list, permission_manage_products
 ):

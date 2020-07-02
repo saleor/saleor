@@ -413,6 +413,50 @@ def test_voucher_add_catalogues(
     assert collection in voucher.collections.all()
 
 
+def test_voucher_add_catalogues_with_product_without_variant(
+    staff_api_client,
+    voucher,
+    category,
+    product,
+    collection,
+    permission_manage_discounts,
+):
+    query = """
+        mutation voucherCataloguesAdd($id: ID!, $input: CatalogueInput!) {
+            voucherCataloguesAdd(id: $id, input: $input) {
+                discountErrors {
+                    field
+                    code
+                    message
+                }
+            }
+        }
+    """
+    product.variants.all().delete()
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {
+            "products": [product_id],
+            "collections": [collection_id],
+            "categories": [category_id],
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["voucherCataloguesAdd"]["discountErrors"][0]
+
+    assert (
+        error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.value
+    )
+    assert error["message"] == "Cannot manage products without variants."
+
+
 def test_voucher_remove_catalogues(
     staff_api_client,
     voucher,
@@ -670,6 +714,45 @@ def test_sale_add_catalogues(
     assert product in sale.products.all()
     assert category in sale.categories.all()
     assert collection in sale.collections.all()
+
+
+def test_sale_add_catalogues_with_product_without_variants(
+    staff_api_client, sale, category, product, collection, permission_manage_discounts
+):
+    query = """
+        mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
+            saleCataloguesAdd(id: $id, input: $input) {
+                discountErrors {
+                    field
+                    code
+                    message
+                }
+            }
+        }
+    """
+    product.variants.all().delete()
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    variables = {
+        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "input": {
+            "products": [product_id],
+            "collections": [collection_id],
+            "categories": [category_id],
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["saleCataloguesAdd"]["discountErrors"][0]
+
+    assert (
+        error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.value
+    )
+    assert error["message"] == "Cannot manage products without variants."
 
 
 def test_sale_remove_catalogues(

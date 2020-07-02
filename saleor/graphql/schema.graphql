@@ -1077,7 +1077,7 @@ type Collection implements Node & ObjectWithMetadata {
 type CollectionAddProducts {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   collection: Collection
-  productErrors: [ProductError!]!
+  productErrors: [CollectionProductError!]!
 }
 
 type CollectionBulkDelete {
@@ -1156,6 +1156,13 @@ input CollectionInput {
   backgroundImageAlt: String
   seo: SeoInput
   publicationDate: Date
+}
+
+type CollectionProductError {
+  field: String
+  message: String
+  code: ProductErrorCode!
+  products: [ID!]
 }
 
 enum CollectionPublished {
@@ -1724,6 +1731,7 @@ input DigitalContentUrlCreateInput {
 type DiscountError {
   field: String
   message: String
+  products: [ID!]
   code: DiscountErrorCode!
 }
 
@@ -1734,6 +1742,7 @@ enum DiscountErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
 }
 
 enum DiscountStatusEnum {
