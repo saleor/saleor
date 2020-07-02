@@ -27,12 +27,14 @@ from ..models import Checkout
 from ..utils import (
     add_variant_to_checkout,
     add_voucher_to_checkout,
+    cancel_active_payments,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     clear_shipping_method,
     create_order,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
+    is_fully_paid,
     is_valid_shipping_method,
     prepare_order_data,
     recalculate_checkout_discount,
@@ -1420,3 +1422,72 @@ def test_get_last_active_payments(checkout_with_payments):
 
     # then
     assert last_payment.pk == payment.pk
+
+
+def test_is_fully_paid(checkout_with_item, payment_dummy):
+    checkout = checkout_with_item
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    is_paid = is_fully_paid(checkout, list(checkout), None)
+    assert is_paid
+
+
+def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
+    checkout = checkout_with_item
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount - 1
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    payment2 = payment_dummy
+    payment2.pk = None
+    payment2.is_active = True
+    payment2.order = None
+    payment2.total = 1
+    payment2.currency = total.gross.currency
+    payment2.checkout = checkout
+    payment2.save()
+    is_paid = is_fully_paid(checkout, list(checkout), None)
+    assert is_paid
+
+
+def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
+    checkout = checkout_with_item
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount - 1
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    is_paid = is_fully_paid(checkout, list(checkout), None)
+    assert not is_paid
+
+
+def test_is_fully_paid_no_payment(checkout_with_item):
+    checkout = checkout_with_item
+    is_paid = is_fully_paid(checkout, list(checkout), None)
+    assert not is_paid
+
+
+def test_cancel_active_payments(checkout_with_payments):
+    # given
+    checkout = checkout_with_payments
+    count_active = checkout.payments.filter(is_active=True).count()
+    assert count_active != 0
+
+    # when
+    cancel_active_payments(checkout)
+
+    # then
+    assert checkout.payments.filter(is_active=True).count() == 0

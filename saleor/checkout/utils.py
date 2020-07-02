@@ -6,6 +6,7 @@ from typing import Iterable, List, Optional, Tuple
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Max, Min, Sum
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language
@@ -760,8 +761,9 @@ def is_fully_paid(
 
     Note that these payments may not be captured or charged at all.
     """
-    payments = [payment for payment in checkout.payments.all() if payment.is_active]
-    total_paid = sum([p.total for p in payments])
+    total_paid = checkout.payments.filter(is_active=True).aggregate(
+        total_sum=Coalesce(Sum("total"), 0)
+    )["total_sum"]
     checkout_total = (
         calculations.checkout_total(checkout=checkout, lines=lines, discounts=discounts)
         - checkout.get_total_gift_cards_balance()
@@ -804,3 +806,7 @@ def clean_checkout(
             "Provided payment methods can not cover the checkout's total amount",
             code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,
         )
+
+
+def cancel_active_payments(checkout: Checkout):
+    checkout.payments.filter(is_active=True).update(is_active=False)
