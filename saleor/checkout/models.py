@@ -1,5 +1,4 @@
 """Checkout-related ORM models."""
-from operator import attrgetter
 from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
