@@ -10,15 +10,16 @@
 # Patryk Zawadzki <patrys@room-303.com>, 2020
 # Slade Liu <laplaceliu@outlook.com>, 2020
 # 刘 志锋 <752074518@qq.com>, 2020
+# riiy zhou <riiy.zhou@gmail.com>, 2020
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-14 03:45-0500\n"
+"POT-Creation-Date: 2020-06-17 16:44+0000\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: 刘 志锋 <752074518@qq.com>, 2020\n"
+"Last-Translator: riiy zhou <riiy.zhou@gmail.com>, 2020\n"
 "Language-Team: Chinese Simplified (https://www.transifex.com/mirumee/teams/34782/zh-Hans/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -43,7 +44,7 @@ msgstr "%(street_address_1)s%(street_address_2)s"
 #: templates/templated_email/account/account_delete.email:4
 msgctxt "Account delete reset e-mail subject"
 msgid "Delete your account"
-msgstr ""
+msgstr "删除账户"
 
 #: templates/templated_email/account/account_delete.email:9
 #, python-format
@@ -55,11 +56,16 @@ msgid ""
 "\n"
 "Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
+"\n"
+"您收到此电子邮件是因为您或其他人已请求删除您的用户帐户，\n"
+"点击下面的链接删除您的帐户。网址为%(domain)s\n"
+"\n"
+"请注意，此操作是永久性的，不能撤消。\n"
 
 #: templates/templated_email/account/confirm.email:4
 msgctxt "Account confirmation e-mail subject"
 msgid "Account confirmation e-mail"
-msgstr ""
+msgstr "确认邮件"
 
 #: templates/templated_email/account/confirm.email:9
 #, python-format
@@ -69,12 +75,14 @@ msgid ""
 "In order to log into %(domain)s, you have to confirm your email address first.\n"
 "Please click the link below to do so and log into your account.\n"
 msgstr ""
+"\n"
+"为了登录%(domain)s，您必须先确认您的电子邮件地址。 请点击下面的链接，然后登录您的帐户。\n"
 
 #: templates/templated_email/account/email_changed_notification.email:4
 #: templates/templated_email/account/request_email_change.email:4
 msgctxt "Email change e-mail subject"
 msgid "Email change e-mail"
-msgstr ""
+msgstr "更新电子邮件地址"
 
 #: templates/templated_email/account/email_changed_notification.email:9
 #, python-format
@@ -85,11 +93,15 @@ msgid ""
 "You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
 "If you didn't request this change, please contact the administrator.\n"
 msgstr ""
+"\n"
+"\n"
+"您收到此电子邮件是因为您或其他人更改了%(domain)s用户帐户的电子邮件。\n"
+"如果您没有请求此更改，请与管理员联系。\n"
 
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
 msgid "Password reset e-mail"
-msgstr ""
+msgstr "密码重置邮件"
 
 #: templates/templated_email/account/password_reset.email:9
 #, python-format
@@ -99,6 +111,9 @@ msgid ""
 "You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
 "It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"您收到此电子邮件的原因是您或其他人已请求%(domain)s的用户帐户密码。\n"
+"如果您不要求重设密码，可以安全地忽略它。 点击下面的链接以重置密码。\n"
 
 #: templates/templated_email/account/request_email_change.email:9
 #, python-format
@@ -109,12 +124,15 @@ msgid ""
 "You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
 "It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
 msgstr ""
+"\n"
+"\n"
+"您收到此电子邮件是因为您或其他人请求更改%(domain)s上的用户帐户的电子邮件。如果您不请求更改电子邮件，可以安全地忽略它。 点击下面的链接以确认新的电子邮件地址。\n"
 
 #: templates/templated_email/dashboard/customer/set_password.email:2
 #, python-format
 msgctxt "Set password for customer e-mail title"
 msgid "Hello from %(site_name)s!"
-msgstr ""
+msgstr "来自 %(site_name)s的问候!"
 
 #: templates/templated_email/dashboard/customer/set_password.email:6
 #, python-format
@@ -124,12 +142,15 @@ msgid ""
 "You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"之所以收到此电子邮件，是因为您必须为%(domain)s的客户帐户设置密码。\n"
+"点击下面的链接以重置密码。\n"
 
 #: templates/templated_email/dashboard/staff/set_password.email:2
 #, python-format
 msgctxt "Set password for staff member e-mail title"
 msgid "Hello from %(site_name)s!"
-msgstr ""
+msgstr "来自 %(site_name)s的问候!"
 
 #: templates/templated_email/dashboard/staff/set_password.email:6
 #, python-format
@@ -139,12 +160,15 @@ msgid ""
 "You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"之所以收到此电子邮件，是因为您必须为%(domain)s上的工作人员帐户设置密码。\n"
+"点击下面的链接以重置密码。\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment confirmation email subject"
 msgid "Your order %(order)s has been fulfilled"
-msgstr ""
+msgstr "您的订单%(order)s已完成"
 
 #: templates/templated_email/order/confirm_fulfillment.email:11
 msgctxt "Fulfillment confirmation email text"
@@ -152,29 +176,35 @@ msgid ""
 "\n"
 "Thank you for your order. Below is the list of fulfilled products.\n"
 msgstr ""
+"\n"
+"谢谢您的订单。 以下是已完成产品的列表。\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:15
-#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#: templates/templated_email/source/confirm_fulfillment.mjml:25
+#: templates/templated_email/source/update_fulfillment.mjml:25
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
+msgstr "您可以使用%(tracking_number)s物流代码跟踪您的货件。"
 
 #: templates/templated_email/order/confirm_order.email:6
 #: templates/templated_email/order/staff_confirm_order.email:6
+#, python-format
 msgctxt "Order confirmation e-mail subject"
-msgid "Order details"
+msgid "Order %(order)s details"
 msgstr ""
 
-#: templates/templated_email/order/confirm_order.email:11
+#: templates/templated_email/order/confirm_order.email:13
 msgctxt "Order confirmation e-mail text"
 msgid ""
 "\n"
 "Thank you for your order. Below is the list of ordered products.\n"
 msgstr ""
+"\n"
+"谢谢您的购买。 以下是订单中产品。\n"
 
-#: templates/templated_email/order/confirm_order.email:15
-#: templates/templated_email/order/staff_confirm_order.email:15
+#: templates/templated_email/order/confirm_order.email:17
+#: templates/templated_email/order/staff_confirm_order.email:17
 #, python-format
 msgctxt "Order confirmation e-mail payment details"
 msgid ""
@@ -182,106 +212,115 @@ msgid ""
 "To see your payment details please visit:\n"
 "%(order_details_url)s\n"
 msgstr ""
-
-#: templates/templated_email/order/confirm_order.email:23
-#: templates/templated_email/order/staff_confirm_order.email:23
-msgctxt "Order confirmation e-mail table header"
-msgid "Order summary"
-msgstr "订单摘要"
-
-#: templates/templated_email/order/confirm_order.email:24
-#: templates/templated_email/order/staff_confirm_order.email:24
-msgctxt "Order confirmation e-mail table header"
-msgid "Subtotal"
-msgstr ""
+"\n"
+"查看付款详情，请访问：\n"
+"%(order_details_url)s\n"
 
 #: templates/templated_email/order/confirm_order.email:25
 #: templates/templated_email/order/staff_confirm_order.email:25
 msgctxt "Order confirmation e-mail table header"
-msgid "Shipping"
-msgstr "配送"
+msgid "Order summary"
+msgstr "订单摘要"
 
 #: templates/templated_email/order/confirm_order.email:26
 #: templates/templated_email/order/staff_confirm_order.email:26
 msgctxt "Order confirmation e-mail table header"
-msgid "Taxes (included)"
-msgstr ""
-
-#: templates/templated_email/order/confirm_order.email:26
-#: templates/templated_email/order/staff_confirm_order.email:26
-msgctxt "Order confirmation e-mail table header"
-msgid "Taxes"
-msgstr "税"
+msgid "Subtotal"
+msgstr "小计"
 
 #: templates/templated_email/order/confirm_order.email:27
 #: templates/templated_email/order/staff_confirm_order.email:27
 msgctxt "Order confirmation e-mail table header"
-msgid "Discount:"
-msgstr ""
+msgid "Shipping"
+msgstr "配送"
 
 #: templates/templated_email/order/confirm_order.email:28
 #: templates/templated_email/order/staff_confirm_order.email:28
 msgctxt "Order confirmation e-mail table header"
-msgid "Total"
-msgstr "总数"
+msgid "Taxes (included)"
+msgstr "税收（含税）"
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/staff_confirm_order.email:28
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr "税"
+
+#: templates/templated_email/order/confirm_order.email:29
+#: templates/templated_email/order/staff_confirm_order.email:29
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr "折扣："
 
 #: templates/templated_email/order/confirm_order.email:30
 #: templates/templated_email/order/staff_confirm_order.email:30
-#: templates/templated_email/source/confirm_order.mjml:29
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr "总数"
+
+#: templates/templated_email/order/confirm_order.email:32
+#: templates/templated_email/order/staff_confirm_order.email:32
+#: templates/templated_email/source/confirm_order.mjml:35
 #: templates/templated_email/source/staff_confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
 msgstr "账单地址"
 
-#: templates/templated_email/order/confirm_order.email:31
-#: templates/templated_email/order/staff_confirm_order.email:31
-#: templates/templated_email/source/confirm_order.mjml:39
+#: templates/templated_email/order/confirm_order.email:33
+#: templates/templated_email/order/staff_confirm_order.email:33
+#: templates/templated_email/source/confirm_order.mjml:45
 #: templates/templated_email/source/staff_confirm_order.mjml:39
 msgctxt "Order confirmation e-mail text"
 msgid "No billing address"
 msgstr "没有账单地址"
 
-#: templates/templated_email/order/confirm_order.email:33
-#: templates/templated_email/order/staff_confirm_order.email:33
-#: templates/templated_email/source/confirm_order.mjml:30
+#: templates/templated_email/order/confirm_order.email:35
+#: templates/templated_email/order/staff_confirm_order.email:35
+#: templates/templated_email/source/confirm_order.mjml:36
 #: templates/templated_email/source/staff_confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
 msgstr "配送地址"
 
-#: templates/templated_email/order/confirm_order.email:34
-#: templates/templated_email/order/staff_confirm_order.email:34
-#: templates/templated_email/source/confirm_order.mjml:46
+#: templates/templated_email/order/confirm_order.email:36
+#: templates/templated_email/order/staff_confirm_order.email:36
+#: templates/templated_email/source/confirm_order.mjml:52
 #: templates/templated_email/source/staff_confirm_order.mjml:46
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
-msgstr ""
+msgstr "不需要配送"
 
 #: templates/templated_email/order/payment/confirm_payment.email:4
+#, python-format
 msgctxt "Payment confirmation subject"
-msgid "Payment details"
-msgstr "支付详情"
+msgid "Order %(order)s payment details"
+msgstr ""
 
-#: templates/templated_email/order/payment/confirm_payment.email:9
+#: templates/templated_email/order/payment/confirm_payment.email:11
 msgctxt "Payment confirmation email text"
 msgid ""
 "\n"
 "Thank you for your payment.\n"
 "Your payment was successfully charged.\n"
 msgstr ""
+"\n"
+"谢谢您的付款。\n"
+"您的付款已成功。\n"
 
-#: templates/templated_email/order/staff_confirm_order.email:11
+#: templates/templated_email/order/staff_confirm_order.email:13
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
 "\n"
 "Below is the list of ordered products.\n"
 msgstr ""
+"\n"
+"以下是订购产品的清单。\n"
 
 #: templates/templated_email/order/update_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment update email subject"
 msgid "Shipping update for order %(order)s"
-msgstr ""
+msgstr "订单%(order)s的物流更新"
 
 #: templates/templated_email/order/update_fulfillment.email:11
 msgctxt "Fulfillment update email text"
@@ -289,26 +328,28 @@ msgid ""
 "\n"
 "Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
 msgstr ""
+"\n"
+"您的订单物流状态已更新。 以下是订购产品的最新状态。\n"
 
 #: templates/templated_email/order/update_fulfillment.email:15
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid ""
 "You can track your shipment with the following code: %(tracking_number)s."
-msgstr ""
+msgstr "您可以使用%(tracking_number)s物流代码跟踪您的货件。"
 
 #: templates/templated_email/shared/_footer.email:2
 #: templates/templated_email/source/shared/footer.mjml:4
 msgctxt "Base email text"
 msgid "This is an automatically generated e-mail, please do not reply."
-msgstr ""
+msgstr "这是自动生成的电子邮件，请不要回复。"
 
 #: templates/templated_email/shared/_footer.email:5
 #: templates/templated_email/source/shared/footer.mjml:13
 #, python-format
 msgctxt "Base email footer"
 msgid "Sincerely, %(site_name)s"
-msgstr ""
+msgstr "伟大的，%(site_name)s"
 
 #: templates/templated_email/shared/_header.email:2
 #: templates/templated_email/source/account_delete.mjml:13
@@ -325,7 +366,7 @@ msgstr ""
 #: templates/templated_email/source/update_fulfillment.mjml:13
 msgctxt "Standard e-mail greeting"
 msgid "Hi!"
-msgstr ""
+msgstr "您好！"
 
 #: templates/templated_email/source/account_delete.mjml:16
 #, python-format
@@ -336,6 +377,7 @@ msgid ""
 "delete your account. Please note that this action is permanent and cannot be"
 " reversed."
 msgstr ""
+"您收到此电子邮件是因为您或其他人已请求删除您的用户帐户，点击下面的链接删除您的帐户。网址为%(domain)s请注意，此操作是永久性的，不能撤消。"
 
 #: templates/templated_email/source/confirm.mjml:16
 #, python-format
@@ -343,32 +385,48 @@ msgctxt "Account confirmation e-mail text"
 msgid ""
 "In order to log into %(domain)s, you have to confirm your email address "
 "first. Please click the link below to do so and log into your account."
-msgstr ""
+msgstr "为了登录%(domain)s，您必须先确认您的电子邮件地址。 请点击下面的链接，然后登录您的帐户。"
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
-msgstr ""
+msgstr "谢谢您的购买。 以下是订单中产品。"
 
-#: templates/templated_email/source/confirm_fulfillment.mjml:27
+#: templates/templated_email/source/confirm_fulfillment.mjml:21
+#: templates/templated_email/source/update_fulfillment.mjml:21
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"You can track your shipment with <a "
+"href=\"%(tracking_number)s\">%(tracking_number)s</a> link."
+msgstr "您可以使用<a href=\"%(tracking_number)s\">%(tracking_number)s</a>物流代码跟踪您的货件。"
+
+#: templates/templated_email/source/confirm_fulfillment.mjml:33
 msgctxt "Fulfillment digital products email text"
 msgid ""
 "You can download your digital products by clicking in download link(s)."
-msgstr ""
+msgstr "您可以通过单击下载链接来下载数字产品。"
 
-#: templates/templated_email/source/confirm_order.mjml:17
+#: templates/templated_email/source/confirm_order.mjml:18
 #, python-format
-msgctxt "Order confirmation e-mail text"
+msgctxt "Order confirmation e-mail text with payment details"
 msgid ""
 "Thank you for your order. Below is the list of ordered products. To see your"
 " payment details please visit: <a "
 "href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
+"谢谢您的购买。 以下是订购产品的列表。 要查看您的付款明细，请访问： <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+
+#: templates/templated_email/source/confirm_order.mjml:22
+msgctxt "Order confirmation e-mail text"
+msgid "Thank you for your order. Below is the list of ordered products."
+msgstr ""
 
 #: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
 msgid "Thank you for your payment. Your payment was successfully charged."
-msgstr ""
+msgstr "谢谢您的付款。您的付款已成功。"
 
 #: templates/templated_email/source/email_changed_notification.mjml:16
 #, python-format
@@ -377,14 +435,14 @@ msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
 "for your user account at %(domain)s.<br /> If you didn't request this "
 "change, please contact the administrator."
-msgstr ""
+msgstr "您收到此电子邮件是因为您或其他人更改了%(domain)s<br />用户帐户的电子邮件。如果您没有请求此更改，请与管理员联系。"
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:29
 #: templates/templated_email/source/partials/_order_lines.mjml:59
 msgctxt "Ordered item name"
 msgid "Item"
-msgstr ""
+msgstr "宝贝"
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
 #: templates/templated_email/source/partials/_order_lines.mjml:60
@@ -395,12 +453,12 @@ msgstr "数量"
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
 msgctxt "Ordered item download links"
 msgid "Download Link"
-msgstr ""
+msgstr "下载链接"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:12
 msgctxt "E-mail order lines summary table"
 msgid "Subtotal"
-msgstr ""
+msgstr "小计"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:20
 msgctxt "E-mail order lines summary table"
@@ -410,7 +468,7 @@ msgstr "运送"
 #: templates/templated_email/source/partials/_order_lines.mjml:29
 msgctxt "E-mail order lines summary table"
 msgid "Taxes (included)"
-msgstr ""
+msgstr "税收（含税）"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:31
 msgctxt "E-mail order lines summary table"
@@ -430,12 +488,12 @@ msgstr "总数"
 #: templates/templated_email/source/partials/_order_lines.mjml:61
 msgctxt "Unit price of a product"
 msgid "Per unit"
-msgstr ""
+msgstr "每件"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:62
 msgctxt "Ordered item subtotal (unit price * quantity)"
 msgid "Subtotal"
-msgstr ""
+msgstr "小计"
 
 #: templates/templated_email/source/password_reset.mjml:16
 #, python-format
@@ -446,6 +504,8 @@ msgid ""
 "if you did not request a password reset. Click the link below to reset your "
 "password."
 msgstr ""
+"您收到此电子邮件的原因是您或其他人已请求%(domain)s。<br/>的用户帐户密码。如果您不要求重设密码，可以安全地忽略它。 "
+"点击下面的链接以重置密码。"
 
 #: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
@@ -456,6 +516,8 @@ msgid ""
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
+"您收到此电子邮件是因为您或其他人请求更改%(domain)s上的用户帐户的电子邮件。<br />如果您不请求更改电子邮件，可以安全地忽略它。 "
+"点击下面的链接以确认新的电子邮件地址。"
 
 #: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
@@ -464,7 +526,7 @@ msgid ""
 "You're receiving this e-mail because you have to set password for your "
 "customer account at %(domain)s.<br/> Click the link below to set up your "
 "password."
-msgstr ""
+msgstr "之所以收到此电子邮件，是因为您必须为%(domain)s的客户帐户设置密码。<br/>点击下面的链接以重置密码。"
 
 #: templates/templated_email/source/set_password.mjml:16
 #, python-format
@@ -473,7 +535,7 @@ msgid ""
 "You're receiving this e-mail because you have to set password for your staff"
 " member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
-msgstr ""
+msgstr "之所以收到此电子邮件，是因为您必须为%(domain)s的客户帐户设置密码。<br/>点击下面的链接以重置密码。"
 
 #: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
@@ -482,16 +544,12 @@ msgid ""
 "Someone placed a new order in your store. To see order details please visit:"
 " <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
+"谢谢您的购买。 以下是订购产品的列表。 要查看您的付款明细，请访问： <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 
 #: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
 "Your shipping status has been updated. Below is the list of ordered products"
 " that have been updated with new tracking number."
-msgstr ""
-
-#: templates/templated_email/source/update_fulfillment.mjml:20
-#, python-format
-msgctxt "Fulfillment update email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
+msgstr "您的订单物流状态已更新。 以下是订购产品的最新状态。"

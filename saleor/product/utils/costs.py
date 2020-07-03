@@ -68,7 +68,7 @@ def get_cost_price(variant: "ProductVariant") -> "Money":
 def get_margin_for_variant(variant: "ProductVariant") -> Optional[float]:
     if variant.cost_price is None:
         return None
-    base_price = variant.base_price
+    base_price = variant.price
     if not base_price:
         return None
     margin = base_price - variant.cost_price

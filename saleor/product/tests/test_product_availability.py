@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 from unittest.mock import Mock
 
 from prices import Money, TaxedMoney, TaxedMoneyRange
@@ -27,8 +28,8 @@ def test_product_availability_status(unavailable_product, warehouse):
     status = get_product_availability_status(product, "US")
     assert status == ProductAvailabilityStatus.VARIANTS_MISSSING
 
-    variant_1 = product.variants.create(sku="test-1")
-    variant_2 = product.variants.create(sku="test-2")
+    variant_1 = product.variants.create(sku="test-1", price_amount=Decimal(10))
+    variant_2 = product.variants.create(sku="test-2", price_amount=Decimal(10))
     # create empty stock records
     stock_1 = Stock.objects.create(
         product_variant=variant_1, warehouse=warehouse, quantity=0
@@ -123,3 +124,28 @@ def test_available_products_only_available(product_list):
     available_products = models.Product.objects.published()
     assert available_products.count() == 2
     assert all([product.is_visible for product in available_products])
+
+
+def test_available_products_with_variants(product_list):
+    product = product_list[0]
+    product.variants.all().delete()
+
+    available_products = models.Product.objects.published_with_variants()
+    assert available_products.count() == 2
+
+
+def test_visible_to_customer_user(customer_user, product_list):
+    product = product_list[0]
+    product.variants.all().delete()
+
+    available_products = models.Product.objects.visible_to_user(customer_user)
+    assert available_products.count() == 2
+
+
+def test_visible_to_staff_user(customer_user, product_list, permission_manage_products):
+    product = product_list[0]
+    product.variants.all().delete()
+    customer_user.user_permissions.add(permission_manage_products)
+
+    available_products = models.Product.objects.visible_to_user(customer_user)
+    assert available_products.count() == 3

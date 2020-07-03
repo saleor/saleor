@@ -47,23 +47,6 @@ from ..warehouse.management import allocate_stock
 from . import AddressType
 from .models import Checkout, CheckoutLine
 
-COOKIE_NAME = "checkout"
-
-
-def get_checkout_from_request(request, checkout_queryset=Checkout.objects.all()):
-    """Fetch checkout from database or return a new instance based on cookie."""
-    if request.user.is_authenticated:
-        checkout, _ = get_user_checkout(request.user, checkout_queryset)
-        user = request.user
-    else:
-        token = request.get_signed_cookie(COOKIE_NAME, default=None)
-        checkout = get_anonymous_checkout_from_token(token, checkout_queryset)
-        user = None
-    if checkout is None:
-        checkout = Checkout(user=user)
-    checkout.set_country(request.country)
-    return checkout
-
 
 def get_user_checkout(
     user: User, checkout_queryset=Checkout.objects.all(), auto_create=False
@@ -84,11 +67,6 @@ def get_user_checkout(
     return checkout_queryset.filter(user=user).first(), False
 
 
-def get_anonymous_checkout_from_token(token, checkout_queryset=Checkout.objects.all()):
-    """Return an open unassigned checkout with given token if any."""
-    return checkout_queryset.filter(token=token, user=None).first()
-
-
 def update_checkout_quantity(checkout):
     """Update the total quantity in checkout."""
     total_lines = checkout.lines.aggregate(total_quantity=Sum("quantity"))[
@@ -98,9 +76,6 @@ def update_checkout_quantity(checkout):
         total_lines = 0
     checkout.quantity = total_lines
     checkout.save(update_fields=["quantity"])
-
-    manager = get_plugins_manager()
-    manager.checkout_quantity_changed(checkout)
 
 
 def check_variant_in_stock(
@@ -829,3 +804,7 @@ def clean_checkout(
             "Provided payment methods can not cover the checkout's total amount",
             code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,
         )
+
+
+def cancel_active_payments(checkout: Checkout):
+    checkout.payments.filter(is_active=True).update(is_active=False)

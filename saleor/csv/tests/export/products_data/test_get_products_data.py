@@ -58,8 +58,6 @@ def test_get_products_data(product, product_with_image, collection, image):
             "is_published": product.is_published,
             "description": product.description,
             "category__slug": product.category.slug,
-            "price_amount": product.price_amount,
-            "currency": product.currency,
             "product_type__name": product.product_type.name,
             "charge_taxes": product.charge_taxes,
             "collections__slug": (
@@ -87,7 +85,7 @@ def test_get_products_data(product, product_with_image, collection, image):
             data = {
                 "variants__sku": variant.sku,
                 "variants__currency": variant.currency,
-                "variants__price_override_amount": variant.price_override_amount,
+                "variants__price_amount": variant.price_amount,
                 "variants__cost_price_amount": variant.cost_price_amount,
                 "variants__images__image": (
                     ""

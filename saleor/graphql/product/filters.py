@@ -77,11 +77,11 @@ def filter_products_by_attributes(qs, filter_value):
     return filter_products_by_attributes_values(qs, queries)
 
 
-def filter_products_by_price(qs, price_lte=None, price_gte=None):
+def filter_products_by_variant_price(qs, price_lte=None, price_gte=None):
     if price_lte:
-        qs = qs.filter(price_amount__lte=price_lte)
+        qs = qs.filter(variants__price_amount__lte=price_lte)
     if price_gte:
-        qs = qs.filter(price_amount__gte=price_gte)
+        qs = qs.filter(variants__price_amount__gte=price_gte)
     return qs
 
 
@@ -155,8 +155,8 @@ def filter_collections(qs, _, value):
     return qs
 
 
-def filter_price(qs, _, value):
-    qs = filter_products_by_price(
+def filter_variant_price(qs, _, value):
+    qs = filter_products_by_variant_price(
         qs, price_lte=value.get("lte"), price_gte=value.get("gte")
     )
     return qs
@@ -178,7 +178,7 @@ def filter_stock_availability(qs, _, value):
 def filter_search(qs, _, value):
     if value:
         search = picker.pick_backend()
-        qs &= search(value).distinct()
+        qs = qs.distinct() & search(value).distinct()
     return qs
 
 
@@ -296,9 +296,7 @@ class ProductFilter(django_filters.FilterSet):
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
     has_category = django_filters.BooleanFilter(method=filter_has_category)
-    price = ObjectTypeFilter(
-        input_class=PriceRangeInput, method=filter_price, field_name="price_amount"
-    )
+    price = ObjectTypeFilter(input_class=PriceRangeInput, method=filter_variant_price)
     minimal_price = ObjectTypeFilter(
         input_class=PriceRangeInput,
         method=filter_minimal_price,
@@ -323,7 +321,6 @@ class ProductFilter(django_filters.FilterSet):
             "collections",
             "categories",
             "has_category",
-            "price",
             "attributes",
             "stock_availability",
             "product_type",
