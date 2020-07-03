@@ -330,6 +330,21 @@ def checkout_with_voucher_percentage_and_shipping(
 
 
 @pytest.fixture
+def checkout_with_payments(checkout):
+    Payment.objects.bulk_create(
+        [
+            Payment(
+                gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+            ),
+            Payment(
+                gateway="mirumee.payments.dummy", is_active=False, checkout=checkout
+            ),
+        ]
+    )
+    return checkout
+
+
+@pytest.fixture
 def address(db):  # pylint: disable=W0613
     return Address.objects.create(
         first_name="John",
