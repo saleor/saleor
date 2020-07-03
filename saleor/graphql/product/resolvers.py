@@ -50,8 +50,13 @@ def resolve_digital_contents(info):
 
 
 def resolve_product_by_slug(info, slug):
-    requestor = get_user_or_app_from_context(info.context)
-    return models.Product.objects.visible_to_user(requestor).filter(slug=slug).first()
+    user = info.context.user
+    channel_slug = info.variable_values.get("channelSlug")
+    return (
+        models.Product.objects.visible_to_user(user, channel_slug)
+        .filter(slug=slug)
+        .first()
+    )
 
 
 def resolve_products(info, stock_availability=None, **_kwargs):

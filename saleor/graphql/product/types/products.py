@@ -502,11 +502,9 @@ class Product(CountableDjangoObjectType):
             "description",
             "description_json",
             "id",
-            "is_published",
             "name",
             "slug",
             "product_type",
-            "publication_date",
             "seo_description",
             "seo_title",
             "updated_at",
@@ -636,7 +634,9 @@ class Product(CountableDjangoObjectType):
     @classmethod
     def get_node(cls, info, pk):
         if info.context:
-            qs = cls._meta.model.objects.visible_to_user(info.context.user)
+            user = info.context.user
+            channel_slug = info.variable_values.get("channelSlug")
+            qs = cls._meta.model.objects.visible_to_user(user, channel_slug)
             return qs.filter(pk=pk).first()
         return None
 

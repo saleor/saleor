@@ -1,5 +1,8 @@
 import graphene
+from graphql.error import GraphQLError
 
+from ...channel.exceptions import ChannelSlugNotPassedException, NoChannelException
+from ...channel.utils import get_default_channel_slug_if_available
 from ...core.permissions import ProductPermissions
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
@@ -191,7 +194,11 @@ class ProductQueries(graphene.ObjectType):
     product = graphene.Field(
         Product,
         id=graphene.Argument(graphene.ID, description="ID of the product.",),
-        slug=graphene.Argument(graphene.String, description="Slug of the category"),
+        slug=graphene.Argument(graphene.String, description="Slug of the product."),
+        channel_slug=graphene.Argument(
+            graphene.String,
+            description="Slug of the channel for which return product data.",
+        ),
         description="Look up a product by ID.",
     )
     products = FilterInputConnectionField(
@@ -278,8 +285,17 @@ class ProductQueries(graphene.ObjectType):
     def resolve_digital_contents(self, info, **_kwargs):
         return resolve_digital_contents(info)
 
-    def resolve_product(self, info, id=None, slug=None):
+    def resolve_product(self, info, id=None, slug=None, channel_slug=None):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
+        if not channel_slug:
+            try:
+                info.variable_values[
+                    "channelSlug"
+                ] = get_default_channel_slug_if_available()
+            except ChannelSlugNotPassedException:
+                raise GraphQLError("Argument 'channelSlug` not passed.")
+            except NoChannelException:
+                return None
         if id:
             return graphene.Node.get_node_from_global_id(info, id, Product)
         if slug:
