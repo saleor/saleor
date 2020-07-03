@@ -28,12 +28,10 @@ class ProductExportFields:
             "product type": "product_type__name",
             "charge taxes": "charge_taxes",
             "product weight": "product_weight",
-            "price": "price_amount",
-            "product currency": "currency",
             "variant sku": "variants__sku",
             "variant weight": "variant_weight",
             "cost price": "variants__cost_price_amount",
-            "price override": "variants__price_override_amount",
+            "variant price": "variants__price_amount",
             "variant currency": "variants__currency",
         },
         "product_many_to_many": {
@@ -104,11 +102,7 @@ def get_product_export_fields_and_headers(
         export_fields.append(lookup_field)
         file_headers.append(field)
         # if price is exported, currency is needed too
-        if field == "price":
-            lookup_field = fields_mapping["product currency"]
-            export_fields.append(lookup_field)
-            file_headers.append("product currency")
-        elif field == "price override" or field == "cost price":
+        if field == "variant price" or field == "cost price":
             lookup_field = fields_mapping["variant currency"]
             if lookup_field not in export_fields:
                 export_fields.append(lookup_field)

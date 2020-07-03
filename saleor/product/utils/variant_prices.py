@@ -1,5 +1,6 @@
 import operator
 from functools import reduce
+from typing import Optional
 
 from django.db.models.query_utils import Q
 from prices import Money
@@ -8,12 +9,15 @@ from ...discount.utils import fetch_active_discounts
 from ..models import Product
 
 
-def _get_product_minimal_variant_price(product, discounts) -> Money:
+def _get_product_minimal_variant_price(product, discounts) -> Optional[Money]:
     # Start with the product's price as the minimal one
-    minimal_variant_price = product.price
+    minimal_variant_price = None
     for variant in product.variants.all():
         variant_price = variant.get_price(discounts=discounts)
-        minimal_variant_price = min(minimal_variant_price, variant_price)
+        if minimal_variant_price is None:
+            minimal_variant_price = variant_price
+        else:
+            minimal_variant_price = min(minimal_variant_price, variant_price)
     return minimal_variant_price
 
 

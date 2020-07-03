@@ -5,17 +5,19 @@
 #
 # Translators:
 # Julien Fabre <superbeasst@gmail.com>, 2017
-# Da Costa Faro Rémy <remy@dacostafaro.com>, 2018
-# NyаnKiyoshi <hello@vanille.bid>, 2019
+# Da Costa Faro Rémy <remy@dacostafaro.com>, 2020
+# benoit barthelet <benoit.barthelet@gmail.com>, 2020
+# NyаnKiyoshi <hello@vanille.bid>, 2020
+# Yann Terzibachian <yann.terzibachian@gmail.com>, 2020
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-14 03:45-0500\n"
+"POT-Creation-Date: 2020-06-17 16:44+0000\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: NyаnKiyoshi <hello@vanille.bid>, 2019\n"
+"Last-Translator: Yann Terzibachian <yann.terzibachian@gmail.com>, 2020\n"
 "Language-Team: French (https://www.transifex.com/mirumee/teams/34782/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -42,7 +44,7 @@ msgstr ""
 #: templates/templated_email/account/account_delete.email:4
 msgctxt "Account delete reset e-mail subject"
 msgid "Delete your account"
-msgstr ""
+msgstr "Suppression de votre compte"
 
 #: templates/templated_email/account/account_delete.email:9
 #, python-format
@@ -54,11 +56,18 @@ msgid ""
 "\n"
 "Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
+"\n"
+"Bonjour !\n"
+"\n"
+"Vous recevez ce courriel car vous, ou quelqu'un d'autre à demander la suppression de votre compte chez %(domain)s.\n"
+"Cliquez le lien ci-dessous si vous souhaitez supprimer votre compte.\n"
+"\n"
+"Notez que cette action est irréversible.\n"
 
 #: templates/templated_email/account/confirm.email:4
 msgctxt "Account confirmation e-mail subject"
 msgid "Account confirmation e-mail"
-msgstr ""
+msgstr "Email de confirmation de Compte"
 
 #: templates/templated_email/account/confirm.email:9
 #, python-format
@@ -68,12 +77,15 @@ msgid ""
 "In order to log into %(domain)s, you have to confirm your email address first.\n"
 "Please click the link below to do so and log into your account.\n"
 msgstr ""
+"\n"
+"Afin de vous connecter a %(domain)s, vous devez d'abord confirmer votre email.\n"
+"Veuillez cliquer sur le lien ci-dessous et vous connecter a votre compte.\n"
 
 #: templates/templated_email/account/email_changed_notification.email:4
 #: templates/templated_email/account/request_email_change.email:4
 msgctxt "Email change e-mail subject"
 msgid "Email change e-mail"
-msgstr ""
+msgstr "Email de changement d'e-mail"
 
 #: templates/templated_email/account/email_changed_notification.email:9
 #, python-format
@@ -84,11 +96,15 @@ msgid ""
 "You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
 "If you didn't request this change, please contact the administrator.\n"
 msgstr ""
+"\n"
+"\n"
+"Vous recevez ce courriel car vous, ou quelqu'un d'autre a changé l'e-mail de votre compte utilisateur sur %(domain)s.\n"
+"Si vous n’êtes pas a l'origine de de changement, veuillez contacter l'administrateur.\n"
 
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
 msgid "Password reset e-mail"
-msgstr ""
+msgstr "Ré-initialisation du mot de passe"
 
 #: templates/templated_email/account/password_reset.email:9
 #, python-format
@@ -98,6 +114,9 @@ msgid ""
 "You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
 "It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"Vous recevez ce mail car vous ou quelqu'un d'autre a demandé à ce que votre mot de passe chez %(domain)s soit réinitialisé.\n"
+"Vous pouvez ignorer ce message si vous n'avez pas demander à ce que votre mot de passe soit réinitialisé. Autrement, cliquez le lien ci-dessous pour le réinitialiser.\n"
 
 #: templates/templated_email/account/request_email_change.email:9
 #, python-format
@@ -108,12 +127,16 @@ msgid ""
 "You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
 "It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
 msgstr ""
+"\n"
+"\n"
+"Vous recevez ce mail car vous ou quelqu'un d'autre a demandé à ce que votre email chez %(domain)s soit réinitialisé.\n"
+"Vous pouvez ignorer ce message si vous n'avez pas demander à ce que votre mot de passe soit réinitialisé. Autrement, cliquez le lien ci-dessous pour confirmer votre nouvelle adresse.\n"
 
 #: templates/templated_email/dashboard/customer/set_password.email:2
 #, python-format
 msgctxt "Set password for customer e-mail title"
 msgid "Hello from %(site_name)s!"
-msgstr ""
+msgstr "Bonjour de %(site_name)s !"
 
 #: templates/templated_email/dashboard/customer/set_password.email:6
 #, python-format
@@ -128,7 +151,7 @@ msgstr ""
 #, python-format
 msgctxt "Set password for staff member e-mail title"
 msgid "Hello from %(site_name)s!"
-msgstr ""
+msgstr "Bonjour de %(site_name)s !"
 
 #: templates/templated_email/dashboard/staff/set_password.email:6
 #, python-format
@@ -143,7 +166,7 @@ msgstr ""
 #, python-format
 msgctxt "Fulfillment confirmation email subject"
 msgid "Your order %(order)s has been fulfilled"
-msgstr ""
+msgstr "Votre commande %(order)s a été complétée"
 
 #: templates/templated_email/order/confirm_fulfillment.email:11
 msgctxt "Fulfillment confirmation email text"
@@ -153,7 +176,8 @@ msgid ""
 msgstr ""
 
 #: templates/templated_email/order/confirm_fulfillment.email:15
-#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#: templates/templated_email/source/confirm_fulfillment.mjml:25
+#: templates/templated_email/source/update_fulfillment.mjml:25
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid "You can track your shipment with %(tracking_number)s code."
@@ -161,19 +185,22 @@ msgstr "Vous pouvez suivre votre envoi avec le code %(tracking_number)s."
 
 #: templates/templated_email/order/confirm_order.email:6
 #: templates/templated_email/order/staff_confirm_order.email:6
+#, python-format
 msgctxt "Order confirmation e-mail subject"
-msgid "Order details"
+msgid "Order %(order)s details"
 msgstr ""
 
-#: templates/templated_email/order/confirm_order.email:11
+#: templates/templated_email/order/confirm_order.email:13
 msgctxt "Order confirmation e-mail text"
 msgid ""
 "\n"
 "Thank you for your order. Below is the list of ordered products.\n"
 msgstr ""
+"\n"
+"Merci pour votre commande. Vous retrouverez ci-dessous la liste des produits commandés.\n"
 
-#: templates/templated_email/order/confirm_order.email:15
-#: templates/templated_email/order/staff_confirm_order.email:15
+#: templates/templated_email/order/confirm_order.email:17
+#: templates/templated_email/order/staff_confirm_order.email:17
 #, python-format
 msgctxt "Order confirmation e-mail payment details"
 msgid ""
@@ -181,106 +208,115 @@ msgid ""
 "To see your payment details please visit:\n"
 "%(order_details_url)s\n"
 msgstr ""
-
-#: templates/templated_email/order/confirm_order.email:23
-#: templates/templated_email/order/staff_confirm_order.email:23
-msgctxt "Order confirmation e-mail table header"
-msgid "Order summary"
-msgstr ""
-
-#: templates/templated_email/order/confirm_order.email:24
-#: templates/templated_email/order/staff_confirm_order.email:24
-msgctxt "Order confirmation e-mail table header"
-msgid "Subtotal"
-msgstr ""
+"\n"
+"Pour visualiser les détails de votre paiement merci de visiter :\n"
+"%(order_details_url)s\n"
 
 #: templates/templated_email/order/confirm_order.email:25
 #: templates/templated_email/order/staff_confirm_order.email:25
 msgctxt "Order confirmation e-mail table header"
-msgid "Shipping"
-msgstr ""
+msgid "Order summary"
+msgstr "Récapitulatif de la commande"
 
 #: templates/templated_email/order/confirm_order.email:26
 #: templates/templated_email/order/staff_confirm_order.email:26
 msgctxt "Order confirmation e-mail table header"
-msgid "Taxes (included)"
-msgstr ""
-
-#: templates/templated_email/order/confirm_order.email:26
-#: templates/templated_email/order/staff_confirm_order.email:26
-msgctxt "Order confirmation e-mail table header"
-msgid "Taxes"
-msgstr ""
+msgid "Subtotal"
+msgstr "Sous-total"
 
 #: templates/templated_email/order/confirm_order.email:27
 #: templates/templated_email/order/staff_confirm_order.email:27
 msgctxt "Order confirmation e-mail table header"
-msgid "Discount:"
-msgstr ""
+msgid "Shipping"
+msgstr "La livraison"
 
 #: templates/templated_email/order/confirm_order.email:28
 #: templates/templated_email/order/staff_confirm_order.email:28
 msgctxt "Order confirmation e-mail table header"
-msgid "Total"
-msgstr ""
+msgid "Taxes (included)"
+msgstr "TVA (incluse)"
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/staff_confirm_order.email:28
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr "TVA"
+
+#: templates/templated_email/order/confirm_order.email:29
+#: templates/templated_email/order/staff_confirm_order.email:29
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr "Remise :"
 
 #: templates/templated_email/order/confirm_order.email:30
 #: templates/templated_email/order/staff_confirm_order.email:30
-#: templates/templated_email/source/confirm_order.mjml:29
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr "Total"
+
+#: templates/templated_email/order/confirm_order.email:32
+#: templates/templated_email/order/staff_confirm_order.email:32
+#: templates/templated_email/source/confirm_order.mjml:35
 #: templates/templated_email/source/staff_confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
 msgstr "Adresse de facturation"
 
-#: templates/templated_email/order/confirm_order.email:31
-#: templates/templated_email/order/staff_confirm_order.email:31
-#: templates/templated_email/source/confirm_order.mjml:39
+#: templates/templated_email/order/confirm_order.email:33
+#: templates/templated_email/order/staff_confirm_order.email:33
+#: templates/templated_email/source/confirm_order.mjml:45
 #: templates/templated_email/source/staff_confirm_order.mjml:39
 msgctxt "Order confirmation e-mail text"
 msgid "No billing address"
 msgstr "Aucune adresse de facturation"
 
-#: templates/templated_email/order/confirm_order.email:33
-#: templates/templated_email/order/staff_confirm_order.email:33
-#: templates/templated_email/source/confirm_order.mjml:30
+#: templates/templated_email/order/confirm_order.email:35
+#: templates/templated_email/order/staff_confirm_order.email:35
+#: templates/templated_email/source/confirm_order.mjml:36
 #: templates/templated_email/source/staff_confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
 msgstr "Adresse de livraison"
 
-#: templates/templated_email/order/confirm_order.email:34
-#: templates/templated_email/order/staff_confirm_order.email:34
-#: templates/templated_email/source/confirm_order.mjml:46
+#: templates/templated_email/order/confirm_order.email:36
+#: templates/templated_email/order/staff_confirm_order.email:36
+#: templates/templated_email/source/confirm_order.mjml:52
 #: templates/templated_email/source/staff_confirm_order.mjml:46
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr "Aucune livraison nécessaire."
 
 #: templates/templated_email/order/payment/confirm_payment.email:4
+#, python-format
 msgctxt "Payment confirmation subject"
-msgid "Payment details"
+msgid "Order %(order)s payment details"
 msgstr ""
 
-#: templates/templated_email/order/payment/confirm_payment.email:9
+#: templates/templated_email/order/payment/confirm_payment.email:11
 msgctxt "Payment confirmation email text"
 msgid ""
 "\n"
 "Thank you for your payment.\n"
 "Your payment was successfully charged.\n"
 msgstr ""
+"\n"
+"Merci pour votre paiement.\n"
+"Votre paiement a été effectué avec succès.\n"
 
-#: templates/templated_email/order/staff_confirm_order.email:11
+#: templates/templated_email/order/staff_confirm_order.email:13
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
 "\n"
 "Below is the list of ordered products.\n"
 msgstr ""
+"\n"
+"Ci-dessous la liste de vos produits commandés.\n"
 
 #: templates/templated_email/order/update_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment update email subject"
 msgid "Shipping update for order %(order)s"
-msgstr ""
+msgstr "Mise à jour de l'expédition de la commande %(order)s"
 
 #: templates/templated_email/order/update_fulfillment.email:11
 msgctxt "Fulfillment update email text"
@@ -295,6 +331,7 @@ msgctxt "Fulfillment update email text"
 msgid ""
 "You can track your shipment with the following code: %(tracking_number)s."
 msgstr ""
+"Vous pouvez suivre votre envoi avec le code suivant: %(tracking_number)s."
 
 #: templates/templated_email/shared/_footer.email:2
 #: templates/templated_email/source/shared/footer.mjml:4
@@ -336,6 +373,10 @@ msgid ""
 "delete your account. Please note that this action is permanent and cannot be"
 " reversed."
 msgstr ""
+"Vous recevez ce courriel car vous, ou quelqu'un d'autre à demander la "
+"suppression de votre compte chez %(domain)s.<br/>Cliquez le lien ci-dessous "
+"si vous souhaitez supprimer votre compte. Notez que cette action est "
+"irréversible."
 
 #: templates/templated_email/source/confirm.mjml:16
 #, python-format
@@ -349,26 +390,45 @@ msgstr ""
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
 msgstr ""
+"Merci pour votre commande. Vous retrouverez ci-dessous la liste des produits"
+" confirmés."
 
-#: templates/templated_email/source/confirm_fulfillment.mjml:27
+#: templates/templated_email/source/confirm_fulfillment.mjml:21
+#: templates/templated_email/source/update_fulfillment.mjml:21
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"You can track your shipment with <a "
+"href=\"%(tracking_number)s\">%(tracking_number)s</a> link."
+msgstr ""
+"Vous pouvez suivre votre envoi avec le code <a "
+"href=\"%(tracking_number)s\">%(tracking_number)s</a>."
+
+#: templates/templated_email/source/confirm_fulfillment.mjml:33
 msgctxt "Fulfillment digital products email text"
 msgid ""
 "You can download your digital products by clicking in download link(s)."
 msgstr ""
+"Vous pouvez télécharger vos produits en cliquant sur le(s) lien(s) suivant."
 
-#: templates/templated_email/source/confirm_order.mjml:17
+#: templates/templated_email/source/confirm_order.mjml:18
 #, python-format
-msgctxt "Order confirmation e-mail text"
+msgctxt "Order confirmation e-mail text with payment details"
 msgid ""
 "Thank you for your order. Below is the list of ordered products. To see your"
 " payment details please visit: <a "
 "href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
+#: templates/templated_email/source/confirm_order.mjml:22
+msgctxt "Order confirmation e-mail text"
+msgid "Thank you for your order. Below is the list of ordered products."
+msgstr ""
+
 #: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
 msgid "Thank you for your payment. Your payment was successfully charged."
-msgstr ""
+msgstr "Merci pour votre paiement. Votre paiement a été effectué avec succès."
 
 #: templates/templated_email/source/email_changed_notification.mjml:16
 #, python-format
@@ -395,7 +455,7 @@ msgstr "Quantité"
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
 msgctxt "Ordered item download links"
 msgid "Download Link"
-msgstr ""
+msgstr "Lien de téléchargement"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:12
 msgctxt "E-mail order lines summary table"
@@ -446,6 +506,8 @@ msgid ""
 "if you did not request a password reset. Click the link below to reset your "
 "password."
 msgstr ""
+"Vous recevez ce courriel car vous, ou quelqu'un d'autre a demandé à ré-initialiser votre mot de passe chez %(domain)s.<br/>\n"
+"Vous pouvez ignorer ce courriel en toute sécurité si vous n'avez pas effectué cette demande. Autrement, vous pouvez cliquer le lien ci-dessous pour ré-initialiser votre mot de passe."
 
 #: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
@@ -474,6 +536,9 @@ msgid ""
 " member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
+"Vous recevez ce courriel car vous avez à créer un mot de passe pour votre "
+"compte de membre de l'équipe de chez %(domain)s.<br/> Cliquez le lien ci-"
+"dessous pour créer votre mot de passe."
 
 #: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
@@ -491,9 +556,3 @@ msgid ""
 msgstr ""
 "Le statut de votre envoi a été mis à jour. Voici la liste des articles "
 "commandés qui bénéficient d'un nouveau code de suivi."
-
-#: templates/templated_email/source/update_fulfillment.mjml:20
-#, python-format
-msgctxt "Fulfillment update email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr "Vous pouvez suivre votre envoi avec le code %(tracking_number)s."

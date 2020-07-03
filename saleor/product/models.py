@@ -8,15 +8,12 @@ from django.db import models
 from django.db.models import Case, Count, F, FilteredRelation, Q, Value, When
 from django.urls import reverse
 from django.utils.encoding import smart_text
-from django.utils.text import slugify
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from draftjs_sanitizer import clean_draft_js
 from measurement.measures import Weight
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
-from prices import MoneyRange
-from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.db.fields import SanitizedJSONField
@@ -118,35 +115,6 @@ class ProductType(ModelWithMetadata):
 
 
 class ProductsQueryset(PublishedQuerySet):
-    MINIMAL_PRICE_FIELDS = {"minimal_variant_price_amount", "minimal_variant_price"}
-
-    def create(self, **kwargs):
-        """Create a product.
-
-        In the case of absent "minimal_variant_price" make it default to the "price"
-        """
-        if not kwargs.keys() & self.MINIMAL_PRICE_FIELDS:
-            minimal_amount = None
-            if "price" in kwargs:
-                minimal_amount = kwargs["price"].amount
-            elif "price_amount" in kwargs:
-                minimal_amount = kwargs["price_amount"]
-            kwargs["minimal_variant_price_amount"] = minimal_amount
-        return super().create(**kwargs)
-
-    def bulk_create(self, objs, batch_size=None, ignore_conflicts=False):
-        """Insert each of the product instances into the database.
-
-        Make sure every product has "minimal_variant_price" set. Otherwise
-        make it default to the "price".
-        """
-        for obj in objs:
-            if obj.minimal_variant_price_amount is None:
-                obj.minimal_variant_price_amount = obj.price.amount
-        return super().bulk_create(
-            objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
-        )
-
     def collection_sorted(self, user: "User"):
         qs = self.visible_to_user(user)
         qs = qs.order_by(
@@ -154,6 +122,15 @@ class ProductsQueryset(PublishedQuerySet):
             F("collectionproduct__id"),
         )
         return qs
+
+    def published_with_variants(self):
+        published = self.published()
+        return published.filter(variants__isnull=False)
+
+    def visible_to_user(self, user):
+        if self.user_has_access_to_all(user):
+            return self.all()
+        return self.published_with_variants()
 
     def sort_by_attribute(
         self, attribute_pk: Union[int, str], descending: bool = False
@@ -273,15 +250,11 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
         default=settings.DEFAULT_CURRENCY,
     )
 
-    price_amount = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-    )
-    price = MoneyField(amount_field="price_amount", currency_field="currency")
-
     minimal_variant_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
     )
     minimal_variant_price = MoneyField(
         amount_field="minimal_variant_price_amount", currency_field="currency"
@@ -318,15 +291,6 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     def __str__(self) -> str:
         return self.name
 
-    def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
-        # Make sure the "minimal_variant_price_amount" is set
-        if self.minimal_variant_price_amount is None:
-            self.minimal_variant_price_amount = self.price_amount
-
-        return super().save(force_insert, force_update, using, update_fields)
-
     @property
     def plain_text_description(self) -> str:
         return json_content_to_raw_text(self.description_json)
@@ -334,23 +298,6 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     def get_first_image(self):
         images = list(self.images.all())
         return images[0] if images else None
-
-    def get_price_range(
-        self, discounts: Optional[Iterable[DiscountInfo]] = None
-    ) -> MoneyRange:
-        import opentracing
-
-        with opentracing.global_tracer().start_active_span("get_price_range"):
-            if self.variants.all():
-                prices = [variant.get_price(discounts) for variant in self]
-                return MoneyRange(min(prices), max(prices))
-            price = calculate_discounted_price(
-                product=self,
-                price=self.price,
-                collections=self.collections.all(),
-                discounts=discounts,
-            )
-            return MoneyRange(start=price, stop=price)
 
     @staticmethod
     def sort_by_attribute_fields() -> list:
@@ -427,15 +374,11 @@ class ProductVariant(ModelWithMetadata):
         blank=True,
         null=True,
     )
-    price_override_amount = models.DecimalField(
+    price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        blank=True,
-        null=True,
     )
-    price_override = MoneyField(
-        amount_field="price_override_amount", currency_field="currency"
-    )
+    price = MoneyField(amount_field="price_amount", currency_field="currency")
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
     )
@@ -467,18 +410,10 @@ class ProductVariant(ModelWithMetadata):
     def is_visible(self) -> bool:
         return self.product.is_visible
 
-    @property
-    def base_price(self) -> "Money":
-        return (
-            self.price_override
-            if self.price_override is not None
-            else self.product.price
-        )
-
     def get_price(self, discounts: Optional[Iterable[DiscountInfo]] = None) -> "Money":
         return calculate_discounted_price(
             product=self.product,
-            price=self.base_price,
+            price=self.price,
             collections=self.product.collections.all(),
             discounts=discounts,
         )

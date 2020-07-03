@@ -336,7 +336,7 @@ def test_validate_slug_and_generate_if_needed_generate_slug(cleaned_input):
 )
 def test_filter_range_field(value, count, product_indexes, product_list):
     qs = Product.objects.all().order_by("pk")
-    field = "price_amount"
+    field = "minimal_variant_price_amount"
 
     result = filter_range_field(qs, field, value)
 

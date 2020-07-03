@@ -12,8 +12,7 @@ def test_get_export_fields_and_headers_fields_with_price():
     # given
     export_info = {
         "fields": [
-            ProductFieldEnum.PRICE.value,
-            ProductFieldEnum.PRICE_OVERRIDE.value,
+            ProductFieldEnum.VARIANT_PRICE.value,
             ProductFieldEnum.COLLECTIONS.value,
             ProductFieldEnum.DESCRIPTION.value,
         ],
@@ -26,9 +25,7 @@ def test_get_export_fields_and_headers_fields_with_price():
     # then
     expected_headers = [
         "id",
-        "price",
-        "product currency",
-        "price override",
+        "variant price",
         "variant currency",
         "collections",
         "description",
@@ -36,9 +33,7 @@ def test_get_export_fields_and_headers_fields_with_price():
 
     expected_fields = [
         "id",
-        "price_amount",
-        "currency",
-        "variants__price_override_amount",
+        "variants__price_amount",
         "variants__currency",
         "collections__slug",
         "description",
@@ -88,7 +83,7 @@ def test_get_export_fields_and_headers_fields_with_cost_price_and_price_override
     export_info = {
         "fields": [
             ProductFieldEnum.NAME.value,
-            ProductFieldEnum.PRICE_OVERRIDE.value,
+            ProductFieldEnum.VARIANT_PRICE.value,
             ProductFieldEnum.COST_PRICE.value,
             ProductFieldEnum.COLLECTIONS.value,
         ],
@@ -102,7 +97,7 @@ def test_get_export_fields_and_headers_fields_with_cost_price_and_price_override
     expected_headers = [
         "id",
         "name",
-        "price override",
+        "variant price",
         "variant currency",
         "cost price",
         "collections",
@@ -111,7 +106,7 @@ def test_get_export_fields_and_headers_fields_with_cost_price_and_price_override
     expected_fields = [
         "id",
         "name",
-        "variants__price_override_amount",
+        "variants__price_amount",
         "variants__currency",
         "variants__cost_price_amount",
         "collections__slug",
@@ -217,8 +212,7 @@ def test_get_export_fields_and_headers_info(
     attribute_ids = [attr.pk for attr in Attribute.objects.all()]
     export_info = {
         "fields": [
-            ProductFieldEnum.PRICE.value,
-            ProductFieldEnum.PRICE_OVERRIDE.value,
+            ProductFieldEnum.VARIANT_PRICE.value,
             ProductFieldEnum.COLLECTIONS.value,
             ProductFieldEnum.DESCRIPTION.value,
         ],
@@ -228,9 +222,7 @@ def test_get_export_fields_and_headers_info(
 
     expected_file_headers = [
         "id",
-        "price",
-        "product currency",
-        "price override",
+        "variant price",
         "variant currency",
         "collections",
         "description",
@@ -244,9 +236,7 @@ def test_get_export_fields_and_headers_info(
     # then
     expected_fields = [
         "id",
-        "price_amount",
-        "currency",
-        "variants__price_override_amount",
+        "variants__price_amount",
         "variants__currency",
         "collections__slug",
         "description",
