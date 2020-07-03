@@ -282,7 +282,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_digital_contents(self, info, **_kwargs):
         return resolve_digital_contents(info)
 
-    def resolve_product(self, info, id=None, slug=None):
+    def resolve_product(self, info, id=None, slug=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
             return graphene.Node.get_node_from_global_id(info, id, Product)

@@ -133,6 +133,13 @@ class FilterInputConnectionField(PrefetchingConnectionField):
         self.filterset_class = None
         if self.filter_input:
             self.filterset_class = self.filter_input.filterset_class
+        kwargs.setdefault(
+            "channel_slug",
+            graphene.Argument(
+                graphene.String,
+                description="Slug of the channel for which return product data.",
+            ),
+        )
         super().__init__(*args, **kwargs)
 
     @classmethod
