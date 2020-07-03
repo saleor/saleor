@@ -725,12 +725,14 @@ def test_fetch_all_products_not_existing_in_channel_as_anonymous(
     assert not content["data"]["products"]["edges"]
 
 
-def test_product_query(staff_api_client, product, permission_manage_products, stock):
+def test_fetch_product_from_category_query(
+    staff_api_client, product, permission_manage_products, stock, channel_USD
+):
     category = Category.objects.first()
     product = category.products.first()
     query = """
     query {
-        category(id: "%(category_id)s") {
+        category(id: "%(category_id)s", channelSlug: "%(channel_slug)s") {
             products(first: 20) {
                 edges {
                     node {
@@ -784,7 +786,8 @@ def test_product_query(staff_api_client, product, permission_manage_products, st
         }
     }
     """ % {
-        "category_id": graphene.Node.to_global_id("Category", category.id)
+        "category_id": graphene.Node.to_global_id("Category", category.id),
+        "channel_slug": channel_USD.slug,
     }
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query)
@@ -801,7 +804,7 @@ def test_product_query(staff_api_client, product, permission_manage_products, st
     purchase_cost, margin = get_product_costs_data(product)
     assert purchase_cost.start.amount == product_data["purchaseCost"]["start"]["amount"]
     assert purchase_cost.stop.amount == product_data["purchaseCost"]["stop"]["amount"]
-    assert product_data["isAvailable"] is product.is_visible
+    assert product_data["isAvailable"] is True
     assert margin[0] == product_data["margin"]["start"]
     assert margin[1] == product_data["margin"]["stop"]
 

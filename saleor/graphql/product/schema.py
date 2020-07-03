@@ -174,7 +174,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="List of the shop's categories.",
     )
-    category = graphene.Field(
+    category = FieldWithChannel(
         Category,
         id=graphene.Argument(graphene.ID, description="ID of the category."),
         slug=graphene.Argument(graphene.String, description="Slug of the category"),
@@ -257,7 +257,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level=level, **kwargs)
 
-    def resolve_category(self, info, id=None, slug=None):
+    def resolve_category(self, info, id=None, slug=None, **kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
             return graphene.Node.get_node_from_global_id(info, id, Category)

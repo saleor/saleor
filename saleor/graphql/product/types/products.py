@@ -587,8 +587,12 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     def resolve_is_available(root: models.Product, info):
         country = info.context.country
+        channel_slug = str(info.context.channel_slug)
         in_stock = is_product_in_stock(root, country)
-        return root.is_visible and in_stock
+        is_visible = models.ProductChannelListing.objects.filter(
+            product=root, channel__slug=channel_slug
+        ).exists()
+        return is_visible and in_stock
 
     @staticmethod
     def resolve_attributes(root: models.Product, info):
@@ -864,7 +868,8 @@ class Category(CountableDjangoObjectType):
     @staticmethod
     def resolve_products(root: models.Category, info, **_kwargs):
         tree = root.get_descendants(include_self=True)
-        qs = models.Product.objects.published()
+        channel_slug = str(info.context.channel_slug)
+        qs = models.Product.objects.published(channel_slug)
         return qs.filter(category__in=tree)
 
     @staticmethod

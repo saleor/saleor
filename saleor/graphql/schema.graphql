@@ -4307,7 +4307,7 @@ type Query {
   attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, channelSlug: String, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   attribute(id: ID!): Attribute
   categories(filter: CategoryFilterInput, sortBy: CategorySortingInput, level: Int, channelSlug: String, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  category(id: ID, slug: String): Category
+  category(id: ID, slug: String, channelSlug: String): Category
   collection(id: ID, slug: String): Collection
   collections(filter: CollectionFilterInput, sortBy: CollectionSortingInput, channelSlug: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   product(id: ID, slug: String, channelSlug: String): Product

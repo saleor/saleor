@@ -38,18 +38,20 @@ class ChannelMiddleware:
     def resolve(self, next, root, info, **kwargs):
         request = info.context
 
-        def channel_slug():
-            channel_slug = kwargs.get("channel_slug")
-            if not channel_slug:
-                try:
-                    channel_slug = get_default_channel_slug_if_available()
-                except ChannelSlugNotPassedException:
-                    raise GraphQLError("Argument 'channelSlug` not passed.")
-                except NoChannelException:
-                    return None
-            return channel_slug
+        if not hasattr(info.context, "channel_slug"):
 
-        request.channel_slug = SimpleLazyObject(lambda: channel_slug())
+            def channel_slug():
+                channel_slug = kwargs.get("channel_slug")
+                if not channel_slug:
+                    try:
+                        channel_slug = get_default_channel_slug_if_available()
+                    except ChannelSlugNotPassedException:
+                        raise GraphQLError("Argument 'channelSlug` not passed.")
+                    except NoChannelException:
+                        return None
+                return channel_slug
+
+            request.channel_slug = SimpleLazyObject(lambda: channel_slug())
         return next(root, info, **kwargs)
 
 
