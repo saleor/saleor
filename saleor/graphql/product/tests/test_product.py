@@ -453,6 +453,31 @@ def test_products_query_with_filter_collection(
     assert products[0]["node"]["name"] == second_product.name
 
 
+def test_products_query_with_filter_category_and_search(
+    query_products_with_filter, staff_api_client, product, permission_manage_products,
+):
+    category = Category.objects.create(name="Custom", slug="custom")
+    second_product = product
+    second_product.id = None
+    second_product.slug = "second-product"
+    second_product.category = category
+    product.category = category
+    second_product.save()
+    product.save()
+
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    variables = {"filter": {"categories": [category_id], "search": product.name}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+    assert products[0]["node"]["name"] == product.name
+
+
 @pytest.mark.parametrize(
     "products_filter",
     [
