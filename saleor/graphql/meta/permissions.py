@@ -50,6 +50,10 @@ def order_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [OrderPermissions.MANAGE_ORDERS]
 
 
+def invoice_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+    return [OrderPermissions.MANAGE_ORDERS]
+
+
 def app_permissions(_info, _object_pk: int) -> List[BasePermissionEnum]:
     return [AppPermission.MANAGE_APPS]
 
@@ -66,6 +70,7 @@ PUBLIC_META_PERMISSION_MAP = {
     "DigitalContent": product_permissions,
     "Fulfillment": order_permissions,
     "Order": no_permissions,
+    "Invoice": invoice_permissions,
     "Product": product_permissions,
     "ProductType": product_permissions,
     "ProductVariant": product_permissions,
@@ -82,6 +87,7 @@ PRIVATE_META_PERMISSION_MAP = {
     "DigitalContent": product_permissions,
     "Fulfillment": order_permissions,
     "Order": order_permissions,
+    "Invoice": invoice_permissions,
     "Product": product_permissions,
     "ProductType": product_permissions,
     "ProductVariant": product_permissions,

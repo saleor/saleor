@@ -1,0 +1,58 @@
+{% load i18n %}
+{% load price from taxed_prices %}
+<table class="summary-table">
+    <tbody>
+        <tr class="summary-row">
+            <td class="cell-summary">
+                <span class="normal-text-table">
+                    {% trans "Subtotal" context "Invoice PDF summary" %}
+                </span>
+            </td>
+            <td class="cell-quantity"></td>
+            <td class="cell-total-price">
+                <span class="header-item">
+                    {% price order.get_subtotal.gross %}
+                </span>
+            </td>
+        </tr>
+        <tr class="summary-row">
+            <td class="cell-summary">
+                <span class="normal-text-table">
+                    {% trans "Delivery Cost" context "Invoice PDF summary" %}
+                </span>
+            </td>
+            <td class="cell-quantity"></td>
+            <td class="cell-total-price">
+                <span class="header-item">
+                    {% price order.shipping_price.gross %}
+                </span>
+            </td>
+        </tr>
+        <tr class="summary-row">
+            <td class="cell-summary">
+                <span class="normal-text-table">
+                    {% trans "Tax" context "Invoice PDF summary" %}
+                </span>
+            </td>
+            <td class="cell-quantity"></td>
+            <td class="cell-total-price">
+                <span class="header-item">
+                    {% price order.total.tax %}
+                </span>
+            </td>
+        </tr>
+        <tr class="summary-row">
+            <td class="cell-summary">
+                <span class="normal-text-table">
+                    <b>{% trans "Grand Total" context "Invoice PDF summary" %}</b>
+                </span>
+            </td>
+            <td class="cell-quantity"></td>
+            <td class="cell-total-price">
+                <span class="header-item">
+                    {% price order.total.gross %}
+                </span>
+            </td>
+        </tr>
+    </tbody>
+</table>

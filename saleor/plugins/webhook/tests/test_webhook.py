@@ -9,6 +9,7 @@ from ....webhook.event_types import WebhookEventType
 from ....webhook.payloads import (
     generate_checkout_payload,
     generate_customer_payload,
+    generate_invoice_payload,
     generate_order_payload,
     generate_product_payload,
 )
@@ -215,4 +216,40 @@ def test_checkout_quantity_changed(
     expected_data = generate_checkout_payload(checkout_with_items)
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.CHECKOUT_QUANTITY_CHANGED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_invoice_request(mocked_webhook_trigger, settings, fulfilled_order):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    invoice = fulfilled_order.invoices.first()
+    manager.invoice_request(fulfilled_order, invoice, invoice.number)
+    expected_data = generate_invoice_payload(invoice)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.INVOICE_REQUESTED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_invoice_delete(mocked_webhook_trigger, settings, fulfilled_order):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    invoice = fulfilled_order.invoices.first()
+    manager.invoice_delete(invoice)
+    expected_data = generate_invoice_payload(invoice)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.INVOICE_DELETED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_invoice_sent(mocked_webhook_trigger, settings, fulfilled_order):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    invoice = fulfilled_order.invoices.first()
+    manager.invoice_sent(invoice, fulfilled_order.user.email)
+    expected_data = generate_invoice_payload(invoice)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.INVOICE_SENT, expected_data
     )

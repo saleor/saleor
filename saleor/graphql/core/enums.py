@@ -8,6 +8,7 @@ from ...core.permissions import get_permissions_enum_list
 from ...core.weight import WeightUnits
 from ...discount import error_codes as discount_error_codes
 from ...giftcard import error_codes as giftcard_error_codes
+from ...invoice import error_codes as invoice_error_codes
 from ...menu import error_codes as menu_error_codes
 from ...order import error_codes as order_error_codes
 from ...page import error_codes as page_error_codes
@@ -92,6 +93,7 @@ GiftCardErrorCode = graphene.Enum.from_enum(giftcard_error_codes.GiftCardErrorCo
 MenuErrorCode = graphene.Enum.from_enum(menu_error_codes.MenuErrorCode)
 MetadataErrorCode = graphene.Enum.from_enum(core_error_codes.MetadataErrorCode)
 OrderErrorCode = graphene.Enum.from_enum(order_error_codes.OrderErrorCode)
+InvoiceErrorCode = graphene.Enum.from_enum(invoice_error_codes.InvoiceErrorCode)
 PageErrorCode = graphene.Enum.from_enum(page_error_codes.PageErrorCode)
 PaymentErrorCode = graphene.Enum.from_enum(payment_error_codes.PaymentErrorCode)
 PermissionGroupErrorCode = graphene.Enum.from_enum(
