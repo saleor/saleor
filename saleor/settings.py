@@ -505,6 +505,7 @@ GRAPHENE = {
     "MIDDLEWARE": [
         "saleor.graphql.middleware.OpentracingGrapheneMiddleware",
         "saleor.graphql.middleware.JWTMiddleware",
+        "saleor.graphql.middleware.ChannelMiddleware",
         "saleor.graphql.middleware.app_middleware",
     ],
 }

@@ -635,7 +635,7 @@ class Product(CountableDjangoObjectType):
     def get_node(cls, info, pk):
         if info.context:
             user = info.context.user
-            channel_slug = info.variable_values.get("channelSlug")
+            channel_slug = str(info.context.channel_slug)
             qs = cls._meta.model.objects.visible_to_user(user, channel_slug)
             return qs.filter(pk=pk).first()
         return None

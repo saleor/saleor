@@ -51,7 +51,7 @@ def resolve_digital_contents(info):
 
 def resolve_product_by_slug(info, slug):
     user = info.context.user
-    channel_slug = info.variable_values.get("channelSlug")
+    channel_slug = str(info.context.channel_slug)
     return (
         models.Product.objects.visible_to_user(user, channel_slug)
         .filter(slug=slug)

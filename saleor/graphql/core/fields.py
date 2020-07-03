@@ -213,3 +213,15 @@ class FilterInputConnectionField(PrefetchingConnectionField):
             self.filterset_class,
             self.filter_field_name,
         )
+
+
+class FieldWithChannel(graphene.Field):
+    def __init__(self, type, *args, **kwargs):
+        kwargs.setdefault(
+            "channel_slug",
+            graphene.Argument(
+                graphene.String,
+                description="Slug of the channel for which return product data.",
+            ),
+        )
+        super().__init__(type, *args, **kwargs)
