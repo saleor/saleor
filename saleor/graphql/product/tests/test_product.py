@@ -43,8 +43,8 @@ from ..utils import create_stocks
 @pytest.fixture
 def query_products_with_filter():
     query = """
-        query ($filter: ProductFilterInput!, ) {
-          products(first:5, filter: $filter) {
+        query ($filter: ProductFilterInput!, $channelSlug: String) {
+          products(first:5, filter: $filter, channelSlug: $channelSlug) {
             edges{
               node{
                 id
@@ -1000,7 +1000,8 @@ def test_products_query_with_filter_category_and_search(
     [
         {"price": {"gte": 1.0, "lte": 2.0}},
         {"minimalPrice": {"gte": 1.0, "lte": 2.0}},
-        {"isPublished": False},
+        # TODO: Consider filtering and sorting by `isPublished`
+        # {"isPublished": False},
         {"search": "Juice1"},
     ],
 )
@@ -1010,15 +1011,14 @@ def test_products_query_with_filter(
     staff_api_client,
     product,
     permission_manage_products,
+    channel_USD,
 ):
-    assert product.is_published is True
     assert "Juice1" not in product.name
 
     second_product = product
     second_product.id = None
     second_product.name = "Apple Juice1"
     second_product.slug = "apple-juice1"
-    second_product.is_published = products_filter.get("isPublished", True)
     second_product.save()
     second_product.variants.create(
         product=second_product,
@@ -1026,7 +1026,12 @@ def test_products_query_with_filter(
         cost_price=Money("1.00", "USD"),
         price_amount=Decimal(1.99),
     )
-    variables = {"filter": products_filter}
+    ProductChannelListing.objects.create(
+        product=second_product,
+        channel=channel_USD,
+        is_published=products_filter.get("isPublished", True),
+    )
+    variables = {"filter": products_filter, "channelSlug": channel_USD.slug}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
     content = get_graphql_content(response)
@@ -1046,9 +1051,11 @@ def test_products_query_with_filter_search_by_sku(
     product_with_two_variants,
     product_with_default_variant,
     permission_manage_products,
+    channel_USD,
 ):
-    product_with_default_variant.is_published = is_published
-    product_with_default_variant.save(update_fields=["is_published"])
+    ProductChannelListing.objects.filter(
+        product=product_with_default_variant, channel=channel_USD
+    ).update(is_published=is_published)
     variables = {"filter": {"search": "1234"}}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
@@ -1108,6 +1115,7 @@ def test_products_query_with_filter_stocks(
     product_with_single_variant,
     product_with_two_variants,
     warehouse,
+    channel_USD,
 ):
     product1 = product_with_single_variant
     product2 = product_with_two_variants
@@ -1157,7 +1165,8 @@ def test_products_query_with_filter_stocks(
     variables = {
         "filter": {
             "stocks": {"quantity": quantity_input, "warehouseIds": warehouse_pks}
-        }
+        },
+        "channelSlug": channel_USD.slug,
     }
     response = staff_api_client.post_graphql(
         query_products_with_filter, variables, check_no_permissions=False

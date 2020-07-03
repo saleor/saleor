@@ -769,13 +769,16 @@ def product(product_type, category, warehouse, channel_USD):
 
 
 @pytest.fixture
-def product_with_single_variant(product_type, category, warehouse):
+def product_with_single_variant(product_type, category, warehouse, channel_USD):
     product = Product.objects.create(
         name="Test product with single variant",
         slug="test-product-with-single-variant",
         product_type=product_type,
         category=category,
         # is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True,
     )
     variant = ProductVariant.objects.create(
         product=product,
