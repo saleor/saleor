@@ -804,3 +804,7 @@ def clean_checkout(
             "Provided payment methods can not cover the checkout's total amount",
             code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,
         )
+
+
+def cancel_active_payments(checkout: Checkout):
+    checkout.payments.filter(is_active=True).update(is_active=False)
