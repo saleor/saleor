@@ -8,6 +8,7 @@ from ..enums import (
     CheckoutErrorCode,
     DiscountErrorCode,
     GiftCardErrorCode,
+    InvoiceErrorCode,
     JobStatusEnum,
     MenuErrorCode,
     MetadataErrorCode,
@@ -121,6 +122,10 @@ class OrderError(Error):
     order_line = graphene.ID(
         description="Order line ID which causes the error.", required=False,
     )
+
+
+class InvoiceError(Error):
+    code = InvoiceErrorCode(description="The error code.", required=True)
 
 
 class PermissionGroupError(Error):

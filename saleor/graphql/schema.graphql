@@ -1957,7 +1957,92 @@ input IntRangeInput {
   lte: Int
 }
 
+type Invoice implements ObjectWithMetadata & Job & Node {
+  id: ID!
+  metadata: [MetadataItem]!
+  status: JobStatusEnum!
+  number: String
+  externalUrl: String
+  privateMetadata: [MetadataItem]!
+  privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
+  meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  url: String
+}
+
+type InvoiceCreate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  invoiceErrors: [InvoiceError!]!
+  invoice: Invoice
+}
+
+input InvoiceCreateInput {
+  number: String!
+  url: String!
+}
+
+type InvoiceDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  invoiceErrors: [InvoiceError!]!
+  invoice: Invoice
+}
+
+type InvoiceError {
+  field: String
+  message: String
+  code: InvoiceErrorCode!
+}
+
+enum InvoiceErrorCode {
+  REQUIRED
+  NOT_READY
+  URL_NOT_SET
+  EMAIL_NOT_SET
+  NUMBER_NOT_SET
+  NOT_FOUND
+  INVALID_STATUS
+}
+
+type InvoiceRequest {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  invoiceErrors: [InvoiceError!]!
+  invoice: Invoice
+}
+
+type InvoiceRequestDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  invoiceErrors: [InvoiceError!]!
+  invoice: Invoice
+}
+
+type InvoiceSendEmail {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  invoiceErrors: [InvoiceError!]!
+  invoice: Invoice
+}
+
+type InvoiceUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  invoiceErrors: [InvoiceError!]!
+  invoice: Invoice
+}
+
 scalar JSONString
+
+interface Job {
+  status: JobStatusEnum!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum JobStatusEnum {
+  PENDING
+  SUCCESS
+  FAILED
+  DELETED
+}
 
 enum LanguageCodeEnum {
   AR
@@ -2442,6 +2527,12 @@ type Mutation {
   menuItemUpdate(id: ID!, input: MenuItemInput!): MenuItemUpdate
   menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
   menuItemMove(menu: ID!, moves: [MenuItemMoveInput]!): MenuItemMove
+  invoiceRequest(number: String, orderId: ID!): InvoiceRequest
+  invoiceRequestDelete(id: ID!): InvoiceRequestDelete
+  invoiceCreate(input: InvoiceCreateInput!, orderId: ID!): InvoiceCreate
+  invoiceDelete(id: ID!): InvoiceDelete
+  invoiceUpdate(id: ID!, input: UpdateInvoiceInput!): InvoiceUpdate
+  invoiceSendEmail(id: ID!): InvoiceSendEmail
   giftCardActivate(id: ID!): GiftCardActivate
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
@@ -2589,6 +2680,7 @@ type Order implements Node & ObjectWithMetadata {
   lines: [OrderLine]!
   actions: [OrderAction]!
   availableShippingMethods: [ShippingMethod]
+  invoices: [Invoice]
   number: String
   isPaid: Boolean
   paymentStatus: PaymentChargeStatusEnum
@@ -4769,6 +4861,11 @@ input TranslationInput {
 
 scalar UUID
 
+input UpdateInvoiceInput {
+  number: String
+  url: String
+}
+
 type UpdateMetadata {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   metadataErrors: [MetadataError!]!
@@ -5251,6 +5348,9 @@ enum WebhookEventTypeEnum {
   ORDER_UPDATED
   ORDER_CANCELLED
   ORDER_FULFILLED
+  INVOICE_REQUESTED
+  INVOICE_DELETED
+  INVOICE_SENT
   CUSTOMER_CREATED
   PRODUCT_CREATED
   CHECKOUT_QUANTITY_CHANGED
@@ -5268,6 +5368,9 @@ enum WebhookSampleEventTypeEnum {
   ORDER_UPDATED
   ORDER_CANCELLED
   ORDER_FULFILLED
+  INVOICE_REQUESTED
+  INVOICE_DELETED
+  INVOICE_SENT
   CUSTOMER_CREATED
   PRODUCT_CREATED
   CHECKOUT_QUANTITY_CHANGED

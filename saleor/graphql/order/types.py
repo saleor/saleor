@@ -5,6 +5,7 @@ from graphene import relay
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ...core.taxes import display_gross_prices
+from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
@@ -17,6 +18,7 @@ from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import permission_required
 from ..giftcard.types import GiftCard
+from ..invoice.types import Invoice
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
@@ -303,6 +305,9 @@ class Order(CountableDjangoObjectType):
         required=False,
         description="Shipping methods that can be used with this order.",
     )
+    invoices = graphene.List(
+        Invoice, required=False, description="List of order invoices."
+    )
     number = graphene.String(description="User-friendly number of an order.")
     is_paid = graphene.Boolean(description="Informs if an order is fully paid.")
     payment_status = PaymentChargeStatusEnum(description="Internal payment status.")
@@ -492,6 +497,13 @@ class Order(CountableDjangoObjectType):
             else:
                 shipping_method.price = taxed_price.net
         return available
+
+    @staticmethod
+    def resolve_invoices(root: models.Order, info):
+        requester = get_user_or_app_from_context(info.context)
+        if requester == root.user or requester.has_perm(OrderPermissions.MANAGE_ORDERS):
+            return root.invoices.all()
+        raise PermissionDenied()
 
     @staticmethod
     def resolve_is_shipping_required(root: models.Order, _info):

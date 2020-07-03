@@ -3,8 +3,9 @@ from unittest import mock
 import pytest
 from templated_email import get_connection
 
-import saleor.order.emails as emails
-
+from ...invoice import emails as invoice_emails
+from ...invoice.models import Invoice
+from ...order import emails as emails
 from ..utils import add_variant_to_draft_order
 
 
@@ -17,6 +18,19 @@ def test_collect_data_for_order_confirmation_email(order):
     email_context = email_data["context"]
     assert email_context["order"] == order
     assert "schema_markup" in email_context
+
+
+def test_collect_invoice_data_for_email(order):
+    number = "01/12/2020/TEST"
+    url = "http://www.example.com"
+    invoice = Invoice.objects.create(number=number, url=url, order=order)
+    email_data = invoice_emails.collect_invoice_data_for_email(
+        invoice, "order/send_invoice"
+    )
+    email_context = email_data["context"]
+    assert email_context["number"] == number
+    assert email_context["download_url"] == url
+    assert email_data["recipient_list"] == [order.user.email]
 
 
 def test_collect_data_for_fulfillment_email(fulfilled_order):
