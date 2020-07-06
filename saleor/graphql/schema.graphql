@@ -3785,13 +3785,11 @@ type ProductCreate {
 
 input ProductCreateInput {
   attributes: [AttributeValueInput]
-  publicationDate: Date
   category: ID
   chargeTaxes: Boolean
   collections: [ID]
   description: String
   descriptionJson: JSONString
-  isPublished: Boolean
   name: String
   slug: String
   taxCode: String
@@ -3913,13 +3911,11 @@ input ProductImageUpdateInput {
 
 input ProductInput {
   attributes: [AttributeValueInput]
-  publicationDate: Date
   category: ID
   chargeTaxes: Boolean
   collections: [ID]
   description: String
   descriptionJson: JSONString
-  isPublished: Boolean
   name: String
   slug: String
   taxCode: String

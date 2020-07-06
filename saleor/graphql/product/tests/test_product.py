@@ -1451,7 +1451,6 @@ CREATE_PRODUCT_MUTATION = """
                                 name
                             }
                             descriptionJson
-                            isPublished
                             chargeTaxes
                             taxType {
                                 taxCode
@@ -1502,7 +1501,6 @@ def test_create_product(
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_name = "test name"
     product_slug = "product-test-slug"
-    product_is_published = True
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
 
@@ -1531,7 +1529,6 @@ def test_create_product(
             "name": product_name,
             "slug": product_slug,
             "descriptionJson": description_json,
-            "isPublished": product_is_published,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "attributes": [
@@ -1550,7 +1547,6 @@ def test_create_product(
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["descriptionJson"] == description_json
-    assert data["product"]["isPublished"] == product_is_published
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
@@ -1581,7 +1577,6 @@ def test_create_product_no_slug_in_input(
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_name = "test name"
-    product_is_published = True
     product_tax_rate = "STANDARD"
 
     # Mock tax interface with fake response from tax gateway
@@ -1598,7 +1593,6 @@ def test_create_product_no_slug_in_input(
             "category": category_id,
             "name": product_name,
             "slug": input_slug,
-            "isPublished": product_is_published,
             "taxCode": product_tax_rate,
         }
     }
@@ -1611,7 +1605,6 @@ def test_create_product_no_slug_in_input(
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == "test-name"
-    assert data["product"]["isPublished"] == product_is_published
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
@@ -1630,7 +1623,6 @@ def test_create_product_no_category_id(
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     product_name = "test name"
-    product_is_published = False
     product_tax_rate = "STANDARD"
     input_slug = "test-slug"
 
@@ -1646,7 +1638,6 @@ def test_create_product_no_category_id(
             "productType": product_type_id,
             "name": product_name,
             "slug": input_slug,
-            "isPublished": product_is_published,
             "taxCode": product_tax_rate,
         }
     }
@@ -1659,7 +1650,6 @@ def test_create_product_no_category_id(
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == input_slug
-    assert data["product"]["isPublished"] == product_is_published
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"] is None
@@ -1827,39 +1817,6 @@ def test_product_create_without_product_type(
     assert errors[0]["message"] == "This field cannot be null."
 
 
-def test_product_create_without_category_and_true_is_published_value(
-    staff_api_client, permission_manage_products, product_type
-):
-    query = """
-    mutation createProduct($productTypeId: ID!) {
-        productCreate(input: {
-                name: "Product",
-                productType: $productTypeId,
-                isPublished: true
-            }) {
-            product {
-                id
-            }
-            errors {
-                message
-                field
-            }
-        }
-    }
-    """
-
-    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
-    response = staff_api_client.post_graphql(
-        query,
-        {"productTypeId": product_type_id},
-        permissions=[permission_manage_products],
-    )
-    errors = get_graphql_content(response)["data"]["productCreate"]["errors"]
-
-    assert errors[0]["field"] == "isPublished"
-    assert errors[0]["message"] == "You must select a category to be able to publish"
-
-
 def test_product_create_with_collections_webhook(
     staff_api_client,
     permission_manage_products,
@@ -1873,7 +1830,6 @@ def test_product_create_with_collections_webhook(
         productCreate(input: {
                 name: "Product",
                 productType: $productTypeId,
-                isPublished: true,
                 collections: [$collectionId],
                 category: $categoryId
             }) {

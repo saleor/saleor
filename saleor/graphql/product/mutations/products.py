@@ -512,9 +512,6 @@ class AttributeValueInput(InputObjectType):
 
 class ProductInput(graphene.InputObjectType):
     attributes = graphene.List(AttributeValueInput, description="List of attributes.")
-    publication_date = graphene.types.datetime.Date(
-        description="Publication date. ISO 8601 standard."
-    )
     category = graphene.ID(description="ID of the product's category.", name="category")
     charge_taxes = graphene.Boolean(
         description="Determine if taxes are being charged for the product."
@@ -526,9 +523,6 @@ class ProductInput(graphene.InputObjectType):
     )
     description = graphene.String(description="Product description (HTML/text).")
     description_json = graphene.JSONString(description="Product description (JSON).")
-    is_published = graphene.Boolean(
-        description="Determines if product is visible to customers."
-    )
     name = graphene.String(description="Product name.")
     slug = graphene.String(description="Product slug.")
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
@@ -843,17 +837,6 @@ class ProductCreate(ModelMutation):
                 )
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
-
-        is_published = cleaned_input.get("is_published")
-        category = cleaned_input.get("category")
-        if not category and is_published:
-            raise ValidationError(
-                {
-                    "isPublished": ValidationError(
-                        "You must select a category to be able to publish"
-                    )
-                }
-            )
 
         clean_seo_fields(cleaned_input)
         return cleaned_input
