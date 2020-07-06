@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from .models import Voucher
     from ..product.models import Collection, Product
+    from ..checkout import CheckoutLineInfo
     from ..checkout.models import Checkout, CheckoutLine
     from ..order.models import Order
 
@@ -123,7 +124,7 @@ def get_discounted_lines(lines, voucher):
 def validate_voucher_for_checkout(
     voucher: "Voucher",
     checkout: "Checkout",
-    lines: Iterable["CheckoutLine"],
+    lines: Iterable["CheckoutLineInfo"],
     discounts: Optional[Iterable[DiscountInfo]],
 ):
     address = checkout.shipping_address or checkout.billing_address

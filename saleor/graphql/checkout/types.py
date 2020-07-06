@@ -6,7 +6,7 @@ from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, CheckoutPermissions
 from ...core.taxes import display_gross_prices, zero_taxed_money
-from ...plugins.manager import get_plugins_manager
+from ..account.dataloaders import AddressByIdLoader
 from ..core.connection import CountableDjangoObjectType
 from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
@@ -18,6 +18,8 @@ from ..meta.types import ObjectWithMetadata
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
+    ProductTypeByProductIdLoader,
+    ProductTypeByVariantIdLoader,
     ProductVariantByIdLoader,
 )
 from ..shipping.types import ShippingMethod
@@ -78,10 +80,12 @@ class CheckoutLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_total_price(root: models.CheckoutLine, info):
-        address = root.checkout.shipping_address or root.checkout.billing_address
+        address_id = (
+            root.checkout.shipping_address_id or root.checkout.billing_address_id
+        )
 
         def calculate_line_total_price(data):
-            variant, product, collections, discounts = data
+            address, variant, product, collections, discounts = data
             return info.context.plugins.calculate_checkout_line_total(
                 checkout_line=root,
                 variant=variant,
@@ -91,19 +95,27 @@ class CheckoutLine(CountableDjangoObjectType):
                 discounts=discounts,
             )
 
+        address = AddressByIdLoader(info.context).load(address_id)
         variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
         product = ProductByVariantIdLoader(info.context).load(root.variant_id)
         collections = CollectionsByVariantIdLoader(info.context).load(root.variant_id)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        return Promise.all([variant, product, collections, discounts]).then(
+        return Promise.all([address, variant, product, collections, discounts]).then(
             calculate_line_total_price
         )
 
     @staticmethod
-    def resolve_requires_shipping(root: models.CheckoutLine, *_args):
-        return root.is_shipping_required()
+    def resolve_requires_shipping(root: models.CheckoutLine, info):
+        def is_shipping_required(product_type):
+            return product_type.is_shipping_required
+
+        return (
+            ProductTypeByVariantIdLoader(info.context)
+            .load(root.variant_id)
+            .then(is_shipping_required)
+        )
 
 
 class Checkout(CountableDjangoObjectType):
@@ -178,15 +190,15 @@ class Checkout(CountableDjangoObjectType):
         raise PermissionDenied()
 
     @staticmethod
-    def resolve_email(root: models.Checkout, info):
+    def resolve_email(root: models.Checkout, _info):
         return root.get_customer_email()
 
     @staticmethod
     def resolve_total_price(root: models.Checkout, info):
-        address = root.shipping_address or root.billing_address
+        address_id = root.shipping_address_id or root.billing_address_id
 
         def calculate_total_price(data):
-            lines, discounts = data
+            address, lines, discounts = data
             taxed_total = (
                 calculations.checkout_total(
                     checkout=root, lines=lines, address=address, discounts=discounts
@@ -195,29 +207,29 @@ class Checkout(CountableDjangoObjectType):
             )
             return max(taxed_total, zero_taxed_money())
 
+        address = AddressByIdLoader(info.context).load(address_id)
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-
-        return Promise.all([lines, discounts]).then(calculate_total_price)
+        return Promise.all([address, lines, discounts]).then(calculate_total_price)
 
     @staticmethod
     def resolve_subtotal_price(root: models.Checkout, info):
-        address = root.shipping_address or root.billing_address
+        address_id = root.shipping_address_id or root.billing_address_id
 
         def calculate_subtotal_price(data):
-            lines, discounts = data
+            address, lines, discounts = data
             return calculations.checkout_subtotal(
                 checkout=root, lines=lines, address=address, discounts=discounts
             )
 
+        address = AddressByIdLoader(info.context).load(address_id)
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-
-        return Promise.all([lines, discounts]).then(calculate_subtotal_price)
+        return Promise.all([address, lines, discounts]).then(calculate_subtotal_price)
 
     @staticmethod
     def resolve_shipping_price(root: models.Checkout, info):
@@ -241,18 +253,17 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     def resolve_available_shipping_methods(root: models.Checkout, info):
         def calculate_available_shipping_methods(data):
-            lines, discounts = data
+            address, lines, discounts = data
             available = get_valid_shipping_methods_for_checkout(root, lines, discounts)
             if available is None:
                 return []
 
-            manager = get_plugins_manager()
             display_gross = display_gross_prices()
             for shipping_method in available:
                 # ignore mypy checking because it is checked in
                 # get_valid_shipping_methods_for_checkout
-                taxed_price = manager.apply_taxes_to_shipping(
-                    shipping_method.price, root.shipping_address  # type: ignore
+                taxed_price = info.context.plugins.apply_taxes_to_shipping(
+                    shipping_method.price, address
                 )
                 if display_gross:
                     shipping_method.price = taxed_price.gross
@@ -260,26 +271,42 @@ class Checkout(CountableDjangoObjectType):
                     shipping_method.price = taxed_price.net
             return available
 
-        lines = CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
+        address = AddressByIdLoader(info.context).load(root.shipping_address_id)
+        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-
-        return Promise.all([lines, discounts]).then(
+        return Promise.all([address, lines, discounts]).then(
             calculate_available_shipping_methods
         )
 
     @staticmethod
-    def resolve_available_payment_gateways(root: models.Checkout, _info):
-        return get_plugins_manager().checkout_available_payment_gateways(checkout=root)
+    def resolve_available_payment_gateways(root: models.Checkout, info):
+        return info.context.plugins.checkout_available_payment_gateways(checkout=root)
 
     @staticmethod
     def resolve_gift_cards(root: models.Checkout, _info):
         return root.gift_cards.all()
 
     @staticmethod
-    def resolve_is_shipping_required(root: models.Checkout, _info):
-        return root.is_shipping_required()
+    def resolve_is_shipping_required(root: models.Checkout, info):
+        def is_shipping_required(lines):
+            product_ids = [line_info.product.id for line_info in lines]
+
+            def with_product_types(product_types):
+                return any([pt.is_shipping_required for pt in product_types])
+
+            return (
+                ProductTypeByProductIdLoader(info.context)
+                .load_many(product_ids)
+                .then(with_product_types)
+            )
+
+        return (
+            CheckoutLinesInfoByCheckoutTokenLoader(info.context)
+            .load(root.token)
+            .then(is_shipping_required)
+        )
 
     @staticmethod
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)

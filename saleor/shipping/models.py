@@ -109,14 +109,12 @@ class ShippingMethodQueryset(models.QuerySet):
     def applicable_shipping_methods_for_instance(
         self, instance: Union["Checkout", "Order"], price: Money, country_code=None
     ):
-        if not instance.is_shipping_required():
-            return None
         if not instance.shipping_address:
             return None
 
         return self.applicable_shipping_methods(
             price=price,
-            weight=instance.get_total_weight(),
+            weight=instance.get_total_weight(),  # FIXME: optimize get_total_weight
             country_code=country_code or instance.shipping_address.country.code,
         )
 

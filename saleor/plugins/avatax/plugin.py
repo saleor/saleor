@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
+from ...checkout import CheckoutLineInfo
 from ...core.taxes import TaxError, TaxType, zero_taxed_money
 from ...discount import DiscountInfo
 from ..base_plugin import BasePlugin, ConfigurationTypeField
@@ -116,7 +117,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
-        lines: Iterable,
+        lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
@@ -161,7 +162,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_subtotal(
         self,
         checkout: "Checkout",
-        lines: Iterable["CheckoutLine"],
+        lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
@@ -198,7 +199,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_shipping(
         self,
         checkout: "Checkout",
-        lines: Iterable["CheckoutLine"],
+        lines: Iterable["CheckoutLineInfo"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:

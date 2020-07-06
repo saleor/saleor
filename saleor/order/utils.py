@@ -309,6 +309,10 @@ def sum_order_totals(qs):
 
 
 def get_valid_shipping_methods_for_order(order: Order):
+    if not order.is_shipping_required():
+        return None
+    if not order.shipping_address:
+        return None
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
         order, price=order.get_subtotal().gross
     )

@@ -1,13 +1,12 @@
-from typing import List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 import graphene
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
-from django.db.models import Prefetch
 
 from ...account.error_codes import AccountErrorCode
-from ...checkout import models
+from ...checkout import CheckoutLineInfo, models
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
     abort_order_data,
@@ -17,8 +16,10 @@ from ...checkout.utils import (
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     create_order,
+    fetch_checkout_lines,
     get_user_checkout,
     get_valid_shipping_methods_for_checkout,
+    is_shipping_required,
     prepare_order_data,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
@@ -30,7 +31,7 @@ from ...core.taxes import TaxError
 from ...core.utils.url import validate_storefront_url
 from ...discount import models as voucher_model
 from ...graphql.checkout.utils import clean_checkout_payment, clean_checkout_shipping
-from ...payment import PaymentError, gateway, models as payment_models
+from ...payment import PaymentError, gateway
 from ...payment.interface import AddressData
 from ...payment.utils import store_customer_id
 from ...product import models as product_models
@@ -51,7 +52,7 @@ ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
 def clean_shipping_method(
     checkout: models.Checkout,
-    lines: List[models.CheckoutLine],
+    lines: Iterable[CheckoutLineInfo],
     method: Optional[models.ShippingMethod],
     discounts,
 ) -> bool:
@@ -61,7 +62,7 @@ def clean_shipping_method(
         # no shipping method was provided, it is valid
         return True
 
-    if not checkout.is_shipping_required():
+    if not is_shipping_required(lines):
         raise ValidationError(
             ERROR_DOES_NOT_SHIP, code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value
         )
@@ -78,10 +79,10 @@ def clean_shipping_method(
 
 
 def update_checkout_shipping_method_if_invalid(
-    checkout: models.Checkout, lines: List[models.CheckoutLine], discounts
+    checkout: models.Checkout, lines: Iterable[CheckoutLineInfo], discounts
 ):
     # remove shipping method when empty checkout
-    if checkout.quantity == 0 or not checkout.is_shipping_required():
+    if checkout.quantity == 0 or not is_shipping_required(lines):
         checkout.shipping_method = None
         checkout.save(update_fields=["shipping_method", "last_change"])
 
@@ -361,7 +362,7 @@ class CheckoutLinesAdd(BaseMutation):
                     )
             info.context.plugins.checkout_quantity_changed(checkout)
 
-        lines = list(checkout)
+        lines = fetch_checkout_lines(checkout)
         update_checkout_shipping_method_if_invalid(
             checkout, lines, info.context.discounts
         )
@@ -408,13 +409,11 @@ class CheckoutLineDelete(BaseMutation):
             line.delete()
             info.context.plugins.checkout_quantity_changed(checkout)
 
-        lines = list(checkout)
-
+        lines = fetch_checkout_lines(checkout)
         update_checkout_shipping_method_if_invalid(
             checkout, lines, info.context.discounts
         )
         recalculate_checkout_discount(checkout, lines, info.context.discounts)
-
         info.context.plugins.checkout_updated(checkout)
         return CheckoutLineDelete(checkout=checkout)
 
@@ -519,7 +518,6 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             ).prefetch_related("product__product_type")
         )
         quantities = [line.quantity for line in lines]
-
         check_lines_quantity(variants, quantities, country)
 
     @classmethod
@@ -554,7 +552,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             shipping_address, instance=checkout.shipping_address, info=info
         )
 
-        lines = list(checkout)
+        lines = fetch_checkout_lines(checkout)
 
         country = info.context.country.code
         # set country to one from shipping address
@@ -649,26 +647,11 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_method_id):
-        pk = from_global_id_strict_type(
-            checkout_id, only_type=Checkout, field="checkout_id"
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-
-        try:
-            checkout = models.Checkout.objects.prefetch_related(
-                "lines__variant__product__collections",
-                "lines__variant__product__product_type",
-            ).get(pk=pk)
-        except ObjectDoesNotExist:
-            raise ValidationError(
-                {
-                    "checkout_id": ValidationError(
-                        f"Couldn't resolve to a node: {checkout_id}",
-                        code=CheckoutErrorCode.NOT_FOUND,
-                    )
-                }
-            )
-
-        if not checkout.is_shipping_required():
+        lines = fetch_checkout_lines(checkout)
+        if not is_shipping_required(lines):
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
@@ -685,7 +668,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             field="shipping_method_id",
         )
 
-        lines = list(checkout)
         shipping_method_is_valid = clean_shipping_method(
             checkout=checkout,
             lines=lines,
@@ -752,23 +734,9 @@ class CheckoutComplete(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, store_source, **data):
         checkout = cls.get_node_or_error(
-            info,
-            checkout_id,
-            only_type=Checkout,
-            field="checkout_id",
-            qs=models.Checkout.objects.prefetch_related(
-                "gift_cards",
-                "lines",
-                Prefetch(
-                    "payments",
-                    queryset=payment_models.Payment.objects.prefetch_related(
-                        "order", "order__lines"
-                    ),
-                ),
-            ).select_related("shipping_method", "shipping_method__shipping_zone"),
+            info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        lines = list(checkout)
-
+        lines = fetch_checkout_lines(checkout)
         discounts = info.context.discounts
         user = info.context.user
 
@@ -876,7 +844,7 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        lines = list(checkout)
+        lines = fetch_checkout_lines(checkout)
         add_promo_code_to_checkout(checkout, lines, promo_code, info.context.discounts)
         info.context.plugins.checkout_updated(checkout)
         return CheckoutAddPromoCode(checkout=checkout)

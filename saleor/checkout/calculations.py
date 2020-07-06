@@ -9,12 +9,13 @@ if TYPE_CHECKING:
     from ..account.models import Address
     from ..product.models import Collection, Product, ProductVariant
     from .models import Checkout, CheckoutLine
+    from . import CheckoutLineInfo
 
 
 def checkout_shipping_price(
     *,
     checkout: "Checkout",
-    lines: Iterable["CheckoutLine"],
+    lines: Iterable["CheckoutLineInfo"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> "TaxedMoney":
     """Return checkout shipping price.
@@ -30,7 +31,7 @@ def checkout_shipping_price(
 def checkout_subtotal(
     *,
     checkout: "Checkout",
-    lines: Iterable,
+    lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> "TaxedMoney":
@@ -47,7 +48,7 @@ def checkout_subtotal(
 def checkout_total(
     *,
     checkout: "Checkout",
-    lines: Iterable,  # FIXME: add type
+    lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> "TaxedMoney":
@@ -66,7 +67,7 @@ def checkout_total(
 
 def checkout_line_total(
     *,
-    line: "CheckoutLine",
+    line: "CheckoutLine",  # FIXME: convert to CheckoutLineInfo
     variant: "ProductVariant",
     product: "Product",
     collections: Iterable["Collection"],

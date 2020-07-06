@@ -2,20 +2,25 @@ from typing import Iterable, Union
 
 from django.core.exceptions import ValidationError
 
+from ...checkout import CheckoutLineInfo
 from ...checkout.error_codes import CheckoutErrorCode
-from ...checkout.models import Checkout, CheckoutLine
-from ...checkout.utils import is_fully_paid, is_valid_shipping_method
+from ...checkout.models import Checkout
+from ...checkout.utils import (
+    is_fully_paid,
+    is_shipping_required,
+    is_valid_shipping_method,
+)
 from ...discount import DiscountInfo
 from ...payment.error_codes import PaymentErrorCode
 
 
 def clean_checkout_shipping(
     checkout: Checkout,
-    lines: Iterable[CheckoutLine],
+    lines: Iterable[CheckoutLineInfo],
     discounts: Iterable[DiscountInfo],
     error_code: Union[CheckoutErrorCode, PaymentErrorCode],
 ):
-    if checkout.is_shipping_required():
+    if is_shipping_required(lines):
         if not checkout.shipping_method:
             raise ValidationError(
                 {
@@ -61,7 +66,7 @@ def clean_billing_address(
 
 def clean_checkout_payment(
     checkout: Checkout,
-    lines: Iterable[CheckoutLine],
+    lines: Iterable[CheckoutLineInfo],
     discounts: Iterable[DiscountInfo],
     error_code: CheckoutErrorCode,
 ):

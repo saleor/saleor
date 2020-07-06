@@ -1,9 +1,8 @@
 from collections import defaultdict
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, List
 
 from promise import Promise
 
+from ...checkout import CheckoutLineInfo
 from ...checkout.models import CheckoutLine
 from ..core.dataloaders import DataLoader
 from ..product.dataloaders import (
@@ -11,17 +10,6 @@ from ..product.dataloaders import (
     ProductByVariantIdLoader,
     ProductVariantByIdLoader,
 )
-
-if TYPE_CHECKING:
-    from ...product.models import Collection, Product, ProductVariant
-
-
-@dataclass
-class CheckoutLineInfo:
-    line: "CheckoutLine"
-    variant: "ProductVariant"
-    product: "Product"
-    collections: List["Collection"]
 
 
 class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):

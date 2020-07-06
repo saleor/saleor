@@ -44,7 +44,7 @@ from ..plugins.manager import get_plugins_manager
 from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
 from ..warehouse.management import allocate_stock
-from . import AddressType
+from . import AddressType, CheckoutLineInfo
 from .models import Checkout, CheckoutLine
 
 
@@ -217,7 +217,7 @@ def _get_shipping_voucher_discount_for_checkout(
     voucher, checkout, lines, discounts: Optional[Iterable[DiscountInfo]] = None
 ):
     """Calculate discount value for a voucher of shipping type."""
-    if not checkout.is_shipping_required():
+    if not is_shipping_required(lines):
         msg = "Your order does not require shipping."
         raise NotApplicable(msg)
     shipping_method = checkout.shipping_method
@@ -291,7 +291,7 @@ def get_prices_of_discounted_specific_product(
 def get_voucher_discount_for_checkout(
     voucher: Voucher,
     checkout: Checkout,
-    lines: Iterable[CheckoutLine],
+    lines: Iterable["CheckoutLineInfo"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> Money:
     """Calculate discount value depending on voucher and discount types.
@@ -332,7 +332,9 @@ def get_voucher_for_checkout(
 
 
 def recalculate_checkout_discount(
-    checkout: Checkout, lines: Iterable[CheckoutLine], discounts: Iterable[DiscountInfo]
+    checkout: Checkout,
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: Iterable[DiscountInfo],
 ):
     """Recalculate `checkout.discount` based on the voucher.
 
@@ -377,7 +379,7 @@ def recalculate_checkout_discount(
 
 def add_promo_code_to_checkout(
     checkout: Checkout,
-    lines: Iterable[CheckoutLine],
+    lines: Iterable["CheckoutLineInfo"],
     promo_code: str,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
@@ -395,7 +397,7 @@ def add_promo_code_to_checkout(
 
 def add_voucher_code_to_checkout(
     checkout: Checkout,
-    lines: Iterable[CheckoutLine],
+    lines: Iterable["CheckoutLineInfo"],
     voucher_code: str,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
@@ -422,7 +424,7 @@ def add_voucher_code_to_checkout(
 
 def add_voucher_to_checkout(
     checkout: Checkout,
-    lines: Iterable[CheckoutLine],
+    lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
@@ -481,20 +483,28 @@ def remove_voucher_from_checkout(checkout: Checkout):
 
 def get_valid_shipping_methods_for_checkout(
     checkout: Checkout,
-    lines: Iterable[CheckoutLine],
+    lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     country_code: Optional[str] = None,
 ):
+    if not is_shipping_required(lines):
+        return None
+    if not checkout.shipping_address:
+        return None
+
     manager = get_plugins_manager()
-    address = checkout.shipping_address or checkout.billing_address
-    subtotal = manager.calculate_checkout_subtotal(checkout, lines, address, discounts)
+    subtotal = manager.calculate_checkout_subtotal(
+        checkout, lines, checkout.shipping_address, discounts
+    )
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout, price=subtotal.gross, country_code=country_code,
     )
 
 
 def is_valid_shipping_method(
-    checkout: Checkout, lines: Iterable[CheckoutLine], discounts: Iterable[DiscountInfo]
+    checkout: Checkout,
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: Iterable[DiscountInfo],
 ):
     """Check if shipping method is valid and remove (if not)."""
     if not checkout.shipping_method:
@@ -509,7 +519,7 @@ def is_valid_shipping_method(
 
 def get_shipping_price_estimate(
     checkout: Checkout,
-    lines: Iterable[CheckoutLine],
+    lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
     country_code: str,
 ) -> Optional[TaxedMoneyRange]:
@@ -574,9 +584,6 @@ def _process_shipping_data_for_order(
     checkout: Checkout, shipping_price: TaxedMoney
 ) -> dict:
     """Fetch, process and return shipping data from checkout."""
-    if not checkout.is_shipping_required():
-        return {}
-
     shipping_address = checkout.shipping_address
 
     if checkout.user:
@@ -626,7 +633,7 @@ def validate_gift_cards(checkout: Checkout):
         raise NotApplicable(msg)
 
 
-def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine:
+def create_order_line(checkout_line: "CheckoutLine", discounts) -> OrderLine:
     """Create a line for the given order.
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
@@ -686,14 +693,17 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
 
 
 def prepare_order_data(
-    *, checkout: Checkout, lines: Iterable[CheckoutLine], tracking_code: str, discounts
+    *,
+    checkout: Checkout,
+    lines: Iterable["CheckoutLineInfo"],
+    tracking_code: str,
+    discounts
 ) -> dict:
     """Run checks and return all the data from a given checkout to create an order.
 
     :raises NotApplicable InsufficientStock:
     """
     order_data = {}
-
     manager = get_plugins_manager()
 
     address = checkout.shipping_address or checkout.billing_address
@@ -704,11 +714,12 @@ def prepare_order_data(
     cards_total = checkout.get_total_gift_cards_balance()
     taxed_total.gross -= cards_total
     taxed_total.net -= cards_total
-
     taxed_total = max(taxed_total, zero_taxed_money(checkout.currency))
 
     shipping_total = manager.calculate_checkout_shipping(checkout, lines, discounts)
-    order_data.update(_process_shipping_data_for_order(checkout, shipping_total))
+    if is_shipping_required(lines):
+        order_data.update(_process_shipping_data_for_order(checkout, shipping_total))
+
     order_data.update(_process_user_data_for_order(checkout))
     order_data.update(
         {
@@ -719,8 +730,8 @@ def prepare_order_data(
     )
 
     order_data["lines"] = [
-        create_line_for_order(checkout_line=line, discounts=discounts)
-        for line in checkout
+        create_order_line(checkout_line=line_info.line, discounts=discounts)
+        for line_info in lines
     ]
 
     # validate checkout gift cards
@@ -732,9 +743,7 @@ def prepare_order_data(
     # assign gift cards to the order
 
     order_data["total_price_left"] = (
-        manager.calculate_checkout_subtotal(
-            checkout, list(checkout), address, discounts
-        )
+        manager.calculate_checkout_subtotal(checkout, lines, address, discounts)
         + shipping_total
         - checkout.discount
     ).gross
@@ -810,7 +819,9 @@ def create_order(
 
 
 def is_fully_paid(
-    checkout: Checkout, lines: Iterable[CheckoutLine], discounts: Iterable[DiscountInfo]
+    checkout: Checkout,
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: Iterable[DiscountInfo],
 ):
     """Check if provided payment methods cover the checkout's total amount.
 
@@ -832,10 +843,12 @@ def is_fully_paid(
 
 
 def clean_checkout(
-    checkout: Checkout, lines: Iterable[CheckoutLine], discounts: Iterable[DiscountInfo]
+    checkout: Checkout,
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: Iterable[DiscountInfo],
 ):
     """Check if checkout can be completed."""
-    if checkout.is_shipping_required():
+    if is_shipping_required(lines):
         if not checkout.shipping_method:
             raise ValidationError(
                 "Shipping method is not set",
@@ -867,3 +880,31 @@ def clean_checkout(
 
 def cancel_active_payments(checkout: Checkout):
     checkout.payments.filter(is_active=True).update(is_active=False)
+
+
+def fetch_checkout_lines(checkout: Checkout) -> Iterable[CheckoutLineInfo]:
+    """Fetch checkout lines as CheckoutLineInfo objects."""
+    lines = CheckoutLine.objects.filter(checkout=checkout).prefetch_related(
+        "variant__product__collections"
+    )
+    lines_info = []
+    for line in lines:
+        variant = line.variant
+        product = variant.product
+        collections = list(product.collections.all())
+        lines_info.append(
+            CheckoutLineInfo(
+                line=line,
+                variant=line.variant,
+                product=product,
+                collections=collections,
+            )
+        )
+    return lines_info
+
+
+def is_shipping_required(lines: Iterable[CheckoutLineInfo]):
+    """Check if shipping is required for given checkout lines."""
+    return any(
+        line_info.product.product_type.is_shipping_required for line_info in lines
+    )

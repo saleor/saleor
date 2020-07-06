@@ -13,11 +13,14 @@ from ..discount import DiscountInfo
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from ..checkout import CheckoutLineInfo
     from ..product.models import Collection, Product, ProductVariant
     from .models import Checkout, CheckoutLine
 
 
-def base_checkout_shipping_price(checkout: "Checkout", lines: Iterable) -> TaxedMoney:
+def base_checkout_shipping_price(
+    checkout: "Checkout", lines: Iterable["CheckoutLineInfo"],
+) -> TaxedMoney:
     """Return checkout shipping price."""
     if not checkout.shipping_method or not checkout.is_shipping_required():
         return zero_taxed_money(checkout.currency)

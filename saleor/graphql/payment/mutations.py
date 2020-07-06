@@ -3,12 +3,12 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ...checkout import calculations
-from ...checkout.utils import cancel_active_payments
+from ...checkout.utils import cancel_active_payments, fetch_checkout_lines
 from ...core.permissions import OrderPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.utils import get_client_ip
 from ...graphql.checkout.utils import clean_billing_address, clean_checkout_shipping
-from ...payment import PaymentError, gateway, models
+from ...payment import PaymentError, gateway
 from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
@@ -17,7 +17,6 @@ from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
 from ..core.scalars import Decimal
 from ..core.types import common as common_types
-from ..core.utils import from_global_id_strict_type
 from .types import Payment
 
 
@@ -69,18 +68,17 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         error_type_field = "payment_errors"
 
     @classmethod
-    def calculate_total(cls, info, checkout):
+    def calculate_total(cls, info, checkout, lines):
         address = checkout.shipping_address or checkout.billing_address
         checkout_total = (
             calculations.checkout_total(
                 checkout=checkout,
-                lines=list(checkout),
+                lines=lines,
                 address=address,
                 discounts=info.context.discounts,
             )
             - checkout.get_total_gift_cards_balance()
         )
-
         return max(checkout_total, zero_taxed_money(checkout_total.currency))
 
     @classmethod
@@ -122,22 +120,19 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, **data):
-        checkout_id = from_global_id_strict_type(
-            checkout_id, only_type=Checkout, field="checkout_id"
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        checkout = models.Checkout.objects.prefetch_related(
-            "lines__variant__product__collections"
-        ).get(pk=checkout_id)
-
         data = data["input"]
         gateway = data["gateway"]
 
         cls.validate_gateway(gateway, checkout.currency)
 
-        checkout_total = cls.calculate_total(info, checkout)
+        lines = fetch_checkout_lines(checkout)
+        checkout_total = cls.calculate_total(info, checkout, lines)
         amount = data.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(
-            checkout, list(checkout), info.context.discounts, PaymentErrorCode
+            checkout, lines, info.context.discounts, PaymentErrorCode
         )
         clean_billing_address(checkout, PaymentErrorCode)
         cls.clean_payment_amount(info, checkout_total, amount)
