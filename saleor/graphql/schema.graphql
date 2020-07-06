@@ -3533,6 +3533,11 @@ input ProductInput {
   basePrice: Decimal
 }
 
+input ProductMetadataFilterInput {
+  privateMetadata: MetadataInput
+  metadata: MetadataInput
+}
+
 input ProductOrder {
   direction: OrderDirection!
   attributeId: ID
@@ -3677,6 +3682,11 @@ input ProductTypeInput {
   isDigital: Boolean
   weight: WeightScalar
   taxCode: String
+}
+
+input ProductTypeMetadataFilterInput {
+  privateMetadata: MetadataInput
+  metadata: MetadataInput
 }
 
 type ProductTypeReorderAttributes {
@@ -3895,6 +3905,11 @@ type ProductVariantUpdatePrivateMeta {
 }
 
 type Query {
+  productTypeWithMetadata(privateMetadataKey: String, privateMetadataValue: String, metadataKey: String, metadataValue: String): ProductType
+  productTypesWithMetadata(filter: ProductTypeMetadataFilterInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  userWithMetadata(privateMetadataKey: String, privateMetadataValue: String, metadataKey: String, metadataValue: String): User
+  productWithMetadata(privateMetadataKey: String, privateMetadataValue: String, metadataKey: String, metadataValue: String): Product
+  productsWithMetadata(filter: ProductMetadataFilterInput, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   webhook(id: ID!): Webhook
   webhooks(sortBy: WebhookSortingInput, filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection @deprecated(reason: "Use webhooks field on app(s) query instead. This field will be removed after 2020-07-31.")
   webhookEvents: [WebhookEvent]
