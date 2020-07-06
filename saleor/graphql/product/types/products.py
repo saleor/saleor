@@ -1,5 +1,4 @@
 from dataclasses import asdict
-from typing import List, Union
 
 import graphene
 from django.conf import settings
@@ -62,61 +61,6 @@ from ..resolvers import resolve_attributes
 from .attributes import Attribute, SelectedAttribute
 from .channels import ProductChannelListing
 from .digital_contents import DigitalContent
-
-
-def resolve_attribute_list(
-    instance: Union[models.Product, models.ProductVariant], *, user
-) -> List[SelectedAttribute]:
-    """Resolve attributes from a product into a list of `SelectedAttribute`s.
-
-    Note: you have to prefetch the below M2M fields.
-        - product_type -> attribute[rel] -> [rel]assignments -> values
-        - product_type -> attribute[rel] -> attribute
-    """
-    resolved_attributes = []
-    attributes_qs = None
-
-    # Retrieve the product type
-    if isinstance(instance, models.Product):
-        product_type = instance.product_type
-        product_type_attributes_assoc_field = "attributeproduct"
-        assigned_attribute_instance_field = "productassignments"
-        assigned_attribute_instance_filters = {"product_id": instance.pk}
-        if hasattr(product_type, "storefront_attributes"):
-            attributes_qs = product_type.storefront_attributes  # type: ignore
-    elif isinstance(instance, models.ProductVariant):
-        product_type = instance.product.product_type
-        product_type_attributes_assoc_field = "attributevariant"
-        assigned_attribute_instance_field = "variantassignments"
-        assigned_attribute_instance_filters = {"variant_id": instance.pk}
-    else:
-        raise AssertionError(f"{instance.__class__.__name__} is unsupported")
-
-    # Retrieve all the product attributes assigned to this product type
-    if not attributes_qs:
-        attributes_qs = getattr(product_type, product_type_attributes_assoc_field)
-        attributes_qs = attributes_qs.get_visible_to_user(user)
-
-    # An empty QuerySet for unresolved values
-    empty_qs = models.AttributeValue.objects.none()
-
-    # Goes through all the attributes assigned to the product type
-    # The assigned values are returned as a QuerySet, but will assign a
-    # dummy empty QuerySet if no values are assigned to the given instance.
-    for attr_data_rel in attributes_qs:
-        attr_instance_data = getattr(attr_data_rel, assigned_attribute_instance_field)
-
-        # Retrieve the instance's associated data
-        attr_data = attr_instance_data.filter(**assigned_attribute_instance_filters)
-        attr_data = attr_data.first()
-
-        # Return the instance's attribute values if the assignment was found,
-        # otherwise it sets the values as an empty QuerySet
-        values = attr_data.values.all() if attr_data is not None else empty_qs
-        resolved_attributes.append(
-            SelectedAttribute(attribute=attr_data_rel.attribute, values=values)
-        )
-    return resolved_attributes
 
 
 class Margin(graphene.ObjectType):
