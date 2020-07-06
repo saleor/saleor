@@ -13,7 +13,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        self.get_product_types()
+        self.load_product_types()
 
 
 
@@ -29,9 +29,9 @@ class Command(BaseCommand):
 
                     categoryPath = slugify(row[0]) + '/' + slugify(row[1]) + '/' + slugify(row[2])
 
-                    metadata = {'categoryPath': categoryPath}
+                    metadata = {'categoryPath': categoryPath, 'description': row[5]}
 
-                    description = row[5]
 
-                    ProductType.objects.create(name=row[4], slug=slugify(row[4]), metadata=metadata, description=description)
+
+                    ProductType.objects.create(name=row[4], slug=slugify(row[4]), metadata=metadata)
 
