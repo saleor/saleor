@@ -76,9 +76,10 @@ def resolve_product_types(info, **_kwargs):
 
 def resolve_product_variants(info, ids=None):
     user = info.context.user
-    visible_products = models.Product.objects.visible_to_user(user).values_list(
-        "pk", flat=True
-    )
+    channel_slug = str(info.context.channel_slug)
+    visible_products = models.Product.objects.visible_to_user(
+        user, channel_slug
+    ).values_list("pk", flat=True)
     qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
     if ids:
         db_ids = [get_database_id(info, node_id, "ProductVariant") for node_id in ids]

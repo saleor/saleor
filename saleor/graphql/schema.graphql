@@ -719,10 +719,10 @@ type Category implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
-  ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  ancestors(channelSlug: String, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  products(channelSlug: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   url: String @deprecated(reason: "This field will be removed after 2020-07-31.")
-  children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  children(channelSlug: String, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CategoryTranslation
 }
@@ -1114,7 +1114,7 @@ type Collection implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(channelSlug: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
 }
@@ -3991,7 +3991,7 @@ type ProductType implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(channelSlug: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   taxRate: TaxRateType
   taxType: TaxType
   variantAttributes: [Attribute]
@@ -4297,9 +4297,9 @@ type Query {
   stocks(filter: StockFilterInput, channelSlug: String, before: String, after: String, first: Int, last: Int): StockCountableConnection
   shop: Shop!
   shippingZone(id: ID!): ShippingZone
-  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
+  shippingZones(channelSlug: String, before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
-  digitalContents(before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
+  digitalContents(channelSlug: String, before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
   attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, channelSlug: String, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   attribute(id: ID!): Attribute
   categories(filter: CategoryFilterInput, sortBy: CategorySortingInput, level: Int, channelSlug: String, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
@@ -4311,13 +4311,13 @@ type Query {
   productType(id: ID!): ProductType
   productTypes(filter: ProductTypeFilterInput, sortBy: ProductTypeSortingInput, channelSlug: String, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID!): ProductVariant
-  productVariants(ids: [ID], before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
-  reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
+  productVariants(ids: [ID], channelSlug: String, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
+  reportProductSales(period: ReportingPeriod!, channelSlug: String, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   payment(id: ID!): Payment
-  payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
+  payments(channelSlug: String, before: String, after: String, first: Int, last: Int): PaymentCountableConnection
   page(id: ID, slug: String): Page
   pages(sortBy: PageSortingInput, filter: PageFilterInput, channelSlug: String, before: String, after: String, first: Int, last: Int): PageCountableConnection
-  homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
+  homepageEvents(channelSlug: String, before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   order(id: ID!): Order
   orders(sortBy: OrderSortingInput, filter: OrderFilterInput, created: ReportingPeriod, status: OrderStatusFilter, channelSlug: String, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, created: ReportingPeriod, channelSlug: String, before: String, after: String, first: Int, last: Int): OrderCountableConnection
@@ -4328,7 +4328,7 @@ type Query {
   menuItem(id: ID!): MenuItem
   menuItems(sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, channelSlug: String, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
-  giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
+  giftCards(channelSlug: String, before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   plugin(id: ID!): Plugin
   plugins(filter: PluginFilterInput, sortBy: PluginSortingInput, before: String, after: String, first: Int, last: Int): PluginCountableConnection
   sale(id: ID!): Sale
@@ -4341,7 +4341,7 @@ type Query {
   checkout(token: UUID): Checkout
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
-  checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
+  checkoutLines(channelSlug: String, before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   channel(id: ID): Channel
   channels: [Channel!]
   appsInstallations: [AppInstallation!]!
@@ -4401,9 +4401,9 @@ type Sale implements Node {
   value: Float!
   startDate: DateTime!
   endDate: DateTime
-  categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  categories(channelSlug: String, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  collections(channelSlug: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
+  products(channelSlug: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   translation(languageCode: LanguageCodeEnum!): SaleTranslation
 }
 
@@ -5199,8 +5199,8 @@ type User implements Node & ObjectWithMetadata {
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
   addresses: [Address]
   checkout: Checkout
-  giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
-  orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  giftCards(channelSlug: String, before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
+  orders(channelSlug: String, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   permissions: [Permission] @deprecated(reason: "Will be removed in Saleor 2.11.Use the `userPermissions` instead.")
   userPermissions: [UserPermission]
   permissionGroups: [Group]
@@ -5344,9 +5344,9 @@ type Voucher implements Node {
   discountValue: Float!
   minSpent: Money
   minCheckoutItemsQuantity: Int
-  categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  categories(channelSlug: String, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  collections(channelSlug: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
+  products(channelSlug: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   countries: [CountryDisplay]
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
 }
