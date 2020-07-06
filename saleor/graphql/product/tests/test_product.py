@@ -1894,7 +1894,6 @@ def test_update_product(
             $name: String!,
             $slug: String!,
             $descriptionJson: JSONString!,
-            $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
             $taxCode: String!,
             $attributes: [AttributeValueInput!]) {
@@ -1905,7 +1904,6 @@ def test_update_product(
                         name: $name,
                         slug: $slug,
                         descriptionJson: $descriptionJson,
-                        isPublished: $isPublished,
                         chargeTaxes: $chargeTaxes,
                         taxCode: $taxCode,
                         attributes: $attributes
@@ -1915,7 +1913,6 @@ def test_update_product(
                                 name
                             }
                             descriptionJson
-                            isPublished
                             chargeTaxes
                             variants {
                                 price {
@@ -1956,7 +1953,6 @@ def test_update_product(
     category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
     product_name = "updated name"
     product_slug = "updated-product"
-    product_is_published = True
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
 
@@ -1975,7 +1971,6 @@ def test_update_product(
         "name": product_name,
         "slug": product_slug,
         "descriptionJson": other_description_json,
-        "isPublished": product_is_published,
         "chargeTaxes": product_charge_taxes,
         "taxCode": product_tax_rate,
         "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
@@ -1990,7 +1985,6 @@ def test_update_product(
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["descriptionJson"] == other_description_json
-    assert data["product"]["isPublished"] == product_is_published
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
@@ -2353,49 +2347,6 @@ def test_update_product_with_negative_weight(
     error = data["productErrors"][0]
     assert error["field"] == "weight"
     assert error["code"] == ProductErrorCode.INVALID.name
-
-
-def test_update_product_without_category_and_true_is_published_value(
-    staff_api_client, permission_manage_products, product
-):
-    query = """
-    mutation updateProduct(
-        $productId: ID!,
-        $isPublished: Boolean)
-    {
-        productUpdate(
-            id: $productId,
-            input: {
-                isPublished: $isPublished
-            })
-        {
-            product {
-                id
-            }
-            errors {
-                message
-                field
-            }
-        }
-    }"""
-
-    product.category = None
-    product.save()
-
-    product_id = graphene.Node.to_global_id("Product", product.id)
-    variables = {"productId": product_id, "isPublished": True}
-
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-
-    data = get_graphql_content(response)["data"]["productUpdate"]
-    assert data["errors"]
-    assert data["errors"][0]["field"] == "isPublished"
-    assert (
-        data["errors"][0]["message"]
-        == "You must select a category to be able to publish"
-    )
 
 
 UPDATE_PRODUCT = """
