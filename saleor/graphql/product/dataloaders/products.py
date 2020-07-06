@@ -27,7 +27,10 @@ class ProductByIdLoader(DataLoader):
     context_key = "product_by_id"
 
     def batch_load(self, keys):
-        products = Product.objects.visible_to_user(self.user).in_bulk(keys)
+        channel_slug = str(self.context.channel_slug)
+        products = Product.objects.visible_to_user(self.user, channel_slug).in_bulk(
+            keys
+        )
         return [products.get(product_id) for product_id in keys]
 
 

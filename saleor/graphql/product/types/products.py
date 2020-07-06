@@ -330,14 +330,12 @@ class ProductVariant(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_pricing(root: models.ProductVariant, info):
-        # TODO: Implement geting channel slug from top level resolver
-        temporaryChannelId = "saleor-default-channel"
-
         context = info.context
         product = ProductByIdLoader(context).load(root.product_id)
+        channel_slug = str(context.channel_slug)
         channel_listing = ProductChannelListingByProductIdAndChanneSlugLoader(
             context
-        ).load((root.product_id, temporaryChannelId))
+        ).load((root.id, channel_slug))
         collections = CollectionsByProductIdLoader(context).load(root.product_id)
 
         def calculate_pricing_info(discounts):
@@ -547,13 +545,11 @@ class Product(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_pricing(root: models.Product, info):
-        # TODO: Implement geting channel slug from top level resolver
-        temporaryChannelId = "saleor-default-channel"
-
         context = info.context
+        channel_slug = str(context.channel_slug)
         channel_listing = ProductChannelListingByProductIdAndChanneSlugLoader(
             context
-        ).load((root.id, temporaryChannelId))
+        ).load((root.id, channel_slug))
         variants = ProductVariantsByProductIdLoader(context).load(root.id)
         collections = CollectionsByProductIdLoader(context).load(root.id)
 
@@ -718,7 +714,9 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, **_kwargs):
-        return root.products.visible_to_user(info.context.user)
+        user = info.context.user
+        channel_slug = str(info.context.channel_slug)
+        return root.products.visible_to_user(user, channel_slug)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
