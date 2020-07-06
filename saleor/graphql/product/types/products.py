@@ -417,9 +417,10 @@ class ProductVariant(CountableDjangoObjectType):
     @classmethod
     def get_node(cls, info, pk):
         user = info.context.user
-        visible_products = models.Product.objects.visible_to_user(user).values_list(
-            "pk", flat=True
-        )
+        channel_slug = str(info.context.channel_slug)
+        visible_products = models.Product.objects.visible_to_user(
+            user, channel_slug
+        ).values_list("pk", flat=True)
         qs = cls._meta.model.objects.filter(product__id__in=visible_products)
         return qs.filter(pk=pk).first()
 

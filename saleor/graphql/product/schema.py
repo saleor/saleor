@@ -226,7 +226,7 @@ class ProductQueries(graphene.ObjectType):
         sort_by=ProductTypeSortingInput(description="Sort product types."),
         description="List of the shop's product types.",
     )
-    product_variant = graphene.Field(
+    product_variant = FieldWithChannel(
         ProductVariant,
         id=graphene.Argument(
             graphene.ID, description="ID of the product variant.", required=True
@@ -298,7 +298,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_types(self, info, **kwargs):
         return resolve_product_types(info, **kwargs)
 
-    def resolve_product_variant(self, info, id):
+    def resolve_product_variant(self, info, id, **_kwargs):
         return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
 
     def resolve_product_variants(self, info, ids=None, **_kwargs):

@@ -4310,7 +4310,7 @@ type Query {
   products(filter: ProductFilterInput, sortBy: ProductOrder, stockAvailability: StockAvailability, channelSlug: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
   productTypes(filter: ProductTypeFilterInput, sortBy: ProductTypeSortingInput, channelSlug: String, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
-  productVariant(id: ID!): ProductVariant
+  productVariant(id: ID!, channelSlug: String): ProductVariant
   productVariants(ids: [ID], channelSlug: String, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, channelSlug: String, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   payment(id: ID!): Payment
