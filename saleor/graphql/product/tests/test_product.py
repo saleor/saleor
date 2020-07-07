@@ -142,6 +142,27 @@ def test_product_query_by_slug(
     assert collection_data["name"] == product.name
 
 
+def test_product_query_unpublished_products_by_slug(
+    user_api_client, product, permission_manage_products
+):
+    # given
+    user = user_api_client.user
+    user.user_permissions.add(permission_manage_products)
+
+    product.is_published = False
+    product.save(update_fields=["is_published"])
+    variables = {"slug": product.slug}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    collection_data = content["data"]["product"]
+    assert collection_data is not None
+    assert collection_data["name"] == product.name
+
+
 def test_product_query_unpublished_products_by_slug_and_anonympus_user(
     api_client, product,
 ):
