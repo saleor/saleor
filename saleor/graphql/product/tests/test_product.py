@@ -126,9 +126,9 @@ def test_product_query_by_id(
 
     response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
     content = get_graphql_content(response)
-    collection_data = content["data"]["product"]
-    assert collection_data is not None
-    assert collection_data["name"] == product.name
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["name"] == product.name
 
 
 def test_product_query_by_slug(
@@ -137,9 +137,9 @@ def test_product_query_by_slug(
     variables = {"slug": product.slug}
     response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
     content = get_graphql_content(response)
-    collection_data = content["data"]["product"]
-    assert collection_data is not None
-    assert collection_data["name"] == product.name
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["name"] == product.name
 
 
 def test_product_query_unpublished_products_by_slug(
@@ -158,9 +158,9 @@ def test_product_query_unpublished_products_by_slug(
 
     # then
     content = get_graphql_content(response)
-    collection_data = content["data"]["product"]
-    assert collection_data is not None
-    assert collection_data["name"] == product.name
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["name"] == product.name
 
 
 def test_product_query_unpublished_products_by_slug_and_anonympus_user(
@@ -176,8 +176,8 @@ def test_product_query_unpublished_products_by_slug_and_anonympus_user(
 
     # then
     content = get_graphql_content(response)
-    collection_data = content["data"]["product"]
-    assert collection_data is None
+    product_data = content["data"]["product"]
+    assert product_data is None
 
 
 def test_product_query_error_when_id_and_slug_provided(
