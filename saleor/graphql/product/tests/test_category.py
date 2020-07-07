@@ -7,7 +7,7 @@ from django.utils.text import slugify
 from graphql_relay import to_global_id
 
 from ....product.error_codes import ProductErrorCode
-from ....product.models import Category
+from ....product.models import Category, ProductChannelListing
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ...tests.utils import get_graphql_content, get_multipart_request_body
 
@@ -639,10 +639,13 @@ def test_category_delete_mutation_for_categories_tree(
     ) = mock_update_products_minimal_variant_prices_task.delay.call_args
     assert set(call_kwargs["product_ids"]) == set(p.pk for p in product_list)
 
-    for product in product_list:
-        product.refresh_from_db()
-        assert not product.is_published
-        assert not product.publication_date
+    product_channel_listings = ProductChannelListing.objects.filter(
+        product__in=product_list
+    )
+    for product_channel_listing in product_channel_listings:
+        assert product_channel_listing.is_published is False
+        assert not product_channel_listing.publication_date
+    assert product_channel_listings.count() == 4
 
 
 @patch("saleor.product.utils.update_products_minimal_variant_prices_task")
@@ -673,13 +676,21 @@ def test_category_delete_mutation_for_children_from_categories_tree(
 
     parent_product.refresh_from_db()
     assert parent_product.category
-    assert parent_product.is_published
-    assert parent_product.publication_date
+    product_channel_listings = ProductChannelListing.objects.filter(
+        product=parent_product
+    )
+    for product_channel_listing in product_channel_listings:
+        assert product_channel_listing.is_published is True
+        assert product_channel_listing.publication_date
 
     child_product.refresh_from_db()
     assert not child_product.category
-    assert not child_product.is_published
-    assert not child_product.publication_date
+    product_channel_listings = ProductChannelListing.objects.filter(
+        product=child_product
+    )
+    for product_channel_listing in product_channel_listings:
+        assert product_channel_listing.is_published is False
+        assert not product_channel_listing.publication_date
 
 
 LEVELED_CATEGORIES_QUERY = """

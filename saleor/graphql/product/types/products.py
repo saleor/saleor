@@ -721,7 +721,9 @@ class Collection(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_products(root: models.Collection, info, first=None, **kwargs):
-        return root.products.collection_sorted(info.context.user)
+        user = info.context.user
+        channel_slug = str(info.context.channel_slug)
+        return root.products.collection_sorted(user, channel_slug)
 
     @classmethod
     def get_node(cls, info, id):

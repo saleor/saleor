@@ -114,10 +114,49 @@ def test_collection_query_error_when_no_param(
 
 def test_collections_query(
     user_api_client,
+    collection,
+    draft_collection,
+    permission_manage_products,
+    channel_USD,
+):
+    query = """
+        query Collections ($channelSlug: String) {
+            collections(first: 2, channelSlug: $channelSlug) {
+                edges {
+                    node {
+                        isPublished
+                        name
+                        slug
+                        description
+                        products {
+                            totalCount
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    # query public collections only as regular user
+    variables = {"channelSlug": channel_USD.slug}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    edges = content["data"]["collections"]["edges"]
+    assert len(edges) == 1
+    collection_data = edges[0]["node"]
+    assert collection_data["isPublished"]
+    assert collection_data["name"] == collection.name
+    assert collection_data["slug"] == collection.slug
+    assert collection_data["description"] == collection.description
+    assert collection_data["products"]["totalCount"] == collection.products.count()
+
+
+def test_collections_query_as_staff(
     staff_api_client,
     collection,
     draft_collection,
     permission_manage_products,
+    channel_USD,
 ):
     query = """
         query Collections {
@@ -136,19 +175,6 @@ def test_collections_query(
             }
         }
     """
-
-    # query public collections only as regular user
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    edges = content["data"]["collections"]["edges"]
-    assert len(edges) == 1
-    collection_data = edges[0]["node"]
-    assert collection_data["isPublished"]
-    assert collection_data["name"] == collection.name
-    assert collection_data["slug"] == collection.slug
-    assert collection_data["description"] == collection.description
-    assert collection_data["products"]["totalCount"] == collection.products.count()
-
     # query all collections only as a staff user with proper permissions
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query)
