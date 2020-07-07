@@ -264,7 +264,7 @@ class ProductQueries(graphene.ObjectType):
         if id:
             return graphene.Node.get_node_from_global_id(info, id, Collection)
         if slug:
-            return resolve_collection_by_slug(slug=slug)
+            return resolve_collection_by_slug(info, slug=slug)
 
     def resolve_collections(self, info, **kwargs):
         return resolve_collections(info, **kwargs)
