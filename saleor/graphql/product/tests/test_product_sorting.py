@@ -102,7 +102,7 @@ def test_sort_products_within_collection(
     assert len(products) == 3
 
     # Sort the products per sort_order
-    products = list(collection.products.collection_sorted(staff_user))
+    products = list(collection.products.collection_sorted(staff_user, ""))
     assert len(products) == 3
 
     variables = {

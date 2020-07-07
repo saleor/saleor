@@ -280,7 +280,6 @@ def products_for_pagination(product_type, color_attribute, category, warehouse):
                 slug="prod1",
                 category=category,
                 product_type=product_type2,
-                is_published=True,
                 description="desc1",
             ),
             Product(
@@ -288,21 +287,18 @@ def products_for_pagination(product_type, color_attribute, category, warehouse):
                 slug="prod_prod1",
                 category=category,
                 product_type=product_type,
-                is_published=False,
             ),
             Product(
                 name="ProductProduct2",
                 slug="prod_prod2",
                 category=category,
                 product_type=product_type2,
-                is_published=True,
             ),
             Product(
                 name="Product2",
                 slug="prod2",
                 category=category,
                 product_type=product_type,
-                is_published=False,
                 description="desc2",
             ),
             Product(
@@ -310,7 +306,6 @@ def products_for_pagination(product_type, color_attribute, category, warehouse):
                 slug="prod3",
                 category=category,
                 product_type=product_type2,
-                is_published=True,
                 description="desc3",
             ),
         ]
@@ -411,10 +406,11 @@ QUERY_PRODUCTS_PAGINATION = """
             {"field": "TYPE", "direction": "ASC"},
             ["Product1", "Product3", "ProductProduct2"],
         ),
-        (
-            {"field": "PUBLISHED", "direction": "ASC"},
-            ["Product2", "ProductProduct1", "Product1"],
-        ),
+        # TODO: Consider filtering and sorting by `isPublished`
+        # (
+        #     {"field": "PUBLISHED", "direction": "ASC"},
+        #     ["Product2", "ProductProduct1", "Product1"],
+        # ),
     ],
 )
 def test_products_pagination_with_sorting(
@@ -584,7 +580,8 @@ def test_products_pagination_for_products_with_the_same_names_one_page(
 @pytest.mark.parametrize(
     "filter_by, products_order",
     [
-        ({"isPublished": False}, ["Product2", "ProductProduct1"]),
+        # TODO: Consider filtering and sorting by `isPublished`
+        # ({"isPublished": False}, ["Product2", "ProductProduct1"]),
         ({"price": {"gte": 8, "lte": 12}}, ["Product1", "ProductProduct2"]),
         ({"stockAvailability": "OUT_OF_STOCK"}, ["ProductProduct1", "ProductProduct2"]),
     ],
