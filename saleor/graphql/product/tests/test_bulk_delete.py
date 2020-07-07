@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import graphene
 import pytest
+from django.utils import timezone
 
 from ....product.models import (
     Attribute,
@@ -9,6 +10,7 @@ from ....product.models import (
     Category,
     Collection,
     Product,
+    ProductChannelListing,
     ProductImage,
     ProductType,
     ProductVariant,
@@ -138,6 +140,8 @@ def test_delete_categories_with_subcategories_and_products(
     permission_manage_products,
     product,
     category,
+    channel_USD,
+    channel_PLN,
 ):
     product.category = category
     category.parent = category_list[0]
@@ -149,6 +153,16 @@ def test_delete_categories_with_subcategories_and_products(
     parent_product.id = None
     parent_product.category = category_list[0]
     parent_product.save()
+
+    ProductChannelListing.objects.create(
+        product=parent_product, channel=channel_USD, is_published=True
+    )
+    ProductChannelListing.objects.create(
+        product=parent_product,
+        channel=channel_PLN,
+        is_published=True,
+        publication_date=timezone.now(),
+    )
 
     product_list = [product, parent_product]
 
@@ -181,8 +195,14 @@ def test_delete_categories_with_subcategories_and_products(
     for product in product_list:
         product.refresh_from_db()
         assert not product.category
-        assert not product.is_published
-        assert not product.publication_date
+
+    product_channel_listings = ProductChannelListing.objects.filter(
+        product__in=product_list
+    )
+    for product_channel_listing in product_channel_listings:
+        assert product_channel_listing.is_published is False
+        assert not product_channel_listing.publication_date
+    assert product_channel_listings.count() == 3
 
 
 def test_delete_collections(

@@ -514,6 +514,38 @@ def test_product_query_by_slug_not_existing_in_channel_as_customer(
     assert product_data is None
 
 
+QUERY_PRODUCT_WITHOUT_CHANNEL = """
+    query ($id: ID){
+        product(
+            id: $id
+        ) {
+            id
+            name
+        }
+    }
+    """
+
+
+def test_product_query_by_id_without_channel_not_available_as_staff_user(
+    staff_api_client, permission_manage_products, product, channel_USD
+):
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+    ProductChannelListing.objects.filter(product=product, channel=channel_USD).update(
+        is_published=False
+    )
+
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_WITHOUT_CHANNEL,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["name"] == product.name
+
+
 def test_product_query_error_when_id_and_slug_provided(
     user_api_client, product, graphql_log_handler,
 ):
