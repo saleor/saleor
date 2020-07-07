@@ -27,23 +27,6 @@ if TYPE_CHECKING:
     from ..payment.models import Payment
 
 
-class CheckoutQueryset(models.QuerySet):
-    """A specialized queryset for dealing with checkouts."""
-
-    def for_display(self):
-        """Annotate the queryset for display purposes.
-
-        Prefetches additional data from the database to avoid the n+1 queries
-        problem.
-        """
-        return self.prefetch_related(
-            "lines__variant__translations",
-            "lines__variant__product__translations",
-            "lines__variant__product__images",
-            "lines__variant__product__product_type__product_attributes__values",
-        )  # noqa
-
-
 def get_default_country():
     return settings.DEFAULT_COUNTRY
 
@@ -95,8 +78,6 @@ class Checkout(ModelWithMetadata):
     translated_discount_name = models.CharField(max_length=255, blank=True, null=True)
     voucher_code = models.CharField(max_length=12, blank=True, null=True)
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="checkouts")
-
-    objects = CheckoutQueryset.as_manager()
 
     class Meta:
         ordering = ("-last_change", "pk")
