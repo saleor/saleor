@@ -3,13 +3,21 @@ from collections import defaultdict
 from promise import Promise
 
 from ...checkout import CheckoutLineInfo
-from ...checkout.models import CheckoutLine
+from ...checkout.models import Checkout, CheckoutLine
 from ..core.dataloaders import DataLoader
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
     ProductVariantByIdLoader,
 )
+
+
+class CheckoutByTokenLoader(DataLoader):
+    context_key = "checkout_by_token"
+
+    def batch_load(self, keys):
+        checkouts = Checkout.objects.filter(token__in=keys).in_bulk()
+        return [checkouts[token] for token in keys]
 
 
 class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):

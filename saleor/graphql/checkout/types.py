@@ -24,6 +24,7 @@ from ..product.dataloaders import (
 )
 from ..shipping.types import ShippingMethod
 from .dataloaders import (
+    CheckoutByTokenLoader,
     CheckoutLinesByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
@@ -80,10 +81,6 @@ class CheckoutLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_total_price(root: models.CheckoutLine, info):
-        address_id = (
-            root.checkout.shipping_address_id or root.checkout.billing_address_id
-        )
-
         def calculate_line_total_price(data):
             address, variant, product, collections, discounts = data
             return info.context.plugins.calculate_checkout_line_total(
@@ -95,15 +92,25 @@ class CheckoutLine(CountableDjangoObjectType):
                 discounts=discounts,
             )
 
-        address = AddressByIdLoader(info.context).load(address_id)
-        variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
-        product = ProductByVariantIdLoader(info.context).load(root.variant_id)
-        collections = CollectionsByVariantIdLoader(info.context).load(root.variant_id)
-        discounts = DiscountsByDateTimeLoader(info.context).load(
-            info.context.request_time
-        )
-        return Promise.all([address, variant, product, collections, discounts]).then(
-            calculate_line_total_price
+        def with_checkout(checkout):
+            address_id = checkout.shipping_address_id or checkout.billing_address_id
+            address = AddressByIdLoader(info.context).load(address_id)
+            variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
+            product = ProductByVariantIdLoader(info.context).load(root.variant_id)
+            collections = CollectionsByVariantIdLoader(info.context).load(
+                root.variant_id
+            )
+            discounts = DiscountsByDateTimeLoader(info.context).load(
+                info.context.request_time
+            )
+            return Promise.all(
+                [address, variant, product, collections, discounts]
+            ).then(calculate_line_total_price)
+
+        return (
+            CheckoutByTokenLoader(info.context)
+            .load(root.checkout_id)
+            .then(with_checkout)
         )
 
     @staticmethod
@@ -247,8 +254,8 @@ class Checkout(CountableDjangoObjectType):
         return Promise.all([lines, discounts]).then(calculate_shipping_price)
 
     @staticmethod
-    def resolve_lines(root: models.Checkout, *_args):
-        return root.lines.all()
+    def resolve_lines(root: models.Checkout, info):
+        return CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
 
     @staticmethod
     def resolve_available_shipping_methods(root: models.Checkout, info):
