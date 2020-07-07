@@ -904,14 +904,16 @@ def product_with_default_variant(
 
 @pytest.fixture
 def variant_without_inventory_tracking(
-    product_type_without_variant, category, warehouse
+    product_type_without_variant, category, warehouse, channel_USD
 ):
     product = Product.objects.create(
         name="Test product without inventory tracking",
         slug="test-product-without-tracking",
         product_type=product_type_without_variant,
         category=category,
-        # is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True,
     )
     variant = ProductVariant.objects.create(
         product=product,
