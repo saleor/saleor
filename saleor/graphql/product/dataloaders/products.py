@@ -1,6 +1,8 @@
 from collections import defaultdict
 from typing import DefaultDict, Dict, Iterable, List, Optional, Tuple
 
+from django.utils.functional import SimpleLazyObject
+
 from ....product.models import (
     Category,
     Collection,
@@ -94,6 +96,8 @@ class ProductChannelListingByProductIdAndChanneSlugLoader(
     def batch_load_channel(
         self, channel_slug: str, products_ids: Iterable[int]
     ) -> Iterable[Tuple[int, Optional[ProductChannelListing]]]:
+        if isinstance(channel_slug, SimpleLazyObject):
+            channel_slug = str(channel_slug)
         product_channel_listings = ProductChannelListing.objects.filter(
             channel__slug=channel_slug, product_id__in=products_ids
         )

@@ -51,7 +51,7 @@ def resolve_digital_contents(info):
 
 def resolve_product_by_slug(info, slug):
     user = info.context.user
-    channel_slug = str(info.context.channel_slug)
+    channel_slug = info.context.channel_slug
     return (
         models.Product.objects.visible_to_user(user, channel_slug)
         .filter(slug=slug)
@@ -61,7 +61,7 @@ def resolve_product_by_slug(info, slug):
 
 def resolve_products(info, stock_availability=None, **_kwargs):
     user = get_user_or_app_from_context(info.context)
-    channel_slug = str(info.context.channel_slug)
+    channel_slug = info.context.channel_slug
     qs = models.Product.objects.visible_to_user(user, channel_slug)
 
     if stock_availability:
@@ -76,7 +76,7 @@ def resolve_product_types(info, **_kwargs):
 
 def resolve_product_variants(info, ids=None):
     user = info.context.user
-    channel_slug = str(info.context.channel_slug)
+    channel_slug = info.context.channel_slug
     visible_products = models.Product.objects.visible_to_user(
         user, channel_slug
     ).values_list("pk", flat=True)

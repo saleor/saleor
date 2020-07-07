@@ -276,7 +276,7 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_pricing(root: models.ProductVariant, info):
         context = info.context
         product = ProductByIdLoader(context).load(root.product_id)
-        channel_slug = str(context.channel_slug)
+        channel_slug = context.channel_slug
         channel_listing = ProductChannelListingByProductIdAndChanneSlugLoader(
             context
         ).load((root.product_id, channel_slug))
@@ -359,7 +359,7 @@ class ProductVariant(CountableDjangoObjectType):
     @classmethod
     def get_node(cls, info, pk):
         user = info.context.user
-        channel_slug = str(info.context.channel_slug)
+        channel_slug = info.context.channel_slug
         visible_products = models.Product.objects.visible_to_user(
             user, channel_slug
         ).values_list("pk", flat=True)
@@ -490,7 +490,7 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     def resolve_pricing(root: models.Product, info):
         context = info.context
-        channel_slug = str(context.channel_slug)
+        channel_slug = context.channel_slug
         channel_listing = ProductChannelListingByProductIdAndChanneSlugLoader(
             context
         ).load((root.id, channel_slug))
@@ -580,7 +580,7 @@ class Product(CountableDjangoObjectType):
     def get_node(cls, info, pk):
         if info.context:
             user = info.context.user
-            channel_slug = str(info.context.channel_slug)
+            channel_slug = info.context.channel_slug
             qs = cls._meta.model.objects.visible_to_user(user, channel_slug)
             return qs.filter(pk=pk).first()
         return None
@@ -659,7 +659,7 @@ class ProductType(CountableDjangoObjectType):
     @staticmethod
     def resolve_products(root: models.ProductType, info, **_kwargs):
         user = info.context.user
-        channel_slug = str(info.context.channel_slug)
+        channel_slug = info.context.channel_slug
         return root.products.visible_to_user(user, channel_slug)
 
     @staticmethod
@@ -722,7 +722,7 @@ class Collection(CountableDjangoObjectType):
     @staticmethod
     def resolve_products(root: models.Collection, info, first=None, **kwargs):
         user = info.context.user
-        channel_slug = str(info.context.channel_slug)
+        channel_slug = info.context.channel_slug
         return root.products.collection_sorted(user, channel_slug)
 
     @classmethod
@@ -813,7 +813,7 @@ class Category(CountableDjangoObjectType):
     @staticmethod
     def resolve_products(root: models.Category, info, **_kwargs):
         tree = root.get_descendants(include_self=True)
-        channel_slug = str(info.context.channel_slug)
+        channel_slug = info.context.channel_slug
         qs = models.Product.objects.published(channel_slug)
         return qs.filter(category__in=tree)
 

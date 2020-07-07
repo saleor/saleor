@@ -9,6 +9,7 @@ from django.db import models
 from django.db.models import Case, Count, F, FilteredRelation, Q, Value, When
 from django.urls import reverse
 from django.utils.encoding import smart_text
+from django.utils.functional import SimpleLazyObject
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from draftjs_sanitizer import clean_draft_js
@@ -121,6 +122,8 @@ class ProductsQueryset(models.QuerySet):
         return qs
 
     def published(self, channel_slug: str):
+        if isinstance(channel_slug, SimpleLazyObject):
+            channel_slug = str(channel_slug)
         today = datetime.date.today()
         return self.filter(
             Q(channel_listing__publication_date__lte=today)
