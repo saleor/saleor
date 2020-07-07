@@ -8,8 +8,8 @@ from ....product.utils.availability import get_variant_availability
 from ...tests.utils import get_graphql_content
 
 QUERY_GET_VARIANT_PRICING = """
-query {
-  products(first: 1) {
+query ($channelSlug: String) {
+  products(first: 1, channelSlug: $channelSlug) {
     edges {
       node {
         variants {
@@ -46,11 +46,13 @@ query {
 """
 
 
-def test_get_variant_pricing_on_sale(api_client, sale, product):
+def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
     price = product.variants.first().price
     discounted_price = price.amount - sale.value
 
-    response = api_client.post_graphql(QUERY_GET_VARIANT_PRICING, {})
+    response = api_client.post_graphql(
+        QUERY_GET_VARIANT_PRICING, {"channelSlug": channel_USD.slug}
+    )
     content = get_graphql_content(response)
 
     pricing = content["data"]["products"]["edges"][0]["node"]["variants"][0]["pricing"]
@@ -74,10 +76,12 @@ def test_get_variant_pricing_on_sale(api_client, sale, product):
     assert pricing["price"]["net"]["amount"] == discounted_price
 
 
-def test_get_variant_pricing_not_on_sale(api_client, product):
+def test_get_variant_pricing_not_on_sale(api_client, product, channel_USD):
     price = product.variants.first().price
 
-    response = api_client.post_graphql(QUERY_GET_VARIANT_PRICING, {})
+    response = api_client.post_graphql(
+        QUERY_GET_VARIANT_PRICING, {"channelSlug": channel_USD.slug}
+    )
     content = get_graphql_content(response)
 
     pricing = content["data"]["products"]["edges"][0]["node"]["variants"][0]["pricing"]

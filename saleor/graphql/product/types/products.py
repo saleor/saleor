@@ -279,7 +279,7 @@ class ProductVariant(CountableDjangoObjectType):
         channel_slug = str(context.channel_slug)
         channel_listing = ProductChannelListingByProductIdAndChanneSlugLoader(
             context
-        ).load((root.id, channel_slug))
+        ).load((root.product_id, channel_slug))
         collections = CollectionsByProductIdLoader(context).load(root.product_id)
 
         def calculate_pricing_info(discounts):

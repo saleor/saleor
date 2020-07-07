@@ -1,6 +1,7 @@
 from datetime import date
 
 import graphene
+import pytest
 
 from ....product.error_codes import ProductErrorCode
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -211,6 +212,7 @@ def test_product_channel_listing_update_as_staff_user(
     assert product_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
 
 
+@pytest.mark.skip(reason="Issue #5845")
 def test_product_channel_listing_update_as_app(
     app_api_client, product, permission_manage_products, channel_USD, channel_PLN
 ):
@@ -461,3 +463,41 @@ def test_product_channel_listing_update_remove_not_assigned_channel(
     assert product_data["channelListing"][0]["isPublished"] is True
     assert product_data["channelListing"][0]["publicationDate"] is None
     assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+
+
+def test_product_channel_listing_update_publish_product_without_category(
+    staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
+):
+    # given
+    product.channel_listing.all().delete()
+    product.category = None
+    product.save()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_pln_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    variables = {
+        "id": product_id,
+        "input": {
+            "addChannels": [
+                {"channelId": channel_usd_id, "isPublished": True},
+                {"channelId": channel_pln_id, "isPublished": False},
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productChannelListingUpdate"]
+    print(data)
+    errors = data["productsErrors"]
+    assert errors[0]["field"] == "isPublished"
+    assert errors[0]["code"] == ProductErrorCode.PRODUCT_WITHOUT_CATEGORY.name
+    assert errors[0]["channels"] == [channel_usd_id]
+    assert len(errors) == 1

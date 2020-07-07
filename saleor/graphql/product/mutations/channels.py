@@ -128,6 +128,25 @@ class ProductChannelListingUpdate(BaseMutation):
         return cleaned_input
 
     @classmethod
+    def validate_product_without_category(cls, cleaned_input, errors: ErrorType):
+        channels_with_published_product_without_category = []
+        for add_channel in cleaned_input.get("add_channels", []):
+            if add_channel.get("is_published") is True:
+                channels_with_published_product_without_category.append(
+                    add_channel["channel_id"]
+                )
+        if channels_with_published_product_without_category:
+            errors["is_published"].append(
+                ValidationError(
+                    "You must select a category to be able to publish.",
+                    code=ProductErrorCode.PRODUCT_WITHOUT_CATEGORY.value,
+                    params={
+                        "channels": channels_with_published_product_without_category
+                    },
+                )
+            )
+
+    @classmethod
     def add_channels(cls, product: "ProductModel", add_channels: List[Dict]):
         for add_channel in add_channels:
             defaults = {
@@ -156,6 +175,8 @@ class ProductChannelListingUpdate(BaseMutation):
         errors = defaultdict(list)
 
         cleaned_input = cls.clean_channels(info, input, errors)
+        if not product.category:
+            cls.validate_product_without_category(cleaned_input, errors)
         if errors:
             raise ValidationError(errors)
 
