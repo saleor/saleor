@@ -4,9 +4,9 @@ asgiref==3.2.10
 babel==2.8.0
 beautifulsoup4==4.7.1
 billiard==3.6.3.0
-boto3==1.14.12
-botocore==1.17.12
-braintree==4.1.0
+boto3==1.14.17
+botocore==1.17.17
+braintree==4.2.0
 cachetools==4.1.0
 cairocffi==1.1.0
 cairosvg==2.4.2
@@ -92,7 +92,7 @@ requests==2.24.0
 rsa==4.6; python_version >= "3"
 rx==1.6.1
 s3transfer==0.3.3
-sentry-sdk==0.15.1
+sentry-sdk==0.16.0
 singledispatch==3.4.0.3
 six==1.15.0
 soupsieve==2.0.1
