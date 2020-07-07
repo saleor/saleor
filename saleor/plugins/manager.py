@@ -110,7 +110,9 @@ class PluginsManager(PaymentInterface):
             subtotal=self.calculate_checkout_subtotal(
                 checkout, lines, address, discounts
             ),
-            shipping_price=self.calculate_checkout_shipping(checkout, lines, discounts),
+            shipping_price=self.calculate_checkout_shipping(
+                checkout, lines, address, discounts
+            ),
             discount=checkout.discount,
             currency=checkout.currency,
         )
@@ -157,11 +159,17 @@ class PluginsManager(PaymentInterface):
         self,
         checkout: "Checkout",
         lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         default_value = base_calculations.base_checkout_shipping_price(checkout, lines)
         return self.__run_method_on_plugins(
-            "calculate_checkout_shipping", default_value, checkout, lines, discounts
+            "calculate_checkout_shipping",
+            default_value,
+            checkout,
+            lines,
+            address,
+            discounts,
         )
 
     def calculate_order_shipping(self, order: "Order") -> TaxedMoney:

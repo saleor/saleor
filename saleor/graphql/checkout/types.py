@@ -94,7 +94,9 @@ class CheckoutLine(CountableDjangoObjectType):
 
         def with_checkout(checkout):
             address_id = checkout.shipping_address_id or checkout.billing_address_id
-            address = AddressByIdLoader(info.context).load(address_id)
+            address = (
+                AddressByIdLoader(info.context).load(address_id) if address_id else None
+            )
             variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
             product = ProductByVariantIdLoader(info.context).load(root.variant_id)
             collections = CollectionsByVariantIdLoader(info.context).load(
@@ -202,8 +204,6 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_total_price(root: models.Checkout, info):
-        address_id = root.shipping_address_id or root.billing_address_id
-
         def calculate_total_price(data):
             address, lines, discounts = data
             taxed_total = (
@@ -214,7 +214,10 @@ class Checkout(CountableDjangoObjectType):
             )
             return max(taxed_total, zero_taxed_money())
 
-        address = AddressByIdLoader(info.context).load(address_id)
+        address_id = root.shipping_address_id or root.billing_address_id
+        address = (
+            AddressByIdLoader(info.context).load(address_id) if address_id else None
+        )
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
@@ -223,15 +226,16 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_subtotal_price(root: models.Checkout, info):
-        address_id = root.shipping_address_id or root.billing_address_id
-
         def calculate_subtotal_price(data):
             address, lines, discounts = data
             return calculations.checkout_subtotal(
                 checkout=root, lines=lines, address=address, discounts=discounts
             )
 
-        address = AddressByIdLoader(info.context).load(address_id)
+        address_id = root.shipping_address_id or root.billing_address_id
+        address = (
+            AddressByIdLoader(info.context).load(address_id) if address_id else None
+        )
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
@@ -241,17 +245,21 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     def resolve_shipping_price(root: models.Checkout, info):
         def calculate_shipping_price(data):
-            lines, discounts = data
+            address, lines, discounts = data
             return calculations.checkout_shipping_price(
-                checkout=root, lines=lines, discounts=discounts
+                checkout=root, lines=lines, address=address, discounts=discounts
             )
 
+        address = (
+            AddressByIdLoader(info.context).load(root.shipping_address_id)
+            if root.shipping_address_id
+            else None
+        )
         lines = CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-
-        return Promise.all([lines, discounts]).then(calculate_shipping_price)
+        return Promise.all([address, lines, discounts]).then(calculate_shipping_price)
 
     @staticmethod
     def resolve_lines(root: models.Checkout, info):
@@ -278,7 +286,11 @@ class Checkout(CountableDjangoObjectType):
                     shipping_method.price = taxed_price.net
             return available
 
-        address = AddressByIdLoader(info.context).load(root.shipping_address_id)
+        address = (
+            AddressByIdLoader(info.context).load(root.shipping_address_id)
+            if root.shipping_address_id
+            else None
+        )
         lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time

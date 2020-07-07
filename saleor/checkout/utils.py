@@ -11,7 +11,7 @@ from django.utils.encoding import smart_text
 from django.utils.translation import get_language
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ..account.models import User
+from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
@@ -214,7 +214,11 @@ def change_shipping_address_in_checkout(checkout, address):
 
 
 def _get_shipping_voucher_discount_for_checkout(
-    voucher, checkout, lines, discounts: Optional[Iterable[DiscountInfo]] = None
+    voucher: Voucher,
+    checkout: Checkout,
+    lines: Iterable[CheckoutLineInfo],
+    address: Optional["Address"],
+    discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
     """Calculate discount value for a voucher of shipping type."""
     if not is_shipping_required(lines):
@@ -226,13 +230,13 @@ def _get_shipping_voucher_discount_for_checkout(
         raise NotApplicable(msg)
 
     # check if voucher is limited to specified countries
-    shipping_country = checkout.shipping_address.country
-    if voucher.countries and shipping_country.code not in voucher.countries:
-        msg = "This offer is not valid in your country."
-        raise NotApplicable(msg)
+    if address:
+        if voucher.countries and address.country.code not in voucher.countries:
+            msg = "This offer is not valid in your country."
+            raise NotApplicable(msg)
 
     shipping_price = calculations.checkout_shipping_price(
-        checkout=checkout, lines=lines, discounts=discounts
+        checkout=checkout, lines=lines, address=address, discounts=discounts
     ).gross
     return voucher.get_discount_amount_for(shipping_price)
 
@@ -292,6 +296,7 @@ def get_voucher_discount_for_checkout(
     voucher: Voucher,
     checkout: Checkout,
     lines: Iterable["CheckoutLineInfo"],
+    address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> Money:
     """Calculate discount value depending on voucher and discount types.
@@ -300,14 +305,13 @@ def get_voucher_discount_for_checkout(
     """
     validate_voucher_for_checkout(voucher, checkout, lines, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
-        address = checkout.shipping_address or checkout.billing_address
         subtotal = calculations.checkout_subtotal(
             checkout=checkout, lines=lines, address=address, discounts=discounts
         ).gross
         return voucher.get_discount_amount_for(subtotal)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(
-            voucher, checkout, lines, discounts
+            voucher, checkout, lines, address, discounts
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         return _get_products_voucher_discount(lines, voucher, discounts)
@@ -343,14 +347,14 @@ def recalculate_checkout_discount(
     """
     voucher = get_voucher_for_checkout(checkout)
     if voucher is not None:
+        address = checkout.shipping_address or checkout.billing_address
         try:
             discount = get_voucher_discount_for_checkout(
-                voucher, checkout, lines, discounts
+                voucher, checkout, lines, address, discounts
             )
         except NotApplicable:
             remove_voucher_from_checkout(checkout)
         else:
-            address = checkout.shipping_address or checkout.billing_address
             subtotal = calculations.checkout_subtotal(
                 checkout=checkout, lines=lines, address=address, discounts=discounts
             ).gross
@@ -432,7 +436,10 @@ def add_voucher_to_checkout(
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
-    discount = get_voucher_discount_for_checkout(voucher, checkout, lines, discounts)
+    address = checkout.shipping_address or checkout.billing_address
+    discount = get_voucher_discount_for_checkout(
+        voucher, checkout, lines, address, discounts
+    )
     checkout.voucher_code = voucher.code
     checkout.discount_name = voucher.name
     checkout.translated_discount_name = (
@@ -716,7 +723,9 @@ def prepare_order_data(
     taxed_total.net -= cards_total
     taxed_total = max(taxed_total, zero_taxed_money(checkout.currency))
 
-    shipping_total = manager.calculate_checkout_shipping(checkout, lines, discounts)
+    shipping_total = manager.calculate_checkout_shipping(
+        checkout, lines, address, discounts
+    )
     if is_shipping_required(lines):
         order_data.update(_process_shipping_data_for_order(checkout, shipping_total))
 

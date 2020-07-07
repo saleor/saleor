@@ -22,6 +22,7 @@ def base_checkout_shipping_price(
     checkout: "Checkout", lines: Iterable["CheckoutLineInfo"],
 ) -> TaxedMoney:
     """Return checkout shipping price."""
+    # FIXME: Optimize checkout.is_shipping_required
     if not checkout.shipping_method or not checkout.is_shipping_required():
         return zero_taxed_money(checkout.currency)
 

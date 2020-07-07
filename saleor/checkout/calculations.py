@@ -16,6 +16,7 @@ def checkout_shipping_price(
     *,
     checkout: "Checkout",
     lines: Iterable["CheckoutLineInfo"],
+    address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> "TaxedMoney":
     """Return checkout shipping price.
@@ -23,7 +24,7 @@ def checkout_shipping_price(
     It takes in account all plugins.
     """
     calculated_checkout_shipping = get_plugins_manager().calculate_checkout_shipping(
-        checkout, lines, discounts or []
+        checkout, lines, address, discounts or []
     )
     return quantize_price(calculated_checkout_shipping, checkout.currency)
 

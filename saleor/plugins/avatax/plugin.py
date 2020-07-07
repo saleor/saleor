@@ -200,6 +200,7 @@ class AvataxPlugin(BasePlugin):
         self,
         checkout: "Checkout",
         lines: Iterable["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:

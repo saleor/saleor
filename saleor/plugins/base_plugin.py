@@ -115,6 +115,7 @@ class BasePlugin:
         self,
         checkout: "Checkout",
         lines: List["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:

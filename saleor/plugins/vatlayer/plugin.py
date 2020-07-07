@@ -27,6 +27,7 @@ from . import (
 if TYPE_CHECKING:
     # flake8: noqa
     from ...checkout.models import Checkout, CheckoutLine
+    from ...checkout import CheckoutLineInfo
     from ...discount import DiscountInfo
     from ...product.models import Collection, Product, ProductType, ProductVariant
     from ...account.models import Address
@@ -86,7 +87,7 @@ class VatlayerPlugin(BasePlugin):
                 checkout=checkout, lines=lines, address=address, discounts=discounts
             )
             + calculations.checkout_shipping_price(
-                checkout=checkout, lines=lines, discounts=discounts
+                checkout=checkout, lines=lines, address=address, discounts=discounts
             )
             - checkout.discount
         )
@@ -109,7 +110,8 @@ class VatlayerPlugin(BasePlugin):
     def calculate_checkout_shipping(
         self,
         checkout: "Checkout",
-        lines: List["CheckoutLine"],
+        lines: List["CheckoutLineInfo"],
+        address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -117,7 +119,6 @@ class VatlayerPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        address = checkout.shipping_address or checkout.billing_address
         taxes = None
         if address:
             taxes = self._get_taxes_for_country(address.country)
