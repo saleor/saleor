@@ -47,6 +47,23 @@ def test_collection_query_by_slug(
     assert collection_data["name"] == collection.name
 
 
+def test_collection_query_unpublished_collection_by_slug_and_anonympus_user(
+    api_client, collection,
+):
+    # given
+    collection.is_published = False
+    collection.save(update_fields=["is_published"])
+    variables = {"slug": collection.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_COLLECTION, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    collection_data = content["data"]["collection"]
+    assert collection_data is None
+
+
 def test_collection_query_error_when_id_and_slug_provided(
     user_api_client, collection, graphql_log_handler,
 ):
