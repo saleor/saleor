@@ -69,7 +69,7 @@ class App(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_tokens(root: models.App, _info, **_kwargs):
-        return root.tokens.all()
+        return root.tokens.all()  # type: ignore
 
     @staticmethod
     def resolve_meta(root: models.App, info):
@@ -85,4 +85,4 @@ class App(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_webhooks(root: models.App, _info):
-        return root.webhooks.all()
+        return root.webhooks.all()  # type: ignore

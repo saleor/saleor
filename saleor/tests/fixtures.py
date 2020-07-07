@@ -8,6 +8,7 @@ from typing import List, Optional
 from unittest.mock import MagicMock, Mock
 
 import pytest
+import pytz
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
@@ -39,6 +40,7 @@ from ..discount.models import (
     VoucherTranslation,
 )
 from ..giftcard.models import GiftCard
+from ..invoice.models import Invoice
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_line
@@ -48,6 +50,7 @@ from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.models import Payment
+from ..plugins.invoicing.plugin import InvoicingPlugin
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
 from ..product import AttributeInputType
@@ -1391,6 +1394,12 @@ def order_events(order):
 @pytest.fixture
 def fulfilled_order(order_with_lines):
     order = order_with_lines
+    invoice = order.invoices.create(
+        url="http://www.example.com/invoice.pdf",
+        number="01/12/2020/TEST",
+        created=datetime.datetime.now(tz=pytz.utc),
+        status=JobStatus.SUCCESS,
+    )
     fulfillment = order.fulfillments.create(tracking_number="123")
     line_1 = order.lines.first()
     stock_1 = line_1.allocations.get().stock

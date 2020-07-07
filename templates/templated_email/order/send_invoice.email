@@ -1,0 +1,20 @@
+{% load i18n %}
+
+{% block subject %}
+  {% trans "Invoice" context "Invoice email subject" %} {{ number }} {{ site_name }}
+{% endblock %}
+
+{% block plain %}
+{% include 'templated_email/shared/_header.email' %}
+{% blocktrans context "Send invoice e-mail text" %}
+In order to download invoice {{ number }}, click the link below.
+{% endblocktrans %}
+
+{{ download_url | safe }}
+
+{% include 'templated_email/shared/_footer.email' %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/compiled/send_invoice.html' %}
+{% endblock %}

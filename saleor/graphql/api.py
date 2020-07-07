@@ -7,6 +7,7 @@ from .core.schema import CoreQueries
 from .csv.schema import CsvMutations, CsvQueries
 from .discount.schema import DiscountMutations, DiscountQueries
 from .giftcard.schema import GiftCardMutations, GiftCardQueries
+from .invoice.schema import InvoiceMutations
 from .menu.schema import MenuMutations, MenuQueries
 from .meta.schema import MetaMutations
 from .order.schema import OrderMutations, OrderQueries
@@ -53,6 +54,7 @@ class Mutation(
     DiscountMutations,
     PluginsMutations,
     GiftCardMutations,
+    InvoiceMutations,
     MenuMutations,
     MetaMutations,
     OrderMutations,
