@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-07-03 09:05+0000\n"
+"POT-Creation-Date: 2020-07-07 11:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -197,6 +197,28 @@ msgid ""
 "email change for your user account at %(domain)s.\n"
 "It can be safely ignored if you did not request an email change. Click the "
 "link below to confirm new email address.\n"
+msgstr ""
+
+#: templates/templated_email/csv/export_failed.email:4
+#: templates/templated_email/csv/export_products_file.email:4
+msgctxt "Export products e-mail subject"
+msgid "Export products data"
+msgstr ""
+
+#: templates/templated_email/csv/export_failed.email:10
+msgctxt "Export products e-mail text"
+msgid ""
+"\n"
+"Sorry, we cannot finish product export, some unexpected errors occurred.\n"
+"Please try again.\n"
+msgstr ""
+
+#: templates/templated_email/csv/export_products_file.email:10
+#, python-format
+msgctxt "Export products e-mail text"
+msgid ""
+"\n"
+"Your file with products data is ready to download: %(csv_link)s\n"
 msgstr ""
 
 #: templates/templated_email/dashboard/customer/set_password.email:2
@@ -425,6 +447,8 @@ msgstr ""
 #: templates/templated_email/source/confirm_order.mjml:14
 #: templates/templated_email/source/confirm_payment.mjml:13
 #: templates/templated_email/source/email_changed_notification.mjml:13
+#: templates/templated_email/source/export_failed.mjml:13
+#: templates/templated_email/source/export_products_csv.mjml:13
 #: templates/templated_email/source/password_reset.mjml:13
 #: templates/templated_email/source/request_email_change.mjml:13
 #: templates/templated_email/source/send_invoice.mjml:13
@@ -499,6 +523,26 @@ msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
 "for your user account at %(domain)s.<br /> If you didn't request this "
 "change, please contact the administrator."
+msgstr ""
+
+#: templates/templated_email/source/export_failed.mjml:16
+msgctxt "Export products e-mail text"
+msgid ""
+"\n"
+"            Sorry, we couldn't finish exporting products, some unexpected "
+"errors occurred.\n"
+"            Please try again.\n"
+"        "
+msgstr ""
+
+#: templates/templated_email/source/export_products_csv.mjml:16
+#, python-format
+msgctxt "Export products e-mail text"
+msgid ""
+"\n"
+"            Your file with products data is ready to download: <a href="
+"\"%(csv_link)s\">%(csv_link)s</a>\n"
+"        "
 msgstr ""
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
