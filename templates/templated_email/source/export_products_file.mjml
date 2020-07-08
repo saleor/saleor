@@ -13,7 +13,7 @@
           {% trans "Hi!" context "Standard e-mail greeting" %}
         </mj-text>
         <mj-text>
-        {% blocktrans context "Export products e-mail text" %}
+        {% blocktrans trimmed context "Export products e-mail text" %}
             Your file with products data is ready to download: <a href="{{ csv_link }}">{{ csv_link }}</a>
         {% endblocktrans %}
         </mj-text>

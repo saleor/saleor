@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-07-07 11:55+0000\n"
+"POT-Creation-Date: 2020-07-08 07:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -208,17 +208,14 @@ msgstr ""
 #: templates/templated_email/csv/export_failed.email:10
 msgctxt "Export products e-mail text"
 msgid ""
-"\n"
-"Sorry, we cannot finish product export, some unexpected errors occurred.\n"
-"Please try again.\n"
+"Sorry, we cannot finish product export, some unexpected errors occurred. "
+"Please try again."
 msgstr ""
 
 #: templates/templated_email/csv/export_products_file.email:10
 #, python-format
 msgctxt "Export products e-mail text"
-msgid ""
-"\n"
-"Your file with products data is ready to download: %(csv_link)s\n"
+msgid "Your file with products data is ready to download: %(csv_link)s"
 msgstr ""
 
 #: templates/templated_email/dashboard/customer/set_password.email:2
@@ -448,7 +445,7 @@ msgstr ""
 #: templates/templated_email/source/confirm_payment.mjml:13
 #: templates/templated_email/source/email_changed_notification.mjml:13
 #: templates/templated_email/source/export_failed.mjml:13
-#: templates/templated_email/source/export_products_csv.mjml:13
+#: templates/templated_email/source/export_products_file.mjml:13
 #: templates/templated_email/source/password_reset.mjml:13
 #: templates/templated_email/source/request_email_change.mjml:13
 #: templates/templated_email/source/send_invoice.mjml:13
@@ -528,21 +525,16 @@ msgstr ""
 #: templates/templated_email/source/export_failed.mjml:16
 msgctxt "Export products e-mail text"
 msgid ""
-"\n"
-"            Sorry, we couldn't finish exporting products, some unexpected "
-"errors occurred.\n"
-"            Please try again.\n"
-"        "
+"Sorry, we couldn't finish exporting products, some unexpected errors "
+"occurred. Please try again."
 msgstr ""
 
-#: templates/templated_email/source/export_products_csv.mjml:16
+#: templates/templated_email/source/export_products_file.mjml:16
 #, python-format
 msgctxt "Export products e-mail text"
 msgid ""
-"\n"
-"            Your file with products data is ready to download: <a href="
-"\"%(csv_link)s\">%(csv_link)s</a>\n"
-"        "
+"Your file with products data is ready to download: <a href=\"%(csv_link)s\">"
+"%(csv_link)s</a>"
 msgstr ""
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
