@@ -211,7 +211,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="List of the shop's products.",
     )
-    product_type = graphene.Field(
+    product_type = FieldWithChannel(
         ProductType,
         id=graphene.Argument(
             graphene.ID, description="ID of the product type.", required=True
@@ -292,7 +292,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_products(self, info, **kwargs):
         return resolve_products(info, **kwargs)
 
-    def resolve_product_type(self, info, id):
+    def resolve_product_type(self, info, id, **_kwargs):
         return graphene.Node.get_node_from_global_id(info, id, ProductType)
 
     def resolve_product_types(self, info, **kwargs):

@@ -174,12 +174,19 @@ def products_structures(category, channel_USD):
     return colors_attr, trademark_attr, dummy_attr
 
 
-def test_sort_products_cannot_sort_both_by_field_and_by_attribute(api_client):
+def test_sort_products_cannot_sort_both_by_field_and_by_attribute(
+    api_client, channel_USD
+):
     """Ensure one cannot both sort by a supplied field and sort by a given attribute ID
     at the same time.
     """
     query = QUERY_SORT_PRODUCTS_BY_ATTRIBUTE
-    variables = {"field": "NAME", "attributeId": "SomeAttributeId", "direction": "ASC"}
+    variables = {
+        "field": "NAME",
+        "attributeId": "SomeAttributeId",
+        "direction": "ASC",
+        "channelSlug": channel_USD.slug,
+    }
 
     response = api_client.post_graphql(query, variables)
     response = get_graphql_content(response, ignore_errors=True)

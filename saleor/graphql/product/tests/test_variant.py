@@ -806,10 +806,10 @@ def test_delete_variant(staff_api_client, product, permission_manage_products):
         variant.refresh_from_db()
 
 
-def _fetch_all_variants(client, permissions=None):
+def _fetch_all_variants(client, variables={}, permissions=None):
     query = """
-        query fetchAllVariants {
-            productVariants(first: 10) {
+        query fetchAllVariants($channelSlug: String) {
+            productVariants(first: 10, channelSlug: $channelSlug) {
                 totalCount
                 edges {
                     node {
@@ -820,7 +820,7 @@ def _fetch_all_variants(client, permissions=None):
         }
     """
     response = client.post_graphql(
-        query, {}, permissions=permissions, check_no_permissions=False
+        query, variables, permissions=permissions, check_no_permissions=False
     )
     content = get_graphql_content(response)
     return content["data"]["productVariants"]
@@ -838,22 +838,26 @@ def test_fetch_all_variants_staff_user(
     assert data["edges"][0]["node"]["id"] == variant_id
 
 
-def test_fetch_all_variants_customer(user_api_client, unavailable_product_with_variant):
-    data = _fetch_all_variants(user_api_client)
+def test_fetch_all_variants_customer(
+    user_api_client, unavailable_product_with_variant, channel_USD
+):
+    data = _fetch_all_variants(
+        user_api_client, variables={"channelSlug": channel_USD.slug}
+    )
     assert data["totalCount"] == 0
 
 
 def test_fetch_all_variants_anonymous_user(
-    api_client, unavailable_product_with_variant
+    api_client, unavailable_product_with_variant, channel_USD
 ):
-    data = _fetch_all_variants(api_client)
+    data = _fetch_all_variants(api_client, variables={"channelSlug": channel_USD.slug})
     assert data["totalCount"] == 0
 
 
-def _fetch_variant(client, variant, permissions=None):
+def _fetch_variant(client, variant, channel_slug=None, permissions=None):
     query = """
-    query ProductVariantDetails($variantId: ID!) {
-        productVariant(id: $variantId) {
+    query ProductVariantDetails($variantId: ID!, $channelSlug: String) {
+        productVariant(id: $variantId, channelSlug: $channelSlug) {
             id
             product {
                 id
@@ -862,6 +866,8 @@ def _fetch_variant(client, variant, permissions=None):
     }
     """
     variables = {"variantId": graphene.Node.to_global_id("ProductVariant", variant.id)}
+    if channel_slug:
+        variables["channelSlug"] = channel_slug
     response = client.post_graphql(
         query, variables, permissions=permissions, check_no_permissions=False
     )
@@ -887,18 +893,18 @@ def test_fetch_unpublished_variant_staff_user(
 
 
 def test_fetch_unpublished_variant_customer(
-    user_api_client, unavailable_product_with_variant
+    user_api_client, unavailable_product_with_variant, channel_USD
 ):
     variant = unavailable_product_with_variant.variants.first()
-    data = _fetch_variant(user_api_client, variant)
+    data = _fetch_variant(user_api_client, variant, channel_slug=channel_USD.slug)
     assert data is None
 
 
 def test_fetch_unpublished_variant_anonymous_user(
-    api_client, unavailable_product_with_variant
+    api_client, unavailable_product_with_variant, channel_USD
 ):
     variant = unavailable_product_with_variant.variants.first()
-    data = _fetch_variant(api_client, variant)
+    data = _fetch_variant(api_client, variant, channel_slug=channel_USD.slug)
     assert data is None
 
 

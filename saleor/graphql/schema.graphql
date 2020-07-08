@@ -4309,7 +4309,7 @@ type Query {
   collections(filter: CollectionFilterInput, sortBy: CollectionSortingInput, channelSlug: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   product(id: ID, slug: String, channelSlug: String): Product
   products(filter: ProductFilterInput, sortBy: ProductOrder, stockAvailability: StockAvailability, channelSlug: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  productType(id: ID!): ProductType
+  productType(id: ID!, channelSlug: String): ProductType
   productTypes(filter: ProductTypeFilterInput, sortBy: ProductTypeSortingInput, channelSlug: String, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID!, channelSlug: String): ProductVariant
   productVariants(ids: [ID], channelSlug: String, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection

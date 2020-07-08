@@ -1211,11 +1211,11 @@ def test_products_query_with_filter_stocks(
     assert {node["node"]["id"] for node in products_data} == product_ids
 
 
-def test_query_product_image_by_id(user_api_client, product_with_image):
+def test_query_product_image_by_id(user_api_client, product_with_image, channel_USD):
     image = product_with_image.images.first()
     query = """
-    query productImageById($imageId: ID!, $productId: ID!) {
-        product(id: $productId) {
+    query productImageById($imageId: ID!, $productId: ID!, $channelSlug: String) {
+        product(id: $productId, channelSlug: $channelSlug) {
             imageById(id: $imageId) {
                 id
                 url
@@ -1226,9 +1226,12 @@ def test_query_product_image_by_id(user_api_client, product_with_image):
     variables = {
         "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
         "imageId": graphene.Node.to_global_id("ProductImage", image.pk),
+        "channelSlug": channel_USD.slug,
     }
     response = user_api_client.post_graphql(query, variables)
-    get_graphql_content(response)
+    data = get_graphql_content(response)
+    assert data["data"]["product"]["imageById"]["id"]
+    assert data["data"]["product"]["imageById"]["url"]
 
 
 def test_product_with_collections(
@@ -1256,15 +1259,18 @@ def test_product_with_collections(
     assert len(data["collections"]) == 1
 
 
-def test_filter_products_by_wrong_attributes(user_api_client, product):
+def test_filter_products_by_wrong_attributes(user_api_client, product, channel_USD):
     product_attr = product.product_type.product_attributes.get(slug="color")
     attr_value = (
         product.product_type.variant_attributes.get(slug="size").values.first().id
     )
     query = """
-    query {
-        products(filter:
-                    {attributes: {slug: "%(slug)s", value: "%(value)s"}}, first: 1) {
+    query ($channelSlug: String){
+        products(
+            filter: {attributes: {slug: "%(slug)s", value: "%(value)s"}},
+            first: 1,
+            channelSlug: $channelSlug
+        ) {
             edges {
                 node {
                     name
@@ -1277,7 +1283,8 @@ def test_filter_products_by_wrong_attributes(user_api_client, product):
         "value": attr_value,
     }
 
-    response = user_api_client.post_graphql(query)
+    variables = {"channelSlug": channel_USD.slug}
+    response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     products = content["data"]["products"]["edges"]
 
@@ -2511,6 +2518,7 @@ def test_product_type_query(
     product,
     permission_manage_products,
     monkeypatch,
+    channel_USD,
 ):
     monkeypatch.setattr(
         PluginsManager,
@@ -2518,8 +2526,8 @@ def test_product_type_query(
         lambda self, x: TaxType(code="123", description="Standard Taxes"),
     )
     query = """
-            query getProductType($id: ID!) {
-                productType(id: $id) {
+            query getProductType($id: ID!, $channelSlug: String) {
+                productType(id: $id,  channelSlug:$channelSlug) {
                     name
                     products(first: 20) {
                         totalCount
@@ -2538,9 +2546,13 @@ def test_product_type_query(
             }
         """
     no_products = Product.objects.count()
-    product.is_published = False
-    product.save()
-    variables = {"id": graphene.Node.to_global_id("ProductType", product_type.id)}
+    ProductChannelListing.objects.filter(product=product, channel=channel_USD).update(
+        is_published=False
+    )
+    variables = {
+        "id": graphene.Node.to_global_id("ProductType", product_type.id),
+        "channelSlug": channel_USD.slug,
+    }
 
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -4200,15 +4212,16 @@ def test_filter_product_types_by_custom_search_value(
 
 
 def test_product_filter_by_attribute_values(
-    staff_api_client,
+    user_api_client,
     permission_manage_products,
     color_attribute,
     pink_attribute_value,
     product_with_variant_with_two_attributes,
+    channel_USD,
 ):
     query = """
-    query Products($filters: ProductFilterInput) {
-      products(first: 5, filter: $filters) {
+    query Products($filters: ProductFilterInput, $channelSlug: String) {
+      products(first: 5, filter: $filters, channelSlug: $channelSlug) {
         edges {
         node {
           id
@@ -4231,9 +4244,10 @@ def test_product_filter_by_attribute_values(
     variables = {
         "attributes": [
             {"slug": color_attribute.slug, "values": [pink_attribute_value.slug]}
-        ]
+        ],
+        "channelSlug": channel_USD.slug,
     }
-    response = staff_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert not content["data"]["products"]["edges"] == [
         {
