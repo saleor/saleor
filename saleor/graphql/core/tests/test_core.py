@@ -147,15 +147,15 @@ def test_require_pagination(api_client):
     )
 
 
-def test_total_count_query(api_client, product):
+def test_total_count_query(api_client, product, channel_USD):
     query = """
-    query {
-        products {
+    query ($channelSlug: String){
+        products (channelSlug: $channelSlug){
             totalCount
         }
     }
     """
-    response = api_client.post_graphql(query)
+    response = api_client.post_graphql(query, {"channelSlug": channel_USD.slug})
     content = get_graphql_content(response)
     assert content["data"]["products"]["totalCount"] == Product.objects.count()
 

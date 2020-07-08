@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render
 
 from ..graphql.views import API_PATH, GraphQLView
@@ -11,7 +12,7 @@ EXAMPLE_QUERY = """# Welcome to Saleor GraphQL API!
 # Here is an example query to fetch a list of products:
 #
 {
-  products(first: 5) {
+  products(first: 5, channelSlug: "%(channel_slug)s") {
     edges {
       node {
         id
@@ -21,7 +22,9 @@ EXAMPLE_QUERY = """# Welcome to Saleor GraphQL API!
     }
   }
 }
-"""
+""" % {
+    "channel_slug": settings.DEFAULT_CHANNEL_SLUG
+}
 
 
 class DemoGraphQLView(GraphQLView):

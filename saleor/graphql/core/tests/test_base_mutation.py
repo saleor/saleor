@@ -15,12 +15,14 @@ class Mutation(BaseMutation):
 
     class Arguments:
         product_id = graphene.ID(required=True)
+        channel_slug = graphene.String()
 
     class Meta:
         description = "Base mutation"
 
     @classmethod
-    def perform_mutation(cls, _root, info, product_id):
+    def perform_mutation(cls, _root, info, product_id, channel_slug):
+        info.context.channel_slug = channel_slug
         product = cls.get_node_or_error(
             info, product_id, field="product_id", only_type=product_types.Product
         )
@@ -65,39 +67,34 @@ def test_mutation_without_description_raises_error():
                 product_id = graphene.ID(required=True)
 
 
-def test_resolve_id(product, schema_context):
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    query = """
-        mutation testMutation($productId: ID!) {
-            test(productId: $productId) {
-                name
-                errors {
-                    field
-                    message
-                }
+TEST_MUTATION = """
+    mutation testMutation($productId: ID!, $channelSlug: String) {
+        test(productId: $productId, channelSlug: $channelSlug) {
+            name
+            errors {
+                field
+                message
             }
         }
-    """
-    variables = {"productId": product_id}
-    result = schema.execute(query, variables=variables, context_value=schema_context)
+    }
+"""
+
+
+def test_resolve_id(product, schema_context, channel_USD):
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {"productId": product_id, "channelSlug": channel_USD.slug}
+    result = schema.execute(
+        TEST_MUTATION, variables=variables, context_value=schema_context
+    )
     assert not result.errors
     assert result.data["test"]["name"] == product.name
 
 
-def test_user_error_nonexistent_id(schema_context):
-    query = """
-        mutation testMutation($productId: ID!) {
-            test(productId: $productId) {
-                name
-                errors {
-                    field
-                    message
-                }
-            }
-        }
-    """
-    variables = {"productId": "not-really"}
-    result = schema.execute(query, variables=variables, context_value=schema_context)
+def test_user_error_nonexistent_id(schema_context, channel_USD):
+    variables = {"productId": "not-really", "channelSlug": channel_USD.slug}
+    result = schema.execute(
+        TEST_MUTATION, variables=variables, context_value=schema_context
+    )
     assert not result.errors
     user_errors = result.data["test"]["errors"]
     assert user_errors
@@ -105,11 +102,11 @@ def test_user_error_nonexistent_id(schema_context):
     assert user_errors[0]["message"] == "Couldn't resolve to a node: not-really"
 
 
-def test_mutation_custom_errors_default_value(product, schema_context):
+def test_mutation_custom_errors_default_value(product, schema_context, channel_USD):
     product_id = graphene.Node.to_global_id("Product", product.pk)
     query = """
-        mutation testMutation($productId: ID!) {
-            testWithCustomErrors(productId: $productId) {
+        mutation testMutation($productId: ID!, $channelSlug: String) {
+            testWithCustomErrors(productId: $productId, channelSlug: $channelSlug) {
                 name
                 errors {
                     field
@@ -122,33 +119,23 @@ def test_mutation_custom_errors_default_value(product, schema_context):
             }
         }
     """
-    variables = {"productId": product_id}
+    variables = {"productId": product_id, "channelSlug": channel_USD.slug}
     result = schema.execute(query, variables=variables, context_value=schema_context)
     assert result.data["testWithCustomErrors"]["errors"] == []
     assert result.data["testWithCustomErrors"]["customErrors"] == []
 
 
-def test_user_error_id_of_different_type(product, schema_context):
-    query = """
-        mutation testMutation($productId: ID!) {
-            test(productId: $productId) {
-                name
-                errors {
-                    field
-                    message
-                }
-            }
-        }
-    """
-
+def test_user_error_id_of_different_type(product, schema_context, channel_USD):
     # Test that get_node_or_error checks that the returned ID must be of
     # proper type. Providing correct ID but of different type than expected
     # should result in user error.
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
-    variables = {"productId": variant_id}
-    result = schema.execute(query, variables=variables, context_value=schema_context)
+    variables = {"productId": variant_id, "channelSlug": channel_USD.slug}
+    result = schema.execute(
+        TEST_MUTATION, variables=variables, context_value=schema_context
+    )
     assert not result.errors
     user_errors = result.data["test"]["errors"]
     assert user_errors

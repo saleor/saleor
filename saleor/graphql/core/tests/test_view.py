@@ -10,17 +10,17 @@ from ...tests.fixtures import API_PATH
 from ...tests.utils import _get_graphql_content_from_response, get_graphql_content
 
 
-def test_batch_queries(category, product, api_client):
+def test_batch_queries(category, product, api_client, channel_USD):
     query_product = """
-        query GetProduct($id: ID!) {
-            product(id: $id) {
+        query GetProduct($id: ID!, $channelSlug: String) {
+            product(id: $id, channelSlug: $channelSlug) {
                 name
             }
         }
     """
     query_category = """
-        query GetCategory($id: ID!) {
-            category(id: $id) {
+        query GetCategory($id: ID!, $channelSlug: String) {
+            category(id: $id, channelSlug: $channelSlug) {
                 name
             }
         }
@@ -28,11 +28,17 @@ def test_batch_queries(category, product, api_client):
     data = [
         {
             "query": query_category,
-            "variables": {"id": graphene.Node.to_global_id("Category", category.pk)},
+            "variables": {
+                "id": graphene.Node.to_global_id("Category", category.pk),
+                "channelSlug": channel_USD.slug,
+            },
         },
         {
             "query": query_product,
-            "variables": {"id": graphene.Node.to_global_id("Product", product.pk)},
+            "variables": {
+                "id": graphene.Node.to_global_id("Product", product.pk),
+                "channelSlug": channel_USD.slug,
+            },
         },
     ]
     response = api_client.post(data)
