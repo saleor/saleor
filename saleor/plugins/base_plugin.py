@@ -291,6 +291,28 @@ class BasePlugin:
         """
         return NotImplemented
 
+    # Deprecated. This method will be removed in Saleor 3.0
+    def checkout_quantity_changed(
+        self, checkout: "Checkout", previous_value: Any
+    ) -> Any:
+        return NotImplemented
+
+    def checkout_created(self, checkout: "Checkout", previous_value: Any) -> Any:
+        """Trigger when checkout is created.
+
+        Overwrite this method if you need to trigger specific logic when a checkout is
+        created.
+        """
+        return NotImplemented
+
+    def checkout_updated(self, checkout: "Checkout", previous_value: Any) -> Any:
+        """Trigger when checkout is updated.
+
+        Overwrite this method if you need to trigger specific logic when a checkout is
+        updated.
+        """
+        return NotImplemented
+
     def fetch_taxes_data(self, previous_value: Any) -> Any:
         """Triggered when ShopFetchTaxRates mutation is called."""
         return NotImplemented

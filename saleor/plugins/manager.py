@@ -93,9 +93,6 @@ class PluginsManager(PaymentInterface):
             "change_user_address", default_value, address, address_type, user
         )
 
-    def checkout_quantity_changed(self, checkout: "Checkout") -> None:
-        self.__run_method_on_plugins("checkout_quantity_changed", None, checkout)
-
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
@@ -248,6 +245,21 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins(
             "fulfillment_created", default_value, fulfillment
         )
+
+    # Deprecated. This method will be removed in Saleor 3.0
+    def checkout_quantity_changed(self, checkout: "Checkout"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "checkout_quantity_changed", default_value, checkout
+        )
+
+    def checkout_created(self, checkout: "Checkout"):
+        default_value = None
+        return self.__run_method_on_plugins("checkout_created", default_value, checkout)
+
+    def checkout_updated(self, checkout: "Checkout"):
+        default_value = None
+        return self.__run_method_on_plugins("checkout_updated", default_value, checkout)
 
     def authorize_payment(
         self, gateway: str, payment_information: "PaymentData"

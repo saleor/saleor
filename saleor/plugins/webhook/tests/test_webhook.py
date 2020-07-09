@@ -216,3 +216,27 @@ def test_checkout_quantity_changed(
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.CHECKOUT_QUANTITY_CHANGED, expected_data
     )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_checkout_created(mocked_webhook_trigger, settings, checkout_with_items):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.checkout_created(checkout_with_items)
+
+    expected_data = generate_checkout_payload(checkout_with_items)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.CHECKOUT_CREATED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_checkout_updated(mocked_webhook_trigger, settings, checkout_with_items):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.checkout_updated(checkout_with_items)
+
+    expected_data = generate_checkout_payload(checkout_with_items)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.CHECKOUT_UPADTED, expected_data
+    )
