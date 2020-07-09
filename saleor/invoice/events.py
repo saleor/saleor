@@ -66,5 +66,5 @@ def invoice_sent_event(*, user: UserType, invoice: Invoice) -> InvoiceEvent:
         type=InvoiceEvents.SENT,
         user=user,
         invoice=invoice,
-        parameters={"email": invoice.order.user.email},  # type: ignore
+        parameters={"email": invoice.order.get_customer_email()},  # type: ignore
     )
