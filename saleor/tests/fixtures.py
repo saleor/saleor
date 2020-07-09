@@ -2176,7 +2176,8 @@ def warehouses_with_different_shipping_zone(warehouses, shipping_zones):
 def warehouse_no_shipping_zone(address):
     warehouse = Warehouse.objects.create(
         address=address,
-        name="Warehouse withot shipping zone",
+        name="Warehouse without shipping zone",
+        slug="warehouse-no-shipping-zone",
         email="test2@example.com",
     )
     return warehouse

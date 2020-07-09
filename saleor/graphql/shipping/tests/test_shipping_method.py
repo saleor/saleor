@@ -232,6 +232,7 @@ UPDATE_SHIPPING_ZONE_QUERY = """
                 name
                 warehouses {
                     name
+                    slug
                 }
             }
             shippingErrors {
@@ -330,8 +331,8 @@ def test_update_shipping_zone_add_second_warehouses(
     data = content["data"]["shippingZoneUpdate"]
     assert not data["shippingErrors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
-    assert data["warehouses"][1]["name"] == warehouse.name
-    assert data["warehouses"][0]["name"] == warehouse_no_shipping_zone.name
+    assert data["warehouses"][1]["slug"] == warehouse.slug
+    assert data["warehouses"][0]["slug"] == warehouse_no_shipping_zone.slug
 
 
 def test_update_shipping_zone_remove_warehouses(
