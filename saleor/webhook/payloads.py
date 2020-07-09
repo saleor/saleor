@@ -292,6 +292,11 @@ def _generate_sample_order_payload(event_name):
 
 
 def generate_sample_payload(event_name: str) -> Optional[dict]:
+    checkout_events = [
+        WebhookEventType.CHECKOUT_QUANTITY_CHANGED,
+        WebhookEventType.CHECKOUT_UPADTED,
+        WebhookEventType.CHECKOUT_CREATED,
+    ]
     if event_name == WebhookEventType.CUSTOMER_CREATED:
         user = generate_fake_user()
         payload = generate_customer_payload(user)
@@ -300,7 +305,7 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
             Product.objects.prefetch_related("category", "collections", "variants")
         )
         payload = generate_product_payload(product) if product else None
-    elif event_name == WebhookEventType.CHECKOUT_QUANTITY_CHANGED:
+    elif event_name in checkout_events:
         checkout = _get_sample_object(
             Checkout.objects.prefetch_related("lines__variant__product")
         )
