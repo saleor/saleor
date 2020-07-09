@@ -294,6 +294,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                         "Can't create checkout with unpublished product.",
                         code=exc.code,
                     )
+            info.context.plugins.checkout_quantity_changed(instance)
         # Save provided addresses and associate them to the checkout
         cls.save_addresses(instance, cleaned_input)
 
@@ -369,6 +370,7 @@ class CheckoutLinesAdd(BaseMutation):
                     raise ValidationError(
                         "Can't add unpublished product.", code=exc.code,
                     )
+            info.context.plugins.checkout_quantity_changed(checkout)
 
         lines = list(checkout)
 
@@ -416,6 +418,7 @@ class CheckoutLineDelete(BaseMutation):
 
         if line and line in checkout.lines.all():
             line.delete()
+            info.context.plugins.checkout_quantity_changed(checkout)
 
         lines = list(checkout)
 

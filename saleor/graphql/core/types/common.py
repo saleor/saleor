@@ -7,7 +7,9 @@ from ..enums import (
     AppErrorCode,
     CheckoutErrorCode,
     DiscountErrorCode,
+    ExportErrorCode,
     GiftCardErrorCode,
+    InvoiceErrorCode,
     JobStatusEnum,
     MenuErrorCode,
     MetadataErrorCode,
@@ -105,6 +107,10 @@ class DiscountError(Error):
     code = DiscountErrorCode(description="The error code.", required=True)
 
 
+class ExportError(Error):
+    code = ExportErrorCode(description="The error code.", required=True)
+
+
 class MenuError(Error):
     code = MenuErrorCode(description="The error code.", required=True)
 
@@ -121,6 +127,10 @@ class OrderError(Error):
     order_line = graphene.ID(
         description="Order line ID which causes the error.", required=False,
     )
+
+
+class InvoiceError(Error):
+    code = InvoiceErrorCode(description="The error code.", required=True)
 
 
 class PermissionGroupError(Error):

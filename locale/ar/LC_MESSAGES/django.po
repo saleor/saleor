@@ -4,8 +4,9 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# Patryk Zawadzki <patrys@room-303.com>, 2019
 # Rached Noureddine <rached.noureddine@gmail.com>, 2019
+# Patryk Zawadzki <patrys@room-303.com>, 2020
+# Aisha Barahim <aisha.barahim@alolom.com>, 2020
 # Eslam Hasanen <Eslamspot@gmail.com>, 2020
 #
 #, fuzzy
@@ -13,7 +14,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-14 03:45-0500\n"
+"POT-Creation-Date: 2020-06-17 16:44+0000\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Eslam Hasanen <Eslamspot@gmail.com>, 2020\n"
 "Language-Team: Arabic (https://www.transifex.com/mirumee/teams/34782/ar/)\n"
@@ -42,7 +43,7 @@ msgstr ""
 #: templates/templated_email/account/account_delete.email:4
 msgctxt "Account delete reset e-mail subject"
 msgid "Delete your account"
-msgstr ""
+msgstr "احذف حسابك"
 
 #: templates/templated_email/account/account_delete.email:9
 #, python-format
@@ -88,7 +89,7 @@ msgstr ""
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
 msgid "Password reset e-mail"
-msgstr ""
+msgstr "بريد الإلكتروني لإعادة تعيين كلمة المرور"
 
 #: templates/templated_email/account/password_reset.email:9
 #, python-format
@@ -113,7 +114,7 @@ msgstr ""
 #, python-format
 msgctxt "Set password for customer e-mail title"
 msgid "Hello from %(site_name)s!"
-msgstr ""
+msgstr "مرحبًا بك من %(site_name)s!"
 
 #: templates/templated_email/dashboard/customer/set_password.email:6
 #, python-format
@@ -128,7 +129,7 @@ msgstr ""
 #, python-format
 msgctxt "Set password for staff member e-mail title"
 msgid "Hello from %(site_name)s!"
-msgstr ""
+msgstr "مرحبًا بك من %(site_name)s!"
 
 #: templates/templated_email/dashboard/staff/set_password.email:6
 #, python-format
@@ -153,7 +154,8 @@ msgid ""
 msgstr ""
 
 #: templates/templated_email/order/confirm_fulfillment.email:15
-#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#: templates/templated_email/source/confirm_fulfillment.mjml:25
+#: templates/templated_email/source/update_fulfillment.mjml:25
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid "You can track your shipment with %(tracking_number)s code."
@@ -161,19 +163,22 @@ msgstr "يمكنك تتبع شحنتك برمز  %(tracking_number)s ."
 
 #: templates/templated_email/order/confirm_order.email:6
 #: templates/templated_email/order/staff_confirm_order.email:6
+#, python-format
 msgctxt "Order confirmation e-mail subject"
-msgid "Order details"
+msgid "Order %(order)s details"
 msgstr ""
 
-#: templates/templated_email/order/confirm_order.email:11
+#: templates/templated_email/order/confirm_order.email:13
 msgctxt "Order confirmation e-mail text"
 msgid ""
 "\n"
 "Thank you for your order. Below is the list of ordered products.\n"
 msgstr ""
+"\n"
+"شكرًا لطلبك. بالاسفل قائمة المنتجات التي قمت بطلبها.\n"
 
-#: templates/templated_email/order/confirm_order.email:15
-#: templates/templated_email/order/staff_confirm_order.email:15
+#: templates/templated_email/order/confirm_order.email:17
+#: templates/templated_email/order/staff_confirm_order.email:17
 #, python-format
 msgctxt "Order confirmation e-mail payment details"
 msgid ""
@@ -182,86 +187,87 @@ msgid ""
 "%(order_details_url)s\n"
 msgstr ""
 
-#: templates/templated_email/order/confirm_order.email:23
-#: templates/templated_email/order/staff_confirm_order.email:23
-msgctxt "Order confirmation e-mail table header"
-msgid "Order summary"
-msgstr ""
-
-#: templates/templated_email/order/confirm_order.email:24
-#: templates/templated_email/order/staff_confirm_order.email:24
-msgctxt "Order confirmation e-mail table header"
-msgid "Subtotal"
-msgstr ""
-
 #: templates/templated_email/order/confirm_order.email:25
 #: templates/templated_email/order/staff_confirm_order.email:25
 msgctxt "Order confirmation e-mail table header"
-msgid "Shipping"
-msgstr ""
+msgid "Order summary"
+msgstr "ملخص الطلبية"
 
 #: templates/templated_email/order/confirm_order.email:26
 #: templates/templated_email/order/staff_confirm_order.email:26
 msgctxt "Order confirmation e-mail table header"
-msgid "Taxes (included)"
-msgstr ""
-
-#: templates/templated_email/order/confirm_order.email:26
-#: templates/templated_email/order/staff_confirm_order.email:26
-msgctxt "Order confirmation e-mail table header"
-msgid "Taxes"
-msgstr ""
+msgid "Subtotal"
+msgstr "المبلغ الإجمالي"
 
 #: templates/templated_email/order/confirm_order.email:27
 #: templates/templated_email/order/staff_confirm_order.email:27
 msgctxt "Order confirmation e-mail table header"
-msgid "Discount:"
-msgstr ""
+msgid "Shipping"
+msgstr "الشحن"
 
 #: templates/templated_email/order/confirm_order.email:28
 #: templates/templated_email/order/staff_confirm_order.email:28
 msgctxt "Order confirmation e-mail table header"
-msgid "Total"
-msgstr ""
+msgid "Taxes (included)"
+msgstr "(شامل) الضرائب"
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/staff_confirm_order.email:28
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr "الضرائب"
+
+#: templates/templated_email/order/confirm_order.email:29
+#: templates/templated_email/order/staff_confirm_order.email:29
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr "خصم:"
 
 #: templates/templated_email/order/confirm_order.email:30
 #: templates/templated_email/order/staff_confirm_order.email:30
-#: templates/templated_email/source/confirm_order.mjml:29
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr "المجموع"
+
+#: templates/templated_email/order/confirm_order.email:32
+#: templates/templated_email/order/staff_confirm_order.email:32
+#: templates/templated_email/source/confirm_order.mjml:35
 #: templates/templated_email/source/staff_confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
 msgstr "عنوان الفاتورة"
 
-#: templates/templated_email/order/confirm_order.email:31
-#: templates/templated_email/order/staff_confirm_order.email:31
-#: templates/templated_email/source/confirm_order.mjml:39
+#: templates/templated_email/order/confirm_order.email:33
+#: templates/templated_email/order/staff_confirm_order.email:33
+#: templates/templated_email/source/confirm_order.mjml:45
 #: templates/templated_email/source/staff_confirm_order.mjml:39
 msgctxt "Order confirmation e-mail text"
 msgid "No billing address"
 msgstr "لا يوجد عنوان للفواتير."
 
-#: templates/templated_email/order/confirm_order.email:33
-#: templates/templated_email/order/staff_confirm_order.email:33
-#: templates/templated_email/source/confirm_order.mjml:30
+#: templates/templated_email/order/confirm_order.email:35
+#: templates/templated_email/order/staff_confirm_order.email:35
+#: templates/templated_email/source/confirm_order.mjml:36
 #: templates/templated_email/source/staff_confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
 msgstr "عنوان الشحن"
 
-#: templates/templated_email/order/confirm_order.email:34
-#: templates/templated_email/order/staff_confirm_order.email:34
-#: templates/templated_email/source/confirm_order.mjml:46
+#: templates/templated_email/order/confirm_order.email:36
+#: templates/templated_email/order/staff_confirm_order.email:36
+#: templates/templated_email/source/confirm_order.mjml:52
 #: templates/templated_email/source/staff_confirm_order.mjml:46
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr "لا يتطلب الشحن"
 
 #: templates/templated_email/order/payment/confirm_payment.email:4
+#, python-format
 msgctxt "Payment confirmation subject"
-msgid "Payment details"
+msgid "Order %(order)s payment details"
 msgstr ""
 
-#: templates/templated_email/order/payment/confirm_payment.email:9
+#: templates/templated_email/order/payment/confirm_payment.email:11
 msgctxt "Payment confirmation email text"
 msgid ""
 "\n"
@@ -269,7 +275,7 @@ msgid ""
 "Your payment was successfully charged.\n"
 msgstr ""
 
-#: templates/templated_email/order/staff_confirm_order.email:11
+#: templates/templated_email/order/staff_confirm_order.email:13
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
 "\n"
@@ -351,15 +357,24 @@ msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
 msgstr "شكرا لطلبك. فيما يلي قائمة المنتجات في الطلبيه الخاص بك."
 
-#: templates/templated_email/source/confirm_fulfillment.mjml:27
+#: templates/templated_email/source/confirm_fulfillment.mjml:21
+#: templates/templated_email/source/update_fulfillment.mjml:21
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"You can track your shipment with <a "
+"href=\"%(tracking_number)s\">%(tracking_number)s</a> link."
+msgstr ""
+
+#: templates/templated_email/source/confirm_fulfillment.mjml:33
 msgctxt "Fulfillment digital products email text"
 msgid ""
 "You can download your digital products by clicking in download link(s)."
 msgstr "يمكنك تنزيل منتجاتك الرقمية بالنقر فوق رابط (روابط) التنزيل."
 
-#: templates/templated_email/source/confirm_order.mjml:17
+#: templates/templated_email/source/confirm_order.mjml:18
 #, python-format
-msgctxt "Order confirmation e-mail text"
+msgctxt "Order confirmation e-mail text with payment details"
 msgid ""
 "Thank you for your order. Below is the list of ordered products. To see your"
 " payment details please visit: <a "
@@ -367,6 +382,11 @@ msgid ""
 msgstr ""
 "شكرا لطلبك. فيما يلي قائمة المنتجات المطلوبة. للاطلاع على تفاصيل الدفع ، "
 "يرجى زيارة \\:  <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+
+#: templates/templated_email/source/confirm_order.mjml:22
+msgctxt "Order confirmation e-mail text"
+msgid "Thank you for your order. Below is the list of ordered products."
+msgstr ""
 
 #: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
@@ -496,9 +516,3 @@ msgid ""
 msgstr ""
 "تم تحديث حالة الشحن الخاصة بك. فيما يلي قائمة بالمنتجات المطلوبة والتي تم "
 "تحديثها مع رقم التتبع الجديد."
-
-#: templates/templated_email/source/update_fulfillment.mjml:20
-#, python-format
-msgctxt "Fulfillment update email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr "يمكنك تتبع شحنتك برمز  %(tracking_number)s ."

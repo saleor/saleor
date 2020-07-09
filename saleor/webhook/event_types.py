@@ -14,6 +14,10 @@ class WebhookEventType:
     ORDER_CANCELLED = "order_cancelled"
     ORDER_FULFILLED = "order_fulfilled"
 
+    INVOICE_REQUESTED = "invoice_requested"
+    INVOICE_DELETED = "invoice_deleted"
+    INVOICE_SENT = "invoice_sent"
+
     FULFILLMENT_CREATED = "fulfillment_created"
 
     CUSTOMER_CREATED = "customer_created"
@@ -33,6 +37,9 @@ class WebhookEventType:
         ORDER_UPDATED: "Order updated",
         ORDER_CANCELLED: "Order cancelled",
         ORDER_FULFILLED: "Order fulfilled",
+        INVOICE_REQUESTED: "Invoice requested",
+        INVOICE_DELETED: "Invoice deleted",
+        INVOICE_SENT: "Invoice sent",
         CUSTOMER_CREATED: "Customer created",
         PRODUCT_CREATED: "Product created",
         # CHECKOUT_QUANTITY_CHANGED is deprecated. It will be removed in Saleor 3.0
@@ -49,6 +56,9 @@ class WebhookEventType:
         (ORDER_UPDATED, DISPLAY_LABELS[ORDER_UPDATED]),
         (ORDER_CANCELLED, DISPLAY_LABELS[ORDER_CANCELLED]),
         (ORDER_FULFILLED, DISPLAY_LABELS[ORDER_FULFILLED]),
+        (INVOICE_REQUESTED, DISPLAY_LABELS[INVOICE_REQUESTED]),
+        (INVOICE_DELETED, DISPLAY_LABELS[INVOICE_DELETED]),
+        (INVOICE_SENT, DISPLAY_LABELS[INVOICE_SENT]),
         (CUSTOMER_CREATED, DISPLAY_LABELS[CUSTOMER_CREATED]),
         (PRODUCT_CREATED, DISPLAY_LABELS[PRODUCT_CREATED]),
         # CHECKOUT_QUANTITY_CHANGED is deprecated. It will be removed in Saleor 3.0
@@ -64,6 +74,9 @@ class WebhookEventType:
         ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CANCELLED: OrderPermissions.MANAGE_ORDERS,
         ORDER_FULFILLED: OrderPermissions.MANAGE_ORDERS,
+        INVOICE_REQUESTED: OrderPermissions.MANAGE_ORDERS,
+        INVOICE_DELETED: OrderPermissions.MANAGE_ORDERS,
+        INVOICE_SENT: OrderPermissions.MANAGE_ORDERS,
         CUSTOMER_CREATED: AccountPermissions.MANAGE_USERS,
         PRODUCT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         CHECKOUT_QUANTITY_CHANGED: CheckoutPermissions.MANAGE_CHECKOUTS,

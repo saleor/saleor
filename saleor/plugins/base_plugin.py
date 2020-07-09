@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
     from ..order.models import Fulfillment, OrderLine, Order
+    from ..invoice.models import Invoice
     from ..payment.interface import GatewayResponse, PaymentData, CustomerSource
 
 
@@ -210,6 +211,31 @@ class BasePlugin:
         Overwrite this method if you need to trigger specific logic after an order is
         created.
         """
+        return NotImplemented
+
+    def invoice_request(
+        self,
+        order: "Order",
+        invoice: "Invoice",
+        number: Optional[str],
+        previous_value: Any,
+    ) -> Any:
+        """Trigger when invoice creation starts.
+
+        Overwrite to create invoice with proper data, call invoice.update_invoice.
+        """
+        return NotImplemented
+
+    def invoice_delete(self, invoice: "Invoice", previous_value: Any):
+        """Trigger before invoice is deleted.
+
+        Perform any extra logic before the invoice gets deleted.
+        Note there is no need to run invoice.delete() as it will happen in mutation.
+        """
+        return NotImplemented
+
+    def invoice_sent(self, invoice: "Invoice", email: str, previous_value: Any):
+        """Trigger after invoice is sent."""
         return NotImplemented
 
     def assign_tax_code_to_object_meta(

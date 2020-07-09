@@ -1,10 +1,11 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from ...webhook.event_types import WebhookEventType
 from ...webhook.payloads import (
     generate_checkout_payload,
     generate_customer_payload,
     generate_fulfillment_payload,
+    generate_invoice_payload,
     generate_order_payload,
     generate_product_payload,
 )
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
     from ...account.models import User
     from ...product.models import Product
     from ...checkout.models import Checkout
+    from ...invoice.models import Invoice
 
 
 class WebhookPlugin(BasePlugin):
@@ -45,6 +47,32 @@ class WebhookPlugin(BasePlugin):
         order_data = generate_order_payload(order)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_UPDATED, order_data)
 
+    def invoice_request(
+        self,
+        order: "Order",
+        invoice: "Invoice",
+        number: Optional[str],
+        previous_value: Any,
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        invoice_data = generate_invoice_payload(invoice)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.INVOICE_REQUESTED, invoice_data
+        )
+
+    def invoice_delete(self, invoice: "Invoice", previous_value: Any):
+        if not self.active:
+            return previous_value
+        invoice_data = generate_invoice_payload(invoice)
+        trigger_webhooks_for_event.delay(WebhookEventType.INVOICE_DELETED, invoice_data)
+
+    def invoice_sent(self, invoice: "Invoice", email: str, previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        invoice_data = generate_invoice_payload(invoice)
+        trigger_webhooks_for_event.delay(WebhookEventType.INVOICE_SENT, invoice_data)
+
     def order_cancelled(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
@@ -60,7 +88,6 @@ class WebhookPlugin(BasePlugin):
     def fulfillment_created(self, fulfillment: "Fulfillment", previous_value):
         if not self.active:
             return previous_value
-
         fulfillment_data = generate_fulfillment_payload(fulfillment)
         trigger_webhooks_for_event.delay(
             WebhookEventType.FULFILLMENT_CREATED, fulfillment_data
@@ -69,7 +96,6 @@ class WebhookPlugin(BasePlugin):
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
-
         customer_data = generate_customer_payload(customer)
         trigger_webhooks_for_event.delay(
             WebhookEventType.CUSTOMER_CREATED, customer_data
