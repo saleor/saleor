@@ -234,6 +234,7 @@ INSTALLED_APPS = [
     "saleor.product",
     "saleor.checkout",
     "saleor.core",
+    "saleor.csv",
     "saleor.graphql",
     "saleor.menu",
     "saleor.order",

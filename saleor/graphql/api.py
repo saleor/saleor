@@ -4,6 +4,7 @@ from .account.schema import AccountMutations, AccountQueries
 from .app.schema import AppMutations, AppQueries
 from .checkout.schema import CheckoutMutations, CheckoutQueries
 from .core.schema import CoreQueries
+from .csv.schema import CsvMutations, CsvQueries
 from .discount.schema import DiscountMutations, DiscountQueries
 from .giftcard.schema import GiftCardMutations, GiftCardQueries
 from .invoice.schema import InvoiceMutations
@@ -26,6 +27,7 @@ class Query(
     AppQueries,
     CheckoutQueries,
     CoreQueries,
+    CsvQueries,
     DiscountQueries,
     PluginsQueries,
     GiftCardQueries,
@@ -48,6 +50,7 @@ class Mutation(
     AccountMutations,
     AppMutations,
     CheckoutMutations,
+    CsvMutations,
     DiscountMutations,
     PluginsMutations,
     GiftCardMutations,

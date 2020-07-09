@@ -26,6 +26,11 @@ if TYPE_CHECKING:
 
 
 def build_absolute_uri(location: str) -> Optional[str]:
+    """Create absolute uri from location.
+
+    If provided location is absolute uri by itself, it returns unchanged value,
+    otherwise if provided location is relative, absolute uri is built and returned.
+    """
     host = Site.objects.get_current().domain
     protocol = "https" if settings.ENABLE_SSL else "http"
     current_uri = "%s://%s" % (protocol, host)

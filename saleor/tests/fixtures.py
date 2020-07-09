@@ -17,6 +17,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.forms import ModelForm
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
+from django.utils import timezone
 from django_countries import countries
 from PIL import Image
 from prices import Money, TaxedMoney
@@ -28,6 +29,8 @@ from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
 from ..core import JobStatus
 from ..core.payments import PaymentInterface
+from ..csv.events import ExportEvents
+from ..csv.models import ExportEvent, ExportFile
 from ..discount import DiscountInfo, DiscountValueType, VoucherType
 from ..discount.models import (
     Sale,
@@ -2250,4 +2253,79 @@ def allocations(order_list, stock):
                 order_line=lines[2], stock=stock, quantity_allocated=lines[2].quantity
             ),
         ]
+    )
+
+
+@pytest.fixture
+def user_export_file(staff_user):
+    job = ExportFile.objects.create(user=staff_user)
+    return job
+
+
+@pytest.fixture
+def app_export_file(app):
+    job = ExportFile.objects.create(app=app)
+    return job
+
+
+@pytest.fixture
+def export_file_list(staff_user):
+    export_file_list = list(
+        ExportFile.objects.bulk_create(
+            [
+                ExportFile(user=staff_user),
+                ExportFile(user=staff_user,),
+                ExportFile(user=staff_user, status=JobStatus.SUCCESS,),
+                ExportFile(user=staff_user, status=JobStatus.SUCCESS),
+                ExportFile(user=staff_user, status=JobStatus.FAILED,),
+            ]
+        )
+    )
+
+    updated_date = datetime.datetime(
+        2019, 4, 18, tzinfo=timezone.get_current_timezone()
+    )
+    created_date = datetime.datetime(
+        2019, 4, 10, tzinfo=timezone.get_current_timezone()
+    )
+    new_created_and_updated_dates = [
+        (created_date, updated_date),
+        (created_date, updated_date + datetime.timedelta(hours=2)),
+        (
+            created_date + datetime.timedelta(hours=2),
+            updated_date - datetime.timedelta(days=2),
+        ),
+        (created_date - datetime.timedelta(days=2), updated_date),
+        (
+            created_date - datetime.timedelta(days=5),
+            updated_date - datetime.timedelta(days=5),
+        ),
+    ]
+    for counter, export_file in enumerate(export_file_list):
+        created, updated = new_created_and_updated_dates[counter]
+        export_file.created_at = created
+        export_file.updated_at = updated
+
+    ExportFile.objects.bulk_update(export_file_list, ["created_at", "updated_at"])
+
+    return export_file_list
+
+
+@pytest.fixture
+def user_export_event(user_export_file):
+    return ExportEvent.objects.create(
+        type=ExportEvents.EXPORT_FAILED,
+        export_file=user_export_file,
+        user=user_export_file.user,
+        parameters={"message": "Example error message"},
+    )
+
+
+@pytest.fixture
+def app_export_event(app_export_file):
+    return ExportEvent.objects.create(
+        type=ExportEvents.EXPORT_FAILED,
+        export_file=app_export_file,
+        app=app_export_file.app,
+        parameters={"message": "Example error message"},
     )

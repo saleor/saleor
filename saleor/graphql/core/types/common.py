@@ -7,6 +7,7 @@ from ..enums import (
     AppErrorCode,
     CheckoutErrorCode,
     DiscountErrorCode,
+    ExportErrorCode,
     GiftCardErrorCode,
     InvoiceErrorCode,
     JobStatusEnum,
@@ -104,6 +105,10 @@ class CheckoutError(Error):
 
 class DiscountError(Error):
     code = DiscountErrorCode(description="The error code.", required=True)
+
+
+class ExportError(Error):
+    code = ExportErrorCode(description="The error code.", required=True)
 
 
 class MenuError(Error):
