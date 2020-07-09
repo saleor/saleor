@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ...checkout import calculations
+from ...checkout.utils import cancel_active_payments
 from ...core.permissions import OrderPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.utils import get_client_ip
@@ -140,6 +141,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         cls.clean_payment_amount(info, checkout_total, amount)
         extra_data = {"customer_user_agent": info.context.META.get("HTTP_USER_AGENT")}
 
+        cancel_active_payments(checkout)
+
         payment = create_payment(
             gateway=gateway,
             payment_token=data["token"],
@@ -150,7 +153,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             customer_ip_address=get_client_ip(info.context),
             checkout=checkout,
         )
-        return CheckoutPaymentCreate(payment=payment)
+        return CheckoutPaymentCreate(payment=payment, checkout=checkout)
 
 
 class PaymentCapture(BaseMutation):

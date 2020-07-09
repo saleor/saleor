@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Invoices backend - #5732 by @tomaszszymanski129
 ### Breaking Changes
 
 - Refactor JWT support - These changes could require a handling JWT token in the storefront. Storefront needs to handle a case when the backend returns the exception about the invalid token. - #5734, #5816 by @korycins
@@ -15,6 +16,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add our implementation of UUID scalar - #5646 by @koradon
 - Add AppTokenVerify mutation - #5716 by @korycins
 - Fix specific product voucher in draft orders - #5727 by @fowczarek
+- Add products csv export - #5255 by @IKarbowiak
 - Explicit country assignment in default shipping zones - #5736 by @maarcingebala
 - Drop `json_content` field from the `Menu` model - #5761 by @maarcingebala
 - Strip warehouse name in mutations - #5766 by @koradon
