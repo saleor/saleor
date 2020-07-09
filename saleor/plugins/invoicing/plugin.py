@@ -23,9 +23,9 @@ class InvoicingPlugin(BasePlugin):
         number: Optional[str],
         previous_value: Any,
     ) -> Any:
+        invoice.update_invoice(number=generate_invoice_number())
         file_content, creation_date = generate_invoice_pdf(invoice)
         invoice.created = creation_date
-        invoice.update_invoice(number=generate_invoice_number())
         invoice.invoice_file.save(
             f"invoice-{invoice.number}-order-{order.id}-{uuid4()}.pdf",
             ContentFile(file_content),
