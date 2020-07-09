@@ -19,7 +19,7 @@ class InvoiceRequest(ModelMutation):
     class Meta:
         description = "Request an invoice for the order using plugin."
         model = models.Invoice
-        # permissions = (OrderPermissions.MANAGE_ORDERS,)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
 
