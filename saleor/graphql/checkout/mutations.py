@@ -366,7 +366,9 @@ class CheckoutLinesAdd(BaseMutation):
         update_checkout_shipping_method_if_invalid(
             checkout, lines, info.context.discounts
         )
-        recalculate_checkout_discount(checkout, lines, info.context.discounts)
+        recalculate_checkout_discount(
+            info.context.plugins, checkout, lines, info.context.discounts
+        )
         info.context.plugins.checkout_updated(checkout)
         return CheckoutLinesAdd(checkout=checkout)
 
@@ -413,7 +415,9 @@ class CheckoutLineDelete(BaseMutation):
         update_checkout_shipping_method_if_invalid(
             checkout, lines, info.context.discounts
         )
-        recalculate_checkout_discount(checkout, lines, info.context.discounts)
+        recalculate_checkout_discount(
+            info.context.plugins, checkout, lines, info.context.discounts
+        )
         info.context.plugins.checkout_updated(checkout)
         return CheckoutLineDelete(checkout=checkout)
 
@@ -572,7 +576,9 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         with transaction.atomic():
             shipping_address.save()
             change_shipping_address_in_checkout(checkout, shipping_address)
-        recalculate_checkout_discount(checkout, lines, info.context.discounts)
+        recalculate_checkout_discount(
+            info.context.plugins, checkout, lines, info.context.discounts
+        )
 
         info.context.plugins.checkout_updated(checkout)
         return CheckoutShippingAddressUpdate(checkout=checkout)
@@ -687,7 +693,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         checkout.shipping_method = shipping_method
         checkout.save(update_fields=["shipping_method", "last_change"])
-        recalculate_checkout_discount(checkout, lines, info.context.discounts)
+        recalculate_checkout_discount(
+            info.context.plugins, checkout, lines, info.context.discounts
+        )
         info.context.plugins.checkout_updated(checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)
 
@@ -741,7 +749,9 @@ class CheckoutComplete(BaseMutation):
         user = info.context.user
 
         clean_checkout_shipping(checkout, lines, discounts, CheckoutErrorCode)
-        clean_checkout_payment(checkout, lines, discounts, CheckoutErrorCode)
+        clean_checkout_payment(
+            info.context.plugins, checkout, lines, discounts, CheckoutErrorCode
+        )
 
         payment = checkout.get_last_active_payment()
 
@@ -845,7 +855,9 @@ class CheckoutAddPromoCode(BaseMutation):
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
         lines = fetch_checkout_lines(checkout)
-        add_promo_code_to_checkout(checkout, lines, promo_code, info.context.discounts)
+        add_promo_code_to_checkout(
+            info.context.plugins, checkout, lines, promo_code, info.context.discounts
+        )
         info.context.plugins.checkout_updated(checkout)
         return CheckoutAddPromoCode(checkout=checkout)
 

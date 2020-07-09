@@ -15,6 +15,7 @@ from ...checkout import calculations
 from ...core.taxes import TaxType
 from ...graphql.core.utils.error_codes import PluginErrorCode
 from ..base_plugin import BasePlugin, ConfigurationTypeField
+from ..manager import get_plugins_manager
 from . import (
     DEFAULT_TAX_RATE_NAME,
     TaxRateType,
@@ -82,12 +83,21 @@ class VatlayerPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
+        manager = get_plugins_manager()
         return (
             calculations.checkout_subtotal(
-                checkout=checkout, lines=lines, address=address, discounts=discounts
+                manager=manager,
+                checkout=checkout,
+                lines=lines,
+                address=address,
+                discounts=discounts,
             )
             + calculations.checkout_shipping_price(
-                checkout=checkout, lines=lines, address=address, discounts=discounts
+                manager=manager,
+                checkout=checkout,
+                lines=lines,
+                address=address,
+                discounts=discounts,
             )
             - checkout.discount
         )

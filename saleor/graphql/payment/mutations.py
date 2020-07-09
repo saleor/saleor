@@ -72,6 +72,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         address = checkout.shipping_address or checkout.billing_address
         checkout_total = (
             calculations.checkout_total(
+                manager=info.context.plugins,
                 checkout=checkout,
                 lines=lines,
                 address=address,

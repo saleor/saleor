@@ -208,7 +208,11 @@ class Checkout(CountableDjangoObjectType):
             address, lines, discounts = data
             taxed_total = (
                 calculations.checkout_total(
-                    checkout=root, lines=lines, address=address, discounts=discounts
+                    manager=info.context.plugins,
+                    checkout=root,
+                    lines=lines,
+                    address=address,
+                    discounts=discounts,
                 )
                 - root.get_total_gift_cards_balance()
             )
@@ -229,7 +233,11 @@ class Checkout(CountableDjangoObjectType):
         def calculate_subtotal_price(data):
             address, lines, discounts = data
             return calculations.checkout_subtotal(
-                checkout=root, lines=lines, address=address, discounts=discounts
+                manager=info.context.plugins,
+                checkout=root,
+                lines=lines,
+                address=address,
+                discounts=discounts,
             )
 
         address_id = root.shipping_address_id or root.billing_address_id
@@ -247,7 +255,11 @@ class Checkout(CountableDjangoObjectType):
         def calculate_shipping_price(data):
             address, lines, discounts = data
             return calculations.checkout_shipping_price(
-                checkout=root, lines=lines, address=address, discounts=discounts
+                manager=info.context.plugins,
+                checkout=root,
+                lines=lines,
+                address=address,
+                discounts=discounts,
             )
 
         address = (

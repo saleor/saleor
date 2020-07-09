@@ -2,18 +2,19 @@ from typing import TYPE_CHECKING, Iterable, Optional
 
 from ..core.taxes import quantize_price
 from ..discount import DiscountInfo
-from ..plugins.manager import get_plugins_manager
 
 if TYPE_CHECKING:
     from prices import TaxedMoney
     from ..account.models import Address
     from ..product.models import Collection, Product, ProductVariant
+    from ..plugins.manager import PluginsManager
     from .models import Checkout, CheckoutLine
     from . import CheckoutLineInfo
 
 
 def checkout_shipping_price(
     *,
+    manager: "PluginsManager",
     checkout: "Checkout",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
@@ -23,7 +24,7 @@ def checkout_shipping_price(
 
     It takes in account all plugins.
     """
-    calculated_checkout_shipping = get_plugins_manager().calculate_checkout_shipping(
+    calculated_checkout_shipping = manager.calculate_checkout_shipping(
         checkout, lines, address, discounts or []
     )
     return quantize_price(calculated_checkout_shipping, checkout.currency)
@@ -31,6 +32,7 @@ def checkout_shipping_price(
 
 def checkout_subtotal(
     *,
+    manager: "PluginsManager",
     checkout: "Checkout",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
@@ -40,7 +42,7 @@ def checkout_subtotal(
 
     It takes in account all plugins.
     """
-    calculated_checkout_subtotal = get_plugins_manager().calculate_checkout_subtotal(
+    calculated_checkout_subtotal = manager.calculate_checkout_subtotal(
         checkout, lines, address, discounts or []
     )
     return quantize_price(calculated_checkout_subtotal, checkout.currency)
@@ -48,6 +50,7 @@ def checkout_subtotal(
 
 def checkout_total(
     *,
+    manager: "PluginsManager",
     checkout: "Checkout",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
@@ -60,7 +63,7 @@ def checkout_total(
 
     It takes in account all plugins.
     """
-    calculated_checkout_total = get_plugins_manager().calculate_checkout_total(
+    calculated_checkout_total = manager.calculate_checkout_total(
         checkout, lines, address, discounts or []
     )
     return quantize_price(calculated_checkout_total, checkout.currency)
@@ -68,6 +71,7 @@ def checkout_total(
 
 def checkout_line_total(
     *,
+    manager: "PluginsManager",
     line: "CheckoutLine",  # FIXME: convert to CheckoutLineInfo
     variant: "ProductVariant",
     product: "Product",
@@ -79,7 +83,7 @@ def checkout_line_total(
 
     It takes in account all plugins.
     """
-    calculated_line_total = get_plugins_manager().calculate_checkout_line_total(
+    calculated_line_total = manager.calculate_checkout_line_total(
         line, variant, product, collections, address, discounts or []
     )
     return quantize_price(calculated_line_total, line.checkout.currency)

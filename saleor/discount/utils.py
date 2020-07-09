@@ -14,6 +14,7 @@ from .models import NotApplicable, Sale, VoucherCustomer
 if TYPE_CHECKING:
     # flake8: noqa
     from .models import Voucher
+    from ..plugins.manager import PluginsManager
     from ..product.models import Collection, Product
     from ..checkout import CheckoutLineInfo
     from ..checkout.models import Checkout, CheckoutLine
@@ -122,6 +123,7 @@ def get_discounted_lines(lines, voucher):
 
 
 def validate_voucher_for_checkout(
+    manager: "PluginsManager",
     voucher: "Voucher",
     checkout: "Checkout",
     lines: Iterable["CheckoutLineInfo"],
@@ -129,7 +131,11 @@ def validate_voucher_for_checkout(
 ):
     address = checkout.shipping_address or checkout.billing_address
     subtotal = calculations.checkout_subtotal(
-        checkout=checkout, lines=lines, address=address, discounts=discounts
+        manager=manager,
+        checkout=checkout,
+        lines=lines,
+        address=address,
+        discounts=discounts,
     )
 
     customer_email = checkout.get_customer_email()

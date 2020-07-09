@@ -12,6 +12,7 @@ from ...checkout.utils import (
 )
 from ...discount import DiscountInfo
 from ...payment.error_codes import PaymentErrorCode
+from ...plugins.manager import PluginsManager
 
 
 def clean_checkout_shipping(
@@ -65,13 +66,14 @@ def clean_billing_address(
 
 
 def clean_checkout_payment(
+    manager: PluginsManager,
     checkout: Checkout,
     lines: Iterable[CheckoutLineInfo],
     discounts: Iterable[DiscountInfo],
     error_code: CheckoutErrorCode,
 ):
     clean_billing_address(checkout, error_code)
-    if not is_fully_paid(checkout, lines, discounts):
+    if not is_fully_paid(manager, checkout, lines, discounts):
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total amount",
             code=error_code.CHECKOUT_NOT_FULLY_PAID,

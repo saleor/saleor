@@ -40,7 +40,7 @@ from ..giftcard.utils import (
 from ..order.actions import order_created
 from ..order.emails import send_order_confirmation, send_staff_order_confirmation
 from ..order.models import Order, OrderLine
-from ..plugins.manager import get_plugins_manager
+from ..plugins.manager import PluginsManager, get_plugins_manager
 from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
 from ..warehouse.management import allocate_stock
@@ -214,6 +214,7 @@ def change_shipping_address_in_checkout(checkout, address):
 
 
 def _get_shipping_voucher_discount_for_checkout(
+    manager: PluginsManager,
     voucher: Voucher,
     checkout: Checkout,
     lines: Iterable[CheckoutLineInfo],
@@ -236,18 +237,27 @@ def _get_shipping_voucher_discount_for_checkout(
             raise NotApplicable(msg)
 
     shipping_price = calculations.checkout_shipping_price(
-        checkout=checkout, lines=lines, address=address, discounts=discounts
+        manager=manager,
+        checkout=checkout,
+        lines=lines,
+        address=address,
+        discounts=discounts,
     ).gross
     return voucher.get_discount_amount_for(shipping_price)
 
 
 def _get_products_voucher_discount(
-    lines, voucher, discounts: Optional[Iterable[DiscountInfo]] = None
+    manager: PluginsManager,
+    lines,
+    voucher,
+    discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
     """Calculate products discount value for a voucher, depending on its type."""
     prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        prices = get_prices_of_discounted_specific_product(lines, voucher, discounts)
+        prices = get_prices_of_discounted_specific_product(
+            manager, lines, voucher, discounts
+        )
     if not prices:
         msg = "This offer is only valid for selected items."
         raise NotApplicable(msg)
@@ -255,6 +265,7 @@ def _get_products_voucher_discount(
 
 
 def get_prices_of_discounted_specific_product(
+    manager: PluginsManager,
     lines: List[CheckoutLine],
     voucher: Voucher,
     discounts: Optional[Iterable[DiscountInfo]] = None,
@@ -277,6 +288,7 @@ def get_prices_of_discounted_specific_product(
 
     for line in discounted_lines:
         line_total = calculations.checkout_line_total(
+            manager=manager,
             line=line,
             variant=line.variant,
             product=line.variant.product,
@@ -293,6 +305,7 @@ def get_prices_of_discounted_specific_product(
 
 
 def get_voucher_discount_for_checkout(
+    manager: PluginsManager,
     voucher: Voucher,
     checkout: Checkout,
     lines: Iterable["CheckoutLineInfo"],
@@ -303,18 +316,22 @@ def get_voucher_discount_for_checkout(
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
-    validate_voucher_for_checkout(voucher, checkout, lines, discounts)
+    validate_voucher_for_checkout(manager, voucher, checkout, lines, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
         subtotal = calculations.checkout_subtotal(
-            checkout=checkout, lines=lines, address=address, discounts=discounts
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            address=address,
+            discounts=discounts,
         ).gross
         return voucher.get_discount_amount_for(subtotal)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(
-            voucher, checkout, lines, address, discounts
+            manager, voucher, checkout, lines, address, discounts
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        return _get_products_voucher_discount(lines, voucher, discounts)
+        return _get_products_voucher_discount(manager, lines, voucher, discounts)
     raise NotImplementedError("Unknown discount type")
 
 
@@ -336,6 +353,7 @@ def get_voucher_for_checkout(
 
 
 def recalculate_checkout_discount(
+    manager: PluginsManager,
     checkout: Checkout,
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
@@ -350,13 +368,17 @@ def recalculate_checkout_discount(
         address = checkout.shipping_address or checkout.billing_address
         try:
             discount = get_voucher_discount_for_checkout(
-                voucher, checkout, lines, address, discounts
+                manager, voucher, checkout, lines, address, discounts
             )
         except NotApplicable:
             remove_voucher_from_checkout(checkout)
         else:
             subtotal = calculations.checkout_subtotal(
-                checkout=checkout, lines=lines, address=address, discounts=discounts
+                manager=manager,
+                checkout=checkout,
+                lines=lines,
+                address=address,
+                discounts=discounts,
             ).gross
             checkout.discount = (
                 min(discount, subtotal)
@@ -382,6 +404,7 @@ def recalculate_checkout_discount(
 
 
 def add_promo_code_to_checkout(
+    manager: PluginsManager,
     checkout: Checkout,
     lines: Iterable["CheckoutLineInfo"],
     promo_code: str,
@@ -392,7 +415,7 @@ def add_promo_code_to_checkout(
     Raise InvalidPromoCode if promo code does not match to any voucher or gift card.
     """
     if promo_code_is_voucher(promo_code):
-        add_voucher_code_to_checkout(checkout, lines, promo_code, discounts)
+        add_voucher_code_to_checkout(manager, checkout, lines, promo_code, discounts)
     elif promo_code_is_gift_card(promo_code):
         add_gift_card_code_to_checkout(checkout, promo_code)
     else:
@@ -400,6 +423,7 @@ def add_promo_code_to_checkout(
 
 
 def add_voucher_code_to_checkout(
+    manager: PluginsManager,
     checkout: Checkout,
     lines: Iterable["CheckoutLineInfo"],
     voucher_code: str,
@@ -414,7 +438,7 @@ def add_voucher_code_to_checkout(
     except Voucher.DoesNotExist:
         raise InvalidPromoCode()
     try:
-        add_voucher_to_checkout(checkout, lines, voucher, discounts)
+        add_voucher_to_checkout(manager, checkout, lines, voucher, discounts)
     except NotApplicable:
         raise ValidationError(
             {
@@ -427,6 +451,7 @@ def add_voucher_code_to_checkout(
 
 
 def add_voucher_to_checkout(
+    manager: PluginsManager,
     checkout: Checkout,
     lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
@@ -438,7 +463,7 @@ def add_voucher_to_checkout(
     """
     address = checkout.shipping_address or checkout.billing_address
     discount = get_voucher_discount_for_checkout(
-        voucher, checkout, lines, address, discounts
+        manager, voucher, checkout, lines, address, discounts
     )
     checkout.voucher_code = voucher.code
     checkout.discount_name = voucher.name
@@ -716,7 +741,11 @@ def prepare_order_data(
     address = checkout.shipping_address or checkout.billing_address
 
     taxed_total = calculations.checkout_total(
-        checkout=checkout, lines=lines, address=address, discounts=discounts
+        manager=manager,
+        checkout=checkout,
+        lines=lines,
+        address=address,
+        discounts=discounts,
     )
     cards_total = checkout.get_total_gift_cards_balance()
     taxed_total.gross -= cards_total
@@ -828,6 +857,7 @@ def create_order(
 
 
 def is_fully_paid(
+    manager: PluginsManager,
     checkout: Checkout,
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
@@ -841,7 +871,11 @@ def is_fully_paid(
     address = checkout.shipping_address or checkout.billing_address
     checkout_total = (
         calculations.checkout_total(
-            checkout=checkout, lines=lines, address=address, discounts=discounts
+            manager=manager,
+            checkout=checkout,
+            lines=lines,
+            address=address,
+            discounts=discounts,
         )
         - checkout.get_total_gift_cards_balance()
     )
@@ -852,6 +886,7 @@ def is_fully_paid(
 
 
 def clean_checkout(
+    manager: PluginsManager,
     checkout: Checkout,
     lines: Iterable["CheckoutLineInfo"],
     discounts: Iterable[DiscountInfo],
@@ -880,7 +915,7 @@ def clean_checkout(
             code=CheckoutErrorCode.BILLING_ADDRESS_NOT_SET.value,
         )
 
-    if not is_fully_paid(checkout, lines, discounts):
+    if not is_fully_paid(manager, checkout, lines, discounts):
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total amount",
             code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,
