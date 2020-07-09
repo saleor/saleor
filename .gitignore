@@ -34,3 +34,4 @@ dist/
 
 # Exported results file
 django-queries-results.html
+saleor/app/media/
