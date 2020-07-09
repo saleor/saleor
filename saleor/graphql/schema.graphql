@@ -1763,6 +1763,108 @@ type Error {
   message: String
 }
 
+type ExportError {
+  field: String
+  message: String
+  code: ExportErrorCode!
+}
+
+enum ExportErrorCode {
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
+type ExportEvent implements Node {
+  id: ID!
+  date: DateTime!
+  type: ExportEventsEnum!
+  user: User
+  app: App
+  message: String!
+}
+
+enum ExportEventsEnum {
+  EXPORT_PENDING
+  EXPORT_SUCCESS
+  EXPORT_FAILED
+  EXPORT_DELETED
+  EXPORTED_FILE_SENT
+  EXPORT_FAILED_INFO_SENT
+}
+
+type ExportFile implements Node & Job {
+  id: ID!
+  user: User
+  app: App
+  status: JobStatusEnum!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  url: String
+  events: [ExportEvent!]
+}
+
+type ExportFileCountableConnection {
+  pageInfo: PageInfo!
+  edges: [ExportFileCountableEdge!]!
+  totalCount: Int
+}
+
+type ExportFileCountableEdge {
+  node: ExportFile!
+  cursor: String!
+}
+
+input ExportFileFilterInput {
+  createdAt: DateTimeRangeInput
+  updatedAt: DateTimeRangeInput
+  status: JobStatusEnum
+  user: String
+  app: String
+}
+
+enum ExportFileSortField {
+  STATUS
+  CREATED_AT
+  UPDATED_AT
+}
+
+input ExportFileSortingInput {
+  direction: OrderDirection!
+  field: ExportFileSortField!
+}
+
+input ExportInfoInput {
+  attributes: [ID!]
+  warehouses: [ID!]
+  fields: [ProductFieldEnum!]
+}
+
+type ExportProducts {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  exportFile: ExportFile
+  exportErrors: [ExportError!]!
+}
+
+input ExportProductsInput {
+  scope: ExportScope!
+  filter: ProductFilterInput
+  ids: [ID!]
+  exportInfo: ExportInfoInput
+  fileType: FileTypesEnum!
+}
+
+enum ExportScope {
+  ALL
+  IDS
+  FILTER
+}
+
+enum FileTypesEnum {
+  CSV
+  XLSX
+}
+
 type Fulfillment implements Node & ObjectWithMetadata {
   id: ID!
   fulfillmentOrder: Int!
@@ -2552,6 +2654,7 @@ type Mutation {
   voucherCataloguesAdd(id: ID!, input: CatalogueInput!): VoucherAddCatalogues
   voucherCataloguesRemove(id: ID!, input: CatalogueInput!): VoucherRemoveCatalogues
   voucherTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): VoucherTranslate
+  exportProducts(input: ExportProductsInput!): ExportProducts
   checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID!, redirectUrl: String, storeSource: Boolean = false): CheckoutComplete
@@ -3542,6 +3645,23 @@ enum ProductErrorCode {
   VARIANT_NO_DIGITAL_CONTENT
 }
 
+enum ProductFieldEnum {
+  NAME
+  DESCRIPTION
+  PRODUCT_TYPE
+  CATEGORY
+  VISIBLE
+  PRODUCT_WEIGHT
+  COLLECTIONS
+  CHARGE_TAXES
+  PRODUCT_IMAGES
+  VARIANT_SKU
+  VARIANT_PRICE
+  COST_PRICE
+  VARIANT_WEIGHT
+  VARIANT_IMAGES
+}
+
 input ProductFilterInput {
   isPublished: Boolean
   collections: [ID]
@@ -4039,6 +4159,8 @@ type Query {
   sales(filter: SaleFilterInput, sortBy: SaleSortingInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
   vouchers(filter: VoucherFilterInput, sortBy: VoucherSortingInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
+  exportFile(id: ID!): ExportFile
+  exportFiles(filter: ExportFileFilterInput, sortBy: ExportFileSortingInput, before: String, after: String, first: Int, last: Int): ExportFileCountableConnection
   taxTypes: [TaxType]
   checkout(token: UUID): Checkout
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
