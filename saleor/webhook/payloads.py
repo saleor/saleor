@@ -59,25 +59,25 @@ def generate_order_payload(order: "Order"):
     serializer = PayloadSerializer()
     fulfillment_fields = ("status", "tracking_number", "created")
     payment_fields = (
-        "gateway"
-        "is_active"
-        "created"
-        "modified"
-        "charge_status"
-        "total"
-        "captured_amount"
-        "currency"
-        "billing_email"
-        "billing_first_name"
-        "billing_last_name"
-        "billing_company_name"
-        "billing_address_1"
-        "billing_address_2"
-        "billing_city"
-        "billing_city_area"
-        "billing_postal_code"
-        "billing_country_code"
-        "billing_country_area"
+        "gateway",
+        "is_active",
+        "created",
+        "modified",
+        "charge_status",
+        "total",
+        "captured_amount",
+        "currency",
+        "billing_email",
+        "billing_first_name",
+        "billing_last_name",
+        "billing_company_name",
+        "billing_address_1",
+        "billing_address_2",
+        "billing_city",
+        "billing_city_area",
+        "billing_postal_code",
+        "billing_country_code",
+        "billing_country_area",
     )
     line_fields = (
         "product_name",
