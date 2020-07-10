@@ -1,0 +1,20 @@
+{% load i18n %}
+
+{% block subject %}
+  {% trans "Export products data" context "Export products e-mail subject" %}
+{% endblock %}
+
+{% block plain %}
+{% include 'templated_email/shared/_header.email' %}
+
+{% blocktrans trimmed context "Export products e-mail text" %}
+Sorry, we cannot finish product export, some unexpected errors occurred.
+Please try again.
+{% endblocktrans %}
+
+{% include 'templated_email/shared/_footer.email' %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/compiled/export_failed.html' %}
+{% endblock %}

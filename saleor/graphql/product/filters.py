@@ -25,14 +25,12 @@ from ..core.utils import from_global_id_strict_type
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_by_query_param, filter_range_field
 from ..warehouse import types as warehouse_types
-from . import types
 from .enums import (
     CollectionPublished,
     ProductTypeConfigurable,
     ProductTypeEnum,
     StockAvailability,
 )
-from .types.attributes import AttributeInput
 
 
 def filter_fields_containing_value(*search_fields: str):
@@ -141,7 +139,7 @@ def filter_attributes(qs, _, value):
 
 def filter_categories(qs, _, value):
     if value:
-        categories = get_nodes(value, types.Category)
+        categories = get_nodes(value, "Category", Category)
         qs = filter_products_by_categories(qs, categories)
     return qs
 
@@ -152,7 +150,7 @@ def filter_has_category(qs, _, value):
 
 def filter_collections(qs, _, value):
     if value:
-        collections = get_nodes(value, types.Collection)
+        collections = get_nodes(value, "Collection", Collection)
         qs = filter_products_by_collections(qs, collections)
     return qs
 
@@ -180,7 +178,7 @@ def filter_stock_availability(qs, _, value):
 def filter_search(qs, _, value):
     if value:
         search = picker.pick_backend()
-        qs &= search(value).distinct()
+        qs = qs.distinct() & search(value).distinct()
     return qs
 
 
@@ -305,7 +303,8 @@ class ProductFilter(django_filters.FilterSet):
         field_name="minimal_price_amount",
     )
     attributes = ListObjectTypeFilter(
-        input_class=AttributeInput, method=filter_attributes
+        input_class="saleor.graphql.product.types.attributes.AttributeInput",
+        method=filter_attributes,
     )
     stock_availability = EnumFilter(
         input_class=StockAvailability, method=filter_stock_availability

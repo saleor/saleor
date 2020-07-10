@@ -13,7 +13,7 @@ from ....account.models import User
 from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout
-from ....checkout.utils import add_variant_to_checkout, is_fully_paid
+from ....checkout.utils import add_variant_to_checkout
 from ....core.payments import PaymentInterface
 from ....core.taxes import zero_money
 from ....order.models import Order
@@ -2703,59 +2703,3 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
 
     msg = "Provided payment methods can not cover the checkout's total amount"
     assert e.value.error_list[0].message == msg
-
-
-def test_is_fully_paid(checkout_with_item, payment_dummy):
-    checkout = checkout_with_item
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
-    payment = payment_dummy
-    payment.is_active = True
-    payment.order = None
-    payment.total = total.gross.amount
-    payment.currency = total.gross.currency
-    payment.checkout = checkout
-    payment.save()
-    is_paid = is_fully_paid(checkout, list(checkout), None)
-    assert is_paid
-
-
-def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
-    checkout = checkout_with_item
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
-    payment = payment_dummy
-    payment.is_active = True
-    payment.order = None
-    payment.total = total.gross.amount - 1
-    payment.currency = total.gross.currency
-    payment.checkout = checkout
-    payment.save()
-    payment2 = payment_dummy
-    payment2.pk = None
-    payment2.is_active = True
-    payment2.order = None
-    payment2.total = 1
-    payment2.currency = total.gross.currency
-    payment2.checkout = checkout
-    payment2.save()
-    is_paid = is_fully_paid(checkout, list(checkout), None)
-    assert is_paid
-
-
-def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
-    checkout = checkout_with_item
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
-    payment = payment_dummy
-    payment.is_active = True
-    payment.order = None
-    payment.total = total.gross.amount - 1
-    payment.currency = total.gross.currency
-    payment.checkout = checkout
-    payment.save()
-    is_paid = is_fully_paid(checkout, list(checkout), None)
-    assert not is_paid
-
-
-def test_is_fully_paid_no_payment(checkout_with_item):
-    checkout = checkout_with_item
-    is_paid = is_fully_paid(checkout, list(checkout), None)
-    assert not is_paid

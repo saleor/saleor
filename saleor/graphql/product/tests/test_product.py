@@ -126,9 +126,9 @@ def test_product_query_by_id(
 
     response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
     content = get_graphql_content(response)
-    collection_data = content["data"]["product"]
-    assert collection_data is not None
-    assert collection_data["name"] == product.name
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["name"] == product.name
 
 
 def test_product_query_by_slug(
@@ -137,9 +137,47 @@ def test_product_query_by_slug(
     variables = {"slug": product.slug}
     response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
     content = get_graphql_content(response)
-    collection_data = content["data"]["product"]
-    assert collection_data is not None
-    assert collection_data["name"] == product.name
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["name"] == product.name
+
+
+def test_product_query_unpublished_products_by_slug(
+    user_api_client, product, permission_manage_products
+):
+    # given
+    user = user_api_client.user
+    user.user_permissions.add(permission_manage_products)
+
+    product.is_published = False
+    product.save(update_fields=["is_published"])
+    variables = {"slug": product.slug}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["name"] == product.name
+
+
+def test_product_query_unpublished_products_by_slug_and_anonympus_user(
+    api_client, product,
+):
+    # given
+    product.is_published = False
+    product.save(update_fields=["is_published"])
+    variables = {"slug": product.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is None
 
 
 def test_product_query_error_when_id_and_slug_provided(
@@ -451,6 +489,31 @@ def test_products_query_with_filter_collection(
     assert len(products) == 1
     assert products[0]["node"]["id"] == second_product_id
     assert products[0]["node"]["name"] == second_product.name
+
+
+def test_products_query_with_filter_category_and_search(
+    query_products_with_filter, staff_api_client, product, permission_manage_products,
+):
+    category = Category.objects.create(name="Custom", slug="custom")
+    second_product = product
+    second_product.id = None
+    second_product.slug = "second-product"
+    second_product.category = category
+    product.category = category
+    second_product.save()
+    product.save()
+
+    category_id = graphene.Node.to_global_id("Category", category.id)
+    variables = {"filter": {"categories": [category_id], "search": product.name}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+    assert products[0]["node"]["name"] == product.name
 
 
 @pytest.mark.parametrize(

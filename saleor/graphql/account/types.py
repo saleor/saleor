@@ -298,8 +298,8 @@ class User(CountableDjangoObjectType):
     def resolve_orders(root: models.User, info, **_kwargs):
         viewer = info.context.user
         if viewer.has_perm(OrderPermissions.MANAGE_ORDERS):
-            return root.orders.all()
-        return root.orders.confirmed()
+            return root.orders.all()  # type: ignore
+        return root.orders.confirmed()  # type: ignore
 
     @staticmethod
     def resolve_avatar(root: models.User, info, size=None, **_kwargs):
