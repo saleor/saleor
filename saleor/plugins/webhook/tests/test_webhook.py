@@ -29,7 +29,7 @@ def test_trigger_webhooks_for_event(
     permission_manage_products,
 ):
     webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = "https://webhook.site/f0fc9979-cbd4-47b7-8705-1acb03fff1d0"
+    webhook.target_url = "https://webhook.site/75048668-439a-4e54-853b-6f081a6fb6cf"
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
@@ -37,6 +37,7 @@ def test_trigger_webhooks_for_event(
     trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, expected_data)
 
     expected_headers = {
+        "Content-Type": "application/json",
         "X-Saleor-Event": "order_created",
         "X-Saleor-Domain": "mirumee.com",
     }
@@ -112,7 +113,7 @@ def test_trigger_webhooks_for_event_with_secret_key(
     mock_request, webhook, order_with_lines, permission_manage_orders
 ):
     webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = "https://webhook.site/f0fc9979-cbd4-47b7-8705-1acb03fff1d0"
+    webhook.target_url = "https://webhook.site/75048668-439a-4e54-853b-6f081a6fb6cf"
     webhook.secret_key = "secret_key"
     webhook.save()
 
@@ -123,6 +124,7 @@ def test_trigger_webhooks_for_event_with_secret_key(
         expected_data, webhook.secret_key, "utf-8"
     )
     expected_headers = {
+        "Content-Type": "application/json",
         "X-Saleor-Event": "order_created",
         "X-Saleor-Domain": "mirumee.com",
         "X-Saleor-HMAC-SHA256": f"sha1={expected_signature}",

@@ -1,14 +1,15 @@
 interactions:
 - request:
-    body: '[{"model": "order.order", "pk": 84, "fields": {"created": "2019-09-17T13:54:55.227Z",
-      "status": "unfulfilled", "user": 92, "language_code": "en", "tracking_client_id":
-      "", "billing_address": 351, "shipping_address": 352, "user_email": "test@example.com",
-      "currency": "USD", "shipping_method": 84, "shipping_method_name": "DHL", "shipping_price_net_amount":
-      "10.00", "shipping_price_gross_amount": "12.30", "token": "ce7b260c-f70d-430b-b88b-3519624a7974",
+    body: '[{"model": "order.order", "pk": 18, "fields": {"private_metadata": {},
+      "metadata": {}, "created": "2020-07-10T12:33:07.638Z", "status": "unfulfilled",
+      "user": 19, "language_code": "en", "tracking_client_id": "", "billing_address":
+      75, "shipping_address": 76, "user_email": "test@example.com", "currency": "USD",
+      "shipping_method": 20, "shipping_method_name": "DHL", "shipping_price_net_amount":
+      "10.00", "shipping_price_gross_amount": "12.30", "token": "cabcc857-e7ba-4415-9bf8-56b1a8d805a5",
       "checkout_token": "", "total_net_amount": "80.00", "total_gross_amount": "98.40",
-      "voucher": null, "discount_amount": "0.00", "discount_name": "", "translated_discount_name":
-      "", "display_gross_prices": true, "customer_note": "", "weight": "0.0 kg", "gift_cards":
-      []}}]'
+      "voucher": null, "discount_amount": "0.00", "discount_name": null, "translated_discount_name":
+      null, "display_gross_prices": true, "customer_note": "", "weight": "0.0:kg",
+      "gift_cards": []}}]'
     headers:
       Accept:
       - '*/*'
@@ -17,15 +18,17 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '724'
+      - '766'
+      Content-Type:
+      - application/json
       User-Agent:
-      - python-requests/2.22.0
+      - python-requests/2.24.0
       X-Saleor-Domain:
       - mirumee.com
       X-Saleor-Event:
       - order_created
     method: POST
-    uri: https://webhook.site/f0fc9979-cbd4-47b7-8705-1acb03fff1d0
+    uri: https://webhook.site/75048668-439a-4e54-853b-6f081a6fb6cf
   response:
     body:
       string: !!binary |
@@ -38,21 +41,20 @@ interactions:
       Content-Type:
       - text/plain; charset=UTF-8
       Date:
-      - Tue, 17 Sep 2019 13:54:59 GMT
+      - Fri, 10 Jul 2020 12:33:08 GMT
       Server:
-      - nginx/1.10.3
+      - nginx/1.14.2
+      Set-Cookie:
+      - laravel_session=PVibhFdXrFzqlnOPwr4CMbPpCR9PqFxSBeisJ5Bp; expires=Fri, 10-Jul-2020
+        14:33:08 GMT; Max-Age=7200; path=/; httponly
       Transfer-Encoding:
       - chunked
       Vary:
       - Accept-Encoding
-      X-RateLimit-Limit:
-      - '30'
-      X-RateLimit-Remaining:
-      - '29'
       X-Request-Id:
-      - 33161af9-c306-4918-ad9b-fad2b5b9897f
+      - 61f48569-6ca6-43c6-a996-ad6a7e7984aa
       X-Token-Id:
-      - f0fc9979-cbd4-47b7-8705-1acb03fff1d0
+      - 75048668-439a-4e54-853b-6f081a6fb6cf
     status:
       code: 200
       message: OK
