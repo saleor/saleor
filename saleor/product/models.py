@@ -269,7 +269,7 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
 
     class Meta:
         app_label = "product"
-        ordering = ("name",)
+        ordering = ("slug",)
         permissions = (
             (ProductPermissions.MANAGE_PRODUCTS.codename, "Manage products."),
         )
@@ -596,7 +596,7 @@ class AttributeProduct(SortableModel):
 
     class Meta:
         unique_together = (("attribute", "product_type"),)
-        ordering = ("sort_order",)
+        ordering = ("sort_order", "pk")
 
     def get_ordering_queryset(self):
         return self.product_type.attributeproduct.all()
@@ -621,7 +621,7 @@ class AttributeVariant(SortableModel):
 
     class Meta:
         unique_together = (("attribute", "product_type"),)
-        ordering = ("sort_order",)
+        ordering = ("sort_order", "pk")
 
     def get_ordering_queryset(self):
         return self.product_type.attributevariant.all()
@@ -744,7 +744,7 @@ class AttributeValue(SortableModel):
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ("sort_order", "id")
+        ordering = ("sort_order", "pk")
         unique_together = ("slug", "attribute")
 
     def __str__(self) -> str:
@@ -790,7 +790,7 @@ class ProductImage(SortableModel):
     alt = models.CharField(max_length=128, blank=True)
 
     class Meta:
-        ordering = ("sort_order",)
+        ordering = ("sort_order", "pk")
         app_label = "product"
 
     def get_ordering_queryset(self):

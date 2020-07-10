@@ -46,7 +46,7 @@ class PageTranslation(SeoModelTranslation):
     )
 
     class Meta:
-        ordering = ("language_code", "page")
+        ordering = ("language_code", "page", "pk")
         unique_together = (("language_code", "page"),)
 
     def __repr__(self):
