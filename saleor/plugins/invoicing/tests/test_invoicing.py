@@ -1,4 +1,3 @@
-import re
 from datetime import datetime
 from unittest.mock import Mock, patch
 
@@ -8,7 +7,6 @@ from ....plugins.invoicing.utils import (
     generate_invoice_pdf,
     get_product_limit_first_page,
     make_full_invoice_number,
-    parse_invoice_number,
 )
 
 
@@ -51,15 +49,6 @@ def test_generate_invoice_pdf_for_order(
     )
     HTML_mock.assert_called_once_with(
         string=get_template_mock.return_value.render.return_value
-    )
-
-
-def test_generate_invoice_number(fulfilled_order):
-    invoice = fulfilled_order.invoices.last()
-    invoice_base_number = parse_invoice_number(invoice)
-    new_invoice_number = generate_invoice_number()
-    assert re.match(r"^(\d+)\/", new_invoice_number).group(1) == str(
-        invoice_base_number + 1
     )
 
 
