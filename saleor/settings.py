@@ -234,9 +234,11 @@ INSTALLED_APPS = [
     "saleor.product",
     "saleor.checkout",
     "saleor.core",
+    "saleor.csv",
     "saleor.graphql",
     "saleor.menu",
     "saleor.order",
+    "saleor.invoice",
     "saleor.seo",
     "saleor.shipping",
     "saleor.search",
@@ -512,6 +514,7 @@ PLUGINS = [
     "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
     "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
     "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
+    "saleor.plugins.invoicing.plugin.InvoicingPlugin",
 ]
 
 # Plugin discovery

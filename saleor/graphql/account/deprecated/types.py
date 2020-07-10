@@ -73,7 +73,7 @@ class ServiceAccount(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_tokens(root: App, _info, **_kwargs):
-        return root.tokens.all()
+        return root.tokens.all()  # type: ignore
 
     @staticmethod
     def resolve_meta(root: App, info):
