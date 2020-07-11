@@ -7,6 +7,7 @@ from django.utils.text import slugify
 
 
 class Command(BaseCommand):
+    version = "1.0"
 
     def add_arguments(self, parser):
         parser.add_argument('path', type=str, help='category file path')
