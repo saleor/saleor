@@ -5,7 +5,7 @@ import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Q, QuerySet
-from django.template.defaultfilters import slugify
+from django.utils.text import slugify
 from graphene.types import InputObjectType
 from graphql_relay import from_global_id
 
@@ -649,7 +649,9 @@ class AttributeAssignmentMixin:
         get_or_create = attribute.values.get_or_create
         return tuple(
             get_or_create(
-                attribute=attribute, slug=slugify(value), defaults={"name": value}
+                attribute=attribute,
+                slug=slugify(value, allow_unicode=True),
+                defaults={"name": value},
             )[0]
             for value in values
         )
@@ -1474,10 +1476,12 @@ class ProductTypeCreate(ModelMutation):
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
-        if "product_attributes" in cleaned_data:
-            instance.product_attributes.set(cleaned_data["product_attributes"])
-        if "variant_attributes" in cleaned_data:
-            instance.variant_attributes.set(cleaned_data["variant_attributes"])
+        product_attributes = cleaned_data.get("product_attributes")
+        variant_attributes = cleaned_data.get("variant_attributes")
+        if product_attributes is not None:
+            instance.product_attributes.set(product_attributes)
+        if variant_attributes is not None:
+            instance.variant_attributes.set(variant_attributes)
 
 
 class ProductTypeUpdate(ProductTypeCreate):

@@ -2373,6 +2373,56 @@ def test_product_type_query(
     assert data["productType"]["taxType"]["description"] == "Standard Taxes"
 
 
+PRODUCT_TYPE_CREATE_MUTATION = """
+    mutation createProductType(
+        $name: String,
+        $slug: String,
+        $taxCode: String,
+        $hasVariants: Boolean,
+        $isShippingRequired: Boolean,
+        $productAttributes: [ID],
+        $variantAttributes: [ID],
+        $weight: WeightScalar) {
+        productTypeCreate(
+            input: {
+                name: $name,
+                slug: $slug,
+                taxCode: $taxCode,
+                hasVariants: $hasVariants,
+                isShippingRequired: $isShippingRequired,
+                productAttributes: $productAttributes,
+                variantAttributes: $variantAttributes,
+                weight: $weight}) {
+            productType {
+                name
+                slug
+                taxRate
+                isShippingRequired
+                hasVariants
+                variantAttributes {
+                    name
+                    values {
+                        name
+                    }
+                }
+                productAttributes {
+                    name
+                    values {
+                        name
+                    }
+                }
+            }
+            productErrors {
+                field
+                message
+                code
+            }
+        }
+
+    }
+"""
+
+
 def test_product_type_create_mutation(
     staff_api_client,
     product_type,
@@ -2382,46 +2432,7 @@ def test_product_type_create_mutation(
 ):
     manager = PluginsManager(plugins=setup_vatlayer.PLUGINS)
 
-    query = """
-    mutation createProductType(
-        $name: String!,
-        $slug: String!,
-        $taxCode: String!,
-        $hasVariants: Boolean!,
-        $isShippingRequired: Boolean!,
-        $productAttributes: [ID],
-        $variantAttributes: [ID]) {
-        productTypeCreate(
-            input: {
-                name: $name,
-                slug: $slug,
-                taxCode: $taxCode,
-                hasVariants: $hasVariants,
-                isShippingRequired: $isShippingRequired,
-                productAttributes: $productAttributes,
-                variantAttributes: $variantAttributes}) {
-            productType {
-            name
-            slug
-            taxRate
-            isShippingRequired
-            hasVariants
-            variantAttributes {
-                name
-                values {
-                    name
-                }
-            }
-            productAttributes {
-                name
-                values {
-                    name
-                }
-            }
-            }
-        }
-    }
-    """
+    query = PRODUCT_TYPE_CREATE_MUTATION
     product_type_name = "test type"
     slug = "test-type"
     has_variants = True
@@ -2481,33 +2492,13 @@ def test_product_type_create_mutation(
         ("test-slug", "test-slug"),
         (None, "test-product-type"),
         ("", "test-product-type"),
+        ("わたし-わ-にっぽん-です", "わたし-わ-にっぽん-です"),
     ),
 )
 def test_create_product_type_with_given_slug(
     staff_api_client, permission_manage_products, input_slug, expected_slug
 ):
-    query = """
-        mutation(
-                $name: String, $slug: String) {
-            productTypeCreate(
-                input: {
-                    name: $name
-                    slug: $slug
-                }
-            ) {
-                productType {
-                    id
-                    name
-                    slug
-                }
-                productErrors {
-                    field
-                    message
-                    code
-                }
-            }
-        }
-    """
+    query = PRODUCT_TYPE_CREATE_MUTATION
     name = "Test product type"
     variables = {"name": name, "slug": input_slug}
     response = staff_api_client.post_graphql(
@@ -2519,30 +2510,26 @@ def test_create_product_type_with_given_slug(
     assert data["productType"]["slug"] == expected_slug
 
 
+def test_create_product_type_with_unicode_in_name(
+    staff_api_client, permission_manage_products
+):
+    query = PRODUCT_TYPE_CREATE_MUTATION
+    name = "わたし わ にっぽん です"
+    variables = {"name": name}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeCreate"]
+    assert not data["productErrors"]
+    assert data["productType"]["name"] == name
+    assert data["productType"]["slug"] == "わたし-わ-にっぽん-です"
+
+
 def test_create_product_type_create_with_negative_weight(
     staff_api_client, permission_manage_products
 ):
-    query = """
-        mutation(
-                $name: String, $weight: WeightScalar) {
-            productTypeCreate(
-                input: {
-                    name: $name
-                    weight: $weight
-                }
-            ) {
-                productType {
-                    id
-                    name
-                }
-                productErrors {
-                    field
-                    message
-                    code
-                }
-            }
-        }
-    """
+    query = PRODUCT_TYPE_CREATE_MUTATION
     name = "Test product type"
     variables = {"name": name, "weight": -1.1}
     response = staff_api_client.post_graphql(
