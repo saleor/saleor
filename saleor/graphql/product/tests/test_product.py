@@ -1264,6 +1264,42 @@ def test_create_product_with_negative_weight(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
+def test_create_product_with_unicode_in_slug_and_name(
+    staff_api_client,
+    product_type,
+    category,
+    description_json,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    description_json = json.dumps(description_json)
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "わたし-わ にっぽん です"
+    slug = "わたし-わ-にっぽん-です-2"
+
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": slug,
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    error = data["productErrors"]
+    assert not error
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == slug
+
+
 QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
     mutation createProduct(
         $productTypeId: ID!,
