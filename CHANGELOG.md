@@ -14,9 +14,11 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Refactor JWT support - These changes could require a handling JWT token in the storefront. Storefront needs to handle a case when the backend returns the exception about the invalid token. - #5734, #5816 by @korycins
 - New logging setup will now output JSON logs in production mode for ease of feeding them into log collection systems like Logstash or CloudWatch Logs - #5699 by @patrys
+- Deprecate `WebhookEventType.CHECKOUT_QUANTITY_CHANGED`. It will be removed in Saleor 3.0 - #5837 by @korycins
 
 ### Fixes
 
+- Fix payment fields in order paylaod for webhooks - #5862 by @korycins
 - Add our implementation of UUID scalar - #5646 by @koradon
 - Add AppTokenVerify mutation - #5716 by @korycins
 - Fix specific product voucher in draft orders - #5727 by @fowczarek
