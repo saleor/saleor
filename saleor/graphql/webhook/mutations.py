@@ -13,7 +13,11 @@ class WebhookCreateInput(graphene.InputObjectType):
     name = graphene.String(description="The name of the webhook.", required=False)
     target_url = graphene.String(description="The url to receive the payload.")
     events = graphene.List(
-        WebhookEventTypeEnum, description="The events that webhook wants to subscribe."
+        WebhookEventTypeEnum,
+        description=(
+            "The events that webhook wants to subscribe. The CHECKOUT_QUANTITY_CHANGED"
+            " is depreacted. It will be removed in Saleor 3.0"
+        ),
     )
     service_account = graphene.ID(
         required=False,
@@ -103,7 +107,10 @@ class WebhookUpdateInput(graphene.InputObjectType):
     )
     events = graphene.List(
         WebhookEventTypeEnum,
-        description="The events that webhook wants to subscribe.",
+        description=(
+            "The events that webhook wants to subscribe. The CHECKOUT_QUANTITY_CHANGED"
+            " is depreacted. It will be removed in Saleor 3.0"
+        ),
         required=False,
     )
     service_account = graphene.ID(
