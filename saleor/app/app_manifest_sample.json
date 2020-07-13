@@ -1,0 +1,14 @@
+{
+  "id": "saleor.app.sample",
+  "version": "1.0.0",
+  "name": "My Wonderful App",
+  "about": "My Wonderful App is a wonderful App for Saleor.",
+  "permissions": ["MANAGE_USERS", "MANAGE_STAFF"],
+  "appUrl": "http://localhost:3000/app",
+  "configurationUrl": "htpp://localhost:3000/configuration",
+  "tokenTargetUrl": "http://localhost:3000/register",
+  "dataPrivacy": "Lorem ipsum",
+  "dataPrivacyUrl": "http://localhost:3000/app-data-privacy",
+  "homepageUrl": "http://localhost:3000/homepage",
+  "supportUrl": "http://localhost:3000/support"
+}

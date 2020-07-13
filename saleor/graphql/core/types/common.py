@@ -298,6 +298,7 @@ class Job(graphene.Interface):
     updated_at = graphene.DateTime(
         description="Date time of job last update in ISO 8601 format.", required=True
     )
+    message = graphene.String(description="Job message.")
 
     @classmethod
     def resolve_type(cls, instance, _info):

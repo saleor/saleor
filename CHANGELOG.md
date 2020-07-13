@@ -4,6 +4,11 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Features
+
+- Merge `manage_webhooks` permission with `manage_apps` - #5556 by @korycins
+- Add App support - #5767 by @korycins
+
 - Invoices backend - #5732 by @tomaszszymanski129
 ### Breaking Changes
 

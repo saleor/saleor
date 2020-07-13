@@ -23,7 +23,8 @@ from PIL import Image
 from prices import Money, TaxedMoney
 
 from ..account.models import Address, StaffNotificationRecipient, User
-from ..app.models import App
+from ..app.models import App, AppInstallation
+from ..app.types import AppType
 from ..checkout import utils
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
@@ -1625,11 +1626,6 @@ def permission_manage_translations():
 
 
 @pytest.fixture
-def permission_manage_webhooks():
-    return Permission.objects.get(codename="manage_webhooks")
-
-
-@pytest.fixture
 def permission_group_manage_users(permission_manage_users, staff_users):
     group = Group.objects.create(name="Manage user groups.")
     group.permissions.add(permission_manage_users)
@@ -2069,7 +2065,28 @@ def other_description_json():
 
 @pytest.fixture
 def app(db):
-    return App.objects.create(name="Sample app objects", is_active=True)
+    app = App.objects.create(name="Sample app objects", is_active=True)
+    app.tokens.create(name="Default")
+    return app
+
+
+@pytest.fixture
+def external_app(db):
+    app = App.objects.create(
+        name="External App",
+        is_active=True,
+        type=AppType.THIRDPARTY,
+        identifier="mirumee.app.sample",
+        about_app="About app text.",
+        data_privacy="Data privacy text.",
+        data_privacy_url="http://www.example.com/privacy/",
+        homepage_url="http://www.example.com/homepage/",
+        support_url="http://www.example.com/support/contact/",
+        configuration_url="http://www.example.com/app-configuration/",
+        app_url="http://www.example.com/app/",
+    )
+    app.tokens.create(name="Default")
+    return app
 
 
 @pytest.fixture
@@ -2255,6 +2272,14 @@ def allocations(order_list, stock):
             ),
         ]
     )
+
+
+@pytest.fixture
+def app_installation():
+    app_installation = AppInstallation.objects.create(
+        app_name="External App", manifest_url="http://localhost:3000/manifest",
+    )
+    return app_installation
 
 
 @pytest.fixture
