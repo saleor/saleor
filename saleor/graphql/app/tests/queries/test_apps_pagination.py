@@ -1,7 +1,7 @@
 import pytest
 
-from ....app.models import App
-from ...tests.utils import get_graphql_content
+from .....app.models import App
+from ....tests.utils import get_graphql_content
 
 
 @pytest.fixture()

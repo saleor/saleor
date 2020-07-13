@@ -4,14 +4,19 @@ from django.contrib.auth.models import Permission
 from django.db import models
 from oauthlib.common import generate_token
 
-from ..core.models import ModelWithMetadata
+from ..core.models import Job, ModelWithMetadata
 from ..core.permissions import AppPermission
+from .types import AppType
 
 
 class App(ModelWithMetadata):
     name = models.CharField(max_length=60)
     created = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+    type = models.CharField(
+        choices=AppType.CHOICES, default=AppType.LOCAL, max_length=60
+    )
+    identifier = models.CharField(blank=True, null=True, max_length=256)
     permissions = models.ManyToManyField(
         Permission,
         blank=True,
@@ -19,6 +24,14 @@ class App(ModelWithMetadata):
         related_name="app_set",
         related_query_name="app",
     )
+    about_app = models.TextField(blank=True, null=True)
+    data_privacy = models.TextField(blank=True, null=True)
+    data_privacy_url = models.URLField(blank=True, null=True)
+    homepage_url = models.URLField(blank=True, null=True)
+    support_url = models.URLField(blank=True, null=True)
+    configuration_url = models.URLField(blank=True, null=True)
+    app_url = models.URLField(blank=True, null=True)
+    version = models.CharField(max_length=60, blank=True, null=True)
 
     class Meta:
         ordering = ("name", "pk")
@@ -61,3 +74,15 @@ class AppToken(models.Model):
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="tokens")
     name = models.CharField(blank=True, default="", max_length=128)
     auth_token = models.CharField(default=generate_token, unique=True, max_length=30)
+
+
+class AppInstallation(Job):
+    app_name = models.CharField(max_length=60)
+    manifest_url = models.URLField()
+    permissions = models.ManyToManyField(
+        Permission,
+        blank=True,
+        help_text="Specific permissions which will be assigned to app.",
+        related_name="app_installation_set",
+        related_query_name="app_installation",
+    )

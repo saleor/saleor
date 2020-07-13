@@ -464,7 +464,6 @@ SEARCH_BACKEND = "saleor.search.backends.postgresql"
 
 AUTHENTICATION_BACKENDS = [
     "saleor.core.auth_backend.JSONWebTokenBackend",
-    "django.contrib.auth.backends.ModelBackend",
 ]
 
 # CELERY SETTINGS
@@ -570,6 +569,9 @@ CACHES = {"default": django_cache_url.config()}
 # Default False because storefront and dashboard don't support expiration of token
 JWT_EXPIRE = get_bool_from_env("JWT_EXPIRE", False)
 JWT_TTL_ACCESS = timedelta(seconds=parse(os.environ.get("JWT_TTL_ACCESS", "5 minutes")))
+JWT_TTL_APP_ACCESS = timedelta(
+    seconds=parse(os.environ.get("JWT_TTL_APP_ACCESS", "5 minutes"))
+)
 JWT_TTL_REFRESH = timedelta(seconds=parse(os.environ.get("JWT_TTL_REFRESH", "30 days")))
 
 

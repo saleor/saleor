@@ -206,7 +206,23 @@ type App implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
+  type: AppTypeEnum
   webhooks: [Webhook]
+  aboutApp: String
+  dataPrivacy: String
+  dataPrivacyUrl: String
+  homepageUrl: String
+  supportUrl: String
+  configurationUrl: String
+  appUrl: String
+  version: String
+  accessToken: String
+}
+
+type AppActivate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  appErrors: [AppError!]!
+  app: App
 }
 
 type AppCountableConnection {
@@ -227,10 +243,22 @@ type AppCreate {
   app: App
 }
 
+type AppDeactivate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  appErrors: [AppError!]!
+  app: App
+}
+
 type AppDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   appErrors: [AppError!]!
   app: App
+}
+
+type AppDeleteFailedInstallation {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  appErrors: [AppError!]!
+  appInstallation: AppInstallation
 }
 
 type AppError {
@@ -241,8 +269,14 @@ type AppError {
 }
 
 enum AppErrorCode {
+  FORBIDDEN
   GRAPHQL_ERROR
   INVALID
+  INVALID_STATUS
+  INVALID_PERMISSION
+  INVALID_URL_FORMAT
+  INVALID_MANIFEST_FORMAT
+  MANIFEST_URL_CANT_CONNECT
   NOT_FOUND
   REQUIRED
   UNIQUE
@@ -250,15 +284,51 @@ enum AppErrorCode {
   OUT_OF_SCOPE_PERMISSION
 }
 
+type AppFetchManifest {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  manifest: Manifest
+  appErrors: [AppError!]!
+}
+
 input AppFilterInput {
   search: String
   isActive: Boolean
+  type: AppTypeEnum
 }
 
 input AppInput {
   name: String
   isActive: Boolean
   permissions: [PermissionEnum]
+}
+
+type AppInstall {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  appErrors: [AppError!]!
+  appInstallation: AppInstallation
+}
+
+input AppInstallInput {
+  appName: String
+  manifestUrl: String
+  activateAfterInstallation: Boolean = true
+  permissions: [PermissionEnum]
+}
+
+type AppInstallation implements Node & Job {
+  appName: String!
+  manifestUrl: String!
+  id: ID!
+  status: JobStatusEnum!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  message: String
+}
+
+type AppRetryInstall {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  appErrors: [AppError!]!
+  appInstallation: AppInstallation
 }
 
 enum AppSortField {
@@ -299,6 +369,11 @@ type AppTokenVerify {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   valid: Boolean!
   appErrors: [AppError!]!
+}
+
+enum AppTypeEnum {
+  LOCAL
+  THIRDPARTY
 }
 
 type AppUpdate {
@@ -1800,6 +1875,7 @@ type ExportFile implements Node & Job {
   status: JobStatusEnum!
   createdAt: DateTime!
   updatedAt: DateTime!
+  message: String
   url: String
   events: [ExportEvent!]
 }
@@ -2070,6 +2146,7 @@ type Invoice implements ObjectWithMetadata & Job & Node {
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
   createdAt: DateTime!
   updatedAt: DateTime!
+  message: String
   url: String
 }
 
@@ -2137,6 +2214,7 @@ interface Job {
   status: JobStatusEnum!
   createdAt: DateTime!
   updatedAt: DateTime!
+  message: String
 }
 
 enum JobStatusEnum {
@@ -2198,6 +2276,21 @@ enum LanguageCodeEnum {
 type LanguageDisplay {
   code: LanguageCodeEnum!
   language: String!
+}
+
+type Manifest {
+  identifier: String!
+  version: String!
+  name: String!
+  about: String
+  permissions: [Permission]
+  appUrl: String
+  configurationUrl: String
+  tokenTargetUrl: String
+  dataPrivacy: String
+  dataPrivacyUrl: String
+  homepageUrl: String
+  supportUrl: String
 }
 
 type Margin {
@@ -2679,6 +2772,12 @@ type Mutation {
   appTokenCreate(input: AppTokenInput!): AppTokenCreate
   appTokenDelete(id: ID!): AppTokenDelete
   appTokenVerify(token: String!): AppTokenVerify
+  appInstall(input: AppInstallInput!): AppInstall
+  appRetryInstall(activateAfterInstallation: Boolean = true, id: ID!): AppRetryInstall
+  appDeleteFailedInstallation(id: ID!): AppDeleteFailedInstallation
+  appFetchManifest(manifestUrl: String!): AppFetchManifest
+  appActivate(id: ID!): AppActivate
+  appDeactivate(id: ID!): AppDeactivate
   tokenCreate(email: String!, password: String!): CreateToken
   tokenRefresh(csrfToken: String, refreshToken: String): RefreshToken
   tokenVerify(token: String!): VerifyToken
@@ -3381,7 +3480,6 @@ enum PermissionEnum {
   MANAGE_SHIPPING
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
-  MANAGE_WEBHOOKS
   MANAGE_CHECKOUTS
 }
 
@@ -4166,6 +4264,7 @@ type Query {
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
+  appsInstallations: [AppInstallation!]!
   apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
   app(id: ID!): App
   addressValidationRules(countryCode: CountryCode!, countryArea: String, city: String, cityArea: String): AddressValidationData
