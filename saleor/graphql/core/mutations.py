@@ -456,6 +456,7 @@ class ModelMutation(BaseMutation):
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
         """Perform an action after saving an object and its m2m."""
+        pass
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

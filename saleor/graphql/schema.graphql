@@ -316,13 +316,13 @@ input AppInstallInput {
 }
 
 type AppInstallation implements Node & Job {
-  status: JobStatusEnum!
-  message: String
-  createdAt: DateTime!
-  updatedAt: DateTime!
   appName: String!
   manifestUrl: String!
   id: ID!
+  status: JobStatusEnum!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  message: String
 }
 
 type AppRetryInstall {
@@ -2136,9 +2136,9 @@ input IntRangeInput {
 }
 
 type Invoice implements ObjectWithMetadata & Job & Node {
-  status: JobStatusEnum!
   id: ID!
   metadata: [MetadataItem]!
+  status: JobStatusEnum!
   number: String
   externalUrl: String
   privateMetadata: [MetadataItem]!

@@ -139,10 +139,6 @@ class AppInstallation(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node, Job]
         permissions = (AppPermission.MANAGE_APPS,)
         only_fields = [
-            "status",
-            "created_at",
-            "updated_at",
             "app_name",
             "manifest_url",
-            "message",
         ]
