@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Fixes
 
+- Fix payment fields in order paylaod for webhooks - #5862 by @korycins
 - Add our implementation of UUID scalar - #5646 by @koradon
 - Add AppTokenVerify mutation - #5716 by @korycins
 - Fix specific product voucher in draft orders - #5727 by @fowczarek
