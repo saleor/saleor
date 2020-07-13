@@ -14,10 +14,8 @@ def filter_app_search(qs, _, value):
 
 
 def filter_type(qs, _, value):
-    if value == AppType.LOCAL:
-        qs = qs.filter(type=AppType.LOCAL)
-    elif value == AppType.THIRDPARTY:
-        qs = qs.filter(type=AppType.THIRDPARTY)
+    if value in [AppType.LOCAL, AppType.THIRDPARTY]:
+        qs = qs.filter(type=value)
     return qs
 
 
