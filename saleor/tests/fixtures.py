@@ -621,7 +621,7 @@ def category_with_image(db, image, media_root):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def categories_tree(db, product_type):  # pylint: disable=W0613
+def categories_tree(db, product_type, channel_USD):  # pylint: disable=W0613
     parent = Category.objects.create(name="Parent", slug="parent")
     parent.children.create(name="Child", slug="child")
     child = parent.children.first()
@@ -634,7 +634,9 @@ def categories_tree(db, product_type):  # pylint: disable=W0613
         slug="test-product-10",
         product_type=product_type,
         category=child,
-        # is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True
     )
 
     associate_attribute_values_to_instance(product, product_attr, attr_value)
@@ -775,7 +777,6 @@ def product_with_single_variant(product_type, category, warehouse, channel_USD):
         slug="test-product-with-single-variant",
         product_type=product_type,
         category=category,
-        # is_published=True,
     )
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=True,
@@ -825,7 +826,7 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
 
 @pytest.fixture
 def product_with_variant_with_two_attributes(
-    color_attribute, size_attribute, category, warehouse
+    color_attribute, size_attribute, category, warehouse, channel_USD
 ):
     product_type = ProductType.objects.create(
         name="Type with two variants",
@@ -841,7 +842,9 @@ def product_with_variant_with_two_attributes(
         slug="test-product-with-two-variant",
         product_type=product_type,
         category=category,
-        # is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True
     )
 
     variant = ProductVariant.objects.create(
@@ -1107,16 +1110,20 @@ def product_list_with_many_channels(product_list, channel_PLN):
 
 
 @pytest.fixture
-def product_list_unpublished(product_list):
+def product_list_unpublished(product_list, channel_USD):
     products = Product.objects.filter(pk__in=[product.pk for product in product_list])
-    # products.update(is_published=False)
+    ProductChannelListing.objects.filter(
+        product__in=products, channel=channel_USD
+    ).update(is_published=False)
     return products
 
 
 @pytest.fixture
-def product_list_published(product_list):
+def product_list_published(product_list, channel_USD):
     products = Product.objects.filter(pk__in=[product.pk for product in product_list])
-    # products.update(is_published=True)
+    ProductChannelListing.objects.filter(
+        product__in=products, channel=channel_USD
+    ).update(is_published=True)
     return products
 
 
@@ -1156,13 +1163,15 @@ def unavailable_product(product_type, category, channel_USD):
 
 
 @pytest.fixture
-def unavailable_product_with_variant(product_type, category, warehouse):
+def unavailable_product_with_variant(product_type, category, warehouse, channel_USD):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-6",
         product_type=product_type,
-        # is_published=False,
         category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=False
     )
 
     variant_attr = product_type.variant_attributes.first()
@@ -1178,13 +1187,15 @@ def unavailable_product_with_variant(product_type, category, warehouse):
 
 
 @pytest.fixture
-def product_with_images(product_type, category, media_root):
+def product_with_images(product_type, category, media_root, channel_USD):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-7",
         product_type=product_type,
         category=category,
-        # is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True
     )
     file_mock_0 = MagicMock(spec=File, name="FileMock0")
     file_mock_0.name = "image0.jpg"
@@ -1352,13 +1363,17 @@ def gift_card_created_by_staff(staff_user):
 
 
 @pytest.fixture
-def order_with_lines(order, product_type, category, shipping_zone, warehouse):
+def order_with_lines(
+    order, product_type, category, shipping_zone, warehouse, channel_USD
+):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-8",
         product_type=product_type,
         category=category,
-        # is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -1390,7 +1405,9 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         slug="test-product-9",
         product_type=product_type,
         category=category,
-        # is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True
     )
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_B", cost_price=Money(2, "USD"), price_amount=20
@@ -1999,7 +2016,6 @@ def digital_content(category, media_root, warehouse, channel_USD) -> DigitalCont
         slug="test-digital-product",
         product_type=product_type,
         category=category,
-        # is_published=True,
     )
     product_variant = ProductVariant.objects.create(
         product=product,
