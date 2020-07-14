@@ -2096,7 +2096,7 @@ description = "A command line interface for Transifex"
 name = "transifex-client"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,<3.9"
-version = "0.13.10"
+version = "0.13.11"
 
 [package.dependencies]
 gitpython = "<4.0.0"
@@ -3226,7 +3226,7 @@ tqdm = [
     {file = "tqdm-4.47.0.tar.gz", hash = "sha256:63ef7a6d3eb39f80d6b36e4867566b3d8e5f1fe3d6cb50c5e9ede2b3198ba7b7"},
 ]
 transifex-client = [
-    {file = "transifex-client-0.13.10.tar.gz", hash = "sha256:633444d0dfa6fba4e1dbdc1cce259ec510e63a3cebc03b3b6e090134a18f4fef"},
+    {file = "transifex-client-0.13.11.tar.gz", hash = "sha256:6540d48bcd3431247ef7974b229edb899294c424cc1c9187d8fbcb0067c7ae68"},
 ]
 typed-ast = [
     {file = "typed_ast-1.4.1-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:73d785a950fc82dd2a25897d525d003f6378d1cb23ab305578394694202a58c3"},
