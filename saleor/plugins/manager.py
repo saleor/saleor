@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 import opentracing
 from django.conf import settings
+from django.core.handlers.wsgi import WSGIRequest
+from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
@@ -460,6 +462,20 @@ class PluginsManager(PaymentInterface):
     def fetch_taxes_data(self) -> bool:
         default_value = False
         return self.__run_method_on_plugins("fetch_taxes_data", default_value)
+
+    def webhook(self, request: WSGIRequest, plugin_id: str) -> HttpResponse:
+        split_path = request.path.split(plugin_id, maxsplit=1)
+        path = None
+        if len(split_path) == 2:
+            path = split_path[1]
+
+        default_value = HttpResponseNotFound()
+        plugin = self.get_plugin(plugin_id)
+        if not plugin:
+            return default_value
+        return self.__run_method_on_single_plugin(
+            plugin, "webhook", default_value, request, path
+        )
 
 
 def get_plugins_manager(

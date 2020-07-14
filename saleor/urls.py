@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .data_feeds.urls import urlpatterns as feed_urls
 from .graphql.api import schema
 from .graphql.views import GraphQLView
+from .plugins.views import handle_plugin_webhook
 from .product.views import digital_product
 
 urlpatterns = [
@@ -16,6 +17,11 @@ urlpatterns = [
         r"^digital-download/(?P<token>[0-9A-Za-z_\-]+)/$",
         digital_product,
         name="digital-product",
+    ),
+    url(
+        r"plugins/(?P<plugin_id>[.0-9A-Za-z_\-]+)/",
+        handle_plugin_webhook,
+        name="plugins",
     ),
 ]
 

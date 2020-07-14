@@ -2,6 +2,8 @@ from copy import copy
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Optional, Union
 
+from django.core.handlers.wsgi import WSGIRequest
+from django.http import HttpResponse
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
@@ -56,6 +58,13 @@ class BasePlugin:
 
     def __str__(self):
         return self.PLUGIN_NAME
+
+    def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
+        """Handle received http request.
+
+        Overwrite this method if the plugin expects the incoming requests.
+        """
+        return NotImplemented
 
     def change_user_address(
         self,
