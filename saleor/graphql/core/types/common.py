@@ -26,6 +26,7 @@ from ..enums import (
     TranslationErrorCode,
     WarehouseErrorCode,
     WebhookErrorCode,
+    WeightUnitsEnum,
     WishlistErrorCode,
 )
 from .money import VAT
@@ -231,7 +232,7 @@ class SeoInput(graphene.InputObjectType):
 
 
 class Weight(graphene.ObjectType):
-    unit = graphene.String(description="Weight unit.", required=True)
+    unit = WeightUnitsEnum(description="Weight unit.", required=True)
     value = graphene.Float(description="Weight value.", required=True)
 
     class Meta:
