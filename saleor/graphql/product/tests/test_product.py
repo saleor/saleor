@@ -29,7 +29,7 @@ from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.attributes import associate_attribute_values_to_instance
 from ....warehouse.models import Allocation, Stock, Warehouse
-from ...core.enums import ReportingPeriod
+from ...core.enums import ReportingPeriod, WeightUnitsEnum
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -4281,14 +4281,14 @@ mutation createProduct(
 @pytest.mark.parametrize(
     "weight, expected_weight_value, expected_weight_unit",
     (
-        ("0", 0, "kg"),
-        (0, 0, "kg"),
-        (11.11, 11.11, "kg"),
-        (11, 11.0, "kg"),
-        ("11.11", 11.11, "kg"),
-        ({"value": 11.11, "unit": "kg"}, 11.11, "kg",),
-        ({"value": 11, "unit": "g"}, 11.0, "g",),
-        ({"value": "11.11", "unit": "ounce"}, 11.11, "oz",),
+        ("0", 0, WeightUnitsEnum.KG.name),
+        (0, 0, WeightUnitsEnum.KG.name),
+        (11.11, 11.11, WeightUnitsEnum.KG.name),
+        (11, 11.0, WeightUnitsEnum.KG.name),
+        ("11.11", 11.11, WeightUnitsEnum.KG.name),
+        ({"value": 11.11, "unit": "kg"}, 11.11, WeightUnitsEnum.KG.name,),
+        ({"value": 11, "unit": "g"}, 11.0, WeightUnitsEnum.G.name,),
+        ({"value": "11.11", "unit": "ounce"}, 11.11, WeightUnitsEnum.OZ.name,),
     ),
 )
 def test_create_product_with_weight_variable(
@@ -4326,14 +4326,14 @@ def test_create_product_with_weight_variable(
 @pytest.mark.parametrize(
     "weight, expected_weight_value, expected_weight_unit",
     (
-        ("0", 0, "kg"),
-        (0, 0, "kg"),
-        ("11.11", 11.11, "kg"),
-        ("11", 11.0, "kg"),
-        ('"11.11"', 11.11, "kg"),
-        ('{value: 11.11, unit: "kg"}', 11.11, "kg",),
-        ('{value: 11, unit: "g"}', 11.0, "g",),
-        ('{value: "11.11", unit: "ounce"}', 11.11, "oz",),
+        ("0", 0, WeightUnitsEnum.KG.name),
+        (0, 0, WeightUnitsEnum.KG.name),
+        ("11.11", 11.11, WeightUnitsEnum.KG.name),
+        ("11", 11.0, WeightUnitsEnum.KG.name),
+        ('"11.11"', 11.11, WeightUnitsEnum.KG.name),
+        ('{value: 11.11, unit: "kg"}', 11.11, WeightUnitsEnum.KG.name,),
+        ('{value: 11, unit: "g"}', 11.0, WeightUnitsEnum.G.name,),
+        ('{value: "11.11", unit: "ounce"}', 11.11, WeightUnitsEnum.OZ.name,),
     ),
 )
 def test_create_product_with_weight_input(
