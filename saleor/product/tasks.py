@@ -1,8 +1,17 @@
+from collections import defaultdict
 from typing import Iterable, List, Optional
 
 from ..celeryconf import app
 from ..discount.models import Sale
-from .models import Attribute, Product, ProductType, ProductVariant
+from .models import (
+    AssignedVariantAttribute,
+    Attribute,
+    AttributeValue,
+    AttributeVariant,
+    Product,
+    ProductType,
+    ProductVariant,
+)
 from .utils.attributes import generate_name_for_variant
 from .utils.variant_prices import (
     update_product_minimal_variant_price,
@@ -68,3 +77,80 @@ def update_products_minimal_variant_prices_of_discount_task(discount_pk: int):
 def update_products_minimal_variant_prices_task(product_ids: List[int]):
     products = Product.objects.filter(pk__in=product_ids)
     update_products_minimal_variant_prices(products)
+
+
+@app.task
+def update_productvariant_sorting(
+    attributevalue: Optional["AttributeValue"] = None,
+    attributevariant: Optional["AttributeVariant"] = None,
+    product: Optional["Product"] = None,
+    productvariant: Optional["ProductVariant"] = None,
+    product_type: Optional["ProductType"] = None,
+    attribute: Optional["Attribute"] = None,
+):
+    def recalculate_sorting(product_ids: List[int]):
+        product_ids = set(product_ids)
+        for product in product_ids:
+            variants_list = list(
+                ProductVariant.objects.filter(product_id=product).values(
+                    "id",
+                    "name",
+                    "attributes__assignment__attribute__name",
+                    "attributes__values__name",
+                    "attributes__assignment__sort_order",
+                    "attributes__values__sort_order",
+                )
+            )
+
+            all_variants = defaultdict(lambda: defaultdict(list))
+            sort_keys = list()
+            for x in variants_list:
+                sort_keys.append(x["attributes__assignment__sort_order"])
+                if x["attributes__values__sort_order"] is not None:
+                    all_variants[x["id"]][
+                        x["attributes__assignment__sort_order"]
+                    ].append(x["attributes__values__sort_order"])
+
+            sorted_variants = sorted(
+                all_variants.items(),
+                key=lambda x: (
+                    [
+                        x[1].get(i, [0]) if x[1].get(i, [0]) is not [None] else []
+                        for i in sort_keys
+                    ],
+                ),
+            )
+            for sort_order, p in enumerate(sorted_variants):
+                ProductVariant.objects.filter(pk=p[0]).update(
+                    sort_by_attributes=sort_order
+                )
+
+    if product is not None:
+        recalculate_sorting([product.pk])
+
+    if productvariant is not None:
+        recalculate_sorting([productvariant.product_id])
+
+    if attributevariant is not None:
+        products = attributevariant.assigned_variants.all().values_list(
+            "product_id", flat=True
+        )
+        recalculate_sorting(products)
+
+    if attributevalue is not None:
+        products = AssignedVariantAttribute.objects.filter(
+            values__in=[attributevalue]
+        ).values_list("assignment", flat=True)
+        recalculate_sorting(products)
+
+    if product_type is not None:
+        products = Product.objects.filter(product_type=product_type).values_list(
+            "pk", flat=True
+        )
+        recalculate_sorting(products)
+
+    if attribute is not None:
+        products = Product.objects.filter(
+            variants__attributes__attribute__in=[attribute]
+        ).values_list("pk", flat=True)
+        recalculate_sorting(products)

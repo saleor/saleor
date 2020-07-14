@@ -77,6 +77,7 @@ def resolve_product_variants(info, ids=None):
     if ids:
         db_ids = [get_database_id(info, node_id, "ProductVariant") for node_id in ids]
         qs = qs.filter(pk__in=db_ids)
+    qs = qs.order_by("sort_by_attributes")
     return qs
 
 

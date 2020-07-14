@@ -4,7 +4,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.contrib.postgres.fields import JSONField
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Case, Count, F, FilteredRelation, Q, Value, When
 from django.urls import reverse
 from django.utils.encoding import smart_text
@@ -395,13 +395,24 @@ class ProductVariant(ModelWithMetadata):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
+    sort_by_attributes = models.IntegerField(editable=False, db_index=True, null=True)
 
     objects = ProductVariantQueryset.as_manager()
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ("sku",)
+        ordering = ("sort_by_attributes",)
         app_label = "product"
+
+    def save(self, *args, **kwargs):
+        _pk = self.pk
+        super(ProductVariant, self).save(*args, **kwargs)
+        if _pk is None:  # run only when creating new variant
+            from .tasks import update_productvariant_sorting
+
+            transaction.on_commit(
+                lambda: update_productvariant_sorting(productvariant=self)
+            )
 
     def __str__(self) -> str:
         return self.name or self.sku

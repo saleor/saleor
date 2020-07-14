@@ -9,6 +9,7 @@ from django.utils.text import slugify
 from ....core.permissions import ProductPermissions
 from ....product import AttributeInputType, models
 from ....product.error_codes import ProductErrorCode
+from ....product.tasks import update_productvariant_sorting
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import ProductAttributeError, ProductError
 from ...core.utils import (
@@ -743,6 +744,9 @@ class ProductTypeReorderAttributes(BaseMutation):
 
         with transaction.atomic():
             perform_reordering(attributes_m2m, operations)
+        transaction.on_commit(
+            lambda: update_productvariant_sorting.delay(product_type=product_type.pk)
+        )
         return ProductTypeReorderAttributes(product_type=product_type)
 
 
@@ -810,4 +814,7 @@ class AttributeReorderValues(BaseMutation):
         with transaction.atomic():
             perform_reordering(values_m2m, operations)
         attribute.refresh_from_db(fields=["values"])
+        transaction.on_commit(
+            lambda: update_productvariant_sorting.delay(attribute=attribute.pk)
+        )
         return AttributeReorderValues(attribute=attribute)

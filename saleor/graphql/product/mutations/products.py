@@ -16,6 +16,7 @@ from ....product.error_codes import ProductErrorCode
 from ....product.tasks import (
     update_product_minimal_variant_price_task,
     update_products_minimal_variant_prices_of_catalogues_task,
+    update_productvariant_sorting,
     update_variants_names,
 )
 from ....product.thumbnails import (
@@ -1287,6 +1288,9 @@ class ProductVariantCreate(ModelMutation):
             AttributeAssignmentMixin.save(instance, attributes)
             instance.name = generate_name_for_variant(instance)
             instance.save(update_fields=["name"])
+            transaction.on_commit(
+                lambda: update_productvariant_sorting.delay(product=instance)
+            )
 
     @classmethod
     def create_variant_stocks(cls, variant, stocks):
