@@ -38,10 +38,16 @@ class ChannelMiddleware:
     def resolve(self, next, root, info, **kwargs):
         request = info.context
 
-        if not hasattr(info.context, "channel_slug"):
+        channel_slug = kwargs.get("channel_slug")
+        if (
+            hasattr(request, "channel_slug")
+            and isinstance(request.channel_slug, SimpleLazyObject)
+            and channel_slug
+        ):
+            request.channel_slug = channel_slug
+        if not hasattr(request, "channel_slug"):
 
-            def channel_slug():
-                channel_slug = kwargs.get("channel_slug")
+            def get_channel_slug(channel_slug):
                 if not channel_slug:
                     try:
                         channel_slug = get_default_channel_slug_if_available()
@@ -51,7 +57,9 @@ class ChannelMiddleware:
                         return None
                 return channel_slug
 
-            request.channel_slug = SimpleLazyObject(lambda: channel_slug())
+            request.channel_slug = SimpleLazyObject(
+                lambda: get_channel_slug(channel_slug)
+            )
         return next(root, info, **kwargs)
 
 

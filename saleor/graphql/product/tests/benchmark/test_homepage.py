@@ -39,7 +39,9 @@ def test_retrieve_product_list(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_featured_products_list(api_client, homepage_collection, count_queries):
+def test_featured_products_list(
+    api_client, homepage_collection, count_queries, channel_USD
+):
     query = """
         fragment BasicProductFields on Product {
           id
@@ -86,11 +88,11 @@ def test_featured_products_list(api_client, homepage_collection, count_queries):
           }
         }
 
-        query FeaturedProducts {
+        query FeaturedProducts($channelSlug: String) {
           shop {
             homepageCollection {
               id
-              products(first: 20) {
+              products(first: 20, channelSlug: $channelSlug) {
                 edges {
                   node {
                     ...BasicProductFields
@@ -106,4 +108,7 @@ def test_featured_products_list(api_client, homepage_collection, count_queries):
           }
         }
     """
-    get_graphql_content(api_client.post_graphql(query))
+    variables = {
+        "channelSlug": channel_USD.slug,
+    }
+    get_graphql_content(api_client.post_graphql(query, variables))

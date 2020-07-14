@@ -6,7 +6,7 @@ from ....tests.utils import get_graphql_content
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_category_view(api_client, category_with_products, count_queries):
+def test_category_view(api_client, category_with_products, count_queries, channel_USD):
     query = """
         fragment BasicProductFields on Product {
           id
@@ -53,8 +53,12 @@ def test_category_view(api_client, category_with_products, count_queries):
           }
         }
 
-        query Category($id: ID!, $pageSize: Int) {
-          products(first: $pageSize, filter: {categories: [$id]}) {
+        query Category($id: ID!, $pageSize: Int, $channelSlug: String) {
+          products (
+            first: $pageSize,
+            filter: {categories: [$id]},
+            channelSlug: $channelSlug
+          ) {
             totalCount
             edges {
               node {
@@ -109,5 +113,6 @@ def test_category_view(api_client, category_with_products, count_queries):
     variables = {
         "pageSize": 100,
         "id": graphene.Node.to_global_id("Category", category_with_products.pk),
+        "channelSlug": channel_USD.slug,
     }
     get_graphql_content(api_client.post_graphql(query, variables))

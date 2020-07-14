@@ -6,7 +6,7 @@ from ....tests.utils import get_graphql_content
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_product_details(product, api_client, count_queries):
+def test_product_details(product, api_client, count_queries, channel_USD):
     query = """
         fragment BasicProductFields on Product {
           id
@@ -69,8 +69,8 @@ def test_product_details(product, api_client, count_queries):
           }
         }
 
-        query ProductDetails($id: ID!) {
-          product(id: $id) {
+        query ProductDetails($id: ID!, $channelSlug: String) {
+          product(id: $id, channelSlug: $channelSlug) {
             ...BasicProductFields
             description
             category {
@@ -152,16 +152,21 @@ def test_product_details(product, api_client, count_queries):
         }
     """
 
-    variables = {"id": Node.to_global_id("Product", product.pk)}
+    variables = {
+        "id": Node.to_global_id("Product", product.pk),
+        "channelSlug": channel_USD.slug,
+    }
     get_graphql_content(api_client.post_graphql(query, variables))
 
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_retrieve_product_attributes(product_list, api_client, count_queries):
+def test_retrieve_product_attributes(
+    product_list, api_client, count_queries, channel_USD
+):
     query = """
-        query($sortBy: ProductOrder) {
-          products(first: 10, sortBy: $sortBy) {
+        query($sortBy: ProductOrder, $channelSlug: String) {
+          products(first: 10, sortBy: $sortBy, channelSlug: $channelSlug) {
             edges {
               node {
                 id
@@ -176,7 +181,7 @@ def test_retrieve_product_attributes(product_list, api_client, count_queries):
         }
     """
 
-    variables = {}
+    variables = {"channelSlug": channel_USD.slug}
     get_graphql_content(api_client.post_graphql(query, variables))
 
 
@@ -209,6 +214,9 @@ def test_retrieve_channel_listings(
     variables = {}
     get_graphql_content(
         staff_api_client.post_graphql(
-            query, variables, permissions=(permission_manage_products,)
+            query,
+            variables,
+            permissions=(permission_manage_products,),
+            check_no_permissions=False,
         )
     )

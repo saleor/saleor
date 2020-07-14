@@ -17,6 +17,7 @@ def test_retrieve_variant_list(
     warehouse,
     warehouse_no_shipping_zone,
     shipping_zone_without_countries,
+    channel_USD,
 ):
     query = """
         fragment BasicProductFields on Product {
@@ -80,8 +81,8 @@ def test_retrieve_variant_list(
           }
         }
 
-        query VariantList($ids: [ID!]) {
-          productVariants(ids: $ids, first: 100) {
+        query VariantList($ids: [ID!], $channelSlug: String) {
+          productVariants(ids: $ids, first: 100, channelSlug: $channelSlug) {
             edges {
               node {
                 ...ProductVariantFields
@@ -115,7 +116,8 @@ def test_retrieve_variant_list(
         "ids": [
             graphene.Node.to_global_id("ProductVariant", variant.pk)
             for variant in product_variant_list
-        ]
+        ],
+        "channelSlug": channel_USD.slug,
     }
     get_graphql_content(api_client.post_graphql(query, variables))
 
