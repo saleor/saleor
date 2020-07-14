@@ -9,6 +9,8 @@ from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ..core.mutations import BaseMutation, ModelMutation, registry
 from ..core.types.common import TranslationError
+from ..core.utils import from_global_id_strict_type
+from ..product.types import Product, ProductVariant
 from ..shop.types import Shop
 from .enums import LanguageCodeEnum
 
@@ -82,6 +84,20 @@ class ProductTranslate(BaseTranslateMutation):
         error_type_class = TranslationError
         error_type_field = "translation_errors"
 
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        if "id" in data and not data["id"]:
+            raise ValidationError(
+                {"id": ValidationError("This field is required", code="required")}
+            )
+
+        product_pk = from_global_id_strict_type(data["id"], Product, field="id")
+        product = product_models.Product.objects.get(pk=product_pk)
+        product.translations.update_or_create(
+            language_code=data["language_code"], defaults=data["input"]
+        )
+        return cls(**{cls._meta.return_field_name: product})
+
 
 class CollectionTranslate(BaseTranslateMutation):
     class Arguments:
@@ -111,6 +127,20 @@ class ProductVariantTranslate(BaseTranslateMutation):
         model = product_models.ProductVariant
         error_type_class = TranslationError
         error_type_field = "translation_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        if "id" in data and not data["id"]:
+            raise ValidationError(
+                {"id": ValidationError("This field is required", code="required")}
+            )
+
+        variant_pk = from_global_id_strict_type(data["id"], ProductVariant, field="id")
+        variant = product_models.ProductVariant.objects.get(pk=variant_pk)
+        variant.translations.update_or_create(
+            language_code=data["language_code"], defaults=data["input"]
+        )
+        return cls(**{cls._meta.return_field_name: variant})
 
 
 class AttributeTranslate(BaseTranslateMutation):

@@ -124,12 +124,7 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_product_variant(root: product_models.ProductVariant, info):
-        visible_products = product_models.Product.objects.visible_to_user(
-            info.context.user
-        ).values_list("pk", flat=True)
-        return product_models.ProductVariant.objects.filter(
-            product__id__in=visible_products, pk=root.id
-        ).first()
+        return product_models.ProductVariant.objects.filter(pk=root.id).first()
 
 
 class ProductTranslation(BaseTranslationType):
@@ -153,11 +148,7 @@ class ProductTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_product(root: product_models.Product, info):
-        return (
-            product_models.Product.objects.visible_to_user(info.context.user)
-            .filter(pk=root.id)
-            .first()
-        )
+        return product_models.Product.objects.first()
 
 
 class CollectionTranslation(BaseTranslationType):

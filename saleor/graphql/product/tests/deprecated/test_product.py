@@ -60,8 +60,12 @@ def test_product_query_by_slug_with_default_channel(user_api_client, product):
 
 
 def test_fetch_all_products(user_api_client, product):
-    response = user_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
-    content = get_graphql_content(response)
+    with warnings.catch_warnings(record=True) as warns:
+        response = user_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
+        content = get_graphql_content(response)
     num_products = Product.objects.count()
     assert content["data"]["products"]["totalCount"] == num_products
     assert len(content["data"]["products"]["edges"]) == num_products
+    assert any(
+        [str(warning.message) == deprecation_warning_message for warning in warns]
+    )

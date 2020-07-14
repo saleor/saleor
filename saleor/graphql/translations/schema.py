@@ -14,7 +14,7 @@ from ...product.models import (
 )
 from ...shipping.models import ShippingMethod
 from ..core.connection import CountableConnection
-from ..core.fields import BaseConnectionField
+from ..core.fields import BaseConnectionField, FieldWithChannel
 from ..decorators import permission_required
 from ..discount.resolvers import resolve_sales, resolve_vouchers
 from ..menu.resolvers import resolve_menu_items
@@ -23,11 +23,14 @@ from ..product.resolvers import (
     resolve_attributes,
     resolve_categories,
     resolve_collections,
-    resolve_product_variants,
-    resolve_products,
 )
 from ..translations import types as translation_types
-from .resolvers import resolve_attribute_values, resolve_shipping_methods
+from .resolvers import (
+    resolve_attribute_values,
+    resolve_product_variants,
+    resolve_products,
+    resolve_shipping_methods,
+)
 
 
 class TranslatableItem(graphene.Union):
@@ -74,7 +77,7 @@ class TranslationQueries(graphene.ObjectType):
             TranslatableKinds, required=True, description="Kind of objects to retrieve."
         ),
     )
-    translation = graphene.Field(
+    translation = FieldWithChannel(
         TranslatableItem,
         id=graphene.Argument(
             graphene.ID, description="ID of the object to retrieve.", required=True
@@ -86,6 +89,7 @@ class TranslationQueries(graphene.ObjectType):
         ),
     )
 
+    @permission_required(SitePermissions.MANAGE_TRANSLATIONS)
     def resolve_translations(self, info, kind, **_kwargs):
         if kind == TranslatableKinds.PRODUCT:
             return resolve_products(info)

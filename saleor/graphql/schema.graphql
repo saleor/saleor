@@ -4293,7 +4293,7 @@ type Query {
   warehouse(id: ID!): Warehouse
   warehouses(filter: WarehouseFilterInput, sortBy: WarehouseSortingInput, channelSlug: String, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
-  translation(id: ID!, kind: TranslatableKinds!): TranslatableItem
+  translation(id: ID!, kind: TranslatableKinds!, channelSlug: String): TranslatableItem
   stock(id: ID!): Stock
   stocks(filter: StockFilterInput, channelSlug: String, before: String, after: String, first: Int, last: Int): StockCountableConnection
   shop: Shop!
