@@ -17,6 +17,7 @@ class Migration(migrations.Migration):
             name="channel",
             field=models.ForeignKey(
                 null=True,
+                blank=True,
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="orders",
                 to="channel.Channel",

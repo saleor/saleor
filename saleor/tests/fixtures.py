@@ -219,8 +219,8 @@ def site_settings(db, settings) -> SiteSettings:
 
 
 @pytest.fixture
-def checkout(db):
-    checkout = Checkout.objects.create(currency="USD")
+def checkout(db, channel):
+    checkout = Checkout.objects.create(currency="USD", channel=channel)
     checkout.set_country("US", commit=True)
     return checkout
 

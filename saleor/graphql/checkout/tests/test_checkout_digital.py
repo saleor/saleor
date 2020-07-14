@@ -38,7 +38,7 @@ def enable_dummy_gateway(settings):
 
 @pytest.mark.parametrize("with_shipping_address", (True, False))
 def test_create_checkout(
-    api_client, digital_content, graphql_address_data, with_shipping_address
+    api_client, digital_content, graphql_address_data, with_shipping_address, channel
 ):
     """Test creating a checkout with a shipping address gets the address ignored."""
 
@@ -48,6 +48,7 @@ def test_create_checkout(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     checkout_input = {
+        "channelSlug": channel.slug,
         "lines": [{"quantity": 1, "variantId": variant_id}],
         "email": "customer@example.com",
     }

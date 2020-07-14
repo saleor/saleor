@@ -12,6 +12,7 @@ from ...checkout import models
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
     abort_order_data,
+    add_channel_to_checkout,
     add_promo_code_to_checkout,
     add_variant_to_checkout,
     change_billing_address_in_checkout,
@@ -333,8 +334,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             checkout = models.Checkout(user=user)
         else:
             checkout = models.Checkout()
-
         cleaned_input = cls.clean_input(info, checkout, data.get("input"))
+        add_channel_to_checkout(checkout, cleaned_input["channel_slug"])
         checkout = cls.construct_instance(checkout, cleaned_input)
         cls.clean_instance(info, checkout)
         cls.save(info, checkout, cleaned_input)

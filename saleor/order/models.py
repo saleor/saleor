@@ -101,7 +101,11 @@ class Order(ModelWithMetadata):
         max_length=255, null=True, default=None, blank=True, editable=False
     )
     channel = models.ForeignKey(
-        Channel, related_name="orders", null=True, on_delete=models.SET_NULL,
+        Channel,
+        related_name="orders",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
     )
     shipping_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
