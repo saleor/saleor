@@ -16,6 +16,7 @@ from measurement.measures import Weight
 from prices import Money
 
 from ..account.models import Address
+from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.permissions import OrderPermissions
 from ..core.taxes import zero_money, zero_taxed_money
@@ -99,7 +100,9 @@ class Order(ModelWithMetadata):
     shipping_method_name = models.CharField(
         max_length=255, null=True, default=None, blank=True, editable=False
     )
-
+    channel = models.ForeignKey(
+        Channel, related_name="orders", null=True, on_delete=models.SET_NULL,
+    )
     shipping_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

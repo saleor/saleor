@@ -7,6 +7,7 @@ from django.db import transaction
 from django.db.models import Prefetch
 
 from ...account.error_codes import AccountErrorCode
+from ...channel.utils import raise_channel_validation
 from ...checkout import models
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
@@ -142,6 +143,7 @@ class CheckoutLineInput(graphene.InputObjectType):
 
 
 class CheckoutCreateInput(graphene.InputObjectType):
+    channel_slug = graphene.String(description="Channel slug for current checkout.")
     lines = graphene.List(
         CheckoutLineInput,
         description=(
@@ -219,10 +221,26 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return None
 
     @classmethod
+    def clean_channel(cls, channel_slug):
+        if raise_channel_validation():
+            raise ValidationError(
+                {
+                    "channel_slug": ValidationError(
+                        "You need to provide channel slug.",
+                        code=CheckoutErrorCode.MISSING_CHANNEL_SLUG,
+                    )
+                }
+            )
+
+    @classmethod
     def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
         user = info.context.user
         country = info.context.country.code
+
+        channel_slug = cleaned_input.get("channel_slug")
+        if channel_slug is None:
+            cls.clean_channel(channel_slug)
 
         # set country to one from shipping address
         shipping_address = cleaned_input.get("shipping_address")

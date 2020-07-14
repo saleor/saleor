@@ -735,6 +735,9 @@ def create_order(
     # assign checkout payments to the order
     checkout.payments.update(order=order)
 
+    # copy channel id from checkout
+    order.channel = checkout.channel
+
     # copy metadata from the checkout into the new order
     order.metadata = checkout.metadata
     order.private_metadata = checkout.private_metadata
