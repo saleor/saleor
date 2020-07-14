@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactor JWT support - These changes could require a handling JWT token in the storefront. Storefront needs to handle a case when the backend returns the exception about the invalid token. - #5734, #5816 by @korycins
 - New logging setup will now output JSON logs in production mode for ease of feeding them into log collection systems like Logstash or CloudWatch Logs - #5699 by @patrys
 - Deprecate `WebhookEventType.CHECKOUT_QUANTITY_CHANGED`. It will be removed in Saleor 3.0 - #5837 by @korycins
+- New version of dummy payment - #5822 by @IKarbowiak
 
 ### Fixes
 
