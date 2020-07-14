@@ -157,15 +157,12 @@ def test_collections_query(
     assert len(edges) == 2
 
 
-def test_create_collection(
-    monkeypatch, staff_api_client, product_list, media_root, permission_manage_products
-):
-    query = """
+CREATE_COLLECTION_MUTATION = """
         mutation createCollection(
-                $name: String!, $slug: String!, $description: String,
+                $name: String!, $slug: String, $description: String,
                 $descriptionJson: JSONString, $products: [ID],
-                $backgroundImage: Upload!, $backgroundImageAlt: String,
-                $isPublished: Boolean!, $publicationDate: Date) {
+                $backgroundImage: Upload, $backgroundImageAlt: String,
+                $isPublished: Boolean, $publicationDate: Date) {
             collectionCreate(
                 input: {
                     name: $name,
@@ -190,9 +187,20 @@ def test_create_collection(
                         alt
                     }
                 }
+                productErrors {
+                    field
+                    message
+                    code
+                }
             }
         }
-    """
+"""
+
+
+def test_create_collection(
+    monkeypatch, staff_api_client, product_list, media_root, permission_manage_products
+):
+    query = CREATE_COLLECTION_MUTATION
 
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
@@ -243,20 +251,7 @@ def test_create_collection(
 def test_create_collection_without_background_image(
     monkeypatch, staff_api_client, product_list, permission_manage_products
 ):
-    query = """
-        mutation createCollection(
-            $name: String!, $slug: String!, $products: [ID], $isPublished: Boolean!) {
-            collectionCreate(
-                input: {name: $name, slug: $slug, products: $products,
-                    isPublished: $isPublished}) {
-
-                errors {
-                    field
-                    message
-                }
-            }
-        }
-    """
+    query = CREATE_COLLECTION_MUTATION
 
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
@@ -277,33 +272,17 @@ def test_create_collection_without_background_image(
 
 @pytest.mark.parametrize(
     "input_slug, expected_slug",
-    (("test-slug", "test-slug"), (None, "test-collection"), ("", "test-collection"),),
+    (
+        ("test-slug", "test-slug"),
+        (None, "test-collection"),
+        ("", "test-collection"),
+        ("わたし-わ-にっぽん-です", "わたし-わ-にっぽん-です"),
+    ),
 )
 def test_create_collection_with_given_slug(
     staff_api_client, permission_manage_products, input_slug, expected_slug
 ):
-    query = """
-        mutation(
-                $name: String, $slug: String) {
-            collectionCreate(
-                input: {
-                    name: $name
-                    slug: $slug
-                }
-            ) {
-                collection {
-                    id
-                    name
-                    slug
-                }
-                productErrors {
-                    field
-                    message
-                    code
-                }
-            }
-        }
-    """
+    query = CREATE_COLLECTION_MUTATION
     name = "Test collection"
     variables = {"name": name, "slug": input_slug}
     response = staff_api_client.post_graphql(
@@ -313,6 +292,22 @@ def test_create_collection_with_given_slug(
     data = content["data"]["collectionCreate"]
     assert not data["productErrors"]
     assert data["collection"]["slug"] == expected_slug
+
+
+def test_create_collection_name_with_unicode(
+    staff_api_client, permission_manage_products
+):
+    query = CREATE_COLLECTION_MUTATION
+    name = "わたし わ にっぽん です"
+    variables = {"name": name}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["collectionCreate"]
+    assert not data["productErrors"]
+    assert data["collection"]["name"] == name
+    assert data["collection"]["slug"] == "わたし-わ-にっぽん-です"
 
 
 def test_update_collection(

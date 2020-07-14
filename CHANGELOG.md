@@ -28,6 +28,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Strip warehouse name in mutations - #5766 by @koradon
 - Add missing OrderEvents during checkout flow - #5684 by @koradon
 - Update google merchant to get tax rate based by plugin manager - #5823 by @gabmartinez
+- Allow unicode in slug fields - #5877 by @IKarbowiak
 
 ## 2.10.1
 

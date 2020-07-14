@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 
 class Category(MPTTModel, ModelWithMetadata, SeoModel):
     name = models.CharField(max_length=250)
-    slug = models.SlugField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     description = models.TextField(blank=True)
     description_json = JSONField(blank=True, default=dict)
     parent = models.ForeignKey(
@@ -89,7 +89,7 @@ class CategoryTranslation(SeoModelTranslation):
 
 class ProductType(ModelWithMetadata):
     name = models.CharField(max_length=250)
-    slug = models.SlugField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=True)
     is_digital = models.BooleanField(default=False)
@@ -232,7 +232,7 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
         ProductType, related_name="products", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=250)
-    slug = models.SlugField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     description = models.TextField(blank=True)
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_draft_js
@@ -663,7 +663,7 @@ class AttributeQuerySet(BaseAttributeQuerySet):
 
 
 class Attribute(ModelWithMetadata):
-    slug = models.SlugField(max_length=250, unique=True)
+    slug = models.SlugField(max_length=250, unique=True, allow_unicode=True)
     name = models.CharField(max_length=255)
 
     input_type = models.CharField(
@@ -736,7 +736,7 @@ class AttributeTranslation(models.Model):
 class AttributeValue(SortableModel):
     name = models.CharField(max_length=250)
     value = models.CharField(max_length=100, blank=True, default="")
-    slug = models.SlugField(max_length=255)
+    slug = models.SlugField(max_length=255, allow_unicode=True)
     attribute = models.ForeignKey(
         Attribute, related_name="values", on_delete=models.CASCADE
     )
@@ -823,7 +823,7 @@ class CollectionProduct(SortableModel):
 
 class Collection(SeoModel, ModelWithMetadata, PublishableModel):
     name = models.CharField(max_length=250, unique=True)
-    slug = models.SlugField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     products = models.ManyToManyField(
         Product,
         blank=True,
