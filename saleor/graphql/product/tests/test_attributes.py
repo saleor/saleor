@@ -5,7 +5,7 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.template.defaultfilters import slugify
+from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
 
 from ....product import AttributeInputType
@@ -434,8 +434,10 @@ def test_attributes_in_collection_query(
 
 
 CREATE_ATTRIBUTES_QUERY = """
-    mutation createAttribute($name: String!, $values: [AttributeValueCreateInput]) {
-        attributeCreate(input: {name: $name, values: $values}) {
+    mutation createAttribute(
+        $name: String!, $slug: String, $values: [AttributeValueCreateInput]
+    ){
+        attributeCreate(input: {name: $name, values: $values, slug: $slug}) {
             errors {
                 field
                 message
@@ -497,7 +499,12 @@ def test_create_attribute_and_attribute_values(
 
 @pytest.mark.parametrize(
     "input_slug, expected_slug",
-    (("my-slug", "my-slug"), (None, "my-name"), ("", "my-name"),),
+    (
+        ("my-slug", "my-slug"),
+        (None, "my-name"),
+        ("", "my-name"),
+        ("わたし-わ-にっぽん-です", "わたし-わ-にっぽん-です"),
+    ),
 )
 def test_create_attribute_with_given_slug(
     staff_api_client, permission_manage_products, input_slug, expected_slug,
@@ -525,6 +532,23 @@ def test_create_attribute_with_given_slug(
 
     assert not content["data"]["attributeCreate"]["productErrors"]
     assert content["data"]["attributeCreate"]["attribute"]["slug"] == expected_slug
+
+
+def test_create_attribute_value_name_and_slug_with_unicode(
+    staff_api_client, permission_manage_products
+):
+    query = CREATE_ATTRIBUTES_QUERY
+    name = "わたし わ にっぽん です"
+    slug = "わたし-わ-にっぽん-で"
+    variables = {"name": name, "slug": slug}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeCreate"]
+    assert not data["productErrors"]
+    assert data["attribute"]["name"] == name
+    assert data["attribute"]["slug"] == slug
 
 
 @pytest.mark.parametrize(

@@ -266,6 +266,8 @@ def test_placeholder(settings):
         ("Shirt", "shirt"),
         ("40.5", "405-2"),
         ("FM1+", "fm1-2"),
+        ("زيوت", "زيوت"),
+        ("わたし-わ にっぽん です", "わたし-わ-にっぽん-です-2"),
     ],
 )
 def test_generate_unique_slug_with_slugable_field(
@@ -277,6 +279,7 @@ def test_generate_unique_slug_with_slugable_field(
         ("Paint test", "paint-2"),
         ("405", "405"),
         ("FM1", "fm1"),
+        ("わたし わ にっぽん です", "わたし-わ-にっぽん-です"),
     ]
     for name, slug in product_names_and_slugs:
         ProductType.objects.create(name=name, slug=slug)
