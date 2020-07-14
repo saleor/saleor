@@ -9,6 +9,7 @@ from ....product.models import ProductVariant
 from ....product.utils.attributes import associate_attribute_values_to_instance
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.models import Stock, Warehouse
+from ...core.enums import WeightUnitsEnum
 from ...tests.utils import get_graphql_content
 
 
@@ -170,7 +171,7 @@ def test_create_variant(
     assert data["sku"] == sku
     assert data["attributes"][0]["attribute"]["slug"] == variant_slug
     assert data["attributes"][0]["values"][0]["slug"] == variant_value
-    assert data["weight"]["unit"] == "kg"
+    assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
     assert data["weight"]["value"] == weight
     assert len(data["stocks"]) == 1
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]

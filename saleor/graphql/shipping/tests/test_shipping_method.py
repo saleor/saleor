@@ -3,6 +3,7 @@ import pytest
 
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.utils import get_countries_without_shipping_zone
+from ...core.enums import WeightUnitsEnum
 from ...tests.utils import get_graphql_content
 from ..types import ShippingMethodTypeEnum
 
@@ -616,8 +617,13 @@ WEIGHT_BASED_SHIPPING_QUERY = """
 @pytest.mark.parametrize(
     "min_weight, max_weight, expected_min_weight, expected_max_weight",
     (
-        (10.32, 15.64, {"value": 10.32, "unit": "kg"}, {"value": 15.64, "unit": "kg"}),
-        (10.92, None, {"value": 10.92, "unit": "kg"}, None),
+        (
+            10.32,
+            15.64,
+            {"value": 10.32, "unit": WeightUnitsEnum.KG.name},
+            {"value": 15.64, "unit": WeightUnitsEnum.KG.name},
+        ),
+        (10.92, None, {"value": 10.92, "unit": WeightUnitsEnum.KG.name}, None),
     ),
 )
 def test_create_weight_based_shipping_method(

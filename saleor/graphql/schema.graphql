@@ -5631,7 +5631,7 @@ input WebhookUpdateInput {
 }
 
 type Weight {
-  unit: String!
+  unit: WeightUnitsEnum!
   value: Float!
 }
 
