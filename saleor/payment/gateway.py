@@ -18,7 +18,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..payment.interface import CustomerSource
+    from ..payment.interface import CustomerSource, PaymentGateway
 
 
 logger = logging.getLogger(__name__)
@@ -202,7 +202,7 @@ def get_client_token(gateway: str, customer_id: str = None) -> str:
     return plugin_manager.get_client_token(gateway, token_config)
 
 
-def list_gateways() -> List[dict]:
+def list_gateways() -> List["PaymentGateway"]:
     return get_plugins_manager().list_payment_gateways()
 
 
