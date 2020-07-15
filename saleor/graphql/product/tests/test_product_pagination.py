@@ -381,6 +381,7 @@ QUERY_PRODUCTS_PAGINATION = """
             edges {
                 node {
                     name
+                    slug
                 }
             }
             pageInfo{
@@ -464,6 +465,120 @@ def test_products_pagination_with_sorting_by_attribute(
     assert products_order[1] == products_nodes[1]["node"]["name"]
     assert products_order[2] == products_nodes[2]["node"]["name"]
     assert len(products_nodes) == page_size
+
+
+def test_products_pagination_for_products_with_the_same_names_two_pages(
+    staff_api_client, permission_manage_products, category, product_type
+):
+    products = Product.objects.bulk_create(
+        [
+            Product(
+                name="Product",
+                slug="prod-1",
+                category=category,
+                product_type=product_type,
+                is_published=True,
+            ),
+            Product(
+                name="Product",
+                slug="prod-2",
+                category=category,
+                product_type=product_type,
+                is_published=True,
+            ),
+            Product(
+                name="Product",
+                slug="prod-3",
+                category=category,
+                product_type=product_type,
+                is_published=True,
+            ),
+        ]
+    )
+    page_size = 2
+    variables = {"first": page_size, "after": None}
+
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    page_info = content["data"]["products"]["pageInfo"]
+
+    assert len(products_nodes) == 2
+    assert products_nodes[0]["node"]["slug"] == products[0].slug
+    assert products_nodes[1]["node"]["slug"] == products[1].slug
+    assert page_info["hasNextPage"] is True
+
+    end_cursor = page_info["endCursor"]
+    variables["after"] = end_cursor
+
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    page_info = content["data"]["products"]["pageInfo"]
+    assert len(products_nodes) == 1
+    assert products_nodes[0]["node"]["slug"] == products[2].slug
+    assert page_info["hasNextPage"] is False
+
+
+def test_products_pagination_for_products_with_the_same_names_one_page(
+    staff_api_client, permission_manage_products, category, product_type
+):
+    products = Product.objects.bulk_create(
+        [
+            Product(
+                name="Product",
+                slug="prod-1",
+                category=category,
+                product_type=product_type,
+                is_published=True,
+            ),
+            Product(
+                name="Product",
+                slug="prod-2",
+                category=category,
+                product_type=product_type,
+                is_published=True,
+            ),
+            Product(
+                name="Product",
+                slug="prod-3",
+                category=category,
+                product_type=product_type,
+                is_published=True,
+            ),
+        ]
+    )
+    page_size = 3
+    variables = {"first": page_size, "after": None}
+
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    page_info = content["data"]["products"]["pageInfo"]
+
+    assert len(products_nodes) == 3
+    assert products_nodes[0]["node"]["slug"] == products[0].slug
+    assert products_nodes[1]["node"]["slug"] == products[1].slug
+    assert products_nodes[2]["node"]["slug"] == products[2].slug
+    assert page_info["hasNextPage"] is False
 
 
 @pytest.mark.parametrize(

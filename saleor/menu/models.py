@@ -42,7 +42,7 @@ class MenuItem(MPTTModel, SortableModel):
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ("sort_order",)
+        ordering = ("sort_order", "pk")
         app_label = "menu"
 
     def __str__(self):
@@ -69,7 +69,7 @@ class MenuItemTranslation(models.Model):
     name = models.CharField(max_length=128)
 
     class Meta:
-        ordering = ("language_code", "menu_item")
+        ordering = ("language_code", "menu_item", "pk")
         unique_together = (("language_code", "menu_item"),)
 
     def __repr__(self):

@@ -33,8 +33,11 @@ def resolve_categories(info, level=None, **_kwargs):
     return qs.distinct()
 
 
-def resolve_collection_by_slug(slug):
-    return models.Collection.objects.filter(slug=slug).first()
+def resolve_collection_by_slug(info, slug):
+    requestor = get_user_or_app_from_context(info.context)
+    return (
+        models.Collection.objects.visible_to_user(requestor).filter(slug=slug).first()
+    )
 
 
 def resolve_collections(info, **_kwargs):
@@ -46,8 +49,9 @@ def resolve_digital_contents(info):
     return models.DigitalContent.objects.all()
 
 
-def resolve_product_by_slug(slug):
-    return models.Product.objects.filter(slug=slug).first()
+def resolve_product_by_slug(info, slug):
+    requestor = get_user_or_app_from_context(info.context)
+    return models.Product.objects.visible_to_user(requestor).filter(slug=slug).first()
 
 
 def resolve_products(info, stock_availability=None, **_kwargs):

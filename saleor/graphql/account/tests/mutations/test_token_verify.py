@@ -1,5 +1,5 @@
 from .....account.error_codes import AccountErrorCode
-from .....core.jwt import create_access_token
+from .....core.jwt import create_access_token, create_access_token_for_app
 from ....tests.utils import get_graphql_content
 
 MUTATION_TOKEN_VERIFY = """
@@ -17,7 +17,7 @@ MUTATION_TOKEN_VERIFY = """
 """
 
 
-def test_verify_token(api_client, customer_user):
+def test_verify_access_token(api_client, customer_user):
     variables = {"token": create_access_token(customer_user)}
     response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
     content = get_graphql_content(response)
@@ -25,6 +25,16 @@ def test_verify_token(api_client, customer_user):
     assert data["isValid"] is True
     user_email = content["data"]["tokenVerify"]["user"]["email"]
     assert customer_user.email == user_email
+
+
+def test_verify_access_app_token(api_client, staff_user, app):
+    variables = {"token": create_access_token_for_app(app, staff_user)}
+    response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["tokenVerify"]
+    assert data["isValid"] is True
+    user_email = content["data"]["tokenVerify"]["user"]["email"]
+    assert staff_user.email == user_email
 
 
 def test_verify_token_incorrect_token(api_client):

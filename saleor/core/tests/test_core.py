@@ -56,7 +56,9 @@ type_schema = {
     ],
 )
 def test_get_country_by_ip(ip_data, expected_country, monkeypatch):
-    monkeypatch.setattr("saleor.core.utils.georeader.get", Mock(return_value=ip_data))
+    monkeypatch.setattr(
+        "saleor.core.utils._get_geo_data_by_ip", Mock(return_value=ip_data)
+    )
     country = get_country_by_ip("127.0.0.1")
     assert country == expected_country
 
@@ -264,6 +266,8 @@ def test_placeholder(settings):
         ("Shirt", "shirt"),
         ("40.5", "405-2"),
         ("FM1+", "fm1-2"),
+        ("زيوت", "زيوت"),
+        ("わたし-わ にっぽん です", "わたし-わ-にっぽん-です-2"),
     ],
 )
 def test_generate_unique_slug_with_slugable_field(
@@ -275,6 +279,7 @@ def test_generate_unique_slug_with_slugable_field(
         ("Paint test", "paint-2"),
         ("405", "405"),
         ("FM1", "fm1"),
+        ("わたし わ にっぽん です", "わたし-わ-にっぽん-です"),
     ]
     for name, slug in product_names_and_slugs:
         ProductType.objects.create(name=name, slug=slug)

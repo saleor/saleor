@@ -3,6 +3,7 @@ import pytest
 
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.utils import get_countries_without_shipping_zone
+from ...core.enums import WeightUnitsEnum
 from ...tests.utils import get_graphql_content
 from ..types import ShippingMethodTypeEnum
 
@@ -232,6 +233,7 @@ UPDATE_SHIPPING_ZONE_QUERY = """
                 name
                 warehouses {
                     name
+                    slug
                 }
             }
             shippingErrors {
@@ -330,8 +332,8 @@ def test_update_shipping_zone_add_second_warehouses(
     data = content["data"]["shippingZoneUpdate"]
     assert not data["shippingErrors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
-    assert data["warehouses"][1]["name"] == warehouse.name
-    assert data["warehouses"][0]["name"] == warehouse_no_shipping_zone.name
+    assert data["warehouses"][1]["slug"] == warehouse.slug
+    assert data["warehouses"][0]["slug"] == warehouse_no_shipping_zone.slug
 
 
 def test_update_shipping_zone_remove_warehouses(
@@ -615,8 +617,13 @@ WEIGHT_BASED_SHIPPING_QUERY = """
 @pytest.mark.parametrize(
     "min_weight, max_weight, expected_min_weight, expected_max_weight",
     (
-        (10.32, 15.64, {"value": 10.32, "unit": "kg"}, {"value": 15.64, "unit": "kg"}),
-        (10.92, None, {"value": 10.92, "unit": "kg"}, None),
+        (
+            10.32,
+            15.64,
+            {"value": 10.32, "unit": WeightUnitsEnum.KG.name},
+            {"value": 15.64, "unit": WeightUnitsEnum.KG.name},
+        ),
+        (10.92, None, {"value": 10.92, "unit": WeightUnitsEnum.KG.name}, None),
     ),
 )
 def test_create_weight_based_shipping_method(
