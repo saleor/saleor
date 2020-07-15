@@ -4,7 +4,10 @@ from .exceptions import ChannelSlugNotPassedException, NoChannelException
 from .models import Channel
 
 # TODO: Add message with deprecation date.
-deprecation_warning_message = "TODO"
+DEPRECATION_WARNING_MESSAGE = (
+    "DEPRECATED: Channel slug not passed. Query working only if exists one channel."
+    "This behavior will be removed after XXXX-XX-XX."
+)
 
 
 def get_default_channel_slug_if_available() -> str:
@@ -14,5 +17,5 @@ def get_default_channel_slug_if_available() -> str:
         raise ChannelSlugNotPassedException()
     except Channel.DoesNotExist:
         raise NoChannelException()
-    warnings.warn(deprecation_warning_message)
+    warnings.warn(DEPRECATION_WARNING_MESSAGE)
     return channel.slug

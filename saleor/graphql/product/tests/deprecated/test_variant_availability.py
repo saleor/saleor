@@ -2,7 +2,7 @@ import warnings
 
 import graphene
 
-from .....channel.utils import deprecation_warning_message
+from .....channel.utils import DEPRECATION_WARNING_MESSAGE
 from ....tests.utils import get_graphql_content
 
 QUERY_DEPRECATED_VARIANT_AVAILABILITY = """
@@ -31,7 +31,7 @@ def test_variant_availability_without_inventory_tracking(
     assert variant_data["stockQuantity"] == settings.MAX_CHECKOUT_LINE_QUANTITY
     assert variant_data["quantityAvailable"] == settings.MAX_CHECKOUT_LINE_QUANTITY
     assert any(
-        [str(warning.message) == deprecation_warning_message for warning in warns]
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )
 
 
@@ -48,7 +48,7 @@ def test_variant_availability(api_client, variant_with_many_stocks, settings):
     assert variant_data["stockQuantity"] == 7
     assert variant_data["quantityAvailable"] == 7
     assert any(
-        [str(warning.message) == deprecation_warning_message for warning in warns]
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )
 
 
@@ -68,7 +68,7 @@ def test_variant_availability_without_inventory_tracking_without_stocks(
     assert variant_data["stockQuantity"] == settings.MAX_CHECKOUT_LINE_QUANTITY
     assert variant_data["quantityAvailable"] == settings.MAX_CHECKOUT_LINE_QUANTITY
     assert any(
-        [str(warning.message) == deprecation_warning_message for warning in warns]
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )
 
 
@@ -84,5 +84,5 @@ def test_variant_availability_without_stocks(api_client, variant, settings):
     assert variant_data["stockQuantity"] == 0
     assert variant_data["quantityAvailable"] == 0
     assert any(
-        [str(warning.message) == deprecation_warning_message for warning in warns]
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )

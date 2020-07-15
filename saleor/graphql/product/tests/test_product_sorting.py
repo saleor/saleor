@@ -93,6 +93,7 @@ def test_sort_products_within_collection(
     collection,
     collection_with_products,
     permission_manage_products,
+    channel_USD,
 ):
 
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -102,7 +103,7 @@ def test_sort_products_within_collection(
     assert len(products) == 3
 
     # Sort the products per sort_order
-    products = list(collection.products.collection_sorted(staff_user, ""))
+    products = list(collection.products.collection_sorted(staff_user, channel_USD.slug))
     assert len(products) == 3
 
     variables = {

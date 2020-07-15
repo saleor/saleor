@@ -42,7 +42,7 @@ class ProductChannelListingUpdateInput(graphene.InputObjectType):
     )
     remove_channels = graphene.List(
         graphene.NonNull(graphene.ID),
-        description="List of channel unassigned to product.",
+        description="List of channel unassigned from product.",
         required=False,
     )
 

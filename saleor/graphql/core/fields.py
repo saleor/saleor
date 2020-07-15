@@ -97,7 +97,7 @@ class PrefetchingConnectionField(BaseDjangoConnectionField):
             "channel_slug",
             graphene.Argument(
                 graphene.String,
-                description="Slug of the channel for which return product data.",
+                description="Slug of the channel for which return data.",
             ),
         )
         super().__init__(*args, **kwargs)
@@ -231,7 +231,7 @@ class FieldWithChannel(graphene.Field):
             "channel_slug",
             graphene.Argument(
                 graphene.String,
-                description="Slug of the channel for which return product data.",
+                description="Slug of the channel for which return data.",
             ),
         )
         super().__init__(type, *args, **kwargs)

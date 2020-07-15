@@ -2,7 +2,7 @@ import warnings
 
 import graphene
 
-from .....channel.utils import deprecation_warning_message
+from .....channel.utils import DEPRECATION_WARNING_MESSAGE
 from .....product.models import Product
 from ....tests.utils import get_graphql_content
 
@@ -42,7 +42,7 @@ def test_product_query_by_id_with_default_channel(user_api_client, product):
     assert collection_data is not None
     assert collection_data["name"] == product.name
     assert any(
-        [str(warning.message) == deprecation_warning_message for warning in warns]
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )
 
 
@@ -55,7 +55,7 @@ def test_product_query_by_slug_with_default_channel(user_api_client, product):
     assert collection_data is not None
     assert collection_data["name"] == product.name
     assert any(
-        [str(warning.message) == deprecation_warning_message for warning in warns]
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )
 
 
@@ -67,5 +67,5 @@ def test_fetch_all_products(user_api_client, product):
     assert content["data"]["products"]["totalCount"] == num_products
     assert len(content["data"]["products"]["edges"]) == num_products
     assert any(
-        [str(warning.message) == deprecation_warning_message for warning in warns]
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )

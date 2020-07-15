@@ -78,7 +78,7 @@ class ProductChannelListingByProductIdAndChanneSlugLoader(
         for product_id, channel_slug in keys:
             product_channel_listing_by_channel[channel_slug].append(product_id)
 
-        # For each channel execute a single query for all product variants.
+        # For each channel execute a single query for all products.
         product_channel_listing_by_product_and_channel: DefaultDict[
             ProductIdAndChannelSlug, Optional[ProductChannelListing]
         ] = defaultdict()

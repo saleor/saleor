@@ -145,7 +145,6 @@ def test_delete_categories_with_subcategories_and_products(
 ):
     product.category = category
     category.parent = category_list[0]
-    product.save()
     category.save()
 
     parent_product = Product.objects.get(pk=product.pk)
@@ -154,14 +153,18 @@ def test_delete_categories_with_subcategories_and_products(
     parent_product.category = category_list[0]
     parent_product.save()
 
-    ProductChannelListing.objects.create(
-        product=parent_product, channel=channel_USD, is_published=True
-    )
-    ProductChannelListing.objects.create(
-        product=parent_product,
-        channel=channel_PLN,
-        is_published=True,
-        publication_date=timezone.now(),
+    ProductChannelListing.objects.bulk_create(
+        [
+            ProductChannelListing(
+                product=parent_product, channel=channel_USD, is_published=True
+            ),
+            ProductChannelListing(
+                product=parent_product,
+                channel=channel_PLN,
+                is_published=True,
+                publication_date=timezone.now(),
+            ),
+        ]
     )
 
     product_list = [product, parent_product]
