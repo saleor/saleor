@@ -456,8 +456,7 @@ def test_product_query_by_slug_not_available_as_customer(
     response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
     content = get_graphql_content(response)
     product_data = content["data"]["product"]
-    assert product_data is not None
-    assert product_data["name"] == product.name
+    assert product_data is None
 
 
 def test_product_query_unpublished_products_by_slug(
@@ -470,7 +469,10 @@ def test_product_query_unpublished_products_by_slug(
     ProductChannelListing.objects.filter(product=product, channel=channel_USD).update(
         is_published=False
     )
-    variables = {"slug": product.slug}
+    variables = {
+        "slug": product.slug,
+        "channelSlug": channel_USD.slug,
+    }
 
     # when
     response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
@@ -483,12 +485,16 @@ def test_product_query_unpublished_products_by_slug(
 
 
 def test_product_query_unpublished_products_by_slug_and_anonympus_user(
-    api_client, product,
+    api_client, product, channel_USD
 ):
     # given
-    product.is_published = False
-    product.save(update_fields=["is_published"])
-    variables = {"slug": product.slug}
+    ProductChannelListing.objects.filter(product=product, channel=channel_USD).update(
+        is_published=False
+    )
+    variables = {
+        "slug": product.slug,
+        "channelSlug": channel_USD.slug,
+    }
 
     # when
     response = api_client.post_graphql(QUERY_PRODUCT, variables=variables)

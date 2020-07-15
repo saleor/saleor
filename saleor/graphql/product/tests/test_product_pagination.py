@@ -473,21 +473,18 @@ def test_products_pagination_for_products_with_the_same_names_two_pages(
                 slug="prod-1",
                 category=category,
                 product_type=product_type,
-                is_published=True,
             ),
             Product(
                 name="Product",
                 slug="prod-2",
                 category=category,
                 product_type=product_type,
-                is_published=True,
             ),
             Product(
                 name="Product",
                 slug="prod-3",
                 category=category,
                 product_type=product_type,
-                is_published=True,
             ),
         ]
     )
@@ -538,21 +535,18 @@ def test_products_pagination_for_products_with_the_same_names_one_page(
                 slug="prod-1",
                 category=category,
                 product_type=product_type,
-                is_published=True,
             ),
             Product(
                 name="Product",
                 slug="prod-2",
                 category=category,
                 product_type=product_type,
-                is_published=True,
             ),
             Product(
                 name="Product",
                 slug="prod-3",
                 category=category,
                 product_type=product_type,
-                is_published=True,
             ),
         ]
     )
