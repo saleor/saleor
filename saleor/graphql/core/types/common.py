@@ -7,7 +7,9 @@ from ..enums import (
     AppErrorCode,
     CheckoutErrorCode,
     DiscountErrorCode,
+    ExportErrorCode,
     GiftCardErrorCode,
+    InvoiceErrorCode,
     JobStatusEnum,
     MenuErrorCode,
     MetadataErrorCode,
@@ -24,6 +26,7 @@ from ..enums import (
     TranslationErrorCode,
     WarehouseErrorCode,
     WebhookErrorCode,
+    WeightUnitsEnum,
     WishlistErrorCode,
 )
 from .money import VAT
@@ -112,6 +115,10 @@ class DiscountError(ProductWithoutVariantError):
     code = DiscountErrorCode(description="The error code.", required=True)
 
 
+class ExportError(Error):
+    code = ExportErrorCode(description="The error code.", required=True)
+
+
 class MenuError(Error):
     code = MenuErrorCode(description="The error code.", required=True)
 
@@ -128,6 +135,10 @@ class OrderError(Error):
     order_line = graphene.ID(
         description="Order line ID which causes the error.", required=False,
     )
+
+
+class InvoiceError(Error):
+    code = InvoiceErrorCode(description="The error code.", required=True)
 
 
 class PermissionGroupError(Error):
@@ -232,7 +243,7 @@ class SeoInput(graphene.InputObjectType):
 
 
 class Weight(graphene.ObjectType):
-    unit = graphene.String(description="Weight unit.", required=True)
+    unit = WeightUnitsEnum(description="Weight unit.", required=True)
     value = graphene.Float(description="Weight value.", required=True)
 
     class Meta:
@@ -299,6 +310,7 @@ class Job(graphene.Interface):
     updated_at = graphene.DateTime(
         description="Date time of job last update in ISO 8601 format.", required=True
     )
+    message = graphene.String(description="Job message.")
 
     @classmethod
     def resolve_type(cls, instance, _info):

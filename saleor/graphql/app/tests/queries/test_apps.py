@@ -1,10 +1,10 @@
-import graphene
 import pytest
 from freezegun import freeze_time
 
-from ....app.models import App
-from ....webhook.models import Webhook
-from ...tests.utils import assert_no_permission, get_graphql_content
+from .....app.models import App
+from .....webhook.models import Webhook
+from ....tests.utils import assert_no_permission, get_graphql_content
+from ...enums import AppTypeEnum
 
 QUERY_APPS_WITH_FILTER = """
     query ($filter: AppFilterInput ){
@@ -24,6 +24,14 @@ QUERY_APPS_WITH_FILTER = """
                         name
                     }
                     name
+                    type
+                    aboutApp
+                    dataPrivacy
+                    dataPrivacyUrl
+                    homepageUrl
+                    supportUrl
+                    configurationUrl
+                    appUrl
                 }
             }
         }
@@ -32,25 +40,30 @@ QUERY_APPS_WITH_FILTER = """
 
 
 @pytest.mark.parametrize(
-    "app_filter, count", (({"search": "Sample"}, 1), ({"isActive": False}, 1), ({}, 2)),
+    "app_filter, count",
+    (
+        ({"search": "Sample"}, 1),
+        ({"isActive": False}, 1),
+        ({}, 2),
+        ({"type": AppTypeEnum.THIRDPARTY.name}, 1),
+        ({"type": AppTypeEnum.LOCAL.name}, 1),
+    ),
 )
 def test_apps_query(
     staff_api_client,
     permission_manage_apps,
-    permission_manage_webhooks,
+    permission_manage_orders,
     app,
+    external_app,
     app_filter,
     count,
 ):
-    second_app = App.objects.create(name="Simple service")
-    second_app.is_active = False
-    second_app.tokens.create(name="default")
-    second_app.save()
-
+    external_app.is_active = False
+    external_app.save()
     webhooks = Webhook.objects.bulk_create(
         [
             Webhook(app=app, name="first", target_url="http://www.example.com/test"),
-            Webhook(app=second_app, name="second", target_url="http://www.exa.com/s",),
+            Webhook(app=external_app, name="second", target_url="http://www.exa.com/s"),
         ]
     )
     webhooks_names = [w.name for w in webhooks]
@@ -59,7 +72,7 @@ def test_apps_query(
     response = staff_api_client.post_graphql(
         QUERY_APPS_WITH_FILTER,
         variables,
-        permissions=[permission_manage_apps, permission_manage_webhooks],
+        permissions=[permission_manage_apps, permission_manage_orders],
     )
     content = get_graphql_content(response)
 
@@ -128,91 +141,3 @@ def test_apps_query_no_permission(
         permissions=[permission_manage_users, permission_manage_staff],
     )
     assert_no_permission(response)
-
-
-QUERY_APP = """
-    query ($id: ID! ){
-        app(id: $id){
-            id
-            created
-            isActive
-            permissions{
-                code
-                name
-            }
-            tokens{
-                authToken
-            }
-            webhooks{
-                name
-            }
-            name
-        }
-    }
-    """
-
-
-def test_app_query(
-    staff_api_client, permission_manage_apps, permission_manage_staff, app, webhook
-):
-    app.permissions.add(permission_manage_staff)
-
-    id = graphene.Node.to_global_id("App", app.id)
-    variables = {"id": id}
-    response = staff_api_client.post_graphql(
-        QUERY_APP, variables, permissions=[permission_manage_apps],
-    )
-    content = get_graphql_content(response)
-
-    tokens = app.tokens.all()
-    app_data = content["data"]["app"]
-    tokens_data = app_data["tokens"]
-    assert tokens.count() == 1
-    assert tokens_data[0]["authToken"] == tokens.first().auth_token[-4:]
-
-    assert app_data["isActive"] == app.is_active
-    assert app_data["permissions"] == [
-        {"code": "MANAGE_STAFF", "name": "Manage staff."}
-    ]
-    assert len(app_data["webhooks"]) == 1
-    assert app_data["webhooks"][0]["name"] == webhook.name
-
-
-def test_app_query_no_permission(
-    staff_api_client, permission_manage_staff, permission_manage_users, app
-):
-    app.permissions.add(permission_manage_staff)
-
-    id = graphene.Node.to_global_id("App", app.id)
-    variables = {"id": id}
-    response = staff_api_client.post_graphql(QUERY_APP, variables, permissions=[])
-    assert_no_permission(response)
-
-    response = staff_api_client.post_graphql(
-        QUERY_APP,
-        variables,
-        permissions=[permission_manage_users, permission_manage_staff],
-    )
-    assert_no_permission(response)
-
-
-def test_app_with_access_to_resources(
-    app_api_client, app, permission_manage_orders, order_with_lines,
-):
-    query = """
-      query {
-        orders(first: 5) {
-          edges {
-            node {
-              id
-            }
-          }
-        }
-      }
-    """
-    response = app_api_client.post_graphql(query)
-    assert_no_permission(response)
-    response = app_api_client.post_graphql(
-        query, permissions=[permission_manage_orders]
-    )
-    get_graphql_content(response)

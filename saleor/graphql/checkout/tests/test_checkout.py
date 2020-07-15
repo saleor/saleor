@@ -6,19 +6,21 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from django.test import override_settings
 from prices import Money, TaxedMoney
 
 from ....account.models import User
 from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout
-from ....checkout.utils import is_fully_paid
+from ....checkout.utils import add_variant_to_checkout
 from ....core.payments import PaymentInterface
 from ....core.taxes import zero_money
 from ....order.models import Order
 from ....payment import TransactionKind
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager
+from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
 from ....warehouse.models import Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -27,12 +29,6 @@ from ..mutations import (
     update_checkout_shipping_method_if_invalid,
 )
 from ..utils import clean_checkout_payment, clean_checkout_shipping
-
-
-@pytest.fixture(autouse=True)
-def setup_dummy_gateway(settings):
-    settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
-    return settings
 
 
 def test_clean_shipping_method_after_shipping_address_changes_stay_the_same(
@@ -115,7 +111,31 @@ MUTATION_CHECKOUT_CREATE = """
 """
 
 
-def test_checkout_create(api_client, stock, graphql_address_data):
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_checkout_create_triggers_webhooks(
+    mocked_webhook_trigger, user_api_client, stock, graphql_address_data, settings
+):
+    """Create checkout object using GraphQL API."""
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    get_graphql_content(response)
+
+    assert mocked_webhook_trigger.called
+
+
+def test_checkout_create(api_client, stock, graphql_address_data, settings):
     """Create checkout object using GraphQL API."""
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -527,6 +547,71 @@ def test_checkout_create_check_lines_quantity_multiple_warehouse(
     assert data["errors"][0]["field"] == "quantity"
 
 
+@override_settings(DEFAULT_COUNTRY="DE")
+def test_checkout_create_sets_country_from_shipping_address_country(
+    user_api_client,
+    variant_with_many_stocks_different_shipping_zones,
+    graphql_address_data,
+):
+    variant = variant_with_many_stocks_different_shipping_zones
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    shipping_address["country"] = "US"
+    shipping_address["countryArea"] = "New York"
+    shipping_address["postalCode"] = 10001
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+    assert data["created"] is True
+    checkout = Checkout.objects.first()
+    assert checkout.country == "US"
+
+
+@override_settings(DEFAULT_COUNTRY="DE")
+def test_checkout_create_check_lines_quantity_for_zone_insufficient_stocks(
+    user_api_client,
+    variant_with_many_stocks_different_shipping_zones,
+    graphql_address_data,
+):
+    """Check if insufficient stock exception will be raised.
+    If item from checkout will not have enough quantity in correct shipping zone for
+    shipping address INSUFICIENT_STOCK checkout error should be raised."""
+    variant = variant_with_many_stocks_different_shipping_zones
+    Stock.objects.filter(
+        warehouse__shipping_zones__countries__contains="US", product_variant=variant
+    ).update(quantity=0)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    shipping_address["country"] = "US"
+    shipping_address["countryArea"] = "New York"
+    shipping_address["postalCode"] = 10001
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+    assert not data["checkout"]
+    errors = data["checkoutErrors"]
+    assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert errors[0]["field"] == "quantity"
+
+
 def test_checkout_create_check_lines_quantity(
     user_api_client, stock, graphql_address_data
 ):
@@ -557,31 +642,74 @@ def expected_dummy_gateway():
         "id": "mirumee.payments.dummy",
         "name": "Dummy",
         "config": [{"field": "store_customer_card", "value": "false"}],
+        "currencies": ["USD"],
     }
+
+
+GET_CHECKOUT_PAYMENTS_QUERY = """
+query getCheckoutPayments($token: UUID!) {
+    checkout(token: $token) {
+        availablePaymentGateways {
+            id
+            name
+            config {
+                field
+                value
+            }
+            currencies
+        }
+    }
+}
+"""
 
 
 def test_checkout_available_payment_gateways(
     api_client, checkout_with_item, expected_dummy_gateway
 ):
-    query = """
-    query getCheckout($token: UUID!) {
-        checkout(token: $token) {
-           availablePaymentGateways {
-               id
-               name
-               config {
-                   field
-                   value
-               }
-           }
-        }
-    }
-    """
+    query = GET_CHECKOUT_PAYMENTS_QUERY
     variables = {"token": str(checkout_with_item.token)}
     response = api_client.post_graphql(query, variables)
+
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
     assert data["availablePaymentGateways"] == [expected_dummy_gateway]
+
+
+def test_checkout_available_payment_gateways_currency_specified_USD(
+    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway
+):
+    checkout_with_item.currency = "USD"
+    checkout_with_item.save(update_fields=["currency"])
+
+    query = GET_CHECKOUT_PAYMENTS_QUERY
+
+    variables = {"token": str(checkout_with_item.token)}
+    response = api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+    assert {gateway["id"] for gateway in data["availablePaymentGateways"]} == {
+        expected_dummy_gateway["id"],
+        ActiveDummyPaymentGateway.PLUGIN_ID,
+    }
+
+
+def test_checkout_available_payment_gateways_currency_specified_PLN(
+    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway
+):
+    checkout_with_item.currency = "PLN"
+    checkout_with_item.save(update_fields=["currency"])
+
+    query = GET_CHECKOUT_PAYMENTS_QUERY
+
+    variables = {"token": str(checkout_with_item.token)}
+    response = api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+    assert (
+        data["availablePaymentGateways"][0]["id"] == ActiveDummyPaymentGateway.PLUGIN_ID
+    )
 
 
 def test_checkout_available_shipping_methods(
@@ -1276,6 +1404,92 @@ def test_checkout_shipping_address_update(
     mocked_update_shipping_method.assert_called_once_with(
         checkout, list(checkout), mock.ANY
     )
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+@override_settings(DEFAULT_COUNTRY="DE")
+def test_checkout_shipping_address_update_changes_checkout_country(
+    mocked_update_shipping_method,
+    user_api_client,
+    variant_with_many_stocks_different_shipping_zones,
+    graphql_address_data,
+):
+    variant = variant_with_many_stocks_different_shipping_zones
+    checkout = Checkout.objects.create()
+    checkout.set_country("PL", commit=True)
+    add_variant_to_checkout(checkout, variant, 1)
+    assert checkout.shipping_address is None
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    shipping_address = graphql_address_data
+    shipping_address["country"] = "US"
+    shipping_address["countryArea"] = "New York"
+    shipping_address["postalCode"] = "10001"
+    variables = {"checkoutId": checkout_id, "shippingAddress": shipping_address}
+
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.shipping_address is not None
+    assert checkout.shipping_address.first_name == shipping_address["firstName"]
+    assert checkout.shipping_address.last_name == shipping_address["lastName"]
+    assert (
+        checkout.shipping_address.street_address_1 == shipping_address["streetAddress1"]
+    )
+    assert (
+        checkout.shipping_address.street_address_2 == shipping_address["streetAddress2"]
+    )
+    assert checkout.shipping_address.postal_code == shipping_address["postalCode"]
+    assert checkout.shipping_address.country == shipping_address["country"]
+    assert checkout.shipping_address.city == shipping_address["city"].upper()
+    mocked_update_shipping_method.assert_called_once_with(
+        checkout, list(checkout), mock.ANY
+    )
+    assert checkout.country == shipping_address["country"]
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+@override_settings(DEFAULT_COUNTRY="DE")
+def test_checkout_shipping_address_update_insufficient_stocks(
+    mocked_update_shipping_method,
+    user_api_client,
+    variant_with_many_stocks_different_shipping_zones,
+    graphql_address_data,
+):
+    variant = variant_with_many_stocks_different_shipping_zones
+    checkout = Checkout.objects.create()
+    checkout.set_country("PL", commit=True)
+    add_variant_to_checkout(checkout, variant, 1)
+    Stock.objects.filter(
+        warehouse__shipping_zones__countries__contains="US", product_variant=variant
+    ).update(quantity=0)
+    assert checkout.shipping_address is None
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    shipping_address = graphql_address_data
+    shipping_address["country"] = "US"
+    shipping_address["countryArea"] = "New York"
+    shipping_address["postalCode"] = "10001"
+    variables = {"checkoutId": checkout_id, "shippingAddress": shipping_address}
+
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    errors = data["checkoutErrors"]
+    assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert errors[0]["field"] == "quantity"
 
 
 def test_checkout_shipping_address_with_invalid_phone_number_returns_error(
@@ -2489,59 +2703,3 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
 
     msg = "Provided payment methods can not cover the checkout's total amount"
     assert e.value.error_list[0].message == msg
-
-
-def test_is_fully_paid(checkout_with_item, payment_dummy):
-    checkout = checkout_with_item
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
-    payment = payment_dummy
-    payment.is_active = True
-    payment.order = None
-    payment.total = total.gross.amount
-    payment.currency = total.gross.currency
-    payment.checkout = checkout
-    payment.save()
-    is_paid = is_fully_paid(checkout, list(checkout), None)
-    assert is_paid
-
-
-def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
-    checkout = checkout_with_item
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
-    payment = payment_dummy
-    payment.is_active = True
-    payment.order = None
-    payment.total = total.gross.amount - 1
-    payment.currency = total.gross.currency
-    payment.checkout = checkout
-    payment.save()
-    payment2 = payment_dummy
-    payment2.pk = None
-    payment2.is_active = True
-    payment2.order = None
-    payment2.total = 1
-    payment2.currency = total.gross.currency
-    payment2.checkout = checkout
-    payment2.save()
-    is_paid = is_fully_paid(checkout, list(checkout), None)
-    assert is_paid
-
-
-def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
-    checkout = checkout_with_item
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
-    payment = payment_dummy
-    payment.is_active = True
-    payment.order = None
-    payment.total = total.gross.amount - 1
-    payment.currency = total.gross.currency
-    payment.checkout = checkout
-    payment.save()
-    is_paid = is_fully_paid(checkout, list(checkout), None)
-    assert not is_paid
-
-
-def test_is_fully_paid_no_payment(checkout_with_item):
-    checkout = checkout_with_item
-    is_paid = is_fully_paid(checkout, list(checkout), None)
-    assert not is_paid

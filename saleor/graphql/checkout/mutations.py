@@ -224,6 +224,13 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         user = info.context.user
         country = info.context.country.code
 
+        # set country to one from shipping address
+        shipping_address = cleaned_input.get("shipping_address")
+        if shipping_address and shipping_address.country:
+            if shipping_address.country != country:
+                country = shipping_address.country
+        cleaned_input["country"] = country
+
         # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
         if lines:
@@ -266,8 +273,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     def save(cls, info, instance: models.Checkout, cleaned_input):
         # Create the checkout object
         instance.save()
-        country = info.context.country
-        instance.set_country(country.code, commit=True)
+        country = cleaned_input["country"]
+        instance.set_country(country, commit=True)
 
         # Retrieve the lines to create
         variants = cleaned_input.get("variants")
@@ -287,6 +294,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                         "Can't create checkout with unpublished product.",
                         code=exc.code,
                     )
+            info.context.plugins.checkout_quantity_changed(instance)
         # Save provided addresses and associate them to the checkout
         cls.save_addresses(instance, cleaned_input)
 
@@ -313,6 +321,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         cls.clean_instance(info, checkout)
         cls.save(info, checkout, cleaned_input)
         cls._save_m2m(info, checkout, cleaned_input)
+        info.context.plugins.checkout_created(checkout)
         return CheckoutCreate(checkout=checkout, created=True)
 
 
@@ -361,6 +370,7 @@ class CheckoutLinesAdd(BaseMutation):
                     raise ValidationError(
                         "Can't add unpublished product.", code=exc.code,
                     )
+            info.context.plugins.checkout_quantity_changed(checkout)
 
         lines = list(checkout)
 
@@ -368,7 +378,7 @@ class CheckoutLinesAdd(BaseMutation):
             checkout, lines, info.context.discounts
         )
         recalculate_checkout_discount(checkout, lines, info.context.discounts)
-
+        info.context.plugins.checkout_updated(checkout)
         return CheckoutLinesAdd(checkout=checkout)
 
 
@@ -408,6 +418,7 @@ class CheckoutLineDelete(BaseMutation):
 
         if line and line in checkout.lines.all():
             line.delete()
+            info.context.plugins.checkout_quantity_changed(checkout)
 
         lines = list(checkout)
 
@@ -416,6 +427,7 @@ class CheckoutLineDelete(BaseMutation):
         )
         recalculate_checkout_discount(checkout, lines, info.context.discounts)
 
+        info.context.plugins.checkout_updated(checkout)
         return CheckoutLineDelete(checkout=checkout)
 
 
@@ -458,6 +470,8 @@ class CheckoutCustomerAttach(BaseMutation):
 
         checkout.user = info.context.user
         checkout.save(update_fields=["user", "last_change"])
+
+        info.context.plugins.checkout_updated(checkout)
         return CheckoutCustomerAttach(checkout=checkout)
 
 
@@ -488,6 +502,8 @@ class CheckoutCustomerDetach(BaseMutation):
 
         checkout.user = None
         checkout.save(update_fields=["user", "last_change"])
+
+        info.context.plugins.checkout_updated(checkout)
         return CheckoutCustomerDetach(checkout=checkout)
 
 
@@ -505,6 +521,18 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         description = "Update shipping address in the existing checkout."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+
+    @classmethod
+    def process_checkout_lines(cls, lines, country) -> None:
+        variant_ids = [line.variant.id for line in lines]
+        variants = list(
+            product_models.ProductVariant.objects.filter(
+                id__in=variant_ids
+            ).prefetch_related("product__product_type")
+        )
+        quantities = [line.quantity for line in lines]
+
+        check_lines_quantity(variants, quantities, country)
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_address):
@@ -540,6 +568,17 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         lines = list(checkout)
 
+        country = info.context.country.code
+        # set country to one from shipping address
+        if shipping_address and shipping_address.country:
+            if shipping_address.country != country:
+                country = shipping_address.country
+        checkout.set_country(country, commit=True)
+
+        # Resolve and process the lines, validating variants quantities
+        if lines:
+            cls.process_checkout_lines(lines, country)
+
         update_checkout_shipping_method_if_invalid(
             checkout, lines, info.context.discounts
         )
@@ -549,6 +588,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             change_shipping_address_in_checkout(checkout, shipping_address)
         recalculate_checkout_discount(checkout, lines, info.context.discounts)
 
+        info.context.plugins.checkout_updated(checkout)
         return CheckoutShippingAddressUpdate(checkout=checkout)
 
 
@@ -578,6 +618,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         with transaction.atomic():
             billing_address.save()
             change_billing_address_in_checkout(checkout, billing_address)
+            info.context.plugins.checkout_updated(checkout)
         return CheckoutBillingAddressUpdate(checkout=checkout)
 
 
@@ -602,6 +643,7 @@ class CheckoutEmailUpdate(BaseMutation):
         checkout.email = email
         cls.clean_instance(info, checkout)
         checkout.save(update_fields=["email", "last_change"])
+        info.context.plugins.checkout_updated(checkout)
         return CheckoutEmailUpdate(checkout=checkout)
 
 
@@ -676,7 +718,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         checkout.shipping_method = shipping_method
         checkout.save(update_fields=["shipping_method", "last_change"])
         recalculate_checkout_discount(checkout, lines, info.context.discounts)
-
+        info.context.plugins.checkout_updated(checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)
 
 
@@ -848,6 +890,7 @@ class CheckoutAddPromoCode(BaseMutation):
         )
         lines = list(checkout)
         add_promo_code_to_checkout(checkout, lines, promo_code, info.context.discounts)
+        info.context.plugins.checkout_updated(checkout)
         return CheckoutAddPromoCode(checkout=checkout)
 
 
@@ -873,6 +916,7 @@ class CheckoutRemovePromoCode(BaseMutation):
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
         remove_promo_code_from_checkout(checkout, promo_code)
+        info.context.plugins.checkout_updated(checkout)
         return CheckoutRemovePromoCode(checkout=checkout)
 
 

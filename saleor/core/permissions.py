@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Iterable, List
 
 from django.contrib.auth.models import Permission
 
@@ -60,10 +61,6 @@ class SitePermissions(BasePermissionEnum):
     MANAGE_TRANSLATIONS = "site.manage_translations"
 
 
-class WebhookPermissions(BasePermissionEnum):
-    MANAGE_WEBHOOKS = "webhook.manage_webhooks"
-
-
 PERMISSIONS_ENUMS = [
     AccountPermissions,
     AppPermission,
@@ -76,7 +73,6 @@ PERMISSIONS_ENUMS = [
     ProductPermissions,
     ShippingPermissions,
     SitePermissions,
-    WebhookPermissions,
     CheckoutPermissions,
 ]
 
@@ -92,6 +88,31 @@ def get_permissions_codename():
         for enum in permission_enum
     ]
     return permissions_values
+
+
+def get_permissions_enum_dict():
+    return {
+        enum.name: enum
+        for permission_enum in PERMISSIONS_ENUMS
+        for enum in permission_enum
+    }
+
+
+def get_permissions_from_names(names: List[str]):
+    """Convert list of permission names - ['MANAGE_ORDERS'] to Permission db objects."""
+    permissions = get_permissions_enum_dict()
+    return get_permissions([permissions[name].value for name in names])
+
+
+def get_permission_names(permissions: Iterable["Permission"]):
+    """Convert Permissions db objects to list of Permission enums."""
+    permission_dict = get_permissions_enum_dict()
+    names = set()
+    for perm in permissions:
+        for _, perm_enum in permission_dict.items():
+            if perm.codename == perm_enum.codename:
+                names.add(perm_enum.name)
+    return names
 
 
 def get_permissions_enum_list():

@@ -553,7 +553,7 @@ def test_sort_product_by_attribute_using_invalid_attribute_id(
 
 @pytest.mark.parametrize("direction", ["ASC", "DESC"])
 def test_sort_product_by_attribute_using_attribute_having_no_products(
-    api_client, products_structures, direction
+    api_client, product_list_published, direction
 ):
     """Ensure passing an empty attribute ID as sorting field does nothing."""
 
@@ -571,9 +571,9 @@ def test_sort_product_by_attribute_using_attribute_having_no_products(
     products = response["data"]["products"]["edges"]
 
     if direction == "ASC":
-        expected_first_product = product_models.Product.objects.first()
+        expected_first_product = product_models.Product.objects.order_by("slug").first()
     else:
-        expected_first_product = product_models.Product.objects.last()
+        expected_first_product = product_models.Product.objects.order_by("slug").last()
 
     assert len(products) == product_models.Product.objects.count()
     assert products[0]["node"]["name"] == expected_first_product.name

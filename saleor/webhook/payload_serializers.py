@@ -4,6 +4,7 @@ from collections.abc import Iterable
 import graphene
 from django.core.serializers.json import Serializer as JSONSerializer
 from django.core.serializers.python import Serializer as PythonBaseSerializer
+from django.utils.functional import SimpleLazyObject
 
 
 class PythonSerializer(PythonBaseSerializer):
@@ -49,7 +50,13 @@ class PayloadSerializer(JSONSerializer):
             data_to_serialize = qs(obj)
             if not data_to_serialize:
                 data[field_name] = None
-            elif isinstance(data_to_serialize, Iterable):
+                continue
+            # user can be attached to obj as a SimpleLazyObject. We need to unwrap it
+            # before we will be able to serialize it.
+            if isinstance(data_to_serialize, SimpleLazyObject):
+                data_to_serialize = data_to_serialize._wrapped
+
+            if isinstance(data_to_serialize, Iterable):
                 data[field_name] = python_serializer.serialize(
                     data_to_serialize, fields=fields
                 )

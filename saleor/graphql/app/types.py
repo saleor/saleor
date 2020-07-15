@@ -5,10 +5,31 @@ from ...app import models
 from ...core.permissions import AppPermission
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import Permission
+from ..core.types.common import Job
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
 from ..webhook.types import Webhook
+from .enums import AppTypeEnum
+from .resolvers import resolve_access_token
+
+
+class Manifest(graphene.ObjectType):
+    identifier = graphene.String(required=True)
+    version = graphene.String(required=True)
+    name = graphene.String(required=True)
+    about = graphene.String()
+    permissions = graphene.List(Permission)
+    app_url = graphene.String()
+    configuration_url = graphene.String()
+    token_target_url = graphene.String()
+    data_privacy = graphene.String()
+    data_privacy_url = graphene.String()
+    homepage_url = graphene.String()
+    support_url = graphene.String()
+
+    class Meta:
+        description = "The manifest definition."
 
 
 class AppToken(CountableDjangoObjectType):
@@ -39,10 +60,29 @@ class App(CountableDjangoObjectType):
         description="Determine if app will be set active or not."
     )
     name = graphene.String(description="Name of the app.")
-
+    type = AppTypeEnum(description="Type of the app.")
     tokens = graphene.List(AppToken, description="Last 4 characters of the tokens.")
     webhooks = graphene.List(
         Webhook, description="List of webhooks assigned to this app."
+    )
+
+    about_app = graphene.String(description="Description of this app.")
+
+    data_privacy = graphene.String(
+        description="Description of the data privacy defined for this app."
+    )
+    data_privacy_url = graphene.String(
+        description="Url to details about the privacy policy on the app owner page."
+    )
+    homepage_url = graphene.String(description="Homepage of the app.")
+    support_url = graphene.String(description="Support page for the app.")
+    configuration_url = graphene.String(
+        description="Url to iframe with the configuration for the app."
+    )
+    app_url = graphene.String(description="Url to iframe with the app.")
+    version = graphene.String(description="Version number of the app.")
+    access_token = graphene.String(
+        description="JWT token used to authenticate by thridparty app."
     )
 
     class Meta:
@@ -69,7 +109,7 @@ class App(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_tokens(root: models.App, _info, **_kwargs):
-        return root.tokens.all()
+        return root.tokens.all()  # type: ignore
 
     @staticmethod
     def resolve_meta(root: models.App, info):
@@ -86,3 +126,19 @@ class App(CountableDjangoObjectType):
     @staticmethod
     def resolve_webhooks(root: models.App, _info):
         return root.webhooks.all()
+
+    @staticmethod
+    def resolve_access_token(root: models.App, info):
+        return resolve_access_token(info, root)
+
+
+class AppInstallation(CountableDjangoObjectType):
+    class Meta:
+        model = models.AppInstallation
+        description = "Represents ongoing installation of app."
+        interfaces = [graphene.relay.Node, Job]
+        permissions = (AppPermission.MANAGE_APPS,)
+        only_fields = [
+            "app_name",
+            "manifest_url",
+        ]

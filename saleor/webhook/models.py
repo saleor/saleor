@@ -1,7 +1,6 @@
 from django.db import models
 
 from ..app.models import App
-from ..core.permissions import WebhookPermissions
 
 
 class Webhook(models.Model):
@@ -10,11 +9,6 @@ class Webhook(models.Model):
     target_url = models.URLField(max_length=255)
     is_active = models.BooleanField(default=True)
     secret_key = models.CharField(max_length=255, null=True, blank=True)
-
-    class Meta:
-        permissions = (
-            (WebhookPermissions.MANAGE_WEBHOOKS.codename, "Manage webhooks"),
-        )
 
 
 class WebhookEvent(models.Model):

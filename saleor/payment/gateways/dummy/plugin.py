@@ -1,7 +1,10 @@
 from typing import TYPE_CHECKING
 
+from django.conf import settings
+
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
+from ..utils import get_supported_currencies
 from . import (
     GatewayConfig,
     authorize,
@@ -36,6 +39,7 @@ class DummyGatewayPlugin(BasePlugin):
     DEFAULT_CONFIGURATION = [
         {"name": "Store customers card", "value": False},
         {"name": "Automatic payment capture", "value": True},
+        {"name": "Supported currencies", "value": settings.DEFAULT_CURRENCY},
     ]
     CONFIG_STRUCTURE = {
         "Store customers card": {
@@ -48,6 +52,12 @@ class DummyGatewayPlugin(BasePlugin):
             "help_text": "Determines if Saleor should automaticaly capture payments.",
             "label": "Automatic payment capture",
         },
+        "Supported currencies": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Determines currencies supported by gateway."
+            " Please enter currency codes separated by a comma.",
+            "label": "Supported currencies",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -56,6 +66,7 @@ class DummyGatewayPlugin(BasePlugin):
         self.config = GatewayConfig(
             gateway_name=GATEWAY_NAME,
             auto_capture=configuration["Automatic payment capture"],
+            supported_currencies=configuration["Supported currencies"],
             connection_params={},
             store_customer=configuration["Store customers card"],
         )
@@ -102,6 +113,11 @@ class DummyGatewayPlugin(BasePlugin):
     @require_active_plugin
     def get_client_token(self, token_config: "TokenConfig", previous_value):
         return get_client_token()
+
+    @require_active_plugin
+    def get_supported_currencies(self, previous_value):
+        config = self._get_gateway_config()
+        return get_supported_currencies(config, GATEWAY_NAME)
 
     @require_active_plugin
     def get_payment_config(self, previous_value):

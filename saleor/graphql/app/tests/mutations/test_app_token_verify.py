@@ -1,4 +1,4 @@
-from ...tests.utils import get_graphql_content
+from ....tests.utils import get_graphql_content
 
 APP_TOKEN_VERIFY_MUTATION = """
 mutation AppTokenVerify($token: String!){

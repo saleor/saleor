@@ -1,0 +1,52 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.23.0
+    method: GET
+    uri: http://localhost:3000/manifest
+  response:
+    body:
+      string: "{\n  \"name\": \"app\",\n  \"version\": \"1.0.0\",\n  \"about_app\"\
+        : \"Lorem ipsum\",\n  \"data_privacy\": \"Lorem ipsum\",\n  \"data_privacy_url\"\
+        : \"http://localhost:8888/app-data-privacy\",\n  \"homepage_url\": \"http://localhost:8888/homepage\"\
+        ,\n  \"support_url\": \"http://localhost:8888/support\",\n  \"configuration_url\"\
+        : \"htpp://localhost:8888/configuration\",\n  \"app_url\": \"http://localhost:8888/app\"\
+        ,\n  \"token_target_url\": \"http://localhost:3000/register\",\n  \"identificator\"\
+        : \"app2\"\n}"
+    headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Cache-Control:
+      - no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '457'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Tue, 12 May 2020 08:51:24 GMT
+      ETag:
+      - W/"1c9-rhA8cnfjgbXJTC5B4V+OdmeL6E4"
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+      Vary:
+      - Origin, Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Powered-By:
+      - Express
+    status:
+      code: 200
+      message: OK
+version: 1

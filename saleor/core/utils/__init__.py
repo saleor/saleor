@@ -26,6 +26,11 @@ if TYPE_CHECKING:
 
 
 def build_absolute_uri(location: str) -> Optional[str]:
+    """Create absolute uri from location.
+
+    If provided location is absolute uri by itself, it returns unchanged value,
+    otherwise if provided location is relative, absolute uri is built and returned.
+    """
     host = Site.objects.get_current().domain
     protocol = "https" if settings.ENABLE_SSL else "http"
     current_uri = "%s://%s" % (protocol, host)
@@ -68,8 +73,15 @@ def is_valid_ipv6(ip: str) -> bool:
     return True
 
 
+def _get_geo_data_by_ip(ip_address):
+    # This function is here to make it easier to mock the GeoIP
+    # as the georeader object below can be a native platform library
+    # that does not support monkeypatching.
+    return georeader.get(ip_address)
+
+
 def get_country_by_ip(ip_address):
-    geo_data = georeader.get(ip_address)
+    geo_data = _get_geo_data_by_ip(ip_address)
     if geo_data and "country" in geo_data and "iso_code" in geo_data["country"]:
         country_iso_code = geo_data["country"]["iso_code"]
         if country_iso_code in countries:
@@ -135,7 +147,7 @@ def generate_unique_slug(
         slug_field_name: name of slug field in instance model
 
     """
-    slug = slugify(slugable_value)
+    slug = slugify(slugable_value, allow_unicode=True)
     unique_slug: Union["SafeText", str] = slug
 
     ModelClass = instance.__class__

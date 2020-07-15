@@ -9,6 +9,7 @@ from ....webhook.event_types import WebhookEventType
 from ....webhook.payloads import (
     generate_checkout_payload,
     generate_customer_payload,
+    generate_invoice_payload,
     generate_order_payload,
     generate_product_payload,
 )
@@ -28,7 +29,7 @@ def test_trigger_webhooks_for_event(
     permission_manage_products,
 ):
     webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = "https://webhook.site/f0fc9979-cbd4-47b7-8705-1acb03fff1d0"
+    webhook.target_url = "https://webhook.site/75048668-439a-4e54-853b-6f081a6fb6cf"
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
@@ -36,6 +37,7 @@ def test_trigger_webhooks_for_event(
     trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, expected_data)
 
     expected_headers = {
+        "Content-Type": "application/json",
         "X-Saleor-Event": "order_created",
         "X-Saleor-Domain": "mirumee.com",
     }
@@ -111,7 +113,7 @@ def test_trigger_webhooks_for_event_with_secret_key(
     mock_request, webhook, order_with_lines, permission_manage_orders
 ):
     webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = "https://webhook.site/f0fc9979-cbd4-47b7-8705-1acb03fff1d0"
+    webhook.target_url = "https://webhook.site/75048668-439a-4e54-853b-6f081a6fb6cf"
     webhook.secret_key = "secret_key"
     webhook.save()
 
@@ -122,6 +124,7 @@ def test_trigger_webhooks_for_event_with_secret_key(
         expected_data, webhook.secret_key, "utf-8"
     )
     expected_headers = {
+        "Content-Type": "application/json",
         "X-Saleor-Event": "order_created",
         "X-Saleor-Domain": "mirumee.com",
         "X-Saleor-HMAC-SHA256": f"sha1={expected_signature}",
@@ -215,4 +218,64 @@ def test_checkout_quantity_changed(
     expected_data = generate_checkout_payload(checkout_with_items)
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.CHECKOUT_QUANTITY_CHANGED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_checkout_created(mocked_webhook_trigger, settings, checkout_with_items):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.checkout_created(checkout_with_items)
+
+    expected_data = generate_checkout_payload(checkout_with_items)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.CHECKOUT_CREATED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_checkout_updated(mocked_webhook_trigger, settings, checkout_with_items):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.checkout_updated(checkout_with_items)
+
+    expected_data = generate_checkout_payload(checkout_with_items)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.CHECKOUT_UPADTED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_invoice_request(mocked_webhook_trigger, settings, fulfilled_order):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    invoice = fulfilled_order.invoices.first()
+    manager.invoice_request(fulfilled_order, invoice, invoice.number)
+    expected_data = generate_invoice_payload(invoice)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.INVOICE_REQUESTED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_invoice_delete(mocked_webhook_trigger, settings, fulfilled_order):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    invoice = fulfilled_order.invoices.first()
+    manager.invoice_delete(invoice)
+    expected_data = generate_invoice_payload(invoice)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.INVOICE_DELETED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_invoice_sent(mocked_webhook_trigger, settings, fulfilled_order):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    invoice = fulfilled_order.invoices.first()
+    manager.invoice_sent(invoice, fulfilled_order.user.email)
+    expected_data = generate_invoice_payload(invoice)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.INVOICE_SENT, expected_data
     )

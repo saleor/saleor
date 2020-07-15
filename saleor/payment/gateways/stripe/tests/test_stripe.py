@@ -37,6 +37,7 @@ def gateway_config():
     return GatewayConfig(
         gateway_name="stripe",
         auto_capture=True,
+        supported_currencies="USD",
         connection_params={
             "public_key": "public",
             "private_key": "secret",

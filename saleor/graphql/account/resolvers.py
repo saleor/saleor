@@ -156,5 +156,5 @@ def resolve_address(info, id):
 
 def resolve_permissions(root: models.User):
     permissions = get_user_permissions(root)
-    permissions = permissions.prefetch_related("content_type").order_by("codename")
+    permissions = permissions.order_by("codename")
     return format_permissions_for_display(permissions)

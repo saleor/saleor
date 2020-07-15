@@ -8,6 +8,7 @@ from typing import List, Optional
 from unittest.mock import MagicMock, Mock
 
 import pytest
+import pytz
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
@@ -16,16 +17,21 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.forms import ModelForm
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
+from django.utils import timezone
 from django_countries import countries
 from PIL import Image
 from prices import Money, TaxedMoney
 
 from ..account.models import Address, StaffNotificationRecipient, User
-from ..app.models import App
+from ..app.models import App, AppInstallation
+from ..app.types import AppType
 from ..checkout import utils
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
+from ..core import JobStatus
 from ..core.payments import PaymentInterface
+from ..csv.events import ExportEvents
+from ..csv.models import ExportEvent, ExportFile
 from ..discount import DiscountInfo, DiscountValueType, VoucherType
 from ..discount.models import (
     Sale,
@@ -35,6 +41,7 @@ from ..discount.models import (
     VoucherTranslation,
 )
 from ..giftcard.models import GiftCard
+from ..invoice.models import Invoice
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_line
@@ -44,6 +51,7 @@ from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.models import Payment
+from ..plugins.invoicing.plugin import InvoicingPlugin
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
 from ..product import AttributeInputType
@@ -183,6 +191,13 @@ def setup_dummy_gateway(settings):
     return settings
 
 
+@pytest.fixture
+def sample_gateway(settings):
+    settings.PLUGINS += [
+        "saleor.plugins.tests.sample_plugins.ActiveDummyPaymentGateway"
+    ]
+
+
 @pytest.fixture(autouse=True)
 def site_settings(db, settings) -> SiteSettings:
     """Create a site and matching site settings.
@@ -213,7 +228,7 @@ def site_settings(db, settings) -> SiteSettings:
 
 @pytest.fixture
 def checkout(db):
-    checkout = Checkout.objects.create()
+    checkout = Checkout.objects.create(currency="USD")
     checkout.set_country("US", commit=True)
     return checkout
 
@@ -323,6 +338,21 @@ def checkout_with_voucher_percentage_and_shipping(
 
 
 @pytest.fixture
+def checkout_with_payments(checkout):
+    Payment.objects.bulk_create(
+        [
+            Payment(
+                gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+            ),
+            Payment(
+                gateway="mirumee.payments.dummy", is_active=False, checkout=checkout
+            ),
+        ]
+    )
+    return checkout
+
+
+@pytest.fixture
 def address(db):  # pylint: disable=W0613
     return Address.objects.create(
         first_name="John",
@@ -402,6 +432,7 @@ def user_checkout(customer_user):
         billing_address=customer_user.default_billing_address,
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
+        currency="USD",
     )
     return checkout
 
@@ -413,24 +444,6 @@ def user_checkout_with_items(user_checkout, product_list):
         add_variant_to_checkout(user_checkout, variant, 1)
     user_checkout.refresh_from_db()
     return user_checkout
-
-
-@pytest.fixture
-def request_checkout(checkout, monkeypatch):
-    # FIXME: Fixtures should not have any side effects
-    monkeypatch.setattr(
-        utils,
-        "get_checkout_from_request",
-        lambda request, checkout_queryset=None: checkout,
-    )
-    return checkout
-
-
-@pytest.fixture
-def request_checkout_with_item(product, request_checkout):
-    variant = product.variants.get()
-    add_variant_to_checkout(request_checkout, variant)
-    return request_checkout
 
 
 @pytest.fixture
@@ -493,6 +506,31 @@ def shipping_zone(db):  # pylint: disable=W0613
         shipping_zone=shipping_zone,
     )
     return shipping_zone
+
+
+@pytest.fixture
+def shipping_zones(db):
+    shipping_zone_poland, shipping_zone_usa = ShippingZone.objects.bulk_create(
+        [
+            ShippingZone(name="Poland", countries=["PL"]),
+            ShippingZone(name="USA", countries=["US"]),
+        ]
+    )
+    shipping_zone_poland.shipping_methods.create(
+        name="DHL",
+        minimum_order_price=Money(0, "USD"),
+        type=ShippingMethodType.PRICE_BASED,
+        price=Money(10, "USD"),
+        shipping_zone=shipping_zone,
+    )
+    shipping_zone_usa.shipping_methods.create(
+        name="DHL",
+        minimum_order_price=Money(0, "USD"),
+        type=ShippingMethodType.PRICE_BASED,
+        price=Money(10, "USD"),
+        shipping_zone=shipping_zone,
+    )
+    return [shipping_zone_poland, shipping_zone_usa]
 
 
 @pytest.fixture
@@ -865,8 +903,26 @@ def variant(product) -> ProductVariant:
 @pytest.fixture
 def variant_with_many_stocks(variant, warehouses_with_shipping_zone):
     warehouses = warehouses_with_shipping_zone
-    Stock.objects.create(warehouse=warehouses[0], product_variant=variant, quantity=4)
-    Stock.objects.create(warehouse=warehouses[1], product_variant=variant, quantity=3)
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=warehouses[0], product_variant=variant, quantity=4),
+            Stock(warehouse=warehouses[1], product_variant=variant, quantity=3),
+        ]
+    )
+    return variant
+
+
+@pytest.fixture
+def variant_with_many_stocks_different_shipping_zones(
+    variant, warehouses_with_different_shipping_zone
+):
+    warehouses = warehouses_with_different_shipping_zone
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=warehouses[0], product_variant=variant, quantity=4),
+            Stock(warehouse=warehouses[1], product_variant=variant, quantity=3),
+        ]
+    )
     return variant
 
 
@@ -1339,6 +1395,12 @@ def order_events(order):
 @pytest.fixture
 def fulfilled_order(order_with_lines):
     order = order_with_lines
+    invoice = order.invoices.create(
+        url="http://www.example.com/invoice.pdf",
+        number="01/12/2020/TEST",
+        created=datetime.datetime.now(tz=pytz.utc),
+        status=JobStatus.SUCCESS,
+    )
     fulfillment = order.fulfillments.create(tracking_number="123")
     line_1 = order.lines.first()
     stock_1 = line_1.allocations.get().stock
@@ -1561,11 +1623,6 @@ def permission_manage_pages():
 @pytest.fixture
 def permission_manage_translations():
     return Permission.objects.get(codename="manage_translations")
-
-
-@pytest.fixture
-def permission_manage_webhooks():
-    return Permission.objects.get(codename="manage_webhooks")
 
 
 @pytest.fixture
@@ -2008,7 +2065,28 @@ def other_description_json():
 
 @pytest.fixture
 def app(db):
-    return App.objects.create(name="Sample app objects", is_active=True)
+    app = App.objects.create(name="Sample app objects", is_active=True)
+    app.tokens.create(name="Default")
+    return app
+
+
+@pytest.fixture
+def external_app(db):
+    app = App.objects.create(
+        name="External App",
+        is_active=True,
+        type=AppType.THIRDPARTY,
+        identifier="mirumee.app.sample",
+        about_app="About app text.",
+        data_privacy="Data privacy text.",
+        data_privacy_url="http://www.example.com/privacy/",
+        homepage_url="http://www.example.com/homepage/",
+        support_url="http://www.example.com/support/contact/",
+        configuration_url="http://www.example.com/app-configuration/",
+        app_url="http://www.example.com/app/",
+    )
+    app.tokens.create(name="Default")
+    return app
 
 
 @pytest.fixture
@@ -2108,10 +2186,18 @@ def warehouses_with_shipping_zone(warehouses, shipping_zone):
 
 
 @pytest.fixture
+def warehouses_with_different_shipping_zone(warehouses, shipping_zones):
+    warehouses[0].shipping_zones.add(shipping_zones[0])
+    warehouses[1].shipping_zones.add(shipping_zones[1])
+    return warehouses
+
+
+@pytest.fixture
 def warehouse_no_shipping_zone(address):
     warehouse = Warehouse.objects.create(
         address=address,
-        name="Warehouse withot shipping zone",
+        name="Warehouse without shipping zone",
+        slug="warehouse-no-shipping-zone",
         email="test2@example.com",
     )
     return warehouse
@@ -2185,4 +2271,87 @@ def allocations(order_list, stock):
                 order_line=lines[2], stock=stock, quantity_allocated=lines[2].quantity
             ),
         ]
+    )
+
+
+@pytest.fixture
+def app_installation():
+    app_installation = AppInstallation.objects.create(
+        app_name="External App", manifest_url="http://localhost:3000/manifest",
+    )
+    return app_installation
+
+
+@pytest.fixture
+def user_export_file(staff_user):
+    job = ExportFile.objects.create(user=staff_user)
+    return job
+
+
+@pytest.fixture
+def app_export_file(app):
+    job = ExportFile.objects.create(app=app)
+    return job
+
+
+@pytest.fixture
+def export_file_list(staff_user):
+    export_file_list = list(
+        ExportFile.objects.bulk_create(
+            [
+                ExportFile(user=staff_user),
+                ExportFile(user=staff_user,),
+                ExportFile(user=staff_user, status=JobStatus.SUCCESS,),
+                ExportFile(user=staff_user, status=JobStatus.SUCCESS),
+                ExportFile(user=staff_user, status=JobStatus.FAILED,),
+            ]
+        )
+    )
+
+    updated_date = datetime.datetime(
+        2019, 4, 18, tzinfo=timezone.get_current_timezone()
+    )
+    created_date = datetime.datetime(
+        2019, 4, 10, tzinfo=timezone.get_current_timezone()
+    )
+    new_created_and_updated_dates = [
+        (created_date, updated_date),
+        (created_date, updated_date + datetime.timedelta(hours=2)),
+        (
+            created_date + datetime.timedelta(hours=2),
+            updated_date - datetime.timedelta(days=2),
+        ),
+        (created_date - datetime.timedelta(days=2), updated_date),
+        (
+            created_date - datetime.timedelta(days=5),
+            updated_date - datetime.timedelta(days=5),
+        ),
+    ]
+    for counter, export_file in enumerate(export_file_list):
+        created, updated = new_created_and_updated_dates[counter]
+        export_file.created_at = created
+        export_file.updated_at = updated
+
+    ExportFile.objects.bulk_update(export_file_list, ["created_at", "updated_at"])
+
+    return export_file_list
+
+
+@pytest.fixture
+def user_export_event(user_export_file):
+    return ExportEvent.objects.create(
+        type=ExportEvents.EXPORT_FAILED,
+        export_file=user_export_file,
+        user=user_export_file.user,
+        parameters={"message": "Example error message"},
+    )
+
+
+@pytest.fixture
+def app_export_event(app_export_file):
+    return ExportEvent.objects.create(
+        type=ExportEvents.EXPORT_FAILED,
+        export_file=app_export_file,
+        app=app_export_file.app,
+        parameters={"message": "Example error message"},
     )

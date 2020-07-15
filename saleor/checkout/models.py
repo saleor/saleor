@@ -99,7 +99,7 @@ class Checkout(ModelWithMetadata):
     objects = CheckoutQueryset.as_manager()
 
     class Meta:
-        ordering = ("-last_change",)
+        ordering = ("-last_change", "pk")
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
         )

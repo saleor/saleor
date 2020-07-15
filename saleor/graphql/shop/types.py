@@ -1,3 +1,5 @@
+from typing import Optional
+
 import graphene
 from django.conf import settings
 from django.utils import translation
@@ -66,6 +68,11 @@ class Geolocalization(graphene.ObjectType):
 class Shop(graphene.ObjectType):
     available_payment_gateways = graphene.List(
         graphene.NonNull(PaymentGateway),
+        currency=graphene.Argument(
+            graphene.String,
+            description="A currency for which gateways will be returned.",
+            required=False,
+        ),
         description="List of available payment gateways.",
         required=True,
     )
@@ -166,8 +173,8 @@ class Shop(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_available_payment_gateways(_, _info):
-        return [gtw for gtw in get_plugins_manager().list_payment_gateways()]
+    def resolve_available_payment_gateways(_, _info, currency: Optional[str] = None):
+        return get_plugins_manager().list_payment_gateways(currency=currency)
 
     @staticmethod
     @permission_required(SitePermissions.MANAGE_SETTINGS)

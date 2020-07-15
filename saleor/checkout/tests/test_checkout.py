@@ -18,6 +18,7 @@ from ...discount import DiscountValueType, VoucherType
 from ...discount.models import NotApplicable, Voucher
 from ...order import OrderEvents, OrderEventsEmails
 from ...order.models import OrderEvent
+from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...shipping.models import ShippingZone
 from ...tests.utils import flush_post_commit_hooks
@@ -26,12 +27,14 @@ from ..models import Checkout
 from ..utils import (
     add_variant_to_checkout,
     add_voucher_to_checkout,
+    cancel_active_payments,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     clear_shipping_method,
     create_order,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
+    is_fully_paid,
     is_valid_shipping_method,
     prepare_order_data,
     recalculate_checkout_discount,
@@ -87,9 +90,9 @@ def test_last_change_update_foregin_key(checkout, shipping_method):
 
 
 def test_create_order_captured_payment_creates_expected_events(
-    request_checkout_with_item, customer_user, shipping_method, payment_txn_captured,
+    checkout_with_item, customer_user, shipping_method, payment_txn_captured,
 ):
-    checkout = request_checkout_with_item
+    checkout = checkout_with_item
     checkout_user = customer_user
 
     # Ensure not events are existing prior
@@ -209,9 +212,9 @@ def test_create_order_captured_payment_creates_expected_events(
 
 
 def test_create_order_captured_payment_creates_expected_events_anonymous_user(
-    request_checkout_with_item, customer_user, shipping_method, payment_txn_captured,
+    checkout_with_item, customer_user, shipping_method, payment_txn_captured,
 ):
-    checkout = request_checkout_with_item
+    checkout = checkout_with_item
     checkout_user = None
 
     # Ensure not events are existing prior
@@ -325,9 +328,9 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
 
 
 def test_create_order_preauth_payment_creates_expected_events(
-    request_checkout_with_item, customer_user, shipping_method, payment_txn_preauth,
+    checkout_with_item, customer_user, shipping_method, payment_txn_preauth,
 ):
-    checkout = request_checkout_with_item
+    checkout = checkout_with_item
     checkout_user = customer_user
 
     # Ensure not events are existing prior
@@ -418,9 +421,9 @@ def test_create_order_preauth_payment_creates_expected_events(
 
 
 def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
-    request_checkout_with_item, customer_user, shipping_method, payment_txn_preauth,
+    checkout_with_item, customer_user, shipping_method, payment_txn_preauth,
 ):
-    checkout = request_checkout_with_item
+    checkout = checkout_with_item
     checkout_user = None
 
     # Ensure not events are existing prior
@@ -505,19 +508,19 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
 
 
 def test_create_order_insufficient_stock(
-    request_checkout, customer_user, product_without_shipping
+    checkout, customer_user, product_without_shipping
 ):
     variant = product_without_shipping.variants.get()
-    add_variant_to_checkout(request_checkout, variant, 10, check_quantity=False)
-    request_checkout.user = customer_user
-    request_checkout.billing_address = customer_user.default_billing_address
-    request_checkout.shipping_address = customer_user.default_billing_address
-    request_checkout.save()
+    add_variant_to_checkout(checkout, variant, 10, check_quantity=False)
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.save()
 
     with pytest.raises(InsufficientStock):
         prepare_order_data(
-            checkout=request_checkout,
-            lines=list(request_checkout),
+            checkout=checkout,
+            lines=list(checkout),
             tracking_code="tracking_code",
             discounts=None,
         )
@@ -683,22 +686,22 @@ def test_create_order_with_many_gift_cards(
     )
 
 
-def test_note_in_created_order(request_checkout_with_item, address, customer_user):
-    request_checkout_with_item.shipping_address = address
-    request_checkout_with_item.note = "test_note"
-    request_checkout_with_item.save()
+def test_note_in_created_order(checkout_with_item, address, customer_user):
+    checkout_with_item.shipping_address = address
+    checkout_with_item.note = "test_note"
+    checkout_with_item.save()
     order = create_order(
-        checkout=request_checkout_with_item,
+        checkout=checkout_with_item,
         order_data=prepare_order_data(
-            checkout=request_checkout_with_item,
-            lines=list(request_checkout_with_item),
+            checkout=checkout_with_item,
+            lines=list(checkout_with_item),
             tracking_code="tracking_code",
             discounts=None,
         ),
         user=customer_user,
         redirect_url="https://www.example.com",
     )
-    assert order.customer_note == request_checkout_with_item.note
+    assert order.customer_note == checkout_with_item.note
 
 
 @pytest.mark.parametrize(
@@ -1404,3 +1407,87 @@ def test_store_user_address_create_new_address_if_not_associated(address):
 
     assert user.addresses.count() == expected_user_addresses_count
     assert user.default_billing_address_id != address.pk
+
+
+def test_get_last_active_payment(checkout_with_payments):
+    # given
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy",
+        is_active=True,
+        checkout=checkout_with_payments,
+    )
+
+    # when
+    last_payment = checkout_with_payments.get_last_active_payment()
+
+    # then
+    assert last_payment.pk == payment.pk
+
+
+def test_is_fully_paid(checkout_with_item, payment_dummy):
+    checkout = checkout_with_item
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    is_paid = is_fully_paid(checkout, list(checkout), None)
+    assert is_paid
+
+
+def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
+    checkout = checkout_with_item
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount - 1
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    payment2 = payment_dummy
+    payment2.pk = None
+    payment2.is_active = True
+    payment2.order = None
+    payment2.total = 1
+    payment2.currency = total.gross.currency
+    payment2.checkout = checkout
+    payment2.save()
+    is_paid = is_fully_paid(checkout, list(checkout), None)
+    assert is_paid
+
+
+def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
+    checkout = checkout_with_item
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount - 1
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    is_paid = is_fully_paid(checkout, list(checkout), None)
+    assert not is_paid
+
+
+def test_is_fully_paid_no_payment(checkout_with_item):
+    checkout = checkout_with_item
+    is_paid = is_fully_paid(checkout, list(checkout), None)
+    assert not is_paid
+
+
+def test_cancel_active_payments(checkout_with_payments):
+    # given
+    checkout = checkout_with_payments
+    count_active = checkout.payments.filter(is_active=True).count()
+    assert count_active != 0
+
+    # when
+    cancel_active_payments(checkout)
+
+    # then
+    assert checkout.payments.filter(is_active=True).count() == 0

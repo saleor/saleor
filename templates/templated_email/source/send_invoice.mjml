@@ -1,0 +1,29 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./shared/styles.mjml" />
+  </mj-head>
+  <mj-body>
+    <mj-raw>
+      {% load i18n %}
+    </mj-raw>
+    <mj-include path="./shared/header.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="16px">
+          {% trans "Hi!" context "Standard e-mail greeting" %}
+        </mj-text>
+        <mj-text>
+          {% blocktrans trimmed context "Send invoice e-mail text" %}
+            In order to download invoice {{ number }}, click the link below.
+          {% endblocktrans %}
+        </mj-text>
+        <mj-text>
+          <a href="{{ download_url | safe }}">
+            {{ download_url | safe }}
+          </a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-include path="./shared/footer.mjml" />
+  </mj-body>
+</mjml>
