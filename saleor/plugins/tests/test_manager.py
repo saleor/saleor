@@ -1,6 +1,8 @@
+import json
 from decimal import Decimal
 
 import pytest
+from django.http import HttpResponseNotFound, JsonResponse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
@@ -340,3 +342,44 @@ def test_manager_serve_list_all_payment_gateways_specified_currency_two_gateways
         manager.list_payment_gateways(currency="USD", active_only=False)
         == expected_gateways
     )
+
+
+def test_manager_webhook(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    plugin_path = "/webhook/paid"
+    request = rf.post(path=f"/plugins/{PluginSample.PLUGIN_ID}{plugin_path}")
+
+    response = manager.webhook(request, PluginSample.PLUGIN_ID)
+    assert isinstance(response, JsonResponse)
+    assert response.status_code == 200
+    assert response.content.decode() == json.dumps({"received": True, "paid": True})
+
+
+def test_manager_webhook_plugin_doesnt_have_webhook_support(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+
+    manager = PluginsManager(plugins=plugins)
+    plugin_path = "/webhook/paid"
+    request = rf.post(path=f"/plugins/{PluginInactive.PLUGIN_ID}{plugin_path}")
+    response = manager.webhook(request, PluginSample.PLUGIN_ID)
+    assert isinstance(response, HttpResponseNotFound)
+    assert response.status_code == 404
+
+
+def test_manager_inncorrect_plugin(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    plugin_path = "/webhook/paid"
+    request = rf.post(path=f"/plugins/incorrect.plugin.id{plugin_path}")
+    response = manager.webhook(request, "incorrect.plugin.id")
+    assert isinstance(response, HttpResponseNotFound)
+    assert response.status_code == 404

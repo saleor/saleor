@@ -8,8 +8,9 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Merge `manage_webhooks` permission with `manage_apps` - #5556 by @korycins
 - Add App support - #5767 by @korycins
-
+- Add webhook handler to BasePlugin and PluginManager - #5884 by @korycins
 - Invoices backend - #5732 by @tomaszszymanski129
+
 ### Breaking Changes
 
 - Refactor JWT support - These changes could require a handling JWT token in the storefront. Storefront needs to handle a case when the backend returns the exception about the invalid token. - #5734, #5816 by @korycins
