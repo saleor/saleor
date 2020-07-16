@@ -6,7 +6,7 @@ from ...core.permissions import OrderPermissions
 from ...invoice import events, models
 from ...invoice.emails import send_invoice
 from ...invoice.error_codes import InvoiceErrorCode
-from ...order import OrderEvents, OrderStatus
+from ...order import OrderStatus, events as order_events
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import InvoiceError
 from ..invoice.types import Invoice
@@ -69,16 +69,11 @@ class InvoiceRequest(ModelMutation):
         )
 
         if invoice.status == JobStatus.SUCCESS:
-            order.events.create(
-                type=OrderEvents.INVOICE_GENERATED,
-                order=order,
-                user=info.context.user,
-                parameters={"invoice_number": invoice.number},
+            order_events.invoice_generated_event(
+                order=order, user=info.context.user, invoice_number=invoice.number,
             )
         else:
-            order.events.create(
-                type=OrderEvents.INVOICE_REQUESTED, order=order, user=info.context.user
-            )
+            order_events.invoice_requested_event(user=info.context.user, order=order)
 
         events.invoice_requested_event(
             user=info.context.user, order=order, number=data.get("number")
@@ -158,11 +153,8 @@ class InvoiceCreate(ModelMutation):
             number=cleaned_input["number"],
             url=cleaned_input["url"],
         )
-        order.events.create(
-            type=OrderEvents.INVOICE_GENERATED,
-            order=order,
-            user=info.context.user,
-            parameters={"invoice_number": cleaned_input["number"]},
+        order_events.invoice_generated_event(
+            order=order, user=info.context.user, invoice_number=cleaned_input["number"],
         )
         return InvoiceCreate(invoice=invoice)
 
@@ -259,11 +251,12 @@ class InvoiceUpdate(ModelMutation):
         )
         instance.status = JobStatus.SUCCESS
         instance.save(update_fields=["external_url", "number", "updated_at", "status"])
-        instance.order.events.create(
-            type=OrderEvents.INVOICE_GENERATED,
+        order_events.invoice_updated_event(
             order=instance.order,
             user=info.context.user,
-            parameters={"invoice_number": cleaned_input["number"]},
+            invoice_number=instance.number,
+            url=instance.url,
+            status=instance.status,
         )
         return InvoiceUpdate(invoice=instance)
 
@@ -311,10 +304,9 @@ class InvoiceSendEmail(ModelMutation):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
         send_invoice.delay(instance.pk, info.context.user.pk)
-        instance.order.events.create(
-            type=OrderEvents.INVOICE_SENT,
+        order_events.invoice_sent_event(
             order=instance.order,
             user=info.context.user,
-            parameters={"email": instance.order.get_customer_email()},
+            email=instance.order.get_customer_email(),
         )
         return InvoiceSendEmail(invoice=instance)

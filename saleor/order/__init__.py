@@ -54,6 +54,7 @@ class OrderEvents:
 
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_GENERATED = "invoice_generated"
+    INVOICE_UPDATED = "invoice_updated"
     INVOICE_SENT = "invoice_sent"
 
     FULFILLMENT_CANCELED = "fulfillment_canceled"
@@ -84,6 +85,7 @@ class OrderEvents:
         (PAYMENT_FAILED, "The payment was failed"),
         (INVOICE_REQUESTED, "An invoice was requested"),
         (INVOICE_GENERATED, "An invoice was generated"),
+        (INVOICE_UPDATED, "An invoice was updated"),
         (INVOICE_SENT, "An invoice was sent"),
         (FULFILLMENT_CANCELED, "A fulfillment was canceled"),
         (FULFILLMENT_RESTOCKED_ITEMS, "The items of the fulfillment were restocked"),
