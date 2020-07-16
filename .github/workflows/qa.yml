@@ -1,0 +1,19 @@
+name: QA
+
+on:
+  pull_request:
+    branches: ["*"]
+
+jobs:
+  check-requirements-txt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Validate requirements.txt
+        run: |
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+          source $HOME/.poetry/env
+          poetry export -f requirements.txt -o requirements_dev.txt --dev --without-hashes
+          poetry export -f requirements.txt -o requirements.txt --without-hashes
+          git diff --exit-code ./
