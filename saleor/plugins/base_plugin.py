@@ -7,6 +7,12 @@ from django.http import HttpResponse
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
+from ..payment.interface import (
+    CustomerSource,
+    GatewayResponse,
+    PaymentData,
+    PaymentGateway,
+)
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
@@ -18,7 +24,6 @@ if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..order.models import Fulfillment, OrderLine, Order
     from ..invoice.models import Invoice
-    from ..payment.interface import GatewayResponse, PaymentData, CustomerSource
 
 
 PluginConfigurationType = List[dict]
@@ -390,6 +395,27 @@ class BasePlugin:
 
     def get_supported_currencies(self, previous_value):
         return NotImplemented
+
+    def get_payment_gateway(
+        self, currency: Optional[str], previous_value
+    ) -> Optional["PaymentGateway"]:
+        payment_config = self.get_payment_config(previous_value)
+        payment_config = payment_config if payment_config != NotImplemented else []
+        currencies = self.get_supported_currencies(previous_value=[])
+        currencies = currencies if currencies != NotImplemented else []
+        if currency and currency not in currencies:
+            return None
+        return PaymentGateway(
+            id=self.PLUGIN_ID,
+            name=self.PLUGIN_NAME,
+            config=payment_config,
+            currencies=currencies,
+        )
+
+    def get_payment_gateway_for_checkout(
+        self, checkout: "Checkout", previous_value
+    ) -> Optional["PaymentGateway"]:
+        return self.get_payment_gateway(checkout.currency, previous_value)
 
     @classmethod
     def _update_config_items(
