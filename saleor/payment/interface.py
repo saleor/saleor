@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -101,3 +101,13 @@ class CustomerSource:
     id: str
     gateway: str
     credit_card_info: Optional[CreditCardInfo] = None
+
+
+@dataclass
+class PaymentGateway:
+    """Dataclass for storing information about a payment gateway."""
+
+    id: str
+    name: str
+    currencies: List[str]
+    config: List[Dict[str, Any]]
