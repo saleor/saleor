@@ -1,5 +1,4 @@
 import graphene
-from graphene.types.generic import GenericScalar
 from promise import Promise
 
 from ...checkout import calculations, models
@@ -22,7 +21,7 @@ from .dataloaders import CheckoutLinesByCheckoutTokenLoader
 
 class GatewayConfigLine(graphene.ObjectType):
     field = graphene.String(required=True, description="Gateway config key.")
-    value = GenericScalar(description="Gateway config value for key.")
+    value = graphene.String(description="Gateway config value for key.")
 
     class Meta:
         description = "Payment gateway client configuration key and value pair."

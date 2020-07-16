@@ -2012,7 +2012,7 @@ input FulfillmentUpdateTrackingInput {
 
 type GatewayConfigLine {
   field: String!
-  value: GenericScalar
+  value: String
 }
 
 scalar GenericScalar
