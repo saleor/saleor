@@ -125,7 +125,7 @@ class ProductsQueryset(PublishedQuerySet):
 
     def published_with_variants(self):
         published = self.published()
-        return published.filter(variants__isnull=False)
+        return published.filter(variants__isnull=False).distinct()
 
     def visible_to_user(self, user):
         if self.user_has_access_to_all(user):
