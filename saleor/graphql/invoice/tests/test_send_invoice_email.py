@@ -6,6 +6,7 @@ from ....core import JobStatus
 from ....graphql.tests.utils import get_graphql_content
 from ....invoice.emails import collect_invoice_data_for_email
 from ....invoice.models import Invoice, InvoiceEvent, InvoiceEvents
+from ....order import OrderEvents
 
 INVOICE_SEND_EMAIL_MUTATION = """
     mutation invoiceSendEmail($id: ID!) {
@@ -44,6 +45,12 @@ def test_invoice_send_email(
         invoice=invoice,
         parameters__email=order.user.email,
     ).exists()
+    assert order.events.filter(
+        type=OrderEvents.INVOICE_SENT,
+        order=order,
+        user=staff_api_client.user,
+        parameters__email=order.user.email,
+    ).exists()
 
 
 @patch("saleor.invoice.emails.send_templated_mail")
@@ -65,6 +72,7 @@ def test_invoice_send_email_pending(
         {"field": "number", "code": "NUMBER_NOT_SET"},
     ]
     email_mock.assert_not_called()
+    assert not order.events.filter(type=OrderEvents.INVOICE_SENT).exists()
 
 
 @patch("saleor.invoice.emails.send_templated_mail")
@@ -85,6 +93,7 @@ def test_invoice_send_email_without_url_and_number(
         {"field": "number", "code": "NUMBER_NOT_SET"},
     ]
     email_mock.assert_not_called()
+    assert not order.events.filter(type=OrderEvents.INVOICE_SENT).exists()
 
 
 @patch("saleor.invoice.emails.send_templated_mail")
@@ -108,3 +117,4 @@ def test_invoice_send_email_without_email(
     assert order_mock.called
     errors = content["data"]["invoiceSendEmail"]["invoiceErrors"]
     assert errors == [{"field": "order", "code": "EMAIL_NOT_SET"}]
+    assert not order.events.filter(type=OrderEvents.INVOICE_SENT).exists()

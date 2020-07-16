@@ -52,6 +52,9 @@ class OrderEvent(CountableDjangoObjectType):
     quantity = graphene.Int(description="Number of items.")
     composed_id = graphene.String(description="Composed ID of the Fulfillment.")
     order_number = graphene.String(description="User-friendly number of an order.")
+    invoice_number = graphene.String(
+        description="Number of an invoice related to the order."
+    )
     oversold_items = graphene.List(
         graphene.String, description="List of oversold lines names."
     )
@@ -121,6 +124,10 @@ class OrderEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_order_number(root: models.OrderEvent, _info):
         return root.order_id
+
+    @staticmethod
+    def resolve_invoice_number(root: models.OrderEvent, _info):
+        return root.parameters.get("invoice_number")
 
     @staticmethod
     def resolve_lines(root: models.OrderEvent, _info):
