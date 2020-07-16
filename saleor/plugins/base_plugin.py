@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any, List, Optional, Union
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ..payment.gateways.utils import get_supported_currencies
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
