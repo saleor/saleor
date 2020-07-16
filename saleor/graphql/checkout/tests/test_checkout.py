@@ -641,7 +641,7 @@ def expected_dummy_gateway():
     return {
         "id": "mirumee.payments.dummy",
         "name": "Dummy",
-        "config": [{"field": "store_customer_card", "value": False}],
+        "config": [{"field": "store_customer_card", "value": "false"}],
         "currencies": ["USD"],
     }
 
