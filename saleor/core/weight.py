@@ -53,4 +53,6 @@ def covert_weight_to_default_weight_unit(weight):
     default_unit = get_default_weight_unit()
     if weight and weight.unit != default_unit:
         weight = convert_weight(weight, default_unit)
+    elif weight:
+        weight.value = round(weight.value, 3)
     return weight

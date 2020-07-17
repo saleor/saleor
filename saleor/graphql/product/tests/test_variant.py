@@ -3,7 +3,9 @@ from uuid import uuid4
 
 import graphene
 import pytest
+from measurement.measures import Weight
 
+from ....core.weight import WeightUnits
 from ....product.error_codes import ProductErrorCode
 from ....product.models import ProductVariant
 from ....product.utils.attributes import associate_attribute_values_to_instance
@@ -13,7 +15,9 @@ from ...core.enums import WeightUnitsEnum
 from ...tests.utils import get_graphql_content
 
 
-def test_fetch_variant(staff_api_client, product, permission_manage_products):
+def test_fetch_variant(
+    staff_api_client, product, permission_manage_products, site_settings
+):
     query = """
     query ProductVariantDetails($id: ID!, $countyCode: CountryCode) {
         productVariant(id: $id) {
@@ -53,19 +57,35 @@ def test_fetch_variant(staff_api_client, product, permission_manage_products):
             product {
                 id
             }
+            weight {
+                unit
+                value
+            }
         }
     }
     """
-
+    # given
     variant = product.variants.first()
+    variant.weight = Weight(kg=10)
+    variant.save(update_fields=["weight"])
+
+    site_settings.default_weight_unit = WeightUnits.GRAM
+    site_settings.save(update_fields=["default_weight_unit"])
+
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {"id": variant_id, "countyCode": "EU"}
     staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
     response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
     assert data["name"] == variant.name
     assert len(data["stocks"]) == variant.stocks.count()
+    assert data["weight"]["value"] == 10000
+    assert data["weight"]["unit"] == WeightUnitsEnum.G.name
 
 
 def test_create_variant(
