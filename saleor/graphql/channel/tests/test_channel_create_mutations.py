@@ -131,11 +131,11 @@ def test_channel_create_mutation_with_invalid_slug(
 
 
 def test_channel_create_mutation_with_duplicated_slug(
-    permission_manage_channels, staff_api_client, channel
+    permission_manage_channels, staff_api_client, channel_USD
 ):
     # given
     name = "New Channel"
-    slug = channel.slug
+    slug = channel_USD.slug
     currency_code = "USD"
     variables = {"input": {"name": name, "slug": slug, "currencyCode": currency_code}}
 

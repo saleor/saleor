@@ -23,10 +23,10 @@ CHANNEL_UPDATE_MUTATION = """
 
 
 def test_channel_update_mutation_as_staff_user(
-    permission_manage_channels, staff_api_client, channel
+    permission_manage_channels, staff_api_client, channel_USD
 ):
     # given
-    channel_id = graphene.Node.to_global_id("Channel", channel.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "newName"
     slug = "new_slug"
     variables = {"id": channel_id, "input": {"name": name, "slug": slug}}
@@ -43,17 +43,17 @@ def test_channel_update_mutation_as_staff_user(
     data = content["data"]["channelUpdate"]
     assert not data["channelErrors"]
     channel_data = data["channel"]
-    channel.refresh_from_db()
-    assert channel_data["name"] == channel.name == name
-    assert channel_data["slug"] == channel.slug == slug
-    assert channel_data["currencyCode"] == channel.currency_code == "USD"
+    channel_USD.refresh_from_db()
+    assert channel_data["name"] == channel_USD.name == name
+    assert channel_data["slug"] == channel_USD.slug == slug
+    assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
 
 
 def test_channel_update_mutation_as_app(
-    permission_manage_channels, app_api_client, channel
+    permission_manage_channels, app_api_client, channel_USD
 ):
     # given
-    channel_id = graphene.Node.to_global_id("Channel", channel.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "newName"
     slug = "new_slug"
     variables = {"id": channel_id, "input": {"name": name, "slug": slug}}
@@ -70,15 +70,15 @@ def test_channel_update_mutation_as_app(
     data = content["data"]["channelUpdate"]
     assert not data["channelErrors"]
     channel_data = data["channel"]
-    channel.refresh_from_db()
-    assert channel_data["name"] == channel.name == name
-    assert channel_data["slug"] == channel.slug == slug
-    assert channel_data["currencyCode"] == channel.currency_code == "USD"
+    channel_USD.refresh_from_db()
+    assert channel_data["name"] == channel_USD.name == name
+    assert channel_data["slug"] == channel_USD.slug == slug
+    assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
 
 
-def test_channel_update_mutation_as_customer(user_api_client, channel):
+def test_channel_update_mutation_as_customer(user_api_client, channel_USD):
     # given
-    channel_id = graphene.Node.to_global_id("Channel", channel.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "newName"
     slug = "new_slug"
     variables = {"id": channel_id, "input": {"name": name, "slug": slug}}
@@ -92,9 +92,9 @@ def test_channel_update_mutation_as_customer(user_api_client, channel):
     assert_no_permission(response)
 
 
-def test_channel_update_mutation_as_anonymous(api_client, channel):
+def test_channel_update_mutation_as_anonymous(api_client, channel_USD):
     # given
-    channel_id = graphene.Node.to_global_id("Channel", channel.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "newName"
     slug = "new_slug"
     variables = {"id": channel_id, "input": {"name": name, "slug": slug}}
@@ -109,10 +109,10 @@ def test_channel_update_mutation_as_anonymous(api_client, channel):
 
 
 def test_channel_update_mutation_with_invalid_slug(
-    permission_manage_channels, staff_api_client, channel
+    permission_manage_channels, staff_api_client, channel_USD
 ):
     # given
-    channel_id = graphene.Node.to_global_id("Channel", channel.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "testName"
     slug = "Invalid slug"
     variables = {"id": channel_id, "input": {"name": name, "slug": slug}}
@@ -132,10 +132,10 @@ def test_channel_update_mutation_with_invalid_slug(
 
 
 def test_channel_update_mutation_with_duplicated_slug(
-    permission_manage_channels, staff_api_client, channel, channel_PLN
+    permission_manage_channels, staff_api_client, channel_USD, channel_PLN
 ):
     # given
-    channel_id = graphene.Node.to_global_id("Channel", channel.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "New Channel"
     slug = channel_PLN.slug
     variables = {"id": channel_id, "input": {"name": name, "slug": slug}}
@@ -155,12 +155,12 @@ def test_channel_update_mutation_with_duplicated_slug(
 
 
 def test_channel_update_mutation_only_name(
-    permission_manage_channels, staff_api_client, channel
+    permission_manage_channels, staff_api_client, channel_USD
 ):
     # given
-    channel_id = graphene.Node.to_global_id("Channel", channel.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "newName"
-    slug = channel.slug
+    slug = channel_USD.slug
     variables = {"id": channel_id, "input": {"name": name}}
 
     # when
@@ -175,18 +175,18 @@ def test_channel_update_mutation_only_name(
     data = content["data"]["channelUpdate"]
     assert not data["channelErrors"]
     channel_data = data["channel"]
-    channel.refresh_from_db()
-    assert channel_data["name"] == channel.name == name
-    assert channel_data["slug"] == channel.slug == slug
-    assert channel_data["currencyCode"] == channel.currency_code == "USD"
+    channel_USD.refresh_from_db()
+    assert channel_data["name"] == channel_USD.name == name
+    assert channel_data["slug"] == channel_USD.slug == slug
+    assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"
 
 
 def test_channel_update_mutation_only_slug(
-    permission_manage_channels, staff_api_client, channel
+    permission_manage_channels, staff_api_client, channel_USD
 ):
     # given
-    channel_id = graphene.Node.to_global_id("Channel", channel.id)
-    name = channel.name
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    name = channel_USD.name
     slug = "new_slug"
     variables = {"id": channel_id, "input": {"slug": slug}}
 
@@ -202,7 +202,7 @@ def test_channel_update_mutation_only_slug(
     data = content["data"]["channelUpdate"]
     assert not data["channelErrors"]
     channel_data = data["channel"]
-    channel.refresh_from_db()
-    assert channel_data["name"] == channel.name == name
-    assert channel_data["slug"] == channel.slug == slug
-    assert channel_data["currencyCode"] == channel.currency_code == "USD"
+    channel_USD.refresh_from_db()
+    assert channel_data["name"] == channel_USD.name == name
+    assert channel_data["slug"] == channel_USD.slug == slug
+    assert channel_data["currencyCode"] == channel_USD.currency_code == "USD"

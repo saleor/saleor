@@ -2,7 +2,11 @@ import graphene
 
 from ...core.permissions import ProductPermissions
 from ..core.enums import ReportingPeriod
-from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
+from ..core.fields import (
+    FieldWithChannel,
+    FilterInputConnectionField,
+    PrefetchingConnectionField,
+)
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import permission_required
 from ..translations.mutations import (
@@ -52,6 +56,7 @@ from .mutations.attributes import (
     AttributeValueUpdate,
     ProductTypeReorderAttributes,
 )
+from .mutations.channels import ProductChannelListingUpdate
 from .mutations.digital_contents import (
     DigitalContentCreate,
     DigitalContentDelete,
@@ -169,7 +174,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="List of the shop's categories.",
     )
-    category = graphene.Field(
+    category = FieldWithChannel(
         Category,
         id=graphene.Argument(graphene.ID, description="ID of the category."),
         slug=graphene.Argument(graphene.String, description="Slug of the category"),
@@ -187,10 +192,10 @@ class ProductQueries(graphene.ObjectType):
         sort_by=CollectionSortingInput(description="Sort collections."),
         description="List of the shop's collections.",
     )
-    product = graphene.Field(
+    product = FieldWithChannel(
         Product,
         id=graphene.Argument(graphene.ID, description="ID of the product.",),
-        slug=graphene.Argument(graphene.String, description="Slug of the category"),
+        slug=graphene.Argument(graphene.String, description="Slug of the product."),
         description="Look up a product by ID.",
     )
     products = FilterInputConnectionField(
@@ -206,7 +211,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="List of the shop's products.",
     )
-    product_type = graphene.Field(
+    product_type = FieldWithChannel(
         ProductType,
         id=graphene.Argument(
             graphene.ID, description="ID of the product type.", required=True
@@ -221,7 +226,7 @@ class ProductQueries(graphene.ObjectType):
         sort_by=ProductTypeSortingInput(description="Sort product types."),
         description="List of the shop's product types.",
     )
-    product_variant = graphene.Field(
+    product_variant = FieldWithChannel(
         ProductVariant,
         id=graphene.Argument(
             graphene.ID, description="ID of the product variant.", required=True
@@ -252,7 +257,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level=level, **kwargs)
 
-    def resolve_category(self, info, id=None, slug=None):
+    def resolve_category(self, info, id=None, slug=None, **kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
             return graphene.Node.get_node_from_global_id(info, id, Category)
@@ -277,7 +282,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_digital_contents(self, info, **_kwargs):
         return resolve_digital_contents(info)
 
-    def resolve_product(self, info, id=None, slug=None):
+    def resolve_product(self, info, id=None, slug=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
             return graphene.Node.get_node_from_global_id(info, id, Product)
@@ -287,13 +292,13 @@ class ProductQueries(graphene.ObjectType):
     def resolve_products(self, info, **kwargs):
         return resolve_products(info, **kwargs)
 
-    def resolve_product_type(self, info, id):
+    def resolve_product_type(self, info, id, **_kwargs):
         return graphene.Node.get_node_from_global_id(info, id, ProductType)
 
     def resolve_product_types(self, info, **kwargs):
         return resolve_product_types(info, **kwargs)
 
-    def resolve_product_variant(self, info, id):
+    def resolve_product_variant(self, info, id, **_kwargs):
         return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
 
     def resolve_product_variants(self, info, ids=None, **_kwargs):
@@ -438,6 +443,8 @@ class ProductMutations(graphene.ObjectType):
             "removed after 2020-07-31."
         )
     )
+
+    product_channel_listing_update = ProductChannelListingUpdate.Field()
 
     product_image_create = ProductImageCreate.Field()
     product_image_delete = ProductImageDelete.Field()

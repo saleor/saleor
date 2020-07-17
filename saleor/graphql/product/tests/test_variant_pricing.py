@@ -8,8 +8,8 @@ from ....product.utils.availability import get_variant_availability
 from ...tests.utils import get_graphql_content
 
 QUERY_GET_VARIANT_PRICING = """
-query {
-  products(first: 1) {
+query ($channel: String) {
+  products(first: 1, channel: $channel) {
     edges {
       node {
         variants {
@@ -46,11 +46,13 @@ query {
 """
 
 
-def test_get_variant_pricing_on_sale(api_client, sale, product):
+def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
     price = product.variants.first().price
     discounted_price = price.amount - sale.value
 
-    response = api_client.post_graphql(QUERY_GET_VARIANT_PRICING, {})
+    response = api_client.post_graphql(
+        QUERY_GET_VARIANT_PRICING, {"channel": channel_USD.slug}
+    )
     content = get_graphql_content(response)
 
     pricing = content["data"]["products"]["edges"][0]["node"]["variants"][0]["pricing"]
@@ -74,10 +76,12 @@ def test_get_variant_pricing_on_sale(api_client, sale, product):
     assert pricing["price"]["net"]["amount"] == discounted_price
 
 
-def test_get_variant_pricing_not_on_sale(api_client, product):
+def test_get_variant_pricing_not_on_sale(api_client, product, channel_USD):
     price = product.variants.first().price
 
-    response = api_client.post_graphql(QUERY_GET_VARIANT_PRICING, {})
+    response = api_client.post_graphql(
+        QUERY_GET_VARIANT_PRICING, {"channel": channel_USD.slug}
+    )
     content = get_graphql_content(response)
 
     pricing = content["data"]["products"]["edges"][0]["node"]["variants"][0]["pricing"]
@@ -106,8 +110,15 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
         PluginsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
     )
 
+    product = variant.product
+    channel_listing = product.channel_listing.get()
+
     pricing = get_variant_availability(
-        variant=variant, product=variant.product, collections=[], discounts=[]
+        variant=variant,
+        product=product,
+        channel_listing=channel_listing,
+        collections=[],
+        discounts=[],
     )
     assert pricing.price == taxed_price
     assert pricing.price_local_currency is None
@@ -122,7 +133,8 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
 
     pricing = get_variant_availability(
         variant=variant,
-        product=variant.product,
+        product=product,
+        channel_listing=channel_listing,
         collections=[],
         discounts=[],
         local_currency="PLN",
@@ -131,7 +143,11 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
     assert pricing.price_local_currency.currency == "PLN"  # type: ignore
 
     pricing = get_variant_availability(
-        variant=variant, product=variant.product, collections=[], discounts=[]
+        variant=variant,
+        product=product,
+        channel_listing=channel_listing,
+        collections=[],
+        discounts=[],
     )
     assert pricing.price.tax.amount
     assert pricing.price_undiscounted.tax.amount

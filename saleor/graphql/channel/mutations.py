@@ -1,7 +1,7 @@
 import graphene
 
 from ...channel import models
-from ...core.permissions import ChannelPermission
+from ...core.permissions import ChannelPermissions
 from ..core.mutations import ModelMutation
 from ..core.types.common import ChannelError
 from .types import Channel
@@ -24,7 +24,7 @@ class ChannelCreate(ModelMutation):
     class Meta:
         description = "Creates new channel."
         model = models.Channel
-        permissions = (ChannelPermission.MANAGE_CHANNELS,)
+        permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"
 
@@ -48,6 +48,6 @@ class ChannelUpdate(ModelMutation):
     class Meta:
         description = "Update a channel."
         model = models.Channel
-        permissions = (ChannelPermission.MANAGE_CHANNELS,)
+        permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"

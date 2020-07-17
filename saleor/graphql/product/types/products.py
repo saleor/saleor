@@ -1,8 +1,8 @@
 from dataclasses import asdict
-from typing import List, Union
 
 import graphene
 from django.conf import settings
+from django.utils.functional import SimpleLazyObject
 from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
@@ -51,6 +51,8 @@ from ..dataloaders import (
     CollectionsByProductIdLoader,
     ImagesByProductIdLoader,
     ProductByIdLoader,
+    ProductChannelListingByProductIdAndChanneSlugLoader,
+    ProductChannelListingByProductIdLoader,
     ProductVariantsByProductIdLoader,
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
@@ -58,62 +60,8 @@ from ..dataloaders import (
 from ..filters import AttributeFilterInput
 from ..resolvers import resolve_attributes
 from .attributes import Attribute, SelectedAttribute
+from .channels import ProductChannelListing
 from .digital_contents import DigitalContent
-
-
-def resolve_attribute_list(
-    instance: Union[models.Product, models.ProductVariant], *, user
-) -> List[SelectedAttribute]:
-    """Resolve attributes from a product into a list of `SelectedAttribute`s.
-
-    Note: you have to prefetch the below M2M fields.
-        - product_type -> attribute[rel] -> [rel]assignments -> values
-        - product_type -> attribute[rel] -> attribute
-    """
-    resolved_attributes = []
-    attributes_qs = None
-
-    # Retrieve the product type
-    if isinstance(instance, models.Product):
-        product_type = instance.product_type
-        product_type_attributes_assoc_field = "attributeproduct"
-        assigned_attribute_instance_field = "productassignments"
-        assigned_attribute_instance_filters = {"product_id": instance.pk}
-        if hasattr(product_type, "storefront_attributes"):
-            attributes_qs = product_type.storefront_attributes  # type: ignore
-    elif isinstance(instance, models.ProductVariant):
-        product_type = instance.product.product_type
-        product_type_attributes_assoc_field = "attributevariant"
-        assigned_attribute_instance_field = "variantassignments"
-        assigned_attribute_instance_filters = {"variant_id": instance.pk}
-    else:
-        raise AssertionError(f"{instance.__class__.__name__} is unsupported")
-
-    # Retrieve all the product attributes assigned to this product type
-    if not attributes_qs:
-        attributes_qs = getattr(product_type, product_type_attributes_assoc_field)
-        attributes_qs = attributes_qs.get_visible_to_user(user)
-
-    # An empty QuerySet for unresolved values
-    empty_qs = models.AttributeValue.objects.none()
-
-    # Goes through all the attributes assigned to the product type
-    # The assigned values are returned as a QuerySet, but will assign a
-    # dummy empty QuerySet if no values are assigned to the given instance.
-    for attr_data_rel in attributes_qs:
-        attr_instance_data = getattr(attr_data_rel, assigned_attribute_instance_field)
-
-        # Retrieve the instance's associated data
-        attr_data = attr_instance_data.filter(**assigned_attribute_instance_filters)
-        attr_data = attr_data.first()
-
-        # Return the instance's attribute values if the assignment was found,
-        # otherwise it sets the values as an empty QuerySet
-        values = attr_data.values.all() if attr_data is not None else empty_qs
-        resolved_attributes.append(
-            SelectedAttribute(attribute=attr_data_rel.attribute, values=values)
-        )
-    return resolved_attributes
 
 
 class Margin(graphene.ObjectType):
@@ -329,23 +277,31 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_pricing(root: models.ProductVariant, info):
         context = info.context
         product = ProductByIdLoader(context).load(root.product_id)
+        channel_slug = context.channel_slug
+        channel_listing = ProductChannelListingByProductIdAndChanneSlugLoader(
+            context
+        ).load((root.product_id, channel_slug))
         collections = CollectionsByProductIdLoader(context).load(root.product_id)
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_product(product):
-                def calculate_pricing_with_collections(collections):
-                    availability = get_variant_availability(
-                        variant=root,
-                        product=product,
-                        collections=collections,
-                        discounts=discounts,
-                        country=context.country,
-                        local_currency=context.currency,
-                        plugins=context.plugins,
-                    )
-                    return VariantPricingInfo(**asdict(availability))
+                def calculate_pricing_with_channel_listings(channel_listing):
+                    def calculate_pricing_with_collections(collections):
+                        availability = get_variant_availability(
+                            variant=root,
+                            product=product,
+                            channel_listing=channel_listing,
+                            collections=collections,
+                            discounts=discounts,
+                            country=context.country,
+                            local_currency=context.currency,
+                            plugins=context.plugins,
+                        )
+                        return VariantPricingInfo(**asdict(availability))
 
-                return collections.then(calculate_pricing_with_collections)
+                    return collections.then(calculate_pricing_with_collections)
+
+                return channel_listing.then(calculate_pricing_with_channel_listings)
 
             return product.then(calculate_pricing_with_product)
 
@@ -404,9 +360,10 @@ class ProductVariant(CountableDjangoObjectType):
     @classmethod
     def get_node(cls, info, pk):
         user = info.context.user
-        visible_products = models.Product.objects.visible_to_user(user).values_list(
-            "pk", flat=True
-        )
+        channel_slug = info.context.channel_slug
+        visible_products = models.Product.objects.visible_to_user(
+            user, channel_slug
+        ).values_list("pk", flat=True)
         qs = cls._meta.model.objects.filter(product__id__in=visible_products)
         return qs.filter(pk=pk).first()
 
@@ -457,6 +414,10 @@ class Product(CountableDjangoObjectType):
         required=True,
         description="List of attributes assigned to this product.",
     )
+    channel_listing = graphene.List(
+        graphene.NonNull(ProductChannelListing),
+        description="List of availability in channels for the product.",
+    )
     purchase_cost = graphene.Field(MoneyRange)
     margin = graphene.Field(Margin)
     image_by_id = graphene.Field(
@@ -485,11 +446,9 @@ class Product(CountableDjangoObjectType):
             "description",
             "description_json",
             "id",
-            "is_published",
             "name",
             "slug",
             "product_type",
-            "publication_date",
             "seo_description",
             "seo_title",
             "updated_at",
@@ -532,26 +491,34 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     def resolve_pricing(root: models.Product, info):
         context = info.context
+        channel_slug = context.channel_slug
+        channel_listing = ProductChannelListingByProductIdAndChanneSlugLoader(
+            context
+        ).load((root.id, channel_slug))
         variants = ProductVariantsByProductIdLoader(context).load(root.id)
         collections = CollectionsByProductIdLoader(context).load(root.id)
 
         def calculate_pricing_info(discounts):
-            def calculate_pricing_with_variants(variants):
-                def calculate_pricing_with_collections(collections):
-                    availability = get_product_availability(
-                        product=root,
-                        variants=variants,
-                        collections=collections,
-                        discounts=discounts,
-                        country=context.country,
-                        local_currency=context.currency,
-                        plugins=context.plugins,
-                    )
-                    return ProductPricingInfo(**asdict(availability))
+            def calculate_pricing_with_channel_listings(channel_listing):
+                def calculate_pricing_with_variants(variants):
+                    def calculate_pricing_with_collections(collections):
+                        availability = get_product_availability(
+                            product=root,
+                            channel_listing=channel_listing,
+                            variants=variants,
+                            collections=collections,
+                            discounts=discounts,
+                            country=context.country,
+                            local_currency=context.currency,
+                            plugins=context.plugins,
+                        )
+                        return ProductPricingInfo(**asdict(availability))
 
-                return collections.then(calculate_pricing_with_collections)
+                    return collections.then(calculate_pricing_with_collections)
 
-            return variants.then(calculate_pricing_with_variants)
+                return variants.then(calculate_pricing_with_variants)
+
+            return channel_listing.then(calculate_pricing_with_channel_listings)
 
         return (
             DiscountsByDateTimeLoader(context)
@@ -562,8 +529,14 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     def resolve_is_available(root: models.Product, info):
         country = info.context.country
+        channel_slug = info.context.channel_slug
+        if isinstance(channel_slug, SimpleLazyObject):
+            channel_slug = str(channel_slug)
         in_stock = is_product_in_stock(root, country)
-        return root.is_visible and in_stock
+        is_visible = models.ProductChannelListing.objects.filter(
+            product=root, channel__slug=channel_slug
+        ).exists()
+        return is_visible and in_stock
 
     @staticmethod
     def resolve_attributes(root: models.Product, info):
@@ -598,13 +571,20 @@ class Product(CountableDjangoObjectType):
         return ProductVariantsByProductIdLoader(info.context).load(root.id)
 
     @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    def resolve_channel_listing(root: models.Product, info, **_kwargs):
+        return ProductChannelListingByProductIdLoader(info.context).load(root.id)
+
+    @staticmethod
     def resolve_collections(root: models.Product, *_args):
         return root.collections.all()
 
     @classmethod
     def get_node(cls, info, pk):
         if info.context:
-            qs = cls._meta.model.objects.visible_to_user(info.context.user)
+            user = info.context.user
+            channel_slug = info.context.channel_slug
+            qs = cls._meta.model.objects.visible_to_user(user, channel_slug)
             return qs.filter(pk=pk).first()
         return None
 
@@ -681,7 +661,9 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, **_kwargs):
-        return root.products.visible_to_user(info.context.user)
+        user = info.context.user
+        channel_slug = info.context.channel_slug
+        return root.products.visible_to_user(user, channel_slug)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -742,7 +724,9 @@ class Collection(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_products(root: models.Collection, info, first=None, **kwargs):
-        return root.products.collection_sorted(info.context.user)
+        user = info.context.user
+        channel_slug = info.context.channel_slug
+        return root.products.collection_sorted(user, channel_slug)
 
     @classmethod
     def get_node(cls, info, id):
@@ -832,7 +816,8 @@ class Category(CountableDjangoObjectType):
     @staticmethod
     def resolve_products(root: models.Category, info, **_kwargs):
         tree = root.get_descendants(include_self=True)
-        qs = models.Product.objects.published()
+        channel_slug = info.context.channel_slug
+        qs = models.Product.objects.published(channel_slug)
         return qs.filter(category__in=tree)
 
     @staticmethod

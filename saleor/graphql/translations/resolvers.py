@@ -13,3 +13,11 @@ def resolve_shipping_methods(info):
 
 def resolve_attribute_values(info):
     return product_models.AttributeValue.objects.all()
+
+
+def resolve_products(_info):
+    return product_models.Product.objects.all()
+
+
+def resolve_product_variants(_info):
+    return product_models.ProductVariant.objects.all()

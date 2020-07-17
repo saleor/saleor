@@ -1,3 +1,4 @@
+import datetime
 from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
@@ -8,6 +9,7 @@ from django.db import models
 from django.db.models import Case, Count, F, FilteredRelation, Q, Value, When
 from django.urls import reverse
 from django.utils.encoding import smart_text
+from django.utils.functional import SimpleLazyObject
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from draftjs_sanitizer import clean_draft_js
@@ -16,13 +18,9 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
+from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
-from ..core.models import (
-    ModelWithMetadata,
-    PublishableModel,
-    PublishedQuerySet,
-    SortableModel,
-)
+from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
 from ..core.permissions import ProductPermissions
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
@@ -114,23 +112,38 @@ class ProductType(ModelWithMetadata):
         )
 
 
-class ProductsQueryset(PublishedQuerySet):
-    def collection_sorted(self, user: "User"):
-        qs = self.visible_to_user(user)
+class ProductsQueryset(models.QuerySet):
+    def collection_sorted(self, user: "User", channel_slug: str):
+        qs = self.visible_to_user(user, channel_slug)
         qs = qs.order_by(
             F("collectionproduct__sort_order").asc(nulls_last=True),
             F("collectionproduct__id"),
         )
         return qs
 
-    def published_with_variants(self):
-        published = self.published()
+    def published(self, channel_slug: str):
+        if isinstance(channel_slug, SimpleLazyObject):
+            channel_slug = str(channel_slug)
+        today = datetime.date.today()
+        return self.filter(
+            Q(channel_listing__publication_date__lte=today)
+            | Q(channel_listing__publication_date__isnull=True),
+            channel_listing__channel__slug=channel_slug,
+            channel_listing__is_published=True,
+        )
+
+    def published_with_variants(self, channel_slug: str):
+        published = self.published(channel_slug)
         return published.filter(variants__isnull=False)
 
-    def visible_to_user(self, user):
+    def visible_to_user(self, user: "User", channel_slug: str):
         if self.user_has_access_to_all(user):
             return self.all()
-        return self.published_with_variants()
+        return self.published_with_variants(channel_slug)
+
+    @staticmethod
+    def user_has_access_to_all(user):
+        return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
 
     def sort_by_attribute(
         self, attribute_pk: Union[int, str], descending: bool = False
@@ -227,7 +240,7 @@ class ProductsQueryset(PublishedQuerySet):
         )
 
 
-class Product(SeoModel, ModelWithMetadata, PublishableModel):
+class Product(SeoModel, ModelWithMetadata):
     product_type = models.ForeignKey(
         ProductType, related_name="products", on_delete=models.CASCADE
     )
@@ -331,6 +344,27 @@ class ProductTranslation(SeoModelTranslation):
         )
 
 
+class ProductChannelListing(PublishableModel):
+    product = models.ForeignKey(
+        Product,
+        null=False,
+        blank=False,
+        related_name="channel_listing",
+        on_delete=models.CASCADE,
+    )
+    channel = models.ForeignKey(
+        Channel,
+        null=False,
+        blank=False,
+        related_name="product_listing",
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        unique_together = [["product", "channel"]]
+        ordering = ("pk",)
+
+
 class ProductVariantQueryset(models.QuerySet):
     def create(self, **kwargs):
         """Create a product's variant.
@@ -405,10 +439,6 @@ class ProductVariant(ModelWithMetadata):
 
     def __str__(self) -> str:
         return self.name or self.sku
-
-    @property
-    def is_visible(self) -> bool:
-        return self.product.is_visible
 
     def get_price(self, discounts: Optional[Iterable[DiscountInfo]] = None) -> "Money":
         return calculate_discounted_price(
