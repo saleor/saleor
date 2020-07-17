@@ -5,7 +5,10 @@ from graphql.error import GraphQLError
 from graphql.language import ast
 from measurement.measures import Weight
 
-from ...core.weight import convert_weight, get_default_weight_unit
+from ...core.weight import (
+    convert_weight_to_default_weight_unit,
+    get_default_weight_unit,
+)
 
 
 class Decimal(graphene.Float):
@@ -48,9 +51,7 @@ class WeightScalar(graphene.Scalar):
     @staticmethod
     def serialize(weight):
         if isinstance(weight, Weight):
-            default_unit = get_default_weight_unit()
-            if weight.unit != default_unit:
-                weight = convert_weight(weight, default_unit)
+            weight = convert_weight_to_default_weight_unit(weight)
             return str(weight)
         return None
 
