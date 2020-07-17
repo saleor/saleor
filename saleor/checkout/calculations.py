@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Iterable, Optional
 
-from ..core.taxes import quantize_price
+from ..core.prices import quantize_price
 from ..discount import DiscountInfo
 from ..plugins.manager import get_plugins_manager
 

@@ -7,6 +7,7 @@ from io import BytesIO
 from typing import List, Optional
 from unittest.mock import MagicMock, Mock
 
+import graphene
 import pytest
 import pytz
 from django.conf import settings
@@ -1569,10 +1570,11 @@ def dummy_gateway_config():
 
 
 @pytest.fixture
-def dummy_payment_data():
+def dummy_payment_data(payment_dummy):
     return PaymentData(
         amount=10,
         currency="USD",
+        payment_id=graphene.Node.to_global_id("Payment", payment_dummy.pk),
         billing=None,
         shipping=None,
         order_id=None,

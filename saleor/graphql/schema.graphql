@@ -897,6 +897,7 @@ type CheckoutComplete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   order: Order
   confirmationNeeded: Boolean!
+  confirmationData: JSONString
   checkoutErrors: [CheckoutError!]!
 }
 
@@ -3433,7 +3434,8 @@ type PaymentGateway {
 
 input PaymentInput {
   gateway: String!
-  token: String!
+  token: String
+  paymentData: JSONString
   amount: Decimal
   billingAddress: AddressInput
 }

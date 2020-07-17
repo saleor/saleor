@@ -1,8 +1,9 @@
 import json
 import logging
 from decimal import Decimal
-from typing import Dict
+from typing import Dict, Optional
 
+import graphene
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
@@ -47,6 +48,7 @@ def create_payment_information(
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
 
     order_id = payment.order.pk if payment.order else None
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     return PaymentData(
         token=payment_token,
@@ -55,10 +57,12 @@ def create_payment_information(
         billing=billing_address,
         shipping=shipping_address,
         order_id=order_id,
+        payment_id=payment_id,
         customer_ip_address=payment.customer_ip_address,
         customer_id=customer_id,
         customer_email=payment.billing_email,
         reuse_source=store_source,
+        extra_data=payment.extra_data,
     )
 
 
@@ -68,7 +72,7 @@ def create_payment(
     currency: str,
     email: str,
     customer_ip_address: str = "",
-    payment_token: str = "",
+    payment_token: Optional[str] = "",
     extra_data: Dict = None,
     checkout: Checkout = None,
     order: Order = None,
@@ -85,7 +89,7 @@ def create_payment(
     data = {
         "is_active": True,
         "customer_ip_address": customer_ip_address,
-        "extra_data": extra_data,
+        "extra_data": json.dumps(extra_data),
         "token": payment_token,
     }
 
@@ -158,6 +162,7 @@ def create_transaction(
         error=gateway_response.error,
         customer_id=gateway_response.customer_id,
         gateway_response=gateway_response.raw_response or {},
+        action_required_data=gateway_response.action_required_data or {},
     )
     return txn
 

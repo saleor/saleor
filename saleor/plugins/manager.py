@@ -11,7 +11,8 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ..checkout import base_calculations
 from ..core.payments import PaymentInterface
-from ..core.taxes import TaxType, quantize_price, zero_taxed_money
+from ..core.prices import quantize_price
+from ..core.taxes import TaxType, zero_taxed_money
 from ..discount import DiscountInfo
 from .models import PluginConfiguration
 
@@ -366,13 +367,16 @@ class PluginsManager(PaymentInterface):
         return gateways
 
     def checkout_available_payment_gateways(
-        self, checkout: "Checkout"
+        self,
+        checkout: "Checkout",
+        lines: Iterable["CheckoutLine"],
+        discounts: Iterable[DiscountInfo],
     ) -> List["PaymentGateway"]:
         payment_plugins = self.list_payment_plugin(active_only=True)
         gateways = []
         for plugin in payment_plugins.values():
             gateway = plugin.get_payment_gateway_for_checkout(
-                checkout, previous_value=None
+                checkout, lines, discounts, previous_value=None
             )
             if gateway:
                 gateways.append(gateway)

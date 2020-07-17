@@ -244,8 +244,14 @@ class Checkout(CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_available_payment_gateways(root: models.Checkout, _info):
-        return get_plugins_manager().checkout_available_payment_gateways(checkout=root)
+    def resolve_available_payment_gateways(root: models.Checkout, info):
+        lines = CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
+        discounts = DiscountsByDateTimeLoader(info.context).load(
+            info.context.request_time
+        )
+        return get_plugins_manager().checkout_available_payment_gateways(
+            checkout=root, lines=lines, discounts=discounts
+        )
 
     @staticmethod
     def resolve_gift_cards(root: models.Checkout, _info):

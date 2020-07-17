@@ -732,6 +732,12 @@ class CheckoutComplete(BaseMutation):
             " before checkout is complete."
         ),
     )
+    confirmation_data = graphene.JSONString(
+        required=False,
+        description=(
+            "Confirmation data used to process additional authorization steps."
+        ),
+    )
 
     class Arguments:
         checkout_id = graphene.ID(description="Checkout ID.", required=True)
@@ -789,6 +795,15 @@ class CheckoutComplete(BaseMutation):
 
         payment = checkout.get_last_active_payment()
 
+        redirect_url = data.get("redirect_url", "")
+        if redirect_url:
+            try:
+                validate_storefront_url(redirect_url)
+            except ValidationError as error:
+                raise ValidationError(
+                    {"redirect_url": error}, code=AccountErrorCode.INVALID
+                )
+
         with transaction.atomic():
             try:
                 order_data = prepare_order_data(
@@ -820,14 +835,14 @@ class CheckoutComplete(BaseMutation):
         if shipping_address is not None:
             shipping_address = AddressData(**shipping_address.as_data())
 
-        payment_confirmation = payment.to_confirm
+        # payment_confirmation = payment.to_confirm
         try:
-            if payment_confirmation:
-                txn = gateway.confirm(payment)
-            else:
-                txn = gateway.process_payment(
-                    payment=payment, token=payment.token, store_source=store_source
-                )
+            # if payment_confirmation:
+            #     txn = gateway.confirm(payment)
+            # else:
+            txn = gateway.process_payment(
+                payment=payment, token=payment.token, store_source=store_source
+            )
 
             if not txn.is_success:
                 raise PaymentError(txn.error)
@@ -839,32 +854,30 @@ class CheckoutComplete(BaseMutation):
         if txn.customer_id and user.is_authenticated:
             store_customer_id(user, payment.gateway, txn.customer_id)
 
-        redirect_url = data.get("redirect_url", "")
-        if redirect_url:
-            try:
-                validate_storefront_url(redirect_url)
-            except ValidationError as error:
-                raise ValidationError(
-                    {"redirect_url": error}, code=AccountErrorCode.INVALID
-                )
+        confirmation_needed = False
+        confirmation_data = {}
 
-        order = None
-        if not txn.action_required:
-            # create the order into the database
-            order = create_order(
-                checkout=checkout,
-                order_data=order_data,
-                user=user,
-                redirect_url=redirect_url,
-            )
+        order = create_order(
+            checkout=checkout,
+            order_data=order_data,
+            user=user,
+            redirect_url=redirect_url,
+        )
 
-            # remove checkout after order is successfully paid
-            checkout.delete()
+        # remove checkout after order is successfully paid
+        checkout.delete()
 
-            # return the success response with the newly created order data
-            return CheckoutComplete(order=order, confirmation_needed=False)
+        if txn.action_required:
+            # If gateway returns information that additional steps are required we need
+            # to inform the frontend and pass all required data
+            confirmation_needed = True
+            confirmation_data = txn.action_required_data
 
-        return CheckoutComplete(order=None, confirmation_needed=True)
+        return CheckoutComplete(
+            order=order,
+            confirmation_needed=confirmation_needed,
+            confirmation_data=confirmation_data,
+        )
 
 
 class CheckoutAddPromoCode(BaseMutation):

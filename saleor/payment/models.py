@@ -195,6 +195,9 @@ class Transaction(models.Model):
     kind = models.CharField(max_length=10, choices=TransactionKind.CHOICES)
     is_success = models.BooleanField(default=False)
     action_required = models.BooleanField(default=False)
+    action_required_data = JSONField(
+        blank=True, default=dict, encoder=DjangoJSONEncoder
+    )
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,

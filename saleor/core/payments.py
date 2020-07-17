@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Iterable, List, Optional
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..checkout.models import Checkout
+    from ..checkout.models import Checkout, CheckoutLine
+    from ..discount import DiscountInfo
     from ..payment.interface import (
         PaymentData,
         GatewayResponse,
@@ -22,7 +23,10 @@ class PaymentInterface(ABC):
 
     @abstractmethod
     def checkout_available_payment_gateways(
-        self, checkout: "Checkout"
+        self,
+        checkout: "Checkout",
+        lines: Iterable["CheckoutLine"],
+        discounts: Iterable["DiscountInfo"],
     ) -> List["PaymentGateway"]:
         pass
 
