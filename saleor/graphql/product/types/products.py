@@ -8,7 +8,7 @@ from graphene_federation import key
 from graphql.error import GraphQLError
 
 from ....core.permissions import ProductPermissions
-from ....core.weight import covert_weight_to_default_weight_unit
+from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
 from ....product.templatetags.product_images import (
     get_product_image_thumbnail,
@@ -426,7 +426,7 @@ class ProductVariant(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_weight(root: models.ProductVariant, _info, **_kwargs):
-        return covert_weight_to_default_weight_unit(root.weight)
+        return convert_weight_to_default_weight_unit(root.weight)
 
 
 @key(fields="id")
@@ -628,7 +628,7 @@ class Product(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_weight(root: models.Product, _info, **_kwargs):
-        return covert_weight_to_default_weight_unit(root.weight)
+        return convert_weight_to_default_weight_unit(root.weight)
 
 
 @key(fields="id")
@@ -713,7 +713,7 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_weight(root: models.ProductType, _info, **_kwargs):
-        return covert_weight_to_default_weight_unit(root.weight)
+        return convert_weight_to_default_weight_unit(root.weight)
 
 
 @key(fields="id")
