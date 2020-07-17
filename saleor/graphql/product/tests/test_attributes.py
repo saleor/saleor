@@ -166,8 +166,8 @@ def test_attributes_query_hidden_attribute_as_staff_user(
 
 
 QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
-    query ($channelSlug: String){
-      products(first: 1, channelSlug: $channelSlug) {
+    query ($channel: String){
+      products(first: 1, channel: $channel) {
         edges {
           node {
             attributes {
@@ -209,7 +209,7 @@ def test_resolve_attributes_with_hidden(
     """Ensure non-staff users don't see hidden attributes, and staff users having
     the 'manage product' permission can.
     """
-    variables = {"channelSlug": channel_USD.slug}
+    variables = {"channel": channel_USD.slug}
     query = QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES
     api_client = user_api_client
 
@@ -242,7 +242,7 @@ def test_resolve_attributes_with_hidden(
 
 def test_resolve_attribute_values(user_api_client, product, staff_user, channel_USD):
     """Ensure the attribute values are properly resolved."""
-    variables = {"channelSlug": channel_USD.slug}
+    variables = {"channel": channel_USD.slug}
     query = QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES
     api_client = user_api_client
 
@@ -285,7 +285,7 @@ def test_resolve_attribute_values_non_assigned_to_node(
     of the product type but not of the node (product/variant), thus no values should be
     resolved.
     """
-    variables = {"channelSlug": channel_USD.slug}
+    variables = {"channel": channel_USD.slug}
     query = QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES
     api_client = user_api_client
 
@@ -1183,8 +1183,8 @@ def test_resolve_assigned_attribute_without_values(
     products = get_graphql_content(
         api_client.post_graphql(
             """
-        query ($channelSlug: String) {
-          products(first: 10, channelSlug: $channelSlug) {
+        query ($channel: String) {
+          products(first: 10, channel: $channel) {
             edges {
               node {
                 attributes {
@@ -1210,7 +1210,7 @@ def test_resolve_assigned_attribute_without_values(
           }
         }
     """,
-            {"channelSlug": channel_USD.slug},
+            {"channel": channel_USD.slug},
         )
     )["data"]["products"]["edges"]
 
@@ -1550,8 +1550,8 @@ def test_retrieve_product_attributes_input_type(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
     query = """
-        query ($channelSlug: String){
-          products(first: 10, channelSlug: $channelSlug) {
+        query ($channel: String){
+          products(first: 10, channel: $channel) {
             edges {
               node {
                 attributes {
@@ -1566,7 +1566,7 @@ def test_retrieve_product_attributes_input_type(
         }
     """
 
-    variables = {"channelSlug": channel_USD.slug}
+    variables = {"channel": channel_USD.slug}
     found_products = get_graphql_content(
         staff_api_client.post_graphql(
             query, variables, permissions=[permission_manage_products]
@@ -2046,8 +2046,8 @@ def test_attributes_of_products_are_sorted(
 
     if is_variant:
         query = """
-            query($id: ID!, $channelSlug: String) {
-              productVariant(id: $id, channelSlug: $channelSlug) {
+            query($id: ID!, $channel: String) {
+              productVariant(id: $id, channel: $channel) {
                 attributes {
                   attribute {
                     id
@@ -2058,8 +2058,8 @@ def test_attributes_of_products_are_sorted(
         """
     else:
         query = """
-            query($id: ID!, $channelSlug: String) {
-              product(id: $id, channelSlug: $channelSlug) {
+            query($id: ID!, $channel: String) {
+              product(id: $id, channel: $channel) {
                 attributes {
                   attribute {
                     id
@@ -2109,7 +2109,7 @@ def test_attributes_of_products_are_sorted(
     # Retrieve the attributes
     data = get_graphql_content(
         user_api_client.post_graphql(
-            query, {"id": node_id, "channelSlug": channel_USD.slug}
+            query, {"id": node_id, "channel": channel_USD.slug}
         )
     )["data"]
     attributes = data["productVariant" if is_variant else "product"]["attributes"]

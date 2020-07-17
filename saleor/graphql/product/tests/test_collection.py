@@ -120,8 +120,8 @@ def test_collections_query(
     channel_USD,
 ):
     query = """
-        query Collections ($channelSlug: String) {
-            collections(first: 2, channelSlug: $channelSlug) {
+        query Collections ($channel: String) {
+            collections(first: 2, channel: $channel) {
                 edges {
                     node {
                         isPublished
@@ -138,7 +138,7 @@ def test_collections_query(
     """
 
     # query public collections only as regular user
-    variables = {"channelSlug": channel_USD.slug}
+    variables = {"channel": channel_USD.slug}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     edges = content["data"]["collections"]["edges"]

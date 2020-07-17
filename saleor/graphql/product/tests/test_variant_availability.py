@@ -10,15 +10,15 @@ def test_variant_quantity_available_without_country_code(
     api_client, variant_with_many_stocks, channel_USD
 ):
     query = """
-    query variantAvailability($id: ID!, $channelSlug: String) {
-        productVariant(id: $id, channelSlug: $channelSlug) {
+    query variantAvailability($id: ID!, $channel: String) {
+        productVariant(id: $id, channel: $channel) {
             quantityAvailable
         }
     }
     """
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -27,8 +27,8 @@ def test_variant_quantity_available_without_country_code(
 
 
 QUERY_VARIANT_AVAILABILITY = """
-    query variantAvailability($id: ID!, $country: CountryCode, $channelSlug: String) {
-        productVariant(id: $id, channelSlug: $channelSlug) {
+    query variantAvailability($id: ID!, $country: CountryCode, $channel: String) {
+        productVariant(id: $id, channel: $channel) {
             quantityAvailable(countryCode: $country)
         }
     }
@@ -41,7 +41,7 @@ def test_variant_quantity_available_with_country_code(
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
         "country": COUNTRY_CODE,
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
@@ -55,7 +55,7 @@ def test_variant_quantity_available_with_null_as_country_code(
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
         "country": None,
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
@@ -73,7 +73,7 @@ def test_variant_quantity_available_with_max(
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
         "country": COUNTRY_CODE,
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
@@ -88,7 +88,7 @@ def test_variant_quantity_available_without_stocks(
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
         "country": COUNTRY_CODE,
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
@@ -106,7 +106,7 @@ def test_variant_quantity_available_with_allocations(
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
         "country": COUNTRY_CODE,
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
@@ -123,7 +123,7 @@ def test_variant_quantity_available_without_inventory_tracking(
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
         "country": COUNTRY_CODE,
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)
@@ -140,7 +140,7 @@ def test_variant_quantity_available_without_inventory_tracking_and_stocks(
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
         "country": COUNTRY_CODE,
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
     response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
     content = get_graphql_content(response)

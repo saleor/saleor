@@ -124,7 +124,7 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_product_variant(root: product_models.ProductVariant, info):
-        return product_models.ProductVariant.objects.filter(pk=root.id).first()
+        return root
 
 
 class ProductTranslation(BaseTranslationType):
@@ -148,7 +148,7 @@ class ProductTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_product(root: product_models.Product, info):
-        return product_models.Product.objects.first()
+        return root
 
 
 class CollectionTranslation(BaseTranslationType):

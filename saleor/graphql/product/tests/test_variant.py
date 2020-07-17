@@ -808,8 +808,8 @@ def test_delete_variant(staff_api_client, product, permission_manage_products):
 
 def _fetch_all_variants(client, variables={}, permissions=None):
     query = """
-        query fetchAllVariants($channelSlug: String) {
-            productVariants(first: 10, channelSlug: $channelSlug) {
+        query fetchAllVariants($channel: String) {
+            productVariants(first: 10, channel: $channel) {
                 totalCount
                 edges {
                     node {
@@ -841,23 +841,21 @@ def test_fetch_all_variants_staff_user(
 def test_fetch_all_variants_customer(
     user_api_client, unavailable_product_with_variant, channel_USD
 ):
-    data = _fetch_all_variants(
-        user_api_client, variables={"channelSlug": channel_USD.slug}
-    )
+    data = _fetch_all_variants(user_api_client, variables={"channel": channel_USD.slug})
     assert data["totalCount"] == 0
 
 
 def test_fetch_all_variants_anonymous_user(
     api_client, unavailable_product_with_variant, channel_USD
 ):
-    data = _fetch_all_variants(api_client, variables={"channelSlug": channel_USD.slug})
+    data = _fetch_all_variants(api_client, variables={"channel": channel_USD.slug})
     assert data["totalCount"] == 0
 
 
 def _fetch_variant(client, variant, channel_slug=None, permissions=None):
     query = """
-    query ProductVariantDetails($variantId: ID!, $channelSlug: String) {
-        productVariant(id: $variantId, channelSlug: $channelSlug) {
+    query ProductVariantDetails($variantId: ID!, $channel: String) {
+        productVariant(id: $variantId, channel: $channel) {
             id
             product {
                 id
@@ -867,7 +865,7 @@ def _fetch_variant(client, variant, channel_slug=None, permissions=None):
     """
     variables = {"variantId": graphene.Node.to_global_id("ProductVariant", variant.id)}
     if channel_slug:
-        variables["channelSlug"] = channel_slug
+        variables["channel"] = channel_slug
     response = client.post_graphql(
         query, variables, permissions=permissions, check_no_permissions=False
     )

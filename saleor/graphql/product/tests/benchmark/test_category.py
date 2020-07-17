@@ -53,11 +53,11 @@ def test_category_view(api_client, category_with_products, count_queries, channe
           }
         }
 
-        query Category($id: ID!, $pageSize: Int, $channelSlug: String) {
+        query Category($id: ID!, $pageSize: Int, $channel: String) {
           products (
             first: $pageSize,
             filter: {categories: [$id]},
-            channelSlug: $channelSlug
+            channel: $channel
           ) {
             totalCount
             edges {
@@ -113,6 +113,6 @@ def test_category_view(api_client, category_with_products, count_queries, channe
     variables = {
         "pageSize": 100,
         "id": graphene.Node.to_global_id("Category", category_with_products.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
     get_graphql_content(api_client.post_graphql(query, variables))

@@ -980,8 +980,8 @@ def test_query_public_meta_for_digital_content_as_app(
 
 
 QUERY_PRODUCT_PUBLIC_META = """
-    query productsMeta($id: ID!, $channelSlug: String){
-        product(id: $id, channelSlug: $channelSlug){
+    query productsMeta($id: ID!, $channel: String){
+        product(id: $id, channel: $channel){
             metadata{
                 key
                 value
@@ -999,7 +999,7 @@ def test_query_public_meta_for_product_as_anonymous_user(
     product.save(update_fields=["metadata"])
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     # when
@@ -1020,7 +1020,7 @@ def test_query_public_meta_for_product_as_customer(
     product.save(update_fields=["metadata"])
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     # when
@@ -1065,7 +1065,7 @@ def test_query_public_meta_for_product_as_app(
     product.save(update_fields=["metadata"])
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     # when
@@ -1174,8 +1174,8 @@ def test_query_public_meta_for_product_type_as_app(
 
 
 QUERY_PRODUCT_VARIANT_PUBLIC_META = """
-    query productVariantMeta($id: ID!, $channelSlug: String){
-        productVariant(id: $id, channelSlug: $channelSlug){
+    query productVariantMeta($id: ID!, $channel: String){
+        productVariant(id: $id, channel: $channel){
             metadata{
                 key
                 value
@@ -1193,7 +1193,7 @@ def test_query_public_meta_for_product_variant_as_anonymous_user(
     variant.save(update_fields=["metadata"])
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     # when
@@ -1214,7 +1214,7 @@ def test_query_public_meta_for_product_variant_as_customer(
     variant.save(update_fields=["metadata"])
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     # when
@@ -1261,7 +1261,7 @@ def test_query_public_meta_for_product_variant_as_app(
     variant.save(update_fields=["metadata"])
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     # when
@@ -2282,8 +2282,8 @@ def test_query_private_meta_for_digital_content_as_app(
 
 
 QUERY_PRODUCT_PRIVATE_META = """
-    query productsMeta($id: ID!, $channelSlug: String){
-        product(id: $id, channelSlug: $channelSlug){
+    query productsMeta($id: ID!, $channel: String){
+        product(id: $id, channel: $channel){
             privateMetadata{
                 key
                 value
@@ -2299,7 +2299,7 @@ def test_query_private_meta_for_product_as_anonymous_user(
     # given
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     # when
@@ -2315,7 +2315,7 @@ def test_query_private_meta_for_product_as_customer(
     # given
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     # when
@@ -2357,7 +2357,7 @@ def test_query_private_meta_for_product_as_app(
     product.save(update_fields=["private_metadata"])
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     # when
@@ -2458,8 +2458,8 @@ def test_query_private_meta_for_product_type_as_app(
 
 
 QUERY_PRODUCT_VARIANT_PRIVATE_META = """
-    query productVariantMeta($id: ID!, $channelSlug: String){
-        productVariant(id: $id, channelSlug: $channelSlug){
+    query productVariantMeta($id: ID!, $channel: String){
+        productVariant(id: $id, channel: $channel){
             privateMetadata{
                 key
                 value
@@ -2477,7 +2477,7 @@ def test_query_private_meta_for_product_variant_as_anonymous_user(
     variant.save(update_fields=["private_metadata"])
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     # when
@@ -2495,7 +2495,7 @@ def test_query_private_meta_for_product_variant_as_customer(
     variant.save(update_fields=["private_metadata"])
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     # when
@@ -2539,7 +2539,7 @@ def test_query_private_meta_for_product_variant_as_app(
     variant.save(update_fields=["private_metadata"])
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     # when

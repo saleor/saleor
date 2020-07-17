@@ -9,27 +9,26 @@ def migrate_products_publishable_data(apps, schema_editor):
     Product = apps.get_model("product", "Product")
     ProductChannelListing = apps.get_model("product", "ProductChannelListing")
 
-    if Product.objects.exists():
-        channels_dict = {}
+    channels_dict = {}
 
-        for product in Product.objects.iterator():
-            currency = product.currency
-            channel = channels_dict.get(currency)
-            if not channel:
-                channel, _ = Channel.objects.get_or_create(
-                    currency_code=currency,
-                    defaults={
-                        "name": f"Channel {currency}",
-                        "slug": f"channel-{currency.lower()}",
-                    },
-                )
-                channels_dict[currency] = channel
-            ProductChannelListing.objects.create(
-                product=product,
-                channel=channel,
-                is_published=product.is_published,
-                publication_date=product.publication_date,
+    for product in Product.objects.iterator():
+        currency = product.currency
+        channel = channels_dict.get(currency)
+        if not channel:
+            channel, _ = Channel.objects.get_or_create(
+                currency_code=currency,
+                defaults={
+                    "name": f"Channel {currency}",
+                    "slug": f"channel-{currency.lower()}",
+                },
             )
+            channels_dict[currency] = channel
+        ProductChannelListing.objects.create(
+            product=product,
+            channel=channel,
+            is_published=product.is_published,
+            publication_date=product.publication_date,
+        )
 
 
 class Migration(migrations.Migration):

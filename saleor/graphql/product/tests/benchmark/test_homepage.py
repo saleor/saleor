@@ -88,11 +88,11 @@ def test_featured_products_list(
           }
         }
 
-        query FeaturedProducts($channelSlug: String) {
+        query FeaturedProducts($channel: String) {
           shop {
             homepageCollection {
               id
-              products(first: 20, channelSlug: $channelSlug) {
+              products(first: 20, channel: $channel) {
                 edges {
                   node {
                     ...BasicProductFields
@@ -109,6 +109,6 @@ def test_featured_products_list(
         }
     """
     variables = {
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
     get_graphql_content(api_client.post_graphql(query, variables))

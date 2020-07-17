@@ -69,8 +69,8 @@ def test_product_details(product, api_client, count_queries, channel_USD):
           }
         }
 
-        query ProductDetails($id: ID!, $channelSlug: String) {
-          product(id: $id, channelSlug: $channelSlug) {
+        query ProductDetails($id: ID!, $channel: String) {
+          product(id: $id, channel: $channel) {
             ...BasicProductFields
             description
             category {
@@ -154,7 +154,7 @@ def test_product_details(product, api_client, count_queries, channel_USD):
 
     variables = {
         "id": Node.to_global_id("Product", product.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
     get_graphql_content(api_client.post_graphql(query, variables))
 
@@ -165,8 +165,8 @@ def test_retrieve_product_attributes(
     product_list, api_client, count_queries, channel_USD
 ):
     query = """
-        query($sortBy: ProductOrder, $channelSlug: String) {
-          products(first: 10, sortBy: $sortBy, channelSlug: $channelSlug) {
+        query($sortBy: ProductOrder, $channel: String) {
+          products(first: 10, sortBy: $sortBy, channel: $channel) {
             edges {
               node {
                 id
@@ -181,7 +181,7 @@ def test_retrieve_product_attributes(
         }
     """
 
-    variables = {"channelSlug": channel_USD.slug}
+    variables = {"channel": channel_USD.slug}
     get_graphql_content(api_client.post_graphql(query, variables))
 
 

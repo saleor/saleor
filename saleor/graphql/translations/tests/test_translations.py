@@ -11,8 +11,8 @@ def test_product_translation(user_api_client, product, channel_USD):
     product.translations.create(language_code="pl", name="Produkt")
 
     query = """
-    query productById($productId: ID!, $channelSlug: String) {
-        product(id: $productId, channelSlug: $channelSlug) {
+    query productById($productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
             translation(languageCode: PL) {
                 name
                 language {
@@ -25,7 +25,7 @@ def test_product_translation(user_api_client, product, channel_USD):
 
     product_id = graphene.Node.to_global_id("Product", product.id)
     response = user_api_client.post_graphql(
-        query, {"productId": product_id, "channelSlug": channel_USD.slug}
+        query, {"productId": product_id, "channel": channel_USD.slug}
     )
     data = get_graphql_content(response)["data"]
 
@@ -37,8 +37,8 @@ def test_product_variant_translation(user_api_client, variant, channel_USD):
     variant.translations.create(language_code="pl", name="Wariant")
 
     query = """
-    query productVariantById($productVariantId: ID!, $channelSlug: String) {
-        productVariant(id: $productVariantId, channelSlug: $channelSlug) {
+    query productVariantById($productVariantId: ID!, $channel: String) {
+        productVariant(id: $productVariantId, channel: $channel) {
             translation(languageCode: PL) {
                 name
                 language {
@@ -51,7 +51,7 @@ def test_product_variant_translation(user_api_client, variant, channel_USD):
 
     product_variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     response = user_api_client.post_graphql(
-        query, {"productVariantId": product_variant_id, "channelSlug": channel_USD.slug}
+        query, {"productVariantId": product_variant_id, "channel": channel_USD.slug}
     )
     data = get_graphql_content(response)["data"]
 
@@ -330,8 +330,8 @@ def test_shop_translation(user_api_client, site_settings):
 
 def test_product_no_translation(user_api_client, product, channel_USD):
     query = """
-    query productById($productId: ID!, $channelSlug: String) {
-        product(id: $productId, channelSlug: $channelSlug) {
+    query productById($productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
             translation(languageCode: PL) {
                 name
                 language {
@@ -344,7 +344,7 @@ def test_product_no_translation(user_api_client, product, channel_USD):
 
     product_id = graphene.Node.to_global_id("Product", product.id)
     response = user_api_client.post_graphql(
-        query, {"productId": product_id, "channelSlug": channel_USD.slug}
+        query, {"productId": product_id, "channel": channel_USD.slug}
     )
     data = get_graphql_content(response)["data"]
 
@@ -353,8 +353,8 @@ def test_product_no_translation(user_api_client, product, channel_USD):
 
 def test_product_variant_no_translation(user_api_client, variant, channel_USD):
     query = """
-    query productVariantById($productVariantId: ID!, $channelSlug: String) {
-        productVariant(id: $productVariantId, channelSlug: $channelSlug) {
+    query productVariantById($productVariantId: ID!, $channel: String) {
+        productVariant(id: $productVariantId, channel: $channel) {
             translation(languageCode: PL) {
                 name
                 language {
@@ -367,7 +367,7 @@ def test_product_variant_no_translation(user_api_client, variant, channel_USD):
 
     product_variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     response = user_api_client.post_graphql(
-        query, {"productVariantId": product_variant_id, "channelSlug": channel_USD.slug}
+        query, {"productVariantId": product_variant_id, "channel": channel_USD.slug}
     )
     data = get_graphql_content(response)["data"]
 

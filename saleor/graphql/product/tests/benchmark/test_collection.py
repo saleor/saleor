@@ -53,7 +53,7 @@ def test_collection_view(api_client, homepage_collection, count_queries, channel
           }
         }
 
-        query Collection($id: ID!, $pageSize: Int, $channelSlug: String) {
+        query Collection($id: ID!, $pageSize: Int, $channel: String) {
           collection(id: $id) {
             id
             slug
@@ -67,7 +67,7 @@ def test_collection_view(api_client, homepage_collection, count_queries, channel
           products (
             first: $pageSize,
             filter: {collections: [$id]},
-            channelSlug: $channelSlug
+            channel: $channel
           ) {
             totalCount
             edges {
@@ -106,6 +106,6 @@ def test_collection_view(api_client, homepage_collection, count_queries, channel
     variables = {
         "pageSize": 100,
         "id": graphene.Node.to_global_id("Collection", homepage_collection.pk),
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
     get_graphql_content(api_client.post_graphql(query, variables))

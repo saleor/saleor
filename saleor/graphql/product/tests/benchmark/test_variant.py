@@ -81,8 +81,8 @@ def test_retrieve_variant_list(
           }
         }
 
-        query VariantList($ids: [ID!], $channelSlug: String) {
-          productVariants(ids: $ids, first: 100, channelSlug: $channelSlug) {
+        query VariantList($ids: [ID!], $channel: String) {
+          productVariants(ids: $ids, first: 100, channel: $channel) {
             edges {
               node {
                 ...ProductVariantFields
@@ -117,7 +117,7 @@ def test_retrieve_variant_list(
             graphene.Node.to_global_id("ProductVariant", variant.pk)
             for variant in product_variant_list
         ],
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
     get_graphql_content(api_client.post_graphql(query, variables))
 

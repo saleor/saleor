@@ -23,9 +23,7 @@ ErrorType = DefaultDict[str, List[ValidationError]]
 
 
 class ProductChannelListingAddInput(graphene.InputObjectType):
-    channel_id = graphene.ID(
-        required=True, description="ID of a channel witch be assigned to product."
-    )
+    channel_id = graphene.ID(required=True, description="ID of a channel.")
     is_published = graphene.Boolean(
         description="Determines if product is visible to customers.", required=True
     )
@@ -37,12 +35,12 @@ class ProductChannelListingAddInput(graphene.InputObjectType):
 class ProductChannelListingUpdateInput(graphene.InputObjectType):
     add_channels = graphene.List(
         graphene.NonNull(ProductChannelListingAddInput),
-        description="List of channel assigned to product.",
+        description="List of channels to which the product should be assigned.",
         required=False,
     )
     remove_channels = graphene.List(
         graphene.NonNull(graphene.ID),
-        description="List of channel unassigned from product.",
+        description="List of channels from which the product should be unassigned.",
         required=False,
     )
 
@@ -58,7 +56,7 @@ class ProductChannelListingUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Update product chanel listing."
+        description = "Manage product's availability in channels."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductChannelListingError
         error_type_field = "products_errors"

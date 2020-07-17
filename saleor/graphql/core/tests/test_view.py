@@ -12,15 +12,15 @@ from ...tests.utils import _get_graphql_content_from_response, get_graphql_conte
 
 def test_batch_queries(category, product, api_client, channel_USD):
     query_product = """
-        query GetProduct($id: ID!, $channelSlug: String) {
-            product(id: $id, channelSlug: $channelSlug) {
+        query GetProduct($id: ID!, $channel: String) {
+            product(id: $id, channel: $channel) {
                 name
             }
         }
     """
     query_category = """
-        query GetCategory($id: ID!, $channelSlug: String) {
-            category(id: $id, channelSlug: $channelSlug) {
+        query GetCategory($id: ID!, $channel: String) {
+            category(id: $id, channel: $channel) {
                 name
             }
         }
@@ -30,14 +30,14 @@ def test_batch_queries(category, product, api_client, channel_USD):
             "query": query_category,
             "variables": {
                 "id": graphene.Node.to_global_id("Category", category.pk),
-                "channelSlug": channel_USD.slug,
+                "channel": channel_USD.slug,
             },
         },
         {
             "query": query_product,
             "variables": {
                 "id": graphene.Node.to_global_id("Product", product.pk),
-                "channelSlug": channel_USD.slug,
+                "channel": channel_USD.slug,
             },
         },
     ]

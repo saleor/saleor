@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 
-from ..core.permissions import ChannelPermission
+from ..core.permissions import ChannelPermissions
 
 
 class Channel(models.Model):
@@ -13,5 +13,5 @@ class Channel(models.Model):
         ordering = ("slug",)
         app_label = "channel"
         permissions = (
-            (ChannelPermission.MANAGE_CHANNELS.codename, "Manage channels.",),
+            (ChannelPermissions.MANAGE_CHANNELS.codename, "Manage channels.",),
         )

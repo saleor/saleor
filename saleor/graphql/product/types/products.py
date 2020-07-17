@@ -2,6 +2,7 @@ from dataclasses import asdict
 
 import graphene
 from django.conf import settings
+from django.utils.functional import SimpleLazyObject
 from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
@@ -528,7 +529,9 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     def resolve_is_available(root: models.Product, info):
         country = info.context.country
-        channel_slug = str(info.context.channel_slug)
+        channel_slug = info.context.channel_slug
+        if isinstance(channel_slug, SimpleLazyObject):
+            channel_slug = str(channel_slug)
         in_stock = is_product_in_stock(root, country)
         is_visible = models.ProductChannelListing.objects.filter(
             product=root, channel__slug=channel_slug

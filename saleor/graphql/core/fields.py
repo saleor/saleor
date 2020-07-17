@@ -94,10 +94,12 @@ def convert_field_measurements(*_args):
 class PrefetchingConnectionField(BaseDjangoConnectionField):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault(
-            "channel_slug",
+            "channel",
             graphene.Argument(
                 graphene.String,
-                description="Slug of the channel for which return data.",
+                description=(
+                    "Slug of the channel for which the data should be returned."
+                ),
             ),
         )
         super().__init__(*args, **kwargs)
@@ -228,10 +230,12 @@ class FilterInputConnectionField(PrefetchingConnectionField):
 class FieldWithChannel(graphene.Field):
     def __init__(self, type, *args, **kwargs):
         kwargs.setdefault(
-            "channel_slug",
+            "channel",
             graphene.Argument(
                 graphene.String,
-                description="Slug of the channel for which return data.",
+                description=(
+                    "Slug of the channel for which the data should be returned."
+                ),
             ),
         )
         super().__init__(type, *args, **kwargs)

@@ -15,11 +15,11 @@ query products(
   $field: ProductOrderField
   $attributeId: ID
   $direction: OrderDirection!
-  $channelSlug: String
+  $channel: String
 ) {
   products(
     first: 100,
-    channelSlug: $channelSlug,
+    channel: $channel,
     sortBy: { field: $field, attributeId: $attributeId, direction: $direction }
   ) {
     edges {
@@ -185,7 +185,7 @@ def test_sort_products_cannot_sort_both_by_field_and_by_attribute(
         "field": "NAME",
         "attributeId": "SomeAttributeId",
         "direction": "ASC",
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     response = api_client.post_graphql(query, variables)
@@ -458,7 +458,7 @@ def test_sort_product_by_attribute_single_value(
     variables = {
         "attributeId": attribute_id,
         "direction": direction,
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
@@ -484,7 +484,7 @@ def test_sort_product_by_attribute_multiple_values(
     variables = {
         "attributeId": attribute_id,
         "direction": direction,
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
@@ -567,7 +567,7 @@ def test_sort_product_by_attribute_using_invalid_attribute_id(
     variables = {
         "attributeId": attribute_id,
         "direction": "DESC",
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
@@ -594,7 +594,7 @@ def test_sort_product_by_attribute_using_attribute_having_no_products(
     variables = {
         "attributeId": attribute_id,
         "direction": direction,
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
     }
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
