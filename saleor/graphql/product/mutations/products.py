@@ -23,7 +23,7 @@ from ....product.thumbnails import (
     create_collection_background_image_thumbnails,
     create_product_thumbnails,
 )
-from ....product.utils import delete_categories
+from ....product.utils import delete_categories, get_products_ids_without_variants
 from ....product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
@@ -31,7 +31,7 @@ from ....product.utils.attributes import (
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
-from ...core.types.common import ProductError
+from ...core.types.common import CollectionProductError, ProductError
 from ...core.utils import (
     clean_seo_fields,
     from_global_id_strict_type,
@@ -350,7 +350,7 @@ class CollectionAddProducts(BaseMutation):
     class Meta:
         description = "Adds products to a collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
+        error_type_class = CollectionProductError
         error_type_field = "product_errors"
 
     @classmethod
@@ -360,13 +360,28 @@ class CollectionAddProducts(BaseMutation):
             info, collection_id, field="collection_id", only_type=Collection
         )
         products = cls.get_nodes_or_error(products, "products", Product)
+        cls.clean_products(products)
         collection.products.add(*products)
         if collection.sale_set.exists():
             # Updated the db entries, recalculating discounts of affected products
             update_products_minimal_variant_prices_of_catalogues_task.delay(
-                product_ids=[p.pk for p in products]
+                product_ids=[pq.pk for pq in products]
             )
         return CollectionAddProducts(collection=collection)
+
+    @classmethod
+    def clean_products(cls, products):
+        products_ids_without_variants = get_products_ids_without_variants(products)
+        if products_ids_without_variants:
+            raise ValidationError(
+                {
+                    "products": ValidationError(
+                        "Cannot manage products without variants.",
+                        code=ProductErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT,
+                        params={"products": products_ids_without_variants},
+                    )
+                }
+            )
 
 
 class CollectionRemoveProducts(BaseMutation):
@@ -497,9 +512,6 @@ class AttributeValueInput(InputObjectType):
 
 class ProductInput(graphene.InputObjectType):
     attributes = graphene.List(AttributeValueInput, description="List of attributes.")
-    publication_date = graphene.types.datetime.Date(
-        description="Publication date. ISO 8601 standard."
-    )
     category = graphene.ID(description="ID of the product's category.", name="category")
     charge_taxes = graphene.Boolean(
         description="Determine if taxes are being charged for the product."
@@ -511,33 +523,11 @@ class ProductInput(graphene.InputObjectType):
     )
     description = graphene.String(description="Product description (HTML/text).")
     description_json = graphene.JSONString(description="Product description (JSON).")
-    is_published = graphene.Boolean(
-        description="Determines if product is visible to customers."
-    )
     name = graphene.String(description="Product name.")
     slug = graphene.String(description="Product slug.")
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
-    sku = graphene.String(
-        description=(
-            "Stock keeping unit of a product. Note: this field is only used if "
-            "a product doesn't use variants."
-        )
-    )
-    track_inventory = graphene.Boolean(
-        description=(
-            "Determines if the inventory of this product should be tracked. If false, "
-            "the quantity won't change when customers buy this item. Note: this field "
-            "is only used if a product doesn't use variants."
-        )
-    )
-    base_price = Decimal(
-        description=(
-            "Default price for product variant. "
-            "Note: this field is only used if a product doesn't use variants."
-        )
-    )
 
 
 class StockInput(graphene.InputObjectType):
@@ -552,14 +542,6 @@ class ProductCreateInput(ProductInput):
         description="ID of the type that product belongs to.",
         name="productType",
         required=True,
-    )
-    stocks = graphene.List(
-        graphene.NonNull(StockInput),
-        description=(
-            "Stocks of a product available for sale. Note: this field is "
-            "only used if a product doesn't use variants."
-        ),
-        required=False,
     )
 
 
@@ -856,63 +838,8 @@ class ProductCreate(ModelMutation):
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
 
-        is_published = cleaned_input.get("is_published")
-        category = cleaned_input.get("category")
-        if not category and is_published:
-            raise ValidationError(
-                {
-                    "isPublished": ValidationError(
-                        "You must select a category to be able to publish"
-                    )
-                }
-            )
-
         clean_seo_fields(cleaned_input)
-        cls.clean_sku(product_type, cleaned_input)
-        stocks = cleaned_input.get("stocks")
-        if stocks:
-            cls.check_for_duplicates_in_stocks(stocks)
         return cleaned_input
-
-    @classmethod
-    def clean_sku(cls, product_type, cleaned_input):
-        """Validate SKU input field.
-
-        When creating products that don't use variants, SKU is required in
-        the input in order to create the default variant underneath.
-        See the documentation for `has_variants` field for details:
-        http://docs.getsaleor.com/en/latest/architecture/products.html#product-types
-        """
-        if product_type and not product_type.has_variants:
-            input_sku = cleaned_input.get("sku")
-            if not input_sku:
-                raise ValidationError(
-                    {
-                        "sku": ValidationError(
-                            "This field cannot be blank.",
-                            code=ProductErrorCode.REQUIRED,
-                        )
-                    }
-                )
-            elif models.ProductVariant.objects.filter(sku=input_sku).exists():
-                raise ValidationError(
-                    {
-                        "sku": ValidationError(
-                            "Product with this SKU already exists.",
-                            code=ProductErrorCode.ALREADY_EXISTS,
-                        )
-                    }
-                )
-
-    @classmethod
-    def check_for_duplicates_in_stocks(cls, stocks_data):
-        warehouse_ids = [stock["warehouse"] for stock in stocks_data]
-        duplicates = get_duplicated_values(warehouse_ids)
-        if duplicates:
-            error_msg = "Duplicated warehouse ID: {}".format(duplicates.join(", "))
-            raise ValidationError(
-                {"stocks": ValidationError(error_msg, code=ProductErrorCode.UNIQUE)}
-            )
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -936,35 +863,10 @@ class ProductCreate(ModelMutation):
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        if not instance.product_type.has_variants:
-            site_settings = info.context.site.settings
-            track_inventory = cleaned_input.get(
-                "track_inventory", site_settings.track_inventory_by_default
-            )
-            sku = cleaned_input.get("sku")
-            variant_price = cleaned_input.get("base_price")
-
-            variant = models.ProductVariant.objects.create(
-                product=instance,
-                track_inventory=track_inventory,
-                sku=sku,
-                price_amount=variant_price,
-            )
-            stocks = cleaned_input.get("stocks")
-            if stocks:
-                cls.create_variant_stocks(variant, stocks)
 
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
-
-    @classmethod
-    def create_variant_stocks(cls, variant, stocks):
-        warehouse_ids = [stock["warehouse"] for stock in stocks]
-        warehouses = cls.get_nodes_or_error(
-            warehouse_ids, "warehouse", only_type=Warehouse
-        )
-        create_stocks(variant, stocks, warehouses)
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
@@ -994,43 +896,9 @@ class ProductUpdate(ProductCreate):
         error_type_field = "product_errors"
 
     @classmethod
-    def clean_sku(cls, product_type, cleaned_input):
-        input_sku = cleaned_input.get("sku")
-        if (
-            not product_type.has_variants
-            and input_sku
-            and models.ProductVariant.objects.filter(sku=input_sku).exists()
-        ):
-            raise ValidationError(
-                {
-                    "sku": ValidationError(
-                        "Product with this SKU already exists.",
-                        code=ProductErrorCode.ALREADY_EXISTS,
-                    )
-                }
-            )
-
-    @classmethod
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        if not instance.product_type.has_variants:
-            variant = instance.variants.first()
-            update_fields = []
-            if "track_inventory" in cleaned_input:
-                variant.track_inventory = cleaned_input["track_inventory"]
-                update_fields.append("track_inventory")
-            if "sku" in cleaned_input:
-                variant.sku = cleaned_input["sku"]
-                update_fields.append("sku")
-            if "base_price" in cleaned_input:
-                variant.price_amount = cleaned_input["base_price"]
-                update_fields.append("price_amount")
-            if update_fields:
-                variant.save(update_fields=update_fields)
-        # Recalculate the "minimal variant price"
-        update_product_minimal_variant_price_task.delay(instance.pk)
-
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
@@ -1595,6 +1463,7 @@ class ProductImageCreate(BaseMutation):
         product = cls.get_node_or_error(
             info, data["product"], field="product", only_type=Product
         )
+
         image_data = info.context.FILES.get(data["image"])
         validate_image_file(image_data, "image")
 

@@ -67,6 +67,7 @@ from ..product.models import (
     DigitalContent,
     DigitalContentUrl,
     Product,
+    ProductChannelListing,
     ProductImage,
     ProductTranslation,
     ProductType,
@@ -620,7 +621,7 @@ def category_with_image(db, image, media_root):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def categories_tree(db, product_type):  # pylint: disable=W0613
+def categories_tree(db, product_type, channel_USD):  # pylint: disable=W0613
     parent = Category.objects.create(name="Parent", slug="parent")
     parent.children.create(name="Child", slug="child")
     child = parent.children.first()
@@ -633,7 +634,9 @@ def categories_tree(db, product_type):  # pylint: disable=W0613
         slug="test-product-10",
         product_type=product_type,
         category=child,
-        is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True
     )
 
     associate_attribute_values_to_instance(product, product_attr, attr_value)
@@ -641,7 +644,9 @@ def categories_tree(db, product_type):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def categories_tree_with_published_products(categories_tree, product):
+def categories_tree_with_published_products(
+    categories_tree, product, channel_USD, channel_PLN
+):
     parent = categories_tree
     parent_product = product
     parent_product.category = parent
@@ -649,10 +654,29 @@ def categories_tree_with_published_products(categories_tree, product):
     child = parent.children.first()
     child_product = child.products.first()
 
-    for product in [child_product, parent_product]:
-        product.publication_date = datetime.date.today()
-        product.is_published = True
+    product_list = [child_product, parent_product]
+
+    ProductChannelListing.objects.filter(product__in=product_list).delete()
+    product_channel_listings = []
+    for product in product_list:
         product.save()
+        product_channel_listings.append(
+            ProductChannelListing(
+                product=product,
+                channel=channel_USD,
+                publication_date=datetime.date.today(),
+                is_published=True,
+            )
+        )
+        product_channel_listings.append(
+            ProductChannelListing(
+                product=product,
+                channel=channel_PLN,
+                publication_date=datetime.date.today(),
+                is_published=True,
+            )
+        )
+    ProductChannelListing.objects.bulk_create(product_channel_listings)
     return parent
 
 
@@ -713,7 +737,7 @@ def product_type_without_variant():
 
 
 @pytest.fixture
-def product(product_type, category, warehouse):
+def product(product_type, category, warehouse, channel_USD):
     product_attr = product_type.product_attributes.first()
     product_attr_value = product_attr.values.first()
 
@@ -723,7 +747,10 @@ def product(product_type, category, warehouse):
         minimal_variant_price_amount="10.00",
         product_type=product_type,
         category=category,
-        is_published=True,
+    )
+
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True,
     )
 
     associate_attribute_values_to_instance(product, product_attr, product_attr_value)
@@ -744,13 +771,15 @@ def product(product_type, category, warehouse):
 
 
 @pytest.fixture
-def product_with_single_variant(product_type, category, warehouse):
+def product_with_single_variant(product_type, category, warehouse, channel_USD):
     product = Product.objects.create(
         name="Test product with single variant",
         slug="test-product-with-single-variant",
         product_type=product_type,
         category=category,
-        is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True,
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -763,13 +792,16 @@ def product_with_single_variant(product_type, category, warehouse):
 
 
 @pytest.fixture
-def product_with_two_variants(product_type, category, warehouse):
+def product_with_two_variants(product_type, category, warehouse, channel_USD):
     product = Product.objects.create(
         name="Test product with two variants",
         slug="test-product-with-two-variant",
         product_type=product_type,
         category=category,
-        is_published=True,
+    )
+
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True,
     )
 
     variants = [
@@ -794,7 +826,7 @@ def product_with_two_variants(product_type, category, warehouse):
 
 @pytest.fixture
 def product_with_variant_with_two_attributes(
-    color_attribute, size_attribute, category, warehouse
+    color_attribute, size_attribute, category, warehouse, channel_USD
 ):
     product_type = ProductType.objects.create(
         name="Type with two variants",
@@ -810,7 +842,9 @@ def product_with_variant_with_two_attributes(
         slug="test-product-with-two-variant",
         product_type=product_type,
         category=category,
-        is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True
     )
 
     variant = ProductVariant.objects.create(
@@ -852,13 +886,17 @@ def product_with_multiple_values_attributes(product, product_type, category) -> 
 
 
 @pytest.fixture
-def product_with_default_variant(product_type_without_variant, category, warehouse):
+def product_with_default_variant(
+    product_type_without_variant, category, warehouse, channel_USD
+):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-3",
         product_type=product_type_without_variant,
         category=category,
-        is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True,
     )
     variant = ProductVariant.objects.create(
         product=product, sku="1234", track_inventory=True, price_amount=Decimal(10)
@@ -869,14 +907,16 @@ def product_with_default_variant(product_type_without_variant, category, warehou
 
 @pytest.fixture
 def variant_without_inventory_tracking(
-    product_type_without_variant, category, warehouse
+    product_type_without_variant, category, warehouse, channel_USD
 ):
     product = Product.objects.create(
         name="Test product without inventory tracking",
         slug="test-product-without-tracking",
         product_type=product_type_without_variant,
         category=category,
-        is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True,
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -940,7 +980,7 @@ def product_variant_list(product):
 
 
 @pytest.fixture
-def product_without_shipping(category, warehouse):
+def product_without_shipping(category, warehouse, channel_USD):
     product_type = ProductType.objects.create(
         name="Type with no shipping",
         slug="no-shipping",
@@ -952,7 +992,9 @@ def product_without_shipping(category, warehouse):
         slug="test-product-4",
         product_type=product_type,
         category=category,
-        is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True
     )
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_B", price_amount=Decimal(10)
@@ -970,7 +1012,7 @@ def product_without_category(product):
 
 
 @pytest.fixture
-def product_list(product_type, category, warehouse):
+def product_list(product_type, category, warehouse, channel_USD):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
 
@@ -983,7 +1025,6 @@ def product_list(product_type, category, warehouse):
                     slug="test-product-a",
                     category=category,
                     product_type=product_type,
-                    is_published=True,
                 ),
                 Product(
                     pk=1487,
@@ -991,7 +1032,6 @@ def product_list(product_type, category, warehouse):
                     slug="test-product-b",
                     category=category,
                     product_type=product_type,
-                    is_published=True,
                 ),
                 Product(
                     pk=1489,
@@ -999,10 +1039,22 @@ def product_list(product_type, category, warehouse):
                     slug="test-product-c",
                     category=category,
                     product_type=product_type,
-                    is_published=True,
                 ),
             ]
         )
+    )
+    ProductChannelListing.objects.bulk_create(
+        [
+            ProductChannelListing(
+                product=products[0], channel=channel_USD, is_published=True,
+            ),
+            ProductChannelListing(
+                product=products[1], channel=channel_USD, is_published=True,
+            ),
+            ProductChannelListing(
+                product=products[2], channel=channel_USD, is_published=True,
+            ),
+        ]
     )
     variants = list(
         ProductVariant.objects.bulk_create(
@@ -1040,16 +1092,38 @@ def product_list(product_type, category, warehouse):
 
 
 @pytest.fixture
-def product_list_unpublished(product_list):
+def product_list_with_many_channels(product_list, channel_PLN):
+    ProductChannelListing.objects.bulk_create(
+        [
+            ProductChannelListing(
+                product=product_list[0], channel=channel_PLN, is_published=True,
+            ),
+            ProductChannelListing(
+                product=product_list[1], channel=channel_PLN, is_published=True,
+            ),
+            ProductChannelListing(
+                product=product_list[2], channel=channel_PLN, is_published=True,
+            ),
+        ]
+    )
+    return product_list
+
+
+@pytest.fixture
+def product_list_unpublished(product_list, channel_USD):
     products = Product.objects.filter(pk__in=[product.pk for product in product_list])
-    products.update(is_published=False)
+    ProductChannelListing.objects.filter(
+        product__in=products, channel=channel_USD
+    ).update(is_published=False)
     return products
 
 
 @pytest.fixture
-def product_list_published(product_list):
+def product_list_published(product_list, channel_USD):
     products = Product.objects.filter(pk__in=[product.pk for product in product_list])
-    products.update(is_published=True)
+    ProductChannelListing.objects.filter(
+        product__in=products, channel=channel_USD
+    ).update(is_published=True)
     return products
 
 
@@ -1075,25 +1149,29 @@ def product_with_image(product, image, media_root):
 
 
 @pytest.fixture
-def unavailable_product(product_type, category):
+def unavailable_product(product_type, category, channel_USD):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-5",
         product_type=product_type,
-        is_published=False,
         category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=False
     )
     return product
 
 
 @pytest.fixture
-def unavailable_product_with_variant(product_type, category, warehouse):
+def unavailable_product_with_variant(product_type, category, warehouse, channel_USD):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-6",
         product_type=product_type,
-        is_published=False,
         category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=False
     )
 
     variant_attr = product_type.variant_attributes.first()
@@ -1109,13 +1187,15 @@ def unavailable_product_with_variant(product_type, category, warehouse):
 
 
 @pytest.fixture
-def product_with_images(product_type, category, media_root):
+def product_with_images(product_type, category, media_root, channel_USD):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-7",
         product_type=product_type,
         category=category,
-        is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True
     )
     file_mock_0 = MagicMock(spec=File, name="FileMock0")
     file_mock_0.name = "image0.jpg"
@@ -1283,13 +1363,17 @@ def gift_card_created_by_staff(staff_user):
 
 
 @pytest.fixture
-def order_with_lines(order, product_type, category, shipping_zone, warehouse):
+def order_with_lines(
+    order, product_type, category, shipping_zone, warehouse, channel_USD
+):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-8",
         product_type=product_type,
         category=category,
-        is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -1321,7 +1405,9 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         slug="test-product-9",
         product_type=product_type,
         category=category,
-        is_published=True,
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True
     )
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_B", cost_price=Money(2, "USD"), price_amount=20
@@ -1917,7 +2003,7 @@ def payment_dummy(db, order_with_lines):
 
 
 @pytest.fixture
-def digital_content(category, media_root, warehouse) -> DigitalContent:
+def digital_content(category, media_root, warehouse, channel_USD) -> DigitalContent:
     product_type = ProductType.objects.create(
         name="Digital Type",
         slug="digital-type",
@@ -1930,13 +2016,15 @@ def digital_content(category, media_root, warehouse) -> DigitalContent:
         slug="test-digital-product",
         product_type=product_type,
         category=category,
-        is_published=True,
     )
     product_variant = ProductVariant.objects.create(
         product=product,
         sku="SKU_554",
         cost_price=Money(1, "USD"),
         price_amount=Decimal(10),
+    )
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_USD, is_published=True
     )
     Stock.objects.create(
         product_variant=product_variant, warehouse=warehouse, quantity=5,

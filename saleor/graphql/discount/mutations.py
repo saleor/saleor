@@ -9,6 +9,7 @@ from ...product.tasks import (
     update_products_minimal_variant_prices_of_catalogues_task,
     update_products_minimal_variant_prices_of_discount_task,
 )
+from ...product.utils import get_products_ids_without_variants
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal
 from ..core.types.common import DiscountError
@@ -50,6 +51,7 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         products = input.get("products", [])
         if products:
             products = cls.get_nodes_or_error(products, "products", Product)
+            cls.clean_product(products)
             node.products.add(*products)
         categories = input.get("categories", [])
         if categories:
@@ -61,6 +63,20 @@ class BaseDiscountCatalogueMutation(BaseMutation):
             node.collections.add(*collections)
         # Updated the db entries, recalculating discounts of affected products
         cls.recalculate_minimal_prices(products, categories, collections)
+
+    @classmethod
+    def clean_product(cls, products):
+        products_ids_without_variants = get_products_ids_without_variants(products)
+        if products_ids_without_variants:
+            raise ValidationError(
+                {
+                    "products": ValidationError(
+                        "Cannot manage products without variants.",
+                        code=DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT,
+                        params={"products": products_ids_without_variants},
+                    )
+                }
+            )
 
     @classmethod
     def remove_catalogues_from_node(cls, node, input):

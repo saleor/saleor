@@ -1,10 +1,8 @@
 from unittest.mock import patch
 
 from django.core.management import call_command
-from graphql_relay import to_global_id
 from prices import Money
 
-from ...graphql.tests.utils import get_graphql_content
 from ..models import ProductVariant
 from ..tasks import (
     update_products_minimal_variant_prices_of_catalogues,
@@ -65,58 +63,6 @@ def test_update_products_minimal_variant_prices_of_catalogues_for_collection(
     update_products_minimal_variant_prices_of_catalogues(collection_ids=[collection.pk])
     product.refresh_from_db()
     assert product.minimal_variant_price == variant.price
-
-
-@patch(
-    "saleor.graphql.product.mutations.products"
-    ".update_product_minimal_variant_price_task"
-)
-def test_product_update_updates_minimal_variant_price(
-    mock_update_product_minimal_variant_price_task,
-    staff_api_client,
-    product,
-    permission_manage_products,
-):
-    assert product.minimal_variant_price == Money("10.00", "USD")
-    query = """
-        mutation ProductUpdate(
-            $productId: ID!,
-            $basePrice: Decimal!,
-        ) {
-            productUpdate(
-                id: $productId
-                input: {
-                    basePrice: $basePrice
-                }
-            ) {
-                product {
-                    name
-                    minimalVariantPrice {
-                        amount
-                    }
-                }
-                errors {
-                    message
-                    field
-                }
-            }
-        }
-    """
-    product_id = to_global_id("Product", product.pk)
-    product_price = "1.99"
-    variables = {"productId": product_id, "basePrice": product_price}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    assert response.status_code == 200
-
-    content = get_graphql_content(response)
-    data = content["data"]["productUpdate"]
-    assert data["errors"] == []
-
-    mock_update_product_minimal_variant_price_task.delay.assert_called_once_with(
-        product.pk
-    )
 
 
 def test_update_products_minimal_variant_prices_task(product_list):

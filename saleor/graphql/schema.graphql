@@ -719,10 +719,10 @@ type Category implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
-  ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  ancestors(channel: String, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   url: String @deprecated(reason: "This field will be removed after 2020-07-31.")
-  children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  children(channel: String, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CategoryTranslation
 }
@@ -1116,7 +1116,7 @@ type Collection implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
 }
@@ -1124,7 +1124,7 @@ type Collection implements Node & ObjectWithMetadata {
 type CollectionAddProducts {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   collection: Collection
-  productErrors: [ProductError!]!
+  productErrors: [CollectionProductError!]!
 }
 
 type CollectionBulkDelete {
@@ -1203,6 +1203,13 @@ input CollectionInput {
   backgroundImageAlt: String
   seo: SeoInput
   publicationDate: Date
+}
+
+type CollectionProductError {
+  field: String
+  message: String
+  code: ProductErrorCode!
+  products: [ID!]
 }
 
 enum CollectionPublished {
@@ -1771,6 +1778,7 @@ input DigitalContentUrlCreateInput {
 type DiscountError {
   field: String
   message: String
+  products: [ID!]
   code: DiscountErrorCode!
 }
 
@@ -1781,6 +1789,7 @@ enum DiscountErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
 }
 
 enum DiscountStatusEnum {
@@ -2682,6 +2691,7 @@ type Mutation {
   productClearMetadata(id: ID!, input: MetaPath!): ProductClearMeta @deprecated(reason: "Use the `deleteMetadata` mutation instead. This field will be removed after 2020-07-31.")
   productUpdatePrivateMetadata(id: ID!, input: MetaInput!): ProductUpdatePrivateMeta @deprecated(reason: "Use the `updatePrivateMetadata` mutation instead. This field will be removed after 2020-07-31.")
   productClearPrivateMetadata(id: ID!, input: MetaPath!): ProductClearPrivateMeta @deprecated(reason: "Use the `deletePrivateMetadata` mutation instead. This field will be removed after 2020-07-31.")
+  productChannelListingUpdate(id: ID!, input: ProductChannelListingUpdateInput!): ProductChannelListingUpdate
   productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
   productImageDelete(id: ID!): ProductImageDelete
   productImageBulkDelete(ids: [ID]!): ProductImageBulkDelete
@@ -3669,8 +3679,6 @@ type Product implements Node & ObjectWithMetadata {
   name: String!
   description: String!
   descriptionJson: JSONString!
-  publicationDate: Date
-  isPublished: Boolean!
   productType: ProductType!
   slug: String!
   category: Category
@@ -3688,6 +3696,7 @@ type Product implements Node & ObjectWithMetadata {
   minimalVariantPrice: Money
   taxType: TaxType
   attributes: [SelectedAttribute!]!
+  channelListing: [ProductChannelListing!]
   purchaseCost: MoneyRange
   margin: Margin
   imageById(id: ID): ProductImage
@@ -3714,6 +3723,37 @@ type ProductBulkPublish {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
   productErrors: [ProductError!]!
+}
+
+type ProductChannelListing implements Node {
+  id: ID!
+  publicationDate: Date
+  isPublished: Boolean!
+  channel: Channel!
+}
+
+input ProductChannelListingAddInput {
+  channelId: ID!
+  isPublished: Boolean!
+  publicationDate: Date
+}
+
+type ProductChannelListingError {
+  field: String
+  message: String
+  code: ProductErrorCode!
+  channels: [ID!]
+}
+
+type ProductChannelListingUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  product: Product
+  productsErrors: [ProductChannelListingError!]!
+}
+
+input ProductChannelListingUpdateInput {
+  addChannels: [ProductChannelListingAddInput!]
+  removeChannels: [ID!]
 }
 
 type ProductClearMeta {
@@ -3747,23 +3787,17 @@ type ProductCreate {
 
 input ProductCreateInput {
   attributes: [AttributeValueInput]
-  publicationDate: Date
   category: ID
   chargeTaxes: Boolean
   collections: [ID]
   description: String
   descriptionJson: JSONString
-  isPublished: Boolean
   name: String
   slug: String
   taxCode: String
   seo: SeoInput
   weight: WeightScalar
-  sku: String
-  trackInventory: Boolean
-  basePrice: Decimal
   productType: ID!
-  stocks: [StockInput!]
 }
 
 type ProductDelete {
@@ -3786,11 +3820,13 @@ enum ProductErrorCode {
   DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
   INVALID
+  PRODUCT_WITHOUT_CATEGORY
   NOT_PRODUCTS_IMAGE
   NOT_FOUND
   REQUIRED
   UNIQUE
   VARIANT_NO_DIGITAL_CONTENT
+  CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
 }
 
 enum ProductFieldEnum {
@@ -3878,21 +3914,16 @@ input ProductImageUpdateInput {
 
 input ProductInput {
   attributes: [AttributeValueInput]
-  publicationDate: Date
   category: ID
   chargeTaxes: Boolean
   collections: [ID]
   description: String
   descriptionJson: JSONString
-  isPublished: Boolean
   name: String
   slug: String
   taxCode: String
   seo: SeoInput
   weight: WeightScalar
-  sku: String
-  trackInventory: Boolean
-  basePrice: Decimal
 }
 
 input ProductOrder {
@@ -3963,12 +3994,12 @@ type ProductType implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   taxRate: TaxRateType
   taxType: TaxType
   variantAttributes: [Attribute]
   productAttributes: [Attribute]
-  availableAttributes(filter: AttributeFilterInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  availableAttributes(filter: AttributeFilterInput, channel: String, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
 }
 
 type ProductTypeBulkDelete {
@@ -4258,75 +4289,75 @@ type ProductVariantUpdatePrivateMeta {
 
 type Query {
   webhook(id: ID!): Webhook
-  webhooks(sortBy: WebhookSortingInput, filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection @deprecated(reason: "Use webhooks field on app(s) query instead. This field will be removed after 2020-07-31.")
+  webhooks(sortBy: WebhookSortingInput, filter: WebhookFilterInput, channel: String, before: String, after: String, first: Int, last: Int): WebhookCountableConnection @deprecated(reason: "Use webhooks field on app(s) query instead. This field will be removed after 2020-07-31.")
   webhookEvents: [WebhookEvent]
   webhookSamplePayload(eventType: WebhookSampleEventTypeEnum!): JSONString
   warehouse(id: ID!): Warehouse
-  warehouses(filter: WarehouseFilterInput, sortBy: WarehouseSortingInput, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
+  warehouses(filter: WarehouseFilterInput, sortBy: WarehouseSortingInput, channel: String, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
-  translation(id: ID!, kind: TranslatableKinds!): TranslatableItem
+  translation(id: ID!, kind: TranslatableKinds!, channel: String): TranslatableItem
   stock(id: ID!): Stock
-  stocks(filter: StockFilterInput, before: String, after: String, first: Int, last: Int): StockCountableConnection
+  stocks(filter: StockFilterInput, channel: String, before: String, after: String, first: Int, last: Int): StockCountableConnection
   shop: Shop!
   shippingZone(id: ID!): ShippingZone
-  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
+  shippingZones(channel: String, before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
-  digitalContents(before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
-  attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  digitalContents(channel: String, before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
+  attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, channel: String, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   attribute(id: ID!): Attribute
-  categories(filter: CategoryFilterInput, sortBy: CategorySortingInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  category(id: ID, slug: String): Category
+  categories(filter: CategoryFilterInput, sortBy: CategorySortingInput, level: Int, channel: String, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  category(id: ID, slug: String, channel: String): Category
   collection(id: ID, slug: String): Collection
-  collections(filter: CollectionFilterInput, sortBy: CollectionSortingInput, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
-  product(id: ID, slug: String): Product
-  products(filter: ProductFilterInput, sortBy: ProductOrder, stockAvailability: StockAvailability, before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  productType(id: ID!): ProductType
-  productTypes(filter: ProductTypeFilterInput, sortBy: ProductTypeSortingInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
-  productVariant(id: ID!): ProductVariant
-  productVariants(ids: [ID], before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
-  reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
+  collections(filter: CollectionFilterInput, sortBy: CollectionSortingInput, channel: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
+  product(id: ID, slug: String, channel: String): Product
+  products(filter: ProductFilterInput, sortBy: ProductOrder, stockAvailability: StockAvailability, channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  productType(id: ID!, channel: String): ProductType
+  productTypes(filter: ProductTypeFilterInput, sortBy: ProductTypeSortingInput, channel: String, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productVariant(id: ID!, channel: String): ProductVariant
+  productVariants(ids: [ID], channel: String, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
+  reportProductSales(period: ReportingPeriod!, channel: String, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   payment(id: ID!): Payment
-  payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
+  payments(channel: String, before: String, after: String, first: Int, last: Int): PaymentCountableConnection
   page(id: ID, slug: String): Page
-  pages(sortBy: PageSortingInput, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
-  homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
+  pages(sortBy: PageSortingInput, filter: PageFilterInput, channel: String, before: String, after: String, first: Int, last: Int): PageCountableConnection
+  homepageEvents(channel: String, before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   order(id: ID!): Order
-  orders(sortBy: OrderSortingInput, filter: OrderFilterInput, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
-  draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  orders(sortBy: OrderSortingInput, filter: OrderFilterInput, created: ReportingPeriod, status: OrderStatusFilter, channel: String, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, created: ReportingPeriod, channel: String, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   ordersTotal(period: ReportingPeriod): TaxedMoney
   orderByToken(token: UUID!): Order
   menu(id: ID, name: String): Menu
-  menus(sortBy: MenuSortingInput, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
+  menus(sortBy: MenuSortingInput, filter: MenuFilterInput, channel: String, before: String, after: String, first: Int, last: Int): MenuCountableConnection
   menuItem(id: ID!): MenuItem
-  menuItems(sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
+  menuItems(sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, channel: String, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
-  giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
+  giftCards(channel: String, before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   plugin(id: ID!): Plugin
   plugins(filter: PluginFilterInput, sortBy: PluginSortingInput, before: String, after: String, first: Int, last: Int): PluginCountableConnection
   sale(id: ID!): Sale
-  sales(filter: SaleFilterInput, sortBy: SaleSortingInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
+  sales(filter: SaleFilterInput, sortBy: SaleSortingInput, query: String, channel: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
-  vouchers(filter: VoucherFilterInput, sortBy: VoucherSortingInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
+  vouchers(filter: VoucherFilterInput, sortBy: VoucherSortingInput, query: String, channel: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
   exportFile(id: ID!): ExportFile
-  exportFiles(filter: ExportFileFilterInput, sortBy: ExportFileSortingInput, before: String, after: String, first: Int, last: Int): ExportFileCountableConnection
+  exportFiles(filter: ExportFileFilterInput, sortBy: ExportFileSortingInput, channel: String, before: String, after: String, first: Int, last: Int): ExportFileCountableConnection
   taxTypes: [TaxType]
   checkout(token: UUID): Checkout
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
-  checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
+  checkoutLines(channel: String, before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   channel(id: ID): Channel
   channels: [Channel!]
   appsInstallations: [AppInstallation!]!
-  apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
+  apps(filter: AppFilterInput, sortBy: AppSortingInput, channel: String, before: String, after: String, first: Int, last: Int): AppCountableConnection
   app(id: ID!): App
   addressValidationRules(countryCode: CountryCode!, countryArea: String, city: String, cityArea: String): AddressValidationData
   address(id: ID!): Address
-  customers(filter: CustomerFilterInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection
-  permissionGroups(filter: PermissionGroupFilterInput, sortBy: PermissionGroupSortingInput, before: String, after: String, first: Int, last: Int): GroupCountableConnection
+  customers(filter: CustomerFilterInput, sortBy: UserSortingInput, channel: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  permissionGroups(filter: PermissionGroupFilterInput, sortBy: PermissionGroupSortingInput, channel: String, before: String, after: String, first: Int, last: Int): GroupCountableConnection
   permissionGroup(id: ID!): Group
   me: User
-  staffUsers(filter: StaffUserInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection
-  serviceAccounts(filter: ServiceAccountFilterInput, sortBy: ServiceAccountSortingInput, before: String, after: String, first: Int, last: Int): ServiceAccountCountableConnection @deprecated(reason: "Use the `apps` query instead. This field will be removed after 2020-07-31.")
+  staffUsers(filter: StaffUserInput, sortBy: UserSortingInput, channel: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  serviceAccounts(filter: ServiceAccountFilterInput, sortBy: ServiceAccountSortingInput, channel: String, before: String, after: String, first: Int, last: Int): ServiceAccountCountableConnection @deprecated(reason: "Use the `apps` query instead. This field will be removed after 2020-07-31.")
   serviceAccount(id: ID!): ServiceAccount @deprecated(reason: "Use the `app` query instead. This field will be removed after 2020-07-31.")
   user(id: ID!): User
   _entities(representations: [_Any]): [_Entity]
@@ -4373,9 +4404,9 @@ type Sale implements Node {
   value: Float!
   startDate: DateTime!
   endDate: DateTime
-  categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  categories(channel: String, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  collections(channel: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
+  products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   translation(languageCode: LanguageCodeEnum!): SaleTranslation
 }
 
@@ -5171,8 +5202,8 @@ type User implements Node & ObjectWithMetadata {
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
   addresses: [Address]
   checkout: Checkout
-  giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
-  orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  giftCards(channel: String, before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
+  orders(channel: String, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   permissions: [Permission] @deprecated(reason: "Will be removed in Saleor 2.11.Use the `userPermissions` instead.")
   userPermissions: [UserPermission]
   permissionGroups: [Group]
@@ -5316,9 +5347,9 @@ type Voucher implements Node {
   discountValue: Float!
   minSpent: Money
   minCheckoutItemsQuantity: Int
-  categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  categories(channel: String, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  collections(channel: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
+  products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   countries: [CountryDisplay]
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
 }

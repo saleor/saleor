@@ -114,10 +114,49 @@ def test_collection_query_error_when_no_param(
 
 def test_collections_query(
     user_api_client,
+    collection,
+    draft_collection,
+    permission_manage_products,
+    channel_USD,
+):
+    query = """
+        query Collections ($channel: String) {
+            collections(first: 2, channel: $channel) {
+                edges {
+                    node {
+                        isPublished
+                        name
+                        slug
+                        description
+                        products {
+                            totalCount
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    # query public collections only as regular user
+    variables = {"channel": channel_USD.slug}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    edges = content["data"]["collections"]["edges"]
+    assert len(edges) == 1
+    collection_data = edges[0]["node"]
+    assert collection_data["isPublished"]
+    assert collection_data["name"] == collection.name
+    assert collection_data["slug"] == collection.slug
+    assert collection_data["description"] == collection.description
+    assert collection_data["products"]["totalCount"] == collection.products.count()
+
+
+def test_collections_query_as_staff(
     staff_api_client,
     collection,
     draft_collection,
     permission_manage_products,
+    channel_USD,
 ):
     query = """
         query Collections {
@@ -136,19 +175,6 @@ def test_collections_query(
             }
         }
     """
-
-    # query public collections only as regular user
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    edges = content["data"]["collections"]["edges"]
-    assert len(edges) == 1
-    collection_data = edges[0]["node"]
-    assert collection_data["isPublished"]
-    assert collection_data["name"] == collection.name
-    assert collection_data["slug"] == collection.slug
-    assert collection_data["description"] == collection.description
-    assert collection_data["products"]["totalCount"] == collection.products.count()
-
     # query all collections only as a staff user with proper permissions
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query)
@@ -662,6 +688,40 @@ def test_add_products_to_collection(
     content = get_graphql_content(response)
     data = content["data"]["collectionAddProducts"]["collection"]
     assert data["products"]["totalCount"] == no_products_before + len(product_ids)
+
+
+def test_add_products_to_collection_with_product_without_variants(
+    staff_api_client, collection, product_list, permission_manage_products
+):
+    query = """
+        mutation collectionAddProducts(
+            $id: ID!, $products: [ID]!) {
+            collectionAddProducts(collectionId: $id, products: $products) {
+                collection {
+                    products {
+                        totalCount
+                    }
+                }
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    product_list[0].variants.all().delete()
+    collection_id = to_global_id("Collection", collection.id)
+    product_ids = [to_global_id("Product", product.pk) for product in product_list]
+    variables = {"id": collection_id, "products": product_ids}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["collectionAddProducts"]["productErrors"][0]
+
+    assert error["code"] == ProductErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.value
+    assert error["message"] == "Cannot manage products without variants."
 
 
 def test_remove_products_from_collection(

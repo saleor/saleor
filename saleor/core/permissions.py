@@ -20,7 +20,7 @@ class AppPermission(BasePermissionEnum):
     MANAGE_APPS = "app.manage_apps"
 
 
-class ChannelPermission(BasePermissionEnum):
+class ChannelPermissions(BasePermissionEnum):
     MANAGE_CHANNELS = "channel.manage_channels"
 
 
@@ -68,7 +68,7 @@ class SitePermissions(BasePermissionEnum):
 PERMISSIONS_ENUMS = [
     AccountPermissions,
     AppPermission,
-    ChannelPermission,
+    ChannelPermissions,
     DiscountPermissions,
     PluginsPermissions,
     GiftcardPermissions,
