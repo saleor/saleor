@@ -1,6 +1,7 @@
 import graphene
 from graphene import relay
 
+from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import CountryDisplay, MoneyRange
@@ -32,6 +33,12 @@ class ShippingMethod(CountableDjangoObjectType):
             "name",
             "price",
         ]
+
+    def resolve_maximum_order_weight(root: models.ShippingMethod, *_args):
+        return convert_weight_to_default_weight_unit(root.maximum_order_weight)
+
+    def resolve_minimum_order_weight(root: models.ShippingMethod, *_args):
+        return convert_weight_to_default_weight_unit(root.minimum_order_weight)
 
 
 class ShippingZone(CountableDjangoObjectType):

@@ -8,7 +8,6 @@ from django.core.management import CommandError, call_command
 from django.db.utils import DataError
 from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
-from measurement.measures import Weight
 
 from ...account.models import Address, User
 from ...account.utils import create_superuser
@@ -29,7 +28,6 @@ from ..utils import (
     get_currency_for_country,
     random_data,
 )
-from ..weight import WeightUnits, convert_weight
 
 type_schema = {
     "Vegetable": {
@@ -219,12 +217,6 @@ def test_storages_not_setting_s3_bucket_domain(storage, settings):
     storage = S3MediaStorage()
     assert storage.bucket_name == "media-bucket"
     assert storage.custom_domain is None
-
-
-def test_convert_weight():
-    weight = Weight(kg=1)
-    expected_result = Weight(g=1000)
-    assert convert_weight(weight, WeightUnits.GRAM) == expected_result
 
 
 def test_build_absolute_uri(site_settings, settings):
