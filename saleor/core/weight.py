@@ -36,6 +36,7 @@ def zero_weight():
 
 
 def convert_weight(weight: Weight, unit: str) -> Weight:
+    """Covert weight to given unit and round it to 3 digits after decimal point."""
     # Weight amount from the Weight instance can be retrived in serveral units
     # via its properties. eg. Weight(lb=10).kg
     converted_weight = getattr(weight, unit)
@@ -49,7 +50,7 @@ def get_default_weight_unit():
     return site.settings.default_weight_unit
 
 
-def covert_weight_to_default_weight_unit(weight: Weight) -> Weight:
+def convert_weight_to_default_weight_unit(weight: Weight) -> Weight:
     """Weight is kept in one unit, but should be returned in site default unit."""
     default_unit = get_default_weight_unit()
     if weight is not None:

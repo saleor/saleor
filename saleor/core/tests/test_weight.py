@@ -4,7 +4,7 @@ from measurement.measures import Weight
 from ..weight import (
     WeightUnits,
     convert_weight,
-    covert_weight_to_default_weight_unit,
+    convert_weight_to_default_weight_unit,
     get_default_weight_unit,
 )
 
@@ -38,7 +38,7 @@ def test_get_default_weight_unit(site_settings):
         (WeightUnits.OUNCE, Weight(oz=35.274)),
     ],
 )
-def test_covert_weight_to_default_weight_unit(
+def test_convert_weight_to_default_weight_unit(
     default_weight_unit, expected_value, site_settings
 ):
     # given
@@ -46,7 +46,7 @@ def test_covert_weight_to_default_weight_unit(
     site_settings.save(update_fields=["default_weight_unit"])
 
     # when
-    result = covert_weight_to_default_weight_unit(Weight(kg=1))
+    result = convert_weight_to_default_weight_unit(Weight(kg=1))
 
     # then
     assert result == expected_value
