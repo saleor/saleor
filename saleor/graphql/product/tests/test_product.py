@@ -29,7 +29,7 @@ from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.attributes import associate_attribute_values_to_instance
 from ....warehouse.models import Allocation, Stock, Warehouse
-from ...core.enums import ReportingPeriod, WeightUnitsEnum
+from ...core.enums import ReportingPeriod
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -4279,26 +4279,26 @@ mutation createProduct(
 
 
 @pytest.mark.parametrize(
-    "weight, expected_weight_value, expected_weight_unit",
+    "weight, expected_weight_value",
     (
-        ("0", 0, WeightUnitsEnum.KG.name),
-        (0, 0, WeightUnitsEnum.KG.name),
-        (11.11, 11.11, WeightUnitsEnum.KG.name),
-        (11, 11.0, WeightUnitsEnum.KG.name),
-        ("11.11", 11.11, WeightUnitsEnum.KG.name),
-        ({"value": 11.11, "unit": "kg"}, 11.11, WeightUnitsEnum.KG.name,),
-        ({"value": 11, "unit": "g"}, 11.0, WeightUnitsEnum.G.name,),
-        ({"value": "11.11", "unit": "ounce"}, 11.11, WeightUnitsEnum.OZ.name,),
+        ("0", 0),
+        (0, 0),
+        (11.11, 11.11),
+        (11, 11.0),
+        ("11.11", 11.11),
+        ({"value": 11.11, "unit": "kg"}, 11.11),
+        ({"value": 11, "unit": "g"}, 0.011),
+        ({"value": "1", "unit": "ounce"}, 0.028),
     ),
 )
 def test_create_product_with_weight_variable(
     weight,
     expected_weight_value,
-    expected_weight_unit,
     staff_api_client,
     category,
     permission_manage_products,
     product_type_without_variant,
+    site_settings,
 ):
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_type_id = graphene.Node.to_global_id(
@@ -4320,30 +4320,30 @@ def test_create_product_with_weight_variable(
     content = get_graphql_content(response)
     result_weight = content["data"]["productCreate"]["product"]["weight"]
     assert result_weight["value"] == expected_weight_value
-    assert result_weight["unit"] == expected_weight_unit
+    assert result_weight["unit"] == site_settings.default_weight_unit.upper()
 
 
 @pytest.mark.parametrize(
-    "weight, expected_weight_value, expected_weight_unit",
+    "weight, expected_weight_value",
     (
-        ("0", 0, WeightUnitsEnum.KG.name),
-        (0, 0, WeightUnitsEnum.KG.name),
-        ("11.11", 11.11, WeightUnitsEnum.KG.name),
-        ("11", 11.0, WeightUnitsEnum.KG.name),
-        ('"11.11"', 11.11, WeightUnitsEnum.KG.name),
-        ('{value: 11.11, unit: "kg"}', 11.11, WeightUnitsEnum.KG.name,),
-        ('{value: 11, unit: "g"}', 11.0, WeightUnitsEnum.G.name,),
-        ('{value: "11.11", unit: "ounce"}', 11.11, WeightUnitsEnum.OZ.name,),
+        ("0", 0),
+        (0, 0),
+        ("11.11", 11.11),
+        ("11", 11.0),
+        ('"11.11"', 11.11),
+        ('{value: 11.11, unit: "kg"}', 11.11),
+        ('{value: 11, unit: "g"}', 0.011),
+        ('{value: "1", unit: "ounce"}', 0.028),
     ),
 )
 def test_create_product_with_weight_input(
     weight,
     expected_weight_value,
-    expected_weight_unit,
     staff_api_client,
     category,
     permission_manage_products,
     product_type_without_variant,
+    site_settings,
 ):
     # Because we use Scalars for Weight this test query tests only a scenario when
     # weight value is passed by directly in input
@@ -4397,4 +4397,4 @@ def test_create_product_with_weight_input(
     content = get_graphql_content(response)
     result_weight = content["data"]["productCreate"]["product"]["weight"]
     assert result_weight["value"] == expected_weight_value
-    assert result_weight["unit"] == expected_weight_unit
+    assert result_weight["unit"] == site_settings.default_weight_unit.upper()
