@@ -4,8 +4,8 @@ asgiref==3.2.10
 babel==2.8.0
 beautifulsoup4==4.7.1
 billiard==3.6.3.0
-boto3==1.14.17
-botocore==1.17.17
+boto3==1.14.22
+botocore==1.17.22
 braintree==4.2.0
 cachetools==4.1.1
 cairocffi==1.1.0
@@ -18,7 +18,7 @@ cssselect2==0.3.0
 defusedxml==0.6.0
 dj-database-url==0.5.0
 dj-email-url==1.0.1
-django==3.0.6
+django==3.0.8
 django-appconf==1.0.4
 django-cache-url==3.1.2
 django-countries==6.1.2
@@ -30,7 +30,7 @@ django-phonenumber-field==4.0.0
 django-prices==2.2.0
 django-prices-openexchangerates==1.1.0
 django-prices-vatlayer==1.1.0
-django-render-block==0.6
+django-render-block==0.7
 django-storages==1.9.1
 django-templated-email==2.3.0
 django-versatileimagefield==2.0
@@ -42,7 +42,7 @@ faker==4.1.1
 freezegun==0.3.15
 future==0.18.2
 google-api-core==1.21.0
-google-auth==1.18.0
+google-auth==1.19.1
 google-cloud-core==1.3.0
 google-cloud-storage==1.29.0
 google-i18n-address==2.3.5
@@ -50,7 +50,7 @@ google-measurement-protocol==1.0.0
 google-resumable-media==0.5.1
 googleapis-common-protos==1.52.0
 graphene==2.1.8
-graphene-django==2.11.0
+graphene-django==2.12.1
 graphene-federation==0.1.0
 graphql-core==2.3.2
 graphql-relay==2.0.1
@@ -62,16 +62,16 @@ jdcal==1.4.1
 jmespath==0.10.0
 jsonfield==3.1.0
 kombu==4.6.11
-lxml==4.5.1
+lxml==4.5.2
 markdown==3.2.2
 maxminddb==1.5.4
 maxminddb-geolite2==2018.703
 measurement==3.2.0
 mpmath==1.1.0
 oauthlib==3.1.0
-openpyxl==3.0.3
+openpyxl==3.0.4
 opentracing==2.3.0
-petl==1.3.0
+petl==1.6.2
 phonenumberslite==8.12.6
 pillow==7.2.0
 prices==1.0.0
@@ -96,7 +96,7 @@ requests==2.24.0
 rsa==4.6; python_version >= "3"
 rx==1.6.1
 s3transfer==0.3.3
-sentry-sdk==0.16.0
+sentry-sdk==0.16.1
 singledispatch==3.4.0.3
 six==1.15.0
 soupsieve==2.0.1
@@ -108,8 +108,8 @@ threadloop==1.0.2
 thrift==0.13.0
 tinycss2==1.0.2
 tornado==6.0.4
-tqdm==4.47.0
-typing==3.7.4.1
+tqdm==4.48.0
+typing==3.7.4.3
 unidecode==1.1.1
 urllib3==1.25.9
 uwsgi==2.0.19.1; sys_platform != "win32"
