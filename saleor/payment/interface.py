@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
+
+JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
+JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 
 
 @dataclass
@@ -32,6 +35,7 @@ class GatewayResponse:
     customer_id: Optional[str] = None
     card_info: Optional[CreditCardInfo] = None
     raw_response: Optional[Dict[str, str]] = None
+    action_required_data: Optional[JSONType] = None
 
 
 @dataclass
@@ -61,12 +65,14 @@ class PaymentData:
     currency: str
     billing: Optional[AddressData]
     shipping: Optional[AddressData]
+    payment_id: str  # GraphQL id
     order_id: Optional[int]
     customer_ip_address: Optional[str]
     customer_email: str
     token: Optional[str] = None
     customer_id: Optional[str] = None
     reuse_source: bool = False
+    extra_data: str = None
 
 
 @dataclass

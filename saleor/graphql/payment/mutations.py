@@ -1,3 +1,5 @@
+from typing import Optional
+
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -28,11 +30,15 @@ class PaymentInput(graphene.InputObjectType):
         required=True,
     )
     token = graphene.String(
-        required=True,
+        required=False,
         description=(
             "Client-side generated payment token, representing customer's "
             "billing data in a secure manner."
         ),
+    )
+    payment_data = graphene.JSONString(
+        required=False,
+        description=("Client-side generated data required to finalize the payment."),
     )
     amount = Decimal(
         required=False,
@@ -119,6 +125,24 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
+    def validate_token_or_data(cls, input_data: dict):
+        token = input_data.get("token")
+        payment_data = input_data.get("payment_data")
+        if not token and not payment_data:
+            raise ValidationError(
+                {
+                    "token": ValidationError(
+                        "paymentData or token is required.",
+                        code=PaymentErrorCode.REQUIRED.value,
+                    ),
+                    "payment_data": ValidationError(
+                        "paymentData or token is required.",
+                        code=PaymentErrorCode.REQUIRED.value,
+                    ),
+                }
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, checkout_id, **data):
         checkout_id = from_global_id_strict_type(
             checkout_id, only_type=Checkout, field="checkout_id"
@@ -131,6 +155,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         gateway = data["gateway"]
 
         cls.validate_gateway(gateway, checkout.currency)
+        cls.validate_token_or_data(data)
 
         checkout_total = cls.calculate_total(info, checkout)
         amount = data.get("amount", checkout_total.gross.amount)
@@ -139,17 +164,26 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         )
         clean_billing_address(checkout, PaymentErrorCode)
         cls.clean_payment_amount(info, checkout_total, amount)
-        extra_data = {"customer_user_agent": info.context.META.get("HTTP_USER_AGENT")}
+        extra_data = {
+            "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
+        }
+
+        # TODO Define if we want to store it in extra data as this field is available
+        # over API
+        payment_data = data.get("payment_data")
+        if payment_data:
+            extra_data["payment_data"] = payment_data
 
         cancel_active_payments(checkout)
 
         payment = create_payment(
             gateway=gateway,
-            payment_token=data["token"],
+            payment_token=data.get("token", ""),
             total=amount,
             currency=settings.DEFAULT_CURRENCY,
             email=checkout.email,
             extra_data=extra_data,
+            # FIXME this is not a customer IP address. It is a client storefront ip
             customer_ip_address=get_client_ip(info.context),
             checkout=checkout,
         )
