@@ -91,6 +91,7 @@ class AdyenGatewayPlugin(BasePlugin):
                 "merchant_account": configuration["Merchant Account"],
                 "return_url": configuration["Return Url"],
                 "origin_key": configuration["Origin Key"],
+                "origin_url": configuration["Origin Url"],
             },
         )
         api_key = self.config.connection_params["api_key"]
@@ -178,14 +179,12 @@ class AdyenGatewayPlugin(BasePlugin):
             extra_request_params["shopperIP"] = payment_data["shopperIP"]
         if (
             "browserInfo" in extra_request_params
-            or "billingAddress" in extra_request_params
+            and "billingAddress" in extra_request_params
         ):
             # Replace this assigment. Add note that customer_ip_address has incorrect name
             # Add to dashboard config the flow to combine channel with url like:
             # web1:https://shop.com, web2:https://shop1.com
-            extra_request_params["origin"] = (
-                "https://" + payment_information.customer_ip_address
-            )
+            extra_request_params["origin"] = self.config.connection_params["origin_url"]
 
         result = self.adyen.checkout.payments(
             {
