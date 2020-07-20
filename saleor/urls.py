@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .data_feeds.urls import urlpatterns as feed_urls
 from .graphql.api import schema
 from .graphql.views import GraphQLView
+from .plugins.allegro.plugin import AllegroPlugin
 from .product.views import digital_product
 
 urlpatterns = [
@@ -17,6 +18,7 @@ urlpatterns = [
         digital_product,
         name="digital-product",
     ),
+    url(r'^allegro/$', AllegroPlugin.resolve_auth),
 ]
 
 if settings.DEBUG:
@@ -35,5 +37,5 @@ if settings.DEBUG:
 
     urlpatterns += static("/media/", document_root=settings.MEDIA_ROOT) + [
         url(r"^static/(?P<path>.*)$", serve),
-        url(r"^", views.home, name="home"),
+        # url(r"^", views.home, name="home"),
     ]
