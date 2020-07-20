@@ -4,8 +4,8 @@ asgiref==3.2.10
 babel==2.8.0
 beautifulsoup4==4.7.1
 billiard==3.6.3.0
-boto3==1.14.22
-botocore==1.17.22
+boto3==1.14.23
+botocore==1.17.23
 braintree==4.2.0
 cachetools==4.1.1
 cairocffi==1.1.0
@@ -101,7 +101,7 @@ singledispatch==3.4.0.3
 six==1.15.0
 soupsieve==2.0.1
 sqlparse==0.3.1
-stripe==2.48.0
+stripe==2.49.0
 sympy==1.6.1
 text-unidecode==1.3
 threadloop==1.0.2
