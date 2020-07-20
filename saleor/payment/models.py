@@ -192,7 +192,7 @@ class Transaction(models.Model):
         Payment, related_name="transactions", on_delete=models.PROTECT
     )
     token = models.CharField(max_length=128, blank=True, default="")
-    kind = models.CharField(max_length=10, choices=TransactionKind.CHOICES)
+    kind = models.CharField(max_length=25, choices=TransactionKind.CHOICES)
     is_success = models.BooleanField(default=False)
     action_required = models.BooleanField(default=False)
     action_required_data = JSONField(

@@ -319,6 +319,16 @@ class PluginsManager(PaymentInterface):
         method_name = "process_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
+    def token_is_required_as_payment_input(self, gateway) -> bool:
+        method_name = "token_is_required_as_payment_input"
+        default_value = True
+        gtw = self.get_plugin(gateway)
+        if gtw is not None:
+            return self.__run_method_on_single_plugin(
+                gtw, method_name, previous_value=default_value,
+            )
+        return default_value
+
     def get_client_token(self, gateway, token_config: "TokenConfig") -> str:
         method_name = "get_client_token"
         default_value = None
@@ -367,16 +377,13 @@ class PluginsManager(PaymentInterface):
         return gateways
 
     def checkout_available_payment_gateways(
-        self,
-        checkout: "Checkout",
-        lines: Iterable["CheckoutLine"],
-        discounts: Iterable[DiscountInfo],
+        self, checkout: "Checkout",
     ) -> List["PaymentGateway"]:
         payment_plugins = self.list_payment_plugin(active_only=True)
         gateways = []
         for plugin in payment_plugins.values():
             gateway = plugin.get_payment_gateway_for_checkout(
-                checkout, lines, discounts, previous_value=None
+                checkout, previous_value=None
             )
             if gateway:
                 gateways.append(gateway)

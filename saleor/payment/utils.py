@@ -29,6 +29,7 @@ def create_payment_information(
     amount: Decimal = None,
     customer_id: str = None,
     store_source: bool = False,
+    additional_data: Optional[dict] = None,
 ) -> PaymentData:
     """Extract order information along with payment details.
 
@@ -62,7 +63,7 @@ def create_payment_information(
         customer_id=customer_id,
         customer_email=payment.billing_email,
         reuse_source=store_source,
-        extra_data=payment.extra_data,
+        data=additional_data or {},
     )
 
 
@@ -215,6 +216,9 @@ def gateway_postprocess(transaction, payment):
         return
 
     transaction_kind = transaction.kind
+    # if transaction.action_required:
+    #     payment.charge_status = ChargeStatus.ACTION_REQUIRED
+    #     payment.save(update_fields=["charge_status", ])
 
     if transaction_kind in {TransactionKind.CAPTURE, TransactionKind.CONFIRM}:
         payment.captured_amount += transaction.amount
@@ -240,6 +244,11 @@ def gateway_postprocess(transaction, payment):
             payment.is_active = False
         changed_fields += ["charge_status", "is_active"]
         payment.save(update_fields=changed_fields)
+    elif transaction_kind == TransactionKind.PENDING:
+        payment.charge_status = ChargeStatus.PENDING
+        payment.save(
+            update_fields=["charge_status",]
+        )
 
 
 def fetch_customer_id(user: User, gateway: str):

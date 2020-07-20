@@ -72,7 +72,7 @@ class PaymentData:
     token: Optional[str] = None
     customer_id: Optional[str] = None
     reuse_source: bool = False
-    extra_data: str = None
+    data: Optional[JSONType] = None
 
 
 @dataclass
