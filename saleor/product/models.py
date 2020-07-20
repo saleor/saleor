@@ -437,10 +437,13 @@ class ProductVariant(ModelWithMetadata):
     def __str__(self) -> str:
         return self.name or self.sku
 
-    def get_price(self, discounts: Optional[Iterable[DiscountInfo]] = None) -> "Money":
+    def get_price(
+        self, channel_slug: str, discounts: Optional[Iterable[DiscountInfo]] = None
+    ) -> "Money":
+        price = self.channel_listing.get(channel__slug=channel_slug).price
         return calculate_discounted_price(
             product=self.product,
-            price=self.price,
+            price=price,
             collections=self.product.collections.all(),
             discounts=discounts,
         )
