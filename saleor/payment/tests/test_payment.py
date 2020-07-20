@@ -90,6 +90,9 @@ def dummy_response(payment_dummy, transaction_token, card_details):
     )
 
 
+@pytest.mark.skip(
+    reason="We should use channel from checkout in variant resolver. #5883"
+)
 def test_create_payment(checkout_with_item, address):
     checkout_with_item.billing_address = address
     checkout_with_item.save()
@@ -125,6 +128,9 @@ def test_create_payment_requires_order_or_checkout(settings):
     assert e.value.args[0] == "Must provide checkout or order to create a payment."
 
 
+@pytest.mark.skip(
+    reason="We should use channel from checkout in variant resolver. #5883"
+)
 def test_create_payment_from_checkout_requires_billing_address(checkout_with_item):
     checkout_with_item.billing_address = None
     checkout_with_item.save()
@@ -161,6 +167,9 @@ def test_create_payment_from_order_requires_billing_address(draft_order):
     assert e.value.code == PaymentErrorCode.BILLING_ADDRESS_NOT_SET.value
 
 
+@pytest.mark.skip(
+    reason="We should use channel from checkout in variant resolver. #5883"
+)
 def test_create_payment_information_for_checkout_payment(address, checkout_with_item):
     checkout_with_item.billing_address = address
     checkout_with_item.shipping_address = address
