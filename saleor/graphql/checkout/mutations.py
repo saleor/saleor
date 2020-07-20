@@ -754,6 +754,12 @@ class CheckoutComplete(BaseMutation):
                 "see the order details. URL in RFC 1808 format."
             ),
         )
+        payment_data = graphene.JSONString(
+            required=False,
+            description=(
+                "Client-side generated data required to finalize the payment."
+            ),
+        )
 
     class Meta:
         description = (
@@ -835,15 +841,17 @@ class CheckoutComplete(BaseMutation):
         if shipping_address is not None:
             shipping_address = AddressData(**shipping_address.as_data())
 
-        # payment_confirmation = payment.to_confirm
+        payment_confirmation = payment.to_confirm
         try:
-            # if payment_confirmation:
-            #     txn = gateway.confirm(payment)
-            # else:
-            txn = gateway.process_payment(
-                payment=payment, token=payment.token, store_source=store_source
-            )
-
+            if payment_confirmation:
+                txn = gateway.confirm(payment, additional_data=data.get("payment_data"))
+            else:
+                txn = gateway.process_payment(
+                    payment=payment,
+                    token=payment.token,
+                    store_source=store_source,
+                    additional_data=data.get("payment_data"),
+                )
             if not txn.is_success:
                 raise PaymentError(txn.error)
 
@@ -856,18 +864,20 @@ class CheckoutComplete(BaseMutation):
 
         confirmation_needed = False
         confirmation_data = {}
+        order = None
 
-        order = create_order(
-            checkout=checkout,
-            order_data=order_data,
-            user=user,
-            redirect_url=redirect_url,
-        )
+        if not txn.action_required:
+            order = create_order(
+                checkout=checkout,
+                order_data=order_data,
+                user=user,
+                redirect_url=redirect_url,
+            )
 
-        # remove checkout after order is successfully paid
-        checkout.delete()
+            # remove checkout after order is successfully paid
+            checkout.delete()
 
-        if txn.action_required:
+        else:
             # If gateway returns information that additional steps are required we need
             # to inform the frontend and pass all required data
             confirmation_needed = True

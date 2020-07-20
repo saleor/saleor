@@ -23,10 +23,7 @@ class PaymentInterface(ABC):
 
     @abstractmethod
     def checkout_available_payment_gateways(
-        self,
-        checkout: "Checkout",
-        lines: Iterable["CheckoutLine"],
-        discounts: Iterable["DiscountInfo"],
+        self, checkout: "Checkout",
     ) -> List["PaymentGateway"]:
         pass
 
@@ -58,6 +55,10 @@ class PaymentInterface(ABC):
     def confirm_payment(
         self, gateway: str, payment_information: "PaymentData"
     ) -> "GatewayResponse":
+        pass
+
+    @abstractmethod
+    def token_is_required_as_payment_input(self, gateway) -> bool:
         pass
 
     @abstractmethod

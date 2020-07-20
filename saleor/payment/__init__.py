@@ -60,14 +60,18 @@ class TransactionKind:
     AUTH = "auth"
     CAPTURE = "capture"
     VOID = "void"
+    PENDING = "pending"
     REFUND = "refund"
+    REFUND_ONGOING = "refund_ongoing"
     CONFIRM = "confirm"
     # FIXME we could use another status like WAITING_FOR_AUTH for transactions
     # Which were authorized, but needs to be confirmed manually by staff
     # eg. Braintree with "submit_for_settlement" enabled
     CHOICES = [
         (AUTH, "Authorization"),
+        (PENDING, "Pending"),
         (REFUND, "Refund"),
+        (REFUND_ONGOING, "Refund in progress"),
         (CAPTURE, "Capture"),
         (VOID, "Void"),
         (CONFIRM, "Confirm"),
@@ -88,6 +92,7 @@ class ChargeStatus:
     """
 
     NOT_CHARGED = "not-charged"
+    PENDING = "pending"
     PARTIALLY_CHARGED = "partially-charged"
     FULLY_CHARGED = "fully-charged"
     PARTIALLY_REFUNDED = "partially-refunded"
@@ -95,6 +100,7 @@ class ChargeStatus:
 
     CHOICES = [
         (NOT_CHARGED, "Not charged"),
+        (PENDING, "Pending"),
         (PARTIALLY_CHARGED, "Partially charged"),
         (FULLY_CHARGED, "Fully charged"),
         (PARTIALLY_REFUNDED, "Partially refunded"),

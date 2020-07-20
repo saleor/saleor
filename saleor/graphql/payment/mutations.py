@@ -36,10 +36,6 @@ class PaymentInput(graphene.InputObjectType):
             "billing data in a secure manner."
         ),
     )
-    payment_data = graphene.JSONString(
-        required=False,
-        description=("Client-side generated data required to finalize the payment."),
-    )
     amount = Decimal(
         required=False,
         description=(
@@ -125,18 +121,14 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def validate_token_or_data(cls, input_data: dict):
+    def validate_token(cls, manager, gateway: str, input_data: dict):
         token = input_data.get("token")
-        payment_data = input_data.get("payment_data")
-        if not token and not payment_data:
+        is_required = manager.token_is_required_as_payment_input(gateway)
+        if not token and is_required:
             raise ValidationError(
                 {
                     "token": ValidationError(
-                        "paymentData or token is required.",
-                        code=PaymentErrorCode.REQUIRED.value,
-                    ),
-                    "payment_data": ValidationError(
-                        "paymentData or token is required.",
+                        f"Token is required for {gateway}.",
                         code=PaymentErrorCode.REQUIRED.value,
                     ),
                 }
@@ -155,7 +147,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         gateway = data["gateway"]
 
         cls.validate_gateway(gateway, checkout.currency)
-        cls.validate_token_or_data(data)
+        cls.validate_token(info.context.plugins, gateway, data)
 
         checkout_total = cls.calculate_total(info, checkout)
         amount = data.get("amount", checkout_total.gross.amount)
@@ -167,12 +159,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         extra_data = {
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
         }
-
-        # TODO Define if we want to store it in extra data as this field is available
-        # over API
-        payment_data = data.get("payment_data")
-        if payment_data:
-            extra_data["payment_data"] = payment_data
 
         cancel_active_payments(checkout)
 

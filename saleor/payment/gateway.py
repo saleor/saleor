@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Callable, List
+from typing import TYPE_CHECKING, Callable, List, Optional
 
 from ..payment.interface import TokenConfig
 from ..plugins.manager import get_plugins_manager
@@ -58,11 +58,17 @@ def require_active_payment(fn: Callable) -> Callable:
 @raise_payment_error
 @require_active_payment
 def process_payment(
-    payment: Payment, token: str, store_source: bool = False
+    payment: Payment,
+    token: str,
+    store_source: bool = False,
+    additional_data: Optional[dict] = None,
 ) -> Transaction:
     plugin_manager = get_plugins_manager()
     payment_data = create_payment_information(
-        payment=payment, payment_token=token, store_source=store_source
+        payment=payment,
+        payment_token=token,
+        store_source=store_source,
+        additional_data=additional_data,
     )
     response, error = _fetch_gateway_response(
         plugin_manager.process_payment, payment.gateway, payment_data
@@ -175,10 +181,12 @@ def void(payment: Payment) -> Transaction:
 @payment_postprocess
 @raise_payment_error
 @require_active_payment
-def confirm(payment: Payment) -> Transaction:
+def confirm(payment: Payment, additional_data: Optional[dict] = None) -> Transaction:
     plugin_manager = get_plugins_manager()
     token = _get_past_transaction_token(payment, TransactionKind.CAPTURE)
-    payment_data = create_payment_information(payment=payment, payment_token=token)
+    payment_data = create_payment_information(
+        payment=payment, payment_token=token, additional_data=additional_data
+    )
     response, error = _fetch_gateway_response(
         plugin_manager.confirm_payment, payment.gateway, payment_data
     )
