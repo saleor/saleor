@@ -143,6 +143,9 @@ def _remove_anonymized_checkout_data(checkout_data: dict) -> dict:
     return checkout_data
 
 
+@pytest.mark.skip(
+    reason="We should use channel from checkout to get. variant price. #5883"
+)
 def test_generate_sample_checkout_payload(user_checkout_with_items):
     checkout = user_checkout_with_items
     payload = generate_sample_payload(WebhookEventType.CHECKOUT_QUANTITY_CHANGED)
