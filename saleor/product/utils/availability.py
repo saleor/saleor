@@ -10,6 +10,7 @@ from saleor.product.models import (
     Product,
     ProductChannelListing,
     ProductVariant,
+    ProductVariantChannelListing,
 )
 
 from ...core.utils import to_local_currency
@@ -86,13 +87,14 @@ def _get_product_price_range(
 def get_variant_price(
     *,
     variant: ProductVariant,
+    variant_channel_listing: ProductVariantChannelListing,
     product: Product,
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo]
 ):
     return calculate_discounted_price(
         product=product,
-        price=variant.price,
+        price=variant_channel_listing.price,
         collections=collections,
         discounts=discounts,
     )
@@ -102,6 +104,7 @@ def get_product_price_range(
     *,
     product: Product,
     variants: Iterable[ProductVariant],
+    variants_channel_listing: Iterable[ProductVariantChannelListing],
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo]
 ) -> Optional[MoneyRange]:
@@ -110,11 +113,12 @@ def get_product_price_range(
             prices = [
                 get_variant_price(
                     variant=variant,
+                    variant_channel_listing=variants_channel_listing[i],
                     product=product,
                     collections=collections,
                     discounts=discounts,
                 )
-                for variant in variants
+                for i, variant in enumerate(variants)
             ]
             return MoneyRange(min(prices), max(prices))
 
@@ -124,8 +128,9 @@ def get_product_price_range(
 def get_product_availability(
     *,
     product: Product,
-    channel_listing: Optional[ProductChannelListing],
+    product_channel_listing: Optional[ProductChannelListing],
     variants: Iterable[ProductVariant],
+    variants_channel_listing: Iterable[ProductVariantChannelListing],
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo],
     country: Optional[str] = None,
@@ -140,6 +145,7 @@ def get_product_availability(
         discounted_net_range = get_product_price_range(
             product=product,
             variants=variants,
+            variants_channel_listing=variants_channel_listing,
             collections=collections,
             discounts=discounts,
         )
@@ -155,7 +161,11 @@ def get_product_availability(
 
         undiscounted = None
         undiscounted_net_range = get_product_price_range(
-            product=product, variants=variants, collections=collections, discounts=[]
+            product=product,
+            variants=variants,
+            variants_channel_listing=variants_channel_listing,
+            collections=collections,
+            discounts=[],
         )
         if undiscounted_net_range is not None:
             undiscounted = TaxedMoneyRange(
@@ -176,7 +186,9 @@ def get_product_availability(
                 discounted, undiscounted, local_currency
             )
 
-        is_visible = channel_listing is not None and channel_listing.is_visible
+        is_visible = (
+            product_channel_listing is not None and product_channel_listing.is_visible
+        )
         is_on_sale = is_visible and discount is not None
 
         return ProductAvailability(
@@ -192,7 +204,7 @@ def get_product_availability(
 def get_variant_availability(
     variant: ProductVariant,
     product: Product,
-    channel_listing: Optional[ProductChannelListing],
+    product_channel_listing: Optional[ProductChannelListing],
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo],
     country: Optional[str] = None,
@@ -232,7 +244,9 @@ def get_variant_availability(
             price_local_currency = None
             discount_local_currency = None
 
-        is_visible = channel_listing is not None and channel_listing.is_visible
+        is_visible = (
+            product_channel_listing is not None and product_channel_listing.is_visible
+        )
         is_on_sale = is_visible and discount is not None
 
         return VariantAvailability(

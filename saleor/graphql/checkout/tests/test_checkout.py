@@ -2213,7 +2213,9 @@ def test_checkout_complete_without_redirect_url(
     ).exists(), "Checkout should have been deleted"
 
 
-@pytest.mark.skip(reason="We should use channel from checkout in variant resolver.")
+@pytest.mark.skip(
+    reason="We should use channel from checkout in variant resolver. #5883"
+)
 def test_fetch_checkout_by_token(user_api_client, checkout_with_item):
     query = """
     query getCheckout($token: UUID!) {

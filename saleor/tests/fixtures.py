@@ -962,7 +962,7 @@ def variant(product, channel_USD) -> ProductVariant:
         product=product, sku="SKU_A", cost_price=Money(1, "USD"),
     )
     ProductVariantChannelListing.objects.create(
-        variant=variant,
+        variant=product_variant,
         channel=channel_USD,
         price_amount=Decimal(10),
         currency=channel_USD.currency_code,
@@ -1315,8 +1315,9 @@ def voucher_customer(voucher, customer_user):
 
 
 @pytest.fixture
-def order_line(order, variant):
-    net = variant.get_price()
+def order_line(order, variant, channel_USD):
+    # TODO: We should use channel from order. #5883
+    net = variant.get_price(channel_USD.slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     return order.lines.create(
         product_name=str(variant.product),
