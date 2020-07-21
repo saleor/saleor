@@ -821,7 +821,7 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
     ]
     ProductVariant.objects.bulk_create(variants)
     variants_channel_listing = [
-        ProductChannelListing(
+        ProductVariantChannelListing(
             variant=variant,
             channel=channel_USD,
             price_amount=Decimal(10),
