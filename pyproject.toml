@@ -65,6 +65,7 @@ django-cache-url = "^3.1.2"
 pyjwt = "^1.7.1"
 python-json-logger = "^0.1.11"
 pytimeparse = "^1.1.8"
+django-redis = "^4.12.1"
 
 [tool.poetry.dev-dependencies]
 black = "19.10b0"
