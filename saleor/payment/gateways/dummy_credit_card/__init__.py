@@ -1,11 +1,33 @@
 import uuid
+from typing import Optional
 
-from ... import ChargeStatus, TransactionKind
+from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
+
+TOKEN_PREAUTHORIZE_SUCCESS = "4111111111111112"
+TOKEN_PREAUTHORIZE_DECLINE = "4111111111111111"
+TOKEN_EXPIRED = "4000000000000069"
+TOKEN_INSUFFICIENT_FUNDS = "4000000000009995"
+TOKEN_INCORRECT_CVV = "4000000000000127"
+TOKEN_DECLINE = "4000000000000002"
+
+PREAUTHORIZED_TOKENS = [TOKEN_PREAUTHORIZE_DECLINE, TOKEN_PREAUTHORIZE_SUCCESS]
+
+TOKEN_VALIDATION_MAPPING = {
+    TOKEN_EXPIRED: "Card expired",
+    TOKEN_INSUFFICIENT_FUNDS: "Insufficient funds",
+    TOKEN_INCORRECT_CVV: "Incorrect CVV",
+    TOKEN_DECLINE: "Card declined",
+    TOKEN_PREAUTHORIZE_DECLINE: "Card declined",
+}
 
 
 def dummy_success():
     return True
+
+
+def validate_token(token: Optional[str]):
+    return TOKEN_VALIDATION_MAPPING.get(token, None) if token else None
 
 
 def get_client_token(**_):
@@ -48,10 +70,8 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
 
 def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     """Perform capture transaction."""
-    error = None
-    success = dummy_success()
-    if not success:
-        error = "Unable to process capture"
+    error = validate_token(payment_information.token)
+    success = not error
 
     return GatewayResponse(
         is_success=success,
@@ -104,21 +124,9 @@ def process_payment(
     """Process the payment."""
     token = payment_information.token
 
-    # Process payment normally if payment token is valid
-    if token not in dict(ChargeStatus.CHOICES):
-        return capture(payment_information, config)
+    if token in PREAUTHORIZED_TOKENS:
+        authorize_response = authorize(payment_information, config)
+        if not config.auto_capture:
+            return authorize_response
 
-    # Process payment by charge status which is selected in the payment form
-    # Note that is for testing by dummy gateway only
-    charge_status = token
-    authorize_response = authorize(payment_information, config)
-    if charge_status == ChargeStatus.NOT_CHARGED:
-        return authorize_response
-
-    if not config.auto_capture:
-        return authorize_response
-
-    capture_response = capture(payment_information, config)
-    if charge_status == ChargeStatus.FULLY_REFUNDED:
-        return refund(payment_information, config)
-    return capture_response
+    return capture(payment_information, config)
