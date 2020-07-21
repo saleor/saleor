@@ -18,7 +18,7 @@ from ....core.payments import PaymentInterface
 from ....core.taxes import zero_money
 from ....order.models import Order
 from ....payment import TransactionKind
-from ....payment.gateways.dummy import TOKEN_VALIDATION_MAPPING
+from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
@@ -647,6 +647,16 @@ def expected_dummy_gateway():
     }
 
 
+@pytest.fixture
+def expected_dummy_credit_card_gateway():
+    return {
+        "id": "mirumee.payments.dummy_credit_card",
+        "name": "Dummy Credit Card",
+        "config": [{"field": "store_customer_card", "value": "false"}],
+        "currencies": ["USD"],
+    }
+
+
 GET_CHECKOUT_PAYMENTS_QUERY = """
 query getCheckoutPayments($token: UUID!) {
     checkout(token: $token) {
@@ -665,7 +675,10 @@ query getCheckoutPayments($token: UUID!) {
 
 
 def test_checkout_available_payment_gateways(
-    api_client, checkout_with_item, expected_dummy_gateway
+    api_client,
+    checkout_with_item,
+    expected_dummy_gateway,
+    expected_dummy_credit_card_gateway,
 ):
     query = GET_CHECKOUT_PAYMENTS_QUERY
     variables = {"token": str(checkout_with_item.token)}
@@ -673,11 +686,18 @@ def test_checkout_available_payment_gateways(
 
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
-    assert data["availablePaymentGateways"] == [expected_dummy_gateway]
+    assert data["availablePaymentGateways"] == [
+        expected_dummy_gateway,
+        expected_dummy_credit_card_gateway,
+    ]
 
 
 def test_checkout_available_payment_gateways_currency_specified_USD(
-    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway
+    api_client,
+    checkout_with_item,
+    expected_dummy_gateway,
+    expected_dummy_credit_card_gateway,
+    sample_gateway,
 ):
     checkout_with_item.currency = "USD"
     checkout_with_item.save(update_fields=["currency"])
@@ -691,6 +711,7 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
     data = content["data"]["checkout"]
     assert {gateway["id"] for gateway in data["availablePaymentGateways"]} == {
         expected_dummy_gateway["id"],
+        expected_dummy_credit_card_gateway["id"],
         ActiveDummyPaymentGateway.PLUGIN_ID,
     }
 
@@ -1889,7 +1910,7 @@ def test_checkout_complete_error_in_gateway_response(
     user_api_client,
     checkout_with_gift_card,
     gift_card,
-    payment_dummy,
+    payment_dummy_credit_card,
     address,
     shipping_method,
 ):
@@ -1905,7 +1926,7 @@ def test_checkout_complete_error_in_gateway_response(
     checkout.save()
 
     total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
-    payment = payment_dummy
+    payment = payment_dummy_credit_card
     payment.is_active = True
     payment.order = None
     payment.total = total.gross.amount

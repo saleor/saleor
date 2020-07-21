@@ -701,9 +701,14 @@ def test_query_available_payment_gateways(user_api_client, sample_gateway):
     data = content["data"]["shop"]["availablePaymentGateways"]
     assert {gateway["id"] for gateway in data} == {
         "mirumee.payments.dummy",
+        "mirumee.payments.dummy_credit_card",
         "sampleDummy.active",
     }
-    assert {gateway["name"] for gateway in data} == {"Dummy", "SampleDummy"}
+    assert {gateway["name"] for gateway in data} == {
+        "Dummy",
+        "Dummy Credit Card",
+        "SampleDummy",
+    }
 
 
 def test_query_available_payment_gateways_specified_currency_USD(
@@ -715,9 +720,14 @@ def test_query_available_payment_gateways_specified_currency_USD(
     data = content["data"]["shop"]["availablePaymentGateways"]
     assert {gateway["id"] for gateway in data} == {
         "mirumee.payments.dummy",
+        "mirumee.payments.dummy_credit_card",
         "sampleDummy.active",
     }
-    assert {gateway["name"] for gateway in data} == {"Dummy", "SampleDummy"}
+    assert {gateway["name"] for gateway in data} == {
+        "Dummy",
+        "Dummy Credit Card",
+        "SampleDummy",
+    }
 
 
 def test_query_available_payment_gateways_specified_currency_PLN(
