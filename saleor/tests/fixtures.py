@@ -1332,7 +1332,9 @@ def order_line(order, variant, channel_USD):
 
 
 @pytest.fixture
-def order_line_with_allocation_in_many_stocks(customer_user, variant_with_many_stocks):
+def order_line_with_allocation_in_many_stocks(
+    customer_user, variant_with_many_stocks, channel_USD
+):
     address = customer_user.default_billing_address.get_copy()
     variant = variant_with_many_stocks
     stocks = variant.stocks.all().order_by("pk")
@@ -1341,7 +1343,8 @@ def order_line_with_allocation_in_many_stocks(customer_user, variant_with_many_s
         billing_address=address, user_email=customer_user.email, user=customer_user
     )
 
-    net = variant.get_price()
+    # TODO: We should use channel from order. #5883
+    net = variant.get_price(channel_USD.slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order_line = order.lines.create(
         product_name=str(variant.product),
@@ -1365,7 +1368,9 @@ def order_line_with_allocation_in_many_stocks(customer_user, variant_with_many_s
 
 
 @pytest.fixture
-def order_line_with_one_allocation(customer_user, variant_with_many_stocks):
+def order_line_with_one_allocation(
+    customer_user, variant_with_many_stocks, channel_USD
+):
     address = customer_user.default_billing_address.get_copy()
     variant = variant_with_many_stocks
     stocks = variant.stocks.all().order_by("pk")
@@ -1374,7 +1379,8 @@ def order_line_with_one_allocation(customer_user, variant_with_many_stocks):
         billing_address=address, user_email=customer_user.email, user=customer_user
     )
 
-    net = variant.get_price()
+    # TODO: We should use channel from order. #5883
+    net = variant.get_price(channel_USD.slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order_line = order.lines.create(
         product_name=str(variant.product),
