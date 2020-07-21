@@ -29,7 +29,9 @@ if settings.DEBUG:
             settings.py should already have warned the user about it."
         )
     else:
-        urlpatterns += [url(r"^__debug__/", include(debug_toolbar.urls))]
+        urlpatterns += [
+            url(r"^__debug__/", include(debug_toolbar.urls))  # type: ignore
+        ]
 
     urlpatterns += static("/media/", document_root=settings.MEDIA_ROOT) + [
         url(r"^static/(?P<path>.*)$", serve),
