@@ -4,6 +4,32 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
+def add_channel_slug(apps, schema_editor):
+    Channel = apps.get_model("channel", "Channel")
+    Checkout = apps.get_model("checkout", "Checkout")
+
+    if Checkout.objects.exists():
+        channels_dict = {}
+
+        for checkout in Checkout.objects.iterator():
+            currency = checkout.currency
+            channel = channels_dict.get(currency)
+
+            if not channel:
+                channel, _ = Channel.objects.get_or_create(
+                    currency_code=currency,
+                    defaults={
+                        "name": f"Channel {currency}",
+                        "slug": f"channel-{currency.lower()}",
+                    },
+                )
+                channels_dict[currency] = channel
+
+            checkout.channel = channel
+
+            checkout.save(update_fields=["channel"])
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -17,9 +43,10 @@ class Migration(migrations.Migration):
             name="channel",
             field=models.ForeignKey(
                 null=True,
-                on_delete=django.db.models.deletion.SET_NULL,
+                on_delete=django.db.models.deletion.PROTECT,
                 related_name="checkouts",
                 to="channel.Channel",
             ),
         ),
+        migrations.RunPython(add_channel_slug),
     ]

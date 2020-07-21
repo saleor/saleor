@@ -33,6 +33,9 @@ class CheckoutQueries(graphene.ObjectType):
         Checkout,
         description="Look up a checkout by token.",
         token=graphene.Argument(UUID, description="The checkout's token."),
+        channel_slug=graphene.Argument(
+            graphene.String, description="The checkout's channel slug."
+        ),
     )
     # FIXME we could optimize the below field
     checkouts = BaseDjangoConnectionField(Checkout, description="List of checkouts.")
@@ -45,8 +48,8 @@ class CheckoutQueries(graphene.ObjectType):
         CheckoutLine, description="List of checkout lines."
     )
 
-    def resolve_checkout(self, info, token):
-        return resolve_checkout(info, token)
+    def resolve_checkout(self, info, token, channel_slug):
+        return resolve_checkout(info, token, channel_slug)
 
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
     def resolve_checkouts(self, *_args, **_kwargs):

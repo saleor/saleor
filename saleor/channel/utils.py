@@ -21,9 +21,10 @@ def get_default_channel_slug_if_available() -> str:
     return channel.slug
 
 
-def raise_channel_validation():
-    """Enable validation if there are more than 2 channels."""
-    count = Channel.objects.count()
-    if count >= 2:
-        return True
-    return False
+def get_channel_slug(channel_slug):
+    if not channel_slug:
+        try:
+            channel_slug = get_default_channel_slug_if_available()
+        except NoChannelException:
+            return None
+    return channel_slug

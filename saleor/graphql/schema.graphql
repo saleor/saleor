@@ -889,6 +889,7 @@ type Checkout implements Node & ObjectWithMetadata {
   lastChange: DateTime!
   user: User
   quantity: Int!
+  channel: Channel
   billingAddress: Address
   shippingAddress: Address
   shippingMethod: ShippingMethod
@@ -911,6 +912,7 @@ type Checkout implements Node & ObjectWithMetadata {
   shippingPrice: TaxedMoney
   subtotalPrice: TaxedMoney
   token: UUID!
+  channelSlug: String!
   totalPrice: TaxedMoney
 }
 
@@ -4341,7 +4343,7 @@ type Query {
   exportFile(id: ID!): ExportFile
   exportFiles(filter: ExportFileFilterInput, sortBy: ExportFileSortingInput, channel: String, before: String, after: String, first: Int, last: Int): ExportFileCountableConnection
   taxTypes: [TaxType]
-  checkout(token: UUID): Checkout
+  checkout(token: UUID, channelSlug: String): Checkout
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(channel: String, before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection

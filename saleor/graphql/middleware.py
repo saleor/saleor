@@ -10,8 +10,8 @@ from graphql import ResolveInfo
 from graphql.error import GraphQLError
 
 from ..app.models import App
-from ..channel.exceptions import ChannelSlugNotPassedException, NoChannelException
-from ..channel.utils import get_default_channel_slug_if_available
+from ..channel.exceptions import ChannelSlugNotPassedException
+from ..channel.utils import get_channel_slug
 from ..core.exceptions import ReadOnlyException
 from ..core.tracing import should_trace
 from .views import API_PATH, GraphQLView
@@ -47,18 +47,14 @@ class ChannelMiddleware:
             request.channel_slug = channel_slug
         if not hasattr(request, "channel_slug"):
 
-            def get_channel_slug(channel_slug):
-                if not channel_slug:
-                    try:
-                        channel_slug = get_default_channel_slug_if_available()
-                    except ChannelSlugNotPassedException:
-                        raise GraphQLError("Argument 'channel` not passed.")
-                    except NoChannelException:
-                        return None
-                return channel_slug
+            def get_channel_slug_from_utils(channel_slug):
+                try:
+                    return get_channel_slug(channel_slug)
+                except ChannelSlugNotPassedException:
+                    raise GraphQLError("Argument 'channel` not passed.")
 
             request.channel_slug = SimpleLazyObject(
-                lambda: get_channel_slug(channel_slug)
+                lambda: get_channel_slug_from_utils(channel_slug)
             )
         return next(root, info, **kwargs)
 

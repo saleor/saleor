@@ -116,6 +116,9 @@ class Checkout(CountableDjangoObjectType):
         description="The price of the checkout before shipping, with taxes included.",
     )
     token = graphene.Field(UUID, description=("The checkout's token."), required=True)
+    channel_slug = graphene.String(
+        description=("The checkout's channel slug."), required=True
+    )
     total_price = graphene.Field(
         TaxedMoney,
         description=(
@@ -132,6 +135,7 @@ class Checkout(CountableDjangoObjectType):
             "gift_cards",
             "is_shipping_required",
             "last_change",
+            "channel",
             "note",
             "quantity",
             "shipping_address",

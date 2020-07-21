@@ -13,7 +13,6 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ..account.models import User
 from ..account.utils import store_user_address
-from ..channel.models import Channel
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import ProductNotPublished
@@ -97,11 +96,6 @@ def check_variant_in_stock(
         check_stock_quantity(variant, checkout.get_country(), new_quantity)
 
     return new_quantity, line
-
-
-def add_channel_to_checkout(checkout, channel_slug):
-    channel = Channel.objects.get(slug=channel_slug)
-    checkout.channel = channel
 
 
 def add_variant_to_checkout(

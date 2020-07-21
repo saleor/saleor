@@ -7,12 +7,13 @@ from django.db import transaction
 from django.db.models import Prefetch
 
 from ...account.error_codes import AccountErrorCode
-from ...channel.utils import raise_channel_validation
+from ...channel.exceptions import ChannelSlugNotPassedException
+from ...channel.models import Channel
+from ...channel.utils import get_channel_slug
 from ...checkout import models
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
     abort_order_data,
-    add_channel_to_checkout,
     add_promo_code_to_checkout,
     add_variant_to_checkout,
     change_billing_address_in_checkout,
@@ -223,7 +224,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def clean_channel(cls, channel_slug):
-        if raise_channel_validation():
+        try:
+            channel_slug = get_channel_slug(channel_slug)
+        except ChannelSlugNotPassedException:
             raise ValidationError(
                 {
                     "channel_slug": ValidationError(
@@ -233,6 +236,20 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 }
             )
 
+        try:
+            channel = Channel.objects.get(slug=channel_slug)
+        except Channel.DoesNotExist:
+            raise ValidationError(
+                {
+                    "channel_slug": ValidationError(
+                        f"Channel with '{channel_slug}' slug does not exist.",
+                        code=CheckoutErrorCode.NOT_FOUND,
+                    )
+                }
+            )
+
+        return channel
+
     @classmethod
     def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
@@ -240,8 +257,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         country = info.context.country.code
 
         channel_slug = cleaned_input.get("channel_slug")
-        if channel_slug is None:
-            cls.clean_channel(channel_slug)
+        cleaned_input["channel"] = cls.clean_channel(channel_slug)
 
         # set country to one from shipping address
         shipping_address = cleaned_input.get("shipping_address")
@@ -335,7 +351,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         else:
             checkout = models.Checkout()
         cleaned_input = cls.clean_input(info, checkout, data.get("input"))
-        add_channel_to_checkout(checkout, cleaned_input["channel_slug"])
+        checkout.channel = cleaned_input["channel"]
         checkout = cls.construct_instance(checkout, cleaned_input)
         cls.clean_instance(info, checkout)
         cls.save(info, checkout, cleaned_input)
