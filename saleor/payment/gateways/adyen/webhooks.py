@@ -89,9 +89,10 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
         return
 
     transaction = create_new_transaction(notification, payment, TransactionKind.AUTH)
+    reason = notification.get("reason", "-")
 
-    success_msg = "Adyen: The payment request was successful."
-    failed_msg = "Adyen: The payment request failed."
+    success_msg = f"Adyen: The payment  {transaction_id} request  was successful."
+    failed_msg = f"Adyen: The payment {transaction_id} request failed. Reason: {reason}"
     create_payment_notification_for_order(
         payment, success_msg, failed_msg, transaction.is_success
     )
@@ -111,8 +112,9 @@ def handle_cancellation(notification: Dict[str, Any], _gateway_config: GatewayCo
     )
     gateway_postprocess(new_transaction, payment)
 
-    success_msg = "Adyen: The cancel request was successful."
-    failed_msg = "Adyen: The request failed."
+    reason = notification.get("reason", "-")
+    success_msg = f"Adyen: The cancel {transaction_id} request was successful."
+    failed_msg = f"Adyen: The camcel {transaction_id} request failed. Reason: {reason}"
     create_payment_notification_for_order(
         payment, success_msg, failed_msg, transaction.is_success
     )
@@ -144,8 +146,9 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
     )
     gateway_postprocess(new_transaction, payment)
 
+    reason = notification.get("reason", "-")
     success_msg = f"Adyen: The capture {transaction_id} request was successful."
-    failed_msg = f"Adyen: The capture {transaction_id} request failed."
+    failed_msg = f"Adyen: The capture {transaction_id} request failed. Reason: {reason}"
     create_payment_notification_for_order(
         payment, success_msg, failed_msg, transaction.is_success
     )
@@ -168,7 +171,11 @@ def handle_failed_capture(notification: Dict[str, Any], _gateway_config: Gateway
     )
     gateway_postprocess(new_transaction, payment)
 
-    msg = f"Adyen: The capture for {transaction_id} failed due to a technical issue."
+    reason = notification.get("reason", "-")
+    msg = (
+        f"Adyen: The capture for {transaction_id} failed due to a technical issue. "
+        f"Reason: {reason}"
+    )
     create_payment_notification_for_order(payment, msg, None, True)
 
 
@@ -190,7 +197,8 @@ def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
     )
     gateway_postprocess(new_transaction, payment)
 
-    msg = f"Adyen: The transaction {transaction_id} is pending."
+    reason = notification.get("reason", "-")
+    msg = f"Adyen: The transaction {transaction_id} is pending. Reason: {reason}"
     create_payment_notification_for_order(payment, msg, None, transaction.is_success)
 
 
@@ -208,8 +216,9 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     )
     gateway_postprocess(new_transaction, payment)
 
+    reason = notification.get("reason", "-")
     success_msg = f"Adyen: The refund {transaction_id} request was successful."
-    failed_msg = f"Adyen: The refund {transaction_id} request failed."
+    failed_msg = f"Adyen: The refund {transaction_id} request failed. Reason: {reason}"
     create_payment_notification_for_order(
         payment, success_msg, failed_msg, transaction.is_success
     )
@@ -229,9 +238,11 @@ def handle_failed_refund(notification: Dict[str, Any], _gateway_config: GatewayC
     )
     gateway_postprocess(new_transaction, payment)
 
+    reason = notification.get("reason", "-")
     msg = (
-        f"The refund {transaction_id} failed due to a technical issue. If you receive "
-        f"more than two failures on the same refund, contact Adyen Support Team."
+        f"Adyen: The refund {transaction_id} failed due to a technical issue. If you"
+        f" receive more than two failures on the same refund, contact Adyen Support "
+        f"Team. Reason: {reason}"
     )
     create_payment_notification_for_order(payment, msg, msg, transaction.is_success)
 
@@ -254,10 +265,12 @@ def handle_reversed_refund(
         notification, payment, TransactionKind.REFUND_REVERSED
     )
     gateway_postprocess(new_transaction, payment)
+
+    reason = notification.get("reason", "-")
     msg = (
         f"Adyen: The refunded amount from {transaction_id} has been returned to Adyen, "
         f"and is back in your account. This may happen if the shopper's bank account "
-        f"is no longer valid"
+        f"is no longer valid. Reason: {reason}"
     )
     create_payment_notification_for_order(payment, msg, msg, transaction.is_success)
 
@@ -278,8 +291,10 @@ def handle_refund_with_data(
         notification, payment, TransactionKind.REFUND
     )
     gateway_postprocess(new_transaction, payment)
+
+    reason = notification.get("reason", "-")
     success_msg = f"Adyen: The refund {transaction_id} request was successful."
-    failed_msg = f"Adyen: The refund {transaction_id} request failed."
+    failed_msg = f"Adyen: The refund {transaction_id} request failed. Reason: {reason}"
     create_payment_notification_for_order(
         payment, success_msg, failed_msg, transaction.is_success
     )
