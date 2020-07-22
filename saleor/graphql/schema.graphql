@@ -2671,7 +2671,6 @@ type Mutation {
   paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
   paymentRefund(amount: Decimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
-  paymentSecureConfirm(paymentId: ID!): PaymentSecureConfirm
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
@@ -3443,12 +3442,6 @@ input PaymentInput {
 }
 
 type PaymentRefund {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  payment: Payment
-  paymentErrors: [PaymentError!]!
-}
-
-type PaymentSecureConfirm {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   payment: Payment
   paymentErrors: [PaymentError!]!
