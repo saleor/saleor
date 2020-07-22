@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
+
+from saleor.plugins.manager import get_plugins_manager
+
 from saleor.product.models import Product, AssignedProductAttribute, \
     AttributeValue
 from saleor.plugins.models import PluginConfiguration
@@ -45,22 +48,23 @@ class AllegroPlugin(BasePlugin):
     }
 
     DEFAULT_REDIRECT_URI = 'https://allegro.pl.allegrosandbox.pl/auth/oauth'
-
     CLIENT_ID = '55ad2cda731c4160a001fb195bd47b2d'
     CLIENT_SECRET = '71Uv6BqXFwVnhgw828COleU1swy5ZPG0TOb0dtTcfOzj5u0EvWrapeKly4N5fMnB'
     CALLBACK_URL = 'http://localhost:8000/allegro'
 
+    TOKEN = ''
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
 
         configuration = {item["name"]: item["value"] for item in self.configuration}
 
         self.config = AllegroConfiguration(is_connected=configuration["is_connected"], token_access=configuration["token_access"], token_value=configuration["token_value"])
 
         if(configuration['token_value'] == None):
-            self.get_access_code(self.CLIENT_ID, self.CLIENT_SECRET, self.CALLBACK_URL, self.DEFAULT_REDIRECT_URI)
-
-        self._cached_taxes = {}
+            allegro_auth = AllegroAuth()
+            allegro_auth.get_access_code(self.CLIENT_ID, self.CLIENT_SECRET, self.CALLBACK_URL, self.DEFAULT_REDIRECT_URI)
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
@@ -88,8 +92,19 @@ class AllegroPlugin(BasePlugin):
             cls._append_config_structure(plugin_configuration.configuration)
         return plugin_configuration
 
+
+
+
+
     def product_created(self, product: "Product", previous_value: Any) -> Any:
 
+        # manager = get_plugins_manager()
+        # plugin = manager.get_plugin(AllegroPlugin.PLUGIN_ID)
+        # print('Token', plugin.config.token_value)
+
+        allegro_api = AllegroAPI(self.config.token_value)
+
+        allegro_api.product_created(product=product)
 
 class AllegroAuth:
 
@@ -108,8 +123,7 @@ class AllegroAuth:
         return True
 
 
-    def sign_in(self, client_id, client_secret, access_code,
-                redirect_uri, oauth_url):
+    def sign_in(self, client_id, client_secret, access_code, redirect_uri, oauth_url):
 
 
         token_url = oauth_url + '/token'
@@ -127,7 +141,7 @@ class AllegroAuth:
         cleaned_data = {
             "configuration": [{"name": "token_value", "value": access_token}]}
 
-        self.save_plugin_configuration(plugin_configuration=PluginConfiguration.objects.get(
+        AllegroPlugin.save_plugin_configuration(plugin_configuration=PluginConfiguration.objects.get(
             identifier=AllegroPlugin.PLUGIN_ID), cleaned_data=cleaned_data, )
 
 
@@ -138,6 +152,8 @@ class AllegroAuth:
 
     def resolve_auth(request):
 
+        allegro_auth = AllegroAuth()
+
         access_code = request.GET["code"]
 
         CLIENT_ID = '55ad2cda731c4160a001fb195bd47b2d'
@@ -145,8 +161,7 @@ class AllegroAuth:
         CALLBACK_URL = 'http://localhost:8000/allegro'
         DEFAULT_REDIRECT_URI = 'https://allegro.pl.allegrosandbox.pl/auth/oauth'
 
-        AllegroPlugin.sign_in(AllegroPlugin, CLIENT_ID,
-                              CLIENT_SECRET, access_code,
+        allegro_auth.sign_in(CLIENT_ID, CLIENT_SECRET, access_code,
                               CALLBACK_URL, DEFAULT_REDIRECT_URI)
 
 
@@ -155,46 +170,55 @@ class AllegroAuth:
 
 class AllegroAPI:
 
-    def get_allegro_dictionary(self, slug):
+    token = ''
 
-        PATH = '/Users/patryk/data_with_slug.csv'
+    def __init__(self, token):
+        self.token = token
+
+
+    def get_allegro_dictionary(self, id):
+
+        PATH = '/Users/patryk/data_with_ids.csv'
 
         input_file = csv.DictReader(open(PATH))
-        for row in input_file:
-            if row['slug'] == slug:
-                return row
+        filtered = next(filter(lambda p: p['id'] == str(id), input_file), None)
 
-    def search_category_in_allegro_dictionary(self, slug):
-        self.get_allegro_dictionary()
+        return filtered
 
 
-    def product_created(self, product: "Product", previous_value: Any) -> Any:
-
-        product = Product.objects.get(name=product)
+    def product_created(self, product: "Product") :
 
         # print('Is published ', ['http://localhost:8000' + pi.image.url for pi in ProductImage.objects.filter(product=product)])
 
         if product.private_metadata.get('publish.target') and product.private_metadata.get('publish.target') == 'allegro'\
                 and product.private_metadata.get('publish.status') == 'unpublished':
 
-            slug = '-'.join(product.product_type.slug.split('-')[0:-1])
+            category_name = product.category.name
 
-            category_id = self.get_allegro_dictionary(slug)['index']
+            category_id = self.get_allegro_dictionary(product.product_type.id)['index']
 
-            attributes, attributes_name = self.get_product_attributes(product=product)
-            require_params = self.get_apriopriate_paremeters_for_category(category_id)
-            missing_parameters = self.assign_missing_categories(require_params, attributes_name)
-            parameters = self.assign_parameter_to_allegro_parameter(attributes=attributes, require_params=require_params)
-            parameters = self.append_missing_categories(parameters, missing_parameters)
+            require_params = self.get_require_parameters(category_id)
+
+            category_mapper = MapperFactory().getMapper(category_name)
+
+            parameters = category_mapper.set_product(product).set_require_parameters(require_params).run_mapper()
+
+
+            # missing_parameters = self.assign_missing_parameters(require_params, attributes_name)
+
+
             allegro_product = self.create_allegro_api_product(product=product, parameters=parameters, category_id=category_id)
-            offer = self.publish_product(allegro_product=allegro_product)
 
+            # offer = self.publish_product(allegro_product=allegro_product)
+            #
+            # print(offer)
+            #
+            # if 'errors' in offer:
+            #     print('Wystąpił bład z zapisem', offer['errors'])
+            # else:
+            #     self.update_status_and_publish_data_in_private_metadata(product)
+            #     offer_publication = self.offer_publication(offer['id'])
 
-            if 'errors' in offer:
-                print('Wystąpił bład z zapisem', offer['errors'])
-            else:
-                self.update_status_and_publish_data_in_private_metadata(product)
-                offer_publication = self.offer_publication(offer['id'])
         else:
             self.set_allegro_private_metadata(product)
 
@@ -202,82 +226,58 @@ class AllegroAPI:
 
     def publish_product(self, allegro_product):
 
-        test_api_url_test = 'https://api.allegro.pl.allegrosandbox.pl/sale/offers'
+        endpoint = 'sale/offers'
 
-        api_call_headers = {'Authorization': 'Bearer ' + self.config.token_value,
-                            'Accept': 'application/vnd.allegro.public.v1+json',
-                            'Content-Type': 'application/vnd.allegro.public.v1+json'}
+        response = self.post_request(endpoint=endpoint, data=allegro_product)
 
-        api_call_response_test = requests.post(test_api_url_test,
-                                               data=json.dumps(allegro_product),
-                                               headers=api_call_headers)
-
-        return json.loads(api_call_response_test.text)
+        return json.loads(response.text)
 
 
 
-    def get_allegro_category_id(self):
-        pass
+    def post_request(self, endpoint, data):
 
-    def assign_parameter_to_allegro_parameter(self, attributes, require_params):
+        url = 'https://api.allegro.pl.allegrosandbox.pl/' + endpoint
 
-        params = []
+        headers = {'Authorization': 'Bearer ' + self.token,
+                   'Accept': 'application/vnd.allegro.public.v1+json',
+                   'Content-Type': 'application/vnd.allegro.public.v1+json'}
 
-        for atr in attributes:
-            param = next((param for param in require_params if
-                          param["name"].split(' ')[0] ==
-                          str(atr.get('name')).split(' ')[0]), False)
-            value = next((value for value in param['dictionary'] if
-                          value["value"] == str(atr.get('value'))), False)
-            params.append({'id': param['id'], 'valuesIds': [value['id']], "values": [],
-                           "rangeValue": None})
+        response = requests.post(url, data=json.dumps(data), headers=headers)
 
+        print('Response', response)
 
-        return params
+        return response
 
+    def get_request(self, endpoint):
 
+        url = 'https://api.allegro.pl.allegrosandbox.pl/' + endpoint
 
-    def append_missing_categories(self, parameters, missing_parameters):
+        headers = {'Authorization': 'Bearer ' + self.token,
+                   'Accept': 'application/vnd.allegro.public.v1+json',
+                   'Content-Type': 'application/vnd.allegro.public.v1+json'}
 
-        for missing_parameter in missing_parameters:
-            parameters.append(missing_parameter)
+        response = requests.get(url, headers=headers)
 
-        return parameters
+        return response
 
-    def get_apriopriate_paremeters_for_category(self, category_id):
+    def get_require_parameters(self, category_id):
 
-        test_api_url = 'https://api.allegro.pl.allegrosandbox.pl/sale/categories/' + category_id + '/parameters'
+        endpoint = 'sale/categories/' + category_id + '/parameters'
 
-        api_call_headers = {'Authorization': 'Bearer ' + self.config.token_value,
-                            'Accept': 'application/vnd.allegro.public.v1+json',
-                            'Content-Type': 'application/vnd.allegro.public.v1+json'}
+        response = self.get_request(endpoint)
 
-        api_call_response = requests.get(test_api_url, headers=api_call_headers)
-
-        requireParams = [param for param in json.loads(api_call_response.text)['parameters'] if param['required'] == True]
+        requireParams = [param for param in json.loads(response.text)['parameters'] if param['required'] == True]
 
         return requireParams
 
-    def assign_missing_categories(self, require_params, attributes_name):
 
-
-        params = []
-
-        for rp in require_params:
-            if rp['name'] not in attributes_name:
-                if(rp['name'] == 'Materiał dominujący'):
-                    pass
-                else:
-                    params.append({"id": rp['id'], "valuesIds": [rp['dictionary'][0]['id']], "values": [], "rangeValue": None})
-
-        return params
 
     def create_allegro_api_product(self, product, parameters, category_id):
 
         allegro_product = {}
 
         allegro_product['afterSalesServices'] = {}
-        allegro_product['afterSalesServices']['impliedWarranty'] = {"id": "59f8273f-6dff-4242-a6c2-60dd385e9525"}
+        allegro_product['afterSalesServices']['impliedWarranty']= {"id": "59f8273f-6dff-4242-a6c2-60dd385e9525"}
         allegro_product['afterSalesServices']['returnPolicy'] = {"id": "8b0ecc6b-8812-4b0f-b8a4-a0b56585c403"}
         allegro_product['afterSalesServices']['warranty'] = {"id": "d3605a54-3cfb-4cce-8e1b-1c1adafb498c"}
         allegro_product['category'] = {}
@@ -340,42 +340,19 @@ class AllegroAPI:
         print(allegro_product)
         return allegro_product
 
-    def get_product_attributes(self, product):
 
-        assigned_product_attributes = AssignedProductAttribute.objects.filter(
-            product=product)
-
-        attributes = []
-
-        for assigned_product_attribute in assigned_product_attributes:
-            try:
-                attributes.append({'name': assigned_product_attribute.assignment.attribute,
-                               'value': AttributeValue.objects.get(
-                                   assignedproductattribute=assigned_product_attribute)})
-            except AttributeValue.DoesNotExist:
-                pass
-
-
-        attributes_name = [str(attribute['name']).split(' ')[0] for attribute in attributes]
-
-        return attributes, attributes_name
 
     def upload_images(self):
 
-        url = 'https://api.allegro.pl.allegrosandbox.pl/sale/images'
-
-        headers = {'Authorization': 'Bearer ' + self.config.token_value,
-                            'Accept': 'application/vnd.allegro.public.v1+json',
-                            'Content-Type': 'application/vnd.allegro.public.v1+json'}
+        endpoint = 'sale/images'
 
         data = {
              "url": "https://cdn.shoplo.com/0986/products/th2048/bca3/197520-eleganckie-body-z-dekoltem-v.jpg"
         }
 
+        response = self.post_request(endpoint=endpoint, data=data)
 
-        api_call_response = requests.post(url, data=json.dumps(data), headers=headers)
-
-        return json.loads(api_call_response.text)['location']
+        return json.loads(response.text)['location']
 
     def update_status_and_publish_data_in_private_metadata(self, product):
         product.store_value_in_private_metadata({'publish.status': 'published'})
@@ -390,12 +367,334 @@ class AllegroAPI:
 
     def offer_publication(self, offer_id):
 
-        test_api_url = 'https://api.allegro.pl.allegrosandbox.pl/sale/offer-publication-commands/' + offer_id
+        endpoint = 'offer-publication-commands/' + offer_id
+        response = self.get_request(endpoint=endpoint)
 
-        api_call_headers = {'Authorization': 'Bearer ' + self.config.token_value,
-                            'Accept': 'application/vnd.allegro.public.v1+json',
-                            'Content-Type': 'application/vnd.allegro.public.v1+json'}
+        return json.loads(response.text)
 
-        api_call_response = requests.get(test_api_url, headers=api_call_headers)
 
-        return json.loads(api_call_response.text)
+class Mapper:
+
+    def __init__(self, mapper):
+        self.mapper = mapper
+
+    def mapper(self):
+        return self.mapper.map()
+
+
+class SimpleMapper():
+
+    def __init__(self):
+        self.mapped_parameters = []
+
+    def map(self):
+        return self
+
+    def set_product_attributes(self, product_attributes):
+        self.product_attributes = product_attributes
+
+        return self
+
+    def set_require_parameters(self, require_parameters):
+        self.require_parameters = require_parameters
+
+        return self
+
+    def map_state(self):
+
+        PARAMETER_NAME = 'Stan'
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.assign_missing_parameter(PARAMETER_NAME)
+
+        return self
+
+    def map_brand(self):
+
+        PARAMETER_NAME = 'Marka'
+
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.assign_missing_parameter(PARAMETER_NAME)
+
+        return self
+
+    def map_size(self):
+
+
+        PARAMETER_NAME = 'Rozmiar'
+
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.assign_missing_parameter(PARAMETER_NAME)
+
+        return self
+
+    def map_fashion(self):
+
+
+        PARAMETER_NAME = 'Fason'
+
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+
+        else:
+            self.assign_missing_parameter(PARAMETER_NAME)
+
+
+        return self
+
+
+    def map_set(self):
+
+
+        PARAMETER_NAME = 'Zestaw'
+
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+
+        else:
+            self.assign_missing_parameter(PARAMETER_NAME)
+
+        return self
+
+
+    def map_pattern(self):
+
+        PARAMETER_NAME = 'Wzór dominujący'
+
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.assign_missing_parameter(PARAMETER_NAME)
+
+        return self
+
+    def map_color(self):
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if attribute["name"] == PARAMETER_NAME), False)
+            print('Attribute', attribute)
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.assign_missing_parameter(PARAMETER_NAME)
+
+        return self
+
+    def map_material(self):
+
+        PARAMETER_NAME = 'Materiał'
+
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.assign_missing_parameter(PARAMETER_NAME)
+
+        return self
+
+    def map_features(self):
+
+        PARAMETER_NAME = 'Cechy dodatkowe'
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.assign_missing_parameter(PARAMETER_NAME)
+
+        return self
+
+    def get_product_attributes(self):
+
+        assigned_product_attributes = AssignedProductAttribute.objects.filter(
+            product=self.product)
+
+        attributes = []
+
+        for assigned_product_attribute in assigned_product_attributes:
+            try:
+                attributes.append(
+                    {'name': str(assigned_product_attribute.assignment.attribute),
+                     'value': str(AttributeValue.objects.get(
+                         assignedproductattribute=assigned_product_attribute))})
+            except AttributeValue.DoesNotExist:
+                pass
+
+        attributes_name = [str(attribute['name']).split(' ')[0] for attribute in
+                           attributes]
+
+        return attributes, attributes_name
+
+    def run_mapper(self):
+
+        product_attributes, product_attributes_name = self.get_product_attributes()
+
+        self.set_product_attributes(product_attributes)
+
+    def assign_parameter(self, atr):
+
+        param = next((param for param in self.require_parameters if
+                      param["name"].split(' ')[0] ==
+                      str(atr.get('name')).split(' ')[0]), False)
+        value = next((value for value in param['dictionary'] if
+                      value["value"] == str(atr.get('value'))), False)
+
+        return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
+                "rangeValue": None}
+
+    def assign_missing_parameter(self, name):
+
+        param = next((param for param in self.require_parameters if
+                      param["name"].split(' ')[0] == name), False)
+        value = param['dictionary'][0]
+
+        return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
+                "rangeValue": None}
+
+class ComplexMapper(SimpleMapper):
+
+    def map(self):
+        return self
+
+    def set_product(self, product):
+        self.product = product
+
+        return self
+
+
+
+    def run_mapper(self):
+
+        attributes, attributes_name = self.get_product_attributes()
+
+        self.set_product_attributes(attributes)
+
+        missing_parameters = self.assign_missing_parameters(self.require_parameters, attributes_name)
+
+
+        for require_parameter in self.require_parameters:
+            print(require_parameter['name'])
+            self.assign_mapper(require_parameter['name'])
+
+        # parameters = self.assign_parameter_to_allegro_parameter(attributes=attributes,
+        #                                                         require_params=self.require_parameters)
+        #
+        # parameters = self.append_missing_categories(parameters, missing_parameters)
+
+        print('mapped_parameters', self.mapped_parameters)
+
+        return self.mapped_parameters
+
+    def assign_missing_parameters(cls, require_params, attributes_name):
+
+        params = []
+
+        for rp in require_params:
+            if rp['name'] not in attributes_name:
+                if(rp['name'] == 'Materiał dominujący'):
+                    pass
+                else:
+                    params.append({"id": rp['id'], "valuesIds": [rp['dictionary'][0]['id']], "values": [], "rangeValue": None})
+
+        return params
+
+    def assign_parameter_to_allegro_parameter(self, attributes, require_params):
+
+        params = []
+
+        for atr in attributes:
+
+            param = next((param for param in require_params if
+                          param["name"].split(' ')[0] ==
+                          str(atr.get('name')).split(' ')[0]), False)
+            value = next((value for value in param['dictionary'] if
+                          value["value"] == str(atr.get('value'))), False)
+            params.append({'id': param['id'], 'valuesIds': [value['id']], "values": [],
+                           "rangeValue": None})
+
+        return params
+
+
+
+    def append_missing_categories(self, parameters, missing_parameters):
+
+        for missing_parameter in missing_parameters:
+            parameters.append(missing_parameter)
+
+        return parameters
+
+    def assign_mapper(self, parameter):
+
+        if parameter == 'Stan':
+            self.map_state()
+
+        if parameter == 'Marka':
+            self.map_brand()
+
+        if parameter == 'Rozmiar':
+            self.map_size()
+
+        if parameter == 'Kolor':
+            self.map_color()
+
+        if parameter == 'Fason':
+            self.map_fashion()
+
+        if parameter == 'Zestaw':
+            self.map_set()
+
+        if parameter == 'Wzór dominujący':
+            self.map_pattern()
+
+        if parameter == 'Materiał domiujący':
+            self.map_material()
+
+        if parameter == 'Cechy dodatkowe':
+            self.map_features()
+
+
+class MapperFactory:
+
+    def getMapper(self, category):
+
+        if category == 'Body':
+            mapper = Mapper(SimpleMapper).mapper()
+
+            return mapper
+
+        if category == 'Majtki':
+            mapper = Mapper(ComplexMapper).mapper()
+
+            return mapper
