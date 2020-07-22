@@ -59,11 +59,15 @@ class TransactionKind:
 
     AUTH = "auth"
     CAPTURE = "capture"
+    CAPTURE_FAILED = "capture_failed"
     VOID = "void"
     PENDING = "pending"
     REFUND = "refund"
     REFUND_ONGOING = "refund_ongoing"
+    REFUND_FAILED = "refund_failed"
+    REFUND_REVERSED = "refund_reversed"
     CONFIRM = "confirm"
+    CANCEL = "cancel"
     # FIXME we could use another status like WAITING_FOR_AUTH for transactions
     # Which were authorized, but needs to be confirmed manually by staff
     # eg. Braintree with "submit_for_settlement" enabled
@@ -75,6 +79,7 @@ class TransactionKind:
         (CAPTURE, "Capture"),
         (VOID, "Void"),
         (CONFIRM, "Confirm"),
+        (CANCEL, "Cancel"),
     ]
 
 
@@ -97,6 +102,8 @@ class ChargeStatus:
     FULLY_CHARGED = "fully-charged"
     PARTIALLY_REFUNDED = "partially-refunded"
     FULLY_REFUNDED = "fully-refunded"
+    REFUSED = "refused"
+    CANCELLED = "cancelled"
 
     CHOICES = [
         (NOT_CHARGED, "Not charged"),
@@ -105,4 +112,6 @@ class ChargeStatus:
         (FULLY_CHARGED, "Fully charged"),
         (PARTIALLY_REFUNDED, "Partially refunded"),
         (FULLY_REFUNDED, "Fully refunded"),
+        (REFUSED, "Refused"),
+        (CANCELLED, "Cancelled"),
     ]
