@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 import graphene
 import pytest
@@ -498,6 +499,11 @@ def test_payment_capture_gateway_error(
     assert not txn.is_success
 
 
+@patch(
+    "saleor.payment.gateways.dummy_credit_card.plugin."
+    "DummyCreditCardGatewayPlugin.DEFAULT_ACTIVE",
+    True,
+)
 def test_payment_capture_gateway_dummy_credit_card_error(
     staff_api_client, permission_manage_orders, payment_txn_preauth, monkeypatch
 ):
