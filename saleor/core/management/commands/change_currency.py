@@ -11,7 +11,13 @@ from ....shipping.models import ShippingMethod
 
 
 class Command(BaseCommand):
-    help = "Change currency in all models in database."
+    help = (
+        "Change currency in all models in the database. "
+        "Note, that this command only changes currency code "
+        "without doing any conversion. "
+        "Currency set by this command must match "
+        "with the value set in DEFAULT_CURRENCY environment variable."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument("currency", type=str)
