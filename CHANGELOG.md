@@ -4,6 +4,10 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## 2.10.2
+
+- Add command to change currencies in the database - #5906 by @d-wysocki
+
 ## 2.10.1
 
 - Fix multiplied stock quantity - #5675 by @fowczarek
