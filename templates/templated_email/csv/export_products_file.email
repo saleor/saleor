@@ -15,5 +15,5 @@ Your file with products data is ready to download: {{ csv_link }}
 {% endblock %}
 
 {% block html %}
-{% include 'templated_email/compiled/export_products_csv.html' %}
+{% include 'templated_email/compiled/export_products_file.html' %}
 {% endblock %}
