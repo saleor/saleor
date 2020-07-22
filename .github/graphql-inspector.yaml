@@ -1,0 +1,2 @@
+branch: "master"
+schema: "saleor/graphql/schema.graphql"
