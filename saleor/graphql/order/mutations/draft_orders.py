@@ -306,6 +306,7 @@ class DraftOrderLinesCreate(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
+        info.context.channel_slug = order.channel.slug
         if order.status != OrderStatus.DRAFT:
             raise ValidationError(
                 {

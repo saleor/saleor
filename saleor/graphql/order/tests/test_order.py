@@ -904,7 +904,7 @@ def test_draft_order_complete_product_without_inventory_tracking(
     assert draft_placed_event.parameters == {}
 
 
-@pytest.mark.skip(reason="We should use channel from order in product resolvers.")
+# @pytest.mark.skip(reason="We should use channel from order in product resolvers.")
 def test_draft_order_complete_out_of_stock_variant(
     staff_api_client, permission_manage_orders, staff_user, draft_order
 ):
@@ -1014,7 +1014,7 @@ DRAFT_ORDER_LINES_CREATE_MUTATION = """
 """
 
 
-@pytest.mark.skip(reason="We should use channel from order in product resolvers.")
+# @pytest.mark.skip(reason="We should use channel from order in product resolvers.")
 def test_draft_order_lines_create(
     draft_order, permission_manage_orders, staff_api_client
 ):

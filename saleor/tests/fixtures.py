@@ -1435,6 +1435,7 @@ def order_with_lines(
     )
 
     order.shipping_address = order.billing_address.get_copy()
+    order.channel = channel_USD
     method = shipping_zone.shipping_methods.first()
     order.shipping_method_name = method.name
     order.shipping_method = method

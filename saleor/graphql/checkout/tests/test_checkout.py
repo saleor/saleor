@@ -1487,11 +1487,12 @@ def test_checkout_shipping_address_update(
 def test_checkout_shipping_address_update_changes_checkout_country(
     mocked_update_shipping_method,
     user_api_client,
+    channel_USD,
     variant_with_many_stocks_different_shipping_zones,
     graphql_address_data,
 ):
     variant = variant_with_many_stocks_different_shipping_zones
-    checkout = Checkout.objects.create()
+    checkout = Checkout.objects.create(channel=channel_USD)
     checkout.set_country("PL", commit=True)
     add_variant_to_checkout(checkout, variant, 1)
     assert checkout.shipping_address is None
@@ -1535,12 +1536,13 @@ def test_checkout_shipping_address_update_changes_checkout_country(
 @override_settings(DEFAULT_COUNTRY="DE")
 def test_checkout_shipping_address_update_insufficient_stocks(
     mocked_update_shipping_method,
+    channel_USD,
     user_api_client,
     variant_with_many_stocks_different_shipping_zones,
     graphql_address_data,
 ):
     variant = variant_with_many_stocks_different_shipping_zones
-    checkout = Checkout.objects.create()
+    checkout = Checkout.objects.create(channel=channel_USD)
     checkout.set_country("PL", commit=True)
     add_variant_to_checkout(checkout, variant, 1)
     Stock.objects.filter(

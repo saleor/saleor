@@ -10,8 +10,8 @@ from graphql import ResolveInfo
 from graphql.error import GraphQLError
 
 from ..app.models import App
-from ..channel.exceptions import ChannelSlugNotPassedException
-from ..channel.utils import get_channel_slug
+from ..channel.exceptions import ChannelSlugNotPassedException, NoChannelException
+from ..channel.utils import get_default_channel_slug_if_available
 from ..core.exceptions import ReadOnlyException
 from ..core.tracing import should_trace
 from .views import API_PATH, GraphQLView
@@ -37,8 +37,14 @@ class JWTMiddleware:
 class ChannelMiddleware:
     def resolve(self, next, root, info, **kwargs):
         request = info.context
-
-        channel_slug = kwargs.get("channel")
+        request_input = kwargs.get("input", {})
+        channel = kwargs.get("channel")
+        if isinstance(request_input, dict) and request_input:
+            channel_slug = request_input.get("channel_slug")
+        elif channel is not None:
+            channel_slug = channel
+        else:
+            channel_slug = None
         if (
             hasattr(request, "channel_slug")
             and isinstance(request.channel_slug, SimpleLazyObject)
@@ -47,14 +53,18 @@ class ChannelMiddleware:
             request.channel_slug = channel_slug
         if not hasattr(request, "channel_slug"):
 
-            def get_channel_slug_from_utils(channel_slug):
-                try:
-                    return get_channel_slug(channel_slug)
-                except ChannelSlugNotPassedException:
-                    raise GraphQLError("Argument 'channel` not passed.")
+            def get_channel_slug(channel_slug):
+                if not channel_slug:
+                    try:
+                        channel_slug = get_default_channel_slug_if_available()
+                    except ChannelSlugNotPassedException:
+                        raise GraphQLError("Argument 'channel` not passed.")
+                    except NoChannelException:
+                        return None
+                return channel_slug
 
             request.channel_slug = SimpleLazyObject(
-                lambda: get_channel_slug_from_utils(channel_slug)
+                lambda: get_channel_slug(channel_slug)
             )
         return next(root, info, **kwargs)
 
