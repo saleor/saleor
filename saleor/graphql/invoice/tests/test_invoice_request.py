@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 
 from ....core import JobStatus
 from ....graphql.tests.utils import get_graphql_content
@@ -30,6 +31,14 @@ INVOICE_REQUEST_MUTATION = """
         }
     }
 """
+
+
+@pytest.fixture(autouse=True)
+def setup_dummy_gateways(settings):
+    settings.PLUGINS = [
+        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+    ]
+    return settings
 
 
 @patch("saleor.plugins.base_plugin.BasePlugin.invoice_request")
