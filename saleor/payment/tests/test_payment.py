@@ -6,7 +6,7 @@ import pytest
 from ...checkout.calculations import checkout_total
 from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
-from ..interface import CreditCardInfo, GatewayConfig, GatewayResponse
+from ..interface import CreditCardInfo, GatewayResponse
 from ..models import Payment
 from ..utils import (
     ALLOWED_GATEWAY_KINDS,
@@ -58,16 +58,6 @@ def transaction_data(payment_dummy, gateway_response):
         "kind": TransactionKind.CAPTURE,
         "gateway_response": gateway_response,
     }
-
-
-@pytest.fixture
-def gateway_config():
-    return GatewayConfig(
-        gateway_name="Dummy",
-        auto_capture=True,
-        supported_currencies="USD",
-        connection_params={"secret-key": "nobodylikesspanishinqusition"},
-    )
 
 
 @pytest.fixture
@@ -288,7 +278,7 @@ def test_gateway_refund_errors(payment_txn_captured):
     payment = payment_txn_captured
     with pytest.raises(PaymentError) as exc:
         gateway.refund(payment, Decimal("1000000"))
-    assert exc.value.message == "Cannot refund more than captured"
+    assert exc.value.message == "Cannot refund more than captured."
 
     with pytest.raises(PaymentError) as exc:
         gateway.refund(payment, Decimal("0"))
@@ -462,12 +452,14 @@ def test_validate_gateway_response_not_json_serializable(gateway_response):
 @pytest.mark.parametrize(
     "currency, exp_response", [("EUR", True), ("USD", True), ("PLN", False)],
 )
-def test_is_currency_supported(currency, exp_response, gateway_config, monkeypatch):
+def test_is_currency_supported(
+    currency, exp_response, dummy_gateway_config, monkeypatch
+):
     # given
-    gateway_config.supported_currencies = "USD, EUR"
+    dummy_gateway_config.supported_currencies = "USD, EUR"
     monkeypatch.setattr(
         "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin._get_gateway_config",
-        lambda _: gateway_config,
+        lambda _: dummy_gateway_config,
     )
 
     # when
