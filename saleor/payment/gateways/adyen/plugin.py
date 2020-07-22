@@ -1,10 +1,11 @@
 import json
-from typing import Optional
+from typing import List, Optional
 
 import Adyen
 from babel.numbers import get_currency_precision
+from django.contrib.auth.hashers import make_password
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from graphql_relay import from_global_id
 
 from ....checkout.models import Checkout
@@ -21,6 +22,7 @@ from .utils import (
     request_data_for_payment,
     request_for_payment_refund,
 )
+from .webhooks import handle_webhook
 
 GATEWAY_NAME = "Adyen"
 
@@ -50,7 +52,6 @@ class AdyenGatewayPlugin(BasePlugin):
         {"name": "Origin Key", "value": ""},
         {"name": "Origin Url", "value": ""},
         {"name": "Live", "value": ""},
-        {"name": "Enable notifications", "value": True},
         {"name": "Automatically mark payment as a capture", "value": True},
         {"name": "HMAC secret key", "value": ""},
         {"name": "Notification user", "value": ""},
@@ -109,8 +110,7 @@ class AdyenGatewayPlugin(BasePlugin):
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": (
                 "Enable the support for processing the Adyen's webhooks. The Saleor "
-                "webhook url is <your-backend-url>/plugins/mirumee.payments.adyen/"
-                "webhooks/ "
+                "webhook url is http(s)://<your-backend-url>/plugins/mirumee.payments.adyen/webhooks/ "
                 "https://docs.adyen.com/development-resources/webhooks"
             ),
             "label": "Enable notifications",
@@ -134,7 +134,8 @@ class AdyenGatewayPlugin(BasePlugin):
             "help_text": (
                 "Provide secret key generated on Adyen side."
                 "https://docs.adyen.com/development-resources/webhooks#set-up-notificat"
-                "ions-in-your-customer-area"
+                "ions-in-your-customer-area. The Saleor webhook url is "
+                "http(s)://<your-backend-url>/plugins/mirumee.payments.adyen/webhooks/"
             ),
             "label": "HMAC secret key",
         },
@@ -143,7 +144,9 @@ class AdyenGatewayPlugin(BasePlugin):
             "help_text": (
                 "Base User provided on the Adyen side for authenticate incoming "
                 "notifications. https://docs.adyen.com/development-resources/webhooks#"
-                "set-up-notifications-in-your-customer-area"
+                "set-up-notifications-in-your-customer-area "
+                "The Saleor webhook url is "
+                "http(s)://<your-backend-url>/plugins/mirumee.payments.adyen/webhooks/"
             ),
             "label": "Notification user",
         },
@@ -152,7 +155,9 @@ class AdyenGatewayPlugin(BasePlugin):
             "help_text": (
                 "User password provided on the Adyen side for authenticate incoming "
                 "notifications. https://docs.adyen.com/development-resources/webhooks#"
-                "set-up-notifications-in-your-customer-area"
+                "set-up-notifications-in-your-customer-area "
+                "The Saleor webhook url is "
+                "http(s)://<your-backend-url>/plugins/mirumee.payments.adyen/webhooks/"
             ),
             "label": "Notification password",
         },
@@ -163,7 +168,9 @@ class AdyenGatewayPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = GatewayConfig(
             gateway_name=GATEWAY_NAME,
-            auto_capture=True,  # FIXME check this
+            auto_capture=configuration[
+                "Automatically mark payment as a capture"
+            ],  # FIXME check this
             supported_currencies=configuration["Supported currencies"],
             connection_params={
                 "api_key": configuration["API key"],
@@ -171,15 +178,18 @@ class AdyenGatewayPlugin(BasePlugin):
                 "return_url": configuration["Return Url"],
                 "origin_key": configuration["Origin Key"],
                 "origin_url": configuration["Origin Url"],
+                "live": configuration["Live"],
+                "webhook_hmac": configuration["HMAC secret key"],
+                "webhook_user": configuration["Notification user"],
+                "webhook_user_password": configuration["Notification password"],
             },
         )
         api_key = self.config.connection_params["api_key"]
         self.adyen = Adyen.Adyen(xapikey=api_key)
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
-
-        print(request.body)
-        return HttpResponse("[accepted]")
+        config = self._get_gateway_config()
+        return handle_webhook(request, config)
 
     def _get_gateway_config(self) -> GatewayConfig:
         return self.config
@@ -237,6 +247,15 @@ class AdyenGatewayPlugin(BasePlugin):
             error=result.message.get("refusalReason"),
             raw_response=result.message,
         )
+
+    @classmethod
+    def _update_config_items(
+        cls, configuration_to_update: List[dict], current_config: List[dict]
+    ):
+        super()._update_config_items(configuration_to_update, current_config)
+        for item in current_config:
+            if item.get("name") == "Notification password":
+                item["value"] = make_password(item["value"])
 
     @require_active_plugin
     def get_payment_config(self, previous_value):

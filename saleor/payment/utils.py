@@ -132,7 +132,7 @@ def create_payment(
 def create_transaction(
     payment: Payment,
     kind: str,
-    payment_information: PaymentData,
+    payment_information: Optional[PaymentData],
     action_required: bool = False,
     gateway_response: GatewayResponse = None,
     error_msg=None,
@@ -220,7 +220,11 @@ def gateway_postprocess(transaction, payment):
     #     payment.charge_status = ChargeStatus.ACTION_REQUIRED
     #     payment.save(update_fields=["charge_status", ])
 
-    if transaction_kind in {TransactionKind.CAPTURE, TransactionKind.CONFIRM}:
+    if transaction_kind in {
+        TransactionKind.CAPTURE,
+        TransactionKind.CONFIRM,
+        TransactionKind.REFUND_REVERSED,
+    }:
         payment.captured_amount += transaction.amount
 
         # Set payment charge status to fully charged
@@ -249,6 +253,22 @@ def gateway_postprocess(transaction, payment):
         payment.save(
             update_fields=["charge_status",]
         )
+    elif transaction_kind == TransactionKind.CANCEL:
+        payment.charge_status = ChargeStatus.CANCELLED
+        payment.save(
+            update_fields=["charge_status",]
+        )
+    elif transaction_kind == TransactionKind.CAPTURE_FAILED:
+        if payment.charge_status in {
+            ChargeStatus.PARTIALLY_CHARGED,
+            ChargeStatus.FULLY_CHARGED,
+        }:
+            payment.captured_amount -= transaction.amount
+            payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
+            if payment.get_charge_amount() <= 0:
+                payment.charge_status = ChargeStatus.FULLY_CHARGED
+
+            payment.save(update_fields=["charge_status", "captured_amount", "modified"])
 
 
 def fetch_customer_id(user: User, gateway: str):

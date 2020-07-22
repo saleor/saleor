@@ -15,6 +15,13 @@ from ...interface import PaymentData
 logger = logging.getLogger(__name__)
 
 
+def convert_adyen_price_format(value: str, currency: str):
+    value = Decimal(value)
+    precision = get_currency_precision(currency)
+    number_places = Decimal(10) ** -precision
+    return value * number_places
+
+
 def get_price_amount(value: Decimal, currency: str):
     """Adyen doesn't use values with comma.
 

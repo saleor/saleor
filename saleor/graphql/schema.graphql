@@ -2750,7 +2750,7 @@ type Mutation {
   exportProducts(input: ExportProductsInput!): ExportProducts
   checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
-  checkoutComplete(checkoutId: ID!, redirectUrl: String, storeSource: Boolean = false): CheckoutComplete
+  checkoutComplete(checkoutId: ID!, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
   checkoutCustomerAttach(checkoutId: ID!, customerId: ID): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
@@ -3063,6 +3063,7 @@ enum OrderEventsEnum {
   EMAIL_SENT
   PAYMENT_AUTHORIZED
   PAYMENT_CAPTURED
+  PAYMENT_GATEWAY_NOTIFICATION
   PAYMENT_REFUNDED
   PAYMENT_VOIDED
   PAYMENT_FAILED
@@ -3387,10 +3388,13 @@ type PaymentCapture {
 
 enum PaymentChargeStatusEnum {
   NOT_CHARGED
+  PENDING
   PARTIALLY_CHARGED
   FULLY_CHARGED
   PARTIALLY_REFUNDED
   FULLY_REFUNDED
+  REFUSED
+  CANCELLED
 }
 
 type PaymentCountableConnection {
@@ -3435,7 +3439,6 @@ type PaymentGateway {
 input PaymentInput {
   gateway: String!
   token: String
-  paymentData: JSONString
   amount: Decimal
   billingAddress: AddressInput
 }
@@ -5023,10 +5026,13 @@ enum TransactionError {
 
 enum TransactionKind {
   AUTH
+  PENDING
   REFUND
+  REFUND_ONGOING
   CAPTURE
   VOID
   CONFIRM
+  CANCEL
 }
 
 union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent
