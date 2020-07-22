@@ -203,6 +203,7 @@ def get_product_availability(
 
 def get_variant_availability(
     variant: ProductVariant,
+    variant_channel_listing: ProductVariantChannelListing,
     product: Product,
     product_channel_listing: Optional[ProductChannelListing],
     collections: Iterable[Collection],
@@ -218,6 +219,7 @@ def get_variant_availability(
             product,
             get_variant_price(
                 variant=variant,
+                variant_channel_listing=variant_channel_listing,
                 product=product,
                 collections=collections,
                 discounts=discounts,
@@ -227,7 +229,11 @@ def get_variant_availability(
         undiscounted = plugins.apply_taxes_to_product(
             product,
             get_variant_price(
-                variant=variant, product=product, collections=collections, discounts=[]
+                variant=variant,
+                variant_channel_listing=variant_channel_listing,
+                product=product,
+                collections=collections,
+                discounts=[],
             ),
             country,
         )

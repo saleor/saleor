@@ -13,6 +13,8 @@ from .products import (
     ProductChannelListingByProductIdLoader,
     ProductVariantByIdLoader,
     ProductVariantsByProductIdLoader,
+    VariantChannelListingByVariantIdAndChanneSlugLoader,
+    VariantsChannelListingByProductIdAndChanneSlugLoader,
 )
 
 __all__ = [
@@ -28,4 +30,6 @@ __all__ = [
     "ProductVariantsByProductIdLoader",
     "SelectedAttributesByProductIdLoader",
     "SelectedAttributesByProductVariantIdLoader",
+    "VariantChannelListingByVariantIdAndChanneSlugLoader",
+    "VariantsChannelListingByProductIdAndChanneSlugLoader",
 ]
