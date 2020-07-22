@@ -627,40 +627,6 @@ def test_payment_refund_error(
     assert not txn.is_success
 
 
-CONFIRM_QUERY = """
-    mutation PaymentConfirm($paymentId: ID!) {
-        paymentSecureConfirm(paymentId: $paymentId) {
-            payment {
-                id,
-                chargeStatus
-            }
-            errors {
-                field
-                message
-            }
-        }
-    }
-"""
-
-
-def test_payment_confirmation_success(
-    user_api_client, payment_txn_to_confirm, graphql_address_data
-):
-    payment = payment_txn_to_confirm
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
-    variables = {"paymentId": payment_id}
-    response = user_api_client.post_graphql(CONFIRM_QUERY, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["paymentSecureConfirm"]
-    assert not data["errors"]
-
-    payment.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
-    assert payment.transactions.count() == 2
-    txn = payment.transactions.last()
-    assert txn.kind == TransactionKind.CAPTURE
-
-
 def test_payments_query(
     payment_txn_captured, permission_manage_orders, staff_api_client
 ):
