@@ -13,6 +13,7 @@ from .. import (
     refund,
     void,
 )
+from ..plugin import DummyCreditCardGatewayPlugin
 
 NO_LONGER_ACTIVE = "This payment is no longer active."
 CANNOT_BE_AUTHORIZED_AGAIN = "Charged transactions cannot be authorized again."
@@ -25,6 +26,7 @@ CANNOT_CHARGE_MORE_THAN_UNCAPTURED = "Unable to charge more than un-captured amo
 
 @pytest.fixture(autouse=True)
 def setup_dummy_credit_card_gateway(settings):
+    DummyCreditCardGatewayPlugin.DEFAULT_ACTIVE = True
     settings.PLUGINS = [
         "saleor.payment.gateways.dummy_credit_card.plugin.DummyCreditCardGatewayPlugin"
     ]
