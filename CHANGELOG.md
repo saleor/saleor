@@ -32,6 +32,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Update google merchant to get tax rate based by plugin manager - #5823 by @gabmartinez
 - Allow unicode in slug fields - #5877 by @IKarbowiak
 
+## 2.10.2
+
+- Add command to change currencies in the database - #5906 by @d-wysocki
+
 ## 2.10.1
 
 - Fix multiplied stock quantity - #5675 by @fowczarek
