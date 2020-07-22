@@ -3369,7 +3369,6 @@ type Payment implements Node {
   order: Order
   billingEmail: String!
   customerIpAddress: String
-  extraData: String!
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
   total: Money
@@ -3378,7 +3377,6 @@ type Payment implements Node {
   transactions: [Transaction]
   availableCaptureAmount: Money
   availableRefundAmount: Money
-  creditCard: CreditCard
 }
 
 type PaymentCapture {
@@ -5006,7 +5004,6 @@ type Transaction implements Node {
   kind: TransactionKind!
   isSuccess: Boolean!
   error: TransactionError
-  gatewayResponse: JSONString!
   amount: Money
 }
 

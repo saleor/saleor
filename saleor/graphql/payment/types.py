@@ -25,7 +25,6 @@ class Transaction(CountableDjangoObjectType):
             "kind",
             "is_success",
             "error",
-            "gateway_response",
         ]
 
     @staticmethod
@@ -89,9 +88,6 @@ class Payment(CountableDjangoObjectType):
     available_refund_amount = graphene.Field(
         Money, description="Maximum amount of money that can be refunded."
     )
-    credit_card = graphene.Field(
-        CreditCard, description="The details of the card used for this payment."
-    )
 
     class Meta:
         description = "Represents a payment of a given type."
@@ -109,7 +105,6 @@ class Payment(CountableDjangoObjectType):
             "order",
             "billing_email",
             "customer_ip_address",
-            "extra_data",
         ]
 
     @staticmethod
@@ -163,16 +158,3 @@ class Payment(CountableDjangoObjectType):
         if not root.can_capture():
             return None
         return root.get_charge_amount()
-
-    @staticmethod
-    def resolve_credit_card(root: models.Payment, _info):
-        data = {
-            "first_digits": root.cc_first_digits,
-            "last_digits": root.cc_last_digits,
-            "brand": root.cc_brand,
-            "exp_month": root.cc_exp_month,
-            "exp_year": root.cc_exp_year,
-        }
-        if not any(data.values()):
-            return None
-        return CreditCard(**data)
