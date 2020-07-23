@@ -66,9 +66,7 @@ def request_data_for_payment(
         # Add to dashboard config the flow to combine channel with url like:
         # web1:https://shop.com, web2:https://shop1.com
         extra_request_params["origin"] = origin_url
-    print(
-        float(quantize_price(payment_information.amount, payment_information.currency))
-    )
+
     request = {
         "amount": {
             "value": get_price_amount(
@@ -77,7 +75,7 @@ def request_data_for_payment(
             "currency": payment_information.currency,
         },
         "reference": payment_information.payment_id,
-        "paymentMethod": payment_data["paymentMethod"],
+        "paymentMethod": payment_data.get("paymentMethod"),
         "returnUrl": return_url,
         "merchantAccount": merchant_account,
         **extra_request_params,

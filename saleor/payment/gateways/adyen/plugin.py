@@ -234,6 +234,7 @@ class AdyenGatewayPlugin(BasePlugin):
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        # TODO Klarna data!!!
         request_data = request_data_for_payment(
             payment_information,
             return_url=self.config.connection_params["return_url"],
@@ -243,10 +244,14 @@ class AdyenGatewayPlugin(BasePlugin):
 
         result = api_call(request_data, self.adyen.checkout.payments)
         is_success = result.message["resultCode"].strip().lower() not in FAILED_STATUSES
+        if self.config.auto_capture:
+            kind = TransactionKind.CAPTURE
+        else:
+            kind = TransactionKind.AUTH
         return GatewayResponse(
             is_success=is_success,
             action_required="action" in result.message,
-            kind=TransactionKind.AUTH,
+            kind=kind,
             amount=payment_information.amount,
             currency=payment_information.currency,
             transaction_id=result.message.get("pspReference", ""),
