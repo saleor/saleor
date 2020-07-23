@@ -18,7 +18,6 @@ from ....product.utils.availability import (
     get_product_availability,
     get_variant_availability,
 )
-from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
 from ....warehouse.availability import (
     get_available_quantity,
     get_quantity_allocated,
@@ -263,7 +262,10 @@ class ProductVariant(CountableDjangoObjectType):
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.ProductVariant, *_args):
-        return get_margin_for_variant(root)
+        # TODO: consider how this resolver should work until don't have requirements
+        # for cost_price bahavior.
+        return None
+        # return get_margin_for_variant(root)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -272,8 +274,18 @@ class ProductVariant(CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_price(root: models.ProductVariant, *_args):
-        return root.price
+    # TODO: Consider about drop this field from dashboard API. Insted of this field
+    # dashboard should use channel_listing resolver(Similar to resolve_channel_listing
+    # on Product Type)
+    def resolve_price(root: models.ProductVariant, info):
+        def get_price(variant_channel_listing: models.ProductVariantChannelListing):
+            return variant_channel_listing.price
+
+        return (
+            VariantChannelListingByVariantIdAndChanneSlugLoader(info.context)
+            .load((root.id, info.context.channel_slug))
+            .then(get_price)
+        )
 
     @staticmethod
     def resolve_pricing(root: models.ProductVariant, info):
@@ -577,14 +589,20 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_purchase_cost(root: models.Product, *_args):
-        purchase_cost, _ = get_product_costs_data(root)
-        return purchase_cost
+        # TODO: consider how this resolver should work until don't have requirements
+        # for cost_price bahavior.
+        return None
+        # purchase_cost, _ = get_product_costs_data(root)
+        # return purchase_cost
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.Product, *_args):
-        _, margin = get_product_costs_data(root)
-        return Margin(margin[0], margin[1])
+        # TODO: consider how this resolver should work until don't have requirements
+        # for cost_price bahavior.
+        return None
+        # _, margin = get_product_costs_data(root)
+        # return Margin(margin[0], margin[1])
 
     @staticmethod
     def resolve_image_by_id(root: models.Product, info, id):

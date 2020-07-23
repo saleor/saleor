@@ -46,8 +46,8 @@ def update_product_minimal_variant_price_task(product_pk: int):
     # TODO: We should refactor this in separete PR
     # https://app.clickup.com/t/6a5txz
     return
-    product = Product.objects.get(pk=product_pk)
-    update_product_minimal_variant_price(product)
+    # product = Product.objects.get(pk=product_pk)
+    # update_product_minimal_variant_price(product)
 
 
 @app.task
