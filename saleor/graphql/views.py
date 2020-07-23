@@ -96,6 +96,7 @@ class GraphQLView(View):
         response[
             "Access-Control-Allow-Headers"
         ] = "Origin, Content-Type, Accept, Authorization"
+        response["Access-Control-Allow-Credentials"] = "true"
         return response
 
     def render_playground(self, request):
