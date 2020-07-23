@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 from django.db import transaction
 
@@ -69,7 +69,7 @@ def handle_fully_paid_order(order: "Order", user: "User" = None):
 
 
 @transaction.atomic
-def cancel_order(order: "Order", user: "User"):
+def cancel_order(order: "Order", user: Optional["User"]):
     """Cancel order.
 
     Release allocation of unfulfilled order items.
@@ -86,7 +86,9 @@ def cancel_order(order: "Order", user: "User"):
     manager.order_updated(order)
 
 
-def order_refunded(order: "Order", user: "User", amount: "Decimal", payment: "Payment"):
+def order_refunded(
+    order: "Order", user: Optional["User"], amount: "Decimal", payment: "Payment"
+):
     events.payment_refunded_event(
         order=order, user=user, amount=amount, payment=payment
     )
@@ -129,7 +131,7 @@ def order_shipping_updated(order: "Order"):
 
 
 def order_authorized(
-    order: "Order", user: "User", amount: "Decimal", payment: "Payment"
+    order: "Order", user: Optional["User"], amount: "Decimal", payment: "Payment"
 ):
     events.payment_authorized_event(
         order=order, user=user, amount=amount, payment=payment
@@ -137,7 +139,9 @@ def order_authorized(
     get_plugins_manager().order_updated(order)
 
 
-def order_captured(order: "Order", user: "User", amount: "Decimal", payment: "Payment"):
+def order_captured(
+    order: "Order", user: Optional["User"], amount: "Decimal", payment: "Payment"
+):
     events.payment_captured_event(
         order=order, user=user, amount=amount, payment=payment
     )

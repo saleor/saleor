@@ -118,3 +118,19 @@ def request_for_payment_refund(
         "originalReference": token,
         "reference": payment_information.payment_id,
     }
+
+
+def request_for_payment_capture(
+    payment_information: "PaymentData", merchant_account, token
+) -> Dict[str, Any]:
+    return {
+        "merchantAccount": merchant_account,
+        "modificationAmount": {
+            "value": get_price_amount(
+                payment_information.amount, payment_information.currency
+            ),
+            "currency": payment_information.currency,
+        },
+        "originalReference": token,
+        "reference": payment_information.payment_id,
+    }

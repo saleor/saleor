@@ -11,6 +11,13 @@ from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFou
 from django.http.request import HttpHeaders
 from graphql_relay import from_global_id
 
+from ....order.actions import (
+    cancel_order,
+    handle_fully_paid_order,
+    order_authorized,
+    order_captured,
+    order_refunded,
+)
 from ....order.events import payment_gateway_notification_event
 from ....payment.models import Payment, Transaction
 from ... import TransactionKind
@@ -28,7 +35,7 @@ def get_payment(payment_id: str) -> Payment:
 def get_transaction(
     payment: "Payment", transaction_id: str, kind: TransactionKind,
 ) -> Transaction:
-    transaction = payment.transactions.filter(kind=kind, token=transaction_id)
+    transaction = payment.transactions.filter(kind=kind, token=transaction_id).first()
     return transaction
 
 
@@ -96,6 +103,8 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
     create_payment_notification_for_order(
         payment, success_msg, failed_msg, transaction.is_success
     )
+    if payment.order:
+        order_authorized(payment.order, None, transaction.amount, payment)
 
 
 def handle_cancellation(notification: Dict[str, Any], _gateway_config: GatewayConfig):
@@ -116,8 +125,10 @@ def handle_cancellation(notification: Dict[str, Any], _gateway_config: GatewayCo
     success_msg = f"Adyen: The cancel {transaction_id} request was successful."
     failed_msg = f"Adyen: The camcel {transaction_id} request failed. Reason: {reason}"
     create_payment_notification_for_order(
-        payment, success_msg, failed_msg, transaction.is_success
+        payment, success_msg, failed_msg, new_transaction.is_success
     )
+    if payment.order:
+        cancel_order(payment.order, None)
 
 
 def handle_cancel_or_refund(
@@ -132,6 +143,7 @@ def handle_cancel_or_refund(
 
 
 def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
+    # FIXME execute order_fully_paid event
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return
@@ -144,14 +156,19 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
     new_transaction = create_new_transaction(
         notification, payment, TransactionKind.CAPTURE
     )
+
     gateway_postprocess(new_transaction, payment)
+    if payment.order:
+        handle_fully_paid_order(payment.order)
 
     reason = notification.get("reason", "-")
     success_msg = f"Adyen: The capture {transaction_id} request was successful."
     failed_msg = f"Adyen: The capture {transaction_id} request failed. Reason: {reason}"
     create_payment_notification_for_order(
-        payment, success_msg, failed_msg, transaction.is_success
+        payment, success_msg, failed_msg, new_transaction.is_success
     )
+    if payment.order:
+        order_captured(payment.orderm, None, transaction.amount, payment)
 
 
 def handle_failed_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
@@ -199,7 +216,9 @@ def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
 
     reason = notification.get("reason", "-")
     msg = f"Adyen: The transaction {transaction_id} is pending. Reason: {reason}"
-    create_payment_notification_for_order(payment, msg, None, transaction.is_success)
+    create_payment_notification_for_order(
+        payment, msg, None, new_transaction.is_success
+    )
 
 
 def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
@@ -220,8 +239,10 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     success_msg = f"Adyen: The refund {transaction_id} request was successful."
     failed_msg = f"Adyen: The refund {transaction_id} request failed. Reason: {reason}"
     create_payment_notification_for_order(
-        payment, success_msg, failed_msg, transaction.is_success
+        payment, success_msg, failed_msg, new_transaction.is_success
     )
+    if payment.order:
+        order_refunded(payment.order, None, transaction.amount, payment)
 
 
 def handle_failed_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
@@ -244,7 +265,7 @@ def handle_failed_refund(notification: Dict[str, Any], _gateway_config: GatewayC
         f" receive more than two failures on the same refund, contact Adyen Support "
         f"Team. Reason: {reason}"
     )
-    create_payment_notification_for_order(payment, msg, msg, transaction.is_success)
+    create_payment_notification_for_order(payment, msg, msg, new_transaction.is_success)
 
 
 def handle_reversed_refund(
@@ -272,7 +293,7 @@ def handle_reversed_refund(
         f"and is back in your account. This may happen if the shopper's bank account "
         f"is no longer valid. Reason: {reason}"
     )
-    create_payment_notification_for_order(payment, msg, msg, transaction.is_success)
+    create_payment_notification_for_order(payment, msg, msg, True)
 
 
 def handle_refund_with_data(
@@ -296,8 +317,10 @@ def handle_refund_with_data(
     success_msg = f"Adyen: The refund {transaction_id} request was successful."
     failed_msg = f"Adyen: The refund {transaction_id} request failed. Reason: {reason}"
     create_payment_notification_for_order(
-        payment, success_msg, failed_msg, transaction.is_success
+        payment, success_msg, failed_msg, new_transaction.is_success
     )
+    if payment.order:
+        order_refunded(payment.order, None, transaction.amount, payment)
 
 
 def webhook_not_implemented(
