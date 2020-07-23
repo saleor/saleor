@@ -448,3 +448,15 @@ def look_for_permission_in_users_with_manage_staff(
             common_permissions = permissions_to_find & permissions
             # remove found permission from set
             permissions_to_find.difference_update(common_permissions)
+
+
+def user_has_access(user: "User", owner: "User", perm):
+    """Check if user can access data.
+
+    Args:
+        user: requestor
+        owner: data owner
+        perm: permission which give the access to the data
+
+    """
+    return user == owner or user.has_perm(perm)
