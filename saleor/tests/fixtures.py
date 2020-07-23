@@ -997,16 +997,39 @@ def variant_with_many_stocks_different_shipping_zones(
 
 
 @pytest.fixture
-def product_variant_list(product):
-    return list(
+def product_variant_list(product, channel_USD):
+    variants = list(
         ProductVariant.objects.bulk_create(
             [
-                ProductVariant(product=product, sku="1", price_amount=Decimal(10)),
-                ProductVariant(product=product, sku="2", price_amount=Decimal(10)),
-                ProductVariant(product=product, sku="3", price_amount=Decimal(10)),
+                ProductVariant(product=product, sku="1"),
+                ProductVariant(product=product, sku="2"),
+                ProductVariant(product=product, sku="3"),
             ]
         )
     )
+    ProductVariantChannelListing.objects.bulk_create(
+        [
+            ProductVariantChannelListing(
+                variant=variants[0],
+                channel=channel_USD,
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[1],
+                channel=channel_USD,
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[2],
+                channel=channel_USD,
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+            ),
+        ]
+    )
+    return variants
 
 
 @pytest.fixture
