@@ -647,16 +647,6 @@ def expected_dummy_gateway():
     }
 
 
-@pytest.fixture
-def expected_dummy_credit_card_gateway():
-    return {
-        "id": "mirumee.payments.dummy_credit_card",
-        "name": "Dummy Credit Card",
-        "config": [{"field": "store_customer_card", "value": "false"}],
-        "currencies": ["USD"],
-    }
-
-
 GET_CHECKOUT_PAYMENTS_QUERY = """
 query getCheckoutPayments($token: UUID!) {
     checkout(token: $token) {
@@ -675,10 +665,7 @@ query getCheckoutPayments($token: UUID!) {
 
 
 def test_checkout_available_payment_gateways(
-    api_client,
-    checkout_with_item,
-    expected_dummy_gateway,
-    expected_dummy_credit_card_gateway,
+    api_client, checkout_with_item, expected_dummy_gateway,
 ):
     query = GET_CHECKOUT_PAYMENTS_QUERY
     variables = {"token": str(checkout_with_item.token)}
@@ -688,16 +675,11 @@ def test_checkout_available_payment_gateways(
     data = content["data"]["checkout"]
     assert data["availablePaymentGateways"] == [
         expected_dummy_gateway,
-        expected_dummy_credit_card_gateway,
     ]
 
 
 def test_checkout_available_payment_gateways_currency_specified_USD(
-    api_client,
-    checkout_with_item,
-    expected_dummy_gateway,
-    expected_dummy_credit_card_gateway,
-    sample_gateway,
+    api_client, checkout_with_item, expected_dummy_gateway, sample_gateway,
 ):
     checkout_with_item.currency = "USD"
     checkout_with_item.save(update_fields=["currency"])
@@ -711,7 +693,6 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
     data = content["data"]["checkout"]
     assert {gateway["id"] for gateway in data["availablePaymentGateways"]} == {
         expected_dummy_gateway["id"],
-        expected_dummy_credit_card_gateway["id"],
         ActiveDummyPaymentGateway.PLUGIN_ID,
     }
 
@@ -1904,7 +1885,12 @@ def test_checkout_complete_without_inventory_tracking(
 
 @pytest.mark.integration
 @pytest.mark.parametrize("token, error", list(TOKEN_VALIDATION_MAPPING.items()))
-def test_checkout_complete_error_in_gateway_response(
+@patch(
+    "saleor.payment.gateways.dummy_credit_card.plugin."
+    "DummyCreditCardGatewayPlugin.DEFAULT_ACTIVE",
+    True,
+)
+def test_checkout_complete_error_in_gateway_response_for_dummy_credit_card(
     token,
     error,
     user_api_client,
@@ -1914,7 +1900,6 @@ def test_checkout_complete_error_in_gateway_response(
     address,
     shipping_method,
 ):
-
     assert not gift_card.last_used_on
 
     checkout = checkout_with_gift_card
