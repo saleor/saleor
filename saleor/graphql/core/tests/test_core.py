@@ -82,9 +82,9 @@ def test_mutation_returns_error_field_in_camel_case(
 ):
     # costPrice is snake case variable (cost_price) in the backend
     query = """
-    mutation testCamel($id: ID!, $cost: Decimal) {
+    mutation testCamel($id: ID!, $price: Decimal, $cost: Decimal) {
         productVariantUpdate(id: $id,
-        input: {costPrice: $cost, trackInventory: false}) {
+        input: {costPrice: $cost, price: $price, trackInventory: false}) {
             errors {
                 field
                 message
@@ -97,6 +97,7 @@ def test_mutation_returns_error_field_in_camel_case(
     """
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.id),
+        "price": 15,
         "cost": 12.1234,
     }
     response = staff_api_client.post_graphql(
@@ -164,9 +165,8 @@ def test_mutation_decimal_input(
     staff_api_client, variant, stock, permission_manage_products
 ):
     query = """
-    mutation decimalInput($id: ID!, $cost: Decimal) {
-        productVariantUpdate(id: $id,
-        input: {costPrice: $cost}) {
+    mutation decimalInput($id: ID!, $cost: Decimal, $price: Decimal) {
+        productVariantUpdate(id: $id, input: {costPrice: $cost, price: $price}) {
             errors {
                 field
                 message
@@ -181,6 +181,7 @@ def test_mutation_decimal_input(
     """
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.id),
+        "price": 15,
         "cost": 12.12,
         "quantity": 17,
     }
@@ -196,9 +197,8 @@ def test_mutation_decimal_input_without_arguments(
     staff_api_client, variant, permission_manage_products
 ):
     query = """
-    mutation {
-        productVariantUpdate(id: "%(variant_id)s",
-        input: {costPrice: "%(cost)s"}) {
+    mutation ProductVariantUpdate($id: ID!, $price: Decimal, $costPrice: Decimal) {
+        productVariantUpdate(id: $id, input: {costPrice: $costPrice, price: $price}) {
             errors {
                 field
                 message
@@ -210,12 +210,14 @@ def test_mutation_decimal_input_without_arguments(
             }
         }
     }
-    """ % {
-        "variant_id": graphene.Node.to_global_id("ProductVariant", variant.id),
+    """
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.id),
         "cost": 12.12,
+        "price": 15,
     }
     response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantUpdate"]

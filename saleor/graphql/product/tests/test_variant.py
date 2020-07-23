@@ -198,6 +198,42 @@ def test_create_variant(
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
 
 
+def test_create_product_variant_without_price(
+    staff_api_client, product, product_type, permission_manage_products
+):
+    query = """
+        mutation createVariant ($productId: ID!, $attributes: [AttributeValueInput]!) {
+            productVariantCreate(
+                input: {
+                    product: $productId,
+                    attributes: $attributes
+                }) {
+                productErrors {
+                    field
+                    code
+                }
+            }
+        }
+    """
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type.variant_attributes.first().pk
+    )
+    attr_value = "test-value"
+    variables = {
+        "productId": product_id,
+        "attributes": [{"id": attr_id, "values": [attr_value]}],
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantCreate"]
+    error = data["productErrors"][0]
+    assert error["field"] == "price"
+    assert error["code"] == ProductErrorCode.REQUIRED.name
+
+
 def test_create_product_variant_with_negative_weight(
     staff_api_client, product, product_type, permission_manage_products
 ):
@@ -248,11 +284,13 @@ def test_create_product_variant_not_all_attributes(
     query = """
             mutation createVariant (
                 $productId: ID!,
+                $price: Decimal,
                 $sku: String!,
                 $attributes: [AttributeValueInput]!) {
                     productVariantCreate(
                         input: {
                             product: $productId,
+                            price: $price,
                             sku: $sku,
                             attributes: $attributes
                         }) {
@@ -275,6 +313,7 @@ def test_create_product_variant_not_all_attributes(
 
     variables = {
         "productId": product_id,
+        "price": 15,
         "sku": sku,
         "attributes": [{"id": variant_id, "values": [variant_value]}],
     }
@@ -301,12 +340,14 @@ def test_create_product_variant_duplicated_attributes(
     query = """
         mutation createVariant (
             $productId: ID!,
+            $price: Decimal,
             $sku: String!,
             $attributes: [AttributeValueInput]!
         ) {
             productVariantCreate(
                 input: {
                     product: $productId,
+                    price: $price,
                     sku: $sku,
                     attributes: $attributes
                 }) {
@@ -325,6 +366,7 @@ def test_create_product_variant_duplicated_attributes(
     sku = str(uuid4())[:12]
     variables = {
         "productId": product_id,
+        "price": 15,
         "sku": sku,
         "attributes": [
             {"id": color_attribute_id, "values": ["red"]},
@@ -424,12 +466,14 @@ def test_update_product_variant(staff_api_client, product, permission_manage_pro
         mutation updateVariant (
             $id: ID!,
             $sku: String!,
+            $price: Decimal,
             $costPrice: Decimal,
             $trackInventory: Boolean!) {
                 productVariantUpdate(
                     id: $id,
                     input: {
                         sku: $sku,
+                        price: $price,
                         costPrice: $costPrice,
                         trackInventory: $trackInventory
                     }) {
@@ -441,6 +485,9 @@ def test_update_product_variant(staff_api_client, product, permission_manage_pro
                             amount
                             localized
                         }
+                        price {
+                            amount
+                        }
                     }
                 }
             }
@@ -450,10 +497,12 @@ def test_update_product_variant(staff_api_client, product, permission_manage_pro
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     sku = "test sku"
     cost_price = 3.3
+    price = 15
 
     variables = {
         "id": variant_id,
         "sku": sku,
+        "price": price,
         "costPrice": cost_price,
         "trackInventory": True,
     }
@@ -466,6 +515,7 @@ def test_update_product_variant(staff_api_client, product, permission_manage_pro
     data = content["data"]["productVariantUpdate"]["productVariant"]
     assert data["name"] == variant.name
     assert data["costPrice"]["amount"] == cost_price
+    assert data["price"]["amount"] == price
     assert data["sku"] == sku
 
 
@@ -475,12 +525,14 @@ def test_update_product_variant_with_negative_weight(
     query = """
         mutation updateVariant (
             $id: ID!,
+            $price: Decimal,
             $weight: WeightScalar
         ) {
             productVariantUpdate(
                 id: $id,
                 input: {
-                    weight: $weight
+                    weight: $weight,
+                    price: $price
                 }
             ){
                 productVariant {
@@ -496,9 +548,7 @@ def test_update_product_variant_with_negative_weight(
     """
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-
-    variables = {"id": variant_id, "weight": -1}
-
+    variables = {"id": variant_id, "weight": -1, "price": 15}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -520,11 +570,13 @@ def test_update_product_variant_unset_cost_price(
         mutation updateVariant (
             $id: ID!,
             $sku: String!,
+            $price: Decimal,
             $costPrice: Decimal) {
                 productVariantUpdate(
                     id: $id,
                     input: {
                         sku: $sku,
+                        price: $price,
                         costPrice: $costPrice,
                     }) {
                     productVariant {
@@ -544,7 +596,7 @@ def test_update_product_variant_unset_cost_price(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     sku = variant.sku
 
-    variables = {"id": variant_id, "sku": sku, "costPrice": None}
+    variables = {"id": variant_id, "sku": sku, "costPrice": None, "price": 15}
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -563,11 +615,13 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
     mutation updateVariant (
         $id: ID!,
         $sku: String,
+        $price: Decimal,
         $attributes: [AttributeValueInput]!) {
             productVariantUpdate(
                 id: $id,
                 input: {
                     sku: $sku,
+                    price: $price,
                     attributes: $attributes
                 }) {
                 errors {
@@ -603,6 +657,7 @@ def test_update_product_variant_not_all_attributes(
     variables = {
         "id": variant_id,
         "sku": sku,
+        "price": 15,
         "attributes": [{"id": attr_id, "values": [variant_value]}],
     }
 
@@ -640,6 +695,7 @@ def test_update_product_variant_with_current_attribut(
     variables = {
         "id": variant_id,
         "sku": sku,
+        "price": 15,
         "attributes": [
             {"id": color_attribute_id, "values": ["red"]},
             {"id": size_attribute_id, "values": ["small"]},
@@ -682,6 +738,7 @@ def test_update_product_variant_with_new_attribute(
     variables = {
         "id": variant_id,
         "sku": sku,
+        "price": 15,
         "attributes": [
             {"id": color_attribute_id, "values": ["red"]},
             {"id": size_attribute_id, "values": ["big"]},
@@ -735,6 +792,7 @@ def test_update_product_variant_with_duplicated_attribute(
 
     variables = {
         "id": variant_id,
+        "price": 15,
         "attributes": [
             {"id": color_attribute_id, "values": ["blue"]},
             {"id": size_attribute_id, "values": ["big"]},
@@ -783,6 +841,7 @@ def test_update_product_variant_requires_values(
 
     variables = {
         "id": variant_id,
+        "price": 15,
         "attributes": [{"id": attr_id, "values": values}],
         "sku": sku,
     }
