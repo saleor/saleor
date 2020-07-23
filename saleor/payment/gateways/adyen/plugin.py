@@ -20,6 +20,7 @@ from .utils import (
     api_call,
     request_data_for_gateway_config,
     request_data_for_payment,
+    request_for_payment_capture,
     request_for_payment_refund,
 )
 from .webhooks import handle_webhook
@@ -254,7 +255,7 @@ class AdyenGatewayPlugin(BasePlugin):
     ):
         super()._update_config_items(configuration_to_update, current_config)
         for item in current_config:
-            if item.get("name") == "Notification password":
+            if item.get("name") == "Notification password" and item["value"]:
                 item["value"] = make_password(item["value"])
 
     @require_active_plugin
@@ -293,7 +294,7 @@ class AdyenGatewayPlugin(BasePlugin):
         _type, payment_id = from_global_id(payment_information.payment_id)
         transaction = (
             Transaction.objects.filter(
-                payment__id=payment_id, kind=TransactionKind.CAPTURE
+                payment__id=payment_id, kind=TransactionKind.AUTH
             )
             .exclude(token__isnull=True, token__exact="")
             .last()
@@ -320,12 +321,40 @@ class AdyenGatewayPlugin(BasePlugin):
             raw_response=result.message,
         )
 
+    @require_active_plugin
     def capture_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        pass
+        _type, payment_id = from_global_id(payment_information.payment_id)
+        transaction = (
+            Transaction.objects.filter(
+                payment__id=payment_id, kind=TransactionKind.AUTH
+            )
+            .exclude(token__isnull=True, token__exact="")
+            .last()
+        )
+        if not transaction:
+            raise PaymentError("Cannot find a payment reference to capture.")
+
+        request = request_for_payment_capture(
+            payment_information=payment_information,
+            merchant_account=self.config.connection_params["merchant_account"],
+            token=transaction.token,
+        )
+        result = api_call(request, self.adyen.payment.capture)
+        return GatewayResponse(
+            is_success=True,
+            action_required=False,
+            kind=TransactionKind.CAPTURE,
+            amount=payment_information.amount,
+            currency=payment_information.currency,
+            transaction_id=result.message.get("pspReference", ""),
+            error="",
+            raw_response=result.message,
+        )
 
     def void_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+
         pass
