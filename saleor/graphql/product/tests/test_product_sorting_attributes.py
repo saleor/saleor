@@ -110,8 +110,14 @@ def products_structures(category, channel_USD):
         product_models.ProductChannelListing.objects.create(
             product=product_apple, channel=channel_USD, is_published=True
         )
-        product_models.ProductVariant.objects.create(
-            product=product_apple, sku=product_apple.slug, price_amount=Decimal(10)
+        variant = product_models.ProductVariant.objects.create(
+            product=product_apple, sku=product_apple.slug
+        )
+        product_models.ProductVariantChannelListing.objects.create(
+            variant=variant,
+            channel=channel_USD,
+            price_amount=Decimal(10),
+            currency=channel_USD.currency_code,
         )
     oranges = list(
         product_models.Product.objects.bulk_create(
@@ -130,8 +136,14 @@ def products_structures(category, channel_USD):
         product_models.ProductChannelListing.objects.create(
             product=product_orange, channel=channel_USD, is_published=True
         )
-        product_models.ProductVariant.objects.create(
-            product=product_orange, sku=product_orange.slug, price_amount=Decimal(10)
+        variant = product_models.ProductVariant.objects.create(
+            product=product_orange, sku=product_orange.slug
+        )
+        product_models.ProductVariantChannelListing.objects.create(
+            variant=variant,
+            channel=channel_USD,
+            price_amount=Decimal(10),
+            currency=channel_USD.currency_code,
         )
     dummy = product_models.Product.objects.create(
         name="Oopsie Dummy",
@@ -142,8 +154,14 @@ def products_structures(category, channel_USD):
     product_models.ProductChannelListing.objects.create(
         product=dummy, channel=channel_USD, is_published=True
     )
-    product_models.ProductVariant.objects.create(
-        product=dummy, sku=dummy.slug, price_amount=Decimal(10)
+    variant = product_models.ProductVariant.objects.create(
+        product=dummy, sku=dummy.slug
+    )
+    product_models.ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     other_dummy = product_models.Product.objects.create(
         name="Another Dummy but first in ASC and has no attribute value",
@@ -154,8 +172,14 @@ def products_structures(category, channel_USD):
     product_models.ProductChannelListing.objects.create(
         product=other_dummy, channel=channel_USD, is_published=True
     )
-    product_models.ProductVariant.objects.create(
-        product=other_dummy, sku=other_dummy.slug, price_amount=Decimal(10)
+    variant = product_models.ProductVariant.objects.create(
+        product=other_dummy, sku=other_dummy.slug
+    )
+    product_models.ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     dummy_attr_value = attr_value(dummy_attr, DUMMIES[0])
     associate_attribute_values_to_instance(dummy, dummy_attr, *dummy_attr_value)
