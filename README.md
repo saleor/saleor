@@ -92,7 +92,7 @@ The `master` branch is the development version of Saleor and it may be unstable.
 
 The current stable version is 2.10 and you should use this version for all three components:
 
-- Saleor: https://github.com/mirumee/saleor/releases/tag/2.10.1
+- Saleor: https://github.com/mirumee/saleor/releases/tag/2.10.2
 - Dashboard: https://github.com/mirumee/saleor-dashboard/releases/tag/2.10.0
 - Storefront: https://github.com/mirumee/saleor-storefront/releases/tag/2.10.3
 
@@ -103,6 +103,7 @@ Saleor documentation is available here: [docs.saleor.io](https://docs.saleor.io)
 To contribute, please see the [`mirumee/saleor-docs` repository](https://github.com/mirumee/saleor-docs/).
 
 ## Saleor Platform
+
 The easiest way to run all components of Saleor (API, storefront and dashboard) together on your local machine is to use the [saleor-platform](https://github.com/mirumee/saleor-platform) project. Go to that repository for instructions on how to use it.
 
 [View saleor-platform](https://github.com/mirumee/saleor-platform)
@@ -142,7 +143,6 @@ Get more details in our [Contributing Guide](https://docs.saleor.io/docs/develop
 ## Legacy views
 
 If you're interested in using the old version of Saleor, go the [legacy-views](https://github.com/mirumee/legacy-views) repository. It contains the 2.9.0 release, which includes Django-based views and HTML templates of Storefront 1.0 and Dashboard 1.0. Note: this version of Saleor is no longer officially maintained.
-
 
 ## Your feedback
 
