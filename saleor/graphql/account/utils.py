@@ -450,7 +450,7 @@ def look_for_permission_in_users_with_manage_staff(
             permissions_to_find.difference_update(common_permissions)
 
 
-def user_has_access(user: "User", owner: "User", perm):
+def user_has_access(user: "User", owner: Optional["User"], perm):
     """Check if user can access data.
 
     Args:
