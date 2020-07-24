@@ -477,8 +477,8 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
     if not validate_auth_user(request.headers, gateway_config):
         return HttpResponseBadRequest("Invalid or missing basic auth.")
 
-    # event_handler = EVENT_MAP.get(notification.get("eventCode", ""))
-    # if event_handler:
-    #     event_handler(notification, gateway_config)
-    return HttpResponse("[accepted]")
+    event_handler = EVENT_MAP.get(notification.get("eventCode", ""))
+    if event_handler:
+        event_handler(notification, gateway_config)
+        return HttpResponse("[accepted]")
     return HttpResponseNotFound()
