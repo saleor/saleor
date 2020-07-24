@@ -1,9 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
-
-from saleor.plugins.manager import get_plugins_manager
-
 from saleor.product.models import Product, AssignedProductAttribute, \
     AttributeValue
 from saleor.plugins.models import PluginConfiguration
@@ -14,6 +11,7 @@ import webbrowser
 import csv
 import json
 import uuid
+from collections import defaultdict
 
 @dataclass
 class AllegroConfiguration:
@@ -103,7 +101,7 @@ class AllegroPlugin(BasePlugin):
         print('Product create')
 
         allegro_api = AllegroAPI(self.config.token_value)
-        allegro_api.product_publish(product=product)
+        allegro_api.product_publish(saleor_product=product)
 
 class AllegroAuth:
 
@@ -143,9 +141,6 @@ class AllegroAuth:
         AllegroPlugin.save_plugin_configuration(plugin_configuration=PluginConfiguration.objects.get(
             identifier=AllegroPlugin.PLUGIN_ID), cleaned_data=cleaned_data, )
 
-
-
-
         return response.json()
 
 
@@ -169,50 +164,57 @@ class AllegroAuth:
 
 class AllegroAPI:
 
-    token = ''
+    token = None
 
     def __init__(self, token):
         self.token = token
 
 
-    def get_allegro_dictionary(self, id):
+    def get_category(self, id):
 
-        PATH = '/Users/patryk/data_with_ids.csv'
+        path = '/Users/patryk/data_with_ids.csv'
 
-        input_file = csv.DictReader(open(PATH))
-        filtered = next(filter(lambda p: p['id'] == str(id), input_file), None)
+        dictionary_with_categories = csv.DictReader(open(path))
+        category = next(filter(lambda p: p['id'] == str(id), dictionary_with_categories), None)
 
-        return filtered
+        return category
 
 
-    def product_publish(self, product) :
+    def product_publish(self, saleor_product) :
 
         # print('Is published ', ['http://localhost:8000' + pi.image.url for pi in ProductImage.objects.filter(product=product)])
 
-        if product.private_metadata.get('publish.target') and product.private_metadata.get('publish.target') == 'allegro'\
-                and product.private_metadata.get('publish.status') == 'unpublished':
+        if saleor_product.private_metadata.get('publish.target') and saleor_product.private_metadata.get('publish.target') == 'allegro'\
+                and saleor_product.private_metadata.get('publish.status') == 'unpublished':
 
-            category_name = product.category.name
+            category = self.get_category(saleor_product.product_type.id)
+            require_parameters = self.get_require_parameters(category['index'])
 
-            category_id = self.get_allegro_dictionary(product.product_type.id)['index']
+            parameters_mapper = ParametersMapperFactory().getMapper(category['name'])
 
-            require_params = self.get_require_parameters(category_id)
+            parameters = parameters_mapper.set_product(saleor_product).set_category(category).set_require_parameters(require_parameters).run_mapper()
 
-            category_mapper = MapperFactory().getMapper(category_name)
+            product_mapper = ProductMapperFactory().getMapper()
 
-            parameters = category_mapper.set_product(product).set_require_parameters(require_params).run_mapper()
+            allegro_product = self.create_allegro_api_product(product=saleor_product, parameters=parameters, category_id=category['index'])
 
-            allegro_product = self.create_allegro_api_product(product=product, parameters=parameters, category_id=category_id)
 
-            offer = self.publish_to_allegro(allegro_product=allegro_product)
+            product = product_mapper.set_saleor_product(saleor_product) \
+                .set_saleor_images(self.upload_images())\
+                .set_saleor_parameters(parameters)\
+                .set_saleor_category(category).run_mapper()
+
+
+
+            offer = self.publish_to_allegro(allegro_product=product)
 
             if 'errors' in offer:
                 print('Wystąpił bład z zapisem', offer['errors'])
             else:
-                self.update_status_and_publish_data_in_private_metadata(product)
+                self.update_status_and_publish_data_in_private_metadata(saleor_product)
                 offer_publication = self.offer_publication(offer['id'])
         else:
-            self.set_allegro_private_metadata(product)
+            self.set_allegro_private_metadata(saleor_product)
 
 
 
@@ -265,7 +267,8 @@ class AllegroAPI:
 
     def create_allegro_api_product(self, product, parameters, category_id):
 
-        allegro_product = {}
+        nested_dict = lambda: defaultdict(nested_dict)
+        allegro_product = nested_dict()
 
         allegro_product['afterSalesServices'] = {}
         allegro_product['afterSalesServices']['impliedWarranty']= {"id": "59f8273f-6dff-4242-a6c2-60dd385e9525"}
@@ -280,9 +283,9 @@ class AllegroAPI:
         allegro_product['location'] = {}
         allegro_product['location']['countryCode'] = 'PL'
         allegro_product['location']['province'] = 'WIELKOPOLSKIE'
-        allegro_product['location']['city'] = 'Poznań'
+        allegro_product['location']['city'] = 'Pozna\u0144'
         allegro_product['location']['postCode'] = '60-122'
-        allegro_product['payments']= {}
+        allegro_product['payments'] = {}
         allegro_product['payments']['invoice'] = 'NO_INVOICE'
         allegro_product['sellingMode'] = {}
         allegro_product['sellingMode']['format'] = 'AUCTION'
@@ -380,7 +383,7 @@ class AllegroAPI:
         return json.loads(response.text)
 
 
-class Mapper:
+class ParametersMapper:
 
     def __init__(self, mapper):
         self.mapper = mapper
@@ -389,7 +392,7 @@ class Mapper:
         return self.mapper.map()
 
 
-class SimpleMapper():
+class SimpleParametersMapper():
 
     def __init__(self):
         self.mapped_parameters = []
@@ -530,6 +533,34 @@ class SimpleMapper():
 
         return self
 
+    def map_clasp(self):
+
+        PARAMETER_NAME = 'Zapięcie'
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+
+        return self
+
+    def map_type(self):
+
+        PARAMETER_NAME = 'Rodzaj'
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+
+        return self
+
     def map_features(self):
 
         PARAMETER_NAME = 'Cechy dodatkowe'
@@ -592,7 +623,7 @@ class SimpleMapper():
         return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
                 "rangeValue": None}
 
-class ComplexMapper(SimpleMapper):
+class ComplexParametersMapper(SimpleParametersMapper):
 
     def map(self):
         return self
@@ -602,11 +633,19 @@ class ComplexMapper(SimpleMapper):
 
         return self
 
+    def set_category(self, category):
+        self.category = category
+
+        return self
+
     def run_mapper(self):
 
         attributes, attributes_name = self.get_product_attributes()
 
         self.set_product_attributes(attributes)
+
+
+
 
         for require_parameter in self.require_parameters:
             self.assign_mapper(require_parameter['name'])
@@ -651,17 +690,242 @@ class ComplexMapper(SimpleMapper):
         if parameter == 'Cechy dodatkowe':
             self.map_features()
 
+        if parameter == 'Zapięcie':
+            self.map_clasp()
 
-class MapperFactory:
+        if parameter == 'Rodzaj':
+            self.map_type()
+
+
+class ParametersMapperFactory:
 
     def getMapper(self, category):
 
         if category == 'Body':
-            mapper = Mapper(SimpleMapper).mapper()
-
+            mapper = ParametersMapper(SimpleParametersMapper).mapper()
             return mapper
 
         if category == 'Majtki':
-            mapper = Mapper(ComplexMapper).mapper()
-
+            mapper = ParametersMapper(ComplexParametersMapper).mapper()
             return mapper
+
+        else:
+            mapper = ParametersMapper(ComplexParametersMapper).mapper()
+            return mapper
+
+
+class ProductMapper:
+
+    def __init__(self, mapper):
+        self.mapper = mapper
+
+    def mapper(self):
+        return self.mapper.map()
+
+
+
+
+
+class ProductMapperFactory:
+
+    def getMapper(self):
+
+        mapper = ProductMapper(AllegroProductMapper).mapper()
+        return mapper
+
+class AllegroProductMapper:
+
+    def __init__(self):
+
+        nested_dict = lambda: defaultdict(nested_dict)
+        nest = nested_dict()
+        self.product = nest
+
+    def map(self):
+        return self
+
+    def set_saleor_product(self, saleor_product):
+        self.saleor_product = saleor_product
+        return self
+
+    def set_implied_warranty(self, id):
+        self.product['afterSalesServices']['impliedWarranty']['id'] = id
+        return self
+
+    def set_return_policy(self, id):
+        self.product['afterSalesServices']['returnPolicy']['id'] = id
+        return self
+
+    def set_warranty(self, id):
+        self.product['afterSalesServices']['warranty']['id'] = id
+        return self
+
+    def set_category(self, category):
+        self.product['category']['id'] = category
+        return self
+
+    def set_saleor_category(self, category):
+        self.saleor_category = category
+        return self
+
+    def set_delivery_additional_info(self, id):
+        self.product['delivery']['additionalInfo'] = id
+        return self
+
+    def set_delivery_handling_time(self, id):
+        self.product['delivery']['handlingTime'] = id
+        return self
+
+    def set_delivery_shipment_date(self, id):
+        self.product['delivery']['shipmentDate'] = id
+        return self
+
+    def set_delivery_shipping_rates(self, id):
+        self.product['delivery']['shippingRates']['id'] = id
+        return self
+
+    def set_location_country_code(self, id):
+        self.product['location']['countryCode'] = id
+        return self
+
+    def set_location_province(self, id):
+        self.product['location']['province'] = id
+        return self
+
+    def set_location_city(self, id):
+        self.product['location']['city'] = 'Poznań'
+        return self
+
+    def set_location_post_code(self, id):
+        self.product['location']['postCode'] = id
+        return self
+
+    def set_invoice(self, id):
+        self.product['payments']['invoice'] = id
+        return self
+
+    def set_format(self, id):
+        self.product['sellingMode']['format'] = id
+        return self
+
+    def set_starting_price_amount(self, id):
+        self.product['sellingMode']['startingPrice']['amount'] = id
+        return self
+
+    def set_starting_price_currency(self, id):
+        self.product['sellingMode']['startingPrice']['currency'] = id
+        return self
+
+    def set_name(self, id):
+        self.product['name'] = id
+        return self
+
+    def set_saleor_images(self, id):
+        self.saleor_images = id
+        return self
+
+    def set_images(self, id):
+
+        self.product['images'] = [{'url': id}]
+        return self
+
+
+    def set_description(self, id):
+
+        product_sections = []
+        product_items = []
+
+        product_items.append({
+            'type': 'TEXT',
+            'content': '<h1>' + id + '</h1>'
+        })
+
+        product_sections.append({'items': product_items})
+
+        self.product['description']['sections'] = product_sections
+
+        return self
+
+    def set_stock_available(self, id):
+        self.product['stock']['available'] = id
+        return self
+
+    def set_stock_unit(self, id):
+        self.product['stock']['unit'] = id
+        return self
+
+    def set_publication_duration(self, id):
+        self.product['publication']['duration'] = id
+        return self
+
+    def set_publication_ending_at(self, id):
+        self.product['publication']['endingAt'] = id
+        return self
+
+    def set_publication_starting_at(self, id):
+        self.product['publication']['startingAt'] = id
+        return self
+
+    def set_publication_status(self, id):
+        self.product['publication']['status'] = id
+        return self
+
+    def set_publication_ended_by(self, id):
+        self.product['publication']['endedBy'] = id
+        return self
+
+    def set_publication_republish(self, id):
+        self.product['publication']['republish'] = id
+        return self
+
+    def set_saleor_parameters(self, id):
+        self.saleor_parameters = id
+        return self
+
+    def set_parameters(self, id):
+        self.product['parameters'] = id
+        return self
+
+
+
+    def run_mapper(self):
+
+        self.set_implied_warranty('59f8273f-6dff-4242-a6c2-60dd385e9525')
+        self.set_return_policy('8b0ecc6b-8812-4b0f-b8a4-a0b56585c403')
+        self.set_warranty('d3605a54-3cfb-4cce-8e1b-1c1adafb498c')
+        self.set_category(self.saleor_category['index'])
+        self.set_delivery_additional_info('test')
+        self.set_delivery_handling_time('PT72H')
+        self.set_delivery_shipment_date('2020-07-24T08:03:59Z')
+        self.set_delivery_shipping_rates('9d7f48de-87a3-449f-9028-d83512a17003')
+
+        self.set_location_country_code('PL')
+        self.set_location_province('WIELKOPOLSKIE')
+        self.set_location_city('Pozna\u0144')
+        self.set_location_post_code('60-122')
+
+        self.set_invoice('NO_INVOICE')
+
+        self.set_format('AUCTION')
+
+        self.set_starting_price_amount(str(self.saleor_product.minimal_variant_price_amount))
+        self.set_starting_price_currency('PLN')
+        self.set_name(self.saleor_product.name)
+        self.set_images(self.saleor_images)
+
+        self.set_description(self.saleor_product.plain_text_description)
+
+        # FIXME: po sprzedaniu przedmiotu na tym parametrze update?
+        self.set_stock_available('1')
+
+        self.set_stock_unit('SET')
+        self.set_publication_duration('PT72H')
+        self.set_publication_ending_at('')
+        self.set_publication_starting_at('2020-07-24T08:03:59Z')
+        self.set_publication_status('INACTIVE')
+        self.set_publication_ended_by('USER')
+        self.set_publication_republish('False')
+
+        self.set_parameters(self.saleor_parameters)
+
+        return self.product
