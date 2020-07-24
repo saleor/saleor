@@ -174,7 +174,7 @@ class AllegroAPI:
 
         path = '/Users/patryk/data_with_ids.csv'
 
-        dictionary_with_categories = csv.DictReader(open(path))
+        dictionary_with_categories = csv.DictReader(open(path), delimiter=';')
         category = next(filter(lambda p: p['id'] == str(id), dictionary_with_categories), None)
 
         return category
@@ -518,6 +518,9 @@ class SimpleParametersMapper():
         if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
             attribute = next((attribute for attribute in self.product_attributes if attribute["name"] == PARAMETER_NAME), False)
 
+            if attribute['value'] == 'brązowy' or attribute['value'] == 'beżowy':
+                attribute['value'] = 'brązowy, beżowy'
+
             self.mapped_parameters.append(self.assign_parameter(attribute))
         else:
             self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
@@ -608,6 +611,79 @@ class SimpleParametersMapper():
 
         return self
 
+    def map_midsection(self):
+
+        PARAMETER_NAME = 'Stan (wysokość w pasie)'
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+
+        return self
+
+
+    def map_inseam(self):
+
+        PARAMETER_NAME = 'Długość nogawki'
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+
+        return self
+
+    def map_length(self):
+
+        PARAMETER_NAME = 'Długość'
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+
+        return self
+
+    def map_occasion(self):
+
+        PARAMETER_NAME = 'Okazja'
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+
+        return self
+
+    def map_style(self):
+
+        PARAMETER_NAME = 'Styl'
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in
+                              self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+
+        return self
+
+
     def get_product_attributes(self):
 
         assigned_product_attributes = AssignedProductAttribute.objects.filter(
@@ -694,8 +770,6 @@ class ComplexParametersMapper(SimpleParametersMapper):
 
     def assign_mapper(self, parameter):
 
-        print(parameter)
-
         if parameter == 'Stan':
             self.map_state()
 
@@ -734,6 +808,21 @@ class ComplexParametersMapper(SimpleParametersMapper):
 
         if parameter == 'Rękaw':
             self.map_sleeve()
+
+        if parameter == 'Stan (wysokość w pasie)':
+            self.map_midsection()
+
+        if parameter == 'Długość nogawki':
+            self.map_inseam()
+
+        if parameter == 'Długość':
+            self.map_length()
+
+        if parameter == 'Okazja':
+            self.map_occasion()
+
+        if parameter == 'Styl':
+            self.map_style()
 
 
 class ParametersMapperFactory:
