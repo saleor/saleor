@@ -427,10 +427,15 @@ class SimpleParametersMapper():
 
         PARAMETER_NAME = 'Marka'
 
+        # ze względu na nazwy atrybutow Marka odzież damska, Marka odzież meska robimy splita do 'Marka'
 
-        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+        if PARAMETER_NAME in [attributes['name'].split(' ')[0] for attributes in self.product_attributes]:
+
+
             attribute = next((attribute for attribute in self.product_attributes if
-                              attribute["name"] == PARAMETER_NAME), False)
+                              attribute["name"].split(' ')[0] == PARAMETER_NAME), False)
+
+            attribute['name'] = attribute['name'].split(' ')[0]
 
             self.mapped_parameters.append(self.assign_parameter(attribute))
         else:
@@ -575,6 +580,34 @@ class SimpleParametersMapper():
 
         return self
 
+    def map_neckline(self):
+
+        PARAMETER_NAME = 'Dekolt'
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+
+        return self
+
+    def map_sleeve(self):
+
+        PARAMETER_NAME = 'Rękaw'
+
+        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == PARAMETER_NAME), False)
+
+            self.mapped_parameters.append(self.assign_parameter(attribute))
+        else:
+            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+
+        return self
+
     def get_product_attributes(self):
 
         assigned_product_attributes = AssignedProductAttribute.objects.filter(
@@ -695,6 +728,12 @@ class ComplexParametersMapper(SimpleParametersMapper):
 
         if parameter == 'Rodzaj':
             self.map_type()
+
+        if parameter == 'Dekolt':
+            self.map_neckline()
+
+        if parameter == 'Rękaw':
+            self.map_sleeve()
 
 
 class ParametersMapperFactory:
@@ -896,7 +935,7 @@ class AllegroProductMapper:
         self.set_category(self.saleor_category['index'])
         self.set_delivery_additional_info('test')
         self.set_delivery_handling_time('PT72H')
-        self.set_delivery_shipment_date('2020-07-24T08:03:59Z')
+        self.set_delivery_shipment_date('2020-07-25T08:03:59Z')
         self.set_delivery_shipping_rates('9d7f48de-87a3-449f-9028-d83512a17003')
 
         self.set_location_country_code('PL')
@@ -921,7 +960,7 @@ class AllegroProductMapper:
         self.set_stock_unit('SET')
         self.set_publication_duration('PT72H')
         self.set_publication_ending_at('')
-        self.set_publication_starting_at('2020-07-24T08:03:59Z')
+        self.set_publication_starting_at('2020-07-25T08:03:59Z')
         self.set_publication_status('INACTIVE')
         self.set_publication_ended_by('USER')
         self.set_publication_republish('False')
