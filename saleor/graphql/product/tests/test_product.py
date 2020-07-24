@@ -1590,8 +1590,8 @@ def test_product_create_without_category_and_true_is_published_value(
             product {
                 id
             }
-            errors {
-                message
+            productErrors {
+                code
                 field
             }
         }
@@ -1604,10 +1604,9 @@ def test_product_create_without_category_and_true_is_published_value(
         {"productTypeId": product_type_id},
         permissions=[permission_manage_products],
     )
-    errors = get_graphql_content(response)["data"]["productCreate"]["errors"]
-
-    assert errors[0]["field"] == "isPublished"
-    assert errors[0]["message"] == "You must select a category to be able to publish"
+    errors = get_graphql_content(response)["data"]["productCreate"]["productErrors"]
+    assert errors[0]["field"] == "category"
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
 def test_product_create_with_collections_webhook(
@@ -2265,8 +2264,8 @@ def test_update_product_without_category_and_true_is_published_value(
             product {
                 id
             }
-            errors {
-                message
+            productErrors {
+                code
                 field
             }
         }
@@ -2283,12 +2282,9 @@ def test_update_product_without_category_and_true_is_published_value(
     )
 
     data = get_graphql_content(response)["data"]["productUpdate"]
-    assert data["errors"]
-    assert data["errors"][0]["field"] == "isPublished"
-    assert (
-        data["errors"][0]["message"]
-        == "You must select a category to be able to publish"
-    )
+    assert data["productErrors"]
+    assert data["productErrors"][0]["field"] == "category"
+    assert data["productErrors"][0]["code"] == ProductErrorCode.REQUIRED.name
 
 
 UPDATE_PRODUCT = """
