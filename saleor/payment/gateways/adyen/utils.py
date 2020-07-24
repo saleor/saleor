@@ -140,7 +140,6 @@ def request_data_for_gateway_config(
 ) -> Dict[str, str]:
     address = checkout.billing_address or checkout.shipping_address
 
-    # FIXME check how it works if we have None here
     country = address.country if address else None
     if country:
         country_code = country.code

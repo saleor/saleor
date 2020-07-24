@@ -169,9 +169,7 @@ class AdyenGatewayPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = GatewayConfig(
             gateway_name=GATEWAY_NAME,
-            auto_capture=configuration[
-                "Automatically mark payment as a capture"
-            ],  # FIXME check this
+            auto_capture=configuration["Automatically mark payment as a capture"],
             supported_currencies=configuration["Supported currencies"],
             connection_params={
                 "api_key": configuration["API key"],
@@ -234,7 +232,6 @@ class AdyenGatewayPlugin(BasePlugin):
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        # TODO Klarna data!!!
         request_data = request_data_for_payment(
             payment_information,
             return_url=self.config.connection_params["return_url"],
