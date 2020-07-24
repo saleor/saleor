@@ -1,7 +1,8 @@
 from typing import TYPE_CHECKING, Any, Optional
 
+from ...core.anonymize import obfuscate_address, obfuscate_email
 from ..base_plugin import BasePlugin
-from . import obfuscate_address, obfuscate_email, obfuscate_order
+from . import obfuscate_order
 
 if TYPE_CHECKING:
     from ...account.models import Address, User
