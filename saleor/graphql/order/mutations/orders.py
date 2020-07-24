@@ -394,8 +394,6 @@ class OrderCapture(BaseMutation):
         # asynchronous webhook with update status
         if transaction.kind == TransactionKind.CAPTURE:
             order_captured(order, info.context.user, amount, payment)
-        if order.is_fully_paid():
-            handle_fully_paid_order(order)
         return OrderCapture(order=order)
 
 

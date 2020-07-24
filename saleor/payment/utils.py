@@ -226,7 +226,7 @@ def gateway_postprocess(transaction, payment):
         TransactionKind.REFUND_REVERSED,
     }:
         payment.captured_amount += transaction.amount
-
+        payment.is_active = True
         # Set payment charge status to fully charged
         # only if there is no more amount needs to charge
         payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
@@ -265,8 +265,8 @@ def gateway_postprocess(transaction, payment):
         }:
             payment.captured_amount -= transaction.amount
             payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
-            if payment.get_charge_amount() <= 0:
-                payment.charge_status = ChargeStatus.FULLY_CHARGED
+            if payment.captured_amount <= 0:
+                payment.charge_status = ChargeStatus.NOT_CHARGED
 
             payment.save(update_fields=["charge_status", "captured_amount", "modified"])
 

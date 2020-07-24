@@ -1587,9 +1587,9 @@ def test_order_capture(
     }
 
     assert event_order_fully_paid.type == order_events.OrderEvents.ORDER_FULLY_PAID
-    assert event_order_fully_paid.user is None
+    assert event_order_fully_paid.user == staff_user
 
-    assert event_email_sent.user is None
+    assert event_email_sent.user == staff_user
     assert event_email_sent.parameters == {
         "email": order.user_email,
         "email_type": order_events.OrderEventsEmails.PAYMENT,
