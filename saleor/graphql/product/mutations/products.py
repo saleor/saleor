@@ -861,8 +861,9 @@ class ProductCreate(ModelMutation):
         if not category and is_published:
             raise ValidationError(
                 {
-                    "isPublished": ValidationError(
-                        "You must select a category to be able to publish"
+                    "category": ValidationError(
+                        "You must select a category to be able to publish",
+                        code=ProductErrorCode.REQUIRED,
                     )
                 }
             )
