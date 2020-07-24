@@ -196,9 +196,6 @@ class AllegroAPI:
 
             product_mapper = ProductMapperFactory().getMapper()
 
-            allegro_product = self.create_allegro_api_product(product=saleor_product, parameters=parameters, category_id=category['index'])
-
-
             product = product_mapper.set_saleor_product(saleor_product) \
                 .set_saleor_images(self.upload_images())\
                 .set_saleor_parameters(parameters)\
@@ -262,76 +259,6 @@ class AllegroAPI:
         requireParams = [param for param in json.loads(response.text)['parameters'] if param['required'] == True]
 
         return requireParams
-
-
-
-    def create_allegro_api_product(self, product, parameters, category_id):
-
-        nested_dict = lambda: defaultdict(nested_dict)
-        allegro_product = nested_dict()
-
-        allegro_product['afterSalesServices'] = {}
-        allegro_product['afterSalesServices']['impliedWarranty']= {"id": "59f8273f-6dff-4242-a6c2-60dd385e9525"}
-        allegro_product['afterSalesServices']['returnPolicy'] = {"id": "8b0ecc6b-8812-4b0f-b8a4-a0b56585c403"}
-        allegro_product['afterSalesServices']['warranty'] = {"id": "d3605a54-3cfb-4cce-8e1b-1c1adafb498c"}
-        allegro_product['category'] = {}
-        allegro_product['delivery'] = {}
-        allegro_product['delivery']['additionalInfo'] = 'test'
-        allegro_product['delivery']['handlingTime'] = 'PT72H'
-        allegro_product['delivery']['shipmentDate'] = '2020-07-24T08:03:59Z'
-        allegro_product['delivery']['shippingRates'] = { "id": "9d7f48de-87a3-449f-9028-d83512a17003" }
-        allegro_product['location'] = {}
-        allegro_product['location']['countryCode'] = 'PL'
-        allegro_product['location']['province'] = 'WIELKOPOLSKIE'
-        allegro_product['location']['city'] = 'Pozna\u0144'
-        allegro_product['location']['postCode'] = '60-122'
-        allegro_product['payments'] = {}
-        allegro_product['payments']['invoice'] = 'NO_INVOICE'
-        allegro_product['sellingMode'] = {}
-        allegro_product['sellingMode']['format'] = 'AUCTION'
-        allegro_product['sellingMode']['startingPrice'] = {}
-        allegro_product['sellingMode']['startingPrice']['amount'] = str(product.minimal_variant_price_amount)
-        allegro_product['sellingMode']['startingPrice']['currency'] = 'PLN'
-        allegro_product['name'] = product.name
-
-
-        allegro_product['images'] = [
-                {
-                    "url": self.upload_images()
-                }]
-
-        allegro_product['description'] = {}
-
-        product_sections = []
-        product_items = []
-
-
-        product_items.append({
-            'type': 'TEXT',
-            'content': '<h1>' + product.plain_text_description + '</h1>'
-        })
-
-        product_sections.append({'items': product_items})
-
-        allegro_product['description']['sections'] = product_sections
-
-
-        allegro_product['stock'] = {}
-        allegro_product['stock']['available'] = 1
-        allegro_product['stock']['unit'] = 'SET'
-
-        allegro_product['publication'] = {}
-        allegro_product['publication']['duration'] = 'PT72H'
-        allegro_product['publication']['endingAt'] = ''
-        allegro_product['publication']['startingAt'] = '2020-07-24T08:03:59Z'
-        allegro_product['publication']['status'] = 'INACTIVE'
-        allegro_product['publication']['endedBy'] = 'USER'
-        allegro_product['publication']['republish'] = 'False'
-        allegro_product['parameters'] = []
-        allegro_product['parameters'] = parameters
-        allegro_product['category'] = {'id': category_id}
-
-        return allegro_product
 
 
 
@@ -400,14 +327,16 @@ class SimpleParametersMapper():
     def map(self):
         return self
 
+    def set_product(self, product):
+        self.product = product
+        return self
+
     def set_product_attributes(self, product_attributes):
         self.product_attributes = product_attributes
-
         return self
 
     def set_require_parameters(self, require_parameters):
         self.require_parameters = require_parameters
-
         return self
 
     def map_state(self):
@@ -453,7 +382,11 @@ class SimpleParametersMapper():
             attribute = next((attribute for attribute in self.product_attributes if
                               attribute["name"] == PARAMETER_NAME), False)
 
-            self.mapped_parameters.append(self.assign_parameter(attribute))
+            try:
+                self.mapped_parameters.append(self.assign_parameter(attribute))
+            except TypeError:
+                attribute['value'] = self.product.product_type.metadata['allegro.mapping.size'][attribute['value']]
+                self.mapped_parameters.append(self.assign_parameter(attribute))
         else:
             self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
 
@@ -735,11 +668,6 @@ class SimpleParametersMapper():
 class ComplexParametersMapper(SimpleParametersMapper):
 
     def map(self):
-        return self
-
-    def set_product(self, product):
-        self.product = product
-
         return self
 
     def set_category(self, category):
