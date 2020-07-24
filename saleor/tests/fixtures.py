@@ -379,7 +379,7 @@ def address_other_country():
         city="BENNETTMOUTH",
         postal_code="13377",
         country="IS",
-        phone="",
+        phone="+40123123123",
     )
 
 
@@ -454,7 +454,10 @@ def user_checkout_with_items(user_checkout, product_list):
 def order(customer_user):
     address = customer_user.default_billing_address.get_copy()
     return Order.objects.create(
-        billing_address=address, user_email=customer_user.email, user=customer_user
+        billing_address=address,
+        shipping_address=address,
+        user_email=customer_user.email,
+        user=customer_user,
     )
 
 
