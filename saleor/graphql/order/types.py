@@ -14,7 +14,7 @@ from ...plugins.manager import get_plugins_manager
 from ...product.templatetags.product_images import get_product_image_thumbnail
 from ...warehouse import models as warehouse_models
 from ..account.types import User
-from ..account.utils import user_has_access
+from ..account.utils import requestor_has_access
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
@@ -386,15 +386,15 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_billing_address(root: models.Order, info):
-        user = info.context.user
-        if user_has_access(user, root.user, OrderPermissions.MANAGE_ORDERS):
+        requester = get_user_or_app_from_context(info.context)
+        if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
             return root.billing_address
         return obfuscate_address(root.billing_address)
 
     @staticmethod
     def resolve_shipping_address(root: models.Order, info):
-        user = info.context.user
-        if user_has_access(user, root.user, OrderPermissions.MANAGE_ORDERS):
+        requester = get_user_or_app_from_context(info.context)
+        if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
             return root.shipping_address
         return obfuscate_address(root.shipping_address)
 
@@ -492,16 +492,16 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_user_email(root: models.Order, info):
-        user = info.context.user
+        requester = get_user_or_app_from_context(info.context)
         customer_email = root.get_customer_email()
-        if user_has_access(user, root.user, OrderPermissions.MANAGE_ORDERS):
+        if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
             return customer_email
         return obfuscate_email(customer_email)
 
     @staticmethod
     def resolve_user(root: models.Order, info):
-        user = info.context.user
-        if user_has_access(user, root.user, AccountPermissions.MANAGE_USERS):
+        requester = get_user_or_app_from_context(info.context)
+        if requestor_has_access(requester, root.user, AccountPermissions.MANAGE_USERS):
             return root.user
         raise PermissionDenied()
 

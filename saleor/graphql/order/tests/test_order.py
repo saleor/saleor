@@ -2370,6 +2370,106 @@ def test_order_by_token_query_by_staff_no_permission(
     ] + "." * (len(str(order.billing_address.phone)) - 3)
 
 
+def test_order_by_token_query_by_app(
+    app_api_client, order, customer_user, permission_manage_orders
+):
+    # given
+    query = ORDER_BY_TOKEN_QUERY
+
+    order.user = customer_user
+    order.save()
+
+    app_api_client.app.permissions.add(permission_manage_orders)
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    # when
+    response = app_api_client.post_graphql(query, {"token": order.token})
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderByToken"]
+    assert data["id"] == order_id
+
+    assert data["shippingAddress"]["firstName"] == order.shipping_address.first_name
+    assert data["shippingAddress"]["lastName"] == order.shipping_address.last_name
+    assert (
+        data["shippingAddress"]["streetAddress1"]
+        == order.shipping_address.street_address_1
+    )
+    assert (
+        data["shippingAddress"]["streetAddress2"]
+        == order.shipping_address.street_address_2
+    )
+    assert data["shippingAddress"]["phone"] == order.shipping_address.phone
+
+    assert data["billingAddress"]["firstName"] == order.billing_address.first_name
+    assert data["billingAddress"]["lastName"] == order.billing_address.last_name
+    assert (
+        data["billingAddress"]["streetAddress1"]
+        == order.billing_address.street_address_1
+    )
+    assert (
+        data["billingAddress"]["streetAddress2"]
+        == order.billing_address.street_address_2
+    )
+    assert data["billingAddress"]["phone"] == order.billing_address.phone
+
+    assert data["userEmail"] == order.user_email
+
+
+def test_order_by_token_query_by_app_no_perm(
+    app_api_client, order, customer_user, permission_manage_orders
+):
+    # given
+    query = ORDER_BY_TOKEN_QUERY
+
+    order.user = customer_user
+    order.save()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    # when
+    response = app_api_client.post_graphql(query, {"token": order.token})
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderByToken"]
+    assert data["id"] == order_id
+
+    assert data["shippingAddress"]["firstName"] == order.shipping_address.first_name[
+        0
+    ] + "." * (len(order.shipping_address.first_name) - 1)
+    assert data["shippingAddress"]["lastName"] == order.shipping_address.last_name[
+        0
+    ] + "." * (len(order.shipping_address.last_name) - 1)
+    assert data["shippingAddress"][
+        "streetAddress1"
+    ] == order.shipping_address.street_address_1[0] + "." * (
+        len(order.shipping_address.street_address_1) - 1
+    )
+    assert data["shippingAddress"]["streetAddress2"] == ""
+    assert data["shippingAddress"]["phone"] == str(order.shipping_address.phone)[
+        :3
+    ] + "." * (len(str(order.shipping_address.phone)) - 3)
+
+    assert data["billingAddress"]["firstName"] == order.billing_address.first_name[
+        0
+    ] + "." * (len(order.billing_address.first_name) - 1)
+    assert data["billingAddress"]["lastName"] == order.billing_address.last_name[
+        0
+    ] + "." * (len(order.billing_address.last_name) - 1)
+    assert data["billingAddress"][
+        "streetAddress1"
+    ] == order.billing_address.street_address_1[0] + "." * (
+        len(order.billing_address.street_address_1) - 1
+    )
+    assert data["billingAddress"]["streetAddress2"] == ""
+    assert data["billingAddress"]["phone"] == str(order.billing_address.phone)[
+        :3
+    ] + "." * (len(str(order.billing_address.phone)) - 3)
+
+
 def test_order_by_token_user_restriction(api_client, order):
     query = """
     query OrderByToken($token: UUID!) {

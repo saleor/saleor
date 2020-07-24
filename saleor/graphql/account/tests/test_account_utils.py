@@ -22,7 +22,7 @@ from ..utils import (
     get_user_permissions,
     get_users_and_look_for_permissions_in_groups_with_manage_staff,
     look_for_permission_in_users_with_manage_staff,
-    user_has_access,
+    requestor_has_access,
 )
 
 
@@ -842,17 +842,19 @@ def test_can_manage_app_for_app(
     assert result is True
 
 
-def test_user_has_access_no_access_by_customer(staff_user, customer_user):
+def test_requestor_has_access_no_access_by_customer(staff_user, customer_user):
     # when
-    result = user_has_access(customer_user, staff_user, OrderPermissions.MANAGE_ORDERS)
+    result = requestor_has_access(
+        customer_user, staff_user, OrderPermissions.MANAGE_ORDERS
+    )
 
     # then
     assert result is False
 
 
-def test_user_has_access_access_by_customer(customer_user):
+def test_requestor_has_access_access_by_customer(customer_user):
     # when
-    result = user_has_access(
+    result = requestor_has_access(
         customer_user, customer_user, OrderPermissions.MANAGE_ORDERS
     )
 
@@ -860,7 +862,7 @@ def test_user_has_access_access_by_customer(customer_user):
     assert result is True
 
 
-def test_user_has_access_access_by_staff(
+def test_requestor_has_access_access_by_staff(
     customer_user, staff_user, permission_manage_orders
 ):
     # given
@@ -868,13 +870,15 @@ def test_user_has_access_access_by_staff(
     staff_user.save()
 
     # when
-    result = user_has_access(staff_user, customer_user, OrderPermissions.MANAGE_ORDERS)
+    result = requestor_has_access(
+        staff_user, customer_user, OrderPermissions.MANAGE_ORDERS
+    )
 
     # then
     assert result is True
 
 
-def test_user_has_access_no_access_by_staff(
+def test_requestor_has_access_no_access_by_staff(
     customer_user, staff_user, permission_manage_products
 ):
     # given
@@ -882,7 +886,9 @@ def test_user_has_access_no_access_by_staff(
     staff_user.save()
 
     # when
-    result = user_has_access(staff_user, customer_user, OrderPermissions.MANAGE_ORDERS)
+    result = requestor_has_access(
+        staff_user, customer_user, OrderPermissions.MANAGE_ORDERS
+    )
 
     # then
     assert result is False
