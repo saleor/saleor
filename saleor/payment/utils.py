@@ -216,9 +216,6 @@ def gateway_postprocess(transaction, payment):
         return
 
     transaction_kind = transaction.kind
-    # if transaction.action_required:
-    #     payment.charge_status = ChargeStatus.ACTION_REQUIRED
-    #     payment.save(update_fields=["charge_status", ])
 
     if transaction_kind in {
         TransactionKind.CAPTURE,
