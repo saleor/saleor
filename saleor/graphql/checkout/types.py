@@ -244,7 +244,7 @@ class Checkout(CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_available_payment_gateways(root: models.Checkout, info):
+    def resolve_available_payment_gateways(root: models.Checkout, _info):
         return get_plugins_manager().checkout_available_payment_gateways(checkout=root)
 
     @staticmethod
