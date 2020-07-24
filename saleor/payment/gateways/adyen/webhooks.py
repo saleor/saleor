@@ -18,7 +18,7 @@ from ....order.actions import (
     order_captured,
     order_refunded,
 )
-from ....order.events import payment_gateway_notification_event
+from ....order.events import external_notification_event
 from ....payment.models import Payment, Transaction
 from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
@@ -74,7 +74,7 @@ def create_payment_notification_for_order(
         return
     msg = success_msg if is_success else failed_msg
 
-    payment_gateway_notification_event(
+    external_notification_event(
         order=payment.order, user=None, message=msg, payment=payment
     )
 
