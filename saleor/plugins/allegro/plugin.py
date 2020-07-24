@@ -187,19 +187,20 @@ class AllegroAPI:
         if saleor_product.private_metadata.get('publish.target') and saleor_product.private_metadata.get('publish.target') == 'allegro'\
                 and saleor_product.private_metadata.get('publish.status') == 'unpublished':
 
-            category = self.get_category(saleor_product.product_type.id)
-            require_parameters = self.get_require_parameters(category['index'])
+            categoryId = saleor_product.product_type.metadata['allegro.mapping.categoryId']
 
-            parameters_mapper = ParametersMapperFactory().getMapper(category['name'])
+            require_parameters = self.get_require_parameters(categoryId)
 
-            parameters = parameters_mapper.set_product(saleor_product).set_category(category).set_require_parameters(require_parameters).run_mapper()
+            parameters_mapper = ParametersMapperFactory().getMapper(saleor_product.product_type)
+
+            parameters = parameters_mapper.set_product(saleor_product).set_require_parameters(require_parameters).run_mapper()
 
             product_mapper = ProductMapperFactory().getMapper()
 
             product = product_mapper.set_saleor_product(saleor_product) \
                 .set_saleor_images(self.upload_images())\
                 .set_saleor_parameters(parameters)\
-                .set_saleor_category(category).run_mapper()
+                .set_category(categoryId).run_mapper()
 
 
 
@@ -670,19 +671,11 @@ class ComplexParametersMapper(SimpleParametersMapper):
     def map(self):
         return self
 
-    def set_category(self, category):
-        self.category = category
-
-        return self
-
     def run_mapper(self):
 
         attributes, attributes_name = self.get_product_attributes()
 
         self.set_product_attributes(attributes)
-
-
-
 
         for require_parameter in self.require_parameters:
             self.assign_mapper(require_parameter['name'])
@@ -820,10 +813,6 @@ class AllegroProductMapper:
         self.product['category']['id'] = category
         return self
 
-    def set_saleor_category(self, category):
-        self.saleor_category = category
-        return self
-
     def set_delivery_additional_info(self, id):
         self.product['delivery']['additionalInfo'] = id
         return self
@@ -949,7 +938,7 @@ class AllegroProductMapper:
         self.set_implied_warranty('59f8273f-6dff-4242-a6c2-60dd385e9525')
         self.set_return_policy('8b0ecc6b-8812-4b0f-b8a4-a0b56585c403')
         self.set_warranty('d3605a54-3cfb-4cce-8e1b-1c1adafb498c')
-        self.set_category(self.saleor_category['index'])
+
         self.set_delivery_additional_info('test')
         self.set_delivery_handling_time('PT72H')
         self.set_delivery_shipment_date('2020-07-25T08:03:59Z')
