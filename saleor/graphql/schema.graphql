@@ -3367,13 +3367,11 @@ type Payment implements Node {
   token: String!
   checkout: Checkout
   order: Order
-  billingEmail: String!
   customerIpAddress: String
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
   total: Money
   capturedAmount: Money
-  billingAddress: Address
   transactions: [Transaction]
   availableCaptureAmount: Money
   availableRefundAmount: Money

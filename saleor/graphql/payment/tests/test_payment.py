@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 import graphene
 import pytest
-from django_countries.fields import Country
 
 from ....checkout import calculations
 from ....payment.error_codes import PaymentErrorCode
@@ -646,21 +645,6 @@ def test_payments_query(
                     }
                     actions
                     chargeStatus
-                    billingAddress {
-                        country {
-                            code
-                            country
-                        }
-                        firstName
-                        lastName
-                        cityArea
-                        countryArea
-                        city
-                        companyName
-                        streetAddress1
-                        streetAddress2
-                        postalCode
-                    }
                     transactions {
                         amount {
                             currency
@@ -686,21 +670,6 @@ def test_payments_query(
     assert Decimal(total) == pay.total
     assert data["total"]["currency"] == pay.currency
     assert data["chargeStatus"] == PaymentChargeStatusEnum.FULLY_CHARGED.name
-    assert data["billingAddress"] == {
-        "firstName": pay.billing_first_name,
-        "lastName": pay.billing_last_name,
-        "city": pay.billing_city,
-        "cityArea": pay.billing_city_area,
-        "countryArea": pay.billing_country_area,
-        "companyName": pay.billing_company_name,
-        "streetAddress1": pay.billing_address_1,
-        "streetAddress2": pay.billing_address_2,
-        "postalCode": pay.billing_postal_code,
-        "country": {
-            "code": pay.billing_country_code,
-            "country": Country(pay.billing_country_code).name,
-        },
-    }
     assert data["actions"] == [OrderAction.REFUND.name]
     txn = pay.transactions.get()
     assert data["transactions"] == [

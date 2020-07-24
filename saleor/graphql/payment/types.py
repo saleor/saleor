@@ -1,9 +1,7 @@
 import graphene
-from django_countries.fields import Country
 from graphene import relay
 
 from ...payment import models
-from ..account.types import Address
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import Money
 from .enums import OrderAction, PaymentChargeStatusEnum
@@ -78,7 +76,6 @@ class Payment(CountableDjangoObjectType):
     captured_amount = graphene.Field(
         Money, description="Total amount captured for this payment."
     )
-    billing_address = graphene.Field(Address, description="Customer billing address.")
     transactions = graphene.List(
         Transaction, description="List of all transactions within this payment."
     )
@@ -103,7 +100,6 @@ class Payment(CountableDjangoObjectType):
             "token",
             "checkout",
             "order",
-            "billing_email",
             "customer_ip_address",
         ]
 
@@ -125,21 +121,6 @@ class Payment(CountableDjangoObjectType):
     @staticmethod
     def resolve_captured_amount(root: models.Payment, _info):
         return root.get_captured_amount()
-
-    @staticmethod
-    def resolve_billing_address(root: models.Payment, _info):
-        return Address(
-            first_name=root.billing_first_name,
-            last_name=root.billing_last_name,
-            company_name=root.billing_company_name,
-            street_address_1=root.billing_address_1,
-            street_address_2=root.billing_address_2,
-            city=root.billing_city,
-            city_area=root.billing_city_area,
-            postal_code=root.billing_postal_code,
-            country=Country(root.billing_country_code),
-            country_area=root.billing_country_area,
-        )
 
     @staticmethod
     def resolve_transactions(root: models.Payment, _info):
