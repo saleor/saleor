@@ -98,7 +98,7 @@ class AdyenGatewayPlugin(BasePlugin):
         "Live": {
             "type": ConfigurationTypeField.STRING,
             "help_text": (
-                "Live it blank when you want to use test env. To communicate with the"
+                "Leave it blank when you want to use test env. To communicate with the"
                 " Adyen API you should submit HTTP POST requests to corresponding "
                 "endpoints. These endpoints differ for test and live accounts, and also"
                 " depend on the data format (SOAP, JSON, or FORM) you use to submit "
@@ -362,9 +362,3 @@ class AdyenGatewayPlugin(BasePlugin):
             error="",
             raw_response=result.message,
         )
-
-    def void_payment(
-        self, payment_information: "PaymentData", previous_value
-    ) -> "GatewayResponse":
-
-        pass

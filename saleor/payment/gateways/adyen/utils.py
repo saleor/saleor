@@ -6,9 +6,11 @@ import Adyen
 from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
+from graphql_relay import from_global_id
 
 from ....checkout.models import Checkout
 from ....core.prices import quantize_price
+from ....discount.utils import fetch_active_discounts
 from ... import PaymentError
 from ...interface import PaymentData
 
@@ -43,6 +45,51 @@ def api_call(requst_data: Dict[str, Any], method: Callable) -> Adyen.Adyen:
         raise PaymentError("Unable to process the payment request.")
 
 
+def append_klarna_data(payment_information: "PaymentData", payment_data):
+    # FIXME Add klarna data
+    pass
+    # _type, payment_id = from_global_id(payment_information.payment_id)
+    # checkout = Checkout.objects.filter(payments__id=payment_data).first()
+    # if not checkout:
+    #     raise PaymentError("Unable to calculate products for klarna")
+    # discounts = fetch_active_discounts()
+    # checkout.lines.prefetch_related("variant").all()
+    # def resolve_total_price(self, info):
+    #     def calculate_total_price(discounts):
+    #         return info.context.plugins.calculate_checkout_line_total(
+    #             checkout_line=self, discounts=discounts
+    #         )
+    #
+    #     return (
+    #         DiscountsByDateTimeLoader(info.context)
+    #             .load(info.context.request_time)
+    #             .then(calculate_total_price)
+    #     )
+
+    # payment_data["shopperEmail"] = payment_information.customer_email
+    # payment_data["lineItems"] = [
+    #     {
+    #         "quantity": "1",
+    #         "amountExcludingTax": "450",
+    #         "taxPercentage": "1111",
+    #         "description": "Sunglasses",
+    #         "id": "Item #1",
+    #         "taxAmount": "50",
+    #         "amountIncludingTax": "500",
+    #         "taxCategory": "High"
+    #     },
+    #     {
+    #         "quantity": "1",
+    #         "amountExcludingTax": "450",
+    #         "taxPercentage": "1111",
+    #         "description": "Headphones",
+    #         "id": "Item #2",
+    #         "taxAmount": "50",
+    #         "amountIncludingTax": "500",
+    #         "taxCategory": "High"
+    #     }]
+
+
 def request_data_for_payment(
     payment_information: "PaymentData", return_url, merchant_account, origin_url
 ) -> Dict[str, Any]:
@@ -66,6 +113,11 @@ def request_data_for_payment(
         # Add to dashboard config the flow to combine channel with url like:
         # web1:https://shop.com, web2:https://shop1.com
         extra_request_params["origin"] = origin_url
+
+    method = payment_data["paymentMethod"].get("type", [])
+    if "klarna" in method:
+        # TODO
+        append_klarna_data()
 
     request = {
         "amount": {

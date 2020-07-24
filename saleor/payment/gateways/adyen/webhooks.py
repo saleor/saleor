@@ -20,7 +20,7 @@ from ....order.actions import (
 )
 from ....order.events import payment_gateway_notification_event
 from ....payment.models import Payment, Transaction
-from ... import TransactionKind
+from ... import ChargeStatus, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
 from ...utils import create_transaction, gateway_postprocess
 from .utils import convert_adyen_price_format
@@ -80,13 +80,18 @@ def create_payment_notification_for_order(
 
 
 def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayConfig):
-    mark_capture = gateway_config.auto_capture
-    if mark_capture:
-        # If we mark order as a capture by default we don't need to handle auth actions
-        return
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         # We don't know anything about that payment
+        return
+    if payment.charge_status in {
+        ChargeStatus.FULLY_CHARGED,
+        ChargeStatus.PARTIALLY_CHARGED,
+    }:
+        return
+    mark_capture = gateway_config.auto_capture
+    if mark_capture:
+        # If we mark order as a capture by default we don't need to handle auth actions
         return
 
     transaction_id = notification.get("pspReference")
@@ -108,12 +113,13 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
 
 
 def handle_cancellation(notification: Dict[str, Any], _gateway_config: GatewayConfig):
+    "https://docs.adyen.com/checkout/cancel#cancellation-notifciation"
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return
     transaction_id = notification.get("pspReference")
     transaction = get_transaction(payment, transaction_id, TransactionKind.CANCEL)
-    if transaction:
+    if transaction and transaction.is_success:
         # it is already cancelled
         return
     new_transaction = create_new_transaction(
@@ -134,6 +140,7 @@ def handle_cancellation(notification: Dict[str, Any], _gateway_config: GatewayCo
 def handle_cancel_or_refund(
     notification: Dict[str, Any], gateway_config: GatewayConfig
 ):
+    "https://docs.adyen.com/checkout/cancel-or-refund#cancel-or-refund-notification"
     additional_data = notification.get("additionalData")
     action = additional_data.get("modification.action")
     if action == "refund":
@@ -143,14 +150,13 @@ def handle_cancel_or_refund(
 
 
 def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
-    # FIXME execute order_fully_paid event
+    "https://docs.adyen.com/checkout/capture#capture-notification"
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return
     transaction_id = notification.get("pspReference")
-    transaction = get_transaction(payment, transaction_id, TransactionKind.CAPTURE)
-    if transaction and transaction.is_success:
-        # it is already captured
+    if payment.charge_status == ChargeStatus.FULLY_CHARGED:
+        # the payment has already status captured.
         return
 
     new_transaction = create_new_transaction(
@@ -158,8 +164,6 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
     )
 
     gateway_postprocess(new_transaction, payment)
-    if payment.order:
-        handle_fully_paid_order(payment.order)
 
     reason = notification.get("reason", "-")
     success_msg = f"Adyen: The capture {transaction_id} request was successful."
@@ -168,10 +172,11 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
         payment, success_msg, failed_msg, new_transaction.is_success
     )
     if payment.order:
-        order_captured(payment.orderm, None, transaction.amount, payment)
+        order_captured(payment.order, None, new_transaction.amount, payment)
 
 
 def handle_failed_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
+    "https://docs.adyen.com/checkout/capture#failed-capture"
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return
@@ -197,6 +202,8 @@ def handle_failed_capture(notification: Dict[str, Any], _gateway_config: Gateway
 
 
 def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
+    "https://docs.adyen.com/development-resources/webhooks/understand-notifications#"
+    "event-codes"
     mark_capture = gateway_config.auto_capture
     if mark_capture:
         # If we mark order as a capture by default we don't need to handle this action
@@ -222,6 +229,7 @@ def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
 
 
 def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
+    "https://docs.adyen.com/checkout/refund#refund-notification"
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return
@@ -242,22 +250,41 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
         payment, success_msg, failed_msg, new_transaction.is_success
     )
     if payment.order:
-        order_refunded(payment.order, None, transaction.amount, payment)
+        order_refunded(payment.order, None, new_transaction.amount, payment)
 
 
-def handle_failed_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
+def _get_kind(transaction: Optional[Transaction]) -> TransactionKind:
+    if transaction:
+        return transaction.kind
+    # To proceed the refund we already need to have the capture status so we will use it
+    return TransactionKind.CAPTURE
+
+
+def handle_failed_refund(notification: Dict[str, Any], gateway_config: GatewayConfig):
+    "https://docs.adyen.com/checkout/refund#failed-refund"
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return
     transaction_id = notification.get("pspReference")
-    transaction = get_transaction(payment, transaction_id, TransactionKind.REFUND)
-    if transaction and not transaction.is_success:
-        # The refund is already saved
-        return
-    new_transaction = create_new_transaction(
-        notification, payment, TransactionKind.REFUND
-    )
-    gateway_postprocess(new_transaction, payment)
+
+    # take the last status of payment before we tried to perform the refund
+    last_transaction = payment.transactions.exclude(
+        kind__in=[
+            TransactionKind.REFUND_ONGOING,
+            TransactionKind.REFUND,
+            TransactionKind.REFUND_FAILED,
+        ]
+    ).last()
+    last_kind = _get_kind(last_transaction)
+
+    refund_transaction = payment.transactions.filter(
+        token=transaction_id,
+        kind__in=[
+            TransactionKind.REFUND_ONGOING,
+            TransactionKind.REFUND,
+            TransactionKind.REFUND_FAILED,
+        ],
+    ).last()
 
     reason = notification.get("reason", "-")
     msg = (
@@ -265,12 +292,41 @@ def handle_failed_refund(notification: Dict[str, Any], _gateway_config: GatewayC
         f" receive more than two failures on the same refund, contact Adyen Support "
         f"Team. Reason: {reason}"
     )
-    create_payment_notification_for_order(payment, msg, msg, new_transaction.is_success)
+    create_payment_notification_for_order(payment, msg, None, True)
+
+    if not refund_transaction:
+        # we don't know anything about refund so we have to skip the notification about
+        # failed refund.
+        return
+
+    if refund_transaction.kind == TransactionKind.REFUND_FAILED:
+        # The failed refund is already saved
+        return
+    elif refund_transaction.kind == TransactionKind.REFUND_ONGOING:
+        # create new failed transaction which will allows us to discover duplicated
+        # notification
+        create_new_transaction(notification, payment, TransactionKind.REFUND_FAILED)
+
+        # Refund ongoing doesnt do any action on payment.capture_amount so we set
+        # 0 to amount. Thanks to it we can create transaction with the same status and
+        # no worries that we will capture total in payment two times.
+        # (if gateway_postprocess gets transaction with capture it will subtract the
+        # amount from transaction
+        notification["amount"]["value"] = 0
+        new_transaction = create_new_transaction(notification, payment, last_kind)
+        gateway_postprocess(new_transaction, payment)
+    elif refund_transaction.kind == TransactionKind.REFUND:
+        # create new failed transaction which will allows us to discover duplicated
+        # notification
+        create_new_transaction(notification, payment, TransactionKind.REFUND_FAILED)
+        new_transaction = create_new_transaction(notification, payment, last_kind)
+        gateway_postprocess(new_transaction, payment)
 
 
 def handle_reversed_refund(
     notification: Dict[str, Any], _gateway_config: GatewayConfig
 ):
+    "https://docs.adyen.com/checkout/refund#failed-refund"
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return
@@ -279,7 +335,7 @@ def handle_reversed_refund(
         payment, transaction_id, TransactionKind.REFUND_REVERSED
     )
 
-    if transaction and not transaction.is_success:
+    if transaction:
         # it is already refunded
         return
     new_transaction = create_new_transaction(
@@ -297,30 +353,10 @@ def handle_reversed_refund(
 
 
 def handle_refund_with_data(
-    notification: Dict[str, Any], _gateway_config: GatewayConfig
+    notification: Dict[str, Any], gateway_config: GatewayConfig
 ):
-
-    payment = get_payment(notification.get("merchantReference"))
-    if not payment:
-        return
-    transaction_id = notification.get("pspReference")
-    transaction = get_transaction(payment, transaction_id, TransactionKind.REFUND)
-    if transaction:
-        # it is already refunded
-        return
-    new_transaction = create_new_transaction(
-        notification, payment, TransactionKind.REFUND
-    )
-    gateway_postprocess(new_transaction, payment)
-
-    reason = notification.get("reason", "-")
-    success_msg = f"Adyen: The refund {transaction_id} request was successful."
-    failed_msg = f"Adyen: The refund {transaction_id} request failed. Reason: {reason}"
-    create_payment_notification_for_order(
-        payment, success_msg, failed_msg, new_transaction.is_success
-    )
-    if payment.order:
-        order_refunded(payment.order, None, transaction.amount, payment)
+    "https://docs.adyen.com/checkout/refund#refund-with-data"
+    handle_refund(notification, gateway_config)
 
 
 def webhook_not_implemented(
@@ -363,26 +399,20 @@ EVENT_MAP = {
 def validate_hmac_signature(
     notification: Dict[str, Any], gateway_config: "GatewayConfig"
 ) -> bool:
-
-    """
-    pspReference	7914073381342284
-    originalReference
-    merchantAccountCode	YOUR_MERCHANT_ACCOUNT
-    merchantReference	TestPayment-1407325143704
-    value	1130
-    currency	EUR
-    eventCode	AUTHORISATION
-    success	true
-    """
+    hmac_signature = notification.get("additionalData", {}).get("hmacSignature")
     hmac_key = gateway_config.connection_params.get("webhook_hmac")
-    if not hmac_key:
+    if not hmac_key and not hmac_signature:
         return True
 
-    hmac_signature = notification.get("additionalData", {}).get("hmacSignature")
+    if not hmac_key and hmac_signature:
+        return False
+
     if not hmac_signature and hmac_key:
         return False
 
-    success = "true" if notification.get("success", "") else "false"
+    hmac_key = hmac_key.encode()
+
+    success = "true" if notification.get("success", "") == "true" else "false"
     if notification.get("success", None) is None:
         success = ""
 
@@ -391,13 +421,14 @@ def validate_hmac_signature(
         notification.get("originalReference", ""),
         notification.get("merchantAccountCode", ""),
         notification.get("merchantReference", ""),
-        notification.get("value", ""),
-        notification.get("currency", ""),
+        str(notification.get("amount", {}).get("value", "")),
+        notification.get("amount", {}).get("currency", ""),
         notification.get("eventCode", ""),
         success,
     ]
     payload = ":".join(payload_list)
 
+    hmac_key = binascii.a2b_hex(hmac_key)
     hm = hmac.new(hmac_key, payload.encode("utf-8"), hashlib.sha256)
     expected_merchant_sign = base64.b64encode(hm.digest())
     return hmac_signature == expected_merchant_sign.decode("utf-8")
@@ -409,6 +440,10 @@ def validate_auth_user(headers: HttpHeaders, gateway_config: "GatewayConfig") ->
     auth_header = headers.get("Authorization")
     if not auth_header and not username:
         return True
+    if auth_header and not username:
+        return False
+    if not auth_header and username:
+        return False
 
     split_auth = auth_header.split(maxsplit=1)
     prefix = "BASIC"
@@ -418,7 +453,9 @@ def validate_auth_user(headers: HttpHeaders, gateway_config: "GatewayConfig") ->
 
     auth = split_auth[1]
     try:
-        request_username, request_password = base64.b64decode(auth).split(":")
+        decoded_auth = base64.b64decode(auth)
+        decoded_auth = decoded_auth.decode()
+        request_username, request_password = decoded_auth.split(":")
         user_is_correct = request_username == username
         if user_is_correct and check_password(request_password, password):
             return True
@@ -437,11 +474,11 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
 
     if not validate_hmac_signature(notification, gateway_config):
         return HttpResponseBadRequest("Invalid or missing hmac signature.")
-    if not validate_auth_user(notification, gateway_config):
+    if not validate_auth_user(request.headers, gateway_config):
         return HttpResponseBadRequest("Invalid or missing basic auth.")
 
-    event_handler = EVENT_MAP.get(notification.get("eventCode", ""))
-    if event_handler:
-        event_handler(notification, gateway_config)
-        return HttpResponse("[accepted]")
+    # event_handler = EVENT_MAP.get(notification.get("eventCode", ""))
+    # if event_handler:
+    #     event_handler(notification, gateway_config)
+    return HttpResponse("[accepted]")
     return HttpResponseNotFound()

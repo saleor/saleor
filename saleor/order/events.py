@@ -268,7 +268,7 @@ def payment_gateway_notification_event(
     parameters = {"message": message}
 
     if payment:
-        parameters.update({"gateway": payment.gateway, "payment_id": payment.token})
+        parameters.update({"plugin": payment.gateway, "payment_id": payment.token})
 
     return OrderEvent.objects.create(
         order=order,

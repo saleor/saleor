@@ -43,11 +43,9 @@ def order_created(order: "Order", user: "User", from_draft: bool = False):
             order_authorized(
                 order=order, user=user, amount=payment.total, payment=payment
             )
-        if order.is_fully_paid():
-            handle_fully_paid_order(order=order, user=user)
 
 
-def handle_fully_paid_order(order: "Order", user: "User" = None):
+def handle_fully_paid_order(order: "Order", user: Optional["User"] = None):
     events.order_fully_paid_event(order=order, user=user)
 
     if order.get_customer_email():
@@ -146,6 +144,8 @@ def order_captured(
         order=order, user=user, amount=amount, payment=payment
     )
     get_plugins_manager().order_updated(order)
+    if order.is_fully_paid():
+        handle_fully_paid_order(order, user)
 
 
 def fulfillment_tracking_updated(
