@@ -4343,7 +4343,7 @@ type Query {
   exportFile(id: ID!): ExportFile
   exportFiles(filter: ExportFileFilterInput, sortBy: ExportFileSortingInput, channel: String, before: String, after: String, first: Int, last: Int): ExportFileCountableConnection
   taxTypes: [TaxType]
-  checkout(token: UUID, channelSlug: String): Checkout
+  checkout(token: UUID, channel: String): Checkout
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(channel: String, before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection

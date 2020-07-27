@@ -243,6 +243,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         country = info.context.country.code
         channel_slug = str(info.context.channel_slug)
         cleaned_input["channel"] = cls.clean_channel(channel_slug)
+        instance.channel = cleaned_input["channel"]
 
         # set country to one from shipping address
         shipping_address = cleaned_input.get("shipping_address")
@@ -336,7 +337,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         else:
             checkout = models.Checkout()
         cleaned_input = cls.clean_input(info, checkout, data.get("input"))
-        checkout.channel = cleaned_input["channel"]
         checkout = cls.construct_instance(checkout, cleaned_input)
         cls.clean_instance(info, checkout)
         cls.save(info, checkout, cleaned_input)

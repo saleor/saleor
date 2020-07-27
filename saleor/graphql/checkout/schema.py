@@ -33,7 +33,7 @@ class CheckoutQueries(graphene.ObjectType):
         Checkout,
         description="Look up a checkout by token.",
         token=graphene.Argument(UUID, description="The checkout's token."),
-        channel_slug=graphene.Argument(
+        channel=graphene.Argument(
             graphene.String, description="The checkout's channel slug."
         ),
     )
@@ -48,8 +48,8 @@ class CheckoutQueries(graphene.ObjectType):
         CheckoutLine, description="List of checkout lines."
     )
 
-    def resolve_checkout(self, info, token, channel_slug):
-        return resolve_checkout(info, token, channel_slug)
+    def resolve_checkout(self, info, token, channel):
+        return resolve_checkout(info, token, channel)
 
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
     def resolve_checkouts(self, *_args, **_kwargs):

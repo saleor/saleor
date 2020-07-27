@@ -8,26 +8,25 @@ def add_channel_slug(apps, schema_editor):
     Channel = apps.get_model("channel", "Channel")
     Checkout = apps.get_model("checkout", "Checkout")
 
-    if Checkout.objects.exists():
-        channels_dict = {}
+    channels_dict = {}
 
-        for checkout in Checkout.objects.iterator():
-            currency = checkout.currency
-            channel = channels_dict.get(currency)
+    for checkout in Checkout.objects.iterator():
+        currency = checkout.currency
+        channel = channels_dict.get(currency)
 
-            if not channel:
-                channel, _ = Channel.objects.get_or_create(
-                    currency_code=currency,
-                    defaults={
-                        "name": f"Channel {currency}",
-                        "slug": f"channel-{currency.lower()}",
-                    },
-                )
-                channels_dict[currency] = channel
+        if not channel:
+            channel, _ = Channel.objects.get_or_create(
+                currency_code=currency,
+                defaults={
+                    "name": f"Channel {currency}",
+                    "slug": f"channel-{currency.lower()}",
+                },
+            )
+            channels_dict[currency] = channel
 
-            checkout.channel = channel
+        checkout.channel = channel
 
-            checkout.save(update_fields=["channel"])
+        checkout.save(update_fields=["channel"])
 
 
 class Migration(migrations.Migration):
