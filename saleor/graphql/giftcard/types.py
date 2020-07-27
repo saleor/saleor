@@ -3,7 +3,9 @@ import graphene
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, GiftcardPermissions
 from ...giftcard import models
+from ..account.utils import requestor_has_access
 from ..core.connection import CountableDjangoObjectType
+from ..utils import get_user_or_app_from_context
 
 
 class GiftCard(CountableDjangoObjectType):
@@ -41,8 +43,8 @@ class GiftCard(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_user(root: models.GiftCard, info):
-        user = info.context.user
-        if user == root.user or user.has_perm(AccountPermissions.MANAGE_USERS):
+        requestor = get_user_or_app_from_context(info.context)
+        if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_USERS):
             return root.user
         raise PermissionDenied()
 

@@ -222,26 +222,3 @@ class PaymentVoid(BaseMutation):
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentVoid(payment=payment)
-
-
-class PaymentSecureConfirm(BaseMutation):
-    payment = graphene.Field(Payment, description="Updated payment.")
-
-    class Arguments:
-        payment_id = graphene.ID(required=True, description="Payment ID.")
-
-    class Meta:
-        description = "Confirms payment in a two-step process like 3D secure"
-        error_type_class = common_types.PaymentError
-        error_type_field = "payment_errors"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, payment_id):
-        payment = cls.get_node_or_error(
-            info, payment_id, field="payment_id", only_type=Payment
-        )
-        try:
-            gateway.confirm(payment)
-        except PaymentError as e:
-            raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
-        return PaymentSecureConfirm(payment=payment)

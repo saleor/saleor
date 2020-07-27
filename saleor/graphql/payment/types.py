@@ -1,9 +1,7 @@
 import graphene
-from django_countries.fields import Country
 from graphene import relay
 
 from ...payment import models
-from ..account.types import Address
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import Money
 from .enums import OrderAction, PaymentChargeStatusEnum
@@ -25,7 +23,6 @@ class Transaction(CountableDjangoObjectType):
             "kind",
             "is_success",
             "error",
-            "gateway_response",
         ]
 
     @staticmethod
@@ -79,7 +76,6 @@ class Payment(CountableDjangoObjectType):
     captured_amount = graphene.Field(
         Money, description="Total amount captured for this payment."
     )
-    billing_address = graphene.Field(Address, description="Customer billing address.")
     transactions = graphene.List(
         Transaction, description="List of all transactions within this payment."
     )
@@ -88,9 +84,6 @@ class Payment(CountableDjangoObjectType):
     )
     available_refund_amount = graphene.Field(
         Money, description="Maximum amount of money that can be refunded."
-    )
-    credit_card = graphene.Field(
-        CreditCard, description="The details of the card used for this payment."
     )
 
     class Meta:
@@ -107,9 +100,7 @@ class Payment(CountableDjangoObjectType):
             "token",
             "checkout",
             "order",
-            "billing_email",
             "customer_ip_address",
-            "extra_data",
         ]
 
     @staticmethod
@@ -132,21 +123,6 @@ class Payment(CountableDjangoObjectType):
         return root.get_captured_amount()
 
     @staticmethod
-    def resolve_billing_address(root: models.Payment, _info):
-        return Address(
-            first_name=root.billing_first_name,
-            last_name=root.billing_last_name,
-            company_name=root.billing_company_name,
-            street_address_1=root.billing_address_1,
-            street_address_2=root.billing_address_2,
-            city=root.billing_city,
-            city_area=root.billing_city_area,
-            postal_code=root.billing_postal_code,
-            country=Country(root.billing_country_code),
-            country_area=root.billing_country_area,
-        )
-
-    @staticmethod
     def resolve_transactions(root: models.Payment, _info):
         return root.transactions.all()
 
@@ -163,16 +139,3 @@ class Payment(CountableDjangoObjectType):
         if not root.can_capture():
             return None
         return root.get_charge_amount()
-
-    @staticmethod
-    def resolve_credit_card(root: models.Payment, _info):
-        data = {
-            "first_digits": root.cc_first_digits,
-            "last_digits": root.cc_last_digits,
-            "brand": root.cc_brand,
-            "exp_month": root.cc_exp_month,
-            "exp_year": root.cc_exp_year,
-        }
-        if not any(data.values()):
-            return None
-        return CreditCard(**data)
