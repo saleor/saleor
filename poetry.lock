@@ -874,12 +874,27 @@ description = "Google Cloud Storage API client library"
 name = "google-cloud-storage"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
-version = "1.29.0"
+version = "1.30.0"
 
 [package.dependencies]
 google-auth = ">=1.11.0,<2.0dev"
 google-cloud-core = ">=1.2.0,<2.0dev"
-google-resumable-media = ">=0.5.0,<0.6dev"
+google-resumable-media = ">=0.6.0,<2.0dev"
+
+[[package]]
+category = "main"
+description = "A python wrapper of the C library 'Google CRC32C'"
+marker = "python_version >= \"3.5\""
+name = "google-crc32c"
+optional = false
+python-versions = ">=3.5"
+version = "0.1.0"
+
+[package.dependencies]
+cffi = ">=1.0.0"
+
+[package.extras]
+testing = ["pytest"]
 
 [[package]]
 category = "main"
@@ -911,10 +926,14 @@ description = "Utilities for Google Media Downloads and Resumable Uploads"
 name = "google-resumable-media"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*"
-version = "0.5.1"
+version = "0.7.0"
 
 [package.dependencies]
 six = "*"
+
+[package.dependencies.google-crc32c]
+python = ">=3.5"
+version = ">=0.1.0"
 
 [package.extras]
 requests = ["requests (>=2.18.0,<3.0.0dev)"]
@@ -2628,8 +2647,28 @@ google-cloud-core = [
     {file = "google_cloud_core-1.3.0-py2.py3-none-any.whl", hash = "sha256:6ae5c62931e8345692241ac1939b85a10d6c38dc9e2854bdbacb7e5ac3033229"},
 ]
 google-cloud-storage = [
-    {file = "google-cloud-storage-1.29.0.tar.gz", hash = "sha256:15c8ab11d17e3a32c154662bb001c2097515799f3fd4947a10b1fceb7b6e9a1e"},
-    {file = "google_cloud_storage-1.29.0-py2.py3-none-any.whl", hash = "sha256:958b4ec0ec0104ea2d436606a4d39eb6c5cf719b8b69d1676de75294bf02de3e"},
+    {file = "google-cloud-storage-1.30.0.tar.gz", hash = "sha256:0634addb7576d48861d9963312fc82a0436042b8f282414ed58ca76d73edee54"},
+    {file = "google_cloud_storage-1.30.0-py2.py3-none-any.whl", hash = "sha256:02ac63059c798d4b8ba9057921be745707dc2d3316f5f366de91c24cc23cd77e"},
+]
+google-crc32c = [
+    {file = "google-crc32c-0.1.0.tar.gz", hash = "sha256:ad3d9b4402d4a16673aba7e74feacd621678aef3a9e6c0a5fb4c7e133c39ac45"},
+    {file = "google_crc32c-0.1.0-cp35-cp35m-macosx_10_6_intel.whl", hash = "sha256:dab8d637d1467e8dd8e01f8d909c2b92102d9bf4a0e5bc4898c9c1aaccf52572"},
+    {file = "google_crc32c-0.1.0-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:bce91c6fd8d32ea76c6162cbb7ed493939c85b8c0da41f194f9a7784e978dd91"},
+    {file = "google_crc32c-0.1.0-cp35-cp35m-manylinux2010_x86_64.whl", hash = "sha256:8dec850f4a4afdc8721b675c549f127c7809d6e76afebb14b1acc58f456d1e10"},
+    {file = "google_crc32c-0.1.0-cp35-cp35m-win32.whl", hash = "sha256:7232f2b5305f44fa5bfe01b094305cfab1ab1895091aebcc840f262ef8013271"},
+    {file = "google_crc32c-0.1.0-cp35-cp35m-win_amd64.whl", hash = "sha256:3b0f8b73a97be981a5b727526eb8087a8a33a103031e2ec799df66f7535a152e"},
+    {file = "google_crc32c-0.1.0-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:7496f57ba73f63ea0b36bdab961799d03f1e5d3b972ec00b93a3c13f94bf703a"},
+    {file = "google_crc32c-0.1.0-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:b5806e9f3602e9ab237306700ace5121c8fc7f5cc5a59054255d874123144914"},
+    {file = "google_crc32c-0.1.0-cp36-cp36m-manylinux2010_x86_64.whl", hash = "sha256:f42f3df1ac90326c1229ffb71471f1d1504f8c68fad6b627c996df732e800c6c"},
+    {file = "google_crc32c-0.1.0-cp36-cp36m-win32.whl", hash = "sha256:4c8b6ea0fa71913b0e773b311001b390110d466f0c6536bf6bad2b712d11acf5"},
+    {file = "google_crc32c-0.1.0-cp36-cp36m-win_amd64.whl", hash = "sha256:af1f4ef7c649ad637e7fdd1e6e8e5a1ef28b45325064f9c8b563fe7ef8444e4c"},
+    {file = "google_crc32c-0.1.0-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:cb34587503cd052495df010474cf7ff408a43efc56360b1cc7563d1a849d4798"},
+    {file = "google_crc32c-0.1.0-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:79bf4d11867b3adcb8110b1fafc7d8ca7cb8ee1cd1d65ceaffef5c945188b5b8"},
+    {file = "google_crc32c-0.1.0-cp37-cp37m-manylinux2010_x86_64.whl", hash = "sha256:053abd3fed09a766a56129b2df1439cf691ac40443659e252cc2cf4ba440c0aa"},
+    {file = "google_crc32c-0.1.0-cp37-cp37m-win32.whl", hash = "sha256:2e666e8cdd067ece9e7e2618634caa3aa33266da5c3e9666dd46e5d3e65b3538"},
+    {file = "google_crc32c-0.1.0-cp37-cp37m-win_amd64.whl", hash = "sha256:c9e222263c9028dca294611af0e51371afcfc9bc4781484909d50c6ca9862807"},
+    {file = "google_crc32c-0.1.0-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:dcc75bc9ef5a0ba3989408a227f4e6b609e989427727f4bca3aaad1f2ba4c98d"},
+    {file = "google_crc32c-0.1.0-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:57893cf04cfa924c4e75e9ba29c9878304687bd776f15fb02b6ecdb867d181a3"},
 ]
 google-i18n-address = [
     {file = "google-i18n-address-2.3.5.tar.gz", hash = "sha256:7c6cd436e9abcdd69ea347d2e440d718019eed55e98b7078051f902a521f6fce"},
@@ -2639,8 +2678,8 @@ google-measurement-protocol = [
     {file = "google-measurement-protocol-1.0.0.tar.gz", hash = "sha256:7618c44b875a0c9e80e6cf55e44ed80c04cf74cd2eff7eacdd76bf9b03029551"},
 ]
 google-resumable-media = [
-    {file = "google-resumable-media-0.5.1.tar.gz", hash = "sha256:97155236971970382b738921f978a6f86a7b5a0b0311703d991e065d3cb55773"},
-    {file = "google_resumable_media-0.5.1-py2.py3-none-any.whl", hash = "sha256:cdc64378dc9a7a7bf963a8d0c944c99b549dc0c195a9acbf1fcd465f380b9002"},
+    {file = "google-resumable-media-0.7.0.tar.gz", hash = "sha256:85848d9353770e88562e7d61dae4d3b83999de5a19ba6f466da8eb4b7b18772c"},
+    {file = "google_resumable_media-0.7.0-py2.py3-none-any.whl", hash = "sha256:280ea71f49105ebab8a3ca7a24edd0d17d49a94721b602a64523b1d090c73bd0"},
 ]
 googleapis-common-protos = [
     {file = "googleapis-common-protos-1.52.0.tar.gz", hash = "sha256:560716c807117394da12cecb0a54da5a451b5cf9866f1d37e9a5e2329a665351"},
