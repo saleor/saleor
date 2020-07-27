@@ -13,7 +13,6 @@ from graphql_relay import from_global_id
 
 from ....order.actions import (
     cancel_order,
-    handle_fully_paid_order,
     order_authorized,
     order_captured,
     order_refunded,
