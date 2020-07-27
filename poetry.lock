@@ -1406,7 +1406,7 @@ description = "Python version of Google's common library for parsing, formatting
 name = "phonenumberslite"
 optional = false
 python-versions = "*"
-version = "8.12.6"
+version = "8.12.7"
 
 [[package]]
 category = "main"
@@ -2926,8 +2926,8 @@ petl = [
     {file = "petl-1.6.2.tar.gz", hash = "sha256:e559dca0b78fddbcf90b193b4e23000c1df83dde73bf5a9cf1f5fabbe5f10185"},
 ]
 phonenumberslite = [
-    {file = "phonenumberslite-8.12.6-py2.py3-none-any.whl", hash = "sha256:f898bff9cb2fe6a0f6e6d6d8d27e550acf77af4cf20ec22f4f02c0a399ae6f39"},
-    {file = "phonenumberslite-8.12.6.tar.gz", hash = "sha256:19c8f083676061ca5848104aaecfd0d6378d1fc9b37d3777a8636fce05bca6d1"},
+    {file = "phonenumberslite-8.12.7-py2.py3-none-any.whl", hash = "sha256:424053cbd468ed84fa3722f0235d636c348591d7acdecdb6a00875ae3f03874c"},
+    {file = "phonenumberslite-8.12.7.tar.gz", hash = "sha256:cdb969afecc532ad4cfee12f6fb90d4a5cdf938150dffa4626fb43b8eb2f9396"},
 ]
 pillow = [
     {file = "Pillow-7.2.0-cp35-cp35m-macosx_10_10_intel.whl", hash = "sha256:1ca594126d3c4def54babee699c055a913efb01e106c309fa6b04405d474d5ae"},
