@@ -17,6 +17,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - New logging setup will now output JSON logs in production mode for ease of feeding them into log collection systems like Logstash or CloudWatch Logs - #5699 by @patrys
 - Deprecate `WebhookEventType.CHECKOUT_QUANTITY_CHANGED`. It will be removed in Saleor 3.0 - #5837 by @korycins
 - Add dummy credit card payment - #5822 by @IKarbowiak
+- Anonymize and update order and payment fields; drop PaymentSecureConfirm mutation, drop Payment type fields: extraData, billingAddress, billingEmail, creditCard, drop gatewayResponse from Transaction type - #5926 by @IKarbowiak
 
 ### Fixes
 
@@ -31,7 +32,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing OrderEvents during checkout flow - #5684 by @koradon
 - Update google merchant to get tax rate based by plugin manager - #5823 by @gabmartinez
 - Allow unicode in slug fields - #5877 by @IKarbowiak
-- Anonymize and update order and payment fields - #5926 by @IKarbowiak
 
 ## 2.10.2
 

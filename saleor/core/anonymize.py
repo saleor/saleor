@@ -14,10 +14,7 @@ def obfuscate_string(value, phone=False):
 
     string_rep = str(value)
     string_len = len(string_rep)
-    if phone:
-        cutoff = 3
-    else:
-        cutoff = 1
+    cutoff = 3 if phone else 1
     return string_rep[:cutoff] + "." * (string_len - cutoff)
 
 
