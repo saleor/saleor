@@ -456,7 +456,7 @@ def requestor_has_access(
     """Check if requestor can access data.
 
     Args:
-        requestor: requestor user
+        requestor: requestor user or app
         owner: data owner
         perm: permission which give the access to the data
 
