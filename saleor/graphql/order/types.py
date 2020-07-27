@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from graphene import relay
 
+from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ...core.taxes import display_gross_prices
@@ -13,6 +14,7 @@ from ...plugins.manager import get_plugins_manager
 from ...product.templatetags.product_images import get_product_image_thumbnail
 from ...warehouse import models as warehouse_models
 from ..account.types import User
+from ..account.utils import requestor_has_access
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
@@ -383,6 +385,20 @@ class Order(CountableDjangoObjectType):
         ]
 
     @staticmethod
+    def resolve_billing_address(root: models.Order, info):
+        requester = get_user_or_app_from_context(info.context)
+        if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
+            return root.billing_address
+        return obfuscate_address(root.billing_address)
+
+    @staticmethod
+    def resolve_shipping_address(root: models.Order, info):
+        requester = get_user_or_app_from_context(info.context)
+        if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
+            return root.shipping_address
+        return obfuscate_address(root.shipping_address)
+
+    @staticmethod
     def resolve_shipping_price(root: models.Order, _info):
         return root.shipping_price
 
@@ -475,13 +491,17 @@ class Order(CountableDjangoObjectType):
         return True
 
     @staticmethod
-    def resolve_user_email(root: models.Order, _info):
-        return root.get_customer_email()
+    def resolve_user_email(root: models.Order, info):
+        requester = get_user_or_app_from_context(info.context)
+        customer_email = root.get_customer_email()
+        if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
+            return customer_email
+        return obfuscate_email(customer_email)
 
     @staticmethod
     def resolve_user(root: models.Order, info):
-        user = info.context.user
-        if user == root.user or user.has_perm(AccountPermissions.MANAGE_USERS):
+        requester = get_user_or_app_from_context(info.context)
+        if requestor_has_access(requester, root.user, AccountPermissions.MANAGE_USERS):
             return root.user
         raise PermissionDenied()
 
@@ -508,7 +528,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_invoices(root: models.Order, info):
         requester = get_user_or_app_from_context(info.context)
-        if requester == root.user or requester.has_perm(OrderPermissions.MANAGE_ORDERS):
+        if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
             return root.invoices.all()
         raise PermissionDenied()
 
