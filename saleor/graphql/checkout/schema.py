@@ -1,7 +1,11 @@
 import graphene
 
 from ...core.permissions import CheckoutPermissions
-from ..core.fields import BaseDjangoConnectionField, PrefetchingConnectionField
+from ..core.fields import (
+    BaseDjangoConnectionField,
+    FieldWithChannel,
+    PrefetchingConnectionField,
+)
 from ..core.scalars import UUID
 from ..decorators import permission_required
 from ..payment.mutations import CheckoutPaymentCreate
@@ -29,13 +33,11 @@ from .types import Checkout, CheckoutLine
 
 
 class CheckoutQueries(graphene.ObjectType):
-    checkout = graphene.Field(
+    checkout = FieldWithChannel(
         Checkout,
-        description="Look up a checkout by token.",
+        description="Look up a checkout by token and slug of channel.",
         token=graphene.Argument(UUID, description="The checkout's token."),
-        channel=graphene.Argument(
-            graphene.String, description="The checkout's channel slug."
-        ),
+        slug=graphene.Argument(graphene.String, description="Slug of the checkout"),
     )
     # FIXME we could optimize the below field
     checkouts = BaseDjangoConnectionField(Checkout, description="List of checkouts.")
@@ -48,8 +50,8 @@ class CheckoutQueries(graphene.ObjectType):
         CheckoutLine, description="List of checkout lines."
     )
 
-    def resolve_checkout(self, info, token, channel):
-        return resolve_checkout(info, token, channel)
+    def resolve_checkout(self, info, token, **_kwargs):
+        return resolve_checkout(info, token)
 
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
     def resolve_checkouts(self, *_args, **_kwargs):

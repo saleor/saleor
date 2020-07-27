@@ -125,13 +125,12 @@ def test_checkout_create_triggers_webhooks(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    test_email = "test@example.com"
     shipping_address = graphql_address_data
     variables = {
         "checkoutInput": {
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
             "lines": [{"quantity": 1, "variantId": variant_id}],
-            "email": test_email,
+            "email": user_api_client.user.email,
             "shippingAddress": shipping_address,
         }
     }
@@ -142,7 +141,7 @@ def test_checkout_create_triggers_webhooks(
     assert mocked_webhook_trigger.called
 
 
-def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
+def q(api_client, stock, graphql_address_data, channel_USD):
     """Create checkout object using GraphQL API."""
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -150,7 +149,7 @@ def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
     shipping_address = graphql_address_data
     variables = {
         "checkoutInput": {
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": test_email,
             "shippingAddress": shipping_address,
@@ -198,7 +197,7 @@ def test_checkout_create_with_invalid_channel_slug(
     shipping_address = graphql_address_data
     variables = {
         "checkoutInput": {
-            "channelSlug": invalid_slug,
+            "channel": invalid_slug,
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": test_email,
             "shippingAddress": shipping_address,
@@ -221,7 +220,7 @@ def test_checkout_create_multiple_warehouse(
     shipping_address = graphql_address_data
     variables = {
         "checkoutInput": {
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
             "lines": [{"quantity": 4, "variantId": variant_id}],
             "email": test_email,
             "shippingAddress": shipping_address,
@@ -251,7 +250,7 @@ def test_checkout_create_with_null_as_addresses(api_client, stock, channel_USD):
     test_email = "test@example.com"
     variables = {
         "checkoutInput": {
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": test_email,
             "shippingAddress": None,
@@ -286,7 +285,7 @@ def test_checkout_create_with_variant_without_inventory_tracking(
     test_email = "test@example.com"
     variables = {
         "checkoutInput": {
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": test_email,
             "shippingAddress": None,
@@ -345,7 +344,7 @@ def test_checkout_create_cannot_add_invalid_quantities(
             "lines": [{"quantity": quantity, "variantId": variant_id}],
             "email": test_email,
             "shippingAddress": shipping_address,
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
         }
     }
     assert not Checkout.objects.exists()
@@ -375,7 +374,7 @@ def test_checkout_create_reuse_checkout(checkout, user_api_client, stock):
     variables = {
         "checkoutInput": {
             "lines": [{"quantity": 1, "variantId": variant_id}],
-            "channelSlug": checkout.channel.slug,
+            "channel": checkout.channel.slug,
         },
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
@@ -398,7 +397,7 @@ def test_checkout_create_required_email(api_client, stock, channel_USD):
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {
         "checkoutInput": {
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": "",
         }
@@ -428,7 +427,7 @@ def test_checkout_create_required_country_shipping_address(
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": "test@example.com",
             "shippingAddress": shipping_address,
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
         }
     }
 
@@ -452,7 +451,7 @@ def test_checkout_create_required_country_billing_address(
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": "test@example.com",
             "billingAddress": billing_address,
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
         }
     }
 
@@ -472,7 +471,7 @@ def test_checkout_create_default_email_for_logged_in_customer(
     variables = {
         "checkoutInput": {
             "lines": [{"quantity": 1, "variantId": variant_id}],
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
         }
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
@@ -491,7 +490,7 @@ def test_checkout_create_logged_in_customer(user_api_client, stock, channel_USD)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {
         "checkoutInput": {
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
             "email": user_api_client.user.email,
             "lines": [{"quantity": 1, "variantId": variant_id}],
         }
@@ -528,7 +527,7 @@ def test_checkout_create_logged_in_customer_custom_email(
     custom_email = "custom@example.com"
     variables = {
         "checkoutInput": {
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": custom_email,
         }
@@ -555,7 +554,7 @@ def test_checkout_create_logged_in_customer_custom_addresses(
     billing_address = graphql_address_data
     variables = {
         "checkoutInput": {
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
             "email": user_api_client.user.email,
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "shippingAddress": shipping_address,
@@ -593,7 +592,7 @@ def test_checkout_create_check_lines_quantity_multiple_warehouse(
             "lines": [{"quantity": 16, "variantId": variant_id}],
             "email": test_email,
             "shippingAddress": shipping_address,
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
         }
     }
     assert not Checkout.objects.exists()
@@ -622,7 +621,7 @@ def test_checkout_create_sets_country_from_shipping_address_country(
     shipping_address["postalCode"] = 10001
     variables = {
         "checkoutInput": {
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": test_email,
             "shippingAddress": shipping_address,
@@ -662,7 +661,7 @@ def test_checkout_create_check_lines_quantity_for_zone_insufficient_stocks(
             "lines": [{"quantity": 1, "variantId": variant_id}],
             "email": test_email,
             "shippingAddress": shipping_address,
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
         }
     }
     assert not Checkout.objects.exists()
@@ -687,7 +686,7 @@ def test_checkout_create_check_lines_quantity(
             "lines": [{"quantity": 16, "variantId": variant_id}],
             "email": test_email,
             "shippingAddress": shipping_address,
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
         }
     }
     assert not Checkout.objects.exists()
@@ -1155,7 +1154,7 @@ def test_create_checkout_with_unpublished_product(
         """
     variables = {
         "checkoutInput": {
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
             "email": "test@example.com",
             "lines": [{"variantId": variant_id, "quantity": 1}],
         }

@@ -185,7 +185,7 @@ def test_create_checkout(
     checkout_counts = Checkout.objects.count()
     variables = {
         "checkoutInput": {
-            "channelSlug": channel_USD.slug,
+            "channel": channel_USD.slug,
             "email": "test@example.com",
             "shippingAddress": graphql_address_data,
             "lines": [

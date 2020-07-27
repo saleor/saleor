@@ -52,7 +52,7 @@ def test_create_checkout(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     checkout_input = {
-        "channelSlug": channel_USD.slug,
+        "channel": channel_USD.slug,
         "lines": [{"quantity": 1, "variantId": variant_id}],
         "email": "customer@example.com",
     }

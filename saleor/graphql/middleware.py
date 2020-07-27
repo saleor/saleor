@@ -40,7 +40,7 @@ class ChannelMiddleware:
         request_input = kwargs.get("input", {})
         channel = kwargs.get("channel")
         if isinstance(request_input, dict) and request_input:
-            channel_slug = request_input.get("channel_slug")
+            channel_slug = request_input.get("channel")
         elif channel is not None:
             channel_slug = channel
         else:
