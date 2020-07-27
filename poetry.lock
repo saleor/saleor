@@ -1212,8 +1212,8 @@ category = "main"
 description = "Reader for the MaxMind DB format"
 name = "maxminddb"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "1.5.4"
+python-versions = ">=3.6"
+version = "2.0.1"
 
 [[package]]
 category = "main"
@@ -2289,7 +2289,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "dd69e027e5ccc4d30fafa061c11260ead78a6e40ff63f6cc91a1b81873170e74"
+content-hash = "84605e6c4733ebe7cad838b7d36ce7a1f7756137bd3bea93f7d92aa81abbba3d"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2803,7 +2803,7 @@ markupsafe = [
     {file = "MarkupSafe-1.1.1.tar.gz", hash = "sha256:29872e92839765e546828bb7754a68c418d927cd064fd4708fab9fe9c8bb116b"},
 ]
 maxminddb = [
-    {file = "maxminddb-1.5.4.tar.gz", hash = "sha256:f4d28823d9ca23323d113dc7af8db2087aa4f657fafc64ff8f7a8afda871425b"},
+    {file = "maxminddb-2.0.1.tar.gz", hash = "sha256:ed42434c3b88229a6a3c0e9e58c5a0f4fc17dcdde42dedcbcf225db8f04e8848"},
 ]
 maxminddb-geolite2 = [
     {file = "maxminddb-geolite2-2018.703.tar.gz", hash = "sha256:2bd118c5567f3a8323d6c5da23a6e6d52cfc09cd9987b54eb712cf6001a96e03"},
