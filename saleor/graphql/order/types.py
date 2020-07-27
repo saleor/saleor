@@ -528,7 +528,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_invoices(root: models.Order, info):
         requester = get_user_or_app_from_context(info.context)
-        if requester == root.user or requester.has_perm(OrderPermissions.MANAGE_ORDERS):
+        if requestor_has_access(requester, root.user, OrderPermissions.MANAGE_ORDERS):
             return root.invoices.all()
         raise PermissionDenied()
 

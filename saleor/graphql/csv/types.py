@@ -4,6 +4,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, AppPermission
 from ...csv import models
 from ..account.types import User
+from ..account.utils import requestor_has_access
 from ..app.types import App
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Job
@@ -33,16 +34,14 @@ class ExportEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_user(root: models.ExportEvent, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor == root.user or requestor.has_perm(
-            AccountPermissions.MANAGE_STAFF
-        ):
+        if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_STAFF):
             return root.user
         raise PermissionDenied()
 
     @staticmethod
     def resolve_app(root: models.ExportEvent, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor == root.app or requestor.has_perm(AppPermission.MANAGE_APPS):
+        if requestor_has_access(requestor, root.user, AppPermission.MANAGE_APPS):
             return root.app
         raise PermissionDenied()
 
@@ -74,16 +73,14 @@ class ExportFile(CountableDjangoObjectType):
     @staticmethod
     def resolve_user(root: models.ExportFile, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor == root.user or requestor.has_perm(
-            AccountPermissions.MANAGE_STAFF
-        ):
+        if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_STAFF):
             return root.user
         raise PermissionDenied()
 
     @staticmethod
     def resolve_app(root: models.ExportFile, info):
         requestor = get_user_or_app_from_context(info.context)
-        if requestor == root.app or requestor.has_perm(AppPermission.MANAGE_APPS):
+        if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_STAFF):
             return root.app
         raise PermissionDenied()
 
