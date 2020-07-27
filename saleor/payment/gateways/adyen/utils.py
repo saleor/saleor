@@ -6,11 +6,9 @@ import Adyen
 from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
-from graphql_relay import from_global_id
 
 from ....checkout.models import Checkout
 from ....core.prices import quantize_price
-from ....discount.utils import fetch_active_discounts
 from ... import PaymentError
 from ...interface import PaymentData
 

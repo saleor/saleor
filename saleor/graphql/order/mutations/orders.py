@@ -8,7 +8,6 @@ from ....order import events, models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
-    handle_fully_paid_order,
     mark_order_as_paid,
     order_captured,
     order_refunded,

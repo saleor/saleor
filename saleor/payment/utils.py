@@ -247,14 +247,10 @@ def gateway_postprocess(transaction, payment):
         payment.save(update_fields=changed_fields)
     elif transaction_kind == TransactionKind.PENDING:
         payment.charge_status = ChargeStatus.PENDING
-        payment.save(
-            update_fields=["charge_status",]
-        )
+        payment.save(update_fields=["charge_status"])
     elif transaction_kind == TransactionKind.CANCEL:
         payment.charge_status = ChargeStatus.CANCELLED
-        payment.save(
-            update_fields=["charge_status",]
-        )
+        payment.save(update_fields=["charge_status"])
     elif transaction_kind == TransactionKind.CAPTURE_FAILED:
         if payment.charge_status in {
             ChargeStatus.PARTIALLY_CHARGED,

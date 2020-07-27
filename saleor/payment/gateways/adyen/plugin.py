@@ -2,15 +2,12 @@ import json
 from typing import List, Optional
 
 import Adyen
-from babel.numbers import get_currency_precision
 from django.contrib.auth.hashers import make_password
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
+from django.http import HttpResponse
 from graphql_relay import from_global_id
 
 from ....checkout.models import Checkout
-from ....core.prices import quantize_price
-from ....graphql.core.scalars import Decimal
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import PaymentError, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentGateway
@@ -42,7 +39,6 @@ FAILED_STATUSES = ["refused", "error", "cancelled"]
 
 
 class AdyenGatewayPlugin(BasePlugin):
-
     PLUGIN_ID = "mirumee.payments.adyen"
     PLUGIN_NAME = GATEWAY_NAME
     DEFAULT_CONFIGURATION = [
@@ -111,7 +107,8 @@ class AdyenGatewayPlugin(BasePlugin):
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": (
                 "Enable the support for processing the Adyen's webhooks. The Saleor "
-                "webhook url is http(s)://<your-backend-url>/plugins/mirumee.payments.adyen/webhooks/ "
+                "webhook url is "
+                "http(s)://<your-backend-url>/plugins/mirumee.payments.adyen/webhooks/ "
                 "https://docs.adyen.com/development-resources/webhooks"
             ),
             "label": "Enable notifications",
