@@ -261,7 +261,7 @@ def payment_failed_event(
 
 
 def external_notification_event(
-    *, order: Order, user: UserType, message: str, payment: Payment
+    *, order: Order, user: UserType, message: Optional[str], payment: Payment
 ) -> OrderEvent:
     if not _user_is_valid(user):
         user = None

@@ -132,7 +132,7 @@ def create_payment(
 def create_transaction(
     payment: Payment,
     kind: str,
-    payment_information: Optional[PaymentData],
+    payment_information: PaymentData,
     action_required: bool = False,
     gateway_response: GatewayResponse = None,
     error_msg=None,
