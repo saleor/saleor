@@ -66,13 +66,13 @@ def test_export_products(
     )
 
 
-@patch("saleor.csv.utils.export.create_file_with_headers")
+@patch("saleor.csv.utils.export.save_csv_file_in_export_file")
 @patch("saleor.csv.utils.export.export_products_in_batches")
 @patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 def test_export_products_ids(
     send_email_mock,
     export_products_in_batches_mock,
-    create_file_with_headers_mock,
+    save_csv_file_mock,
     product_list,
     user_export_file,
 ):
@@ -88,19 +88,19 @@ def test_export_products_ids(
     export_products(user_export_file, {"ids": pks}, export_info, file_type)
 
     # then
-    create_file_with_headers_mock.called_once_with(
-        ["id"], ";", user_export_file, ANY, file_type
-    )
-    export_products_in_batches_mock.called_once_with(
+    assert save_csv_file_mock.call_args[0][0] == user_export_file
+    assert save_csv_file_mock.call_args[0][2].startswith("product_data_")
+    import ipdb; ipdb.set_trace()
+    export_products_in_batches_mock.assert_called_once_with(
         Product.objects.filter(pk__in=pks),
         export_info,
         {"id"},
         ["id"],
         ";",
-        user_export_file,
+        ANY,
         file_type,
     )
-    send_email_mock.called_once_with(
+    send_email_mock.assert_called_once_with(
         user_export_file, user_export_file.user.email, "export_products_success"
     )
 
