@@ -52,6 +52,11 @@ class OrderEvents:
     PAYMENT_VOIDED = "payment_voided"
     PAYMENT_FAILED = "payment_failed"
 
+    INVOICE_REQUESTED = "invoice_requested"
+    INVOICE_GENERATED = "invoice_generated"
+    INVOICE_UPDATED = "invoice_updated"
+    INVOICE_SENT = "invoice_sent"
+
     FULFILLMENT_CANCELED = "fulfillment_canceled"
     FULFILLMENT_RESTOCKED_ITEMS = "fulfillment_restocked_items"
     FULFILLMENT_FULFILLED_ITEMS = "fulfillment_fulfilled_items"
@@ -78,6 +83,10 @@ class OrderEvents:
         (PAYMENT_REFUNDED, "The payment was refunded"),
         (PAYMENT_VOIDED, "The payment was voided"),
         (PAYMENT_FAILED, "The payment was failed"),
+        (INVOICE_REQUESTED, "An invoice was requested"),
+        (INVOICE_GENERATED, "An invoice was generated"),
+        (INVOICE_UPDATED, "An invoice was updated"),
+        (INVOICE_SENT, "An invoice was sent"),
         (FULFILLMENT_CANCELED, "A fulfillment was canceled"),
         (FULFILLMENT_RESTOCKED_ITEMS, "The items of the fulfillment were restocked"),
         (FULFILLMENT_FULFILLED_ITEMS, "Some items were fulfilled"),

@@ -50,6 +50,7 @@ from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
 from ..order.utils import recalculate_order
 from ..page.models import Page, PageTranslation
 from ..payment import ChargeStatus, TransactionKind
+from ..payment.interface import GatewayConfig, PaymentData
 from ..payment.models import Payment
 from ..plugins.invoicing.plugin import InvoicingPlugin
 from ..plugins.models import PluginConfiguration
@@ -187,8 +188,11 @@ def setup_vatlayer(settings):
 
 
 @pytest.fixture(autouse=True)
-def setup_dummy_gateway(settings):
-    settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
+def setup_dummy_gateways(settings):
+    settings.PLUGINS = [
+        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+        "saleor.payment.gateways.dummy_credit_card.plugin.DummyCreditCardGatewayPlugin",
+    ]
     return settings
 
 
@@ -378,7 +382,7 @@ def address_other_country():
         city="BENNETTMOUTH",
         postal_code="13377",
         country="IS",
-        phone="",
+        phone="+40123123123",
     )
 
 
@@ -453,7 +457,10 @@ def user_checkout_with_items(user_checkout, product_list):
 def order(customer_user):
     address = customer_user.default_billing_address.get_copy()
     return Order.objects.create(
-        billing_address=address, user_email=customer_user.email, user=customer_user
+        billing_address=address,
+        shipping_address=address,
+        user_email=customer_user.email,
+        user=customer_user,
     )
 
 
@@ -1641,6 +1648,29 @@ def payment_not_authorized(payment_dummy):
 
 
 @pytest.fixture
+def dummy_gateway_config():
+    return GatewayConfig(
+        gateway_name="Dummy",
+        auto_capture=True,
+        supported_currencies="USD",
+        connection_params={"secret-key": "nobodylikesspanishinqusition"},
+    )
+
+
+@pytest.fixture
+def dummy_payment_data():
+    return PaymentData(
+        amount=10,
+        currency="USD",
+        billing=None,
+        shipping=None,
+        order_id=None,
+        customer_ip_address=None,
+        customer_email="example@test.com",
+    )
+
+
+@pytest.fixture
 def sale(product, category, collection):
     sale = Sale.objects.create(name="Sale", value=5)
     sale.products.add(product)
@@ -1983,6 +2013,32 @@ def menu_item_translation_fr(menu_item):
 def payment_dummy(db, order_with_lines):
     return Payment.objects.create(
         gateway="mirumee.payments.dummy",
+        order=order_with_lines,
+        is_active=True,
+        cc_first_digits="4111",
+        cc_last_digits="1111",
+        cc_brand="VISA",
+        cc_exp_month=12,
+        cc_exp_year=2027,
+        total=order_with_lines.total.gross.amount,
+        currency=order_with_lines.total.gross.currency,
+        billing_first_name=order_with_lines.billing_address.first_name,
+        billing_last_name=order_with_lines.billing_address.last_name,
+        billing_company_name=order_with_lines.billing_address.company_name,
+        billing_address_1=order_with_lines.billing_address.street_address_1,
+        billing_address_2=order_with_lines.billing_address.street_address_2,
+        billing_city=order_with_lines.billing_address.city,
+        billing_postal_code=order_with_lines.billing_address.postal_code,
+        billing_country_code=order_with_lines.billing_address.country.code,
+        billing_country_area=order_with_lines.billing_address.country_area,
+        billing_email=order_with_lines.user_email,
+    )
+
+
+@pytest.fixture
+def payment_dummy_credit_card(db, order_with_lines):
+    return Payment.objects.create(
+        gateway="mirumee.payments.dummy_credit_card",
         order=order_with_lines,
         is_active=True,
         cc_first_digits="4111",

@@ -1,6 +1,8 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, Union
 
+from django.core.handlers.wsgi import WSGIRequest
+from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
@@ -46,6 +48,13 @@ class PluginSample(BasePlugin):
             "label": "Private key",
         },
     }
+
+    def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
+        if path == "/webhook/paid":
+            return JsonResponse(data={"received": True, "paid": True})
+        if path == "/webhook/failed":
+            return JsonResponse(data={"received": True, "paid": False})
+        return HttpResponseNotFound()
 
     def calculate_checkout_total(self, checkout, lines, discounts, previous_value):
         total = Money("1.0", currency=checkout.currency)

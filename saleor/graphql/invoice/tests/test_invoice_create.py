@@ -4,7 +4,7 @@ from ....core import JobStatus
 from ....graphql.tests.utils import get_graphql_content
 from ....invoice.error_codes import InvoiceErrorCode
 from ....invoice.models import Invoice, InvoiceEvent, InvoiceEvents
-from ....order import OrderStatus
+from ....order import OrderEvents, OrderStatus
 
 INVOICE_CREATE_MUTATION = """
     mutation InvoiceCreate($orderId: ID!, $number: String!, $url: String!) {
@@ -55,6 +55,12 @@ def test_create_invoice(staff_api_client, permission_manage_orders, order):
         parameters__number=number,
         parameters__url=url,
     ).exists()
+    assert order.events.filter(
+        type=OrderEvents.INVOICE_GENERATED,
+        order=order,
+        user=staff_api_client.user,
+        parameters__invoice_number=number,
+    ).exists()
 
 
 def test_create_invoice_no_billing_address(
@@ -77,6 +83,7 @@ def test_create_invoice_no_billing_address(
     error = content["data"]["invoiceCreate"]["invoiceErrors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.NOT_READY.name
+    assert not order.events.filter(type=OrderEvents.INVOICE_GENERATED).exists()
 
 
 def test_create_invoice_for_draft_order(
@@ -99,6 +106,7 @@ def test_create_invoice_for_draft_order(
     error = content["data"]["invoiceCreate"]["invoiceErrors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.INVALID_STATUS.name
+    assert not order.events.filter(type=OrderEvents.INVOICE_GENERATED).exists()
 
 
 def test_create_invoice_invalid_id(staff_api_client, permission_manage_orders):
@@ -139,3 +147,4 @@ def test_create_invoice_empty_params(staff_api_client, permission_manage_orders,
     assert not Invoice.objects.filter(
         order__id=order.pk, status=JobStatus.SUCCESS
     ).exists()
+    assert not order.events.filter(type=OrderEvents.INVOICE_GENERATED).exists()

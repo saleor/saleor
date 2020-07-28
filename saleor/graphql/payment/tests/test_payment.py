@@ -1,11 +1,15 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 import graphene
 import pytest
-from django_countries.fields import Country
 
 from ....checkout import calculations
 from ....payment.error_codes import PaymentErrorCode
+from ....payment.gateways.dummy_credit_card import (
+    TOKEN_EXPIRED,
+    TOKEN_VALIDATION_MAPPING,
+)
 from ....payment.interface import CreditCardInfo, CustomerSource, TokenConfig
 from ....payment.models import ChargeStatus, Payment, TransactionKind
 from ....payment.utils import fetch_customer_id, store_customer_id
@@ -461,24 +465,75 @@ def test_payment_capture_with_payment_non_authorized_yet(
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
     assert data["errors"] == [
-        {"field": None, "message": "Cannot find successful auth transaction"}
+        {"field": None, "message": "Cannot find successful auth transaction."}
     ]
 
 
 def test_payment_capture_gateway_error(
     staff_api_client, permission_manage_orders, payment_txn_preauth, monkeypatch
 ):
+    # given
     payment = payment_txn_preauth
+
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
+
+    # when
     response = staff_api_client.post_graphql(
         CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
     assert data["errors"] == [{"field": None, "message": "Unable to process capture"}]
+
+    payment_txn_preauth.refresh_from_db()
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.transactions.count() == 2
+    txn = payment.transactions.last()
+    assert txn.kind == TransactionKind.CAPTURE
+    assert not txn.is_success
+
+
+@patch(
+    "saleor.payment.gateways.dummy_credit_card.plugin."
+    "DummyCreditCardGatewayPlugin.DEFAULT_ACTIVE",
+    True,
+)
+def test_payment_capture_gateway_dummy_credit_card_error(
+    staff_api_client, permission_manage_orders, payment_txn_preauth, monkeypatch
+):
+    # given
+    token = TOKEN_EXPIRED
+    error = TOKEN_VALIDATION_MAPPING[token]
+
+    payment = payment_txn_preauth
+    payment.gateway = "mirumee.payments.dummy_credit_card"
+    payment.save()
+
+    transaction = payment.transactions.last()
+    transaction.token = token
+    transaction.save()
+
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
+    monkeypatch.setattr(
+        "saleor.payment.gateways.dummy_credit_card.dummy_success", lambda: False
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["paymentCapture"]
+    assert data["errors"] == [{"field": None, "message": error}]
 
     payment_txn_preauth.refresh_from_db()
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
@@ -571,40 +626,6 @@ def test_payment_refund_error(
     assert not txn.is_success
 
 
-CONFIRM_QUERY = """
-    mutation PaymentConfirm($paymentId: ID!) {
-        paymentSecureConfirm(paymentId: $paymentId) {
-            payment {
-                id,
-                chargeStatus
-            }
-            errors {
-                field
-                message
-            }
-        }
-    }
-"""
-
-
-def test_payment_confirmation_success(
-    user_api_client, payment_txn_to_confirm, graphql_address_data
-):
-    payment = payment_txn_to_confirm
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
-    variables = {"paymentId": payment_id}
-    response = user_api_client.post_graphql(CONFIRM_QUERY, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["paymentSecureConfirm"]
-    assert not data["errors"]
-
-    payment.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
-    assert payment.transactions.count() == 2
-    txn = payment.transactions.last()
-    assert txn.kind == TransactionKind.CAPTURE
-
-
 def test_payments_query(
     payment_txn_captured, permission_manage_orders, staff_api_client
 ):
@@ -624,33 +645,11 @@ def test_payments_query(
                     }
                     actions
                     chargeStatus
-                    billingAddress {
-                        country {
-                            code
-                            country
-                        }
-                        firstName
-                        lastName
-                        cityArea
-                        countryArea
-                        city
-                        companyName
-                        streetAddress1
-                        streetAddress2
-                        postalCode
-                    }
                     transactions {
                         amount {
                             currency
                             amount
                         }
-                    }
-                    creditCard {
-                        expMonth
-                        expYear
-                        brand
-                        firstDigits
-                        lastDigits
                     }
                 }
             }
@@ -671,33 +670,11 @@ def test_payments_query(
     assert Decimal(total) == pay.total
     assert data["total"]["currency"] == pay.currency
     assert data["chargeStatus"] == PaymentChargeStatusEnum.FULLY_CHARGED.name
-    assert data["billingAddress"] == {
-        "firstName": pay.billing_first_name,
-        "lastName": pay.billing_last_name,
-        "city": pay.billing_city,
-        "cityArea": pay.billing_city_area,
-        "countryArea": pay.billing_country_area,
-        "companyName": pay.billing_company_name,
-        "streetAddress1": pay.billing_address_1,
-        "streetAddress2": pay.billing_address_2,
-        "postalCode": pay.billing_postal_code,
-        "country": {
-            "code": pay.billing_country_code,
-            "country": Country(pay.billing_country_code).name,
-        },
-    }
     assert data["actions"] == [OrderAction.REFUND.name]
     txn = pay.transactions.get()
     assert data["transactions"] == [
         {"amount": {"currency": pay.currency, "amount": float(str(txn.amount))}}
     ]
-    assert data["creditCard"] == {
-        "expMonth": pay.cc_exp_month,
-        "expYear": pay.cc_exp_year,
-        "brand": pay.cc_brand,
-        "firstDigits": pay.cc_first_digits,
-        "lastDigits": pay.cc_last_digits,
-    }
 
 
 def test_query_payment(payment_dummy, user_api_client, permission_manage_orders):

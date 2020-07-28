@@ -134,7 +134,7 @@ class ProductsQueryset(models.QuerySet):
 
     def published_with_variants(self, channel_slug: str):
         published = self.published(channel_slug)
-        return published.filter(variants__isnull=False)
+        return published.filter(variants__isnull=False).distinct()
 
     def visible_to_user(self, user: "User", channel_slug: str):
         if self.user_has_access_to_all(user):

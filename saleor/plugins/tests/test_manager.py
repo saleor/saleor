@@ -1,10 +1,13 @@
+import json
 from decimal import Decimal
 
 import pytest
+from django.http import HttpResponseNotFound, JsonResponse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
 from ...core.taxes import TaxType
+from ...payment.interface import PaymentGateway
 from ..manager import PluginsManager, get_plugins_manager
 from ..models import PluginConfiguration
 from ..tests.sample_plugins import (
@@ -253,12 +256,12 @@ def test_plugin_add_new_configuration(
 
 
 def test_manager_serve_list_of_payment_gateways():
-    expected_gateway = {
-        "id": ActivePaymentGateway.PLUGIN_ID,
-        "name": ActivePaymentGateway.PLUGIN_NAME,
-        "config": ActivePaymentGateway.CLIENT_CONFIG,
-        "currencies": ActivePaymentGateway.SUPPORTED_CURRENCIES,
-    }
+    expected_gateway = PaymentGateway(
+        id=ActivePaymentGateway.PLUGIN_ID,
+        name=ActivePaymentGateway.PLUGIN_NAME,
+        config=ActivePaymentGateway.CLIENT_CONFIG,
+        currencies=ActivePaymentGateway.SUPPORTED_CURRENCIES,
+    )
     plugins = [
         "saleor.plugins.tests.sample_plugins.PluginSample",
         "saleor.plugins.tests.sample_plugins.ActivePaymentGateway",
@@ -270,18 +273,18 @@ def test_manager_serve_list_of_payment_gateways():
 
 def test_manager_serve_list_all_payment_gateways():
     expected_gateways = [
-        {
-            "id": ActivePaymentGateway.PLUGIN_ID,
-            "name": ActivePaymentGateway.PLUGIN_NAME,
-            "config": ActivePaymentGateway.CLIENT_CONFIG,
-            "currencies": ActivePaymentGateway.SUPPORTED_CURRENCIES,
-        },
-        {
-            "id": InactivePaymentGateway.PLUGIN_ID,
-            "name": InactivePaymentGateway.PLUGIN_NAME,
-            "config": [],
-            "currencies": [],
-        },
+        PaymentGateway(
+            id=ActivePaymentGateway.PLUGIN_ID,
+            name=ActivePaymentGateway.PLUGIN_NAME,
+            config=ActivePaymentGateway.CLIENT_CONFIG,
+            currencies=ActivePaymentGateway.SUPPORTED_CURRENCIES,
+        ),
+        PaymentGateway(
+            id=InactivePaymentGateway.PLUGIN_ID,
+            name=InactivePaymentGateway.PLUGIN_NAME,
+            config=[],
+            currencies=[],
+        ),
     ]
 
     plugins = [
@@ -294,12 +297,12 @@ def test_manager_serve_list_all_payment_gateways():
 
 def test_manager_serve_list_all_payment_gateways_specified_currency():
     expected_gateways = [
-        {
-            "id": ActiveDummyPaymentGateway.PLUGIN_ID,
-            "name": ActiveDummyPaymentGateway.PLUGIN_NAME,
-            "config": ActiveDummyPaymentGateway.CLIENT_CONFIG,
-            "currencies": ActiveDummyPaymentGateway.SUPPORTED_CURRENCIES,
-        },
+        PaymentGateway(
+            id=ActiveDummyPaymentGateway.PLUGIN_ID,
+            name=ActiveDummyPaymentGateway.PLUGIN_NAME,
+            config=ActiveDummyPaymentGateway.CLIENT_CONFIG,
+            currencies=ActiveDummyPaymentGateway.SUPPORTED_CURRENCIES,
+        )
     ]
 
     plugins = [
@@ -316,18 +319,18 @@ def test_manager_serve_list_all_payment_gateways_specified_currency():
 
 def test_manager_serve_list_all_payment_gateways_specified_currency_two_gateways():
     expected_gateways = [
-        {
-            "id": ActivePaymentGateway.PLUGIN_ID,
-            "name": ActivePaymentGateway.PLUGIN_NAME,
-            "config": ActivePaymentGateway.CLIENT_CONFIG,
-            "currencies": ActivePaymentGateway.SUPPORTED_CURRENCIES,
-        },
-        {
-            "id": ActiveDummyPaymentGateway.PLUGIN_ID,
-            "name": ActiveDummyPaymentGateway.PLUGIN_NAME,
-            "config": ActiveDummyPaymentGateway.CLIENT_CONFIG,
-            "currencies": ActiveDummyPaymentGateway.SUPPORTED_CURRENCIES,
-        },
+        PaymentGateway(
+            id=ActivePaymentGateway.PLUGIN_ID,
+            name=ActivePaymentGateway.PLUGIN_NAME,
+            config=ActivePaymentGateway.CLIENT_CONFIG,
+            currencies=ActivePaymentGateway.SUPPORTED_CURRENCIES,
+        ),
+        PaymentGateway(
+            id=ActiveDummyPaymentGateway.PLUGIN_ID,
+            name=ActiveDummyPaymentGateway.PLUGIN_NAME,
+            config=ActiveDummyPaymentGateway.CLIENT_CONFIG,
+            currencies=ActiveDummyPaymentGateway.SUPPORTED_CURRENCIES,
+        ),
     ]
 
     plugins = [
@@ -340,3 +343,44 @@ def test_manager_serve_list_all_payment_gateways_specified_currency_two_gateways
         manager.list_payment_gateways(currency="USD", active_only=False)
         == expected_gateways
     )
+
+
+def test_manager_webhook(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    plugin_path = "/webhook/paid"
+    request = rf.post(path=f"/plugins/{PluginSample.PLUGIN_ID}{plugin_path}")
+
+    response = manager.webhook(request, PluginSample.PLUGIN_ID)
+    assert isinstance(response, JsonResponse)
+    assert response.status_code == 200
+    assert response.content.decode() == json.dumps({"received": True, "paid": True})
+
+
+def test_manager_webhook_plugin_doesnt_have_webhook_support(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+
+    manager = PluginsManager(plugins=plugins)
+    plugin_path = "/webhook/paid"
+    request = rf.post(path=f"/plugins/{PluginInactive.PLUGIN_ID}{plugin_path}")
+    response = manager.webhook(request, PluginSample.PLUGIN_ID)
+    assert isinstance(response, HttpResponseNotFound)
+    assert response.status_code == 404
+
+
+def test_manager_inncorrect_plugin(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    plugin_path = "/webhook/paid"
+    request = rf.post(path=f"/plugins/incorrect.plugin.id{plugin_path}")
+    response = manager.webhook(request, "incorrect.plugin.id")
+    assert isinstance(response, HttpResponseNotFound)
+    assert response.status_code == 404

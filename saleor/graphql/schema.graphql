@@ -2729,7 +2729,6 @@ type Mutation {
   paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
   paymentRefund(amount: Decimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
-  paymentSecureConfirm(paymentId: ID!): PaymentSecureConfirm
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
@@ -3077,6 +3076,7 @@ type OrderEvent implements Node {
   quantity: Int
   composedId: String
   orderNumber: String
+  invoiceNumber: String
   oversoldItems: [String]
   lines: [OrderEventOrderLineObject]
   fulfilledItems: [FulfillmentLine]
@@ -3126,6 +3126,10 @@ enum OrderEventsEnum {
   PAYMENT_REFUNDED
   PAYMENT_VOIDED
   PAYMENT_FAILED
+  INVOICE_REQUESTED
+  INVOICE_GENERATED
+  INVOICE_UPDATED
+  INVOICE_SENT
   FULFILLMENT_CANCELED
   FULFILLMENT_RESTOCKED_ITEMS
   FULFILLMENT_FULFILLED_ITEMS
@@ -3424,18 +3428,14 @@ type Payment implements Node {
   token: String!
   checkout: Checkout
   order: Order
-  billingEmail: String!
   customerIpAddress: String
-  extraData: String!
   chargeStatus: PaymentChargeStatusEnum!
   actions: [OrderAction]!
   total: Money
   capturedAmount: Money
-  billingAddress: Address
   transactions: [Transaction]
   availableCaptureAmount: Money
   availableRefundAmount: Money
-  creditCard: CreditCard
 }
 
 type PaymentCapture {
@@ -3499,12 +3499,6 @@ input PaymentInput {
 }
 
 type PaymentRefund {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  payment: Payment
-  paymentErrors: [PaymentError!]!
-}
-
-type PaymentSecureConfirm {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   payment: Payment
   paymentErrors: [PaymentError!]!
@@ -5093,7 +5087,6 @@ type Transaction implements Node {
   kind: TransactionKind!
   isSuccess: Boolean!
   error: TransactionError
-  gatewayResponse: JSONString!
   amount: Money
 }
 

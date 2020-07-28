@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 import opentracing
 from django.conf import settings
+from django.core.handlers.wsgi import WSGIRequest
+from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
@@ -15,8 +17,7 @@ from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from django.db.models.query import QuerySet
-    from .base_plugin import BasePlugin, PluginConfigurationType
+    from .base_plugin import BasePlugin
     from ..checkout.models import Checkout, CheckoutLine
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
@@ -27,6 +28,7 @@ if TYPE_CHECKING:
         TokenConfig,
         GatewayResponse,
         CustomerSource,
+        PaymentGateway,
     )
 
 
@@ -353,34 +355,28 @@ class PluginsManager(PaymentInterface):
 
     def list_payment_gateways(
         self, currency: Optional[str] = None, active_only: bool = True
-    ) -> List[dict]:
+    ) -> List["PaymentGateway"]:
         payment_plugins = self.list_payment_plugin(active_only=active_only)
         # if currency is given return only gateways which support given currency
-        gateways = [
-            {
-                "id": plugin_id,
-                "name": plugin.PLUGIN_NAME,
-                "config": self.__get_payment_config(plugin),
-                "currencies": self.__get_payment_currencies(plugin),
-            }
-            for plugin_id, plugin in payment_plugins.items()
-        ]
-        if currency:
-            return [
-                gtw for gtw in gateways if currency in gtw["currencies"]  # type: ignore
-            ]
+        gateways = []
+        for plugin in payment_plugins.values():
+            gateway = plugin.get_payment_gateway(currency=currency, previous_value=None)
+            if gateway:
+                gateways.append(gateway)
         return gateways
 
-    def __get_payment_currencies(self, gateway: "BasePlugin") -> List[str]:
-        """Return gateway supported currencies."""
-        method_name = "get_supported_currencies"
-        default_value: list = []
-        return self.__run_method_on_single_plugin(gateway, method_name, default_value)
-
-    def __get_payment_config(self, gateway: "BasePlugin") -> List[dict]:
-        method_name = "get_payment_config"
-        default_value: list = []
-        return self.__run_method_on_single_plugin(gateway, method_name, default_value)
+    def checkout_available_payment_gateways(
+        self, checkout: "Checkout"
+    ) -> List["PaymentGateway"]:
+        payment_plugins = self.list_payment_plugin(active_only=True)
+        gateways = []
+        for plugin in payment_plugins.values():
+            gateway = plugin.get_payment_gateway_for_checkout(
+                checkout, previous_value=None
+            )
+            if gateway:
+                gateways.append(gateway)
+        return gateways
 
     def __run_payment_method(
         self,
@@ -460,6 +456,20 @@ class PluginsManager(PaymentInterface):
     def fetch_taxes_data(self) -> bool:
         default_value = False
         return self.__run_method_on_plugins("fetch_taxes_data", default_value)
+
+    def webhook(self, request: WSGIRequest, plugin_id: str) -> HttpResponse:
+        split_path = request.path.split(plugin_id, maxsplit=1)
+        path = None
+        if len(split_path) == 2:
+            path = split_path[1]
+
+        default_value = HttpResponseNotFound()
+        plugin = self.get_plugin(plugin_id)
+        if not plugin:
+            return default_value
+        return self.__run_method_on_single_plugin(
+            plugin, "webhook", default_value, request, path
+        )
 
 
 def get_plugins_manager(
