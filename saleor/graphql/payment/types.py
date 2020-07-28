@@ -33,7 +33,7 @@ class Transaction(CountableDjangoObjectType):
 class CreditCard(graphene.ObjectType):
     brand = graphene.String(description="Card brand.", required=True)
     first_digits = graphene.String(
-        description="The host name of the domain.", required=False
+        description="First 4 digits of the card number.", required=False
     )
     last_digits = graphene.String(
         description="Last 4 digits of the card number.", required=True
