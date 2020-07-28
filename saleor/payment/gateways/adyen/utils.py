@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Optional
 
 import Adyen
 from babel.numbers import get_currency_precision
@@ -35,9 +35,9 @@ def get_price_amount(value: Decimal, currency: str):
     return str(value_without_comma.quantize(Decimal("1")))
 
 
-def api_call(requst_data: Dict[str, Any], method: Callable) -> Adyen.Adyen:
+def api_call(request_data: Optional[Dict[str, Any]], method: Callable) -> Adyen.Adyen:
     try:
-        return method(requst_data)
+        return method(request_data)
     except (Adyen.AdyenError, ValueError, TypeError) as e:
         logger.error(f"Unable to process the payment: {e}")
         raise PaymentError("Unable to process the payment request.")
@@ -113,11 +113,8 @@ def request_data_for_payment(
         extra_request_params["origin"] = origin_url
 
     method = payment_data["paymentMethod"].get("type", [])
-    if "klarna" in method:
-        # TODO
-        append_klarna_data()
 
-    request = {
+    request_data = {
         "amount": {
             "value": get_price_amount(
                 payment_information.amount, payment_information.currency
@@ -130,7 +127,12 @@ def request_data_for_payment(
         "merchantAccount": merchant_account,
         **extra_request_params,
     }
-    return request
+
+    if "klarna" in method:
+        # TODO
+        append_klarna_data(payment_information, request_data)
+
+    return request_data
 
 
 def request_data_for_gateway_config(

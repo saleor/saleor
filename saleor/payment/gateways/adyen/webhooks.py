@@ -25,15 +25,17 @@ from ...utils import create_transaction, gateway_postprocess
 from .utils import convert_adyen_price_format
 
 
-def get_payment(payment_id: str) -> Payment:
+def get_payment(payment_id: Optional[str]) -> Optional[Payment]:
+    if not payment_id:
+        return None
     _type, payment_id = from_global_id(payment_id)
     payment = Payment.objects.prefetch_related("order").filter(id=payment_id).first()
     return payment
 
 
 def get_transaction(
-    payment: "Payment", transaction_id: str, kind: TransactionKind,
-) -> Transaction:
+    payment: "Payment", transaction_id: Optional[str], kind: str,
+) -> Optional[Transaction]:
     transaction = payment.transactions.filter(kind=kind, token=transaction_id).first()
     return transaction
 
@@ -141,6 +143,8 @@ def handle_cancel_or_refund(
 ):
     # https://docs.adyen.com/checkout/cancel-or-refund#cancel-or-refund-notification
     additional_data = notification.get("additionalData")
+    if not additional_data:
+        return
     action = additional_data.get("modification.action")
     if action == "refund":
         handle_refund(notification, gateway_config)
@@ -252,7 +256,7 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
         order_refunded(payment.order, None, new_transaction.amount, payment)
 
 
-def _get_kind(transaction: Optional[Transaction]) -> TransactionKind:
+def _get_kind(transaction: Optional[Transaction]) -> str:
     if transaction:
         return transaction.kind
     # To proceed the refund we already need to have the capture status so we will use it
@@ -398,8 +402,10 @@ EVENT_MAP = {
 def validate_hmac_signature(
     notification: Dict[str, Any], gateway_config: "GatewayConfig"
 ) -> bool:
-    hmac_signature = notification.get("additionalData", {}).get("hmacSignature")
-    hmac_key = gateway_config.connection_params.get("webhook_hmac")
+    hmac_signature: Optional[str] = notification.get("additionalData", {}).get(
+        "hmacSignature"
+    )
+    hmac_key: Optional[str] = gateway_config.connection_params.get("webhook_hmac")
     if not hmac_key and not hmac_signature:
         return True
 
@@ -409,7 +415,7 @@ def validate_hmac_signature(
     if not hmac_signature and hmac_key:
         return False
 
-    hmac_key = hmac_key.encode()
+    hmac_key = hmac_key.encode()  # type: ignore
 
     success = "true" if notification.get("success", "") == "true" else "false"
     if notification.get("success", None) is None:
@@ -436,7 +442,7 @@ def validate_hmac_signature(
 def validate_auth_user(headers: HttpHeaders, gateway_config: "GatewayConfig") -> bool:
     username = gateway_config.connection_params["webhook_user"]
     password = gateway_config.connection_params["webhook_user_password"]
-    auth_header = headers.get("Authorization")
+    auth_header: Optional[str] = headers.get("Authorization")
     if not auth_header and not username:
         return True
     if auth_header and not username:
@@ -444,7 +450,7 @@ def validate_auth_user(headers: HttpHeaders, gateway_config: "GatewayConfig") ->
     if not auth_header and username:
         return False
 
-    split_auth = auth_header.split(maxsplit=1)
+    split_auth = auth_header.split(maxsplit=1)  # type: ignore
     prefix = "BASIC"
 
     if len(split_auth) != 2 or split_auth[0].upper() != prefix:
@@ -452,8 +458,7 @@ def validate_auth_user(headers: HttpHeaders, gateway_config: "GatewayConfig") ->
 
     auth = split_auth[1]
     try:
-        decoded_auth = base64.b64decode(auth)
-        decoded_auth = decoded_auth.decode()
+        decoded_auth = base64.b64decode(auth).decode()
         request_username, request_password = decoded_auth.split(":")
         user_is_correct = request_username == username
         if user_is_correct and check_password(request_password, password):
