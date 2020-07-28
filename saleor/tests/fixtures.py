@@ -228,8 +228,10 @@ def site_settings(db, settings) -> SiteSettings:
 
 
 @pytest.fixture
-def checkout(db):
-    checkout = Checkout.objects.create(currency="USD")
+def checkout(db, channel_USD):
+    checkout = Checkout.objects.create(
+        currency=channel_USD.currency_code, channel=channel_USD
+    )
     checkout.set_country("US", commit=True)
     return checkout
 
@@ -1433,6 +1435,7 @@ def order_with_lines(
     )
 
     order.shipping_address = order.billing_address.get_copy()
+    order.channel = channel_USD
     method = shipping_zone.shipping_methods.first()
     order.shipping_method_name = method.name
     order.shipping_method = method

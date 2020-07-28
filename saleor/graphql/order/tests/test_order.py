@@ -130,6 +130,9 @@ def test_order_query(
                     number
                     canFinalize
                     status
+                    channel {
+                        slug
+                    }
                     statusDisplay
                     paymentStatus
                     paymentStatusDisplay
@@ -180,6 +183,7 @@ def test_order_query(
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
     assert order_data["number"] == str(order.pk)
+    assert order_data["channel"]["slug"] == order.channel.slug
     assert order_data["canFinalize"] is True
     assert order_data["status"] == order.status.upper()
     assert order_data["statusDisplay"] == order.get_status_display()
@@ -904,7 +908,6 @@ def test_draft_order_complete_product_without_inventory_tracking(
     assert draft_placed_event.parameters == {}
 
 
-@pytest.mark.skip(reason="We should use channel from order in product resolvers.")
 def test_draft_order_complete_out_of_stock_variant(
     staff_api_client, permission_manage_orders, staff_user, draft_order
 ):
@@ -1014,7 +1017,6 @@ DRAFT_ORDER_LINES_CREATE_MUTATION = """
 """
 
 
-@pytest.mark.skip(reason="We should use channel from order in product resolvers.")
 def test_draft_order_lines_create(
     draft_order, permission_manage_orders, staff_api_client
 ):

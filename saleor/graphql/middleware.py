@@ -37,7 +37,6 @@ class JWTMiddleware:
 class ChannelMiddleware:
     def resolve(self, next, root, info, **kwargs):
         request = info.context
-
         channel_slug = kwargs.get("channel")
         if (
             hasattr(request, "channel_slug")

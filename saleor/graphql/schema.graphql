@@ -889,6 +889,7 @@ type Checkout implements Node & ObjectWithMetadata {
   lastChange: DateTime!
   user: User
   quantity: Int!
+  channel: Channel
   billingAddress: Address
   shippingAddress: Address
   shippingMethod: ShippingMethod
@@ -964,6 +965,7 @@ type CheckoutCreate {
 }
 
 input CheckoutCreateInput {
+  channel: String
   lines: [CheckoutLineInput]!
   email: String
   shippingAddress: AddressInput
@@ -1014,6 +1016,7 @@ enum CheckoutErrorCode {
   UNIQUE
   VOUCHER_NOT_APPLICABLE
   ZERO_QUANTITY
+  MISSING_CHANNEL_SLUG
 }
 
 type CheckoutLine implements Node {
@@ -2921,6 +2924,7 @@ type Order implements Node & ObjectWithMetadata {
   shippingAddress: Address
   shippingMethod: ShippingMethod
   shippingMethodName: String
+  channel: Channel
   shippingPrice: TaxedMoney
   token: String!
   voucher: Voucher
@@ -4339,7 +4343,7 @@ type Query {
   exportFile(id: ID!): ExportFile
   exportFiles(filter: ExportFileFilterInput, sortBy: ExportFileSortingInput, channel: String, before: String, after: String, first: Int, last: Int): ExportFileCountableConnection
   taxTypes: [TaxType]
-  checkout(token: UUID): Checkout
+  checkout(token: UUID, channel: String): Checkout
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(channel: String, before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
