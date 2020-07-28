@@ -1677,6 +1677,7 @@ MUTATION_CHECKOUT_COMPLETE = """
                 message
             }
             confirmationNeeded
+            confirmationData
         }
     }
     """
@@ -2061,6 +2062,18 @@ def test_checkout_complete_no_payment(
 ACTION_REQUIRED_GATEWAY_RESPONSE = GatewayResponse(
     is_success=True,
     action_required=True,
+    action_required_data={
+        "paymentData": "test",
+        "paymentMethodType": "scheme",
+        "url": "https://test.adyen.com/hpp/3d/validate.shtml",
+        "data": {
+            "MD": "md-test-data",
+            "PaReq": "PaReq-test-data",
+            "TermUrl": "http://127.0.0.1:3000/",
+        },
+        "method": "POST",
+        "type": "redirect",
+    },
     kind=TransactionKind.CAPTURE,
     amount=Decimal(3.0),
     currency="usd",
@@ -2112,6 +2125,7 @@ def test_checkout_complete_confirmation_needed(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
     assert data["confirmationNeeded"] is True
+    assert data["confirmationData"]
 
     new_orders_count = Order.objects.count()
     assert new_orders_count == orders_count

@@ -251,6 +251,7 @@ class AdyenGatewayPlugin(BasePlugin):
             transaction_id=result.message.get("pspReference", ""),
             error=result.message.get("refusalReason"),
             raw_response=result.message,
+            action_required_data=result.message.get("action"),
         )
 
     @classmethod
