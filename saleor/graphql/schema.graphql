@@ -1533,10 +1533,10 @@ type CreateToken {
 
 type CreditCard {
   brand: String!
-  firstDigits: String!
+  firstDigits: String
   lastDigits: String!
-  expMonth: Int!
-  expYear: Int!
+  expMonth: Int
+  expYear: Int
 }
 
 type CustomerBulkDelete {
@@ -3375,6 +3375,7 @@ type Payment implements Node {
   transactions: [Transaction]
   availableCaptureAmount: Money
   availableRefundAmount: Money
+  creditCard: CreditCard
 }
 
 type PaymentCapture {
