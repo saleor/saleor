@@ -288,7 +288,7 @@ def test_checkout_create_with_invalid_channel_slug(
     error = content["checkoutErrors"][0]
 
     assert error["code"] == "NOT_FOUND"
-    assert error["message"] == f"Channel with '{invalid_slug}' slug does not exist."
+    assert error["field"] == "channel"
 
 
 def test_checkout_create_multiple_warehouse(
