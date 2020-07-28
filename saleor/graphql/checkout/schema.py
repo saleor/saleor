@@ -50,8 +50,8 @@ class CheckoutQueries(graphene.ObjectType):
         CheckoutLine, description="List of checkout lines."
     )
 
-    def resolve_checkout(self, info, token, **_kwargs):
-        return resolve_checkout(info, token)
+    def resolve_checkout(self, info, token, channel):
+        return resolve_checkout(info, token, channel)
 
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
     def resolve_checkouts(self, *_args, **_kwargs):

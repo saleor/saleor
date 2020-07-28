@@ -7,7 +7,9 @@ from django.db import transaction
 from django.db.models import Prefetch
 
 from ...account.error_codes import AccountErrorCode
+from ...channel.exceptions import ChannelSlugNotPassedException
 from ...channel.models import Channel
+from ...channel.utils import get_default_channel_slug_if_available
 from ...checkout import models
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
@@ -224,12 +226,24 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def clean_channel(cls, channel_slug):
+        if not channel_slug:
+            try:
+                channel_slug = get_default_channel_slug_if_available()
+            except ChannelSlugNotPassedException:
+                raise ValidationError(
+                    {
+                        "channel": ValidationError(
+                            "You need to provide channel slug.",
+                            code=CheckoutErrorCode.MISSING_CHANNEL_SLUG,
+                        )
+                    }
+                )
         try:
             channel = Channel.objects.get(slug=channel_slug)
         except Channel.DoesNotExist:
             raise ValidationError(
                 {
-                    "channel_slug": ValidationError(
+                    "channel": ValidationError(
                         f"Channel with '{channel_slug}' slug does not exist.",
                         code=CheckoutErrorCode.NOT_FOUND,
                     )
@@ -243,9 +257,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         cleaned_input = super().clean_input(info, instance, data)
         user = info.context.user
         country = info.context.country.code
-        channel_slug = str(info.context.channel_slug)
-        cleaned_input["channel"] = cls.clean_channel(channel_slug)
-        instance.channel = cleaned_input["channel"]
+        cleaned_input["channel"] = cls.clean_channel(cleaned_input.get("channel"))
 
         # set country to one from shipping address
         shipping_address = cleaned_input.get("shipping_address")
@@ -373,7 +385,6 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
         variant_ids = [line.get("variant_id") for line in lines]
-        info.context.channel_slug = checkout.channel.slug
         variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
         quantities = [line.get("quantity") for line in lines]
 
@@ -575,7 +586,6 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 }
             )
 
-        info.context.channel_slug = checkout.channel.slug
         if not checkout.is_shipping_required():
             raise ValidationError(
                 {
@@ -635,7 +645,6 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        info.context.channel_slug = checkout.channel.slug
         billing_address = cls.validate_address(
             billing_address, instance=checkout.billing_address, info=info
         )
@@ -663,7 +672,6 @@ class CheckoutEmailUpdate(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        info.context.channel_slug = checkout.channel.slug
 
         checkout.email = email
         cls.clean_instance(info, checkout)
@@ -704,7 +712,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                     )
                 }
             )
-        info.context.channel_slug = checkout.channel.slug
         if not checkout.is_shipping_required():
             raise ValidationError(
                 {
@@ -804,7 +811,6 @@ class CheckoutComplete(BaseMutation):
                 ),
             ).select_related("shipping_method", "shipping_method__shipping_zone"),
         )
-        info.context.channel_slug = checkout.channel.slug
         lines = list(checkout)
 
         discounts = info.context.discounts
@@ -914,7 +920,6 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        info.context.channel_slug = checkout.channel.slug
         lines = list(checkout)
         add_promo_code_to_checkout(checkout, lines, promo_code, info.context.discounts)
         info.context.plugins.checkout_updated(checkout)

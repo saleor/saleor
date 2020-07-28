@@ -13,8 +13,7 @@ def resolve_checkouts():
     return queryset
 
 
-def resolve_checkout(info, token):
-    channel_slug = str(info.context.channel_slug)
+def resolve_checkout(info, token, channel_slug):
     checkout = models.Checkout.objects.filter(
         token=token, channel__slug=channel_slug
     ).first()

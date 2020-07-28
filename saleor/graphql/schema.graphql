@@ -1016,6 +1016,7 @@ enum CheckoutErrorCode {
   UNIQUE
   VOUCHER_NOT_APPLICABLE
   ZERO_QUANTITY
+  MISSING_CHANNEL_SLUG
 }
 
 type CheckoutLine implements Node {
