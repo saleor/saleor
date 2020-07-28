@@ -130,6 +130,9 @@ def test_order_query(
                     number
                     canFinalize
                     status
+                    channel {
+                        slug
+                    }
                     statusDisplay
                     paymentStatus
                     paymentStatusDisplay
@@ -180,6 +183,7 @@ def test_order_query(
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
     assert order_data["number"] == str(order.pk)
+    assert order_data["channel"]["slug"] == order.channel.slug
     assert order_data["canFinalize"] is True
     assert order_data["status"] == order.status.upper()
     assert order_data["statusDisplay"] == order.get_status_display()

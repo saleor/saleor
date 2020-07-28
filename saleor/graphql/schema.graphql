@@ -2924,6 +2924,7 @@ type Order implements Node & ObjectWithMetadata {
   shippingAddress: Address
   shippingMethod: ShippingMethod
   shippingMethodName: String
+  channel: Channel
   shippingPrice: TaxedMoney
   token: String!
   voucher: Voucher
