@@ -33,18 +33,18 @@ class Transaction(CountableDjangoObjectType):
 class CreditCard(graphene.ObjectType):
     brand = graphene.String(description="Card brand.", required=True)
     first_digits = graphene.String(
-        description="The host name of the domain.", required=True
+        description="First 4 digits of the card number.", required=False
     )
     last_digits = graphene.String(
         description="Last 4 digits of the card number.", required=True
     )
     exp_month = graphene.Int(
         description=("Two-digit number representing the card’s expiration month."),
-        required=True,
+        required=False,
     )
     exp_year = graphene.Int(
         description=("Four-digit number representing the card’s expiration year."),
-        required=True,
+        required=False,
     )
 
 
@@ -84,6 +84,9 @@ class Payment(CountableDjangoObjectType):
     )
     available_refund_amount = graphene.Field(
         Money, description="Maximum amount of money that can be refunded."
+    )
+    credit_card = graphene.Field(
+        CreditCard, description="The details of the card used for this payment."
     )
 
     class Meta:
@@ -139,3 +142,13 @@ class Payment(CountableDjangoObjectType):
         if not root.can_capture():
             return None
         return root.get_charge_amount()
+
+    @staticmethod
+    def resolve_credit_card(root: models.Payment, _info):
+        data = {
+            "last_digits": root.cc_last_digits,
+            "brand": root.cc_brand,
+        }
+        if not any(data.values()):
+            return None
+        return CreditCard(**data)
