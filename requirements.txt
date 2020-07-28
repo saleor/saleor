@@ -1,3 +1,4 @@
+adyen==3.0.0
 amqp==2.6.0
 aniso8601==7.0.0
 asgiref==3.2.10
