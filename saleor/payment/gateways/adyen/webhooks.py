@@ -112,7 +112,7 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
 
 
 def handle_cancellation(notification: Dict[str, Any], _gateway_config: GatewayConfig):
-    "https://docs.adyen.com/checkout/cancel#cancellation-notifciation"
+    # https://docs.adyen.com/checkout/cancel#cancellation-notifciation
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return
@@ -139,7 +139,7 @@ def handle_cancellation(notification: Dict[str, Any], _gateway_config: GatewayCo
 def handle_cancel_or_refund(
     notification: Dict[str, Any], gateway_config: GatewayConfig
 ):
-    "https://docs.adyen.com/checkout/cancel-or-refund#cancel-or-refund-notification"
+    # https://docs.adyen.com/checkout/cancel-or-refund#cancel-or-refund-notification
     additional_data = notification.get("additionalData")
     action = additional_data.get("modification.action")
     if action == "refund":
@@ -149,7 +149,7 @@ def handle_cancel_or_refund(
 
 
 def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
-    "https://docs.adyen.com/checkout/capture#capture-notification"
+    # https://docs.adyen.com/checkout/capture#capture-notification
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return
@@ -175,7 +175,7 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
 
 
 def handle_failed_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
-    "https://docs.adyen.com/checkout/capture#failed-capture"
+    # https://docs.adyen.com/checkout/capture#failed-capture
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return
@@ -201,8 +201,8 @@ def handle_failed_capture(notification: Dict[str, Any], _gateway_config: Gateway
 
 
 def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
-    "https://docs.adyen.com/development-resources/webhooks/understand-notifications#"
-    "event-codes"
+    # https://docs.adyen.com/development-resources/webhooks/understand-notifications#
+    # event-codes"
     mark_capture = gateway_config.auto_capture
     if mark_capture:
         # If we mark order as a capture by default we don't need to handle this action
@@ -228,7 +228,7 @@ def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
 
 
 def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
-    "https://docs.adyen.com/checkout/refund#refund-notification"
+    # https://docs.adyen.com/checkout/refund#refund-notification
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return
@@ -260,7 +260,7 @@ def _get_kind(transaction: Optional[Transaction]) -> TransactionKind:
 
 
 def handle_failed_refund(notification: Dict[str, Any], gateway_config: GatewayConfig):
-    "https://docs.adyen.com/checkout/refund#failed-refund"
+    # https://docs.adyen.com/checkout/refund#failed-refund
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return
@@ -325,7 +325,7 @@ def handle_failed_refund(notification: Dict[str, Any], gateway_config: GatewayCo
 def handle_reversed_refund(
     notification: Dict[str, Any], _gateway_config: GatewayConfig
 ):
-    "https://docs.adyen.com/checkout/refund#failed-refund"
+    # https://docs.adyen.com/checkout/refund#failed-refund
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return
@@ -354,7 +354,7 @@ def handle_reversed_refund(
 def handle_refund_with_data(
     notification: Dict[str, Any], gateway_config: GatewayConfig
 ):
-    "https://docs.adyen.com/checkout/refund#refund-with-data"
+    # https://docs.adyen.com/checkout/refund#refund-with-data
     handle_refund(notification, gateway_config)
 
 
