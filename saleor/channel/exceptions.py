@@ -1,12 +1,12 @@
-class ChannelSlugNotPassedException(Exception):
+class ChannelNotDefined(Exception):
     def __init__(self, msg=None):
         if msg is None:
-            msg = "Channel slug not passed."
+            msg = "More than one channel exists. Specify which channel to use."
         super().__init__(msg)
 
 
-class NoChannelException(Exception):
+class NoDefaultChannel(Exception):
     def __init__(self, msg=None):
         if msg is None:
-            msg = "There's no channel."
+            msg = "A default channel does not exist."
         super().__init__(msg)

@@ -5,6 +5,7 @@ from .products import (
     Category,
     Collection,
     Product,
+    ProductContext,
     ProductImage,
     ProductType,
     ProductVariant,

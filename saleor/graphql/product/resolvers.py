@@ -49,24 +49,20 @@ def resolve_digital_contents(info):
     return models.DigitalContent.objects.all()
 
 
-def resolve_product_by_slug(info, slug):
+def resolve_product_by_slug(info, product_slug, channel_slug):
     user = info.context.user
-    channel_slug = info.context.channel_slug
     return (
-        models.Product.objects.visible_to_user(user, channel_slug)
-        .filter(slug=slug)
+        models.Product.objects.visible_to_user(user, channel_slug=channel_slug)
+        .filter(slug=product_slug)
         .first()
     )
 
 
-def resolve_products(info, stock_availability=None, **_kwargs):
+def resolve_products(info, stock_availability=None, channel_slug=None, **_kwargs):
     user = get_user_or_app_from_context(info.context)
-    channel_slug = info.context.channel_slug
     qs = models.Product.objects.visible_to_user(user, channel_slug)
-
     if stock_availability:
         qs = filter_products_by_stock_availability(qs, stock_availability)
-
     return qs.distinct()
 
 
@@ -74,9 +70,8 @@ def resolve_product_types(info, **_kwargs):
     return models.ProductType.objects.all()
 
 
-def resolve_product_variants(info, ids=None):
+def resolve_product_variants(info, ids=None, channel_slug=None):
     user = info.context.user
-    channel_slug = info.context.channel_slug
     visible_products = models.Product.objects.visible_to_user(
         user, channel_slug
     ).values_list("pk", flat=True)

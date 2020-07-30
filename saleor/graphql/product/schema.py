@@ -1,12 +1,9 @@
 import graphene
 
 from ...core.permissions import ProductPermissions
+from ..channel.utils import get_default_channel_or_graphql_error
 from ..core.enums import ReportingPeriod
-from ..core.fields import (
-    FieldWithChannel,
-    FilterInputConnectionField,
-    PrefetchingConnectionField,
-)
+from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import permission_required
 from ..translations.mutations import (
@@ -135,6 +132,7 @@ from .types import (
     Collection,
     DigitalContent,
     Product,
+    ProductContext,
     ProductType,
     ProductVariant,
 )
@@ -174,7 +172,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="List of the shop's categories.",
     )
-    category = FieldWithChannel(
+    category = graphene.Field(
         Category,
         id=graphene.Argument(graphene.ID, description="ID of the category."),
         slug=graphene.Argument(graphene.String, description="Slug of the category"),
@@ -192,10 +190,13 @@ class ProductQueries(graphene.ObjectType):
         sort_by=CollectionSortingInput(description="Sort collections."),
         description="List of the shop's collections.",
     )
-    product = FieldWithChannel(
+    product = graphene.Field(
         Product,
         id=graphene.Argument(graphene.ID, description="ID of the product.",),
         slug=graphene.Argument(graphene.String, description="Slug of the product."),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description="Look up a product by ID.",
     )
     products = FilterInputConnectionField(
@@ -209,9 +210,12 @@ class ProductQueries(graphene.ObjectType):
                 "field instead. This field will be removed after 2020-07-31."
             ),
         ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description="List of the shop's products.",
     )
-    product_type = FieldWithChannel(
+    product_type = graphene.Field(
         ProductType,
         id=graphene.Argument(
             graphene.ID, description="ID of the product type.", required=True
@@ -226,7 +230,7 @@ class ProductQueries(graphene.ObjectType):
         sort_by=ProductTypeSortingInput(description="Sort product types."),
         description="List of the shop's product types.",
     )
-    product_variant = FieldWithChannel(
+    product_variant = graphene.Field(
         ProductVariant,
         id=graphene.Argument(
             graphene.ID, description="ID of the product variant.", required=True
@@ -237,6 +241,9 @@ class ProductQueries(graphene.ObjectType):
         ProductVariant,
         ids=graphene.List(
             graphene.ID, description="Filter product variants by given IDs."
+        ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
         ),
         description="List of product variants.",
     )
@@ -282,15 +289,24 @@ class ProductQueries(graphene.ObjectType):
     def resolve_digital_contents(self, info, **_kwargs):
         return resolve_digital_contents(info)
 
-    def resolve_product(self, info, id=None, slug=None, **_kwargs):
+    def resolve_product(self, info, id=None, slug=None, channel=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
+        if channel is None:
+            channel = get_default_channel_or_graphql_error().slug
         if id:
-            return graphene.Node.get_node_from_global_id(info, id, Product)
+            product = graphene.Node.get_node_from_global_id(info, id, Product)
         if slug:
-            return resolve_product_by_slug(info, slug=slug)
+            product = resolve_product_by_slug(
+                info, product_slug=slug, channel_slug=channel
+            )
+        return (
+            ProductContext(product=product, channel_slug=channel) if product else None
+        )
 
-    def resolve_products(self, info, **kwargs):
-        return resolve_products(info, **kwargs)
+    def resolve_products(self, info, channel=None, **kwargs):
+        if channel is None:
+            channel = get_default_channel_or_graphql_error().slug
+        return resolve_products(info, channel_slug=channel, **kwargs)
 
     def resolve_product_type(self, info, id, **_kwargs):
         return graphene.Node.get_node_from_global_id(info, id, ProductType)
@@ -301,8 +317,10 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_variant(self, info, id, **_kwargs):
         return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
 
-    def resolve_product_variants(self, info, ids=None, **_kwargs):
-        return resolve_product_variants(info, ids)
+    def resolve_product_variants(self, info, ids=None, channel=None, **_kwargs):
+        if channel is None:
+            channel = get_default_channel_or_graphql_error().slug
+        return resolve_product_variants(info, ids=ids, channel_slug=channel)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_report_product_sales(self, *_args, period, **_kwargs):

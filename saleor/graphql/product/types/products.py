@@ -1,9 +1,9 @@
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 
 import graphene
 from django.conf import settings
-from django.utils.functional import SimpleLazyObject
 from graphene import relay
+from graphene.types.resolver import get_default_resolver
 from graphene_federation import key
 from graphql.error import GraphQLError
 
@@ -26,6 +26,7 @@ from ....warehouse.availability import (
     is_product_in_stock,
 )
 from ...account.enums import CountryCodeEnum
+from ...channel.utils import get_default_channel_or_graphql_error
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
 from ...core.fields import FilterInputConnectionField, PrefetchingConnectionField
@@ -63,6 +64,12 @@ from ..resolvers import resolve_attributes
 from .attributes import Attribute, SelectedAttribute
 from .channels import ProductChannelListing
 from .digital_contents import DigitalContent
+
+
+@dataclass
+class ProductContext:
+    product: models.Product
+    channel_slug: str
 
 
 class Margin(graphene.ObjectType):
@@ -275,13 +282,16 @@ class ProductVariant(CountableDjangoObjectType):
         return root.price
 
     @staticmethod
-    def resolve_pricing(root: models.ProductVariant, info):
+    def resolve_pricing(root, info):
         context = info.context
+
+        # FIXME: resolve channel from query param with fallback to default channel
+        channel = get_default_channel_or_graphql_error()
+
         product = ProductByIdLoader(context).load(root.product_id)
-        channel_slug = context.channel_slug
         channel_listing = ProductChannelListingByProductIdAndChanneSlugLoader(
             context
-        ).load((root.product_id, channel_slug))
+        ).load((root.product_id, channel.slug))
         collections = CollectionsByProductIdLoader(context).load(root.product_id)
 
         def calculate_pricing_info(discounts):
@@ -358,15 +368,16 @@ class ProductVariant(CountableDjangoObjectType):
     def resolve_images(root: models.ProductVariant, *_args):
         return root.images.all()
 
-    @classmethod
-    def get_node(cls, info, pk):
-        user = info.context.user
-        channel_slug = info.context.channel_slug
-        visible_products = models.Product.objects.visible_to_user(
-            user, channel_slug
-        ).values_list("pk", flat=True)
-        qs = cls._meta.model.objects.filter(product__id__in=visible_products)
-        return qs.filter(pk=pk).first()
+    # FIXME: Do we need this function? How do we know what channel to use?
+    # @classmethod
+    # def get_node(cls, info, pk):
+    #     user = info.context.user
+    #     channel = get_default_channel_or_graphql_error()
+    #     visible_products = models.Product.objects.visible_to_user(
+    #         user, channel.slug
+    #     ).values_list("pk", flat=True)
+    #     qs = cls._meta.model.objects.filter(product__id__in=visible_products)
+    #     return qs.filter(pk=pk).first()
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -384,6 +395,11 @@ class ProductVariant(CountableDjangoObjectType):
     @staticmethod
     def resolve_weight(root: models.ProductVariant, _info, **_kwargs):
         return convert_weight_to_default_weight_unit(root.weight)
+
+
+def product_resolver(attname, default_value, root: ProductContext, info, **args):
+    resolver = get_default_resolver()
+    return resolver(attname, default_value, root.product, info, **args)
 
 
 @key(fields="id")
@@ -445,6 +461,7 @@ class Product(CountableDjangoObjectType):
         description = "Represents an individual item for sale in the storefront."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Product
+        default_resolver = product_resolver
         only_fields = [
             "category",
             "charge_taxes",
@@ -461,20 +478,27 @@ class Product(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    def resolve_category(root: models.Product, info):
-        category_id = root.category_id
+    def resolve_id(root: ProductContext, _info):
+        return root.product.pk
+
+    @classmethod
+    def is_type_of(cls, root: ProductContext, info):
+        return super().is_type_of(root.product, info)
+
+    @staticmethod
+    def resolve_category(root: ProductContext, info):
+        category_id = root.product.category_id
         if category_id is None:
             return None
-
         return CategoryByIdLoader(info.context).load(category_id)
 
     @staticmethod
-    def resolve_tax_type(root: models.Product, info):
-        tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
+    def resolve_tax_type(root: ProductContext, info):
+        tax_data = info.context.plugins.get_tax_code_from_object_meta(root.product)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
-    def resolve_thumbnail(root: models.Product, info, *, size=255):
+    def resolve_thumbnail(root: ProductContext, info, *, size=255):
         def return_first_thumbnail(images):
             image = images[0] if images else None
             if image:
@@ -485,30 +509,29 @@ class Product(CountableDjangoObjectType):
 
         return (
             ImagesByProductIdLoader(info.context)
-            .load(root.id)
+            .load(root.product.id)
             .then(return_first_thumbnail)
         )
 
     @staticmethod
-    def resolve_url(root: models.Product, *_args):
+    def resolve_url(*_args):
         return ""
 
     @staticmethod
-    def resolve_pricing(root: models.Product, info):
+    def resolve_pricing(root: ProductContext, info):
         context = info.context
-        channel_slug = context.channel_slug
         channel_listing = ProductChannelListingByProductIdAndChanneSlugLoader(
             context
-        ).load((root.id, channel_slug))
-        variants = ProductVariantsByProductIdLoader(context).load(root.id)
-        collections = CollectionsByProductIdLoader(context).load(root.id)
+        ).load((root.product.id, root.channel_slug))
+        variants = ProductVariantsByProductIdLoader(context).load(root.product.id)
+        collections = CollectionsByProductIdLoader(context).load(root.product.id)
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel_listings(channel_listing):
                 def calculate_pricing_with_variants(variants):
                     def calculate_pricing_with_collections(collections):
                         availability = get_product_availability(
-                            product=root,
+                            product=root.product,
                             channel_listing=channel_listing,
                             variants=variants,
                             collections=collections,
@@ -532,83 +555,83 @@ class Product(CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_is_available(root: models.Product, info):
+    def resolve_is_available(root: ProductContext, info):
         country = info.context.country
-        channel_slug = info.context.channel_slug
-        if isinstance(channel_slug, SimpleLazyObject):
-            channel_slug = str(channel_slug)
-        in_stock = is_product_in_stock(root, country)
+        in_stock = is_product_in_stock(root.product, country)
         is_visible = models.ProductChannelListing.objects.filter(
-            product=root, channel__slug=channel_slug
+            product=root.product, channel__slug=root.channel_slug
         ).exists()
         return is_visible and in_stock
 
     @staticmethod
-    def resolve_attributes(root: models.Product, info):
-        return SelectedAttributesByProductIdLoader(info.context).load(root.id)
+    def resolve_attributes(root: ProductContext, info):
+        return SelectedAttributesByProductIdLoader(info.context).load(root.product.id)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_purchase_cost(root: models.Product, *_args):
-        purchase_cost, _ = get_product_costs_data(root)
+    def resolve_purchase_cost(root: ProductContext, *_args):
+        purchase_cost, _ = get_product_costs_data(root.product)
         return purchase_cost
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_margin(root: models.Product, *_args):
-        _, margin = get_product_costs_data(root)
+    def resolve_margin(root: ProductContext, *_args):
+        _, margin = get_product_costs_data(root.product)
         return Margin(margin[0], margin[1])
 
     @staticmethod
-    def resolve_image_by_id(root: models.Product, info, id):
+    def resolve_image_by_id(root: ProductContext, info, id):
         pk = get_database_id(info, id, ProductImage)
         try:
-            return root.images.get(pk=pk)
+            return root.product.images.get(pk=pk)
         except models.ProductImage.DoesNotExist:
             raise GraphQLError("Product image not found.")
 
     @staticmethod
-    def resolve_images(root: models.Product, info, **_kwargs):
-        return ImagesByProductIdLoader(info.context).load(root.id)
+    def resolve_images(root: ProductContext, info, **_kwargs):
+        return ImagesByProductIdLoader(info.context).load(root.product.id)
 
     @staticmethod
-    def resolve_variants(root: models.Product, info, **_kwargs):
-        return ProductVariantsByProductIdLoader(info.context).load(root.id)
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_channel_listing(root: models.Product, info, **_kwargs):
-        return ProductChannelListingByProductIdLoader(info.context).load(root.id)
-
-    @staticmethod
-    def resolve_collections(root: models.Product, *_args):
-        return root.collections.all()
-
-    @classmethod
-    def get_node(cls, info, pk):
-        if info.context:
-            user = info.context.user
-            channel_slug = info.context.channel_slug
-            qs = cls._meta.model.objects.visible_to_user(user, channel_slug)
-            return qs.filter(pk=pk).first()
-        return None
+    def resolve_variants(root: ProductContext, info, **_kwargs):
+        return ProductVariantsByProductIdLoader(info.context).load(root.product.id)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: models.Product, _info):
-        return resolve_private_meta(root, _info)
+    def resolve_channel_listing(root: ProductContext, info, **_kwargs):
+        return ProductChannelListingByProductIdLoader(info.context).load(
+            root.product.id
+        )
 
     @staticmethod
-    def resolve_meta(root: models.Product, _info):
-        return resolve_meta(root, _info)
+    def resolve_collections(root: ProductContext, *_args):
+        return root.product.collections.all()
+
+    # FIXME: Do we need this function? How do we know what channel to use here.
+    # @classmethod
+    # def get_node(cls, info, pk):
+    #     if info.context:
+    #         user = info.context.user
+    #         channel = get_default_channel_or_graphql_error()
+    #         qs = cls._meta.model.objects.visible_to_user(user, channel.slug)
+    #         return qs.filter(pk=pk).first()
+    #     return None
 
     @staticmethod
-    def __resolve_reference(root, _info, **_kwargs):
-        return graphene.Node.get_node_from_global_id(_info, root.id)
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    def resolve_private_meta(root: ProductContext, _info):
+        return resolve_private_meta(root.product, _info)
 
     @staticmethod
-    def resolve_weight(root: models.Product, _info, **_kwargs):
-        return convert_weight_to_default_weight_unit(root.weight)
+    def resolve_meta(root: ProductContext, _info):
+        return resolve_meta(root.product, _info)
+
+    @staticmethod
+    def __resolve_reference(root: ProductContext, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.product.id)
+
+    @staticmethod
+    def resolve_weight(root: ProductContext, _info, **_kwargs):
+        return convert_weight_to_default_weight_unit(root.product.weight)
 
 
 @key(fields="id")
@@ -671,8 +694,11 @@ class ProductType(CountableDjangoObjectType):
     @staticmethod
     def resolve_products(root: models.ProductType, info, **_kwargs):
         user = info.context.user
-        channel_slug = info.context.channel_slug
-        return root.products.visible_to_user(user, channel_slug)
+
+        # FIXME: resolve channel from query param with fallback to default channel
+        channel = get_default_channel_or_graphql_error()
+
+        return root.products.visible_to_user(user, channel.slug)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -738,8 +764,11 @@ class Collection(CountableDjangoObjectType):
     @staticmethod
     def resolve_products(root: models.Collection, info, first=None, **kwargs):
         user = info.context.user
-        channel_slug = info.context.channel_slug
-        return root.products.collection_sorted(user, channel_slug)
+
+        # FIXME: resolve channel from query param with fallback to default channel
+        channel = get_default_channel_or_graphql_error()
+
+        return root.products.collection_sorted(user, channel.slug)
 
     @classmethod
     def get_node(cls, info, id):
@@ -829,8 +858,11 @@ class Category(CountableDjangoObjectType):
     @staticmethod
     def resolve_products(root: models.Category, info, **_kwargs):
         tree = root.get_descendants(include_self=True)
-        channel_slug = info.context.channel_slug
-        qs = models.Product.objects.published(channel_slug)
+
+        # FIXME: resolve channel from query param with fallback to default channel
+        channel = get_default_channel_or_graphql_error()
+
+        qs = models.Product.objects.published(channel.slug)
         return qs.filter(category__in=tree)
 
     @staticmethod

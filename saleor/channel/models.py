@@ -15,3 +15,6 @@ class Channel(models.Model):
         permissions = (
             (ChannelPermissions.MANAGE_CHANNELS.codename, "Manage channels.",),
         )
+
+    def __str__(self):
+        return self.slug

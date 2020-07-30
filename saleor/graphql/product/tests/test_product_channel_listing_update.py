@@ -495,7 +495,6 @@ def test_product_channel_listing_update_publish_product_without_category(
 
     # then
     data = content["data"]["productChannelListingUpdate"]
-    print(data)
     errors = data["productsErrors"]
     assert errors[0]["field"] == "isPublished"
     assert errors[0]["code"] == ProductErrorCode.PRODUCT_WITHOUT_CATEGORY.name
