@@ -3,12 +3,13 @@ import binascii
 import hashlib
 import hmac
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from django.contrib.auth.hashers import check_password
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.http.request import HttpHeaders
+from django.shortcuts import redirect
 from graphql_relay import from_global_id
 
 from ....order.actions import (
@@ -468,8 +469,13 @@ def validate_auth_user(headers: HttpHeaders, gateway_config: "GatewayConfig") ->
     return False
 
 
-def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
-    json_data = json.loads(request.body)
+def handle_webhook(
+    request: WSGIRequest, gateway_config: "GatewayConfig", payment_details: Callable
+):
+    try:
+        json_data = json.loads(request.body)
+    except json.decoder.JSONDecodeError:
+        return handle_additional_actions(request, payment_details)
     # JSON and HTTP POST notifications always contain a single NotificationRequestItem
     # object.
     notification = json_data.get("notificationItems")[0].get(
@@ -486,3 +492,33 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
         event_handler(notification, gateway_config)
         return HttpResponse("[accepted]")
     return HttpResponseNotFound()
+
+
+def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
+    payment_id = request.GET["payment"]
+    _type, payment_pk = from_global_id(payment_id)
+    payment = Payment.objects.filter(pk=payment_pk).first()
+
+    if not payment:
+        # TODO: raise error
+        return
+
+    data = json.loads(payment.extra_data)
+    return_url = payment.return_url
+
+    if not return_url:
+        # TODO: raise error
+        pass
+
+    request_data = {
+        "paymentData": data["payment_data"],
+        "details": {key: request.POST[key] for key in data["parameters"]},
+    }
+
+    result = payment_details(request_data)
+
+    # Check if further action is needed.
+    if "action" in result.message:
+        redirect(return_url, result.message["action"])
+    else:
+        redirect(return_url, result.message["resultCode"])

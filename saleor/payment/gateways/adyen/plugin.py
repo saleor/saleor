@@ -1,5 +1,6 @@
 import json
 from typing import List, Optional
+from urllib.parse import urlencode
 
 import Adyen
 from django.contrib.auth.hashers import make_password
@@ -8,6 +9,8 @@ from django.http import HttpResponse
 from graphql_relay import from_global_id
 
 from ....checkout.models import Checkout
+from ....core.emails import prepare_url
+from ....payment.models import Payment
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import PaymentError, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentGateway
@@ -190,7 +193,7 @@ class AdyenGatewayPlugin(BasePlugin):
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         config = self._get_gateway_config()
-        return handle_webhook(request, config)
+        return handle_webhook(request, config, self.adyen.checkout.payments_details)
 
     def _get_gateway_config(self) -> GatewayConfig:
         return self.config
@@ -229,9 +232,10 @@ class AdyenGatewayPlugin(BasePlugin):
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        params = urlencode({"payment": payment_information.payment_id})
         request_data = request_data_for_payment(
             payment_information,
-            return_url=self.config.connection_params["return_url"],
+            return_url=prepare_url(params, self.config.connection_params["return_url"]),
             merchant_account=self.config.connection_params["merchant_account"],
             origin_url=self.config.connection_params["origin_url"],
         )
@@ -242,6 +246,25 @@ class AdyenGatewayPlugin(BasePlugin):
             kind = TransactionKind.CAPTURE
         else:
             kind = TransactionKind.AUTH
+
+        action = result.message.get("action")
+        if action:
+            _type, payment_id = from_global_id(payment_information.payment_id)
+            payment = Payment.objects.filter(pk=payment_id).first()
+            if not payment:
+                # todo: return error
+                raise Exception("Payment does not exists")
+            details = result.message.get("details")
+            payment.extra_data = json.dumps(
+                {
+                    "payment_data": action["paymentData"],
+                    "parameters": [detail["key"] for detail in details]
+                    if details
+                    else [],
+                }
+            )
+            payment.save(update_fields=["extra_data"])
+
         return GatewayResponse(
             is_success=is_success,
             action_required="action" in result.message,
@@ -251,7 +274,7 @@ class AdyenGatewayPlugin(BasePlugin):
             transaction_id=result.message.get("pspReference", ""),
             error=result.message.get("refusalReason"),
             raw_response=result.message,
-            action_required_data=result.message.get("action"),
+            action_required_data=action,
         )
 
     @classmethod
