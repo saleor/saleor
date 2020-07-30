@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
+
+from saleor.plugins.manager import get_plugins_manager
+
 from saleor.product.models import Product, AssignedProductAttribute, \
     AttributeValue
 from saleor.plugins.models import PluginConfiguration
@@ -12,12 +15,17 @@ import csv
 import json
 import uuid
 from collections import defaultdict
+from datetime import datetime, timedelta
 
 @dataclass
 class AllegroConfiguration:
-    is_connected: str
+    redirect_url: str
+    callback_url: str
     token_access: str
     token_value: str
+    client_id: str
+    client_secret: str
+
 
 class AllegroPlugin(BasePlugin):
 
@@ -26,29 +34,40 @@ class AllegroPlugin(BasePlugin):
     PLUGIN_NAME_2 = "Allegro"
     META_CODE_KEY = "AllegroPlugin.code"
     META_DESCRIPTION_KEY = "AllegroPlugin.description"
-    DEFAULT_CONFIGURATION = [{"name": "is_connected", "value": None}, {"name": "token_access", "value": None}, {"name": "token_value", "value": None}]
+    DEFAULT_CONFIGURATION = [{"name": "redirect_url", "value": None}, {"name": "callback_url", "value": None}, {"name": "token_access", "value": None}, {"name": "token_value", "value": None},
+                             {"name": "client_id", "value": None}, {"name": "client_secret", "value": None}]
     CONFIG_STRUCTURE = {
-        "is_connected": {
-            "type": ConfigurationTypeField.SECRET,
-            "label": "Czy jest powiązdanie z Allegro?",
+        "redirect_url": {
+            "type": ConfigurationTypeField.STRING,
+            "label": "Podaj redirect URL?",
+        },
+        "callback_url": {
+            "type": ConfigurationTypeField.STRING,
+            "label": "Podaj callback URL?",
         },
         "token_access": {
-            "type": ConfigurationTypeField.SECRET,
-            "help_text": "Pokazuje XXX:XXX.",
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Wartość uzupełni się automatycznie.",
             "label": "Ważność tokena do:",
         },
         "token_value": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": "Access token.",
             "label": "Wartość tokena.",
+        },
+        "client_id": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Access token.",
+            "label": "Wartość id klienta allegro.",
+        },
+        "client_secret": {
+            "type": ConfigurationTypeField.SECRET,
+            "help_text": "Access token.",
+            "label": "Wartość klucza.",
         }
 
     }
 
-    DEFAULT_REDIRECT_URI = 'https://allegro.pl.allegrosandbox.pl/auth/oauth'
-    CLIENT_ID = '55ad2cda731c4160a001fb195bd47b2d'
-    CLIENT_SECRET = '71Uv6BqXFwVnhgw828COleU1swy5ZPG0TOb0dtTcfOzj5u0EvWrapeKly4N5fMnB'
-    CALLBACK_URL = 'http://localhost:8000/allegro'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -56,11 +75,9 @@ class AllegroPlugin(BasePlugin):
 
         configuration = {item["name"]: item["value"] for item in self.configuration}
 
-        self.config = AllegroConfiguration(is_connected=configuration["is_connected"], token_access=configuration["token_access"], token_value=configuration["token_value"])
+        self.config = AllegroConfiguration(redirect_url=configuration["redirect_url"], callback_url=configuration["callback_url"], token_access=configuration["token_access"], token_value=configuration["token_value"],
+                                           client_id=configuration["client_id"], client_secret=configuration["client_secret"])
 
-        if(configuration['token_value'] == None):
-            allegro_auth = AllegroAuth()
-            allegro_auth.get_access_code(self.CLIENT_ID, self.CLIENT_SECRET, self.CALLBACK_URL, self.DEFAULT_REDIRECT_URI)
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
@@ -86,19 +103,18 @@ class AllegroPlugin(BasePlugin):
         if plugin_configuration.configuration:
             # Let's add a translated descriptions and labels
             cls._append_config_structure(plugin_configuration.configuration)
+
+        configuration = {item["name"]: item["value"] for item in plugin_configuration.configuration}
+
+        if(plugin_configuration.active == True and not configuration['token_value'] and bool(configuration['client_id']) and bool(configuration['client_secret'])):
+            allegro_auth = AllegroAuth()
+            allegro_auth.get_access_code(configuration['client_id'], configuration['client_secret'], configuration['callback_url'], configuration['redirect_url'])
+
         return plugin_configuration
 
 
 
-
-
     def product_created(self, product: "Product", previous_value: Any) -> Any:
-
-        # manager = get_plugins_manager()
-        # plugin = manager.get_plugin(AllegroPlugin.PLUGIN_ID)
-        # print('Token', plugin.config.token_value)
-
-        print('Product create')
 
         allegro_api = AllegroAPI(self.config.token_value)
         allegro_api.product_publish(saleor_product=product)
@@ -136,7 +152,7 @@ class AllegroAuth:
         print('accessToken: ' + access_token)
 
         cleaned_data = {
-            "configuration": [{"name": "token_value", "value": access_token}]}
+            "configuration": [{"name": "token_value", "value": access_token}, {"name": "token_access", "value": (datetime.now() + timedelta(hours=3)).strftime("%d/%m/%Y %H:%M:%S")}]}
 
         AllegroPlugin.save_plugin_configuration(plugin_configuration=PluginConfiguration.objects.get(
             identifier=AllegroPlugin.PLUGIN_ID), cleaned_data=cleaned_data, )
@@ -146,14 +162,18 @@ class AllegroAuth:
 
     def resolve_auth(request):
 
+
+        manager = get_plugins_manager()
+        plugin = manager.get_plugin(AllegroPlugin.PLUGIN_ID)
         allegro_auth = AllegroAuth()
 
         access_code = request.GET["code"]
 
-        CLIENT_ID = '55ad2cda731c4160a001fb195bd47b2d'
-        CLIENT_SECRET = '71Uv6BqXFwVnhgw828COleU1swy5ZPG0TOb0dtTcfOzj5u0EvWrapeKly4N5fMnB'
-        CALLBACK_URL = 'http://localhost:8000/allegro'
-        DEFAULT_REDIRECT_URI = 'https://allegro.pl.allegrosandbox.pl/auth/oauth'
+        CLIENT_ID = plugin.config.client_id
+        CLIENT_SECRET = plugin.config.client_secret
+        CALLBACK_URL = plugin.config.callback_url
+        DEFAULT_REDIRECT_URI = plugin.config.redirecturl
+
 
         allegro_auth.sign_in(CLIENT_ID, CLIENT_SECRET, access_code,
                               CALLBACK_URL, DEFAULT_REDIRECT_URI)
@@ -170,14 +190,14 @@ class AllegroAPI:
         self.token = token
 
 
-    def get_category(self, id):
-
-        path = '/Users/patryk/data_with_ids.csv'
-
-        dictionary_with_categories = csv.DictReader(open(path), delimiter=';')
-        category = next(filter(lambda p: p['id'] == str(id), dictionary_with_categories), None)
-
-        return category
+    # def get_category(self, id):
+    #
+    #     path = '/Users/patryk/data_with_ids.csv'
+    #
+    #     dictionary_with_categories = csv.DictReader(open(path), delimiter=';')
+    #     category = next(filter(lambda p: p['id'] == str(id), dictionary_with_categories), None)
+    #
+    #     return category
 
 
     def product_publish(self, saleor_product) :
