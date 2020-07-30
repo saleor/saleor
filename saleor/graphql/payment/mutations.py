@@ -7,6 +7,7 @@ from ...checkout.utils import cancel_active_payments
 from ...core.permissions import OrderPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.utils import get_client_ip
+from ...core.utils.url import validate_storefront_url
 from ...graphql.checkout.utils import clean_billing_address, clean_checkout_shipping
 from ...payment import PaymentError, gateway, models
 from ...payment.error_codes import PaymentErrorCode
@@ -49,6 +50,14 @@ class PaymentInput(graphene.InputObjectType):
             "with the checkout instance will be used. Use `checkoutCreate` or "
             "`checkoutBillingAddressUpdate` mutations to set it. This field will be "
             "removed after 2020-07-31."
+        ),
+    )
+    return_url = graphene.String(
+        required=False,
+        description=(
+            "URL of a storefront view where user should be redirected after "
+            "3D secure confirmation. 3D secure payments payment will not work "
+            "if this field is not provided."
         ),
     )
 
@@ -133,6 +142,18 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
+    def validate_return_url(cls, input_data):
+        return_url = input_data.get("return_url")
+        if not return_url:
+            return
+        try:
+            validate_storefront_url(return_url)
+        except ValidationError as error:
+            raise ValidationError(
+                {"redirect_url": error}, code=PaymentErrorCode.INVALID
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, checkout_id, **data):
         checkout_id = from_global_id_strict_type(
             checkout_id, only_type=Checkout, field="checkout_id"
@@ -146,6 +167,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
         cls.validate_gateway(gateway, checkout.currency)
         cls.validate_token(info.context.plugins, gateway, data)
+        cls.validate_return_url(data)
 
         checkout_total = cls.calculate_total(info, checkout)
         amount = data.get("amount", checkout_total.gross.amount)
