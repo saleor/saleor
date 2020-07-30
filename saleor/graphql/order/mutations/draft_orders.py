@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from graphene.types import InputObjectType
 
 from ....account.models import User
@@ -17,9 +18,11 @@ from ....order.utils import (
     recalculate_order,
     update_order_prices,
 )
+from ....product.models import ProductChannelListing
 from ....warehouse.management import allocate_stock
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
+from ...channel.types import Channel
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal
 from ...core.types.common import OrderError
@@ -85,19 +88,32 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         error_type_field = "order_errors"
 
     @classmethod
-    def validate_product_is_published_in_channel(cls, variants, channel_id):
-        for variant in variants:
-            if not variant.product.channel_listing.get(id=channel_id).is_published:
+    def validate_product_is_published_in_channel(
+        cls, info, instance, variants, channel_id
+    ):
+        channel = getattr(instance.channel, "id", None)
+        if not channel and channel_id:
+            channel = cls.get_node_or_error(info, channel_id, only_type=Channel).id
+
+        if channel:
+            variant_ids = [variant.id for variant in variants]
+            unpublished_products = ProductChannelListing.objects.filter(
+                Q(product__variants__id__in=variant_ids),
+                Q(channel__id=channel),
+                Q(is_published=False),
+            )
+            if unpublished_products:
                 raise ValidationError(
                     {
                         "lines": ValidationError(
-                            "", code=OrderErrorCode.PRODUCT_NOT_PUBLISHED,
+                            "Can't add unpublished products.",
+                            code=OrderErrorCode.PRODUCT_NOT_PUBLISHED,
                         )
                     }
                 )
 
     @classmethod
-    def assign_channel_to_order(cls, instance, channel):
+    def clean_channel_id(cls, instance, channel):
         if channel:
             if instance.channel is not None:
                 raise ValidationError(
@@ -108,7 +124,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                         )
                     }
                 )
-            instance.channel = channel
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -117,12 +132,14 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         cleaned_input = super().clean_input(info, instance, data)
         lines = data.pop("lines", None)
         channel = data.get("channel", None)
-        cls.assign_channel_to_order(instance, channel)
+        cls.clean_channel_id(instance, channel)
 
         if lines:
             variant_ids = [line.get("variant_id") for line in lines]
             variants = cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
-            cls.validate_product_is_published_in_channel(variants, channel)
+            cls.validate_product_is_published_in_channel(
+                info, instance, variants, channel
+            )
             quantities = [line.get("quantity") for line in lines]
             cleaned_input["variants"] = variants
             cleaned_input["quantities"] = quantities
