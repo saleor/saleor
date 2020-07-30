@@ -83,6 +83,7 @@ class Payment(models.Model):
 
     customer_ip_address = models.GenericIPAddressField(blank=True, null=True)
     extra_data = models.TextField(blank=True, default="")
+    return_url = models.URLField(blank=True, null=True)
 
     class Meta:
         ordering = ("pk",)
