@@ -1,21 +1,20 @@
-from dataclasses import dataclass
-from datetime import datetime
-from typing import Any
-
-from saleor.plugins.manager import get_plugins_manager
-
-from saleor.product.models import Product, AssignedProductAttribute, \
-    AttributeValue
-from saleor.plugins.models import PluginConfiguration
-from django.shortcuts import redirect
-from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
-import requests
-import webbrowser
-import csv
 import json
 import uuid
+import webbrowser
 from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any
+
+import requests
+from django.shortcuts import redirect
+
+from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
+from saleor.plugins.manager import get_plugins_manager
+from saleor.plugins.models import PluginConfiguration
+from saleor.product.models import Product, AssignedProductAttribute, \
+    AttributeValue
+
 
 @dataclass
 class AllegroConfiguration:
@@ -387,6 +386,22 @@ class SimpleParametersMapper():
 
             attribute['name'] = attribute['name'].split(' ')[0]
 
+
+            if(str(self.product.product_type) == 'Biustonosz' and attribute['value'] == 'inne'):
+                attribute['value'] = 'Inna marka'
+            if(str(self.product.product_type) == 'Bluza damska' and attribute['value'] == 'inne'):
+                attribute['value'] = 'inna'
+            if (str(self.product.product_type) == 'Bluzka damska' and attribute['value'] == 'inne'):
+                attribute['value'] = 'inna'
+            if (str(self.product.product_type) == 'Bluzka dziecięca' and attribute['value'] == 'inne'):
+                attribute['value'] = 'Inna marka'
+            if (str(self.product.product_type) == 'Bluza dziecięca' and attribute['value'] == 'inne'):
+                attribute['value'] = 'Inna marka'
+
+            if (attribute['value'] == 'Marks & Spencer'):
+                attribute['value'] = 'Marks&Spencer'
+
+
             self.mapped_parameters.append(self.assign_parameter(attribute))
         else:
             self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
@@ -399,6 +414,9 @@ class SimpleParametersMapper():
         PARAMETER_NAME = 'Rozmiar'
 
 
+        if str(self.product.product_type) == 'Bluzka dziecięca':
+            return self.map_kids_size()
+
         if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
             attribute = next((attribute for attribute in self.product_attributes if
                               attribute["name"] == PARAMETER_NAME), False)
@@ -410,6 +428,26 @@ class SimpleParametersMapper():
                 self.mapped_parameters.append(self.assign_parameter(attribute))
         else:
             self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+
+        return self
+
+    def map_kids_size(self):
+
+        SALEOR_PARAMETER_NAME = 'Rozmiar dzieci'
+
+        PARAMETER_NAME = 'Rozmiar'
+
+
+        if SALEOR_PARAMETER_NAME in [attributes['name'] for attributes in
+                              self.product_attributes]:
+            attribute = next((attribute for attribute in self.product_attributes if
+                              attribute["name"] == SALEOR_PARAMETER_NAME), False)
+
+            attribute['value'] = json.loads(self.product.product_type.metadata['allegro.mapping.size'].replace('\'', "\""))[attribute['value']]
+
+            attribute['name'] = PARAMETER_NAME
+
+            self.mapped_parameters.append(self.assign_kids_size_parameter(attribute))
 
         return self
 
@@ -426,7 +464,10 @@ class SimpleParametersMapper():
             self.mapped_parameters.append(self.assign_parameter(attribute))
 
         else:
-            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+            if (str(self.product.product_type) == 'Bluzka damska'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inny'))
+            else:
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
 
 
         return self
@@ -461,7 +502,7 @@ class SimpleParametersMapper():
 
             self.mapped_parameters.append(self.assign_parameter(attribute))
         else:
-            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value = 'inny wzór'))
 
         return self
 
@@ -474,6 +515,10 @@ class SimpleParametersMapper():
 
             if attribute['value'] == 'brązowy' or attribute['value'] == 'beżowy':
                 attribute['value'] = 'brązowy, beżowy'
+            if attribute['value'] == 'żółty' or attribute['value'] == 'złoty':
+                attribute['value'] = 'żółty, złoty'
+            if attribute['value'] == 'szary' or attribute['value'] == 'srebrny':
+                attribute['value'] = 'szary, srebrny'
 
             self.mapped_parameters.append(self.assign_parameter(attribute))
         else:
@@ -484,14 +529,24 @@ class SimpleParametersMapper():
     def map_material(self):
 
         PARAMETER_NAME = 'Materiał dominujący'
+        SALEOR_PARAMETER_NAME = 'Materiał'
 
-        if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
+        if SALEOR_PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
             attribute = next((attribute for attribute in self.product_attributes if
-                              attribute["name"] == PARAMETER_NAME), False)
+                              attribute["name"] == SALEOR_PARAMETER_NAME), False)
+
+            if(str(self.product.product_type) == 'Bluza damska'):
+                attribute['name'] = PARAMETER_NAME
+            if (str(self.product.product_type) == 'Bluzka damska'):
+                attribute['name'] = PARAMETER_NAME
+            if (str(self.product.product_type) == 'Bluzka dziecięca'):
+                attribute['name'] = PARAMETER_NAME
+            if (str(self.product.product_type) == 'Bluza dziecięca'):
+                attribute['name'] = PARAMETER_NAME
 
             self.mapped_parameters.append(self.assign_parameter(attribute))
         else:
-            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value = 'inny'))
 
         return self
 
@@ -505,7 +560,16 @@ class SimpleParametersMapper():
 
             self.mapped_parameters.append(self.assign_parameter(attribute))
         else:
-            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+
+
+            if(str(self.product.product_type) == 'Biustonosz'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='zapięcie z tyłu'))
+            elif(str(self.product.product_type) == 'Bluza damska'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inne'))
+            elif (str(self.product.product_type) == 'Bluzka damska'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inne'))
+            else:
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
 
         return self
 
@@ -519,7 +583,14 @@ class SimpleParametersMapper():
 
             self.mapped_parameters.append(self.assign_parameter(attribute))
         else:
-            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+            if(str(self.product.product_type) == 'Biustonosz'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value = 'Inny typ'))
+            elif (str(self.product.product_type) == 'Bluza damska'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inny'))
+            elif (str(self.product.product_type) == 'Bluzka damska'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inny'))
+            else:
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
 
         return self
 
@@ -533,7 +604,12 @@ class SimpleParametersMapper():
 
             self.mapped_parameters.append(self.assign_parameter(attribute))
         else:
-            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+            if (str(self.product.product_type) == 'Bluza damska'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='brak'))
+            elif (str(self.product.product_type) == 'Bluzka damska'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='brak'))
+            else:
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
 
         return self
 
@@ -547,7 +623,13 @@ class SimpleParametersMapper():
 
             self.mapped_parameters.append(self.assign_parameter(attribute))
         else:
-            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+            if (str(self.product.product_type) == 'Bluza damska'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inny'))
+            elif (str(self.product.product_type) == 'Bluzka damska'):
+                    self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inny'))
+            else:
+                self.mapped_parameters.append(
+                    self.assign_missing_parameter(PARAMETER_NAME))
 
         return self
 
@@ -561,7 +643,14 @@ class SimpleParametersMapper():
 
             self.mapped_parameters.append(self.assign_parameter(attribute))
         else:
-            self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
+            if (str(self.product.product_type) == 'Bluza damska'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inny rękaw'))
+            elif (str(self.product.product_type) == 'Bluzka damska'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inny rękaw'))
+            elif (str(self.product.product_type) == 'Bluzka dziecięca'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='Inny'))
+            else:
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
 
         return self
 
@@ -676,12 +765,25 @@ class SimpleParametersMapper():
         return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
                 "rangeValue": None}
 
-    def assign_missing_parameter(self, name):
+    def assign_kids_size_parameter(self, atr):
+
+        param = next((param for param in self.require_parameters if
+                      param["name"] ==
+                      str(atr.get('name'))), False)
+
+        return {'id': param['id'], 'valuesIds': [], "values": [atr['value']],
+                "rangeValue": None}
+
+    def assign_missing_parameter(self, name, *args, **kwargs):
 
         param = next((param for param in self.require_parameters if
                       param["name"] == name), False)
 
-        value = param['dictionary'][0]
+        if(kwargs.get('value', None)):
+            value = next((value for value in param['dictionary'] if
+                          value["value"] == kwargs.get('value', None)), False)
+        else:
+            value = param['dictionary'][0]
 
         return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
                 "rangeValue": None}
@@ -902,7 +1004,7 @@ class AllegroProductMapper:
 
         product_items.append({
             'type': 'TEXT',
-            'content': '<h1>' + id + '</h1>'
+            'content': '<h1>' + id.replace('&', '&amp;') + '</h1>'
         })
 
         product_sections.append({'items': product_items})
