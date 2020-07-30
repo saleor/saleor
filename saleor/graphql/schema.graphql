@@ -1837,6 +1837,7 @@ input DraftOrderCreateInput {
   shippingMethod: ID
   voucher: ID
   customerNote: String
+  channel: ID
   lines: [OrderLineCreateInput]
 }
 
@@ -1855,6 +1856,7 @@ input DraftOrderInput {
   shippingMethod: ID
   voucher: ID
   customerNote: String
+  channel: ID
 }
 
 type DraftOrderLineDelete {

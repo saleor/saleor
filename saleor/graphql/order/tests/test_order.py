@@ -645,9 +645,19 @@ def test_draft_order_update(
     assert not order.voucher
     assert not order.customer_note
     query = """
-        mutation draftUpdate($id: ID!, $voucher: ID!, $customerNote: String) {
-            draftOrderUpdate(id: $id,
-                             input: {voucher: $voucher, customerNote: $customerNote}) {
+        mutation draftUpdate(
+        $id: ID!,
+        $voucher: ID!,
+        $channel: ID,
+        $customerNote: String
+        ) {
+            draftOrderUpdate(
+                id: $id,
+                input: {
+                    voucher: $voucher,
+                    customerNote: $customerNote
+                    channel: $channel
+                }) {
                 errors {
                     field
                     message
@@ -661,7 +671,12 @@ def test_draft_order_update(
     order_id = graphene.Node.to_global_id("Order", order.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     customer_note = "Test customer note"
-    variables = {"id": order_id, "voucher": voucher_id, "customerNote": customer_note}
+    variables = {
+        "id": order_id,
+        "voucher": voucher_id,
+        "customerNote": customer_note,
+    }
+
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )

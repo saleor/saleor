@@ -57,6 +57,9 @@ class DraftOrderInput(InputObjectType):
     customer_note = graphene.String(
         description="A note from a customer. Visible by customers in the order summary."
     )
+    channel = graphene.ID(
+        description="ID of the channel associated with the order.", name="channel"
+    )
 
 
 class DraftOrderCreateInput(DraftOrderInput):
@@ -82,15 +85,44 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         error_type_field = "order_errors"
 
     @classmethod
+    def validate_product_is_published_in_channel(cls, variants, channel_id):
+        for variant in variants:
+            if not variant.product.channel_listing.get(id=channel_id).is_published:
+                raise ValidationError(
+                    {
+                        "lines": ValidationError(
+                            "", code=OrderErrorCode.PRODUCT_NOT_PUBLISHED,
+                        )
+                    }
+                )
+
+    @classmethod
+    def assign_channel_to_order(cls, instance, channel):
+        if channel:
+            if instance.channel is not None:
+                raise ValidationError(
+                    {
+                        "channel": ValidationError(
+                            "Can't update existing order channel id.",
+                            code=OrderErrorCode.NOT_EDITABLE,
+                        )
+                    }
+                )
+            instance.channel = channel
+
+    @classmethod
     def clean_input(cls, info, instance, data):
         shipping_address = data.pop("shipping_address", None)
         billing_address = data.pop("billing_address", None)
         cleaned_input = super().clean_input(info, instance, data)
-
         lines = data.pop("lines", None)
+        channel = data.get("channel", None)
+        cls.assign_channel_to_order(instance, channel)
+
         if lines:
             variant_ids = [line.get("variant_id") for line in lines]
             variants = cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
+            cls.validate_product_is_published_in_channel(variants, channel)
             quantities = [line.get("quantity") for line in lines]
             cleaned_input["variants"] = variants
             cleaned_input["quantities"] = quantities
