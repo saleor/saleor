@@ -192,6 +192,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             # FIXME this is not a customer IP address. It is a client storefront ip
             customer_ip_address=get_client_ip(info.context),
             checkout=checkout,
+            return_url=data.get("return_url"),
         )
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)
 

@@ -77,6 +77,7 @@ def create_payment(
     extra_data: Dict = None,
     checkout: Checkout = None,
     order: Order = None,
+    return_url: str = None,
 ) -> Payment:
     """Create a payment instance.
 
@@ -123,6 +124,7 @@ def create_payment(
         "currency": currency,
         "gateway": gateway,
         "total": total,
+        "return_url": return_url,
     }
 
     payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
