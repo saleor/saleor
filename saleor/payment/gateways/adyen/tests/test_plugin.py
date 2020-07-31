@@ -1,10 +1,12 @@
 import json
 from decimal import Decimal
+from unittest import mock
 
 import pytest
 
 from .... import TransactionKind
 from ....interface import GatewayResponse
+from ....models import Payment
 from ....utils import create_payment_information, create_transaction
 
 
@@ -46,6 +48,7 @@ def test_process_payment(payment_adyen_for_checkout, checkout_with_items, adyen_
     assert response.currency == checkout_with_items.currency
     assert response.transaction_id == "882595494831959A"  # ID returned by Adyen
     assert response.error is None
+    assert response.action_required_data is None
 
 
 @pytest.mark.vcr
@@ -65,6 +68,88 @@ def test_process_payment_with_auto_capture(
     assert response.currency == checkout_with_items.currency
     assert response.transaction_id == "882595494831959A"  # ID returned by Adyen
     assert response.error is None
+    assert response.action_required_data is None
+
+
+@pytest.mark.vcr
+@mock.patch("saleor.payment.gateways.adyen.plugin.api_call")
+def test_process_payment_additional_action(
+    api_call_mock, payment_adyen_for_checkout, checkout_with_items, adyen_plugin
+):
+    payment_data = "Ab02b4c0!B"
+    action_data = {
+        "method": "GET",
+        "paymentData": payment_data,
+        "paymentMethodType": "ideal",
+        "type": "redirect",
+        "url": "https://test.adyen.com/hpp/redirectIdeal.shtml?brandCode=ideal",
+    }
+    message = {
+        "resultCode": "RedirectShopper",
+        "action": action_data,
+        "details": [{"key": "payload", "type": "text"}],
+        "pspReference": "882595494831959A",
+    }
+    api_call_mock.return_value.message = message
+
+    payment_info = create_payment_information(
+        payment_adyen_for_checkout,
+        additional_data={"paymentMethod": {"paymentdata": ""}},
+    )
+    adyen_plugin = adyen_plugin(auto_capture=True)
+    response = adyen_plugin.process_payment(payment_info, None)
+    assert response.is_success is True
+    assert response.action_required is True
+    assert response.kind == TransactionKind.CAPTURE
+    assert response.amount == Decimal("1234")
+    assert response.currency == checkout_with_items.currency
+    assert response.transaction_id == "882595494831959A"
+    assert response.error is None
+    assert response.action_required_data == action_data
+
+    payment_adyen_for_checkout.refresh_from_db()
+    assert payment_adyen_for_checkout.extra_data == json.dumps(
+        {"payment_data": payment_data, "parameters": ["payload"]}
+    )
+
+
+@pytest.mark.vcr
+@mock.patch("saleor.payment.gateways.adyen.plugin.api_call")
+def test_process_payment_additional_action_payment_does_not_exists(
+    api_call_mock, payment_adyen_for_checkout, checkout_with_items, adyen_plugin
+):
+    action_data = {
+        "method": "GET",
+        "paymentData": "Ab02b4c0!B",
+        "paymentMethodType": "ideal",
+        "type": "redirect",
+        "url": "https://test.adyen.com/hpp/redirectIdeal.shtml?brandCode=ideal",
+    }
+    message = {
+        "resultCode": "RedirectShopper",
+        "action": action_data,
+        "details": [{"key": "payload", "type": "text"}],
+        "pspReference": "882595494831959A",
+    }
+    api_call_mock.return_value.message = message
+
+    payment_info = create_payment_information(
+        payment_adyen_for_checkout,
+        additional_data={"paymentMethod": {"paymentdata": ""}},
+    )
+
+    Payment.objects.all().delete()
+
+    adyen_plugin = adyen_plugin(auto_capture=True)
+    response = adyen_plugin.process_payment(payment_info, None)
+    assert response.is_success is False
+    assert response.action_required is True
+    assert response.kind == TransactionKind.CAPTURE
+    assert response.amount == Decimal("1234")
+    assert response.currency == checkout_with_items.currency
+    assert response.transaction_id == "882595494831959A"
+    assert response.error == "Payment cannot be performed. Payment does not exists."
+    assert response.action_required_data == action_data
 
 
 @pytest.mark.vcr
