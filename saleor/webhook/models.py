@@ -6,7 +6,7 @@ from ..app.models import App
 
 class WebhookURLField(models.URLField):
     default_validators = [
-        validators.URLValidator(schemes=["http", "https", "gcpubsub"])
+        validators.URLValidator(schemes=["http", "https", "awssqs", "gcpubsub"])
     ]
 
 
