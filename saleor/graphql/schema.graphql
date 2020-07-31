@@ -3036,6 +3036,7 @@ type OrderError {
   code: OrderErrorCode!
   warehouse: ID
   orderLine: ID
+  variants: [ID!]
 }
 
 enum OrderErrorCode {

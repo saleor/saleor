@@ -551,6 +551,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
                     orderErrors {
                         field
                         code
+                        variants
                         message
                     }
                     order {
@@ -692,13 +693,16 @@ def test_draft_order_create_with_channel_with_unpublished_product(
         "voucher": voucher_id,
         "customerNote": customer_note,
     }
+
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+
     assert error["field"] == "lines"
     assert error["code"] == "PRODUCT_NOT_PUBLISHED"
+    assert error["variants"] == [str(variant_1.id)]
 
 
 def test_draft_order_create_with_channel(
