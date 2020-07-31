@@ -6,6 +6,7 @@ import json
 from typing import Any, Callable, Dict, Optional
 
 from django.contrib.auth.hashers import check_password
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.http.request import HttpHeaders
@@ -474,8 +475,9 @@ def handle_webhook(
 ):
     try:
         json_data = json.loads(request.body)
-    except json.decoder.JSONDecodeError:
+    except ValueError:
         return handle_additional_actions(request, payment_details)
+
     # JSON and HTTP POST notifications always contain a single NotificationRequestItem
     # object.
     notification = json_data.get("notificationItems")[0].get(
@@ -497,18 +499,16 @@ def handle_webhook(
 def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
     payment_id = request.GET["payment"]
     _type, payment_pk = from_global_id(payment_id)
-    payment = Payment.objects.filter(pk=payment_pk).first()
-
-    if not payment:
-        # TODO: raise error
-        return
+    try:
+        payment = Payment.objects.get(pk=payment_pk)
+    except ObjectDoesNotExist:
+        raise Exception("Cannot perform payment. Payment does not exists.")
 
     data = json.loads(payment.extra_data)
     return_url = payment.return_url
 
     if not return_url:
-        # TODO: raise error
-        pass
+        raise Exception("Cannot perform payment. Lack of data about returnUrl.")
 
     request_data = {
         "paymentData": data["payment_data"],
@@ -519,6 +519,6 @@ def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
 
     # Check if further action is needed.
     if "action" in result.message:
-        redirect(return_url, result.message["action"])
+        return redirect(return_url, action=result.message["action"])
     else:
-        redirect(return_url, result.message["resultCode"])
+        return redirect(return_url, result_code=result.message["resultCode"])

@@ -62,6 +62,7 @@ def payment_adyen_for_checkout(checkout_with_items, address):
         email=checkout_with_items.email,
         customer_ip_address="",
         checkout=checkout_with_items,
+        return_url="https://www.example.com",
     )
     return payment
 
