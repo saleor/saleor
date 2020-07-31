@@ -1,5 +1,13 @@
 [[package]]
 category = "main"
+description = "Adyen Python Api"
+name = "adyen"
+optional = false
+python-versions = "*"
+version = "3.0.0"
+
+[[package]]
+category = "main"
 description = "Low-level AMQP client for Python (fork of amqplib)."
 name = "amqp"
 optional = false
@@ -2308,10 +2316,13 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "1563f0110153722b9336bbedf3c54b03d93c7b3eba22e6e81411d3782a173362"
+content-hash = "cac9dd601359e308f2d4a960a4b007518f3caac49315e7f22e4b2200d6f4605a"
 python-versions = "~3.8"
 
 [metadata.files]
+adyen = [
+    {file = "Adyen-3.0.0.tar.gz", hash = "sha256:d0e9a100335c7c4f43471dd0fc35605e35f9fe090a3678284559d1e5ab2b8878"},
+]
 amqp = [
     {file = "amqp-2.6.0-py2.py3-none-any.whl", hash = "sha256:bb68f8d2bced8f93ccfd07d96c689b716b3227720add971be980accfc2952139"},
     {file = "amqp-2.6.0.tar.gz", hash = "sha256:24dbaff8ce4f30566bb88976b398e8c4e77637171af3af6f1b9650f48890e60b"},
