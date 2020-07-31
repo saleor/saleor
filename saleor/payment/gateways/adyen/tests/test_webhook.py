@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 from unittest import mock
 
@@ -11,6 +12,7 @@ from saleor.payment import ChargeStatus, TransactionKind
 from ..utils import get_price_amount
 from ..webhooks import (
     create_new_transaction,
+    handle_additional_actions,
     handle_authorization,
     handle_cancel_or_refund,
     handle_cancellation,
@@ -601,3 +603,112 @@ def test_validate_auth_user_when_auth_is_disabled(adyen_plugin):
     config = plugin.config
     is_valid = validate_auth_user(headers={}, gateway_config=config)
     assert is_valid is True
+
+
+def test_handle_additional_actions(payment_adyen_for_checkout):
+    # given
+    payment_adyen_for_checkout.extra_data = json.dumps(
+        {"payment_data": "test_data", "parameters": ["payload"]}
+    )
+    payment_adyen_for_checkout.save(update_fields=["extra_data"])
+
+    payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
+    request_mock = mock.Mock()
+    request_mock.GET = {"payment": payment_id}
+    request_mock.POST = {"payload": "test"}
+
+    payment_details_mock = mock.Mock()
+    payment_details_mock.return_value.message = {
+        "resultCode": "Test",
+    }
+
+    # when
+    response = handle_additional_actions(request_mock, payment_details_mock)
+
+    # then
+    assert response.status_code == 302
+
+
+def test_handle_additional_actions_more_action_required(payment_adyen_for_checkout):
+    # given
+    payment_adyen_for_checkout.extra_data = json.dumps(
+        {"payment_data": "test_data", "parameters": ["payload"]}
+    )
+    payment_adyen_for_checkout.save(update_fields=["extra_data"])
+
+    payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
+    request_mock = mock.Mock()
+    request_mock.GET = {"payment": payment_id}
+    request_mock.POST = {"payload": "test"}
+
+    payment_details_mock = mock.Mock()
+    payment_details_mock.return_value.message = {
+        "action": {
+            "method": "GET",
+            "paymentData": "123",
+            "paymentMethodType": "ideal",
+            "type": "redirect",
+            "url": "https://test.adyen.com/hpp/redirectIdeal.shtml?brandCode=ideal",
+        },
+    }
+
+    # when
+    response = handle_additional_actions(request_mock, payment_details_mock)
+
+    # then
+    assert response.status_code == 302
+
+
+def test_handle_additional_actions_payment_does_not_exist(payment_adyen_for_checkout):
+    # given
+    payment_adyen_for_checkout.extra_data = json.dumps(
+        {"payment_data": "test_data", "parameters": ["payload"]}
+    )
+    payment_adyen_for_checkout.save(update_fields=["extra_data"])
+
+    payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
+    request_mock = mock.Mock()
+    request_mock.GET = {"payment": payment_id}
+    request_mock.POST = {"payload": "test"}
+
+    payment_details_mock = mock.Mock()
+    payment_details_mock.return_value.message = {
+        "resultCode": "Test",
+    }
+
+    payment_adyen_for_checkout.delete()
+
+    # when
+    with pytest.raises(Exception) as e:
+        handle_additional_actions(request_mock, payment_details_mock)
+
+    # then
+    assert str(e._excinfo[1]) == "Cannot perform payment. Payment does not exists."
+
+
+def test_handle_additional_actions_payment_lack_of_return_url(
+    payment_adyen_for_checkout,
+):
+    # given
+    payment_adyen_for_checkout.extra_data = json.dumps(
+        {"payment_data": "test_data", "parameters": ["payload"]}
+    )
+    payment_adyen_for_checkout.return_url = None
+    payment_adyen_for_checkout.save(update_fields=["extra_data", "return_url"])
+
+    payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
+    request_mock = mock.Mock()
+    request_mock.GET = {"payment": payment_id}
+    request_mock.POST = {"payload": "test"}
+
+    payment_details_mock = mock.Mock()
+    payment_details_mock.return_value.message = {
+        "resultCode": "Test",
+    }
+
+    # when
+    with pytest.raises(Exception) as e:
+        handle_additional_actions(request_mock, payment_details_mock)
+
+    # then
+    assert str(e._excinfo[1]) == "Cannot perform payment. Lack of data about returnUrl."
