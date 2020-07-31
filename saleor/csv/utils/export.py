@@ -1,5 +1,5 @@
 from tempfile import NamedTemporaryFile
-from typing import IO, TYPE_CHECKING, Dict, List, Set, Union
+from typing import IO, TYPE_CHECKING, Any, Dict, List, Set, Union
 
 import petl as etl
 from django.utils import timezone
@@ -100,7 +100,7 @@ def export_products_in_batches(
     export_fields: Set[str],
     headers: List[str],
     delimiter: str,
-    temporary_file: "NamedTemporaryFile",
+    temporary_file: Any,
     file_type: str,
 ):
     warehouses = export_info.get("warehouses")
@@ -140,7 +140,7 @@ def create_file_with_headers(
 def append_to_file(
     export_data: List[Dict[str, Union[str, bool]]],
     headers: List[str],
-    temporary_file: "NamedTemporaryFile",
+    temporary_file: Any,
     file_type: str,
     delimiter: str,
 ):
