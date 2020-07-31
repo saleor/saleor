@@ -67,6 +67,7 @@ python-json-logger = "^0.1.11"
 pytimeparse = "^1.1.8"
 django-redis = "^4.12.1"
 Adyen = "^3.0.0"
+google-cloud-pubsub = "^1.7.0"
 
 [tool.poetry.dev-dependencies]
 black = "19.10b0"

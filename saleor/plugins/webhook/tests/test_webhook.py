@@ -14,7 +14,7 @@ from ....webhook.payloads import (
     generate_product_payload,
 )
 from ...manager import get_plugins_manager
-from ...webhook import create_hmac_signature
+from ...webhook import signature_for_payload
 from ...webhook.tasks import trigger_webhooks_for_event
 
 
@@ -120,14 +120,12 @@ def test_trigger_webhooks_for_event_with_secret_key(
     expected_data = serialize("json", [order_with_lines])
     trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, expected_data)
 
-    expected_signature = create_hmac_signature(
-        expected_data, webhook.secret_key, "utf-8"
-    )
+    expected_signature = signature_for_payload(expected_data, webhook.secret_key)
     expected_headers = {
         "Content-Type": "application/json",
         "X-Saleor-Event": "order_created",
         "X-Saleor-Domain": "mirumee.com",
-        "X-Saleor-HMAC-SHA256": f"sha1={expected_signature}",
+        "X-Saleor-HMAC-SHA256": expected_signature,
     }
 
     mock_request.assert_called_once_with(
