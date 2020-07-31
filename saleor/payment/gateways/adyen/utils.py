@@ -47,7 +47,10 @@ def api_call(request_data: Optional[Dict[str, Any]], method: Callable) -> Adyen.
 
 
 def request_data_for_payment(
-    payment_information: "PaymentData", return_url, merchant_account, origin_url
+    payment_information: "PaymentData",
+    return_url: str,
+    merchant_account: str,
+    origin_url: str,
 ) -> Dict[str, Any]:
     payment_data = payment_information.data or {}
 
@@ -88,7 +91,7 @@ def request_data_for_payment(
 
     method = payment_method.get("type", [])
     if "klarna" in method:
-        append_klarna_data(payment_information, request_data)
+        request_data = append_klarna_data(payment_information, request_data)
 
     return request_data
 
@@ -125,6 +128,7 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
         }
         line_items.append(line_data)
     payment_data["lineItems"] = line_items
+    return payment_data
 
 
 def get_shopper_locale_value():
