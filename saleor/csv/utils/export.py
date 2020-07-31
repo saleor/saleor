@@ -123,9 +123,7 @@ def export_products_in_batches(
 
 
 def create_file_with_headers(
-    file_headers: List[str],
-    delimiter: str,
-    file_type: str,
+    file_headers: List[str], delimiter: str, file_type: str,
 ):
     table = etl.wrap([file_headers])
 
