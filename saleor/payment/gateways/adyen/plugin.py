@@ -4,6 +4,7 @@ from urllib.parse import urlencode
 
 import Adyen
 from django.contrib.auth.hashers import make_password
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from graphql_relay import from_global_id
@@ -248,22 +249,24 @@ class AdyenGatewayPlugin(BasePlugin):
             kind = TransactionKind.AUTH
 
         action = result.message.get("action")
+        error_message = result.message.get("refusalReason")
         if action:
             _type, payment_id = from_global_id(payment_information.payment_id)
-            payment = Payment.objects.filter(pk=payment_id).first()
-            if not payment:
-                # todo: return error
-                raise Exception("Payment does not exists")
-            details = result.message.get("details")
-            payment.extra_data = json.dumps(
-                {
-                    "payment_data": action["paymentData"],
-                    "parameters": [detail["key"] for detail in details]
-                    if details
-                    else [],
-                }
-            )
-            payment.save(update_fields=["extra_data"])
+            try:
+                payment = Payment.objects.get(pk=payment_id)
+                details = result.message.get("details")
+                payment.extra_data = json.dumps(
+                    {
+                        "payment_data": action["paymentData"],
+                        "parameters": [detail["key"] for detail in details]
+                        if details
+                        else [],
+                    }
+                )
+                payment.save(update_fields=["extra_data"])
+            except ObjectDoesNotExist:
+                is_success = False
+                error_message = "Payment cannot be performed. Payment does not exists."
 
         return GatewayResponse(
             is_success=is_success,
@@ -272,7 +275,7 @@ class AdyenGatewayPlugin(BasePlugin):
             amount=payment_information.amount,
             currency=payment_information.currency,
             transaction_id=result.message.get("pspReference", ""),
-            error=result.message.get("refusalReason"),
+            error=error_message,
             raw_response=result.message,
             action_required_data=action,
         )
