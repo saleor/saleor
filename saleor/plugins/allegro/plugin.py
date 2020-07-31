@@ -148,15 +148,22 @@ class AllegroAuth:
                                  auth=requests.auth.HTTPBasicAuth(client_id, client_secret), data=access_token_data)
         access_token = response.json()['access_token']
 
-        print('accessToken: ' + access_token)
+        allegroAPI = AllegroAPI(response.json()['access_token'])
+
+        # nie dziala na sandbox ???
+        # allegroAPI.refresh_token(response.json()['refresh_token'], client_id, client_secret)
 
         cleaned_data = {
-            "configuration": [{"name": "token_value", "value": access_token}, {"name": "token_access", "value": (datetime.now() + timedelta(hours=3)).strftime("%d/%m/%Y %H:%M:%S")}]}
+            "configuration": [{"name": "token_value", "value": access_token}, {"name": "token_access", "value": (datetime.now() + timedelta(seconds=response.json()['expires_in'])).strftime("%d/%m/%Y %H:%M:%S")}]}
 
         AllegroPlugin.save_plugin_configuration(plugin_configuration=PluginConfiguration.objects.get(
             identifier=AllegroPlugin.PLUGIN_ID), cleaned_data=cleaned_data, )
 
+
+
         return response.json()
+
+
 
 
     def resolve_auth(request):
@@ -171,7 +178,7 @@ class AllegroAuth:
         CLIENT_ID = plugin.config.client_id
         CLIENT_SECRET = plugin.config.client_secret
         CALLBACK_URL = plugin.config.callback_url
-        DEFAULT_REDIRECT_URI = plugin.config.redirecturl
+        DEFAULT_REDIRECT_URI = plugin.config.redirect_url
 
 
         allegro_auth.sign_in(CLIENT_ID, CLIENT_SECRET, access_code,
@@ -189,14 +196,23 @@ class AllegroAPI:
         self.token = token
 
 
-    # def get_category(self, id):
-    #
-    #     path = '/Users/patryk/data_with_ids.csv'
-    #
-    #     dictionary_with_categories = csv.DictReader(open(path), delimiter=';')
-    #     category = next(filter(lambda p: p['id'] == str(id), dictionary_with_categories), None)
-    #
-    #     return category
+    def refresh_token(self, refresh_token, client_id, client_secret):
+
+        endpoint = 'auth/oauth/token'
+
+        data = {
+            'grant_type': 'refresh_token',
+            'refresh_token': refresh_token,
+            'redirect_uri': 'http://localhost:9000',
+        }
+
+        response = self.auth_request(endpoint=endpoint, data=data, client_id=client_id, client_secret=client_secret)
+
+
+        print('refresh_token', response.text)
+
+        return json.loads(response.text)
+
 
 
     def product_publish(self, saleor_product) :
@@ -268,6 +284,15 @@ class AllegroAPI:
                    'Accept': 'application/vnd.allegro.public.v1+json',
                    'Content-Type': 'application/vnd.allegro.public.v1+json'}
         response = requests.put(url, data=json.dumps(data), headers=headers)
+
+        return response
+
+
+    def auth_request(self, endpoint, data, client_id, client_secret):
+
+        url = 'https://api.allegro.pl.allegrosandbox.pl/' + endpoint
+
+        response = requests.post(url, auth=requests.auth.HTTPBasicAuth(client_id, client_secret), data=json.dumps(data))
 
         return response
 
@@ -397,6 +422,10 @@ class SimpleParametersMapper():
                 attribute['value'] = 'Inna marka'
             if (str(self.product.product_type) == 'Bluza dziecięca' and attribute['value'] == 'inne'):
                 attribute['value'] = 'Inna marka'
+            if (str(self.product.product_type) == 'Kamizelka damska' and attribute['value'] == 'inne'):
+                attribute['value'] = 'inna'
+            if (str(self.product.product_type) == 'Golf damski' and attribute['value'] == 'inne'):
+                attribute['value'] = 'inna'
 
             if (attribute['value'] == 'Marks & Spencer'):
                 attribute['value'] = 'Marks&Spencer'
@@ -513,6 +542,7 @@ class SimpleParametersMapper():
         if PARAMETER_NAME in [attributes['name'] for attributes in self.product_attributes]:
             attribute = next((attribute for attribute in self.product_attributes if attribute["name"] == PARAMETER_NAME), False)
 
+
             if attribute['value'] == 'brązowy' or attribute['value'] == 'beżowy':
                 attribute['value'] = 'brązowy, beżowy'
             if attribute['value'] == 'żółty' or attribute['value'] == 'złoty':
@@ -543,6 +573,13 @@ class SimpleParametersMapper():
                 attribute['name'] = PARAMETER_NAME
             if (str(self.product.product_type) == 'Bluza dziecięca'):
                 attribute['name'] = PARAMETER_NAME
+            if (str(self.product.product_type) == 'Kamizelka damska'):
+                attribute['name'] = PARAMETER_NAME
+            if (str(self.product.product_type) == 'Golf damski'):
+                attribute['name'] = PARAMETER_NAME
+
+            if(attribute['value'] == 'inne'):
+                attribute['value'] = 'inny'
 
             self.mapped_parameters.append(self.assign_parameter(attribute))
         else:
@@ -568,6 +605,9 @@ class SimpleParametersMapper():
                 self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inne'))
             elif (str(self.product.product_type) == 'Bluzka damska'):
                 self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inne'))
+            elif (str(self.product.product_type) == 'Kamizelka damska'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inne'))
+
             else:
                 self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
 
@@ -589,6 +629,8 @@ class SimpleParametersMapper():
                 self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inny'))
             elif (str(self.product.product_type) == 'Bluzka damska'):
                 self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inny'))
+            elif (str(self.product.product_type) == 'Kamizelka damska'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='inna'))
             else:
                 self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
 
@@ -607,6 +649,8 @@ class SimpleParametersMapper():
             if (str(self.product.product_type) == 'Bluza damska'):
                 self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='brak'))
             elif (str(self.product.product_type) == 'Bluzka damska'):
+                self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='brak'))
+            elif (str(self.product.product_type) == 'Golf damski'):
                 self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME, value='brak'))
             else:
                 self.mapped_parameters.append(self.assign_missing_parameter(PARAMETER_NAME))
