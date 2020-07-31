@@ -91,39 +91,40 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     def validate_product_is_published_in_channel(
         cls, info, instance, variants, channel_id
     ):
-        channel = getattr(instance.channel, "id", None)
+        channel = instance.channel_id
         if not channel and channel_id:
             channel = cls.get_node_or_error(info, channel_id, only_type=Channel).id
 
         if channel:
             variant_ids = [variant.id for variant in variants]
-            unpublished_products = ProductChannelListing.objects.filter(
+            unpublished_variants = ProductChannelListing.objects.filter(
                 Q(product__variants__id__in=variant_ids),
                 Q(channel__id=channel),
                 Q(is_published=False),
-            )
-            if unpublished_products:
+            ).values_list("product__variants__id", flat=True)
+            if unpublished_variants:
                 raise ValidationError(
                     {
                         "lines": ValidationError(
-                            "Can't add unpublished products.",
+                            "Can't add product variant that are not published in "
+                            "the channel associated with this order.",
                             code=OrderErrorCode.PRODUCT_NOT_PUBLISHED,
+                            params={"variants": unpublished_variants},
                         )
                     }
                 )
 
     @classmethod
     def clean_channel_id(cls, instance, channel):
-        if channel:
-            if instance.channel is not None:
-                raise ValidationError(
-                    {
-                        "channel": ValidationError(
-                            "Can't update existing order channel id.",
-                            code=OrderErrorCode.NOT_EDITABLE,
-                        )
-                    }
-                )
+        if channel and instance.channel is not None:
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        "Can't update existing order channel id.",
+                        code=OrderErrorCode.NOT_EDITABLE,
+                    )
+                }
+            )
 
     @classmethod
     def clean_input(cls, info, instance, data):
