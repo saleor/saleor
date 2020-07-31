@@ -45,6 +45,7 @@ def export_products(
     )
 
     save_csv_file_in_export_file(export_file, temporary_file, file_name)
+    temporary_file.close()
 
     if export_file.user:
         send_email_with_link_to_download_file(
