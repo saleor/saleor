@@ -858,6 +858,16 @@ input ChannelCreateInput {
   currencyCode: String!
 }
 
+type ChannelDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  channelErrors: [ChannelError!]!
+  channel: Channel
+}
+
+input ChannelDeleteInput {
+  targetChannel: ID!
+}
+
 type ChannelError {
   field: String
   message: String
@@ -871,6 +881,7 @@ enum ChannelErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  CHANNEL_TARGET_ID_MUST_BE_DIFFERENT
 }
 
 type ChannelUpdate {
@@ -2827,6 +2838,7 @@ type Mutation {
   checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearPrivateMeta @deprecated(reason: "Use the `deletePrivateMetadata` mutation. This field will be removed after 2020-07-31.")
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
+  channelDelete(id: ID!, input: ChannelDeleteInput!): ChannelDelete
   appCreate(input: AppInput!): AppCreate
   appUpdate(id: ID!, input: AppInput!): AppUpdate
   appDelete(id: ID!): AppDelete
