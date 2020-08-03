@@ -1,12 +1,17 @@
+from decimal import Decimal
 from unittest import mock
 
 import pytest
+from prices import Money, TaxedMoney
 
+from .....core.prices import quantize_price
 from .... import PaymentError
 from ..utils import (
     append_klarna_data,
+    convert_adyen_price_format,
     get_price_amount,
     get_shopper_locale_value,
+    request_data_for_gateway_config,
     request_data_for_payment,
 )
 
@@ -55,6 +60,48 @@ def test_append_klarna_data(dummy_payment_data, payment_dummy, checkout_with_ite
                 "taxPercentage": 0,
                 "amountExcludingTax": total,
                 "amountIncludingTax": total,
+            }
+        ],
+    }
+
+
+@mock.patch("saleor.payment.gateways.adyen.utils.checkout_line_total")
+def test_append_klarna_data_tax_included(
+    mocked_checkout_line_total, dummy_payment_data, payment_dummy, checkout_with_item
+):
+    # given
+    tax_percent = 5
+    net = Money(10, "USD")
+    gross = tax_percent * net / 100 + net
+    mocked_checkout_line_total.return_value = quantize_price(
+        TaxedMoney(net=net, gross=gross), "USD"
+    )
+
+    checkout_with_item.payments.add(payment_dummy)
+    line = checkout_with_item.lines.first()
+    payment_data = {
+        "reference": "test",
+    }
+
+    # when
+    result = append_klarna_data(dummy_payment_data, payment_data)
+
+    # then
+    assert result == {
+        "reference": "test",
+        "shopperLocale": "en_US",
+        "shopperReference": dummy_payment_data.customer_email,
+        "countryCode": str(checkout_with_item.country),
+        "shopperEmail": dummy_payment_data.customer_email,
+        "lineItems": [
+            {
+                "description": line.variant.product.description,
+                "quantity": line.quantity,
+                "id": line.variant.sku,
+                "taxAmount": get_price_amount((gross - net).amount, "USD"),
+                "taxPercentage": tax_percent,
+                "amountExcludingTax": get_price_amount(net.amount, "USD"),
+                "amountIncludingTax": get_price_amount(gross.amount, "USD"),
             }
         ],
     }
@@ -160,3 +207,66 @@ def test_request_data_for_payment_append_klarna_data(
 
     # then
     assert result == klarna_result
+
+
+@pytest.mark.parametrize(
+    "value, currency, expected_result",
+    [
+        (Decimal(1000), "EUR", Decimal(10)),
+        (Decimal(1), "PLN", Decimal("0.01")),
+        (Decimal(51), "US", Decimal("0.51")),
+    ],
+)
+def test_convert_adyen_price_format(value, currency, expected_result):
+    # when
+    result = convert_adyen_price_format(value, currency)
+
+    # then
+    assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "value, currency, expected_result",
+    [
+        (Decimal(10), "EUR", "1000"),
+        (Decimal(1), "PLN", "100"),
+        (Decimal(100), "US", "10000"),
+    ],
+)
+def test_get_price_amount(value, currency, expected_result):
+    # when
+    result = get_price_amount(value, currency)
+
+    # then
+    assert result == expected_result
+
+
+def test_request_data_for_gateway_config(checkout, address):
+    # given
+    checkout.billing_address = address
+    merchant_account = "test_account"
+
+    # when
+    response_config = request_data_for_gateway_config(checkout, merchant_account)
+
+    # then
+    assert response_config == {
+        "merchantAccount": merchant_account,
+        "countryCode": checkout.billing_address.country,
+        "channel": "web",
+    }
+
+
+def test_request_data_for_gateway_config_no_country(checkout, address, settings):
+    # given
+    merchant_account = "test_account"
+
+    # when
+    response_config = request_data_for_gateway_config(checkout, merchant_account)
+
+    # then
+    assert response_config == {
+        "merchantAccount": merchant_account,
+        "countryCode": settings.DEFAULT_COUNTRY,
+        "channel": "web",
+    }
