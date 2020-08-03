@@ -2,6 +2,7 @@ from django.db.models import Sum
 
 from ...order import OrderStatus
 from ...product import models
+from ..channel import ChannelQsContext
 from ..utils import get_database_id, get_user_or_app_from_context
 from ..utils.filters import filter_by_period
 from .filters import (
@@ -58,19 +59,21 @@ def resolve_product_by_slug(info, product_slug, channel_slug):
     )
 
 
-def resolve_products(info, stock_availability=None, channel_slug=None, **_kwargs):
+def resolve_products(
+    info, stock_availability=None, channel_slug=None, **_kwargs
+) -> ChannelQsContext:
     user = get_user_or_app_from_context(info.context)
     qs = models.Product.objects.visible_to_user(user, channel_slug)
     if stock_availability:
         qs = filter_products_by_stock_availability(qs, stock_availability)
-    return qs.distinct()
+    return ChannelQsContext(qs=qs.distinct(), channel_slug=channel_slug)
 
 
 def resolve_product_types(info, **_kwargs):
     return models.ProductType.objects.all()
 
 
-def resolve_product_variants(info, ids=None, channel_slug=None):
+def resolve_product_variants(info, ids=None, channel_slug=None) -> ChannelQsContext:
     user = info.context.user
     visible_products = models.Product.objects.visible_to_user(
         user, channel_slug
@@ -79,7 +82,7 @@ def resolve_product_variants(info, ids=None, channel_slug=None):
     if ids:
         db_ids = [get_database_id(info, node_id, "ProductVariant") for node_id in ids]
         qs = qs.filter(pk__in=db_ids)
-    return qs
+    return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 
 def resolve_report_product_sales(period):

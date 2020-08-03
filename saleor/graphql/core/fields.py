@@ -11,6 +11,7 @@ from graphql.error import GraphQLError
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from promise import Promise
 
+from ..channel import ChannelContext, ChannelQsContext
 from ..utils.sorting import sort_queryset_for_connection
 from .connection import connection_from_queryset_slice
 from .types.common import Weight
@@ -126,7 +127,7 @@ class PrefetchingConnectionField(BaseDjangoConnectionField):
         )
 
 
-class FilterInputConnectionField(PrefetchingConnectionField):
+class FilterInputConnectionField(BaseDjangoConnectionField):
     def __init__(self, *args, **kwargs):
         self.filter_field_name = kwargs.pop("filter_field_name", "filter")
         self.filter_input = kwargs.get(self.filter_field_name)
@@ -213,6 +214,23 @@ class FilterInputConnectionField(PrefetchingConnectionField):
             self.filterset_class,
             self.filter_field_name,
         )
+
+
+class ChannelContextFilterConnectionField(FilterInputConnectionField):
+    @classmethod
+    def resolve_connection(
+        cls, connection, args, iterable: ChannelQsContext, max_limit=None
+    ):
+        connection = super().resolve_connection(
+            connection, args, iterable.qs, max_limit
+        )
+        edges_with_context = []
+        for edge in connection.edges:
+            node = edge.node
+            edge.node = ChannelContext(node=node, channel_slug=iterable.channel_slug)
+            edges_with_context.append(edge)
+        connection.edges = edges_with_context
+        return connection
 
 
 class FieldWithChannel(graphene.Field):

@@ -1,9 +1,14 @@
 import graphene
 
 from ...core.permissions import ProductPermissions
+from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_or_graphql_error
 from ..core.enums import ReportingPeriod
-from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
+from ..core.fields import (
+    ChannelContextFilterConnectionField,
+    FilterInputConnectionField,
+    PrefetchingConnectionField,
+)
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import permission_required
 from ..translations.mutations import (
@@ -132,7 +137,6 @@ from .types import (
     Collection,
     DigitalContent,
     Product,
-    ProductContext,
     ProductType,
     ProductVariant,
 )
@@ -199,7 +203,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="Look up a product by ID.",
     )
-    products = FilterInputConnectionField(
+    products = ChannelContextFilterConnectionField(
         Product,
         filter=ProductFilterInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
@@ -234,6 +238,9 @@ class ProductQueries(graphene.ObjectType):
         ProductVariant,
         id=graphene.Argument(
             graphene.ID, description="ID of the product variant.", required=True
+        ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
         ),
         description="Look up a product variant by ID.",
     )
@@ -299,9 +306,7 @@ class ProductQueries(graphene.ObjectType):
             product = resolve_product_by_slug(
                 info, product_slug=slug, channel_slug=channel
             )
-        return (
-            ProductContext(product=product, channel_slug=channel) if product else None
-        )
+        return ChannelContext(node=product, channel_slug=channel) if product else None
 
     def resolve_products(self, info, channel=None, **kwargs):
         if channel is None:
@@ -314,8 +319,11 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_types(self, info, **kwargs):
         return resolve_product_types(info, **kwargs)
 
-    def resolve_product_variant(self, info, id, **_kwargs):
-        return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
+    def resolve_product_variant(self, info, id, channel=None, **_kwargs):
+        if channel is None:
+            channel = get_default_channel_or_graphql_error().slug
+        variant = graphene.Node.get_node_from_global_id(info, id, ProductVariant)
+        return ChannelContext(node=variant, channel_slug=channel) if variant else None
 
     def resolve_product_variants(self, info, ids=None, channel=None, **_kwargs):
         if channel is None:
