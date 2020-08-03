@@ -11,7 +11,6 @@ from graphql_relay import from_global_id
 
 from ....checkout.models import Checkout
 from ....core.emails import prepare_url
-from ....payment.models import Payment
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import PaymentError, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentGateway
@@ -23,6 +22,7 @@ from .utils import (
     request_data_for_payment,
     request_for_payment_capture,
     request_for_payment_refund,
+    update_payment_with_action_required_data,
 )
 from .webhooks import handle_webhook
 
@@ -251,19 +251,12 @@ class AdyenGatewayPlugin(BasePlugin):
         action = result.message.get("action")
         error_message = result.message.get("refusalReason")
         if action:
-            _type, payment_id = from_global_id(payment_information.payment_id)
             try:
-                payment = Payment.objects.get(pk=payment_id)
-                details = result.message.get("details")
-                payment.extra_data = json.dumps(
-                    {
-                        "payment_data": action["paymentData"],
-                        "parameters": [detail["key"] for detail in details]
-                        if details
-                        else [],
-                    }
+                update_payment_with_action_required_data(
+                    payment_information.payment_id,
+                    action,
+                    result.message.get("details", []),
                 )
-                payment.save(update_fields=["extra_data"])
             except ObjectDoesNotExist:
                 is_success = False
                 error_message = "Payment cannot be performed. Payment does not exists."

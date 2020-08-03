@@ -1,3 +1,4 @@
+import json
 import logging
 from decimal import Decimal
 from typing import Any, Callable, Dict, Optional
@@ -6,9 +7,11 @@ import Adyen
 from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
+from graphql_relay import from_global_id
 
 from ....checkout.models import Checkout
 from ....core.prices import quantize_price
+from ....payment.models import Payment
 from ... import PaymentError
 from ...interface import PaymentData
 
@@ -183,3 +186,17 @@ def request_for_payment_capture(
         "originalReference": token,
         "reference": payment_information.payment_id,
     }
+
+
+def update_payment_with_action_required_data(
+    payment_id: str, action: dict, details: list
+):
+    _type, payment_pk = from_global_id(payment_id)
+    payment = Payment.objects.get(pk=payment_pk)
+    payment.extra_data = json.dumps(
+        {
+            "payment_data": action["paymentData"],
+            "parameters": [detail["key"] for detail in details],
+        }
+    )
+    payment.save(update_fields=["extra_data"])
