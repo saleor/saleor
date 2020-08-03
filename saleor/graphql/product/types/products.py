@@ -738,8 +738,12 @@ class ProductType(CountableDjangoObjectType):
 
 @key(fields="id")
 class Collection(CountableDjangoObjectType):
-    products = PrefetchingConnectionField(
-        Product, description="List of products in this collection."
+    products = ChannelContextFilterConnectionField(
+        Product,
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+        description="List of products in this collection.",
     )
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
@@ -774,13 +778,12 @@ class Collection(CountableDjangoObjectType):
             )
 
     @staticmethod
-    def resolve_products(root: models.Collection, info, first=None, **kwargs):
+    def resolve_products(root: models.Collection, info, channel=None, **kwargs):
         user = info.context.user
-
-        # FIXME: resolve channel from query param with fallback to default channel
-        channel = get_default_channel_or_graphql_error()
-
-        return root.products.collection_sorted(user, channel.slug)
+        if channel is None:
+            channel = get_default_channel_or_graphql_error().slug
+        qs = root.products.collection_sorted(user, channel)
+        return ChannelQsContext(qs=qs, channel_slug=channel)
 
     @classmethod
     def get_node(cls, info, id):
@@ -809,8 +812,12 @@ class Category(CountableDjangoObjectType):
     ancestors = PrefetchingConnectionField(
         lambda: Category, description="List of ancestors of the category."
     )
-    products = PrefetchingConnectionField(
-        Product, description="List of products in the category."
+    products = ChannelContextFilterConnectionField(
+        Product,
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+        description="List of products in the category.",
     )
     url = graphene.String(
         description="The storefront's URL for the category.",
@@ -868,14 +875,13 @@ class Category(CountableDjangoObjectType):
         return ""
 
     @staticmethod
-    def resolve_products(root: models.Category, info, **_kwargs):
+    def resolve_products(root: models.Category, _info, channel=None, **_kwargs):
         tree = root.get_descendants(include_self=True)
-
-        # FIXME: resolve channel from query param with fallback to default channel
-        channel = get_default_channel_or_graphql_error()
-
-        qs = models.Product.objects.published(channel.slug)
-        return qs.filter(category__in=tree)
+        if channel is None:
+            channel = get_default_channel_or_graphql_error().slug
+        qs = models.Product.objects.published(channel)
+        qs = qs.filter(category__in=tree).distinct()
+        return ChannelQsContext(qs=qs, channel_slug=channel)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

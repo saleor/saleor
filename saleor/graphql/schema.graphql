@@ -720,7 +720,7 @@ type Category implements Node & ObjectWithMetadata {
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   url: String @deprecated(reason: "This field will be removed after 2020-07-31.")
   children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   backgroundImage(size: Int): Image
@@ -1128,7 +1128,7 @@ type Collection implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
-  products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
 }
