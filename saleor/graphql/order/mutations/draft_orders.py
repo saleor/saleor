@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from graphene.types import InputObjectType
 
 from ....account.models import User
@@ -17,9 +18,11 @@ from ....order.utils import (
     recalculate_order,
     update_order_prices,
 )
+from ....product.models import ProductChannelListing
 from ....warehouse.management import allocate_stock
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
+from ...channel.types import Channel
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal
 from ...core.types.common import OrderError
@@ -57,6 +60,9 @@ class DraftOrderInput(InputObjectType):
     customer_note = graphene.String(
         description="A note from a customer. Visible by customers in the order summary."
     )
+    channel = graphene.ID(
+        description="ID of the channel associated with the order.", name="channel"
+    )
 
 
 class DraftOrderCreateInput(DraftOrderInput):
@@ -82,15 +88,64 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         error_type_field = "order_errors"
 
     @classmethod
+    def validate_product_is_published_in_channel(
+        cls, info, instance, variants, channel_id
+    ):
+        channel = instance.channel_id
+        if not channel and channel_id:
+            channel = cls.get_node_or_error(info, channel_id, only_type=Channel).id
+
+        if channel:
+            variant_ids = [variant.id for variant in variants]
+            unpublished_variants = ProductChannelListing.objects.filter(
+                Q(product__variants__id__in=variant_ids),
+                Q(channel__id=channel),
+                Q(is_published=False),
+            ).values_list("product__variants__id", flat=True)
+            if unpublished_variants:
+                unpublished_variants_global_ids = [
+                    graphene.Node.to_global_id("ProductVariant", unpublished_variant)
+                    for unpublished_variant in unpublished_variants
+                ]
+
+                raise ValidationError(
+                    {
+                        "lines": ValidationError(
+                            "Can't add product variant that are not published in "
+                            "the channel associated with this order.",
+                            code=OrderErrorCode.PRODUCT_NOT_PUBLISHED,
+                            params={"variants": unpublished_variants_global_ids},
+                        )
+                    }
+                )
+
+    @classmethod
+    def clean_channel_id(cls, instance, channel):
+        if channel and instance.channel is not None:
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        "Can't update existing order channel id.",
+                        code=OrderErrorCode.NOT_EDITABLE,
+                    )
+                }
+            )
+
+    @classmethod
     def clean_input(cls, info, instance, data):
         shipping_address = data.pop("shipping_address", None)
         billing_address = data.pop("billing_address", None)
         cleaned_input = super().clean_input(info, instance, data)
-
         lines = data.pop("lines", None)
+        channel = data.get("channel", None)
+        cls.clean_channel_id(instance, channel)
+
         if lines:
             variant_ids = [line.get("variant_id") for line in lines]
             variants = cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
+            cls.validate_product_is_published_in_channel(
+                info, instance, variants, channel
+            )
             quantities = [line.get("quantity") for line in lines]
             cleaned_input["variants"] = variants
             cleaned_input["quantities"] = quantities
