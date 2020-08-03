@@ -142,10 +142,7 @@ class OrderError(Error):
     )
     variants = graphene.List(
         graphene.NonNull(graphene.ID),
-        description=(
-            "List of product variants product variant that are not published "
-            "in the channel associated with this order."
-        ),
+        description="List of product variants that are associated with the error",
         required=False,
     )
 

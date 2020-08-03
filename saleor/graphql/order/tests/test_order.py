@@ -702,7 +702,7 @@ def test_draft_order_create_with_channel_with_unpublished_product(
 
     assert error["field"] == "lines"
     assert error["code"] == "PRODUCT_NOT_PUBLISHED"
-    assert error["variants"] == [str(variant_1.id)]
+    assert error["variants"] == [variant_1_id]
 
 
 def test_draft_order_create_with_channel(
