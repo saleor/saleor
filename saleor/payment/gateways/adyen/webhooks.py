@@ -470,14 +470,8 @@ def validate_auth_user(headers: HttpHeaders, gateway_config: "GatewayConfig") ->
     return False
 
 
-def handle_webhook(
-    request: WSGIRequest, gateway_config: "GatewayConfig", payment_details: Callable
-):
-    try:
-        json_data = json.loads(request.body)
-    except ValueError:
-        return handle_additional_actions(request, payment_details)
-
+def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
+    json_data = json.loads(request.body)
     # JSON and HTTP POST notifications always contain a single NotificationRequestItem
     # object.
     notification = json_data.get("notificationItems")[0].get(
