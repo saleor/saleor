@@ -1240,7 +1240,7 @@ description = "Reader for the MaxMind DB format"
 name = "maxminddb"
 optional = false
 python-versions = ">=3.6"
-version = "2.0.1"
+version = "2.0.2"
 
 [[package]]
 category = "main"
@@ -2853,7 +2853,7 @@ markupsafe = [
     {file = "MarkupSafe-1.1.1.tar.gz", hash = "sha256:29872e92839765e546828bb7754a68c418d927cd064fd4708fab9fe9c8bb116b"},
 ]
 maxminddb = [
-    {file = "maxminddb-2.0.1.tar.gz", hash = "sha256:ed42434c3b88229a6a3c0e9e58c5a0f4fc17dcdde42dedcbcf225db8f04e8848"},
+    {file = "maxminddb-2.0.2.tar.gz", hash = "sha256:b95d8ed21799e6604683669c7ed3c6a184fcd92434d5762dccdb139b4f29e597"},
 ]
 maxminddb-geolite2 = [
     {file = "maxminddb-geolite2-2018.703.tar.gz", hash = "sha256:2bd118c5567f3a8323d6c5da23a6e6d52cfc09cd9987b54eb712cf6001a96e03"},
