@@ -8,6 +8,7 @@ from ...core.permissions import AccountPermissions, CheckoutPermissions
 from ...core.taxes import display_gross_prices, zero_taxed_money
 from ...plugins.manager import get_plugins_manager
 from ..account.utils import requestor_has_access
+from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
 from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
@@ -67,10 +68,16 @@ class CheckoutLine(CountableDjangoObjectType):
         filter_fields = ["id"]
 
     @staticmethod
-    def resolve_total_price(self, info):
+    def resolve_variant(root, _info):
+        # FIXME: Consider whether here we should use checkout's channel or None
+        channel_slug = root.checkout.channel.slug
+        return ChannelContext(node=root.variant, channel_slug=channel_slug)
+
+    @staticmethod
+    def resolve_total_price(root, info):
         def calculate_total_price(discounts):
             return info.context.plugins.calculate_checkout_line_total(
-                checkout_line=self, discounts=discounts
+                checkout_line=root, discounts=discounts
             )
 
         return (
