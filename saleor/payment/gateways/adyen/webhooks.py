@@ -496,13 +496,15 @@ def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
     try:
         payment = Payment.objects.get(pk=payment_pk)
     except ObjectDoesNotExist:
-        raise Exception("Cannot perform payment. Payment does not exists.")
+        return HttpResponseNotFound("Cannot perform payment. Payment does not exists.")
 
     data = json.loads(payment.extra_data)
     return_url = payment.return_url
 
     if not return_url:
-        raise Exception("Cannot perform payment. Lack of data about returnUrl.")
+        return HttpResponseNotFound(
+            "Cannot perform payment. Lack of data about returnUrl."
+        )
 
     request_data = {
         "paymentData": data["payment_data"],
