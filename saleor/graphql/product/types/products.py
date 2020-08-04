@@ -344,9 +344,10 @@ class ProductVariant(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_product(root: ChannelContext, info):
-        # FIXME: use dataloader
-        # product = ProductByIdLoader(info.context).load(root.node.product_id)
-        return ChannelContext(node=root.node.product, channel_slug=root.channel_slug)
+        product = ProductByIdLoader(info.context).load(root.node.product_id)
+        return product.then(
+            lambda product: ChannelContext(node=product, channel_slug=root.channel_slug)
+        )
 
     @staticmethod
     def resolve_is_available(root: ChannelContext, info):
