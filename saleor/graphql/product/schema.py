@@ -244,7 +244,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="Look up a product variant by ID.",
     )
-    product_variants = PrefetchingConnectionField(
+    product_variants = ChannelContextFilterConnectionField(
         ProductVariant,
         ids=graphene.List(
             graphene.ID, description="Filter product variants by given IDs."

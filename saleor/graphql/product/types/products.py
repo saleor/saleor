@@ -127,6 +127,8 @@ class ProductPricingInfo(BasePricingInfo):
 
 
 class ChannelContextType(DjangoObjectType):
+    """A Graphene type used with resolvers root objects wrapped with ChannelContext."""
+
     class Meta:
         abstract = True
 
@@ -342,7 +344,9 @@ class ProductVariant(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_product(root: ChannelContext, info):
-        return ProductByIdLoader(info.context).load(root.node.product_id)
+        # FIXME: use dataloader
+        # product = ProductByIdLoader(info.context).load(root.node.product_id)
+        return ChannelContext(node=root.node.product, channel_slug=root.channel_slug)
 
     @staticmethod
     def resolve_is_available(root: ChannelContext, info):
@@ -651,6 +655,9 @@ class ProductType(CountableDjangoObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
         description="List of products of this type.",
+        deprecation_reason=(
+            "Use the top-level `products` query with the `productTypes` filter."
+        ),
     )
     tax_rate = TaxRateType(description="A type of tax rate.")
     tax_type = graphene.Field(

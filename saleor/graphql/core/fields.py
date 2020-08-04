@@ -194,6 +194,16 @@ class FilterInputConnectionField(BaseDjangoConnectionField):
             cls.resolve_connection, connection, args, max_limit=max_limit
         )
 
+        iterable = cls.filter_iterable(
+            iterable, filterset_class, filters_name, info, **args
+        )
+
+        if Promise.is_thenable(iterable):
+            return Promise.resolve(iterable).then(on_resolve)
+        return on_resolve(iterable)
+
+    @classmethod
+    def filter_iterable(cls, iterable, filterset_class, filters_name, info, **args):
         filter_input = args.get(filters_name)
         if filter_input and filterset_class:
             instance = filterset_class(
@@ -203,10 +213,7 @@ class FilterInputConnectionField(BaseDjangoConnectionField):
             if not instance.is_valid():
                 raise GraphQLError(json.dumps(instance.errors.get_json_data()))
             iterable = instance.qs
-
-        if Promise.is_thenable(iterable):
-            return Promise.resolve(iterable).then(on_resolve)
-        return on_resolve(iterable)
+        return iterable
 
     def get_resolver(self, parent_resolver):
         return partial(
@@ -217,6 +224,16 @@ class FilterInputConnectionField(BaseDjangoConnectionField):
 
 
 class ChannelContextFilterConnectionField(FilterInputConnectionField):
+    @classmethod
+    def filter_iterable(cls, iterable, filterset_class, filters_name, info, **args):
+        # Overriding filter_iterable to unpack the queryset from iterable, which is
+        # an instance of ChannelQsContext and pack it back after filtering is done.
+        channel_slug = iterable.channel_slug
+        iterable = super().filter_iterable(
+            iterable.qs, filterset_class, filters_name, info, **args
+        )
+        return ChannelQsContext(qs=iterable, channel_slug=channel_slug)
+
     @classmethod
     def resolve_connection(
         cls, connection, args, iterable: ChannelQsContext, max_limit=None
