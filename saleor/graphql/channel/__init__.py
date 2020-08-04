@@ -7,10 +7,10 @@ from django.db.models import QuerySet
 @dataclass
 class ChannelContext:
     node: Any
-    channel_slug: Optional[str] = None
+    channel_slug: Optional[str]
 
 
 @dataclass
 class ChannelQsContext:
     qs: QuerySet
-    channel_slug: Optional[str] = None
+    channel_slug: Optional[str]
