@@ -609,7 +609,16 @@ class Product(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_variants(root: ChannelContext, info, **_kwargs):
-        return ProductVariantsByProductIdLoader(info.context).load(root.node.id)
+        return (
+            ProductVariantsByProductIdLoader(info.context)
+            .load(root.node.id)
+            .then(
+                lambda variants: [
+                    ChannelContext(node=variant, channel_slug=root.channel_slug)
+                    for variant in variants
+                ]
+            )
+        )
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

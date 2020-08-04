@@ -13,4 +13,4 @@ class ChannelContext:
 @dataclass
 class ChannelQsContext:
     qs: QuerySet
-    channel_slug: str
+    channel_slug: Optional[str] = None
