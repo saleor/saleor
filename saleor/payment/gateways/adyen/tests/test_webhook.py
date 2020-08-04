@@ -679,11 +679,13 @@ def test_handle_additional_actions_payment_does_not_exist(payment_adyen_for_chec
     payment_adyen_for_checkout.delete()
 
     # when
-    with pytest.raises(Exception) as e:
-        handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(request_mock, payment_details_mock)
 
     # then
-    assert str(e._excinfo[1]) == "Cannot perform payment. Payment does not exists."
+    assert response.status_code == 404
+    assert (
+        response.content.decode() == "Cannot perform payment. Payment does not exists."
+    )
 
 
 def test_handle_additional_actions_payment_lack_of_return_url(
@@ -707,8 +709,11 @@ def test_handle_additional_actions_payment_lack_of_return_url(
     }
 
     # when
-    with pytest.raises(Exception) as e:
-        handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(request_mock, payment_details_mock)
 
     # then
-    assert str(e._excinfo[1]) == "Cannot perform payment. Lack of data about returnUrl."
+    assert response.status_code == 404
+    assert (
+        response.content.decode()
+        == "Cannot perform payment. Lack of data about returnUrl."
+    )
