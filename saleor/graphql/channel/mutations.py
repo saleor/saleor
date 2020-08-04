@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ...channel import models
 from ...checkout.models import Checkout
@@ -71,7 +72,11 @@ class ChannelDelete(ModelDeleteMutation):
         )
 
     class Meta:
-        description = "Delete a channel."
+        description = (
+            "Delete a channel. Orders associated with the deleted "
+            "channel will be moved to the target channel. "
+            "Checkouts, product availability, and pricing will be removed."
+        )
         model = models.Channel
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
@@ -93,16 +98,20 @@ class ChannelDelete(ModelDeleteMutation):
     @classmethod
     def perform_delete(cls, origin_channel, target_channel):
         cls.validate_input(origin_channel, target_channel)
-        cls.migrate_orders_to_target_channel(origin_channel, target_channel)
-        cls.delete_checkouts(origin_channel)
+
+        with transaction.atomic():
+            cls.migrate_orders_to_target_channel(origin_channel, target_channel)
+            cls.delete_checkouts(origin_channel)
 
     @classmethod
     def migrate_orders_to_target_channel(cls, origin_channel, target_channel):
-        Order.objects.filter(channel_id=origin_channel).update(channel=target_channel)
+        Order.objects.select_for_update().filter(channel_id=origin_channel).update(
+            channel=target_channel
+        )
 
     @classmethod
     def delete_checkouts(cls, origin_channel):
-        Checkout.objects.filter(channel_id=origin_channel).delete()
+        Checkout.objects.select_for_update().filter(channel_id=origin_channel).delete()
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
