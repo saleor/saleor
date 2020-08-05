@@ -29,7 +29,7 @@ from .webhooks import handle_additional_actions, handle_webhook
 
 GATEWAY_NAME = "Adyen"
 WEBHOOK_PATH = "/webhooks"
-ADDITIONAL_ACTION_PATH = "/additional_actions"
+ADDITIONAL_ACTION_PATH = "/additional-actions"
 
 
 def require_active_plugin(fn):
@@ -239,7 +239,7 @@ class AdyenGatewayPlugin(BasePlugin):
         return_url = prepare_url(
             params,
             build_absolute_uri(
-                f"/plugins/{self.PLUGIN_ID}/additional_actions"
+                f"/plugins/{self.PLUGIN_ID}/additional-actions"
             ),  # type: ignore
         )
         request_data = request_data_for_payment(
