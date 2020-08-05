@@ -15,9 +15,9 @@ from ...models import Transaction
 from ..utils import get_supported_currencies
 from .utils import (
     api_call,
+    call_capture,
     request_data_for_gateway_config,
     request_data_for_payment,
-    request_for_payment_capture,
     request_for_payment_refund,
 )
 from .webhooks import handle_webhook
@@ -35,7 +35,10 @@ def require_active_plugin(fn):
     return wrapped
 
 
+# https://docs.adyen.com/checkout/payment-result-codes
 FAILED_STATUSES = ["refused", "error", "cancelled"]
+PENDING_STATUSES = ["pending", "received"]
+AUTH_STATUS = "authorised"
 
 
 class AdyenGatewayPlugin(BasePlugin):
@@ -50,6 +53,7 @@ class AdyenGatewayPlugin(BasePlugin):
         {"name": "Origin Url", "value": ""},
         {"name": "Live", "value": ""},
         {"name": "Automatically mark payment as a capture", "value": True},
+        {"name": "Automatic payment capture", "value": False},
         {"name": "HMAC secret key", "value": ""},
         {"name": "Notification user", "value": ""},
         {"name": "Notification password", "value": ""},
@@ -116,16 +120,16 @@ class AdyenGatewayPlugin(BasePlugin):
         "Automatically mark payment as a capture": {
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": (
-                "Saleor by default doesn't receive notification which payment has "
-                "status capture, all sucess payment can be marked as a capture by "
-                "default."
-                "A payment that is automatically captured does not trigger a "
-                "separate CAPTURE notification. If you are using delayed automatic "
-                "capture (by having a Capture Delay of a fixed number of days), you "
-                "can optionally receive CAPTURE notifications. To enable this "
-                "functionality, contact with Adyen Support Team."
+                "All authorized payments will be marked as paid. This should be enabled"
+                " when Adyen uses automatically auto-capture. Saleor doesn't support "
+                "delayed automatically capture."
             ),
             "label": "Automatically mark payment as a capture",
+        },
+        "Automatic payment capture": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": "Determines if Saleor should automaticaly capture payments.",
+            "label": "Automatic payment capture",
         },
         "HMAC secret key": {
             "type": ConfigurationTypeField.SECRET,
@@ -166,7 +170,7 @@ class AdyenGatewayPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = GatewayConfig(
             gateway_name=GATEWAY_NAME,
-            auto_capture=configuration["Automatically mark payment as a capture"],
+            auto_capture=configuration["Automatic payment capture"],
             supported_currencies=configuration["Supported currencies"],
             connection_params={
                 "api_key": configuration["API key"],
@@ -178,6 +182,9 @@ class AdyenGatewayPlugin(BasePlugin):
                 "webhook_hmac": configuration["HMAC secret key"],
                 "webhook_user": configuration["Notification user"],
                 "webhook_user_password": configuration["Notification password"],
+                "adyen_auto_capture": configuration[
+                    "Automatically mark payment as a capture"
+                ],
             },
         )
         api_key = self.config.connection_params["api_key"]
@@ -232,13 +239,26 @@ class AdyenGatewayPlugin(BasePlugin):
             merchant_account=self.config.connection_params["merchant_account"],
             origin_url=self.config.connection_params["origin_url"],
         )
-
         result = api_call(request_data, self.adyen.checkout.payments)
-        is_success = result.message["resultCode"].strip().lower() not in FAILED_STATUSES
-        if self.config.auto_capture:
+        result_code = result.message["resultCode"].strip().lower()
+        is_success = result_code not in FAILED_STATUSES
+        adyen_auto_capture = self.config.connection_params["adyen_auto_capture"]
+        kind = TransactionKind.AUTH
+        if adyen_auto_capture:
             kind = TransactionKind.CAPTURE
-        else:
-            kind = TransactionKind.AUTH
+        elif result_code in PENDING_STATUSES:
+            kind = TransactionKind.PENDING
+
+        # If auto capture is enabled, let's make a capture the auth payment
+        if self.config.auto_capture and result_code == AUTH_STATUS:
+            kind = TransactionKind.CAPTURE
+            result = call_capture(
+                payment_information=payment_information,
+                merchant_account=self.config.connection_params["merchant_account"],
+                token=result.message.get("pspReference"),
+                adyen_client=self.adyen,
+            )
+
         return GatewayResponse(
             is_success=is_success,
             action_required="action" in result.message,
@@ -294,6 +314,7 @@ class AdyenGatewayPlugin(BasePlugin):
     ) -> "GatewayResponse":
 
         _type, payment_id = from_global_id(payment_information.payment_id)
+        # we take Auth kind because it contains the transaction it that we need
         transaction = (
             Transaction.objects.filter(
                 payment__id=payment_id, kind=TransactionKind.AUTH
@@ -338,12 +359,12 @@ class AdyenGatewayPlugin(BasePlugin):
         if not transaction:
             raise PaymentError("Cannot find a payment reference to capture.")
 
-        request = request_for_payment_capture(
+        result = call_capture(
             payment_information=payment_information,
             merchant_account=self.config.connection_params["merchant_account"],
             token=transaction.token,
+            adyen_client=self.adyen,
         )
-        result = api_call(request, self.adyen.payment.capture)
         return GatewayResponse(
             is_success=True,
             action_required=False,

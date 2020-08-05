@@ -122,7 +122,7 @@ def capture(
     response, error = _fetch_gateway_response(
         plugin_manager.capture_payment, payment.gateway, payment_data
     )
-    if response.card_info:
+    if response and response.card_info:
         update_card_details(payment, response)
     return create_transaction(
         payment=payment,
