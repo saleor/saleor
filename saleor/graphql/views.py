@@ -1,6 +1,7 @@
 import json
 import logging
 import traceback
+from urllib.parse import urlparse
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import opentracing
@@ -11,6 +12,7 @@ from django.db.backends.postgresql.base import DatabaseWrapper
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils.cache import patch_vary_headers
 from django.utils.functional import SimpleLazyObject
 from django.views.generic import View
 from graphene_django.settings import graphene_settings
@@ -91,7 +93,16 @@ class GraphQLView(View):
         else:
             return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
         # Add access control headers
-        response["Access-Control-Allow-Origin"] = settings.ALLOWED_GRAPHQL_ORIGINS
+        patch_vary_headers(response, ["Origin"])
+        origin = request.META.get("HTTP_ORIGIN")
+        if not origin:
+            return response
+        url = urlparse(origin)
+        origins = [urlparse(o) for o in settings.ALLOWED_GRAPHQL_ORIGINS]
+        if any(origin.scheme == url.scheme and origin.netloc == url.netloc for origin in origins):
+            response["Access-Control-Allow-Origin"] = origin
+        else:
+            response["Access-Control-Allow-Origin"] = settings.ALLOWED_GRAPHQL_ORIGINS[0]
         response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
         response[
             "Access-Control-Allow-Headers"
