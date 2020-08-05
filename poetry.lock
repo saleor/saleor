@@ -2130,7 +2130,7 @@ description = "Fast, Extensible Progress Meter"
 name = "tqdm"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*"
-version = "4.48.0"
+version = "4.48.1"
 
 [package.extras]
 dev = ["py-make (>=0.1.0)", "twine", "argopt", "pydoc-markdown"]
@@ -3295,8 +3295,8 @@ tox = [
     {file = "tox-3.18.0.tar.gz", hash = "sha256:f179cb4043d7dc1339425dd49ab1dd8c916246b0d9173143c1b0af7498a03ab0"},
 ]
 tqdm = [
-    {file = "tqdm-4.48.0-py2.py3-none-any.whl", hash = "sha256:fcb7cb5b729b60a27f300b15c1ffd4744f080fb483b88f31dc8654b082cc8ea5"},
-    {file = "tqdm-4.48.0.tar.gz", hash = "sha256:6baa75a88582b1db6d34ce4690da5501d2a1cb65c34664840a456b2c9f794d29"},
+    {file = "tqdm-4.48.1-py2.py3-none-any.whl", hash = "sha256:44b896c38f70f91826a3f83a3195b23c0460322bfc729566ec8e4e89bb5ad713"},
+    {file = "tqdm-4.48.1.tar.gz", hash = "sha256:7b7dd59cd9f03b89365ba67eb8515f5d2803fd1eb707abdbb914691a3123d9df"},
 ]
 transifex-client = [
     {file = "transifex-client-0.13.11.tar.gz", hash = "sha256:6540d48bcd3431247ef7974b229edb899294c424cc1c9187d8fbcb0067c7ae68"},
