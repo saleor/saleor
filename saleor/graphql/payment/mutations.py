@@ -2,10 +2,9 @@ import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from ...checkout import calculations
+from ...checkout.calculations import calculate_checkout_total
 from ...checkout.utils import cancel_active_payments
 from ...core.permissions import OrderPermissions
-from ...core.taxes import zero_taxed_money
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...graphql.checkout.utils import clean_billing_address, clean_checkout_shipping
@@ -76,19 +75,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         description = "Create a new payment for given checkout."
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
-
-    @classmethod
-    def calculate_total(cls, info, checkout):
-        checkout_total = (
-            calculations.checkout_total(
-                checkout=checkout,
-                lines=list(checkout),
-                discounts=info.context.discounts,
-            )
-            - checkout.get_total_gift_cards_balance()
-        )
-
-        return max(checkout_total, zero_taxed_money(checkout_total.currency))
 
     @classmethod
     def clean_shipping_method(cls, checkout):
@@ -169,7 +155,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         cls.validate_token(info.context.plugins, gateway, data)
         cls.validate_return_url(data)
 
-        checkout_total = cls.calculate_total(info, checkout)
+        checkout_total = calculate_checkout_total(checkout, info.context.discounts)
         amount = data.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(
             checkout, list(checkout), info.context.discounts, PaymentErrorCode
