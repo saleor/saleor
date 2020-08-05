@@ -1,9 +1,7 @@
-from urllib.parse import urlencode
-
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 
-from ..emails import get_email_context, prepare_url
+from ..emails import get_email_context
 
 
 def test_get_email_context(site_settings):
@@ -42,10 +40,3 @@ def test_email_with_email_not_configured_raises_error(settings, site_settings):
         _ = site_settings.default_from_email
 
     assert exc.value.args == ("No sender email address has been set-up",)
-
-
-def test_prepare_url():
-    redirect_url = "https://www.example.com"
-    params = urlencode({"param1": "abc", "param2": "xyz"})
-    result = prepare_url(params, redirect_url)
-    assert result == "https://www.example.com?param1=abc&param2=xyz"
