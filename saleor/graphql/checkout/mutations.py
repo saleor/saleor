@@ -819,6 +819,10 @@ class CheckoutComplete(BaseMutation):
                     discounts=discounts,
                 )
             except InsufficientStock as e:
+                if payment.can_refund():
+                    gateway.refund(payment)
+                elif payment.can_void():
+                    gateway.void(payment)
                 raise ValidationError(
                     f"Insufficient product stock: {e.item}", code=e.code
                 )
