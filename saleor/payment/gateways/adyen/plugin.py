@@ -314,7 +314,7 @@ class AdyenGatewayPlugin(BasePlugin):
     ) -> "GatewayResponse":
 
         _type, payment_id = from_global_id(payment_information.payment_id)
-        # we take Auth kind because it contains the transaction it that we need
+        # we take Auth kind because it contains the transaction id that we need
         transaction = (
             Transaction.objects.filter(
                 payment__id=payment_id, kind=TransactionKind.AUTH
