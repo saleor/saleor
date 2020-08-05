@@ -19,8 +19,8 @@ def test_batch_queries(category, product, api_client, channel_USD):
         }
     """
     query_category = """
-        query GetCategory($id: ID!, $channel: String) {
-            category(id: $id, channel: $channel) {
+        query GetCategory($id: ID!) {
+            category(id: $id) {
                 name
             }
         }
@@ -193,7 +193,11 @@ def test_validation_errors_query_do_not_get_logged(
 
 @mock.patch.object(Product, "get_node")
 def test_unexpected_exceptions_are_logged_in_their_own_logger(
-    mocked_get_node, staff_api_client, graphql_log_handler, permission_manage_products
+    mocked_get_node,
+    staff_api_client,
+    graphql_log_handler,
+    permission_manage_products,
+    channel_USD,
 ):
     def bad_get_node(info, pk):
         raise NotImplementedError(info, pk)

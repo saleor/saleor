@@ -28,6 +28,7 @@ from ....product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
 )
+from ...channel import ChannelContext
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
@@ -877,7 +878,15 @@ class ProductCreate(ModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         response = super().perform_mutation(_root, info, **data)
-        info.context.plugins.product_created(response.product)
+        product = getattr(response, cls._meta.return_field_name)
+        info.context.plugins.product_created(product)
+
+        # Wrap product instance with ChannelContext in response
+        setattr(
+            response,
+            cls._meta.return_field_name,
+            ChannelContext(node=product, channel_slug=None),
+        )
         return response
 
 
@@ -914,6 +923,11 @@ class ProductDelete(ModelDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        return super().success_response(instance)
 
 
 class ProductUpdateMeta(UpdateMetaBaseMutation):
@@ -1176,6 +1190,11 @@ class ProductVariantCreate(ModelMutation):
         )
         create_stocks(variant, stocks, warehouses)
 
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        return super().success_response(instance)
+
 
 class ProductVariantUpdate(ProductVariantCreate):
     class Arguments:
@@ -1227,6 +1246,7 @@ class ProductVariantDelete(ModelDeleteMutation):
     def success_response(cls, instance):
         # Update the "minimal_variant_prices" of the parent product
         update_product_minimal_variant_price_task.delay(instance.product_id)
+        instance = ChannelContext(node=instance, channel_slug=None)
         return super().success_response(instance)
 
 
@@ -1481,6 +1501,7 @@ class ProductImageCreate(BaseMutation):
 
         image = product.images.create(image=image_data, alt=data.get("alt", ""))
         create_product_thumbnails.delay(image.pk)
+        product = ChannelContext(node=product, channel_slug=None)
         return ProductImageCreate(product=product, image=image)
 
 
@@ -1512,6 +1533,7 @@ class ProductImageUpdate(BaseMutation):
         if alt is not None:
             image.alt = alt
             image.save(update_fields=["alt"])
+        product = ChannelContext(node=product, channel_slug=None)
         return ProductImageUpdate(product=product, image=image)
 
 
@@ -1572,6 +1594,7 @@ class ProductImageReorder(BaseMutation):
             image.sort_order = order
             image.save(update_fields=["sort_order"])
 
+        product = ChannelContext(node=product, channel_slug=None)
         return ProductImageReorder(product=product, images=images)
 
 
@@ -1594,7 +1617,8 @@ class ProductImageDelete(BaseMutation):
         image_id = image.id
         image.delete()
         image.id = image_id
-        return ProductImageDelete(product=image.product, image=image)
+        product = ChannelContext(node=image.product, channel_slug=None)
+        return ProductImageDelete(product=product, image=image)
 
 
 class VariantImageAssign(BaseMutation):
@@ -1637,6 +1661,7 @@ class VariantImageAssign(BaseMutation):
                         )
                     }
                 )
+        variant = ChannelContext(node=variant, channel_slug=None)
         return VariantImageAssign(product_variant=variant, image=image)
 
 
@@ -1682,4 +1707,5 @@ class VariantImageUnassign(BaseMutation):
         else:
             variant_image.delete()
 
+        variant = ChannelContext(node=variant, channel_slug=None)
         return VariantImageUnassign(product_variant=variant, image=image)

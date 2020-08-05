@@ -12,6 +12,7 @@ from ....product.utils import delete_categories
 from ....product.utils.attributes import generate_name_for_variant
 from ....warehouse import models as warehouse_models
 from ....warehouse.error_codes import StockErrorCode
+from ...channel import ChannelContext
 from ...core.mutations import (
     BaseBulkMutation,
     BaseMutation,
@@ -323,6 +324,9 @@ class ProductVariantBulkCreate(BaseMutation):
         # Recalculate the "minimal variant price" for the parent product
         update_product_minimal_variant_price_task.delay(product.pk)
 
+        instances = [
+            ChannelContext(node=instance, channel_slug=None) for instance in instances
+        ]
         return ProductVariantBulkCreate(
             count=len(instances), product_variants=instances
         )
@@ -378,6 +382,8 @@ class ProductVariantStocksCreate(BaseMutation):
             if errors:
                 raise ValidationError(errors)
             create_stocks(variant, stocks, warehouses)
+
+        variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
     @classmethod
@@ -446,6 +452,8 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 warehouse_ids, "warehouse", only_type=Warehouse
             )
             cls.update_or_create_variant_stocks(variant, stocks, warehouses)
+
+        variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
     @classmethod
@@ -490,6 +498,8 @@ class ProductVariantStocksDelete(BaseMutation):
         warehouse_models.Stock.objects.filter(
             product_variant=variant, warehouse__pk__in=warehouses_pks
         ).delete()
+
+        variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
 

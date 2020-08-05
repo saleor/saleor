@@ -118,6 +118,7 @@ from .resolvers import (
     resolve_collection_by_slug,
     resolve_collections,
     resolve_digital_contents,
+    resolve_product_by_id,
     resolve_product_by_slug,
     resolve_product_types,
     resolve_product_variants,
@@ -254,10 +255,13 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="List of product variants.",
     )
-    report_product_sales = PrefetchingConnectionField(
+    report_product_sales = ChannelContextFilterConnectionField(
         ProductVariant,
         period=graphene.Argument(
             ReportingPeriod, required=True, description="Span of time."
+        ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
         ),
         description="List of top selling products.",
     )
@@ -301,7 +305,8 @@ class ProductQueries(graphene.ObjectType):
         if channel is None:
             channel = get_default_channel_or_graphql_error().slug
         if id:
-            product = graphene.Node.get_node_from_global_id(info, id, Product)
+            _, id = graphene.Node.from_global_id(id)
+            product = resolve_product_by_id(info, id, channel_slug=channel)
         if slug:
             product = resolve_product_by_slug(
                 info, product_slug=slug, channel_slug=channel
@@ -331,8 +336,10 @@ class ProductQueries(graphene.ObjectType):
         return resolve_product_variants(info, ids=ids, channel_slug=channel)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_report_product_sales(self, *_args, period, **_kwargs):
-        return resolve_report_product_sales(period)
+    def resolve_report_product_sales(self, *_args, period, channel=None, **_kwargs):
+        if channel is None:
+            channel = get_default_channel_or_graphql_error().slug
+        return resolve_report_product_sales(period, channel_slug=channel)
 
 
 class ProductMutations(graphene.ObjectType):

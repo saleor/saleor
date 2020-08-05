@@ -7,6 +7,7 @@ from ...menu import models as menu_models
 from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
+from ..channel import ChannelContext
 from ..core.mutations import BaseMutation, ModelMutation, registry
 from ..core.types.common import TranslationError
 from ..core.utils import from_global_id_strict_type
@@ -96,6 +97,7 @@ class ProductTranslate(BaseTranslateMutation):
         product.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
+        product = ChannelContext(node=product, channel_slug=None)
         return cls(**{cls._meta.return_field_name: product})
 
 
@@ -140,6 +142,7 @@ class ProductVariantTranslate(BaseTranslateMutation):
         variant.translations.update_or_create(
             language_code=data["language_code"], defaults=data["input"]
         )
+        variant = ChannelContext(node=variant, channel_slug=None)
         return cls(**{cls._meta.return_field_name: variant})
 
 

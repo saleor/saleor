@@ -42,6 +42,7 @@ from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
+from ...translations.resolvers import resolve_translation
 from ...translations.types import (
     CategoryTranslation,
     CollectionTranslation,
@@ -157,6 +158,11 @@ class ChannelContextType(DjangoObjectType):
         # Used in metadata API to resolve private metadata fields from an instance.
         return ObjectWithMetadata.resolve_private_metadata(root.node, info)
 
+    @staticmethod
+    def resolve_translation(root: ChannelContext, info, language_code):
+        # Resolver for TranslationField; needs to be manually specified.
+        return resolve_translation(root.node, info, language_code)
+
 
 @key(fields="id")
 class ProductVariant(ChannelContextType, CountableDjangoObjectType):
@@ -224,7 +230,9 @@ class ProductVariant(ChannelContextType, CountableDjangoObjectType):
         lambda: ProductImage, description="List of images for the product variant."
     )
     translation = TranslationField(
-        ProductVariantTranslation, type_name="product variant"
+        ProductVariantTranslation,
+        type_name="product variant",
+        resolver=ChannelContextType.resolve_translation,
     )
     digital_content = graphene.Field(
         DigitalContent, description="Digital content for the product variant."
@@ -483,7 +491,11 @@ class Product(ChannelContextType, CountableDjangoObjectType):
     collections = graphene.List(
         lambda: Collection, description="List of collections for the product."
     )
-    translation = TranslationField(ProductTranslation, type_name="product")
+    translation = TranslationField(
+        ProductTranslation,
+        type_name="product",
+        resolver=ChannelContextType.resolve_translation,
+    )
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context

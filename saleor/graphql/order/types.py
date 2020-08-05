@@ -15,6 +15,7 @@ from ...product.templatetags.product_images import get_product_image_thumbnail
 from ...warehouse import models as warehouse_models
 from ..account.types import User
 from ..account.utils import requestor_has_access
+from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
@@ -293,6 +294,11 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_translated_variant_name(root: models.OrderLine, _info):
         return root.translated_variant_name
+
+    @staticmethod
+    def resolve_variant(root: models.OrderLine, _info):
+        channel_slug = root.order.channel.slug if root.order.channel else None
+        return ChannelContext(node=root, channel_slug=channel_slug)
 
 
 class Order(CountableDjangoObjectType):

@@ -21,7 +21,7 @@ class Mutation(BaseMutation):
         description = "Base mutation"
 
     @classmethod
-    def perform_mutation(cls, _root, info, product_id):
+    def perform_mutation(cls, _root, info, product_id, channel):
         product = cls.get_node_or_error(
             info, product_id, field="product_id", only_type=product_types.Product
         )

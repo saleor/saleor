@@ -46,8 +46,17 @@ def resolve_collections(info, **_kwargs):
     return models.Collection.objects.visible_to_user(user)
 
 
-def resolve_digital_contents(info):
+def resolve_digital_contents(_info):
     return models.DigitalContent.objects.all()
+
+
+def resolve_product_by_id(info, id, channel_slug):
+    user = info.context.user
+    return (
+        models.Product.objects.visible_to_user(user, channel_slug=channel_slug)
+        .filter(id=id)
+        .first()
+    )
 
 
 def resolve_product_by_slug(info, product_slug, channel_slug):
@@ -85,7 +94,7 @@ def resolve_product_variants(info, ids=None, channel_slug=None) -> ChannelQsCont
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 
-def resolve_report_product_sales(period):
+def resolve_report_product_sales(period, channel_slug=None) -> ChannelQsContext:
     qs = models.ProductVariant.objects.all()
 
     # exclude draft and canceled orders
@@ -97,4 +106,5 @@ def resolve_report_product_sales(period):
 
     qs = qs.annotate(quantity_ordered=Sum("order_lines__quantity"))
     qs = qs.filter(quantity_ordered__isnull=False)
-    return qs.order_by("-quantity_ordered")
+    qs = qs.order_by("-quantity_ordered")
+    return ChannelQsContext(qs=qs, channel_slug=channel_slug)

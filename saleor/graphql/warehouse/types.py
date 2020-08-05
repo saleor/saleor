@@ -5,6 +5,7 @@ from django.db.models.functions import Coalesce
 from ...core.permissions import ProductPermissions
 from ...warehouse import models
 from ..account.enums import CountryCodeEnum
+from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
 from ..decorators import permission_required
 
@@ -86,3 +87,7 @@ class Stock(CountableDjangoObjectType):
         return root.allocations.aggregate(
             quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
         )["quantity_allocated"]
+
+    @staticmethod
+    def resolve_product_variant(root, *_args):
+        return ChannelContext(node=root.product_variant, channel_slug=None)

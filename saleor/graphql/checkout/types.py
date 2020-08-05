@@ -69,7 +69,6 @@ class CheckoutLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_variant(root, _info):
-        # FIXME: Consider whether here we should use checkout's channel or None
         channel_slug = root.checkout.channel.slug
         return ChannelContext(node=root.variant, channel_slug=channel_slug)
 

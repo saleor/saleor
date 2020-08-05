@@ -192,10 +192,11 @@ def test_retrieve_channel_listings(
     staff_api_client,
     count_queries,
     permission_manage_products,
+    channel_USD,
 ):
     query = """
-        query {
-          products(first: 10) {
+        query($channel: String) {
+          products(first: 10, channel: $channel) {
             edges {
               node {
                 id
@@ -211,7 +212,7 @@ def test_retrieve_channel_listings(
         }
     """
 
-    variables = {}
+    variables = {"channel": channel_USD.slug}
     get_graphql_content(
         staff_api_client.post_graphql(
             query,
