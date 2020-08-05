@@ -217,10 +217,7 @@ class AdyenGatewayPlugin(BasePlugin):
                     "field": "origin_key",
                     "value": config.connection_params["origin_key"],
                 },
-                {
-                    "field": "config",
-                    "value": json.dumps(response.message.get("paymentMethods", {})),
-                },
+                {"field": "config", "value": json.dumps(response.message)},
             ],
             currencies=self.get_supported_currencies([]),
         )
