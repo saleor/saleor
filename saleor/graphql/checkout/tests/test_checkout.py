@@ -1674,7 +1674,8 @@ MUTATION_CHECKOUT_COMPLETE = """
             },
             checkoutErrors {
                 field,
-                message
+                message,
+                code
             }
             confirmationNeeded
             confirmationData
@@ -1707,8 +1708,7 @@ def test_checkout_complete(
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
 
-    gift_current_balance = checkout.get_total_gift_cards_balance()
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    total = calculations.calculate_checkout_total(checkout=checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1731,7 +1731,7 @@ def test_checkout_complete(
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
     assert order.token == order_token
-    assert order.total.gross == total.gross - gift_current_balance
+    assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata
 
@@ -1911,7 +1911,7 @@ def test_checkout_complete_error_in_gateway_response_for_dummy_credit_card(
     checkout.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
 
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    total = calculations.calculate_checkout_total(checkout=checkout)
     payment = payment_dummy_credit_card
     payment.is_active = True
     payment.order = None
@@ -2331,8 +2331,7 @@ def test_checkout_complete_without_redirect_url(
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
 
-    gift_current_balance = checkout.get_total_gift_cards_balance()
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    total = calculations.calculate_checkout_total(checkout=checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -2355,7 +2354,7 @@ def test_checkout_complete_without_redirect_url(
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
     assert order.token == order_token
-    assert order.total.gross == total.gross - gift_current_balance
+    assert order.total.gross == total.gross
 
     order_line = order.lines.first()
     assert checkout_line_quantity == order_line.quantity
@@ -2374,6 +2373,55 @@ def test_checkout_complete_without_redirect_url(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+
+
+@patch("saleor.graphql.checkout.mutations.gateway.payment_refund_or_void")
+def test_checkout_complete_payment_payment_total_different_than_checkout(
+    gateway_refund_or_void_mock,
+    checkout_with_item,
+    address,
+    shipping_method,
+    payment_dummy,
+    user_api_client,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount + Decimal(10)
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert (
+        data["checkoutErrors"][0]["code"]
+        == CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.name
+    )
+    assert orders_count == Order.objects.count()
+
+    gateway_refund_or_void_mock.assert_called_with(payment)
 
 
 def test_fetch_checkout_by_token(user_api_client, checkout_with_item):

@@ -244,3 +244,10 @@ def _validate_refund_amount(payment: Payment, amount: Decimal):
         raise PaymentError("Amount should be a positive number.")
     if amount > payment.captured_amount:
         raise PaymentError("Cannot refund more than captured.")
+
+
+def payment_refund_or_void(payment):
+    if payment.can_refund():
+        refund(payment)
+    elif payment.can_void():
+        void(payment)
