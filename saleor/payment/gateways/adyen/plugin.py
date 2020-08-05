@@ -10,8 +10,8 @@ from django.http import HttpResponse, HttpResponseNotFound
 from graphql_relay import from_global_id
 
 from ....checkout.models import Checkout
-from ....core.emails import prepare_url
 from ....core.utils import build_absolute_uri
+from ....core.utils.url import prepare_url
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import PaymentError, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentGateway

@@ -4,7 +4,8 @@ from templated_email import send_templated_mail
 
 from ..account.models import StaffNotificationRecipient
 from ..celeryconf import app
-from ..core.emails import get_email_context, prepare_url
+from ..core.emails import get_email_context
+from ..core.utils.url import prepare_url
 from ..seo.schema.email import get_order_confirmation_markup
 from . import events
 from .models import Fulfillment, Order
