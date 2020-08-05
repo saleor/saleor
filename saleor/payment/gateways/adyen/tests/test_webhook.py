@@ -1,6 +1,7 @@
 import json
 from decimal import Decimal
 from unittest import mock
+from urllib.parse import quote_plus
 
 import graphene
 import pytest
@@ -631,8 +632,9 @@ def test_handle_additional_actions(payment_adyen_for_checkout):
 
     # then
     assert response.status_code == 302
-    assert f"checkout={checkout_id}" in response.url
+    assert f"checkout={quote_plus(checkout_id)}" in response.url
     assert f"resultCode={message['resultCode']}" in response.url
+    assert f"payment={quote_plus(payment_id)}" in response.url
 
 
 def test_handle_additional_actions_more_action_required(payment_adyen_for_checkout):
@@ -673,7 +675,8 @@ def test_handle_additional_actions_more_action_required(payment_adyen_for_checko
     assert f"paymentData={message['action']['paymentData']}" in response.url
     assert f"paymentMethodType={message['action']['paymentMethodType']}" in response.url
     assert f"type={message['action']['type']}" in response.url
-    assert f"checkout={checkout_id}" in response.url
+    assert f"checkout={quote_plus(checkout_id)}" in response.url
+    assert f"payment={quote_plus(payment_id)}" in response.url
 
 
 def test_handle_additional_actions_payment_does_not_exist(payment_adyen_for_checkout):

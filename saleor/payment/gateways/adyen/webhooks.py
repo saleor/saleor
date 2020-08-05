@@ -522,6 +522,7 @@ def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
 
     params = {
         "checkout": checkout_id,
+        "payment": payment_id,
         "resultCode": result.message["resultCode"],
     }
 
