@@ -17,7 +17,7 @@ from ....checkout.utils import add_variant_to_checkout
 from ....core.payments import PaymentInterface
 from ....core.taxes import zero_money
 from ....order.models import Order
-from ....payment import TransactionKind
+from ....payment import ChargeStatus, TransactionKind
 from ....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
 from ....payment.interface import GatewayResponse
 from ....plugins.manager import PluginsManager
@@ -1672,7 +1672,7 @@ MUTATION_CHECKOUT_COMPLETE = """
                 id,
                 token
             },
-            errors {
+            checkoutErrors {
                 field,
                 message
             }
@@ -1725,7 +1725,7 @@ def test_checkout_complete(
 
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert not data["errors"]
+    assert not data["checkoutErrors"]
 
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
@@ -1794,7 +1794,7 @@ def test_checkout_with_voucher_complete(
 
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert not data["errors"]
+    assert not data["checkoutErrors"]
 
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
@@ -1858,7 +1858,7 @@ def test_checkout_complete_without_inventory_tracking(
 
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert not data["errors"]
+    assert not data["checkoutErrors"]
 
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
@@ -1929,8 +1929,8 @@ def test_checkout_complete_error_in_gateway_response_for_dummy_credit_card(
 
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert len(data["errors"])
-    assert data["errors"][0]["message"] == error
+    assert len(data["checkoutErrors"])
+    assert data["checkoutErrors"][0]["message"] == error
     assert payment.transactions.count() == 1
     assert Order.objects.count() == orders_count
 
@@ -2034,8 +2034,10 @@ def test_checkout_complete_invalid_checkout_id(user_api_client):
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert data["errors"][0]["message"] == "Couldn't resolve to a node: invalidId"
-    assert data["errors"][0]["field"] == "checkoutId"
+    assert (
+        data["checkoutErrors"][0]["message"] == "Couldn't resolve to a node: invalidId"
+    )
+    assert data["checkoutErrors"][0]["field"] == "checkoutId"
     assert orders_count == Order.objects.count()
 
 
@@ -2053,7 +2055,7 @@ def test_checkout_complete_no_payment(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert data["errors"][0]["message"] == (
+    assert data["checkoutErrors"][0]["message"] == (
         "Provided payment methods can not cover the checkout's total amount"
     )
     assert orders_count == Order.objects.count()
@@ -2123,7 +2125,7 @@ def test_checkout_complete_confirmation_needed(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert not data["errors"]
+    assert not data["checkoutErrors"]
     assert data["confirmationNeeded"] is True
     assert data["confirmationData"]
 
@@ -2168,7 +2170,7 @@ def test_checkout_confirm(
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
 
-    assert not data["errors"]
+    assert not data["checkoutErrors"]
     assert not data["confirmationNeeded"]
 
     mock_get_manager.confirm_payment.assert_called_once()
@@ -2204,8 +2206,108 @@ def test_checkout_complete_insufficient_stock(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert data["errors"][0]["message"] == "Insufficient product stock: 123"
+    assert data["checkoutErrors"][0]["message"] == "Insufficient product stock: 123"
     assert orders_count == Order.objects.count()
+
+
+@patch("saleor.graphql.checkout.mutations.gateway.refund")
+def test_checkout_complete_insufficient_stock_payment_refunded(
+    gateway_refund_mock,
+    checkout_with_item,
+    address,
+    shipping_method,
+    payment_dummy,
+    user_api_client,
+):
+    # given
+    checkout = checkout_with_item
+    checkout_line = checkout.lines.first()
+    stock = Stock.objects.get(product_variant=checkout_line.variant)
+    quantity_available = get_available_quantity_for_stock(stock)
+    checkout_line.quantity = quantity_available + 1
+    checkout_line.save()
+
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    orders_count = Order.objects.count()
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert data["checkoutErrors"][0]["message"] == "Insufficient product stock: 123"
+    assert orders_count == Order.objects.count()
+
+    gateway_refund_mock.assert_called_once_with(payment)
+
+
+@patch("saleor.graphql.checkout.mutations.gateway.void")
+def test_checkout_complete_insufficient_stock_payment_voided(
+    gateway_void_mock,
+    checkout_with_item,
+    address,
+    shipping_method,
+    payment_txn_preauth,
+    user_api_client,
+):
+    # given
+    checkout = checkout_with_item
+    checkout_line = checkout.lines.first()
+    stock = Stock.objects.get(product_variant=checkout_line.variant)
+    quantity_available = get_available_quantity_for_stock(stock)
+    checkout_line.quantity = quantity_available + 1
+    checkout_line.save()
+
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+
+    payment = payment_txn_preauth
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.charge_status = ChargeStatus.NOT_CHARGED
+    payment.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    orders_count = Order.objects.count()
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert data["checkoutErrors"][0]["message"] == "Insufficient product stock: 123"
+    assert orders_count == Order.objects.count()
+
+    gateway_void_mock.assert_called_once_with(payment)
 
 
 def test_checkout_complete_without_redirect_url(
@@ -2247,7 +2349,7 @@ def test_checkout_complete_without_redirect_url(
 
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert not data["errors"]
+    assert not data["checkoutErrors"]
 
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
