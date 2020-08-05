@@ -127,7 +127,7 @@ class ProductPricingInfo(BasePricingInfo):
 
 
 class ChannelContextType(DjangoObjectType):
-    """A Graphene type used with resolvers root objects wrapped with ChannelContext."""
+    """A Graphene type that supports resolvers' root as ChannelContext objects."""
 
     class Meta:
         abstract = True
@@ -146,6 +146,16 @@ class ChannelContextType(DjangoObjectType):
     @classmethod
     def is_type_of(cls, root: ChannelContext, info):
         return super().is_type_of(root.node, info)
+
+    @staticmethod
+    def resolve_metadata(root: ChannelContext, info):
+        # Used in metadata API to resolve metadata fields from an instance.
+        return ObjectWithMetadata.resolve_metadata(root.node, info)
+
+    @staticmethod
+    def resolve_private_metadata(root: ChannelContext, info):
+        # Used in metadata API to resolve private metadata fields from an instance.
+        return ObjectWithMetadata.resolve_private_metadata(root.node, info)
 
 
 @key(fields="id")
