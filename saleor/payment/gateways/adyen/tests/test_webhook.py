@@ -613,20 +613,26 @@ def test_handle_additional_actions(payment_adyen_for_checkout):
     payment_adyen_for_checkout.save(update_fields=["extra_data"])
 
     payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
+    checkout_id = graphene.Node.to_global_id(
+        "Checkout", payment_adyen_for_checkout.checkout.pk
+    )
     request_mock = mock.Mock()
     request_mock.GET = {"payment": payment_id}
     request_mock.POST = {"payload": "test"}
 
     payment_details_mock = mock.Mock()
-    payment_details_mock.return_value.message = {
+    message = {
         "resultCode": "Test",
     }
+    payment_details_mock.return_value.message = message
 
     # when
     response = handle_additional_actions(request_mock, payment_details_mock)
 
     # then
     assert response.status_code == 302
+    assert f"checkout={checkout_id}" in response.url
+    assert f"resultCode={message['resultCode']}" in response.url
 
 
 def test_handle_additional_actions_more_action_required(payment_adyen_for_checkout):
@@ -637,12 +643,16 @@ def test_handle_additional_actions_more_action_required(payment_adyen_for_checko
     payment_adyen_for_checkout.save(update_fields=["extra_data"])
 
     payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
+    checkout_id = graphene.Node.to_global_id(
+        "Checkout", payment_adyen_for_checkout.checkout.pk
+    )
     request_mock = mock.Mock()
     request_mock.GET = {"payment": payment_id}
     request_mock.POST = {"payload": "test"}
 
     payment_details_mock = mock.Mock()
-    payment_details_mock.return_value.message = {
+    message = {
+        "resultCode": "Pending",
         "action": {
             "method": "GET",
             "paymentData": "123",
@@ -651,12 +661,19 @@ def test_handle_additional_actions_more_action_required(payment_adyen_for_checko
             "url": "https://test.adyen.com/hpp/redirectIdeal.shtml?brandCode=ideal",
         },
     }
+    payment_details_mock.return_value.message = message
 
     # when
     response = handle_additional_actions(request_mock, payment_details_mock)
 
     # then
     assert response.status_code == 302
+    assert f"resultCode={message['resultCode']}" in response.url
+    assert f"method={message['action']['method']}" in response.url
+    assert f"paymentData={message['action']['paymentData']}" in response.url
+    assert f"paymentMethodType={message['action']['paymentMethodType']}" in response.url
+    assert f"type={message['action']['type']}" in response.url
+    assert f"checkout={checkout_id}" in response.url
 
 
 def test_handle_additional_actions_payment_does_not_exist(payment_adyen_for_checkout):

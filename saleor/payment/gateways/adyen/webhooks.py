@@ -4,7 +4,9 @@ import hashlib
 import hmac
 import json
 from typing import Any, Callable, Dict, Optional
+from urllib.parse import urlencode
 
+import graphene
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
@@ -13,6 +15,7 @@ from django.http.request import HttpHeaders
 from django.shortcuts import redirect
 from graphql_relay import from_global_id
 
+from ....core.utils.url import prepare_url
 from ....order.actions import (
     cancel_order,
     order_authorized,
@@ -513,8 +516,17 @@ def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
 
     result = payment_details(request_data)
 
+    checkout_id = graphene.Node.to_global_id(
+        "Checkout", payment.checkout.pk  # type: ignore
+    )
+
+    params = {
+        "checkout": checkout_id,
+        "resultCode": result.message["resultCode"],
+    }
+
     # Check if further action is needed.
     if "action" in result.message:
-        return redirect(return_url, action=result.message["action"])
-    else:
-        return redirect(return_url, result_code=result.message["resultCode"])
+        params.update(result.message["action"])
+
+    return redirect(prepare_url(urlencode(params), return_url))
