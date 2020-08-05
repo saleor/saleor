@@ -1,8 +1,8 @@
 import json
 import logging
 import traceback
-from urllib.parse import urlparse
 from typing import Any, Dict, List, Optional, Tuple, Union
+from urllib.parse import urlparse
 
 import opentracing
 import opentracing.tags
@@ -99,10 +99,15 @@ class GraphQLView(View):
             return response
         url = urlparse(origin)
         origins = [urlparse(o) for o in settings.ALLOWED_GRAPHQL_ORIGINS]
-        if any(origin.scheme == url.scheme and origin.netloc == url.netloc for origin in origins):
+        if any(
+            origin.scheme == url.scheme and origin.netloc == url.netloc
+            for origin in origins
+        ):
             response["Access-Control-Allow-Origin"] = origin
         else:
-            response["Access-Control-Allow-Origin"] = settings.ALLOWED_GRAPHQL_ORIGINS[0]
+            response["Access-Control-Allow-Origin"] = settings.ALLOWED_GRAPHQL_ORIGINS[
+                0
+            ]
         response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
         response[
             "Access-Control-Allow-Headers"
