@@ -24,10 +24,10 @@ from ....order.actions import (
 )
 from ....order.events import external_notification_event
 from ....payment.models import Payment, Transaction
-from ... import ChargeStatus, TransactionKind
+from ... import ChargeStatus, PaymentError, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse
 from ...utils import create_transaction, gateway_postprocess
-from .utils import convert_adyen_price_format
+from .utils import api_call, convert_adyen_price_format
 
 
 def get_payment(payment_id: Optional[str]) -> Optional[Payment]:
@@ -528,7 +528,10 @@ def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
         "details": {key: request.POST[key] for key in data["parameters"]},
     }
 
-    result = payment_details(request_data)
+    try:
+        result = api_call(request_data, payment_details)
+    except PaymentError as e:
+        return HttpResponseBadRequest(str(e))
 
     checkout_id = graphene.Node.to_global_id(
         "Checkout", checkout_pk  # type: ignore

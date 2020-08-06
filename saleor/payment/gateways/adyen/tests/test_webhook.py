@@ -7,9 +7,8 @@ import graphene
 import pytest
 from django.contrib.auth.hashers import make_password
 
-from saleor.order import OrderStatus
-from saleor.payment import ChargeStatus, TransactionKind
-
+from .....order import OrderStatus
+from .... import ChargeStatus, PaymentError, TransactionKind
 from ..utils import get_price_amount
 from ..webhooks import (
     create_new_transaction,
@@ -831,3 +830,39 @@ def test_handle_additional_actions_payment_does_not_have_checkout(
         response.content.decode()
         == "The given payment does not have the corresponding checkout."
     )
+
+
+@mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
+def test_handle_additional_actions_api_call_error(
+    api_call_mock, payment_adyen_for_checkout,
+):
+    # given
+    payment_adyen_for_checkout.extra_data = json.dumps(
+        {"payment_data": "test_data", "parameters": ["payload"]}
+    )
+    payment_adyen_for_checkout.save()
+
+    payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
+
+    error_message = "Test error"
+    api_call_mock.side_effect = PaymentError(error_message)
+
+    request_mock = mock.Mock()
+    request_mock.GET = {
+        "payment": payment_id,
+        "checkout": payment_adyen_for_checkout.checkout.pk,
+    }
+    request_mock.POST = {"payload": "test"}
+
+    payment_details_mock = mock.Mock()
+    message = {
+        "resultCode": "Test",
+    }
+    payment_details_mock.return_value.message = message
+
+    # when
+    response = handle_additional_actions(request_mock, payment_details_mock)
+
+    # then
+    assert response.status_code == 400
+    assert response.content.decode() == error_message
