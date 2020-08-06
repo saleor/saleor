@@ -56,7 +56,6 @@ sentry-sdk = "^0"
 stripe = "^2.47.0"
 text-unidecode = "^1.2"
 tqdm = "^4.47"
-uwsgi = {version = "^2.0.19", platform = "!=win32"}
 weasyprint = ">=48"
 oauthlib = "^3.0"
 jaeger-client = "^4.3.0"
@@ -67,6 +66,8 @@ python-json-logger = "^0.1.11"
 pytimeparse = "^1.1.8"
 django-redis = "^4.12.1"
 Adyen = "^3.0.0"
+uvicorn = "^0.11.8"
+gunicorn = "^20.0.4"
 
 [tool.poetry.dev-dependencies]
 black = "19.10b0"
