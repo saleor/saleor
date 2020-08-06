@@ -15,6 +15,7 @@ def adyen_plugin(settings):
         return_url=None,
         origin_key=None,
         origin_url=None,
+        adyen_auto_capture=None,
         auto_capture=None,
     ):
         api_key = api_key or "test_key"
@@ -22,6 +23,7 @@ def adyen_plugin(settings):
         return_url = return_url or "http://127.0.0.1:3000/"
         origin_key = origin_key or "test_origin_key"
         origin_url = origin_url or "http://127.0.0.1:3000"
+        adyen_auto_capture = adyen_auto_capture or False
         auto_capture = auto_capture or False
         settings.PLUGINS = ["saleor.payment.gateways.adyen.plugin.AdyenGatewayPlugin"]
         manager = get_plugins_manager()
@@ -37,8 +39,9 @@ def adyen_plugin(settings):
                     {"name": "Origin Url", "value": origin_url},
                     {
                         "name": "Automatically mark payment as a capture",
-                        "value": auto_capture,
+                        "value": adyen_auto_capture,
                     },
+                    {"name": "Automatic payment capture", "value": auto_capture},
                     {"name": "Supported currencies", "value": "USD"},
                 ],
             },

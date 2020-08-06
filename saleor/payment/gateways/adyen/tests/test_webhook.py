@@ -73,7 +73,7 @@ def test_handle_authorization(notification, adyen_plugin, payment_adyen_for_orde
     assert transaction.kind == TransactionKind.AUTH
 
 
-def test_handle_authorization_with_autocapture(
+def test_handle_authorization_with_adyen_auto_capture(
     notification, adyen_plugin, payment_adyen_for_order
 ):
     payment = payment_adyen_for_order
@@ -83,24 +83,50 @@ def test_handle_authorization_with_autocapture(
         value=get_price_amount(payment.total, payment.currency),
     )
     config = adyen_plugin().config
-    config.auto_capture = True
+    config.connection_params["adyen_auto_capture"] = True
     handle_authorization(notification, config)
 
-    assert payment.transactions.count() == 0
+    assert payment.transactions.count() == 1
+    assert payment.transactions.get().kind == TransactionKind.CAPTURE
 
 
-def test_handle_authorization_with_autocapture_and_payment_charged(
+@pytest.mark.vcr
+def test_handle_authorization_with_auto_capture(
+    notification, adyen_plugin, payment_adyen_for_order
+):
+    payment = payment_adyen_for_order
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        psp_reference="853596537720508F",
+        merchant_reference=payment_id,
+        value=get_price_amount(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+    config.auto_capture = True
+    config.connection_params["adyen_auto_capture"] = False
+
+    handle_authorization(notification, config)
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == 2
+    assert payment.transactions.first().kind == TransactionKind.AUTH
+    assert payment.transactions.last().kind == TransactionKind.CAPTURE
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+
+
+def test_handle_authorization_with_adyen_auto_capture_and_payment_charged(
     notification, adyen_plugin, payment_adyen_for_order
 ):
     payment = payment_adyen_for_order
     payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.save()
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
         value=get_price_amount(payment.total, payment.currency),
     )
     config = adyen_plugin().config
-    config.auto_capture = True
+    config.connection_params["adyen_auto_capture"] = True
     handle_authorization(notification, config)
 
     # payment already has a charge status no need to handle auth action
@@ -261,7 +287,7 @@ def test_handle_pending(notification, adyen_plugin, payment_adyen_for_order):
     assert payment.charge_status == ChargeStatus.PENDING
 
 
-def test_handle_pending_with_autocapture(
+def test_handle_pending_with_adyen_auto_capture(
     notification, adyen_plugin, payment_adyen_for_order
 ):
     payment = payment_adyen_for_order
@@ -271,15 +297,16 @@ def test_handle_pending_with_autocapture(
         value=get_price_amount(payment.total, payment.currency),
     )
     config = adyen_plugin().config
-    config.auto_capture = True
+    config.connection_params["adyen_auto_capture"] = True
 
     handle_pending(notification, config)
 
     # in case of autocapture we don't want to store the pending status as all payments
     # by default get capture status.
-    assert payment.transactions.count() == 0
+    assert payment.transactions.count() == 1
+    assert payment.transactions.get().kind == TransactionKind.PENDING
     payment.refresh_from_db()
-    assert payment.charge_status != ChargeStatus.PENDING
+    assert payment.charge_status == ChargeStatus.PENDING
 
 
 def test_handle_pending_already_pending(
