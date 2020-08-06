@@ -1,6 +1,8 @@
 from datetime import datetime
 from unittest.mock import Mock, patch
 
+import pytz
+
 from ....plugins.invoicing.utils import (
     chunk_products,
     generate_invoice_number,
@@ -40,7 +42,7 @@ def test_generate_invoice_pdf_for_order(
     get_template_mock.return_value.render.assert_called_once_with(
         {
             "invoice": fulfilled_order.invoices.first(),
-            "creation_date": datetime.today().strftime("%d %b %Y"),
+            "creation_date": datetime.now(tz=pytz.utc).strftime("%d %b %Y"),
             "order": fulfilled_order,
             "font_path": "file://test",
             "products_first_page": list(fulfilled_order.lines.all()),
