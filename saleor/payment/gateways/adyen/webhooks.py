@@ -496,6 +496,7 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
 def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
     payment_id = request.GET.get("payment")
     checkout_pk = request.GET.get("checkout")
+
     if not payment_id or not checkout_pk:
         return HttpResponseNotFound()
 
@@ -505,15 +506,9 @@ def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
     except ObjectDoesNotExist:
         return HttpResponseNotFound("Cannot perform payment. Payment does not exists.")
 
-    if payment.checkout is None:
-        return HttpResponseBadRequest(
-            "The given payment does not have the corresponding checkout."
-        )
-
-    if payment.checkout.pk != checkout_pk:
-        return HttpResponseBadRequest(
-            "The given checkout is not related to the specified payment"
-        )
+    response = validate_payment(payment, checkout_pk)
+    if response:
+        return response
 
     data = json.loads(payment.extra_data)
     return_url = payment.return_url
@@ -548,3 +543,21 @@ def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
         params.update(result.message["action"])
 
     return redirect(prepare_url(urlencode(params), return_url))
+
+
+def validate_payment(payment: "Payment", checkout_pk: str):
+    if payment.checkout is None:
+        return HttpResponseBadRequest(
+            "The given payment does not have the corresponding checkout."
+        )
+
+    if payment.checkout.pk != checkout_pk:
+        return HttpResponseBadRequest(
+            "The given checkout is not related to the specified payment"
+        )
+
+    if not payment.is_active:
+        return HttpResponseBadRequest("Payment is not active.")
+
+    if payment.gateway != "mirumee.payments.adyen":
+        return HttpResponseBadRequest("Cannot perform not adyen payment.")
