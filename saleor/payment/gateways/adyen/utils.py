@@ -190,12 +190,21 @@ def request_for_payment_capture(
 def update_payment_with_action_required_data(
     payment: Payment, action: dict, details: list
 ):
-    payment.extra_data = json.dumps(
-        {
-            "payment_data": action["paymentData"],
-            "parameters": [detail["key"] for detail in details],
-        }
-    )
+    action_required_data = {
+        "payment_data": action["paymentData"],
+        "parameters": [detail["key"] for detail in details],
+    }
+    if payment.extra_data:
+        payment_extra_data = json.loads(payment.extra_data)
+        try:
+            payment_extra_data.append(action_required_data)
+            extra_data = payment_extra_data
+        except AttributeError:
+            extra_data = [payment_extra_data, action_required_data]
+    else:
+        extra_data = [action_required_data]
+
+    payment.extra_data = json.dumps(extra_data)
     payment.save(update_fields=["extra_data"])
 
 
