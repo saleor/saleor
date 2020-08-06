@@ -26,7 +26,7 @@ from ....warehouse.availability import (
 )
 from ...account.enums import CountryCodeEnum
 from ...channel import ChannelContext, ChannelQsContext
-from ...channel.types import ChannelContextType
+from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_or_graphql_error
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
@@ -126,7 +126,7 @@ class ProductPricingInfo(BasePricingInfo):
 
 
 @key(fields="id")
-class ProductVariant(ChannelContextType, CountableDjangoObjectType):
+class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     quantity = graphene.Int(
         required=True,
         description="Quantity of a product available for sale.",
@@ -395,7 +395,7 @@ class ProductVariant(ChannelContextType, CountableDjangoObjectType):
 
 
 @key(fields="id")
-class Product(ChannelContextType, CountableDjangoObjectType):
+class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     url = graphene.String(
         description="The storefront URL for the product.",
         required=True,
