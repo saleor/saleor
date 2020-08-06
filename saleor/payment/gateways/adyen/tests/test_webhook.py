@@ -9,6 +9,7 @@ from django.contrib.auth.hashers import make_password
 
 from .....order import OrderStatus
 from .... import ChargeStatus, PaymentError, TransactionKind
+from ....models import Transaction
 from ..utils import get_price_amount
 from ..webhooks import (
     create_new_transaction,
@@ -632,16 +633,20 @@ def test_validate_auth_user_when_auth_is_disabled(adyen_plugin):
     assert is_valid is True
 
 
-def test_handle_additional_actions(payment_adyen_for_checkout):
+@mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
+def test_handle_additional_actions(api_call_mock, payment_adyen_for_checkout):
     # given
     payment_adyen_for_checkout.extra_data = json.dumps(
         {"payment_data": "test_data", "parameters": ["payload"]}
     )
     payment_adyen_for_checkout.save(update_fields=["extra_data"])
 
+    transaction_count = payment_adyen_for_checkout.transactions.all().count()
+
     checkout = payment_adyen_for_checkout.checkout
     payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
     request_mock = mock.Mock()
     request_mock.GET = {"payment": payment_id, "checkout": checkout.pk}
     request_mock.POST = {"payload": "test"}
@@ -650,16 +655,126 @@ def test_handle_additional_actions(payment_adyen_for_checkout):
     message = {
         "resultCode": "Test",
     }
-    payment_details_mock.return_value.message = message
+    api_call_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, False, False
+    )
 
     # then
+    payment_adyen_for_checkout.refresh_from_db()
     assert response.status_code == 302
     assert f"checkout={quote_plus(checkout_id)}" in response.url
     assert f"resultCode={message['resultCode']}" in response.url
     assert f"payment={quote_plus(payment_id)}" in response.url
+    assert (
+        payment_adyen_for_checkout.transactions.all().count() == transaction_count + 1
+    )
+    transaction = payment_adyen_for_checkout.transactions.last()
+    assert transaction.kind == "auth"
+
+
+@mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
+def test_handle_additional_actions_adyen_auto_capture(
+    api_call_mock, payment_adyen_for_checkout
+):
+    # given
+    payment_adyen_for_checkout.extra_data = json.dumps(
+        {"payment_data": "test_data", "parameters": ["payload"]}
+    )
+    payment_adyen_for_checkout.save(update_fields=["extra_data"])
+
+    transaction_count = payment_adyen_for_checkout.transactions.all().count()
+
+    checkout = payment_adyen_for_checkout.checkout
+    payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    request_mock = mock.Mock()
+    request_mock.GET = {"payment": payment_id, "checkout": checkout.pk}
+    request_mock.POST = {"payload": "test"}
+
+    payment_details_mock = mock.Mock()
+    message = {
+        "resultCode": "Test",
+    }
+    api_call_mock.return_value.message = message
+
+    # when
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, True, False
+    )
+
+    # then
+    payment_adyen_for_checkout.refresh_from_db()
+    assert response.status_code == 302
+    assert f"checkout={quote_plus(checkout_id)}" in response.url
+    assert f"resultCode={message['resultCode']}" in response.url
+    assert f"payment={quote_plus(payment_id)}" in response.url
+    assert (
+        payment_adyen_for_checkout.transactions.all().count() == transaction_count + 1
+    )
+    transaction = payment_adyen_for_checkout.transactions.last()
+    assert transaction.kind == "capture"
+
+
+@mock.patch("saleor.payment.gateways.adyen.webhooks.capture")
+@mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
+def test_handle_additional_actions_auto_capture(
+    api_call_mock, capture_mock, payment_adyen_for_checkout
+):
+    # given
+    payment_adyen_for_checkout.extra_data = json.dumps(
+        {"payment_data": "test_data", "parameters": ["payload"]}
+    )
+    payment_adyen_for_checkout.save(update_fields=["extra_data"])
+
+    payment_adyen_for_checkout.transactions.create(
+        amount=payment_adyen_for_checkout.total,
+        kind=TransactionKind.AUTH,
+        gateway_response={},
+        is_success=True,
+    )
+
+    transaction_count = payment_adyen_for_checkout.transactions.all().count()
+
+    checkout = payment_adyen_for_checkout.checkout
+    payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    request_mock = mock.Mock()
+    request_mock.GET = {"payment": payment_id, "checkout": checkout.pk}
+    request_mock.POST = {"payload": "test"}
+
+    payment_details_mock = mock.Mock()
+    message = {
+        "resultCode": "Test",
+    }
+    api_call_mock.return_value.message = message
+
+    capture_mock.return_value = Transaction.objects.create(
+        payment=payment_adyen_for_checkout,
+        action_required=False,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True,
+    )
+
+    # when
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, False, True
+    )
+
+    # then
+    payment_adyen_for_checkout.refresh_from_db()
+    assert response.status_code == 302
+    assert f"checkout={quote_plus(checkout_id)}" in response.url
+    assert f"resultCode={message['resultCode']}" in response.url
+    assert f"payment={quote_plus(payment_id)}" in response.url
+    assert (
+        payment_adyen_for_checkout.transactions.all().count() == transaction_count + 2
+    )
 
 
 def test_handle_additional_actions_more_action_required(payment_adyen_for_checkout):
@@ -691,7 +806,9 @@ def test_handle_additional_actions_more_action_required(payment_adyen_for_checko
     payment_details_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, False, False
+    )
 
     # then
     assert response.status_code == 302
@@ -727,7 +844,9 @@ def test_handle_additional_actions_payment_does_not_exist(payment_adyen_for_chec
     payment_adyen_for_checkout.delete()
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, False, False
+    )
 
     # then
     assert response.status_code == 404
@@ -760,7 +879,9 @@ def test_handle_additional_actions_payment_lack_of_return_url(
     }
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, False, False
+    )
 
     # then
     assert response.status_code == 404
@@ -788,7 +909,9 @@ def test_handle_additional_actions_no_payment_id_in_get(payment_adyen_for_checko
     payment_details_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, False, False
+    )
 
     # then
     assert response.status_code == 404
@@ -816,7 +939,9 @@ def test_handle_additional_actions_checkout_not_related_to_payment(
     payment_details_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, False, False
+    )
 
     # then
     assert response.status_code == 400
@@ -849,7 +974,9 @@ def test_handle_additional_actions_payment_does_not_have_checkout(
     payment_details_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, False, False
+    )
 
     # then
     assert response.status_code == 400
@@ -888,7 +1015,9 @@ def test_handle_additional_actions_api_call_error(
     payment_details_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, False, False
+    )
 
     # then
     assert response.status_code == 400
@@ -917,7 +1046,9 @@ def test_handle_additional_actions_payment_not_active(payment_adyen_for_checkout
     payment_details_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, False, False
+    )
 
     # then
     assert response.status_code == 400
@@ -948,7 +1079,9 @@ def test_handle_additional_actions_payment_with_no_adyen_gateway(
     payment_details_mock.return_value.message = message
 
     # when
-    response = handle_additional_actions(request_mock, payment_details_mock)
+    response = handle_additional_actions(
+        request_mock, payment_details_mock, False, False
+    )
 
     # then
     assert response.status_code == 400

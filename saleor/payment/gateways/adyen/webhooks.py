@@ -6,6 +6,7 @@ import json
 from typing import Any, Callable, Dict, Optional
 from urllib.parse import urlencode
 
+import Adyen
 import graphene
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ObjectDoesNotExist
@@ -27,7 +28,7 @@ from ....payment.models import Payment, Transaction
 from ... import ChargeStatus, PaymentError, TransactionKind
 from ...gateway import capture
 from ...interface import GatewayConfig, GatewayResponse
-from ...utils import create_transaction, gateway_postprocess
+from ...utils import create_payment_information, create_transaction, gateway_postprocess
 from .utils import api_call, convert_adyen_price_format
 
 
@@ -503,7 +504,12 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
     return HttpResponseNotFound()
 
 
-def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
+def handle_additional_actions(
+    request: WSGIRequest,
+    payment_details: Callable,
+    adyen_auto_capture: bool,
+    auto_capture: bool,
+):
     payment_id = request.GET.get("payment")
     checkout_pk = request.GET.get("checkout")
 
@@ -538,21 +544,11 @@ def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
     except PaymentError as e:
         return HttpResponseBadRequest(str(e))
 
-    checkout_id = graphene.Node.to_global_id(
-        "Checkout", checkout_pk  # type: ignore
-    )
+    handle_api_response(payment, result, adyen_auto_capture, auto_capture)
 
-    params = {
-        "checkout": checkout_id,
-        "payment": payment_id,
-        "resultCode": result.message["resultCode"],
-    }
+    redirect_url = prepare_redirect_url(payment_id, checkout_pk, result, return_url)
 
-    # Check if further action is needed.
-    if "action" in result.message:
-        params.update(result.message["action"])
-
-    return redirect(prepare_url(urlencode(params), return_url))
+    return redirect(redirect_url)
 
 
 def validate_payment(payment: "Payment", checkout_pk: str):
@@ -571,3 +567,68 @@ def validate_payment(payment: "Payment", checkout_pk: str):
 
     if payment.gateway != "mirumee.payments.adyen":
         return HttpResponseBadRequest("Cannot perform not adyen payment.")
+
+
+def prepare_redirect_url(
+    payment_id: str, checkout_pk: str, api_response: Adyen.Adyen, return_url: str
+):
+    checkout_id = graphene.Node.to_global_id(
+        "Checkout", checkout_pk  # type: ignore
+    )
+
+    params = {
+        "checkout": checkout_id,
+        "payment": payment_id,
+        "resultCode": api_response.message["resultCode"],
+    }
+
+    # Check if further action is needed.
+    if "action" in api_response.message:
+        params.update(api_response.message["action"])
+
+    return prepare_url(urlencode(params), return_url)
+
+
+def handle_api_response(
+    payment: Payment,
+    response: Adyen.Adyen,
+    adyen_auto_capture: bool,
+    auto_capture: bool,
+):
+    kind = TransactionKind.AUTH
+    if adyen_auto_capture:
+        kind = TransactionKind.CAPTURE
+
+    payment_data = create_payment_information(
+        payment=payment, payment_token=payment.token,
+    )
+
+    action_required = False
+    error_message = response.message.get("refusalReason")
+    if "action" in response.message:
+        action_required = True
+
+    gateway_response = GatewayResponse(
+        is_success=True if error_message else False,
+        action_required=action_required,
+        kind=kind,
+        amount=payment_data.amount,
+        currency=payment_data.currency,
+        transaction_id=response.message.get("pspReference", ""),
+        error=error_message,
+        raw_response=response.message,
+        action_required_data=response.message.get("action"),
+    )
+
+    transaction = create_transaction(
+        payment=payment,
+        kind=kind,
+        action_required=action_required,
+        payment_information=payment_data,
+        gateway_response=gateway_response,
+    )
+
+    if auto_capture:
+        transaction = capture(payment, amount=transaction.amount)
+
+    gateway_postprocess(transaction, payment)
