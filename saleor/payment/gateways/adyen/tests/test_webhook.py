@@ -737,3 +737,27 @@ def test_handle_additional_actions_payment_lack_of_return_url(
         response.content.decode()
         == "Cannot perform payment. Lack of data about returnUrl."
     )
+
+
+def test_handle_additional_actions_no_payment_id_in_get(payment_adyen_for_checkout):
+    # given
+    payment_adyen_for_checkout.extra_data = json.dumps(
+        {"payment_data": "test_data", "parameters": ["payload"]}
+    )
+    payment_adyen_for_checkout.save(update_fields=["extra_data"])
+
+    request_mock = mock.Mock()
+    request_mock.GET = {}
+    request_mock.POST = {"payload": "test"}
+
+    payment_details_mock = mock.Mock()
+    message = {
+        "resultCode": "Test",
+    }
+    payment_details_mock.return_value.message = message
+
+    # when
+    response = handle_additional_actions(request_mock, payment_details_mock)
+
+    # then
+    assert response.status_code == 404
