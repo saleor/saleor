@@ -11,7 +11,12 @@ import graphene
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
+from django.http import (
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseNotFound,
+    QueryDict,
+)
 from django.http.request import HttpHeaders
 from django.shortcuts import redirect
 from graphql_relay import from_global_id
@@ -534,10 +539,10 @@ def handle_additional_actions(
             "Cannot perform payment. Lack of data about returnUrl."
         )
 
-    request_data = {
-        "paymentData": data["payment_data"],
-        "details": {key: request.POST[key] for key in data["parameters"]},
-    }
+    try:
+        request_data = prepare_api_request_data(request, data)
+    except KeyError as e:
+        return HttpResponseBadRequest(e.args[0])
 
     try:
         result = api_call(request_data, payment_details)
@@ -567,6 +572,27 @@ def validate_payment(payment: "Payment", checkout_pk: str):
 
     if payment.gateway != "mirumee.payments.adyen":
         return HttpResponseBadRequest("Cannot perform not adyen payment.")
+
+
+def prepare_api_request_data(request: WSGIRequest, data: dict):
+    params = data["parameters"]
+    request_data: "QueryDict" = QueryDict("")
+
+    if all([param in request.GET for param in params]):
+        request_data = request.GET
+    elif all([param in request.POST for param in params]):
+        request_data = request.POST
+
+    if not request_data:
+        raise KeyError(
+            "Cannot perform payment. Lack of required parameters in request."
+        )
+
+    api_request_data = {
+        "paymentData": data["payment_data"],
+        "details": {key: request_data[key] for key in params},
+    }
+    return api_request_data
 
 
 def prepare_redirect_url(
