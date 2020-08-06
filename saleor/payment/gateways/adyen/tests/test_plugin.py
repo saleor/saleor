@@ -95,6 +95,8 @@ def test_process_payment_with_auto_capture(
 def test_process_payment_additional_action(
     api_call_mock, payment_adyen_for_checkout, checkout_with_items, adyen_plugin
 ):
+    payment_adyen_for_checkout.extra_data = ""
+    payment_adyen_for_checkout.save(update_fields=["extra_data"])
     payment_data = "Ab02b4c0!B"
     action_data = {
         "method": "GET",
@@ -128,7 +130,7 @@ def test_process_payment_additional_action(
 
     payment_adyen_for_checkout.refresh_from_db()
     assert payment_adyen_for_checkout.extra_data == json.dumps(
-        {"payment_data": payment_data, "parameters": ["payload"]}
+        [{"payment_data": payment_data, "parameters": ["payload"]}]
     )
 
 

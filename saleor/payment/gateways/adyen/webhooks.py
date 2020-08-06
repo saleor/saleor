@@ -577,6 +577,11 @@ def validate_payment(payment: "Payment", checkout_pk: str):
 
 
 def prepare_api_request_data(request: WSGIRequest, data: dict):
+    if "parameters" not in data or "payment_data" not in data:
+        raise KeyError(
+            "Cannot perform payment. Lack of payment data and parameters information."
+        )
+
     params = data["parameters"]
     request_data: "QueryDict" = QueryDict("")
 
