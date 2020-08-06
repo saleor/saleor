@@ -55,8 +55,8 @@ class PaymentInput(graphene.InputObjectType):
         required=False,
         description=(
             "URL of a storefront view where user should be redirected after "
-            "3D secure confirmation. 3D secure payments payment will not work "
-            "if this field is not provided."
+            "requiring additional actions. Payment with additional actions will not be "
+            "finished if this field is not provided."
         ),
     )
 
