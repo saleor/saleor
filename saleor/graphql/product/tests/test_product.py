@@ -833,7 +833,7 @@ def test_fetch_product_from_category_query(
     product = category.products.first()
     query = """
     query {
-        category(id: "%(category_id)s", channel: "%(channel_slug)s") {
+        category(id: "%(category_id)s") {
             products(first: 20) {
                 edges {
                     node {
@@ -888,7 +888,6 @@ def test_fetch_product_from_category_query(
     }
     """ % {
         "category_id": graphene.Node.to_global_id("Category", category.id),
-        "channel_slug": channel_USD.slug,
     }
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query)
@@ -2598,13 +2597,13 @@ def test_delete_product(staff_api_client, product, permission_manage_products):
 def test_product_type(user_api_client, product_type, channel_USD):
     query = """
     query ($channel: String){
-        productTypes(first: 20, channel: $channel) {
+        productTypes(first: 20) {
             totalCount
             edges {
                 node {
                     id
                     name
-                    products(first: 1) {
+                    products(first: 1, channel: $channel) {
                         edges {
                             node {
                                 id
@@ -2640,9 +2639,9 @@ def test_product_type_query(
     )
     query = """
             query getProductType($id: ID!, $channel: String) {
-                productType(id: $id,  channel:$channel) {
+                productType(id: $id) {
                     name
-                    products(first: 20) {
+                    products(first: 20, channel:$channel) {
                         totalCount
                         edges {
                             node {
@@ -3595,10 +3594,11 @@ def test_report_product_sales(
     order_with_lines,
     permission_manage_products,
     permission_manage_orders,
+    channel_USD,
 ):
     query = """
-    query TopProducts($period: ReportingPeriod!) {
-        reportProductSales(period: $period, first: 20) {
+    query TopProducts($period: ReportingPeriod!, $channel: String) {
+        reportProductSales(period: $period, first: 20, channel: $channel) {
             edges {
                 node {
                     revenue(period: $period) {
@@ -3613,7 +3613,7 @@ def test_report_product_sales(
         }
     }
     """
-    variables = {"period": ReportingPeriod.TODAY.name}
+    variables = {"period": ReportingPeriod.TODAY.name, "channel": channel_USD.slug}
     permissions = [permission_manage_orders, permission_manage_products]
     response = staff_api_client.post_graphql(query, variables, permissions)
     content = get_graphql_content(response)

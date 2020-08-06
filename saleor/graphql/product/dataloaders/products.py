@@ -1,8 +1,6 @@
 from collections import defaultdict
 from typing import DefaultDict, Dict, Iterable, List, Optional, Tuple
 
-from django.utils.functional import SimpleLazyObject
-
 from ....product.models import (
     Category,
     Collection,
@@ -29,10 +27,9 @@ class ProductByIdLoader(DataLoader):
     context_key = "product_by_id"
 
     def batch_load(self, keys):
-        channel_slug = self.context.channel_slug
-        products = Product.objects.visible_to_user(self.user, channel_slug).in_bulk(
-            keys
-        )
+        # FIXME: check if we need to use visible_for_user queryset here or we can
+        # ensure the right access to visible products at some higher level.
+        products = Product.objects.all().in_bulk(keys)
         return [products.get(product_id) for product_id in keys]
 
 
@@ -96,8 +93,6 @@ class ProductChannelListingByProductIdAndChanneSlugLoader(
     def batch_load_channel(
         self, channel_slug: str, products_ids: Iterable[int]
     ) -> Iterable[Tuple[int, Optional[ProductChannelListing]]]:
-        if isinstance(channel_slug, SimpleLazyObject):
-            channel_slug = str(channel_slug)
         product_channel_listings = ProductChannelListing.objects.filter(
             channel__slug=channel_slug, product_id__in=products_ids
         )

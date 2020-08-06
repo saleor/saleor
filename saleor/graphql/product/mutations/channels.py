@@ -8,6 +8,7 @@ from django.db import transaction
 from ....core.permissions import ProductPermissions
 from ....product.error_codes import ProductErrorCode
 from ....product.models import ProductChannelListing
+from ...channel import ChannelContext
 from ...channel.types import Channel
 from ...core.mutations import BaseMutation
 from ...core.types.common import ProductChannelListingError
@@ -179,5 +180,6 @@ class ProductChannelListingUpdate(BaseMutation):
             raise ValidationError(errors)
 
         cls.save(info, product, cleaned_input)
-
-        return ProductChannelListingUpdate(product=product)
+        return ProductChannelListingUpdate(
+            product=ChannelContext(node=product, channel_slug=None)
+        )

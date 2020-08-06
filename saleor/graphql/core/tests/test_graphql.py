@@ -81,7 +81,7 @@ def test_real_query(user_api_client, product, channel_USD):
     query Root($categoryId: ID!, $sortBy: ProductOrder, $first: Int,
             $attributesFilter: [AttributeInput], $channel: String) {
 
-        category(id: $categoryId, channel: $channel) {
+        category(id: $categoryId) {
             ...CategoryPageFragmentQuery
             __typename
         }

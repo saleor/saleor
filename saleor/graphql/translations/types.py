@@ -8,6 +8,7 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...site import models as site_models
+from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import LanguageDisplay
 from ..core.utils import str_to_enum
@@ -124,7 +125,7 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_product_variant(root: product_models.ProductVariant, info):
-        return root
+        return ChannelContext(node=root, channel_slug=None)
 
 
 class ProductTranslation(BaseTranslationType):
@@ -148,7 +149,7 @@ class ProductTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_product(root: product_models.Product, info):
-        return root
+        return ChannelContext(node=root, channel_slug=None)
 
 
 class CollectionTranslation(BaseTranslationType):

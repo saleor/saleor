@@ -14,7 +14,7 @@ from ...product.models import (
 )
 from ...shipping.models import ShippingMethod
 from ..core.connection import CountableConnection
-from ..core.fields import BaseConnectionField, FieldWithChannel
+from ..core.fields import BaseConnectionField
 from ..decorators import permission_required
 from ..discount.resolvers import resolve_sales, resolve_vouchers
 from ..menu.resolvers import resolve_menu_items
@@ -77,7 +77,7 @@ class TranslationQueries(graphene.ObjectType):
             TranslatableKinds, required=True, description="Kind of objects to retrieve."
         ),
     )
-    translation = FieldWithChannel(
+    translation = graphene.Field(
         TranslatableItem,
         id=graphene.Argument(
             graphene.ID, description="ID of the object to retrieve.", required=True
