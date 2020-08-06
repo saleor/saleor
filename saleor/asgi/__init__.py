@@ -1,4 +1,4 @@
-"""ASGI config for saleor project.
+"""ASGI config for Saleor project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
