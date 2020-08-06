@@ -1,12 +1,14 @@
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Generic, Optional, TypeVar
 
 from django.db.models import QuerySet
 
+N = TypeVar("N")
+
 
 @dataclass
-class ChannelContext:
-    node: Any
+class ChannelContext(Generic[N]):
+    node: N
     channel_slug: Optional[str]
 
 

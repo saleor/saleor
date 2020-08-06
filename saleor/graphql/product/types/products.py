@@ -232,13 +232,17 @@ class ProductVariant(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_stocks(root: ChannelContext, info, country_code=None):
+    def resolve_stocks(
+        root: ChannelContext[models.ProductVariant], _info, country_code=None
+    ):
         if not country_code:
             return root.node.stocks.annotate_available_quantity()
         return root.node.stocks.for_country(country_code).annotate_available_quantity()
 
     @staticmethod
-    def resolve_quantity_available(root: ChannelContext, info, country_code=None):
+    def resolve_quantity_available(
+        root: ChannelContext[models.ProductVariant], info, country_code=None
+    ):
         if not root.node.track_inventory:
             return settings.MAX_CHECKOUT_LINE_QUANTITY
 
@@ -248,11 +252,11 @@ class ProductVariant(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_digital_content(root: ChannelContext, *_args):
+    def resolve_digital_content(root: ChannelContext[models.ProductVariant], *_args):
         return getattr(root.node, "digital_content", None)
 
     @staticmethod
-    def resolve_stock_quantity(root: ChannelContext, info):
+    def resolve_stock_quantity(root: ChannelContext[models.ProductVariant], info):
         if not root.node.track_inventory:
             return settings.MAX_CHECKOUT_LINE_QUANTITY
 
@@ -261,28 +265,28 @@ class ProductVariant(ChannelContextType, CountableDjangoObjectType):
         ).load((root.node.id, info.context.country))
 
     @staticmethod
-    def resolve_attributes(root: ChannelContext, info):
+    def resolve_attributes(root: ChannelContext[models.ProductVariant], info):
         return SelectedAttributesByProductVariantIdLoader(info.context).load(
             root.node.id
         )
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_margin(root: ChannelContext, *_args):
+    def resolve_margin(root: ChannelContext[models.ProductVariant], *_args):
         return get_margin_for_variant(root.node)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_cost_price(root: ChannelContext, *_args):
+    def resolve_cost_price(root: ChannelContext[models.ProductVariant], *_args):
         return root.node.cost_price
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_price(root: ChannelContext, *_args):
+    def resolve_price(root: ChannelContext[models.ProductVariant], *_args):
         return root.node.price
 
     @staticmethod
-    def resolve_pricing(root, info):
+    def resolve_pricing(root: ChannelContext[models.ProductVariant], info):
         if not root.channel_slug:
             return None
 
@@ -322,14 +326,14 @@ class ProductVariant(ChannelContextType, CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_product(root: ChannelContext, info):
+    def resolve_product(root: ChannelContext[models.ProductVariant], info):
         product = ProductByIdLoader(info.context).load(root.node.product_id)
         return product.then(
             lambda product: ChannelContext(node=product, channel_slug=root.channel_slug)
         )
 
     @staticmethod
-    def resolve_is_available(root: ChannelContext, info):
+    def resolve_is_available(root: ChannelContext[models.ProductVariant], info):
         if not root.node.track_inventory:
             return True
 
@@ -344,47 +348,49 @@ class ProductVariant(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_quantity(root: ChannelContext, info):
+    def resolve_quantity(root: ChannelContext[models.ProductVariant], info):
         return get_available_quantity(root.node, info.context.country)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_quantity_ordered(root: ChannelContext, *_args):
+    def resolve_quantity_ordered(root: ChannelContext[models.ProductVariant], *_args):
         # This field is added through annotation when using the
         # `resolve_report_product_sales` resolver.
         return getattr(root.node, "quantity_ordered", None)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_quantity_allocated(root: ChannelContext, info):
+    def resolve_quantity_allocated(root: ChannelContext[models.ProductVariant], info):
         country = info.context.country
         return get_quantity_allocated(root.node, country)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_revenue(root: ChannelContext, *_args, period):
+    def resolve_revenue(root: ChannelContext[models.ProductVariant], *_args, period):
         start_date = reporting_period_to_date(period)
         return calculate_revenue_for_variant(root.node, start_date)
 
     @staticmethod
-    def resolve_images(root: ChannelContext, *_args):
+    def resolve_images(root: ChannelContext[models.ProductVariant], *_args):
         return root.node.images.all()
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: ChannelContext, _info):
+    def resolve_private_meta(root: ChannelContext[models.ProductVariant], _info):
         return resolve_private_meta(root.node, _info)
 
     @staticmethod
-    def resolve_meta(root: ChannelContext, _info):
+    def resolve_meta(root: ChannelContext[models.ProductVariant], _info):
         return resolve_meta(root.node, _info)
 
     @staticmethod
-    def __resolve_reference(root, _info, **_kwargs):
+    def __resolve_reference(
+        root: ChannelContext[models.ProductVariant], _info, **_kwargs
+    ):
         return graphene.Node.get_node_from_global_id(_info, root.node.id)
 
     @staticmethod
-    def resolve_weight(root: ChannelContext, _info, **_kwargs):
+    def resolve_weight(root: ChannelContext[models.ProductVariant], _info, **_kwargs):
         return convert_weight_to_default_weight_unit(root.node.weight)
 
 
@@ -468,19 +474,19 @@ class Product(ChannelContextType, CountableDjangoObjectType):
         ]
 
     @staticmethod
-    def resolve_category(root: ChannelContext, info):
+    def resolve_category(root: ChannelContext[models.Product], info):
         category_id = root.node.category_id
         if category_id is None:
             return None
         return CategoryByIdLoader(info.context).load(category_id)
 
     @staticmethod
-    def resolve_tax_type(root: ChannelContext, info):
+    def resolve_tax_type(root: ChannelContext[models.Product], info):
         tax_data = info.context.plugins.get_tax_code_from_object_meta(root.node)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
-    def resolve_thumbnail(root: ChannelContext, info, *, size=255):
+    def resolve_thumbnail(root: ChannelContext[models.Product], info, *, size=255):
         def return_first_thumbnail(images):
             image = images[0] if images else None
             if image:
@@ -500,7 +506,7 @@ class Product(ChannelContextType, CountableDjangoObjectType):
         return ""
 
     @staticmethod
-    def resolve_pricing(root: ChannelContext, info):
+    def resolve_pricing(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
 
@@ -540,7 +546,7 @@ class Product(ChannelContextType, CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_is_available(root: ChannelContext, info):
+    def resolve_is_available(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
 
@@ -552,23 +558,23 @@ class Product(ChannelContextType, CountableDjangoObjectType):
         return is_visible and in_stock
 
     @staticmethod
-    def resolve_attributes(root: ChannelContext, info):
+    def resolve_attributes(root: ChannelContext[models.Product], info):
         return SelectedAttributesByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_purchase_cost(root: ChannelContext, *_args):
+    def resolve_purchase_cost(root: ChannelContext[models.Product], *_args):
         purchase_cost, _ = get_product_costs_data(root.node)
         return purchase_cost
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_margin(root: ChannelContext, *_args):
+    def resolve_margin(root: ChannelContext[models.Product], *_args):
         _, margin = get_product_costs_data(root.node)
         return Margin(margin[0], margin[1])
 
     @staticmethod
-    def resolve_image_by_id(root: ChannelContext, info, id):
+    def resolve_image_by_id(root: ChannelContext[models.Product], info, id):
         pk = get_database_id(info, id, ProductImage)
         try:
             return root.node.images.get(pk=pk)
@@ -576,11 +582,11 @@ class Product(ChannelContextType, CountableDjangoObjectType):
             raise GraphQLError("Product image not found.")
 
     @staticmethod
-    def resolve_images(root: ChannelContext, info, **_kwargs):
+    def resolve_images(root: ChannelContext[models.Product], info, **_kwargs):
         return ImagesByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_variants(root: ChannelContext, info, **_kwargs):
+    def resolve_variants(root: ChannelContext[models.Product], info, **_kwargs):
         return (
             ProductVariantsByProductIdLoader(info.context)
             .load(root.node.id)
@@ -594,28 +600,28 @@ class Product(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_channel_listing(root: ChannelContext, info, **_kwargs):
+    def resolve_channel_listing(root: ChannelContext[models.Product], info, **_kwargs):
         return ProductChannelListingByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_collections(root: ChannelContext, *_args):
+    def resolve_collections(root: ChannelContext[models.Product], *_args):
         return root.node.collections.all()
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: ChannelContext, _info):
+    def resolve_private_meta(root: ChannelContext[models.Product], _info):
         return resolve_private_meta(root.node, _info)
 
     @staticmethod
-    def resolve_meta(root: ChannelContext, _info):
+    def resolve_meta(root: ChannelContext[models.Product], _info):
         return resolve_meta(root.node, _info)
 
     @staticmethod
-    def __resolve_reference(root: ChannelContext, _info, **_kwargs):
+    def __resolve_reference(root: ChannelContext[models.Product], _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.node.id)
 
     @staticmethod
-    def resolve_weight(root: ChannelContext, _info, **_kwargs):
+    def resolve_weight(root: ChannelContext[models.Product], _info, **_kwargs):
         return convert_weight_to_default_weight_unit(root.node.weight)
 
 
