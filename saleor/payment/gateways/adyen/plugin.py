@@ -198,11 +198,15 @@ class AdyenGatewayPlugin(BasePlugin):
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         config = self._get_gateway_config()
+        self.config.connection_params["adyen_auto_capture"]
         if path.startswith(WEBHOOK_PATH):
             return handle_webhook(request, config)
         elif path.startswith(ADDITIONAL_ACTION_PATH):
             return handle_additional_actions(
-                request, self.adyen.checkout.payments_details
+                request,
+                self.adyen.checkout.payments_details,
+                config.connection_params["adyen_auto_capture"],
+                config.auto_capture,
             )
         return HttpResponseNotFound()
 
