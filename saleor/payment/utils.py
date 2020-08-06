@@ -266,7 +266,8 @@ def gateway_postprocess(transaction, payment):
             if payment.captured_amount <= 0:
                 payment.charge_status = ChargeStatus.NOT_CHARGED
             changed_fields += ["charge_status", "captured_amount", "modified"]
-    payment.save(update_fields=changed_fields)
+    if changed_fields:
+        payment.save(update_fields=changed_fields)
 
 
 def fetch_customer_id(user: User, gateway: str):
