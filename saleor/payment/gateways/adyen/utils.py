@@ -7,7 +7,6 @@ import Adyen
 from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
-from graphql_relay import from_global_id
 
 from ....checkout.models import Checkout
 from ....core.prices import quantize_price
@@ -189,10 +188,8 @@ def request_for_payment_capture(
 
 
 def update_payment_with_action_required_data(
-    payment_id: str, action: dict, details: list
+    payment: Payment, action: dict, details: list
 ):
-    _type, payment_pk = from_global_id(payment_id)
-    payment = Payment.objects.get(pk=payment_pk)
     payment.extra_data = json.dumps(
         {
             "payment_data": action["paymentData"],

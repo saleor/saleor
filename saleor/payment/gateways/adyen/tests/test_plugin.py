@@ -4,7 +4,7 @@ from unittest import mock
 
 import pytest
 
-from .... import TransactionKind
+from .... import PaymentError, TransactionKind
 from ....interface import GatewayResponse
 from ....models import Payment
 from ....utils import create_payment_information, create_transaction
@@ -141,15 +141,50 @@ def test_process_payment_additional_action_payment_does_not_exists(
     Payment.objects.all().delete()
 
     adyen_plugin = adyen_plugin(auto_capture=True)
-    response = adyen_plugin.process_payment(payment_info, None)
-    assert response.is_success is False
-    assert response.action_required is True
-    assert response.kind == TransactionKind.CAPTURE
-    assert response.amount == Decimal("1234")
-    assert response.currency == checkout_with_items.currency
-    assert response.transaction_id == "882595494831959A"
-    assert response.error == "Payment cannot be performed. Payment does not exists."
-    assert response.action_required_data == action_data
+
+    with pytest.raises(PaymentError) as e:
+        adyen_plugin.process_payment(payment_info, None)
+
+    assert str(e.value) == "Payment cannot be performed. Payment does not exists."
+
+
+@pytest.mark.vcr
+@mock.patch("saleor.payment.gateways.adyen.plugin.api_call")
+def test_process_payment_additional_action_checkout_does_not_exists(
+    api_call_mock, payment_adyen_for_checkout, checkout_with_items, adyen_plugin
+):
+    action_data = {
+        "method": "GET",
+        "paymentData": "Ab02b4c0!B",
+        "paymentMethodType": "ideal",
+        "type": "redirect",
+        "url": "https://test.adyen.com/hpp/redirectIdeal.shtml?brandCode=ideal",
+    }
+    message = {
+        "resultCode": "RedirectShopper",
+        "action": action_data,
+        "details": [{"key": "payload", "type": "text"}],
+        "pspReference": "882595494831959A",
+    }
+    api_call_mock.return_value.message = message
+
+    payment_info = create_payment_information(
+        payment_adyen_for_checkout,
+        additional_data={"paymentMethod": {"paymentdata": ""}},
+    )
+
+    payment_adyen_for_checkout.checkout = None
+    payment_adyen_for_checkout.save()
+
+    adyen_plugin = adyen_plugin(auto_capture=True)
+
+    with pytest.raises(PaymentError) as e:
+        adyen_plugin.process_payment(payment_info, None)
+
+    assert (
+        str(e.value)
+        == "Payment cannot be performed. Checkout for this payment does not exist."
+    )
 
 
 @pytest.mark.vcr

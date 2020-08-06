@@ -495,7 +495,8 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
 
 def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
     payment_id = request.GET.get("payment")
-    if not payment_id:
+    checkout_pk = request.GET.get("checkout")
+    if not payment_id or not checkout_pk:
         return HttpResponseNotFound()
 
     _type, payment_pk = from_global_id(payment_id)
@@ -503,6 +504,16 @@ def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
         payment = Payment.objects.get(pk=payment_pk)
     except ObjectDoesNotExist:
         return HttpResponseNotFound("Cannot perform payment. Payment does not exists.")
+
+    if payment.checkout is None:
+        return HttpResponseBadRequest(
+            "The given payment does not have the corresponding checkout."
+        )
+
+    if payment.checkout.pk != checkout_pk:
+        return HttpResponseBadRequest(
+            "The given checkout is not related to the specified payment"
+        )
 
     data = json.loads(payment.extra_data)
     return_url = payment.return_url
@@ -520,7 +531,7 @@ def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
     result = payment_details(request_data)
 
     checkout_id = graphene.Node.to_global_id(
-        "Checkout", payment.checkout.pk  # type: ignore
+        "Checkout", checkout_pk  # type: ignore
     )
 
     params = {
