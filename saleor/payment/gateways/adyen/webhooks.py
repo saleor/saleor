@@ -494,7 +494,10 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
 
 
 def handle_additional_actions(request: WSGIRequest, payment_details: Callable):
-    payment_id = request.GET["payment"]
+    payment_id = request.GET.get("payment")
+    if not payment_id:
+        return HttpResponseNotFound()
+
     _type, payment_pk = from_global_id(payment_id)
     try:
         payment = Payment.objects.get(pk=payment_pk)
