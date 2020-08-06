@@ -172,7 +172,7 @@ def request_for_payment_refund(
 
 
 def request_for_payment_capture(
-    payment_information: "PaymentData", merchant_account, token
+    payment_information: "PaymentData", merchant_account: str, token: str
 ) -> Dict[str, Any]:
     return {
         "merchantAccount": merchant_account,
@@ -197,3 +197,17 @@ def update_payment_with_action_required_data(
         }
     )
     payment.save(update_fields=["extra_data"])
+
+
+def call_capture(
+    payment_information: "PaymentData",
+    merchant_account: str,
+    token: str,
+    adyen_client: Adyen.Adyen,
+):
+    request = request_for_payment_capture(
+        payment_information=payment_information,
+        merchant_account=merchant_account,
+        token=token,
+    )
+    return api_call(request, adyen_client.payment.capture)

@@ -25,6 +25,7 @@ from ....order.actions import (
 from ....order.events import external_notification_event
 from ....payment.models import Payment, Transaction
 from ... import ChargeStatus, PaymentError, TransactionKind
+from ...gateway import capture
 from ...interface import GatewayConfig, GatewayResponse
 from ...utils import create_transaction, gateway_postprocess
 from .utils import api_call, convert_adyen_price_format
@@ -95,18 +96,22 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
         ChargeStatus.PARTIALLY_CHARGED,
     }:
         return
-    mark_capture = gateway_config.auto_capture
-    if mark_capture:
-        # If we mark order as a capture by default we don't need to handle auth actions
-        return
+
+    kind = TransactionKind.AUTH
+    adyen_auto_capture = gateway_config.connection_params["adyen_auto_capture"]
+    if adyen_auto_capture:
+        kind = TransactionKind.CAPTURE
 
     transaction_id = notification.get("pspReference")
-    transaction = get_transaction(payment, transaction_id, TransactionKind.AUTH)
-    if transaction:
-        # We already marked it as Auth
+    transaction = payment.transactions.filter(
+        token=transaction_id, kind__in=[TransactionKind.AUTH, TransactionKind.CAPTURE]
+    ).first()
+
+    if transaction and transaction.is_success:
+        # We already have this transaction
         return
 
-    transaction = create_new_transaction(notification, payment, TransactionKind.AUTH)
+    transaction = create_new_transaction(notification, payment, kind)
     reason = notification.get("reason", "-")
 
     success_msg = f"Adyen: The payment  {transaction_id} request  was successful."
@@ -114,8 +119,17 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
     create_payment_notification_for_order(
         payment, success_msg, failed_msg, transaction.is_success
     )
-    if payment.order:
+    if not payment.order:
+        return
+
+    # If saleor has enabled auto capture we need to proceed the capture action.
+    if gateway_config.auto_capture:
+        capture(payment, amount=transaction.amount)
+
+    if kind == TransactionKind.AUTH:
         order_authorized(payment.order, None, transaction.amount, payment)
+    elif kind == TransactionKind.CAPTURE:
+        order_captured(payment.order, None, transaction.amount, payment)
 
 
 def handle_cancellation(notification: Dict[str, Any], _gateway_config: GatewayConfig):
@@ -212,10 +226,6 @@ def handle_failed_capture(notification: Dict[str, Any], _gateway_config: Gateway
 def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
     # https://docs.adyen.com/development-resources/webhooks/understand-notifications#
     # event-codes"
-    mark_capture = gateway_config.auto_capture
-    if mark_capture:
-        # If we mark order as a capture by default we don't need to handle this action
-        return
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return

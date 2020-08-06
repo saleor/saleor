@@ -30,7 +30,7 @@ def test_get_payment_gateway_for_checkout(
     }
     assert config[1]["field"] == "config"
     config = json.loads(config[1]["value"])
-    assert isinstance(config, list)
+    assert isinstance(config, dict)
 
 
 @pytest.mark.vcr
@@ -52,6 +52,25 @@ def test_process_payment(payment_adyen_for_checkout, checkout_with_items, adyen_
 
 
 @pytest.mark.vcr
+def test_process_payment_with_adyen_auto_capture(
+    payment_adyen_for_checkout, checkout_with_items, adyen_plugin
+):
+    payment_info = create_payment_information(
+        payment_adyen_for_checkout,
+        additional_data={"paymentMethod": {"paymentdata": ""}},
+    )
+    adyen_plugin = adyen_plugin(adyen_auto_capture=True)
+    response = adyen_plugin.process_payment(payment_info, None)
+    assert response.is_success is True
+    assert response.action_required is False
+    assert response.kind == TransactionKind.CAPTURE
+    assert response.amount == Decimal("1234")
+    assert response.currency == checkout_with_items.currency
+    assert response.transaction_id == "882595494831959A"  # ID returned by Adyen
+    assert response.error is None
+
+
+@pytest.mark.vcr
 def test_process_payment_with_auto_capture(
     payment_adyen_for_checkout, checkout_with_items, adyen_plugin
 ):
@@ -66,7 +85,7 @@ def test_process_payment_with_auto_capture(
     assert response.kind == TransactionKind.CAPTURE
     assert response.amount == Decimal("1234")
     assert response.currency == checkout_with_items.currency
-    assert response.transaction_id == "882595494831959A"  # ID returned by Adyen
+    assert response.transaction_id == "853596624248395G"  # ID returned by Adyen
     assert response.error is None
     assert response.action_required_data is None
 
@@ -100,7 +119,7 @@ def test_process_payment_additional_action(
     response = adyen_plugin.process_payment(payment_info, None)
     assert response.is_success is True
     assert response.action_required is True
-    assert response.kind == TransactionKind.CAPTURE
+    assert response.kind == TransactionKind.AUTH
     assert response.amount == Decimal("1234")
     assert response.currency == checkout_with_items.currency
     assert response.transaction_id == "882595494831959A"
