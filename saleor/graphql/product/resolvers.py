@@ -78,6 +78,15 @@ def resolve_products(
     return ChannelQsContext(qs=qs.distinct(), channel_slug=channel_slug)
 
 
+def resolve_variant_by_id(info, id, channel_slug):
+    user = info.context.user
+    visible_products = models.Product.objects.visible_to_user(
+        user, channel_slug
+    ).values_list("pk", flat=True)
+    qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
+    return qs.filter(pk=id).first()
+
+
 def resolve_product_types(info, **_kwargs):
     return models.ProductType.objects.all()
 

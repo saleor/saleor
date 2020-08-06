@@ -124,6 +124,7 @@ from .resolvers import (
     resolve_product_variants,
     resolve_products,
     resolve_report_product_sales,
+    resolve_variant_by_id,
 )
 from .sorters import (
     AttributeSortingInput,
@@ -327,7 +328,8 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_variant(self, info, id, channel=None, **_kwargs):
         if channel is None:
             channel = get_default_channel_or_graphql_error().slug
-        variant = graphene.Node.get_node_from_global_id(info, id, ProductVariant)
+        _, id = graphene.Node.from_global_id(id)
+        variant = resolve_variant_by_id(info, id, channel_slug=channel)
         return ChannelContext(node=variant, channel_slug=channel) if variant else None
 
     def resolve_product_variants(self, info, ids=None, channel=None, **_kwargs):

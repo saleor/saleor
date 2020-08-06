@@ -298,7 +298,7 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_variant(root: models.OrderLine, _info):
         channel_slug = root.order.channel.slug if root.order.channel else None
-        return ChannelContext(node=root, channel_slug=channel_slug)
+        return ChannelContext(node=root.variant, channel_slug=channel_slug)
 
 
 class Order(CountableDjangoObjectType):

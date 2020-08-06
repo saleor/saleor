@@ -409,17 +409,6 @@ class ProductVariant(ChannelContextType, CountableDjangoObjectType):
     def resolve_images(root: ChannelContext, *_args):
         return root.node.images.all()
 
-    # FIXME: Implement access to node at resolver level if possible
-    # @classmethod
-    # def get_node(cls, info, pk):
-    #     user = info.context.user
-    #     channel = get_default_channel_or_graphql_error()
-    #     visible_products = models.Product.objects.visible_to_user(
-    #         user, channel.slug
-    #     ).values_list("pk", flat=True)
-    #     qs = cls._meta.model.objects.filter(product__id__in=visible_products)
-    #     return qs.filter(pk=pk).first()
-
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_private_meta(root: ChannelContext, _info):
@@ -650,16 +639,6 @@ class Product(ChannelContextType, CountableDjangoObjectType):
     @staticmethod
     def resolve_collections(root: ChannelContext, *_args):
         return root.node.collections.all()
-
-    # FIXME: Implement access to node at resolver level if possible
-    # @classmethod
-    # def get_node(cls, info, pk):
-    #     if info.context:
-    #         user = info.context.user
-    #         channel = get_default_channel_or_graphql_error()
-    #         qs = cls._meta.model.objects.visible_to_user(user, channel.slug)
-    #         return qs.filter(pk=pk).first()
-    #     return None
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
