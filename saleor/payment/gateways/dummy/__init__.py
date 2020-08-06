@@ -69,6 +69,14 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
         currency=payment_information.currency,
         transaction_id=payment_information.token,
         error=error,
+        payment_method_info=PaymentMethodInfo(
+            last_4="1234",
+            exp_year=2222,
+            exp_month=12,
+            brand="dummy_visa",
+            name="Holder name",
+            type="card",
+        ),
     )
 
 
