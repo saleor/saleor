@@ -637,7 +637,7 @@ def test_validate_auth_user_when_auth_is_disabled(adyen_plugin):
 def test_handle_additional_actions_post(api_call_mock, payment_adyen_for_checkout):
     # given
     payment_adyen_for_checkout.extra_data = json.dumps(
-        {"payment_data": "test_data", "parameters": ["payload"]}
+        [{"payment_data": "test_data", "parameters": ["payload"]}]
     )
     payment_adyen_for_checkout.save(update_fields=["extra_data"])
 

@@ -531,7 +531,9 @@ def handle_additional_actions(
     if response:
         return response
 
-    data = json.loads(payment.extra_data)
+    extra_data = json.loads(payment.extra_data)
+    data = extra_data[-1] if isinstance(extra_data, list) else extra_data
+
     return_url = payment.return_url
 
     if not return_url:
