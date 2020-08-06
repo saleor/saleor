@@ -613,12 +613,11 @@ def test_handle_additional_actions(payment_adyen_for_checkout):
     )
     payment_adyen_for_checkout.save(update_fields=["extra_data"])
 
+    checkout = payment_adyen_for_checkout.checkout
     payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
-    checkout_id = graphene.Node.to_global_id(
-        "Checkout", payment_adyen_for_checkout.checkout.pk
-    )
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     request_mock = mock.Mock()
-    request_mock.GET = {"payment": payment_id}
+    request_mock.GET = {"payment": payment_id, "checkout": checkout.pk}
     request_mock.POST = {"payload": "test"}
 
     payment_details_mock = mock.Mock()
@@ -644,12 +643,12 @@ def test_handle_additional_actions_more_action_required(payment_adyen_for_checko
     )
     payment_adyen_for_checkout.save(update_fields=["extra_data"])
 
+    checkout = payment_adyen_for_checkout.checkout
     payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
-    checkout_id = graphene.Node.to_global_id(
-        "Checkout", payment_adyen_for_checkout.checkout.pk
-    )
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
     request_mock = mock.Mock()
-    request_mock.GET = {"payment": payment_id}
+    request_mock.GET = {"payment": payment_id, "checkout": checkout.pk}
     request_mock.POST = {"payload": "test"}
 
     payment_details_mock = mock.Mock()
@@ -688,7 +687,10 @@ def test_handle_additional_actions_payment_does_not_exist(payment_adyen_for_chec
 
     payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
     request_mock = mock.Mock()
-    request_mock.GET = {"payment": payment_id}
+    request_mock.GET = {
+        "payment": payment_id,
+        "checkout": payment_adyen_for_checkout.checkout.pk,
+    }
     request_mock.POST = {"payload": "test"}
 
     payment_details_mock = mock.Mock()
@@ -720,7 +722,10 @@ def test_handle_additional_actions_payment_lack_of_return_url(
 
     payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
     request_mock = mock.Mock()
-    request_mock.GET = {"payment": payment_id}
+    request_mock.GET = {
+        "payment": payment_id,
+        "checkout": payment_adyen_for_checkout.checkout.pk,
+    }
     request_mock.POST = {"payload": "test"}
 
     payment_details_mock = mock.Mock()
@@ -761,3 +766,68 @@ def test_handle_additional_actions_no_payment_id_in_get(payment_adyen_for_checko
 
     # then
     assert response.status_code == 404
+
+
+def test_handle_additional_actions_checkout_not_related_to_payment(
+    payment_adyen_for_checkout,
+):
+    # given
+    payment_adyen_for_checkout.extra_data = json.dumps(
+        {"payment_data": "test_data", "parameters": ["payload"]}
+    )
+    payment_adyen_for_checkout.save(update_fields=["extra_data"])
+
+    payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
+
+    request_mock = mock.Mock()
+    request_mock.GET = {"payment": payment_id, "checkout": "123"}
+    request_mock.POST = {"payload": "test"}
+
+    payment_details_mock = mock.Mock()
+    message = {
+        "resultCode": "Test",
+    }
+    payment_details_mock.return_value.message = message
+
+    # when
+    response = handle_additional_actions(request_mock, payment_details_mock)
+
+    # then
+    assert response.status_code == 400
+    assert (
+        response.content.decode()
+        == "The given checkout is not related to the specified payment"
+    )
+
+
+def test_handle_additional_actions_payment_does_not_have_checkout(
+    payment_adyen_for_checkout,
+):
+    # given
+    payment_adyen_for_checkout.extra_data = json.dumps(
+        {"payment_data": "test_data", "parameters": ["payload"]}
+    )
+    payment_adyen_for_checkout.checkout = None
+    payment_adyen_for_checkout.save()
+
+    payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
+
+    request_mock = mock.Mock()
+    request_mock.GET = {"payment": payment_id, "checkout": "123"}
+    request_mock.POST = {"payload": "test"}
+
+    payment_details_mock = mock.Mock()
+    message = {
+        "resultCode": "Test",
+    }
+    payment_details_mock.return_value.message = message
+
+    # when
+    response = handle_additional_actions(request_mock, payment_details_mock)
+
+    # then
+    assert response.status_code == 400
+    assert (
+        response.content.decode()
+        == "The given payment does not have the corresponding checkout."
+    )

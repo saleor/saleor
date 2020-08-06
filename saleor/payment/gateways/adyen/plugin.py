@@ -12,6 +12,7 @@ from graphql_relay import from_global_id
 from ....checkout.models import Checkout
 from ....core.utils import build_absolute_uri
 from ....core.utils.url import prepare_url
+from ....payment.models import Payment
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import PaymentError, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentGateway
@@ -235,7 +236,21 @@ class AdyenGatewayPlugin(BasePlugin):
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        params = urlencode({"payment": payment_information.payment_id})
+        _type, payment_pk = from_global_id(payment_information.payment_id)
+        try:
+            payment = Payment.objects.get(pk=payment_pk)
+        except ObjectDoesNotExist:
+            raise PaymentError("Payment cannot be performed. Payment does not exists.")
+
+        checkout = payment.checkout
+        if checkout is None:
+            raise PaymentError(
+                "Payment cannot be performed. Checkout for this payment does not exist."
+            )
+
+        params = urlencode(
+            {"payment": payment_information.payment_id, "checkout": checkout.pk}
+        )
         return_url = prepare_url(
             params,
             build_absolute_uri(
@@ -259,15 +274,9 @@ class AdyenGatewayPlugin(BasePlugin):
         action = result.message.get("action")
         error_message = result.message.get("refusalReason")
         if action:
-            try:
-                update_payment_with_action_required_data(
-                    payment_information.payment_id,
-                    action,
-                    result.message.get("details", []),
-                )
-            except ObjectDoesNotExist:
-                is_success = False
-                error_message = "Payment cannot be performed. Payment does not exists."
+            update_payment_with_action_required_data(
+                payment, action, result.message.get("details", []),
+            )
 
         return GatewayResponse(
             is_success=is_success,
