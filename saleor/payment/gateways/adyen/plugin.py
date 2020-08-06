@@ -11,7 +11,7 @@ from ....checkout.models import Checkout
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import PaymentError, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentGateway
-from ...models import Transaction
+from ...models import Payment, Transaction
 from ..utils import get_supported_currencies
 from .utils import (
     api_call,
@@ -293,19 +293,38 @@ class AdyenGatewayPlugin(BasePlugin):
     def confirm_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        additional_data = payment_information.data
-        result = api_call(additional_data, self.adyen.checkout.payments)
-        is_success = result.message["resultCode"].strip().lower() not in FAILED_STATUSES
 
+        _type, payment_id = from_global_id(payment_information.payment_id)
+
+        # The additional checks are proceed asynchronously so we try to confirm that
+        # the payment is already processed
+        payment = Payment.objects.filter(id=payment_id).first()
+        if not payment:
+            raise PaymentError("Unable to find the payment.")
+
+        transaction = (
+            payment.transactions.filter(
+                payment__id=payment_id,
+                kind__in=[TransactionKind.AUTH, TransactionKind.CAPTURE],
+                is_success=True,
+            )
+            .exclude(token__isnull=True, token__exact="")
+            .last()
+        )
+        if not transaction:
+            raise PaymentError(
+                "Unable to finish the payment. Payment needs to be confirm by external "
+                "source."
+            )
         return GatewayResponse(
-            is_success=is_success,
-            action_required="action" in result.message,
+            is_success=transaction.is_success,
+            action_required=False,
             kind=TransactionKind.CONFIRM,
-            amount=payment_information.amount,
-            currency=payment_information.currency,
-            transaction_id=result.get("pspReference", ""),
-            error=result.message.get("refusalReason"),
-            raw_response=result.message,
+            amount=transaction.amount,
+            currency=transaction.currency,
+            transaction_id=transaction.token,
+            error=None,
+            raw_response={},
         )
 
     @require_active_plugin
@@ -317,7 +336,7 @@ class AdyenGatewayPlugin(BasePlugin):
         # we take Auth kind because it contains the transaction id that we need
         transaction = (
             Transaction.objects.filter(
-                payment__id=payment_id, kind=TransactionKind.AUTH
+                payment__id=payment_id, kind=TransactionKind.AUTH, is_success=True
             )
             .exclude(token__isnull=True, token__exact="")
             .last()
@@ -351,7 +370,7 @@ class AdyenGatewayPlugin(BasePlugin):
         _type, payment_id = from_global_id(payment_information.payment_id)
         transaction = (
             Transaction.objects.filter(
-                payment__id=payment_id, kind=TransactionKind.AUTH
+                payment__id=payment_id, kind=TransactionKind.AUTH, is_success=True
             )
             .exclude(token__isnull=True, token__exact="")
             .last()
