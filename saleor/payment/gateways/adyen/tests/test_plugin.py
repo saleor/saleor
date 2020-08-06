@@ -86,17 +86,33 @@ def test_process_payment_with_auto_capture(
     assert response.error is None
 
 
-@pytest.mark.vcr
-@pytest.mark.skip(reason="To finish when additional auth data schema will be known")
 def test_confirm_payment(payment_adyen_for_order, adyen_plugin):
-    return  # test it when we will have additional auth data
-    payment_info = create_payment_information(
-        payment_adyen_for_order,
-        # additional_data=...
+    payment_info = create_payment_information(payment_adyen_for_order,)
+    gateway_response = GatewayResponse(
+        kind=TransactionKind.AUTH,
+        action_required=False,
+        transaction_id="882595494831959A",
+        is_success=True,
+        amount=payment_info.amount,
+        currency=payment_info.currency,
+        error="",
+        raw_response={},
+    )
+
+    auth_transaction = create_transaction(
+        payment=payment_adyen_for_order,
+        payment_information=payment_info,
+        kind=TransactionKind.AUTH,
+        gateway_response=gateway_response,
     )
     adyen_plugin = adyen_plugin()
     response = adyen_plugin.confirm_payment(payment_info, None)
-    assert response
+
+    assert response is not None
+    assert response.is_success is True
+    assert response.kind == TransactionKind.CONFIRM
+    assert response.amount == auth_transaction.amount
+    assert response.currency == auth_transaction.currency
 
 
 @pytest.mark.vcr
@@ -109,7 +125,7 @@ def test_refund_payment(payment_adyen_for_order, order_with_lines, adyen_plugin)
         kind=TransactionKind.AUTH,
         action_required=False,
         transaction_id="882595494831959A",
-        is_success=False,
+        is_success=True,
         amount=payment_info.amount,
         currency=payment_info.currency,
         error="",
@@ -141,7 +157,7 @@ def test_capture_payment(payment_adyen_for_order, order_with_lines, adyen_plugin
         kind=TransactionKind.AUTH,
         action_required=False,
         transaction_id="882595494831959A",
-        is_success=False,
+        is_success=True,
         amount=payment_info.amount,
         currency=payment_info.currency,
         error="",
