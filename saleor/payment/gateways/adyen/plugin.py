@@ -12,11 +12,10 @@ from graphql_relay import from_global_id
 from ....checkout.models import Checkout
 from ....core.utils import build_absolute_uri
 from ....core.utils.url import prepare_url
-from ....payment.models import Payment
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import PaymentError, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentGateway
-from ...models import Transaction
+from ...models import Payment, Transaction
 from ..utils import get_supported_currencies
 from .utils import (
     api_call,
