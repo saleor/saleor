@@ -79,8 +79,11 @@ graphene-django==2.12.1
 graphene-federation==0.1.0
 graphql-core==2.3.2
 graphql-relay==2.0.1
+gunicorn==20.0.4
+h11==0.9.0
 html-to-draftjs==1.0.1
 html5lib==1.1
+httptools==0.1.1; sys_platform != "win32" and sys_platform != "cygwin" and platform_python_implementation != "PyPy"
 identify==1.4.23
 idna==2.10
 iniconfig==1.0.1
@@ -181,11 +184,13 @@ typing==3.7.4.3
 typing-extensions==3.7.4.2
 unidecode==1.1.1
 urllib3==1.25.9
-uwsgi==2.0.19.1; sys_platform != "win32"
+uvicorn==0.11.8
+uvloop==0.14.0; sys_platform != "win32" and sys_platform != "cygwin" and platform_python_implementation != "PyPy"
 vcrpy==4.0.2
 vine==1.3.0
 virtualenv==20.0.27
 weasyprint==51
 webencodings==0.5.1
+websockets==8.1
 wrapt==1.12.1
 yarl==1.4.2; python_version >= "3.6"
