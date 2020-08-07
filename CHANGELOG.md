@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add App support - #5767 by @korycins
 - Add webhook handler to BasePlugin and PluginManager - #5884 by @korycins
 - Invoices backend - #5732 by @tomaszszymanski129
+- Support pushing webhook events to message queues - #5940 by @patrys, @korycins
 
 ### Breaking Changes
 
