@@ -1,5 +1,5 @@
 from tempfile import NamedTemporaryFile
-from typing import IO, TYPE_CHECKING, Dict, List, Set, Union
+from typing import IO, TYPE_CHECKING, Any, Dict, List, Set, Union
 
 import petl as etl
 from django.utils import timezone
@@ -32,7 +32,7 @@ def export_products(
         export_info
     )
 
-    create_file_with_headers(file_headers, delimiter, export_file, file_name, file_type)
+    temporary_file = create_file_with_headers(file_headers, delimiter, file_type)
 
     export_products_in_batches(
         queryset,
@@ -40,9 +40,12 @@ def export_products(
         set(export_fields),
         data_headers,
         delimiter,
-        export_file,
+        temporary_file,
         file_type,
     )
+
+    save_csv_file_in_export_file(export_file, temporary_file, file_name)
+    temporary_file.close()
 
     if export_file.user:
         send_email_with_link_to_download_file(
@@ -97,7 +100,7 @@ def export_products_in_batches(
     export_fields: Set[str],
     headers: List[str],
     delimiter: str,
-    export_file: "ExportFile",
+    temporary_file: Any,
     file_type: str,
 ):
     warehouses = export_info.get("warehouses")
@@ -117,40 +120,36 @@ def export_products_in_batches(
             product_batch, export_fields, attributes, warehouses
         )
 
-        append_to_file(export_data, headers, export_file, file_type, delimiter)
+        append_to_file(export_data, headers, temporary_file, file_type, delimiter)
 
 
 def create_file_with_headers(
-    file_headers: List[str],
-    delimiter: str,
-    export_file: "ExportFile",
-    file_name: str,
-    file_type: str,
+    file_headers: List[str], delimiter: str, file_type: str,
 ):
     table = etl.wrap([file_headers])
 
-    with NamedTemporaryFile() as temporary_file:
-        if file_type == FileTypes.CSV:
-            etl.tocsv(table, temporary_file.name, delimiter=delimiter)
-        else:
-            etl.io.xlsx.toxlsx(table, temporary_file.name)
+    temp_file = NamedTemporaryFile("ab+")
+    if file_type == FileTypes.CSV:
+        etl.tocsv(table, temp_file.name, delimiter=delimiter)
+    else:
+        etl.io.xlsx.toxlsx(table, temp_file.name)
 
-        save_csv_file_in_export_file(export_file, temporary_file, file_name)
+    return temp_file
 
 
 def append_to_file(
     export_data: List[Dict[str, Union[str, bool]]],
     headers: List[str],
-    export_file: "ExportFile",
+    temporary_file: Any,
     file_type: str,
     delimiter: str,
 ):
     table = etl.fromdicts(export_data, header=headers, missing=" ")
 
     if file_type == FileTypes.CSV:
-        etl.io.csv.appendcsv(table, export_file.content_file, delimiter=delimiter)
+        etl.io.csv.appendcsv(table, temporary_file.name, delimiter=delimiter)
     else:
-        etl.io.xlsx.appendxlsx(table, export_file.content_file.path)
+        etl.io.xlsx.appendxlsx(table, temporary_file.name)
 
 
 def save_csv_file_in_export_file(
