@@ -1194,7 +1194,7 @@ class ProductVariantCreate(ModelMutation):
             cleaned_input["cost_price_amount"] = cost_price
 
         price = cleaned_input.get("price")
-        if price is None:
+        if price is None and instance.price is None:
             raise ValidationError(
                 {
                     "price": ValidationError(
