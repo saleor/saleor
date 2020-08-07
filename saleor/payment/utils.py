@@ -77,6 +77,7 @@ def create_payment(
     extra_data: Dict = None,
     checkout: Checkout = None,
     order: Order = None,
+    return_url: str = None,
 ) -> Payment:
     """Create a payment instance.
 
@@ -123,6 +124,7 @@ def create_payment(
         "currency": currency,
         "gateway": gateway,
         "total": total,
+        "return_url": return_url,
     }
 
     payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
@@ -215,6 +217,13 @@ def gateway_postprocess(transaction, payment):
         payment.save(update_fields=["to_confirm"])
         return
 
+    changed_fields = []
+    # to_confirm is defined by the transaction.action_required. Payment doesn't
+    # require confirmation when we got action_required == False
+    if payment.to_confirm:
+        payment.to_confirm = False
+        changed_fields.append("to_confirm")
+
     transaction_kind = transaction.kind
 
     if transaction_kind in {
@@ -229,28 +238,26 @@ def gateway_postprocess(transaction, payment):
         payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
         if payment.get_charge_amount() <= 0:
             payment.charge_status = ChargeStatus.FULLY_CHARGED
-
-        payment.save(update_fields=["charge_status", "captured_amount", "modified"])
+        changed_fields += ["charge_status", "captured_amount", "modified"]
 
     elif transaction_kind == TransactionKind.VOID:
         payment.is_active = False
-        payment.save(update_fields=["is_active", "modified"])
+        changed_fields += ["is_active", "modified"]
 
     elif transaction_kind == TransactionKind.REFUND:
-        changed_fields = ["captured_amount", "modified"]
+        changed_fields += ["captured_amount", "modified"]
         payment.captured_amount -= transaction.amount
         payment.charge_status = ChargeStatus.PARTIALLY_REFUNDED
         if payment.captured_amount <= 0:
             payment.charge_status = ChargeStatus.FULLY_REFUNDED
             payment.is_active = False
         changed_fields += ["charge_status", "is_active"]
-        payment.save(update_fields=changed_fields)
     elif transaction_kind == TransactionKind.PENDING:
         payment.charge_status = ChargeStatus.PENDING
-        payment.save(update_fields=["charge_status"])
+        changed_fields += ["charge_status"]
     elif transaction_kind == TransactionKind.CANCEL:
         payment.charge_status = ChargeStatus.CANCELLED
-        payment.save(update_fields=["charge_status"])
+        changed_fields += ["charge_status"]
     elif transaction_kind == TransactionKind.CAPTURE_FAILED:
         if payment.charge_status in {
             ChargeStatus.PARTIALLY_CHARGED,
@@ -260,8 +267,9 @@ def gateway_postprocess(transaction, payment):
             payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
             if payment.captured_amount <= 0:
                 payment.charge_status = ChargeStatus.NOT_CHARGED
-
-            payment.save(update_fields=["charge_status", "captured_amount", "modified"])
+            changed_fields += ["charge_status", "captured_amount", "modified"]
+    if changed_fields:
+        payment.save(update_fields=changed_fields)
 
 
 def fetch_customer_id(user: User, gateway: str):
