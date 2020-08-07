@@ -900,7 +900,7 @@ type Checkout implements Node & ObjectWithMetadata {
   lastChange: DateTime!
   user: User
   quantity: Int!
-  channel: Channel
+  channel: Channel!
   billingAddress: Address
   shippingAddress: Address
   shippingMethod: ShippingMethod

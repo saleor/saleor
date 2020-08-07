@@ -19,7 +19,7 @@ from ...checkout.utils import (
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     create_order,
-    get_user_checkout,
+    get_or_create_user_checkout,
     get_valid_shipping_methods_for_checkout,
     prepare_order_data,
     recalculate_checkout_discount,
@@ -258,7 +258,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         cleaned_input = super().clean_input(info, instance, data)
         user = info.context.user
         country = info.context.country.code
-
         cleaned_input["channel"] = cls.clean_channel(cleaned_input.get("channel"))
 
         # set country to one from shipping address
@@ -342,7 +341,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # `perform_mutation` is overridden to properly get or create a checkout
         # instance here and abort mutation if needed.
         if user.is_authenticated:
-            checkout, _ = get_user_checkout(user)
+            channel = cls.clean_channel(data.get("channel"))
+            checkout, _ = get_or_create_user_checkout(user, channel)
 
             if checkout is not None:
                 # If user has an active checkout, return it without any

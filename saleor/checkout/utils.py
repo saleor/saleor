@@ -48,8 +48,8 @@ from . import AddressType
 from .models import Checkout, CheckoutLine
 
 
-def get_user_checkout(
-    user: User, checkout_queryset=Checkout.objects.all(), auto_create=False
+def get_or_create_user_checkout(
+    user: User, channel, checkout_queryset=Checkout.objects.all(), auto_create=False
 ) -> Tuple[Optional[Checkout], bool]:
     """Return an active checkout for given user or None if no auto create.
 
@@ -62,8 +62,15 @@ def get_user_checkout(
             defaults={
                 "shipping_address": user.default_shipping_address,
                 "billing_address": user.default_billing_address,
+                "channel": channel,
             },
         )
+    return get_user_checkout(user)
+
+
+def get_user_checkout(
+    user: User, checkout_queryset=Checkout.objects.all()
+) -> Tuple[Optional[Checkout], bool]:
     return checkout_queryset.filter(user=user).first(), False
 
 

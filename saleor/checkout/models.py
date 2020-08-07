@@ -65,7 +65,7 @@ class Checkout(ModelWithMetadata):
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     quantity = models.PositiveIntegerField(default=0)
     channel = models.ForeignKey(
-        Channel, null=True, related_name="checkouts", on_delete=models.PROTECT,
+        Channel, related_name="checkouts", on_delete=models.PROTECT,
     )
     billing_address = models.ForeignKey(
         Address, related_name="+", editable=False, null=True, on_delete=models.SET_NULL
