@@ -1185,8 +1185,8 @@ def test_product_variant_bulk_create_stocks_input(
     assert product_variant_count + 2 == ProductVariant.objects.count()
     assert attribute_value_count + 1 == size_attribute.values.count()
 
-    expected_result = [
-        {
+    expected_result = {
+        variants[0]["sku"]: {
             "sku": variants[0]["sku"],
             "stocks": [
                 {
@@ -1196,7 +1196,7 @@ def test_product_variant_bulk_create_stocks_input(
             ],
             "price": {"amount": 10.0},
         },
-        {
+        variants[1]["sku"]: {
             "sku": variants[1]["sku"],
             "stocks": [
                 {
@@ -1210,10 +1210,14 @@ def test_product_variant_bulk_create_stocks_input(
             ],
             "price": {"amount": 10.0},
         },
-    ]
+    }
     for variant_data in data["productVariants"]:
         variant_data.pop("id")
-        assert variant_data in expected_result
+        assert variant_data["sku"] in expected_result
+        expected_variant = expected_result[variant_data["sku"]]
+        expected_stocks = expected_variant["stocks"]
+        assert variant_data["price"] == expected_variant["price"]
+        assert all([stock in expected_stocks for stock in variant_data["stocks"]])
 
 
 def test_product_variant_bulk_create_duplicated_warehouses(
