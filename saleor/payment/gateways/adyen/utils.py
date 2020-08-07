@@ -92,7 +92,6 @@ def request_data_for_payment(
     method = payment_method.get("type", [])
     if "klarna" in method:
         request_data = append_klarna_data(payment_information, request_data)
-
     return request_data
 
 
@@ -106,10 +105,11 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     lines = checkout.lines.prefetch_related("variant").all()
     discounts = fetch_active_discounts()
     currency = payment_information.currency
+    country_code = checkout.get_country()
 
-    payment_data["shopperLocale"] = get_shopper_locale_value()
+    payment_data["shopperLocale"] = get_shopper_locale_value(country_code)
     payment_data["shopperReference"] = payment_information.customer_email
-    payment_data["countryCode"] = checkout.get_country()
+    payment_data["countryCode"] = country_code
     payment_data["shopperEmail"] = payment_information.customer_email
     line_items = []
     for line in lines:
@@ -131,30 +131,29 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     return payment_data
 
 
-def get_shopper_locale_value():
+def get_shopper_locale_value(country_code: str):
     # Remove this function when "shopperLocale" will come from frontend site
-    language_code_to_shopper_locale_value = {
+    country_code_to_shopper_locale_value = {
         # https://docs.adyen.com/checkout/components-web/
         # localization-components#change-language
-        "zh": "zh_CN",
-        "da": "da_DK",
-        "nl": "nl_NL",
-        "en": "en_US",
-        "fi": "fi_FI",
-        "fr": "fr_FR",
-        "de": "de_DE",
-        "it": "it_IT",
-        "ja": "ja_JP",
-        "ko": "ko_KR",
-        "no": "no_NO",
-        "pl": "pl_PL",
-        "pt": "pt_BR",
-        "ru": "ru_RU",
-        "es": "es_ES",
-        "sv": "sv_SE",
+        "CN": "zh_CN",
+        "DK": "da_DK",
+        "NL": "nl_NL",
+        "US": "en_US",
+        "FI": "fi_FI",
+        "FR": "fr_FR",
+        "DR": "de_DE",
+        "IT": "it_IT",
+        "JP": "ja_JP",
+        "KR": "ko_KR",
+        "NO": "no_NO",
+        "PL": "pl_PL",
+        "BR": "pt_BR",
+        "RU": "ru_RU",
+        "ES": "es_ES",
+        "SE": "sv_SE",
     }
-    default_language_code = settings.LANGUAGE_CODE
-    return language_code_to_shopper_locale_value.get(default_language_code, "en_US")
+    return country_code_to_shopper_locale_value.get(country_code, "en_US")
 
 
 def request_data_for_gateway_config(
