@@ -17,14 +17,11 @@ from ..utils import (
 
 
 @pytest.mark.parametrize(
-    "language_code, shopper_locale", [("ja", "ja_JP"), ("zz", "en_US"), ("en", "en_US")]
+    "country_code, shopper_locale", [("JP", "ja_JP"), ("ZZ", "en_US"), ("US", "en_US")]
 )
-def test_get_shopper_locale_value(language_code, shopper_locale, settings):
-    # given
-    settings.LANGUAGE_CODE = language_code
-
+def test_get_shopper_locale_value(country_code, shopper_locale, settings):
     # when
-    result = get_shopper_locale_value()
+    result = get_shopper_locale_value(country_code)
 
     # then
     assert result == shopper_locale
