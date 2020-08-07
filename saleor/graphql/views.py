@@ -1,3 +1,4 @@
+import fnmatch
 import json
 import logging
 import traceback
@@ -91,12 +92,18 @@ class GraphQLView(View):
         else:
             return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
         # Add access control headers
-        response["Access-Control-Allow-Origin"] = settings.ALLOWED_GRAPHQL_ORIGINS
-        response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-        response[
-            "Access-Control-Allow-Headers"
-        ] = "Origin, Content-Type, Accept, Authorization"
-        response["Access-Control-Allow-Credentials"] = "true"
+        if "HTTP_ORIGIN" in request.META:
+            for origin in settings.ALLOWED_GRAPHQL_ORIGINS:
+                if fnmatch.fnmatchcase(request.META["HTTP_ORIGIN"], origin):
+                    response["Access-Control-Allow-Origin"] = request.META[
+                        "HTTP_ORIGIN"
+                    ]
+                    response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+                    response[
+                        "Access-Control-Allow-Headers"
+                    ] = "Origin, Content-Type, Accept, Authorization"
+                    response["Access-Control-Allow-Credentials"] = "true"
+                    break
         return response
 
     def render_playground(self, request):
