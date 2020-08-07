@@ -1,4 +1,3 @@
-import json
 import logging
 from enum import Enum
 from urllib.parse import urlparse, urlunparse
@@ -56,8 +55,13 @@ def send_webhook_using_http(target_url, message, domain, signature, event_type):
         "Content-Type": "application/json",
         "X-Saleor-Event": event_type,
         "X-Saleor-Domain": domain,
-        "X-Saleor-HMAC-SHA256": signature,
+        "X-Saleor-Signature": signature,
     }
+
+    if signature:
+        # This header is depreceated and will be removed in Saleor3.0
+        headers["X-Saleor-HMAC-SHA256"] = f"sha1={signature}"
+
     response = requests.post(
         target_url, data=message, headers=headers, timeout=WEBHOOK_TIMEOUT
     )
@@ -113,7 +117,7 @@ def send_webhook_using_google_cloud_pubsub(
 def send_webhook_request(webhook_id, target_url, secret, event_type, data):
     parts = urlparse(target_url)
     domain = Site.objects.get_current().domain
-    message = json.dumps(data).encode("utf-8")
+    message = data.encode("utf-8")
     signature = signature_for_payload(message, secret)
     if parts.scheme.lower() in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
         send_webhook_using_http(target_url, message, domain, signature, event_type)

@@ -17,36 +17,6 @@ from ...manager import get_plugins_manager
 from ...webhook import signature_for_payload
 from ...webhook.tasks import trigger_webhooks_for_event
 
-
-@pytest.mark.vcr
-@mock.patch("saleor.plugins.webhook.tasks.requests.post", wraps=requests.post)
-def test_trigger_webhooks_for_event(
-    mock_request,
-    webhook,
-    order_with_lines,
-    permission_manage_orders,
-    permission_manage_users,
-    permission_manage_products,
-):
-    webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = "https://webhook.site/75048668-439a-4e54-853b-6f081a6fb6cf"
-    webhook.save()
-
-    expected_data = serialize("json", [order_with_lines])
-
-    trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, expected_data)
-
-    expected_headers = {
-        "Content-Type": "application/json",
-        "X-Saleor-Event": "order_created",
-        "X-Saleor-Domain": "mirumee.com",
-    }
-
-    mock_request.assert_called_once_with(
-        webhook.target_url, data=expected_data, headers=expected_headers, timeout=10
-    )
-
-
 first_url = "http://www.example.com/first/"
 third_url = "http://www.example.com/third/"
 
@@ -113,23 +83,29 @@ def test_trigger_webhooks_for_event_with_secret_key(
     mock_request, webhook, order_with_lines, permission_manage_orders
 ):
     webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = "https://webhook.site/75048668-439a-4e54-853b-6f081a6fb6cf"
+    webhook.target_url = "https://webhook.site/48978b64-4efb-43d5-a334-451a1d164009"
     webhook.secret_key = "secret_key"
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
     trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, expected_data)
 
-    expected_signature = signature_for_payload(expected_data, webhook.secret_key)
+    expected_signature = signature_for_payload(
+        expected_data.encode("utf-8"), webhook.secret_key
+    )
     expected_headers = {
         "Content-Type": "application/json",
         "X-Saleor-Event": "order_created",
         "X-Saleor-Domain": "mirumee.com",
-        "X-Saleor-HMAC-SHA256": expected_signature,
+        "X-Saleor-Signature": expected_signature,
+        "X-Saleor-HMAC-SHA256": f"sha1={expected_signature}",
     }
 
     mock_request.assert_called_once_with(
-        webhook.target_url, data=expected_data, headers=expected_headers, timeout=10
+        webhook.target_url,
+        data=bytes(expected_data, "utf-8"),
+        headers=expected_headers,
+        timeout=10,
     )
 
 
