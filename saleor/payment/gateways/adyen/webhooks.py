@@ -3,14 +3,25 @@ import binascii
 import hashlib
 import hmac
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
+from urllib.parse import urlencode
 
+import Adyen
+import graphene
 from django.contrib.auth.hashers import check_password
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
+from django.http import (
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseNotFound,
+    QueryDict,
+)
 from django.http.request import HttpHeaders
+from django.shortcuts import redirect
 from graphql_relay import from_global_id
 
+from ....core.utils.url import prepare_url
 from ....order.actions import (
     cancel_order,
     order_authorized,
@@ -19,10 +30,11 @@ from ....order.actions import (
 )
 from ....order.events import external_notification_event
 from ....payment.models import Payment, Transaction
-from ... import ChargeStatus, TransactionKind
+from ... import ChargeStatus, PaymentError, TransactionKind
+from ...gateway import capture
 from ...interface import GatewayConfig, GatewayResponse
-from ...utils import create_transaction, gateway_postprocess
-from .utils import convert_adyen_price_format
+from ...utils import create_payment_information, create_transaction, gateway_postprocess
+from .utils import api_call, convert_adyen_price_format
 
 
 def get_payment(payment_id: Optional[str]) -> Optional[Payment]:
@@ -90,18 +102,22 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
         ChargeStatus.PARTIALLY_CHARGED,
     }:
         return
-    mark_capture = gateway_config.auto_capture
-    if mark_capture:
-        # If we mark order as a capture by default we don't need to handle auth actions
-        return
+
+    kind = TransactionKind.AUTH
+    adyen_auto_capture = gateway_config.connection_params["adyen_auto_capture"]
+    if adyen_auto_capture:
+        kind = TransactionKind.CAPTURE
 
     transaction_id = notification.get("pspReference")
-    transaction = get_transaction(payment, transaction_id, TransactionKind.AUTH)
-    if transaction:
-        # We already marked it as Auth
+    transaction = payment.transactions.filter(
+        token=transaction_id, kind__in=[TransactionKind.AUTH, TransactionKind.CAPTURE]
+    ).first()
+
+    if transaction and transaction.is_success:
+        # We already have this transaction
         return
 
-    transaction = create_new_transaction(notification, payment, TransactionKind.AUTH)
+    transaction = create_new_transaction(notification, payment, kind)
     reason = notification.get("reason", "-")
 
     success_msg = f"Adyen: The payment  {transaction_id} request  was successful."
@@ -109,8 +125,17 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
     create_payment_notification_for_order(
         payment, success_msg, failed_msg, transaction.is_success
     )
-    if payment.order:
+    if not payment.order:
+        return
+
+    # If saleor has enabled auto capture we need to proceed the capture action.
+    if gateway_config.auto_capture:
+        capture(payment, amount=transaction.amount)
+
+    if kind == TransactionKind.AUTH:
         order_authorized(payment.order, None, transaction.amount, payment)
+    elif kind == TransactionKind.CAPTURE:
+        order_captured(payment.order, None, transaction.amount, payment)
 
 
 def handle_cancellation(notification: Dict[str, Any], _gateway_config: GatewayConfig):
@@ -207,10 +232,6 @@ def handle_failed_capture(notification: Dict[str, Any], _gateway_config: Gateway
 def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
     # https://docs.adyen.com/development-resources/webhooks/understand-notifications#
     # event-codes"
-    mark_capture = gateway_config.auto_capture
-    if mark_capture:
-        # If we mark order as a capture by default we don't need to handle this action
-        return
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
         return
@@ -486,3 +507,147 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
         event_handler(notification, gateway_config)
         return HttpResponse("[accepted]")
     return HttpResponseNotFound()
+
+
+def handle_additional_actions(
+    request: WSGIRequest,
+    payment_details: Callable,
+    adyen_auto_capture: bool,
+    auto_capture: bool,
+):
+    payment_id = request.GET.get("payment")
+    checkout_pk = request.GET.get("checkout")
+
+    if not payment_id or not checkout_pk:
+        return HttpResponseNotFound()
+
+    _type, payment_pk = from_global_id(payment_id)
+    try:
+        payment = Payment.objects.get(
+            pk=payment_pk,
+            checkout__pk=checkout_pk,
+            is_active=True,
+            gateway="mirumee.payments.adyen",
+        )
+    except ObjectDoesNotExist:
+        return HttpResponseNotFound(
+            "Cannot perform payment. "
+            "There is no active adyen payment with specified checkout."
+        )
+
+    extra_data = json.loads(payment.extra_data)
+    data = extra_data[-1] if isinstance(extra_data, list) else extra_data
+
+    return_url = payment.return_url
+
+    if not return_url:
+        return HttpResponseNotFound(
+            "Cannot perform payment. Lack of data about returnUrl."
+        )
+
+    try:
+        request_data = prepare_api_request_data(request, data)
+    except KeyError as e:
+        return HttpResponseBadRequest(e.args[0])
+
+    try:
+        result = api_call(request_data, payment_details)
+    except PaymentError as e:
+        return HttpResponseBadRequest(str(e))
+
+    handle_api_response(payment, result, adyen_auto_capture, auto_capture)
+
+    redirect_url = prepare_redirect_url(payment_id, checkout_pk, result, return_url)
+
+    return redirect(redirect_url)
+
+
+def prepare_api_request_data(request: WSGIRequest, data: dict):
+    if "parameters" not in data or "payment_data" not in data:
+        raise KeyError(
+            "Cannot perform payment. Lack of payment data and parameters information."
+        )
+
+    params = data["parameters"]
+    request_data: "QueryDict" = QueryDict("")
+
+    if all([param in request.GET for param in params]):
+        request_data = request.GET
+    elif all([param in request.POST for param in params]):
+        request_data = request.POST
+
+    if not request_data:
+        raise KeyError(
+            "Cannot perform payment. Lack of required parameters in request."
+        )
+
+    api_request_data = {
+        "paymentData": data["payment_data"],
+        "details": {key: request_data[key] for key in params},
+    }
+    return api_request_data
+
+
+def prepare_redirect_url(
+    payment_id: str, checkout_pk: str, api_response: Adyen.Adyen, return_url: str
+):
+    checkout_id = graphene.Node.to_global_id(
+        "Checkout", checkout_pk  # type: ignore
+    )
+
+    params = {
+        "checkout": checkout_id,
+        "payment": payment_id,
+        "resultCode": api_response.message["resultCode"],
+    }
+
+    # Check if further action is needed.
+    if "action" in api_response.message:
+        params.update(api_response.message["action"])
+
+    return prepare_url(urlencode(params), return_url)
+
+
+def handle_api_response(
+    payment: Payment,
+    response: Adyen.Adyen,
+    adyen_auto_capture: bool,
+    auto_capture: bool,
+):
+    kind = TransactionKind.AUTH
+    if adyen_auto_capture:
+        kind = TransactionKind.CAPTURE
+
+    payment_data = create_payment_information(
+        payment=payment, payment_token=payment.token,
+    )
+
+    action_required = False
+    error_message = response.message.get("refusalReason")
+    if "action" in response.message:
+        action_required = True
+
+    gateway_response = GatewayResponse(
+        is_success=True if error_message else False,
+        action_required=action_required,
+        kind=kind,
+        amount=payment_data.amount,
+        currency=payment_data.currency,
+        transaction_id=response.message.get("pspReference", ""),
+        error=error_message,
+        raw_response=response.message,
+        action_required_data=response.message.get("action"),
+    )
+
+    transaction = create_transaction(
+        payment=payment,
+        kind=kind,
+        action_required=action_required,
+        payment_information=payment_data,
+        gateway_response=gateway_response,
+    )
+
+    if auto_capture:
+        transaction = capture(payment, amount=transaction.amount)
+
+    gateway_postprocess(transaction, payment)

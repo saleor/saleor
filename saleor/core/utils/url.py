@@ -1,4 +1,4 @@
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlsplit
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -26,3 +26,10 @@ def validate_storefront_url(url):
             "`ALLOWED_CLIENT_HOSTS` configuration."
         )
         raise ValidationError(error_message)
+
+
+def prepare_url(params: str, redirect_url: str) -> str:
+    """Add params to redirect url."""
+    split_url = urlsplit(redirect_url)
+    split_url = split_url._replace(query=params)
+    return split_url.geturl()

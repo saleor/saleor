@@ -3,13 +3,11 @@ from unittest import mock
 
 import graphene
 import pytest
-from django.contrib.auth.hashers import make_password
 
-from saleor.order import OrderStatus
-from saleor.payment import ChargeStatus, TransactionKind
-
-from ..utils import get_price_amount
-from ..webhooks import (
+from ......order import OrderStatus
+from ..... import ChargeStatus, TransactionKind
+from ...utils import get_price_amount
+from ...webhooks import (
     create_new_transaction,
     handle_authorization,
     handle_cancel_or_refund,
@@ -20,39 +18,8 @@ from ..webhooks import (
     handle_pending,
     handle_refund,
     handle_reversed_refund,
-    validate_auth_user,
-    validate_hmac_signature,
     webhook_not_implemented,
 )
-
-
-@pytest.fixture()
-def notification():
-    def fun(
-        event_code=None,
-        success=None,
-        psp_reference=None,
-        merchant_reference=None,
-        value=None,
-    ):
-        event_code = event_code or "AUTHORISATION"
-        success = success or "true"
-        psp_reference = psp_reference or "852595499936560C"
-        merchant_reference = merchant_reference or "UGF5bWVudDoxNw=="
-        value = value or 1130
-
-        return {
-            "additionalData": {},
-            "eventCode": event_code,
-            "success": success,
-            "eventDate": "2019-06-28T18:03:50+01:00",
-            "merchantAccountCode": "SaleorECOM",
-            "pspReference": psp_reference,
-            "merchantReference": merchant_reference,
-            "amount": {"value": value, "currency": "USD"},
-        }
-
-    return fun
 
 
 def test_handle_authorization(notification, adyen_plugin, payment_adyen_for_order):
@@ -71,7 +38,7 @@ def test_handle_authorization(notification, adyen_plugin, payment_adyen_for_orde
     assert transaction.kind == TransactionKind.AUTH
 
 
-def test_handle_authorization_with_autocapture(
+def test_handle_authorization_with_adyen_auto_capture(
     notification, adyen_plugin, payment_adyen_for_order
 ):
     payment = payment_adyen_for_order
@@ -81,24 +48,50 @@ def test_handle_authorization_with_autocapture(
         value=get_price_amount(payment.total, payment.currency),
     )
     config = adyen_plugin().config
-    config.auto_capture = True
+    config.connection_params["adyen_auto_capture"] = True
     handle_authorization(notification, config)
 
-    assert payment.transactions.count() == 0
+    assert payment.transactions.count() == 1
+    assert payment.transactions.get().kind == TransactionKind.CAPTURE
 
 
-def test_handle_authorization_with_autocapture_and_payment_charged(
+@pytest.mark.vcr
+def test_handle_authorization_with_auto_capture(
+    notification, adyen_plugin, payment_adyen_for_order
+):
+    payment = payment_adyen_for_order
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        psp_reference="853596537720508F",
+        merchant_reference=payment_id,
+        value=get_price_amount(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+    config.auto_capture = True
+    config.connection_params["adyen_auto_capture"] = False
+
+    handle_authorization(notification, config)
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == 2
+    assert payment.transactions.first().kind == TransactionKind.AUTH
+    assert payment.transactions.last().kind == TransactionKind.CAPTURE
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+
+
+def test_handle_authorization_with_adyen_auto_capture_and_payment_charged(
     notification, adyen_plugin, payment_adyen_for_order
 ):
     payment = payment_adyen_for_order
     payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.save()
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
         value=get_price_amount(payment.total, payment.currency),
     )
     config = adyen_plugin().config
-    config.auto_capture = True
+    config.connection_params["adyen_auto_capture"] = True
     handle_authorization(notification, config)
 
     # payment already has a charge status no need to handle auth action
@@ -259,7 +252,7 @@ def test_handle_pending(notification, adyen_plugin, payment_adyen_for_order):
     assert payment.charge_status == ChargeStatus.PENDING
 
 
-def test_handle_pending_with_autocapture(
+def test_handle_pending_with_adyen_auto_capture(
     notification, adyen_plugin, payment_adyen_for_order
 ):
     payment = payment_adyen_for_order
@@ -269,15 +262,16 @@ def test_handle_pending_with_autocapture(
         value=get_price_amount(payment.total, payment.currency),
     )
     config = adyen_plugin().config
-    config.auto_capture = True
+    config.connection_params["adyen_auto_capture"] = True
 
     handle_pending(notification, config)
 
     # in case of autocapture we don't want to store the pending status as all payments
     # by default get capture status.
-    assert payment.transactions.count() == 0
+    assert payment.transactions.count() == 1
+    assert payment.transactions.get().kind == TransactionKind.PENDING
     payment.refresh_from_db()
-    assert payment.charge_status != ChargeStatus.PENDING
+    assert payment.charge_status == ChargeStatus.PENDING
 
 
 def test_handle_pending_already_pending(
@@ -505,99 +499,3 @@ def test_handle_cancel_or_refund_action_cancel(
     handle_cancel_or_refund(notification, config)
 
     mock_handle_cancellation.assert_called_once_with(notification, config)
-
-
-@pytest.fixture
-def notification_with_hmac_signature():
-    return {
-        "additionalData": {
-            "expiryDate": "12/2012",
-            " NAME1 ": "VALUE1",
-            "cardSummary": "7777",
-            "totalFraudScore": "10",
-            "hmacSignature": "D4bKVtjx5AlBL2eeQZIh1p7G1Lh6vWjzwkDlzC+PoMo=",
-            "NAME2": "  VALUE2  ",
-            "fraudCheck-6-ShopperIpUsage": "10",
-        },
-        "amount": {"currency": "GBP", "value": 20150},
-        "eventCode": "AUTHORISATION",
-        "eventDate": "2020-07-24T12:40:22+02:00",
-        "merchantAccountCode": "SaleorPOS",
-        "merchantReference": "8313842560770001",
-        "paymentMethod": "visa",
-        "pspReference": "test_AUTHORISATION_4",
-        "reason": "REFUSED",
-        "success": "false",
-    }
-
-
-def test_validate_hmac_signature(adyen_plugin, notification_with_hmac_signature):
-    hmac_key = "8E60EDDCA27F96095AD5882EF0AA3B05844864710EC089B7967F796AC44AE76E"
-    plugin = adyen_plugin()
-    config = plugin.config
-    config.connection_params["webhook_hmac"] = hmac_key
-    assert validate_hmac_signature(notification_with_hmac_signature, config) is True
-
-
-def test_validate_hmac_signature_missing_key_in_saleor(
-    adyen_plugin, notification_with_hmac_signature
-):
-    plugin = adyen_plugin()
-    config = plugin.config
-    assert validate_hmac_signature(notification_with_hmac_signature, config) is False
-
-
-def test_validate_hmac_signature_missing_key_in_notification(
-    adyen_plugin, notification
-):
-    hmac_key = "8E60EDDCA27F96095AD5882EF0AA3B05844864710EC089B7967F796AC44AE76E"
-    plugin = adyen_plugin()
-    config = plugin.config
-    config.connection_params["webhook_hmac"] = hmac_key
-    assert validate_hmac_signature(notification(), config) is False
-
-
-def test_validate_hmac_signature_without_keys(adyen_plugin, notification):
-    plugin = adyen_plugin()
-    config = plugin.config
-    assert validate_hmac_signature(notification(), config) is True
-
-
-def test_validate_auth_user(adyen_plugin):
-    plugin = adyen_plugin()
-    config = plugin.config
-    config.connection_params["webhook_user"] = "admin@example.com"
-    password = make_password("admin")
-    config.connection_params["webhook_user_password"] = password
-    is_valid = validate_auth_user(
-        headers={"Authorization": "Basic YWRtaW5AZXhhbXBsZS5jb206YWRtaW4="},
-        gateway_config=config,
-    )
-    assert is_valid is True
-
-
-def validate_auth_user_when_header_is_missing(adyen_plugin):
-    plugin = adyen_plugin()
-    config = plugin.config
-    config.connection_params["webhook_user"] = "admin@example.com"
-    password = make_password("admin")
-    config.connection_params["webhook_user_password"] = password
-    is_valid = validate_auth_user(headers={}, gateway_config=config)
-    assert is_valid is False
-
-
-def test_validate_auth_user_when_user_is_missing(adyen_plugin):
-    plugin = adyen_plugin()
-    config = plugin.config
-    is_valid = validate_auth_user(
-        headers={"Authorization": "Basic YWRtaW5AZXhhbXBsZS5jb206YWRtaW4="},
-        gateway_config=config,
-    )
-    assert is_valid is False
-
-
-def test_validate_auth_user_when_auth_is_disabled(adyen_plugin):
-    plugin = adyen_plugin()
-    config = plugin.config
-    is_valid = validate_auth_user(headers={}, gateway_config=config)
-    assert is_valid is True

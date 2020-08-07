@@ -1,3 +1,4 @@
+import json
 import logging
 from decimal import Decimal
 from typing import Any, Callable, Dict, Optional
@@ -12,6 +13,7 @@ from ....checkout.calculations import checkout_line_total
 from ....checkout.models import Checkout
 from ....core.prices import quantize_price
 from ....discount.utils import fetch_active_discounts
+from ....payment.models import Payment
 from ... import PaymentError
 from ...interface import PaymentData
 
@@ -191,7 +193,7 @@ def request_for_payment_refund(
 
 
 def request_for_payment_capture(
-    payment_information: "PaymentData", merchant_account, token
+    payment_information: "PaymentData", merchant_account: str, token: str
 ) -> Dict[str, Any]:
     return {
         "merchantAccount": merchant_account,
@@ -204,3 +206,38 @@ def request_for_payment_capture(
         "originalReference": token,
         "reference": payment_information.payment_id,
     }
+
+
+def update_payment_with_action_required_data(
+    payment: Payment, action: dict, details: list
+):
+    action_required_data = {
+        "payment_data": action["paymentData"],
+        "parameters": [detail["key"] for detail in details],
+    }
+    if payment.extra_data:
+        payment_extra_data = json.loads(payment.extra_data)
+        try:
+            payment_extra_data.append(action_required_data)
+            extra_data = payment_extra_data
+        except AttributeError:
+            extra_data = [payment_extra_data, action_required_data]
+    else:
+        extra_data = [action_required_data]
+
+    payment.extra_data = json.dumps(extra_data)
+    payment.save(update_fields=["extra_data"])
+
+
+def call_capture(
+    payment_information: "PaymentData",
+    merchant_account: str,
+    token: str,
+    adyen_client: Adyen.Adyen,
+):
+    request = request_for_payment_capture(
+        payment_information=payment_information,
+        merchant_account=merchant_account,
+        token=token,
+    )
+    return api_call(request, adyen_client.payment.capture)

@@ -2,11 +2,11 @@ import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from ...checkout import calculations
+from ...checkout.calculations import calculate_checkout_total
 from ...checkout.utils import cancel_active_payments
 from ...core.permissions import OrderPermissions
-from ...core.taxes import zero_taxed_money
 from ...core.utils import get_client_ip
+from ...core.utils.url import validate_storefront_url
 from ...graphql.checkout.utils import clean_billing_address, clean_checkout_shipping
 from ...payment import PaymentError, gateway, models
 from ...payment.error_codes import PaymentErrorCode
@@ -51,6 +51,14 @@ class PaymentInput(graphene.InputObjectType):
             "removed after 2020-07-31."
         ),
     )
+    return_url = graphene.String(
+        required=False,
+        description=(
+            "URL of a storefront view where user should be redirected after "
+            "requiring additional actions. Payment with additional actions will not be "
+            "finished if this field is not provided."
+        ),
+    )
 
 
 class CheckoutPaymentCreate(BaseMutation, I18nMixin):
@@ -67,19 +75,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         description = "Create a new payment for given checkout."
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
-
-    @classmethod
-    def calculate_total(cls, info, checkout):
-        checkout_total = (
-            calculations.checkout_total(
-                checkout=checkout,
-                lines=list(checkout),
-                discounts=info.context.discounts,
-            )
-            - checkout.get_total_gift_cards_balance()
-        )
-
-        return max(checkout_total, zero_taxed_money(checkout_total.currency))
 
     @classmethod
     def clean_shipping_method(cls, checkout):
@@ -133,6 +128,18 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
+    def validate_return_url(cls, input_data):
+        return_url = input_data.get("return_url")
+        if not return_url:
+            return
+        try:
+            validate_storefront_url(return_url)
+        except ValidationError as error:
+            raise ValidationError(
+                {"redirect_url": error}, code=PaymentErrorCode.INVALID
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, checkout_id, **data):
         checkout_id = from_global_id_strict_type(
             checkout_id, only_type=Checkout, field="checkout_id"
@@ -146,8 +153,9 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
         cls.validate_gateway(gateway, checkout.currency)
         cls.validate_token(info.context.plugins, gateway, data)
+        cls.validate_return_url(data)
 
-        checkout_total = cls.calculate_total(info, checkout)
+        checkout_total = calculate_checkout_total(checkout, info.context.discounts)
         amount = data.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(
             checkout, list(checkout), info.context.discounts, PaymentErrorCode
@@ -170,6 +178,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             # FIXME this is not a customer IP address. It is a client storefront ip
             customer_ip_address=get_client_ip(info.context),
             checkout=checkout,
+            return_url=data.get("return_url"),
         )
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)
 

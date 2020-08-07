@@ -122,7 +122,7 @@ def capture(
     response, error = _fetch_gateway_response(
         plugin_manager.capture_payment, payment.gateway, payment_data
     )
-    if response.card_info:
+    if response and response.card_info:
         update_card_details(payment, response)
     return create_transaction(
         payment=payment,
@@ -244,3 +244,10 @@ def _validate_refund_amount(payment: Payment, amount: Decimal):
         raise PaymentError("Amount should be a positive number.")
     if amount > payment.captured_amount:
         raise PaymentError("Cannot refund more than captured.")
+
+
+def payment_refund_or_void(payment):
+    if payment.can_refund():
+        refund(payment)
+    elif payment.can_void():
+        void(payment)
