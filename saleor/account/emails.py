@@ -5,7 +5,8 @@ from templated_email import send_templated_mail
 
 from ..account import events as account_events
 from ..celeryconf import app
-from ..core.emails import get_email_context, prepare_url
+from ..core.emails import get_email_context
+from ..core.utils.url import prepare_url
 
 REQUEST_EMAIL_CHANGE_TEMPLATE = "account/request_email_change"
 EMAIL_CHANGED_NOTIFICATION_TEMPLATE = "account/email_changed_notification"

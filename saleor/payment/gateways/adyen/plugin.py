@@ -1,13 +1,17 @@
 import json
 from typing import List, Optional
+from urllib.parse import urlencode
 
 import Adyen
 from django.contrib.auth.hashers import make_password
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from graphql_relay import from_global_id
 
 from ....checkout.models import Checkout
+from ....core.utils import build_absolute_uri
+from ....core.utils.url import prepare_url
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import PaymentError, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentGateway
@@ -19,10 +23,13 @@ from .utils import (
     request_data_for_gateway_config,
     request_data_for_payment,
     request_for_payment_refund,
+    update_payment_with_action_required_data,
 )
-from .webhooks import handle_webhook
+from .webhooks import handle_additional_actions, handle_webhook
 
 GATEWAY_NAME = "Adyen"
+WEBHOOK_PATH = "/webhooks"
+ADDITIONAL_ACTION_PATH = "/additional-actions"
 
 
 def require_active_plugin(fn):
@@ -48,7 +55,6 @@ class AdyenGatewayPlugin(BasePlugin):
         {"name": "Merchant Account", "value": None},
         {"name": "API key", "value": None},
         {"name": "Supported currencies", "value": ""},
-        {"name": "Return Url", "value": ""},
         {"name": "Origin Key", "value": ""},
         {"name": "Origin Url", "value": ""},
         {"name": "Live", "value": ""},
@@ -79,11 +85,6 @@ class AdyenGatewayPlugin(BasePlugin):
             "help_text": "Determines currencies supported by gateway."
             " Please enter currency codes separated by a comma.",
             "label": "Supported currencies",
-        },
-        "Return Url": {
-            "type": ConfigurationTypeField.STRING,
-            "help_text": "",  # FIXME define them as per channel
-            "label": "Return Url",
         },
         "Origin Key": {
             "type": ConfigurationTypeField.STRING,
@@ -175,7 +176,6 @@ class AdyenGatewayPlugin(BasePlugin):
             connection_params={
                 "api_key": configuration["API key"],
                 "merchant_account": configuration["Merchant Account"],
-                "return_url": configuration["Return Url"],
                 "origin_key": configuration["Origin Key"],
                 "origin_url": configuration["Origin Url"],
                 "live": configuration["Live"],
@@ -197,7 +197,17 @@ class AdyenGatewayPlugin(BasePlugin):
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         config = self._get_gateway_config()
-        return handle_webhook(request, config)
+        self.config.connection_params["adyen_auto_capture"]
+        if path.startswith(WEBHOOK_PATH):
+            return handle_webhook(request, config)
+        elif path.startswith(ADDITIONAL_ACTION_PATH):
+            return handle_additional_actions(
+                request,
+                self.adyen.checkout.payments_details,
+                config.connection_params["adyen_auto_capture"],
+                config.auto_capture,
+            )
+        return HttpResponseNotFound()
 
     def _get_gateway_config(self) -> GatewayConfig:
         return self.config
@@ -233,9 +243,30 @@ class AdyenGatewayPlugin(BasePlugin):
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
+        _type, payment_pk = from_global_id(payment_information.payment_id)
+        try:
+            payment = Payment.objects.get(pk=payment_pk)
+        except ObjectDoesNotExist:
+            raise PaymentError("Payment cannot be performed. Payment does not exists.")
+
+        checkout = payment.checkout
+        if checkout is None:
+            raise PaymentError(
+                "Payment cannot be performed. Checkout for this payment does not exist."
+            )
+
+        params = urlencode(
+            {"payment": payment_information.payment_id, "checkout": checkout.pk}
+        )
+        return_url = prepare_url(
+            params,
+            build_absolute_uri(
+                f"/plugins/{self.PLUGIN_ID}/additional-actions"
+            ),  # type: ignore
+        )
         request_data = request_data_for_payment(
             payment_information,
-            return_url=self.config.connection_params["return_url"],
+            return_url=return_url,
             merchant_account=self.config.connection_params["merchant_account"],
             origin_url=self.config.connection_params["origin_url"],
         )
@@ -259,6 +290,13 @@ class AdyenGatewayPlugin(BasePlugin):
                 adyen_client=self.adyen,
             )
 
+        action = result.message.get("action")
+        error_message = result.message.get("refusalReason")
+        if action:
+            update_payment_with_action_required_data(
+                payment, action, result.message.get("details", []),
+            )
+
         return GatewayResponse(
             is_success=is_success,
             action_required="action" in result.message,
@@ -266,9 +304,9 @@ class AdyenGatewayPlugin(BasePlugin):
             amount=payment_information.amount,
             currency=payment_information.currency,
             transaction_id=result.message.get("pspReference", ""),
-            error=result.message.get("refusalReason"),
+            error=error_message,
             raw_response=result.message,
-            action_required_data=result.message.get("action"),
+            action_required_data=action,
         )
 
     @classmethod

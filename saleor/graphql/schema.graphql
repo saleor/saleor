@@ -3441,6 +3441,7 @@ input PaymentInput {
   token: String
   amount: Decimal
   billingAddress: AddressInput
+  returnUrl: String
 }
 
 type PaymentRefund {
