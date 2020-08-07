@@ -3,7 +3,10 @@ from typing import Optional
 import graphene
 import jwt
 from django.core.exceptions import ValidationError
-from django.middleware.csrf import _compare_salted_tokens, _get_new_csrf_token
+from django.middleware.csrf import (  # type: ignore
+    _compare_masked_tokens,
+    _get_new_csrf_token,
+)
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from graphene.types.generic import GenericScalar
@@ -180,7 +183,7 @@ class RefreshToken(BaseMutation):
 
     @classmethod
     def clean_csrf_token(cls, csrf_token, payload):
-        is_valid = _compare_salted_tokens(csrf_token, payload["csrfToken"])
+        is_valid = _compare_masked_tokens(csrf_token, payload["csrfToken"])
         if not is_valid:
             raise ValidationError(
                 {

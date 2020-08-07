@@ -37,7 +37,7 @@ env:
     - SECRET_KEY="irrelevant"
     - QUERIES_RESULTS_PATH=/tmp/queries-results.json
   matrix:
-    - DJANGO="3.0"
+    - DJANGO="3.1"
     - DJANGO="master"
 
 matrix:
