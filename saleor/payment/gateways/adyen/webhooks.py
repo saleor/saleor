@@ -523,13 +523,17 @@ def handle_additional_actions(
 
     _type, payment_pk = from_global_id(payment_id)
     try:
-        payment = Payment.objects.get(pk=payment_pk)
+        payment = Payment.objects.get(
+            pk=payment_pk,
+            checkout__pk=checkout_pk,
+            is_active=True,
+            gateway="mirumee.payments.adyen",
+        )
     except ObjectDoesNotExist:
-        return HttpResponseNotFound("Cannot perform payment. Payment does not exists.")
-
-    response = validate_payment(payment, checkout_pk)
-    if response:
-        return response
+        return HttpResponseNotFound(
+            "Cannot perform payment. "
+            "There is no active adyen payment with specified checkout."
+        )
 
     extra_data = json.loads(payment.extra_data)
     data = extra_data[-1] if isinstance(extra_data, list) else extra_data
@@ -556,24 +560,6 @@ def handle_additional_actions(
     redirect_url = prepare_redirect_url(payment_id, checkout_pk, result, return_url)
 
     return redirect(redirect_url)
-
-
-def validate_payment(payment: "Payment", checkout_pk: str):
-    if payment.checkout is None:
-        return HttpResponseBadRequest(
-            "The given payment does not have the corresponding checkout."
-        )
-
-    if payment.checkout.pk != checkout_pk:
-        return HttpResponseBadRequest(
-            "The given checkout is not related to the specified payment"
-        )
-
-    if not payment.is_active:
-        return HttpResponseBadRequest("Payment is not active.")
-
-    if payment.gateway != "mirumee.payments.adyen":
-        return HttpResponseBadRequest("Cannot perform not adyen payment.")
 
 
 def prepare_api_request_data(request: WSGIRequest, data: dict):

@@ -1,4 +1,5 @@
 import json
+import uuid
 from unittest import mock
 from urllib.parse import quote_plus
 
@@ -271,8 +272,9 @@ def test_handle_additional_actions_payment_does_not_exist(payment_adyen_for_chec
 
     # then
     assert response.status_code == 404
-    assert (
-        response.content.decode() == "Cannot perform payment. Payment does not exists."
+    assert response.content.decode() == (
+        "Cannot perform payment. "
+        "There is no active adyen payment with specified checkout."
     )
 
 
@@ -350,7 +352,7 @@ def test_handle_additional_actions_checkout_not_related_to_payment(
     payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
 
     request_mock = mock.Mock()
-    request_mock.GET = {"payment": payment_id, "checkout": "123"}
+    request_mock.GET = {"payment": payment_id, "checkout": uuid.uuid4()}
     request_mock.POST = {"payload": "test"}
 
     payment_details_mock = mock.Mock()
@@ -365,10 +367,10 @@ def test_handle_additional_actions_checkout_not_related_to_payment(
     )
 
     # then
-    assert response.status_code == 400
-    assert (
-        response.content.decode()
-        == "The given checkout is not related to the specified payment"
+    assert response.status_code == 404
+    assert response.content.decode() == (
+        "Cannot perform payment. "
+        "There is no active adyen payment with specified checkout."
     )
 
 
@@ -385,7 +387,7 @@ def test_handle_additional_actions_payment_does_not_have_checkout(
     payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
 
     request_mock = mock.Mock()
-    request_mock.GET = {"payment": payment_id, "checkout": "123"}
+    request_mock.GET = {"payment": payment_id, "checkout": uuid.uuid4()}
     request_mock.POST = {"payload": "test"}
 
     payment_details_mock = mock.Mock()
@@ -400,10 +402,10 @@ def test_handle_additional_actions_payment_does_not_have_checkout(
     )
 
     # then
-    assert response.status_code == 400
-    assert (
-        response.content.decode()
-        == "The given payment does not have the corresponding checkout."
+    assert response.status_code == 404
+    assert response.content.decode() == (
+        "Cannot perform payment. "
+        "There is no active adyen payment with specified checkout."
     )
 
 
@@ -472,8 +474,11 @@ def test_handle_additional_actions_payment_not_active(payment_adyen_for_checkout
     )
 
     # then
-    assert response.status_code == 400
-    assert response.content.decode() == "Payment is not active."
+    assert response.status_code == 404
+    assert response.content.decode() == (
+        "Cannot perform payment. "
+        "There is no active adyen payment with specified checkout."
+    )
 
 
 def test_handle_additional_actions_payment_with_no_adyen_gateway(
@@ -505,8 +510,11 @@ def test_handle_additional_actions_payment_with_no_adyen_gateway(
     )
 
     # then
-    assert response.status_code == 400
-    assert response.content.decode() == "Cannot perform not adyen payment."
+    assert response.status_code == 404
+    assert response.content.decode() == (
+        "Cannot perform payment. "
+        "There is no active adyen payment with specified checkout."
+    )
 
 
 @mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
