@@ -674,7 +674,7 @@ def test_update_product_variant_not_all_attributes(
     assert not product.variants.filter(sku=sku).exists()
 
 
-def test_update_product_variant_with_current_attribut(
+def test_update_product_variant_with_current_attribute(
     staff_api_client,
     product_with_variant_with_two_attributes,
     color_attribute,
@@ -859,6 +859,43 @@ def test_update_product_variant_requires_values(
         "message": message,
     }
     assert not variant.product.variants.filter(sku=sku).exists()
+
+
+def test_update_product_variant_with_price_does_not_raise_price_validation_error(
+    staff_api_client, variant, permission_manage_products
+):
+    mutation = """
+    mutation updateVariant ($id: ID!) {
+        productVariantUpdate(id: $id, input: {}) {
+            productVariant {
+                id
+                price {
+                    amount
+                }
+            }
+            productErrors {
+                field
+                code
+            }
+        }
+    }
+    """
+    # given a product variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    # when running the updateVariant mutation without price input field
+    variables = {"id": variant_id}
+    response = staff_api_client.post_graphql(
+        mutation, variables, permissions=[permission_manage_products]
+    )
+
+    # then mutation passes without validation errors
+    content = get_graphql_content(response)
+    assert not content["data"]["productVariantUpdate"]["productErrors"]
+    assert (
+        content["data"]["productVariantUpdate"]["productVariant"]["price"]["amount"]
+        == variant.price.amount
+    )
 
 
 def test_delete_variant(staff_api_client, product, permission_manage_products):
