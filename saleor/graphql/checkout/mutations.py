@@ -8,6 +8,7 @@ from django.db.models import Prefetch
 
 from ...account.error_codes import AccountErrorCode
 from ...checkout import models
+from ...checkout.calculations import calculate_checkout_total
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
     abort_order_data,
@@ -774,6 +775,15 @@ class CheckoutComplete(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
+    def validate_payment_amount(cls, discounts, payment, checkout):
+        if payment.total != calculate_checkout_total(checkout, discounts).gross.amount:
+            gateway.payment_refund_or_void(payment)
+            raise ValidationError(
+                "Payment does not cover all checkout value.",
+                code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, checkout_id, store_source, **data):
         checkout = cls.get_node_or_error(
             info,
@@ -801,6 +811,8 @@ class CheckoutComplete(BaseMutation):
 
         payment = checkout.get_last_active_payment()
 
+        cls.validate_payment_amount(discounts, payment, checkout)
+
         redirect_url = data.get("redirect_url", "")
         if redirect_url:
             try:
@@ -819,6 +831,7 @@ class CheckoutComplete(BaseMutation):
                     discounts=discounts,
                 )
             except InsufficientStock as e:
+                gateway.payment_refund_or_void(payment)
                 raise ValidationError(
                     f"Insufficient product stock: {e.item}", code=e.code
                 )
