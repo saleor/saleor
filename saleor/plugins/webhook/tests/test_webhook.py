@@ -1,8 +1,6 @@
 from unittest import mock
 
 import pytest
-import requests
-from django.core.serializers import serialize
 
 from ....app.models import App
 from ....webhook.event_types import WebhookEventType
@@ -14,7 +12,6 @@ from ....webhook.payloads import (
     generate_product_payload,
 )
 from ...manager import get_plugins_manager
-from ...webhook import signature_for_payload
 from ...webhook.tasks import trigger_webhooks_for_event
 
 first_url = "http://www.example.com/first/"
@@ -75,38 +72,6 @@ def test_trigger_webhooks_for_event_calls_expected_events(
 
     target_url_calls = {call[0][1] for call in mock_request.call_args_list}
     assert target_url_calls == expected_target_urls
-
-
-@pytest.mark.vcr
-@mock.patch("saleor.plugins.webhook.tasks.requests.post", wraps=requests.post)
-def test_trigger_webhooks_for_event_with_secret_key(
-    mock_request, webhook, order_with_lines, permission_manage_orders
-):
-    webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = "https://webhook.site/48978b64-4efb-43d5-a334-451a1d164009"
-    webhook.secret_key = "secret_key"
-    webhook.save()
-
-    expected_data = serialize("json", [order_with_lines])
-    trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, expected_data)
-
-    expected_signature = signature_for_payload(
-        expected_data.encode("utf-8"), webhook.secret_key
-    )
-    expected_headers = {
-        "Content-Type": "application/json",
-        "X-Saleor-Event": "order_created",
-        "X-Saleor-Domain": "mirumee.com",
-        "X-Saleor-Signature": expected_signature,
-        "X-Saleor-HMAC-SHA256": f"sha1={expected_signature}",
-    }
-
-    mock_request.assert_called_once_with(
-        webhook.target_url,
-        data=bytes(expected_data, "utf-8"),
-        headers=expected_headers,
-        timeout=10,
-    )
 
 
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")

@@ -83,13 +83,16 @@ def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_typ
     queue_url = urlunparse(
         ("https", parts.hostname, parts.path, parts.params, parts.query, parts.fragment)
     )
+
+    msg_attributes = {
+        "SaleorDomain": {"DataType": "String", "StringValue": domain},
+        "EventType": {"DataType": "String", "StringValue": event_type},
+    }
+    if signature:
+        msg_attributes["Signature"] = {"DataType": "String", "StringValue": signature}
     client.send_message(
         QueueUrl=queue_url,
-        MessageAttributes={
-            "SaleorDomain": {"DataType": "String", "StringValue": domain},
-            "EventType": {"DataType": "String", "StringValue": event_type},
-            "Signature": {"DataType": "String", "StringValue": signature},
-        },
+        MessageAttributes=msg_attributes,
         MessageBody=message.decode("utf-8"),
     )
 
