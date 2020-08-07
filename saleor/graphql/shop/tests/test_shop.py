@@ -703,7 +703,10 @@ def test_query_available_payment_gateways(user_api_client, sample_gateway):
         "mirumee.payments.dummy",
         "sampleDummy.active",
     }
-    assert {gateway["name"] for gateway in data} == {"Dummy", "SampleDummy"}
+    assert {gateway["name"] for gateway in data} == {
+        "Dummy",
+        "SampleDummy",
+    }
 
 
 def test_query_available_payment_gateways_specified_currency_USD(
@@ -717,7 +720,10 @@ def test_query_available_payment_gateways_specified_currency_USD(
         "mirumee.payments.dummy",
         "sampleDummy.active",
     }
-    assert {gateway["name"] for gateway in data} == {"Dummy", "SampleDummy"}
+    assert {gateway["name"] for gateway in data} == {
+        "Dummy",
+        "SampleDummy",
+    }
 
 
 def test_query_available_payment_gateways_specified_currency_PLN(

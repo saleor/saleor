@@ -38,7 +38,11 @@ def enable_dummy_gateway(settings):
 
 @pytest.mark.parametrize("with_shipping_address", (True, False))
 def test_create_checkout(
-    api_client, digital_content, graphql_address_data, with_shipping_address
+    api_client,
+    digital_content,
+    graphql_address_data,
+    with_shipping_address,
+    channel_USD,
 ):
     """Test creating a checkout with a shipping address gets the address ignored."""
 
@@ -48,6 +52,7 @@ def test_create_checkout(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     checkout_input = {
+        "channel": channel_USD.slug,
         "lines": [{"quantity": 1, "variantId": variant_id}],
         "email": "customer@example.com",
     }
@@ -82,8 +87,8 @@ def test_checkout_has_no_available_shipping_methods(
     """Test no shipping method are available on digital orders."""
 
     query = """
-        query getCheckout($token: UUID!) {
-            checkout(token: $token) {
+        query getCheckout($token: UUID!, $channel: String!) {
+            checkout(token: $token, channel: $channel) {
                 availableShippingMethods {
                     name
                 }
@@ -97,7 +102,8 @@ def test_checkout_has_no_available_shipping_methods(
     checkout.shipping_address = address
     checkout.save(update_fields=["shipping_address"])
 
-    response = api_client.post_graphql(query, {"token": checkout.token})
+    variables = {"token": checkout.token, "channel": checkout.channel.slug}
+    response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 

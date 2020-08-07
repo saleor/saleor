@@ -13,8 +13,10 @@ def resolve_checkouts():
     return queryset
 
 
-def resolve_checkout(info, token):
-    checkout = models.Checkout.objects.filter(token=token).first()
+def resolve_checkout(info, token, channel_slug):
+    checkout = models.Checkout.objects.filter(
+        token=token, channel__slug=channel_slug
+    ).first()
 
     if checkout is None:
         return None

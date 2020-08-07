@@ -1,12 +1,14 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 
 from ....core import JobStatus
 from ....graphql.tests.utils import get_graphql_content
 from ....invoice.error_codes import InvoiceErrorCode
 from ....invoice.models import Invoice, InvoiceEvent, InvoiceEvents
-from ....order import OrderStatus
+from ....order import OrderEvents, OrderStatus
+from ....order.models import OrderEvent
 
 INVOICE_REQUEST_MUTATION = """
     mutation InvoiceRequest($orderId: ID!, $number: String) {
@@ -31,10 +33,20 @@ INVOICE_REQUEST_MUTATION = """
 """
 
 
+@pytest.fixture(autouse=True)
+def setup_dummy_gateways(settings):
+    settings.PLUGINS = [
+        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+    ]
+    return settings
+
+
 @patch("saleor.plugins.base_plugin.BasePlugin.invoice_request")
 def test_invoice_request(
     plugin_mock, staff_api_client, permission_manage_orders, order
 ):
+    dummy_invoice = Invoice.objects.create(order=order)
+    plugin_mock.return_value = dummy_invoice
     number = "01/12/2020/TEST"
     graphene_order_id = graphene.Node.to_global_id("Order", order.pk)
     variables = {
@@ -61,6 +73,9 @@ def test_invoice_request(
         == JobStatus.PENDING.upper()
     )
     assert content["data"]["invoiceRequest"]["order"]["id"] == graphene_order_id
+    assert invoice.order.events.filter(
+        type=OrderEvents.INVOICE_REQUESTED, order=order, user=staff_api_client.user
+    ).exists()
 
 
 def test_invoice_request_draft_order(staff_api_client, permission_manage_orders, order):
@@ -79,6 +94,7 @@ def test_invoice_request_draft_order(staff_api_client, permission_manage_orders,
     error = content["data"]["invoiceRequest"]["invoiceErrors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.INVALID_STATUS.name
+    assert not OrderEvent.objects.filter(type=OrderEvents.INVOICE_REQUESTED).exists()
 
 
 def test_invoice_request_no_billing_address(
@@ -99,6 +115,7 @@ def test_invoice_request_no_billing_address(
     error = content["data"]["invoiceRequest"]["invoiceErrors"][0]
     assert error["field"] == "orderId"
     assert error["code"] == InvoiceErrorCode.NOT_READY.name
+    assert not OrderEvent.objects.filter(type=OrderEvents.INVOICE_REQUESTED).exists()
 
 
 def test_invoice_request_no_number(staff_api_client, permission_manage_orders, order):
@@ -108,6 +125,7 @@ def test_invoice_request_no_number(staff_api_client, permission_manage_orders, o
     )
     invoice = Invoice.objects.get(order=order.pk)
     assert invoice.number is None
+    assert not OrderEvent.objects.filter(type=OrderEvents.INVOICE_REQUESTED).exists()
 
 
 def test_invoice_request_invalid_order(staff_api_client, permission_manage_orders):

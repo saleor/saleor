@@ -7,6 +7,9 @@ from django.db import transaction
 from django.db.models import Prefetch
 
 from ...account.error_codes import AccountErrorCode
+from ...channel.exceptions import ChannelNotDefined
+from ...channel.models import Channel
+from ...channel.utils import get_default_channel
 from ...checkout import models
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
@@ -142,6 +145,9 @@ class CheckoutLineInput(graphene.InputObjectType):
 
 
 class CheckoutCreateInput(graphene.InputObjectType):
+    channel = graphene.String(
+        description="Slug of a channel in which to create a checkout."
+    )
     lines = graphene.List(
         CheckoutLineInput,
         description=(
@@ -219,10 +225,41 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return None
 
     @classmethod
+    def clean_channel(cls, channel_slug):
+        channel = None
+        if channel_slug is not None:
+            try:
+                channel = Channel.objects.get(slug=channel_slug)
+            except Channel.DoesNotExist:
+                raise ValidationError(
+                    {
+                        "channel": ValidationError(
+                            f"Channel with '{channel_slug}' slug does not exist.",
+                            code=CheckoutErrorCode.NOT_FOUND,
+                        )
+                    }
+                )
+        else:
+            try:
+                channel = get_default_channel()
+            except ChannelNotDefined:
+                raise ValidationError(
+                    {
+                        "channel": ValidationError(
+                            "You need to provide channel slug.",
+                            code=CheckoutErrorCode.MISSING_CHANNEL_SLUG,
+                        )
+                    }
+                )
+        return channel
+
+    @classmethod
     def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
         user = info.context.user
         country = info.context.country.code
+
+        cleaned_input["channel"] = cls.clean_channel(cleaned_input.get("channel"))
 
         # set country to one from shipping address
         shipping_address = cleaned_input.get("shipping_address")
@@ -315,7 +352,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             checkout = models.Checkout(user=user)
         else:
             checkout = models.Checkout()
-
         cleaned_input = cls.clean_input(info, checkout, data.get("input"))
         checkout = cls.construct_instance(checkout, cleaned_input)
         cls.clean_instance(info, checkout)
@@ -611,7 +647,6 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-
         billing_address = cls.validate_address(
             billing_address, instance=checkout.billing_address, info=info
         )
@@ -679,7 +714,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                     )
                 }
             )
-
         if not checkout.is_shipping_required():
             raise ValidationError(
                 {

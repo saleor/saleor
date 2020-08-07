@@ -60,6 +60,8 @@ def generate_order_payload(order: "Order"):
     fulfillment_fields = ("status", "tracking_number", "created")
     payment_fields = (
         "gateway",
+        "payment_method_type",
+        "cc_brand",
         "is_active",
         "created",
         "modified",

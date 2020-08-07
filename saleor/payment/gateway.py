@@ -12,18 +12,18 @@ from .utils import (
     create_payment_information,
     create_transaction,
     gateway_postprocess,
-    update_card_details,
+    update_payment_method_details,
     validate_gateway_response,
 )
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..payment.interface import CustomerSource
+    from ..payment.interface import CustomerSource, PaymentGateway
 
 
 logger = logging.getLogger(__name__)
 ERROR_MSG = "Oops! Something went wrong."
-GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
+GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful."
 
 
 def raise_payment_error(fn: Callable) -> Callable:
@@ -68,6 +68,8 @@ def process_payment(
         plugin_manager.process_payment, payment.gateway, payment_data
     )
     action_required = response is not None and response.action_required
+    if response and response.payment_method_info:
+        update_payment_method_details(payment, response)
     return create_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,
@@ -90,6 +92,8 @@ def authorize(payment: Payment, token: str, store_source: bool = False) -> Trans
     response, error = _fetch_gateway_response(
         plugin_manager.authorize_payment, payment.gateway, payment_data
     )
+    if response and response.payment_method_info:
+        update_payment_method_details(payment, response)
     return create_transaction(
         payment=payment,
         kind=TransactionKind.AUTH,
@@ -116,8 +120,8 @@ def capture(
     response, error = _fetch_gateway_response(
         plugin_manager.capture_payment, payment.gateway, payment_data
     )
-    if response.card_info:
-        update_card_details(payment, response)
+    if response and response.payment_method_info:
+        update_payment_method_details(payment, response)
     return create_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,
@@ -202,7 +206,7 @@ def get_client_token(gateway: str, customer_id: str = None) -> str:
     return plugin_manager.get_client_token(gateway, token_config)
 
 
-def list_gateways() -> List[dict]:
+def list_gateways() -> List["PaymentGateway"]:
     return get_plugins_manager().list_payment_gateways()
 
 
@@ -227,7 +231,7 @@ def _get_past_transaction_token(
 ):
     txn = payment.transactions.filter(kind=kind, is_success=True).first()
     if txn is None:
-        raise PaymentError(f"Cannot find successful {kind} transaction")
+        raise PaymentError(f"Cannot find successful {kind} transaction.")
     return txn.token
 
 
@@ -235,4 +239,4 @@ def _validate_refund_amount(payment: Payment, amount: Decimal):
     if amount <= 0:
         raise PaymentError("Amount should be a positive number.")
     if amount > payment.captured_amount:
-        raise PaymentError("Cannot refund more than captured")
+        raise PaymentError("Cannot refund more than captured.")

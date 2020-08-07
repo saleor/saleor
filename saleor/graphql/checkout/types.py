@@ -7,6 +7,8 @@ from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, CheckoutPermissions
 from ...core.taxes import display_gross_prices, zero_taxed_money
 from ...plugins.manager import get_plugins_manager
+from ..account.utils import requestor_has_access
+from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
 from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
@@ -16,6 +18,7 @@ from ..giftcard.types import GiftCard
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..shipping.types import ShippingMethod
+from ..utils import get_user_or_app_from_context
 from .dataloaders import CheckoutLinesByCheckoutTokenLoader
 
 
@@ -65,10 +68,15 @@ class CheckoutLine(CountableDjangoObjectType):
         filter_fields = ["id"]
 
     @staticmethod
-    def resolve_total_price(self, info):
+    def resolve_variant(root, _info):
+        channel_slug = root.checkout.channel.slug
+        return ChannelContext(node=root.variant, channel_slug=channel_slug)
+
+    @staticmethod
+    def resolve_total_price(root, info):
         def calculate_total_price(discounts):
             return info.context.plugins.calculate_checkout_line_total(
-                checkout_line=self, discounts=discounts
+                checkout_line=root, discounts=discounts
             )
 
         return (
@@ -115,7 +123,7 @@ class Checkout(CountableDjangoObjectType):
         TaxedMoney,
         description="The price of the checkout before shipping, with taxes included.",
     )
-    token = graphene.Field(UUID, description=("The checkout's token."), required=True)
+    token = graphene.Field(UUID, description="The checkout's token.", required=True)
     total_price = graphene.Field(
         TaxedMoney,
         description=(
@@ -132,6 +140,7 @@ class Checkout(CountableDjangoObjectType):
             "gift_cards",
             "is_shipping_required",
             "last_change",
+            "channel",
             "note",
             "quantity",
             "shipping_address",
@@ -148,8 +157,8 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_user(root: models.Checkout, info):
-        user = info.context.user
-        if user == root.user or user.has_perm(AccountPermissions.MANAGE_USERS):
+        requestor = get_user_or_app_from_context(info.context)
+        if requestor_has_access(requestor, root.user, AccountPermissions.MANAGE_USERS):
             return root.user
         raise PermissionDenied()
 
@@ -243,7 +252,7 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_available_payment_gateways(root: models.Checkout, _info):
-        return get_plugins_manager().list_payment_gateways(currency=root.currency)
+        return get_plugins_manager().checkout_available_payment_gateways(checkout=root)
 
     @staticmethod
     def resolve_gift_cards(root: models.Checkout, _info):

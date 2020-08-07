@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
 import opentracing
 from django.conf import settings
@@ -104,7 +104,7 @@ def get_product_price_range(
     *,
     product: Product,
     variants: Iterable[ProductVariant],
-    variants_channel_listing: Iterable[ProductVariantChannelListing],
+    variants_channel_listing: List[ProductVariantChannelListing],
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo]
 ) -> Optional[MoneyRange]:
@@ -130,7 +130,7 @@ def get_product_availability(
     product: Product,
     product_channel_listing: Optional[ProductChannelListing],
     variants: Iterable[ProductVariant],
-    variants_channel_listing: Iterable[ProductVariantChannelListing],
+    variants_channel_listing: List[ProductVariantChannelListing],
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo],
     country: Optional[str] = None,

@@ -9,9 +9,11 @@ from django.core.exceptions import ValidationError
 from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
 from graphql_relay import to_global_id
+from measurement.measures import Weight
 from prices import Money
 
 from ....core.taxes import TaxType
+from ....core.weight import WeightUnits
 from ....plugins.manager import PluginsManager
 from ....product import AttributeInputType
 from ....product.error_codes import ProductErrorCode
@@ -31,7 +33,7 @@ from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.attributes import associate_attribute_values_to_instance
 from ....warehouse.models import Allocation, Stock, Warehouse
-from ...core.enums import ReportingPeriod, WeightUnitsEnum
+from ...core.enums import ReportingPeriod
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -116,6 +118,10 @@ QUERY_PRODUCT = """
         ) {
             id
             name
+            weight {
+                unit
+                value
+            }
         }
     }
     """
@@ -269,6 +275,67 @@ def test_product_query_by_id_available_as_customer(
 def test_product_query_by_id_not_available_as_customer(
     user_api_client, product, channel_USD
 ):
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+    }
+    ProductChannelListing.objects.filter(product=product, channel=channel_USD).update(
+        is_published=False
+    )
+
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is None
+
+
+def test_product_query_by_id_weight_returned_in_default_unit(
+    user_api_client, product, site_settings
+):
+    # given
+    product.weight = Weight(kg=10)
+    product.save(update_fields=["weight"])
+
+    site_settings.default_weight_unit = WeightUnits.POUND
+    site_settings.save(update_fields=["default_weight_unit"])
+
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["name"] == product.name
+    assert product_data["weight"]["value"] == 22.046
+    assert product_data["weight"]["unit"] == WeightUnits.POUND.upper()
+
+
+def test_product_query_by_id_weight_is_rounded(user_api_client, product, site_settings):
+    # given
+    product.weight = Weight(kg=1.83456)
+    product.save(update_fields=["weight"])
+
+    site_settings.default_weight_unit = WeightUnits.KILOGRAM
+    site_settings.save(update_fields=["default_weight_unit"])
+
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["name"] == product.name
+    assert product_data["weight"]["value"] == 1.835
+    assert product_data["weight"]["unit"] == WeightUnits.KILOGRAM.upper()
+
+
+def test_product_query_by_slug(user_api_client, product, channel_USD):
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
         "channel": channel_USD.slug,
@@ -767,7 +834,7 @@ def test_fetch_product_from_category_query(
     product = category.products.first()
     query = """
     query {
-        category(id: "%(category_id)s", channel: "%(channel_slug)s") {
+        category(id: "%(category_id)s") {
             products(first: 20) {
                 edges {
                     node {
@@ -822,7 +889,6 @@ def test_fetch_product_from_category_query(
     }
     """ % {
         "category_id": graphene.Node.to_global_id("Category", category.id),
-        "channel_slug": channel_USD.slug,
     }
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query)
@@ -1498,6 +1564,46 @@ def test_sort_products_product_type_name(
     product_type_name_0 = edges[0]["node"]["productType"]["name"]
     product_type_name_1 = edges[1]["node"]["productType"]["name"]
     assert product_type_name_0 < product_type_name_1
+
+
+QUERY_PRODUCT_TYPE = """
+    query ($id: ID!){
+        productType(
+            id: $id,
+        ) {
+            id
+            name
+            weight {
+                unit
+                value
+            }
+        }
+    }
+    """
+
+
+def test_product_type_query_by_id_weight_returned_in_default_unit(
+    user_api_client, product_type, site_settings
+):
+    # given
+    product_type.weight = Weight(kg=10)
+    product_type.save(update_fields=["weight"])
+
+    site_settings.default_weight_unit = WeightUnits.OUNCE
+    site_settings.save(update_fields=["default_weight_unit"])
+
+    variables = {"id": graphene.Node.to_global_id("ProductType", product_type.pk)}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_PRODUCT_TYPE, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["productType"]
+    assert product_data is not None
+    assert product_data["name"] == product_type.name
+    assert product_data["weight"]["value"] == 352.73999999999995
+    assert product_data["weight"]["unit"] == WeightUnits.OUNCE.upper()
 
 
 CREATE_PRODUCT_MUTATION = """
@@ -2504,13 +2610,13 @@ def test_delete_product(staff_api_client, product, permission_manage_products):
 def test_product_type(user_api_client, product_type, channel_USD):
     query = """
     query ($channel: String){
-        productTypes(first: 20, channel: $channel) {
+        productTypes(first: 20) {
             totalCount
             edges {
                 node {
                     id
                     name
-                    products(first: 1) {
+                    products(first: 1, channel: $channel) {
                         edges {
                             node {
                                 id
@@ -2546,9 +2652,9 @@ def test_product_type_query(
     )
     query = """
             query getProductType($id: ID!, $channel: String) {
-                productType(id: $id,  channel:$channel) {
+                productType(id: $id) {
                     name
-                    products(first: 20) {
+                    products(first: 20, channel:$channel) {
                         totalCount
                         edges {
                             node {
@@ -3500,10 +3606,11 @@ def test_report_product_sales(
     order_with_lines,
     permission_manage_products,
     permission_manage_orders,
+    channel_USD,
 ):
     query = """
-    query TopProducts($period: ReportingPeriod!) {
-        reportProductSales(period: $period, first: 20) {
+    query TopProducts($period: ReportingPeriod!, $channel: String) {
+        reportProductSales(period: $period, first: 20, channel: $channel) {
             edges {
                 node {
                     revenue(period: $period) {
@@ -3518,7 +3625,7 @@ def test_report_product_sales(
         }
     }
     """
-    variables = {"period": ReportingPeriod.TODAY.name}
+    variables = {"period": ReportingPeriod.TODAY.name, "channel": channel_USD.slug}
     permissions = [permission_manage_orders, permission_manage_products]
     response = staff_api_client.post_graphql(query, variables, permissions)
     content = get_graphql_content(response)
@@ -4432,26 +4539,26 @@ mutation createProduct(
 
 
 @pytest.mark.parametrize(
-    "weight, expected_weight_value, expected_weight_unit",
+    "weight, expected_weight_value",
     (
-        ("0", 0, WeightUnitsEnum.KG.name),
-        (0, 0, WeightUnitsEnum.KG.name),
-        (11.11, 11.11, WeightUnitsEnum.KG.name),
-        (11, 11.0, WeightUnitsEnum.KG.name),
-        ("11.11", 11.11, WeightUnitsEnum.KG.name),
-        ({"value": 11.11, "unit": "kg"}, 11.11, WeightUnitsEnum.KG.name,),
-        ({"value": 11, "unit": "g"}, 11.0, WeightUnitsEnum.G.name,),
-        ({"value": "11.11", "unit": "ounce"}, 11.11, WeightUnitsEnum.OZ.name,),
+        ("0", 0),
+        (0, 0),
+        (11.11, 11.11),
+        (11, 11.0),
+        ("11.11", 11.11),
+        ({"value": 11.11, "unit": "kg"}, 11.11),
+        ({"value": 11, "unit": "g"}, 0.011),
+        ({"value": "1", "unit": "ounce"}, 0.028),
     ),
 )
 def test_create_product_with_weight_variable(
     weight,
     expected_weight_value,
-    expected_weight_unit,
     staff_api_client,
     category,
     permission_manage_products,
     product_type_without_variant,
+    site_settings,
 ):
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_type_id = graphene.Node.to_global_id(
@@ -4471,30 +4578,30 @@ def test_create_product_with_weight_variable(
     content = get_graphql_content(response)
     result_weight = content["data"]["productCreate"]["product"]["weight"]
     assert result_weight["value"] == expected_weight_value
-    assert result_weight["unit"] == expected_weight_unit
+    assert result_weight["unit"] == site_settings.default_weight_unit.upper()
 
 
 @pytest.mark.parametrize(
-    "weight, expected_weight_value, expected_weight_unit",
+    "weight, expected_weight_value",
     (
-        ("0", 0, WeightUnitsEnum.KG.name),
-        (0, 0, WeightUnitsEnum.KG.name),
-        ("11.11", 11.11, WeightUnitsEnum.KG.name),
-        ("11", 11.0, WeightUnitsEnum.KG.name),
-        ('"11.11"', 11.11, WeightUnitsEnum.KG.name),
-        ('{value: 11.11, unit: "kg"}', 11.11, WeightUnitsEnum.KG.name,),
-        ('{value: 11, unit: "g"}', 11.0, WeightUnitsEnum.G.name,),
-        ('{value: "11.11", unit: "ounce"}', 11.11, WeightUnitsEnum.OZ.name,),
+        ("0", 0),
+        (0, 0),
+        ("11.11", 11.11),
+        ("11", 11.0),
+        ('"11.11"', 11.11),
+        ('{value: 11.11, unit: "kg"}', 11.11),
+        ('{value: 11, unit: "g"}', 0.011),
+        ('{value: "1", unit: "ounce"}', 0.028),
     ),
 )
 def test_create_product_with_weight_input(
     weight,
     expected_weight_value,
-    expected_weight_unit,
     staff_api_client,
     category,
     permission_manage_products,
     product_type_without_variant,
+    site_settings,
 ):
     # Because we use Scalars for Weight this test query tests only a scenario when
     # weight value is passed by directly in input
@@ -4542,4 +4649,4 @@ def test_create_product_with_weight_input(
     content = get_graphql_content(response)
     result_weight = content["data"]["productCreate"]["product"]["weight"]
     assert result_weight["value"] == expected_weight_value
-    assert result_weight["unit"] == expected_weight_unit
+    assert result_weight["unit"] == site_settings.default_weight_unit.upper()

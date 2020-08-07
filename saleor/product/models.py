@@ -9,7 +9,6 @@ from django.db import models
 from django.db.models import Case, Count, F, FilteredRelation, Q, Value, When
 from django.urls import reverse
 from django.utils.encoding import smart_text
-from django.utils.functional import SimpleLazyObject
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from draftjs_sanitizer import clean_draft_js
@@ -122,8 +121,6 @@ class ProductsQueryset(models.QuerySet):
         return qs
 
     def published(self, channel_slug: str):
-        if isinstance(channel_slug, SimpleLazyObject):
-            channel_slug = str(channel_slug)
         today = datetime.date.today()
         return self.filter(
             Q(channel_listing__publication_date__lte=today)
@@ -134,7 +131,7 @@ class ProductsQueryset(models.QuerySet):
 
     def published_with_variants(self, channel_slug: str):
         published = self.published(channel_slug)
-        return published.filter(variants__isnull=False)
+        return published.filter(variants__isnull=False).distinct()
 
     def visible_to_user(self, user: "User", channel_slug: str):
         if self.user_has_access_to_all(user):

@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 
 from ....graphql.tests.utils import assert_no_permission, get_graphql_content
 from ....invoice.error_codes import InvoiceErrorCode
@@ -18,6 +19,14 @@ INVOICE_REQUEST_DELETE_MUTATION = """
         }
     }
 """
+
+
+@pytest.fixture(autouse=True)
+def setup_dummy_gateways(settings):
+    settings.PLUGINS = [
+        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+    ]
+    return settings
 
 
 @patch("saleor.plugins.base_plugin.BasePlugin.invoice_delete")

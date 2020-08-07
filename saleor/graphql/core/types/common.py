@@ -140,6 +140,11 @@ class OrderError(Error):
     order_line = graphene.ID(
         description="Order line ID which causes the error.", required=False,
     )
+    variants = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of product variants that are associated with the error",
+        required=False,
+    )
 
 
 class InvoiceError(Error):

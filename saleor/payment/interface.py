@@ -1,17 +1,18 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
-class CreditCardInfo:
-    """Uniform way to represent Credit Card information."""
+class PaymentMethodInfo:
+    """Uniform way to represent payment method information."""
 
-    last_4: str
-    exp_year: int
-    exp_month: int
+    last_4: Optional[str] = None
+    exp_year: Optional[int] = None
+    exp_month: Optional[int] = None
     brand: Optional[str] = None
-    name_on_card: Optional[str] = None
+    name: Optional[str] = None
+    type: Optional[str] = None
 
 
 @dataclass
@@ -30,7 +31,7 @@ class GatewayResponse:
     transaction_id: Optional[str]
     error: Optional[str]
     customer_id: Optional[str] = None
-    card_info: Optional[CreditCardInfo] = None
+    payment_method_info: Optional[PaymentMethodInfo] = None
     raw_response: Optional[Dict[str, str]] = None
 
 
@@ -100,4 +101,14 @@ class CustomerSource:
 
     id: str
     gateway: str
-    credit_card_info: Optional[CreditCardInfo] = None
+    credit_card_info: Optional[PaymentMethodInfo] = None
+
+
+@dataclass
+class PaymentGateway:
+    """Dataclass for storing information about a payment gateway."""
+
+    id: str
+    name: str
+    currencies: List[str]
+    config: List[Dict[str, Any]]

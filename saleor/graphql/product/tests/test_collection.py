@@ -121,14 +121,14 @@ def test_collections_query(
 ):
     query = """
         query Collections ($channel: String) {
-            collections(first: 2, channel: $channel) {
+            collections(first: 2) {
                 edges {
                     node {
                         isPublished
                         name
                         slug
                         description
-                        products {
+                        products(channel: $channel) {
                             totalCount
                         }
                     }
@@ -159,7 +159,7 @@ def test_collections_query_as_staff(
     channel_USD,
 ):
     query = """
-        query Collections {
+        query Collections($channel: String) {
             collections(first: 2) {
                 edges {
                     node {
@@ -167,7 +167,7 @@ def test_collections_query_as_staff(
                         name
                         slug
                         description
-                        products {
+                        products(channel: $channel) {
                             totalCount
                         }
                     }
@@ -176,8 +176,9 @@ def test_collections_query_as_staff(
         }
     """
     # query all collections only as a staff user with proper permissions
+    variables = {"channel": channel_USD.slug}
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(query)
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     edges = content["data"]["collections"]["edges"]
     assert len(edges) == 2
@@ -306,7 +307,7 @@ def test_create_collection_without_background_image(
     ),
 )
 def test_create_collection_with_given_slug(
-    staff_api_client, permission_manage_products, input_slug, expected_slug
+    staff_api_client, permission_manage_products, input_slug, expected_slug, channel_USD
 ):
     query = CREATE_COLLECTION_MUTATION
     name = "Test collection"
@@ -321,7 +322,7 @@ def test_create_collection_with_given_slug(
 
 
 def test_create_collection_name_with_unicode(
-    staff_api_client, permission_manage_products
+    staff_api_client, permission_manage_products, channel_USD
 ):
     query = CREATE_COLLECTION_MUTATION
     name = "わたし わ にっぽん です"

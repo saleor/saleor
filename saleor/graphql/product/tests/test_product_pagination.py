@@ -452,6 +452,7 @@ def test_products_pagination_with_sorting(
     staff_api_client,
     permission_manage_products,
     products_for_pagination,
+    channel_USD,
 ):
     page_size = 3
 
@@ -475,6 +476,7 @@ def test_products_pagination_with_sorting_by_attribute(
     permission_manage_products,
     products_for_pagination,
     color_attribute,
+    channel_USD,
 ):
     page_size = 3
     products_order = ["Product2", "ProductProduct1", "Product1"]
@@ -497,7 +499,7 @@ def test_products_pagination_with_sorting_by_attribute(
 
 
 def test_products_pagination_for_products_with_the_same_names_two_pages(
-    staff_api_client, permission_manage_products, category, product_type
+    staff_api_client, permission_manage_products, category, product_type, channel_USD
 ):
     products = Product.objects.bulk_create(
         [
@@ -559,7 +561,7 @@ def test_products_pagination_for_products_with_the_same_names_two_pages(
 
 
 def test_products_pagination_for_products_with_the_same_names_one_page(
-    staff_api_client, permission_manage_products, category, product_type
+    staff_api_client, permission_manage_products, category, product_type, channel_USD
 ):
     products = Product.objects.bulk_create(
         [
@@ -620,6 +622,7 @@ def test_products_pagination_with_filtering(
     staff_api_client,
     permission_manage_products,
     products_for_pagination,
+    channel_USD,
 ):
     page_size = 2
 
@@ -638,7 +641,7 @@ def test_products_pagination_with_filtering(
 
 
 def test_products_pagination_with_filtering_by_attribute(
-    staff_api_client, permission_manage_products, products_for_pagination,
+    staff_api_client, permission_manage_products, products_for_pagination, channel_USD
 ):
     page_size = 2
     products_order = ["Product2", "ProductProduct1"]
@@ -659,7 +662,11 @@ def test_products_pagination_with_filtering_by_attribute(
 
 
 def test_products_pagination_with_filtering_by_product_types(
-    staff_api_client, permission_manage_products, products_for_pagination, product_type
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
+    product_type,
+    channel_USD,
 ):
     page_size = 2
     products_order = ["Product2", "ProductProduct1"]
@@ -681,7 +688,11 @@ def test_products_pagination_with_filtering_by_product_types(
 
 
 def test_products_pagination_with_filtering_by_stocks(
-    staff_api_client, permission_manage_products, products_for_pagination, warehouse
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
+    warehouse,
+    channel_USD,
 ):
     page_size = 2
     products_order = ["ProductProduct1", "ProductProduct2"]

@@ -390,7 +390,7 @@ TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
 ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
-ALLOWED_GRAPHQL_ORIGINS = os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
+ALLOWED_GRAPHQL_ORIGINS = get_list(os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*"))
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
@@ -488,7 +488,7 @@ OPENTRACING_MAX_QUERY_LENGTH_LOG = 2000
 DEFAULT_MENUS = {"top_menu_name": "navbar", "bottom_menu_name": "footer"}
 
 # Slug for channel precreated in Django migrations
-DEFAULT_CHANNEL_SLUG = os.environ.get("DEFAULT_CHANNEL_SLUG", "saleor-default-channel")
+DEFAULT_CHANNEL_SLUG = os.environ.get("DEFAULT_CHANNEL_SLUG", "default-channel")
 
 
 #  Sentry
@@ -504,7 +504,6 @@ GRAPHENE = {
     "MIDDLEWARE": [
         "saleor.graphql.middleware.OpentracingGrapheneMiddleware",
         "saleor.graphql.middleware.JWTMiddleware",
-        "saleor.graphql.middleware.ChannelMiddleware",
         "saleor.graphql.middleware.app_middleware",
     ],
 }
@@ -516,6 +515,7 @@ PLUGINS = [
     "saleor.plugins.vatlayer.plugin.VatlayerPlugin",
     "saleor.plugins.webhook.plugin.WebhookPlugin",
     "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+    "saleor.payment.gateways.dummy_credit_card.plugin.DummyCreditCardGatewayPlugin",
     "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
     "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
     "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",

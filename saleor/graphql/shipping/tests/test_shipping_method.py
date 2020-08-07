@@ -1,24 +1,29 @@
 import graphene
 import pytest
+from measurement.measures import Weight
 
+from ....core.weight import WeightUnits
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.utils import get_countries_without_shipping_zone
 from ...core.enums import WeightUnitsEnum
 from ...tests.utils import get_graphql_content
 from ..types import ShippingMethodTypeEnum
 
-
-def test_shipping_zone_query(
-    staff_api_client, shipping_zone, permission_manage_shipping
-):
-    shipping = shipping_zone
-    query = """
+SHIPPING_ZONE_QUERY = """
     query ShippingQuery($id: ID!) {
         shippingZone(id: $id) {
             name
             shippingMethods {
                 price {
                     amount
+                }
+                minimumOrderWeight {
+                    value
+                    unit
+                }
+                maximumOrderWeight {
+                    value
+                    unit
                 }
             }
             priceRange {
@@ -31,12 +36,24 @@ def test_shipping_zone_query(
             }
         }
     }
-    """
+"""
+
+
+def test_shipping_zone_query(
+    staff_api_client, shipping_zone, permission_manage_shipping
+):
+    # given
+    shipping = shipping_zone
+    query = SHIPPING_ZONE_QUERY
     ID = graphene.Node.to_global_id("ShippingZone", shipping.id)
     variables = {"id": ID}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
     )
+
+    # then
     content = get_graphql_content(response)
 
     shipping_data = content["data"]["shippingZone"]
@@ -47,6 +64,51 @@ def test_shipping_zone_query(
     data_price_range = shipping_data["priceRange"]
     assert data_price_range["start"]["amount"] == price_range.start.amount
     assert data_price_range["stop"]["amount"] == price_range.stop.amount
+
+
+def test_shipping_zone_query_weights_returned_in_default_unit(
+    staff_api_client, shipping_zone, permission_manage_shipping, site_settings
+):
+    # given
+    shipping = shipping_zone
+    shipping_method = shipping.shipping_methods.first()
+    shipping_method.minimum_order_weight = Weight(kg=1)
+    shipping_method.maximum_order_weight = Weight(kg=10)
+    shipping_method.save(update_fields=["minimum_order_weight", "maximum_order_weight"])
+
+    site_settings.default_weight_unit = WeightUnits.GRAM
+    site_settings.save(update_fields=["default_weight_unit"])
+
+    query = SHIPPING_ZONE_QUERY
+    ID = graphene.Node.to_global_id("ShippingZone", shipping.id)
+    variables = {"id": ID}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    shipping_data = content["data"]["shippingZone"]
+    assert shipping_data["name"] == shipping.name
+    num_of_shipping_methods = shipping_zone.shipping_methods.count()
+    assert len(shipping_data["shippingMethods"]) == num_of_shipping_methods
+    price_range = shipping.price_range
+    data_price_range = shipping_data["priceRange"]
+    assert data_price_range["start"]["amount"] == price_range.start.amount
+    assert data_price_range["stop"]["amount"] == price_range.stop.amount
+    assert shipping_data["shippingMethods"][0]["minimumOrderWeight"]["value"] == 1000
+    assert (
+        shipping_data["shippingMethods"][0]["minimumOrderWeight"]["unit"]
+        == WeightUnits.GRAM.upper()
+    )
+    assert shipping_data["shippingMethods"][0]["maximumOrderWeight"]["value"] == 10000
+    assert (
+        shipping_data["shippingMethods"][0]["maximumOrderWeight"]["unit"]
+        == WeightUnits.GRAM.upper()
+    )
 
 
 def test_shipping_zones_query(

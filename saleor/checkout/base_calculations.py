@@ -49,6 +49,13 @@ def base_checkout_line_total(
     line: "CheckoutLine", discounts: Optional[Iterable[DiscountInfo]] = None
 ) -> TaxedMoney:
     """Return the total price of this line."""
-    amount = line.quantity * line.variant.get_price(discounts or [])
+    # FIXME: channel should be required in Checkout model; remove this check once this
+    # is changed
+    checkout = line.checkout
+    if not checkout.channel:
+        return zero_taxed_money(checkout.currency)
+
+    channel_slug = checkout.channel.slug
+    amount = line.quantity * line.variant.get_price(channel_slug, discounts or [])
     price = quantize_price(amount, amount.currency)
     return TaxedMoney(net=price, gross=price)

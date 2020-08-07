@@ -1,9 +1,11 @@
 import graphene
 
 from ...core.permissions import ProductPermissions
+from ..channel import ChannelContext
+from ..channel.utils import get_default_channel_or_graphql_error
 from ..core.enums import ReportingPeriod
 from ..core.fields import (
-    FieldWithChannel,
+    ChannelContextFilterConnectionField,
     FilterInputConnectionField,
     PrefetchingConnectionField,
 )
@@ -116,11 +118,13 @@ from .resolvers import (
     resolve_collection_by_slug,
     resolve_collections,
     resolve_digital_contents,
+    resolve_product_by_id,
     resolve_product_by_slug,
     resolve_product_types,
     resolve_product_variants,
     resolve_products,
     resolve_report_product_sales,
+    resolve_variant_by_id,
 )
 from .sorters import (
     AttributeSortingInput,
@@ -174,7 +178,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="List of the shop's categories.",
     )
-    category = FieldWithChannel(
+    category = graphene.Field(
         Category,
         id=graphene.Argument(graphene.ID, description="ID of the category."),
         slug=graphene.Argument(graphene.String, description="Slug of the category"),
@@ -192,13 +196,16 @@ class ProductQueries(graphene.ObjectType):
         sort_by=CollectionSortingInput(description="Sort collections."),
         description="List of the shop's collections.",
     )
-    product = FieldWithChannel(
+    product = graphene.Field(
         Product,
         id=graphene.Argument(graphene.ID, description="ID of the product.",),
         slug=graphene.Argument(graphene.String, description="Slug of the product."),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description="Look up a product by ID.",
     )
-    products = FilterInputConnectionField(
+    products = ChannelContextFilterConnectionField(
         Product,
         filter=ProductFilterInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
@@ -209,9 +216,12 @@ class ProductQueries(graphene.ObjectType):
                 "field instead. This field will be removed after 2020-07-31."
             ),
         ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description="List of the shop's products.",
     )
-    product_type = FieldWithChannel(
+    product_type = graphene.Field(
         ProductType,
         id=graphene.Argument(
             graphene.ID, description="ID of the product type.", required=True
@@ -226,24 +236,33 @@ class ProductQueries(graphene.ObjectType):
         sort_by=ProductTypeSortingInput(description="Sort product types."),
         description="List of the shop's product types.",
     )
-    product_variant = FieldWithChannel(
+    product_variant = graphene.Field(
         ProductVariant,
         id=graphene.Argument(
             graphene.ID, description="ID of the product variant.", required=True
         ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description="Look up a product variant by ID.",
     )
-    product_variants = PrefetchingConnectionField(
+    product_variants = ChannelContextFilterConnectionField(
         ProductVariant,
         ids=graphene.List(
             graphene.ID, description="Filter product variants by given IDs."
         ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description="List of product variants.",
     )
-    report_product_sales = PrefetchingConnectionField(
+    report_product_sales = ChannelContextFilterConnectionField(
         ProductVariant,
         period=graphene.Argument(
             ReportingPeriod, required=True, description="Span of time."
+        ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
         ),
         description="List of top selling products.",
     )
@@ -282,15 +301,23 @@ class ProductQueries(graphene.ObjectType):
     def resolve_digital_contents(self, info, **_kwargs):
         return resolve_digital_contents(info)
 
-    def resolve_product(self, info, id=None, slug=None, **_kwargs):
+    def resolve_product(self, info, id=None, slug=None, channel=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
+        if channel is None:
+            channel = get_default_channel_or_graphql_error().slug
         if id:
-            return graphene.Node.get_node_from_global_id(info, id, Product)
+            _, id = graphene.Node.from_global_id(id)
+            product = resolve_product_by_id(info, id, channel_slug=channel)
         if slug:
-            return resolve_product_by_slug(info, slug=slug)
+            product = resolve_product_by_slug(
+                info, product_slug=slug, channel_slug=channel
+            )
+        return ChannelContext(node=product, channel_slug=channel) if product else None
 
-    def resolve_products(self, info, **kwargs):
-        return resolve_products(info, **kwargs)
+    def resolve_products(self, info, channel=None, **kwargs):
+        if channel is None:
+            channel = get_default_channel_or_graphql_error().slug
+        return resolve_products(info, channel_slug=channel, **kwargs)
 
     def resolve_product_type(self, info, id, **_kwargs):
         return graphene.Node.get_node_from_global_id(info, id, ProductType)
@@ -298,15 +325,23 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_types(self, info, **kwargs):
         return resolve_product_types(info, **kwargs)
 
-    def resolve_product_variant(self, info, id, **_kwargs):
-        return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
+    def resolve_product_variant(self, info, id, channel=None, **_kwargs):
+        if channel is None:
+            channel = get_default_channel_or_graphql_error().slug
+        _, id = graphene.Node.from_global_id(id)
+        variant = resolve_variant_by_id(info, id, channel_slug=channel)
+        return ChannelContext(node=variant, channel_slug=channel) if variant else None
 
-    def resolve_product_variants(self, info, ids=None, **_kwargs):
-        return resolve_product_variants(info, ids)
+    def resolve_product_variants(self, info, ids=None, channel=None, **_kwargs):
+        if channel is None:
+            channel = get_default_channel_or_graphql_error().slug
+        return resolve_product_variants(info, ids=ids, channel_slug=channel)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_report_product_sales(self, *_args, period, **_kwargs):
-        return resolve_report_product_sales(period)
+    def resolve_report_product_sales(self, *_args, period, channel=None, **_kwargs):
+        if channel is None:
+            channel = get_default_channel_or_graphql_error().slug
+        return resolve_report_product_sales(period, channel_slug=channel)
 
 
 class ProductMutations(graphene.ObjectType):
