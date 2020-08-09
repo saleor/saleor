@@ -33,6 +33,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing OrderEvents during checkout flow - #5684 by @koradon
 - Update google merchant to get tax rate based by plugin manager - #5823 by @gabmartinez
 - Allow unicode in slug fields - #5877 by @IKarbowiak
+- Fix empty plugin object result after PluginUpdate mutation - #5968 by @gabmartinez
 
 ## 2.10.2
 
