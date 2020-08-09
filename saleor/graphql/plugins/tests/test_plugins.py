@@ -308,7 +308,7 @@ def test_plugin_configuration_update(
     response = staff_api_client_can_manage_plugins.post_graphql(
         PLUGIN_UPDATE_MUTATION, variables
     )
-    get_graphql_content(response)
+    content = get_graphql_content(response)
 
     plugin = PluginConfiguration.objects.get(identifier=PluginSample.PLUGIN_ID)
     assert plugin.active == active
@@ -320,6 +320,11 @@ def test_plugin_configuration_update(
     second_configuration_item = plugin.configuration[1]
     assert second_configuration_item["name"] == old_configuration[1]["name"]
     assert second_configuration_item["value"] == old_configuration[1]["value"]
+
+    configuration = content["data"]["pluginUpdate"]["plugin"]["configuration"]
+    assert configuration is not None
+    assert configuration[0]["name"] == updated_configuration_item["name"]
+    assert configuration[0]["value"] == updated_configuration_item["value"]
 
 
 def test_plugin_configuration_update_containing_invalid_plugin_id(
