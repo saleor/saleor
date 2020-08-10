@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
@@ -178,7 +177,7 @@ class CheckoutLine(models.Model):
         "product.ProductVariant", related_name="+", on_delete=models.CASCADE
     )
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
-    data = JSONField(blank=True, default=dict)
+    data = models.JSONField(blank=True, default=dict)
 
     class Meta:
         unique_together = ("checkout", "variant", "data")

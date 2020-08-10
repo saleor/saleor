@@ -5,7 +5,6 @@ from typing import Optional
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F, Max, Sum
@@ -507,7 +506,7 @@ class OrderEvent(models.Model):
         ],
     )
     order = models.ForeignKey(Order, related_name="events", on_delete=models.CASCADE)
-    parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+    parameters = models.JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,

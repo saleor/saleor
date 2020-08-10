@@ -2,7 +2,6 @@ from decimal import Decimal
 from operator import attrgetter
 
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -209,7 +208,7 @@ class Transaction(models.Model):
         null=True,
     )
     customer_id = models.CharField(max_length=256, null=True)
-    gateway_response = JSONField(encoder=DjangoJSONEncoder)
+    gateway_response = models.JSONField(encoder=DjangoJSONEncoder)
 
     class Meta:
         ordering = ("pk",)
