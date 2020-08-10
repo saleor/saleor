@@ -674,7 +674,7 @@ def test_update_product_variant_not_all_attributes(
     assert not product.variants.filter(sku=sku).exists()
 
 
-def test_update_product_variant_with_current_attribut(
+def test_update_product_variant_with_current_attribute(
     staff_api_client,
     product_with_variant_with_two_attributes,
     color_attribute,
@@ -859,6 +859,43 @@ def test_update_product_variant_requires_values(
         "message": message,
     }
     assert not variant.product.variants.filter(sku=sku).exists()
+
+
+def test_update_product_variant_with_price_does_not_raise_price_validation_error(
+    staff_api_client, variant, permission_manage_products
+):
+    mutation = """
+    mutation updateVariant ($id: ID!) {
+        productVariantUpdate(id: $id, input: {}) {
+            productVariant {
+                id
+                price {
+                    amount
+                }
+            }
+            productErrors {
+                field
+                code
+            }
+        }
+    }
+    """
+    # given a product variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    # when running the updateVariant mutation without price input field
+    variables = {"id": variant_id}
+    response = staff_api_client.post_graphql(
+        mutation, variables, permissions=[permission_manage_products]
+    )
+
+    # then mutation passes without validation errors
+    content = get_graphql_content(response)
+    assert not content["data"]["productVariantUpdate"]["productErrors"]
+    assert (
+        content["data"]["productVariantUpdate"]["productVariant"]["price"]["amount"]
+        == variant.price.amount
+    )
 
 
 def test_delete_variant(staff_api_client, product, permission_manage_products):
@@ -1185,8 +1222,8 @@ def test_product_variant_bulk_create_stocks_input(
     assert product_variant_count + 2 == ProductVariant.objects.count()
     assert attribute_value_count + 1 == size_attribute.values.count()
 
-    expected_result = [
-        {
+    expected_result = {
+        variants[0]["sku"]: {
             "sku": variants[0]["sku"],
             "stocks": [
                 {
@@ -1196,7 +1233,7 @@ def test_product_variant_bulk_create_stocks_input(
             ],
             "price": {"amount": 10.0},
         },
-        {
+        variants[1]["sku"]: {
             "sku": variants[1]["sku"],
             "stocks": [
                 {
@@ -1210,10 +1247,14 @@ def test_product_variant_bulk_create_stocks_input(
             ],
             "price": {"amount": 10.0},
         },
-    ]
+    }
     for variant_data in data["productVariants"]:
         variant_data.pop("id")
-        assert variant_data in expected_result
+        assert variant_data["sku"] in expected_result
+        expected_variant = expected_result[variant_data["sku"]]
+        expected_stocks = expected_variant["stocks"]
+        assert variant_data["price"] == expected_variant["price"]
+        assert all([stock in expected_stocks for stock in variant_data["stocks"]])
 
 
 def test_product_variant_bulk_create_duplicated_warehouses(
