@@ -1574,7 +1574,8 @@ def dummy_payment_data(payment_dummy):
     return PaymentData(
         amount=Decimal(10),
         currency="USD",
-        payment_id=graphene.Node.to_global_id("Payment", payment_dummy.pk),
+        graphql_payment_id=graphene.Node.to_global_id("Payment", payment_dummy.pk),
+        payment_id=payment_dummy.pk,
         billing=None,
         shipping=None,
         order_id=None,

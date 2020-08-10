@@ -4,7 +4,6 @@ from decimal import Decimal
 from typing import Any, Callable, Dict, Optional
 
 import Adyen
-import graphene
 from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
@@ -84,7 +83,7 @@ def request_data_for_payment(
             ),
             "currency": payment_information.currency,
         },
-        "reference": payment_information.payment_id,
+        "reference": payment_information.graphql_payment_id,
         "paymentMethod": payment_method,
         "returnUrl": return_url,
         "merchantAccount": merchant_account,
@@ -98,8 +97,9 @@ def request_data_for_payment(
 
 
 def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
-    _type, payment_pk = graphene.Node.from_global_id(payment_information.payment_id)
-    checkout = Checkout.objects.filter(payments__id=payment_pk).first()
+    checkout = Checkout.objects.filter(
+        payments__id=payment_information.payment_id
+    ).first()
 
     if not checkout:
         raise PaymentError("Unable to calculate products for klarna")
@@ -188,7 +188,7 @@ def request_for_payment_refund(
             "currency": payment_information.currency,
         },
         "originalReference": token,
-        "reference": payment_information.payment_id,
+        "reference": payment_information.graphql_payment_id,
     }
 
 
@@ -204,7 +204,7 @@ def request_for_payment_capture(
             "currency": payment_information.currency,
         },
         "originalReference": token,
-        "reference": payment_information.payment_id,
+        "reference": payment_information.graphql_payment_id,
     }
 
 
