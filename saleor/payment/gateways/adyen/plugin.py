@@ -350,20 +350,34 @@ class AdyenGatewayPlugin(BasePlugin):
             .exclude(token__isnull=True, token__exact="")
             .last()
         )
-        if not transaction:
-            raise PaymentError(
-                "Unable to finish the payment. Payment needs to be confirm by external "
-                "source."
+        if transaction:
+            # We already have the Auth/Capture transaction which means that payment was
+            # confirmed asynchronous
+            return GatewayResponse(
+                is_success=transaction.is_success,
+                action_required=False,
+                kind=TransactionKind.CONFIRM,
+                amount=transaction.amount,
+                currency=transaction.currency,
+                transaction_id=transaction.token,
+                error=None,
+                raw_response={},
             )
+        additional_data = payment_information.data
+        if not additional_data:
+            raise PaymentError("Unable to finish the payment.")
+
+        result = api_call(additional_data, self.adyen.checkout.payments)
+        is_success = result.message["resultCode"].strip().lower() not in FAILED_STATUSES
         return GatewayResponse(
-            is_success=transaction.is_success,
-            action_required=False,
+            is_success=is_success,
+            action_required="action" in result.message,
             kind=TransactionKind.CONFIRM,
-            amount=transaction.amount,
-            currency=transaction.currency,
-            transaction_id=transaction.token,
-            error=None,
-            raw_response={},
+            amount=payment_information.amount,
+            currency=payment_information.currency,
+            transaction_id=result.get("pspReference", ""),
+            error=result.message.get("refusalReason"),
+            raw_response=result.message,
         )
 
     @require_active_plugin
