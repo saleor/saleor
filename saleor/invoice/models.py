@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.timezone import now
 
@@ -64,7 +63,7 @@ class InvoiceEvent(models.Model):
         on_delete=models.SET_NULL,
         related_name="+",
     )
-    parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+    parameters = models.JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
         ordering = ("date", "pk")

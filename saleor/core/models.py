@@ -1,7 +1,6 @@
 import datetime
 from typing import Any
 
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import F, Max, Q
 
@@ -76,10 +75,12 @@ class PublishableModel(models.Model):
 
 
 class ModelWithMetadata(models.Model):
-    private_metadata = JSONField(
+    private_metadata = models.JSONField(
         blank=True, null=True, default=dict, encoder=CustomJsonEncoder
     )
-    metadata = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
+    metadata = models.JSONField(
+        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+    )
 
     class Meta:
         abstract = True

@@ -1,4 +1,3 @@
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils import timezone
 
@@ -24,7 +23,7 @@ class ExportEvent(models.Model):
 
     date = models.DateTimeField(default=timezone.now, editable=False)
     type = models.CharField(max_length=255, choices=ExportEvents.CHOICES)
-    parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+    parameters = models.JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
     export_file = models.ForeignKey(
         ExportFile, related_name="events", on_delete=models.CASCADE
     )

@@ -1,4 +1,3 @@
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 
 from ..core.permissions import PluginsPermissions
@@ -10,7 +9,7 @@ class PluginConfiguration(models.Model):
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
     active = models.BooleanField(default=True)
-    configuration = JSONField(
+    configuration = models.JSONField(
         blank=True, null=True, default=dict, encoder=CustomJsonEncoder
     )
 
