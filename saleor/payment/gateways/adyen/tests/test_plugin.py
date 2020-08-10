@@ -25,8 +25,8 @@ def test_get_payment_gateway_for_checkout(
     config = response.config
     assert len(config) == 2
     assert config[0] == {
-        "field": "origin_key",
-        "value": adyen_plugin.config.connection_params["origin_key"],
+        "field": "client_key",
+        "value": adyen_plugin.config.connection_params["client_key"],
     }
     assert config[1]["field"] == "config"
     config = json.loads(config[1]["value"])

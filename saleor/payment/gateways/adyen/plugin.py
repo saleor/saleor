@@ -55,7 +55,7 @@ class AdyenGatewayPlugin(BasePlugin):
         {"name": "Merchant Account", "value": None},
         {"name": "API key", "value": None},
         {"name": "Supported currencies", "value": ""},
-        {"name": "Origin Key", "value": ""},
+        {"name": "Client Key", "value": ""},
         {"name": "Origin Url", "value": ""},
         {"name": "Live", "value": ""},
         {"name": "Automatically mark payment as a capture", "value": True},
@@ -86,14 +86,26 @@ class AdyenGatewayPlugin(BasePlugin):
             " Please enter currency codes separated by a comma.",
             "label": "Supported currencies",
         },
-        "Origin Key": {
+        "Client Key": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "",  # FIXME define them as per channel
-            "label": "Origin Key",
+            "help_text": (
+                "The client key is a public key that uniquely identifies a web service "
+                "user. Each web service user has a list of allowed origins, or domains "
+                "from which we expect to get your requests. We make sure data cannot "
+                "be accessed by unknown parties by using Cross-Origin Resource Sharing."
+                "Not required for Android or iOS app."
+            ),
+            "label": "Client Key",
         },
         "Origin Url": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "",  # FIXME define them as per channel
+            "help_text": (
+                "The origin URL of the page where you are rendering the Drop-in. This "
+                "should not include subdirectories and a trailing slash. For example, "
+                "if you are rendering the Drop-in on "
+                "https://your-company.com/checkout/payment, specify here: "
+                "https://your-company.com. Not required for Android or iOS app."
+            ),
             "label": "Origin Url",
         },
         "Live": {
@@ -166,7 +178,7 @@ class AdyenGatewayPlugin(BasePlugin):
             connection_params={
                 "api_key": configuration["API key"],
                 "merchant_account": configuration["Merchant Account"],
-                "origin_key": configuration["Origin Key"],
+                "client_key": configuration["Client Key"],
                 "origin_url": configuration["Origin Url"],
                 "live": configuration["Live"],
                 "webhook_hmac": configuration["HMAC secret key"],
@@ -187,7 +199,6 @@ class AdyenGatewayPlugin(BasePlugin):
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         config = self._get_gateway_config()
-        self.config.connection_params["adyen_auto_capture"]
         if path.startswith(WEBHOOK_PATH):
             return handle_webhook(request, config)
         elif path.startswith(ADDITIONAL_ACTION_PATH):
@@ -221,8 +232,8 @@ class AdyenGatewayPlugin(BasePlugin):
             name=self.PLUGIN_NAME,
             config=[
                 {
-                    "field": "origin_key",
-                    "value": config.connection_params["origin_key"],
+                    "field": "client_key",
+                    "value": config.connection_params["client_key"],
                 },
                 {"field": "config", "value": json.dumps(response.message)},
             ],
