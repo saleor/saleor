@@ -7,7 +7,6 @@ from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
-from graphql_relay import from_global_id
 
 from ....checkout.models import Checkout
 from ....core.utils import build_absolute_uri
@@ -243,9 +242,8 @@ class AdyenGatewayPlugin(BasePlugin):
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        _type, payment_pk = from_global_id(payment_information.payment_id)
         try:
-            payment = Payment.objects.get(pk=payment_pk)
+            payment = Payment.objects.get(pk=payment_information.payment_id)
         except ObjectDoesNotExist:
             raise PaymentError("Payment cannot be performed. Payment does not exists.")
 
@@ -256,7 +254,7 @@ class AdyenGatewayPlugin(BasePlugin):
             )
 
         params = urlencode(
-            {"payment": payment_information.payment_id, "checkout": checkout.pk}
+            {"payment": payment_information.graphql_payment_id, "checkout": checkout.pk}
         )
         return_url = prepare_url(
             params,
@@ -332,17 +330,15 @@ class AdyenGatewayPlugin(BasePlugin):
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
 
-        _type, payment_id = from_global_id(payment_information.payment_id)
-
         # The additional checks are proceed asynchronously so we try to confirm that
         # the payment is already processed
-        payment = Payment.objects.filter(id=payment_id).first()
+        payment = Payment.objects.filter(id=payment_information.payment_id).first()
         if not payment:
             raise PaymentError("Unable to find the payment.")
 
         transaction = (
             payment.transactions.filter(
-                payment__id=payment_id,
+                payment__id=payment_information.payment_id,
                 kind__in=[TransactionKind.AUTH, TransactionKind.CAPTURE],
                 is_success=True,
             )
@@ -370,11 +366,12 @@ class AdyenGatewayPlugin(BasePlugin):
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
 
-        _type, payment_id = from_global_id(payment_information.payment_id)
         # we take Auth kind because it contains the transaction id that we need
         transaction = (
             Transaction.objects.filter(
-                payment__id=payment_id, kind=TransactionKind.AUTH, is_success=True
+                payment__id=payment_information.payment_id,
+                kind=TransactionKind.AUTH,
+                is_success=True,
             )
             .exclude(token__isnull=True, token__exact="")
             .last()
@@ -405,10 +402,11 @@ class AdyenGatewayPlugin(BasePlugin):
     def capture_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        _type, payment_id = from_global_id(payment_information.payment_id)
         transaction = (
             Transaction.objects.filter(
-                payment__id=payment_id, kind=TransactionKind.AUTH, is_success=True
+                payment__id=payment_information.payment_id,
+                kind=TransactionKind.AUTH,
+                is_success=True,
             )
             .exclude(token__isnull=True, token__exact="")
             .last()
