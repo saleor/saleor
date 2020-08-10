@@ -13,36 +13,12 @@ def anonymous_checkout(db, channel_USD):
     return Checkout.objects.get_or_create(user=None, channel=channel_USD)[0]
 
 
-def test_get_or_create_user_checkout(
-    customer_user, anonymous_checkout, user_checkout, admin_user, channel_USD
-):
-    checkout = utils.get_or_create_user_checkout(
-        customer_user, user_checkout.channel, auto_create=True
-    )[0]
-    assert Checkout.objects.all().count() == 2
-    assert checkout == user_checkout
-
-    # test against creating new checkouts
-    Checkout.objects.create(user=admin_user, channel=channel_USD)
-    queryset = Checkout.objects.all()
-    checkouts = list(queryset)
-    checkout = utils.get_or_create_user_checkout(
-        admin_user, user_checkout.channel, auto_create=True
-    )[0]
-    assert Checkout.objects.all().count() == 3
-    assert checkout in checkouts
-    assert checkout.user == admin_user
-
-
 def test_get_user_checkout(
     anonymous_checkout, user_checkout, admin_user, customer_user
 ):
-    checkout, created = utils.get_or_create_user_checkout(
-        customer_user, user_checkout.channel
-    )
+    checkout = utils.get_user_checkout(customer_user)
     assert Checkout.objects.all().count() == 2
     assert checkout == user_checkout
-    assert not created
 
 
 def test_adding_zero_quantity(checkout, product):

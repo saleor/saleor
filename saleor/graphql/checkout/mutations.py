@@ -341,7 +341,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # `perform_mutation` is overridden to properly get or create a checkout
         # instance here and abort mutation if needed.
         if user.is_authenticated:
-            checkout, _ = get_user_checkout(user)
+            checkout = get_user_checkout(user)
 
             if checkout is not None:
                 # If user has an active checkout, return it without any
