@@ -29,10 +29,7 @@ def create_shipping_method_channel_listing(apps, schema_editor):
             max_value = shipping_method.maximum_order_price_amount
             min_value = shipping_method.minimum_order_price_amount
         else:
-            maximum_order_weight = shipping_method.maximum_order_weight
-            minimum_order_weight = shipping_method.minimum_order_weight
-            max_value = maximum_order_weight.value if maximum_order_weight else None
-            min_value = minimum_order_weight.value if minimum_order_weight else None
+            max_value, min_value = None, None
         ShippingMethodChannelListing.objects.create(
             channel=channel,
             shipping_method=shipping_method,
