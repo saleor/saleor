@@ -49,7 +49,7 @@ def create_payment_information(
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
 
     order_id = payment.order.pk if payment.order else None
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    graphql_payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     return PaymentData(
         token=payment_token,
@@ -58,7 +58,8 @@ def create_payment_information(
         billing=billing_address,
         shipping=shipping_address,
         order_id=order_id,
-        payment_id=payment_id,
+        payment_id=payment.pk,
+        graphql_payment_id=graphql_payment_id,
         customer_ip_address=payment.customer_ip_address,
         customer_id=customer_id,
         customer_email=payment.billing_email,
