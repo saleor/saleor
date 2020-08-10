@@ -603,8 +603,11 @@ class Product(CountableDjangoObjectType):
 
     @classmethod
     def get_node(cls, info, pk):
+
+        user = info.context.app or info.context.user
+
         if info.context:
-            qs = cls._meta.model.objects.visible_to_user(info.context.user)
+            qs = cls._meta.model.objects.visible_to_user(user)
             return qs.filter(pk=pk).first()
         return None
 
