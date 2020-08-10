@@ -238,6 +238,15 @@ def test_confirm_payment(payment_adyen_for_order, adyen_plugin):
 
 
 @pytest.mark.vcr
+@pytest.mark.skip(reason="To finish when additional auth data schema will be known")
+def test_confirm_payment_with_additional_details(payment_adyen_for_order, adyen_plugin):
+    return  # test it when we will have additional auth data
+    payment_info = create_payment_information(payment_adyen_for_order,)
+    adyen_plugin = adyen_plugin()
+    adyen_plugin.confirm_payment(payment_info, None)
+
+
+@pytest.mark.vcr
 def test_refund_payment(payment_adyen_for_order, order_with_lines, adyen_plugin):
     payment_info = create_payment_information(
         payment_adyen_for_order,
