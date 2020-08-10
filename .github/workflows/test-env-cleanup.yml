@@ -23,8 +23,8 @@ jobs:
           Payload: >-
             {
               "action": "${{ github.event.action }}",
-              "label": "${{ env.GITHUB_HEAD_REF_SLUG }}",
-              "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ env.GITHUB_HEAD_REF_SLUG }}"
+              "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
+              "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ env.GITHUB_HEAD_REF_SLUG_URL }}"
             }
           LogType: Tail
 
@@ -33,4 +33,4 @@ jobs:
         with:
           step: deactivate-env
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: ${{ env.GITHUB_HEAD_REF_SLUG }}
+          env: ${{ env.GITHUB_HEAD_REF_SLUG_URL }}
