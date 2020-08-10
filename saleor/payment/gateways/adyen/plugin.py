@@ -108,16 +108,6 @@ class AdyenGatewayPlugin(BasePlugin):
             ),
             "label": "Live",
         },
-        "Enable notifications": {
-            "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": (
-                "Enable the support for processing the Adyen's webhooks. The Saleor "
-                "webhook url is "
-                "http(s)://<your-backend-url>/plugins/mirumee.payments.adyen/webhooks/ "
-                "https://docs.adyen.com/development-resources/webhooks"
-            ),
-            "label": "Enable notifications",
-        },
         "Automatically mark payment as a capture": {
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": (
