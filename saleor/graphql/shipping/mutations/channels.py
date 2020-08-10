@@ -9,19 +9,13 @@ from ....core.permissions import ShippingPermissions
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.models import ShippingMethodChannelListing
 from ...channel import ChannelContext
-from ...channel.types import Channel
-from ...channel.utils import (
-    validate_duplicated_channel_ids,
-    validate_duplicated_channel_values,
-)
+from ...channel.utils import CleanChannelMixin
 from ...core.mutations import BaseMutation
 from ...core.types.common import ShippingError
-from ...utils import resolve_global_ids_to_primary_keys
 from ..types import ShippingMethod
 
 if TYPE_CHECKING:
     from ....shipping.models import ShippingMethod as ShippingMethodModel
-    from ....channel.models import Channel as ChannelModel
 
 ErrorType = DefaultDict[str, List[ValidationError]]
 
@@ -59,7 +53,7 @@ class ShippingMethodChannelListingCreate(BaseMutation):
         error_type_field = "shipping_errors"
 
 
-class ShippingMethodChannelListingUpdate(BaseMutation):
+class ShippingMethodChannelListingUpdate(CleanChannelMixin, BaseMutation):
     shipping_method = graphene.Field(ShippingMethod)
 
     class Arguments:
@@ -71,49 +65,6 @@ class ShippingMethodChannelListingUpdate(BaseMutation):
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
-
-    @classmethod
-    def clean_channels(cls, info, input, errors: ErrorType) -> Dict:
-        add_channels = input.get("add_channels", [])
-        add_channels_ids = [channel["channel_id"] for channel in add_channels]
-        remove_channels_ids = input.get("remove_channels", [])
-        validate_duplicated_channel_ids(
-            add_channels_ids,
-            remove_channels_ids,
-            errors,
-            ShippingErrorCode.DUPLICATED_INPUT_ITEM.value,
-        )
-        validate_duplicated_channel_values(
-            add_channels_ids,
-            "add_channels",
-            errors,
-            ShippingErrorCode.DUPLICATED_INPUT_ITEM.value,
-        )
-        validate_duplicated_channel_values(
-            remove_channels_ids,
-            "remove_channels",
-            errors,
-            ShippingErrorCode.DUPLICATED_INPUT_ITEM.value,
-        )
-
-        if errors:
-            return {}
-        channels_to_add: List["ChannelModel"] = []
-        if add_channels_ids:
-            channels_to_add = cls.get_nodes_or_error(
-                add_channels_ids, "channel_id", Channel
-            )
-        _, remove_channels_pks = resolve_global_ids_to_primary_keys(
-            remove_channels_ids, Channel
-        )
-
-        cleaned_input = {"add_channels": [], "remove_channels": remove_channels_pks}
-
-        for channel_listing, channel in zip(add_channels, channels_to_add):
-            channel_listing["channel"] = channel
-            cleaned_input["add_channels"].append(channel_listing)
-
-        return cleaned_input
 
     @classmethod
     def add_channels(
@@ -152,7 +103,9 @@ class ShippingMethodChannelListingUpdate(BaseMutation):
         )
         errors = defaultdict(list)
 
-        cleaned_input = cls.clean_channels(info, input, errors)
+        cleaned_input = cls.clean_channels(
+            info, input, errors, ShippingErrorCode.DUPLICATED_INPUT_ITEM.value
+        )
         if errors:
             raise ValidationError(errors)
 

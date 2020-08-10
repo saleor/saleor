@@ -9,19 +9,13 @@ from ....core.permissions import ProductPermissions
 from ....product.error_codes import ProductErrorCode
 from ....product.models import ProductChannelListing
 from ...channel import ChannelContext
-from ...channel.types import Channel
-from ...channel.utils import (
-    validate_duplicated_channel_ids,
-    validate_duplicated_channel_values,
-)
+from ...channel.utils import CleanChannelMixin
 from ...core.mutations import BaseMutation
 from ...core.types.common import ProductChannelListingError
-from ...utils import resolve_global_ids_to_primary_keys
 from ..types.products import Product
 
 if TYPE_CHECKING:
     from ....product.models import Product as ProductModel
-    from ....channel.models import Channel as ChannelModel
 
 ErrorType = DefaultDict[str, List[ValidationError]]
 
@@ -49,7 +43,7 @@ class ProductChannelListingUpdateInput(graphene.InputObjectType):
     )
 
 
-class ProductChannelListingUpdate(BaseMutation):
+class ProductChannelListingUpdate(CleanChannelMixin, BaseMutation):
     product = graphene.Field(Product, description="An updated product instance.")
 
     class Arguments:
@@ -64,49 +58,6 @@ class ProductChannelListingUpdate(BaseMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductChannelListingError
         error_type_field = "products_errors"
-
-    @classmethod
-    def clean_channels(cls, info, input, errors: ErrorType) -> Dict:
-        add_channels = input.get("add_channels", [])
-        add_channels_ids = [channel["channel_id"] for channel in add_channels]
-        remove_channels_ids = input.get("remove_channels", [])
-        validate_duplicated_channel_ids(
-            add_channels_ids,
-            remove_channels_ids,
-            errors,
-            ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
-        )
-        validate_duplicated_channel_values(
-            add_channels_ids,
-            "add_channels",
-            errors,
-            ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
-        )
-        validate_duplicated_channel_values(
-            remove_channels_ids,
-            "remove_channels",
-            errors,
-            ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
-        )
-
-        if errors:
-            return {}
-        channels_to_add: List["ChannelModel"] = []
-        if add_channels_ids:
-            channels_to_add = cls.get_nodes_or_error(
-                add_channels_ids, "channel_id", Channel
-            )
-        _, remove_channels_pks = resolve_global_ids_to_primary_keys(
-            remove_channels_ids, Channel
-        )
-
-        cleaned_input = {"add_channels": [], "remove_channels": remove_channels_pks}
-
-        for channel_listing, channel in zip(add_channels, channels_to_add):
-            channel_listing["channel"] = channel
-            cleaned_input["add_channels"].append(channel_listing)
-
-        return cleaned_input
 
     @classmethod
     def validate_product_without_category(cls, cleaned_input, errors: ErrorType):
@@ -155,7 +106,9 @@ class ProductChannelListingUpdate(BaseMutation):
         product = cls.get_node_or_error(info, id, only_type=Product, field="id")
         errors = defaultdict(list)
 
-        cleaned_input = cls.clean_channels(info, input, errors)
+        cleaned_input = cls.clean_channels(
+            info, input, errors, ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+        )
         if not product.category:
             cls.validate_product_without_category(cleaned_input, errors)
         if errors:
