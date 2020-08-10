@@ -12,7 +12,7 @@ from .utils import (
     create_payment_information,
     create_transaction,
     gateway_postprocess,
-    update_card_details,
+    update_payment_method_details,
     validate_gateway_response,
 )
 
@@ -74,6 +74,8 @@ def process_payment(
         plugin_manager.process_payment, payment.gateway, payment_data
     )
     action_required = response is not None and response.action_required
+    if response and response.payment_method_info:
+        update_payment_method_details(payment, response)
     return create_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,
@@ -96,6 +98,8 @@ def authorize(payment: Payment, token: str, store_source: bool = False) -> Trans
     response, error = _fetch_gateway_response(
         plugin_manager.authorize_payment, payment.gateway, payment_data
     )
+    if response and response.payment_method_info:
+        update_payment_method_details(payment, response)
     return create_transaction(
         payment=payment,
         kind=TransactionKind.AUTH,
@@ -122,8 +126,8 @@ def capture(
     response, error = _fetch_gateway_response(
         plugin_manager.capture_payment, payment.gateway, payment_data
     )
-    if response and response.card_info:
-        update_card_details(payment, response)
+    if response and response.payment_method_info:
+        update_payment_method_details(payment, response)
     return create_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,

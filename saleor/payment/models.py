@@ -81,6 +81,8 @@ class Payment(models.Model):
         validators=[MinValueValidator(1000)], null=True, blank=True
     )
 
+    payment_method_type = models.CharField(max_length=256, blank=True)
+
     customer_ip_address = models.GenericIPAddressField(blank=True, null=True)
     extra_data = models.TextField(blank=True, default="")
     return_url = models.URLField(blank=True, null=True)
