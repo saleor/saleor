@@ -5,7 +5,7 @@ from ..core.fields import PrefetchingConnectionField
 from ..decorators import permission_required
 from ..translations.mutations import ShippingPriceTranslate
 from .bulk_mutations import ShippingPriceBulkDelete, ShippingZoneBulkDelete
-from .mutations import (
+from .mutations.shippings import (
     ShippingPriceCreate,
     ShippingPriceDelete,
     ShippingPriceUpdate,

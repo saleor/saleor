@@ -3,7 +3,12 @@ from django_countries import countries
 from measurement.measures import Weight
 from prices import Money
 
-from ..models import ShippingMethod, ShippingMethodType, ShippingZone
+from ..models import (
+    ShippingMethod,
+    ShippingMethodChannelListing,
+    ShippingMethodType,
+    ShippingZone,
+)
 from ..utils import default_shipping_zone_exists, get_countries_without_shipping_zone
 
 
@@ -26,7 +31,7 @@ def test_shipping_get_total(monkeypatch, shipping_zone):
     ),
 )  # regular case
 def test_applicable_shipping_methods_price(
-    shipping_zone, price, min_price, max_price, shipping_included
+    shipping_zone, price, min_price, max_price, shipping_included, channel_PLN
 ):
     method = shipping_zone.shipping_methods.create(
         minimum_order_price_amount=min_price,
@@ -34,9 +39,15 @@ def test_applicable_shipping_methods_price(
         currency="USD",
         type=ShippingMethodType.PRICE_BASED,
     )
+    ShippingMethodChannelListing.objects.create(
+        shipping_method=method, channel=channel_PLN
+    )
     assert "PL" in shipping_zone.countries
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money(price, "USD"), weight=Weight(kg=0), country_code="PL"
+        price=Money(price, "USD"),
+        weight=Weight(kg=0),
+        country_code="PL",
+        channel=channel_PLN,
     )
     assert (method in result) == shipping_included
 
@@ -53,35 +64,50 @@ def test_applicable_shipping_methods_price(
     ),
 )  # regular case
 def test_applicable_shipping_methods_weight(
-    weight, min_weight, max_weight, shipping_included, shipping_zone
+    weight, min_weight, max_weight, shipping_included, shipping_zone, channel_PLN
 ):
     method = shipping_zone.shipping_methods.create(
         minimum_order_weight=min_weight,
         maximum_order_weight=max_weight,
         type=ShippingMethodType.WEIGHT_BASED,
     )
+    ShippingMethodChannelListing.objects.create(
+        shipping_method=method, channel=channel_PLN
+    )
+
     assert "PL" in shipping_zone.countries
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money("0", "USD"), weight=weight, country_code="PL"
+        price=Money("0", "USD"), weight=weight, country_code="PL", channel=channel_PLN
     )
     assert (method in result) == shipping_included
 
 
-def test_applicable_shipping_methods_country_code_outside_shipping_zone(shipping_zone):
+def test_applicable_shipping_methods_country_code_outside_shipping_zone(
+    shipping_zone, channel_PLN
+):
     method = shipping_zone.shipping_methods.create(
         minimum_order_price=Money("1.0", "USD"),
         maximum_order_price=Money("10.0", "USD"),
         type=ShippingMethodType.PRICE_BASED,
     )
+    ShippingMethodChannelListing.objects.create(
+        shipping_method=method, channel=channel_PLN
+    )
+
     shipping_zone.countries = ["DE"]
     shipping_zone.save()
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money("5.0", "USD"), weight=Weight(kg=0), country_code="PL"
+        price=Money("5.0", "USD"),
+        weight=Weight(kg=0),
+        country_code="PL",
+        channel=channel_PLN,
     )
     assert method not in result
 
 
-def test_applicable_shipping_methods_inproper_shipping_method_type(shipping_zone):
+def test_applicable_shipping_methods_inproper_shipping_method_type(
+    shipping_zone, channel_PLN
+):
     """Case when shipping suits the price requirements of the weight type
     shipping method and the other way around.
     """
@@ -97,8 +123,18 @@ def test_applicable_shipping_methods_inproper_shipping_method_type(shipping_zone
         minimum_order_price=Money("1000.0", "USD"),
         type=ShippingMethodType.PRICE_BASED,
     )
+    ShippingMethodChannelListing.objects.create(
+        shipping_method=price_method, channel=channel_PLN
+    )
+    ShippingMethodChannelListing.objects.create(
+        shipping_method=weight_method, channel=channel_PLN
+    )
+
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money("5.0", "USD"), weight=Weight(kg=5), country_code="PL"
+        price=Money("5.0", "USD"),
+        weight=Weight(kg=5),
+        country_code="PL",
+        channel=channel_PLN,
     )
     assert price_method not in result
     assert weight_method not in result

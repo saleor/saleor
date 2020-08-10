@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, DefaultDict, Dict, Iterable, List
+from typing import TYPE_CHECKING, DefaultDict, Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -10,9 +10,12 @@ from ....product.error_codes import ProductErrorCode
 from ....product.models import ProductChannelListing
 from ...channel import ChannelContext
 from ...channel.types import Channel
+from ...channel.utils import (
+    validate_duplicated_channel_ids,
+    validate_duplicated_channel_values,
+)
 from ...core.mutations import BaseMutation
 from ...core.types.common import ProductChannelListingError
-from ...core.utils import get_duplicated_values, get_duplicates_ids
 from ...utils import resolve_global_ids_to_primary_keys
 from ..types.products import Product
 
@@ -63,49 +66,28 @@ class ProductChannelListingUpdate(BaseMutation):
         error_type_field = "products_errors"
 
     @classmethod
-    def validate_duplicated_ids(
-        cls,
-        add_channels_ids: Iterable[str],
-        remove_channels_ids: Iterable[str],
-        errors: ErrorType,
-    ):
-        duplicated_ids = get_duplicates_ids(add_channels_ids, remove_channels_ids)
-        if duplicated_ids:
-            error_msg = (
-                "The same object cannot be in both lists "
-                "for adding and removing items."
-            )
-            errors["input"].append(
-                ValidationError(
-                    error_msg,
-                    code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
-                    params={"channels": list(duplicated_ids)},
-                )
-            )
-
-    @classmethod
-    def validate_duplicated_values(
-        cls, channels_ids: Iterable[str], field_name: str, errors: ErrorType
-    ):
-        duplicates = get_duplicated_values(channels_ids)
-        if duplicates:
-            errors[field_name].append(
-                ValidationError(
-                    "Duplicated channel ID.",
-                    code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
-                    params={"channels": duplicates},
-                )
-            )
-
-    @classmethod
     def clean_channels(cls, info, input, errors: ErrorType) -> Dict:
         add_channels = input.get("add_channels", [])
         add_channels_ids = [channel["channel_id"] for channel in add_channels]
         remove_channels_ids = input.get("remove_channels", [])
-
-        cls.validate_duplicated_ids(add_channels_ids, remove_channels_ids, errors)
-        cls.validate_duplicated_values(add_channels_ids, "add_channels", errors)
-        cls.validate_duplicated_values(remove_channels_ids, "remove_channels", errors)
+        validate_duplicated_channel_ids(
+            add_channels_ids,
+            remove_channels_ids,
+            errors,
+            ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+        )
+        validate_duplicated_channel_values(
+            add_channels_ids,
+            "add_channels",
+            errors,
+            ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+        )
+        validate_duplicated_channel_values(
+            remove_channels_ids,
+            "remove_channels",
+            errors,
+            ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+        )
 
         if errors:
             return {}

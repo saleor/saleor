@@ -1,20 +1,34 @@
 import graphene
 from graphene import relay
 
+from ...core.permissions import ShippingPermissions
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import CountryDisplay, MoneyRange
+from ..decorators import permission_required
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
 from .enums import ShippingMethodTypeEnum
 
 
+class ShippingMethodChannelListing(CountableDjangoObjectType):
+    class Meta:
+        description = "Represents shipping method channel listing."
+        model = models.ShippingMethodChannelListing
+        interfaces = [relay.Node]
+        only_fields = ["id", "channel", "price", "min_value", "max_value"]
+
+
 class ShippingMethod(CountableDjangoObjectType):
     type = ShippingMethodTypeEnum(description="Type of the shipping method.")
     translation = TranslationField(
         ShippingMethodTranslation, type_name="shipping method"
+    )
+    channels = graphene.List(
+        ShippingMethodChannelListing,
+        description="List of channels available for the method.",
     )
 
     class Meta:
@@ -31,8 +45,15 @@ class ShippingMethod(CountableDjangoObjectType):
             "minimum_order_price",
             "minimum_order_weight",
             "name",
+            "channels",
             "price",
         ]
+
+    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
+    def resolve_channels(root: models.ShippingMethod, *_args):
+        return models.ShippingMethodChannelListing.objects.filter(
+            shipping_method__id__in=[root.pk]
+        )
 
     def resolve_maximum_order_weight(root: models.ShippingMethod, *_args):
         return convert_weight_to_default_weight_unit(root.maximum_order_weight)

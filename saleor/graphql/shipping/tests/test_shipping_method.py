@@ -17,6 +17,9 @@ SHIPPING_ZONE_QUERY = """
                 price {
                     amount
                 }
+                channels {
+                    id
+                }
                 minimumOrderWeight {
                     value
                     unit
@@ -55,7 +58,6 @@ def test_shipping_zone_query(
 
     # then
     content = get_graphql_content(response)
-
     shipping_data = content["data"]["shippingZone"]
     assert shipping_data["name"] == shipping.name
     num_of_shipping_methods = shipping_zone.shipping_methods.count()

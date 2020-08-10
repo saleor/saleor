@@ -10,6 +10,7 @@ from django_prices.models import MoneyField
 from measurement.measures import Weight
 from prices import Money, MoneyRange
 
+from ..channel.models import Channel
 from ..core.permissions import ShippingPermissions
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import TranslationProxy
@@ -92,7 +93,15 @@ class ShippingMethodQueryset(models.QuerySet):
     def weight_based(self):
         return self.filter(type=ShippingMethodType.WEIGHT_BASED)
 
-    def applicable_shipping_methods(self, price: Money, weight, country_code):
+    def applicable_shipping_methods_by_channel(self, shipping_methods, channel):
+        shipping_methods_ids = shipping_methods.values_list("id", flat=True)
+        shipping_method_listings_ids = ShippingMethodChannelListing.objects.filter(
+            Q(shipping_method__id__in=shipping_methods_ids), Q(channel=channel)
+        ).values_list("shipping_method__id", flat=True)
+
+        return shipping_methods.filter(id__in=shipping_method_listings_ids)
+
+    def applicable_shipping_methods(self, price: Money, channel, weight, country_code):
         """Return the ShippingMethods that can be used on an order with shipment.
 
         It is based on the given country code, and by shipping methods that are
@@ -104,10 +113,18 @@ class ShippingMethodQueryset(models.QuerySet):
         qs = qs.prefetch_related("shipping_zone").order_by("price_amount")
         price_based_methods = _applicable_price_based_methods(price, qs)
         weight_based_methods = _applicable_weight_based_methods(weight, qs)
-        return price_based_methods | weight_based_methods
+        shipping_methods = price_based_methods | weight_based_methods
+        applicable_shipping_methods = self.applicable_shipping_methods_by_channel(
+            shipping_methods, channel
+        )
+        return applicable_shipping_methods
 
     def applicable_shipping_methods_for_instance(
-        self, instance: Union["Checkout", "Order"], price: Money, country_code=None
+        self,
+        instance: Union["Checkout", "Order"],
+        channel,
+        price: Money,
+        country_code=None,
     ):
         if not instance.is_shipping_required():
             return None
@@ -116,6 +133,7 @@ class ShippingMethodQueryset(models.QuerySet):
 
         return self.applicable_shipping_methods(
             price=price,
+            channel=channel,
             weight=instance.get_total_weight(),
             country_code=country_code or instance.shipping_address.country.code,
         )
@@ -207,6 +225,41 @@ class ShippingMethod(models.Model):
 
     def get_total(self):
         return self.price
+
+
+class ShippingMethodChannelListing(models.Model):
+    shipping_method = models.ForeignKey(
+        ShippingMethod,
+        null=False,
+        blank=False,
+        related_name="channel_listing",
+        on_delete=models.CASCADE,
+    )
+    channel = models.ForeignKey(
+        Channel,
+        null=False,
+        blank=False,
+        related_name="shipping_method_listing",
+        on_delete=models.CASCADE,
+    )
+    price = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=False,
+        null=True,
+    )
+    min_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=False,
+        null=True,
+    )
+    max_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=False,
+        null=True,
+    )
 
 
 class ShippingMethodTranslation(models.Model):

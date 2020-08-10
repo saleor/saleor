@@ -4671,6 +4671,15 @@ type ShippingMethod implements Node {
   maximumOrderWeight: Weight
   type: ShippingMethodTypeEnum
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
+  channels: [ShippingMethodChannelListing]
+}
+
+type ShippingMethodChannelListing implements Node {
+  id: ID!
+  channel: Channel!
+  price: Float
+  minValue: Float
+  maxValue: Float
 }
 
 type ShippingMethodTranslatableContent implements Node {
