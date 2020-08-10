@@ -13,7 +13,7 @@ def adyen_plugin(settings):
         api_key=None,
         merchant_account=None,
         return_url=None,
-        origin_key=None,
+        client_key=None,
         origin_url=None,
         adyen_auto_capture=None,
         auto_capture=None,
@@ -21,7 +21,7 @@ def adyen_plugin(settings):
         api_key = api_key or "test_key"
         merchant_account = merchant_account or "SaleorECOM"
         return_url = return_url or "http://127.0.0.1:3000/"
-        origin_key = origin_key or "test_origin_key"
+        client_key = client_key or "test_origin_key"
         origin_url = origin_url or "http://127.0.0.1:3000"
         adyen_auto_capture = adyen_auto_capture or False
         auto_capture = auto_capture or False
@@ -35,7 +35,7 @@ def adyen_plugin(settings):
                     {"name": "API key", "value": api_key},
                     {"name": "Merchant Account", "value": merchant_account},
                     {"name": "Return Url", "value": return_url},
-                    {"name": "Origin Key", "value": origin_key},
+                    {"name": "Client Key", "value": client_key},
                     {"name": "Origin Url", "value": origin_url},
                     {
                         "name": "Automatically mark payment as a capture",

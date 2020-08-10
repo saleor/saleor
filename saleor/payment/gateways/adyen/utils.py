@@ -108,10 +108,8 @@ def request_data_for_payment(
     if (
         "browserInfo" in extra_request_params
         and "billingAddress" in extra_request_params
+        and origin_url
     ):
-        # Replace this assigment. Add note that customer_ip_address has incorrect name
-        # Add to dashboard config the flow to combine channel with url like:
-        # web1:https://shop.com, web2:https://shop1.com
         extra_request_params["origin"] = origin_url
 
     method = payment_data["paymentMethod"].get("type", [])
