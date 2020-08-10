@@ -8,8 +8,10 @@ from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
 
+from ....checkout.calculations import checkout_line_total
 from ....checkout.models import Checkout
 from ....core.prices import quantize_price
+from ....discount.utils import fetch_active_discounts
 from ....payment.models import Payment
 from ... import PaymentError
 from ...interface import PaymentData
@@ -45,53 +47,11 @@ def api_call(request_data: Optional[Dict[str, Any]], method: Callable) -> Adyen.
         raise PaymentError("Unable to process the payment request.")
 
 
-def append_klarna_data(payment_information: "PaymentData", payment_data):
-    # FIXME Add klarna data
-    pass
-    # _type, payment_id = from_global_id(payment_information.payment_id)
-    # checkout = Checkout.objects.filter(payments__id=payment_data).first()
-    # if not checkout:
-    #     raise PaymentError("Unable to calculate products for klarna")
-    # discounts = fetch_active_discounts()
-    # checkout.lines.prefetch_related("variant").all()
-    # def resolve_total_price(self, info):
-    #     def calculate_total_price(discounts):
-    #         return info.context.plugins.calculate_checkout_line_total(
-    #             checkout_line=self, discounts=discounts
-    #         )
-    #
-    #     return (
-    #         DiscountsByDateTimeLoader(info.context)
-    #             .load(info.context.request_time)
-    #             .then(calculate_total_price)
-    #     )
-
-    # payment_data["shopperEmail"] = payment_information.customer_email
-    # payment_data["lineItems"] = [
-    #     {
-    #         "quantity": "1",
-    #         "amountExcludingTax": "450",
-    #         "taxPercentage": "1111",
-    #         "description": "Sunglasses",
-    #         "id": "Item #1",
-    #         "taxAmount": "50",
-    #         "amountIncludingTax": "500",
-    #         "taxCategory": "High"
-    #     },
-    #     {
-    #         "quantity": "1",
-    #         "amountExcludingTax": "450",
-    #         "taxPercentage": "1111",
-    #         "description": "Headphones",
-    #         "id": "Item #2",
-    #         "taxAmount": "50",
-    #         "amountIncludingTax": "500",
-    #         "taxCategory": "High"
-    #     }]
-
-
 def request_data_for_payment(
-    payment_information: "PaymentData", return_url, merchant_account, origin_url
+    payment_information: "PaymentData",
+    return_url: str,
+    merchant_account: str,
+    origin_url: str,
 ) -> Dict[str, Any]:
     payment_data = payment_information.data or {}
 
@@ -112,7 +72,7 @@ def request_data_for_payment(
     ):
         extra_request_params["origin"] = origin_url
 
-    method = payment_data["paymentMethod"].get("type", [])
+    payment_method = payment_data["paymentMethod"]
 
     request_data = {
         "amount": {
@@ -121,18 +81,79 @@ def request_data_for_payment(
             ),
             "currency": payment_information.currency,
         },
-        "reference": payment_information.payment_id,
-        "paymentMethod": payment_data.get("paymentMethod"),
+        "reference": payment_information.graphql_payment_id,
+        "paymentMethod": payment_method,
         "returnUrl": return_url,
         "merchantAccount": merchant_account,
         **extra_request_params,
     }
 
+    method = payment_method.get("type", [])
     if "klarna" in method:
-        # TODO
-        append_klarna_data(payment_information, request_data)
-
+        request_data = append_klarna_data(payment_information, request_data)
     return request_data
+
+
+def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
+    checkout = Checkout.objects.filter(
+        payments__id=payment_information.payment_id
+    ).first()
+
+    if not checkout:
+        raise PaymentError("Unable to calculate products for klarna")
+
+    lines = checkout.lines.prefetch_related("variant").all()
+    discounts = fetch_active_discounts()
+    currency = payment_information.currency
+    country_code = checkout.get_country()
+
+    payment_data["shopperLocale"] = get_shopper_locale_value(country_code)
+    payment_data["shopperReference"] = payment_information.customer_email
+    payment_data["countryCode"] = country_code
+    payment_data["shopperEmail"] = payment_information.customer_email
+    line_items = []
+    for line in lines:
+        total = checkout_line_total(line=line, discounts=discounts)
+        total_gross = total.gross.amount
+        total_net = total.net.amount
+        tax_amount = total.tax.amount
+        line_data = {
+            "quantity": line.quantity,
+            "amountExcludingTax": get_price_amount(total_net, currency),
+            "taxPercentage": round(tax_amount / total_gross * 100),
+            "description": line.variant.product.description,
+            "id": line.variant.sku,
+            "taxAmount": get_price_amount(tax_amount, currency),
+            "amountIncludingTax": get_price_amount(total_gross, currency),
+        }
+        line_items.append(line_data)
+    payment_data["lineItems"] = line_items
+    return payment_data
+
+
+def get_shopper_locale_value(country_code: str):
+    # Remove this function when "shopperLocale" will come from frontend site
+    country_code_to_shopper_locale_value = {
+        # https://docs.adyen.com/checkout/components-web/
+        # localization-components#change-language
+        "CN": "zh_CN",
+        "DK": "da_DK",
+        "NL": "nl_NL",
+        "US": "en_US",
+        "FI": "fi_FI",
+        "FR": "fr_FR",
+        "DR": "de_DE",
+        "IT": "it_IT",
+        "JP": "ja_JP",
+        "KR": "ko_KR",
+        "NO": "no_NO",
+        "PL": "pl_PL",
+        "BR": "pt_BR",
+        "RU": "ru_RU",
+        "ES": "es_ES",
+        "SE": "sv_SE",
+    }
+    return country_code_to_shopper_locale_value.get(country_code, "en_US")
 
 
 def request_data_for_gateway_config(
@@ -165,7 +186,7 @@ def request_for_payment_refund(
             "currency": payment_information.currency,
         },
         "originalReference": token,
-        "reference": payment_information.payment_id,
+        "reference": payment_information.graphql_payment_id,
     }
 
 
@@ -181,7 +202,7 @@ def request_for_payment_capture(
             "currency": payment_information.currency,
         },
         "originalReference": token,
-        "reference": payment_information.payment_id,
+        "reference": payment_information.graphql_payment_id,
     }
 
 

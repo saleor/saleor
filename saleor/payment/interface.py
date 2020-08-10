@@ -65,7 +65,8 @@ class PaymentData:
     currency: str
     billing: Optional[AddressData]
     shipping: Optional[AddressData]
-    payment_id: str  # GraphQL id
+    payment_id: int
+    graphql_payment_id: str
     order_id: Optional[int]
     customer_ip_address: Optional[str]
     customer_email: str
