@@ -1,8 +1,6 @@
 from unittest import mock
 
 import pytest
-import requests
-from django.core.serializers import serialize
 
 from ....app.models import App
 from ....webhook.event_types import WebhookEventType
@@ -14,38 +12,7 @@ from ....webhook.payloads import (
     generate_product_payload,
 )
 from ...manager import get_plugins_manager
-from ...webhook import create_hmac_signature
 from ...webhook.tasks import trigger_webhooks_for_event
-
-
-@pytest.mark.vcr
-@mock.patch("saleor.plugins.webhook.tasks.requests.post", wraps=requests.post)
-def test_trigger_webhooks_for_event(
-    mock_request,
-    webhook,
-    order_with_lines,
-    permission_manage_orders,
-    permission_manage_users,
-    permission_manage_products,
-):
-    webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = "https://webhook.site/75048668-439a-4e54-853b-6f081a6fb6cf"
-    webhook.save()
-
-    expected_data = serialize("json", [order_with_lines])
-
-    trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, expected_data)
-
-    expected_headers = {
-        "Content-Type": "application/json",
-        "X-Saleor-Event": "order_created",
-        "X-Saleor-Domain": "mirumee.com",
-    }
-
-    mock_request.assert_called_once_with(
-        webhook.target_url, data=expected_data, headers=expected_headers, timeout=10
-    )
-
 
 first_url = "http://www.example.com/first/"
 third_url = "http://www.example.com/third/"
@@ -105,34 +72,6 @@ def test_trigger_webhooks_for_event_calls_expected_events(
 
     target_url_calls = {call[0][1] for call in mock_request.call_args_list}
     assert target_url_calls == expected_target_urls
-
-
-@pytest.mark.vcr
-@mock.patch("saleor.plugins.webhook.tasks.requests.post", wraps=requests.post)
-def test_trigger_webhooks_for_event_with_secret_key(
-    mock_request, webhook, order_with_lines, permission_manage_orders
-):
-    webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = "https://webhook.site/75048668-439a-4e54-853b-6f081a6fb6cf"
-    webhook.secret_key = "secret_key"
-    webhook.save()
-
-    expected_data = serialize("json", [order_with_lines])
-    trigger_webhooks_for_event(WebhookEventType.ORDER_CREATED, expected_data)
-
-    expected_signature = create_hmac_signature(
-        expected_data, webhook.secret_key, "utf-8"
-    )
-    expected_headers = {
-        "Content-Type": "application/json",
-        "X-Saleor-Event": "order_created",
-        "X-Saleor-Domain": "mirumee.com",
-        "X-Saleor-HMAC-SHA256": f"sha1={expected_signature}",
-    }
-
-    mock_request.assert_called_once_with(
-        webhook.target_url, data=expected_data, headers=expected_headers, timeout=10
-    )
 
 
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")

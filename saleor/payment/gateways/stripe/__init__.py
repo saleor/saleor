@@ -4,11 +4,11 @@ import stripe
 
 from ... import TransactionKind
 from ...interface import (
-    CreditCardInfo,
     CustomerSource,
     GatewayConfig,
     GatewayResponse,
     PaymentData,
+    PaymentMethodInfo,
 )
 from .utils import (
     get_amount_for_stripe,
@@ -163,11 +163,11 @@ def list_client_sources(
         CustomerSource(
             id=c.id,
             gateway="stripe",
-            credit_card_info=CreditCardInfo(
+            credit_card_info=PaymentMethodInfo(
                 exp_year=c.card.exp_year,
                 exp_month=c.card.exp_month,
                 last_4=c.card.last4,
-                name_on_card=None,
+                name=None,
             ),
         )
         for c in cards
@@ -231,10 +231,13 @@ def fill_card_details(intent: stripe.PaymentIntent, response: GatewayResponse):
     charges = intent.charges["data"]
     if charges:
         card = intent.charges["data"][-1]["payment_method_details"]["card"]
-        response.card_info = CreditCardInfo(
+        brand = card["brand"] or ""
+
+        response.payment_method_info = PaymentMethodInfo(
             last_4=card["last4"],
             exp_year=card["exp_year"],
             exp_month=card["exp_month"],
-            brand=card["brand"],
+            brand=brand.lower(),
+            type="card",
         )
     return response

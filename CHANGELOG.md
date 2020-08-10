@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add App support - #5767 by @korycins
 - Add webhook handler to BasePlugin and PluginManager - #5884 by @korycins
 - Invoices backend - #5732 by @tomaszszymanski129
+- Support pushing webhook events to message queues - #5940 by @patrys, @korycins
 
 ### Breaking Changes
 
@@ -18,6 +19,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Deprecate `WebhookEventType.CHECKOUT_QUANTITY_CHANGED`. It will be removed in Saleor 3.0 - #5837 by @korycins
 - Add dummy credit card payment - #5822 by @IKarbowiak
 - Anonymize and update order and payment fields; drop PaymentSecureConfirm mutation, drop Payment type fields: extraData, billingAddress, billingEmail, drop gatewayResponse from Transaction type - #5926 by @IKarbowiak
+- Switch the HTTP stack from WSGI to ASGI based on Uvicorn - #5960 by @patrys
 
 ### Fixes
 
@@ -32,6 +34,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing OrderEvents during checkout flow - #5684 by @koradon
 - Update google merchant to get tax rate based by plugin manager - #5823 by @gabmartinez
 - Allow unicode in slug fields - #5877 by @IKarbowiak
+- Fix empty plugin object result after PluginUpdate mutation - #5968 by @gabmartinez
 
 ## 2.10.2
 
