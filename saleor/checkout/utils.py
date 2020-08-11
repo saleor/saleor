@@ -665,8 +665,7 @@ def prepare_order_data(
     )
 
     order_data["lines"] = [
-        create_line_for_order(checkout_line=line, discounts=discounts)
-        for line in checkout
+        create_line_for_order(checkout_line=line, discounts=discounts) for line in lines
     ]
 
     # validate checkout gift cards
@@ -678,7 +677,7 @@ def prepare_order_data(
     # assign gift cards to the order
 
     order_data["total_price_left"] = (
-        manager.calculate_checkout_subtotal(checkout, list(checkout), discounts)
+        manager.calculate_checkout_subtotal(checkout, lines, discounts)
         + shipping_total
         - checkout.discount
     ).gross
