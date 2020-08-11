@@ -2,6 +2,7 @@ import datetime
 from typing import Any
 
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 from django.db.models import F, Max, Q
 
 from . import JobStatus
@@ -75,12 +76,10 @@ class PublishableModel(models.Model):
 
 
 class ModelWithMetadata(models.Model):
-    private_metadata = models.JSONField(
+    private_metadata = JSONField(
         blank=True, null=True, default=dict, encoder=CustomJsonEncoder
     )
-    metadata = models.JSONField(
-        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
-    )
+    metadata = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
         abstract = True
