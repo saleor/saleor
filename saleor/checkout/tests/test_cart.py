@@ -102,7 +102,9 @@ def test_get_prices_of_discounted_specific_product(
 
     prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
 
-    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+    excepted_value = [
+        line.variant.get_price(checkout.channel.slug) for item in range(line.quantity)
+    ]
 
     assert prices == excepted_value
 
@@ -121,7 +123,9 @@ def test_get_prices_of_discounted_specific_product_only_product(
 
     prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
 
-    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+    excepted_value = [
+        line.variant.get_price(checkout.channel.slug) for item in range(line.quantity)
+    ]
 
     assert checkout.lines.count() > 1
     assert prices == excepted_value
@@ -145,7 +149,9 @@ def test_get_prices_of_discounted_specific_product_only_collection(
 
     prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
 
-    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+    excepted_value = [
+        line.variant.get_price(checkout.channel.slug) for item in range(line.quantity)
+    ]
 
     assert checkout.lines.count() > 1
     assert prices == excepted_value
@@ -169,7 +175,9 @@ def test_get_prices_of_discounted_specific_product_only_category(
 
     prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
 
-    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+    excepted_value = [
+        line.variant.get_price(checkout.channel.slug) for item in range(line.quantity)
+    ]
 
     assert checkout.lines.count() > 1
     assert prices == excepted_value
@@ -184,7 +192,9 @@ def test_get_prices_of_discounted_specific_product_all_products(
 
     prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
 
-    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+    excepted_value = [
+        line.variant.get_price(checkout.channel.slug) for item in range(line.quantity)
+    ]
 
     assert prices == excepted_value
 
