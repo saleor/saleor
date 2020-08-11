@@ -4,6 +4,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 from django.db.models import Case, Count, F, FilteredRelation, Q, Value, When
 from django.urls import reverse
 from django.utils.encoding import smart_text
@@ -44,7 +45,7 @@ class Category(MPTTModel, ModelWithMetadata, SeoModel):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     description = models.TextField(blank=True)
-    description_json = models.JSONField(blank=True, default=dict)
+    description_json = JSONField(blank=True, default=dict)
     parent = models.ForeignKey(
         "self", null=True, blank=True, related_name="children", on_delete=models.CASCADE
     )
@@ -68,7 +69,7 @@ class CategoryTranslation(SeoModelTranslation):
     )
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    description_json = models.JSONField(blank=True, default=dict)
+    description_json = JSONField(blank=True, default=dict)
 
     class Meta:
         unique_together = (("language_code", "category"),)
@@ -835,7 +836,7 @@ class Collection(SeoModel, ModelWithMetadata, PublishableModel):
     )
     background_image_alt = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
-    description_json = models.JSONField(blank=True, default=dict)
+    description_json = JSONField(blank=True, default=dict)
 
     translated = TranslationProxy()
 
@@ -853,7 +854,7 @@ class CollectionTranslation(SeoModelTranslation):
     )
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    description_json = models.JSONField(blank=True, default=dict)
+    description_json = JSONField(blank=True, default=dict)
 
     class Meta:
         unique_together = (("language_code", "collection"),)

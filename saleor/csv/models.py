@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 from django.utils import timezone
 
 from ..account.models import User
@@ -23,7 +24,7 @@ class ExportEvent(models.Model):
 
     date = models.DateTimeField(default=timezone.now, editable=False)
     type = models.CharField(max_length=255, choices=ExportEvents.CHOICES)
-    parameters = models.JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+    parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
     export_file = models.ForeignKey(
         ExportFile, related_name="events", on_delete=models.CASCADE
     )

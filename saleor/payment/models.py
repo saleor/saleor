@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 from prices import Money
 
 from ..checkout.models import Checkout
@@ -208,7 +209,7 @@ class Transaction(models.Model):
         null=True,
     )
     customer_id = models.CharField(max_length=256, null=True)
-    gateway_response = models.JSONField(encoder=DjangoJSONEncoder)
+    gateway_response = JSONField(encoder=DjangoJSONEncoder)
 
     class Meta:
         ordering = ("pk",)

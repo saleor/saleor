@@ -1,5 +1,5 @@
 import graphene
-from django.db.models import JSONField
+from django.db.models import JSONField  # type: ignore
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from graphene.types.json import JSONString

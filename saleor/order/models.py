@@ -7,6 +7,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 from django.db.models import F, Max, Sum
 from django.utils.timezone import now
 from django_measurement.models import MeasurementField
@@ -506,7 +507,7 @@ class OrderEvent(models.Model):
         ],
     )
     order = models.ForeignKey(Order, related_name="events", on_delete=models.CASCADE)
-    parameters = models.JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+    parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,

@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 from django.utils.timezone import now
 
 from ..core import JobStatus
@@ -63,7 +64,7 @@ class InvoiceEvent(models.Model):
         on_delete=models.SET_NULL,
         related_name="+",
     )
-    parameters = models.JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+    parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
         ordering = ("date", "pk")
