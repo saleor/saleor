@@ -8,7 +8,7 @@ from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
 
-from ....checkout.calculations import checkout_line_total
+from ....checkout.calculations import checkout_line_total, checkout_total
 from ....checkout.models import Checkout
 from ....core.prices import quantize_price
 from ....discount.utils import fetch_active_discounts
@@ -17,6 +17,12 @@ from ... import PaymentError
 from ...interface import PaymentData
 
 logger = logging.getLogger(__name__)
+
+
+# https://docs.adyen.com/checkout/payment-result-codes
+FAILED_STATUSES = ["refused", "error", "cancelled"]
+PENDING_STATUSES = ["pending", "received"]
+AUTH_STATUS = "authorised"
 
 
 def convert_adyen_price_format(value: str, currency: str):
@@ -158,8 +164,11 @@ def get_shopper_locale_value(country_code: str):
 
 def request_data_for_gateway_config(
     checkout: "Checkout", merchant_account
-) -> Dict[str, str]:
+) -> Dict[str, Any]:
     address = checkout.billing_address or checkout.shipping_address
+    discounts = fetch_active_discounts()
+    lines = checkout.lines.prefetch_related("variant").all()
+    total = checkout_total(checkout=checkout, lines=lines, discounts=discounts)
 
     country = address.country if address else None
     if country:
@@ -171,6 +180,10 @@ def request_data_for_gateway_config(
         "merchantAccount": merchant_account,
         "countryCode": country_code,
         "channel": channel,
+        "amount": {
+            "value": get_price_amount(total.gross.amount, checkout.currency),
+            "currency": checkout.currency,
+        },
     }
 
 
