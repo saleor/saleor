@@ -455,13 +455,14 @@ def user_checkout_with_items(user_checkout, product_list):
 
 
 @pytest.fixture
-def order(customer_user):
+def order(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
     return Order.objects.create(
         billing_address=address,
         shipping_address=address,
         user_email=customer_user.email,
         user=customer_user,
+        channel=channel_USD,
     )
 
 
@@ -1561,7 +1562,7 @@ def order_with_line_without_inventory_tracking(
     order, variant_without_inventory_tracking
 ):
     variant = variant_without_inventory_tracking
-    net = variant.get_price()
+    net = variant.get_price(order.channel.slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     line = order.lines.create(
         product_name=str(variant.product),

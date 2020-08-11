@@ -335,15 +335,16 @@ def test_queryset_ready_to_capture():
 
 
 def test_update_order_prices(order_with_lines):
+    channel_slug = order_with_lines.channel.slug
     address = order_with_lines.shipping_address
     address.country = "DE"
     address.save()
 
     line_1 = order_with_lines.lines.first()
     line_2 = order_with_lines.lines.last()
-    price_1 = line_1.variant.get_price()
+    price_1 = line_1.variant.get_price(channel_slug)
     price_1 = TaxedMoney(net=price_1, gross=price_1)
-    price_2 = line_2.variant.get_price()
+    price_2 = line_2.variant.get_price(channel_slug)
     price_2 = TaxedMoney(net=price_2, gross=price_2)
     shipping_price = order_with_lines.shipping_method.get_total()
     shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)

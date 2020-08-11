@@ -117,9 +117,10 @@ def recalculate_order_weight(order):
 def update_order_prices(order, discounts):
     """Update prices in order with given discounts and proper taxes."""
     manager = get_plugins_manager()
+    channel = order.channel
     for line in order:  # type: OrderLine
         if line.variant:
-            unit_price = line.variant.get_price(discounts)
+            unit_price = line.variant.get_price(channel.slug, discounts)
             unit_price = TaxedMoney(unit_price, unit_price)
             line.unit_price = unit_price
             line.save(
@@ -173,13 +174,12 @@ def add_variant_to_draft_order(order, variant, quantity, discounts=None):
 
     Returns an order line the variant was added to.
     """
-
     try:
         line = order.lines.get(variant=variant)
         line.quantity += quantity
         line.save(update_fields=["quantity"])
     except OrderLine.DoesNotExist:
-        unit_price = variant.get_price(discounts)
+        unit_price = variant.get_price(order.channel.slug, discounts)
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         product = variant.product
         product_name = str(product)
