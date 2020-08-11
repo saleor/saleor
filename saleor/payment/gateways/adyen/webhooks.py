@@ -34,7 +34,7 @@ from ... import ChargeStatus, PaymentError, TransactionKind
 from ...gateway import capture
 from ...interface import GatewayConfig, GatewayResponse
 from ...utils import create_payment_information, create_transaction, gateway_postprocess
-from .utils import api_call, convert_adyen_price_format
+from .utils import FAILED_STATUSES, api_call, convert_adyen_price_format
 
 
 def get_payment(payment_id: Optional[str]) -> Optional[Payment]:
@@ -549,7 +549,6 @@ def handle_additional_actions(
         request_data = prepare_api_request_data(request, data)
     except KeyError as e:
         return HttpResponseBadRequest(e.args[0])
-
     try:
         result = api_call(request_data, payment_details)
     except PaymentError as e:
@@ -558,7 +557,6 @@ def handle_additional_actions(
     handle_api_response(payment, result, adyen_auto_capture, auto_capture)
 
     redirect_url = prepare_redirect_url(payment_id, checkout_pk, result, return_url)
-
     return redirect(redirect_url)
 
 
@@ -622,14 +620,17 @@ def handle_api_response(
         payment=payment, payment_token=payment.token,
     )
 
-    action_required = False
     error_message = response.message.get("refusalReason")
-    if "action" in response.message:
-        action_required = True
+
+    result_code = response.message["resultCode"].strip().lower()
+    is_success = result_code not in FAILED_STATUSES
+
+    # action_required is True as we want to call gateway.confirm from the
+    # checkoutComplete mutation
 
     gateway_response = GatewayResponse(
-        is_success=True if error_message else False,
-        action_required=action_required,
+        is_success=is_success,
+        action_required=True,
         kind=kind,
         amount=payment_data.amount,
         currency=payment_data.currency,
@@ -642,7 +643,7 @@ def handle_api_response(
     transaction = create_transaction(
         payment=payment,
         kind=kind,
-        action_required=action_required,
+        action_required=True,
         payment_information=payment_data,
         gateway_response=gateway_response,
     )

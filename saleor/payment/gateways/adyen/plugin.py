@@ -17,6 +17,9 @@ from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentGat
 from ...models import Payment, Transaction
 from ..utils import get_supported_currencies
 from .utils import (
+    AUTH_STATUS,
+    FAILED_STATUSES,
+    PENDING_STATUSES,
     api_call,
     call_capture,
     request_data_for_gateway_config,
@@ -39,12 +42,6 @@ def require_active_plugin(fn):
         return fn(self, *args, **kwargs)
 
     return wrapped
-
-
-# https://docs.adyen.com/checkout/payment-result-codes
-FAILED_STATUSES = ["refused", "error", "cancelled"]
-PENDING_STATUSES = ["pending", "received"]
-AUTH_STATUS = "authorised"
 
 
 class AdyenGatewayPlugin(BasePlugin):
@@ -274,10 +271,10 @@ class AdyenGatewayPlugin(BasePlugin):
         is_success = result_code not in FAILED_STATUSES
         adyen_auto_capture = self.config.connection_params["adyen_auto_capture"]
         kind = TransactionKind.AUTH
-        if adyen_auto_capture:
-            kind = TransactionKind.CAPTURE
-        elif result_code in PENDING_STATUSES:
+        if result_code in PENDING_STATUSES:
             kind = TransactionKind.PENDING
+        elif adyen_auto_capture:
+            kind = TransactionKind.CAPTURE
 
         # If auto capture is enabled, let's make a capture the auth payment
         if self.config.auto_capture and result_code == AUTH_STATUS:
