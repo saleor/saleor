@@ -122,7 +122,7 @@ def test_request_data_for_payment_payment_not_valid(dummy_payment_data):
         )
 
     # then
-    assert str(e._excinfo[1]) == "Payment data are not valid"
+    assert str(e._excinfo[1]) == "Payment data are not valid."
 
 
 def test_request_data_for_payment(dummy_payment_data):

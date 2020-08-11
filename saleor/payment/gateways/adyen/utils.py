@@ -62,7 +62,7 @@ def request_data_for_payment(
     payment_data = payment_information.data or {}
 
     if not payment_data.pop("is_valid", True):
-        raise PaymentError("Payment data are not valid")
+        raise PaymentError("Payment data are not valid.")
 
     extra_request_params = {}
     if "browserInfo" in payment_data:
@@ -78,7 +78,9 @@ def request_data_for_payment(
     ):
         extra_request_params["origin"] = origin_url
 
-    payment_method = payment_data["paymentMethod"]
+    payment_method = payment_data.get("paymentMethod")
+    if not payment_method:
+        raise PaymentError("Unable to find the paymentMethod section.")
 
     request_data = {
         "amount": {
@@ -106,7 +108,7 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     ).first()
 
     if not checkout:
-        raise PaymentError("Unable to calculate products for klarna")
+        raise PaymentError("Unable to calculate products for klarna.")
 
     lines = checkout.lines.prefetch_related("variant").all()
     discounts = fetch_active_discounts()
