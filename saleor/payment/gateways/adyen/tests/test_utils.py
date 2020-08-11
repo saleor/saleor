@@ -240,19 +240,22 @@ def test_get_price_amount(value, currency, expected_result):
     assert result == expected_result
 
 
-def test_request_data_for_gateway_config(checkout, address):
+def test_request_data_for_gateway_config(checkout_with_item, address):
     # given
-    checkout.billing_address = address
+    checkout_with_item.billing_address = address
     merchant_account = "test_account"
 
     # when
-    response_config = request_data_for_gateway_config(checkout, merchant_account)
+    response_config = request_data_for_gateway_config(
+        checkout_with_item, merchant_account
+    )
 
     # then
     assert response_config == {
         "merchantAccount": merchant_account,
-        "countryCode": checkout.billing_address.country,
+        "countryCode": checkout_with_item.billing_address.country,
         "channel": "web",
+        "amount": {"currency": "USD", "value": "3000"},
     }
 
 
@@ -268,6 +271,7 @@ def test_request_data_for_gateway_config_no_country(checkout, address, settings)
         "merchantAccount": merchant_account,
         "countryCode": settings.DEFAULT_COUNTRY,
         "channel": "web",
+        "amount": {"currency": "USD", "value": "0"},
     }
 
 
