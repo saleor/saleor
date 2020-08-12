@@ -9,7 +9,6 @@ from .enums import ConfigurationTypeFieldEnum
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from django.contrib.postgres.fields import JSONField
     from ...plugins.base_plugin import PluginConfigurationType
 
 
