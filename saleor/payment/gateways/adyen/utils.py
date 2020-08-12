@@ -25,14 +25,14 @@ PENDING_STATUSES = ["pending", "received"]
 AUTH_STATUS = "authorised"
 
 
-def convert_adyen_price_format(value: str, currency: str):
+def from_adyen_price(value: str, currency: str):
     value = Decimal(value)
     precision = get_currency_precision(currency)
     number_places = Decimal(10) ** -precision
     return value * number_places
 
 
-def get_price_amount(value: Decimal, currency: str):
+def to_adyen_price(value: Decimal, currency: str):
     """Adyen doesn't use values with comma.
 
     Take the value, discover the precision of currency and multiply value by
@@ -84,7 +84,7 @@ def request_data_for_payment(
 
     request_data = {
         "amount": {
-            "value": get_price_amount(
+            "value": to_adyen_price(
                 payment_information.amount, payment_information.currency
             ),
             "currency": payment_information.currency,
@@ -127,12 +127,12 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
         tax_amount = total.tax.amount
         line_data = {
             "quantity": line.quantity,
-            "amountExcludingTax": get_price_amount(total_net, currency),
+            "amountExcludingTax": to_adyen_price(total_net, currency),
             "taxPercentage": round(tax_amount / total_gross * 100),
             "description": line.variant.product.description,
             "id": line.variant.sku,
-            "taxAmount": get_price_amount(tax_amount, currency),
-            "amountIncludingTax": get_price_amount(total_gross, currency),
+            "taxAmount": to_adyen_price(tax_amount, currency),
+            "amountIncludingTax": to_adyen_price(total_gross, currency),
         }
         line_items.append(line_data)
     payment_data["lineItems"] = line_items
@@ -183,7 +183,7 @@ def request_data_for_gateway_config(
         "countryCode": country_code,
         "channel": channel,
         "amount": {
-            "value": get_price_amount(total.gross.amount, checkout.currency),
+            "value": to_adyen_price(total.gross.amount, checkout.currency),
             "currency": checkout.currency,
         },
     }
@@ -195,7 +195,7 @@ def request_for_payment_refund(
     return {
         "merchantAccount": merchant_account,
         "modificationAmount": {
-            "value": get_price_amount(
+            "value": to_adyen_price(
                 payment_information.amount, payment_information.currency
             ),
             "currency": payment_information.currency,
@@ -211,7 +211,7 @@ def request_for_payment_capture(
     return {
         "merchantAccount": merchant_account,
         "modificationAmount": {
-            "value": get_price_amount(
+            "value": to_adyen_price(
                 payment_information.amount, payment_information.currency
             ),
             "currency": payment_information.currency,
@@ -248,6 +248,8 @@ def call_capture(
     token: str,
     adyen_client: Adyen.Adyen,
 ):
+    # https://docs.adyen.com/checkout/capture#make-an-api-call-to-capture-a-payment
+
     request = request_for_payment_capture(
         payment_information=payment_information,
         merchant_account=merchant_account,

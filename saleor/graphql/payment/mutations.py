@@ -2,7 +2,7 @@ import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from ...checkout.calculations import calculate_checkout_total
+from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.utils import cancel_active_payments
 from ...core.permissions import OrderPermissions
 from ...core.utils import get_client_ip
@@ -155,7 +155,9 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         cls.validate_token(info.context.plugins, gateway, data)
         cls.validate_return_url(data)
 
-        checkout_total = calculate_checkout_total(checkout, info.context.discounts)
+        checkout_total = calculate_checkout_total_with_gift_cards(
+            checkout, info.context.discounts
+        )
         amount = data.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(
             checkout, list(checkout), info.context.discounts, PaymentErrorCode

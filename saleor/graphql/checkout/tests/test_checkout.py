@@ -1708,7 +1708,7 @@ def test_checkout_complete(
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
 
-    total = calculations.calculate_checkout_total(checkout=checkout)
+    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1911,7 +1911,7 @@ def test_checkout_complete_error_in_gateway_response_for_dummy_credit_card(
     checkout.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
 
-    total = calculations.calculate_checkout_total(checkout=checkout)
+    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
     payment = payment_dummy_credit_card
     payment.is_active = True
     payment.order = None
@@ -2331,7 +2331,7 @@ def test_checkout_complete_without_redirect_url(
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
 
-    total = calculations.calculate_checkout_total(checkout=checkout)
+    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
