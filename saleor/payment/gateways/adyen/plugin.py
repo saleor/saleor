@@ -101,9 +101,11 @@ class AdyenGatewayPlugin(BasePlugin):
                 "should not include subdirectories and a trailing slash. For example, "
                 "if you are rendering the Drop-in on "
                 "https://your-company.com/checkout/payment, specify here: "
-                "https://your-company.com. Not required for Android or iOS app."
+                "https://your-company.com. For more details see: "
+                "https://docs.adyen.com/checkout/drop-in-web"
+                "Not required for Android or iOS app."
             ),
-            "label": "Origin Url",
+            "label": "Origin URL",
         },
         "live": {
             "type": ConfigurationTypeField.STRING,
