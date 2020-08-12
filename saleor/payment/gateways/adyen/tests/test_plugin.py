@@ -5,7 +5,7 @@ from unittest import mock
 import pytest
 
 from .... import PaymentError, TransactionKind
-from ....interface import GatewayResponse
+from ....interface import GatewayResponse, PaymentMethodInfo
 from ....models import Payment
 from ....utils import create_payment_information, create_transaction
 
@@ -37,7 +37,7 @@ def test_get_payment_gateway_for_checkout(
 def test_process_payment(payment_adyen_for_checkout, checkout_with_items, adyen_plugin):
     payment_info = create_payment_information(
         payment_adyen_for_checkout,
-        additional_data={"paymentMethod": {"paymentdata": ""}},
+        additional_data={"paymentMethod": {"paymentdata": "", "type": "test"}},
     )
     adyen_plugin = adyen_plugin()
     response = adyen_plugin.process_payment(payment_info, None)
@@ -49,6 +49,7 @@ def test_process_payment(payment_adyen_for_checkout, checkout_with_items, adyen_
     assert response.transaction_id == "882595494831959A"  # ID returned by Adyen
     assert response.error is None
     assert response.action_required_data is None
+    assert response.payment_method_info == PaymentMethodInfo(brand="visa", type="test")
 
 
 @pytest.mark.vcr
@@ -378,7 +379,7 @@ def test_void_payment(payment_adyen_for_order, order_with_lines, adyen_plugin):
 def test_capture_payment(payment_adyen_for_order, order_with_lines, adyen_plugin):
     payment_info = create_payment_information(
         payment_adyen_for_order,
-        # additional_data=...
+        additional_data={"paymentMethod": {"paymentdata": "", "type": "test"}},
     )
     gateway_response = GatewayResponse(
         kind=TransactionKind.AUTH,
@@ -404,3 +405,4 @@ def test_capture_payment(payment_adyen_for_order, order_with_lines, adyen_plugin
     assert response.amount == Decimal("1234")
     assert response.currency == order_with_lines.currency
     assert response.transaction_id == "852595499936560C"  # ID returned by Adyen
+    assert response.payment_method_info == PaymentMethodInfo(brand="visa", type="test")

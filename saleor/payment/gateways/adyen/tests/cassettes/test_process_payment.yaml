@@ -23,7 +23,8 @@ interactions:
     uri: https://checkout-test.adyen.com/v49/payments
   response:
     body:
-      string: '{"pspReference":"882595494831959A","resultCode":"Authorised","merchantReference":"UGF5bWVudDoz"}'
+      string: '{"pspReference":"882595494831959A","resultCode":"Authorised","merchantReference":"UGF5bWVudDoz",
+                  "additionalData":{"paymentMethod": "visa"}}'
     headers:
       Connection:
       - Keep-Alive

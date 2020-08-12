@@ -22,6 +22,7 @@ from .utils import (
     PENDING_STATUSES,
     api_call,
     call_capture,
+    get_payment_method_info,
     request_data_for_gateway_config,
     request_data_for_payment,
     request_for_payment_cancel,
@@ -289,6 +290,9 @@ class AdyenGatewayPlugin(BasePlugin):
                 token=result.message.get("pspReference"),
                 adyen_client=self.adyen,
             )
+
+        payment_method_info = get_payment_method_info(payment_information, result)
+
         return GatewayResponse(
             is_success=is_success,
             action_required="action" in result.message,
@@ -299,6 +303,7 @@ class AdyenGatewayPlugin(BasePlugin):
             error=error_message,
             raw_response=result.message,
             action_required_data=action,
+            payment_method_info=payment_method_info,
         )
 
     @classmethod
@@ -469,6 +474,9 @@ class AdyenGatewayPlugin(BasePlugin):
             token=transaction.token,
             adyen_client=self.adyen,
         )
+
+        payment_method_info = get_payment_method_info(payment_information, result)
+
         return GatewayResponse(
             is_success=True,
             action_required=False,
@@ -478,6 +486,7 @@ class AdyenGatewayPlugin(BasePlugin):
             transaction_id=result.message.get("pspReference", ""),
             error="",
             raw_response=result.message,
+            payment_method_info=payment_method_info,
         )
 
     @require_active_plugin
