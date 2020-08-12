@@ -185,6 +185,28 @@ def create_transaction(
     return txn
 
 
+def get_already_processed_transaction_or_create_new_transaction(
+    payment: Payment,
+    kind: str,
+    payment_information: PaymentData,
+    action_required: bool = False,
+    gateway_response: GatewayResponse = None,
+    error_msg=None,
+) -> Transaction:
+    if gateway_response and gateway_response.transaction_already_processed:
+        transaction = get_already_processed_transaction(payment, gateway_response)
+        if transaction:
+            return transaction
+    return create_transaction(
+        payment,
+        kind,
+        payment_information,
+        action_required,
+        gateway_response,
+        error_msg,
+    )
+
+
 def clean_capture(payment: Payment, amount: Decimal):
     """Check if payment can be captured."""
     if amount <= 0:

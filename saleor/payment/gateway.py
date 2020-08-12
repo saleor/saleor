@@ -12,9 +12,8 @@ from .utils import (
     clean_authorize,
     clean_capture,
     create_payment_information,
-    create_transaction,
     gateway_postprocess,
-    get_already_processed_transaction,
+    get_already_processed_transaction_or_create_new_transaction,
     update_payment_method_details,
     validate_gateway_response,
 )
@@ -57,9 +56,10 @@ def require_active_payment(fn: Callable) -> Callable:
     return wrapped
 
 
-def transaction_block(fn: Callable) -> Callable:
+def with_locked_payment(fn: Callable) -> Callable:
+    """Lock payment to protect from asynchronous modification."""
+
     def wrapped(payment: Payment, *args, **kwargs):
-        # Lock payment as it can be modify asynchronously
         with transaction.atomic():
             payment = Payment.objects.select_for_update().get(id=payment.id)
             return fn(payment, *args, **kwargs)
@@ -69,7 +69,7 @@ def transaction_block(fn: Callable) -> Callable:
 
 @raise_payment_error
 @require_active_payment
-@transaction_block
+@with_locked_payment
 @payment_postprocess
 def process_payment(
     payment: Payment,
@@ -91,11 +91,7 @@ def process_payment(
     action_required = response is not None and response.action_required
     if response and response.payment_method_info:
         update_payment_method_details(payment, response)
-    if response and response.transaction_already_processed:
-        transaction = get_already_processed_transaction(payment, response)
-        if transaction:
-            return transaction
-    return create_transaction(
+    return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,
         action_required=action_required,
@@ -107,7 +103,7 @@ def process_payment(
 
 @raise_payment_error
 @require_active_payment
-@transaction_block
+@with_locked_payment
 @payment_postprocess
 def authorize(payment: Payment, token: str, store_source: bool = False) -> Transaction:
     plugin_manager = get_plugins_manager()
@@ -120,11 +116,7 @@ def authorize(payment: Payment, token: str, store_source: bool = False) -> Trans
     )
     if response and response.payment_method_info:
         update_payment_method_details(payment, response)
-    if response and response.transaction_already_processed:
-        transaction = get_already_processed_transaction(payment, response)
-        if transaction:
-            return transaction
-    return create_transaction(
+    return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.AUTH,
         payment_information=payment_data,
@@ -136,7 +128,7 @@ def authorize(payment: Payment, token: str, store_source: bool = False) -> Trans
 @payment_postprocess
 @raise_payment_error
 @require_active_payment
-@transaction_block
+@with_locked_payment
 @payment_postprocess
 def capture(
     payment: Payment, amount: Decimal = None, store_source: bool = False
@@ -154,11 +146,7 @@ def capture(
     )
     if response and response.payment_method_info:
         update_payment_method_details(payment, response)
-    if response and response.transaction_already_processed:
-        transaction = get_already_processed_transaction(payment, response)
-        if transaction:
-            return transaction
-    return create_transaction(
+    return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,
         payment_information=payment_data,
@@ -169,7 +157,7 @@ def capture(
 
 @raise_payment_error
 @require_active_payment
-@transaction_block
+@with_locked_payment
 @payment_postprocess
 def refund(payment: Payment, amount: Decimal = None) -> Transaction:
     plugin_manager = get_plugins_manager()
@@ -185,11 +173,7 @@ def refund(payment: Payment, amount: Decimal = None) -> Transaction:
     response, error = _fetch_gateway_response(
         plugin_manager.refund_payment, payment.gateway, payment_data
     )
-    if response and response.transaction_already_processed:
-        transaction = get_already_processed_transaction(payment, response)
-        if transaction:
-            return transaction
-    return create_transaction(
+    return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.REFUND,
         payment_information=payment_data,
@@ -200,7 +184,7 @@ def refund(payment: Payment, amount: Decimal = None) -> Transaction:
 
 @raise_payment_error
 @require_active_payment
-@transaction_block
+@with_locked_payment
 @payment_postprocess
 def void(payment: Payment) -> Transaction:
     plugin_manager = get_plugins_manager()
@@ -209,11 +193,7 @@ def void(payment: Payment) -> Transaction:
     response, error = _fetch_gateway_response(
         plugin_manager.void_payment, payment.gateway, payment_data
     )
-    if response and response.transaction_already_processed:
-        transaction = get_already_processed_transaction(payment, response)
-        if transaction:
-            return transaction
-    return create_transaction(
+    return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.VOID,
         payment_information=payment_data,
@@ -224,7 +204,7 @@ def void(payment: Payment) -> Transaction:
 
 @raise_payment_error
 @require_active_payment
-@transaction_block
+@with_locked_payment
 @payment_postprocess
 def confirm(payment: Payment, additional_data: Optional[dict] = None) -> Transaction:
     plugin_manager = get_plugins_manager()
@@ -235,11 +215,7 @@ def confirm(payment: Payment, additional_data: Optional[dict] = None) -> Transac
     response, error = _fetch_gateway_response(
         plugin_manager.confirm_payment, payment.gateway, payment_data
     )
-    if response and response.transaction_already_processed:
-        transaction = get_already_processed_transaction(payment, response)
-        if transaction:
-            return transaction
-    return create_transaction(
+    return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.CONFIRM,
         payment_information=payment_data,
@@ -282,7 +258,7 @@ def _fetch_gateway_response(fn, *args, **kwargs):
 def _get_past_transaction_token(
     payment: Payment, kind: str  # for kind use "TransactionKind"
 ) -> Optional[str]:
-    txn = payment.transactions.filter(kind=kind, is_success=True).first()
+    txn = payment.transactions.filter(kind=kind, is_success=True).last()
     if txn is None:
         raise PaymentError(f"Cannot find successful {kind} transaction.")
     return txn.token

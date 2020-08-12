@@ -484,22 +484,10 @@ class AdyenGatewayPlugin(BasePlugin):
     def void_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        transaction = (
-            Transaction.objects.filter(
-                payment__id=payment_information.payment_id,
-                kind=TransactionKind.AUTH,
-                is_success=True,
-            )
-            .exclude(token__isnull=True, token__exact="")
-            .last()
-        )
-        if not transaction:
-            raise PaymentError("Cannot find a payment reference to void.")
-
         request = request_for_payment_cancel(
             payment_information=payment_information,
             merchant_account=self.config.connection_params["merchant_account"],
-            token=transaction.token,
+            token=payment_information.token,  # type: ignore
         )
         result = api_call(request, self.adyen.payment.cancel)
 
