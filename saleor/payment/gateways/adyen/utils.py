@@ -254,3 +254,13 @@ def call_capture(
         token=token,
     )
     return api_call(request, adyen_client.payment.capture)
+
+
+def request_for_payment_cancel(
+    payment_information: "PaymentData", merchant_account: str, token: str,
+):
+    return {
+        "merchantAccount": merchant_account,
+        "originalReference": token,
+        "reference": payment_information.graphql_payment_id,
+    }

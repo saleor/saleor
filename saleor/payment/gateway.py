@@ -187,7 +187,7 @@ def void(payment: Payment) -> Transaction:
 @require_active_payment
 def confirm(payment: Payment, additional_data: Optional[dict] = None) -> Transaction:
     plugin_manager = get_plugins_manager()
-    token = _get_past_transaction_token(payment, TransactionKind.CAPTURE)
+    token = _get_past_transaction_token(payment, TransactionKind.ACTION_TO_CONFIRM)
     payment_data = create_payment_information(
         payment=payment, payment_token=token, additional_data=additional_data
     )
@@ -236,7 +236,7 @@ def _fetch_gateway_response(fn, *args, **kwargs):
 
 def _get_past_transaction_token(
     payment: Payment, kind: str  # for kind use "TransactionKind"
-):
+) -> Optional[str]:
     txn = payment.transactions.filter(kind=kind, is_success=True).first()
     if txn is None:
         raise PaymentError(f"Cannot find successful {kind} transaction.")

@@ -24,6 +24,7 @@ from .utils import (
     call_capture,
     request_data_for_gateway_config,
     request_data_for_payment,
+    request_for_payment_cancel,
     request_for_payment_refund,
     update_payment_with_action_required_data,
 )
@@ -199,10 +200,7 @@ class AdyenGatewayPlugin(BasePlugin):
             return handle_webhook(request, config)
         elif path.startswith(ADDITIONAL_ACTION_PATH):
             return handle_additional_actions(
-                request,
-                self.adyen.checkout.payments_details,
-                config.connection_params["adyen_auto_capture"],
-                config.auto_capture,
+                request, self.adyen.checkout.payments_details,
             )
         return HttpResponseNotFound()
 
@@ -276,8 +274,14 @@ class AdyenGatewayPlugin(BasePlugin):
         elif adyen_auto_capture:
             kind = TransactionKind.CAPTURE
 
+        action = result.message.get("action")
+        error_message = result.message.get("refusalReason")
+        if action:
+            update_payment_with_action_required_data(
+                payment, action, result.message.get("details", []),
+            )
         # If auto capture is enabled, let's make a capture the auth payment
-        if self.config.auto_capture and result_code == AUTH_STATUS:
+        elif self.config.auto_capture and result_code == AUTH_STATUS:
             kind = TransactionKind.CAPTURE
             result = call_capture(
                 payment_information=payment_information,
@@ -285,14 +289,6 @@ class AdyenGatewayPlugin(BasePlugin):
                 token=result.message.get("pspReference"),
                 adyen_client=self.adyen,
             )
-
-        action = result.message.get("action")
-        error_message = result.message.get("refusalReason")
-        if action:
-            update_payment_with_action_required_data(
-                payment, action, result.message.get("details", []),
-            )
-
         return GatewayResponse(
             is_success=is_success,
             action_required="action" in result.message,
@@ -327,7 +323,7 @@ class AdyenGatewayPlugin(BasePlugin):
     def confirm_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-
+        config = self._get_gateway_config()
         # The additional checks are proceed asynchronously so we try to confirm that
         # the payment is already processed
         payment = Payment.objects.filter(id=payment_information.payment_id).first()
@@ -337,22 +333,36 @@ class AdyenGatewayPlugin(BasePlugin):
         transaction = (
             payment.transactions.filter(
                 payment__id=payment_information.payment_id,
-                kind__in=[TransactionKind.AUTH, TransactionKind.CAPTURE],
+                kind=TransactionKind.ACTION_TO_CONFIRM,
                 is_success=True,
+                action_required=False,
             )
             .exclude(token__isnull=True, token__exact="")
             .last()
         )
+
+        adyen_auto_capture = self.config.connection_params["adyen_auto_capture"]
+        kind = TransactionKind.AUTH
+        if adyen_auto_capture:
+            kind = TransactionKind.CAPTURE
+        elif config.auto_capture:
+            kind = TransactionKind.CAPTURE
+
         if transaction:
-            # We already have the Auth/Capture transaction which means that payment was
-            # confirmed asynchronous
+            # We already have the USER_ACTION_TO_CONFIRM transaction, it means that
+            # payment was processed asynchronous and no additional action is required
+            if config.auto_capture:
+                transaction = self.capture_payment(
+                    payment_information, amount=transaction.amount
+                )
+
             return GatewayResponse(
-                is_success=transaction.is_success,
+                is_success=transaction.is_success,  # type: ignore
                 action_required=False,
-                kind=TransactionKind.CONFIRM,
-                amount=transaction.amount,
-                currency=transaction.currency,
-                transaction_id=transaction.token,
+                kind=kind,
+                amount=transaction.amount,  # type: ignore
+                currency=transaction.currency,  # type: ignore
+                transaction_id=transaction.token,  # type: ignore
                 error=None,
                 raw_response={},
             )
@@ -365,7 +375,7 @@ class AdyenGatewayPlugin(BasePlugin):
         return GatewayResponse(
             is_success=is_success,
             action_required="action" in result.message,
-            kind=TransactionKind.CONFIRM,
+            kind=kind,
             amount=payment_information.amount,
             currency=payment_information.currency,
             transaction_id=result.get("pspReference", ""),
@@ -377,7 +387,6 @@ class AdyenGatewayPlugin(BasePlugin):
     def refund_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-
         # we take Auth kind because it contains the transaction id that we need
         transaction = (
             Transaction.objects.filter(
@@ -436,6 +445,40 @@ class AdyenGatewayPlugin(BasePlugin):
             is_success=True,
             action_required=False,
             kind=TransactionKind.CAPTURE,
+            amount=payment_information.amount,
+            currency=payment_information.currency,
+            transaction_id=result.message.get("pspReference", ""),
+            error="",
+            raw_response=result.message,
+        )
+
+    @require_active_plugin
+    def void_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        transaction = (
+            Transaction.objects.filter(
+                payment__id=payment_information.payment_id,
+                kind=TransactionKind.AUTH,
+                is_success=True,
+            )
+            .exclude(token__isnull=True, token__exact="")
+            .last()
+        )
+        if not transaction:
+            raise PaymentError("Cannot find a payment reference to void.")
+
+        request = request_for_payment_cancel(
+            payment_information=payment_information,
+            merchant_account=self.config.connection_params["merchant_account"],
+            token=transaction.token,
+        )
+        result = api_call(request, self.adyen.payment.cancel)
+
+        return GatewayResponse(
+            is_success=True,
+            action_required=False,
+            kind=TransactionKind.VOID,
             amount=payment_information.amount,
             currency=payment_information.currency,
             transaction_id=result.message.get("pspReference", ""),

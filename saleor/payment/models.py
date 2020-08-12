@@ -125,7 +125,9 @@ class Payment(models.Model):
         authorized_txns = [
             txn
             for txn in transactions
-            if txn.kind == TransactionKind.AUTH and txn.is_success
+            if txn.kind == TransactionKind.AUTH
+            and txn.is_success
+            and not txn.action_required
         ]
 
         # Calculate authorized amount from all succeeded auth transactions
@@ -147,7 +149,9 @@ class Payment(models.Model):
     def is_authorized(self):
         return any(
             [
-                txn.kind == TransactionKind.AUTH and txn.is_success
+                txn.kind == TransactionKind.AUTH
+                and txn.is_success
+                and not txn.action_required
                 for txn in self.transactions.all()
             ]
         )

@@ -229,7 +229,6 @@ def gateway_postprocess(transaction, payment):
 
     if transaction_kind in {
         TransactionKind.CAPTURE,
-        TransactionKind.CONFIRM,
         TransactionKind.REFUND_REVERSED,
     }:
         payment.captured_amount += transaction.amount
