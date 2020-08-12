@@ -349,7 +349,7 @@ class AdyenGatewayPlugin(BasePlugin):
             kind = TransactionKind.CAPTURE
 
         if transaction:
-            # We already have the USER_ACTION_TO_CONFIRM transaction, it means that
+            # We already have the ACTION_TO_CONFIRM transaction, it means that
             # payment was processed asynchronous and no additional action is required
             if config.auto_capture:
                 transaction = self.capture_payment(

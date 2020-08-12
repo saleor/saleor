@@ -75,7 +75,7 @@ class TransactionKind:
     CHOICES = [
         (AUTH, "Authorization"),
         (PENDING, "Pending"),
-        (ACTION_TO_CONFIRM, "User action to confirm"),
+        (ACTION_TO_CONFIRM, "Action to confirm"),
         (REFUND, "Refund"),
         (REFUND_ONGOING, "Refund in progress"),
         (CAPTURE, "Capture"),
