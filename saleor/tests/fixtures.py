@@ -79,6 +79,7 @@ from ..product.tests.utils import create_image
 from ..product.utils.attributes import associate_attribute_values_to_instance
 from ..shipping.models import (
     ShippingMethod,
+    ShippingMethodChannelListing,
     ShippingMethodTranslation,
     ShippingMethodType,
     ShippingZone,
@@ -258,14 +259,18 @@ def checkout_with_shipping_required(checkout_with_item, product):
 
 
 @pytest.fixture
-def other_shipping_method(shipping_zone):
-    return ShippingMethod.objects.create(
+def other_shipping_method(shipping_zone, channel_USD):
+    method = ShippingMethod.objects.create(
         name="DPD",
         minimum_order_price=Money(0, "USD"),
         type=ShippingMethodType.PRICE_BASED,
         price=Money(9, "USD"),
         shipping_zone=shipping_zone,
     )
+    ShippingMethodChannelListing.objects.create(
+        channel=channel_USD, shipping_method=method
+    )
+    return method
 
 
 @pytest.fixture
@@ -433,13 +438,14 @@ def customer_user(address):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def user_checkout(customer_user):
+def user_checkout(customer_user, channel_PLN):
     checkout = Checkout.objects.create(
         user=customer_user,
         billing_address=customer_user.default_billing_address,
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
         currency="USD",
+        channel=channel_PLN,
     )
     return checkout
 
@@ -504,67 +510,85 @@ def staff_users(staff_user):
 
 
 @pytest.fixture
-def shipping_zone(db):  # pylint: disable=W0613
+def shipping_zone(db, channel_USD):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(
         name="Europe", countries=[code for code, name in countries]
     )
-    shipping_zone.shipping_methods.create(
+    method = shipping_zone.shipping_methods.create(
         name="DHL",
         minimum_order_price=Money(0, "USD"),
         type=ShippingMethodType.PRICE_BASED,
         price=Money(10, "USD"),
         shipping_zone=shipping_zone,
     )
+    ShippingMethodChannelListing.objects.create(
+        channel=channel_USD, shipping_method=method
+    )
     return shipping_zone
 
 
 @pytest.fixture
-def shipping_zones(db):
+def shipping_zones(db, channel_USD):
     shipping_zone_poland, shipping_zone_usa = ShippingZone.objects.bulk_create(
         [
             ShippingZone(name="Poland", countries=["PL"]),
             ShippingZone(name="USA", countries=["US"]),
         ]
     )
-    shipping_zone_poland.shipping_methods.create(
+    method = shipping_zone_poland.shipping_methods.create(
         name="DHL",
         minimum_order_price=Money(0, "USD"),
         type=ShippingMethodType.PRICE_BASED,
         price=Money(10, "USD"),
         shipping_zone=shipping_zone,
     )
-    shipping_zone_usa.shipping_methods.create(
+    second_method = shipping_zone_usa.shipping_methods.create(
         name="DHL",
         minimum_order_price=Money(0, "USD"),
         type=ShippingMethodType.PRICE_BASED,
         price=Money(10, "USD"),
         shipping_zone=shipping_zone,
+    )
+    ShippingMethodChannelListing.objects.bulk_create(
+        [
+            ShippingMethodChannelListing(channel=channel_USD, shipping_method=method),
+            ShippingMethodChannelListing(
+                channel=channel_USD, shipping_method=second_method
+            ),
+        ]
     )
     return [shipping_zone_poland, shipping_zone_usa]
 
 
 @pytest.fixture
-def shipping_zone_without_countries(db):  # pylint: disable=W0613
+def shipping_zone_without_countries(db, channel_USD):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(name="Europe", countries=[])
-    shipping_zone.shipping_methods.create(
+    method = shipping_zone.shipping_methods.create(
         name="DHL",
         minimum_order_price=Money(0, "USD"),
         type=ShippingMethodType.PRICE_BASED,
         price=Money(10, "USD"),
         shipping_zone=shipping_zone,
+    )
+    ShippingMethodChannelListing.objects.create(
+        channel=channel_USD, shipping_method=method
     )
     return shipping_zone
 
 
 @pytest.fixture
-def shipping_method(shipping_zone):
-    return ShippingMethod.objects.create(
+def shipping_method(shipping_zone, channel_USD):
+    method = ShippingMethod.objects.create(
         name="DHL",
         minimum_order_price=Money(0, "USD"),
         type=ShippingMethodType.PRICE_BASED,
         price=Money(10, "USD"),
         shipping_zone=shipping_zone,
     )
+    ShippingMethodChannelListing.objects.create(
+        shipping_method=method, channel=channel_USD
+    )
+    return method
 
 
 @pytest.fixture

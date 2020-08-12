@@ -1,21 +1,19 @@
-from typing import TYPE_CHECKING, DefaultDict, Dict, Iterable, List
+from typing import DefaultDict, Dict, Iterable, List
 
 from django.core.exceptions import ValidationError
 from graphql.error import GraphQLError
 
 from ...channel.exceptions import ChannelNotDefined, NoDefaultChannel
-from ...channel.models import Channel
+from ...channel.models import Channel as ChannelModel
 from ...channel.utils import get_default_channel
 from ..core.utils import get_duplicated_values, get_duplicates_ids
 from ..utils import resolve_global_ids_to_primary_keys
+from .types import Channel
 
 ErrorType = DefaultDict[str, List[ValidationError]]
 
-if TYPE_CHECKING:
-    from ...channel.models import Channel as ChannelModel
 
-
-def get_default_channel_or_graphql_error() -> Channel:
+def get_default_channel_or_graphql_error() -> ChannelModel:
     """Return a default channel or a GraphQL error.
 
     Utility to get the default channel in GraphQL query resolvers.
@@ -29,10 +27,6 @@ def get_default_channel_or_graphql_error() -> Channel:
 
 
 class CleanChannelMixin:
-    @classmethod
-    def get_nodes_or_error(cls, ids, field, only_type=None, qs=None):
-        raise NotImplementedError
-
     @classmethod
     def validate_duplicated_channel_ids(
         cls,
@@ -88,7 +82,7 @@ class CleanChannelMixin:
             return {}
         channels_to_add: List["ChannelModel"] = []
         if add_channels_ids:
-            channels_to_add = cls.get_nodes_or_error(
+            channels_to_add = cls.get_nodes_or_error(  # type: ignore
                 add_channels_ids, "channel_id", Channel
             )
         _, remove_channels_pks = resolve_global_ids_to_primary_keys(
