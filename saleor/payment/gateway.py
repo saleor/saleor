@@ -67,10 +67,10 @@ def transaction_block(fn: Callable) -> Callable:
     return wrapped
 
 
-@payment_postprocess
 @raise_payment_error
 @require_active_payment
 @transaction_block
+@payment_postprocess
 def process_payment(
     payment: Payment,
     token: str,
@@ -105,10 +105,10 @@ def process_payment(
     )
 
 
-@payment_postprocess
 @raise_payment_error
 @require_active_payment
 @transaction_block
+@payment_postprocess
 def authorize(payment: Payment, token: str, store_source: bool = False) -> Transaction:
     plugin_manager = get_plugins_manager()
     clean_authorize(payment)
@@ -137,6 +137,7 @@ def authorize(payment: Payment, token: str, store_source: bool = False) -> Trans
 @raise_payment_error
 @require_active_payment
 @transaction_block
+@payment_postprocess
 def capture(
     payment: Payment, amount: Decimal = None, store_source: bool = False
 ) -> Transaction:
@@ -166,10 +167,10 @@ def capture(
     )
 
 
-@payment_postprocess
 @raise_payment_error
 @require_active_payment
 @transaction_block
+@payment_postprocess
 def refund(payment: Payment, amount: Decimal = None) -> Transaction:
     plugin_manager = get_plugins_manager()
     if amount is None:
@@ -197,10 +198,10 @@ def refund(payment: Payment, amount: Decimal = None) -> Transaction:
     )
 
 
-@payment_postprocess
 @raise_payment_error
 @require_active_payment
 @transaction_block
+@payment_postprocess
 def void(payment: Payment) -> Transaction:
     plugin_manager = get_plugins_manager()
     token = _get_past_transaction_token(payment, TransactionKind.AUTH)
@@ -221,10 +222,10 @@ def void(payment: Payment) -> Transaction:
     )
 
 
-@payment_postprocess
 @raise_payment_error
 @require_active_payment
 @transaction_block
+@payment_postprocess
 def confirm(payment: Payment, additional_data: Optional[dict] = None) -> Transaction:
     plugin_manager = get_plugins_manager()
     token = _get_past_transaction_token(payment, TransactionKind.ACTION_TO_CONFIRM)
