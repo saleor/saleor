@@ -7,11 +7,11 @@ from django.test import override_settings
 from ....demo.views import EXAMPLE_QUERY
 from ...product.types import Product
 from ...tests.fixtures import (
-    API_PATH,
-    ACCESS_CONTROL_ALLOW_ORIGIN,
     ACCESS_CONTROL_ALLOW_CREDENTIALS,
     ACCESS_CONTROL_ALLOW_HEADERS,
     ACCESS_CONTROL_ALLOW_METHODS,
+    ACCESS_CONTROL_ALLOW_ORIGIN,
+    API_PATH,
 )
 from ...tests.utils import _get_graphql_content_from_response, get_graphql_content
 
