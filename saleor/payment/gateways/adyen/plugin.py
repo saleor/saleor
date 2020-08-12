@@ -49,21 +49,21 @@ class AdyenGatewayPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.payments.adyen"
     PLUGIN_NAME = GATEWAY_NAME
     DEFAULT_CONFIGURATION = [
-        {"name": "Merchant Account", "value": None},
-        {"name": "API key", "value": None},
-        {"name": "Supported currencies", "value": ""},
-        {"name": "Client Key", "value": ""},
-        {"name": "Origin Url", "value": ""},
-        {"name": "Live", "value": ""},
-        {"name": "Automatically mark payment as a capture", "value": True},
-        {"name": "Automatic payment capture", "value": False},
-        {"name": "HMAC secret key", "value": ""},
-        {"name": "Notification user", "value": ""},
-        {"name": "Notification password", "value": ""},
+        {"name": "merchant-account", "value": None},
+        {"name": "api-key", "value": None},
+        {"name": "supported-currencies", "value": ""},
+        {"name": "client-key", "value": ""},
+        {"name": "origin-url", "value": ""},
+        {"name": "live", "value": ""},
+        {"name": "adyen-auto-capture", "value": True},
+        {"name": "auto-capture", "value": False},
+        {"name": "hmac-secret-key", "value": ""},
+        {"name": "notification-user", "value": ""},
+        {"name": "notification-password", "value": ""},
     ]
 
     CONFIG_STRUCTURE = {
-        "API key": {
+        "api-key": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": (
                 "To submit payments to Adyen, you'll be making API requests that are "
@@ -72,18 +72,18 @@ class AdyenGatewayPlugin(BasePlugin):
             ),
             "label": "API key",
         },
-        "Merchant Account": {
+        "merchant-account": {
             "type": ConfigurationTypeField.STRING,
             "help_text": "Yout merchant account name.",
             "label": "Merchant Account",
         },
-        "Supported currencies": {
+        "supported-currencies": {
             "type": ConfigurationTypeField.STRING,
             "help_text": "Determines currencies supported by gateway."
             " Please enter currency codes separated by a comma.",
             "label": "Supported currencies",
         },
-        "Client Key": {
+        "client-key": {
             "type": ConfigurationTypeField.STRING,
             "help_text": (
                 "The client key is a public key that uniquely identifies a web service "
@@ -94,7 +94,7 @@ class AdyenGatewayPlugin(BasePlugin):
             ),
             "label": "Client Key",
         },
-        "Origin Url": {
+        "origin-url": {
             "type": ConfigurationTypeField.STRING,
             "help_text": (
                 "The origin URL of the page where you are rendering the Drop-in. This "
@@ -105,7 +105,7 @@ class AdyenGatewayPlugin(BasePlugin):
             ),
             "label": "Origin Url",
         },
-        "Live": {
+        "live": {
             "type": ConfigurationTypeField.STRING,
             "help_text": (
                 "Leave it blank when you want to use test env. To communicate with the"
@@ -117,21 +117,24 @@ class AdyenGatewayPlugin(BasePlugin):
             ),
             "label": "Live",
         },
-        "Automatically mark payment as a capture": {
+        "adyen-auto-capture": {
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": (
-                "All authorized payments will be marked as paid. This should be enabled"
-                " when Adyen uses automatically auto-capture. Saleor doesn't support "
-                "delayed automatically capture."
+                "All authorized payments will be marked as captured. This should only"
+                " be enabled if Adyen is configured to auto-capture payments."
+                " Saleor doesn't support the delayed capture Adyen feature."
             ),
-            "label": "Automatically mark payment as a capture",
+            "label": "Assume all authorizations are automatically captured by Adyen",
         },
-        "Automatic payment capture": {
+        "auto-capture": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should automaticaly capture payments.",
-            "label": "Automatic payment capture",
+            "help_text": (
+                "If enabled, Saleor will automatically capture funds. If, disabled, the"
+                " funds are blocked but need to be captured manually."
+            ),
+            "label": "Automatically capture funds when a payment is made",
         },
-        "HMAC secret key": {
+        "hmac-secret-key": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": (
                 "Provide secret key generated on Adyen side."
@@ -141,7 +144,7 @@ class AdyenGatewayPlugin(BasePlugin):
             ),
             "label": "HMAC secret key",
         },
-        "Notification user": {
+        "notification-user": {
             "type": ConfigurationTypeField.STRING,
             "help_text": (
                 "Base User provided on the Adyen side to authenticate incoming "
@@ -152,7 +155,7 @@ class AdyenGatewayPlugin(BasePlugin):
             ),
             "label": "Notification user",
         },
-        "Notification password": {
+        "notification-password": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": (
                 "User password provided on the Adyen side for authenticate incoming "
@@ -170,20 +173,18 @@ class AdyenGatewayPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = GatewayConfig(
             gateway_name=GATEWAY_NAME,
-            auto_capture=configuration["Automatic payment capture"],
-            supported_currencies=configuration["Supported currencies"],
+            auto_capture=configuration["auto-capture"],
+            supported_currencies=configuration["supported-currencies"],
             connection_params={
-                "api_key": configuration["API key"],
-                "merchant_account": configuration["Merchant Account"],
-                "client_key": configuration["Client Key"],
-                "origin_url": configuration["Origin Url"],
-                "live": configuration["Live"],
-                "webhook_hmac": configuration["HMAC secret key"],
-                "webhook_user": configuration["Notification user"],
-                "webhook_user_password": configuration["Notification password"],
-                "adyen_auto_capture": configuration[
-                    "Automatically mark payment as a capture"
-                ],
+                "api_key": configuration["api-key"],
+                "merchant_account": configuration["merchant-account"],
+                "client_key": configuration["client-key"],
+                "origin_url": configuration["origin-url"],
+                "live": configuration["live"],
+                "webhook_hmac": configuration["hmac-secret-key"],
+                "webhook_user": configuration["notification-user"],
+                "webhook_user_password": configuration["notification-password"],
+                "adyen_auto_capture": configuration["adyen-auto-capture"],
             },
         )
         api_key = self.config.connection_params["api_key"]
