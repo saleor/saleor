@@ -434,9 +434,10 @@ def customer_user(address):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def user_checkout(customer_user):
+def user_checkout(customer_user, channel_USD):
     checkout = Checkout.objects.create(
         user=customer_user,
+        channel=channel_USD,
         billing_address=customer_user.default_billing_address,
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
