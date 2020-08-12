@@ -1,6 +1,6 @@
 from django.conf import settings
-from django.contrib.postgres.fields import JSONField
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 from django.utils.timezone import now
 
 from ..core import JobStatus

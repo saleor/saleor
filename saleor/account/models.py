@@ -8,8 +8,8 @@ from django.contrib.auth.models import (
     Permission,
     PermissionsMixin,
 )
-from django.contrib.postgres.fields import JSONField
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 from django.db.models import Q, QuerySet, Value
 from django.forms.models import model_to_dict
 from django.utils import timezone
@@ -232,10 +232,8 @@ class CustomerEvent(models.Model):
             (type_name.upper(), type_name) for type_name, _ in CustomerEvents.CHOICES
         ],
     )
-
     order = models.ForeignKey("order.Order", on_delete=models.SET_NULL, null=True)
     parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
-
     user = models.ForeignKey(User, related_name="events", on_delete=models.CASCADE)
 
     class Meta:

@@ -2,10 +2,7 @@ import json
 from functools import partial
 
 import graphene
-from django_measurement.models import MeasurementField
-from django_prices.models import MoneyField, TaxedMoneyField
 from graphene.relay import PageInfo
-from graphene_django.converter import convert_django_field
 from graphene_django.fields import DjangoConnectionField
 from graphql.error import GraphQLError
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
@@ -13,8 +10,6 @@ from promise import Promise
 
 from ..utils.sorting import sort_queryset_for_connection
 from .connection import connection_from_queryset_slice
-from .types.common import Weight
-from .types.money import Money, TaxedMoney
 
 
 def patch_pagination_args(field: DjangoConnectionField):
@@ -74,21 +69,6 @@ class BaseDjangoConnectionField(DjangoConnectionField):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         patch_pagination_args(self)
-
-
-@convert_django_field.register(TaxedMoneyField)
-def convert_field_taxed_money(*_args):
-    return graphene.Field(TaxedMoney)
-
-
-@convert_django_field.register(MoneyField)
-def convert_field_money(*_args):
-    return graphene.Field(Money)
-
-
-@convert_django_field.register(MeasurementField)
-def convert_field_measurements(*_args):
-    return graphene.Field(Weight)
 
 
 class PrefetchingConnectionField(BaseDjangoConnectionField):

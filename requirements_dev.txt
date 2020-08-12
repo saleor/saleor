@@ -76,7 +76,7 @@ google-measurement-protocol==1.0.0
 google-resumable-media==0.7.1
 googleapis-common-protos==1.52.0
 graphene==2.1.8
-graphene-django==2.12.1
+graphene-django==2.13.0
 graphene-federation==0.1.0
 graphql-core==2.3.2
 graphql-relay==2.0.1
