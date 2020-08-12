@@ -144,7 +144,7 @@ class AdyenGatewayPlugin(BasePlugin):
         "Notification user": {
             "type": ConfigurationTypeField.STRING,
             "help_text": (
-                "Base User provided on the Adyen side for authenticate incoming "
+                "Base User provided on the Adyen side to authenticate incoming "
                 "notifications. https://docs.adyen.com/development-resources/webhooks#"
                 "set-up-notifications-in-your-customer-area "
                 "The Saleor webhook url is "

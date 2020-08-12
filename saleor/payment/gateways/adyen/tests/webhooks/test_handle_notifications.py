@@ -6,7 +6,7 @@ import pytest
 
 from ......order import OrderStatus
 from ..... import ChargeStatus, TransactionKind
-from ...utils import get_price_amount
+from ...utils import to_adyen_price
 from ...webhooks import (
     create_new_transaction,
     handle_authorization,
@@ -27,7 +27,7 @@ def test_handle_authorization(notification, adyen_plugin, payment_adyen_for_orde
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
     handle_authorization(notification, config)
@@ -45,7 +45,7 @@ def test_handle_authorization_with_adyen_auto_capture(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
     config.connection_params["adyen_auto_capture"] = True
@@ -64,7 +64,7 @@ def test_handle_authorization_with_auto_capture(
     notification = notification(
         psp_reference="853596537720508F",
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
     config.auto_capture = True
@@ -88,7 +88,7 @@ def test_handle_authorization_with_adyen_auto_capture_and_payment_charged(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
     config.connection_params["adyen_auto_capture"] = True
@@ -104,7 +104,7 @@ def test_handle_cancel(notification, adyen_plugin, payment_adyen_for_order):
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
 
@@ -127,7 +127,7 @@ def test_handle_cancel_already_canceleld(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
     create_new_transaction(notification, payment, TransactionKind.CANCEL)
@@ -145,7 +145,7 @@ def test_handle_capture(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
 
@@ -172,7 +172,7 @@ def test_handle_capture_with_payment_already_charged(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
 
@@ -195,7 +195,7 @@ def test_handle_failed_capture(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
 
@@ -219,7 +219,7 @@ def test_handle_failed_capture_partial_charge(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
 
@@ -238,7 +238,7 @@ def test_handle_pending(notification, adyen_plugin, payment_adyen_for_order):
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
 
@@ -259,7 +259,7 @@ def test_handle_pending_with_adyen_auto_capture(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
     config.connection_params["adyen_auto_capture"] = True
@@ -282,7 +282,7 @@ def test_handle_pending_already_pending(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
     create_new_transaction(notification, payment, TransactionKind.PENDING)
@@ -303,7 +303,7 @@ def test_handle_refund(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
 
@@ -333,7 +333,7 @@ def test_handle_refund_already_refunded(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     create_new_transaction(notification, payment, TransactionKind.REFUND)
     config = adyen_plugin().config
@@ -354,7 +354,7 @@ def test_handle_failed_refund_missing_transaction(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
 
@@ -373,7 +373,7 @@ def test_handle_failed_refund_with_transaction_refund_ongoing(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
     create_new_transaction(notification, payment, TransactionKind.REFUND_ONGOING)
@@ -396,7 +396,7 @@ def test_handle_failed_refund_with_transaction_refund(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
     create_new_transaction(notification, payment, TransactionKind.REFUND)
@@ -416,7 +416,7 @@ def test_handle_reversed_refund(notification, adyen_plugin, payment_adyen_for_or
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
     handle_reversed_refund(notification, config)
@@ -437,7 +437,7 @@ def test_handle_reversed_refund_already_processed(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
     create_new_transaction(notification, payment, TransactionKind.REFUND_REVERSED)
@@ -455,7 +455,7 @@ def test_webhook_not_implemented(notification, adyen_plugin, payment_adyen_for_o
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
 
@@ -474,7 +474,7 @@ def test_handle_cancel_or_refund_action_refund(
     config = adyen_plugin().config
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     notification["additionalData"]["modification.action"] = "refund"
 
@@ -492,7 +492,7 @@ def test_handle_cancel_or_refund_action_cancel(
     config = adyen_plugin().config
     notification = notification(
         merchant_reference=payment_id,
-        value=get_price_amount(payment.total, payment.currency),
+        value=to_adyen_price(payment.total, payment.currency),
     )
     notification["additionalData"]["modification.action"] = "cancel"
 

@@ -9,11 +9,11 @@ from .....core.prices import quantize_price
 from .... import PaymentError
 from ..utils import (
     append_klarna_data,
-    convert_adyen_price_format,
-    get_price_amount,
+    from_adyen_price,
     get_shopper_locale_value,
     request_data_for_gateway_config,
     request_data_for_payment,
+    to_adyen_price,
     update_payment_with_action_required_data,
 )
 
@@ -41,7 +41,7 @@ def test_append_klarna_data(dummy_payment_data, payment_dummy, checkout_with_ite
     result = append_klarna_data(dummy_payment_data, payment_data)
 
     # then
-    total = get_price_amount(
+    total = to_adyen_price(
         line.variant.price_amount * line.quantity, line.variant.currency
     )
     assert result == {
@@ -97,10 +97,10 @@ def test_append_klarna_data_tax_included(
                 "description": line.variant.product.description,
                 "quantity": line.quantity,
                 "id": line.variant.sku,
-                "taxAmount": get_price_amount((gross - net).amount, "USD"),
+                "taxAmount": to_adyen_price((gross - net).amount, "USD"),
                 "taxPercentage": tax_percent,
-                "amountExcludingTax": get_price_amount(net.amount, "USD"),
-                "amountIncludingTax": get_price_amount(gross.amount, "USD"),
+                "amountExcludingTax": to_adyen_price(net.amount, "USD"),
+                "amountIncludingTax": to_adyen_price(gross.amount, "USD"),
             }
         ],
     }
@@ -147,7 +147,7 @@ def test_request_data_for_payment(dummy_payment_data):
     # then
     assert result == {
         "amount": {
-            "value": get_price_amount(
+            "value": to_adyen_price(
                 dummy_payment_data.amount, dummy_payment_data.currency
             ),
             "currency": dummy_payment_data.currency,
@@ -181,7 +181,7 @@ def test_request_data_for_payment_append_klarna_data(
     dummy_payment_data.data = data
     klarna_result = {
         "amount": {
-            "value": get_price_amount(
+            "value": to_adyen_price(
                 dummy_payment_data.amount, dummy_payment_data.currency
             ),
             "currency": dummy_payment_data.currency,
@@ -216,9 +216,9 @@ def test_request_data_for_payment_append_klarna_data(
         (Decimal(51), "US", Decimal("0.51")),
     ],
 )
-def test_convert_adyen_price_format(value, currency, expected_result):
+def test_from_adyen_price(value, currency, expected_result):
     # when
-    result = convert_adyen_price_format(value, currency)
+    result = from_adyen_price(value, currency)
 
     # then
     assert result == expected_result
@@ -232,9 +232,9 @@ def test_convert_adyen_price_format(value, currency, expected_result):
         (Decimal(100), "US", "10000"),
     ],
 )
-def test_get_price_amount(value, currency, expected_result):
+def test_to_adyen_price(value, currency, expected_result):
     # when
-    result = get_price_amount(value, currency)
+    result = to_adyen_price(value, currency)
 
     # then
     assert result == expected_result

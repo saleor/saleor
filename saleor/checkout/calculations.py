@@ -42,7 +42,7 @@ def checkout_subtotal(
     return quantize_price(calculated_checkout_subtotal, checkout.currency)
 
 
-def calculate_checkout_total(
+def calculate_checkout_total_with_gift_cards(
     checkout: "Checkout", discounts: Optional[Iterable[DiscountInfo]] = None
 ) -> "TaxedMoney":
     total = (
