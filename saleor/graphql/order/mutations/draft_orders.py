@@ -95,29 +95,36 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         if not channel and channel_id:
             channel = cls.get_node_or_error(info, channel_id, only_type=Channel).id
 
-        if channel:
-            variant_ids = [variant.id for variant in variants]
-            unpublished_variants = ProductChannelListing.objects.filter(
-                Q(product__variants__id__in=variant_ids),
-                Q(channel__id=channel),
-                Q(is_published=False),
-            ).values_list("product__variants__id", flat=True)
-            if unpublished_variants:
-                unpublished_variants_global_ids = [
-                    graphene.Node.to_global_id("ProductVariant", unpublished_variant)
-                    for unpublished_variant in unpublished_variants
-                ]
-
-                raise ValidationError(
-                    {
-                        "lines": ValidationError(
-                            "Can't add product variant that are not published in "
-                            "the channel associated with this order.",
-                            code=OrderErrorCode.PRODUCT_NOT_PUBLISHED,
-                            params={"variants": unpublished_variants_global_ids},
-                        )
-                    }
-                )
+        if not channel:
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        "Can't add product variant for draft order without channel",
+                        code=OrderErrorCode.MISSING_CHANNEL,
+                    )
+                }
+            )
+        variant_ids = [variant.id for variant in variants]
+        unpublished_variants = ProductChannelListing.objects.filter(
+            Q(product__variants__id__in=variant_ids),
+            Q(channel__id=channel),
+            Q(is_published=False),
+        ).values_list("product__variants__id", flat=True)
+        if unpublished_variants:
+            unpublished_variants_global_ids = [
+                graphene.Node.to_global_id("ProductVariant", unpublished_variant)
+                for unpublished_variant in unpublished_variants
+            ]
+            raise ValidationError(
+                {
+                    "lines": ValidationError(
+                        "Can't add product variant that are not published in "
+                        "the channel associated with this order.",
+                        code=OrderErrorCode.PRODUCT_NOT_PUBLISHED,
+                        params={"variants": unpublished_variants_global_ids},
+                    )
+                }
+            )
 
     @classmethod
     def clean_channel_id(cls, instance, channel):

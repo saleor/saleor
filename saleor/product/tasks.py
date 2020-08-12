@@ -4,8 +4,7 @@ from ..celeryconf import app
 from ..discount.models import Sale
 from .models import Attribute, Product, ProductType, ProductVariant
 from .utils.attributes import generate_name_for_variant
-from .utils.variant_prices import (
-    update_product_minimal_variant_price,
+from .utils.variant_prices import (  # update_product_minimal_variant_price,
     update_products_minimal_variant_prices,
     update_products_minimal_variant_prices_of_catalogues,
     update_products_minimal_variant_prices_of_discount,

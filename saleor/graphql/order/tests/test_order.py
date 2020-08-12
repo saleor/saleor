@@ -584,6 +584,7 @@ def test_draft_order_create(
     shipping_method,
     variant,
     voucher,
+    channel_USD,
     graphql_address_data,
 ):
     variant_0 = variant
@@ -592,6 +593,7 @@ def test_draft_order_create(
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
 
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
     variant_1 = product_without_shipping.variants.first()
@@ -615,6 +617,7 @@ def test_draft_order_create(
         "shippingMethod": shipping_id,
         "voucher": voucher_id,
         "customerNote": customer_note,
+        "channel": channel_id,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -643,6 +646,43 @@ def test_draft_order_create(
     )
     assert created_draft_event.user == staff_user
     assert created_draft_event.parameters == {}
+
+
+def test_draft_order_create_without_channel(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    variant,
+    voucher,
+    graphql_address_data,
+):
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_1 = product_without_shipping.variants.first()
+    variant_1.quantity = 2
+    variant_1.save()
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    variant_list = [
+        {"variantId": variant_0_id, "quantity": 2},
+        {"variantId": variant_1_id, "quantity": 1},
+    ]
+    variables = {
+        "user": user_id,
+        "lines": variant_list,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+    assert error["code"] == OrderErrorCode.MISSING_CHANNEL.name
+    assert error["field"] == "channel"
 
 
 def test_draft_order_create_with_channel_with_unpublished_product(
@@ -701,7 +741,7 @@ def test_draft_order_create_with_channel_with_unpublished_product(
     error = content["data"]["draftOrderCreate"]["orderErrors"][0]
 
     assert error["field"] == "lines"
-    assert error["code"] == "PRODUCT_NOT_PUBLISHED"
+    assert error["code"] == OrderErrorCode.PRODUCT_NOT_PUBLISHED.name
     assert error["variants"] == [variant_1_id]
 
 
@@ -828,7 +868,7 @@ def test_draft_order_update_existing_channel_id(
     content = get_graphql_content(response)
     error = content["data"]["draftOrderUpdate"]["orderErrors"][0]
 
-    assert error["code"] == "NOT_EDITABLE"
+    assert error["code"] == OrderErrorCode.NOT_EDITABLE.name
     assert error["field"] == "channel"
 
 

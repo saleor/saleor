@@ -3075,6 +3075,7 @@ enum OrderErrorCode {
   ZERO_QUANTITY
   INSUFFICIENT_STOCK
   DUPLICATED_INPUT_ITEM
+  MISSING_CHANNEL
 }
 
 type OrderEvent implements Node {
