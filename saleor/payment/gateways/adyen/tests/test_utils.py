@@ -7,9 +7,11 @@ from prices import Money, TaxedMoney
 
 from .....core.prices import quantize_price
 from .... import PaymentError
+from ....interface import PaymentMethodInfo
 from ..utils import (
     append_klarna_data,
     from_adyen_price,
+    get_payment_method_info,
     get_shopper_locale_value,
     request_data_for_gateway_config,
     request_data_for_payment,
@@ -357,3 +359,62 @@ def test_update_payment_with_action_required_data_extra_data_as_dict(
     assert len(extra_data) == 2
     assert extra_data[1]["payment_data"] == action["paymentData"]
     assert set(extra_data[1]["parameters"]) == {"payload", "secondParam"}
+
+
+def test_get_payment_method_info(dummy_payment_data):
+    # given
+    data = {"paymentMethod": {"type": "klarna"}}
+    dummy_payment_data.data = data
+
+    api_call_result_mock = mock.Mock()
+    message = {"additionalData": {"paymentMethod": "visa-test"}}
+    api_call_result_mock.message = message
+
+    # when
+    payment_method_info = get_payment_method_info(
+        dummy_payment_data, api_call_result_mock
+    )
+
+    # then
+    assert payment_method_info == PaymentMethodInfo(
+        brand=message["additionalData"]["paymentMethod"],
+        type=data["paymentMethod"]["type"],
+    )
+
+
+def test_get_payment_method_info_scheme_payment_method_type(dummy_payment_data):
+    # given
+    data = {"paymentMethod": {"type": "scheme"}}
+    dummy_payment_data.data = data
+
+    api_call_result_mock = mock.Mock()
+    message = {"additionalData": {"paymentMethod": "visa-test"}}
+    api_call_result_mock.message = message
+
+    # when
+    payment_method_info = get_payment_method_info(
+        dummy_payment_data, api_call_result_mock
+    )
+
+    # then
+    assert payment_method_info == PaymentMethodInfo(
+        brand=message["additionalData"]["paymentMethod"], type="card"
+    )
+
+
+def test_get_payment_method_info_no_additional_data(dummy_payment_data):
+    # given
+    data = {"paymentMethod": {"type": "scheme"}}
+    dummy_payment_data.data = data
+
+    api_call_result_mock = mock.Mock()
+    message = {}
+    api_call_result_mock.message = message
+
+    # when
+    payment_method_info = get_payment_method_info(
+        dummy_payment_data, api_call_result_mock
+    )
+
+    # then
+    assert payment_method_info is None
