@@ -34,7 +34,7 @@ from ... import ChargeStatus, PaymentError, TransactionKind
 from ...gateway import capture
 from ...interface import GatewayConfig, GatewayResponse
 from ...utils import create_payment_information, create_transaction, gateway_postprocess
-from .utils import FAILED_STATUSES, api_call, convert_adyen_price_format
+from .utils import FAILED_STATUSES, api_call, from_adyen_price
 
 
 def get_payment(payment_id: Optional[str]) -> Optional[Payment]:
@@ -55,9 +55,7 @@ def get_transaction(
 def create_new_transaction(notification, payment, kind):
     transaction_id = notification.get("pspReference")
     currency = notification.get("amount", {}).get("currency")
-    amount = convert_adyen_price_format(
-        notification.get("amount", {}).get("value"), currency
-    )
+    amount = from_adyen_price(notification.get("amount", {}).get("value"), currency)
     is_success = True if notification.get("success") == "true" else False
 
     gateway_response = GatewayResponse(

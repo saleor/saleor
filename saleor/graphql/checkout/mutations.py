@@ -8,7 +8,7 @@ from django.db.models import Prefetch
 
 from ...account.error_codes import AccountErrorCode
 from ...checkout import models
-from ...checkout.calculations import calculate_checkout_total
+from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
     abort_order_data,
@@ -776,7 +776,12 @@ class CheckoutComplete(BaseMutation):
 
     @classmethod
     def validate_payment_amount(cls, discounts, payment, checkout):
-        if payment.total != calculate_checkout_total(checkout, discounts).gross.amount:
+        if (
+            payment.total
+            != calculate_checkout_total_with_gift_cards(
+                checkout, discounts
+            ).gross.amount
+        ):
             gateway.payment_refund_or_void(payment)
             raise ValidationError(
                 "Payment does not cover all checkout value.",
@@ -875,8 +880,6 @@ class CheckoutComplete(BaseMutation):
         if txn.customer_id and user.is_authenticated:
             store_customer_id(user, payment.gateway, txn.customer_id)
 
-        confirmation_needed = False
-        confirmation_data = {}
         order = None
 
         if not txn.action_required:
@@ -890,16 +893,12 @@ class CheckoutComplete(BaseMutation):
             # remove checkout after order is successfully paid
             checkout.delete()
 
-        else:
-            # If gateway returns information that additional steps are required we need
-            # to inform the frontend and pass all required data
-            confirmation_needed = True
-            confirmation_data = txn.action_required_data
-
+        # If gateway returns information that additional steps are required we need
+        # to inform the frontend and pass all required data
         return CheckoutComplete(
             order=order,
-            confirmation_needed=confirmation_needed,
-            confirmation_data=confirmation_data,
+            confirmation_needed=txn.action_required,
+            confirmation_data=txn.action_required_data if txn.action_required else {},
         )
 
 
