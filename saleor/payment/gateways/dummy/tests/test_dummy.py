@@ -166,6 +166,8 @@ def test_refund_success(
     payment.captured_amount = initial_captured_amount
     payment.save()
     txn = gateway.refund(payment=payment, amount=Decimal(refund_amount))
+
+    payment.refresh_from_db()
     assert txn.kind == TransactionKind.REFUND
     assert txn.is_success
     assert txn.payment == payment

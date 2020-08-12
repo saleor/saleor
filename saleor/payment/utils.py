@@ -132,6 +132,20 @@ def create_payment(
     return payment
 
 
+def get_already_processed_transaction(
+    payment: "Payment", gateway_response: GatewayResponse
+):
+    transaction = payment.transactions.filter(
+        is_success=gateway_response.is_success,
+        action_required=gateway_response.action_required,
+        token=gateway_response.transaction_id,
+        kind=gateway_response.kind,
+        amount=gateway_response.amount,
+        currency=gateway_response.currency,
+    ).last()
+    return transaction
+
+
 def create_transaction(
     payment: Payment,
     kind: str,
@@ -169,6 +183,28 @@ def create_transaction(
         action_required_data=gateway_response.action_required_data or {},
     )
     return txn
+
+
+def get_already_processed_transaction_or_create_new_transaction(
+    payment: Payment,
+    kind: str,
+    payment_information: PaymentData,
+    action_required: bool = False,
+    gateway_response: GatewayResponse = None,
+    error_msg=None,
+) -> Transaction:
+    if gateway_response and gateway_response.transaction_already_processed:
+        transaction = get_already_processed_transaction(payment, gateway_response)
+        if transaction:
+            return transaction
+    return create_transaction(
+        payment,
+        kind,
+        payment_information,
+        action_required,
+        gateway_response,
+        error_msg,
+    )
 
 
 def clean_capture(payment: Payment, amount: Decimal):
@@ -212,12 +248,12 @@ def validate_gateway_response(response: GatewayResponse):
 def gateway_postprocess(transaction, payment):
     if not transaction.is_success:
         return
-
     if transaction.action_required:
         payment.to_confirm = True
         payment.save(update_fields=["to_confirm"])
         return
-
+    if transaction.already_processed:
+        return
     changed_fields = []
     # to_confirm is defined by the transaction.action_required. Payment doesn't
     # require confirmation when we got action_required == False
@@ -229,7 +265,6 @@ def gateway_postprocess(transaction, payment):
 
     if transaction_kind in {
         TransactionKind.CAPTURE,
-        TransactionKind.CONFIRM,
         TransactionKind.REFUND_REVERSED,
     }:
         payment.captured_amount += transaction.amount
@@ -271,6 +306,8 @@ def gateway_postprocess(transaction, payment):
             changed_fields += ["charge_status", "captured_amount", "modified"]
     if changed_fields:
         payment.save(update_fields=changed_fields)
+    transaction.already_processed = True
+    transaction.save(update_fields=["already_processed"])
 
 
 def fetch_customer_id(user: User, gateway: str):

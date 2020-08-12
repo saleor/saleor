@@ -170,6 +170,7 @@ def test_void_method_error(dummy_payment_data, dummy_gateway_config, monkeypatch
 )
 def test_capture_success(amount, charge_status, token, payment_txn_preauth):
     payment_txn_preauth.gateway = "mirumee.payments.dummy_credit_card"
+    payment_txn_preauth.save()
     transaction = payment_txn_preauth.transactions.last()
     transaction.token = token
     transaction.save()
@@ -264,6 +265,8 @@ def test_refund_success(
     payment.captured_amount = initial_captured_amount
     payment.save()
     txn = gateway.refund(payment=payment, amount=Decimal(refund_amount))
+
+    payment.refresh_from_db()
     assert txn.kind == TransactionKind.REFUND
     assert txn.is_success
     assert txn.payment == payment

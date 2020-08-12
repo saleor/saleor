@@ -40,15 +40,23 @@ from .utils import FAILED_STATUSES, api_call, from_adyen_price
 def get_payment(payment_id: Optional[str]) -> Optional[Payment]:
     if not payment_id:
         return None
-    _type, payment_id = from_global_id(payment_id)
-    payment = Payment.objects.prefetch_related("order").filter(id=payment_id).first()
+    try:
+        _type, db_payment_id = from_global_id(payment_id)
+    except UnicodeDecodeError:
+        return None
+    payment = (
+        Payment.objects.prefetch_related("order")
+        .select_related()
+        .filter(id=db_payment_id)
+        .first()
+    )
     return payment
 
 
 def get_transaction(
     payment: "Payment", transaction_id: Optional[str], kind: str,
 ) -> Optional[Transaction]:
-    transaction = payment.transactions.filter(kind=kind, token=transaction_id).first()
+    transaction = payment.transactions.filter(kind=kind, token=transaction_id).last()
     return transaction
 
 
@@ -86,7 +94,10 @@ def create_payment_notification_for_order(
     msg = success_msg if is_success else failed_msg
 
     external_notification_event(
-        order=payment.order, user=None, message=msg, payment=payment
+        order=payment.order,
+        user=None,
+        message=msg,
+        parameters={"service": payment.gateway, "id": payment.token},
     )
 
 
@@ -108,10 +119,13 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
 
     transaction_id = notification.get("pspReference")
     transaction = payment.transactions.filter(
-        token=transaction_id, kind__in=[TransactionKind.AUTH, TransactionKind.CAPTURE]
-    ).first()
+        token=transaction_id,
+        action_required=False,
+        is_success=True,
+        kind__in=[TransactionKind.AUTH, TransactionKind.CAPTURE],
+    ).last()
 
-    if transaction and transaction.is_success:
+    if transaction:
         # We already have this transaction
         return
 
@@ -504,14 +518,11 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
     if event_handler:
         event_handler(notification, gateway_config)
         return HttpResponse("[accepted]")
-    return HttpResponseNotFound()
+    return HttpResponse("[accepted]")
 
 
 def handle_additional_actions(
-    request: WSGIRequest,
-    payment_details: Callable,
-    adyen_auto_capture: bool,
-    auto_capture: bool,
+    request: WSGIRequest, payment_details: Callable,
 ):
     payment_id = request.GET.get("payment")
     checkout_pk = request.GET.get("checkout")
@@ -552,7 +563,7 @@ def handle_additional_actions(
     except PaymentError as e:
         return HttpResponseBadRequest(str(e))
 
-    handle_api_response(payment, result, adyen_auto_capture, auto_capture)
+    handle_api_response(payment, result)
 
     redirect_url = prepare_redirect_url(payment_id, checkout_pk, result, return_url)
     return redirect(redirect_url)
@@ -605,15 +616,8 @@ def prepare_redirect_url(
 
 
 def handle_api_response(
-    payment: Payment,
-    response: Adyen.Adyen,
-    adyen_auto_capture: bool,
-    auto_capture: bool,
+    payment: Payment, response: Adyen.Adyen,
 ):
-    kind = TransactionKind.AUTH
-    if adyen_auto_capture:
-        kind = TransactionKind.CAPTURE
-
     payment_data = create_payment_information(
         payment=payment, payment_token=payment.token,
     )
@@ -623,13 +627,14 @@ def handle_api_response(
     result_code = response.message["resultCode"].strip().lower()
     is_success = result_code not in FAILED_STATUSES
 
-    # action_required is True as we want to call gateway.confirm from the
-    # checkoutComplete mutation
+    action_required = False
+    if "action" in response.message:
+        action_required = True
 
     gateway_response = GatewayResponse(
         is_success=is_success,
-        action_required=True,
-        kind=kind,
+        action_required=action_required,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
         amount=payment_data.amount,
         currency=payment_data.currency,
         transaction_id=response.message.get("pspReference", ""),
@@ -638,15 +643,10 @@ def handle_api_response(
         action_required_data=response.message.get("action"),
     )
 
-    transaction = create_transaction(
+    create_transaction(
         payment=payment,
-        kind=kind,
-        action_required=True,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        action_required=action_required,
         payment_information=payment_data,
         gateway_response=gateway_response,
     )
-
-    if auto_capture:
-        transaction = capture(payment, amount=transaction.amount)
-
-    gateway_postprocess(transaction, payment)

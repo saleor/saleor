@@ -205,6 +205,7 @@ class PaymentCapture(BaseMutation):
         )
         try:
             gateway.capture(payment, amount)
+            payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentCapture(payment=payment)
@@ -224,6 +225,7 @@ class PaymentRefund(PaymentCapture):
         )
         try:
             gateway.refund(payment, amount=amount)
+            payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentRefund(payment=payment)
@@ -248,6 +250,7 @@ class PaymentVoid(BaseMutation):
         )
         try:
             gateway.void(payment)
+            payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentVoid(payment=payment)
