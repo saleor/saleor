@@ -9,8 +9,9 @@ from ....core.permissions import ShippingPermissions
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.models import ShippingMethodChannelListing
 from ...channel import ChannelContext
-from ...channel.utils import CleanChannelMixin
+from ...channel.mutations import BaseChannelListing
 from ...core.mutations import BaseMutation
+from ...core.scalars import Decimal
 from ...core.types.common import ShippingError
 from ..types import ShippingMethod
 
@@ -21,10 +22,10 @@ ErrorType = DefaultDict[str, List[ValidationError]]
 
 
 class ShippingMethodChannelListingAddInput(graphene.InputObjectType):
-    channel_id = graphene.ID()
-    price = graphene.Decimal()
-    min_value = graphene.Decimal()
-    max_value = graphene.Decimal()
+    channel_id = graphene.ID(required=True, description="ID of a channel.")
+    price = Decimal(description="ID of a channel.")
+    min_value = Decimal(description="ID of a channel.")
+    max_value = Decimal(description="ID of a channel.")
 
 
 class ShippingMethodChannelListingUpdateInput(graphene.InputObjectType):
@@ -44,7 +45,7 @@ class ShippingMethodChannelListingUpdateInput(graphene.InputObjectType):
 
 class ShippingMethodChannelListingCreate(BaseMutation):
     class Arguments:
-        input = ShippingMethodChannelListingAddInput(requred=True, description="")
+        input = ShippingMethodChannelListingAddInput(required=True, description="")
 
     class Meta:
         description = "Manage shipping method's availability in channels."
@@ -53,12 +54,12 @@ class ShippingMethodChannelListingCreate(BaseMutation):
         error_type_field = "shipping_errors"
 
 
-class ShippingMethodChannelListingUpdate(CleanChannelMixin, BaseMutation):
+class ShippingMethodChannelListingUpdate(BaseChannelListing):
     shipping_method = graphene.Field(ShippingMethod)
 
     class Arguments:
         id = graphene.ID()
-        input = ShippingMethodChannelListingUpdateInput(requred=True, description="")
+        input = ShippingMethodChannelListingUpdateInput(required=True, description="")
 
     class Meta:
         description = "Manage shipping method's availability in channels."
@@ -110,6 +111,6 @@ class ShippingMethodChannelListingUpdate(CleanChannelMixin, BaseMutation):
             raise ValidationError(errors)
 
         cls.save(info, shipping_method, cleaned_input)
-        return ShippingMethodChannelListing(
-            product=ChannelContext(node=shipping_method, channel_slug=None)
+        return ShippingMethodChannelListingUpdate(
+            shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
         )

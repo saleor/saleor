@@ -2647,6 +2647,8 @@ type Mutation {
   shopFetchTaxRates: ShopFetchTaxRates
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
+  shippingMethodChannelListingCreate(input: ShippingMethodChannelListingAddInput!): ShippingMethodChannelListingCreate
+  shippingMethodChannelListingUpdate(id: ID, input: ShippingMethodChannelListingUpdateInput!): ShippingMethodChannelListingUpdate
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
@@ -4680,6 +4682,29 @@ type ShippingMethodChannelListing implements Node {
   price: Float
   minValue: Float
   maxValue: Float
+}
+
+input ShippingMethodChannelListingAddInput {
+  channelId: ID!
+  price: Decimal
+  minValue: Decimal
+  maxValue: Decimal
+}
+
+type ShippingMethodChannelListingCreate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  shippingErrors: [ShippingError!]!
+}
+
+type ShippingMethodChannelListingUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  shippingMethod: ShippingMethod
+  shippingErrors: [ShippingError!]!
+}
+
+input ShippingMethodChannelListingUpdateInput {
+  addChannels: [ShippingMethodChannelListingAddInput!]
+  removeChannels: [ID!]
 }
 
 type ShippingMethodTranslatableContent implements Node {

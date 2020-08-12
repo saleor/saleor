@@ -4,6 +4,7 @@ from graphene import relay
 from ...core.permissions import ShippingPermissions
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
+from ..channel.types import ChannelContext, ChannelContextType
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import CountryDisplay, MoneyRange
 from ..decorators import permission_required
@@ -21,7 +22,7 @@ class ShippingMethodChannelListing(CountableDjangoObjectType):
         only_fields = ["id", "channel", "price", "min_value", "max_value"]
 
 
-class ShippingMethod(CountableDjangoObjectType):
+class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
     type = ShippingMethodTypeEnum(description="Type of the shipping method.")
     translation = TranslationField(
         ShippingMethodTranslation, type_name="shipping method"
@@ -32,6 +33,7 @@ class ShippingMethod(CountableDjangoObjectType):
     )
 
     class Meta:
+        default_resolver = ChannelContextType.resolver_with_context
         description = (
             "Shipping method are the methods you'll use to get customer's orders to "
             "them. They are directly exposed to the customers."
@@ -50,16 +52,21 @@ class ShippingMethod(CountableDjangoObjectType):
         ]
 
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_channels(root: models.ShippingMethod, *_args):
+    def resolve_channels(root: ChannelContext[models.ShippingMethod], *_args):
+        breakpoint()
         return models.ShippingMethodChannelListing.objects.filter(
-            shipping_method__id__in=[root.pk]
+            shipping_method__id__in=[root.node.pk]
         )
 
-    def resolve_maximum_order_weight(root: models.ShippingMethod, *_args):
-        return convert_weight_to_default_weight_unit(root.maximum_order_weight)
+    def resolve_maximum_order_weight(
+        root: ChannelContext[models.ShippingMethod], *_args
+    ):
+        return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
 
-    def resolve_minimum_order_weight(root: models.ShippingMethod, *_args):
-        return convert_weight_to_default_weight_unit(root.minimum_order_weight)
+    def resolve_minimum_order_weight(
+        root: ChannelContext[models.ShippingMethod], *_args
+    ):
+        return convert_weight_to_default_weight_unit(root.node.minimum_order_weight)
 
 
 class ShippingZone(CountableDjangoObjectType):
