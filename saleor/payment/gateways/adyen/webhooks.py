@@ -44,7 +44,12 @@ def get_payment(payment_id: Optional[str]) -> Optional[Payment]:
         _type, db_payment_id = from_global_id(payment_id)
     except UnicodeDecodeError:
         return None
-    payment = Payment.objects.prefetch_related("order").filter(id=db_payment_id).first()
+    payment = (
+        Payment.objects.prefetch_related("order")
+        .select_related()
+        .filter(id=db_payment_id)
+        .first()
+    )
     return payment
 
 

@@ -221,7 +221,7 @@ def test_confirm_payment(payment_adyen_for_order, adyen_plugin):
         raw_response={},
     )
 
-    auth_transaction = create_transaction(
+    action_transaction = create_transaction(
         payment=payment_adyen_for_order,
         payment_information=payment_info,
         kind=TransactionKind.ACTION_TO_CONFIRM,
@@ -233,8 +233,45 @@ def test_confirm_payment(payment_adyen_for_order, adyen_plugin):
     assert response is not None
     assert response.is_success is True
     assert response.kind == TransactionKind.AUTH
-    assert response.amount == auth_transaction.amount
-    assert response.currency == auth_transaction.currency
+    assert response.amount == action_transaction.amount
+    assert response.currency == action_transaction.currency
+
+
+def test_confirm_already_processed_payment(payment_adyen_for_order, adyen_plugin):
+    payment_info = create_payment_information(payment_adyen_for_order,)
+    gateway_response = GatewayResponse(
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        action_required=False,
+        transaction_id="882595494831959A",
+        is_success=True,
+        amount=payment_info.amount,
+        currency=payment_info.currency,
+        error="",
+        raw_response={},
+    )
+    create_transaction(
+        payment=payment_adyen_for_order,
+        payment_information=payment_info,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+        gateway_response=gateway_response,
+    )
+    gateway_response.kind = TransactionKind.AUTH
+    action_transaction = create_transaction(
+        payment=payment_adyen_for_order,
+        payment_information=payment_info,
+        kind=TransactionKind.AUTH,
+        gateway_response=gateway_response,
+    )
+    adyen_plugin = adyen_plugin()
+    response = adyen_plugin.confirm_payment(payment_info, None)
+
+    assert response is not None
+    assert response.transaction_already_processed is True
+    assert response.is_success is True
+    assert response.kind == TransactionKind.AUTH
+    assert response.amount == action_transaction.amount
+    assert response.currency == action_transaction.currency
+    assert payment_adyen_for_order.transactions.count() == 2
 
 
 def test_confirm_payment_with_adyen_auto_capture(payment_adyen_for_order, adyen_plugin):

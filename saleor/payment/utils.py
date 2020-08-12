@@ -132,6 +132,20 @@ def create_payment(
     return payment
 
 
+def get_already_processed_transaction(
+    payment: "Payment", gateway_response: GatewayResponse
+):
+    transaction = payment.transactions.filter(
+        is_success=gateway_response.is_success,
+        action_required=gateway_response.action_required,
+        token=gateway_response.transaction_id,
+        kind=gateway_response.kind,
+        amount=gateway_response.amount,
+        currency=gateway_response.currency,
+    ).last()
+    return transaction
+
+
 def create_transaction(
     payment: Payment,
     kind: str,
@@ -212,12 +226,12 @@ def validate_gateway_response(response: GatewayResponse):
 def gateway_postprocess(transaction, payment):
     if not transaction.is_success:
         return
-
     if transaction.action_required:
         payment.to_confirm = True
         payment.save(update_fields=["to_confirm"])
         return
-
+    if transaction.already_processed:
+        return
     changed_fields = []
     # to_confirm is defined by the transaction.action_required. Payment doesn't
     # require confirmation when we got action_required == False
@@ -270,6 +284,8 @@ def gateway_postprocess(transaction, payment):
             changed_fields += ["charge_status", "captured_amount", "modified"]
     if changed_fields:
         payment.save(update_fields=changed_fields)
+    transaction.already_processed = True
+    transaction.save(update_fields=["already_processed"])
 
 
 def fetch_customer_id(user: User, gateway: str):

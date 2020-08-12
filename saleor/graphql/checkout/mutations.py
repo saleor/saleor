@@ -891,8 +891,8 @@ class CheckoutComplete(BaseMutation):
             checkout.delete()
 
         else:
-            # If gateway returns information that additional steps are required we need
-            # to inform the frontend and pass all required data
+            # If gateway returns information that additional steps are required we
+            # need to inform the frontend and pass all required data
             confirmation_needed = True
             confirmation_data = txn.action_required_data
 
