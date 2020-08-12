@@ -1,8 +1,6 @@
 import graphene
-from django.db.models import JSONField  # type: ignore
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
-from graphene.types.json import JSONString
 from graphene_django.converter import convert_django_field
 from graphene_django.forms.converter import convert_form_field
 
@@ -30,13 +28,6 @@ def convert_field_money(*_args):
 @convert_django_field.register(MeasurementField)
 def convert_field_measurements(*_args):
     return graphene.Field(Weight)
-
-
-# This converter can be removed when the following changes are released
-# in graphene-django https://github.com/graphql-python/graphene-django/pull/1017/.
-@convert_django_field.register(JSONField)
-def convert_json_field(field, registry=None):
-    return JSONString(description=field.help_text, required=not field.null)
 
 
 @convert_form_field.register(ObjectTypeFilter)
