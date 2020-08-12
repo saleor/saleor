@@ -72,7 +72,9 @@ class PluginSample(BasePlugin):
         price = Money("1.0", currency=order.currency)
         return TaxedMoney(price, price)
 
-    def calculate_checkout_line_total(self, checkout_line, discounts, previous_value):
+    def calculate_checkout_line_total(
+        self, checkout_line, discounts, channel, previous_value
+    ):
         price = Money("1.0", currency=checkout_line.checkout.currency)
         return TaxedMoney(price, price)
 

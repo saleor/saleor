@@ -180,7 +180,9 @@ def test_apply_tax_to_price_no_taxes_raise_typeerror_for_invalid_type():
         assert apply_tax_to_price(None, "standard", 100)
 
 
-def test_vatlayer_plugin_caches_taxes(vatlayer, monkeypatch, product, address):
+def test_vatlayer_plugin_caches_taxes(
+    vatlayer, monkeypatch, product, address, channel_USD
+):
     mocked_taxes = Mock(wraps=get_taxes_for_country)
     monkeypatch.setattr(
         "saleor.plugins.vatlayer.plugin.get_taxes_for_country", mocked_taxes
@@ -188,7 +190,7 @@ def test_vatlayer_plugin_caches_taxes(vatlayer, monkeypatch, product, address):
 
     manager = get_plugins_manager()
     plugin = manager.get_plugin(VatlayerPlugin.PLUGIN_ID)
-    price = product.variants.first().get_price()
+    price = product.variants.first().get_price(channel_USD.slug)
     address.country = Country("de")
     plugin.apply_taxes_to_product(
         product, price, address.country, TaxedMoney(price, price)
@@ -421,7 +423,9 @@ def test_apply_taxes_to_shipping_price_range(vatlayer, settings):
     assert price_range.stop == expected_stop
 
 
-def test_apply_taxes_to_product(vatlayer, settings, variant, discount_info):
+def test_apply_taxes_to_product(
+    vatlayer, settings, variant, discount_info, channel_USD
+):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     country = Country("PL")
     manager = get_plugins_manager()
@@ -430,7 +434,7 @@ def test_apply_taxes_to_product(vatlayer, settings, variant, discount_info):
         "vatlayer.description": "standard",
     }
     price = manager.apply_taxes_to_product(
-        variant.product, variant.get_price([discount_info]), country
+        variant.product, variant.get_price(channel_USD.slug, [discount_info]), country
     )
     assert price == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))
 

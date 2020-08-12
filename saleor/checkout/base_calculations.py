@@ -14,6 +14,7 @@ from ..discount import DiscountInfo
 if TYPE_CHECKING:
     # flake8: noqa
     from .models import Checkout, CheckoutLine
+    from ..channel.models import Channel
 
 
 def base_checkout_shipping_price(
@@ -46,16 +47,11 @@ def base_checkout_total(
 
 
 def base_checkout_line_total(
-    line: "CheckoutLine", discounts: Optional[Iterable[DiscountInfo]] = None
+    line: "CheckoutLine",
+    channel: "Channel",
+    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> TaxedMoney:
     """Return the total price of this line."""
-    # FIXME: channel should be required in Checkout model; remove this check once this
-    # is changed
-    checkout = line.checkout
-    if not checkout.channel:
-        return zero_taxed_money(checkout.currency)
-
-    channel_slug = checkout.channel.slug
-    amount = line.quantity * line.variant.get_price(channel_slug, discounts or [])
+    amount = line.quantity * line.variant.get_price(channel.slug, discounts or [])
     price = quantize_price(amount, amount.currency)
     return TaxedMoney(net=price, gross=price)

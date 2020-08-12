@@ -80,8 +80,10 @@ def test_calculate_checkout_line_total(
     product = line.variant.product
     manager.assign_tax_code_to_object_meta(product, "PC040156")
     product.save()
-    discounts = [discount_info] if with_discount else None
-    total = manager.calculate_checkout_line_total(line, discounts)
+    discounts = [discount_info] if with_discount else []
+    total = manager.calculate_checkout_line_total(
+        line, discounts, checkout_with_item.channel
+    )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")

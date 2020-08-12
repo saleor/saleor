@@ -31,6 +31,7 @@ from .tasks import api_post_request_task
 if TYPE_CHECKING:
     # flake8: noqa
     from ...checkout.models import Checkout, CheckoutLine
+    from ...channel.models import Channel
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductType
     from ..models import PluginConfiguration
@@ -268,6 +269,7 @@ class AvataxPlugin(BasePlugin):
         self,
         checkout_line: "CheckoutLine",
         discounts: Iterable[DiscountInfo],
+        channel: "Channel",
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):

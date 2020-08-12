@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ..core.taxes import TaxType
     from ..checkout.models import Checkout, CheckoutLine
+    from ..channel.models import Channel
     from ..discount import DiscountInfo
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
@@ -132,10 +133,12 @@ class BasePlugin:
         """
         return NotImplemented
 
+    # TODO: Add information about this change to `breaking changes in changelog`
     def calculate_checkout_line_total(
         self,
         checkout_line: "CheckoutLine",
         discounts: List["DiscountInfo"],
+        channel: "Channel",
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         """Calculate checkout line total.
