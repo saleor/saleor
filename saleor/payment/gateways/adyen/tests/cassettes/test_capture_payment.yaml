@@ -23,7 +23,8 @@ interactions:
     uri: https://pal-test.adyen.com/pal/servlet/Payment/v49/capture
   response:
     body:
-      string: '{"pspReference":"852595499936560C","response":"[capture-received]"}'
+      string: '{"pspReference":"852595499936560C","response":"[capture-received]",
+        "additionalData":{"paymentMethod": "visa"}}'
     headers:
       Connection:
       - Keep-Alive

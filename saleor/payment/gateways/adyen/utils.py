@@ -14,7 +14,7 @@ from ....core.prices import quantize_price
 from ....discount.utils import fetch_active_discounts
 from ....payment.models import Payment
 from ... import PaymentError
-from ...interface import PaymentData
+from ...interface import PaymentData, PaymentMethodInfo
 
 logger = logging.getLogger(__name__)
 
@@ -266,3 +266,18 @@ def request_for_payment_cancel(
         "originalReference": token,
         "reference": payment_information.graphql_payment_id,
     }
+
+
+def get_payment_method_info(
+    payment_information: "PaymentData", api_call_result: Adyen.Adyen
+):
+    payment_method_info = None
+    additional_data = api_call_result.message.get("additionalData")
+    payment_data = payment_information.data or {}
+    payment_method = payment_data.get("paymentMethod", {}).get("type")
+    if additional_data:
+        payment_method_info = PaymentMethodInfo(
+            brand=additional_data.get("paymentMethod"),
+            type="card" if payment_method == "scheme" else payment_method,
+        )
+    return payment_method_info
