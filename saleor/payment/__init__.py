@@ -60,6 +60,7 @@ class TransactionKind:
     AUTH = "auth"
     CAPTURE = "capture"
     CAPTURE_FAILED = "capture_failed"
+    ACTION_TO_CONFIRM = "action_to_confirm"
     VOID = "void"
     PENDING = "pending"
     REFUND = "refund"
@@ -74,6 +75,7 @@ class TransactionKind:
     CHOICES = [
         (AUTH, "Authorization"),
         (PENDING, "Pending"),
+        (ACTION_TO_CONFIRM, "Action to confirm"),
         (REFUND, "Refund"),
         (REFUND_ONGOING, "Refund in progress"),
         (CAPTURE, "Capture"),

@@ -5028,6 +5028,7 @@ enum TransactionError {
 enum TransactionKind {
   AUTH
   PENDING
+  ACTION_TO_CONFIRM
   REFUND
   REFUND_ONGOING
   CAPTURE

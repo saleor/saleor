@@ -37,6 +37,9 @@ class GatewayResponse:
     payment_method_info: Optional[PaymentMethodInfo] = None
     raw_response: Optional[Dict[str, str]] = None
     action_required_data: Optional[JSONType] = None
+    # Some gateway can process transaction asynchronously. This value define if we
+    # should create new transaction based on this response
+    transaction_already_processed: bool = False
 
 
 @dataclass

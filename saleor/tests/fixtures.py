@@ -1526,7 +1526,7 @@ def payment_txn_to_confirm(order_with_lines, payment_dummy):
 
     payment.transactions.create(
         amount=payment.total,
-        kind=TransactionKind.CAPTURE,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
         gateway_response={},
         is_success=True,
         action_required=True,
