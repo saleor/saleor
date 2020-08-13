@@ -25,6 +25,7 @@ class AllegroConfiguration:
     client_id: str
     client_secret: str
     global_map_data: str
+    refresh_token: str
 
 
 class AllegroPlugin(BasePlugin):
@@ -39,7 +40,8 @@ class AllegroPlugin(BasePlugin):
                              {"name": "token_value", "value": None},
                              {"name": "client_id", "value": None},
                              {"name": "client_secret", "value": None},
-                             {"name": "global_map_data", "value": None}]
+                             {"name": "global_map_data", "value": None},
+                             {"name": "refresh_token", "value": None}]
     CONFIG_STRUCTURE = {
         "redirect_url": {
             "type": ConfigurationTypeField.STRING,
@@ -73,6 +75,11 @@ class AllegroPlugin(BasePlugin):
             "type": ConfigurationTypeField.STRING,
             "help_text": "",
             "label": "Dane dla globalnego mappera.",
+        },
+        "refresh_token": {
+            "type": ConfigurationTypeField.SECRET,
+            "help_text": "",
+            "label": "Refresh token.",
         }
 
     }
@@ -88,7 +95,16 @@ class AllegroPlugin(BasePlugin):
                                            token_value=configuration["token_value"],
                                            client_id=configuration["client_id"],
                                            client_secret=configuration["client_secret"],
-                                           global_map_data=configuration["global_map_data"])
+                                           global_map_data=configuration["global_map_data"],
+                                           refresh_token=configuration["refresh_token"])
+
+        HOURS_LESS_THAN_WE_REFRESH_TOKEN = 2
+
+        if self.calculate_hours_to_token_expire() < HOURS_LESS_THAN_WE_REFRESH_TOKEN:
+            access_token, refresh_token, expires_in = AllegroAPI(self.config.token_access).refresh_token(self.config.refresh_token, self.config.client_id, self.config.client_secret) or (None, None, None)
+            if access_token and refresh_token and expires_in is not None:
+                AllegroAuth.save_token_in_plugin_configuration(AllegroAuth, access_token, refresh_token, expires_in)
+
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
@@ -136,6 +152,13 @@ class AllegroPlugin(BasePlugin):
         allegro_api.product_publish(saleor_product=product)
 
 
+    def calculate_hours_to_token_expire(self):
+        token_expire = datetime.strptime(self.config.token_access, '%d/%m/%Y %H:%M:%S')
+
+        duration = token_expire - datetime.now()
+
+        return divmod(duration.total_seconds(), 3600)[0]
+
 class AllegroAuth:
 
     def get_access_code(self, client_id, api_key, redirect_uri,
@@ -154,6 +177,7 @@ class AllegroAuth:
         return True
 
     def sign_in(self, client_id, client_secret, access_code, redirect_uri, oauth_url):
+
         token_url = oauth_url + '/token'
 
         access_token_data = {'grant_type': 'authorization_code',
@@ -164,25 +188,28 @@ class AllegroAuth:
                                  auth=requests.auth.HTTPBasicAuth(client_id,
                                                                   client_secret),
                                  data=access_token_data)
+
         access_token = response.json()['access_token']
+        refresh_token = response.json()['refresh_token']
+        expires_in = response.json()['expires_in']
 
-        allegroAPI = AllegroAPI(response.json()['access_token'])
+        self.save_token_in_plugin_configuration(access_token, refresh_token, expires_in)
 
-        # nie dziala na sandbox ???
-        # allegroAPI.refresh_token(response.json()['refresh_token'], client_id, client_secret)
 
+        return response.json()
+
+
+    def save_token_in_plugin_configuration(self, access_token, refresh_token, expires_in):
         cleaned_data = {
             "configuration": [{"name": "token_value", "value": access_token},
-                              {"name": "token_access", "value": (
-                                      datetime.now() + timedelta(
-                                  seconds=response.json()['expires_in'])).strftime(
-                                  "%d/%m/%Y %H:%M:%S")}]}
+                              {"name": "token_access", "value": (datetime.now() + timedelta(
+                                  seconds=expires_in)).strftime("%d/%m/%Y %H:%M:%S")},
+                              {"name": "refresh_token", "value": refresh_token}]
+        }
 
         AllegroPlugin.save_plugin_configuration(
             plugin_configuration=PluginConfiguration.objects.get(
                 identifier=AllegroPlugin.PLUGIN_ID), cleaned_data=cleaned_data, )
-
-        return response.json()
 
     def resolve_auth(request):
         manager = get_plugins_manager()
@@ -204,14 +231,16 @@ class AllegroAuth:
 
 
 class AllegroAPI:
+
     token = None
 
     def __init__(self, token):
         self.token = token
 
+
     def refresh_token(self, refresh_token, client_id, client_secret):
 
-        endpoint = 'auth/oauth/token'
+        endpoint = 'auth/oauth/token?grant_type=refresh_token&refresh_token=' + refresh_token + '&redirect_uri=http://localhost:9000'
 
         data = {
             'grant_type': 'refresh_token',
@@ -222,9 +251,10 @@ class AllegroAPI:
         response = self.auth_request(endpoint=endpoint, data=data, client_id=client_id,
                                      client_secret=client_secret)
 
-        print('refresh_token', response.text)
-
-        return json.loads(response.text)
+        if response.status_code is 200:
+            return json.loads(response.text)['access_token'], json.loads(response.text)['refresh_token'], json.loads(response.text)['expires_in']
+        else:
+            return None
 
     def product_publish(self, saleor_product):
 
@@ -301,7 +331,7 @@ class AllegroAPI:
 
     def auth_request(self, endpoint, data, client_id, client_secret):
 
-        url = 'https://api.allegro.pl.allegrosandbox.pl/' + endpoint
+        url = 'https://allegro.pl.allegrosandbox.pl/' + endpoint
 
         response = requests.post(url, auth=requests.auth.HTTPBasicAuth(client_id,
                                                                        client_secret),
@@ -478,19 +508,15 @@ class AllegroParametersMapper(BaseParametersMapper):
         map = self.product.product_type.metadata.get('allegro.mapping.' + parameter)
 
         if not map:
-            print('Brak specyficznego mappera dla parametru', parameter)
             return None
         else:
             return next(iter(json.loads(map.replace('\'',"\"")).items()))[1]
 
     def get_specyfic_parameter_key(self, parameter):
 
-        print('Key map to', parameter)
-
         map = self.product.product_type.metadata.get('allegro.mapping.' + parameter)
 
         if not map:
-            print('Brak specyficznego klucza mappera dla parametru', parameter)
             return None
         else:
             return next(iter(json.loads(map.replace('\'', "\"")).items()))[0]
@@ -501,7 +527,6 @@ class AllegroParametersMapper(BaseParametersMapper):
         map = global_paramter_map.get('allegro.mapping.' + parameter)
 
         if not map:
-            print('Brak uniwersalnego mappera dla parametru', parameter)
             return None
         else:
             return map
