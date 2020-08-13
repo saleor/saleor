@@ -11,6 +11,7 @@ from ..jwt import (
     create_access_token,
     create_access_token_for_app,
     create_refresh_token,
+    get_user_from_access_token,
     jwt_encode,
     jwt_user_payload,
 )
@@ -175,3 +176,10 @@ def test_user_has_old_token_type(rf, staff_user, settings):
     backend = JSONWebTokenBackend()
     with pytest.raises(InvalidTokenError):
         backend.authenticate(request)
+
+
+def test_get_user_from_access_token_fails_on_incorrect_token():
+    token = "JWT null"
+    with pytest.raises(jwt.InvalidTokenError) as e:
+        get_user_from_access_token(token)
+    assert type(e.value) == jwt.InvalidTokenError

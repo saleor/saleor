@@ -44,10 +44,10 @@ def get_payload(token):
     return payload
 
 
-def get_user(payload):
+def get_user_or_error(payload):
     try:
         user = get_user_from_payload(payload)
-    except Exception:
+    except jwt.PyJWTError:
         user = None
     if not user:
         raise ValidationError(
@@ -197,7 +197,7 @@ class RefreshToken(BaseMutation):
     @classmethod
     def get_user(cls, payload):
         try:
-            user = get_user(payload)
+            user = get_user_or_error(payload)
         except ValidationError as e:
             raise ValidationError({"refreshToken": e})
         return user
@@ -212,7 +212,7 @@ class RefreshToken(BaseMutation):
             csrf_token = data.get("csrf_token")
             cls.clean_csrf_token(csrf_token, payload)
 
-        user = get_user(payload)
+        user = cls.get_user(payload)
         token = create_access_token(user)
         return cls(errors=[], user=user, token=token)
 
@@ -247,7 +247,7 @@ class VerifyToken(BaseMutation):
     @classmethod
     def get_user(cls, payload):
         try:
-            user = get_user(payload)
+            user = get_user_or_error(payload)
         except ValidationError as e:
             raise ValidationError({"token": e})
         return user

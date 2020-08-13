@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 import graphene
 import jwt
@@ -7,8 +7,11 @@ from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
 
 from ..account.models import User
-from ..app.models import App
 from .permissions import get_permission_names, get_permissions_from_names
+
+if TYPE_CHECKING:
+    from ..app.models import App
+
 
 JWT_ALGORITHM = "HS256"
 JWT_AUTH_HEADER = "HTTP_AUTHORIZATION"
@@ -101,22 +104,29 @@ def get_user_from_payload(payload: Dict[str, Any]) -> Optional[User]:
     user_jwt_token = payload.get("token")
     if not user_jwt_token or not user:
         raise jwt.InvalidTokenError(
-            "Invalid token. Create new one by using tokenCreate mutation."
+            "Invalid token. Create a new one by using the `tokenCreate` mutation."
         )
     if user.jwt_token_key != user_jwt_token:
         raise jwt.InvalidTokenError(
-            "Invalid token. Create new one by using tokenCreate mutation."
+            "Invalid token. Create a new one by using the `tokenCreate` mutation."
         )
     return user
 
 
 def get_user_from_access_token(token: str) -> Optional[User]:
-    payload = jwt_decode(token)
+    try:
+        payload = jwt_decode(token)
+    except jwt.PyJWTError:
+        raise jwt.InvalidTokenError(
+            "Invalid token. Create a new one by using the `tokenCreate` mutation."
+        )
+
     jwt_type = payload.get("type")
     if jwt_type not in [JWT_ACCESS_TYPE, JWT_THIRDPARTY_ACCESS_TYPE]:
         raise jwt.InvalidTokenError(
-            "Invalid token. Create new one by using tokenCreate mutation."
+            "Invalid token. Create a new one by using the `tokenCreate` mutation."
         )
+
     permissions = payload.get(PERMISSIONS_FIELD, None)
     user = get_user_from_payload(payload)
     if user and permissions is not None:
