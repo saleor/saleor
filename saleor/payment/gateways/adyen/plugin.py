@@ -313,17 +313,10 @@ class AdyenGatewayPlugin(BasePlugin):
     def _update_config_items(
         cls, configuration_to_update: List[dict], current_config: List[dict]
     ):
-        super()._update_config_items(configuration_to_update, current_config)
-        to_update = False
         for item in configuration_to_update:
             if item.get("name") == "notification-password" and item["value"]:
-                to_update = True
-                break
-        if not to_update:
-            return
-        for item in current_config:
-            if item.get("name") == "notification-password" and item["value"]:
                 item["value"] = make_password(item["value"])
+        super()._update_config_items(configuration_to_update, current_config)
 
     @require_active_plugin
     def get_payment_config(self, previous_value):
