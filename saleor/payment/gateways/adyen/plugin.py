@@ -315,7 +315,7 @@ class AdyenGatewayPlugin(BasePlugin):
     ):
         super()._update_config_items(configuration_to_update, current_config)
         for item in current_config:
-            if item.get("name") == "Notification password" and item["value"]:
+            if item.get("name") == "notification-password" and item["value"]:
                 item["value"] = make_password(item["value"])
 
     @require_active_plugin
