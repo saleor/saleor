@@ -1,8 +1,9 @@
 import json
 import logging
 from decimal import Decimal
-from typing import Dict
+from typing import Dict, Optional
 
+import graphene
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
@@ -28,6 +29,7 @@ def create_payment_information(
     amount: Decimal = None,
     customer_id: str = None,
     store_source: bool = False,
+    additional_data: Optional[dict] = None,
 ) -> PaymentData:
     """Extract order information along with payment details.
 
@@ -47,6 +49,7 @@ def create_payment_information(
     shipping_address = AddressData(**shipping.as_data()) if shipping else None
 
     order_id = payment.order.pk if payment.order else None
+    graphql_payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     return PaymentData(
         token=payment_token,
@@ -55,10 +58,13 @@ def create_payment_information(
         billing=billing_address,
         shipping=shipping_address,
         order_id=order_id,
+        payment_id=payment.pk,
+        graphql_payment_id=graphql_payment_id,
         customer_ip_address=payment.customer_ip_address,
         customer_id=customer_id,
         customer_email=payment.billing_email,
         reuse_source=store_source,
+        data=additional_data or {},
     )
 
 
@@ -68,10 +74,11 @@ def create_payment(
     currency: str,
     email: str,
     customer_ip_address: str = "",
-    payment_token: str = "",
+    payment_token: Optional[str] = "",
     extra_data: Dict = None,
     checkout: Checkout = None,
     order: Order = None,
+    return_url: str = None,
 ) -> Payment:
     """Create a payment instance.
 
@@ -85,7 +92,7 @@ def create_payment(
     data = {
         "is_active": True,
         "customer_ip_address": customer_ip_address,
-        "extra_data": extra_data,
+        "extra_data": json.dumps(extra_data),
         "token": payment_token,
     }
 
@@ -118,10 +125,25 @@ def create_payment(
         "currency": currency,
         "gateway": gateway,
         "total": total,
+        "return_url": return_url,
     }
 
     payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
     return payment
+
+
+def get_already_processed_transaction(
+    payment: "Payment", gateway_response: GatewayResponse
+):
+    transaction = payment.transactions.filter(
+        is_success=gateway_response.is_success,
+        action_required=gateway_response.action_required,
+        token=gateway_response.transaction_id,
+        kind=gateway_response.kind,
+        amount=gateway_response.amount,
+        currency=gateway_response.currency,
+    ).last()
+    return transaction
 
 
 def create_transaction(
@@ -158,8 +180,31 @@ def create_transaction(
         error=gateway_response.error,
         customer_id=gateway_response.customer_id,
         gateway_response=gateway_response.raw_response or {},
+        action_required_data=gateway_response.action_required_data or {},
     )
     return txn
+
+
+def get_already_processed_transaction_or_create_new_transaction(
+    payment: Payment,
+    kind: str,
+    payment_information: PaymentData,
+    action_required: bool = False,
+    gateway_response: GatewayResponse = None,
+    error_msg=None,
+) -> Transaction:
+    if gateway_response and gateway_response.transaction_already_processed:
+        transaction = get_already_processed_transaction(payment, gateway_response)
+        if transaction:
+            return transaction
+    return create_transaction(
+        payment,
+        kind,
+        payment_information,
+        action_required,
+        gateway_response,
+        error_msg,
+    )
 
 
 def clean_capture(payment: Payment, amount: Decimal):
@@ -203,38 +248,66 @@ def validate_gateway_response(response: GatewayResponse):
 def gateway_postprocess(transaction, payment):
     if not transaction.is_success:
         return
-
     if transaction.action_required:
         payment.to_confirm = True
         payment.save(update_fields=["to_confirm"])
         return
+    if transaction.already_processed:
+        return
+    changed_fields = []
+    # to_confirm is defined by the transaction.action_required. Payment doesn't
+    # require confirmation when we got action_required == False
+    if payment.to_confirm:
+        payment.to_confirm = False
+        changed_fields.append("to_confirm")
 
     transaction_kind = transaction.kind
 
-    if transaction_kind in {TransactionKind.CAPTURE, TransactionKind.CONFIRM}:
+    if transaction_kind in {
+        TransactionKind.CAPTURE,
+        TransactionKind.REFUND_REVERSED,
+    }:
         payment.captured_amount += transaction.amount
-
+        payment.is_active = True
         # Set payment charge status to fully charged
         # only if there is no more amount needs to charge
         payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
         if payment.get_charge_amount() <= 0:
             payment.charge_status = ChargeStatus.FULLY_CHARGED
-
-        payment.save(update_fields=["charge_status", "captured_amount", "modified"])
+        changed_fields += ["charge_status", "captured_amount", "modified"]
 
     elif transaction_kind == TransactionKind.VOID:
         payment.is_active = False
-        payment.save(update_fields=["is_active", "modified"])
+        changed_fields += ["is_active", "modified"]
 
     elif transaction_kind == TransactionKind.REFUND:
-        changed_fields = ["captured_amount", "modified"]
+        changed_fields += ["captured_amount", "modified"]
         payment.captured_amount -= transaction.amount
         payment.charge_status = ChargeStatus.PARTIALLY_REFUNDED
         if payment.captured_amount <= 0:
             payment.charge_status = ChargeStatus.FULLY_REFUNDED
             payment.is_active = False
         changed_fields += ["charge_status", "is_active"]
+    elif transaction_kind == TransactionKind.PENDING:
+        payment.charge_status = ChargeStatus.PENDING
+        changed_fields += ["charge_status"]
+    elif transaction_kind == TransactionKind.CANCEL:
+        payment.charge_status = ChargeStatus.CANCELLED
+        changed_fields += ["charge_status"]
+    elif transaction_kind == TransactionKind.CAPTURE_FAILED:
+        if payment.charge_status in {
+            ChargeStatus.PARTIALLY_CHARGED,
+            ChargeStatus.FULLY_CHARGED,
+        }:
+            payment.captured_amount -= transaction.amount
+            payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
+            if payment.captured_amount <= 0:
+                payment.charge_status = ChargeStatus.NOT_CHARGED
+            changed_fields += ["charge_status", "captured_amount", "modified"]
+    if changed_fields:
         payment.save(update_fields=changed_fields)
+    transaction.already_processed = True
+    transaction.save(update_fields=["already_processed"])
 
 
 def fetch_customer_id(user: User, gateway: str):

@@ -191,7 +191,7 @@ def test_checkout_complete(
     # Send the creation request
     response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)["data"]["checkoutComplete"]
-    assert not content["errors"]
+    assert not content["checkoutErrors"]
 
     # Ensure the order was actually created
     assert (

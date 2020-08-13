@@ -2,11 +2,11 @@ import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from ...checkout import calculations
+from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.utils import cancel_active_payments
 from ...core.permissions import OrderPermissions
-from ...core.taxes import zero_taxed_money
 from ...core.utils import get_client_ip
+from ...core.utils.url import validate_storefront_url
 from ...graphql.checkout.utils import clean_billing_address, clean_checkout_shipping
 from ...payment import PaymentError, gateway, models
 from ...payment.error_codes import PaymentErrorCode
@@ -28,7 +28,7 @@ class PaymentInput(graphene.InputObjectType):
         required=True,
     )
     token = graphene.String(
-        required=True,
+        required=False,
         description=(
             "Client-side generated payment token, representing customer's "
             "billing data in a secure manner."
@@ -51,6 +51,14 @@ class PaymentInput(graphene.InputObjectType):
             "removed after 2020-07-31."
         ),
     )
+    return_url = graphene.String(
+        required=False,
+        description=(
+            "URL of a storefront view where user should be redirected after "
+            "requiring additional actions. Payment with additional actions will not be "
+            "finished if this field is not provided."
+        ),
+    )
 
 
 class CheckoutPaymentCreate(BaseMutation, I18nMixin):
@@ -67,19 +75,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         description = "Create a new payment for given checkout."
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
-
-    @classmethod
-    def calculate_total(cls, info, checkout):
-        checkout_total = (
-            calculations.checkout_total(
-                checkout=checkout,
-                lines=list(checkout),
-                discounts=info.context.discounts,
-            )
-            - checkout.get_total_gift_cards_balance()
-        )
-
-        return max(checkout_total, zero_taxed_money(checkout_total.currency))
 
     @classmethod
     def clean_shipping_method(cls, checkout):
@@ -119,6 +114,32 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
+    def validate_token(cls, manager, gateway: str, input_data: dict):
+        token = input_data.get("token")
+        is_required = manager.token_is_required_as_payment_input(gateway)
+        if not token and is_required:
+            raise ValidationError(
+                {
+                    "token": ValidationError(
+                        f"Token is required for {gateway}.",
+                        code=PaymentErrorCode.REQUIRED.value,
+                    ),
+                }
+            )
+
+    @classmethod
+    def validate_return_url(cls, input_data):
+        return_url = input_data.get("return_url")
+        if not return_url:
+            return
+        try:
+            validate_storefront_url(return_url)
+        except ValidationError as error:
+            raise ValidationError(
+                {"redirect_url": error}, code=PaymentErrorCode.INVALID
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, checkout_id, **data):
         checkout_id = from_global_id_strict_type(
             checkout_id, only_type=Checkout, field="checkout_id"
@@ -131,27 +152,35 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         gateway = data["gateway"]
 
         cls.validate_gateway(gateway, checkout.currency)
+        cls.validate_token(info.context.plugins, gateway, data)
+        cls.validate_return_url(data)
 
-        checkout_total = cls.calculate_total(info, checkout)
+        checkout_total = calculate_checkout_total_with_gift_cards(
+            checkout, info.context.discounts
+        )
         amount = data.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(
             checkout, list(checkout), info.context.discounts, PaymentErrorCode
         )
         clean_billing_address(checkout, PaymentErrorCode)
         cls.clean_payment_amount(info, checkout_total, amount)
-        extra_data = {"customer_user_agent": info.context.META.get("HTTP_USER_AGENT")}
+        extra_data = {
+            "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
+        }
 
         cancel_active_payments(checkout)
 
         payment = create_payment(
             gateway=gateway,
-            payment_token=data["token"],
+            payment_token=data.get("token", ""),
             total=amount,
             currency=settings.DEFAULT_CURRENCY,
             email=checkout.email,
             extra_data=extra_data,
+            # FIXME this is not a customer IP address. It is a client storefront ip
             customer_ip_address=get_client_ip(info.context),
             checkout=checkout,
+            return_url=data.get("return_url"),
         )
         return CheckoutPaymentCreate(payment=payment, checkout=checkout)
 
@@ -176,6 +205,7 @@ class PaymentCapture(BaseMutation):
         )
         try:
             gateway.capture(payment, amount)
+            payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentCapture(payment=payment)
@@ -195,6 +225,7 @@ class PaymentRefund(PaymentCapture):
         )
         try:
             gateway.refund(payment, amount=amount)
+            payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentRefund(payment=payment)
@@ -219,6 +250,7 @@ class PaymentVoid(BaseMutation):
         )
         try:
             gateway.void(payment)
+            payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentVoid(payment=payment)

@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..checkout.models import Checkout
+    from ..checkout.models import Checkout, CheckoutLine
+    from ..discount import DiscountInfo
     from ..payment.interface import (
         PaymentData,
         GatewayResponse,
@@ -22,7 +23,7 @@ class PaymentInterface(ABC):
 
     @abstractmethod
     def checkout_available_payment_gateways(
-        self, checkout: "Checkout"
+        self, checkout: "Checkout",
     ) -> List["PaymentGateway"]:
         pass
 
@@ -54,6 +55,10 @@ class PaymentInterface(ABC):
     def confirm_payment(
         self, gateway: str, payment_information: "PaymentData"
     ) -> "GatewayResponse":
+        pass
+
+    @abstractmethod
+    def token_is_required_as_payment_input(self, gateway) -> bool:
         pass
 
     @abstractmethod

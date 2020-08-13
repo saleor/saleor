@@ -1,0 +1,49 @@
+interactions:
+- request:
+    body: '{"amount": {"value": "123400", "currency": "USD"}, "reference": "UGF5bWVudDo3",
+                "paymentMethod": {"paymentdata": ""}, "returnUrl": "http://127.0.0.1:3000/",
+                "merchantAccount": "SaleorECOM", "applicationInfo": {"adyenLibrary": {"name":
+                "adyen-python-api-library", "version": "3.0.0"}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '4444'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - adyen-python-api-library/3.0.0
+      x-api-key:
+      - test_key
+    method: POST
+    uri: https://checkout-test.adyen.com/v49/payments
+  response:
+    body:
+      string: '{"pspReference":"882595494831959A","resultCode":"Authorised","merchantReference":"UGF5bWVudDoz",
+                  "additionalData":{"paymentMethod": "visa"}}'
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Thu, 23 Jul 2020 09:00:31 GMT
+      Keep-Alive:
+      - timeout=15, max=100
+      Server:
+      - Apache
+      Set-Cookie:
+      - JSESSIONID=16B2B5BA678472CFD5D8FEE7C6EB1227.test103e; Path=/checkout; Secure;
+        HttpOnly
+      Transfer-Encoding:
+      - chunked
+      pspReference:
+      - 881595494831497D
+    status:
+      code: 200
+      message: '200'
+version: 1

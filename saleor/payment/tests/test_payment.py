@@ -264,11 +264,13 @@ def test_gateway_charge_errors(payment_dummy, transaction_token, settings):
     assert exc.value.message == "Amount should be a positive number."
 
     payment.charge_status = ChargeStatus.FULLY_REFUNDED
+    payment.save()
     with pytest.raises(PaymentError) as exc:
         gateway.capture(payment, Decimal("10"))
     assert exc.value.message == "This payment cannot be captured."
 
     payment.charge_status = ChargeStatus.NOT_CHARGED
+    payment.save()
     with pytest.raises(PaymentError) as exc:
         gateway.capture(payment, Decimal("1000000"))
     assert exc.value.message == ("Unable to charge more than un-captured amount.")
@@ -285,6 +287,7 @@ def test_gateway_refund_errors(payment_txn_captured):
     assert exc.value.message == "Amount should be a positive number."
 
     payment.charge_status = ChargeStatus.NOT_CHARGED
+    payment.save()
     with pytest.raises(PaymentError) as exc:
         gateway.refund(payment, Decimal("1"))
     assert exc.value.message == "This payment cannot be refunded."

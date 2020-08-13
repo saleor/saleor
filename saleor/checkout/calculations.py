@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Iterable, Optional
 
-from ..core.taxes import quantize_price
+from ..core.prices import quantize_price
+from ..core.taxes import zero_taxed_money
 from ..discount import DiscountInfo
 from ..plugins.manager import get_plugins_manager
 
@@ -39,6 +40,17 @@ def checkout_subtotal(
         checkout, lines, discounts or []
     )
     return quantize_price(calculated_checkout_subtotal, checkout.currency)
+
+
+def calculate_checkout_total_with_gift_cards(
+    checkout: "Checkout", discounts: Optional[Iterable[DiscountInfo]] = None
+) -> "TaxedMoney":
+    total = (
+        checkout_total(checkout=checkout, lines=list(checkout), discounts=discounts,)
+        - checkout.get_total_gift_cards_balance()
+    )
+
+    return max(total, zero_taxed_money(total.currency))
 
 
 def checkout_total(
