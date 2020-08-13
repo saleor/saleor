@@ -353,7 +353,7 @@ class AllegroAPI:
         endpoint = 'sale/images'
 
         data = {
-            # "url": "https://cdn.shoplo.com/0986/products/th2048/bca3/197520-eleganckie-body-z-dekoltem-v.jpg"
+            "url": "https://cdn.shoplo.com/0986/products/th2048/bca3/197520-eleganckie-body-z-dekoltem-v.jpg"
         }
 
         response = self.post_request(endpoint=endpoint, data=data)
@@ -504,7 +504,7 @@ class AllegroParametersMapper(BaseParametersMapper):
         return parameters
 
 
-    def get_specyfic_paramter_map(self, parameter):
+    def get_specyfic_parameter_map(self, parameter):
         map = self.product.product_type.metadata.get('allegro.mapping.' + parameter)
 
         if not map:
