@@ -129,7 +129,7 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
             "quantity": line.quantity,
             "amountExcludingTax": to_adyen_price(total_net, currency),
             "taxPercentage": round(tax_amount / total_gross * 100),
-            "description": line.variant.product.description,
+            "description": f"{line.variant.product.name}, {line.variant.name}",
             "id": line.variant.sku,
             "taxAmount": to_adyen_price(tax_amount, currency),
             "amountIncludingTax": to_adyen_price(total_gross, currency),
