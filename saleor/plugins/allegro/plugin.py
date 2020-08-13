@@ -420,13 +420,13 @@ class BaseParametersMapper():
         return attributes, attributes_name
 
     # TODO: rebuild, too much if conditionals
-    def assign_parameter(self, attrKey, attrValue):
+    def create_allegro_paramter(self, mapped_parameter_key, mapped_parameter_value):
 
         param = next((param for param in self.require_parameters if
-                      param["name"] == attrKey), None)
+                      param["name"] == mapped_parameter_key), None)
         if param is not None:
             value = next((value for value in param['dictionary'] if
-                      value["value"] == attrValue), None)
+                      value["value"] == mapped_parameter_value), None)
             if value is not None:
                 return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
                     "rangeValue": None}
@@ -462,7 +462,7 @@ class AllegroParametersMapper(BaseParametersMapper):
         self.set_product_attributes(attributes)
 
         for require_parameter in self.require_parameters:
-            self.assign_attribute(require_parameter['name'])
+            self.mapped_parameters.append(self.get_allegro_parameter(require_parameter['name']))
 
         return self.mapped_parameters
 
@@ -474,7 +474,7 @@ class AllegroParametersMapper(BaseParametersMapper):
         return parameters
 
 
-    def get_specyfic_map(self, parameter):
+    def get_specyfic_paramter_map(self, parameter):
         map = self.product.product_type.metadata.get('allegro.mapping.' + parameter)
 
         if not map:
@@ -483,7 +483,7 @@ class AllegroParametersMapper(BaseParametersMapper):
         else:
             return next(iter(json.loads(map.replace('\'',"\"")).items()))[1]
 
-    def get_specyfic_key_map(self, parameter):
+    def get_specyfic_parameter_key(self, parameter):
 
         print('Key map to', parameter)
 
@@ -495,10 +495,10 @@ class AllegroParametersMapper(BaseParametersMapper):
         else:
             return next(iter(json.loads(map.replace('\'', "\"")).items()))[0]
 
-    def get_global_map(self, parameter):
-        global_map = self.get_global_map_json()
+    def get_global_parameter_map(self, parameter):
+        global_paramter_map = self.get_global_map_json()
 
-        map = global_map.get('allegro.mapping.' + parameter)
+        map = global_paramter_map.get('allegro.mapping.' + parameter)
 
         if not map:
             print('Brak uniwersalnego mappera dla parametru', parameter)
@@ -516,45 +516,43 @@ class AllegroParametersMapper(BaseParametersMapper):
         return json.loads(config.global_map_data)
 
 
-    def get_map(self, parameter):
+    def get_parameter_map(self, parameter):
 
-        # szukamy specyficznego
-        if self.get_specyfic_map(parameter) is not None:
-            v = self.get_specyfic_map(parameter)
+        # szukamy konkretnej mapy
+        if self.get_specyfic_parameter_map(parameter) is not None:
+            v = self.get_specyfic_parameter_map(parameter)
             return v
 
-        # szukamy uniwersalnego
-        elif self.get_global_map(parameter) is not None:
-            v = self.get_global_map(parameter)
+        # szukamy uniwersalnej mapy
+        elif self.get_global_parameter_map(parameter) is not None:
+            v = self.get_global_parameter_map(parameter)
             return v
 
-    def get_key_map_and_map(self, parameter):
+    def get_parameter_key_and_map(self, parameter):
 
         parsed_parameter = self.parse_parameters_name(parameter)
 
-        map = self.get_map(parsed_parameter)
-        key_map = self.get_specyfic_key_map(parsed_parameter)
+        parameter_map = self.get_parameter_map(parsed_parameter)
+        parameter_key = self.get_specyfic_parameter_key(parsed_parameter)
 
-        return key_map or parsed_parameter, map
+        return parameter_key or parsed_parameter, parameter_map
 
 
-    def map_parameter(self, parameter):
-        key, map = self.get_key_map_and_map(parameter)
-        if map is not None:
-            mapped_value = map.get(self.product_attributes.get(key)) or self.product_attributes.get(key)
-            return parameter, mapped_value
+    def get_mapped_parameter_key_and_value(self, parameter):
+
+        parameter_key, parameter_map = self.get_parameter_key_and_map(parameter)
+
+        if parameter_map is None:
+            return parameter, self.product_attributes.get(parameter_key)
         else:
-            return parameter, self.product_attributes.get(key)
+            mapped_value = parameter_map.get(self.product_attributes.get(parameter_key)) or self.product_attributes.get(parameter_key)
+            return parameter, mapped_value
 
+    def get_allegro_parameter(self, parameter):
 
-    def assign_attribute(self, parameter):
+        mapped_parameter_key, mapped_paramter_value = self.get_mapped_parameter_key_and_value(parameter)
 
-        attrKey, attrValue = self.map_parameter(parameter)
-
-        self.mapped_parameters.append(self.assign_parameter(attrKey, attrValue))
-
-        print(self.mapped_parameters)
-
+        return self.create_allegro_paramter(mapped_parameter_key, mapped_paramter_value)
 
 
 class ParametersMapperFactory:
