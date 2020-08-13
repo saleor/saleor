@@ -314,6 +314,13 @@ class AdyenGatewayPlugin(BasePlugin):
         cls, configuration_to_update: List[dict], current_config: List[dict]
     ):
         super()._update_config_items(configuration_to_update, current_config)
+        to_update = False
+        for item in configuration_to_update:
+            if item.get("name") == "notification-password" and item["value"]:
+                to_update = True
+                break
+        if not to_update:
+            return
         for item in current_config:
             if item.get("name") == "notification-password" and item["value"]:
                 item["value"] = make_password(item["value"])
@@ -338,9 +345,7 @@ class AdyenGatewayPlugin(BasePlugin):
         # For enabled auto_capture on Saleor side we need to proceed an additional
         # action
         if is_success and config.auto_capture:
-            response = self.capture_payment(
-                payment_information, amount=payment_information.amount
-            )
+            response = self.capture_payment(payment_information, None)
             is_success = response.is_success
 
         return GatewayResponse(
@@ -398,9 +403,7 @@ class AdyenGatewayPlugin(BasePlugin):
         ).first()
         is_success = True
         if not transaction_already_processed and config.auto_capture:
-            response = self.capture_payment(
-                payment_information, amount=transaction.amount
-            )
+            response = self.capture_payment(payment_information, None)
             is_success = response.is_success
 
         token = transaction.token
@@ -427,7 +430,7 @@ class AdyenGatewayPlugin(BasePlugin):
         transaction = (
             Transaction.objects.filter(
                 payment__id=payment_information.payment_id,
-                kind=TransactionKind.AUTH,
+                kind__in=[TransactionKind.AUTH, TransactionKind.CAPTURE],
                 is_success=True,
             )
             .exclude(token__isnull=True, token__exact="")
