@@ -367,6 +367,11 @@ class BasePlugin:
     ) -> "GatewayResponse":
         return NotImplemented
 
+    def void_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return NotImplemented
+
     def refund_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
@@ -396,6 +401,9 @@ class BasePlugin:
     def get_supported_currencies(self, previous_value):
         return NotImplemented
 
+    def token_is_required_as_payment_input(self, previous_value):
+        return previous_value
+
     def get_payment_gateway(
         self, currency: Optional[str], previous_value
     ) -> Optional["PaymentGateway"]:
@@ -413,7 +421,7 @@ class BasePlugin:
         )
 
     def get_payment_gateway_for_checkout(
-        self, checkout: "Checkout", previous_value
+        self, checkout: "Checkout", previous_value,
     ) -> Optional["PaymentGateway"]:
         return self.get_payment_gateway(checkout.currency, previous_value)
 

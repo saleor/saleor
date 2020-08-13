@@ -85,6 +85,7 @@ class Payment(models.Model):
 
     customer_ip_address = models.GenericIPAddressField(blank=True, null=True)
     extra_data = models.TextField(blank=True, default="")
+    return_url = models.URLField(blank=True, null=True)
 
     class Meta:
         ordering = ("pk",)
@@ -124,7 +125,9 @@ class Payment(models.Model):
         authorized_txns = [
             txn
             for txn in transactions
-            if txn.kind == TransactionKind.AUTH and txn.is_success
+            if txn.kind == TransactionKind.AUTH
+            and txn.is_success
+            and not txn.action_required
         ]
 
         # Calculate authorized amount from all succeeded auth transactions
@@ -146,7 +149,9 @@ class Payment(models.Model):
     def is_authorized(self):
         return any(
             [
-                txn.kind == TransactionKind.AUTH and txn.is_success
+                txn.kind == TransactionKind.AUTH
+                and txn.is_success
+                and not txn.action_required
                 for txn in self.transactions.all()
             ]
         )
@@ -194,9 +199,12 @@ class Transaction(models.Model):
         Payment, related_name="transactions", on_delete=models.PROTECT
     )
     token = models.CharField(max_length=128, blank=True, default="")
-    kind = models.CharField(max_length=10, choices=TransactionKind.CHOICES)
+    kind = models.CharField(max_length=25, choices=TransactionKind.CHOICES)
     is_success = models.BooleanField(default=False)
     action_required = models.BooleanField(default=False)
+    action_required_data = JSONField(
+        blank=True, default=dict, encoder=DjangoJSONEncoder
+    )
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -210,6 +218,7 @@ class Transaction(models.Model):
     )
     customer_id = models.CharField(max_length=256, null=True)
     gateway_response = JSONField(encoder=DjangoJSONEncoder)
+    already_processed = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("pk",)

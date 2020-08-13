@@ -51,6 +51,7 @@ class OrderEvents:
     PAYMENT_REFUNDED = "payment_refunded"
     PAYMENT_VOIDED = "payment_voided"
     PAYMENT_FAILED = "payment_failed"
+    EXTERNAL_SERVICE_NOTIFICATION = "external_service_notification"
 
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_GENERATED = "invoice_generated"
@@ -80,6 +81,7 @@ class OrderEvents:
         (EMAIL_SENT, "The email was sent"),
         (PAYMENT_AUTHORIZED, "The payment was authorized"),
         (PAYMENT_CAPTURED, "The payment was captured"),
+        (EXTERNAL_SERVICE_NOTIFICATION, "Notification from external service"),
         (PAYMENT_REFUNDED, "The payment was refunded"),
         (PAYMENT_VOIDED, "The payment was voided"),
         (PAYMENT_FAILED, "The payment was failed"),

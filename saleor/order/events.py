@@ -260,6 +260,22 @@ def payment_failed_event(
     )
 
 
+def external_notification_event(
+    *, order: Order, user: UserType, message: Optional[str], parameters: Optional[dict]
+) -> OrderEvent:
+    if not _user_is_valid(user):
+        user = None
+    parameters = parameters or {}
+    parameters["message"] = message
+
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION,
+        user=user,
+        parameters=parameters,
+    )
+
+
 def fulfillment_canceled_event(
     *, order: Order, user: UserType, fulfillment: Fulfillment
 ) -> OrderEvent:
