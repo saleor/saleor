@@ -32,17 +32,14 @@ def adyen_plugin(settings):
             {
                 "active": True,
                 "configuration": [
-                    {"name": "API key", "value": api_key},
-                    {"name": "Merchant Account", "value": merchant_account},
-                    {"name": "Return Url", "value": return_url},
-                    {"name": "Client Key", "value": client_key},
-                    {"name": "Origin Url", "value": origin_url},
-                    {
-                        "name": "Automatically mark payment as a capture",
-                        "value": adyen_auto_capture,
-                    },
-                    {"name": "Automatic payment capture", "value": auto_capture},
-                    {"name": "Supported currencies", "value": "USD"},
+                    {"name": "api-key", "value": api_key},
+                    {"name": "merchant-account", "value": merchant_account},
+                    {"name": "return-url", "value": return_url},
+                    {"name": "client-key", "value": client_key},
+                    {"name": "origin-url", "value": origin_url},
+                    {"name": "adyen-auto-capture", "value": adyen_auto_capture},
+                    {"name": "auto-capture", "value": auto_capture},
+                    {"name": "supported-currencies", "value": "USD"},
                 ],
             },
         )
