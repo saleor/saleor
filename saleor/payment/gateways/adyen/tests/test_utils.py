@@ -54,7 +54,7 @@ def test_append_klarna_data(dummy_payment_data, payment_dummy, checkout_with_ite
         "shopperEmail": dummy_payment_data.customer_email,
         "lineItems": [
             {
-                "description": line.variant.product.description,
+                "description": f"{line.variant.product.name}, {line.variant.name}",
                 "quantity": line.quantity,
                 "id": line.variant.sku,
                 "taxAmount": "0",
@@ -96,7 +96,7 @@ def test_append_klarna_data_tax_included(
         "shopperEmail": dummy_payment_data.customer_email,
         "lineItems": [
             {
-                "description": line.variant.product.description,
+                "description": f"{line.variant.product.name}, {line.variant.name}",
                 "quantity": line.quantity,
                 "id": line.variant.sku,
                 "taxAmount": to_adyen_price((gross - net).amount, "USD"),
