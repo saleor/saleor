@@ -858,6 +858,7 @@ def test_customer_create(
     assert customer_creation_event.user == new_customer
 
 
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.account.emails._send_set_user_password_email_with_url.delay")
 def test_customer_create_send_password_with_url(
     _send_set_user_password_email_with_url_mock,
@@ -1222,6 +1223,7 @@ def test_account_request_deletion(send_delete_confirmation_email_mock, user_api_
     url_validator(url)
 
 
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
 def test_account_request_deletion_token_validation(
     send_account_delete_confirmation_email_with_url_mock, user_api_client
@@ -1271,6 +1273,7 @@ def test_account_request_deletion_storefront_hosts_not_allowed(
     send_account_delete_confirmation_email_with_url_mock.assert_not_called()
 
 
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
 def test_account_request_deletion_all_storefront_hosts_allowed(
     send_account_delete_confirmation_email_with_url_mock, user_api_client, settings
@@ -1293,6 +1296,7 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
     url_validator(url)
 
 
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
 def test_account_request_deletion_subdomain(
     send_account_delete_confirmation_email_with_url_mock, user_api_client, settings
@@ -1327,6 +1331,7 @@ ACCOUNT_DELETE_MUTATION = """
 """
 
 
+@freeze_time("2018-05-31 12:00:01")
 def test_account_delete(user_api_client):
     user = user_api_client.user
     token = default_token_generator.make_token(user)
@@ -1370,6 +1375,7 @@ def test_account_delete_staff_user(staff_api_client):
     assert User.objects.filter(pk=user.id).exists()
 
 
+@freeze_time("2018-05-31 12:00:01")
 def test_account_delete_other_customer_token(user_api_client):
     user = user_api_client.user
     other_user = User.objects.create(email="temp@example.com")
@@ -1650,6 +1656,7 @@ def test_staff_create_out_of_scope_group(
     )
 
 
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.account.emails._send_set_user_password_email_with_url.delay")
 def test_staff_create_send_password_with_url(
     _send_set_user_password_email_with_url_mock,
@@ -2409,6 +2416,7 @@ SET_PASSWORD_MUTATION = """
 """
 
 
+@freeze_time("2018-05-31 12:00:01")
 def test_set_password(user_api_client, customer_user):
     token = default_token_generator.make_token(customer_user)
     password = "spanish-inquisition"
@@ -2454,6 +2462,7 @@ def test_set_password_invalid_email(user_api_client):
     assert account_errors[0]["code"] == AccountErrorCode.NOT_FOUND.name
 
 
+@freeze_time("2018-05-31 12:00:01")
 def test_set_password_invalid_password(user_api_client, customer_user, settings):
     settings.AUTH_PASSWORD_VALIDATORS = [
         {
@@ -2965,6 +2974,7 @@ def test_account_reset_password(
     url_validator(url)
 
 
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
 def test_account_confirmation(
     match_orders_with_new_user_mock, api_client, customer_user
@@ -2985,6 +2995,7 @@ def test_account_confirmation(
     assert customer_user.is_active is True
 
 
+@freeze_time("2018-05-31 12:00:01")
 @patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
 def test_account_confirmation_invalid_user(
     match_orders_with_new_user_mock, user_api_client, customer_user
