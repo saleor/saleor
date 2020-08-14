@@ -5,6 +5,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
+import ast
 
 import requests
 from django.shortcuts import redirect
@@ -438,7 +439,7 @@ class BaseParametersMapper():
 
         for assigned_product_attribute in assigned_product_attributes:
             try:
-                attributes[(str(assigned_product_attribute.assignment.attribute)).lower()] = \
+                attributes[(str(assigned_product_attribute.assignment.attribute.slug)).lower()] = \
                     str(AttributeValue.objects.get(assignedproductattribute=assigned_product_attribute))
 
             except AttributeValue.DoesNotExist:
@@ -449,19 +450,23 @@ class BaseParametersMapper():
 
         return attributes, attributes_name
 
-    # TODO: rebuild, too much if conditionals
+    # TODO: rebuild, too much if conditionals, and add case when dictionary is empty like for bluzki dzieciece
     def create_allegro_paramter(self, mapped_parameter_key, mapped_parameter_value):
 
         param = next((param for param in self.require_parameters if
                       param["name"] == mapped_parameter_key), None)
         if param is not None:
-            value = next((value for value in param['dictionary'] if
-                      value["value"] == mapped_parameter_value), None)
-            if value is not None:
-                return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
-                    "rangeValue": None}
+            if param.get('dictionary') is not None:
+                value = next((value for value in param['dictionary'] if
+                          value["value"] == mapped_parameter_value), None)
+                if value is not None:
+                    return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
+                        "rangeValue": None}
+                else:
+                    return None
             else:
-                return None
+                return {'id': param['id'], 'valuesIds': [], "values": [mapped_parameter_value], "rangeValue": None}
+
         else:
             return None
 
@@ -507,39 +512,43 @@ class AllegroParametersMapper(BaseParametersMapper):
     def get_specyfic_parameter_map(self, parameter):
         map = self.product.product_type.metadata.get('allegro.mapping.' + parameter)
 
-        if not map:
-            return None
-        else:
-            return next(iter(json.loads(map.replace('\'',"\"")).items()))[1]
+        if map is not None:
+
+            if isinstance(map, str):
+                return self.parse_list_to_map(
+                    json.loads(map.replace('\'', '\"'))['map'])
+            else:
+                return self.parse_list_to_map(json.loads(map)['map'])
 
     def get_specyfic_parameter_key(self, parameter):
 
         map = self.product.product_type.metadata.get('allegro.mapping.' + parameter)
-
-        if not map:
-            return None
-        else:
-            return next(iter(json.loads(map.replace('\'', "\"")).items()))[0]
+        if map is not None:
+            if isinstance(map, str):
+                return json.loads(map.replace('\'', '\"'))['name']
+            else:
+                return json.loads(map)['name']
 
     def get_global_parameter_map(self, parameter):
-        global_paramter_map = self.get_global_map_json()
 
-        map = global_paramter_map.get('allegro.mapping.' + parameter)
+        config = self.get_plugin_configuration()
+        map = config.get('allegro.mapping.' + parameter)
+        if map is not None:
+            if isinstance(map, str):
+                return self.parse_list_to_map(json.loads(map.replace('\'', '\"'))['map'])
+            else:
+                return self.parse_list_to_map(json.loads(map)['map'])
 
-        if not map:
-            return None
-        else:
-            return map
+    def parse_list_to_map(self, list):
+        if(len(list) > 0):
+            return {item[0]: item[1] for item in list}
+
 
     def get_plugin_configuration(self):
         manager = get_plugins_manager()
         plugin = manager.get_plugin(AllegroPlugin.PLUGIN_ID)
-        return plugin.config
-
-    def get_global_map_json(self):
-        config = self.get_plugin_configuration()
-        return json.loads(config.global_map_data)
-
+        configuration = {item["name"]: item["value"] for item in plugin.configuration}
+        return configuration
 
     def get_parameter_map(self, parameter):
 
@@ -568,6 +577,7 @@ class AllegroParametersMapper(BaseParametersMapper):
         parameter_key, parameter_map = self.get_parameter_key_and_map(parameter)
 
         if parameter_map is None:
+
             return parameter, self.product_attributes.get(parameter_key)
         else:
             mapped_value = parameter_map.get(self.product_attributes.get(parameter_key)) or self.product_attributes.get(parameter_key)
@@ -576,7 +586,6 @@ class AllegroParametersMapper(BaseParametersMapper):
     def get_allegro_parameter(self, parameter):
 
         mapped_parameter_key, mapped_paramter_value = self.get_mapped_parameter_key_and_value(parameter)
-
         return self.create_allegro_paramter(mapped_parameter_key, mapped_paramter_value)
 
 
