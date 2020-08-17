@@ -282,12 +282,12 @@ def test_send_fulfillment_emails_with_tracking_number_as_url(
 
 
 @mock.patch("saleor.order.emails.send_templated_mail")
-def test_send_email_order_cancel(mocked_templated_email, order, site_settings):
+def test_send_email_order_canceled(mocked_templated_email, order, site_settings):
     # given
     template = emails.ORDER_CANCEl_TEMPLATE
 
     # when
-    emails.send_order_cancel(order.pk)
+    emails.send_order_canceled(order.pk)
 
     # then
     email_data = emails.collect_data_for_email(order.pk, template)
@@ -308,12 +308,12 @@ def test_send_email_order_cancel(mocked_templated_email, order, site_settings):
 
 
 @mock.patch("saleor.order.emails.send_templated_mail")
-def test_send_email_order_refund(mocked_templated_email, order, site_settings):
+def test_send_email_order_refunded(mocked_templated_email, order, site_settings):
     # given
     template = emails.ORDER_REFUND_TEMPLATE
 
     # when
-    emails.send_order_refund(order.pk)
+    emails.send_order_refunded(order.pk)
 
     # then
     email_data = emails.collect_data_for_email(order.pk, template)
