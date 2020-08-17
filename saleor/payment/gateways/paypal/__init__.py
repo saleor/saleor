@@ -21,16 +21,17 @@ https://medium.com/paypal-engineering/launch-v2-paypal-checkout-apis-45435398b98
 
 
 def get_client_token(**_):
-    """Not implemented for paypal gateway currently.
+    """Not implemented for Paypal gateway currently.
 
     The client token can be generated in the client.
     """
+    pass
 
 
 def get_paypal_order_id(config: GatewayConfig, amount: float, currency: str) -> str:
-    """Only for use in tests.
+    """Get token (Paypal order id).
 
-    to get the token (Paypal order id), when payment has not yet been created.
+    Only for use in tests when payment has not yet been created.
     """
     client = get_paypal_client(**config.connection_params)
     request = OrdersCreateRequest()
@@ -51,18 +52,11 @@ def get_paypal_order_id(config: GatewayConfig, amount: float, currency: str) -> 
 def authorize(
     payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
-
-    # transaction_kind =\
-    #     TransactionKind.CAPTURE if config.auto_capture else TransactionKind.AUTH
-
     client = get_paypal_client(**config.connection_params)
     request = OrdersCaptureRequest(payment_information.token)
     try:
         response = client.execute(request)
     except IOError as ioe:
-        # if isinstance(ioe, HttpError):
-        #     # Something went wrong server-side
-        #     print(ioe.status_code)
         error_message = getattr(ioe, "status_code", repr(ioe))
         return GatewayResponse(
             is_success=False,
@@ -80,15 +74,10 @@ def authorize(
             is_success=True,
             action_required=False,
             kind=TransactionKind.CAPTURE,
-            amount=decimal.Decimal(
-                response.result.purchase_units[0].payments.captures[0].amount.value
-            ),
-            currency=response.result.purchase_units[0]
-            .payments.captures[0]
-            .amount.currency_code,
+            amount=decimal.Decimal(transaction.amount.value),
+            currency=transaction.amount.currency_code,
             transaction_id=transaction.id,
             error=None,
-            # raw_response=response,
         )
 
 
@@ -107,9 +96,6 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
     try:
         response = client.execute(request)
     except IOError as ioe:
-        # if isinstance(ioe, HttpError):
-        #     # Something went wrong server-side
-        #     print(ioe.status_code)
         error_message = getattr(ioe, "status_code", repr(ioe))
         return GatewayResponse(
             is_success=False,
@@ -130,7 +116,6 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
             kind=TransactionKind.REFUND,
             currency=payment_information.currency,
             error=None,
-            # raw_response={},
         )
 
 
