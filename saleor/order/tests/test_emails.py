@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest import mock
 
 import pytest
@@ -5,7 +6,7 @@ from templated_email import get_connection
 
 from ...invoice import emails as invoice_emails
 from ...invoice.models import Invoice
-from ...order import emails as emails
+from ...order import OrderEvents, emails as emails
 from ..utils import add_variant_to_draft_order
 
 
@@ -333,3 +334,27 @@ def test_send_email_order_refunded(mocked_templated_email, order, site_settings)
     # Render the email to ensure there is no error
     email_connection = get_connection()
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+@mock.patch("saleor.order.emails.send_order_refunded.delay")
+def test_send_order_refunded_confirmation(send_order_refunded_mock, order):
+    # when
+    emails.send_order_refunded_confirmation(order, order.user, Decimal(5), "USD")
+
+    # then
+    send_order_refunded_mock.assert_called_once_with(order.pk, Decimal(5), "USD")
+
+    order_event = order.events.last()
+    assert order_event.type == OrderEvents.EMAIL_SENT
+
+
+@mock.patch("saleor.order.emails.send_order_canceled.delay")
+def test_send_order_canceled_confirmation(send_order_canceled_mock, order):
+    # when
+    emails.send_order_canceled_confirmation(order, order.user)
+
+    # then
+    send_order_canceled_mock.assert_called_once_with(order.pk)
+
+    order_event = order.events.last()
+    assert order_event.type == OrderEvents.EMAIL_SENT
