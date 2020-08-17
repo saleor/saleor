@@ -15,6 +15,8 @@ STAFF_CONFIRM_ORDER_TEMPLATE = "order/staff_confirm_order"
 CONFIRM_FULFILLMENT_TEMPLATE = "order/confirm_fulfillment"
 UPDATE_FULFILLMENT_TEMPLATE = "order/update_fulfillment"
 CONFIRM_PAYMENT_TEMPLATE = "order/payment/confirm_payment"
+ORDER_CANCEl_TEMPLATE = "order/order_cancel"
+ORDER_REFUND_TEMPLATE = "order/order_refund"
 
 
 def collect_staff_order_notification_data(
@@ -137,4 +139,18 @@ def send_fulfillment_update(order_pk, fulfillment_pk):
 def send_payment_confirmation(order_pk):
     """Send the payment confirmation email."""
     email_data = collect_data_for_email(order_pk, CONFIRM_PAYMENT_TEMPLATE)
+    send_templated_mail(**email_data)
+
+
+@app.task
+def send_order_cancel(order_pk):
+    """Send order cancel email."""
+    email_data = collect_data_for_email(order_pk, ORDER_CANCEl_TEMPLATE)
+    send_templated_mail(**email_data)
+
+
+@app.task
+def send_order_refund(order_pk):
+    """Send order refund email."""
+    email_data = collect_data_for_email(order_pk, ORDER_REFUND_TEMPLATE)
     send_templated_mail(**email_data)
