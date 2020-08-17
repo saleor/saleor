@@ -12,6 +12,8 @@ from . import events
 from .models import Fulfillment, Order
 
 if TYPE_CHECKING:
+    from decimal import Decimal
+
     from ..account.models import User
 
 CONFIRM_ORDER_TEMPLATE = "order/confirm_order"
@@ -154,21 +156,25 @@ def send_order_canceled_confirmation(order: "Order", user: Optional["User"]):
 
 
 @app.task
-def send_order_canceled(order_pk):
+def send_order_canceled(order_pk: int):
     """Send order cancel email."""
     email_data = collect_data_for_email(order_pk, ORDER_CANCEl_TEMPLATE)
     send_templated_mail(**email_data)
 
 
-def send_order_refunded_confirmation(order: "Order", user: Optional["User"]):
-    send_order_refunded.delay(order.pk)
+def send_order_refunded_confirmation(
+    order: "Order", user: Optional["User"], amount: "Decimal", currency: str
+):
+    send_order_refunded.delay(order.pk, amount, currency)
     events.email_sent_event(
         order=order, user=user, email_type=events.OrderEventsEmails.ORDER_REFUND
     )
 
 
 @app.task
-def send_order_refunded(order_pk):
+def send_order_refunded(order_pk: int, amount: "Decimal", currency: str):
     """Send order refund email."""
     email_data = collect_data_for_email(order_pk, ORDER_REFUND_TEMPLATE)
+    context = email_data["context"]
+    context.update({"amount": amount, "currency": currency})
     send_templated_mail(**email_data)

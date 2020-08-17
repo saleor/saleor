@@ -211,15 +211,18 @@ def test_order_refunded(
     payment = Payment.objects.create(
         gateway="mirumee.payments.dummy", is_active=True, checkout=checkout_with_item
     )
+    amount = order.total.gross.amount
 
     # when
-    order_refunded(order, order.user, order.total.gross.amount, payment)
+    order_refunded(order, order.user, amount, payment)
 
     # then
     order_event = order.events.last()
     assert order_event.type == OrderEvents.PAYMENT_REFUNDED
 
-    send_order_refunded_confirmation_mock.assert_called_once_with(order, order.user)
+    send_order_refunded_confirmation_mock.assert_called_once_with(
+        order, order.user, amount, payment.currency
+    )
 
 
 def test_fulfill_order_line(order_with_lines):
