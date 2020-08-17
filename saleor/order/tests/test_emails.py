@@ -311,12 +311,14 @@ def test_send_email_order_canceled(mocked_templated_email, order, site_settings)
 def test_send_email_order_refunded(mocked_templated_email, order, site_settings):
     # given
     template = emails.ORDER_REFUND_TEMPLATE
+    amount = order.total.gross.amount
 
     # when
-    emails.send_order_refunded(order.pk)
+    emails.send_order_refunded(order.pk, amount, order.currency)
 
     # then
     email_data = emails.collect_data_for_email(order.pk, template)
+    email_data["context"].update({"amount": amount, "currency": order.currency})
     recipients = [order.get_customer_email()]
     expected_call_kwargs = {
         "context": email_data["context"],

@@ -14,7 +14,7 @@
         </mj-text>
         <mj-text>
           {% blocktrans trimmed context "Order refund e-mail text" %}
-            Your order has been refunded.
+            A payment of {{ amount }} {{ currency }} has been refunded for your order.
           {% endblocktrans %}
         </mj-text>
       </mj-column>

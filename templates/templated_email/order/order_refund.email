@@ -9,7 +9,7 @@
 {% block plain %}
 {% include 'templated_email/shared/_header.email' %}
 {% blocktrans context "Order refund e-mail text" %}
-Your order has been refunded.
+A payment of {{ amount }} {{ currency }} has been refunded for your order.
 {% endblocktrans %}
 
 {% include 'templated_email/shared/_footer.email' %}

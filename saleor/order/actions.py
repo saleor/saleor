@@ -99,7 +99,7 @@ def order_refunded(
     )
     get_plugins_manager().order_updated(order)
 
-    send_order_refunded_confirmation(order, user)
+    send_order_refunded_confirmation(order, user, amount, payment.currency)
 
 
 def order_voided(order: "Order", user: "User", payment: "Payment"):
