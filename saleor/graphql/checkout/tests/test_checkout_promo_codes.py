@@ -80,7 +80,9 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     assert checkout_with_item.voucher_code is None
 
 
-def test_checkout_totals_use_discounts(api_client, checkout_with_item, sale):
+def test_checkout_totals_use_discounts(
+    api_client, checkout_with_item, sale, channel_USD
+):
     checkout = checkout_with_item
     # make sure that we're testing a variant that is actually on sale
     product = checkout.lines.first().variant.product
@@ -130,7 +132,9 @@ def test_checkout_totals_use_discounts(api_client, checkout_with_item, sale):
     assert data["subtotalPrice"]["gross"]["amount"] == taxed_total.gross.amount
 
     line = checkout.lines.first()
-    line_total = calculations.checkout_line_total(line=line, discounts=discounts)
+    line_total = calculations.checkout_line_total(
+        line=line, discounts=discounts, channel=channel_USD
+    )
     assert data["lines"][0]["totalPrice"]["gross"]["amount"] == line_total.gross.amount
 
 
