@@ -30,22 +30,16 @@ class ChannelByCheckoutLineIDLoader(DataLoader):
 
     def batch_load(self, keys):
         def channel_by_lines(checkout_lines):
-            line_id_checkout_id_map = {
-                line.id: line.checkout_id for line in checkout_lines
-            }
+            checkout_ids = [line.checkout_id for line in checkout_lines]
 
             def channels_by_checkout(checkouts):
-                checkout_id_chanel_id_map = {
-                    checkout.pk: checkout.channel_id for checkout in checkouts
-                }
+                chanel_ids = [checkout.channel_id for checkout in checkouts]
 
-                return ChannelByIdLoader(self.context).load_many(
-                    list(checkout_id_chanel_id_map.values())
-                )
+                return ChannelByIdLoader(self.context).load_many(chanel_ids)
 
             return (
                 CheckoutByIdLoader(self.context)
-                .load_many(list(line_id_checkout_id_map.values()))
+                .load_many(checkout_ids)
                 .then(channels_by_checkout)
             )
 
