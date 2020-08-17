@@ -1491,3 +1491,25 @@ def test_cancel_active_payments(checkout_with_payments):
 
     # then
     assert checkout.payments.filter(is_active=True).count() == 0
+
+def test_create_order_with_variant_tracking_false(
+        checkout, customer_user, variant_without_inventory_tracking
+):
+    variant = variant_without_inventory_tracking
+    add_variant_to_checkout(checkout, variant, 10, check_quantity=False)
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.save()
+
+    order_data = prepare_order_data(
+        checkout=checkout, lines=list(checkout), tracking_code="", discounts=None
+    )
+
+    order_1 = create_order(
+        checkout=checkout,
+        order_data=order_data,
+        user=customer_user,
+        redirect_url="https://www.example.com",
+    )
+    assert order_1.checkout_token == checkout.token
