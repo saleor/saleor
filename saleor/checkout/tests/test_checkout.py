@@ -197,7 +197,7 @@ def test_create_order_captured_payment_creates_expected_events(
     # ensure the correct parameters were set
     assert order_placed_email_sent_event.parameters == {
         "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.ORDER,
+        "email_type": OrderEventsEmails.ORDER_CONFIRMATION,
     }
 
     # Ensure the correct customer event was created if the user was not anonymous
@@ -320,7 +320,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     # ensure the correct parameters were set
     assert order_placed_email_sent_event.parameters == {
         "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.ORDER,
+        "email_type": OrderEventsEmails.ORDER_CONFIRMATION,
     }
 
     # Check no event was created if the user was anonymous
@@ -406,7 +406,7 @@ def test_create_order_preauth_payment_creates_expected_events(
     # ensure the correct parameters were set
     assert order_placed_email_sent_event.parameters == {
         "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.ORDER,
+        "email_type": OrderEventsEmails.ORDER_CONFIRMATION,
     }
 
     # Ensure the correct customer event was created if the user was not anonymous
@@ -500,7 +500,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     # ensure the correct parameters were set
     assert order_placed_email_sent_event.parameters == {
         "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.ORDER,
+        "email_type": OrderEventsEmails.ORDER_CONFIRMATION,
     }
 
     # Check no event was created if the user was anonymous

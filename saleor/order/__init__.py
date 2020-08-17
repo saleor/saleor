@@ -104,7 +104,9 @@ class OrderEventsEmails:
     PAYMENT = "payment_confirmation"
     SHIPPING = "shipping_confirmation"
     TRACKING_UPDATED = "tracking_updated"
-    ORDER = "order_confirmation"
+    ORDER_CONFIRMATION = "order_confirmation"
+    ORDER_CANCEL = "order_cancel"
+    ORDER_REFUND = "order_refund"
     FULFILLMENT = "fulfillment_confirmation"
     DIGITAL_LINKS = "digital_links"
 
@@ -112,7 +114,9 @@ class OrderEventsEmails:
         (PAYMENT, "The payment confirmation email was sent"),
         (SHIPPING, "The shipping confirmation email was sent"),
         (TRACKING_UPDATED, "The fulfillment tracking code email was sent"),
-        (ORDER, "The order placement confirmation email was sent"),
+        (ORDER_CONFIRMATION, "The order placement confirmation email was sent"),
+        (ORDER_CANCEL, "The order cancel confirmation email was sent"),
+        (ORDER_REFUND, "The order refund confirmation email was sent"),
         (FULFILLMENT, "The fulfillment confirmation email was sent"),
         (DIGITAL_LINKS, "The email containing the digital links was sent"),
     ]
