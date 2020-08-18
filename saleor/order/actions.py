@@ -10,7 +10,12 @@ from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deallocate_stock_for_order, decrease_stock
 from . import FulfillmentStatus, OrderStatus, emails, events, utils
-from .emails import send_fulfillment_confirmation_to_customer, send_payment_confirmation
+from .emails import (
+    send_fulfillment_confirmation_to_customer,
+    send_order_canceled_confirmation,
+    send_order_refunded_confirmation,
+    send_payment_confirmation,
+)
 from .models import Fulfillment, FulfillmentLine
 from .utils import (
     order_line_needs_automatic_fulfillment,
@@ -83,6 +88,8 @@ def cancel_order(order: "Order", user: Optional["User"]):
     manager.order_cancelled(order)
     manager.order_updated(order)
 
+    send_order_canceled_confirmation(order, user)
+
 
 def order_refunded(
     order: "Order", user: Optional["User"], amount: "Decimal", payment: "Payment"
@@ -91,6 +98,8 @@ def order_refunded(
         order=order, user=user, amount=amount, payment=payment
     )
     get_plugins_manager().order_updated(order)
+
+    send_order_refunded_confirmation(order, user, amount, payment.currency)
 
 
 def order_voided(order: "Order", user: "User", payment: "Payment"):

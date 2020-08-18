@@ -1,0 +1,20 @@
+{% load i18n %}
+
+{% block subject %}
+  {% blocktrans trimmed context "Order refund e-mail subject" %}
+    Order {{ order }} refunded
+  {% endblocktrans %}
+{% endblock %}
+
+{% block plain %}
+{% include 'templated_email/shared/_header.email' %}
+{% blocktrans context "Order refund e-mail text" %}
+A payment of {{ amount }} {{ currency }} has been refunded for your order.
+{% endblocktrans %}
+
+{% include 'templated_email/shared/_footer.email' %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/compiled/order_refund.html' %}
+{% endblock %}
