@@ -530,7 +530,10 @@ class Order(CountableDjangoObjectType):
                 shipping_method.price = taxed_price.gross
             else:
                 shipping_method.price = taxed_price.net
-        return available
+        instances = [
+            ChannelContext(node=shipping, channel_slug=None) for shipping in available
+        ]
+        return instances
 
     @staticmethod
     def resolve_invoices(root: models.Order, info):

@@ -67,7 +67,6 @@ def test_shipping_method_channel_listing_update_as_staff_user(
         permissions=(permission_manage_shipping,),
     )
     content = get_graphql_content(response)
-    breakpoint()
 
     # then
     data = content["data"]["shippingMethodChannelListingUpdate"]

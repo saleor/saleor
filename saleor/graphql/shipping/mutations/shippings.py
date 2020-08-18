@@ -9,6 +9,7 @@ from ....shipping.utils import (
     default_shipping_zone_exists,
     get_countries_without_shipping_zone,
 )
+from ...channel.types import ChannelContext
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types.common import ShippingError
@@ -166,7 +167,6 @@ class ShippingPriceMixin:
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
-
         # Rename the price field to price_amount (the model's)
         price_amount = cleaned_input.pop("price", None)
         if price_amount is not None:
@@ -257,6 +257,9 @@ class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
         ShippingZone,
         description="A shipping zone to which the shipping method belongs.",
     )
+    shipping_method = graphene.Field(
+        ShippingMethod, description="A shipping method to create."
+    )
 
     class Arguments:
         input = ShippingPriceInput(
@@ -272,7 +275,9 @@ class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
 
     @classmethod
     def success_response(cls, instance):
-        response = super().success_response(instance)
+        shipping_method = ChannelContext(node=instance, channel_slug=None)
+        response = super().success_response(shipping_method)
+
         response.shipping_zone = instance.shipping_zone
         return response
 
@@ -282,6 +287,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
         ShippingZone,
         description="A shipping zone to which the shipping method belongs.",
     )
+    shipping_method = graphene.Field(ShippingMethod, description="A shipping method.")
 
     class Arguments:
         id = graphene.ID(description="ID of a shipping price to update.", required=True)
@@ -298,7 +304,9 @@ class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
 
     @classmethod
     def success_response(cls, instance):
-        response = super().success_response(instance)
+        shipping_method = ChannelContext(node=instance, channel_slug=None)
+        response = super().success_response(shipping_method)
+
         response.shipping_zone = instance.shipping_zone
         return response
 
@@ -331,5 +339,6 @@ class ShippingPriceDelete(BaseMutation):
         shipping_method.delete()
         shipping_method.id = shipping_method_id
         return ShippingPriceDelete(
-            shipping_method=shipping_method, shipping_zone=shipping_zone
+            shipping_method=ChannelContext(node=shipping_method, channel_slug=None),
+            shipping_zone=shipping_zone,
         )

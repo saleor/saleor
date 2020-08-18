@@ -25,7 +25,9 @@ class ShippingMethodChannelListing(CountableDjangoObjectType):
 class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
     type = ShippingMethodTypeEnum(description="Type of the shipping method.")
     translation = TranslationField(
-        ShippingMethodTranslation, type_name="shipping method"
+        ShippingMethodTranslation,
+        type_name="shipping method",
+        resolver=ChannelContextType.resolve_translation,
     )
     channels = graphene.List(
         ShippingMethodChannelListing,
@@ -53,7 +55,6 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
 
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_channels(root: ChannelContext[models.ShippingMethod], *_args):
-        breakpoint()
         return models.ShippingMethodChannelListing.objects.filter(
             shipping_method__id__in=[root.node.pk]
         )
@@ -110,7 +111,11 @@ class ShippingZone(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_methods(root: models.ShippingZone, *_args):
-        return root.shipping_methods.all()
+        shipping_methods = [
+            ChannelContext(node=shipping, channel_slug=None)
+            for shipping in root.shipping_methods.all()
+        ]
+        return shipping_methods
 
     @staticmethod
     def resolve_warehouses(root: models.ShippingZone, *_args):

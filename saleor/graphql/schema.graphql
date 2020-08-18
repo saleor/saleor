@@ -4734,8 +4734,8 @@ type ShippingPriceBulkDelete {
 type ShippingPriceCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   shippingZone: ShippingZone
-  shippingErrors: [ShippingError!]!
   shippingMethod: ShippingMethod
+  shippingErrors: [ShippingError!]!
 }
 
 type ShippingPriceDelete {
@@ -4765,8 +4765,8 @@ type ShippingPriceTranslate {
 type ShippingPriceUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   shippingZone: ShippingZone
-  shippingErrors: [ShippingError!]!
   shippingMethod: ShippingMethod
+  shippingErrors: [ShippingError!]!
 }
 
 type ShippingZone implements Node {

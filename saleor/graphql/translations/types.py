@@ -367,4 +367,4 @@ class ShippingMethodTranslatableContent(CountableDjangoObjectType):
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_shipping_method(root: shipping_models.ShippingMethod, _info):
-        return root
+        return ChannelContext(node=root, channel_slug=None)
