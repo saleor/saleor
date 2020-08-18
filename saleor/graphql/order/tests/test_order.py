@@ -1781,9 +1781,15 @@ def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_ca
     assert data["paymentStatusDisplay"] == payment_status_display
     assert data["isPaid"] is False
 
-    order_event = order.events.last()
-    assert order_event.parameters["amount"] == str(amount)
-    assert order_event.type == order_events.OrderEvents.PAYMENT_REFUNDED
+    refund_order_event = order.events.filter(
+        type=order_events.OrderEvents.PAYMENT_REFUNDED
+    ).first()
+    assert refund_order_event.parameters["amount"] == str(amount)
+
+    email_send_event = order.events.filter(
+        type=order_events.OrderEvents.EMAIL_SENT
+    ).first()
+    assert email_send_event.parameters["email_type"]
 
 
 @pytest.mark.parametrize(

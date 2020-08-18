@@ -1,0 +1,24 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./shared/styles.mjml" />
+  </mj-head>
+  <mj-body>
+    <mj-raw>
+      {% load i18n %}
+    </mj-raw>
+    <mj-include path="./shared/header.mjml" />
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="16px">
+          {% trans "Hi!" context "Standard e-mail greeting" %}
+        </mj-text>
+        <mj-text>
+          {% blocktrans trimmed context "Order refund e-mail text" %}
+            A payment of {{ amount }} {{ currency }} has been refunded for your order.
+          {% endblocktrans %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-include path="./shared/footer.mjml" />
+  </mj-body>
+</mjml>
