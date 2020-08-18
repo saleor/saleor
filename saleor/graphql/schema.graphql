@@ -900,7 +900,7 @@ type Checkout implements Node & ObjectWithMetadata {
   lastChange: DateTime!
   user: User
   quantity: Int!
-  channel: Channel
+  channel: Channel!
   billingAddress: Address
   shippingAddress: Address
   shippingMethod: ShippingMethod
@@ -2647,8 +2647,7 @@ type Mutation {
   shopFetchTaxRates: ShopFetchTaxRates
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
-  shippingMethodChannelListingCreate(input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingCreate
-  shippingMethodChannelListingUpdate(id: ID, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
+  shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
@@ -4691,11 +4690,6 @@ input ShippingMethodChannelListingAddInput {
   maxValue: Decimal
 }
 
-type ShippingMethodChannelListingCreate {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  shippingErrors: [ShippingError!]!
-}
-
 input ShippingMethodChannelListingInput {
   addChannels: [ShippingMethodChannelListingAddInput!]
   removeChannels: [ID!]
@@ -4747,7 +4741,6 @@ type ShippingPriceDelete {
 
 input ShippingPriceInput {
   name: String
-  price: Decimal
   minimumOrderPrice: Decimal
   maximumOrderPrice: Decimal
   minimumOrderWeight: WeightScalar

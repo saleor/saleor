@@ -9,34 +9,16 @@ from ..utils import add_variant_to_checkout
 
 
 @pytest.fixture()
-def anonymous_checkout(db, channel_PLN):
-    return Checkout.objects.get_or_create(user=None, channel=channel_PLN)[0]
-
-
-def test_get_or_create_user_checkout(
-    customer_user, anonymous_checkout, user_checkout, admin_user, channel_PLN
-):
-    checkout = utils.get_user_checkout(customer_user, auto_create=True)[0]
-    assert Checkout.objects.all().count() == 2
-    assert checkout == user_checkout
-
-    # test against creating new checkouts
-    Checkout.objects.create(user=admin_user, channel=channel_PLN)
-    queryset = Checkout.objects.all()
-    checkouts = list(queryset)
-    checkout = utils.get_user_checkout(admin_user, auto_create=True)[0]
-    assert Checkout.objects.all().count() == 3
-    assert checkout in checkouts
-    assert checkout.user == admin_user
+def anonymous_checkout(db, channel_USD):
+    return Checkout.objects.get_or_create(user=None, channel=channel_USD)[0]
 
 
 def test_get_user_checkout(
     anonymous_checkout, user_checkout, admin_user, customer_user
 ):
-    checkout, created = utils.get_user_checkout(customer_user)
+    checkout = utils.get_user_checkout(customer_user)
     assert Checkout.objects.all().count() == 2
     assert checkout == user_checkout
-    assert not created
 
 
 def test_adding_zero_quantity(checkout, product):

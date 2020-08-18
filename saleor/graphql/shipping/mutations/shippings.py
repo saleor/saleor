@@ -20,7 +20,6 @@ from ..types import ShippingMethod, ShippingZone
 
 class ShippingPriceInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the shipping method.")
-    price = Decimal(description="Shipping price of the shipping method.")
     minimum_order_price = Decimal(
         description="Minimum order price to use this shipping method."
     )

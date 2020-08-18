@@ -438,14 +438,14 @@ def customer_user(address):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def user_checkout(customer_user, channel_PLN):
+def user_checkout(customer_user, channel_USD):
     checkout = Checkout.objects.create(
         user=customer_user,
+        channel=channel_USD,
         billing_address=customer_user.default_billing_address,
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
         currency="USD",
-        channel=channel_PLN,
     )
     return checkout
 
@@ -2041,7 +2041,7 @@ def payment_dummy(db, order_with_lines):
         is_active=True,
         cc_first_digits="4111",
         cc_last_digits="1111",
-        cc_brand="VISA",
+        cc_brand="visa",
         cc_exp_month=12,
         cc_exp_year=2027,
         total=order_with_lines.total.gross.amount,
@@ -2067,7 +2067,7 @@ def payment_dummy_credit_card(db, order_with_lines):
         is_active=True,
         cc_first_digits="4111",
         cc_last_digits="1111",
-        cc_brand="VISA",
+        cc_brand="visa",
         cc_exp_month=12,
         cc_exp_year=2027,
         total=order_with_lines.total.gross.amount,

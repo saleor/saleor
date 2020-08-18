@@ -10,7 +10,6 @@ from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.models import ShippingMethodChannelListing
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListing
-from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
 from ...core.types.common import ShippingError
 from ..types import ShippingMethod
@@ -23,15 +22,27 @@ ErrorType = DefaultDict[str, List[ValidationError]]
 
 class ShippingMethodChannelListingAddInput(graphene.InputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
-    price = Decimal(description="ID of a channel.")
-    min_value = Decimal(description="ID of a channel.")
-    max_value = Decimal(description="ID of a channel.")
+    price = Decimal(
+        description="Shipping price of the shipping method in this channel."
+    )
+    min_value = Decimal(
+        description=(
+            "Minimum order price to use this shipping method."
+            "Note: this override original value of shipping method."
+        )
+    )
+    max_value = Decimal(
+        description=(
+            "Maximum order price to use this shipping method."
+            "Note: this override original value of shipping method."
+        )
+    )
 
 
 class ShippingMethodChannelListingInput(graphene.InputObjectType):
     add_channels = graphene.List(
         graphene.NonNull(ShippingMethodChannelListingAddInput),
-        description="",
+        description="List of channels to which the shipping method should be assigned.",
         required=False,
     )
     remove_channels = graphene.List(
@@ -43,23 +54,19 @@ class ShippingMethodChannelListingInput(graphene.InputObjectType):
     )
 
 
-class ShippingMethodChannelListingCreate(BaseMutation):
-    class Arguments:
-        input = ShippingMethodChannelListingInput(required=True, description="")
-
-    class Meta:
-        description = "Manage shipping method's availability in channels."
-        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
-        error_type_class = ShippingError
-        error_type_field = "shipping_errors"
-
-
 class ShippingMethodChannelListingUpdate(BaseChannelListing):
-    shipping_method = graphene.Field(ShippingMethod)
+    shipping_method = graphene.Field(
+        ShippingMethod, description="An updated shipping method instance."
+    )
 
     class Arguments:
-        id = graphene.ID()
-        input = ShippingMethodChannelListingInput(required=True, description="")
+        id = graphene.ID(
+            required=True, description="ID of a shipping method to update."
+        )
+        input = ShippingMethodChannelListingInput(
+            required=True,
+            description="Fields required to update shipping method channel listings.",
+        )
 
     class Meta:
         description = "Manage shipping method's availability in channels."
