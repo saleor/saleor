@@ -52,6 +52,11 @@ def get_paypal_order_id(config: GatewayConfig, amount: float, currency: str) -> 
 def authorize(
     payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
+    # Currently not implemented.
+    pass
+
+
+def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     client = get_paypal_client(**config.connection_params)
     request = OrdersCaptureRequest(payment_information.token)
     try:
@@ -81,18 +86,26 @@ def authorize(
         )
 
 
-def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
-    pass
-
-
 def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     """For payments that have not been captured, only authorized."""
     pass
 
 
+def _build_request_body(amount: float, currency: str):
+    return {"amount": {"value": amount, "currency_code": currency}}
+
+
 def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
+    # For reference, see:
+    # https://github.com/paypal/Checkout-Python-SDK/blob/develop/sample/refund_order.py
     client = get_paypal_client(**config.connection_params)
     request = CapturesRefundRequest(payment_information.token)
+    request.prefer("return=representation")
+    request.request_body(
+        _build_request_body(
+            float(payment_information.amount), payment_information.currency
+        )
+    )
     try:
         response = client.execute(request)
     except IOError as ioe:
@@ -111,10 +124,10 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
         return GatewayResponse(
             is_success=True,
             action_required=False,
-            amount=payment_information.amount,
+            amount=decimal.Decimal(response.result.amount.value),
             transaction_id=response.result.id,
             kind=TransactionKind.REFUND,
-            currency=payment_information.currency,
+            currency=response.result.amount.currency_code,
             error=None,
         )
 
@@ -122,4 +135,4 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
 def process_payment(
     payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
-    return authorize(payment_information, config)
+    return capture(payment_information, config)

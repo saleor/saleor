@@ -5,7 +5,7 @@ from math import isclose
 import pytest
 
 from saleor.payment import ChargeStatus, TransactionKind
-from saleor.payment.gateways.paypal import authorize, get_paypal_order_id, refund
+from saleor.payment.gateways.paypal import capture, get_paypal_order_id, refund
 from saleor.payment.interface import GatewayConfig
 from saleor.payment.utils import create_payment_information
 
@@ -18,12 +18,25 @@ TRANSACTION_CURRENCY = "EUR"
 RECORD = False
 
 """
-To generate a new order:
-- remove cassette test_get_client_token.yaml
-- run .cassettes/test_get_client_token
-- open the new test_get_client_token.yaml and copy id (ORDER_ID) from body
-- open in browser https://www.sandbox.paypal.com/checkoutnow?token=<ORDER_ID>) and
-approve payment with your sandbox buyer account
+Instructions to recreate Paypal tests:
+- Set your Paypal sandbox credentials in the env:
+    `export PAYPAL_SANDBOX_PUBLIC_KEY=foo-public-key-LD0pMfrNBM-erCm8sCahoY1kfXxL6C2M9J1TblHPsV5jdP_E1eojLn0gFxui`
+    `export PAYPAL_SANDBOX_SECRET_KEY=foo-secret-key--ZNJYmrc5fpTJWbGJjrG6P1DAZ2L5EtlEqIRc8LD6PyrOvjAGZpRQqs0CM3o`
+- Set RECORD = True
+- Remove all cassettes (./cassettes directory)
+- Run `poetry run pytest --vcr-record-mode=once tests/gateway/paypal/test_paypal.py::test_create_paypal_order`
+- copy ORDER_ID from ./cassettes/test_get_client_token.yaml response > body > string > id
+- In test_capture_success, set paypal_order_id to ORDER_ID (ex: paypal_order_id = "2N779501TA0611714")
+- Open in browser https://www.sandbox.paypal.com/checkoutnow?token=<ORDER_ID>) and
+    approve payment manually with your sandbox buyer account
+- Run `poetry run pytest --vcr-record-mode=once tests/gateway/paypal/test_paypal.py::test_capture_success`
+- copy PAYMENT_ID from ./cassettes/test_capture_success.yaml response > body > payments > captures > id
+- paste PAYMENT_ID in test_refund_success paypal_capture_id (ex: paypal_capture_id = "3VF366050L3453640")
+- run `poetry run pytest --vcr-record-mode=once tests/gateway/paypal/test_paypal.py::test_refund_success`
+- run again all tests: `poetry run pytest --vcr-record-mode=once tests/gateway/paypal/test_paypal.py`
+
+IMPORTANT: once you finished:
+- Set RECORD = False
 """
 
 
@@ -72,32 +85,27 @@ if RECORD:
 
 @pytest.mark.integration
 @pytest.mark.vcr
-def test_authorize_success(sandbox_gateway_config, paypal_payment):
-    """
-    To run this you need first to:
-    - run the test_create_paypal_order with RECORD = True and copy paypal_order_id
-    from the cassette and paste below
-    - open in browser https://www.sandbox.paypal.com/checkoutnow?token=<paypal_order_id>
-    and approve payment with your sandbox buyer account
-    """
-    paypal_order_id = "39R61016NN2825118"  # from cassette
+def test_capture_success(sandbox_gateway_config, paypal_payment):
+
+    # copy from ./cassettes/test_get_client_token.yaml response > body > string > id
+    paypal_order_id = "8UT45527HV521594P"
+
     payment_info = create_payment_information(paypal_payment, paypal_order_id)
-    response = authorize(payment_info, sandbox_gateway_config)
+    response = capture(payment_info, sandbox_gateway_config)
     assert not response.error
     assert response.kind == TransactionKind.CAPTURE
     assert isclose(response.amount, TRANSACTION_AMOUNT)
     assert response.currency == TRANSACTION_CURRENCY
     assert response.is_success is True
-    # assert response.card_info == CARD_SIMPLE_DETAILS
     assert not response.action_required
 
 
 @pytest.mark.integration
 @pytest.mark.vcr
-def test_authorize_error(sandbox_gateway_config, paypal_payment):
-    invalid_paypal_order_id = "INVALID-PAYPAL-ORDER-ID"  # from cassette
+def test_capture_error(sandbox_gateway_config, paypal_payment):
+    invalid_paypal_order_id = "INVALID-PAYPAL-ORDER-ID"
     payment_info = create_payment_information(paypal_payment, invalid_paypal_order_id)
-    response = authorize(payment_info, sandbox_gateway_config)
+    response = capture(payment_info, sandbox_gateway_config)
     assert response.error is not None
     assert response.transaction_id == invalid_paypal_order_id
     assert response.kind == TransactionKind.CAPTURE
@@ -117,8 +125,10 @@ def paypal_paid_payment(paypal_payment):
 @pytest.mark.integration
 @pytest.mark.vcr
 def test_refund_success(paypal_paid_payment, sandbox_gateway_config):
-    # Get id from sandbox for succeeded payment
-    paypal_capture_id = "81466026X71727922"  # from cassettes/test_authorize
+
+    # Copy from cassettes/test_capture in response > body > payments > captures > id
+    paypal_capture_id = "5DH34141WG814093W"
+
     payment_info = create_payment_information(
         paypal_paid_payment,
         amount=TRANSACTION_REFUND_AMOUNT,
@@ -136,7 +146,6 @@ def test_refund_success(paypal_paid_payment, sandbox_gateway_config):
 @pytest.mark.integration
 @pytest.mark.vcr
 def test_refund_error(paypal_paid_payment, sandbox_gateway_config):
-    # Get id from sandbox for succeeded payment
     invalid_paypal_capture_id = "NON-EXISTENT-CAPTURE-ID"
     payment_info = create_payment_information(
         paypal_paid_payment,
