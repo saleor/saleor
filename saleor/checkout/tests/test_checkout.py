@@ -9,19 +9,6 @@ from django_countries.fields import Country
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
-from ...account import CustomerEvents
-from ...account.models import Address, CustomerEvent, User
-from ...account.utils import store_user_address
-from ...core.exceptions import InsufficientStock
-from ...core.taxes import zero_money, zero_taxed_money
-from ...discount import DiscountValueType, VoucherType
-from ...discount.models import NotApplicable, Voucher
-from ...order import OrderEvents, OrderEventsEmails
-from ...order.models import OrderEvent
-from ...payment.models import Payment
-from ...plugins.manager import get_plugins_manager
-from ...shipping.models import ShippingZone
-from ...tests.utils import flush_post_commit_hooks
 from .. import AddressType, calculations
 from ..models import Checkout
 from ..utils import (
@@ -40,6 +27,19 @@ from ..utils import (
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
 )
+from ...account import CustomerEvents
+from ...account.models import Address, CustomerEvent, User
+from ...account.utils import store_user_address
+from ...core.exceptions import InsufficientStock
+from ...core.taxes import zero_money, zero_taxed_money
+from ...discount import DiscountValueType, VoucherType
+from ...discount.models import NotApplicable, Voucher
+from ...order import OrderEvents, OrderEventsEmails
+from ...order.models import OrderEvent
+from ...payment.models import Payment
+from ...plugins.manager import get_plugins_manager
+from ...shipping.models import ShippingZone
+from ...tests.utils import flush_post_commit_hooks
 
 
 def test_is_valid_shipping_method(checkout_with_item, address, shipping_zone):
@@ -1491,3 +1491,26 @@ def test_cancel_active_payments(checkout_with_payments):
 
     # then
     assert checkout.payments.filter(is_active=True).count() == 0
+
+
+def test_create_order_with_variant_tracking_false(
+    checkout, customer_user, variant_without_inventory_tracking
+):
+    variant = variant_without_inventory_tracking
+    add_variant_to_checkout(checkout, variant, 10, check_quantity=False)
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.save()
+
+    order_data = prepare_order_data(
+        checkout=checkout, lines=list(checkout), tracking_code="", discounts=None
+    )
+
+    order_1 = create_order(
+        checkout=checkout,
+        order_data=order_data,
+        user=customer_user,
+        redirect_url="https://www.example.com",
+    )
+    assert order_1.checkout_token == checkout.token
