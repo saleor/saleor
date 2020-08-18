@@ -1,3 +1,4 @@
+import datetime
 from dataclasses import asdict
 from typing import List, Union
 
@@ -479,12 +480,16 @@ class Product(CountableDjangoObjectType):
         lambda: Collection, description="List of collections for the product."
     )
     translation = TranslationField(ProductTranslation, type_name="product")
+    is_available_for_purchase = graphene.Boolean(
+        description="Whether the product is available for purchase."
+    )
 
     class Meta:
         description = "Represents an individual item for sale in the storefront."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Product
         only_fields = [
+            "available_for_purchase",
             "category",
             "charge_taxes",
             "description",
@@ -629,6 +634,12 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     def resolve_weight(root: models.Product, _info, **_kwargs):
         return convert_weight_to_default_weight_unit(root.weight)
+
+    @staticmethod
+    def resolve_is_available_for_purchase(root: models.Product, _info):
+        if root.available_for_purchase is None:
+            return False
+        return datetime.date.today() >= root.available_for_purchase
 
 
 @key(fields="id")
