@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import ANY, Mock, patch
 
@@ -120,6 +120,8 @@ QUERY_PRODUCT = """
                 unit
                 value
             }
+            availableForPurchase
+            isAvailableForPurchase
         }
     }
     """
@@ -192,6 +194,68 @@ def test_product_query_by_slug(
     product_data = content["data"]["product"]
     assert product_data is not None
     assert product_data["name"] == product.name
+
+
+def test_product_query_is_available_for_purchase_true(user_api_client, product):
+    # given
+    available_for_purchase = datetime.today() - timedelta(days=1)
+    product.available_for_purchase = available_for_purchase
+    product.save(update_fields=["available_for_purchase"])
+
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    assert product_data["availableForPurchase"] == available_for_purchase.strftime(
+        "%Y-%m-%d"
+    )
+    assert product_data["isAvailableForPurchase"] is True
+
+
+def test_product_query_is_available_for_purchase_false(user_api_client, product):
+    # given
+    available_for_purchase = datetime.today() + timedelta(days=1)
+    product.available_for_purchase = available_for_purchase
+    product.save(update_fields=["available_for_purchase"])
+
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    assert product_data["availableForPurchase"] == available_for_purchase.strftime(
+        "%Y-%m-%d"
+    )
+    assert product_data["isAvailableForPurchase"] is False
+
+
+def test_product_query_is_available_for_purchase_false_no_available_for_purchase_date(
+    user_api_client, product
+):
+    # given
+    product.available_for_purchase = None
+    product.save(update_fields=["available_for_purchase"])
+
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    assert not product_data["availableForPurchase"]
+    assert product_data["isAvailableForPurchase"] is False
 
 
 def test_product_query_unpublished_products_by_slug(

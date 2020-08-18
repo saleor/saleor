@@ -3633,6 +3633,7 @@ type Product implements Node & ObjectWithMetadata {
   updatedAt: DateTime
   chargeTaxes: Boolean!
   weight: Weight
+  availableForPurchase: Date
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
@@ -3651,6 +3652,7 @@ type Product implements Node & ObjectWithMetadata {
   images: [ProductImage]
   collections: [Collection]
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
+  isAvailableForPurchase: Boolean
 }
 
 type ProductAttributeError {
