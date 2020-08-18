@@ -63,12 +63,13 @@ from ..dataloaders import (
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
     VariantChannelListingByVariantIdAndChanneSlugLoader,
+    VariantChannelListingByVariantIdLoader,
     VariantsChannelListingByProductIdAndChanneSlugLoader,
 )
 from ..filters import AttributeFilterInput
 from ..resolvers import resolve_attributes
 from .attributes import Attribute, SelectedAttribute
-from .channels import ProductChannelListing
+from .channels import ProductChannelListing, ProductVariantChannelListing
 from .digital_contents import DigitalContent
 
 
@@ -157,6 +158,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "This field is restricted for admins. "
             "Use the pricing field to get the public price for customers."
         ),
+    )
+    channel_listing = graphene.List(
+        graphene.NonNull(ProductVariantChannelListing),
+        description="List of price information in channels for the product.",
     )
     pricing = graphene.Field(
         VariantPricingInfo,
@@ -297,6 +302,13 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             .load((root.node.id, root.channel_slug))
             .then(get_price)
         )
+
+    @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    def resolve_channel_listing(
+        root: ChannelContext[models.ProductVariant], info, **_kwargs
+    ):
+        return VariantChannelListingByVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     def resolve_pricing(root: ChannelContext[models.ProductVariant], info):

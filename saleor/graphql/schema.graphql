@@ -4153,6 +4153,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   quantityAllocated: Int @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   stockQuantity: Int! @deprecated(reason: "Use the quantityAvailable field instead. This field will be removed after 2020-07-31.")
   price: Money
+  channelListing: [ProductVariantChannelListing!]
   pricing: VariantPricingInfo
   isAvailable: Boolean @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   attributes: [SelectedAttribute!]!
@@ -4188,6 +4189,12 @@ type ProductVariantBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
   productErrors: [ProductError!]!
+}
+
+type ProductVariantChannelListing implements Node {
+  id: ID!
+  channel: Channel!
+  price: Money
 }
 
 type ProductVariantClearMeta {

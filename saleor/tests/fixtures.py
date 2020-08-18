@@ -786,6 +786,21 @@ def product(product_type, category, warehouse, channel_USD):
 
 
 @pytest.fixture
+def product_available_in_many_channels(product, channel_PLN):
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_PLN, is_published=True,
+    )
+    variant = product.variants.get()
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_PLN,
+        price_amount=Decimal(50),
+        currency=channel_PLN.currency_code,
+    )
+    return product
+
+
+@pytest.fixture
 def product_with_single_variant(product_type, category, warehouse, channel_USD):
     product = Product.objects.create(
         name="Test product with single variant",

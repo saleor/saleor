@@ -12,15 +12,15 @@ from ....product.utils.attributes import associate_attribute_values_to_instance
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.models import Stock, Warehouse
 from ...core.enums import WeightUnitsEnum
-from ...tests.utils import get_graphql_content
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 
 def test_fetch_variant(
-    staff_api_client, product, permission_manage_products, site_settings
+    staff_api_client, product, permission_manage_products, site_settings, channel_USD,
 ):
     query = """
-    query ProductVariantDetails($id: ID!, $countyCode: CountryCode) {
-        productVariant(id: $id) {
+    query ProductVariantDetails($id: ID!, $countyCode: CountryCode, $channel: String) {
+        productVariant(id: $id, channel: $channel) {
             id
             stocks(countryCode: $countyCode) {
                 id
@@ -50,9 +50,14 @@ def test_fetch_variant(
                 id
             }
             name
-            price {
-                currency
-                amount
+            channelListing {
+                channel {
+                    slug
+                }
+                price {
+                    currency
+                    amount
+                }
             }
             product {
                 id
@@ -73,7 +78,7 @@ def test_fetch_variant(
     site_settings.save(update_fields=["default_weight_unit"])
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    variables = {"id": variant_id, "countyCode": "EU"}
+    variables = {"id": variant_id, "countyCode": "EU", "channel": channel_USD.slug}
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     # when
@@ -86,6 +91,129 @@ def test_fetch_variant(
     assert len(data["stocks"]) == variant.stocks.count()
     assert data["weight"]["value"] == 10000
     assert data["weight"]["unit"] == WeightUnitsEnum.G.name
+    channel_listing_data = data["channelListing"][0]
+    channel_listing = variant.channel_listing.get()
+    assert channel_listing_data["channel"]["slug"] == channel_listing.channel.slug
+    assert channel_listing_data["price"]["currency"] == channel_listing.currency
+    assert channel_listing_data["price"]["amount"] == channel_listing.price_amount
+
+
+QUERY_PRODUCT_VARIANT_CHANNEL_LISTING = """
+    query ProductVariantDetails($id: ID!, $channel: String) {
+        productVariant(id: $id, channel: $channel) {
+            id
+            channelListing {
+                channel {
+                    slug
+                }
+                price {
+                    currency
+                    amount
+                }
+            }
+        }
+    }
+"""
+
+
+def test_get_product_variant_channel_listing_as_staff_user(
+    staff_api_client,
+    product_available_in_many_channels,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    variant = product_available_in_many_channels.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "channel": channel_USD.slug}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_CHANNEL_LISTING,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productVariant"]
+    channel_listings = variant.channel_listing.all()
+    for channel_listing in channel_listings:
+        assert {
+            "channel": {"slug": channel_listing.channel.slug},
+            "price": {
+                "currency": channel_listing.currency,
+                "amount": channel_listing.price_amount,
+            },
+        } in data["channelListing"]
+    assert len(data["channelListing"]) == variant.channel_listing.count()
+
+
+def test_get_product_variant_channel_listing_as_app(
+    app_api_client,
+    product_available_in_many_channels,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    variant = product_available_in_many_channels.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "channel": channel_USD.slug}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_CHANNEL_LISTING,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productVariant"]
+    channel_listings = variant.channel_listing.all()
+    for channel_listing in channel_listings:
+        assert {
+            "channel": {"slug": channel_listing.channel.slug},
+            "price": {
+                "currency": channel_listing.currency,
+                "amount": channel_listing.price_amount,
+            },
+        } in data["channelListing"]
+    assert len(data["channelListing"]) == variant.channel_listing.count()
+
+
+def test_get_product_variant_channel_listing_as_customer(
+    user_api_client, product_available_in_many_channels, channel_USD,
+):
+    # given
+    variant = product_available_in_many_channels.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "channel": channel_USD.slug}
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_CHANNEL_LISTING, variables,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_get_product_variant_channel_listing_as_anonymous(
+    api_client, product_available_in_many_channels, channel_USD,
+):
+    # given
+    variant = product_available_in_many_channels.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "channel": channel_USD.slug}
+
+    # when
+    response = api_client.post_graphql(
+        QUERY_PRODUCT_VARIANT_CHANNEL_LISTING, variables,
+    )
+
+    # then
+    assert_no_permission(response)
 
 
 def test_create_variant(

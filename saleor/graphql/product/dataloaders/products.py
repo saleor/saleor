@@ -37,7 +37,7 @@ class ProductByIdLoader(DataLoader):
         return [products.get(product_id) for product_id in keys]
 
 
-class ProductChannelListingByProductId(DataLoader[int, ProductChannelListing]):
+class ProductChannelListingByIdLoader(DataLoader[int, ProductChannelListing]):
     context_key = "productchannelisting_by_id"
 
     def batch_load(self, keys):
@@ -52,16 +52,15 @@ class ProductChannelListingByProductIdLoader(DataLoader[int, ProductChannelListi
         product_channel_listings = ProductChannelListing.objects.filter(
             product_id__in=keys
         )
-        product_channel_listings_map = defaultdict(list)
-        product_channel_listing_loader = ProductChannelListingByProductId(self.context)
-        for product_channel_listing in product_channel_listings.iterator():
-            product_channel_listings_map[product_channel_listing.product_id].append(
-                product_channel_listing
-            )
-            product_channel_listing_loader.prime(
-                product_channel_listing.id, product_channel_listing
-            )
-        return [product_channel_listings_map.get(product_id, []) for product_id in keys]
+        product_id_varaint_channel_listings_map = defaultdict(list)
+        for product_channel_listing in product_channel_listings:
+            product_id_varaint_channel_listings_map[
+                product_channel_listing.product_id
+            ].append(product_channel_listing)
+        return [
+            product_id_varaint_channel_listings_map.get(product_id, [])
+            for product_id in keys
+        ]
 
 
 class ProductChannelListingByProductIdAndChanneSlugLoader(
@@ -143,6 +142,32 @@ class ProductVariantsByProductIdLoader(DataLoader):
             variant_map[variant.product_id].append(variant)
             variant_loader.prime(variant.id, variant)
         return [variant_map.get(product_id, []) for product_id in keys]
+
+
+class ProductVariantChannelListingByIdLoader(DataLoader):
+    context_key = "productvariantchannelisting_by_id"
+
+    def batch_load(self, keys):
+        variants = ProductVariantChannelListing.objects.in_bulk(keys)
+        return [variants.get(key) for key in keys]
+
+
+class VariantChannelListingByVariantIdLoader(DataLoader):
+    context_key = "productvariantchannelisting_by_product"
+
+    def batch_load(self, keys):
+        variant_channel_listings = ProductVariantChannelListing.objects.filter(
+            variant_id__in=keys
+        )
+        variant_id_varaint_channel_listings_map = defaultdict(list)
+        for variant_channel_listing in variant_channel_listings:
+            variant_id_varaint_channel_listings_map[
+                variant_channel_listing.variant_id
+            ].append(variant_channel_listing)
+        return [
+            variant_id_varaint_channel_listings_map.get(variant_id, [])
+            for variant_id in keys
+        ]
 
 
 class VariantChannelListingByVariantIdAndChanneSlugLoader(

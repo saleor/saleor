@@ -1,7 +1,10 @@
 from graphene import relay
 
 from ....product import models
-from ...channel.dataloaders import ChannelByProductChannelListingIDLoader
+from ...channel.dataloaders import (
+    ChannelByProductChannelListingIDLoader,
+    ChannelByProductVariantChannelListingIDLoader,
+)
 from ...core.connection import CountableDjangoObjectType
 
 
@@ -15,3 +18,14 @@ class ProductChannelListing(CountableDjangoObjectType):
     @staticmethod
     def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):
         return ChannelByProductChannelListingIDLoader(info.context).load(root.id)
+
+
+class ProductVariantChannelListing(CountableDjangoObjectType):
+    class Meta:
+        description = "Represents product varaint channel listing."
+        model = models.ProductVariantChannelListing
+        interfaces = [relay.Node]
+        only_fields = ["id", "channel", "price"]
+
+    def resolve_channel(root: models.ProductVariantChannelListing, info, **_kwargs):
+        return ChannelByProductVariantChannelListingIDLoader(info.context).load(root.id)

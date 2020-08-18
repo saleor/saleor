@@ -333,6 +333,10 @@ class ProductQueries(graphene.ObjectType):
         return ChannelContext(node=variant, channel_slug=channel) if variant else None
 
     def resolve_product_variants(self, info, ids=None, channel=None, **_kwargs):
+        # TODO: This function should be called in lazy way,
+        # In some case we should allow to excute query without channel,
+        # for example. As staff user with `MANAGE_PRODUCTS` geting field not related
+        # to channels.
         if channel is None:
             channel = get_default_channel_or_graphql_error().slug
         return resolve_product_variants(info, ids=ids, channel_slug=channel)
