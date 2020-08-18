@@ -28,7 +28,7 @@ class ShippingMethodChannelListingAddInput(graphene.InputObjectType):
     max_value = Decimal(description="ID of a channel.")
 
 
-class ShippingMethodChannelListingUpdateInput(graphene.InputObjectType):
+class ShippingMethodChannelListingInput(graphene.InputObjectType):
     add_channels = graphene.List(
         graphene.NonNull(ShippingMethodChannelListingAddInput),
         description="",
@@ -45,7 +45,7 @@ class ShippingMethodChannelListingUpdateInput(graphene.InputObjectType):
 
 class ShippingMethodChannelListingCreate(BaseMutation):
     class Arguments:
-        input = ShippingMethodChannelListingAddInput(required=True, description="")
+        input = ShippingMethodChannelListingInput(required=True, description="")
 
     class Meta:
         description = "Manage shipping method's availability in channels."
@@ -59,7 +59,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListing):
 
     class Arguments:
         id = graphene.ID()
-        input = ShippingMethodChannelListingUpdateInput(required=True, description="")
+        input = ShippingMethodChannelListingInput(required=True, description="")
 
     class Meta:
         description = "Manage shipping method's availability in channels."
