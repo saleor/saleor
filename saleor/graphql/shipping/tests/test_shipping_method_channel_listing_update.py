@@ -5,7 +5,7 @@ from ...tests.utils import get_graphql_content
 SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION = """
 mutation UpdateShippingMethodChannelListing(
     $id: ID!
-    $input: ShippingMethodChannelListingUpdateInput!
+    $input: ShippingMethodChannelListingInput!
 ) {
     shippingMethodChannelListingUpdate(id: $id, input: $input) {
         shippingErrors {
