@@ -264,6 +264,7 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
+    available_for_purchase = models.DateField(blank=True, null=True)
     objects = ProductsQueryset.as_manager()
     translated = TranslationProxy()
 
