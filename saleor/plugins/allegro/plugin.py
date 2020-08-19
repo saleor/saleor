@@ -149,10 +149,10 @@ class AllegroPlugin(BasePlugin):
         return plugin_configuration
 
     def product_created(self, product: "Product", previous_value: Any) -> Any:
-
         allegro_api = AllegroAPI(self.config.token_value)
-        allegro_api.product_publish(saleor_product=product)
-
+        id = allegro_api.product_publish(saleor_product=product)
+        # print('Id', id)
+        pass
 
     def calculate_hours_to_token_expire(self):
         token_expire = datetime.strptime(self.config.token_access, '%d/%m/%Y %H:%M:%S')
@@ -262,11 +262,7 @@ class AllegroAPI:
 
         # print('Is published ', ['http://localhost:8000' + pi.image.url for pi in ProductImage.objects.filter(product=product)])
 
-        if saleor_product.private_metadata.get(
-                'publish.target') and saleor_product.private_metadata.get(
-            'publish.target') == 'allegro' \
-                and saleor_product.private_metadata.get(
-            'publish.status') == 'unpublished':
+        if saleor_product.private_metadata.get('publish.status') is None and saleor_product.is_published is False:
 
             categoryId = saleor_product.product_type.metadata[
                 'allegro.mapping.categoryId']
@@ -289,11 +285,30 @@ class AllegroAPI:
 
             if 'errors' in offer:
                 print('Wystąpił bład z zapisem', offer['errors'])
+                return None
             else:
-                self.update_status_and_publish_data_in_private_metadata(saleor_product)
                 offer_publication = self.offer_publication(offer['id'])
-        else:
-            self.set_allegro_private_metadata(saleor_product)
+
+                print(offer['validation'].get('errors'))
+                result = self.get_detailed_offer_publication(offer_publication['id'])
+
+                if offer['validation'].get('errors') is not None:
+                    if offer['validation'].get('errors')[0]['message'].startswith('Missing'):
+                        print(offer['validation'].get('errors')[0]['message'], 'dla ogłoszenia: ', 'https://allegro.pl.allegrosandbox.pl/offer/' +  offer['id'] + '/restore')
+                        self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], 'moderated', False)
+                else:
+                    self.update_status_and_publish_data_in_private_metadata(
+                        saleor_product, offer['id'], 'published', True)
+
+                return offer['id']
+
+        if saleor_product.private_metadata.get('publish.status') == 'moderated' and saleor_product.is_published is False:
+            offerId = saleor_product.private_metadata.get('publish.allegroId')
+            offer_publication = self.offer_publication(offerId)
+            result = self.get_detailed_offer_publication(offer_publication['id'])
+            self.update_status_and_publish_data_in_private_metadata(
+                saleor_product, offerId, 'published', True)
+
 
     def publish_to_allegro(self, allegro_product):
 
@@ -362,19 +377,19 @@ class AllegroAPI:
 
         return json.loads(response.text)['location']
 
-    def update_status_and_publish_data_in_private_metadata(self, product):
-
-        product.store_value_in_private_metadata({'publish.status': 'published'})
+    def update_status_and_publish_data_in_private_metadata(self, product, allegro_offer_id, status, is_published):
+        product.store_value_in_private_metadata({'publish.status': status})
         product.store_value_in_private_metadata(
             {'publish.date': datetime.today().strftime('%Y-%m-%d-%H:%M:%S')})
-        product.save(update_fields=["private_metadata"])
+        product.store_value_in_private_metadata({'publish.allegroId': str(allegro_offer_id)})
+        product.is_published = is_published
+        product.save(update_fields=["private_metadata", "is_published"])
 
-    def set_allegro_private_metadata(self, product):
+    def get_detailed_offer_publication(self, offer_id):
+        endpoint = 'sale/offer-publication-commands/' + str(offer_id) + '/tasks'
+        response = self.get_request(endpoint=endpoint)
 
-        product.store_value_in_private_metadata({'publish.target': 'allegro'})
-        product.store_value_in_private_metadata({'publish.status': 'unpublished'})
-        product.store_value_in_private_metadata({'publish.date': ''})
-        product.save(update_fields=["private_metadata"])
+        return json.loads(response.text)
 
     def offer_publication(self, offer_id):
 
@@ -454,43 +469,47 @@ class BaseParametersMapper():
     # TODO: rebuild, too much if conditionals, and add case when dictionary is empty like for bluzki dzieciece
     def create_allegro_parameter(self, mapped_parameter_key, mapped_parameter_value):
 
-        param = next((param for param in self.require_parameters if
-                      slugify(param["name"]) == mapped_parameter_key), None)
-        if param is not None:
-            if param.get('dictionary') is not None:
-                value = next((value for value in param['dictionary'] if
-                          value["value"] == mapped_parameter_value), None)
-                if value is not None:
-                    return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
-                        "rangeValue": None}
-                else:
-                    return None
-            else:
-                return {'id': param['id'], 'valuesIds': [], "values": [mapped_parameter_value], "rangeValue": None}
 
+        key = self.get_allegro_key(mapped_parameter_key)
+
+        if key.get('dictionary') is None:
+            value = self.set_allegro_typed_value(key, mapped_parameter_value)
+            return value
         else:
-            return None
+            value = self.set_allegro_value(key, mapped_parameter_value)
+            return value
+
+    def get_allegro_key(self, key):
+        param = next((param for param in self.require_parameters if
+                      slugify(param["name"]) == key), None)
+        return param
+
+    def set_allegro_value(self, param, mapped_value):
+        value = next((value for value in param['dictionary'] if
+                      value["value"] == mapped_value), None)
+        if value is not None:
+            return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
+                    "rangeValue": None}
+
+    def set_allegro_fuzzy_value(self, param, mapped_value):
+        value = next((value for value in param['dictionary'] if
+                      mapped_value in value["value"].lower()), None)
+        if value is not None:
+            return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
+                "rangeValue": None}
+
+    def set_allegro_typed_value(self, param, value):
+        if param.get('dictionary') is None and value is not None:
+            return {'id': param['id'], 'valuesIds': [],
+                    "values": [value], "rangeValue": None}
 
     # TODO: rebuild, too much if conditionals
     def create_allegro_fuzzy_parameter(self, mapped_parameter_key, mapped_parameter_value):
+        key = self.get_allegro_key(mapped_parameter_key)
+        if key is not None:
+            value = self.set_allegro_fuzzy_value(key, mapped_parameter_value)
 
-        param = next((param for param in self.require_parameters if
-                      slugify(param["name"]) == mapped_parameter_key), None)
-        if param is not None:
-            if param.get('dictionary') is not None:
-                value = next((value for value in param['dictionary'] if
-                          mapped_parameter_value in value["value"].lower()), None)
-                if value is not None:
-                    return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
-                        "rangeValue": None}
-                else:
-                    return None
-            else:
-                return {'id': param['id'], 'valuesIds': [], "values": [mapped_parameter_value], "rangeValue": None}
-
-        else:
-            return None
-
+        return value
 
 class AllegroParametersMapper(BaseParametersMapper):
 
@@ -524,7 +543,10 @@ class AllegroParametersMapper(BaseParametersMapper):
                 if isinstance(map, str):
                     return self.parse_list_to_map(json.loads(map.replace('\'', '\"'))).get(parameter)
                 else:
-                    return self.parse_list_to_map(json.loads(map)).get(parameter)
+                    if isinstance(map, list):
+                        return self.parse_list_to_map((map)).get(parameter)
+                    else:
+                        return self.parse_list_to_map(json.loads(map)).get(parameter)
 
     def get_global_parameter_map(self, parameter):
         config = self.get_plugin_configuration()
@@ -555,9 +577,10 @@ class AllegroParametersMapper(BaseParametersMapper):
         return self.product_attributes.get(parameter)
 
     def get_mapped_parameter_key_and_value(self, parameter):
-        mapped_parameter_key = self.get_global_parameter_key(parameter) or self.get_specyfic_parameter_key(parameter) or parameter
-        mapped_parameter_value = self.get_parameter_out_of_saleor(str(mapped_parameter_key))
 
+        mapped_parameter_key = self.get_global_parameter_key(parameter) or self.get_specyfic_parameter_key(parameter) or parameter
+
+        mapped_parameter_value = self.get_parameter_out_of_saleor(str(mapped_parameter_key))
         if mapped_parameter_value is not None:
             return slugify(str(mapped_parameter_key)), mapped_parameter_value
 
@@ -573,7 +596,7 @@ class AllegroParametersMapper(BaseParametersMapper):
             if bool(map):
                 return self.parse_list_to_map(map).get(parameter)
 
-    def get_universal_value_for_paramter(self, parameter):
+    def get_universal_value_parameter(self, parameter):
         mapped_parameter_map = self.get_global_parameter_map(parameter)
         if mapped_parameter_map is not None:
             return mapped_parameter_map.get("!")
@@ -583,12 +606,12 @@ class AllegroParametersMapper(BaseParametersMapper):
         allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
 
         if allegro_parameter is None:
-            mapped_parameter_value = self.get_universal_value_for_paramter(mapped_parameter_key)
+            mapped_parameter_value = self.get_universal_value_parameter(mapped_parameter_key)
             allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
         if allegro_parameter is None:
             allegro_parameter = self.create_allegro_fuzzy_parameter(slugify(parameter), str(mapped_parameter_value))
 
-        print('get_allegro_parameter', slugify(parameter), mapped_parameter_value, allegro_parameter)
+        print('get_allegro_parameter', slugify(parameter), mapped_parameter_key, mapped_parameter_value, allegro_parameter)
         return allegro_parameter
 
 
@@ -782,6 +805,7 @@ class AllegroProductMapper:
 
         self.set_starting_price_amount(
             str(self.saleor_product.minimal_variant_price_amount))
+
         self.set_starting_price_currency('PLN')
         self.set_name(self.saleor_product.name)
         self.set_images(self.saleor_images)
@@ -794,7 +818,7 @@ class AllegroProductMapper:
         self.set_stock_unit('SET')
         self.set_publication_duration('PT72H')
         self.set_publication_ending_at('')
-        self.set_publication_starting_at('2020-07-25T08:03:59Z')
+        # self.set_publication_starting_at('2020-07-25T08:03:59Z')
         self.set_publication_status('INACTIVE')
         self.set_publication_ended_by('USER')
         self.set_publication_republish('False')

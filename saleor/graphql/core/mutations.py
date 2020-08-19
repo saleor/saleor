@@ -12,6 +12,7 @@ from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
+from saleor.product.models import Product
 
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
@@ -547,6 +548,11 @@ class BaseBulkMutation(BaseMutation):
         instance_model = cls._meta.model
         model_type = registry.get_type_for_model(instance_model)
         instances = cls.get_nodes_or_error(ids, "id", model_type)
+
+        if type(instance_model) == type(Product):
+            for instance in instances:
+                info.context.plugins.product_created(instance)
+
         for instance, node_id in zip(instances, ids):
             instance_errors = []
 
@@ -569,6 +575,10 @@ class BaseBulkMutation(BaseMutation):
         if errors:
             errors = ValidationError(errors)
         count = len(clean_instance_ids)
+
+        if type(instance_model) == type(Product):
+            return count, errors
+
         if count:
             qs = instance_model.objects.filter(pk__in=clean_instance_ids)
             cls.bulk_action(queryset=qs, **data)
