@@ -845,6 +845,7 @@ MUTATION_CHECKOUT_LINES_ADD = """
                 field
                 code
                 message
+                variants
             }
         }
     }"""
@@ -905,6 +906,34 @@ def test_checkout_lines_add_with_unpublished_product(
     assert error["code"] == "PRODUCT_NOT_PUBLISHED"
 
 
+def test_checkout_lines_add_with_unavailable_for_purchase_product(
+    user_api_client, checkout_with_item, stock
+):
+    # given
+    variant = stock.product_variant
+    product = stock.product_variant.product
+    product.available_for_purchase = None
+    product.save(update_fields=["available_for_purchase"])
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    content = get_graphql_content(response)
+    error = content["data"]["checkoutLinesAdd"]["checkoutErrors"][0]
+    assert error["field"] == "lines"
+    assert error["code"] == CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name
+    assert error["variants"] == [variant_id]
+
+
 def test_checkout_lines_add_too_many(user_api_client, checkout_with_item, stock):
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
@@ -923,6 +952,7 @@ def test_checkout_lines_add_too_many(user_api_client, checkout_with_item, stock)
             "field": "quantity",
             "message": "Cannot add more than 50 times this item.",
             "code": "QUANTITY_GREATER_THAN_LIMIT",
+            "variants": None,
         }
     ]
 
