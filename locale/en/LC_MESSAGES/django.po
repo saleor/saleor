@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-07-08 07:57+0000\n"
+"POT-Creation-Date: 2020-08-18 23:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -369,6 +369,33 @@ msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr ""
 
+#: templates/templated_email/order/order_cancel.email:4
+#, python-format
+msgctxt "Order cancel e-mail subject"
+msgid "Order %(order)s canceled"
+msgstr ""
+
+#: templates/templated_email/order/order_cancel.email:11
+msgctxt "Order cancel e-mail text"
+msgid ""
+"\n"
+"Your order has been canceled.\n"
+msgstr ""
+
+#: templates/templated_email/order/order_refund.email:4
+#, python-format
+msgctxt "Order refund e-mail subject"
+msgid "Order %(order)s refunded"
+msgstr ""
+
+#: templates/templated_email/order/order_refund.email:11
+#, python-format
+msgctxt "Order refund e-mail text"
+msgid ""
+"\n"
+"A payment of %(amount)s %(currency)s has been refunded for your order.\n"
+msgstr ""
+
 #: templates/templated_email/order/payment/confirm_payment.email:4
 #, python-format
 msgctxt "Payment confirmation subject"
@@ -446,6 +473,8 @@ msgstr ""
 #: templates/templated_email/source/email_changed_notification.mjml:13
 #: templates/templated_email/source/export_failed.mjml:13
 #: templates/templated_email/source/export_products_file.mjml:13
+#: templates/templated_email/source/order_cancel.mjml:13
+#: templates/templated_email/source/order_refund.mjml:13
 #: templates/templated_email/source/password_reset.mjml:13
 #: templates/templated_email/source/request_email_change.mjml:13
 #: templates/templated_email/source/send_invoice.mjml:13
@@ -535,6 +564,17 @@ msgctxt "Export products e-mail text"
 msgid ""
 "Your file with products data is ready to download: <a href=\"%(csv_link)s\">"
 "%(csv_link)s</a>"
+msgstr ""
+
+#: templates/templated_email/source/order_cancel.mjml:16
+msgctxt "Order cancel e-mail text"
+msgid "Your order has been canceled."
+msgstr ""
+
+#: templates/templated_email/source/order_refund.mjml:16
+#, python-format
+msgctxt "Order refund e-mail text"
+msgid "A payment of %(amount)s %(currency)s has been refunded for your order."
 msgstr ""
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
