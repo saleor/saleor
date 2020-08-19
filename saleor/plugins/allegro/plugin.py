@@ -15,7 +15,7 @@ from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from saleor.plugins.manager import get_plugins_manager
 from saleor.plugins.models import PluginConfiguration
 from saleor.product.models import Product, AssignedProductAttribute, \
-    AttributeValue
+    AttributeValue, ProductImage
 
 
 @dataclass
@@ -26,7 +26,6 @@ class AllegroConfiguration:
     token_value: str
     client_id: str
     client_secret: str
-    global_map_data: str
     refresh_token: str
 
 
@@ -36,22 +35,21 @@ class AllegroPlugin(BasePlugin):
     PLUGIN_NAME_2 = "Allegro"
     META_CODE_KEY = "AllegroPlugin.code"
     META_DESCRIPTION_KEY = "AllegroPlugin.description"
-    DEFAULT_CONFIGURATION = [{"name": "redirect_url", "value": None},
+    DEFAULT_CONFIGURATION = [{"name": "redirect_url", "value": "https://allegro.pl.allegrosandbox.pl/auth/oauth"},
                              {"name": "callback_url", "value": None},
                              {"name": "token_access", "value": None},
                              {"name": "token_value", "value": None},
                              {"name": "client_id", "value": None},
                              {"name": "client_secret", "value": None},
-                             {"name": "global_map_data", "value": None},
                              {"name": "refresh_token", "value": None}]
     CONFIG_STRUCTURE = {
         "redirect_url": {
             "type": ConfigurationTypeField.STRING,
-            "label": "Podaj redirect URL?",
+            "label": "Redirect URL np: https://allegro.pl.allegrosandbox.pl/auth/oauth",
         },
         "callback_url": {
             "type": ConfigurationTypeField.STRING,
-            "label": "Podaj callback URL?",
+            "label": "Callback URL",
         },
         "token_access": {
             "type": ConfigurationTypeField.STRING,
@@ -60,27 +58,22 @@ class AllegroPlugin(BasePlugin):
         },
         "token_value": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": "Access token.",
+            "help_text": "Wartośc tokena.",
             "label": "Wartość tokena.",
         },
         "client_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "Access token.",
-            "label": "Wartość id klienta allegro.",
+            "help_text": "ID klienta allegro",
+            "label": "ID klienta allegro.",
         },
         "client_secret": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": "Access token.",
             "label": "Wartość klucza.",
         },
-        "global_map_data": {
-            "type": ConfigurationTypeField.STRING,
-            "help_text": "",
-            "label": "Dane dla globalnego mappera.",
-        },
         "refresh_token": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": "",
+            "help_text": "Wartośc refresh tokena.",
             "label": "Refresh token.",
         }
 
@@ -97,12 +90,11 @@ class AllegroPlugin(BasePlugin):
                                            token_value=configuration["token_value"],
                                            client_id=configuration["client_id"],
                                            client_secret=configuration["client_secret"],
-                                           global_map_data=configuration["global_map_data"],
                                            refresh_token=configuration["refresh_token"])
 
-        HOURS_LESS_THAN_WE_REFRESH_TOKEN = 2
+        HOURS_LESS_THAN_WE_REFRESH_TOKEN = 6
 
-        if self.calculate_hours_to_token_expire() < HOURS_LESS_THAN_WE_REFRESH_TOKEN:
+        if self.config.token_access and self.calculate_hours_to_token_expire() < HOURS_LESS_THAN_WE_REFRESH_TOKEN:
             access_token, refresh_token, expires_in = AllegroAPI(self.config.token_access).refresh_token(self.config.refresh_token, self.config.client_id, self.config.client_secret) or (None, None, None)
             if access_token and refresh_token and expires_in is not None:
                 AllegroAuth.save_token_in_plugin_configuration(AllegroAuth, access_token, refresh_token, expires_in)
@@ -156,9 +148,7 @@ class AllegroPlugin(BasePlugin):
 
     def calculate_hours_to_token_expire(self):
         token_expire = datetime.strptime(self.config.token_access, '%d/%m/%Y %H:%M:%S')
-
         duration = token_expire - datetime.now()
-
         return divmod(duration.total_seconds(), 3600)[0]
 
 class AllegroAuth:
@@ -260,7 +250,6 @@ class AllegroAPI:
 
     def product_publish(self, saleor_product):
 
-        # print('Is published ', ['http://localhost:8000' + pi.image.url for pi in ProductImage.objects.filter(product=product)])
 
         if saleor_product.private_metadata.get('publish.status') is None and saleor_product.is_published is False:
 
@@ -277,7 +266,7 @@ class AllegroAPI:
             product_mapper = ProductMapperFactory().getMapper()
 
             product = product_mapper.set_saleor_product(saleor_product) \
-                .set_saleor_images(self.upload_images()) \
+                .set_saleor_images(self.upload_images(saleor_product)) \
                 .set_saleor_parameters(parameters) \
                 .set_category(categoryId).run_mapper()
 
@@ -365,16 +354,20 @@ class AllegroAPI:
 
         return requireParams
 
-    def upload_images(self):
+    def upload_images(self, saleor_product):
 
+        images_url = ['https://saleor-test-media.s3.amazonaws.com' + pi.image.url.replace('/media', '') for pi in ProductImage.objects.filter(product=saleor_product)]
+
+        return [self.upload_image(image_url) for image_url in images_url]
+
+    def upload_image(self, url):
         endpoint = 'sale/images'
 
         data = {
-            "url": "https://cdn.shoplo.com/0986/products/th2048/bca3/197520-eleganckie-body-z-dekoltem-v.jpg"
+            "url": url
         }
 
         response = self.post_request(endpoint=endpoint, data=data)
-
         return json.loads(response.text)['location']
 
     def update_status_and_publish_data_in_private_metadata(self, product, allegro_offer_id, status, is_published):
@@ -455,7 +448,7 @@ class BaseParametersMapper():
 
         for assigned_product_attribute in assigned_product_attributes:
             try:
-                attributes[(str(assigned_product_attribute.assignment.attribute.slug)).lower()] = \
+                attributes[slugify(str(assigned_product_attribute.assignment.attribute.slug))] = \
                     str(AttributeValue.objects.get(assignedproductattribute=assigned_product_attribute))
 
             except AttributeValue.DoesNotExist:
@@ -528,6 +521,10 @@ class AllegroParametersMapper(BaseParametersMapper):
         return self.mapped_parameters
 
     def get_specyfic_parameter_key(self, parameter):
+
+        if parameter == 'Materiał dominujący':
+            return 'Materiał'
+
         map = self.product.product_type.metadata.get('allegro.mapping.attributes')
         if map is not None:
             map = [m for m in map if '*' not in m]
@@ -551,6 +548,7 @@ class AllegroParametersMapper(BaseParametersMapper):
     def get_global_parameter_map(self, parameter):
         config = self.get_plugin_configuration()
         map = config.get('allegro.mapping.' + parameter)
+        print(parameter, 'get_global_parameter_map', map)
         if map is not None:
             if isinstance(map, str):
                 return self.parse_list_to_map(json.loads(map.replace('\'', '\"')))
@@ -725,8 +723,9 @@ class AllegroProductMapper:
         self.saleor_images = id
         return self
 
-    def set_images(self, id):
-        self.product['images'] = [{'url': id}]
+    def set_images(self, images):
+
+        self.product['images'] = [{'url': image} for image in images]
         return self
 
     def set_description(self, id):
