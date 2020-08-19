@@ -15,4 +15,5 @@ class ProductErrorCode(Enum):
     REQUIRED = "required"
     UNIQUE = "unique"
     VARIANT_NO_DIGITAL_CONTENT = "variant_no_digital_content"
-    CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT = "CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT"
+    CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT = "cannot_manage_product_without_variant"
+    PRODUCT_NOT_ASSIGNED_TO_CHANNEL = "product_not_assigned_to_channel"

@@ -27,5 +27,6 @@ class ProductVariantChannelListing(CountableDjangoObjectType):
         interfaces = [relay.Node]
         only_fields = ["id", "channel", "price"]
 
+    @staticmethod
     def resolve_channel(root: models.ProductVariantChannelListing, info, **_kwargs):
         return ChannelByProductVariantChannelListingIDLoader(info.context).load(root.id)

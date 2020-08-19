@@ -7,17 +7,21 @@ from django.db import transaction
 
 from ....core.permissions import ProductPermissions
 from ....product.error_codes import ProductErrorCode
-from ....product.models import ProductChannelListing
+from ....product.models import ProductChannelListing, ProductVariantChannelListing
 from ...channel import ChannelContext
 from ...channel.types import Channel
 from ...core.mutations import BaseMutation
+from ...core.scalars import Decimal
 from ...core.types.common import ProductChannelListingError
 from ...core.utils import get_duplicated_values, get_duplicates_ids
 from ...utils import resolve_global_ids_to_primary_keys
-from ..types.products import Product
+from ..types.products import Product, ProductVariant
 
 if TYPE_CHECKING:
-    from ....product.models import Product as ProductModel
+    from ....product.models import (
+        Product as ProductModel,
+        ProductVariant as ProductVariantModel,
+    )
     from ....channel.models import Channel as ChannelModel
 
 ErrorType = DefaultDict[str, List[ValidationError]]
@@ -182,4 +186,144 @@ class ProductChannelListingUpdate(BaseMutation):
         cls.save(info, product, cleaned_input)
         return ProductChannelListingUpdate(
             product=ChannelContext(node=product, channel_slug=None)
+        )
+
+
+class ProductVariantChannelListingAddInput(graphene.InputObjectType):
+    channel_id = graphene.ID(required=True, description="ID of a channel.")
+    price = Decimal(
+        required=True, description="Price of the particular variant in channel."
+    )
+
+
+# TODO: Use BaseChannelListingMutation after rebase.
+class ProductVaraintChannelListingUpdate(BaseMutation):
+    variant = graphene.Field(
+        ProductVariant, description="An updated product variant instance."
+    )
+
+    class Arguments:
+        id = graphene.ID(
+            required=True, description="ID of a product variant to update."
+        )
+        input = graphene.List(
+            graphene.NonNull(ProductVariantChannelListingAddInput),
+            required=True,
+            description=(
+                "List of fields required to create product variant channel listings."
+            ),
+        )
+
+    class Meta:
+        description = "Manage product varaint prices in channels."
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = ProductChannelListingError
+        error_type_field = "products_errors"
+
+    @classmethod
+    def clean_channels(cls, info, input, errors: ErrorType) -> List:
+        add_channels_ids = [
+            channel_listing_data["channel_id"] for channel_listing_data in input
+        ]
+        cleaned_input = []
+
+        duplicates = get_duplicated_values(add_channels_ids)
+        if duplicates:
+            errors["channelId"].append(
+                ValidationError(
+                    "Duplicated channel ID.",
+                    code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+                    params={"channels": duplicates},
+                )
+            )
+        else:
+            channels: List["ChannelModel"] = []
+            if add_channels_ids:
+                channels = cls.get_nodes_or_error(
+                    add_channels_ids, "channel_id", Channel
+                )
+            for channel_listing_data, channel in zip(input, channels):
+                channel_listing_data["channel"] = channel
+                cleaned_input.append(channel_listing_data)
+        return cleaned_input
+
+    @classmethod
+    def validate_product_assigned_to_channel(
+        cls, variant: "ProductVariantModel", cleaned_input: List, errors: ErrorType
+    ):
+        channel_pks = [
+            channel_listing_data["channel"].pk for channel_listing_data in cleaned_input
+        ]
+        channels_assigned_to_product = list(
+            ProductChannelListing.objects.filter(
+                product=variant.product_id
+            ).values_list("channel_id", flat=True)
+        )
+        channels_not_assigned_to_product = set(channel_pks) - set(
+            channels_assigned_to_product
+        )
+        if channels_not_assigned_to_product:
+            channel_global_ids = []
+            for channel_listing_data in cleaned_input:
+                if (
+                    channel_listing_data["channel"].pk
+                    in channels_not_assigned_to_product
+                ):
+                    channel_global_ids.append(channel_listing_data["channel_id"])
+            errors["input"].append(
+                ValidationError(
+                    "Product not available in channels.",
+                    code=ProductErrorCode.PRODUCT_NOT_ASSIGNED_TO_CHANNEL.value,
+                    params={"channels": channel_global_ids},
+                )
+            )
+
+    @classmethod
+    def clean_prices(cls, info, cleaned_input, errors: ErrorType) -> List:
+        channels_with_invalid_price = []
+        for channel_listing_data in cleaned_input:
+            price = channel_listing_data.get("price")
+            if price is not None and price < 0:
+                channels_with_invalid_price.append(channel_listing_data["channel_id"])
+        if channels_with_invalid_price:
+            errors["price"].append(
+                ValidationError(
+                    "Product price cannot be lower than 0.",
+                    code=ProductErrorCode.INVALID.value,
+                    params={"channels": channels_with_invalid_price},
+                )
+            )
+        return cleaned_input
+
+    @classmethod
+    @transaction.atomic()
+    def save(cls, info, variant: "ProductVariantModel", cleaned_input: List):
+        for channel_listing_data in cleaned_input:
+            channel = channel_listing_data["channel"]
+            defaults = {
+                "price_amount": channel_listing_data.get("price"),
+                "currency": channel.currency_code,
+            }
+            ProductVariantChannelListing.objects.update_or_create(
+                variant=variant, channel=channel, defaults=defaults,
+            )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id, input):
+        variant: "ProductVariantModel" = cls.get_node_or_error(  # type: ignore
+            info, id, only_type=ProductVariant, field="id"
+        )
+        errors = defaultdict(list)
+
+        cleaned_input = cls.clean_channels(info, input, errors)
+        cls.validate_product_assigned_to_channel(variant, cleaned_input, errors)
+        cleaned_input = cls.clean_prices(info, cleaned_input, errors)
+
+        if errors:
+            raise ValidationError(errors)
+
+        cls.save(info, variant, cleaned_input)
+
+        return ProductVaraintChannelListingUpdate(
+            variant=ChannelContext(node=variant, channel_slug=None)
         )
