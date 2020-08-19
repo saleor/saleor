@@ -62,7 +62,8 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
     try:
         response = client.execute(request)
     except IOError as ioe:
-        error_message = getattr(ioe, "status_code", repr(ioe))
+        # Limit message length not to incur in db write error
+        error_message = ioe.message[0:255]
         return GatewayResponse(
             is_success=False,
             action_required=False,
@@ -98,6 +99,8 @@ def _build_request_body(amount: float, currency: str):
 def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     # For reference, see:
     # https://github.com/paypal/Checkout-Python-SDK/blob/develop/sample/refund_order.py
+    # Warning: in sandbox mode, refunds can be rejected for unclear reasons by the
+    # Paypal Api.
     client = get_paypal_client(**config.connection_params)
     request = CapturesRefundRequest(payment_information.token)
     request.prefer("return=representation")
@@ -109,7 +112,8 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
     try:
         response = client.execute(request)
     except IOError as ioe:
-        error_message = getattr(ioe, "status_code", repr(ioe))
+        # Limit message length not to incur in db write error
+        error_message = ioe.message[0:255]
         return GatewayResponse(
             is_success=False,
             action_required=False,
