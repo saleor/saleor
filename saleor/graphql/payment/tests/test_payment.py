@@ -10,7 +10,7 @@ from ....payment.gateways.dummy_credit_card import (
     TOKEN_EXPIRED,
     TOKEN_VALIDATION_MAPPING,
 )
-from ....payment.interface import CreditCardInfo, CustomerSource, TokenConfig
+from ....payment.interface import CustomerSource, PaymentMethodInfo, TokenConfig
 from ....payment.models import ChargeStatus, Payment, TransactionKind
 from ....payment.utils import fetch_customer_id, store_customer_id
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -204,12 +204,14 @@ def test_checkout_add_payment(
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    return_url = "https://www.example.com"
     variables = {
         "checkoutId": checkout_id,
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
+            "returnUrl": return_url,
         },
     }
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
@@ -229,6 +231,7 @@ def test_checkout_add_payment(
     assert payment.billing_address_1 == checkout.billing_address.street_address_1
     assert payment.billing_first_name == checkout.billing_address.first_name
     assert payment.billing_last_name == checkout.billing_address.last_name
+    assert payment.return_url == return_url
 
 
 def test_checkout_add_payment_default_amount(
@@ -774,9 +777,7 @@ def test_list_payment_sources(
         }
     }
     """
-    card = CreditCardInfo(
-        last_4="5678", exp_year=2020, exp_month=12, name_on_card="JohnDoe"
-    )
+    card = PaymentMethodInfo(last_4="5678", exp_year=2020, exp_month=12, name="JohnDoe")
     source = CustomerSource(id="test1", gateway=gateway, credit_card_info=card)
     mock_get_source_list = mocker.patch(
         "saleor.graphql.account.resolvers.gateway.list_payment_sources",
@@ -795,9 +796,7 @@ def test_stored_payment_sources_restriction(
     mocker, staff_api_client, customer_user, permission_manage_users
 ):
     # Only owner of storedPaymentSources can fetch it.
-    card = CreditCardInfo(
-        last_4="5678", exp_year=2020, exp_month=12, name_on_card="JohnDoe"
-    )
+    card = PaymentMethodInfo(last_4="5678", exp_year=2020, exp_month=12, name="JohnDoe")
     source = CustomerSource(id="test1", gateway="dummy", credit_card_info=card)
     mocker.patch(
         "saleor.graphql.account.resolvers.gateway.list_payment_sources",

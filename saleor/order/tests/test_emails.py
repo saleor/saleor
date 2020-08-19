@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest import mock
 
 import pytest
@@ -5,7 +6,7 @@ from templated_email import get_connection
 
 from ...invoice import emails as invoice_emails
 from ...invoice.models import Invoice
-from ...order import emails as emails
+from ...order import OrderEvents, emails as emails
 from ..utils import add_variant_to_draft_order
 
 
@@ -279,3 +280,81 @@ def test_send_fulfillment_emails_with_tracking_number_as_url(
     # Render the email to ensure there is no error
     email_connection = get_connection()
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+@mock.patch("saleor.order.emails.send_templated_mail")
+def test_send_email_order_canceled(mocked_templated_email, order, site_settings):
+    # given
+    template = emails.ORDER_CANCEl_TEMPLATE
+
+    # when
+    emails.send_order_canceled(order.pk)
+
+    # then
+    email_data = emails.collect_data_for_email(order.pk, template)
+    recipients = [order.get_customer_email()]
+    expected_call_kwargs = {
+        "context": email_data["context"],
+        "from_email": site_settings.default_from_email,
+        "template_name": template,
+    }
+
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=recipients, **expected_call_kwargs
+    )
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+@mock.patch("saleor.order.emails.send_templated_mail")
+def test_send_email_order_refunded(mocked_templated_email, order, site_settings):
+    # given
+    template = emails.ORDER_REFUND_TEMPLATE
+    amount = order.total.gross.amount
+
+    # when
+    emails.send_order_refunded(order.pk, amount, order.currency)
+
+    # then
+    email_data = emails.collect_data_for_email(order.pk, template)
+    email_data["context"].update({"amount": amount, "currency": order.currency})
+    recipients = [order.get_customer_email()]
+    expected_call_kwargs = {
+        "context": email_data["context"],
+        "from_email": site_settings.default_from_email,
+        "template_name": template,
+    }
+
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=recipients, **expected_call_kwargs
+    )
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+@mock.patch("saleor.order.emails.send_order_refunded.delay")
+def test_send_order_refunded_confirmation(send_order_refunded_mock, order):
+    # when
+    emails.send_order_refunded_confirmation(order, order.user, Decimal(5), "USD")
+
+    # then
+    send_order_refunded_mock.assert_called_once_with(order.pk, Decimal(5), "USD")
+
+    order_event = order.events.last()
+    assert order_event.type == OrderEvents.EMAIL_SENT
+
+
+@mock.patch("saleor.order.emails.send_order_canceled.delay")
+def test_send_order_canceled_confirmation(send_order_canceled_mock, order):
+    # when
+    emails.send_order_canceled_confirmation(order, order.user)
+
+    # then
+    send_order_canceled_mock.assert_called_once_with(order.pk)
+
+    order_event = order.events.last()
+    assert order_event.type == OrderEvents.EMAIL_SENT

@@ -16,7 +16,8 @@ from ..account.utils import store_user_address
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import ProductNotPublished
-from ..core.taxes import quantize_price, zero_taxed_money
+from ..core.prices import quantize_price
+from ..core.taxes import zero_taxed_money
 from ..core.utils.promo_code import (
     InvalidPromoCode,
     promo_code_is_gift_card,
@@ -668,8 +669,7 @@ def prepare_order_data(
     )
 
     order_data["lines"] = [
-        create_line_for_order(checkout_line=line, discounts=discounts)
-        for line in checkout
+        create_line_for_order(checkout_line=line, discounts=discounts) for line in lines
     ]
 
     # validate checkout gift cards
@@ -681,7 +681,7 @@ def prepare_order_data(
     # assign gift cards to the order
 
     order_data["total_price_left"] = (
-        manager.calculate_checkout_subtotal(checkout, list(checkout), discounts)
+        manager.calculate_checkout_subtotal(checkout, lines, discounts)
         + shipping_total
         - checkout.discount
     ).gross

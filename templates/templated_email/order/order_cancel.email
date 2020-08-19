@@ -1,0 +1,20 @@
+{% load i18n %}
+
+{% block subject %}
+  {% blocktrans trimmed context "Order cancel e-mail subject" %}
+    Order {{ order }} canceled
+  {% endblocktrans %}
+{% endblock %}
+
+{% block plain %}
+{% include 'templated_email/shared/_header.email' %}
+{% blocktrans context "Order cancel e-mail text" %}
+Your order has been canceled.
+{% endblocktrans %}
+
+{% include 'templated_email/shared/_footer.email' %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/compiled/order_cancel.html' %}
+{% endblock %}

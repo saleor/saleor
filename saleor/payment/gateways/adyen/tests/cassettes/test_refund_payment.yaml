@@ -1,0 +1,47 @@
+interactions:
+- request:
+    body: '{"merchantAccount": "SaleorECOM", "modificationAmount": {"value": "123400",
+      "currency": "USD"}, "originalReference": "882595494831959A", "reference": "UGF5bWVudDoxNw==",
+      "applicationInfo": {"adyenLibrary": {"name": "adyen-python-api-library", "version":
+      "3.0.0"}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '264'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - adyen-python-api-library/3.0.0
+      x-api-key:
+      - test_key
+    method: POST
+    uri: https://pal-test.adyen.com/pal/servlet/Payment/v49/refund
+  response:
+    body:
+      string: '{"pspReference":"882595499620961A","response":"[refund-received]"}'
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Type:
+      - application/json;charset=utf-8
+      Date:
+      - Thu, 23 Jul 2020 10:20:20 GMT
+      Keep-Alive:
+      - timeout=15, max=100
+      Server:
+      - Apache
+      Set-Cookie:
+      - JSESSIONID=CCAF8102936D95679B14D48AA7EC21B5.test104e; Path=/pal; Secure; HttpOnly
+      Transfer-Encoding:
+      - chunked
+      pspReference:
+      - 882595499620961A
+    status:
+      code: 200
+      message: '200'
+version: 1

@@ -11,6 +11,7 @@ from ...channel.exceptions import ChannelNotDefined
 from ...channel.models import Channel
 from ...channel.utils import get_default_channel
 from ...checkout import models
+from ...checkout.calculations import calculate_checkout_total_with_gift_cards
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
     abort_order_data,
@@ -766,6 +767,12 @@ class CheckoutComplete(BaseMutation):
             " before checkout is complete."
         ),
     )
+    confirmation_data = graphene.JSONString(
+        required=False,
+        description=(
+            "Confirmation data used to process additional authorization steps."
+        ),
+    )
 
     class Arguments:
         checkout_id = graphene.ID(description="Checkout ID.", required=True)
@@ -782,6 +789,12 @@ class CheckoutComplete(BaseMutation):
                 "see the order details. URL in RFC 1808 format."
             ),
         )
+        payment_data = graphene.JSONString(
+            required=False,
+            description=(
+                "Client-side generated data required to finalize the payment."
+            ),
+        )
 
     class Meta:
         description = (
@@ -794,6 +807,20 @@ class CheckoutComplete(BaseMutation):
         )
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+
+    @classmethod
+    def validate_payment_amount(cls, discounts, payment, checkout):
+        if (
+            payment.total
+            != calculate_checkout_total_with_gift_cards(
+                checkout, discounts
+            ).gross.amount
+        ):
+            gateway.payment_refund_or_void(payment)
+            raise ValidationError(
+                "Payment does not cover all checkout value.",
+                code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,
+            )
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, store_source, **data):
@@ -823,6 +850,17 @@ class CheckoutComplete(BaseMutation):
 
         payment = checkout.get_last_active_payment()
 
+        cls.validate_payment_amount(discounts, payment, checkout)
+
+        redirect_url = data.get("redirect_url", "")
+        if redirect_url:
+            try:
+                validate_storefront_url(redirect_url)
+            except ValidationError as error:
+                raise ValidationError(
+                    {"redirect_url": error}, code=AccountErrorCode.INVALID
+                )
+
         with transaction.atomic():
             try:
                 order_data = prepare_order_data(
@@ -832,6 +870,7 @@ class CheckoutComplete(BaseMutation):
                     discounts=discounts,
                 )
             except InsufficientStock as e:
+                gateway.payment_refund_or_void(payment)
                 raise ValidationError(
                     f"Insufficient product stock: {e.item}", code=e.code
                 )
@@ -857,12 +896,14 @@ class CheckoutComplete(BaseMutation):
         payment_confirmation = payment.to_confirm
         try:
             if payment_confirmation:
-                txn = gateway.confirm(payment)
+                txn = gateway.confirm(payment, additional_data=data.get("payment_data"))
             else:
                 txn = gateway.process_payment(
-                    payment=payment, token=payment.token, store_source=store_source
+                    payment=payment,
+                    token=payment.token,
+                    store_source=store_source,
+                    additional_data=data.get("payment_data"),
                 )
-
             if not txn.is_success:
                 raise PaymentError(txn.error)
 
@@ -873,18 +914,9 @@ class CheckoutComplete(BaseMutation):
         if txn.customer_id and user.is_authenticated:
             store_customer_id(user, payment.gateway, txn.customer_id)
 
-        redirect_url = data.get("redirect_url", "")
-        if redirect_url:
-            try:
-                validate_storefront_url(redirect_url)
-            except ValidationError as error:
-                raise ValidationError(
-                    {"redirect_url": error}, code=AccountErrorCode.INVALID
-                )
-
         order = None
+
         if not txn.action_required:
-            # create the order into the database
             order = create_order(
                 checkout=checkout,
                 order_data=order_data,
@@ -895,10 +927,13 @@ class CheckoutComplete(BaseMutation):
             # remove checkout after order is successfully paid
             checkout.delete()
 
-            # return the success response with the newly created order data
-            return CheckoutComplete(order=order, confirmation_needed=False)
-
-        return CheckoutComplete(order=None, confirmation_needed=True)
+        # If gateway returns information that additional steps are required we need
+        # to inform the frontend and pass all required data
+        return CheckoutComplete(
+            order=order,
+            confirmation_needed=txn.action_required,
+            confirmation_data=txn.action_required_data if txn.action_required else {},
+        )
 
 
 class CheckoutAddPromoCode(BaseMutation):

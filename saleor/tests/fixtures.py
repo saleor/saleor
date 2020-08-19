@@ -7,6 +7,7 @@ from io import BytesIO
 from typing import List, Optional
 from unittest.mock import MagicMock, Mock
 
+import graphene
 import pytest
 import pytz
 from django.conf import settings
@@ -1614,7 +1615,7 @@ def payment_txn_to_confirm(order_with_lines, payment_dummy):
 
     payment.transactions.create(
         amount=payment.total,
-        kind=TransactionKind.CAPTURE,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
         gateway_response={},
         is_success=True,
         action_required=True,
@@ -1658,10 +1659,12 @@ def dummy_gateway_config():
 
 
 @pytest.fixture
-def dummy_payment_data():
+def dummy_payment_data(payment_dummy):
     return PaymentData(
-        amount=10,
+        amount=Decimal(10),
         currency="USD",
+        graphql_payment_id=graphene.Node.to_global_id("Payment", payment_dummy.pk),
+        payment_id=payment_dummy.pk,
         billing=None,
         shipping=None,
         order_id=None,
@@ -2017,7 +2020,7 @@ def payment_dummy(db, order_with_lines):
         is_active=True,
         cc_first_digits="4111",
         cc_last_digits="1111",
-        cc_brand="VISA",
+        cc_brand="visa",
         cc_exp_month=12,
         cc_exp_year=2027,
         total=order_with_lines.total.gross.amount,
@@ -2043,7 +2046,7 @@ def payment_dummy_credit_card(db, order_with_lines):
         is_active=True,
         cc_first_digits="4111",
         cc_last_digits="1111",
-        cc_brand="VISA",
+        cc_brand="visa",
         cc_exp_month=12,
         cc_exp_year=2027,
         total=order_with_lines.total.gross.amount,

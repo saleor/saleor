@@ -1,0 +1,101 @@
+interactions:
+- request:
+    body: '{"amount": {"value": "123400", "currency": "USD"}, "reference": "UGF5bWVudDoxNw==",
+      "paymentMethod": {"type": "scheme", "holderName": "John Doe", "encryptedCardNumber":
+      "adyenjs_0_1_25$I4hADbyBrUvNV2Zv+lQcRZdBtj0pYYjRHweEJ7NgT+Lk91H77GhomGxuSuyQKE71qyOdloMBI/dB9AhYLzM3WkkpOdO903XHQfceMHrbfrMw7yYOcLg99bSYx3E0kgr1jgG0bNSnwG6SHW7bZO+ZC+FJ96juHFwjLIIsWVtZ0SCvhXdMdsvQwIGAQ6ry+J7AdVaAcLRWYQRwVl05CaXOTqoSIiwWgrj9nucbQfKVGaoi/eldsFzbs0Ou72ap9piKo0+1wtj4SMjJUPX8WO37uWZUgH2RjKRDCVAZgc7V2DbaZKmU5o9LHyFxEnjn37zTxf+XiEQWxYpfMFJc0+66WA==$rdYYJn4cYOlzPDauDrb5WW7x6RQzzyJrk8RuipaqxsUeGbmkJRh+JKogznXcLoRDltUcFITY2+hsYlfmCMq0Xii8mpBUJfHNJSwz/23/DPykr5uYPDWJctrsxnvl3/eNziPrymrXSW39gDAV50gG6xsce5gSybXoya8iJG5FGKIQi+0yrp6H4+c/dCMOXi7zj2tZl7WJg+Mm9KoCy0QuN9OzVjfNdWMUDlnNic08/8+jZlhKhk2iDby0IEIKcKtjm9/PkBKlJ6G7iGM/ka1cmL1SF1DRB1Ilv5nK6PqutfgrwgxKjtBHejFbqhI4S3raDgelJycz3yyvhj3ofKv8dcrR1hJuQcslolv2UFwRE37gDjXwT4xL1W37tZen5NqGOf51GIn62Wd03rFbFFmVuiI0MsLLuVVyoT/pzi6SVHlE+h76w6Sg8b/MvDaUwaBDTvGISP1IPFz9ViWlSbb4EXo2yLaw7KVjqmQMZAy1WVWt4cHQKD6nUH6Q0t6WRH/7L/MbwJqVAxBzikEbS0FuolvhQ1Hn04BbI+bo4shgplA7GviJ8hverCoZ7528kWxiUfo4oSIrC0MjXtEBdABdC0SS1pd1qYXg0aot+0sPqULVPXcDi5Zpk7L4fb1koxOlUT7FBZLqY18bmBMxU8khfL5boHRy402aRyZEZuOYbLw+/l7Mp8M85w4Y+APC1kKO0YmJrq2YHXyN2OzDR68vbLLXpvSw6XNdskZew7pwqg8HWR8s2QElZz3EQJ3dOtB659opAhYHwVc80Bid/lK4QuE3GZjf3NjU8T5R8dDyC5mCk9YCJyA0jC4vrSdrkqQ7ZGZz4NEgH8kJVSFCAJ+pINLoZfIUOgO8dTE=",
+      "encryptedExpiryMonth": "adyenjs_0_1_25$URPx4sYijaWTYxf+tDJjZWXvssRHxU8JYkfSpLSTf7AUU9JAraa+FPagzbQSICaaEE7cvuxwqtsV/39nHioHT0VCbTAhMxaUtpd5bMR6IM8IZK0qP8RAPNpBGWp/P4WAqNw9IJ+6YYTm8hR5vvloihQFZjzCELQGTUrzq6eWOscmM43Bl3oBDrKdkh48D6EjNXZIGbWV6xPC0xdIhLlkXR6El/ew/zdwpNpmxOdJOVHwN2/7EkYvZWbvx1UdSmTOR8pJRB4gA+1OL7YrfJ17mkW9O4TjQZwP3ASY/k1GFXZ1uQX5dm6eja9ynHJ/kSxkPOutfTP2Bdc7Wa/gNjtoPg==$7sGsVjqQAN242J0J8sUGJ+STsHl/Zq29fd+mMDjT3CT7duMEajMVm90ia3yccXW4xeRI1Pm7Q0GnKxruoA2ma2p4djT6obZ1YgE6ay8/vhEEEvqL8fjMQIgNxijVGiX2aHLKtithWJnAYOyJcoCdM+OXlC1k4X/lpS4cBiq4PLml9/LPs/i5z5YGjnwZg1lu1I3o0WWtx43+YZk7g/J8S8yVRv+kYx1dIzpr3Z0POnwjE8VAfXBeBw0oc3PN3PzRgy70zdYEdSffjtjtP2wtuwMW2UW1NqFsQRdvX3CAD8EEC19w98Hn3f3PDSCM9LZqS9wwF0Tzu2/Hd4IhJlMRZr5IrLexbUfTN7fmOZVSw5TusUHS1G3gOy6OoXA/VLV9VVct3zNkpiOt4LqmpME8lEJfy/NMxePV7IjVbZmzHybHoClS4wmC++N+3jS5VQ+aR1TNv61f+AWNynV4hrq4",
+      "encryptedExpiryYear": "adyenjs_0_1_25$Tf2w4PYP2iBE3VySwxVKQWRWbiGkH76FajWdRyK58ZX5bJSBykJOF4QjlvwU494hdTEYc8lfMaqvenDtyudv2/2jTSWWnLAMOkrOm4iXiQncPo1iUCMvQ1XMxM0hPmMknEjtNHniQWSUhTo9ENNseYZFeSJvIBt6zXeszifHjar7JrfniHjWVq3jp1OehlnnTCKdfv8SldC5hv4PCyhXbrM+Y6AuK+JaTQkbS5qmL0BFHXZzxhj8LvEVAM8rkqHEOGBHjyTBBG7Hx5ZFoqShmwqy+XLTEzZt9hjhLoB1a5qFIfmrrtsTRjviJOFZ0kTYbSvmITuTyzARtvkzD0HNlw==$C2y5QW7nFc98rCPMi4YqVxl77tqHsS5V4qWyIk/PiDPWd0EfQFGDmMGjxgxwfQlKO1RMzBmtnwHB3eRtI25fVBAciCMAnGC80YaKU+eDAgk3HedOZOTr24hzIO7UJcuNRWWjpbT0/UFCGoqYvBZNJPqXFUy3YTtV48sMtEqVXHUms1aIG1C0u+Yg1f89q30WkWNm24VuQl7/UOd0e6VsAvvBnNsXLQGZZpJXVpAndrDEOnw8ynWyxmk0jto6FiZfjlGlXg7dWDmgwOv5n62rCwna+gcM5OsaGjYHzNCjh4RGb793P/JDpciX2m1mMafGt9dgl/wqq1S0zNkGMVVLjOwUItATaIIvgdLU16znuU2i1N1CKLq7D++5KNMdMtajjd+S/0dcz9XBAtd9UsZq2RHXlb3pVGQ9+sNZsGCcm5KaEDDO0NqqyKig/hnIcX0tZd8G/6quilxOcsTHKvgE+g==",
+      "encryptedSecurityCode": "adyenjs_0_1_25$zmPMMRliaba9CMhviVvVl4hH6gYNK5RErn5ZZWa2tqh9uXi3s69AZCT5ZkpWJrQzIc5W06Ep4VL90QFsiUzdIjYHYaJkJGxC05yjEp985fLo75c8cwhV9AC5oCb+37rSVfQEU1KeacHxqsFNChUSH/TKofGZG7zOn0vMFJmoMwxDtSCNaLhvXSJUEVubMWD6A9NFQQ6yyT9XDrGuy3fmgyGoGwmfmbWZAWkwJhQ0J9DNpw51TGDxy4/QgSqxPaqhyk7XvkBRzv5nGOyJNIJWk7nuNx2aWabl36LVGsfYUPhHjIGfS8GZwNruUQ5M4qoV7feCZzwdtHFM5oiqDWszvg==$TxqgWYengy/dlzkfFejQmcaIfS1nWnvXVLb7EdLdPIBDBcKv9jlO9wRgz7MjkBeLwd0u0+av3VFd2jrt4sQIA/JNCcTCK+RIYxAY0FxstzhnY/tgFEbCKh6vM95s5txpt1AYg3dJgQvtksiklngnEqyyWWbKkn3mPF7pmVXZNz848nsu+eXXGmZ5vFF1A7nf2AOoSv504u8d4B/xOapkymESrPoc9Fi/Su4DgVvMRt1OE6et7pYLlAGVfJzdJGu2ZebN9MFhQEiIuZgtd+eKNzwOoZF6AiVQBBD3vyjeXbZN7Sz0NAafDGnJBQ/yfT63TroZ8otkE5IJa9Vja+IGUy3m3HfGI0zZ+KsBI8bjI9ILgrycbktJfYZKSGRKf+ftQ0FF4ClKN9rblQDTshVU+XZ6CUj77Z9tZmeUxYAZxr4LKH/ELUoRZjaF5W/bO5XBawRLsh+JfaE="},
+      "returnUrl": "http://127.0.0.1:3000/", "merchantAccount": "SaleorECOM", "browserInfo":
+      {"acceptHeader": "*/*", "colorDepth": 24, "language": "en-gb", "javaEnabled":
+      true, "screenHeight": 1440, "screenWidth": 2560, "userAgent": "Mozilla/5.0 (Macintosh;
+      Intel Mac OS X 10_15_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1
+      Safari/605.1.15", "timeZoneOffset": -120}, "applicationInfo": {"adyenLibrary":
+      {"name": "adyen-python-api-library", "version": "3.0.0"}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '4433'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - adyen-python-api-library/3.0.0
+      x-api-key:
+        - test_key
+    method: POST
+    uri: https://checkout-test.adyen.com/v49/payments
+  response:
+    body:
+      string: '{"pspReference":"883596624248178D","resultCode":"Authorised","merchantReference":"UGF5bWVudDoxNw=="}'
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Wed, 05 Aug 2020 10:44:08 GMT
+      Keep-Alive:
+      - timeout=15, max=100
+      Server:
+      - Apache
+      Set-Cookie:
+      - JSESSIONID=7C62498C2A031656D45B70E9A2F50F69.test3e; Path=/checkout; Secure;
+        HttpOnly
+      Transfer-Encoding:
+      - chunked
+      pspReference:
+      - 851596624248090H
+    status:
+      code: 200
+      message: '200'
+- request:
+    body: '{"merchantAccount": "SaleorECOM", "modificationAmount": {"value": "123400",
+      "currency": "USD"}, "originalReference": "883596624248178D", "reference": "UGF5bWVudDoxNw==",
+      "applicationInfo": {"adyenLibrary": {"name": "adyen-python-api-library", "version":
+      "3.0.0"}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '264'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - adyen-python-api-library/3.0.0
+      x-api-key:
+      - AQEhhmfuXNWTK0Qc+iSDk2g9qPaBhkT1nbWV8YkFf5Sl/5+mEMFdWw2+5HzctViMSCJMYAc=-4yzUVXf8vxvefP8rRR8UOK/fHR34XP+tZmVZZFWntAs=-?[Cv%4@EEx:C5b6f
+    method: POST
+    uri: https://pal-test.adyen.com/pal/servlet/Payment/v49/capture
+  response:
+    body:
+      string: '{"pspReference":"853596624248395G","response":"[capture-received]"}'
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Type:
+      - application/json;charset=utf-8
+      Date:
+      - Wed, 05 Aug 2020 10:44:08 GMT
+      Keep-Alive:
+      - timeout=15, max=100
+      Server:
+      - Apache
+      Set-Cookie:
+      - JSESSIONID=109BFB126438537FBB7852C4C592655E.test3e; Path=/pal; Secure; HttpOnly
+      Transfer-Encoding:
+      - chunked
+      pspReference:
+      - 853596624248395G
+    status:
+      code: 200
+      message: '200'
+version: 1

@@ -262,6 +262,8 @@ class MoveProductInput(graphene.InputObjectType):
         description=(
             "The relative sorting position of the product (from -inf to +inf) "
             "starting from the first given product's actual position."
+            "1 moves the item one position forward, -1 moves the item one position "
+            "backward, 0 leaves the item unchanged."
         )
     )
 
@@ -1075,7 +1077,7 @@ class ProductVariantCreate(ModelMutation):
             cleaned_input["cost_price_amount"] = cost_price
 
         price = cleaned_input.get("price")
-        if price is None:
+        if price is None and instance.price is None:
             raise ValidationError(
                 {
                     "price": ValidationError(

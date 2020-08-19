@@ -12,6 +12,7 @@ def resolve_plugin(info, plugin_id):
         return None
     return PluginConfiguration(
         id=plugin.PLUGIN_ID,
+        identifier=plugin.PLUGIN_ID,
         active=plugin.active,
         configuration=plugin.configuration,
         description=plugin.PLUGIN_DESCRIPTION,
@@ -36,6 +37,7 @@ def resolve_plugins(sort_by=None, **kwargs):
     return [
         PluginConfiguration(
             id=plugin.PLUGIN_ID,
+            identifier=plugin.PLUGIN_ID,
             active=plugin.active,
             configuration=plugin.configuration,
             description=plugin.PLUGIN_DESCRIPTION,
