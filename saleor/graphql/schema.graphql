@@ -948,6 +948,7 @@ type CheckoutError {
   field: String
   message: String
   code: CheckoutErrorCode!
+  variants: [ID!]
 }
 
 enum CheckoutErrorCode {
@@ -955,6 +956,7 @@ enum CheckoutErrorCode {
   CHECKOUT_NOT_FULLY_PAID
   GRAPHQL_ERROR
   PRODUCT_NOT_PUBLISHED
+  PRODUCT_UNAVAILABLE_FOR_PURCHASE
   INSUFFICIENT_STOCK
   INVALID
   INVALID_SHIPPING_METHOD
