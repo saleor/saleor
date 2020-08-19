@@ -525,13 +525,15 @@ def test_delete_shipping_zone(
 
 PRICE_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
-        $type: ShippingMethodTypeEnum, $name: String!, $price: Decimal,
+        $type: ShippingMethodTypeEnum, $name: String!,
         $shippingZone: ID!, $minimumOrderPrice: Decimal,
         $maximumOrderPrice: Decimal) {
-    shippingPriceCreate(input: {
-            name: $name, price: $price, shippingZone: $shippingZone,
+    shippingPriceCreate(
+        input: {
+            name: $name, shippingZone: $shippingZone,
             minimumOrderPrice: $minimumOrderPrice,
-            maximumOrderPrice: $maximumOrderPrice, type: $type}) {
+            maximumOrderPrice: $maximumOrderPrice, type: $type
+        }) {
         shippingErrors {
             field
             code
@@ -578,12 +580,10 @@ def test_create_shipping_method(
     permission_manage_shipping,
 ):
     name = "DHL"
-    price = 12.34
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     variables = {
         "shippingZone": shipping_zone_id,
         "name": name,
-        "price": price,
         "minimumOrderPrice": min_price,
         "maximumOrderPrice": max_price,
         "type": ShippingMethodTypeEnum.PRICE.name,
@@ -595,65 +595,20 @@ def test_create_shipping_method(
     data = content["data"]["shippingPriceCreate"]
     assert "errors" not in data["shippingMethod"]
     assert data["shippingMethod"]["name"] == name
-    assert data["shippingMethod"]["price"]["amount"] == float(price)
     assert data["shippingMethod"]["minimumOrderPrice"] == expected_min_price
     assert data["shippingMethod"]["maximumOrderPrice"] == expected_max_price
     assert data["shippingMethod"]["type"] == ShippingMethodTypeEnum.PRICE.name
     assert data["shippingZone"]["id"] == shipping_zone_id
 
 
-def test_create_shipping_method_with_invalid_price(
-    staff_api_client, shipping_zone, permission_manage_shipping,
-):
-    query = PRICE_BASED_SHIPPING_QUERY
-    name = "DHL"
-    price = -12.34
-    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
-    variables = {
-        "shippingZone": shipping_zone_id,
-        "name": name,
-        "price": price,
-        "minimumOrderPrice": 0,
-        "maximumOrderPrice": 20,
-        "type": ShippingMethodTypeEnum.PRICE.name,
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["shippingPriceCreate"]
-    assert data["shippingErrors"][0]["field"] == "price"
-    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
-
-
-def test_create_price_shipping_method_errors(
-    shipping_zone, staff_api_client, permission_manage_shipping
-):
-    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
-    variables = {
-        "shippingZone": shipping_zone_id,
-        "name": "DHL",
-        "price": 12.34,
-        "minimumOrderPrice": 20,
-        "maximumOrderPrice": 15,
-        "type": ShippingMethodTypeEnum.PRICE.name,
-    }
-    response = staff_api_client.post_graphql(
-        PRICE_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["shippingPriceCreate"]
-    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.MAX_LESS_THAN_MIN.name
-
-
 WEIGHT_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
-        $type: ShippingMethodTypeEnum, $name: String!, $price: Decimal,
+        $type: ShippingMethodTypeEnum, $name: String!,
         $shippingZone: ID!, $maximumOrderWeight: WeightScalar,
         $minimumOrderWeight: WeightScalar) {
         shippingPriceCreate(
             input: {
-                name: $name, price: $price, shippingZone: $shippingZone,
+                name: $name,shippingZone: $shippingZone,
                 minimumOrderWeight:$minimumOrderWeight,
                 maximumOrderWeight: $maximumOrderWeight, type: $type}) {
             shippingErrors {
@@ -703,7 +658,6 @@ def test_create_weight_based_shipping_method(
     variables = {
         "shippingZone": shipping_zone_id,
         "name": "DHL",
-        "price": 12.34,
         "minimumOrderWeight": min_weight,
         "maximumOrderWeight": max_weight,
         "type": ShippingMethodTypeEnum.WEIGHT.name,
@@ -725,7 +679,6 @@ def test_create_weight_shipping_method_errors(
     variables = {
         "shippingZone": shipping_zone_id,
         "name": "DHL",
-        "price": 12.34,
         "minimumOrderWeight": 20,
         "maximumOrderWeight": 15,
         "type": ShippingMethodTypeEnum.WEIGHT.name,
@@ -745,7 +698,6 @@ def test_create_shipping_method_with_negative_min_weight(
     variables = {
         "shippingZone": shipping_zone_id,
         "name": "DHL",
-        "price": 12.34,
         "minimumOrderWeight": -20,
         "type": ShippingMethodTypeEnum.WEIGHT.name,
     }
@@ -766,7 +718,6 @@ def test_create_shipping_method_with_negative_max_weight(
     variables = {
         "shippingZone": shipping_zone_id,
         "name": "DHL",
-        "price": 12.34,
         "maximumOrderWeight": -15,
         "type": ShippingMethodTypeEnum.WEIGHT.name,
     }
@@ -785,11 +736,11 @@ def test_update_shipping_method(
 ):
     query = """
     mutation updateShippingPrice(
-        $id: ID!, $price: Decimal, $shippingZone: ID!,
+        $id: ID!, $shippingZone: ID!,
         $type: ShippingMethodTypeEnum!, $minimumOrderPrice: Decimal) {
         shippingPriceUpdate(
             id: $id, input: {
-                price: $price, shippingZone: $shippingZone,
+                shippingZone: $shippingZone,
                 type: $type, minimumOrderPrice: $minimumOrderPrice}) {
             shippingErrors {
                 field
@@ -811,15 +762,12 @@ def test_update_shipping_method(
     }
     """
     shipping_method = shipping_zone.shipping_methods.first()
-    price = 12.34
-    assert not str(shipping_method.price) == price
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethod", shipping_method.pk
     )
     variables = {
         "shippingZone": shipping_zone_id,
-        "price": price,
         "id": shipping_method_id,
         "minimumOrderPrice": 12.00,
         "type": ShippingMethodTypeEnum.PRICE.name,
@@ -829,7 +777,6 @@ def test_update_shipping_method(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceUpdate"]
-    assert data["shippingMethod"]["price"]["amount"] == float(price)
     assert data["shippingZone"]["id"] == shipping_zone_id
 
 
