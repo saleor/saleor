@@ -732,6 +732,7 @@ def product(product_type, category, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
 
     associate_attribute_values_to_instance(product, product_attr, product_attr_value)
@@ -759,6 +760,7 @@ def product_with_single_variant(product_type, category, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -778,6 +780,7 @@ def product_with_two_variants(product_type, category, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
 
     variants = [
@@ -819,6 +822,7 @@ def product_with_variant_with_two_attributes(
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
 
     variant = ProductVariant.objects.create(
@@ -867,6 +871,7 @@ def product_with_default_variant(product_type_without_variant, category, warehou
         product_type=product_type_without_variant,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
     variant = ProductVariant.objects.create(
         product=product, sku="1234", track_inventory=True, price_amount=Decimal(10)
