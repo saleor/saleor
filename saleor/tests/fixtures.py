@@ -885,6 +885,7 @@ def variant_without_inventory_tracking(
         product_type=product_type_without_variant,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date.today(),
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -1298,6 +1299,7 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date.today(),
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -1330,6 +1332,7 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date.today(),
     )
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_B", cost_price=Money(2, "USD"), price_amount=20
