@@ -802,6 +802,42 @@ def test_validate_draft_order_with_unpublished_product(draft_order):
     assert error.code == OrderErrorCode.PRODUCT_NOT_PUBLISHED
 
 
+def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order):
+    order = draft_order
+    line = order.lines.first()
+    variant = line.variant
+    variant.product.available_for_purchase = None
+    variant.product.save(update_fields=["available_for_purchase"])
+    line.refresh_from_db()
+
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order, "US")
+    msg = "Can't finalize draft with product unavailable for purchase."
+    error = e.value.error_dict["lines"][0]
+
+    assert error.message == msg
+    assert error.code == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE
+
+
+def test_validate_draft_order_with_product_available_for_purchase_in_future(
+    draft_order,
+):
+    order = draft_order
+    line = order.lines.first()
+    variant = line.variant
+    variant.product.available_for_purchase = date.today() + timedelta(days=2)
+    variant.product.save(update_fields=["available_for_purchase"])
+    line.refresh_from_db()
+
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order, "US")
+    msg = "Can't finalize draft with product unavailable for purchase."
+    error = e.value.error_dict["lines"][0]
+
+    assert error.message == msg
+    assert error.code == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE
+
+
 def test_validate_draft_order_out_of_stock_variant(draft_order):
     order = draft_order
     line = order.lines.first()
