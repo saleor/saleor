@@ -14,7 +14,7 @@
         </mj-text>
         <mj-text>
           {% blocktrans trimmed context "Email change e-mail text" %}
-          You're receiving this e-mail because you or someone else has requested an email change for your user account at {{ domain }}.<br />
+          You're receiving this e-mail because you or someone else has requested an email change for your user account at {{ site_name }}.<br />
           It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.
           {% endblocktrans %}
         </mj-text>
