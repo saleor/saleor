@@ -158,7 +158,7 @@ class AllegroAuth:
                    '?response_type=code' \
                    '&client_id={}' \
                    '&api-key={}' \
-                   '&redirect_uri={}&prompt=confim'.format(oauth_url, client_id,
+                   '&redirect_uri={}&prompt=none'.format(oauth_url, client_id,
                                                            api_key,
                                                            redirect_uri)
 
