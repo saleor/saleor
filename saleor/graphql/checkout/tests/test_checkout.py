@@ -631,7 +631,7 @@ def test_checkout_create_check_lines_quantity(
     assert data["checkoutErrors"][0]["field"] == "quantity"
 
 
-def test_checkout_create_anavailable_for_purchase_product(
+def test_checkout_create_unavailable_for_purchase_product(
     user_api_client, stock, graphql_address_data
 ):
     # given
