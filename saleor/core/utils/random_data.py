@@ -1,3 +1,4 @@
+import datetime
 import itertools
 import json
 import os
@@ -208,6 +209,10 @@ def create_attributes_values(values_data):
 
 
 def create_products(products_data, placeholder_dir, create_images):
+    counter = 0
+    # calculate threshold on 10% level that indicates the number of products
+    # with available_for_purchase date in future
+    threshold = len(products_data) * 0.1
     for product in products_data:
         pk = product["pk"]
         # We are skipping products without images
@@ -218,12 +223,20 @@ def create_products(products_data, placeholder_dir, create_images):
         defaults["weight"] = get_weight(defaults["weight"])
         defaults["category_id"] = defaults.pop("category")
         defaults["product_type_id"] = defaults.pop("product_type")
+
+        available_for_purchase = datetime.date.today()
+        if counter <= threshold:
+            available_for_purchase += datetime.timedelta(days=random.randrange(10, 365))
+        defaults["available_for_purchase"] = available_for_purchase
+
         product, _ = Product.objects.update_or_create(pk=pk, defaults=defaults)
 
         if create_images:
             images = IMAGES_MAPPING.get(pk, [])
             for image_name in images:
                 create_product_image(product, placeholder_dir, image_name)
+
+        counter += 1
 
 
 def create_stocks(variant, warehouse_qs=None, **defaults):
