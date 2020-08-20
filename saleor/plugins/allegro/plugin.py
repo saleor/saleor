@@ -22,11 +22,12 @@ from saleor.product.models import Product, AssignedProductAttribute, \
 class AllegroConfiguration:
     redirect_url: str
     callback_url: str
-    token_access: str
     token_value: str
     client_id: str
     client_secret: str
     refresh_token: str
+    saleor_redirect_url: str
+    token_access: str
 
 
 class AllegroPlugin(BasePlugin):
@@ -36,12 +37,13 @@ class AllegroPlugin(BasePlugin):
     META_CODE_KEY = "AllegroPlugin.code"
     META_DESCRIPTION_KEY = "AllegroPlugin.description"
     DEFAULT_CONFIGURATION = [{"name": "redirect_url", "value": "https://allegro.pl.allegrosandbox.pl/auth/oauth"},
-                             {"name": "callback_url", "value": None},
-                             {"name": "token_access", "value": None},
+                             {"name": "callback_url", "value": "http://localhost:8000/allegro"},
+                             {"name": "saleor_redirect_url", "value": "http://localhost:9000"},
                              {"name": "token_value", "value": None},
                              {"name": "client_id", "value": None},
                              {"name": "client_secret", "value": None},
-                             {"name": "refresh_token", "value": None}]
+                             {"name": "refresh_token", "value": None},
+                             {"name": "token_access", "value": None},]
     CONFIG_STRUCTURE = {
         "redirect_url": {
             "type": ConfigurationTypeField.STRING,
@@ -49,34 +51,39 @@ class AllegroPlugin(BasePlugin):
         },
         "callback_url": {
             "type": ConfigurationTypeField.STRING,
-            "label": "Callback URL",
+            "label": "Callback URL:",
+            "help_text": "Callback URL ustalany przy tworzeniu aplikacji po stronie allegro.",
         },
-        "token_access": {
+        "saleor_redirect_url": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "Wartość uzupełni się automatycznie.",
-            "label": "Ważność tokena do:",
+            "label": "Redirect URL saleora po autoryzacji:",
+            "help_text": "URL saleora na ktory przekierowac po autoryzacji.",
         },
         "token_value": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": "Wartośc tokena.",
+            "help_text": "Wartośc tokena:",
             "label": "Wartość tokena.",
         },
         "client_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "ID klienta allegro",
-            "label": "ID klienta allegro.",
+            "help_text": "ID klienta allegro generowany przez allegro.",
+            "label": "ID klienta allegro:",
         },
         "client_secret": {
-            "type": ConfigurationTypeField.SECRET,
-            "help_text": "Access token.",
-            "label": "Wartość klucza.",
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Wartość skeretnego klucza generowanego przez allegro.",
+            "label": "Wartość sekretnego klucza:",
         },
         "refresh_token": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": "Wartośc refresh tokena.",
             "label": "Refresh token.",
+        },
+        "token_access": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Data uzupełni się automatycznie.",
+            "label": "Data ważności tokena:",
         }
-
     }
 
     def __init__(self, *args, **kwargs):
@@ -86,6 +93,7 @@ class AllegroPlugin(BasePlugin):
 
         self.config = AllegroConfiguration(redirect_url=configuration["redirect_url"],
                                            callback_url=configuration["callback_url"],
+                                           saleor_redirect_url=configuration["saleor_redirect_url"],
                                            token_access=configuration["token_access"],
                                            token_value=configuration["token_value"],
                                            client_id=configuration["client_id"],
@@ -141,8 +149,10 @@ class AllegroPlugin(BasePlugin):
         return plugin_configuration
 
     def product_created(self, product: "Product", previous_value: Any) -> Any:
-        allegro_api = AllegroAPI(self.config.token_value)
-        id = allegro_api.product_publish(saleor_product=product)
+
+        if product.is_published == True:
+            allegro_api = AllegroAPI(self.config.token_value)
+            allegro_api.product_publish(saleor_product=product)
 
     def calculate_hours_to_token_expire(self):
         token_expire = datetime.strptime(self.config.token_access, '%d/%m/%Y %H:%M:%S')
@@ -249,7 +259,7 @@ class AllegroAPI:
     def product_publish(self, saleor_product):
 
 
-        if saleor_product.private_metadata.get('publish.status') is None and saleor_product.is_published is False:
+        if saleor_product.private_metadata.get('publish.status') is None and saleor_product.is_published is True:
 
             categoryId = saleor_product.product_type.metadata[
                 'allegro.mapping.categoryId']
@@ -274,15 +284,12 @@ class AllegroAPI:
                 print('Wystąpił bład z zapisem', offer['errors'])
                 return None
             else:
-                offer_publication = self.offer_publication(offer['id'])
-
-                result = self.get_detailed_offer_publication(offer_publication['id'])
-
                 if offer['validation'].get('errors') is not None:
                     if offer['validation'].get('errors')[0]['message'].startswith('Missing'):
                         print(offer['validation'].get('errors')[0]['message'], 'dla ogłoszenia: ', 'https://allegro.pl.allegrosandbox.pl/offer/' +  offer['id'] + '/restore')
                         self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], 'moderated', False)
                 else:
+                    offer_publication = self.offer_publication(offer['id'])
                     self.update_status_and_publish_data_in_private_metadata(
                         saleor_product, offer['id'], 'published', True)
 

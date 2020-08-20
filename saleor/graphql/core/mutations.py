@@ -551,6 +551,7 @@ class BaseBulkMutation(BaseMutation):
 
         if type(instance_model) == type(Product):
             for instance in instances:
+                instance.is_published = True
                 info.context.plugins.product_created(instance)
 
         for instance, node_id in zip(instances, ids):
