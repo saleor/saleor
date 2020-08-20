@@ -19,6 +19,8 @@ def obfuscate_string(value, phone=False):
 
 
 def obfuscate_address(address):
+    if not address:
+        return address
     address.first_name = obfuscate_string(address.first_name)
     address.last_name = obfuscate_string(address.last_name)
     address.company_name = obfuscate_string(address.company_name)
