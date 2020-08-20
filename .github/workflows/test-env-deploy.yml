@@ -17,7 +17,7 @@ jobs:
       - name: Set domain
         # Set test instance domain based on branch name slug
         run: |
-          echo "::set-env name=domain::${{ env.GITHUB_HEAD_REF_SLUG }}.api.saleor.rocks"
+          echo "::set-env name=domain::${{ env.GITHUB_HEAD_REF_SLUG_URL }}.api.saleor.rocks"
 
       - name: Start deployment
         uses: bobheadxi/deployments@v0.4.2
@@ -25,7 +25,7 @@ jobs:
         with:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: ${{ env.GITHUB_HEAD_REF_SLUG }}
+          env: ${{ env.GITHUB_HEAD_REF_SLUG_URL }}
           ref: ${{ github.head_ref }}
 
       - name: Build and push
@@ -36,7 +36,7 @@ jobs:
           account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           repo: saleor-testenvs
           region: us-east-1
-          tags: ${{ env.GITHUB_HEAD_REF_SLUG }},${{ github.sha }}
+          tags: ${{ env.GITHUB_HEAD_REF_SLUG_URL }},${{ github.sha }}
 
       - name: Invoke deployment lambda
         uses: gagoar/invoke-aws-lambda@v3.3.0
@@ -48,7 +48,7 @@ jobs:
           Payload: >-
             {
               "action": "${{ github.event.action }}",
-              "label": "${{ env.GITHUB_HEAD_REF_SLUG }}",
+              "label": "${{ env.GITHUB_HEAD_REF_SLUG_URL }}",
               "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/saleor-testenvs:${{ github.sha }}"
             }
           LogType: Tail

@@ -204,12 +204,14 @@ def test_checkout_add_payment(
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    return_url = "https://www.example.com"
     variables = {
         "checkoutId": checkout_id,
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
+            "returnUrl": return_url,
         },
     }
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
@@ -229,6 +231,7 @@ def test_checkout_add_payment(
     assert payment.billing_address_1 == checkout.billing_address.street_address_1
     assert payment.billing_first_name == checkout.billing_address.first_name
     assert payment.billing_last_name == checkout.billing_address.last_name
+    assert payment.return_url == return_url
 
 
 def test_checkout_add_payment_default_amount(

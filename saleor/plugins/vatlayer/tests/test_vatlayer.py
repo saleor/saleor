@@ -9,7 +9,8 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ....checkout import calculations
 from ....checkout.utils import add_variant_to_checkout
-from ....core.taxes import quantize_price, zero_taxed_money
+from ....core.prices import quantize_price
+from ....core.taxes import zero_taxed_money
 from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
 from ...vatlayer import (

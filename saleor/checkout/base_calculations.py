@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING, Iterable, List, Optional
 
 from prices import TaxedMoney
 
-from ..core.taxes import quantize_price, zero_taxed_money
+from ..core.prices import quantize_price
+from ..core.taxes import zero_taxed_money
 from ..discount import DiscountInfo
 
 if TYPE_CHECKING:

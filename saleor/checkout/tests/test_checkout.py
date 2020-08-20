@@ -197,7 +197,7 @@ def test_create_order_captured_payment_creates_expected_events(
     # ensure the correct parameters were set
     assert order_placed_email_sent_event.parameters == {
         "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.ORDER,
+        "email_type": OrderEventsEmails.ORDER_CONFIRMATION,
     }
 
     # Ensure the correct customer event was created if the user was not anonymous
@@ -320,7 +320,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     # ensure the correct parameters were set
     assert order_placed_email_sent_event.parameters == {
         "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.ORDER,
+        "email_type": OrderEventsEmails.ORDER_CONFIRMATION,
     }
 
     # Check no event was created if the user was anonymous
@@ -406,7 +406,7 @@ def test_create_order_preauth_payment_creates_expected_events(
     # ensure the correct parameters were set
     assert order_placed_email_sent_event.parameters == {
         "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.ORDER,
+        "email_type": OrderEventsEmails.ORDER_CONFIRMATION,
     }
 
     # Ensure the correct customer event was created if the user was not anonymous
@@ -500,7 +500,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     # ensure the correct parameters were set
     assert order_placed_email_sent_event.parameters == {
         "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.ORDER,
+        "email_type": OrderEventsEmails.ORDER_CONFIRMATION,
     }
 
     # Check no event was created if the user was anonymous
@@ -1491,3 +1491,26 @@ def test_cancel_active_payments(checkout_with_payments):
 
     # then
     assert checkout.payments.filter(is_active=True).count() == 0
+
+
+def test_create_order_with_variant_tracking_false(
+    checkout, customer_user, variant_without_inventory_tracking
+):
+    variant = variant_without_inventory_tracking
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.save()
+    add_variant_to_checkout(checkout, variant, 10, check_quantity=False)
+
+    order_data = prepare_order_data(
+        checkout=checkout, lines=list(checkout), tracking_code="", discounts=None
+    )
+
+    order_1 = create_order(
+        checkout=checkout,
+        order_data=order_data,
+        user=customer_user,
+        redirect_url="https://www.example.com",
+    )
+    assert order_1.checkout_token == checkout.token

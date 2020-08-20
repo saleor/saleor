@@ -123,15 +123,14 @@ def export_products_in_batches(
         append_to_file(export_data, headers, temporary_file, file_type, delimiter)
 
 
-def create_file_with_headers(
-    file_headers: List[str], delimiter: str, file_type: str,
-):
+def create_file_with_headers(file_headers: List[str], delimiter: str, file_type: str):
     table = etl.wrap([file_headers])
 
-    temp_file = NamedTemporaryFile("ab+")
     if file_type == FileTypes.CSV:
+        temp_file = NamedTemporaryFile("ab+", suffix=".csv")
         etl.tocsv(table, temp_file.name, delimiter=delimiter)
     else:
+        temp_file = NamedTemporaryFile("ab+", suffix=".xlsx")
         etl.io.xlsx.toxlsx(table, temp_file.name)
 
     return temp_file

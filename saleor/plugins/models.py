@@ -1,5 +1,5 @@
-from django.contrib.postgres.fields import JSONField
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 
 from ..core.permissions import PluginsPermissions
 from ..core.utils.json_serializer import CustomJsonEncoder
