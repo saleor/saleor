@@ -138,6 +138,29 @@ def check_lines_quantity(variants, quantities, country):
             raise ValidationError({"quantity": ValidationError(message, code=e.code)})
 
 
+def validate_variants_available_for_purchase(variants):
+    not_available_variants = [
+        variant.pk
+        for variant in variants
+        if not variant.product.available_for_purchase
+        or datetime.date.today() < variant.product.available_for_purchase
+    ]
+    if not_available_variants:
+        variant_ids = [
+            graphene.Node.to_global_id("ProductVariant", pk)
+            for pk in not_available_variants
+        ]
+        raise ValidationError(
+            {
+                "lines": ValidationError(
+                    "Cannot add lines for unavailable for purchase variants.",
+                    code=CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE,
+                    params={"variants": variant_ids},
+                )
+            }
+        )
+
+
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     variant_id = graphene.ID(required=True, description="ID of the product variant.")
@@ -200,6 +223,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         )
         quantities = [line.get("quantity") for line in lines]
 
+        validate_variants_available_for_purchase(variants)
         check_lines_quantity(variants, quantities, country)
 
         return variants, quantities
@@ -347,29 +371,6 @@ class CheckoutLinesAdd(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def validate_variants_available_for_purchase(cls, variants):
-        not_available_variants = [
-            variant.pk
-            for variant in variants
-            if not variant.product.available_for_purchase
-            or datetime.date.today() < variant.product.available_for_purchase
-        ]
-        if not_available_variants:
-            variant_ids = [
-                graphene.Node.to_global_id("ProductVariant", pk)
-                for pk in not_available_variants
-            ]
-            raise ValidationError(
-                {
-                    "lines": ValidationError(
-                        "Cannot add lines for unavailable for purchase variants.",
-                        code=CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE,
-                        params={"variants": variant_ids},
-                    )
-                }
-            )
-
-    @classmethod
     def perform_mutation(cls, _root, info, checkout_id, lines, replace=False):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
@@ -380,7 +381,7 @@ class CheckoutLinesAdd(BaseMutation):
         quantities = [line.get("quantity") for line in lines]
 
         check_lines_quantity(variants, quantities, checkout.get_country())
-        cls.validate_variants_available_for_purchase(variants)
+        validate_variants_available_for_purchase(variants)
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):

@@ -98,14 +98,11 @@ MUTATION_CHECKOUT_CREATE = """
             quantity
           }
         }
-        errors {
-          field
-          message
-        }
         checkoutErrors {
           field
           message
           code
+          variants
         }
       }
     }
@@ -314,16 +311,13 @@ def test_checkout_create_cannot_add_invalid_quantities(
     assert not Checkout.objects.exists()
     response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)["data"]["checkoutCreate"]
-    assert content["errors"]
-    assert content["errors"] == [
-        {"field": "quantity", "message": expected_error_message}
-    ]
-
+    assert content["checkoutErrors"]
     assert content["checkoutErrors"] == [
         {
             "field": "quantity",
             "message": expected_error_message,
             "code": error_code.name,
+            "variants": None,
         }
     ]
 
@@ -364,7 +358,7 @@ def test_checkout_create_required_email(api_client, stock):
     response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
 
-    errors = content["data"]["checkoutCreate"]["errors"]
+    errors = content["data"]["checkoutCreate"]["checkoutErrors"]
     assert errors
     assert errors[0]["field"] == "email"
     assert errors[0]["message"] == "This field cannot be blank."
@@ -542,10 +536,10 @@ def test_checkout_create_check_lines_quantity_multiple_warehouse(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
-    assert data["errors"][0]["message"] == (
+    assert data["checkoutErrors"][0]["message"] == (
         "Could not add item Test product (SKU_A). Only 7 remaining in stock."
     )
-    assert data["errors"][0]["field"] == "quantity"
+    assert data["checkoutErrors"][0]["field"] == "quantity"
 
 
 @override_settings(DEFAULT_COUNTRY="DE")
@@ -631,10 +625,46 @@ def test_checkout_create_check_lines_quantity(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
-    assert data["errors"][0]["message"] == (
+    assert data["checkoutErrors"][0]["message"] == (
         "Could not add item Test product (SKU_A). Only 15 remaining in stock."
     )
-    assert data["errors"][0]["field"] == "quantity"
+    assert data["checkoutErrors"][0]["field"] == "quantity"
+
+
+def test_checkout_create_anavailable_for_purchase_product(
+    user_api_client, stock, graphql_address_data
+):
+    # given
+    variant = stock.product_variant
+    product = variant.product
+
+    product.available_for_purchase = None
+    product.save(update_fields=["available_for_purchase"])
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 10, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+
+    errors = data["checkoutErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["code"] == CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name
+    assert errors[0]["variants"] == [variant_id]
 
 
 @pytest.fixture
