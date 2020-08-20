@@ -1988,6 +1988,7 @@ def digital_content(category, media_root, warehouse) -> DigitalContent:
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
     product_variant = ProductVariant.objects.create(
         product=product,
