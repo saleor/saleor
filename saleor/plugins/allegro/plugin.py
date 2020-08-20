@@ -671,76 +671,76 @@ class AllegroProductMapper:
         self.saleor_product = saleor_product
         return self
 
-    def set_implied_warranty(self, id):
-        self.product['afterSalesServices']['impliedWarranty']['id'] = id
+    def set_implied_warranty(self, implied_warranty):
+        self.product['afterSalesServices']['impliedWarranty']['id'] = implied_warranty
         return self
 
-    def set_return_policy(self, id):
-        self.product['afterSalesServices']['returnPolicy']['id'] = id
+    def set_return_policy(self, return_policy):
+        self.product['afterSalesServices']['returnPolicy']['id'] = return_policy
         return self
 
-    def set_warranty(self, id):
-        self.product['afterSalesServices']['warranty']['id'] = id
+    def set_warranty(self, warranty):
+        self.product['afterSalesServices']['warranty']['id'] = warranty
         return self
 
     def set_category(self, category):
         self.product['category']['id'] = category
         return self
 
-    def set_delivery_additional_info(self, id):
-        self.product['delivery']['additionalInfo'] = id
+    def set_delivery_additional_info(self, delivery_additional_info):
+        self.product['delivery']['additionalInfo'] = delivery_additional_info
         return self
 
-    def set_delivery_handling_time(self, id):
-        self.product['delivery']['handlingTime'] = id
+    def set_delivery_handling_time(self, delivery_handling_time):
+        self.product['delivery']['handlingTime'] = delivery_handling_time
         return self
 
-    def set_delivery_shipment_date(self, id):
-        self.product['delivery']['shipmentDate'] = id
+    def set_delivery_shipment_date(self, delivery_shipment_date):
+        self.product['delivery']['shipmentDate'] = delivery_shipment_date
         return self
 
-    def set_delivery_shipping_rates(self, id):
-        self.product['delivery']['shippingRates']['id'] = id
+    def set_delivery_shipping_rates(self, delivery_shipping_rates):
+        self.product['delivery']['shippingRates']['id'] = delivery_shipping_rates
         return self
 
-    def set_location_country_code(self, id):
-        self.product['location']['countryCode'] = id
+    def set_location_country_code(self, location_country_code):
+        self.product['location']['countryCode'] = location_country_code
         return self
 
-    def set_location_province(self, id):
-        self.product['location']['province'] = id
+    def set_location_province(self, location_province):
+        self.product['location']['province'] = location_province
         return self
 
-    def set_location_city(self, id):
+    def set_location_city(self, location_city):
         self.product['location']['city'] = 'Poznań'
         return self
 
-    def set_location_post_code(self, id):
-        self.product['location']['postCode'] = id
+    def set_location_post_code(self, location_post_code):
+        self.product['location']['postCode'] = location_post_code
         return self
 
-    def set_invoice(self, id):
-        self.product['payments']['invoice'] = id
+    def set_invoice(self, invoice):
+        self.product['payments']['invoice'] = invoice
         return self
 
-    def set_format(self, id):
-        self.product['sellingMode']['format'] = id
+    def set_format(self, format):
+        self.product['sellingMode']['format'] = format
         return self
 
-    def set_starting_price_amount(self, id):
-        self.product['sellingMode']['startingPrice']['amount'] = id
+    def set_starting_price_amount(self, starting_price_amount):
+        self.product['sellingMode']['startingPrice']['amount'] = starting_price_amount
         return self
 
-    def set_starting_price_currency(self, id):
-        self.product['sellingMode']['startingPrice']['currency'] = id
+    def set_starting_price_currency(self, starting_price_currency):
+        self.product['sellingMode']['startingPrice']['currency'] = starting_price_currency
         return self
 
-    def set_name(self, id):
-        self.product['name'] = id
+    def set_name(self, name):
+        self.product['name'] = name
         return self
 
-    def set_saleor_images(self, id):
-        self.saleor_images = id
+    def set_saleor_images(self, saleor_images):
+        self.saleor_images = saleor_images
         return self
 
     def set_images(self, images):
@@ -763,44 +763,44 @@ class AllegroProductMapper:
 
         return self
 
-    def set_stock_available(self, id):
-        self.product['stock']['available'] = id
+    def set_stock_available(self, stock_available):
+        self.product['stock']['available'] = stock_available
         return self
 
-    def set_stock_unit(self, id):
-        self.product['stock']['unit'] = id
+    def set_stock_unit(self, stock_unit):
+        self.product['stock']['unit'] = stock_unit
         return self
 
-    def set_publication_duration(self, id):
-        self.product['publication']['duration'] = id
+    def set_publication_duration(self, publication_duration):
+        self.product['publication']['duration'] = publication_duration
         return self
 
-    def set_publication_ending_at(self, id):
-        self.product['publication']['endingAt'] = id
+    def set_publication_ending_at(self, publication_ending_at):
+        self.product['publication']['endingAt'] = publication_ending_at
         return self
 
-    def set_publication_starting_at(self, id):
-        self.product['publication']['startingAt'] = id
+    def set_publication_starting_at(self, publication_starting_at):
+        self.product['publication']['startingAt'] = publication_starting_at
         return self
 
-    def set_publication_status(self, id):
-        self.product['publication']['status'] = id
+    def set_publication_status(self, publication_status):
+        self.product['publication']['status'] = publication_status
         return self
 
-    def set_publication_ended_by(self, id):
-        self.product['publication']['endedBy'] = id
+    def set_publication_ended_by(self, publication_ended_by):
+        self.product['publication']['endedBy'] = publication_ended_by
         return self
 
-    def set_publication_republish(self, id):
-        self.product['publication']['republish'] = id
+    def set_publication_republish(self, publication_republish):
+        self.product['publication']['republish'] = publication_republish
         return self
 
-    def set_saleor_parameters(self, id):
-        self.saleor_parameters = id
+    def set_saleor_parameters(self, saleor_parameters):
+        self.saleor_parameters = saleor_parameters
         return self
 
-    def set_parameters(self, id):
-        self.product['parameters'] = id
+    def set_parameters(self, parameters):
+        self.product['parameters'] = parameters
         return self
 
     def run_mapper(self):
