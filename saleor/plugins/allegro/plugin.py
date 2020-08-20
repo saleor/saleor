@@ -143,8 +143,6 @@ class AllegroPlugin(BasePlugin):
     def product_created(self, product: "Product", previous_value: Any) -> Any:
         allegro_api = AllegroAPI(self.config.token_value)
         id = allegro_api.product_publish(saleor_product=product)
-        # print('Id', id)
-        pass
 
     def calculate_hours_to_token_expire(self):
         token_expire = datetime.strptime(self.config.token_access, '%d/%m/%Y %H:%M:%S')
@@ -278,7 +276,6 @@ class AllegroAPI:
             else:
                 offer_publication = self.offer_publication(offer['id'])
 
-                print(offer['validation'].get('errors'))
                 result = self.get_detailed_offer_publication(offer_publication['id'])
 
                 if offer['validation'].get('errors') is not None:
@@ -292,11 +289,24 @@ class AllegroAPI:
                 return offer['id']
 
         if saleor_product.private_metadata.get('publish.status') == 'moderated' and saleor_product.is_published is False:
+
             offerId = saleor_product.private_metadata.get('publish.allegroId')
-            offer_publication = self.offer_publication(offerId)
-            result = self.get_detailed_offer_publication(offer_publication['id'])
-            self.update_status_and_publish_data_in_private_metadata(
-                saleor_product, offerId, 'published', True)
+            offer = self.valid_offer(offerId)
+
+            if offer['validation'].get('errors') is not None:
+                if len(offer['validation'].get('errors')) > 0:
+                    print(offer['validation'].get('errors')[0]['message'],
+                          'dla ogłoszenia: ',
+                          'https://allegro.pl.allegrosandbox.pl/offer/' + offer[
+                              'id'] + '/restore')
+                    self.update_status_and_publish_data_in_private_metadata(
+                        saleor_product, offer['id'], 'moderated', False)
+                else:
+                    self.offer_publication(
+                        saleor_product.private_metadata.get('publish.allegroId'))
+
+                    self.update_status_and_publish_data_in_private_metadata(
+                        saleor_product, offer['id'], 'published', True)
 
 
     def publish_to_allegro(self, allegro_product):
@@ -344,6 +354,13 @@ class AllegroAPI:
                                  data=json.dumps(data))
 
         return response
+
+    def valid_offer(self, offer_id):
+        endpoint = 'sale/offers/' + offer_id
+
+        response = self.get_request(endpoint)
+
+        return json.loads(response.text)
 
     def get_require_parameters(self, category_id):
 
@@ -548,7 +565,6 @@ class AllegroParametersMapper(BaseParametersMapper):
     def get_global_parameter_map(self, parameter):
         config = self.get_plugin_configuration()
         map = config.get('allegro.mapping.' + parameter)
-        print(parameter, 'get_global_parameter_map', map)
         if map is not None:
             if isinstance(map, str):
                 return self.parse_list_to_map(json.loads(map.replace('\'', '\"')))
@@ -578,7 +594,7 @@ class AllegroParametersMapper(BaseParametersMapper):
 
         mapped_parameter_key = self.get_global_parameter_key(parameter) or self.get_specyfic_parameter_key(parameter) or parameter
 
-        mapped_parameter_value = self.get_parameter_out_of_saleor(str(mapped_parameter_key))
+        mapped_parameter_value = self.get_parameter_out_of_saleor_specyfic(str(mapped_parameter_key)) or self.get_parameter_out_of_saleor_global(str(mapped_parameter_key))
         if mapped_parameter_value is not None:
             return slugify(str(mapped_parameter_key)), mapped_parameter_value
 
@@ -587,12 +603,17 @@ class AllegroParametersMapper(BaseParametersMapper):
 
         return mapped_parameter_key, mapped_parameter_value
 
-    def get_parameter_out_of_saleor(self, parameter):
+    def get_parameter_out_of_saleor_specyfic(self, parameter):
         map = self.product.product_type.metadata.get('allegro.mapping.attributes')
         if map is not None:
             map = [m for m in map if '*' in m]
             if bool(map):
                 return self.parse_list_to_map(map).get(parameter)
+
+    def get_parameter_out_of_saleor_global(self, parameter):
+        mapped_parameter_map = self.get_global_parameter_map(slugify(parameter))
+        if mapped_parameter_map is not None:
+            return mapped_parameter_map.get("*")
 
     def get_universal_value_parameter(self, parameter):
         mapped_parameter_map = self.get_global_parameter_map(parameter)
@@ -609,7 +630,6 @@ class AllegroParametersMapper(BaseParametersMapper):
         if allegro_parameter is None:
             allegro_parameter = self.create_allegro_fuzzy_parameter(slugify(parameter), str(mapped_parameter_value))
 
-        print('get_allegro_parameter', slugify(parameter), mapped_parameter_key, mapped_parameter_value, allegro_parameter)
         return allegro_parameter
 
 
