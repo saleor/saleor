@@ -4160,7 +4160,6 @@ type ProductVariant implements Node & ObjectWithMetadata {
   quantity: Int! @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   quantityAllocated: Int @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   stockQuantity: Int! @deprecated(reason: "Use the quantityAvailable field instead. This field will be removed after 2020-07-31.")
-  price: Money
   channelListing: [ProductVariantChannelListing!]
   pricing: VariantPricingInfo
   isAvailable: Boolean @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
@@ -4186,7 +4185,6 @@ type ProductVariantBulkCreate {
 input ProductVariantBulkCreateInput {
   attributes: [AttributeValueInput]!
   costPrice: Decimal
-  price: Decimal
   sku: String!
   trackInventory: Boolean
   weight: WeightScalar
@@ -4242,7 +4240,6 @@ type ProductVariantCreate {
 input ProductVariantCreateInput {
   attributes: [AttributeValueInput]!
   costPrice: Decimal
-  price: Decimal
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
@@ -4259,7 +4256,6 @@ type ProductVariantDelete {
 input ProductVariantInput {
   attributes: [AttributeValueInput]
   costPrice: Decimal
-  price: Decimal
   sku: String
   trackInventory: Boolean
   weight: WeightScalar

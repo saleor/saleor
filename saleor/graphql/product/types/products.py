@@ -151,14 +151,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "This field will be removed after 2020-07-31."
         ),
     )
-    price = graphene.Field(
-        Money,
-        description=(
-            "Base price of a product variant. "
-            "This field is restricted for admins. "
-            "Use the pricing field to get the public price for customers."
-        ),
-    )
     channel_listing = graphene.List(
         graphene.NonNull(ProductVariantChannelListing),
         description="List of price information in channels for the product.",
@@ -287,21 +279,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_cost_price(root: ChannelContext[models.ProductVariant], *_args):
         return root.node.cost_price
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    # TODO: Consider about drop this field from dashboard API. Insted of this field
-    # dashboard should use channel_listing resolver(Similar to resolve_channel_listing
-    # on Product Type)
-    def resolve_price(root: ChannelContext[models.ProductVariant], info):
-        def get_price(variant_channel_listing: models.ProductVariantChannelListing):
-            return variant_channel_listing.price
-
-        return (
-            VariantChannelListingByVariantIdAndChanneSlugLoader(info.context)
-            .load((root.node.id, root.channel_slug))
-            .then(get_price)
-        )
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

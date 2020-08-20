@@ -3681,7 +3681,6 @@ def test_product_restricted_fields_permissions(
         ("digitalContent", True),
         ("margin", False),
         ("costPrice", True),
-        ("price", True),
         ("quantityOrdered", False),
         ("privateMeta", True),
     ),
