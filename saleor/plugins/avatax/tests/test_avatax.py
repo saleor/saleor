@@ -11,9 +11,9 @@ from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
 from .. import (
     AvataxConfiguration,
-    checkout_needs_new_fetch,
     generate_request_data_from_checkout,
     get_cached_tax_codes_or_fetch,
+    taxes_need_new_fetch,
 )
 from ..plugin import AvataxPlugin
 
@@ -93,19 +93,20 @@ def test_calculate_checkout_line_total(
 @pytest.mark.parametrize(
     "with_discount, expected_net, expected_gross, voucher_amount, taxes_in_prices",
     [
-        (True, "20.33", "25.00", "0.0", True),
-        (True, "20.00", "25.75", "5.0", False),
-        (False, "40.00", "49.20", "0.0", False),
-        (False, "29.52", "37.00", "3.0", True),
+        (True, "22.32", "26.99", "0.0", True),
+        (True, "21.99", "27.74", "5.0", False),
+        (False, "41.99", "51.19", "0.0", False),
+        (False, "31.51", "38.99", "3.0", True),
     ],
 )
-def test_calculate_checkout_total(
+def test_calculate_checkout_total_uses_default_calculation(
     with_discount,
     expected_net,
     expected_gross,
     voucher_amount,
     taxes_in_prices,
     checkout_with_item,
+    product_with_single_variant,
     discount_info,
     shipping_zone,
     address,
@@ -113,6 +114,7 @@ def test_calculate_checkout_total(
     site_settings,
     monkeypatch,
     plugin_configuration,
+    non_default_category,
 ):
     plugin_configuration()
     monkeypatch.setattr(
@@ -124,6 +126,7 @@ def test_calculate_checkout_total(
     checkout_with_item.save()
     site_settings.company_address = address_usa
     site_settings.include_taxes_in_prices = taxes_in_prices
+    site_settings.save()
 
     voucher_amount = Money(voucher_amount, "USD")
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -133,6 +136,81 @@ def test_calculate_checkout_total(
     product = line.variant.product
     manager.assign_tax_code_to_object_meta(product, "PC040156")
     product.save()
+
+    product_with_single_variant.charge_taxes = False
+    product_with_single_variant.category = non_default_category
+    product_with_single_variant.save()
+    add_variant_to_checkout(
+        checkout_with_item, product_with_single_variant.variants.get()
+    )
+
+    discounts = [discount_info] if with_discount else None
+    total = manager.calculate_checkout_total(
+        checkout_with_item, list(checkout_with_item), discounts
+    )
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize(
+    "with_discount, expected_net, expected_gross, voucher_amount, taxes_in_prices",
+    [
+        (True, "22.32", "26.99", "0.0", True),
+        (True, "21.99", "27.74", "5.0", False),
+        (False, "41.99", "51.19", "0.0", False),
+        (False, "31.51", "38.99", "3.0", True),
+    ],
+)
+def test_calculate_checkout_total(
+    with_discount,
+    expected_net,
+    expected_gross,
+    voucher_amount,
+    taxes_in_prices,
+    checkout_with_item,
+    product_with_single_variant,
+    discount_info,
+    shipping_zone,
+    address,
+    address_usa,
+    site_settings,
+    monkeypatch,
+    plugin_configuration,
+    non_default_category,
+):
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PC040156": "desc"},
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
+    )
+    manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = taxes_in_prices
+    site_settings.save()
+
+    voucher_amount = Money(voucher_amount, "USD")
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.discount = voucher_amount
+    checkout_with_item.save()
+    line = checkout_with_item.lines.first()
+    product = line.variant.product
+    manager.assign_tax_code_to_object_meta(product, "PC040156")
+    product.save()
+
+    product_with_single_variant.charge_taxes = False
+    product_with_single_variant.category = non_default_category
+    product_with_single_variant.save()
+    add_variant_to_checkout(
+        checkout_with_item, product_with_single_variant.variants.get()
+    )
 
     discounts = [discount_info] if with_discount else None
     total = manager.calculate_checkout_total(
@@ -348,14 +426,29 @@ def test_get_cached_tax_codes_or_fetch_wrong_response(monkeypatch):
     assert len(tax_codes) == 0
 
 
-def test_checkout_needs_new_fetch(monkeypatch, checkout_with_item, address):
+def test_taxes_need_new_fetch(monkeypatch, checkout_with_item, address):
     monkeypatch.setattr("saleor.plugins.avatax.cache.get", lambda x: None)
     checkout_with_item.shipping_address = address
     config = AvataxConfiguration(
         username_or_account="wrong_data", password_or_license="wrong_data"
     )
     checkout_data = generate_request_data_from_checkout(checkout_with_item, config)
-    assert checkout_needs_new_fetch(checkout_data, str(checkout_with_item.token))
+    assert taxes_need_new_fetch(checkout_data, str(checkout_with_item.token))
+
+
+def test_taxes_need_new_fetch_uses_cached_data(
+    monkeypatch, checkout_with_item, address
+):
+
+    checkout_with_item.shipping_address = address
+    config = AvataxConfiguration(
+        username_or_account="wrong_data", password_or_license="wrong_data"
+    )
+    checkout_data = generate_request_data_from_checkout(checkout_with_item, config)
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.cache.get", lambda x: [checkout_data, None]
+    )
+    assert not taxes_need_new_fetch(checkout_data, str(checkout_with_item.token))
 
 
 def test_get_plugin_configuration(settings):

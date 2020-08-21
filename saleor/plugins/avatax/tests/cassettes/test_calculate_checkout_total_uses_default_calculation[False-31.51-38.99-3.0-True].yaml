@@ -1,0 +1,106 @@
+interactions:
+- request:
+    body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
+      "lines": [{"quantity": 3, "amount": "30.00", "taxCode": "PC040156", "taxIncluded":
+      true, "itemCode": "123", "description": "Test product"}, {"quantity": 1, "amount":
+      "10.00", "taxCode": "FR020100", "taxIncluded": true, "itemCode": "Shipping",
+      "description": null}], "code": "94d932d1-b54d-49a9-964a-cca05489ca69", "date":
+      "2020-08-21", "customerCode": 0, "addresses": {"shipFrom": {"line1": "2000 Main
+      Street", "line2": "", "city": "Irvine", "region": "CA", "country": "US", "postalCode":
+      "92614"}, "shipTo": {"line1": "T\u0119czowa 7", "line2": "", "city": "WROC\u0141AW",
+      "region": "", "country": "PL", "postalCode": "53-601"}}, "commit": false, "currencyCode":
+      "USD", "email": ""}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '760'
+      User-Agent:
+      - python-requests/2.24.0
+    method: POST
+    uri: https://sandbox-rest.avatax.com/api/v2/transactions/createoradjust
+  response:
+    body:
+      string: "{\"id\":0,\"code\":\"94d932d1-b54d-49a9-964a-cca05489ca69\",\"companyId\"\
+        :242975,\"date\":\"2020-08-21\",\"paymentDate\":\"2020-08-21\",\"status\"\
+        :\"Temporary\",\"type\":\"SalesOrder\",\"currencyCode\":\"USD\",\"customerVendorCode\"\
+        :\"0\",\"customerCode\":\"0\",\"reconciled\":false,\"totalAmount\":32.52,\"\
+        totalExempt\":0.0,\"totalDiscount\":0.0,\"totalTax\":7.48,\"totalTaxable\"\
+        :32.52,\"totalTaxCalculated\":7.48,\"adjustmentReason\":\"NotAdjusted\",\"\
+        locked\":false,\"version\":1,\"exchangeRateEffectiveDate\":\"2020-08-21\"\
+        ,\"exchangeRate\":1.0,\"email\":\"\",\"modifiedDate\":\"2020-08-21T09:55:42.8885021Z\"\
+        ,\"modifiedUserId\":283192,\"taxDate\":\"2020-08-21T00:00:00\",\"lines\":[{\"\
+        id\":0,\"transactionId\":0,\"lineNumber\":\"1\",\"description\":\"Test product\"\
+        ,\"discountAmount\":0.0,\"exemptAmount\":0.0,\"exemptCertId\":0,\"isItemTaxable\"\
+        :true,\"itemCode\":\"123\",\"lineAmount\":24.39,\"quantity\":3.0,\"reportingDate\"\
+        :\"2020-08-21\",\"tax\":5.61,\"taxableAmount\":24.39,\"taxCalculated\":5.61,\"\
+        taxCode\":\"PC040156\",\"taxCodeId\":6622,\"taxDate\":\"2020-08-21\",\"taxIncluded\"\
+        :true,\"details\":[{\"id\":0,\"transactionLineId\":0,\"transactionId\":0,\"\
+        country\":\"PL\",\"region\":\"PL\",\"exemptAmount\":0.0,\"jurisCode\":\"PL\"\
+        ,\"jurisName\":\"POLAND\",\"stateAssignedNo\":\"\",\"jurisType\":\"CNT\",\"\
+        jurisdictionType\":\"Country\",\"nonTaxableAmount\":0.0,\"rate\":0.230000,\"\
+        tax\":5.61,\"taxableAmount\":24.39,\"taxType\":\"Output\",\"taxSubTypeId\"\
+        :\"O\",\"taxName\":\"Standard Rate\",\"taxAuthorityTypeId\":45,\"taxCalculated\"\
+        :5.61,\"rateType\":\"Standard\",\"rateTypeCode\":\"S\",\"unitOfBasis\":\"\
+        PerCurrencyUnit\",\"isNonPassThru\":false,\"isFee\":false}],\"nonPassthroughDetails\"\
+        :[],\"hsCode\":\"\",\"costInsuranceFreight\":0.0,\"vatCode\":\"PLS-2300P--US\"\
+        ,\"vatNumberTypeId\":0},{\"id\":0,\"transactionId\":0,\"lineNumber\":\"2\"\
+        ,\"discountAmount\":0.0,\"exemptAmount\":0.0,\"exemptCertId\":0,\"isItemTaxable\"\
+        :true,\"itemCode\":\"Shipping\",\"lineAmount\":8.13,\"quantity\":1.0,\"reportingDate\"\
+        :\"2020-08-21\",\"tax\":1.87,\"taxableAmount\":8.13,\"taxCalculated\":1.87,\"\
+        taxCode\":\"FR020100\",\"taxCodeId\":4784,\"taxDate\":\"2020-08-21\",\"taxIncluded\"\
+        :true,\"details\":[{\"id\":0,\"transactionLineId\":0,\"transactionId\":0,\"\
+        country\":\"PL\",\"region\":\"PL\",\"exemptAmount\":0.0,\"jurisCode\":\"PL\"\
+        ,\"jurisName\":\"POLAND\",\"stateAssignedNo\":\"\",\"jurisType\":\"CNT\",\"\
+        jurisdictionType\":\"Country\",\"nonTaxableAmount\":0.0,\"rate\":0.230000,\"\
+        tax\":1.87,\"taxableAmount\":8.13,\"taxType\":\"Output\",\"taxSubTypeId\"\
+        :\"O\",\"taxName\":\"Standard Rate\",\"taxAuthorityTypeId\":45,\"taxCalculated\"\
+        :1.87,\"rateType\":\"Standard\",\"rateTypeCode\":\"S\",\"unitOfBasis\":\"\
+        PerCurrencyUnit\",\"isNonPassThru\":false,\"isFee\":false}],\"nonPassthroughDetails\"\
+        :[],\"hsCode\":\"\",\"costInsuranceFreight\":0.0,\"vatCode\":\"PLS-2300F--US\"\
+        ,\"vatNumberTypeId\":0}],\"addresses\":[{\"id\":0,\"transactionId\":0,\"boundaryLevel\"\
+        :\"Zip5\",\"line1\":\"T\u0119czowa 7\",\"line2\":\"\",\"line3\":\"\",\"city\"\
+        :\"WROCLAW\",\"region\":\"\",\"postalCode\":\"53-601\",\"country\":\"PL\"\
+        ,\"taxRegionId\":205102,\"latitude\":\"0\",\"longitude\":\"0\"},{\"id\":0,\"\
+        transactionId\":0,\"boundaryLevel\":\"Address\",\"line1\":\"2000 Main Street\"\
+        ,\"line2\":\"\",\"line3\":\"\",\"city\":\"Irvine\",\"region\":\"CA\",\"postalCode\"\
+        :\"92614\",\"country\":\"US\",\"taxRegionId\":4017409,\"latitude\":\"33.684716\"\
+        ,\"longitude\":\"-117.851489\"}],\"summary\":[{\"country\":\"PL\",\"region\"\
+        :\"PL\",\"jurisType\":\"Country\",\"jurisCode\":\"PL\",\"jurisName\":\"POLAND\"\
+        ,\"taxAuthorityType\":45,\"stateAssignedNo\":\"\",\"taxType\":\"Output\",\"\
+        taxSubType\":\"O\",\"taxName\":\"Standard Rate\",\"rateType\":\"Standard\"\
+        ,\"taxable\":32.52,\"rate\":0.230000,\"tax\":7.48,\"taxCalculated\":7.48,\"\
+        nonTaxable\":0.0,\"exemption\":0.0}]}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '3337'
+      Content-Type:
+      - application/json; charset=utf-8
+      DatabaseCalls:
+      - '0'
+      DatabaseDuration:
+      - 00:00:00
+      Date:
+      - Fri, 21 Aug 2020 09:55:42 GMT
+      Location:
+      - /api/v2/companies/242975/transactions/0
+      Server:
+      - Kestrel
+      ServerDuration:
+      - '00:00:00.1078321'
+      ServiceDuration:
+      - 00:00:00
+      X-Content-Type-Options:
+      - nosniff
+    status:
+      code: 201
+      message: Created
+version: 1
