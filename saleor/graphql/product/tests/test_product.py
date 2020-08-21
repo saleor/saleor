@@ -95,7 +95,7 @@ def query_categories_with_filter():
 
 QUERY_FETCH_ALL_PRODUCTS = """
     query {
-        products(first: 1) {
+        products(first: 10) {
             totalCount
             edges {
                 node {
@@ -372,6 +372,64 @@ def test_fetch_unavailable_products(user_api_client, product):
     content = get_graphql_content(response)
     assert content["data"]["products"]["totalCount"] == 0
     assert not content["data"]["products"]["edges"]
+
+
+def test_fetch_all_products_visible_in_listings(
+    user_api_client, product_list, permission_manage_products,
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    response = user_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["products"]["edges"]
+    assert len(product_data) == product_count - 1
+
+
+def test_fetch_all_products_visible_in_listings_by_staff_with_perm(
+    staff_api_client, product_list, permission_manage_products,
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["products"]["edges"]
+    assert len(product_data) == product_count
+
+
+def test_fetch_all_products_visible_in_listings_by_staff_without_perm(
+    staff_api_client, product_list, permission_manage_products,
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["products"]["edges"]
+    assert len(product_data) == product_count - 1
 
 
 def test_product_query(staff_api_client, product, permission_manage_products, stock):
@@ -3369,46 +3427,6 @@ def test_product_update_variants_names(mock__update_variants_names, product_type
     variant_attr_ids = [attr.pk for attr in variant_attributes]
     update_variants_names(product_type.pk, variant_attr_ids)
     assert mock__update_variants_names.call_count == 1
-
-
-def test_product_variants_by_ids(user_api_client, variant):
-    query = """
-        query getProduct($ids: [ID!]) {
-            productVariants(ids: $ids, first: 1) {
-                edges {
-                    node {
-                        id
-                    }
-                }
-            }
-        }
-    """
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-
-    variables = {"ids": [variant_id]}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["productVariants"]
-    assert data["edges"][0]["node"]["id"] == variant_id
-    assert len(data["edges"]) == 1
-
-
-def test_product_variants_no_ids_list(user_api_client, variant):
-    query = """
-        query getProductVariants {
-            productVariants(first: 10) {
-                edges {
-                    node {
-                        id
-                    }
-                }
-            }
-        }
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    data = content["data"]["productVariants"]
-    assert len(data["edges"]) == ProductVariant.objects.count()
 
 
 @pytest.mark.parametrize(
