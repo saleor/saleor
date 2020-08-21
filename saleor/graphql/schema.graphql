@@ -3716,6 +3716,7 @@ input ProductCreateInput {
   sku: String
   trackInventory: Boolean
   basePrice: Decimal
+  visibleInListings: Boolean
   productType: ID!
   stocks: [StockInput!]
 }
@@ -3847,6 +3848,7 @@ input ProductInput {
   sku: String
   trackInventory: Boolean
   basePrice: Decimal
+  visibleInListings: Boolean
 }
 
 input ProductOrder {
