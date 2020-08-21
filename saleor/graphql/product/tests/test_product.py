@@ -122,6 +122,7 @@ QUERY_PRODUCT = """
             }
             availableForPurchase
             isAvailableForPurchase
+            visibleInListings
         }
     }
     """
@@ -130,13 +131,21 @@ QUERY_PRODUCT = """
 def test_product_query_by_id(
     user_api_client, product,
 ):
+    # given
+    product.visible_in_listings = True
+    product.save(update_fields=["visible_in_listings"])
+
     variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
 
+    # when
     response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+
+    # then
     content = get_graphql_content(response)
     product_data = content["data"]["product"]
     assert product_data is not None
     assert product_data["name"] == product.name
+    assert product_data["visibleInListings"] is True
 
 
 def test_product_query_by_id_weight_returned_in_default_unit(
