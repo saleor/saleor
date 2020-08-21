@@ -499,6 +499,7 @@ class Product(CountableDjangoObjectType):
             "seo_title",
             "updated_at",
             "weight",
+            "visible_in_listings",
         ]
 
     @staticmethod
