@@ -163,15 +163,15 @@ def test_checkout_create_with_default_channel(
         response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
         content = get_graphql_content(response)["data"]["checkoutCreate"]
 
-    assert any(
-        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
-    )
-
     assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
 
     assert new_checkout.channel == channel_USD
+
+    assert any(
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
+    )
 
 
 def test_checkout_create_with_multiple_channel_without_channel_slug(

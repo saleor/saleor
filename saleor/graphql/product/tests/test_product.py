@@ -290,7 +290,7 @@ def test_product_query_by_id_not_available_as_customer(
 
 
 def test_product_query_by_id_weight_returned_in_default_unit(
-    user_api_client, product, site_settings
+    user_api_client, product, site_settings, channel_USD
 ):
     # given
     product.weight = Weight(kg=10)
@@ -299,7 +299,10 @@ def test_product_query_by_id_weight_returned_in_default_unit(
     site_settings.default_weight_unit = WeightUnits.POUND
     site_settings.save(update_fields=["default_weight_unit"])
 
-    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+    }
 
     # when
     response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
@@ -313,7 +316,9 @@ def test_product_query_by_id_weight_returned_in_default_unit(
     assert product_data["weight"]["unit"] == WeightUnits.POUND.upper()
 
 
-def test_product_query_by_id_weight_is_rounded(user_api_client, product, site_settings):
+def test_product_query_by_id_weight_is_rounded(
+    user_api_client, product, site_settings, channel_USD
+):
     # given
     product.weight = Weight(kg=1.83456)
     product.save(update_fields=["weight"])
@@ -321,7 +326,10 @@ def test_product_query_by_id_weight_is_rounded(user_api_client, product, site_se
     site_settings.default_weight_unit = WeightUnits.KILOGRAM
     site_settings.save(update_fields=["default_weight_unit"])
 
-    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+    }
 
     # when
     response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
@@ -835,7 +843,7 @@ def test_fetch_product_from_category_query(
     query = """
     query {
         category(id: "%(category_id)s") {
-            products(first: 20) {
+            products(first: 20, channel: "%(channel_slug)s") {
                 edges {
                     node {
                         id
@@ -889,6 +897,7 @@ def test_fetch_product_from_category_query(
     }
     """ % {
         "category_id": graphene.Node.to_global_id("Category", category.id),
+        "channel_slug": channel_USD.slug,
     }
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query)

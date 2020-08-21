@@ -76,7 +76,7 @@ def test_product_details(product, api_client, count_queries, channel_USD):
             category {
               id
               name
-              products(first: 4) {
+              products(first: 4, channel: $channel) {
                 edges {
                   node {
                     ...BasicProductFields

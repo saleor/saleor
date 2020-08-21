@@ -26,7 +26,7 @@ from ....warehouse.availability import (
 from ...account.enums import CountryCodeEnum
 from ...channel import ChannelContext, ChannelQsContext
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
-from ...channel.utils import get_default_channel_or_graphql_error
+from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
 from ...core.fields import (
@@ -728,7 +728,7 @@ class ProductType(CountableDjangoObjectType):
     def resolve_products(root: models.ProductType, info, channel=None, **_kwargs):
         user = info.context.user
         if channel is None:
-            channel = get_default_channel_or_graphql_error().slug
+            channel = get_default_channel_slug_or_graphql_error()
         qs = root.products.visible_to_user(user, channel)
         return ChannelQsContext(qs=qs, channel_slug=channel)
 
@@ -801,7 +801,7 @@ class Collection(CountableDjangoObjectType):
     def resolve_products(root: models.Collection, info, channel=None, **kwargs):
         user = info.context.user
         if channel is None:
-            channel = get_default_channel_or_graphql_error().slug
+            channel = get_default_channel_slug_or_graphql_error()
         qs = root.products.collection_sorted(user, channel)
         return ChannelQsContext(qs=qs, channel_slug=channel)
 
@@ -898,7 +898,7 @@ class Category(CountableDjangoObjectType):
     def resolve_products(root: models.Category, _info, channel=None, **_kwargs):
         tree = root.get_descendants(include_self=True)
         if channel is None:
-            channel = get_default_channel_or_graphql_error().slug
+            channel = get_default_channel_slug_or_graphql_error()
         qs = models.Product.objects.published(channel)
         qs = qs.filter(category__in=tree).distinct()
         return ChannelQsContext(qs=qs, channel_slug=channel)

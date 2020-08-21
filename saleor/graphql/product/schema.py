@@ -2,7 +2,7 @@ import graphene
 
 from ...core.permissions import ProductPermissions
 from ..channel import ChannelContext
-from ..channel.utils import get_default_channel_or_graphql_error
+from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.enums import ReportingPeriod
 from ..core.fields import (
     ChannelContextFilterConnectionField,
@@ -307,7 +307,7 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product(self, info, id=None, slug=None, channel=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if channel is None:
-            channel = get_default_channel_or_graphql_error().slug
+            channel = get_default_channel_slug_or_graphql_error()
         if id:
             _, id = graphene.Node.from_global_id(id)
             product = resolve_product_by_id(info, id, channel_slug=channel)
@@ -319,7 +319,7 @@ class ProductQueries(graphene.ObjectType):
 
     def resolve_products(self, info, channel=None, **kwargs):
         if channel is None:
-            channel = get_default_channel_or_graphql_error().slug
+            channel = get_default_channel_slug_or_graphql_error()
         return resolve_products(info, channel_slug=channel, **kwargs)
 
     def resolve_product_type(self, info, id, **_kwargs):
@@ -330,7 +330,7 @@ class ProductQueries(graphene.ObjectType):
 
     def resolve_product_variant(self, info, id, channel=None, **_kwargs):
         if channel is None:
-            channel = get_default_channel_or_graphql_error().slug
+            channel = get_default_channel_slug_or_graphql_error()
         _, id = graphene.Node.from_global_id(id)
         variant = resolve_variant_by_id(info, id, channel_slug=channel)
         return ChannelContext(node=variant, channel_slug=channel) if variant else None
@@ -341,13 +341,13 @@ class ProductQueries(graphene.ObjectType):
         # for example. As staff user with `MANAGE_PRODUCTS` geting field not related
         # to channels.
         if channel is None:
-            channel = get_default_channel_or_graphql_error().slug
+            channel = get_default_channel_slug_or_graphql_error()
         return resolve_product_variants(info, ids=ids, channel_slug=channel)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_report_product_sales(self, *_args, period, channel=None, **_kwargs):
         if channel is None:
-            channel = get_default_channel_or_graphql_error().slug
+            channel = get_default_channel_slug_or_graphql_error()
         return resolve_report_product_sales(period, channel_slug=channel)
 
 
