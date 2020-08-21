@@ -61,6 +61,9 @@ def resolve_products(info, stock_availability=None, **_kwargs):
     if stock_availability:
         qs = filter_products_by_stock_availability(qs, stock_availability)
 
+    if not qs.user_has_access_to_all(user):
+        qs = qs.exclude(visible_in_listings=False)
+
     return qs.distinct()
 
 
@@ -69,14 +72,19 @@ def resolve_product_types(info, **_kwargs):
 
 
 def resolve_product_variants(info, ids=None):
-    user = info.context.user
+    user = get_user_or_app_from_context(info.context)
+
     visible_products = models.Product.objects.visible_to_user(user).values_list(
         "pk", flat=True
     )
+    if not visible_products.user_has_access_to_all(user):
+        visible_products = visible_products.exclude(visible_in_listings=False)
+
     qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
     if ids:
         db_ids = [get_database_id(info, node_id, "ProductVariant") for node_id in ids]
         qs = qs.filter(pk__in=db_ids)
+
     return qs
 
 
