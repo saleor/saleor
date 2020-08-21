@@ -7,7 +7,7 @@ from measurement.measures import Weight
 
 from ....core.weight import WeightUnits
 from ....product.error_codes import ProductErrorCode
-from ....product.models import ProductVariant
+from ....product.models import Product, ProductVariant
 from ....product.utils.attributes import associate_attribute_values_to_instance
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.models import Stock, Warehouse
@@ -964,6 +964,75 @@ def test_fetch_all_variants_anonymous_user(
 ):
     data = _fetch_all_variants(api_client)
     assert data["totalCount"] == 0
+
+
+def test_product_variants_by_ids(user_api_client, variant):
+    query = """
+        query getProduct($ids: [ID!]) {
+            productVariants(ids: $ids, first: 1) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    """
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {"ids": [variant_id]}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["productVariants"]
+    assert data["edges"][0]["node"]["id"] == variant_id
+    assert len(data["edges"]) == 1
+
+
+def test_product_variants_visible_in_listings_by_customer(
+    user_api_client, product_list
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    data = _fetch_all_variants(user_api_client)
+
+    assert data["totalCount"] == product_count - 1
+
+
+def test_product_variants_visible_in_listings_by_staff_without_perm(
+    staff_api_client, product_list
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    data = _fetch_all_variants(staff_api_client)
+
+    assert data["totalCount"] == product_count - 1
+
+
+def test_product_variants_visible_in_listings_by_staff_with_perm(
+    staff_api_client, product_list, permission_manage_products
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    data = _fetch_all_variants(
+        staff_api_client, permissions=[permission_manage_products]
+    )
+
+    assert data["totalCount"] == product_count
 
 
 def _fetch_variant(client, variant, permissions=None):
