@@ -1,4 +1,3 @@
-import datetime
 from typing import List, Optional, Tuple
 
 import graphene
@@ -142,8 +141,7 @@ def validate_variants_available_for_purchase(variants):
     not_available_variants = [
         variant.pk
         for variant in variants
-        if not variant.product.available_for_purchase
-        or datetime.date.today() < variant.product.available_for_purchase
+        if not variant.product.is_available_for_purchase()
     ]
     if not_available_variants:
         variant_ids = [

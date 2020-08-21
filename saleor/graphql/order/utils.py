@@ -1,5 +1,3 @@
-import datetime
-
 from django.core.exceptions import ValidationError
 
 from ...core.exceptions import InsufficientStock
@@ -78,10 +76,7 @@ def validate_product_is_published(order):
 
 def validate_product_is_available_for_purchase(order):
     for line in order:
-        if (
-            not line.variant.product.available_for_purchase
-            or datetime.date.today() < line.variant.product.available_for_purchase
-        ):
+        if not line.variant.product.is_available_for_purchase():
             raise ValidationError(
                 {
                     "lines": ValidationError(
