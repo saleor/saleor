@@ -1193,6 +1193,7 @@ CREATE_PRODUCT_MUTATION = """
                                     slug
                                 }
                             }
+                            visibleInListings
                           }
                           productErrors {
                             field
@@ -1228,6 +1229,7 @@ def test_create_product(
     product_slug = "product-test-slug"
     product_is_published = True
     product_charge_taxes = True
+    visible_in_listings = True
     product_tax_rate = "STANDARD"
     product_price = "22.33"
 
@@ -1264,6 +1266,7 @@ def test_create_product(
                 {"id": color_attr_id, "values": [color_value_slug]},
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
             ],
+            "visibleInListings": visible_in_listings,
         }
     }
 
@@ -1281,6 +1284,7 @@ def test_create_product(
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
+    assert data["product"]["visibleInListings"] == visible_in_listings
     values = (
         data["product"]["attributes"][0]["values"][0]["slug"],
         data["product"]["attributes"][1]["values"][0]["slug"],
@@ -1762,6 +1766,7 @@ def test_update_product(
             $slug: String!,
             $descriptionJson: JSONString!,
             $isPublished: Boolean!,
+            $visibleInListings: Boolean!,
             $chargeTaxes: Boolean!,
             $taxCode: String!,
             $basePrice: Decimal!,
@@ -1774,6 +1779,7 @@ def test_update_product(
                         slug: $slug,
                         descriptionJson: $descriptionJson,
                         isPublished: $isPublished,
+                        visibleInListings: $visibleInListings,
                         chargeTaxes: $chargeTaxes,
                         taxCode: $taxCode,
                         basePrice: $basePrice,
@@ -1810,6 +1816,7 @@ def test_update_product(
                                     slug
                                 }
                             }
+                            visibleInListings
                           }
                           errors {
                             message
@@ -1827,6 +1834,7 @@ def test_update_product(
     product_slug = "updated-product"
     basePrice = 10.00
     product_is_published = True
+    product_visible_in_listings = False
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
 
@@ -1846,6 +1854,7 @@ def test_update_product(
         "slug": product_slug,
         "descriptionJson": other_description_json,
         "isPublished": product_is_published,
+        "visibleInListings": product_visible_in_listings,
         "chargeTaxes": product_charge_taxes,
         "taxCode": product_tax_rate,
         "basePrice": basePrice,
@@ -1862,6 +1871,7 @@ def test_update_product(
     assert data["product"]["slug"] == product_slug
     assert data["product"]["descriptionJson"] == other_description_json
     assert data["product"]["isPublished"] == product_is_published
+    assert data["product"]["visibleInListings"] == product_visible_in_listings
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["variants"][0]["price"]["amount"] == basePrice
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
