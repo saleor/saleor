@@ -285,17 +285,17 @@ class AllegroAPI:
                 return None
             else:
                 if offer['validation'].get('errors') is not None:
-                    if offer['validation'].get('errors')[0]['message'].startswith('Missing'):
+                    if len(offer['validation'].get('errors')) > 0:
                         print(offer['validation'].get('errors')[0]['message'], 'dla ogłoszenia: ', 'https://allegro.pl.allegrosandbox.pl/offer/' +  offer['id'] + '/restore')
                         self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], 'moderated', False)
-                else:
-                    offer_publication = self.offer_publication(offer['id'])
-                    self.update_status_and_publish_data_in_private_metadata(
-                        saleor_product, offer['id'], 'published', True)
+                    else:
+                        offer_publication = self.offer_publication(offer['id'])
+                        self.update_status_and_publish_data_in_private_metadata(
+                            saleor_product, offer['id'], 'published', True)
 
                 return offer['id']
 
-        if saleor_product.private_metadata.get('publish.status') == 'moderated' and saleor_product.is_published is False:
+        if saleor_product.private_metadata.get('publish.status') == 'moderated' and saleor_product.is_published is True:
 
             offerId = saleor_product.private_metadata.get('publish.allegroId')
             offer = self.valid_offer(offerId)
