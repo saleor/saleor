@@ -1,3 +1,4 @@
+import datetime
 from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
@@ -303,6 +304,12 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     @staticmethod
     def sort_by_attribute_fields() -> list:
         return ["concatenated_values_order", "concatenated_values", "name"]
+
+    def is_available_for_purchase(self):
+        return (
+            self.available_for_purchase is not None
+            and datetime.date.today() >= self.available_for_purchase
+        )
 
 
 class ProductTranslation(SeoModelTranslation):

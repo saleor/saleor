@@ -1,4 +1,3 @@
-import datetime
 from dataclasses import asdict
 from typing import List, Union
 
@@ -637,9 +636,7 @@ class Product(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_is_available_for_purchase(root: models.Product, _info):
-        if root.available_for_purchase is None:
-            return False
-        return datetime.date.today() >= root.available_for_purchase
+        return root.is_available_for_purchase()
 
 
 @key(fields="id")
