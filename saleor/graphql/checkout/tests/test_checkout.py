@@ -1,4 +1,5 @@
 import uuid
+import warnings
 from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, patch
@@ -10,6 +11,7 @@ from django.test import override_settings
 from prices import Money, TaxedMoney
 
 from ....account.models import User
+from ....channel.utils import DEPRECATION_WARNING_MESSAGE
 from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout
@@ -157,13 +159,18 @@ def test_checkout_create_with_default_channel(
         }
     }
     assert not Checkout.objects.exists()
-    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
-    content = get_graphql_content(response)["data"]["checkoutCreate"]
+    with warnings.catch_warnings(record=True) as warns:
+        response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+        content = get_graphql_content(response)["data"]["checkoutCreate"]
     assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
 
     assert new_checkout.channel == channel_USD
+
+    assert any(
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
+    )
 
 
 def test_checkout_create_with_multiple_channel_without_channel_slug(
