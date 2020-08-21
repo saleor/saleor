@@ -41,7 +41,7 @@ from ...translations.types import (
     ProductTranslation,
     ProductVariantTranslation,
 )
-from ...utils import get_database_id
+from ...utils import get_database_id, get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdAndCountryCodeLoader,
@@ -853,8 +853,11 @@ class Category(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_products(root: models.Category, info, **_kwargs):
+        requestor = get_user_or_app_from_context(info.context)
         tree = root.get_descendants(include_self=True)
         qs = models.Product.objects.published()
+        if not qs.user_has_access_to_all(requestor):
+            qs = qs.exclude(visible_in_listings=False)
         return qs.filter(category__in=tree)
 
     @staticmethod
