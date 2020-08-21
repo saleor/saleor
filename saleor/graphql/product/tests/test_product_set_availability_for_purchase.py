@@ -175,3 +175,35 @@ def test_product_set_availability_for_purchase_is_available_false_and_start_date
     assert len(errors) == 1
     assert errors[0]["code"] == ProductErrorCode.INVALID.name
     assert errors[0]["field"] == "startDate"
+
+
+def test_product_set_availability_for_purchase_is_available_false(
+    staff_api_client, permission_manage_products, product
+):
+    # given
+    query = MUTATION_PRODUCT_SET_AVAILABILITY_FOR_PURCHASE
+
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_products)
+
+    product.available_for_purchase = datetime.date(1999, 1, 1)
+    product.save(update_fields=["available_for_purchase"])
+
+    assert product.available_for_purchase
+
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "is_available": False,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productSetAvailabilityForPurchase"]
+    product_data = data["product"]
+
+    assert not data["productErrors"]
+    assert product_data["isAvailableForPurchase"] is False
+    assert product_data["availableForPurchase"] is None
