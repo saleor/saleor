@@ -103,7 +103,7 @@ class AllegroPlugin(BasePlugin):
         HOURS_LESS_THAN_WE_REFRESH_TOKEN = 6
 
         if self.config.token_access and self.calculate_hours_to_token_expire() < HOURS_LESS_THAN_WE_REFRESH_TOKEN:
-            access_token, refresh_token, expires_in = AllegroAPI(self.config.token_access).refresh_token(self.config.refresh_token, self.config.client_id, self.config.client_secret) or (None, None, None)
+            access_token, refresh_token, expires_in = AllegroAPI(self.config.token_access).refresh_token(self.config.refresh_token, self.config.client_id, self.config.client_secret, self.config.saleor_redirect_url) or (None, None, None)
             if access_token and refresh_token and expires_in is not None:
                 AllegroAuth.save_token_in_plugin_configuration(AllegroAuth, access_token, refresh_token, expires_in)
 
@@ -226,8 +226,7 @@ class AllegroAuth:
         allegro_auth.sign_in(CLIENT_ID, CLIENT_SECRET, access_code,
                              CALLBACK_URL, DEFAULT_REDIRECT_URI)
 
-        # TODO: move to parameter
-        return redirect('http://localhost:9000')
+        return redirect(plugin.config.saleor_redirect_url)
 
 
 class AllegroAPI:
@@ -238,14 +237,14 @@ class AllegroAPI:
         self.token = token
 
 
-    def refresh_token(self, refresh_token, client_id, client_secret):
+    def refresh_token(self, refresh_token, client_id, client_secret, saleor_redirect_url):
 
-        endpoint = 'auth/oauth/token?grant_type=refresh_token&refresh_token=' + refresh_token + '&redirect_uri=http://localhost:9000'
+        endpoint = 'auth/oauth/token?grant_type=refresh_token&refresh_token=' + refresh_token + '&redirect_uri=' + str(saleor_redirect_url)
 
         data = {
             'grant_type': 'refresh_token',
             'refresh_token': refresh_token,
-            'redirect_uri': 'http://localhost:9000',
+            'redirect_uri': str(saleor_redirect_url),
         }
 
         response = self.auth_request(endpoint=endpoint, data=data, client_id=client_id,
