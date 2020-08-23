@@ -247,6 +247,17 @@ class BasePlugin:
         Overwrite this method if you need to trigger specific logic after a product is
         created.
         """
+
+        return NotImplemented
+
+
+    def metadata_updated(self, product: "Product", previous_value: Any) -> Any:
+        """Trigger when product is created.
+
+        Overwrite this method if you need to trigger specific logic after a product is
+        created.
+        """
+
         return NotImplemented
 
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
