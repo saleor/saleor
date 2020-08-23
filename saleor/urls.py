@@ -18,7 +18,7 @@ urlpatterns = [
         digital_product,
         name="digital-product",
     ),
-    url(r'^allegro/$', AllegroAuth.resolve_auth),
+    url(r'^allegro?$', AllegroAuth.resolve_auth),
 ]
 
 if settings.DEBUG:
@@ -37,5 +37,5 @@ if settings.DEBUG:
 
     urlpatterns += static("/media/", document_root=settings.MEDIA_ROOT) + [
         url(r"^static/(?P<path>.*)$", serve),
-        # url(r"^", views.home, name="home"),
+        url(r"^", views.home, name="home"),
     ]
