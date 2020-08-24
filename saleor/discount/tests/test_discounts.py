@@ -107,7 +107,6 @@ def test_voucher_queryset_active(voucher):
         ([10, 10, 10], 5, DiscountValueType.FIXED, False, 15),
     ],
 )
-@pytest.mark.skip(reason="We should fix it when we merge checkout with channels.")
 def test_specific_products_voucher_checkout_discount(
     monkeypatch,
     prices,

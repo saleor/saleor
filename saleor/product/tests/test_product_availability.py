@@ -163,3 +163,53 @@ def test_visible_to_staff_user(
         customer_user, channel_USD.slug
     )
     assert available_products.count() == 3
+
+
+def test_filter_not_published_product_is_unpublished(product, channel_USD):
+    channel_listing = product.channel_listing.get()
+    channel_listing.is_published = False
+    channel_listing.save(update_fields=["is_published"])
+
+    available_products = models.Product.objects.not_published(channel_USD.slug)
+    assert available_products.count() == 1
+
+
+def test_filter_not_published_product_published_tomorrow(product, channel_USD):
+    date_tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    channel_listing = product.channel_listing.get()
+    channel_listing.is_published = True
+    channel_listing.publication_date = date_tomorrow
+    channel_listing.save(update_fields=["is_published", "publication_date"])
+
+    available_products = models.Product.objects.not_published(channel_USD.slug)
+    assert available_products.count() == 1
+
+
+def test_filter_not_published_product_not_published_tomorrow(product, channel_USD):
+    date_tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    channel_listing = product.channel_listing.get()
+    channel_listing.is_published = False
+    channel_listing.publication_date = date_tomorrow
+    channel_listing.save(update_fields=["is_published", "publication_date"])
+
+    available_products = models.Product.objects.not_published(channel_USD.slug)
+    assert available_products.count() == 1
+
+
+def test_filter_not_published_product_is_published(product, channel_USD):
+    available_products = models.Product.objects.not_published(channel_USD.slug)
+    assert available_products.count() == 0
+
+
+def test_filter_not_published_product_is_unpublished_other_channel(
+    product, channel_USD, channel_PLN
+):
+    models.ProductChannelListing.objects.create(
+        product=product, channel=channel_PLN, is_published=False
+    )
+
+    available_products_usd = models.Product.objects.not_published(channel_USD.slug)
+    assert available_products_usd.count() == 0
+
+    available_products_pln = models.Product.objects.not_published(channel_PLN.slug)
+    assert available_products_pln.count() == 1

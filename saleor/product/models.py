@@ -129,6 +129,15 @@ class ProductsQueryset(models.QuerySet):
             channel_listing__is_published=True,
         )
 
+    def not_published(self, channel_slug: str):
+        today = datetime.date.today()
+        return self.filter(
+            Q(channel_listing__publication_date__gt=today)
+            & Q(channel_listing__is_published=True)
+            | Q(channel_listing__is_published=False),
+            channel_listing__channel__slug=str(channel_slug),
+        )
+
     def published_with_variants(self, channel_slug: str):
         published = self.published(channel_slug)
         return published.filter(variants__isnull=False).distinct()

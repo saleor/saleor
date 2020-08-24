@@ -2586,7 +2586,6 @@ def test_checkout_complete_payment_payment_total_different_than_checkout(
     gateway_refund_or_void_mock.assert_called_with(payment)
 
 
-@pytest.mark.skip(reason="We should use channel from checkout in variant resolver.")
 def test_fetch_checkout_by_token(user_api_client, checkout_with_item):
     query = """
     query getCheckout($token: UUID!, $channel: String!) {
