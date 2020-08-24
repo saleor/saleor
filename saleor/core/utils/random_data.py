@@ -209,10 +209,15 @@ def create_attributes_values(values_data):
 
 
 def create_products(products_data, placeholder_dir, create_images):
-    counter = 0
     # calculate threshold on 10% level that indicates the number of products
     # with available_for_purchase date in future
-    threshold = len(products_data) * 0.1
+    purchase_threshold = len(products_data) * 0.1
+
+    # calculate the threshold for setting visible_in_listings to False
+    # for last 10% of products
+    searchable_threshold = len(products_data) - purchase_threshold
+
+    counter = 0
     for product in products_data:
         pk = product["pk"]
         # We are skipping products without images
@@ -225,9 +230,14 @@ def create_products(products_data, placeholder_dir, create_images):
         defaults["product_type_id"] = defaults.pop("product_type")
 
         available_for_purchase = datetime.date.today()
-        if counter <= threshold:
+        if counter <= purchase_threshold:
             available_for_purchase += datetime.timedelta(days=random.randrange(10, 365))
         defaults["available_for_purchase"] = available_for_purchase
+
+        visible_in_listings = True
+        if counter >= searchable_threshold:
+            visible_in_listings = False
+        defaults["visible_in_listings"] = visible_in_listings
 
         product, _ = Product.objects.update_or_create(pk=pk, defaults=defaults)
 
