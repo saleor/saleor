@@ -105,19 +105,17 @@ def test_create_order_captured_payment_creates_expected_events(
     checkout.shipping_address = customer_user.default_shipping_address
     checkout.shipping_method = shipping_method
     checkout.payments.add(payment_txn_captured)
+    checkout.tracking_code = "tracking_code"
+    checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
     # Place checkout
     order = create_order(
         checkout=checkout,
         order_data=prepare_order_data(
-            checkout=checkout,
-            lines=list(checkout),
-            tracking_code="tracking_code",
-            discounts=None,
+            checkout=checkout, lines=list(checkout), discounts=None,
         ),
         user=customer_user,
-        redirect_url="https://www.example.com",
     )
     flush_post_commit_hooks()
 
@@ -228,19 +226,17 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     checkout.shipping_address = customer_user.default_shipping_address
     checkout.shipping_method = shipping_method
     checkout.payments.add(payment_txn_captured)
+    checkout.tracking_code = "tracking_code"
+    checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
     # Place checkout
     order = create_order(
         checkout=checkout,
         order_data=prepare_order_data(
-            checkout=checkout,
-            lines=list(checkout),
-            tracking_code="tracking_code",
-            discounts=None,
+            checkout=checkout, lines=list(checkout), discounts=None,
         ),
         user=AnonymousUser(),
-        redirect_url="https://www.example.com",
     )
     flush_post_commit_hooks()
 
@@ -343,19 +339,17 @@ def test_create_order_preauth_payment_creates_expected_events(
     checkout.shipping_address = customer_user.default_shipping_address
     checkout.shipping_method = shipping_method
     checkout.payments.add(payment_txn_preauth)
+    checkout.tracking_code = "tracking_code"
+    checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
     # Place checkout
     order = create_order(
         checkout=checkout,
         order_data=prepare_order_data(
-            checkout=checkout,
-            lines=list(checkout),
-            tracking_code="tracking_code",
-            discounts=None,
+            checkout=checkout, lines=list(checkout), discounts=None,
         ),
         user=customer_user,
-        redirect_url="https://www.example.com",
     )
     flush_post_commit_hooks()
 
@@ -437,19 +431,17 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     checkout.shipping_address = customer_user.default_shipping_address
     checkout.shipping_method = shipping_method
     checkout.payments.add(payment_txn_preauth)
+    checkout.tracking_code = "tracking_code"
+    checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
     # Place checkout
     order = create_order(
         checkout=checkout,
         order_data=prepare_order_data(
-            checkout=checkout,
-            lines=list(checkout),
-            tracking_code="tracking_code",
-            discounts=None,
+            checkout=checkout, lines=list(checkout), discounts=None,
         ),
         user=AnonymousUser(),
-        redirect_url="https://www.example.com",
     )
     flush_post_commit_hooks()
 
@@ -515,14 +507,12 @@ def test_create_order_insufficient_stock(
     checkout.user = customer_user
     checkout.billing_address = customer_user.default_billing_address
     checkout.shipping_address = customer_user.default_billing_address
+    checkout.tracking_code = "tracking_code"
     checkout.save()
 
     with pytest.raises(InsufficientStock):
         prepare_order_data(
-            checkout=checkout,
-            lines=list(checkout),
-            tracking_code="tracking_code",
-            discounts=None,
+            checkout=checkout, lines=list(checkout), discounts=None,
         )
 
 
@@ -534,25 +524,21 @@ def test_create_order_doesnt_duplicate_order(
     checkout.billing_address = customer_user.default_billing_address
     checkout.shipping_address = customer_user.default_billing_address
     checkout.shipping_method = shipping_method
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
     order_data = prepare_order_data(
-        checkout=checkout, lines=list(checkout), tracking_code="", discounts=None
+        checkout=checkout, lines=list(checkout), discounts=None
     )
 
     order_1 = create_order(
-        checkout=checkout,
-        order_data=order_data,
-        user=customer_user,
-        redirect_url="https://www.example.com",
+        checkout=checkout, order_data=order_data, user=customer_user,
     )
     assert order_1.checkout_token == checkout.token
 
     order_2 = create_order(
-        checkout=checkout,
-        order_data=order_data,
-        user=customer_user,
-        redirect_url="https://www.example.com",
+        checkout=checkout, order_data=order_data, user=customer_user,
     )
     assert order_1.pk == order_2.pk
 
@@ -567,6 +553,8 @@ def test_create_order_with_gift_card(
     checkout.billing_address = customer_user.default_billing_address
     checkout.shipping_address = customer_user.default_billing_address
     checkout.shipping_method = shipping_method
+    checkout.tracking_code = "tracking_code"
+    checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
     lines = list(checkout)
@@ -581,14 +569,8 @@ def test_create_order_with_gift_card(
 
     order = create_order(
         checkout=checkout,
-        order_data=prepare_order_data(
-            checkout=checkout,
-            lines=lines,
-            tracking_code="tracking_code",
-            discounts=None,
-        ),
+        order_data=prepare_order_data(checkout=checkout, lines=lines, discounts=None,),
         user=customer_user if not is_anonymous_user else AnonymousUser(),
-        redirect_url="https://www.example.com",
     )
 
     assert order.gift_cards.count() == 1
@@ -604,6 +586,8 @@ def test_create_order_with_gift_card_partial_use(
     checkout.billing_address = customer_user.default_billing_address
     checkout.shipping_address = customer_user.default_billing_address
     checkout.shipping_method = shipping_method
+    checkout.tracking_code = "tracking_code"
+    checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
     price_without_gift_card = calculations.checkout_total(
@@ -617,13 +601,9 @@ def test_create_order_with_gift_card_partial_use(
     order = create_order(
         checkout=checkout,
         order_data=prepare_order_data(
-            checkout=checkout,
-            lines=list(checkout),
-            tracking_code="tracking_code",
-            discounts=None,
+            checkout=checkout, lines=list(checkout), discounts=None,
         ),
         user=customer_user,
-        redirect_url="https://www.example.com",
     )
 
     gift_card_used.refresh_from_db()
@@ -649,6 +629,8 @@ def test_create_order_with_many_gift_cards(
     checkout.billing_address = customer_user.default_billing_address
     checkout.shipping_address = customer_user.default_billing_address
     checkout.shipping_method = shipping_method
+    checkout.tracking_code = "tracking_code"
+    checkout.redirect_url = "https://www.example.com"
     checkout.save()
 
     price_without_gift_card = calculations.checkout_total(
@@ -666,13 +648,9 @@ def test_create_order_with_many_gift_cards(
     order = create_order(
         checkout=checkout,
         order_data=prepare_order_data(
-            checkout=checkout,
-            lines=list(checkout),
-            tracking_code="tracking_code",
-            discounts=None,
+            checkout=checkout, lines=list(checkout), discounts=None,
         ),
         user=customer_user,
-        redirect_url="https://www.example.com",
     )
 
     gift_card_created_by_staff.refresh_from_db()
@@ -689,17 +667,15 @@ def test_create_order_with_many_gift_cards(
 def test_note_in_created_order(checkout_with_item, address, customer_user):
     checkout_with_item.shipping_address = address
     checkout_with_item.note = "test_note"
+    checkout_with_item.tracking_code = "tracking_code"
+    checkout_with_item.redirect_url = "https://www.example.com"
     checkout_with_item.save()
     order = create_order(
         checkout=checkout_with_item,
         order_data=prepare_order_data(
-            checkout=checkout_with_item,
-            lines=list(checkout_with_item),
-            tracking_code="tracking_code",
-            discounts=None,
+            checkout=checkout_with_item, lines=list(checkout_with_item), discounts=None,
         ),
         user=customer_user,
-        redirect_url="https://www.example.com",
     )
     assert order.customer_note == checkout_with_item.note
 

@@ -57,7 +57,7 @@ def payment_adyen_for_checkout(checkout_with_items, address):
     payment = create_payment(
         gateway=AdyenGatewayPlugin.PLUGIN_ID,
         payment_token="",
-        total=Decimal("1234"),
+        total=Decimal("12.34"),
         currency=checkout_with_items.currency,
         email=checkout_with_items.email,
         customer_ip_address="",
