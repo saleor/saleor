@@ -56,6 +56,7 @@ def test_get_products_data(product, product_with_image, collection, image):
             "id": product.id,
             "name": product.name,
             "is_published": product.is_published,
+            "visible_in_listings": product.visible_in_listings,
             "description": product.description,
             "category__slug": product.category.slug,
             "product_type__name": product.product_type.name,
