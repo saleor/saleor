@@ -4,8 +4,8 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
-from django.contrib.postgres.fields import JSONField
 from django.db import models
+from django.db.models import JSONField  # type: ignore
 from django.db.models import Case, Count, F, FilteredRelation, Q, Value, When
 from django.urls import reverse
 from django.utils.encoding import smart_text
@@ -125,7 +125,7 @@ class ProductsQueryset(models.QuerySet):
         return self.filter(
             Q(channel_listing__publication_date__lte=today)
             | Q(channel_listing__publication_date__isnull=True),
-            channel_listing__channel__slug=channel_slug,
+            channel_listing__channel__slug=str(channel_slug),
             channel_listing__is_published=True,
         )
 

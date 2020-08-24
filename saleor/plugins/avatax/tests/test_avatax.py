@@ -5,7 +5,8 @@ from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
 from ....checkout.utils import add_variant_to_checkout
-from ....core.taxes import TaxError, quantize_price
+from ....core.prices import quantize_price
+from ....core.taxes import TaxError
 from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
 from .. import (

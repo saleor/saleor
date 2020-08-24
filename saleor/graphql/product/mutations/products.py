@@ -262,6 +262,8 @@ class MoveProductInput(graphene.InputObjectType):
         description=(
             "The relative sorting position of the product (from -inf to +inf) "
             "starting from the first given product's actual position."
+            "1 moves the item one position forward, -1 moves the item one position "
+            "backward, 0 leaves the item unchanged."
         )
     )
 

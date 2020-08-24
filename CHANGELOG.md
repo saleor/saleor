@@ -10,6 +10,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add App support - #5767 by @korycins
 - Add webhook handler to BasePlugin and PluginManager - #5884 by @korycins
 - Invoices backend - #5732 by @tomaszszymanski129
+- Support pushing webhook events to message queues - #5940 by @patrys, @korycins
+- Adyen drop-in integration - #5914 by @korycins, @IKarbowiak
+- Add `change_currency` command - #6016 by @maarcingebala
+- Send a confirmation email when the order is canceled or refunded - #6017
 
 ### Breaking Changes
 
@@ -33,6 +37,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing OrderEvents during checkout flow - #5684 by @koradon
 - Update google merchant to get tax rate based by plugin manager - #5823 by @gabmartinez
 - Allow unicode in slug fields - #5877 by @IKarbowiak
+- Fix empty plugin object result after PluginUpdate mutation - #5968 by @gabmartinez
 
 ## 2.10.2
 

@@ -1,11 +1,11 @@
 interactions:
 - request:
-    body: '[{"model": "order.order", "pk": 18, "fields": {"private_metadata": {},
-      "metadata": {}, "created": "2020-07-10T12:33:07.638Z", "status": "unfulfilled",
-      "user": 19, "language_code": "en", "tracking_client_id": "", "billing_address":
-      75, "shipping_address": 76, "user_email": "test@example.com", "currency": "USD",
-      "shipping_method": 20, "shipping_method_name": "DHL", "shipping_price_net_amount":
-      "10.00", "shipping_price_gross_amount": "12.30", "token": "cabcc857-e7ba-4415-9bf8-56b1a8d805a5",
+    body: '[{"model": "order.order", "pk": 187, "fields": {"private_metadata": {},
+      "metadata": {}, "created": "2020-08-07T09:05:59.192Z", "status": "unfulfilled",
+      "user": 202, "language_code": "en", "tracking_client_id": "", "billing_address":
+      825, "shipping_address": 826, "user_email": "test@example.com", "currency":
+      "USD", "shipping_method": 235, "shipping_method_name": "DHL", "shipping_price_net_amount":
+      "10.00", "shipping_price_gross_amount": "12.30", "token": "aad0c768-c6d8-41ee-a25f-73b7538941a8",
       "checkout_token": "", "total_net_amount": "80.00", "total_gross_amount": "98.40",
       "voucher": null, "discount_amount": "0.00", "discount_name": null, "translated_discount_name":
       null, "display_gross_prices": true, "customer_note": "", "weight": "0.0:kg",
@@ -18,7 +18,7 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '766'
+      - '771'
       Content-Type:
       - application/json
       User-Agent:
@@ -27,8 +27,10 @@ interactions:
       - mirumee.com
       X-Saleor-Event:
       - order_created
+      X-Saleor-Signature:
+      - ''
     method: POST
-    uri: https://webhook.site/75048668-439a-4e54-853b-6f081a6fb6cf
+    uri: https://webhook.site/48978b64-4efb-43d5-a334-451a1d164009
   response:
     body:
       string: !!binary |
@@ -41,20 +43,20 @@ interactions:
       Content-Type:
       - text/plain; charset=UTF-8
       Date:
-      - Fri, 10 Jul 2020 12:33:08 GMT
+      - Fri, 07 Aug 2020 09:05:59 GMT
       Server:
       - nginx/1.14.2
       Set-Cookie:
-      - laravel_session=PVibhFdXrFzqlnOPwr4CMbPpCR9PqFxSBeisJ5Bp; expires=Fri, 10-Jul-2020
-        14:33:08 GMT; Max-Age=7200; path=/; httponly
+      - laravel_session=ylfogNz3uixEXKaOfz1tmSob8nISj4pH8vFG5XRc; expires=Fri, 07-Aug-2020
+        11:05:59 GMT; Max-Age=7200; path=/; httponly
       Transfer-Encoding:
       - chunked
       Vary:
       - Accept-Encoding
       X-Request-Id:
-      - 61f48569-6ca6-43c6-a996-ad6a7e7984aa
+      - 0e944b79-e2e2-4f52-9879-1a9635416fb9
       X-Token-Id:
-      - 75048668-439a-4e54-853b-6f081a6fb6cf
+      - 48978b64-4efb-43d5-a334-451a1d164009
     status:
       code: 200
       message: OK

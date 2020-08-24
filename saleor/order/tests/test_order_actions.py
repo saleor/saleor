@@ -5,6 +5,7 @@ import pytest
 from prices import Money, TaxedMoney
 
 from ...payment import ChargeStatus, PaymentError
+from ...payment.models import Payment
 from ...product.models import DigitalContent
 from ...product.tests.utils import create_image
 from ...warehouse.models import Allocation, Stock
@@ -17,6 +18,7 @@ from ..actions import (
     fulfill_order_line,
     handle_fully_paid_order,
     mark_order_as_paid,
+    order_refunded,
 )
 from ..models import Fulfillment
 
@@ -174,15 +176,22 @@ def test_cancel_fulfillment_variant_witout_inventory_tracking(
     assert stock_quantity_before == line.order_line.variant.stocks.get().quantity
 
 
-def test_cancel_order(fulfilled_order_with_all_cancelled_fulfillments):
+@patch("saleor.order.actions.send_order_canceled_confirmation")
+def test_cancel_order(
+    send_order_canceled_confirmation_mock,
+    fulfilled_order_with_all_cancelled_fulfillments,
+):
+    # given
     order = fulfilled_order_with_all_cancelled_fulfillments
 
     assert Allocation.objects.filter(
         order_line__order=order, quantity_allocated__gt=0
     ).exists()
 
+    # when
     cancel_order(order, None)
 
+    # then
     order_event = order.events.last()
     assert order_event.type == OrderEvents.CANCELED
 
@@ -190,6 +199,30 @@ def test_cancel_order(fulfilled_order_with_all_cancelled_fulfillments):
     assert not Allocation.objects.filter(
         order_line__order=order, quantity_allocated__gt=0
     ).exists()
+
+    send_order_canceled_confirmation_mock.assert_called_once_with(order, None)
+
+
+@patch("saleor.order.actions.send_order_refunded_confirmation")
+def test_order_refunded(
+    send_order_refunded_confirmation_mock, order, checkout_with_item,
+):
+    # given
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout_with_item
+    )
+    amount = order.total.gross.amount
+
+    # when
+    order_refunded(order, order.user, amount, payment)
+
+    # then
+    order_event = order.events.last()
+    assert order_event.type == OrderEvents.PAYMENT_REFUNDED
+
+    send_order_refunded_confirmation_mock.assert_called_once_with(
+        order, order.user, amount, payment.currency
+    )
 
 
 def test_fulfill_order_line(order_with_lines):
