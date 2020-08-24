@@ -37,6 +37,7 @@ COMMON_CARRIER_CODE = "FR020100"
 # Common discount code use to apply discount on order
 COMMON_DISCOUNT_VOUCHER_CODE = "OD010000"
 
+# Temporary Unmapped Other SKU - taxable default
 DEFAULT_TAX_CODE = "O9999999"
 
 
@@ -451,6 +452,5 @@ def retrieve_tax_code_from_meta(
     obj: Union["Product", "ProductVariant", "ProductType"],
     default: Optional[str] = DEFAULT_TAX_CODE,
 ):
-    # O9999999 - "Temporary Unmapped Other SKU - taxable default"
     tax_code = obj.get_value_from_metadata(META_CODE_KEY, default)
     return tax_code

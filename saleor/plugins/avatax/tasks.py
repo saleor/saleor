@@ -1,8 +1,12 @@
+import logging
+
 from ...celeryconf import app
 from ...core.taxes import TaxError
 from ...order.events import external_notification_event
 from ...order.models import Order
 from . import AvataxConfiguration, api_post_request
+
+logger = logging.getLogger(__name__)
 
 
 @app.task(
@@ -10,11 +14,15 @@ from . import AvataxConfiguration, api_post_request
 )
 def api_post_request_task(transaction_url, data, config, order_id):
     config = AvataxConfiguration(**config)
-    response = api_post_request(transaction_url, data, config)
-    order = Order.objects.get(id=order_id)
+    order = Order.objects.filter(id=order_id).first()
     if not order:
+        logger.error(
+            "Unable to send the order %s to Avatax. Order doesn't exist.", order_id
+        )
         return
-    msg = "Order sent to Avatax."
+    response = api_post_request(transaction_url, data, config)
+
+    msg = f"Order sent to Avatax. Order ID: {order.token}"
     if not response:
         msg = "Unable to send order to Avatax."
 
