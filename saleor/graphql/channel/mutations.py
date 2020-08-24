@@ -87,8 +87,8 @@ class ChannelDelete(ModelDeleteMutation):
         error_type_field = "channel_errors"
 
     @classmethod
-    def validate_input(cls, origin_channel_id, target_channel_id):
-        if origin_channel_id == target_channel_id:
+    def validate_input(cls, origin_channel, target_channel):
+        if origin_channel.id == target_channel.id:
             raise ValidationError(
                 {
                     "target_channel": ValidationError(
@@ -98,14 +98,28 @@ class ChannelDelete(ModelDeleteMutation):
                     )
                 }
             )
+        origin_channel_currency = origin_channel.currency_code
+        target_channel_currency = target_channel.currency_code
+        if origin_channel_currency != target_channel_currency:
+            raise ValidationError(
+                {
+                    "target_channel": ValidationError(
+                        f"Cannot migrate from {origin_channel_currency} "
+                        f"to {target_channel_currency}. "
+                        "Migration are allowed between the same currency",
+                        code=ChannelErrorCode.CHANNELS_CURRENCY_MUST_BE_THE_SAME,
+                    )
+                }
+            )
 
     @classmethod
     def perform_delete(cls, origin_channel, target_channel):
         cls.validate_input(origin_channel, target_channel)
 
         with transaction.atomic():
-            cls.migrate_orders_to_target_channel(origin_channel, target_channel)
-            cls.delete_checkouts(origin_channel)
+            origin_channel_id = origin_channel.id
+            cls.migrate_orders_to_target_channel(origin_channel_id, target_channel.id)
+            cls.delete_checkouts(origin_channel_id)
 
     @classmethod
     def migrate_orders_to_target_channel(cls, origin_channel, target_channel):
@@ -119,10 +133,10 @@ class ChannelDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        origin_channel = cls.get_node_or_error(info, data["id"], only_type=Channel).id
+        origin_channel = cls.get_node_or_error(info, data["id"], only_type=Channel)
         target_channel = cls.get_node_or_error(
             info, data["input"]["target_channel"], only_type=Channel
-        ).id
+        )
 
         cls.perform_delete(origin_channel, target_channel)
 
