@@ -157,6 +157,50 @@ def test_collections_query(
     assert len(edges) == 2
 
 
+GET_FILTERED_PRODUCTS_COLLECTION_QUERY = """
+query CollectionProducts($id: ID!, $filters: ProductFilterInput) {
+  collection(id: $id) {
+    products(first: 10, filter: $filters) {
+      edges {
+        node {
+          id
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_filter_collection_products(user_api_client, product_list, collection):
+    # given
+    query = GET_FILTERED_PRODUCTS_COLLECTION_QUERY
+
+    for product in product_list:
+        collection.products.add(product)
+
+    p1 = product_list[0]
+    p1.is_published = False
+    p1.save(update_fields=["is_published"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection.pk),
+        "filters": {"isPublished": True},
+    }
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products_data = content["data"]["collection"]["products"]["edges"]
+
+    assert {node["node"]["id"] for node in products_data} == {
+        graphene.Node.to_global_id("Product", product.pk)
+        for product in product_list[1:]
+    }
+
+
 CREATE_COLLECTION_MUTATION = """
         mutation createCollection(
                 $name: String!, $slug: String, $description: String,
