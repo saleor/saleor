@@ -9,7 +9,7 @@ from ....core.permissions import ShippingPermissions
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.models import ShippingMethodChannelListing
 from ...channel import ChannelContext
-from ...channel.mutations import BaseChannelListing
+from ...channel.mutations import BaseChannelListingMutation
 from ...core.scalars import Decimal
 from ...core.types.common import ShippingError
 from ..types import ShippingMethod
@@ -25,17 +25,11 @@ class ShippingMethodChannelListingAddInput(graphene.InputObjectType):
     price = Decimal(
         description="Shipping price of the shipping method in this channel."
     )
-    min_value = Decimal(
-        description=(
-            "Minimum order price to use this shipping method."
-            "Note: this override original value of shipping method."
-        )
+    minimum_order_price = Decimal(
+        description=("Minimum order price to use this shipping method.")
     )
-    max_value = Decimal(
-        description=(
-            "Maximum order price to use this shipping method."
-            "Note: this override original value of shipping method."
-        )
+    maximum_order_price = Decimal(
+        description=("Maximum order price to use this shipping method.")
     )
 
 
@@ -54,7 +48,7 @@ class ShippingMethodChannelListingInput(graphene.InputObjectType):
     )
 
 
-class ShippingMethodChannelListingUpdate(BaseChannelListing):
+class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
     shipping_method = graphene.Field(
         ShippingMethod, description="An updated shipping method instance."
     )
@@ -80,9 +74,13 @@ class ShippingMethodChannelListingUpdate(BaseChannelListing):
     ):
         for add_channel in add_channels:
             defaults = {
-                "price": add_channel.get("price"),
-                "min_value": add_channel.get("min_value", None),
-                "max_value": add_channel.get("max_value", None),
+                "price_amount": add_channel.get("price_amount"),
+                "minimum_order_price_amount": add_channel.get(
+                    "minimum_order_price_amount", None
+                ),
+                "maximum_order_price_amount": add_channel.get(
+                    "maximum_order_price_amount", None
+                ),
             }
             ShippingMethodChannelListing.objects.update_or_create(
                 shipping_method=shipping_method,
@@ -105,19 +103,63 @@ class ShippingMethodChannelListingUpdate(BaseChannelListing):
         cls.remove_channels(shipping_method, cleaned_input.get("remove_channels", []))
 
     @classmethod
+    def clean_input(cls, data):
+        cleaned_input = data.get("add_channels")
+        for channel_input in cleaned_input:
+            price_amount = channel_input.pop("price", None)
+            if price_amount is not None:
+                if price_amount < 0:
+                    raise ValidationError(
+                        {
+                            "price": ValidationError(
+                                ("Shipping rate price cannot be lower than 0."),
+                                code=ShippingErrorCode.INVALID,
+                            )
+                        }
+                    )
+                channel_input["price_amount"] = price_amount
+
+            min_price = channel_input.pop("minimum_order_price", None)
+            max_price = channel_input.pop("maximum_order_price", None)
+
+            if min_price is not None:
+                channel_input["minimum_order_price_amount"] = min_price
+
+            if max_price is not None:
+                channel_input["maximum_order_price_amount"] = max_price
+
+            if (
+                min_price is not None
+                and max_price is not None
+                and max_price <= min_price
+            ):
+                raise ValidationError(
+                    {
+                        "maximum_order_price": ValidationError(
+                            (
+                                "Maximum order price should be larger than "
+                                "the minimum order price."
+                            ),
+                            code=ShippingErrorCode.MAX_LESS_THAN_MIN,
+                        )
+                    }
+                )
+        return data
+
+    @classmethod
     def perform_mutation(cls, _root, info, id, input):
         shipping_method = cls.get_node_or_error(
             info, id, only_type=ShippingMethod, field="id"
         )
         errors = defaultdict(list)
-
-        cleaned_input = cls.clean_channels(
-            info, input, errors, ShippingErrorCode.DUPLICATED_INPUT_ITEM.value
+        clean_input = cls.clean_input(input)
+        clean_channels = cls.clean_channels(
+            info, clean_input, errors, ShippingErrorCode.DUPLICATED_INPUT_ITEM.value
         )
         if errors:
             raise ValidationError(errors)
 
-        cls.save(info, shipping_method, cleaned_input)
+        cls.save(info, shipping_method, clean_channels)
         return ShippingMethodChannelListingUpdate(
             shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
         )

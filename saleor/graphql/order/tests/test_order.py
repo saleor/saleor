@@ -213,8 +213,11 @@ def test_order_query(
 
     method = order_data["availableShippingMethods"][0]
     expected_method = expected_methods.first()
-    assert float(expected_method.price.amount) == method["price"]["amount"]
-    assert float(expected_method.minimum_order_price.amount) == (
+    expected_shipping_price = expected_method.channel_listing.get(
+        channel_id=order.channel_id
+    )
+    assert float(expected_shipping_price.price.amount) == method["price"]["amount"]
+    assert float(expected_shipping_price.minimum_order_price.amount) == (
         method["minimumOrderPrice"]["amount"]
     )
     assert expected_method.type.upper() == method["type"]
@@ -253,6 +256,9 @@ def test_order_available_shipping_methods_query(
     }
     """
     shipping_method = shipping_zone.shipping_methods.first()
+    shipping_price = shipping_method.channel_listing.get(
+        channel_id=fulfilled_order.channel_id
+    ).price
     taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
     apply_taxes_to_shipping_mock = Mock(return_value=taxed_price)
     monkeypatch.setattr(
@@ -267,7 +273,7 @@ def test_order_available_shipping_methods_query(
     order_data = content["data"]["orders"]["edges"][0]["node"]
     method = order_data["availableShippingMethods"][0]
 
-    apply_taxes_to_shipping_mock.assert_called_once_with(shipping_method.price, ANY)
+    apply_taxes_to_shipping_mock.assert_called_once_with(shipping_price, ANY)
     assert expected_price == method["price"]["amount"]
 
 
@@ -2207,7 +2213,9 @@ def test_order_update_shipping(
     assert data["order"]["id"] == order_id
 
     order.refresh_from_db()
-    shipping_total = shipping_method.get_total()
+    shipping_total = shipping_method.channel_listing.get(
+        channel_id=order.channel_id
+    ).get_total()
     shipping_price = TaxedMoney(shipping_total, shipping_total)
     assert order.status == OrderStatus.UNFULFILLED
     assert order.shipping_method == shipping_method
@@ -2220,7 +2228,10 @@ def test_order_update_shipping_clear_shipping_method(
     staff_api_client, permission_manage_orders, order, staff_user, shipping_method
 ):
     order.shipping_method = shipping_method
-    shipping_total = shipping_method.get_total()
+    shipping_total = shipping_method.channel_listing.get(
+        channel_id=order.channel_id,
+    ).get_total()
+
     shipping_price = TaxedMoney(shipping_total, shipping_total)
     order.shipping_price = shipping_price
     order.shipping_method_name = "Example shipping"

@@ -9,7 +9,7 @@ from ....core.permissions import ProductPermissions
 from ....product.error_codes import ProductErrorCode
 from ....product.models import ProductChannelListing
 from ...channel import ChannelContext
-from ...channel.mutations import BaseChannelListing
+from ...channel.mutations import BaseChannelListingMutation
 from ...core.types.common import ProductChannelListingError
 from ..types.products import Product
 
@@ -42,7 +42,7 @@ class ProductChannelListingUpdateInput(graphene.InputObjectType):
     )
 
 
-class ProductChannelListingUpdate(BaseChannelListing):
+class ProductChannelListingUpdate(BaseChannelListingMutation):
     product = graphene.Field(Product, description="An updated product instance.")
 
     class Arguments:

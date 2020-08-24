@@ -242,7 +242,7 @@ def test_calculate_order_shipping(
     site_settings.company_address = address_usa
     site_settings.save()
 
-    price = manager.calculate_order_shipping(order)
+    price = manager.calculate_order_shipping(order, order.channel_id)
     price = quantize_price(price, price.currency)
     assert price == TaxedMoney(net=Money("8.13", "USD"), gross=Money("10.00", "USD"))
 

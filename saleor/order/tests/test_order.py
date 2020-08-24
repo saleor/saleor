@@ -10,6 +10,7 @@ from ...discount.utils import validate_voucher_in_order
 from ...payment import ChargeStatus
 from ...payment.models import Payment
 from ...product.models import Collection
+from ...shipping.utils import get_shipping_method_price_from_channel_listing
 from ...warehouse.models import Stock
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
 from .. import OrderEvents, OrderStatus, models
@@ -345,7 +346,11 @@ def test_update_order_prices(order_with_lines):
     price_1 = TaxedMoney(net=price_1, gross=price_1)
     price_2 = line_2.variant.get_price()
     price_2 = TaxedMoney(net=price_2, gross=price_2)
-    shipping_price = order_with_lines.shipping_method.get_total()
+
+    shipping_price = get_shipping_method_price_from_channel_listing(
+        channel_id=order_with_lines.channel_id,
+        shipping_method_id=order_with_lines.shipping_method_id,
+    )
     shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
 
     update_order_prices(order_with_lines, None)

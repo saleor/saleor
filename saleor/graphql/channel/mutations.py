@@ -132,7 +132,7 @@ class ChannelDelete(ModelDeleteMutation):
 ErrorType = DefaultDict[str, List[ValidationError]]
 
 
-class BaseChannelListing(BaseMutation):
+class BaseChannelListingMutation(BaseMutation):
     """Base channel listing mutation with basic channel validation."""
 
     class Meta:

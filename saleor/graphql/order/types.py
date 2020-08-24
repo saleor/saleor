@@ -523,16 +523,26 @@ class Order(CountableDjangoObjectType):
         for shipping_method in available:
             # Ignore typing check because it is checked in
             # get_valid_shipping_methods_for_order
+            shipping_channel_listing = shipping_method.channel_listing.get(
+                channel=root.channel
+            )
             taxed_price = manager.apply_taxes_to_shipping(
-                shipping_method.price, root.shipping_address  # type: ignore
+                shipping_channel_listing.price, root.shipping_address  # type: ignore
             )
             if display_gross:
                 shipping_method.price = taxed_price.gross
             else:
                 shipping_method.price = taxed_price.net
+        channel = getattr(root, "channel")
+        if channel:
+            channel_slug = channel.slug
+        else:
+            channel_slug = None
         instances = [
-            ChannelContext(node=shipping, channel_slug=None) for shipping in available
+            ChannelContext(node=shipping, channel_slug=channel_slug)
+            for shipping in available
         ]
+
         return instances
 
     @staticmethod

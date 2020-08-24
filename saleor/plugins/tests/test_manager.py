@@ -8,6 +8,7 @@ from prices import Money, TaxedMoney
 
 from ...core.taxes import TaxType
 from ...payment.interface import PaymentGateway
+from ...shipping.utils import get_shipping_method_price_from_channel_listing
 from ..manager import PluginsManager, get_plugins_manager
 from ..models import PluginConfiguration
 from ..tests.sample_plugins import (
@@ -85,7 +86,7 @@ def test_manager_calculates_order_shipping(order_with_lines, plugins, shipping_a
     expected_shipping_price = Money(shipping_amount, currency)
 
     taxed_shipping_price = PluginsManager(plugins=plugins).calculate_order_shipping(
-        order_with_lines
+        order_with_lines, order_with_lines.channel_id
     )
     assert (
         TaxedMoney(expected_shipping_price, expected_shipping_price)
@@ -162,11 +163,14 @@ def test_manager_apply_taxes_to_product(product, plugins, price):
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
 )
 def test_manager_apply_taxes_to_shipping(
-    shipping_method, address, plugins, price_amount
+    shipping_method, address, plugins, price_amount, channel_USD
 ):
+    shipping_price = get_shipping_method_price_from_channel_listing(
+        channel_id=channel_USD.id, shipping_method_id=shipping_method.id
+    )
     expected_price = Money(price_amount, "USD")
     taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_shipping(
-        shipping_method.price, address
+        shipping_price, address
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
 

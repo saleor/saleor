@@ -13,6 +13,7 @@ from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
 from ...checkout import base_calculations
+from ...shipping.utils import get_shipping_method_price_from_channel_listing
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -195,7 +196,7 @@ def append_line_to_data(
     )
 
 
-def append_shipping_to_data(data: List[Dict], shipping_method):
+def append_shipping_to_data(data: List[Dict], shipping_method, shipping_price):
     charge_taxes_on_shipping = (
         Site.objects.get_current().settings.charge_taxes_on_shipping
     )
@@ -203,7 +204,7 @@ def append_shipping_to_data(data: List[Dict], shipping_method):
         append_line_to_data(
             data,
             quantity=1,
-            amount=shipping_method.price.amount,
+            amount=shipping_price.amount,
             tax_code=COMMON_CARRIER_CODE,
             item_code="Shipping",
         )
@@ -236,8 +237,10 @@ def get_checkout_lines_data(
             item_code=line.variant.sku,
             name=name,
         )
-
-    append_shipping_to_data(data, checkout.shipping_method)
+    shipping_price = get_shipping_method_price_from_channel_listing(
+        checkout.channel_id, checkout.shipping_method_id
+    )
+    append_shipping_to_data(data, checkout.shipping_method, shipping_price)
     return data
 
 
@@ -275,7 +278,10 @@ def get_order_lines_data(
             name=order.discount_name,
             tax_included=True,  # Voucher should be always applied as a gross amount
         )
-    append_shipping_to_data(data, order.shipping_method)
+    shipping_price = get_shipping_method_price_from_channel_listing(
+        order.channel_id, order.shipping_method_id
+    )
+    append_shipping_to_data(data, order.shipping_method, shipping_price)
     return data
 
 

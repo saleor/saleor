@@ -1,5 +1,6 @@
 import graphene
 
+from ....shipping.error_codes import ShippingErrorCode
 from ...tests.utils import get_graphql_content
 
 SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION = """
@@ -15,10 +16,16 @@ mutation UpdateShippingMethodChannelListing(
         }
         shippingMethod {
             name
-            channels {
-                price
-                minValue
-                maxValue
+            channelListing {
+                price {
+                    amount
+                }
+                maximumOrderPrice {
+                    amount
+                }
+                minimumOrderPrice {
+                    amount
+                }
                 channel {
                     slug
                 }
@@ -30,11 +37,7 @@ mutation UpdateShippingMethodChannelListing(
 
 
 def test_shipping_method_channel_listing_update_as_staff_user(
-    staff_api_client,
-    shipping_method,
-    permission_manage_shipping,
-    channel_USD,
-    channel_PLN,
+    staff_api_client, shipping_method, permission_manage_shipping, channel_PLN,
 ):
     # given
     shipping_method_id = graphene.Node.to_global_id(
@@ -52,8 +55,8 @@ def test_shipping_method_channel_listing_update_as_staff_user(
                 {
                     "channelId": channel_id,
                     "price": price,
-                    "minValue": min_value,
-                    "maxValue": max_value,
+                    "minimumOrderPrice": min_value,
+                    "maximumOrderPrice": max_value,
                 }
             ]
         },
@@ -71,13 +74,98 @@ def test_shipping_method_channel_listing_update_as_staff_user(
     # then
     data = content["data"]["shippingMethodChannelListingUpdate"]
     shipping_method_data = data["shippingMethod"]
-    # assert not data["productsErrors"]
+    assert not data["shippingErrors"]
     assert shipping_method_data["name"] == shipping_method.name
-    assert shipping_method_data["channels"][0]["price"] is None
-    assert shipping_method_data["channels"][0]["minValue"] is None
-    assert shipping_method_data["channels"][0]["maxValue"] is None
-    assert shipping_method_data["channels"][0]["channel"]["slug"] == channel_USD.slug
-    assert shipping_method_data["channels"][1]["price"] == price
-    assert shipping_method_data["channels"][1]["minValue"] == min_value
-    assert shipping_method_data["channels"][1]["maxValue"] == max_value
-    assert shipping_method_data["channels"][1]["channel"]["slug"] == channel_PLN.slug
+
+    assert shipping_method_data["channelListing"][1]["price"]["amount"] == price
+    assert (
+        shipping_method_data["channelListing"][1]["maximumOrderPrice"]["amount"]
+        == max_value
+    )
+    assert (
+        shipping_method_data["channelListing"][1]["minimumOrderPrice"]["amount"]
+        == min_value
+    )
+    assert (
+        shipping_method_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
+    )
+
+
+def test_shipping_method_channel_listing_update_with_negative_price(
+    staff_api_client, shipping_method, permission_manage_shipping, channel_PLN,
+):
+    # given
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    price = -10
+    min_value = 2
+    max_value = 3
+
+    variables = {
+        "id": shipping_method_id,
+        "input": {
+            "addChannels": [
+                {
+                    "channelId": channel_id,
+                    "price": price,
+                    "minimumOrderPrice": min_value,
+                    "maximumOrderPrice": max_value,
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_shipping,),
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingMethodChannelListingUpdate"]
+
+    # then
+    assert data["shippingErrors"][0]["field"] == "price"
+    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
+
+
+def test_shipping_method_channel_listing_update_with_max_less_than_min(
+    staff_api_client, shipping_method, permission_manage_shipping, channel_PLN,
+):
+    # given
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    price = 1
+    min_value = 20
+    max_value = 15
+
+    variables = {
+        "id": shipping_method_id,
+        "input": {
+            "addChannels": [
+                {
+                    "channelId": channel_id,
+                    "price": price,
+                    "minimumOrderPrice": min_value,
+                    "maximumOrderPrice": max_value,
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        SHIPPING_METHOD_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_shipping,),
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingMethodChannelListingUpdate"]
+
+    # then
+    assert data["shippingErrors"][0]["field"] == "maximumOrderPrice"
+    assert data["shippingErrors"][0]["field"] == "maximumOrderPrice"

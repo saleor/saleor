@@ -4312,8 +4312,8 @@ type Query {
   stock(id: ID!): Stock
   stocks(filter: StockFilterInput, before: String, after: String, first: Int, last: Int): StockCountableConnection
   shop: Shop!
-  shippingZone(id: ID!): ShippingZone
-  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
+  shippingZone(id: ID!, channel: String): ShippingZone
+  shippingZones(channel: String, before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
   digitalContents(before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
   attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
@@ -4665,29 +4665,29 @@ enum ShippingErrorCode {
 type ShippingMethod implements Node {
   id: ID!
   name: String!
-  price: Money
-  minimumOrderPrice: Money
-  maximumOrderPrice: Money
   minimumOrderWeight: Weight
   maximumOrderWeight: Weight
   type: ShippingMethodTypeEnum
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
-  channels: [ShippingMethodChannelListing]
+  channelListing: [ShippingMethodChannelListing!]
+  price: Money
+  maximumOrderPrice: Money
+  minimumOrderPrice: Money
 }
 
 type ShippingMethodChannelListing implements Node {
   id: ID!
   channel: Channel!
-  price: Float
-  minValue: Float
-  maxValue: Float
+  minimumOrderPrice: Money
+  maximumOrderPrice: Money
+  price: Money
 }
 
 input ShippingMethodChannelListingAddInput {
   channelId: ID!
   price: Decimal
-  minValue: Decimal
-  maxValue: Decimal
+  minimumOrderPrice: Decimal
+  maximumOrderPrice: Decimal
 }
 
 input ShippingMethodChannelListingInput {
@@ -4741,8 +4741,6 @@ type ShippingPriceDelete {
 
 input ShippingPriceInput {
   name: String
-  minimumOrderPrice: Decimal
-  maximumOrderPrice: Decimal
   minimumOrderWeight: WeightScalar
   maximumOrderWeight: WeightScalar
   type: ShippingMethodTypeEnum

@@ -13,6 +13,7 @@ from ..checkout import base_calculations
 from ..core.payments import PaymentInterface
 from ..core.taxes import TaxType, quantize_price, zero_taxed_money
 from ..discount import DiscountInfo
+from ..shipping.models import ShippingMethodChannelListing
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
@@ -21,6 +22,7 @@ if TYPE_CHECKING:
     from ..checkout.models import Checkout, CheckoutLine
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
+    from ..shipping.models import ShippingMethodChannelListing
     from ..order.models import Fulfillment, OrderLine, Order
     from ..invoice.models import Invoice
     from ..payment.interface import (
@@ -140,10 +142,15 @@ class PluginsManager(PaymentInterface):
             "calculate_checkout_shipping", default_value, checkout, lines, discounts
         )
 
-    def calculate_order_shipping(self, order: "Order") -> TaxedMoney:
+    def calculate_order_shipping(self, order: "Order", channel_id) -> TaxedMoney:
         if not order.shipping_method:
             return zero_taxed_money(order.currency)
-        shipping_price = order.shipping_method.price
+        try:
+            shipping_price = order.shipping_method.channel_listing.get(
+                channel_id=channel_id
+            ).price
+        except ShippingMethodChannelListing.DoesNotExist:
+            shipping_price = None
         default_value = quantize_price(
             TaxedMoney(net=shipping_price, gross=shipping_price),
             shipping_price.currency,

@@ -3,7 +3,7 @@ from collections import defaultdict
 import graphene
 
 from ....shipping.error_codes import ShippingErrorCode
-from ..mutations import BaseChannelListing
+from ..mutations import BaseChannelListingMutation
 
 
 def test_validate_duplicated_channel_ids(channel_PLN, channel_USD):
@@ -13,7 +13,7 @@ def test_validate_duplicated_channel_ids(channel_PLN, channel_USD):
     errors = defaultdict(list)
 
     # when
-    result = BaseChannelListing.validate_duplicated_channel_ids(
+    result = BaseChannelListingMutation.validate_duplicated_channel_ids(
         [channel_id],
         [second_channel_id],
         errors,
@@ -33,7 +33,7 @@ def test_validate_duplicated_channel_ids_with_duplicates(channel_PLN):
     errors = defaultdict(list)
 
     # when
-    result = BaseChannelListing.validate_duplicated_channel_ids(
+    result = BaseChannelListingMutation.validate_duplicated_channel_ids(
         [channel_id], [second_channel_id], errors, error_code
     )
 
@@ -51,7 +51,7 @@ def test_validate_duplicated_channel_values(channel_PLN, channel_USD):
     field = "add_channels"
 
     # when
-    result = BaseChannelListing.validate_duplicated_channel_values(
+    result = BaseChannelListingMutation.validate_duplicated_channel_values(
         [channel_id, second_channel_id], field, errors, error_code
     )
 
@@ -69,7 +69,7 @@ def test_validate_duplicated_channel_values_with_duplicates(channel_PLN):
     field = "add_channels"
 
     # when
-    result = BaseChannelListing.validate_duplicated_channel_values(
+    result = BaseChannelListingMutation.validate_duplicated_channel_values(
         [channel_id, second_channel_id], field, errors, error_code
     )
 
@@ -85,7 +85,7 @@ def test_clean_channels_add_channels(channel_PLN):
     errors = defaultdict(list)
 
     # when
-    result = BaseChannelListing.clean_channels(
+    result = BaseChannelListingMutation.clean_channels(
         None, {"add_channels": [{"channel_id": channel_id}]}, errors, error_code
     )
 
@@ -104,7 +104,7 @@ def test_clean_channels_remove_channels(channel_PLN):
     errors = defaultdict(list)
 
     # when
-    result = BaseChannelListing.clean_channels(
+    result = BaseChannelListingMutation.clean_channels(
         None, {"remove_channels": [channel_id]}, errors, error_code
     )
 
@@ -120,7 +120,7 @@ def test_test_clean_channels_with_errors(channel_PLN):
     errors = defaultdict(list)
 
     # when
-    result = BaseChannelListing.clean_channels(
+    result = BaseChannelListingMutation.clean_channels(
         None, {"remove_channels": [channel_id, channel_id]}, errors, error_code
     )
 

@@ -6,18 +6,25 @@ from ....core.weight import WeightUnits
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.utils import get_countries_without_shipping_zone
 from ...core.enums import WeightUnitsEnum
+from ...shipping.resolvers import resolve_price_range
 from ...tests.utils import get_graphql_content
 from ..types import ShippingMethodTypeEnum
 
 SHIPPING_ZONE_QUERY = """
-    query ShippingQuery($id: ID!) {
-        shippingZone(id: $id) {
+    query ShippingQuery($id: ID!, $channel: String,) {
+        shippingZone(id: $id, channel: $channel) {
             name
             shippingMethods {
                 price {
                     amount
                 }
-                channels {
+                maximumOrderPrice {
+                    amount
+                }
+                minimumOrderPrice {
+                    amount
+                }
+                channelListing {
                     id
                 }
                 minimumOrderWeight {
@@ -43,13 +50,13 @@ SHIPPING_ZONE_QUERY = """
 
 
 def test_shipping_zone_query(
-    staff_api_client, shipping_zone, permission_manage_shipping
+    staff_api_client, shipping_zone, permission_manage_shipping, channel_USD
 ):
     # given
     shipping = shipping_zone
     query = SHIPPING_ZONE_QUERY
     ID = graphene.Node.to_global_id("ShippingZone", shipping.id)
-    variables = {"id": ID}
+    variables = {"id": ID, "channel": channel_USD.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -62,14 +69,18 @@ def test_shipping_zone_query(
     assert shipping_data["name"] == shipping.name
     num_of_shipping_methods = shipping_zone.shipping_methods.count()
     assert len(shipping_data["shippingMethods"]) == num_of_shipping_methods
-    price_range = shipping.price_range
+    price_range = resolve_price_range(channel_slug=channel_USD.slug)
     data_price_range = shipping_data["priceRange"]
     assert data_price_range["start"]["amount"] == price_range.start.amount
     assert data_price_range["stop"]["amount"] == price_range.stop.amount
 
 
 def test_shipping_zone_query_weights_returned_in_default_unit(
-    staff_api_client, shipping_zone, permission_manage_shipping, site_settings
+    staff_api_client,
+    shipping_zone,
+    permission_manage_shipping,
+    site_settings,
+    channel_USD,
 ):
     # given
     shipping = shipping_zone
@@ -83,7 +94,7 @@ def test_shipping_zone_query_weights_returned_in_default_unit(
 
     query = SHIPPING_ZONE_QUERY
     ID = graphene.Node.to_global_id("ShippingZone", shipping.id)
-    variables = {"id": ID}
+    variables = {"id": ID, "channel": channel_USD.slug}
 
     # when
     response = staff_api_client.post_graphql(
@@ -97,7 +108,7 @@ def test_shipping_zone_query_weights_returned_in_default_unit(
     assert shipping_data["name"] == shipping.name
     num_of_shipping_methods = shipping_zone.shipping_methods.count()
     assert len(shipping_data["shippingMethods"]) == num_of_shipping_methods
-    price_range = shipping.price_range
+    price_range = resolve_price_range(channel_slug=channel_USD.slug)
     data_price_range = shipping_data["priceRange"]
     assert data_price_range["start"]["amount"] == price_range.start.amount
     assert data_price_range["stop"]["amount"] == price_range.stop.amount
@@ -118,27 +129,44 @@ def test_shipping_zones_query(
     shipping_zone,
     permission_manage_shipping,
     permission_manage_products,
+    channel_USD,
 ):
     query = """
-    query MultipleShippings {
-        shippingZones(first: 100) {
+    query MultipleShippings($channel: String) {
+        shippingZones(first: 100, channel:$channel) {
             edges {
-              node {
-                id
-                name
-                warehouses {
-                  id
-                  name
+                node {
+                    id
+                    name
+                    priceRange {
+                        start {
+                            amount
+                        }
+                        stop {
+                            amount
+                        }
+                    }
+                    shippingMethods {
+                        price {
+                            amount
+                        }
+                    }
+                    warehouses {
+                        id
+                        name
+                    }
                 }
-              }
             }
             totalCount
         }
     }
     """
+    variables = {"channel": channel_USD.slug}
     num_of_shippings = shipping_zone._meta.model.objects.count()
     response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_shipping, permission_manage_products]
+        query,
+        variables,
+        permissions=[permission_manage_shipping, permission_manage_products],
     )
     content = get_graphql_content(response)
     assert content["data"]["shippingZones"]["totalCount"] == num_of_shippings
@@ -525,14 +553,13 @@ def test_delete_shipping_zone(
 
 PRICE_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
-        $type: ShippingMethodTypeEnum, $name: String!,
-        $shippingZone: ID!, $minimumOrderPrice: Decimal,
-        $maximumOrderPrice: Decimal) {
+        $type: ShippingMethodTypeEnum,
+        $name: String!,
+        $shippingZone: ID!
+    ) {
     shippingPriceCreate(
         input: {
-            name: $name, shippingZone: $shippingZone,
-            minimumOrderPrice: $minimumOrderPrice,
-            maximumOrderPrice: $maximumOrderPrice, type: $type
+            name: $name, shippingZone: $shippingZone, type: $type
         }) {
         shippingErrors {
             field
@@ -546,7 +573,9 @@ PRICE_BASED_SHIPPING_QUERY = """
             id
         }
         shippingMethod {
+            id
             name
+            channelListing {
             price {
                 amount
             }
@@ -555,6 +584,7 @@ PRICE_BASED_SHIPPING_QUERY = """
             }
             maximumOrderPrice {
                 amount
+            }
             }
             type
             }
@@ -584,8 +614,6 @@ def test_create_shipping_method(
     variables = {
         "shippingZone": shipping_zone_id,
         "name": name,
-        "minimumOrderPrice": min_price,
-        "maximumOrderPrice": max_price,
         "type": ShippingMethodTypeEnum.PRICE.name,
     }
     response = staff_api_client.post_graphql(
@@ -595,8 +623,6 @@ def test_create_shipping_method(
     data = content["data"]["shippingPriceCreate"]
     assert "errors" not in data["shippingMethod"]
     assert data["shippingMethod"]["name"] == name
-    assert data["shippingMethod"]["minimumOrderPrice"] == expected_min_price
-    assert data["shippingMethod"]["maximumOrderPrice"] == expected_max_price
     assert data["shippingMethod"]["type"] == ShippingMethodTypeEnum.PRICE.name
     assert data["shippingZone"]["id"] == shipping_zone_id
 
@@ -737,11 +763,11 @@ def test_update_shipping_method(
     query = """
     mutation updateShippingPrice(
         $id: ID!, $shippingZone: ID!,
-        $type: ShippingMethodTypeEnum!, $minimumOrderPrice: Decimal) {
+        $type: ShippingMethodTypeEnum!) {
         shippingPriceUpdate(
             id: $id, input: {
                 shippingZone: $shippingZone,
-                type: $type, minimumOrderPrice: $minimumOrderPrice}) {
+                type: $type}) {
             shippingErrors {
                 field
                 code
@@ -750,12 +776,6 @@ def test_update_shipping_method(
                 id
             }
             shippingMethod {
-                price {
-                    amount
-                }
-                minimumOrderPrice {
-                    amount
-                }
                 type
             }
         }
@@ -769,7 +789,6 @@ def test_update_shipping_method(
     variables = {
         "shippingZone": shipping_zone_id,
         "id": shipping_method_id,
-        "minimumOrderPrice": 12.00,
         "type": ShippingMethodTypeEnum.PRICE.name,
     }
     response = staff_api_client.post_graphql(

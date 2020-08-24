@@ -10,6 +10,7 @@ from prices import TaxedMoney
 
 from ..core.taxes import quantize_price, zero_taxed_money
 from ..discount import DiscountInfo
+from ..shipping.models import ShippingMethodChannelListing
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -20,10 +21,16 @@ def base_checkout_shipping_price(
     checkout: "Checkout", lines: Iterable["CheckoutLine"]
 ) -> TaxedMoney:
     """Return checkout shipping price."""
-    if not checkout.shipping_method or not checkout.is_shipping_required():
+    shipping_method = checkout.shipping_method
+    if not shipping_method or not checkout.is_shipping_required():
+        return zero_taxed_money(checkout.currency)
+    try:
+        shipping_price = shipping_method.channel_listing.get(
+            channel_id=checkout.channel_id,
+        ).get_total()
+    except ShippingMethodChannelListing.DoesNotExist:
         return zero_taxed_money(checkout.currency)
 
-    shipping_price = checkout.shipping_method.get_total()
     return quantize_price(
         TaxedMoney(net=shipping_price, gross=shipping_price), shipping_price.currency
     )

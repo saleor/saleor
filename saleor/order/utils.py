@@ -138,7 +138,7 @@ def update_order_prices(order, discounts):
                 line.save()
 
     if order.shipping_method:
-        order.shipping_price = manager.calculate_order_shipping(order)
+        order.shipping_price = manager.calculate_order_shipping(order, order.channel_id)
         order.save(
             update_fields=[
                 "shipping_price_net_amount",
@@ -307,7 +307,7 @@ def sum_order_totals(qs):
 
 def get_valid_shipping_methods_for_order(order: Order):
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
-        order, channel=order.channel, price=order.get_subtotal().gross
+        order, channel=order.channel_id, price=order.get_subtotal().gross
     )
 
 

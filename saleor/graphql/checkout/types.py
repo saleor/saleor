@@ -236,14 +236,16 @@ class Checkout(CountableDjangoObjectType):
             available = get_valid_shipping_methods_for_checkout(root, lines, discounts)
             if available is None:
                 return []
-
             manager = get_plugins_manager()
             display_gross = display_gross_prices()
             for shipping_method in available:
                 # ignore mypy checking because it is checked in
                 # get_valid_shipping_methods_for_checkout
-                taxed_price = manager.apply_taxes_to_shipping(
-                    shipping_method.price, root.shipping_address  # type: ignore
+                shipping_channel_listing = shipping_method.channel_listing.get(
+                    channel=root.channel
+                )
+                taxed_price = manager.apply_taxes_to_shipping(  # type: ignore
+                    shipping_channel_listing.price, root.shipping_address
                 )
                 if display_gross:
                     shipping_method.price = taxed_price.gross
@@ -255,13 +257,12 @@ class Checkout(CountableDjangoObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-
         return (
             Promise.all([lines, discounts])
             .then(calculate_available_shipping_methods)
             .then(
                 lambda available: [
-                    ChannelContext(node=shipping, channel_slug=None)
+                    ChannelContext(node=shipping, channel_slug=root.channel.slug)
                     for shipping in available
                 ]
             )

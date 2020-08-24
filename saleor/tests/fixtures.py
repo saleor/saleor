@@ -261,14 +261,13 @@ def checkout_with_shipping_required(checkout_with_item, product):
 @pytest.fixture
 def other_shipping_method(shipping_zone, channel_USD):
     method = ShippingMethod.objects.create(
-        name="DPD",
-        minimum_order_price=Money(0, "USD"),
-        type=ShippingMethodType.PRICE_BASED,
-        price=Money(9, "USD"),
-        shipping_zone=shipping_zone,
+        name="DPD", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.create(
-        channel=channel_USD, shipping_method=method
+        channel=channel_USD,
+        shipping_method=method,
+        minimum_order_price=Money(0, "USD"),
+        price=Money(9, "USD"),
     )
     return method
 
@@ -460,10 +459,11 @@ def user_checkout_with_items(user_checkout, product_list):
 
 
 @pytest.fixture
-def order(customer_user):
+def order(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
     return Order.objects.create(
         billing_address=address,
+        channel=channel_USD,
         shipping_address=address,
         user_email=customer_user.email,
         user=customer_user,
@@ -515,14 +515,14 @@ def shipping_zone(db, channel_USD):  # pylint: disable=W0613
         name="Europe", countries=[code for code, name in countries]
     )
     method = shipping_zone.shipping_methods.create(
-        name="DHL",
-        minimum_order_price=Money(0, "USD"),
-        type=ShippingMethodType.PRICE_BASED,
-        price=Money(10, "USD"),
-        shipping_zone=shipping_zone,
+        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.create(
-        channel=channel_USD, shipping_method=method
+        channel=channel_USD,
+        currency=channel_USD.currency_code,
+        shipping_method=method,
+        minimum_order_price=Money(0, "USD"),
+        price=Money(10, "USD"),
     )
     return shipping_zone
 
@@ -536,24 +536,25 @@ def shipping_zones(db, channel_USD):
         ]
     )
     method = shipping_zone_poland.shipping_methods.create(
-        name="DHL",
-        minimum_order_price=Money(0, "USD"),
-        type=ShippingMethodType.PRICE_BASED,
-        price=Money(10, "USD"),
-        shipping_zone=shipping_zone,
+        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
     )
     second_method = shipping_zone_usa.shipping_methods.create(
-        name="DHL",
-        minimum_order_price=Money(0, "USD"),
-        type=ShippingMethodType.PRICE_BASED,
-        price=Money(10, "USD"),
-        shipping_zone=shipping_zone,
+        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.bulk_create(
         [
-            ShippingMethodChannelListing(channel=channel_USD, shipping_method=method),
             ShippingMethodChannelListing(
-                channel=channel_USD, shipping_method=second_method
+                channel=channel_USD,
+                shipping_method=method,
+                minimum_order_price=Money(0, "USD"),
+                price=Money(10, "USD"),
+                currency=channel_USD.currency_code,
+            ),
+            ShippingMethodChannelListing(
+                channel=channel_USD,
+                shipping_method=second_method,
+                minimum_order_price=Money(0, "USD"),
+                currency=channel_USD.currency_code,
             ),
         ]
     )
@@ -564,14 +565,13 @@ def shipping_zones(db, channel_USD):
 def shipping_zone_without_countries(db, channel_USD):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(name="Europe", countries=[])
     method = shipping_zone.shipping_methods.create(
-        name="DHL",
-        minimum_order_price=Money(0, "USD"),
-        type=ShippingMethodType.PRICE_BASED,
-        price=Money(10, "USD"),
-        shipping_zone=shipping_zone,
+        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.create(
-        channel=channel_USD, shipping_method=method
+        channel=channel_USD,
+        shipping_method=method,
+        minimum_order_price=Money(0, "USD"),
+        price=Money(10, "USD"),
     )
     return shipping_zone
 
@@ -579,14 +579,13 @@ def shipping_zone_without_countries(db, channel_USD):  # pylint: disable=W0613
 @pytest.fixture
 def shipping_method(shipping_zone, channel_USD):
     method = ShippingMethod.objects.create(
-        name="DHL",
-        minimum_order_price=Money(0, "USD"),
-        type=ShippingMethodType.PRICE_BASED,
-        price=Money(10, "USD"),
-        shipping_zone=shipping_zone,
+        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.create(
-        shipping_method=method, channel=channel_USD
+        shipping_method=method,
+        channel=channel_USD,
+        minimum_order_price=Money(0, "USD"),
+        price=Money(10, "USD"),
     )
     return method
 
@@ -1467,11 +1466,12 @@ def order_with_lines(
 
     order.shipping_address = order.billing_address.get_copy()
     order.channel = channel_USD
-    method = shipping_zone.shipping_methods.first()
-    order.shipping_method_name = method.name
-    order.shipping_method = method
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_price = shipping_method.channel_listing.get(channel_id=channel_USD.id,)
+    order.shipping_method_name = shipping_method.name
+    order.shipping_method = shipping_method
 
-    net = method.get_total()
+    net = shipping_price.get_total()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.save()
