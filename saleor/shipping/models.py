@@ -74,6 +74,11 @@ class ShippingZone(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        permissions = (
+            (ShippingPermissions.MANAGE_SHIPPING.codename, "Manage shipping."),
+        )
+
 
 class ShippingMethodQueryset(models.QuerySet):
     def price_based(self):
