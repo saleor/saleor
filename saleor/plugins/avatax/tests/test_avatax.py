@@ -6,10 +6,12 @@ from prices import Money, TaxedMoney
 
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
-from ....core.taxes import TaxError
+from ....core.taxes import TaxError, TaxType
 from ...manager import get_plugins_manager
 from ...models import PluginConfiguration
 from .. import (
+    META_CODE_KEY,
+    META_DESCRIPTION_KEY,
     AvataxConfiguration,
     generate_request_data_from_checkout,
     get_cached_tax_codes_or_fetch,
@@ -572,3 +574,17 @@ def test_skip_disabled_plugin(settings, plugin_configuration):
         )
         is True
     )
+
+
+def test_get_tax_code_from_object_meta(product, settings, plugin_configuration):
+    product.store_value_in_metadata(
+        {META_CODE_KEY: "KEY", META_DESCRIPTION_KEY: "DESC"}
+    )
+    plugin_configuration(username=None, password=None)
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    manager = get_plugins_manager()
+    tax_type = manager.get_tax_code_from_object_meta(product)
+
+    assert isinstance(tax_type, TaxType)
+    assert tax_type.code == "KEY"
+    assert tax_type.description == "DESC"

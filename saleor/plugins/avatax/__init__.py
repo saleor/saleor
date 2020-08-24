@@ -76,22 +76,27 @@ def get_api_url(use_sandbox=True) -> str:
 def api_post_request(
     url: str, data: Dict[str, Any], config: AvataxConfiguration
 ) -> Dict[str, Any]:
+    response = None
     try:
         auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
         response = requests.post(url, auth=auth, data=json.dumps(data), timeout=TIMEOUT)
         logger.debug("Hit to Avatax to calculate taxes %s", url)
-        response = response.json()
+        json_response = response.json()
         if "error" in response:  # type: ignore
-            logger.error("Avatax response contains errors %s", response)
+            logger.exception("Avatax response contains errors %s", json_response)
+            return {}
     except requests.exceptions.RequestException:
         logger.error("Fetching taxes failed %s", url)
         return {}
     except json.JSONDecodeError:
-        logger.error(
-            "Unable to encode the response from Avatax. Response: %s", response
-        )
+        error_msg = "Unable to encode the response from Avatax."
+        args = []
+        if response:
+            error_msg += " Response content: % s"
+            args.append(response.content)
+        logger.exception(error_msg, *args)
         return {}
-    return response  # type: ignore
+    return json_response  # type: ignore
 
 
 def api_get_request(url: str, config: AvataxConfiguration):
@@ -360,7 +365,7 @@ def _fetch_new_taxes_data(
         get_api_url(config.use_sandbox), "transactions/createoradjust"
     )
     response = api_post_request(transaction_url, data, config)
-    if response and "error" not in response:
+    if response:
         cache.set(data_cache_key, (data, response), CACHE_TIME)
     else:
         # cache failed response to limit hits to avatax.
