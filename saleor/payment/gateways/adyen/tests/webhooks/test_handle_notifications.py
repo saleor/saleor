@@ -22,7 +22,9 @@ from ...webhooks import (
 )
 
 
-def test_handle_authorization(notification, adyen_plugin, payment_adyen_for_order):
+def test_handle_authorization_for_order(
+    notification, adyen_plugin, payment_adyen_for_order
+):
     payment = payment_adyen_for_order
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
@@ -36,6 +38,49 @@ def test_handle_authorization(notification, adyen_plugin, payment_adyen_for_orde
     transaction = payment.transactions.get()
     assert transaction.is_success is True
     assert transaction.kind == TransactionKind.AUTH
+
+
+def test_handle_authorization_for_checkout(
+    notification, adyen_plugin, payment_adyen_for_checkout
+):
+    payment = payment_adyen_for_checkout
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        merchant_reference=payment_id,
+        value=to_adyen_price(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+    handle_authorization(notification, config)
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == 1
+    transaction = payment.transactions.get()
+    assert transaction.is_success is True
+    assert transaction.kind == TransactionKind.AUTH
+    assert payment.checkout is None
+    assert payment.order
+
+
+@pytest.mark.vcr
+def test_handle_authorization_for_checkout_wrong_total(
+    notification, adyen_plugin, payment_adyen_for_checkout
+):
+    payment = payment_adyen_for_checkout
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        merchant_reference=payment_id,
+        value=to_adyen_price(Decimal(10), payment.currency),
+    )
+    config = adyen_plugin().config
+    handle_authorization(notification, config)
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == 1
+    transaction = payment.transactions.get()
+    assert transaction.is_success is True
+    assert transaction.kind == TransactionKind.AUTH
+    assert payment.checkout is None
+    assert payment.order
 
 
 def test_handle_authorization_with_adyen_auto_capture(

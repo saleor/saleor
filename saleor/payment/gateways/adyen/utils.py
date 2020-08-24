@@ -6,12 +6,15 @@ from typing import Any, Callable, Dict, Optional
 import Adyen
 from babel.numbers import get_currency_precision
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django_countries.fields import Country
 
 from ....checkout.calculations import checkout_line_total, checkout_total
 from ....checkout.models import Checkout
+from ....checkout.utils import create_order, is_fully_paid, prepare_order_data
 from ....core.prices import quantize_price
 from ....discount.utils import fetch_active_discounts
+from ....order.models import Order
 from ....payment.models import Payment
 from ... import PaymentError
 from ...interface import PaymentData, PaymentMethodInfo
@@ -281,3 +284,21 @@ def get_payment_method_info(
             type="card" if payment_method == "scheme" else payment_method,
         )
     return payment_method_info
+
+
+def create_order_from_checkout(checkout: "Checkout") -> "Order":
+    discounts = fetch_active_discounts()
+    lines = list(checkout)
+
+    if not is_fully_paid(checkout, lines, discounts):
+        raise PaymentError(
+            "Provided payment methods can not cover the checkout's total amount"
+        )
+
+    order_data = prepare_order_data(
+        checkout=checkout, lines=lines, discounts=discounts,
+    )
+    user = checkout.user or AnonymousUser()
+    return create_order(
+        checkout=checkout, order_data=order_data, user=user  # type: ignore
+    )

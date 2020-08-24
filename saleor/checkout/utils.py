@@ -2,6 +2,7 @@
 from datetime import date
 from decimal import Decimal
 from typing import Iterable, List, Optional, Tuple
+from uuid import UUID
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -636,7 +637,7 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
 
 
 def prepare_order_data(
-    *, checkout: Checkout, lines: Iterable[CheckoutLine], tracking_code: str, discounts
+    *, checkout: Checkout, lines: Iterable[CheckoutLine], discounts
 ) -> dict:
     """Run checks and return all the data from a given checkout to create an order.
 
@@ -660,7 +661,7 @@ def prepare_order_data(
     order_data.update(
         {
             "language_code": get_language(),
-            "tracking_client_id": tracking_code,
+            "tracking_client_id": checkout.tracking_code or "",
             "total": taxed_total,
         }
     )
@@ -695,9 +696,17 @@ def abort_order_data(order_data: dict):
             remove_voucher_usage_by_customer(voucher, order_data["user_email"])
 
 
+def get_order(checkout_token: UUID) -> Optional[Order]:
+    """Get order based on checkout token."""
+    order = Order.objects.confirmed().filter(checkout_token=checkout_token).first()
+    if order is not None:
+        return order
+    return None
+
+
 @transaction.atomic
 def create_order(
-    *, checkout: Checkout, order_data: dict, user: User, redirect_url: str
+    *, checkout: Checkout, order_data: dict, user: User  # type: ignore
 ) -> Order:
     """Create an order from the checkout.
 
@@ -744,10 +753,10 @@ def create_order(
 
     # Send the order confirmation email
     transaction.on_commit(
-        lambda: send_order_confirmation.delay(order.pk, redirect_url, user.pk)
+        lambda: send_order_confirmation.delay(order.pk, checkout.redirect_url, user.pk)
     )
     transaction.on_commit(
-        lambda: send_staff_order_confirmation.delay(order.pk, redirect_url)
+        lambda: send_staff_order_confirmation.delay(order.pk, checkout.redirect_url)
     )
 
     return order

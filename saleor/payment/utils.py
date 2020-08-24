@@ -194,9 +194,9 @@ def get_already_processed_transaction_or_create_new_transaction(
     error_msg=None,
 ) -> Transaction:
     if gateway_response and gateway_response.transaction_already_processed:
-        transaction = get_already_processed_transaction(payment, gateway_response)
-        if transaction:
-            return transaction
+        txn = get_already_processed_transaction(payment, gateway_response)
+        if txn:
+            return txn
     return create_transaction(
         payment,
         kind,

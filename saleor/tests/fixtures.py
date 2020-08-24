@@ -247,6 +247,19 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_ready_to_complete(checkout_with_item, address, shipping_method, gift_card):
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout_with_item.gift_cards.add(gift_card)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def checkout_with_shipping_required(checkout_with_item, product):
     checkout = checkout_with_item
     variant = product.variants.get()
@@ -285,10 +298,15 @@ def checkout_with_single_item(checkout, product):
 
 @pytest.fixture
 def checkout_with_variant_without_inventory_tracking(
-    checkout, variant_without_inventory_tracking
+    checkout, variant_without_inventory_tracking, address, shipping_method
 ):
     variant = variant_without_inventory_tracking
     add_variant_to_checkout(checkout, variant, 1)
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
     return checkout
 
