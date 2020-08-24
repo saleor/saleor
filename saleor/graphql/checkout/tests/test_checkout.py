@@ -2921,3 +2921,41 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
 
     msg = "Provided payment methods can not cover the checkout's total amount"
     assert e.value.error_list[0].message == msg
+
+
+CHECKOUT_DELIVERY_NOTE_ADDITION_MUTATION = """
+            mutation addCheckoutDeliveryNote(
+              $checkoutId: ID!, $deliveryNote: String!
+            ) {
+              checkoutDeliveryNoteAddition(
+                checkoutId: $checkoutId, deliveryNote: $deliveryNote
+                ) {
+                errors {
+                    field,
+                    message
+                }
+                checkoutErrors {
+                    field,
+                    message
+                    code
+                }
+              }
+            }
+"""
+
+
+def test_checkout_delivery_note_addition(user_api_client, checkout_with_item):
+    checkout = checkout_with_item
+    assert not checkout.delivery_note
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    delivery_note = "leave it at the lobby"
+    variables = {"checkoutId": checkout_id, "deliveryNote": delivery_note}
+
+    response = user_api_client.post_graphql(CHECKOUT_DELIVERY_NOTE_ADDITION_MUTATION,
+                                            variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutDeliveryNoteAddition"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.delivery_note == delivery_note

@@ -365,6 +365,7 @@ class Order(CountableDjangoObjectType):
             "billing_address",
             "created",
             "customer_note",
+            "delivery_note",
             "discount",
             "discount_name",
             "display_gross_prices",

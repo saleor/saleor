@@ -738,6 +738,7 @@ def create_order(
     # copy metadata from the checkout into the new order
     order.metadata = checkout.metadata
     order.private_metadata = checkout.private_metadata
+    order.delivery_note = checkout.delivery_note
     order.save()
 
     order_created(order=order, user=user)

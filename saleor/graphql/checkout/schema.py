@@ -23,6 +23,7 @@ from .mutations import (
     CheckoutShippingMethodUpdate,
     CheckoutUpdateMeta,
     CheckoutUpdatePrivateMeta,
+    CheckoutDeliveryNoteAddition
 )
 from .resolvers import resolve_checkout, resolve_checkout_lines, resolve_checkouts
 from .types import Checkout, CheckoutLine
@@ -75,6 +76,7 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_payment_create = CheckoutPaymentCreate.Field()
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
+    checkout_delivery_note_addition = CheckoutDeliveryNoteAddition.Field()
     checkout_update_metadata = CheckoutUpdateMeta.Field(
         deprecation_reason=(
             "Use the `updateMetadata` mutation. This field will be removed after "

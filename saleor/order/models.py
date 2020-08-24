@@ -169,6 +169,7 @@ class Order(ModelWithMetadata):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
     )
+    delivery_note = models.TextField(blank=True, default="")
     objects = OrderQueryset.as_manager()
 
     class Meta:

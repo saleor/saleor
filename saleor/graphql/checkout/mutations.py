@@ -993,3 +993,28 @@ class CheckoutClearPrivateMeta(ClearMetaBaseMutation):
         public = False
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+
+
+class CheckoutDeliveryNoteAddition(BaseMutation):
+    checkout = graphene.Field(Checkout, description="An updated checkout.")
+
+    class Arguments:
+        checkout_id = graphene.ID(description="Checkout ID.")
+        delivery_note = graphene.String(required=True, description="Delivery Note")
+
+    class Meta:
+        description = "Adds delivery Note"
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, checkout_id, delivery_note):
+        checkout = cls.get_node_or_error(
+            info, checkout_id, only_type=Checkout, field="checkout_id"
+        )
+
+        checkout.delivery_note = delivery_note
+        cls.clean_instance(info, checkout)
+        checkout.save(update_fields=["delivery_note", "last_change"])
+        info.context.plugins.checkout_updated(checkout)
+        return CheckoutDeliveryNoteAddition(checkout=checkout)

@@ -520,3 +520,36 @@ def test_complete_checkout(api_client, checkout_with_charged_payment, count_quer
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutComplete"]["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_checkout_delivery_note(
+    api_client, checkout_with_shipping_method, count_queries
+):
+    query = (
+        FRAGMENT_CHECKOUT
+        + """
+            mutation addDeliveryNote(
+              $checkoutId: ID!, $deliveryNote: String!
+            ) {
+              checkoutDeliveryNoteAddition(
+                checkoutId: $checkoutId, deliveryNote: $deliveryNote
+                ) {
+                errors {
+                  field
+                  message
+                }
+                checkout {
+                  ...Checkout
+                }
+              }
+            }
+        """
+    )
+    variables = {
+        "checkoutId": Node.to_global_id("Checkout", checkout_with_shipping_method.pk),
+        "deliveryNote": "graphql_address_data"
+    }
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+    assert not response["data"]["checkoutDeliveryNoteAddition"]["errors"]
