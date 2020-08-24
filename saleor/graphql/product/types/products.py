@@ -56,7 +56,7 @@ from ..dataloaders import (
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
 )
-from ..filters import AttributeFilterInput
+from ..filters import AttributeFilterInput, ProductFilterInput
 from ..resolvers import resolve_attributes
 from .attributes import Attribute, SelectedAttribute
 from .digital_contents import DigitalContent
@@ -728,7 +728,9 @@ class ProductType(CountableDjangoObjectType):
 @key(fields="id")
 class Collection(CountableDjangoObjectType):
     products = PrefetchingConnectionField(
-        Product, description="List of products in this collection."
+        Product,
+        filter=ProductFilterInput(description="Filtering options for products."),
+        description="List of products in this collection.",
     )
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
