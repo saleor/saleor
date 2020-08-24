@@ -84,7 +84,7 @@ def api_post_request(
         json_response = response.json()
         if "error" in response:  # type: ignore
             logger.exception("Avatax response contains errors %s", json_response)
-            return {}
+            return json_response
     except requests.exceptions.RequestException:
         logger.error("Fetching taxes failed %s", url)
         return {}
@@ -365,7 +365,7 @@ def _fetch_new_taxes_data(
         get_api_url(config.use_sandbox), "transactions/createoradjust"
     )
     response = api_post_request(transaction_url, data, config)
-    if response:
+    if response and "error" not in response:
         cache.set(data_cache_key, (data, response), CACHE_TIME)
     else:
         # cache failed response to limit hits to avatax.

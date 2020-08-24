@@ -23,7 +23,7 @@ def api_post_request_task(transaction_url, data, config, order_id):
     response = api_post_request(transaction_url, data, config)
 
     msg = f"Order sent to Avatax. Order ID: {order.token}"
-    if not response:
+    if not response or "error" in response:
         msg = "Unable to send order to Avatax."
 
     external_notification_event(order=order, user=None, message=msg, parameters=None)

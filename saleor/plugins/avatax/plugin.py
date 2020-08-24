@@ -269,7 +269,7 @@ class AvataxPlugin(BasePlugin):
             get_api_url(self.config.use_sandbox), "transactions/createoradjust"
         )
         response = api_post_request(transaction_url, data, self.config)
-        if not response:
+        if not response or "error" in response:
             msg = response.get("error", {}).get("message", "")
             error_code = response.get("error", {}).get("code", "")
             logger.warning(
