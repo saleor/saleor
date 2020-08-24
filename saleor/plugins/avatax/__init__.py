@@ -3,7 +3,6 @@ import logging
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 from urllib.parse import urljoin
 
@@ -87,7 +86,7 @@ def api_post_request(
     except requests.exceptions.RequestException:
         logger.error("Fetching taxes failed %s", url)
         return {}
-    except JSONDecodeError:
+    except json.JSONDecodeError:
         logger.error(
             "Unable to encode the response from Avatax. Response: %s", response
         )
@@ -105,7 +104,7 @@ def api_get_request(url: str, config: AvataxConfiguration):
     except requests.exceptions.RequestException:
         logger.warning("Failed to fetch data from %s", url)
         return {}
-    except JSONDecodeError:
+    except json.JSONDecodeError:
         logger.error(
             "Unable to encode the response from Avatax. Response: %s", response
         )
