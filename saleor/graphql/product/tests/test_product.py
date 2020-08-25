@@ -437,6 +437,48 @@ def test_fetch_all_products_visible_in_listings_by_staff_without_perm(
     assert graphene.Node.to_global_id("Product", product_list[0].pk) not in products_ids
 
 
+def test_fetch_all_products_visible_in_listings_by_app_with_perm(
+    app_api_client, product_list, permission_manage_products,
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["products"]["edges"]
+    assert len(product_data) == product_count
+
+
+def test_fetch_all_products_visible_in_listings_by_app_without_perm(
+    app_api_client, product_list, permission_manage_products,
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    response = app_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["products"]["edges"]
+    assert len(product_data) == product_count - 1
+    products_ids = [product["node"]["id"] for product in product_data]
+    assert graphene.Node.to_global_id("Product", product_list[0].pk) not in products_ids
+
+
 def test_product_query(staff_api_client, product, permission_manage_products, stock):
     category = Category.objects.first()
     product = category.products.first()

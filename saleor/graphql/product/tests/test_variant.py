@@ -1035,6 +1035,36 @@ def test_product_variants_visible_in_listings_by_staff_with_perm(
     assert data["totalCount"] == product_count
 
 
+def test_product_variants_visible_in_listings_by_app_without_perm(
+    app_api_client, product_list
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    data = _fetch_all_variants(app_api_client)
+
+    assert data["totalCount"] == product_count - 1
+
+
+def test_product_variants_visible_in_listings_by_app_with_perm(
+    app_api_client, product_list, permission_manage_products
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    data = _fetch_all_variants(app_api_client, permissions=[permission_manage_products])
+
+    assert data["totalCount"] == product_count
+
+
 def _fetch_variant(client, variant, permissions=None):
     query = """
     query ProductVariantDetails($variantId: ID!) {
