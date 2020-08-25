@@ -118,6 +118,9 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                         }
                     )
                 channel_input["price_amount"] = price_amount
+            else:
+                pass
+                # check if channel listing exist
 
             min_price = channel_input.pop("minimum_order_price", None)
             max_price = channel_input.pop("maximum_order_price", None)

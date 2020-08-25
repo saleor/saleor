@@ -1161,12 +1161,13 @@ def product_list_published(product_list, channel_USD):
 
 
 @pytest.fixture
-def order_list(customer_user):
+def order_list(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
     data = {
         "billing_address": address,
         "user": customer_user,
         "user_email": customer_user.email,
+        "channel": channel_USD,
     }
     order = Order.objects.create(**data)
     order1 = Order.objects.create(**data)
@@ -1305,13 +1306,18 @@ def order_line(order, variant):
 
 
 @pytest.fixture
-def order_line_with_allocation_in_many_stocks(customer_user, variant_with_many_stocks):
+def order_line_with_allocation_in_many_stocks(
+    customer_user, variant_with_many_stocks, channel_PLN
+):
     address = customer_user.default_billing_address.get_copy()
     variant = variant_with_many_stocks
     stocks = variant.stocks.all().order_by("pk")
 
     order = Order.objects.create(
-        billing_address=address, user_email=customer_user.email, user=customer_user
+        billing_address=address,
+        user_email=customer_user.email,
+        user=customer_user,
+        channel=channel_PLN,
     )
 
     net = variant.get_price()
@@ -1338,13 +1344,18 @@ def order_line_with_allocation_in_many_stocks(customer_user, variant_with_many_s
 
 
 @pytest.fixture
-def order_line_with_one_allocation(customer_user, variant_with_many_stocks):
+def order_line_with_one_allocation(
+    customer_user, variant_with_many_stocks, channel_PLN
+):
     address = customer_user.default_billing_address.get_copy()
     variant = variant_with_many_stocks
     stocks = variant.stocks.all().order_by("pk")
 
     order = Order.objects.create(
-        billing_address=address, user_email=customer_user.email, user=customer_user
+        billing_address=address,
+        user_email=customer_user.email,
+        user=customer_user,
+        channel=channel_PLN,
     )
 
     net = variant.get_price()

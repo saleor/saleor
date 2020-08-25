@@ -259,12 +259,14 @@ def test_validate_fulfillment_tracking_number_as_url(fulfilled_order):
     assert fulfillment.is_tracking_number_url
 
 
-def test_order_queryset_confirmed(draft_order):
+def test_order_queryset_confirmed(draft_order, channel_PLN):
     other_orders = [
-        Order.objects.create(status=OrderStatus.UNFULFILLED),
-        Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED),
-        Order.objects.create(status=OrderStatus.FULFILLED),
-        Order.objects.create(status=OrderStatus.CANCELED),
+        Order.objects.create(status=OrderStatus.UNFULFILLED, channel=channel_PLN),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_PLN
+        ),
+        Order.objects.create(status=OrderStatus.FULFILLED, channel=channel_PLN),
+        Order.objects.create(status=OrderStatus.CANCELED, channel=channel_PLN),
     ]
 
     confirmed_orders = Order.objects.confirmed()
@@ -273,12 +275,14 @@ def test_order_queryset_confirmed(draft_order):
     assert all([order in confirmed_orders for order in other_orders])
 
 
-def test_order_queryset_drafts(draft_order):
+def test_order_queryset_drafts(draft_order, channel_PLN):
     other_orders = [
-        Order.objects.create(status=OrderStatus.UNFULFILLED),
-        Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED),
-        Order.objects.create(status=OrderStatus.FULFILLED),
-        Order.objects.create(status=OrderStatus.CANCELED),
+        Order.objects.create(status=OrderStatus.UNFULFILLED, channel=channel_PLN),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_PLN
+        ),
+        Order.objects.create(status=OrderStatus.FULFILLED, channel=channel_PLN),
+        Order.objects.create(status=OrderStatus.CANCELED, channel=channel_PLN),
     ]
 
     draft_orders = Order.objects.drafts()
@@ -287,11 +291,15 @@ def test_order_queryset_drafts(draft_order):
     assert all([order not in draft_orders for order in other_orders])
 
 
-def test_order_queryset_to_ship(settings):
+def test_order_queryset_to_ship(settings, channel_PLN):
     total = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
     orders_to_ship = [
-        Order.objects.create(status=OrderStatus.UNFULFILLED, total=total),
-        Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED, total=total),
+        Order.objects.create(
+            status=OrderStatus.UNFULFILLED, total=total, channel=channel_PLN
+        ),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, total=total, channel=channel_PLN
+        ),
     ]
     for order in orders_to_ship:
         order.payments.create(
@@ -303,11 +311,21 @@ def test_order_queryset_to_ship(settings):
         )
 
     orders_not_to_ship = [
-        Order.objects.create(status=OrderStatus.DRAFT, total=total),
-        Order.objects.create(status=OrderStatus.UNFULFILLED, total=total),
-        Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED, total=total),
-        Order.objects.create(status=OrderStatus.FULFILLED, total=total),
-        Order.objects.create(status=OrderStatus.CANCELED, total=total),
+        Order.objects.create(
+            status=OrderStatus.DRAFT, total=total, channel=channel_PLN
+        ),
+        Order.objects.create(
+            status=OrderStatus.UNFULFILLED, total=total, channel=channel_PLN
+        ),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, total=total, channel=channel_PLN
+        ),
+        Order.objects.create(
+            status=OrderStatus.FULFILLED, total=total, channel=channel_PLN
+        ),
+        Order.objects.create(
+            status=OrderStatus.CANCELED, total=total, channel=channel_PLN
+        ),
     ]
 
     orders = Order.objects.ready_to_fulfill()
@@ -316,17 +334,21 @@ def test_order_queryset_to_ship(settings):
     assert all([order not in orders for order in orders_not_to_ship])
 
 
-def test_queryset_ready_to_capture():
+def test_queryset_ready_to_capture(channel_USD):
     total = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
 
-    preauth_order = Order.objects.create(status=OrderStatus.UNFULFILLED, total=total)
+    preauth_order = Order.objects.create(
+        status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
+    )
     Payment.objects.create(
         order=preauth_order, charge_status=ChargeStatus.NOT_CHARGED, is_active=True
     )
 
-    Order.objects.create(status=OrderStatus.DRAFT, total=total)
-    Order.objects.create(status=OrderStatus.UNFULFILLED, total=total)
-    Order.objects.create(status=OrderStatus.CANCELED, total=total)
+    Order.objects.create(status=OrderStatus.DRAFT, total=total, channel=channel_USD)
+    Order.objects.create(
+        status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
+    )
+    Order.objects.create(status=OrderStatus.CANCELED, total=total, channel=channel_USD)
 
     qs = Order.objects.ready_to_capture()
     assert preauth_order in qs

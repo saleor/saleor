@@ -533,11 +533,7 @@ class Order(CountableDjangoObjectType):
                 shipping_method.price = taxed_price.gross
             else:
                 shipping_method.price = taxed_price.net
-        channel = getattr(root, "channel")
-        if channel:
-            channel_slug = channel.slug
-        else:
-            channel_slug = None
+        channel_slug = root.channel.slug
         instances = [
             ChannelContext(node=shipping, channel_slug=channel_slug)
             for shipping in available

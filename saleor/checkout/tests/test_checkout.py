@@ -559,7 +559,11 @@ def test_create_order_doesnt_duplicate_order(
 
 @pytest.mark.parametrize("is_anonymous_user", (True, False))
 def test_create_order_with_gift_card(
-    checkout_with_gift_card, customer_user, shipping_method, is_anonymous_user
+    checkout_with_gift_card,
+    customer_user,
+    shipping_method,
+    is_anonymous_user,
+    channel_USD,
 ):
     checkout_user = None if is_anonymous_user else customer_user
     checkout = checkout_with_gift_card

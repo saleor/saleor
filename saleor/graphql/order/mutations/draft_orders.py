@@ -124,7 +124,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def clean_channel_id(cls, instance, channel):
-        if channel and instance.channel is not None:
+        if channel and hasattr(instance, "channel"):
             raise ValidationError(
                 {
                     "channel": ValidationError(
@@ -141,6 +141,8 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         cleaned_input = super().clean_input(info, instance, data)
         lines = data.pop("lines", None)
         channel = data.get("channel", None)
+        if "channel" in cleaned_input and channel is None:
+            del cleaned_input["channel"]
         cls.clean_channel_id(instance, channel)
 
         if lines:
