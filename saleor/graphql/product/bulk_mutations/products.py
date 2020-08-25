@@ -169,20 +169,24 @@ class ProductVariantBulkCreate(BaseMutation):
         cost_price_amount = cleaned_input.pop("cost_price", None)
         if cost_price_amount is not None:
             if cost_price_amount < 0:
-                errors["costPrice"] = ValidationError(
-                    "Product price cannot be lower than 0.",
-                    code=ProductErrorCode.INVALID.value,
-                    params={"index": variant_index},
+                errors["costPrice"].append(
+                    ValidationError(
+                        "Product price cannot be lower than 0.",
+                        code=ProductErrorCode.INVALID.value,
+                        params={"index": variant_index},
+                    )
                 )
             cleaned_input["cost_price_amount"] = cost_price_amount
 
         price_amount = cleaned_input.pop("price", None)
         if price_amount is not None:
             if price_amount < 0:
-                errors["price"] = ValidationError(
-                    "Product price cannot be lower than 0.",
-                    code=ProductErrorCode.INVALID.value,
-                    params={"index": variant_index},
+                errors["price"].append(
+                    ValidationError(
+                        "Product price cannot be lower than 0.",
+                        code=ProductErrorCode.INVALID.value,
+                        params={"index": variant_index},
+                    )
                 )
             cleaned_input["price_amount"] = price_amount
 
@@ -193,8 +197,12 @@ class ProductVariantBulkCreate(BaseMutation):
                     attributes, data["product_type"]
                 )
             except ValidationError as exc:
-                exc.params = {"index": variant_index}
-                errors["attributes"] = exc
+                index_data = {"index": variant_index}
+                if exc.params:
+                    exc.params.update(index_data)
+                else:
+                    exc.params = index_data
+                errors["attributes"].append(exc)
 
         stocks = cleaned_input.get("stocks")
         if stocks:
@@ -207,10 +215,12 @@ class ProductVariantBulkCreate(BaseMutation):
         warehouse_ids = [stock["warehouse"] for stock in stocks_data]
         duplicates = get_duplicated_values(warehouse_ids)
         if duplicates:
-            errors["stocks"] = ValidationError(
-                "Duplicated warehouse ID.",
-                code=ProductErrorCode.DUPLICATED_INPUT_ITEM,
-                params={"warehouses": duplicates, "index": variant_index},
+            errors["stocks"].append(
+                ValidationError(
+                    "Duplicated warehouse ID.",
+                    code=ProductErrorCode.DUPLICATED_INPUT_ITEM,
+                    params={"warehouses": duplicates, "index": variant_index},
+                )
             )
 
     @classmethod

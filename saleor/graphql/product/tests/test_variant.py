@@ -1143,6 +1143,7 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
                 code
                 index
                 warehouses
+                attributes
             }
             productVariants{
                 id
@@ -1253,6 +1254,10 @@ def test_product_variant_bulk_create_with_new_attribute_value(
     product_variant_count = ProductVariant.objects.count()
     attribute_value_count = size_attribute.values.count()
     size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    size_attribute.value_required = True
+    size_attribute.save(update_fields=["value_required"])
+
     product_id = graphene.Node.to_global_id("Product", product.pk)
     attribute_value = size_attribute.values.last()
     variants = [
@@ -1548,6 +1553,7 @@ def test_product_variant_bulk_create_many_errors(
             "code": ProductErrorCode.UNIQUE.name,
             "message": ANY,
             "warehouses": None,
+            "attributes": None,
         },
         {
             "field": "attributes",
@@ -1555,6 +1561,7 @@ def test_product_variant_bulk_create_many_errors(
             "code": ProductErrorCode.NOT_FOUND.name,
             "message": ANY,
             "warehouses": None,
+            "attributes": None,
         },
     ]
     for expected_error in expected_errors:
@@ -1666,6 +1673,65 @@ def test_product_variant_bulk_create_two_variants_duplicated_one_attribute_value
     assert not data["bulkProductErrors"]
     assert data["count"] == 1
     assert product_variant_count + 1 == ProductVariant.objects.count()
+
+
+def test_product_variant_bulk_create_not_all_required_attributes(
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
+    color_attribute,
+):
+    # given
+    product_variant_count = ProductVariant.objects.count()
+
+    size_attribute.value_required = True
+    size_attribute.save(update_fields=["value_required"])
+
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_value = size_attribute.values.last()
+
+    product_type = product.product_type
+    product_type.variant_attributes.add(color_attribute)
+
+    color_attribute.value_required = True
+    color_attribute.save(update_fields=["value_required"])
+
+    variants = [
+        {
+            "sku": str(uuid4())[:12],
+            "attributes": [{"id": size_attribute_id, "values": [attribute_value.name]}],
+            "price": 10,
+        },
+        {
+            "sku": str(uuid4())[:12],
+            "attributes": [{"id": size_attribute_id, "values": ["Test-attribute"]}],
+            "price": 10,
+        },
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+    errors = data["bulkProductErrors"]
+    assert len(errors) == 2
+    for error in errors:
+        assert error["attributes"] == [
+            graphene.Node.to_global_id("Attribute", color_attribute.pk)
+        ]
+        assert error["code"] == ProductErrorCode.REQUIRED.name
+        assert error["field"] == "attributes"
+    assert {error["index"] for error in errors} == {0, 1}
+    assert product_variant_count == ProductVariant.objects.count()
 
 
 VARIANT_STOCKS_CREATE_MUTATION = """
