@@ -595,6 +595,16 @@ def size_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def weight_attribute(db):
+    attribute = Attribute.objects.create(slug="material", name="Material")
+    AttributeValue.objects.create(attribute=attribute, name="Cotton", slug="cotton")
+    AttributeValue.objects.create(
+        attribute=attribute, name="Poliester", slug="poliester"
+    )
+    return attribute
+
+
+@pytest.fixture
 def attribute_list() -> List[Attribute]:
     return list(
         Attribute.objects.bulk_create(
