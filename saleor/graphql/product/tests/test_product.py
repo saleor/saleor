@@ -99,6 +99,7 @@ QUERY_FETCH_ALL_PRODUCTS = """
             totalCount
             edges {
                 node {
+                    id
                     name
                     isPublished
                 }
@@ -390,6 +391,8 @@ def test_fetch_all_products_visible_in_listings(
     content = get_graphql_content(response)
     product_data = content["data"]["products"]["edges"]
     assert len(product_data) == product_count - 1
+    products_ids = [product["node"]["id"] for product in product_data]
+    assert graphene.Node.to_global_id("Product", product_list[0].pk) not in products_ids
 
 
 def test_fetch_all_products_visible_in_listings_by_staff_with_perm(
@@ -430,6 +433,8 @@ def test_fetch_all_products_visible_in_listings_by_staff_without_perm(
     content = get_graphql_content(response)
     product_data = content["data"]["products"]["edges"]
     assert len(product_data) == product_count - 1
+    products_ids = [product["node"]["id"] for product in product_data]
+    assert graphene.Node.to_global_id("Product", product_list[0].pk) not in products_ids
 
 
 def test_product_query(staff_api_client, product, permission_manage_products, stock):
