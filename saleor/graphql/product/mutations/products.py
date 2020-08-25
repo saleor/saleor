@@ -692,9 +692,18 @@ class AttributeAssignmentMixin:
         - ensure all attributes are passed
         - ensure the values are correct for a variant
         """
-        if len(cleaned_input) != qs.count():
+        attributes = [attr for attr, _ in cleaned_input]
+        required_attributes = qs.filter(value_required=True)
+        missing_attributes = [
+            graphene.Node.to_global_id("Attribute", attribute.pk)
+            for attribute in required_attributes
+            if attribute not in attributes
+        ]
+        if missing_attributes:
             raise ValidationError(
-                "All attributes must take a value", code=ProductErrorCode.REQUIRED.value
+                "All required attributes must take a value.",
+                code=ProductErrorCode.REQUIRED.value,
+                params={"attributes": missing_attributes},
             )
 
         for attribute, values in cleaned_input:

@@ -281,6 +281,7 @@ def test_create_product_variant_with_negative_weight(
 def test_create_product_variant_not_all_attributes(
     staff_api_client, product, product_type, color_attribute, permission_manage_products
 ):
+    # given
     query = """
             mutation createVariant (
                 $productId: ID!,
@@ -297,7 +298,7 @@ def test_create_product_variant_not_all_attributes(
                         productErrors {
                             field
                             code
-                            message
+                            attributes
                         }
                     }
                 }
@@ -311,23 +312,88 @@ def test_create_product_variant_not_all_attributes(
     variant_value = "test-value"
     product_type.variant_attributes.add(color_attribute)
 
+    color_attribute.value_required = True
+    color_attribute.save(update_fields=["value_required"])
+
     variables = {
         "productId": product_id,
         "price": 15,
         "sku": sku,
         "attributes": [{"id": variant_id, "values": [variant_value]}],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["productVariantCreate"]["productErrors"]
     assert content["data"]["productVariantCreate"]["productErrors"][0] == {
         "field": "attributes",
         "code": ProductErrorCode.REQUIRED.name,
-        "message": ANY,
+        "attributes": [graphene.Node.to_global_id("Attribute", color_attribute.pk)],
     }
     assert not product.variants.filter(sku=sku).exists()
+
+
+def test_create_product_variant_all_required_attributes(
+    staff_api_client, product, product_type, color_attribute, permission_manage_products
+):
+    # given
+    query = """
+            mutation createVariant (
+                $productId: ID!,
+                $price: Decimal,
+                $sku: String!,
+                $attributes: [AttributeValueInput]!) {
+                    productVariantCreate(
+                        input: {
+                            product: $productId,
+                            price: $price,
+                            sku: $sku,
+                            attributes: $attributes
+                        }) {
+                        productErrors {
+                            field
+                            code
+                            attributes
+                        }
+                    }
+                }
+
+        """
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+
+    required_attribute = product_type.variant_attributes.first()
+    required_attribute.value_required = True
+    required_attribute.save(update_fields=["value_required"])
+
+    attr_id = graphene.Node.to_global_id("Attribute", required_attribute.pk)
+    attr_value = "test-value"
+    product_type.variant_attributes.add(color_attribute)
+
+    variables = {
+        "productId": product_id,
+        "price": 15,
+        "sku": sku,
+        "attributes": [{"id": attr_id, "values": [attr_value]}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantCreate"]
+    assert not data["productErrors"]
+    variant = product.variants.filter(sku=sku).first()
+    assert variant
+    assert variant.attributes.first().values.first().slug == attr_value
 
 
 def test_create_product_variant_duplicated_attributes(
@@ -631,6 +697,7 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
                 productErrors {
                     field
                     code
+                    attributes
                 }
             }
         }
@@ -654,6 +721,9 @@ def test_update_product_variant_not_all_attributes(
     variant_value = "test-value"
     product_type.variant_attributes.add(color_attribute)
 
+    color_attribute.value_required = True
+    color_attribute.save(update_fields=["value_required"])
+
     variables = {
         "id": variant_id,
         "sku": sku,
@@ -666,12 +736,55 @@ def test_update_product_variant_not_all_attributes(
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    assert len(content["data"]["productVariantUpdate"]["errors"]) == 1
-    assert content["data"]["productVariantUpdate"]["errors"][0] == {
+    assert len(content["data"]["productVariantUpdate"]["productErrors"]) == 1
+    assert content["data"]["productVariantUpdate"]["productErrors"][0] == {
         "field": "attributes",
-        "message": "All attributes must take a value",
+        "code": ProductErrorCode.REQUIRED.name,
+        "attributes": [graphene.Node.to_global_id("Attribute", color_attribute.pk)],
     }
     assert not product.variants.filter(sku=sku).exists()
+
+
+def test_update_product_variant_all_required_attributes(
+    staff_api_client, product, product_type, color_attribute, permission_manage_products
+):
+    # given
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = "test sku"
+
+    required_attribute = product_type.variant_attributes.first()
+    required_attribute.value_required = True
+    required_attribute.save(update_fields=["value_required"])
+
+    attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type.variant_attributes.first().id
+    )
+    variant_value = "test-value"
+    product_type.variant_attributes.add(color_attribute)
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "price": 15,
+        "attributes": [{"id": attr_id, "values": [variant_value]}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]
+    assert not data["productErrors"]
+
+    variant.refresh_from_db()
+    assert variant.sku == sku
+    assert variant.attributes.first().values.first().slug == variant_value
 
 
 def test_update_product_variant_with_current_attribute(
@@ -710,7 +823,7 @@ def test_update_product_variant_with_current_attribute(
     content = get_graphql_content(response)
 
     data = content["data"]["productVariantUpdate"]
-    assert not data["errors"]
+    assert not data["productErrors"]
     variant.refresh_from_db()
     assert variant.sku == sku
     assert variant.attributes.first().values.first().slug == "red"
@@ -753,7 +866,7 @@ def test_update_product_variant_with_new_attribute(
     content = get_graphql_content(response)
 
     data = content["data"]["productVariantUpdate"]
-    assert not data["errors"]
+    assert not data["productErrors"]
     variant.refresh_from_db()
     assert variant.sku == sku
     assert variant.attributes.first().values.first().slug == "red"
@@ -810,6 +923,7 @@ def test_update_product_variant_with_duplicated_attribute(
     assert data["productErrors"][0] == {
         "field": "attributes",
         "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
+        "attributes": None,
     }
 
 
