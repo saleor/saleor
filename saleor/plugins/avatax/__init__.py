@@ -89,32 +89,33 @@ def api_post_request(
         logger.error("Fetching taxes failed %s", url)
         return {}
     except json.JSONDecodeError:
-        error_msg = "Unable to encode the response from Avatax."
-        args = []
-        if response:
-            error_msg += " Response content: % s"
-            args.append(response.content)
-        logger.exception(error_msg, *args)
+        content = response.content if response else "Unable to find the response"
+        logger.exception(
+            "Unable to decode the response from Avatax. Response: %s", content
+        )
         return {}
     return json_response  # type: ignore
 
 
 def api_get_request(url: str, config: AvataxConfiguration):
+    response = None
     try:
         auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
         response = requests.get(url, auth=auth, timeout=TIMEOUT)
+        json_response = response.json()
         logger.debug("[GET] Hit to %s", url)
-        if "error" in response:  # type: ignore
-            logger.error("Avatax response contains errors %s", response)
+        if "error" in json_response:  # type: ignore
+            logger.error("Avatax response contains errors %s", json_response)
+        return json_response
     except requests.exceptions.RequestException:
-        logger.warning("Failed to fetch data from %s", url)
+        logger.error("Failed to fetch data from %s", url)
         return {}
     except json.JSONDecodeError:
-        logger.error(
-            "Unable to encode the response from Avatax. Response: %s", response
+        content = response.content if response else "Unable to find the response"
+        logger.exception(
+            "Unable to decode the response from Avatax. Response: %s", content
         )
         return {}
-    return response.json()
 
 
 def _validate_adddress_details(

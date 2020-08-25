@@ -1,8 +1,10 @@
+from json import JSONDecodeError
 from unittest.mock import Mock
 
 import pytest
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
+from requests import RequestException
 
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
@@ -13,6 +15,8 @@ from .. import (
     META_CODE_KEY,
     META_DESCRIPTION_KEY,
     AvataxConfiguration,
+    api_get_request,
+    api_post_request,
     generate_request_data_from_checkout,
     get_cached_tax_codes_or_fetch,
     taxes_need_new_fetch,
@@ -588,3 +592,63 @@ def test_get_tax_code_from_object_meta(product, settings, plugin_configuration):
     assert isinstance(tax_type, TaxType)
     assert tax_type.code == "KEY"
     assert tax_type.description == "DESC"
+
+
+def test_api_get_request_handles_request_errors(product, monkeypatch):
+    mocked_response = Mock(side_effect=RequestException())
+    monkeypatch.setattr("saleor.plugins.avatax.requests.get", mocked_response)
+
+    config = AvataxConfiguration(
+        username_or_account="test", password_or_license="test", use_sandbox=False,
+    )
+    url = "https://www.avatax.api.com/some-get-path"
+
+    response = api_get_request(url, config)
+
+    assert response == {}
+    assert mocked_response.called
+
+
+def test_api_get_request_handles_json_errors(product, monkeypatch):
+    mocked_response = Mock(side_effect=JSONDecodeError("", "", 0))
+    monkeypatch.setattr("saleor.plugins.avatax.requests.get", mocked_response)
+
+    config = AvataxConfiguration(
+        username_or_account="test", password_or_license="test", use_sandbox=False,
+    )
+    url = "https://www.avatax.api.com/some-get-path"
+
+    response = api_get_request(url, config)
+
+    assert response == {}
+    assert mocked_response.called
+
+
+def test_api_post_request_handles_request_errors(product, monkeypatch):
+    mocked_response = Mock(side_effect=RequestException())
+    monkeypatch.setattr("saleor.plugins.avatax.requests.post", mocked_response)
+
+    config = AvataxConfiguration(
+        username_or_account="test", password_or_license="test", use_sandbox=False,
+    )
+    url = "https://www.avatax.api.com/some-get-path"
+
+    response = api_post_request(url, {}, config)
+
+    assert mocked_response.called
+    assert response == {}
+
+
+def test_api_post_request_handles_json_errors(product, monkeypatch):
+    mocked_response = Mock(side_effect=JSONDecodeError("", "", 0))
+    monkeypatch.setattr("saleor.plugins.avatax.requests.post", mocked_response)
+
+    config = AvataxConfiguration(
+        username_or_account="test", password_or_license="test", use_sandbox=False,
+    )
+    url = "https://www.avatax.api.com/some-get-path"
+
+    response = api_post_request(url, {}, config)
+
+    assert mocked_response.called
+    assert response == {}
