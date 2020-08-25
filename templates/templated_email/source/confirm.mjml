@@ -14,7 +14,7 @@
         </mj-text>
         <mj-text>
           {% blocktrans trimmed context "Account confirmation e-mail text" %}
-            In order to log into {{ domain }}, you have to confirm your email address first.
+            In order to log into {{ site_name }}, you have to confirm your email address first.
             Please click the link below to do so and log into your account.
           {% endblocktrans %}
         </mj-text>
