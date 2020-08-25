@@ -1,8 +1,10 @@
 from ...channel.models import Channel
-from ...product.models import ProductChannelListing
 from ..checkout.dataloaders import CheckoutByIdLoader, CheckoutLineByIdLoader
 from ..core.dataloaders import DataLoader
-from ..product.dataloaders import ProductVariantChannelListingByIdLoader
+from ..product.dataloaders import (
+    ProductChannelListingByIdLoader,
+    ProductVariantChannelListingByIdLoader,
+)
 
 
 class ChannelByIdLoader(DataLoader):
@@ -17,13 +19,18 @@ class ChannelByProductChannelListingIDLoader(DataLoader):
     context_key = "channel_by_product_channel_listing"
 
     def batch_load(self, keys):
-        # TODO: Remove this before merge to master.
-        # Avoid use `select_related` in dataloaders. We should use similar solution
-        # like `ChannelByCheckoutLineIDLoader`
-        product_channel_listings = ProductChannelListing.objects.select_related(
-            "channel"
-        ).in_bulk(keys)
-        return [product_channel_listings.get(key).channel for key in keys]
+        def channel_by_product_channel_listings(product_channel_listings):
+            channel_ids = [
+                product_channel_listing.channel_id
+                for product_channel_listing in product_channel_listings
+            ]
+            return ChannelByIdLoader(self.context).load_many(channel_ids)
+
+        return (
+            ProductChannelListingByIdLoader(self.context)
+            .load_many(keys)
+            .then(channel_by_product_channel_listings)
+        )
 
 
 class ChannelByProductVariantChannelListingIDLoader(DataLoader):

@@ -202,12 +202,14 @@ def _get_shipping_voucher_discount_for_checkout(
 
 
 def _get_products_voucher_discount(
-    lines, voucher, discounts: Optional[Iterable[DiscountInfo]] = None
+    lines, voucher, channel, discounts: Optional[Iterable[DiscountInfo]] = None
 ):
     """Calculate products discount value for a voucher, depending on its type."""
     prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        prices = get_prices_of_discounted_specific_product(lines, voucher, discounts)
+        prices = get_prices_of_discounted_specific_product(
+            lines, voucher, channel, discounts
+        )
     if not prices:
         msg = "This offer is only valid for selected items."
         raise NotApplicable(msg)
@@ -217,6 +219,7 @@ def _get_products_voucher_discount(
 def get_prices_of_discounted_specific_product(
     lines: List[CheckoutLine],
     voucher: Voucher,
+    channel: Channel,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> List[Money]:
     """Get prices of variants belonging to the discounted specific products.
@@ -227,7 +230,6 @@ def get_prices_of_discounted_specific_product(
     """
     line_prices = []
     discounted_lines = get_discounted_lines(lines, voucher)
-    channel = lines[0].checkout.channel
     for line in discounted_lines:
         line_total = calculations.checkout_line_total(
             line=line, discounts=discounts or [], channel=channel
@@ -261,7 +263,9 @@ def get_voucher_discount_for_checkout(
             voucher, checkout, lines, discounts
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        return _get_products_voucher_discount(lines, voucher, discounts)
+        return _get_products_voucher_discount(
+            lines, voucher, checkout.channel, discounts
+        )
     raise NotImplementedError("Unknown discount type")
 
 
