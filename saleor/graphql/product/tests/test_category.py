@@ -173,6 +173,54 @@ def test_query_category_product_only_visible_in_listings_as_staff_with_perm(
     assert len(content["data"]["category"]["products"]["edges"]) == product_count
 
 
+def test_query_category_product_only_visible_in_listings_as_app_without_perm(
+    app_api_client, product_list
+):
+    # given
+    category = Category.objects.first()
+
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(QUERY_CATEGORY, variables=variables)
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["data"]["category"]["products"]["edges"]) == product_count - 1
+
+
+def test_query_category_product_only_visible_in_listings_as_app_with_perm(
+    app_api_client, product_list, permission_manage_products
+):
+    # given
+    app_api_client.app.permissions.add(permission_manage_products)
+
+    category = Category.objects.first()
+
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(QUERY_CATEGORY, variables=variables)
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["data"]["category"]["products"]["edges"]) == product_count
+
+
 CATEGORY_CREATE_MUTATION = """
         mutation(
                 $name: String, $slug: String, $description: String,
