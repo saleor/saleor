@@ -773,12 +773,20 @@ def test_order_already_exists(
     assert Checkout.objects.count() == 0
 
 
-@patch("saleor.graphql.checkout.mutations.create_order")
+@patch("saleor.checkout.complete_checkout.create_order")
 def test_create_order_raises_insufficient_stock(
-    mocked_create_order, user_api_client, checkout_ready_to_complete,
+    mocked_create_order, user_api_client, checkout_ready_to_complete, payment_dummy
 ):
     mocked_create_order.side_effect = InsufficientStock("InsufficientStock")
     checkout = checkout_ready_to_complete
+    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
@@ -786,5 +794,10 @@ def test_create_order_raises_insufficient_stock(
 
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert not data["checkoutErrors"]
+    assert (
+        data["checkoutErrors"][0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    )
     assert mocked_create_order.called
+
+    payment.refresh_from_db()
+    assert payment.charge_status == ChargeStatus.FULLY_REFUNDED

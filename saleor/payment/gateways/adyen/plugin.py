@@ -455,22 +455,14 @@ class AdyenGatewayPlugin(BasePlugin):
     def capture_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        transaction = (
-            Transaction.objects.filter(
-                payment__id=payment_information.payment_id,
-                kind=TransactionKind.AUTH,
-                is_success=True,
-            )
-            .exclude(token__isnull=True, token__exact="")
-            .last()
-        )
-        if not transaction:
+
+        if not payment_information.token:
             raise PaymentError("Cannot find a payment reference to capture.")
 
         result = call_capture(
             payment_information=payment_information,
             merchant_account=self.config.connection_params["merchant_account"],
-            token=transaction.token,
+            token=payment_information.token,
             adyen_client=self.adyen,
         )
 

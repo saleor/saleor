@@ -1,41 +1,29 @@
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 import graphene
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Prefetch
 
-from ...account.error_codes import AccountErrorCode
-from ...account.models import User
 from ...checkout import models
-from ...checkout.calculations import calculate_checkout_total_with_gift_cards
+from ...checkout.complete_checkout import complete_checkout
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
-    abort_order_data,
     add_promo_code_to_checkout,
     add_variant_to_checkout,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
-    create_order,
     get_order,
     get_user_checkout,
     get_valid_shipping_methods_for_checkout,
-    prepare_order_data,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
 from ...core.permissions import OrderPermissions
-from ...core.taxes import TaxError
-from ...core.utils.url import validate_storefront_url
-from ...discount import DiscountInfo, models as voucher_model
-from ...graphql.checkout.utils import clean_checkout_payment, clean_checkout_shipping
-from ...order import models as order_models
-from ...payment import PaymentError, gateway, models as payment_models
-from ...payment.utils import store_customer_id
+from ...payment import models as payment_models
 from ...product import models as product_models
 from ...warehouse.availability import check_stock_quantity, get_available_quantity
 from ..account.i18n import I18nMixin
@@ -778,180 +766,6 @@ class CheckoutComplete(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def validate_payment_amount(cls, discounts, payment, checkout):
-        if (
-            payment.total
-            != calculate_checkout_total_with_gift_cards(
-                checkout, discounts
-            ).gross.amount
-        ):
-            gateway.payment_refund_or_void(payment)
-            raise ValidationError(
-                "Payment does not cover all checkout value.",
-                code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,
-            )
-
-    @classmethod
-    @transaction.atomic
-    def _prepare_checkout(cls, checkout: models.Checkout, context, redirect_url):
-        lines = list(checkout)
-
-        discounts = context.discounts
-        clean_checkout_shipping(checkout, lines, discounts, CheckoutErrorCode)
-        clean_checkout_payment(checkout, lines, discounts, CheckoutErrorCode)
-
-        payment = checkout.get_last_active_payment()
-
-        cls.validate_payment_amount(discounts, payment, checkout)
-
-        if redirect_url:
-            try:
-                validate_storefront_url(redirect_url)
-            except ValidationError as error:
-                raise ValidationError(
-                    {"redirect_url": error}, code=AccountErrorCode.INVALID.value
-                )
-
-        to_update = []
-        if redirect_url and redirect_url != checkout.redirect_url:
-            checkout.redirect_url = redirect_url
-            to_update.append("redirect_url")
-
-        tracking_code = analytics.get_client_id(context)
-        if tracking_code and tracking_code != checkout.tracking_code:
-            checkout.tracking_code = tracking_code
-            to_update.append("tracking_code")
-
-        if to_update:
-            checkout.save()
-
-    @classmethod
-    @transaction.atomic
-    def _convert_checkout_to_order(
-        cls,
-        checkout: models.Checkout,
-        order_data: dict,
-        user: Union[User, AnonymousUser],
-    ) -> order_models.Order:
-        order = create_order(
-            checkout=checkout, order_data=order_data, user=user  # type: ignore
-        )
-        # remove checkout after order is successfully created
-        checkout.delete()
-        return order
-
-    @classmethod
-    def _get_order_data(
-        cls, checkout: models.Checkout, discounts: List[DiscountInfo]
-    ) -> dict:
-        try:
-            with transaction.atomic():
-                order_data = prepare_order_data(
-                    checkout=checkout, lines=list(checkout), discounts=discounts,
-                )
-        except InsufficientStock as e:
-            raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
-        except voucher_model.NotApplicable:
-            raise ValidationError(
-                "Voucher not applicable",
-                code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
-            )
-        except TaxError as tax_error:
-            raise ValidationError(
-                "Unable to calculate taxes - %s" % str(tax_error),
-                code=CheckoutErrorCode.TAX_ERROR.value,
-            )
-        return order_data
-
-    @classmethod
-    def _process_payment(
-        cls,
-        payment: payment_models.Payment,
-        store_source: bool,
-        payment_data: Optional[dict],
-        order_data: dict,
-    ) -> payment_models.Transaction:
-        payment_confirmation = payment.to_confirm
-        try:
-            if payment_confirmation:
-                txn = gateway.confirm(payment, additional_data=payment_data)
-            else:
-                txn = gateway.process_payment(
-                    payment=payment,
-                    token=payment.token,
-                    store_source=store_source,
-                    additional_data=payment_data,
-                )
-            if not txn.is_success:
-                raise PaymentError(txn.error)
-        except PaymentError as e:
-            abort_order_data(order_data)
-            raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
-        return txn
-
-    @classmethod
-    def complete_checkout(cls, checkout: models.Checkout, context, data, store_source):
-        order = get_order(checkout.token)
-        if order:
-            return CheckoutComplete(
-                order=order, confirmation_needed=False, confirmation_data={},
-            )
-        cls._prepare_checkout(
-            checkout=checkout,
-            context=context,
-            redirect_url=data.get("redirect_url", ""),
-        )
-
-        payment = checkout.get_last_active_payment()  # type: ignore
-
-        try:
-            order_data = cls._get_order_data(checkout, context.discounts)
-        except ValidationError as error:
-            gateway.payment_refund_or_void(payment)
-            raise error
-
-        txn = cls._process_payment(
-            payment=payment,  # type: ignore
-            store_source=store_source,
-            payment_data=data.get("payment_data"),
-            order_data=order_data,
-        )
-
-        user = context.user
-        if txn.customer_id and user.is_authenticated:
-            store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
-
-        if not txn.action_required:
-            try:
-                with transaction.atomic():
-                    order = get_order(checkout.token)
-                    if order:
-                        # Order was created asynchronously, we can release the lock made
-                        # on order_data
-                        abort_order_data(order_data)
-                    else:
-                        order = cls._convert_checkout_to_order(
-                            checkout=checkout, order_data=order_data, user=user
-                        )
-            except InsufficientStock as e:
-                abort_order_data(order_data)
-                gateway.payment_refund_or_void(payment)
-                raise ValidationError(
-                    f"Insufficient product stock: {e.item}", code=e.code
-                )
-
-        if not order:
-            abort_order_data(order_data)
-
-        # If gateway returns information that additional steps are required we need
-        # to inform the frontend and pass all required data
-        return CheckoutComplete(
-            order=order,
-            confirmation_needed=txn.action_required,
-            confirmation_data=txn.action_required_data if txn.action_required else {},
-        )
-
-    @classmethod
     def perform_mutation(cls, _root, info, checkout_id, store_source, **data):
         checkout_token = from_global_id_strict_type(
             checkout_id, Checkout, field="checkout_id"
@@ -983,7 +797,23 @@ class CheckoutComplete(BaseMutation):
                 )
                 .select_related("shipping_method", "shipping_method__shipping_zone"),
             )
-        return cls.complete_checkout(checkout, info.context, data, store_source)
+        tracking_code = analytics.get_client_id(info.context)
+        order, action_required, action_data = complete_checkout(
+            checkout=checkout,
+            payment_data=data.get("payment_data", {}),
+            store_source=store_source,
+            discounts=info.context.discounts,
+            user=info.context.user,
+            tracking_code=tracking_code,
+            redirect_url=data.get("redirect_url"),
+        )
+        # If gateway returns information that additional steps are required we need
+        # to inform the frontend and pass all required data
+        return CheckoutComplete(
+            order=order,
+            confirmation_needed=action_required,
+            confirmation_data=action_data,
+        )
 
 
 class CheckoutAddPromoCode(BaseMutation):
