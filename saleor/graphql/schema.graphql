@@ -3770,7 +3770,7 @@ type ProductChannelListingError {
 type ProductChannelListingUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   product: Product
-  productsErrors: [ProductChannelListingError!]!
+  productChannelListingErrors: [ProductChannelListingError!]!
 }
 
 input ProductChannelListingUpdateInput {
@@ -4151,7 +4151,7 @@ type ProductUpdatePrivateMeta {
 type ProductVaraintChannelListingUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   variant: ProductVariant
-  productsErrors: [ProductChannelListingError!]!
+  productChannelListingErrors: [ProductChannelListingError!]!
 }
 
 type ProductVariant implements Node & ObjectWithMetadata {

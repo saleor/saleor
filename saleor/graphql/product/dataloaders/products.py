@@ -170,7 +170,7 @@ class VariantChannelListingByVariantIdLoader(DataLoader):
         ]
 
 
-class VariantChannelListingByVariantIdAndChanneSlugLoader(
+class VariantChannelListingByVariantIdAndChannelSlugLoader(
     DataLoader[VariantIdAndChannelSlug, ProductVariantChannelListing]
 ):
     context_key = "variantchannelisting_by_variant_and_channel"

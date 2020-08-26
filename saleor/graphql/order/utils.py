@@ -62,7 +62,7 @@ def validate_order_lines(order, country):
                 )
 
 
-# TODO: we should consider reuse logic with DraftOrderCreate validation
+# TODO: We should reuse this logic in DraftOrderCreate validation
 # `validate_product_is_published_in_channel` after merge #5975
 def validate_product_is_published(order):
     variant_ids = []

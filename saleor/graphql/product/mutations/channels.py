@@ -57,14 +57,14 @@ class ProductChannelListingUpdate(BaseMutation):
         id = graphene.ID(required=True, description="ID of a product to update.")
         input = ProductChannelListingUpdateInput(
             required=True,
-            description="Fields required to create product channel listings.",
+            description="Fields required to create or update product channel listings.",
         )
 
     class Meta:
         description = "Manage product's availability in channels."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductChannelListingError
-        error_type_field = "products_errors"
+        error_type_field = "product_channel_listing_errors"
 
     @classmethod
     def validate_duplicated_ids(
@@ -196,7 +196,7 @@ class ProductVariantChannelListingAddInput(graphene.InputObjectType):
     )
 
 
-# TODO: Use BaseChannelListingMutation after rebase.
+# TODO: Use BaseChannelListingMutation after merge #5975.
 class ProductVaraintChannelListingUpdate(BaseMutation):
     variant = graphene.Field(
         ProductVariant, description="An updated product variant instance."
@@ -210,7 +210,8 @@ class ProductVaraintChannelListingUpdate(BaseMutation):
             graphene.NonNull(ProductVariantChannelListingAddInput),
             required=True,
             description=(
-                "List of fields required to create product variant channel listings."
+                "List of fields required to create or upgrade product variant ",
+                "channel listings.",
             ),
         )
 
@@ -218,7 +219,7 @@ class ProductVaraintChannelListingUpdate(BaseMutation):
         description = "Manage product varaint prices in channels."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductChannelListingError
-        error_type_field = "products_errors"
+        error_type_field = "product_channel_listing_errors"
 
     @classmethod
     def clean_channels(cls, info, input, errors: ErrorType) -> List:

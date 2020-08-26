@@ -10,7 +10,7 @@ mutation UpdateProductVaraintChannelListing(
     $input: [ProductVariantChannelListingAddInput!]!
 ) {
     productVaraintChannelListingUpdate(id: $id, input: $input) {
-        productsErrors {
+        productChannelListingErrors {
             field
             message
             code
@@ -59,7 +59,9 @@ def test_variant_channel_listing_update_duplicated_channel(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productVaraintChannelListingUpdate"]["productsErrors"]
+    errors = content["data"]["productVaraintChannelListingUpdate"][
+        "productChannelListingErrors"
+    ]
     assert len(errors) == 1
     assert errors[0]["field"] == "channelId"
     assert errors[0]["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
@@ -86,7 +88,9 @@ def test_variant_channel_listing_update_with_empty_input(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productVaraintChannelListingUpdate"]["productsErrors"]
+    errors = content["data"]["productVaraintChannelListingUpdate"][
+        "productChannelListingErrors"
+    ]
     assert not errors
 
 
@@ -111,7 +115,9 @@ def test_variant_channel_listing_update_not_assigned_channel(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productVaraintChannelListingUpdate"]["productsErrors"]
+    errors = content["data"]["productVaraintChannelListingUpdate"][
+        "productChannelListingErrors"
+    ]
     assert len(errors) == 1
     assert errors[0]["field"] == "input"
     assert errors[0]["code"] == ProductErrorCode.PRODUCT_NOT_ASSIGNED_TO_CHANNEL.name
@@ -139,7 +145,9 @@ def test_variant_channel_listing_update_negative_price(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productVaraintChannelListingUpdate"]["productsErrors"]
+    errors = content["data"]["productVaraintChannelListingUpdate"][
+        "productChannelListingErrors"
+    ]
     assert len(errors) == 1
     assert errors[0]["field"] == "price"
     assert errors[0]["code"] == ProductErrorCode.INVALID.name
@@ -176,7 +184,7 @@ def test_variant_channel_listing_update_as_staff_user(
     # then
     data = content["data"]["productVaraintChannelListingUpdate"]
     variant_data = data["variant"]
-    assert not data["productsErrors"]
+    assert not data["productChannelListingErrors"]
     assert variant_data["id"] == variant_id
     assert variant_data["channelListing"][0]["price"]["currency"] == "USD"
     assert variant_data["channelListing"][0]["price"]["amount"] == 1
@@ -216,7 +224,7 @@ def test_variant_channel_listing_update_as_app(
     # then
     data = content["data"]["productVaraintChannelListingUpdate"]
     variant_data = data["variant"]
-    assert not data["productsErrors"]
+    assert not data["productChannelListingErrors"]
     assert variant_data["id"] == variant_id
     assert variant_data["channelListing"][0]["price"]["currency"] == "USD"
     assert variant_data["channelListing"][0]["price"]["amount"] == 1

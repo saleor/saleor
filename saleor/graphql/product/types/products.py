@@ -62,7 +62,7 @@ from ..dataloaders import (
     ProductVariantsByProductIdLoader,
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
-    VariantChannelListingByVariantIdAndChanneSlugLoader,
+    VariantChannelListingByVariantIdAndChannelSlugLoader,
     VariantChannelListingByVariantIdLoader,
     VariantsChannelListingByProductIdAndChanneSlugLoader,
 )
@@ -297,7 +297,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         product_channel_listing = ProductChannelListingByProductIdAndChanneSlugLoader(
             context
         ).load((root.node.product_id, root.channel_slug))
-        variant_channel_listing = VariantChannelListingByVariantIdAndChanneSlugLoader(
+        variant_channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
             context
         ).load((root.node.id, root.channel_slug))
         collections = CollectionsByProductIdLoader(context).load(root.node.product_id)
