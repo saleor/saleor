@@ -698,10 +698,7 @@ def abort_order_data(order_data: dict):
 
 def get_order(checkout_token: UUID) -> Optional[Order]:
     """Get order based on checkout token."""
-    order = Order.objects.confirmed().filter(checkout_token=checkout_token).first()
-    if order is not None:
-        return order
-    return None
+    return Order.objects.confirmed().filter(checkout_token=checkout_token).first()
 
 
 @transaction.atomic

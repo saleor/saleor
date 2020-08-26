@@ -4,6 +4,7 @@ from unittest import mock
 import graphene
 import pytest
 
+from ......checkout import calculations
 from ......order import OrderStatus
 from ..... import ChargeStatus, TransactionKind
 from ...utils import to_adyen_price
@@ -41,9 +42,24 @@ def test_handle_authorization_for_order(
 
 
 def test_handle_authorization_for_checkout(
-    notification, adyen_plugin, payment_adyen_for_checkout
+    notification, adyen_plugin, payment_adyen_for_checkout, address, shipping_method,
 ):
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+    checkout_token = str(checkout.token)
+
     payment = payment_adyen_for_checkout
+    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.to_confirm = True
+    payment.save()
+
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
@@ -53,74 +69,72 @@ def test_handle_authorization_for_checkout(
     handle_authorization(notification, config)
 
     payment.refresh_from_db()
-    assert payment.transactions.count() == 1
-    transaction = payment.transactions.get()
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.exclude(
+        kind=TransactionKind.ACTION_TO_CONFIRM
+    ).get()
     assert transaction.is_success is True
     assert transaction.kind == TransactionKind.AUTH
     assert payment.checkout is None
     assert payment.order
-
-
-@pytest.mark.vcr
-def test_handle_authorization_for_checkout_wrong_total(
-    notification, adyen_plugin, payment_adyen_for_checkout
-):
-    payment = payment_adyen_for_checkout
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
-    notification = notification(
-        merchant_reference=payment_id,
-        value=to_adyen_price(Decimal(10), payment.currency),
-    )
-    config = adyen_plugin().config
-    handle_authorization(notification, config)
-
-    payment.refresh_from_db()
-    assert payment.transactions.count() == 1
-    transaction = payment.transactions.get()
-    assert transaction.is_success is True
-    assert transaction.kind == TransactionKind.AUTH
-    assert payment.checkout is None
-    assert payment.order
+    assert payment.order.checkout_token == checkout_token
 
 
 def test_handle_authorization_with_adyen_auto_capture(
-    notification, adyen_plugin, payment_adyen_for_order
+    notification, adyen_plugin, payment_adyen_for_checkout, address, shipping_method
 ):
-    payment = payment_adyen_for_order
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    payment = payment_adyen_for_checkout
+    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.to_confirm = True
+    payment.save()
+
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
     notification = notification(
         merchant_reference=payment_id,
         value=to_adyen_price(payment.total, payment.currency),
     )
-    config = adyen_plugin().config
-    config.connection_params["adyen_auto_capture"] = True
-    handle_authorization(notification, config)
 
-    assert payment.transactions.count() == 1
-    assert payment.transactions.get().kind == TransactionKind.CAPTURE
+    plugin = adyen_plugin(adyen_auto_capture=True)
+    handle_authorization(notification, plugin.config)
+
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.filter(kind=TransactionKind.CAPTURE).get()
+    assert transaction.is_success is True
 
 
 @pytest.mark.vcr
 def test_handle_authorization_with_auto_capture(
-    notification, adyen_plugin, payment_adyen_for_order
+    notification, adyen_plugin, payment_adyen_for_checkout
 ):
-    payment = payment_adyen_for_order
+    payment = payment_adyen_for_checkout
+    payment.to_confirm = True
+    payment.save()
+
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         psp_reference="853596537720508F",
         merchant_reference=payment_id,
         value=to_adyen_price(payment.total, payment.currency),
     )
-    config = adyen_plugin().config
-    config.auto_capture = True
-    config.connection_params["adyen_auto_capture"] = False
+    config = adyen_plugin(adyen_auto_capture=False, auto_capture=True).config
 
     handle_authorization(notification, config)
 
     payment.refresh_from_db()
     assert payment.transactions.count() == 2
-    assert payment.transactions.first().kind == TransactionKind.AUTH
-    assert payment.transactions.last().kind == TransactionKind.CAPTURE
+    transaction = payment.transactions.filter(kind=TransactionKind.CAPTURE).get()
+    assert transaction.is_success is True
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
 
 
@@ -140,7 +154,7 @@ def test_handle_authorization_with_adyen_auto_capture_and_payment_charged(
     handle_authorization(notification, config)
 
     # payment already has a charge status no need to handle auth action
-    assert payment.transactions.count() == 0
+    assert payment.transactions.count() == 1
 
 
 def test_handle_cancel(notification, adyen_plugin, payment_adyen_for_order):
@@ -156,10 +170,9 @@ def test_handle_cancel(notification, adyen_plugin, payment_adyen_for_order):
     handle_cancellation(notification, config)
 
     payment.order.refresh_from_db()
-    assert payment.transactions.count() == 1
-    transaction = payment.transactions.get()
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.filter(kind=TransactionKind.CANCEL).get()
     assert transaction.is_success is True
-    assert transaction.kind == TransactionKind.CANCEL
 
     assert payment.order.status == OrderStatus.CANCELED
 
@@ -179,7 +192,7 @@ def test_handle_cancel_already_canceleld(
 
     handle_cancellation(notification, config)
 
-    assert payment.transactions.count() == 1
+    assert payment.transactions.count() == 2
 
 
 @mock.patch("saleor.payment.gateways.adyen.webhooks.order_captured")
@@ -196,10 +209,9 @@ def test_handle_capture(
 
     handle_capture(notification, config)
 
-    assert payment.transactions.count() == 1
-    transaction = payment.transactions.get()
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.filter(kind=TransactionKind.CAPTURE).get()
     assert transaction.is_success is True
-    assert transaction.kind == TransactionKind.CAPTURE
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     mocked_captured.assert_called_once_with(
@@ -224,7 +236,7 @@ def test_handle_capture_with_payment_already_charged(
     handle_capture(notification, config)
 
     # Payment is already captured so no need to save capture transaction
-    assert payment.transactions.count() == 0
+    assert payment.transactions.count() == 1
 
 
 @pytest.mark.parametrize(
@@ -246,10 +258,9 @@ def test_handle_failed_capture(
 
     handle_failed_capture(notification, config)
 
-    assert payment.transactions.count() == 1
-    transaction = payment.transactions.get()
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.filter(kind=TransactionKind.CAPTURE_FAILED).get()
     assert transaction.is_success is True
-    assert transaction.kind == TransactionKind.CAPTURE_FAILED
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
 
@@ -270,10 +281,9 @@ def test_handle_failed_capture_partial_charge(
 
     handle_failed_capture(notification, config)
 
-    assert payment.transactions.count() == 1
-    transaction = payment.transactions.get()
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.filter(kind=TransactionKind.CAPTURE_FAILED).get()
     assert transaction.is_success is True
-    assert transaction.kind == TransactionKind.CAPTURE_FAILED
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.PARTIALLY_CHARGED
 
@@ -289,10 +299,9 @@ def test_handle_pending(notification, adyen_plugin, payment_adyen_for_order):
 
     handle_pending(notification, config)
 
-    assert payment.transactions.count() == 1
-    transaction = payment.transactions.get()
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.filter(kind=TransactionKind.PENDING).get()
     assert transaction.is_success is True
-    assert transaction.kind == TransactionKind.PENDING
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.PENDING
 
@@ -313,8 +322,8 @@ def test_handle_pending_with_adyen_auto_capture(
 
     # in case of autocapture we don't want to store the pending status as all payments
     # by default get capture status.
-    assert payment.transactions.count() == 1
-    assert payment.transactions.get().kind == TransactionKind.PENDING
+    assert payment.transactions.count() == 2
+    assert payment.transactions.filter(kind=TransactionKind.PENDING).first()
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.PENDING
 
@@ -334,7 +343,7 @@ def test_handle_pending_already_pending(
 
     handle_pending(notification, config)
 
-    assert payment.transactions.count() == 1
+    assert payment.transactions.filter(kind=TransactionKind.PENDING).exists()
 
 
 @mock.patch("saleor.payment.gateways.adyen.webhooks.order_refunded")
@@ -354,10 +363,9 @@ def test_handle_refund(
 
     handle_refund(notification, config)
 
-    assert payment.transactions.count() == 1
-    transaction = payment.transactions.get()
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.filter(kind=TransactionKind.REFUND).get()
     assert transaction.is_success is True
-    assert transaction.kind == TransactionKind.REFUND
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
     assert payment.captured_amount == Decimal("0.00")
@@ -385,7 +393,7 @@ def test_handle_refund_already_refunded(
 
     handle_refund(notification, config)
 
-    assert payment.transactions.count() == 1
+    assert payment.transactions.count() == 2  # AUTH, REFUND
     assert not mock_order_refunded.called
 
 
@@ -405,7 +413,7 @@ def test_handle_failed_refund_missing_transaction(
 
     handle_failed_refund(notification, config)
 
-    assert payment.transactions.count() == 0
+    assert payment.transactions.count() == 1
 
 
 def test_handle_failed_refund_with_transaction_refund_ongoing(
@@ -425,8 +433,8 @@ def test_handle_failed_refund_with_transaction_refund_ongoing(
     handle_failed_refund(notification, config)
 
     assert (
-        payment.transactions.count() == 3
-    )  # REFUND_ONGOING, REFUND_FAILED, FULLY_CHARGED
+        payment.transactions.count() == 4
+    )  # ACTION_TO_CONFIRM, REFUND_ONGOING, REFUND_FAILED, FULLY_CHARGED
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.total == payment.captured_amount
 
@@ -448,7 +456,7 @@ def test_handle_failed_refund_with_transaction_refund(
     handle_failed_refund(notification, config)
 
     payment.refresh_from_db()
-    assert payment.transactions.count() == 3  # REFUND, REFUND_FAILED, FULLY_CHARGED
+    assert payment.transactions.count() == 4  # REFUND, REFUND_FAILED, FULLY_CHARGED
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.total == payment.captured_amount
 
@@ -467,7 +475,7 @@ def test_handle_reversed_refund(notification, adyen_plugin, payment_adyen_for_or
     handle_reversed_refund(notification, config)
 
     payment.refresh_from_db()
-    assert payment.transactions.count() == 1  # REFUND_REVERSED
+    assert payment.transactions.filter(kind=TransactionKind.REFUND_REVERSED).exists()
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.total == payment.captured_amount
 
@@ -489,7 +497,7 @@ def test_handle_reversed_refund_already_processed(
     handle_reversed_refund(notification, config)
 
     payment.refresh_from_db()
-    assert payment.transactions.count() == 1
+    assert payment.transactions.filter(kind=TransactionKind.REFUND_REVERSED).exists()
 
 
 def test_webhook_not_implemented(notification, adyen_plugin, payment_adyen_for_order):
