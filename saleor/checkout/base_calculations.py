@@ -11,7 +11,6 @@ from prices import TaxedMoney
 from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..discount import DiscountInfo
-from ..shipping.models import ShippingMethodChannelListing
 
 if TYPE_CHECKING:
     # flake8: noqa

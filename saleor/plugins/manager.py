@@ -14,7 +14,6 @@ from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
 from ..core.taxes import TaxType, zero_taxed_money
 from ..discount import DiscountInfo
-from ..shipping.models import ShippingMethodChannelListing
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
@@ -23,7 +22,6 @@ if TYPE_CHECKING:
     from ..checkout.models import Checkout, CheckoutLine
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
-    from ..shipping.models import ShippingMethodChannelListing
     from ..order.models import Fulfillment, OrderLine, Order
     from ..invoice.models import Invoice
     from ..payment.interface import (
