@@ -258,14 +258,14 @@ def test_validate_fulfillment_tracking_number_as_url(fulfilled_order):
     assert fulfillment.is_tracking_number_url
 
 
-def test_order_queryset_confirmed(draft_order, channel_PLN):
+def test_order_queryset_confirmed(draft_order, channel_USD):
     other_orders = [
-        Order.objects.create(status=OrderStatus.UNFULFILLED, channel=channel_PLN),
+        Order.objects.create(status=OrderStatus.UNFULFILLED, channel=channel_USD),
         Order.objects.create(
-            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_PLN
+            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_USD
         ),
-        Order.objects.create(status=OrderStatus.FULFILLED, channel=channel_PLN),
-        Order.objects.create(status=OrderStatus.CANCELED, channel=channel_PLN),
+        Order.objects.create(status=OrderStatus.FULFILLED, channel=channel_USD),
+        Order.objects.create(status=OrderStatus.CANCELED, channel=channel_USD),
     ]
 
     confirmed_orders = Order.objects.confirmed()
@@ -274,14 +274,14 @@ def test_order_queryset_confirmed(draft_order, channel_PLN):
     assert all([order in confirmed_orders for order in other_orders])
 
 
-def test_order_queryset_drafts(draft_order, channel_PLN):
+def test_order_queryset_drafts(draft_order, channel_USD):
     other_orders = [
-        Order.objects.create(status=OrderStatus.UNFULFILLED, channel=channel_PLN),
+        Order.objects.create(status=OrderStatus.UNFULFILLED, channel=channel_USD),
         Order.objects.create(
-            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_PLN
+            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_USD
         ),
-        Order.objects.create(status=OrderStatus.FULFILLED, channel=channel_PLN),
-        Order.objects.create(status=OrderStatus.CANCELED, channel=channel_PLN),
+        Order.objects.create(status=OrderStatus.FULFILLED, channel=channel_USD),
+        Order.objects.create(status=OrderStatus.CANCELED, channel=channel_USD),
     ]
 
     draft_orders = Order.objects.drafts()
@@ -290,14 +290,14 @@ def test_order_queryset_drafts(draft_order, channel_PLN):
     assert all([order not in draft_orders for order in other_orders])
 
 
-def test_order_queryset_to_ship(settings, channel_PLN):
+def test_order_queryset_to_ship(settings, channel_USD):
     total = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
     orders_to_ship = [
         Order.objects.create(
-            status=OrderStatus.UNFULFILLED, total=total, channel=channel_PLN
+            status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
         ),
         Order.objects.create(
-            status=OrderStatus.PARTIALLY_FULFILLED, total=total, channel=channel_PLN
+            status=OrderStatus.PARTIALLY_FULFILLED, total=total, channel=channel_USD
         ),
     ]
     for order in orders_to_ship:
@@ -311,19 +311,19 @@ def test_order_queryset_to_ship(settings, channel_PLN):
 
     orders_not_to_ship = [
         Order.objects.create(
-            status=OrderStatus.DRAFT, total=total, channel=channel_PLN
+            status=OrderStatus.DRAFT, total=total, channel=channel_USD
         ),
         Order.objects.create(
-            status=OrderStatus.UNFULFILLED, total=total, channel=channel_PLN
+            status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
         ),
         Order.objects.create(
-            status=OrderStatus.PARTIALLY_FULFILLED, total=total, channel=channel_PLN
+            status=OrderStatus.PARTIALLY_FULFILLED, total=total, channel=channel_USD
         ),
         Order.objects.create(
-            status=OrderStatus.FULFILLED, total=total, channel=channel_PLN
+            status=OrderStatus.FULFILLED, total=total, channel=channel_USD
         ),
         Order.objects.create(
-            status=OrderStatus.CANCELED, total=total, channel=channel_PLN
+            status=OrderStatus.CANCELED, total=total, channel=channel_USD
         ),
     ]
 
