@@ -20,9 +20,9 @@ urlpatterns = [
         name="digital-product",
     ),
     url(r'^allegro?$', AllegroAuth.resolve_auth),
-    url(r'^sumi/reserce', SumiPlugin.create_reservation),
+    url(r'^sumi/reserve', SumiPlugin.create_reservation),
     url(r'^sumi/cancel', SumiPlugin.cancel_reservation),
-    url(r'^sumi/sell', SumiPlugin.cancel_reservation),
+    url(r'^sumi/sell', SumiPlugin.sell_products),
     url(r'^sumi/token', SumiPlugin.get_allegro_token),
 ]
 

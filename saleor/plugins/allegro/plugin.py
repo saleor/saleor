@@ -828,9 +828,11 @@ class AllegroProductMapper:
 
         self.set_format('AUCTION')
 
+        # TODO: zmienic na product_variant_stock.product_variant.price_amount
         self.set_starting_price_amount(
             str(self.saleor_product.minimal_variant_price_amount))
 
+        # TODO: zmienic na product_variant_stock.product_variant.currency
         self.set_starting_price_currency('PLN')
         self.set_name(self.saleor_product.name)
         self.set_images(self.saleor_images)
