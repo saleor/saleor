@@ -523,6 +523,7 @@ class Order(CountableDjangoObjectType):
         for shipping_method in available:
             # Ignore typing check because it is checked in
             # get_valid_shipping_methods_for_order
+            # TODO: Add dataloader here.
             shipping_channel_listing = shipping_method.channel_listing.get(
                 channel=root.channel
             )

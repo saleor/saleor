@@ -1,6 +1,6 @@
 from django_countries import countries
 
-from .models import ShippingMethodChannelListing, ShippingZone
+from .models import ShippingZone
 
 
 def default_shipping_zone_exists(zone_pk=None):
@@ -13,12 +13,3 @@ def get_countries_without_shipping_zone():
     for zone in ShippingZone.objects.all():
         covered_countries.update({c.code for c in zone.countries})
     return (country[0] for country in countries if country[0] not in covered_countries)
-
-
-def get_shipping_method_price_from_channel_listing(channel_id, shipping_method_id):
-    try:
-        return ShippingMethodChannelListing.objects.get(
-            channel_id=channel_id, shipping_method_id=shipping_method_id
-        ).price
-    except ShippingMethodChannelListing.DoesNotExist:
-        return None

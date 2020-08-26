@@ -238,9 +238,7 @@ class OrderUpdateShipping(BaseMutation):
         clean_order_update_shipping(order, method)
 
         order.shipping_method = method
-        order.shipping_price = info.context.plugins.calculate_order_shipping(
-            order, order.channel_id
-        )
+        order.shipping_price = info.context.plugins.calculate_order_shipping(order)
         order.shipping_method_name = method.name
         order.save(
             update_fields=[

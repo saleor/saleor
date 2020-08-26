@@ -306,7 +306,7 @@ def test_calculate_order_shipping(vatlayer, order_line, shipping_zone, site_sett
     order.shipping_method_name = method.name
     order.shipping_method = method
     order.save()
-    price = manager.calculate_order_shipping(order, order.channel_id)
+    price = manager.calculate_order_shipping(order)
     price = quantize_price(price, price.currency)
     assert price == TaxedMoney(net=Money("8.13", "USD"), gross=Money("10.00", "USD"))
 
@@ -320,7 +320,7 @@ def test_calculate_order_shipping_for_order_without_shipping(
     order = order_line.order
     order.shipping_method = None
     order.save()
-    price = manager.calculate_order_shipping(order, order.channel_id)
+    price = manager.calculate_order_shipping(order)
     assert price == zero_taxed_money(order.currency)
 
 

@@ -147,7 +147,6 @@ class Checkout(CountableDjangoObjectType):
             "note",
             "quantity",
             "shipping_address",
-            "shipping_method",
             "translated_discount_name",
             "user",
             "voucher_code",
@@ -241,6 +240,7 @@ class Checkout(CountableDjangoObjectType):
             for shipping_method in available:
                 # ignore mypy checking because it is checked in
                 # get_valid_shipping_methods_for_checkout
+                # TODO: Add dataloader here.
                 shipping_channel_listing = shipping_method.channel_listing.get(
                     channel=root.channel
                 )

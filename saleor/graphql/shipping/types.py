@@ -66,15 +66,15 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
     def resolve_price(root: ChannelContext[models.ShippingMethod], *_args):
         # Price field are dynamically generated in available_shipping_methods resolver
         price = getattr(root.node, "price", None)
-
         if price:
             return price
-
+        # TODO: Add dataloader.
         return root.node.channel_listing.get(channel__slug=root.channel_slug).price
 
     def resolve_maximum_order_price(
         root: ChannelContext[models.ShippingMethod], *_args
     ):
+        # TODO: Add dataloader.
         return root.node.channel_listing.get(
             channel__slug=root.channel_slug
         ).maximum_order_price
@@ -82,11 +82,13 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
     def resolve_minimum_order_price(
         root: ChannelContext[models.ShippingMethod], *_args
     ):
+        # TODO: Add dataloader.
         return root.node.channel_listing.get(
             channel__slug=root.channel_slug
         ).minimum_order_price
 
     def resolve_channel_listing(root: ChannelContext[models.ShippingMethod], *_args):
+        # TODO: Add dataloader.
         return root.node.channel_listing.all()
 
     def resolve_maximum_order_weight(

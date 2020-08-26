@@ -41,7 +41,7 @@ def test_applicable_shipping_methods_price(
         price=Money(price, "USD"),
         weight=Weight(kg=0),
         country_code="PL",
-        channel=channel_PLN,
+        channel_id=channel_PLN.id,
     )
     assert (method in result) == shipping_included
 
@@ -71,7 +71,10 @@ def test_applicable_shipping_methods_weight(
 
     assert "PL" in shipping_zone.countries
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money("0", "USD"), weight=weight, country_code="PL", channel=channel_PLN
+        price=Money("0", "USD"),
+        weight=weight,
+        country_code="PL",
+        channel_id=channel_PLN.id,
     )
     assert (method in result) == shipping_included
 
@@ -93,7 +96,7 @@ def test_applicable_shipping_methods_country_code_outside_shipping_zone(
         price=Money("5.0", "USD"),
         weight=Weight(kg=0),
         country_code="PL",
-        channel=channel_PLN,
+        channel_id=channel_PLN.id,
     )
     assert method not in result
 
@@ -132,7 +135,7 @@ def test_applicable_shipping_methods_inproper_shipping_method_type(
         price=Money("5.0", "USD"),
         weight=Weight(kg=5),
         country_code="PL",
-        channel=channel_PLN,
+        channel_id=channel_PLN.id,
     )
     assert price_method not in result
     assert weight_method not in result
@@ -164,7 +167,7 @@ def test_applicable_shipping_methods(shipping_zone, channel_PLN):
         price=Money("5.0", "USD"),
         weight=Weight(kg=5),
         country_code="PL",
-        channel=channel_PLN.id,
+        channel_id=channel_PLN.id,
     )
     assert price_method in result
     assert weight_method in result
@@ -186,7 +189,7 @@ def test_applicable_shipping_methods_not_in_channel(shipping_zone, channel_PLN):
         price=Money("5.0", "USD"),
         weight=Weight(kg=5),
         country_code="PL",
-        channel=channel_PLN,
+        channel_id=channel_PLN.id,
     )
     assert price_method not in result
     assert weight_method in result
@@ -213,7 +216,7 @@ def test_use_default_shipping_zone(shipping_zone, channel_PLN):
         price=Money("5.0", "USD"),
         weight=Weight(kg=5),
         country_code="DE",
-        channel=channel_PLN,
+        channel_id=channel_PLN.id,
     )
     assert result[0] == weight_method
 

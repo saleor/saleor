@@ -14,8 +14,6 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from ...checkout import calculations
 from ...core.taxes import TaxType
 from ...graphql.core.utils.error_codes import PluginErrorCode
-from ...shipping.models import ShippingMethodChannelListing
-from ...shipping.utils import get_shipping_method_price_from_channel_listing
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from . import (
     DEFAULT_TAX_RATE_NAME,
@@ -124,12 +122,9 @@ class VatlayerPlugin(BasePlugin):
             taxes = self._get_taxes_for_country(address.country)
         if not checkout.shipping_method:
             return previous_value
-        shipping_price = get_shipping_method_price_from_channel_listing(
-            channel_id=checkout.channel_id,
-            shipping_method_id=checkout.shipping_method_id,
-        )
-        if not shipping_price:
-            return previous_value
+        shipping_price = checkout.shipping_method.channel_listing.get(
+            channel_id=checkout.channel_id
+        ).price
         return get_taxed_shipping_price(shipping_price, taxes)
 
     def calculate_order_shipping(
@@ -144,11 +139,9 @@ class VatlayerPlugin(BasePlugin):
             taxes = self._get_taxes_for_country(address.country)
         if not order.shipping_method:
             return previous_value
-        shipping_price = get_shipping_method_price_from_channel_listing(
-            channel_id=order.channel_id, shipping_method_id=order.shipping_method_id
-        )
-        if not shipping_price:
-            return previous_value
+        shipping_price = order.shipping_method.channel_listing.get(
+            channel_id=order.channel_id
+        ).price
         return get_taxed_shipping_price(shipping_price, taxes)
 
     def calculate_checkout_line_total(

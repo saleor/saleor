@@ -226,7 +226,7 @@ def test_order_query(
         price=order.get_subtotal().gross,
         weight=order.get_total_weight(),
         country_code=order.shipping_address.country.code,
-        channel=fulfilled_order.channel,
+        channel_id=fulfilled_order.channel_id,
     )
     assert len(order_data["availableShippingMethods"]) == (expected_methods.count())
 

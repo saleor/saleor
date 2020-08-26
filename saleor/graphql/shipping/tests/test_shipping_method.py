@@ -12,20 +12,20 @@ from ..types import ShippingMethodTypeEnum
 
 SHIPPING_ZONE_QUERY = """
     query ShippingQuery($id: ID!, $channel: String,) {
-        shippingZone(id: $id, channel: $channel) {
+        shippingZone(id: $id, channel:$channel) {
             name
             shippingMethods {
-                price {
-                    amount
-                }
-                maximumOrderPrice {
-                    amount
-                }
-                minimumOrderPrice {
-                    amount
-                }
                 channelListing {
                     id
+                    price {
+                        amount
+                    }
+                    maximumOrderPrice {
+                        amount
+                    }
+                    minimumOrderPrice {
+                        amount
+                    }
                 }
                 minimumOrderWeight {
                     value
@@ -147,8 +147,10 @@ def test_shipping_zones_query(
                         }
                     }
                     shippingMethods {
-                        price {
-                            amount
+                        channelListing {
+                            price {
+                                amount
+                            }
                         }
                     }
                     warehouses {
@@ -161,12 +163,9 @@ def test_shipping_zones_query(
         }
     }
     """
-    variables = {"channel": channel_USD.slug}
     num_of_shippings = shipping_zone._meta.model.objects.count()
     response = staff_api_client.post_graphql(
-        query,
-        variables,
-        permissions=[permission_manage_shipping, permission_manage_products],
+        query, permissions=[permission_manage_shipping, permission_manage_products],
     )
     content = get_graphql_content(response)
     assert content["data"]["shippingZones"]["totalCount"] == num_of_shippings

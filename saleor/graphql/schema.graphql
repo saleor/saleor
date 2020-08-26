@@ -904,7 +904,6 @@ type Checkout implements Node & ObjectWithMetadata {
   channel: Channel!
   billingAddress: Address
   shippingAddress: Address
-  shippingMethod: ShippingMethod
   note: String!
   discount: Money
   discountName: String
@@ -922,6 +921,7 @@ type Checkout implements Node & ObjectWithMetadata {
   isShippingRequired: Boolean!
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
+  shippingMethod: ShippingMethod
   subtotalPrice: TaxedMoney
   token: UUID!
   totalPrice: TaxedMoney

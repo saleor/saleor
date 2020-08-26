@@ -437,7 +437,7 @@ def get_valid_shipping_methods_for_checkout(
     manager = get_plugins_manager()
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout,
-        channel=checkout.channel_id,
+        channel_id=checkout.channel_id,
         price=manager.calculate_checkout_subtotal(checkout, lines, discounts).gross,
         country_code=country_code,
     )

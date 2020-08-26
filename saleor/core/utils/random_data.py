@@ -647,7 +647,7 @@ def create_product_sales(how_many=5):
 
 def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
     channel, _ = Channel.objects.get_or_create(
-        currency_code=settings.DEFAULT_CURRENCY, slug="usa"
+        currency_code=settings.DEFAULT_CURRENCY, slug=settings.DEFAULT_CHANNEL_SLUG
     )
     shipping_zone = ShippingZone.objects.get_or_create(
         name=shipping_zone_name, defaults={"countries": countries}

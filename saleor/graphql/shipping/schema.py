@@ -2,7 +2,7 @@ import graphene
 
 from ...core.permissions import ShippingPermissions
 from ..channel.types import ChannelContext
-from ..channel.utils import get_default_channel_or_graphql_error
+from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.fields import PrefetchingConnectionField
 from ..decorators import permission_required
 from ..translations.mutations import ShippingPriceTranslate
@@ -42,15 +42,15 @@ class ShippingQueries(graphene.ObjectType):
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_shipping_zone(self, info, id, channel=None):
         if channel is None:
-            channel = get_default_channel_or_graphql_error().slug
+            channel = get_default_channel_slug_or_graphql_error()
         instance = graphene.Node.get_node_from_global_id(info, id, ShippingZone)
         return ChannelContext(node=instance, channel_slug=channel) if instance else None
 
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_shipping_zones(self, info, channel=None, **_kwargs):
         if channel is None:
-            channel = get_default_channel_or_graphql_error().slug
-        return resolve_shipping_zones(info, channel)
+            channel = get_default_channel_slug_or_graphql_error()
+        return resolve_shipping_zones(channel)
 
 
 class ShippingMutations(graphene.ObjectType):

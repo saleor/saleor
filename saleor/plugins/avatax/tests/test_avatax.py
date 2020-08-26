@@ -243,7 +243,7 @@ def test_calculate_order_shipping(
     site_settings.company_address = address_usa
     site_settings.save()
 
-    price = manager.calculate_order_shipping(order, order.channel_id)
+    price = manager.calculate_order_shipping(order)
     price = quantize_price(price, price.currency)
     assert price == TaxedMoney(net=Money("8.13", "USD"), gross=Money("10.00", "USD"))
 
@@ -348,9 +348,12 @@ def test_get_cached_tax_codes_or_fetch_wrong_response(monkeypatch):
     assert len(tax_codes) == 0
 
 
-def test_checkout_needs_new_fetch(monkeypatch, checkout_with_item, address):
+def test_checkout_needs_new_fetch(
+    monkeypatch, checkout_with_item, address, shipping_method
+):
     monkeypatch.setattr("saleor.plugins.avatax.cache.get", lambda x: None)
     checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method = shipping_method
     config = AvataxConfiguration(
         username_or_account="wrong_data", password_or_license="wrong_data"
     )
