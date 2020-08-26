@@ -195,15 +195,18 @@ def append_line_to_data(
     )
 
 
-def append_shipping_to_data(data: List[Dict], shipping_method):
+def append_shipping_to_data(data: List[Dict], shipping_method, channel_id):
     charge_taxes_on_shipping = (
         Site.objects.get_current().settings.charge_taxes_on_shipping
     )
     if charge_taxes_on_shipping and shipping_method:
+        shipping_price = shipping_method.channel_listing.get(
+            channel_id=channel_id
+        ).price
         append_line_to_data(
             data,
             quantity=1,
-            amount=shipping_method.price.amount,
+            amount=shipping_price.amount,
             tax_code=COMMON_CARRIER_CODE,
             item_code="Shipping",
         )
@@ -237,7 +240,7 @@ def get_checkout_lines_data(
             name=name,
         )
 
-    append_shipping_to_data(data, checkout.shipping_method)
+    append_shipping_to_data(data, checkout.shipping_method, checkout.channel_id)
     return data
 
 
@@ -275,7 +278,7 @@ def get_order_lines_data(
             name=order.discount_name,
             tax_included=True,  # Voucher should be always applied as a gross amount
         )
-    append_shipping_to_data(data, order.shipping_method)
+    append_shipping_to_data(data, order.shipping_method, order.channel_id)
     return data
 
 

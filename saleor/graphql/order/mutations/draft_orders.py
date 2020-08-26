@@ -1,3 +1,5 @@
+import datetime
+
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
@@ -97,10 +99,11 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         if channel:
             variant_ids = [variant.id for variant in variants]
+            today = datetime.date.today()
             unpublished_variants = ProductChannelListing.objects.filter(
                 Q(product__variants__id__in=variant_ids),
                 Q(channel__id=channel),
-                Q(is_published=False),
+                Q(is_published=False) | Q(publication_date__gte=today),
             ).values_list("product__variants__id", flat=True)
             if unpublished_variants:
                 unpublished_variants_global_ids = [
@@ -121,7 +124,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def clean_channel_id(cls, instance, channel):
-        if channel and instance.channel is not None:
+        if channel and hasattr(instance, "channel"):
             raise ValidationError(
                 {
                     "channel": ValidationError(
@@ -138,6 +141,8 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         cleaned_input = super().clean_input(info, instance, data)
         lines = data.pop("lines", None)
         channel = data.get("channel", None)
+        if "channel" in cleaned_input and channel is None:
+            del cleaned_input["channel"]
         cls.clean_channel_id(instance, channel)
 
         if lines:

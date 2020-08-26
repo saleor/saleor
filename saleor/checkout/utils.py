@@ -437,6 +437,7 @@ def get_valid_shipping_methods_for_checkout(
     manager = get_plugins_manager()
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout,
+        channel_id=checkout.channel_id,
         price=manager.calculate_checkout_subtotal(checkout, lines, discounts).gross,
         country_code=country_code,
     )
@@ -709,7 +710,9 @@ def create_order(
     total_price_left = order_data.pop("total_price_left")
     order_lines = order_data.pop("lines")
 
-    order = Order.objects.create(**order_data, checkout_token=checkout.token)
+    order = Order.objects.create(
+        **order_data, checkout_token=checkout.token, channel=checkout.channel
+    )
     order.lines.set(order_lines, bulk=False)
 
     # allocate stocks from the lines
@@ -724,9 +727,6 @@ def create_order(
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
-
-    # copy channel id from checkout
-    order.channel = checkout.channel
 
     # copy metadata from the checkout into the new order
     order.metadata = checkout.metadata

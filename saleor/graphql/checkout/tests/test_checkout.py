@@ -79,7 +79,6 @@ def test_update_checkout_shipping_method_if_invalid(
 
     shipping_method.shipping_zone = shipping_zone_without_countries
     shipping_method.save(update_fields=["shipping_zone"])
-
     update_checkout_shipping_method_if_invalid(checkout, list(checkout), None)
 
     assert checkout.shipping_method == other_shipping_method
@@ -923,6 +922,9 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     site_settings,
 ):
     shipping_method = shipping_zone.shipping_methods.first()
+    shipping_price = shipping_method.channel_listing.get(
+        channel_id=checkout_with_item.channel_id
+    ).price
     taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
     apply_taxes_to_shipping_mock = mock.Mock(return_value=taxed_price)
     monkeypatch.setattr(
@@ -943,9 +945,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    apply_taxes_to_shipping_mock.assert_called_once_with(
-        shipping_method.price, mock.ANY
-    )
+    apply_taxes_to_shipping_mock.assert_called_once_with(shipping_price, mock.ANY)
     assert data["availableShippingMethods"] == [
         {"name": "DHL", "price": {"amount": expected_price}}
     ]

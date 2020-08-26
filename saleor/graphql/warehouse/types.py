@@ -59,6 +59,15 @@ class Warehouse(CountableDjangoObjectType):
             "email",
         ]
 
+    @staticmethod
+    def resolve_shipping_zones(root, *_args, **_kwargs):
+        instances = root.shipping_zones.all()
+        shipping_zones = [
+            ChannelContext(node=shipping_zone, channel_slug=None)
+            for shipping_zone in instances
+        ]
+        return shipping_zones
+
 
 class Stock(CountableDjangoObjectType):
     quantity = graphene.Int(

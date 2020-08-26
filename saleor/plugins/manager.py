@@ -144,7 +144,9 @@ class PluginsManager(PaymentInterface):
     def calculate_order_shipping(self, order: "Order") -> TaxedMoney:
         if not order.shipping_method:
             return zero_taxed_money(order.currency)
-        shipping_price = order.shipping_method.price
+        shipping_price = order.shipping_method.channel_listing.get(
+            channel_id=order.channel_id
+        ).price
         default_value = quantize_price(
             TaxedMoney(net=shipping_price, gross=shipping_price),
             shipping_price.currency,

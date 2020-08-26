@@ -307,7 +307,7 @@ def sum_order_totals(qs):
 
 def get_valid_shipping_methods_for_order(order: Order):
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
-        order, price=order.get_subtotal().gross
+        order, channel_id=order.channel_id, price=order.get_subtotal().gross
     )
 
 

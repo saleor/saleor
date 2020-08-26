@@ -3445,11 +3445,12 @@ def test_query_customers_with_filter_placed_orders(
     staff_api_client,
     permission_manage_users,
     customer_user,
+    channel_USD,
 ):
-    Order.objects.create(user=customer_user)
+    Order.objects.create(user=customer_user, channel=channel_USD)
     second_customer = User.objects.create(email="second_example@example.com")
     with freeze_time("2012-01-14 11:00:00"):
-        Order.objects.create(user=second_customer)
+        Order.objects.create(user=second_customer, channel=channel_USD)
     variables = {"filter": customer_filter}
     response = staff_api_client.post_graphql(
         query_customer_with_filter, variables, permissions=[permission_manage_users]
@@ -3505,17 +3506,18 @@ def test_query_customers_with_filter_placed_orders_(
     staff_api_client,
     permission_manage_users,
     customer_user,
+    channel_USD,
 ):
     Order.objects.bulk_create(
         [
-            Order(user=customer_user, token=str(uuid.uuid4())),
-            Order(user=customer_user, token=str(uuid.uuid4())),
-            Order(user=customer_user, token=str(uuid.uuid4())),
+            Order(user=customer_user, token=str(uuid.uuid4()), channel=channel_USD),
+            Order(user=customer_user, token=str(uuid.uuid4()), channel=channel_USD),
+            Order(user=customer_user, token=str(uuid.uuid4()), channel=channel_USD),
         ]
     )
     second_customer = User.objects.create(email="second_example@example.com")
     with freeze_time("2012-01-14 11:00:00"):
-        Order.objects.create(user=second_customer)
+        Order.objects.create(user=second_customer, channel=channel_USD)
     variables = {"filter": customer_filter}
     response = staff_api_client.post_graphql(
         query_customer_with_filter, variables, permissions=[permission_manage_users]
@@ -3542,6 +3544,7 @@ def test_query_customers_with_filter_placed_orders__(
     staff_api_client,
     permission_manage_users,
     customer_user,
+    channel_USD,
 ):
     second_customer = User.objects.create(email="second_example@example.com")
     Order.objects.bulk_create(
@@ -3550,11 +3553,13 @@ def test_query_customers_with_filter_placed_orders__(
                 user=customer_user,
                 token=str(uuid.uuid4()),
                 total_gross=Money(15, "USD"),
+                channel=channel_USD,
             ),
             Order(
                 user=second_customer,
                 token=str(uuid.uuid4()),
                 total_gross=Money(25, "USD"),
+                channel=channel_USD,
             ),
         ]
     )
@@ -3596,7 +3601,7 @@ QUERY_CUSTOMERS_WITH_SORT = """
     ],
 )
 def test_query_customers_with_sort(
-    customer_sort, result_order, staff_api_client, permission_manage_users,
+    customer_sort, result_order, staff_api_client, permission_manage_users, channel_USD
 ):
     User.objects.bulk_create(
         [
@@ -3623,7 +3628,9 @@ def test_query_customers_with_sort(
             ),
         ]
     )
-    Order.objects.create(user=User.objects.get(email="zordon01@example.com"))
+    Order.objects.create(
+        user=User.objects.get(email="zordon01@example.com"), channel=channel_USD
+    )
     variables = {"sort_by": customer_sort}
     staff_api_client.user.user_permissions.add(permission_manage_users)
     response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_SORT, variables)
@@ -3815,7 +3822,7 @@ QUERY_STAFF_USERS_WITH_SORT = """
     ],
 )
 def test_query_staff_members_with_sort(
-    customer_sort, result_order, staff_api_client, permission_manage_staff
+    customer_sort, result_order, staff_api_client, permission_manage_staff, channel_USD
 ):
     User.objects.bulk_create(
         [
@@ -3842,7 +3849,9 @@ def test_query_staff_members_with_sort(
             ),
         ]
     )
-    Order.objects.create(user=User.objects.get(email="zordon01@example.com"))
+    Order.objects.create(
+        user=User.objects.get(email="zordon01@example.com"), channel=channel_USD
+    )
     variables = {"sort_by": customer_sort}
     staff_api_client.user.user_permissions.add(permission_manage_staff)
     response = staff_api_client.post_graphql(QUERY_STAFF_USERS_WITH_SORT, variables)

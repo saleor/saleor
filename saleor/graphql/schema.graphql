@@ -882,6 +882,7 @@ enum ChannelErrorCode {
   REQUIRED
   UNIQUE
   CHANNEL_TARGET_ID_MUST_BE_DIFFERENT
+  CHANNELS_CURRENCY_MUST_BE_THE_SAME
 }
 
 type ChannelUpdate {
@@ -903,7 +904,6 @@ type Checkout implements Node & ObjectWithMetadata {
   channel: Channel!
   billingAddress: Address
   shippingAddress: Address
-  shippingMethod: ShippingMethod
   note: String!
   discount: Money
   discountName: String
@@ -921,6 +921,7 @@ type Checkout implements Node & ObjectWithMetadata {
   isShippingRequired: Boolean!
   lines: [CheckoutLine]
   shippingPrice: TaxedMoney
+  shippingMethod: ShippingMethod
   subtotalPrice: TaxedMoney
   token: UUID!
   totalPrice: TaxedMoney
@@ -2648,6 +2649,7 @@ type Mutation {
   shopFetchTaxRates: ShopFetchTaxRates
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
+  shippingMethodChannelListingUpdate(id: ID!, input: ShippingMethodChannelListingInput!): ShippingMethodChannelListingUpdate
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
@@ -2938,7 +2940,7 @@ type Order implements Node & ObjectWithMetadata {
   shippingAddress: Address
   shippingMethod: ShippingMethod
   shippingMethodName: String
-  channel: Channel
+  channel: Channel!
   shippingPrice: TaxedMoney
   token: String!
   voucher: Voucher
@@ -4319,8 +4321,8 @@ type Query {
   stock(id: ID!): Stock
   stocks(filter: StockFilterInput, before: String, after: String, first: Int, last: Int): StockCountableConnection
   shop: Shop!
-  shippingZone(id: ID!): ShippingZone
-  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
+  shippingZone(id: ID!, channel: String): ShippingZone
+  shippingZones(channel: String, before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
   digitalContents(before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
   attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
@@ -4672,13 +4674,40 @@ enum ShippingErrorCode {
 type ShippingMethod implements Node {
   id: ID!
   name: String!
-  price: Money
-  minimumOrderPrice: Money
-  maximumOrderPrice: Money
   minimumOrderWeight: Weight
   maximumOrderWeight: Weight
   type: ShippingMethodTypeEnum
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
+  channelListing: [ShippingMethodChannelListing!]
+  price: Money
+  maximumOrderPrice: Money
+  minimumOrderPrice: Money
+}
+
+type ShippingMethodChannelListing implements Node {
+  id: ID!
+  channel: Channel!
+  minimumOrderPrice: Money
+  maximumOrderPrice: Money
+  price: Money
+}
+
+input ShippingMethodChannelListingAddInput {
+  channelId: ID!
+  price: Decimal
+  minimumOrderPrice: Decimal
+  maximumOrderPrice: Decimal
+}
+
+input ShippingMethodChannelListingInput {
+  addChannels: [ShippingMethodChannelListingAddInput!]
+  removeChannels: [ID!]
+}
+
+type ShippingMethodChannelListingUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  shippingMethod: ShippingMethod
+  shippingErrors: [ShippingError!]!
 }
 
 type ShippingMethodTranslatableContent implements Node {
@@ -4708,8 +4737,8 @@ type ShippingPriceBulkDelete {
 type ShippingPriceCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   shippingZone: ShippingZone
-  shippingErrors: [ShippingError!]!
   shippingMethod: ShippingMethod
+  shippingErrors: [ShippingError!]!
 }
 
 type ShippingPriceDelete {
@@ -4721,9 +4750,6 @@ type ShippingPriceDelete {
 
 input ShippingPriceInput {
   name: String
-  price: Decimal
-  minimumOrderPrice: Decimal
-  maximumOrderPrice: Decimal
   minimumOrderWeight: WeightScalar
   maximumOrderWeight: WeightScalar
   type: ShippingMethodTypeEnum
@@ -4739,8 +4765,8 @@ type ShippingPriceTranslate {
 type ShippingPriceUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   shippingZone: ShippingZone
-  shippingErrors: [ShippingError!]!
   shippingMethod: ShippingMethod
+  shippingErrors: [ShippingError!]!
 }
 
 type ShippingZone implements Node {

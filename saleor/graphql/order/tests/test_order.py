@@ -68,20 +68,39 @@ def draft_orders_query_with_filter():
 
 
 @pytest.fixture
-def orders(customer_user):
+def orders(customer_user, channel_USD):
     return Order.objects.bulk_create(
         [
-            Order(user=customer_user, status=OrderStatus.CANCELED, token=uuid.uuid4()),
             Order(
-                user=customer_user, status=OrderStatus.UNFULFILLED, token=uuid.uuid4()
+                user=customer_user,
+                status=OrderStatus.CANCELED,
+                token=uuid.uuid4(),
+                channel=channel_USD,
+            ),
+            Order(
+                user=customer_user,
+                status=OrderStatus.UNFULFILLED,
+                token=uuid.uuid4(),
+                channel=channel_USD,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.PARTIALLY_FULFILLED,
                 token=uuid.uuid4(),
+                channel=channel_USD,
             ),
-            Order(user=customer_user, status=OrderStatus.FULFILLED, token=uuid.uuid4()),
-            Order(user=customer_user, status=OrderStatus.DRAFT, token=uuid.uuid4()),
+            Order(
+                user=customer_user,
+                status=OrderStatus.FULFILLED,
+                token=uuid.uuid4(),
+                channel=channel_USD,
+            ),
+            Order(
+                user=customer_user,
+                status=OrderStatus.DRAFT,
+                token=uuid.uuid4(),
+                channel=channel_USD,
+            ),
         ]
     )
 
@@ -207,13 +226,17 @@ def test_order_query(
         price=order.get_subtotal().gross,
         weight=order.get_total_weight(),
         country_code=order.shipping_address.country.code,
+        channel_id=fulfilled_order.channel_id,
     )
     assert len(order_data["availableShippingMethods"]) == (expected_methods.count())
 
     method = order_data["availableShippingMethods"][0]
     expected_method = expected_methods.first()
-    assert float(expected_method.price.amount) == method["price"]["amount"]
-    assert float(expected_method.minimum_order_price.amount) == (
+    expected_shipping_price = expected_method.channel_listing.get(
+        channel_id=order.channel_id
+    )
+    assert float(expected_shipping_price.price.amount) == method["price"]["amount"]
+    assert float(expected_shipping_price.minimum_order_price.amount) == (
         method["minimumOrderPrice"]["amount"]
     )
     assert expected_method.type.upper() == method["type"]
@@ -252,6 +275,9 @@ def test_order_available_shipping_methods_query(
     }
     """
     shipping_method = shipping_zone.shipping_methods.first()
+    shipping_price = shipping_method.channel_listing.get(
+        channel_id=fulfilled_order.channel_id
+    ).price
     taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
     apply_taxes_to_shipping_mock = Mock(return_value=taxed_price)
     monkeypatch.setattr(
@@ -266,7 +292,7 @@ def test_order_available_shipping_methods_query(
     order_data = content["data"]["orders"]["edges"][0]["node"]
     method = order_data["availableShippingMethods"][0]
 
-    apply_taxes_to_shipping_mock.assert_called_once_with(shipping_method.price, ANY)
+    apply_taxes_to_shipping_mock.assert_called_once_with(shipping_price, ANY)
     assert expected_price == method["price"]["amount"]
 
 
@@ -540,7 +566,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
     mutation draftCreate(
         $user: ID, $discount: Decimal, $lines: [OrderLineCreateInput],
         $shippingAddress: AddressInput, $shippingMethod: ID, $voucher: ID,
-        $customerNote: String, $channel :ID
+        $customerNote: String, $channel :ID!
         ) {
             draftOrderCreate(
                 input: {user: $user, discount: $discount,
@@ -585,6 +611,7 @@ def test_draft_order_create(
     variant,
     voucher,
     graphql_address_data,
+    channel_USD,
 ):
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
@@ -607,6 +634,7 @@ def test_draft_order_create(
     shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
         "user": user_id,
         "discount": discount,
@@ -615,6 +643,7 @@ def test_draft_order_create(
         "shippingMethod": shipping_id,
         "voucher": voucher_id,
         "customerNote": customer_note,
+        "channel": channel_id,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -668,6 +697,66 @@ def test_draft_order_create_with_channel_with_unpublished_product(
     variant_1 = product_without_shipping.variants.first()
     channel_listing = variant_1.product.channel_listing.get()
     channel_listing.is_published = False
+    channel_listing.save()
+
+    variant_1.quantity = 2
+    variant_1.save()
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    discount = "10"
+    customer_note = "Test note"
+    variant_list = [
+        {"variantId": variant_0_id, "quantity": 2},
+        {"variantId": variant_1_id, "quantity": 1},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    variables = {
+        "user": user_id,
+        "discount": discount,
+        "channel": channel_id,
+        "lines": variant_list,
+        "shippingAddress": shipping_address,
+        "shippingMethod": shipping_id,
+        "voucher": voucher_id,
+        "customerNote": customer_note,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+
+    assert error["field"] == "lines"
+    assert error["code"] == "PRODUCT_NOT_PUBLISHED"
+    assert error["variants"] == [variant_1_id]
+
+
+def test_draft_order_create_with_channel_with_unpublished_product_by_date(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    variant,
+    voucher,
+    graphql_address_data,
+    channel_USD,
+):
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+    next_day = date.today() + timedelta(days=1)
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_1 = product_without_shipping.variants.first()
+    channel_listing = variant_1.product.channel_listing.get()
+    channel_listing.publication_date = next_day
     channel_listing.save()
 
     variant_1.quantity = 2
@@ -833,7 +922,7 @@ def test_draft_order_update_existing_channel_id(
 
 
 def test_draft_order_update(
-    staff_api_client, permission_manage_orders, order_with_lines, voucher
+    staff_api_client, permission_manage_orders, order_with_lines, voucher, channel_PLN
 ):
     order = order_with_lines
     assert not order.voucher
@@ -2152,7 +2241,9 @@ def test_order_update_shipping(
     assert data["order"]["id"] == order_id
 
     order.refresh_from_db()
-    shipping_total = shipping_method.get_total()
+    shipping_total = shipping_method.channel_listing.get(
+        channel_id=order.channel_id
+    ).get_total()
     shipping_price = TaxedMoney(shipping_total, shipping_total)
     assert order.status == OrderStatus.UNFULFILLED
     assert order.shipping_method == shipping_method
@@ -2165,7 +2256,10 @@ def test_order_update_shipping_clear_shipping_method(
     staff_api_client, permission_manage_orders, order, staff_user, shipping_method
 ):
     order.shipping_method = shipping_method
-    shipping_total = shipping_method.get_total()
+    shipping_total = shipping_method.channel_listing.get(
+        channel_id=order.channel_id,
+    ).get_total()
+
     shipping_price = TaxedMoney(shipping_total, shipping_total)
     order.shipping_price = shipping_price
     order.shipping_method_name = "Example shipping"
@@ -2815,7 +2909,7 @@ def test_order_bulk_cancel_as_app(
     calls = [call(order=order, user=AnonymousUser()) for order in orders]
 
     mock_cancel_order.assert_has_calls(calls, any_order=True)
-    mock_cancel_order.call_count == expected_count
+    assert mock_cancel_order.call_count == expected_count
 
 
 @pytest.mark.parametrize(
@@ -2842,10 +2936,11 @@ def test_order_query_with_filter_created(
     orders_query_with_filter,
     staff_api_client,
     permission_manage_orders,
+    channel_USD,
 ):
-    Order.objects.create()
+    Order.objects.create(channel=channel_USD)
     with freeze_time("2012-01-14"):
-        Order.objects.create()
+        Order.objects.create(channel=channel_USD)
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
@@ -2875,12 +2970,13 @@ def test_order_query_with_filter_payment_status(
     staff_api_client,
     payment_dummy,
     permission_manage_orders,
+    channel_PLN,
 ):
     payment_dummy.charge_status = payment_status
     payment_dummy.save()
 
     payment_dummy.id = None
-    payment_dummy.order = Order.objects.create()
+    payment_dummy.order = Order.objects.create(channel=channel_PLN)
     payment_dummy.charge_status = ChargeStatus.NOT_CHARGED
     payment_dummy.save()
 
@@ -2911,11 +3007,12 @@ def test_order_query_with_filter_status(
     payment_dummy,
     permission_manage_orders,
     order,
+    channel_USD,
 ):
     order.status = status
     order.save()
 
-    Order.objects.create()
+    Order.objects.create(channel=channel_USD)
 
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -2945,13 +3042,16 @@ def test_order_query_with_filter_customer_fields(
     staff_api_client,
     permission_manage_orders,
     customer_user,
+    channel_USD,
 ):
     setattr(customer_user, user_field, user_value)
     customer_user.save()
     customer_user.refresh_from_db()
 
-    order = Order(user=customer_user, token=str(uuid.uuid4()))
-    Order.objects.bulk_create([order, Order(token=str(uuid.uuid4()))])
+    order = Order(user=customer_user, token=str(uuid.uuid4()), channel=channel_USD)
+    Order.objects.bulk_create(
+        [order, Order(token=str(uuid.uuid4()), channel=channel_USD)]
+    )
 
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -2980,14 +3080,25 @@ def test_draft_order_query_with_filter_customer_fields(
     staff_api_client,
     permission_manage_orders,
     customer_user,
+    channel_USD,
 ):
     setattr(customer_user, user_field, user_value)
     customer_user.save()
     customer_user.refresh_from_db()
 
-    order = Order(status=OrderStatus.DRAFT, user=customer_user, token=str(uuid.uuid4()))
+    order = Order(
+        status=OrderStatus.DRAFT,
+        user=customer_user,
+        token=str(uuid.uuid4()),
+        channel=channel_USD,
+    )
     Order.objects.bulk_create(
-        [order, Order(token=str(uuid.uuid4()), status=OrderStatus.DRAFT)]
+        [
+            order,
+            Order(
+                token=str(uuid.uuid4()), status=OrderStatus.DRAFT, channel=channel_USD
+            ),
+        ]
     )
 
     variables = {"filter": orders_filter}
@@ -3025,10 +3136,11 @@ def test_draft_order_query_with_filter_created_(
     draft_orders_query_with_filter,
     staff_api_client,
     permission_manage_orders,
+    channel_USD,
 ):
-    Order.objects.create(status=OrderStatus.DRAFT)
+    Order.objects.create(status=OrderStatus.DRAFT, channel=channel_USD)
     with freeze_time("2012-01-14"):
-        Order.objects.create(status=OrderStatus.DRAFT)
+        Order.objects.create(status=OrderStatus.DRAFT, channel=channel_USD)
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
@@ -3067,7 +3179,12 @@ QUERY_ORDER_WITH_SORT = """
     ],
 )
 def test_query_orders_with_sort(
-    order_sort, result_order, staff_api_client, permission_manage_orders, address
+    order_sort,
+    result_order,
+    staff_api_client,
+    permission_manage_orders,
+    address,
+    channel_USD,
 ):
     created_orders = []
     with freeze_time("2017-01-14"):
@@ -3077,6 +3194,7 @@ def test_query_orders_with_sort(
                 billing_address=address,
                 status=OrderStatus.PARTIALLY_FULFILLED,
                 total=TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD")),
+                channel=channel_USD,
             )
         )
     with freeze_time("2012-01-14"):
@@ -3089,6 +3207,7 @@ def test_query_orders_with_sort(
                 billing_address=address2,
                 status=OrderStatus.FULFILLED,
                 total=TaxedMoney(net=Money(100, "USD"), gross=Money(130, "USD")),
+                channel=channel_USD,
             )
         )
     address3 = address.get_copy()
@@ -3100,6 +3219,7 @@ def test_query_orders_with_sort(
             billing_address=address3,
             status=OrderStatus.CANCELED,
             total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
+            channel=channel_USD,
         )
     )
     variables = {"sort_by": order_sort}
@@ -3139,7 +3259,12 @@ QUERY_DRAFT_ORDER_WITH_SORT = """
     ],
 )
 def test_query_draft_orders_with_sort(
-    draft_order_sort, result_order, staff_api_client, permission_manage_orders, address
+    draft_order_sort,
+    result_order,
+    staff_api_client,
+    permission_manage_orders,
+    address,
+    channel_USD,
 ):
     created_orders = []
     with freeze_time("2017-01-14"):
@@ -3149,6 +3274,7 @@ def test_query_draft_orders_with_sort(
                 billing_address=address,
                 status=OrderStatus.DRAFT,
                 total=TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD")),
+                channel=channel_USD,
             )
         )
     with freeze_time("2012-01-14"):
@@ -3161,6 +3287,7 @@ def test_query_draft_orders_with_sort(
                 billing_address=address2,
                 status=OrderStatus.DRAFT,
                 total=TaxedMoney(net=Money(100, "USD"), gross=Money(130, "USD")),
+                channel=channel_USD,
             )
         )
     address3 = address.get_copy()
@@ -3172,6 +3299,7 @@ def test_query_draft_orders_with_sort(
             billing_address=address3,
             status=OrderStatus.DRAFT,
             total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
+            channel=channel_USD,
         )
     )
     variables = {"sort_by": draft_order_sort}
@@ -3207,6 +3335,7 @@ def test_orders_query_with_filter_search(
     staff_api_client,
     permission_manage_orders,
     customer_user,
+    channel_USD,
 ):
     Order.objects.bulk_create(
         [
@@ -3216,13 +3345,19 @@ def test_orders_query_with_filter_search(
                 discount_name="test_discount1",
                 user_email="test@example.com",
                 translated_discount_name="translated_discount1_name",
+                channel=channel_USD,
             ),
-            Order(token=str(uuid.uuid4()), user_email="user1@example.com"),
+            Order(
+                token=str(uuid.uuid4()),
+                user_email="user1@example.com",
+                channel=channel_USD,
+            ),
             Order(
                 token=str(uuid.uuid4()),
                 user_email="user2@example.com",
                 discount_name="test_discount2",
                 translated_discount_name="translated_discount2_name",
+                channel=channel_USD,
             ),
         ]
     )
@@ -3264,6 +3399,7 @@ def test_draft_orders_query_with_filter_search(
     staff_api_client,
     permission_manage_orders,
     customer_user,
+    channel_USD,
 ):
     Order.objects.bulk_create(
         [
@@ -3274,11 +3410,13 @@ def test_draft_orders_query_with_filter_search(
                 user_email="test@example.com",
                 translated_discount_name="translated_discount1_name",
                 status=OrderStatus.DRAFT,
+                channel=channel_USD,
             ),
             Order(
                 token=str(uuid.uuid4()),
                 user_email="user1@example.com",
                 status=OrderStatus.DRAFT,
+                channel=channel_USD,
             ),
             Order(
                 token=str(uuid.uuid4()),
@@ -3286,6 +3424,7 @@ def test_draft_orders_query_with_filter_search(
                 discount_name="test_discount2",
                 translated_discount_name="translated_discount2_name",
                 status=OrderStatus.DRAFT,
+                channel=channel_USD,
             ),
         ]
     )

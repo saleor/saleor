@@ -29,18 +29,18 @@ def test_channel_delete_mutation_as_staff_user(
     permission_manage_channels,
     staff_api_client,
     channel_USD,
-    channel_PLN,
+    other_channel_USD,
     product,
 ):
     # given
     order = order_list[0]
     order.channel = channel_USD
     order.save()
+
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    channel_target_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    channel_target_id = graphene.Node.to_global_id("Channel", other_channel_USD.id)
     variables = {"id": channel_id, "input": {"targetChannel": channel_target_id}}
     assert Checkout.objects.first() is not None
-
     # when
     response = staff_api_client.post_graphql(
         CHANNEL_DELETE_MUTATION,
@@ -50,7 +50,7 @@ def test_channel_delete_mutation_as_staff_user(
     get_graphql_content(response)
     order.refresh_from_db()
 
-    assert order.channel == channel_PLN
+    assert order.channel == other_channel_USD
     assert Checkout.objects.first() is None
 
 
@@ -74,12 +74,33 @@ def test_channel_delete_mutation_with_the_same_channel_and_target_channel_id(
     assert error["code"] == ChannelErrorCode.CHANNEL_TARGET_ID_MUST_BE_DIFFERENT.name
 
 
+def test_channel_delete_mutation_with_different_currency(
+    permission_manage_channels, staff_api_client, channel_USD, channel_PLN
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    target_channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    variables = {"id": channel_id, "input": {"targetChannel": target_channel_id}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_DELETE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["channelDelete"]["channelErrors"][0]
+
+    assert error["field"] == "targetChannel"
+    assert error["code"] == ChannelErrorCode.CHANNELS_CURRENCY_MUST_BE_THE_SAME.name
+
+
 def test_channel_delete_mutation_as_app(
     permission_manage_channels,
     app_api_client,
     order_list,
     channel_USD,
-    channel_PLN,
+    other_channel_USD,
     checkout,
 ):
     # given
@@ -87,7 +108,7 @@ def test_channel_delete_mutation_as_app(
     order.channel = channel_USD
     order.save()
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    channel_target_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    channel_target_id = graphene.Node.to_global_id("Channel", other_channel_USD.id)
     variables = {"id": channel_id, "input": {"targetChannel": channel_target_id}}
     assert Checkout.objects.first() is not None
 
@@ -102,14 +123,16 @@ def test_channel_delete_mutation_as_app(
     order.refresh_from_db()
 
     # then
-    assert order.channel == channel_PLN
+    assert order.channel == other_channel_USD
     assert Checkout.objects.first() is None
 
 
-def test_channel_delete_mutation_as_customer(user_api_client, channel_USD, channel_PLN):
+def test_channel_delete_mutation_as_customer(
+    user_api_client, channel_USD, other_channel_USD
+):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    channel_target_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    channel_target_id = graphene.Node.to_global_id("Channel", other_channel_USD.id)
     variables = {"id": channel_id, "input": {"targetChannel": channel_target_id}}
 
     # when
@@ -121,10 +144,12 @@ def test_channel_delete_mutation_as_customer(user_api_client, channel_USD, chann
     assert_no_permission(response)
 
 
-def test_channel_delete_mutation_as_anonymous(api_client, channel_USD, channel_PLN):
+def test_channel_delete_mutation_as_anonymous(
+    api_client, channel_USD, other_channel_USD
+):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    channel_target_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    channel_target_id = graphene.Node.to_global_id("Channel", other_channel_USD.id)
     variables = {"id": channel_id, "input": {"targetChannel": channel_target_id}}
 
     # when
