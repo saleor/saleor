@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `change_currency` command - #6016 by @maarcingebala
 - Send a confirmation email when the order is canceled or refunded - #6017
 - Add `TotalPrice` to `OrderLine` - #6068 @fowczarek
+- Optional variant attributes - #6059 by @IKarbowiak
 
 ### Breaking Changes
 
