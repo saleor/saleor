@@ -55,7 +55,8 @@ class SumiPlugin(BasePlugin):
             for product in products:
                 if ProductVariant.objects.filter(sku=product).exists():
                     product_variant = ProductVariant.objects.filter(sku=product).first()
-                    if SumiPlugin.is_product_reserved(product_variant) == False:
+                    # if SumiPlugin.is_product_reserved(product_variant) == False:
+                    if SumiPlugin.is_product_reserved(product_variant) == None:
                         if Stock.objects.filter(product_variant=product_variant).exists():
                             product_variant_stock = Stock.objects.filter(product_variant=product_variant).first()
                             result = SumiPlugin.reserve_product(product_variant_stock)
@@ -95,7 +96,7 @@ class SumiPlugin(BasePlugin):
     @staticmethod
     def reserve_product(product_variant_stock):
         try:
-            product_variant_stock.decrease_stock(1)
+            # product_variant_stock.decrease_stock(1)
             SumiPlugin.update_reservation_status_in_private_metadata(product_variant_stock.product_variant, True)
             return product_variant_stock
         except:
@@ -104,7 +105,7 @@ class SumiPlugin(BasePlugin):
     @staticmethod
     def sell_product(product_variant_stock):
         try:
-            product_variant_stock.decrease_stock(1)
+            # product_variant_stock.decrease_stock(1)
             return {"sku": str(product_variant_stock.product_variant),
                     "name": str(product_variant_stock.product_variant.product),
                     "netPrice": str(product_variant_stock.product_variant.price_amount),
@@ -117,24 +118,26 @@ class SumiPlugin(BasePlugin):
 
     @staticmethod
     def update_reservation_status_in_private_metadata(product, status):
-        product.store_value_in_private_metadata({'reservation': status})
-        product.save(update_fields=["private_metadata"])
+        # product.store_value_in_private_metadata({'reservation': status})
+        # product.save(update_fields=["private_metadata"])
+        pass
 
     @staticmethod
     def is_product_reserved(product_variant):
-        if product_variant.private_metadata.get('reservation') is not None:
-            if product_variant.private_metadata.get('reservation') == True:
-                return True
-            else:
-                return False
-        else:
-            return False
+        # if product_variant.private_metadata.get('reservation') is not None:
+        #     if product_variant.private_metadata.get('reservation') == True:
+        #         return True
+        #     else:
+        #         return False
+        # else:
+        #     return False
+        return None
 
     @staticmethod
     def cancel_product_reservation(product_variant_stock):
         try:
-            product_variant_stock.increase_stock(1)
-            SumiPlugin.update_reservation_status_in_private_metadata(product_variant_stock.product_variant, False)
+            # product_variant_stock.increase_stock(1)
+            # SumiPlugin.update_reservation_status_in_private_metadata(product_variant_stock.product_variant, False)
             return product_variant_stock
         except:
             return {'error': '003: Inny bład dla elementu ' + str(
@@ -150,7 +153,8 @@ class SumiPlugin(BasePlugin):
             for product in products:
                 if ProductVariant.objects.filter(sku=product).exists():
                     product_variant = ProductVariant.objects.filter(sku=product).first()
-                    if SumiPlugin.is_product_reserved(product_variant) == True:
+                    # if SumiPlugin.is_product_reserved(product_variant) == True:
+                    if SumiPlugin.is_product_reserved(product_variant) == None:
                         if Stock.objects.filter(product_variant=product_variant).exists():
                             product_variant_stock = Stock.objects.filter(
                                 product_variant=product_variant).first()
@@ -196,7 +200,6 @@ class SumiPlugin(BasePlugin):
                         results.get('errors').append(
                             '001: Nie znaleziono elementu ' + str(
                                 product))
-
                 else:
                     results.get('errors').append(
                         '001: Nie znaleziono elementu ' + str(product))
