@@ -162,11 +162,14 @@ def test_manager_apply_taxes_to_product(product, plugins, price, channel_USD):
     [(["saleor.plugins.tests.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
 )
 def test_manager_apply_taxes_to_shipping(
-    shipping_method, address, plugins, price_amount
+    shipping_method, address, plugins, price_amount, channel_USD
 ):
+    shipping_price = shipping_method.channel_listing.get(
+        channel_id=channel_USD.id
+    ).price
     expected_price = Money(price_amount, "USD")
     taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_shipping(
-        shipping_method.price, address
+        shipping_price, address
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
 

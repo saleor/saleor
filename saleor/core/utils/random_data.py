@@ -23,6 +23,7 @@ from prices import Money, TaxedMoney
 
 from ...account.models import Address, User
 from ...account.utils import store_user_address
+from ...channel.models import Channel
 from ...checkout import AddressType
 from ...core.permissions import (
     AccountPermissions,
@@ -65,7 +66,12 @@ from ...product.thumbnails import (
     create_collection_background_image_thumbnails,
     create_product_thumbnails,
 )
-from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
+from ...shipping.models import (
+    ShippingMethod,
+    ShippingMethodChannelListing,
+    ShippingMethodType,
+    ShippingZone,
+)
 from ...warehouse.management import increase_stock
 from ...warehouse.models import Stock, Warehouse
 
@@ -640,26 +646,38 @@ def create_product_sales(how_many=5):
 
 
 def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
+    channel, _ = Channel.objects.get_or_create(
+        currency_code=settings.DEFAULT_CURRENCY, slug=settings.DEFAULT_CHANNEL_SLUG
+    )
     shipping_zone = ShippingZone.objects.get_or_create(
         name=shipping_zone_name, defaults={"countries": countries}
     )[0]
-    ShippingMethod.objects.bulk_create(
+    shipping_methods = ShippingMethod.objects.bulk_create(
         [
             ShippingMethod(
                 name=name,
-                price=fake.money(),
                 shipping_zone=shipping_zone,
                 type=(
                     ShippingMethodType.PRICE_BASED
                     if random.randint(0, 1)
                     else ShippingMethodType.WEIGHT_BASED
                 ),
-                minimum_order_price=Money(0, settings.DEFAULT_CURRENCY),
-                maximum_order_price_amount=None,
                 minimum_order_weight=0,
                 maximum_order_weight=None,
             )
             for name in shipping_methods_names
+        ]
+    )
+    ShippingMethodChannelListing.objects.bulk_create(
+        [
+            ShippingMethodChannelListing(
+                shipping_method=shipping_method,
+                price=fake.money(),
+                minimum_order_price=Money(0, settings.DEFAULT_CURRENCY),
+                maximum_order_price_amount=None,
+                channel=channel,
+            )
+            for shipping_method in shipping_methods
         ]
     )
     return "Shipping Zone: %s" % shipping_zone

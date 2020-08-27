@@ -559,7 +559,11 @@ def test_create_order_doesnt_duplicate_order(
 
 @pytest.mark.parametrize("is_anonymous_user", (True, False))
 def test_create_order_with_gift_card(
-    checkout_with_gift_card, customer_user, shipping_method, is_anonymous_user
+    checkout_with_gift_card,
+    customer_user,
+    shipping_method,
+    is_anonymous_user,
+    channel_USD,
 ):
     checkout_user = None if is_anonymous_user else customer_user
     checkout = checkout_with_gift_card
@@ -918,6 +922,8 @@ def test_get_discount_for_checkout_shipping_voucher(
     countries,
     expected_value,
     monkeypatch,
+    channel_USD,
+    shipping_method,
 ):
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
     monkeypatch.setattr(
@@ -932,7 +938,8 @@ def test_get_discount_for_checkout_shipping_voucher(
     checkout = Mock(
         spec=Checkout,
         is_shipping_required=Mock(return_value=True),
-        shipping_method=Mock(get_total=Mock(return_value=shipping_total)),
+        channel_id=channel_USD.id,
+        shipping_method=shipping_method,
         get_shipping_price=Mock(return_value=shipping_total),
         shipping_address=Mock(country=Country(shipping_country_code)),
     )
@@ -947,7 +954,9 @@ def test_get_discount_for_checkout_shipping_voucher(
     assert discount == Money(expected_value, "USD")
 
 
-def test_get_discount_for_checkout_shipping_voucher_all_countries(monkeypatch):
+def test_get_discount_for_checkout_shipping_voucher_all_countries(
+    monkeypatch, channel_USD, shipping_method
+):
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
@@ -964,6 +973,8 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(monkeypatch):
     )
     checkout = Mock(
         spec=Checkout,
+        channel_id=channel_USD.id,
+        shipping_method_id=shipping_method.id,
         is_shipping_required=Mock(return_value=True),
         shipping_method=Mock(get_total=Mock(return_value=shipping_total)),
         shipping_address=Mock(country=Country("PL")),
@@ -1219,18 +1230,20 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     checkout_with_voucher_percentage_and_shipping,
     voucher_free_shipping,
     shipping_method,
+    channel_USD,
 ):
     checkout = checkout_with_voucher_percentage_and_shipping
 
     lines = list(checkout)
-    shipping_method.price = calculations.checkout_subtotal(
+    channel_listing = shipping_method.channel_listing.get(channel_id=channel_USD.id)
+    channel_listing.price = calculations.checkout_subtotal(
         checkout=checkout, lines=lines
     ).gross + Money("10.00", "USD")
-    shipping_method.save()
+    channel_listing.save()
 
     recalculate_checkout_discount(checkout, lines, None)
 
-    assert checkout.discount == shipping_method.price
+    assert checkout.discount == channel_listing.price
     assert checkout.discount_name == "Free shipping"
     assert calculations.checkout_total(
         checkout=checkout, lines=lines
@@ -1241,18 +1254,20 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     checkout_with_voucher_percentage_and_shipping,
     voucher_free_shipping,
     shipping_method,
+    channel_USD,
 ):
     checkout = checkout_with_voucher_percentage_and_shipping
 
     lines = list(checkout)
-    shipping_method.price = calculations.checkout_subtotal(
+    channel_listing = shipping_method.channel_listing.get(channel=channel_USD)
+    channel_listing.price = calculations.checkout_subtotal(
         checkout=checkout, lines=lines
     ).gross - Money("1.00", "USD")
-    shipping_method.save()
+    channel_listing.save()
 
     recalculate_checkout_discount(checkout, lines, None)
 
-    assert checkout.discount == shipping_method.price
+    assert checkout.discount == channel_listing.price
     assert checkout.discount_name == "Free shipping"
     assert calculations.checkout_total(
         checkout=checkout, lines=lines

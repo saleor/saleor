@@ -90,12 +90,13 @@ FRAGMENT_ADDRESS = """
 
 FRAGMENT_SHIPPING_METHOD = """
     fragment ShippingMethod on ShippingMethod {
-      id
-      name
-      price {
-        currency
-        amount
-      }
+        id
+        name
+        channelListing {
+            price {
+                amount
+            }
+        }
     }
 """
 

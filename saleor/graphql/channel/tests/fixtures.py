@@ -11,5 +11,12 @@ def channel_USD(db):
 
 
 @pytest.fixture
+def other_channel_USD(db):
+    return Channel.objects.create(
+        name="Other Channel USD", slug="other-usd", currency_code="USD"
+    )
+
+
+@pytest.fixture
 def channel_PLN(db):
     return Channel.objects.create(name="Channel PLN", slug="c-pln", currency_code="PLN")

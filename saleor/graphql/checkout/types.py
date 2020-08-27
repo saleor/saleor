@@ -126,6 +126,9 @@ class Checkout(CountableDjangoObjectType):
         TaxedMoney,
         description="The price of the shipping, with all the taxes included.",
     )
+    shipping_method = graphene.Field(
+        ShippingMethod, description="The shipping method related with checkout.",
+    )
     subtotal_price = graphene.Field(
         TaxedMoney,
         description="The price of the checkout before shipping, with taxes included.",
@@ -151,7 +154,6 @@ class Checkout(CountableDjangoObjectType):
             "note",
             "quantity",
             "shipping_address",
-            "shipping_method",
             "translated_discount_name",
             "user",
             "voucher_code",
@@ -172,6 +174,13 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     def resolve_email(root: models.Checkout, info):
         return root.get_customer_email()
+
+    @staticmethod
+    def resolve_shipping_method(root: models.Checkout, info):
+        shipping_method = root.shipping_method
+        if shipping_method is None:
+            return None
+        return ChannelContext(node=shipping_method, channel_slug=None)
 
     @staticmethod
     def resolve_total_price(root: models.Checkout, info):
@@ -234,14 +243,17 @@ class Checkout(CountableDjangoObjectType):
             available = get_valid_shipping_methods_for_checkout(root, lines, discounts)
             if available is None:
                 return []
-
             manager = get_plugins_manager()
             display_gross = display_gross_prices()
             for shipping_method in available:
                 # ignore mypy checking because it is checked in
                 # get_valid_shipping_methods_for_checkout
-                taxed_price = manager.apply_taxes_to_shipping(
-                    shipping_method.price, root.shipping_address  # type: ignore
+                # TODO: Add dataloader here.
+                shipping_channel_listing = shipping_method.channel_listing.get(
+                    channel=root.channel
+                )
+                taxed_price = manager.apply_taxes_to_shipping(  # type: ignore
+                    shipping_channel_listing.price, root.shipping_address
                 )
                 if display_gross:
                     shipping_method.price = taxed_price.gross
@@ -253,9 +265,15 @@ class Checkout(CountableDjangoObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-
-        return Promise.all([lines, discounts]).then(
-            calculate_available_shipping_methods
+        return (
+            Promise.all([lines, discounts])
+            .then(calculate_available_shipping_methods)
+            .then(
+                lambda available: [
+                    ChannelContext(node=shipping, channel_slug=root.channel.slug)
+                    for shipping in available
+                ]
+            )
         )
 
     @staticmethod
