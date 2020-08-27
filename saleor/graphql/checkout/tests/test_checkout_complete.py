@@ -536,7 +536,7 @@ def test_checkout_complete_insufficient_stock(
     assert orders_count == Order.objects.count()
 
 
-@patch("saleor.graphql.checkout.mutations.gateway.refund")
+@patch("saleor.checkout.complete_checkout.gateway.refund")
 def test_checkout_complete_insufficient_stock_payment_refunded(
     gateway_refund_mock,
     checkout_with_item,
@@ -586,7 +586,7 @@ def test_checkout_complete_insufficient_stock_payment_refunded(
     gateway_refund_mock.assert_called_once_with(payment)
 
 
-@patch("saleor.graphql.checkout.mutations.gateway.void")
+@patch("saleor.checkout.complete_checkout.gateway.void")
 def test_checkout_complete_insufficient_stock_payment_voided(
     gateway_void_mock,
     checkout_with_item,
@@ -701,7 +701,7 @@ def test_checkout_complete_without_redirect_url(
     ).exists(), "Checkout should have been deleted"
 
 
-@patch("saleor.graphql.checkout.mutations.gateway.payment_refund_or_void")
+@patch("saleor.checkout.complete_checkout.gateway.payment_refund_or_void")
 def test_checkout_complete_payment_payment_total_different_than_checkout(
     gateway_refund_or_void_mock,
     checkout_with_items,
@@ -801,3 +801,39 @@ def test_create_order_raises_insufficient_stock(
 
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.FULLY_REFUNDED
+
+
+def test_checkout_complete_with_digital(
+    api_client, checkout_with_digital_item, address, payment_dummy
+):
+    """Ensure it is possible to complete a digital checkout without shipping."""
+
+    order_count = Order.objects.count()
+    checkout = checkout_with_digital_item
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+
+    # Set a billing address
+    checkout.billing_address = address
+    checkout.save(update_fields=["billing_address"])
+
+    # Create a dummy payment to charge
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    # Send the creation request
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+    assert not content["checkoutErrors"]
+
+    # Ensure the order was actually created
+    assert (
+        Order.objects.count() == order_count + 1
+    ), "The order should have been created"
