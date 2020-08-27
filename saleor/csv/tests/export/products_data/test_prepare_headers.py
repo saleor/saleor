@@ -2,6 +2,7 @@ from .....graphql.csv.enums import ProductFieldEnum
 from .....product.models import Attribute
 from ....utils.products_data import (
     get_attributes_headers,
+    get_channels_headers,
     get_export_fields_and_headers_info,
     get_product_export_fields_and_headers,
     get_warehouses_headers,
@@ -164,6 +165,39 @@ def test_get_warehouses_headers_lack_of_warehouse_ids():
 
     # then
     assert warehouse_headers == []
+
+
+def test_get_channels_headers(channel_USD, channel_PLN):
+    # given
+    channel_usd_slug = channel_USD.slug
+    channel_pln_slug = channel_PLN.slug
+
+    channel_ids = [channel_USD.pk, channel_PLN.pk]
+    export_info = {"channels": channel_ids}
+
+    # when
+    channel_headers = get_channels_headers(export_info)
+
+    # then
+    assert channel_headers == [
+        f"{channel_pln_slug} (channel currency code)",
+        f"{channel_pln_slug} (channel published)",
+        f"{channel_pln_slug} (channel publication date)",
+        f"{channel_usd_slug} (channel currency code)",
+        f"{channel_usd_slug} (channel published)",
+        f"{channel_usd_slug} (channel publication date)",
+    ]
+
+
+def test_get_channels_headers_lack_of_channel_ids():
+    # given
+    export_info = {}
+
+    # when
+    channel_headers = get_channels_headers(export_info)
+
+    # then
+    assert channel_headers == []
 
 
 def test_get_export_fields_and_headers_info(

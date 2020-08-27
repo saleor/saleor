@@ -6,6 +6,7 @@ from django.conf import settings
 from django.db.models import Case, CharField, Value as V, When
 from django.db.models.functions import Concat
 
+from ...channel.models import Channel
 from ...core.utils import build_absolute_uri
 from ...product.models import Attribute
 from ...warehouse.models import Warehouse
@@ -154,6 +155,40 @@ def get_warehouses_headers(export_info: Dict[str, list]) -> List[str]:
     )
 
     return list(warehouses_headers)
+
+
+def get_channels_headers(export_info: Dict[str, list]) -> List[str]:
+    """Get headers for exported channels.
+
+    Headers are build from slug and exported field.
+
+    Example:
+    - currency code data header: "slug-value (channel currency code)"
+    - published data header: "slug-value (channel visible)"
+    - publication date data header: "slug-value (channel publication date)"
+
+    """
+    channel_ids = export_info.get("channels")
+    if not channel_ids:
+        return []
+
+    channels_slugs = (
+        Channel.objects.filter(pk__in=channel_ids)
+        .order_by("slug")
+        .values_list("slug", flat=True)
+    )
+
+    channels_headers = []
+    for slug in channels_slugs:
+        channels_headers.extend(
+            [
+                f"{slug} (channel currency code)",
+                f"{slug} (channel published)",
+                f"{slug} (channel publication date)",
+            ]
+        )
+
+    return list(channels_headers)
 
 
 def get_products_data(
