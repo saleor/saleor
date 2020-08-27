@@ -17,6 +17,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `TotalPrice` to `OrderLine` - #6068 @fowczarek
 - Separate sale date from publication date - #6030 by @IKarbowiak
 - Add visible in listings flag to product - #6054 by @IKarbowiak
+- Add searchable and available for purchase flags to product - #6060 by @IKarbowiak
 
 ### Breaking Changes
 
