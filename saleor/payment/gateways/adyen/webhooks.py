@@ -27,19 +27,14 @@ from ....checkout.complete_checkout import complete_checkout
 from ....checkout.models import Checkout
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_active_discounts
-from ....order.actions import cancel_order, order_captured, order_refunded
+from ....order.actions import cancel_order, order_refunded
 from ....order.events import external_notification_event
 from ....payment.models import Payment, Transaction
 from ... import ChargeStatus, PaymentError, TransactionKind
 from ...gateway import payment_refund_or_void
 from ...interface import GatewayConfig, GatewayResponse
 from ...utils import create_payment_information, create_transaction, gateway_postprocess
-from .utils import (
-    FAILED_STATUSES,
-    api_call,
-    create_order_from_checkout,
-    from_adyen_price,
-)
+from .utils import FAILED_STATUSES, api_call, from_adyen_price
 
 
 def get_payment(payment_id: Optional[str]) -> Optional[Payment]:
@@ -228,35 +223,55 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
         return
     checkout = get_checkout(payment)
 
-    transaction_id = notification.get("pspReference")
     if payment.charge_status == ChargeStatus.FULLY_CHARGED:
         # the payment has already status captured.
         return
 
-    new_transaction = create_new_transaction(
-        notification, payment, TransactionKind.CAPTURE
-    )
+    transaction_id = notification.get("pspReference")
+    transaction = payment.transactions.filter(
+        token=transaction_id,
+        action_required=False,
+        is_success=True,
+        kind=TransactionKind.CAPTURE,
+    ).last()
 
-    gateway_postprocess(new_transaction, payment)
+    if transaction:
+        # We already have this transaction
+        return
+
+    action_transaction = payment.transactions.filter(
+        token=transaction_id,
+        action_required=False,
+        is_success=True,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
+    ).last()
+    if not payment.order:
+        # If the payment is not Auth/Capture, it means that user didn't return to the
+        # storefront and we need to finalize the checkout asynchronously.
+        if not action_transaction:
+            action_transaction = create_new_transaction(
+                notification, payment, TransactionKind.ACTION_TO_CONFIRM
+            )
+
+        if action_transaction.is_success and checkout:  # type: ignore
+            try:
+                discounts = fetch_active_discounts()
+                order, _, _ = complete_checkout(
+                    checkout=checkout,
+                    payment_data={},
+                    store_source=False,
+                    discounts=discounts,
+                    user=checkout.user or AnonymousUser(),
+                )
+            except ValidationError:
+                payment_refund_or_void(payment)
+                return
 
     reason = notification.get("reason", "-")
-
-    if not payment.order and new_transaction.is_success and checkout:
-        try:
-            order = create_order_from_checkout(checkout)
-        except Exception:
-            payment_refund_or_void(payment)
-            return
-        checkout.delete()
-        payment.order = order
-
+    is_success = True if notification.get("success") == "true" else False
     success_msg = f"Adyen: The capture {transaction_id} request was successful."
     failed_msg = f"Adyen: The capture {transaction_id} request failed. Reason: {reason}"
-    create_payment_notification_for_order(
-        payment, success_msg, failed_msg, new_transaction.is_success
-    )
-    if payment.order:
-        order_captured(payment.order, None, new_transaction.amount, payment)
+    create_payment_notification_for_order(payment, success_msg, failed_msg, is_success)
 
 
 @django_transaction.atomic

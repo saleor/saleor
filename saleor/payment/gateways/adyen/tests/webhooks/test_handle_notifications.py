@@ -195,10 +195,7 @@ def test_handle_cancel_already_canceleld(
     assert payment.transactions.count() == 2
 
 
-@mock.patch("saleor.payment.gateways.adyen.webhooks.order_captured")
-def test_handle_capture(
-    mocked_captured, notification, adyen_plugin, payment_adyen_for_order
-):
+def test_handle_capture_for_order(notification, adyen_plugin, payment_adyen_for_order):
     payment = payment_adyen_for_order
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
@@ -206,17 +203,51 @@ def test_handle_capture(
         value=to_adyen_price(payment.total, payment.currency),
     )
     config = adyen_plugin().config
-
     handle_capture(notification, config)
 
-    assert payment.transactions.count() == 2
-    transaction = payment.transactions.filter(kind=TransactionKind.CAPTURE).get()
+    assert payment.transactions.count() == 1
+    transaction = payment.transactions.get()
     assert transaction.is_success is True
-    payment.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
-    mocked_captured.assert_called_once_with(
-        payment.order, None, transaction.amount, payment
+    assert transaction.kind == TransactionKind.AUTH
+
+
+def test_handle_capture_for_checkout(
+    notification, adyen_plugin, payment_adyen_for_checkout, address, shipping_method,
+):
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+    checkout_token = str(checkout.token)
+
+    payment = payment_adyen_for_checkout
+    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.to_confirm = True
+    payment.save()
+
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        merchant_reference=payment_id,
+        value=to_adyen_price(payment.total, payment.currency),
     )
+    config = adyen_plugin().config
+    handle_capture(notification, config)
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.exclude(
+        kind=TransactionKind.ACTION_TO_CONFIRM
+    ).get()
+    assert transaction.is_success is True
+    assert transaction.kind == TransactionKind.AUTH
+    assert payment.checkout is None
+    assert payment.order
+    assert payment.order.checkout_token == checkout_token
 
 
 def test_handle_capture_with_payment_already_charged(
