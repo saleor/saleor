@@ -100,7 +100,7 @@ class SumiPlugin(BasePlugin):
     def reserve_product(product_variant_stock):
         try:
             # product_variant_stock.decrease_stock(1)
-            SumiPlugin.update_reservation_status_in_private_metadata(product_variant_stock.product_variant, True)
+            SumiPlugin.update_reservation_status_in_metadata(product_variant_stock.product_variant, True)
             return product_variant_stock
         except:
             return {'error': '002: stan magazynowy produktu ' + str(product_variant_stock.product_variant) + ' wynosi 0'}
@@ -120,8 +120,8 @@ class SumiPlugin(BasePlugin):
                 product_variant_stock.product_variant) + ' wynosi 0'}
 
     @staticmethod
-    def update_reservation_status_in_private_metadata(product, status):
-        product.store_value_in_private_metadata({'reservation': status})
+    def update_reservation_status_in_metadata(product, status):
+        product.store_value_in_metadata({'reservation': status})
         product.save(update_fields=["private_metadata"])
         pass
 
@@ -139,7 +139,7 @@ class SumiPlugin(BasePlugin):
     def cancel_product_reservation(product_variant_stock):
         try:
             # product_variant_stock.increase_stock(1)
-            SumiPlugin.update_reservation_status_in_private_metadata(product_variant_stock.product_variant, False)
+            SumiPlugin.update_reservation_status_in_metadata(product_variant_stock.product_variant, False)
             return product_variant_stock
         except:
             return {'error': '003: wystąpił błąd podczas przetwarzania produktu ' + str(
