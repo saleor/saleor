@@ -272,7 +272,6 @@ def test_confirm_already_processed_payment(payment_adyen_for_order, adyen_plugin
     assert response.kind == TransactionKind.AUTH
     assert response.amount == action_transaction.amount
     assert response.currency == action_transaction.currency
-    print(payment_adyen_for_order.transactions.all())
     assert payment_adyen_for_order.transactions.count() == 3
 
 

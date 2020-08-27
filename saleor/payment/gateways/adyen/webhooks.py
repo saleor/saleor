@@ -169,8 +169,7 @@ def handle_authorization(notification: Dict[str, Any], _gateway_config: GatewayC
                     discounts=discounts,
                     user=checkout.user or AnonymousUser(),
                 )
-            except ValidationError as e:
-                print(e)
+            except ValidationError:
                 payment_refund_or_void(payment)
                 return
 
