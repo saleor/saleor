@@ -5,7 +5,6 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
-import ast
 
 import requests
 from django.shortcuts import redirect
@@ -501,15 +500,16 @@ class BaseParametersMapper():
         return param
 
     def set_allegro_value(self, param, mapped_value):
-        value = next((value for value in param['dictionary'] if
-                      value["value"] == mapped_value), None)
-        if value is not None:
-            return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
+        if mapped_value is not None:
+            value = next((value for value in param['dictionary'] if
+                      value["value"].lower() == mapped_value.lower()), None)
+            if value is not None:
+                return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
                     "rangeValue": None}
 
     def set_allegro_fuzzy_value(self, param, mapped_value):
         value = next((value for value in param['dictionary'] if
-                      mapped_value in value["value"].lower()), None)
+                      mapped_value.lower() in value["value"].lower()), None)
         if value is not None:
             return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
                 "rangeValue": None}
@@ -629,11 +629,12 @@ class AllegroParametersMapper(BaseParametersMapper):
     def get_allegro_parameter(self, parameter):
         mapped_parameter_key, mapped_parameter_value = self.get_mapped_parameter_key_and_value(parameter)
         allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
-
         if allegro_parameter is None:
             mapped_parameter_value = self.get_universal_value_parameter(mapped_parameter_key)
             allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
         if allegro_parameter is None:
+            if mapped_parameter_value is None:
+                mapped_parameter_value = self.get_parameter_out_of_saleor_global(mapped_parameter_key)
             allegro_parameter = self.create_allegro_fuzzy_parameter(slugify(parameter), str(mapped_parameter_value))
 
         return allegro_parameter
