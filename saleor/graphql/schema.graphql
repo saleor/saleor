@@ -1985,6 +1985,7 @@ input ExportFileSortingInput {
 input ExportInfoInput {
   attributes: [ID!]
   warehouses: [ID!]
+  channels: [ID!]
   fields: [ProductFieldEnum!]
 }
 

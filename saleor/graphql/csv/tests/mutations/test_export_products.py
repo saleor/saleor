@@ -3,6 +3,7 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 
+from .....channel.models import Channel
 from .....csv import ExportEvents
 from .....csv.models import ExportEvent
 from .....product.models import Attribute
@@ -204,6 +205,8 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
     export_products_mock,
     staff_api_client,
     product_list,
+    channel_USD,
+    channel_PLN,
     permission_manage_products,
     permission_manage_apps,
 ):
@@ -220,6 +223,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
 
     attribute_pks = [str(attr.pk) for attr in Attribute.objects.all()]
     warehouse_pks = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
+    channel_pks = [str(channel.pk) for channel in Channel.objects.all()]
 
     attribute_ids = [
         graphene.Node.to_global_id("Attribute", pk) for pk in attribute_pks
@@ -227,6 +231,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
     warehouse_ids = [
         graphene.Node.to_global_id("Warehouse", pk) for pk in warehouse_pks
     ]
+    channel_ids = [graphene.Node.to_global_id("Channel", pk) for pk in channel_pks]
 
     variables = {
         "input": {
@@ -236,6 +241,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
                 "fields": [ProductFieldEnum.VARIANT_PRICE.name],
                 "warehouses": warehouse_ids,
                 "attributes": attribute_ids,
+                "channels": channel_ids,
             },
             "fileType": FileTypeEnum.CSV.name,
         }
@@ -258,6 +264,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
         "fields": [ProductFieldEnum.VARIANT_PRICE.value],
         "warehouses": warehouse_pks,
         "attributes": attribute_pks,
+        "channels": channel_pks,
     }
     assert call_args[3] == FileTypeEnum.CSV.value
 
