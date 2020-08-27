@@ -260,6 +260,16 @@ def checkout_ready_to_complete(checkout_with_item, address, shipping_method, gif
 
 
 @pytest.fixture
+def checkout_with_digital_item(checkout, digital_content):
+    """Create a checkout with a digital line."""
+    variant = digital_content.product_variant
+    add_variant_to_checkout(checkout, variant, 1)
+    checkout.email = "customer@example.com"
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def checkout_with_shipping_required(checkout_with_item, product):
     checkout = checkout_with_item
     variant = product.variants.get()
