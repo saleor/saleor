@@ -133,7 +133,7 @@ def test_shipping_zones_query(
 ):
     query = """
     query MultipleShippings($channel: String) {
-        shippingZones(first: 100, channel:$channel) {
+        shippingZones(first: 100, channel: $channel) {
             edges {
                 node {
                     id
@@ -164,8 +164,11 @@ def test_shipping_zones_query(
     }
     """
     num_of_shippings = shipping_zone._meta.model.objects.count()
+    variables = {"channel": channel_USD.slug}
     response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_shipping, permission_manage_products],
+        query,
+        variables,
+        permissions=[permission_manage_shipping, permission_manage_products],
     )
     content = get_graphql_content(response)
     assert content["data"]["shippingZones"]["totalCount"] == num_of_shippings
