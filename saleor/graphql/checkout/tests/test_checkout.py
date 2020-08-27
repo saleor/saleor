@@ -161,6 +161,7 @@ def test_checkout_create_with_default_channel(
     with warnings.catch_warnings(record=True) as warns:
         response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
         content = get_graphql_content(response)["data"]["checkoutCreate"]
+
     assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
@@ -2585,11 +2586,10 @@ def test_checkout_complete_payment_payment_total_different_than_checkout(
     gateway_refund_or_void_mock.assert_called_with(payment)
 
 
-@pytest.mark.skip(reason="We should use channel from checkout in variant resolver.")
 def test_fetch_checkout_by_token(user_api_client, checkout_with_item):
     query = """
-    query getCheckout($token: UUID!) {
-        checkout(token: $token) {
+    query getCheckout($token: UUID!, $channel: String!) {
+        checkout(token: $token, channel: $channel) {
            token,
            lines {
                 variant {
@@ -2601,7 +2601,10 @@ def test_fetch_checkout_by_token(user_api_client, checkout_with_item):
         }
     }
     """
-    variables = {"token": str(checkout_with_item.token)}
+    variables = {
+        "token": str(checkout_with_item.token),
+        "channel": checkout_with_item.channel.slug,
+    }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]

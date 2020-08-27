@@ -74,6 +74,7 @@ from ..product.models import (
     ProductTranslation,
     ProductType,
     ProductVariant,
+    ProductVariantChannelListing,
     ProductVariantTranslation,
 )
 from ..product.tests.utils import create_image
@@ -792,14 +793,32 @@ def product(product_type, category, warehouse, channel_USD):
     variant_attr_value = variant_attr.values.first()
 
     variant = ProductVariant.objects.create(
-        product=product,
-        sku="123",
-        cost_price=Money("1.00", "USD"),
+        product=product, sku="123", cost_price=Money("1.00", "USD"),
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
         price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
     associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+    return product
+
+
+@pytest.fixture
+def product_available_in_many_channels(product, channel_PLN):
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_PLN, is_published=True,
+    )
+    variant = product.variants.get()
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_PLN,
+        price_amount=Decimal(50),
+        currency=channel_PLN.currency_code,
+    )
     return product
 
 
@@ -815,10 +834,13 @@ def product_with_single_variant(product_type, category, warehouse, channel_USD):
         product=product, channel=channel_USD, is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product,
-        sku="SKU_SINGLE_VARIANT",
-        cost_price=Money("1.00", "USD"),
-        price_amount=1.99,
+        product=product, sku="SKU_SINGLE_VARIANT", cost_price=Money("1.00", "USD")
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(1.99),
+        currency=channel_USD.currency_code,
     )
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=101)
     return product
@@ -842,11 +864,20 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
             product=product,
             sku=f"Product variant #{i}",
             cost_price=Money("1.00", "USD"),
-            price_amount=Decimal(10),
         )
         for i in (1, 2)
     ]
     ProductVariant.objects.bulk_create(variants)
+    variants_channel_listing = [
+        ProductVariantChannelListing(
+            variant=variant,
+            channel=channel_USD,
+            price_amount=Decimal(10),
+            currency=channel_USD.currency_code,
+        )
+        for variant in variants
+    ]
+    ProductVariantChannelListing.objects.bulk_create(variants_channel_listing)
     Stock.objects.bulk_create(
         [
             Stock(warehouse=warehouse, product_variant=variant, quantity=10,)
@@ -881,10 +912,13 @@ def product_with_variant_with_two_attributes(
     )
 
     variant = ProductVariant.objects.create(
-        product=product,
-        sku="prodVar1",
-        cost_price=Money("1.00", "USD"),
+        product=product, sku="prodVar1", cost_price=Money("1.00", "USD"),
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
         price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
 
     associate_attribute_values_to_instance(
@@ -932,7 +966,13 @@ def product_with_default_variant(
         product=product, channel=channel_USD, is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="1234", track_inventory=True, price_amount=Decimal(10)
+        product=product, sku="1234", track_inventory=True
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=100)
     return product
@@ -952,23 +992,28 @@ def variant_without_inventory_tracking(
         product=product, channel=channel_USD, is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product,
-        sku="tracking123",
-        track_inventory=False,
+        product=product, sku="tracking123", track_inventory=False,
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
         price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=0)
     return variant
 
 
 @pytest.fixture
-def variant(product) -> ProductVariant:
+def variant(product, channel_USD) -> ProductVariant:
     product_variant = ProductVariant.objects.create(
-        product=product,
-        sku="SKU_A",
-        cost_price=Money(1, "USD"),
+        product=product, sku="SKU_A", cost_price=Money(1, "USD"),
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=product_variant,
+        channel=channel_USD,
         price_amount=Decimal(10),
-        price=Money(10, "USD"),
+        currency=channel_USD.currency_code,
     )
     return product_variant
 
@@ -1000,16 +1045,39 @@ def variant_with_many_stocks_different_shipping_zones(
 
 
 @pytest.fixture
-def product_variant_list(product):
-    return list(
+def product_variant_list(product, channel_USD):
+    variants = list(
         ProductVariant.objects.bulk_create(
             [
-                ProductVariant(product=product, sku="1", price_amount=Decimal(10)),
-                ProductVariant(product=product, sku="2", price_amount=Decimal(10)),
-                ProductVariant(product=product, sku="3", price_amount=Decimal(10)),
+                ProductVariant(product=product, sku="1"),
+                ProductVariant(product=product, sku="2"),
+                ProductVariant(product=product, sku="3"),
             ]
         )
     )
+    ProductVariantChannelListing.objects.bulk_create(
+        [
+            ProductVariantChannelListing(
+                variant=variants[0],
+                channel=channel_USD,
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[1],
+                channel=channel_USD,
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[2],
+                channel=channel_USD,
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+            ),
+        ]
+    )
+    return variants
 
 
 @pytest.fixture
@@ -1029,8 +1097,12 @@ def product_without_shipping(category, warehouse, channel_USD):
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=True
     )
-    variant = ProductVariant.objects.create(
-        product=product, sku="SKU_B", price_amount=Decimal(10)
+    variant = ProductVariant.objects.create(product=product, sku="SKU_B")
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=1)
     return product
@@ -1096,22 +1168,41 @@ def product_list(product_type, category, warehouse, channel_USD):
                     product=products[0],
                     sku=str(uuid.uuid4()).replace("-", ""),
                     track_inventory=True,
-                    price_amount=Decimal(10),
                 ),
                 ProductVariant(
                     product=products[1],
                     sku=str(uuid.uuid4()).replace("-", ""),
                     track_inventory=True,
-                    price_amount=Decimal(20),
                 ),
                 ProductVariant(
                     product=products[2],
                     sku=str(uuid.uuid4()).replace("-", ""),
                     track_inventory=True,
-                    price_amount=Decimal(30),
                 ),
             ]
         )
+    )
+    ProductVariantChannelListing.objects.bulk_create(
+        [
+            ProductVariantChannelListing(
+                variant=variants[0],
+                channel=channel_USD,
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[1],
+                channel=channel_USD,
+                price_amount=Decimal(20),
+                currency=channel_USD.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[2],
+                channel=channel_USD,
+                price_amount=Decimal(30),
+                currency=channel_USD.currency_code,
+            ),
+        ]
     )
     stocks = []
     for variant in variants:
@@ -1212,7 +1303,13 @@ def unavailable_product_with_variant(product_type, category, warehouse, channel_
     variant_attr_value = variant_attr.values.first()
 
     variant = ProductVariant.objects.create(
-        product=product, sku="123", cost_price=Money(1, "USD"), price_amount=Decimal(10)
+        product=product, sku="123", cost_price=Money(1, "USD")
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
 
@@ -1290,8 +1387,9 @@ def voucher_customer(voucher, customer_user):
 
 
 @pytest.fixture
-def order_line(order, variant):
-    net = variant.get_price()
+def order_line(order, variant, channel_USD):
+    # TODO: We should use channel from order. #5883
+    net = variant.get_price(channel_USD.slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     return order.lines.create(
         product_name=str(variant.product),
@@ -1307,7 +1405,7 @@ def order_line(order, variant):
 
 @pytest.fixture
 def order_line_with_allocation_in_many_stocks(
-    customer_user, variant_with_many_stocks, channel_PLN
+    customer_user, variant_with_many_stocks, channel_USD
 ):
     address = customer_user.default_billing_address.get_copy()
     variant = variant_with_many_stocks
@@ -1317,10 +1415,11 @@ def order_line_with_allocation_in_many_stocks(
         billing_address=address,
         user_email=customer_user.email,
         user=customer_user,
-        channel=channel_PLN,
+        channel=channel_USD,
     )
 
-    net = variant.get_price()
+    # TODO: We should use channel from order. #5883
+    net = variant.get_price(channel_USD.slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order_line = order.lines.create(
         product_name=str(variant.product),
@@ -1345,7 +1444,7 @@ def order_line_with_allocation_in_many_stocks(
 
 @pytest.fixture
 def order_line_with_one_allocation(
-    customer_user, variant_with_many_stocks, channel_PLN
+    customer_user, variant_with_many_stocks, channel_USD
 ):
     address = customer_user.default_billing_address.get_copy()
     variant = variant_with_many_stocks
@@ -1355,10 +1454,11 @@ def order_line_with_one_allocation(
         billing_address=address,
         user_email=customer_user.email,
         user=customer_user,
-        channel=channel_PLN,
+        channel=channel_USD,
     )
 
-    net = variant.get_price()
+    # TODO: We should use channel from order. #5883
+    net = variant.get_price(channel_USD.slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order_line = order.lines.create(
         product_name=str(variant.product),
@@ -1420,15 +1520,18 @@ def order_with_lines(
         product=product, channel=channel_USD, is_published=True
     )
     variant = ProductVariant.objects.create(
-        product=product,
-        sku="SKU_A",
-        cost_price=Money(1, "USD"),
+        product=product, sku="SKU_A", cost_price=Money(1, "USD")
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
         price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price()
+    net = variant.get_price(channel_USD.slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     line = order.lines.create(
         product_name=str(variant.product),
@@ -1454,13 +1557,19 @@ def order_with_lines(
         product=product, channel=channel_USD, is_published=True
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="SKU_B", cost_price=Money(2, "USD"), price_amount=20
+        product=product, sku="SKU_B", cost_price=Money(2, "USD")
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(20),
+        currency=channel_USD.currency_code,
     )
     stock = Stock.objects.create(
         product_variant=variant, warehouse=warehouse, quantity=2
     )
 
-    net = variant.get_price()
+    net = variant.get_price(channel_USD.slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     line = order.lines.create(
         product_name=str(variant.product),
@@ -1499,7 +1608,7 @@ def order_with_line_without_inventory_tracking(
     order, variant_without_inventory_tracking
 ):
     variant = variant_without_inventory_tracking
-    net = variant.get_price()
+    net = variant.get_price(order.channel.slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     line = order.lines.create(
         product_name=str(variant.product),
@@ -2114,14 +2223,17 @@ def digital_content(category, media_root, warehouse, channel_USD) -> DigitalCont
         product_type=product_type,
         category=category,
     )
-    product_variant = ProductVariant.objects.create(
-        product=product,
-        sku="SKU_554",
-        cost_price=Money(1, "USD"),
-        price_amount=Decimal(10),
-    )
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=True
+    )
+    product_variant = ProductVariant.objects.create(
+        product=product, sku="SKU_554", cost_price=Money(1, "USD"),
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=product_variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     Stock.objects.create(
         product_variant=product_variant, warehouse=warehouse, quantity=5,

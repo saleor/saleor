@@ -58,7 +58,10 @@ from .mutations.attributes import (
     AttributeValueUpdate,
     ProductTypeReorderAttributes,
 )
-from .mutations.channels import ProductChannelListingUpdate
+from .mutations.channels import (
+    ProductChannelListingUpdate,
+    ProductVaraintChannelListingUpdate,
+)
 from .mutations.digital_contents import (
     DigitalContentCreate,
     DigitalContentDelete,
@@ -557,6 +560,7 @@ class ProductMutations(graphene.ObjectType):
             "removed after 2020-07-31."
         )
     )
+    product_varaint_channel_listing_update = ProductVaraintChannelListingUpdate.Field()
 
     variant_image_assign = VariantImageAssign.Field()
     variant_image_unassign = VariantImageUnassign.Field()

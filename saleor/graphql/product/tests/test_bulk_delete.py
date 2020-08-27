@@ -14,6 +14,7 @@ from ....product.models import (
     ProductImage,
     ProductType,
     ProductVariant,
+    ProductVariantChannelListing,
 )
 from ...tests.utils import get_graphql_content
 
@@ -245,6 +246,10 @@ def test_delete_products(staff_api_client, product_list, permission_manage_produ
     }
     """
 
+    assert ProductChannelListing.objects.filter(
+        product_id__in=[product.id for product in product_list]
+    ).exists()
+
     variables = {
         "ids": [
             graphene.Node.to_global_id("Product", product.id)
@@ -259,6 +264,9 @@ def test_delete_products(staff_api_client, product_list, permission_manage_produ
     assert content["data"]["productBulkDelete"]["count"] == 3
     assert not Product.objects.filter(
         id__in=[product.id for product in product_list]
+    ).exists()
+    assert not ProductChannelListing.objects.filter(
+        product_id__in=[product.id for product in product_list]
     ).exists()
 
 
@@ -330,6 +338,10 @@ def test_delete_product_variants(
     }
     """
 
+    assert ProductVariantChannelListing.objects.filter(
+        variant_id__in=[variant.id for variant in product_variant_list]
+    ).exists()
+
     variables = {
         "ids": [
             graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -344,4 +356,7 @@ def test_delete_product_variants(
     assert content["data"]["productVariantBulkDelete"]["count"] == 3
     assert not ProductVariant.objects.filter(
         id__in=[variant.id for variant in product_variant_list]
+    ).exists()
+    assert not ProductVariantChannelListing.objects.filter(
+        variant_id__in=[variant.id for variant in product_variant_list]
     ).exists()

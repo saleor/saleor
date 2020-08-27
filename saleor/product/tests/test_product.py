@@ -16,7 +16,7 @@ from ..utils.costs import get_margin_for_variant
 from ..utils.digital_products import increment_download_count
 
 
-def test_filtering_by_attribute(db, color_attribute, category, settings):
+def test_filtering_by_attribute(db, color_attribute, category, channel_USD, settings):
     product_type_a = models.ProductType.objects.create(
         name="New class", slug="new-class1", has_variants=True
     )
@@ -31,8 +31,12 @@ def test_filtering_by_attribute(db, color_attribute, category, settings):
         product_type=product_type_a,
         category=category,
     )
-    models.ProductVariant.objects.create(
-        product=product_a, sku="1234", price_amount=Decimal(10)
+    variant_a = models.ProductVariant.objects.create(product=product_a, sku="1234")
+    models.ProductVariantChannelListing.objects.create(
+        variant=variant_a,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     product_b = models.Product.objects.create(
         name="Test product b",
@@ -40,8 +44,12 @@ def test_filtering_by_attribute(db, color_attribute, category, settings):
         product_type=product_type_b,
         category=category,
     )
-    variant_b = models.ProductVariant.objects.create(
-        product=product_b, sku="12345", price_amount=Decimal(10)
+    variant_b = models.ProductVariant.objects.create(product=product_b, sku="12345")
+    models.ProductVariantChannelListing.objects.create(
+        variant=variant_b,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     color = color_attribute.values.first()
     color_2 = color_attribute.values.last()
@@ -89,24 +97,40 @@ def test_get_price(
     include_discounts,
     site_settings,
     discount_info,
+    channel_USD,
 ):
     product = models.Product.objects.create(
         product_type=product_type, category=category,
     )
-    variant = product.variants.create(price_amount=15)
-
-    price = variant.get_price(discounts=[discount_info] if include_discounts else [])
+    variant = product.variants.create()
+    models.ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(15),
+        currency=channel_USD.currency_code,
+    )
+    price = variant.get_price(
+        channel_USD.slug, discounts=[discount_info] if include_discounts else []
+    )
 
     assert price.amount == expected_price
 
 
-def test_product_get_price_do_not_charge_taxes(product_type, category, discount_info):
+def test_product_get_price_do_not_charge_taxes(
+    product_type, category, discount_info, channel_USD
+):
     product = models.Product.objects.create(
         product_type=product_type, category=category, charge_taxes=False,
     )
-    variant = product.variants.create(price_amount=Decimal(10))
+    variant = product.variants.create()
+    models.ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
+    )
 
-    price = variant.get_price(discounts=[discount_info])
+    price = variant.get_price(channel_USD.slug, discounts=[discount_info])
 
     assert price == Money("5.00", "USD")
 

@@ -721,7 +721,7 @@ def test_add_products_to_collection_with_product_without_variants(
     content = get_graphql_content(response)
     error = content["data"]["collectionAddProducts"]["productErrors"][0]
 
-    assert error["code"] == ProductErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.value
+    assert error["code"] == ProductErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
     assert error["message"] == "Cannot manage products without variants."
 
 

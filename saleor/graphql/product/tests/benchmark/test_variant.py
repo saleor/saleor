@@ -163,7 +163,6 @@ def test_product_variant_bulk_create(
                 {"id": color_attribute_id, "values": ["red"]},
                 {"id": size_attribute_id, "values": ["big"]},
             ],
-            "price": 10,
         }
     ]
     variables = {"productId": product_id, "variants": variants}

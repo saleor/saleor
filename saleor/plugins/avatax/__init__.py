@@ -221,6 +221,7 @@ def get_checkout_lines_data(
         "variant__product__collections",
         "variant__product__product_type",
     )
+    channel = checkout.channel
     for line in lines:
         if not line.variant.product.charge_taxes:
             continue
@@ -233,7 +234,7 @@ def get_checkout_lines_data(
             data=data,
             quantity=line.quantity,
             amount=base_calculations.base_checkout_line_total(
-                line, discounts
+                line, channel, discounts
             ).gross.amount,
             tax_code=tax_code,
             item_code=line.variant.sku,

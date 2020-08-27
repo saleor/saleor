@@ -47,7 +47,7 @@ query ($channel: String) {
 
 
 def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
-    price = product.variants.first().price
+    price = product.variants.first().channel_listing.get().price
     discounted_price = price.amount - sale.value
 
     response = api_client.post_graphql(
@@ -77,7 +77,7 @@ def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
 
 
 def test_get_variant_pricing_not_on_sale(api_client, product, channel_USD):
-    price = product.variants.first().price
+    price = product.variants.first().channel_listing.get().price
 
     response = api_client.post_graphql(
         QUERY_GET_VARIANT_PRICING, {"channel": channel_USD.slug}
@@ -111,12 +111,14 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
     )
 
     product = variant.product
-    channel_listing = product.channel_listing.get()
+    product_channel_listing = product.channel_listing.get()
+    variant_channel_listing = variant.channel_listing.get()
 
     pricing = get_variant_availability(
         variant=variant,
+        variant_channel_listing=variant_channel_listing,
         product=product,
-        channel_listing=channel_listing,
+        product_channel_listing=product_channel_listing,
         collections=[],
         discounts=[],
     )
@@ -133,8 +135,9 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
 
     pricing = get_variant_availability(
         variant=variant,
+        variant_channel_listing=variant_channel_listing,
         product=product,
-        channel_listing=channel_listing,
+        product_channel_listing=product_channel_listing,
         collections=[],
         discounts=[],
         local_currency="PLN",
@@ -144,8 +147,9 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
 
     pricing = get_variant_availability(
         variant=variant,
+        variant_channel_listing=variant_channel_listing,
         product=product,
-        channel_listing=channel_listing,
+        product_channel_listing=product_channel_listing,
         collections=[],
         discounts=[],
     )

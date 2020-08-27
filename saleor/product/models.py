@@ -129,6 +129,15 @@ class ProductsQueryset(models.QuerySet):
             channel_listing__is_published=True,
         )
 
+    def not_published(self, channel_slug: str):
+        today = datetime.date.today()
+        return self.filter(
+            Q(channel_listing__publication_date__gt=today)
+            & Q(channel_listing__is_published=True)
+            | Q(channel_listing__is_published=False),
+            channel_listing__channel__slug=str(channel_slug),
+        )
+
     def published_with_variants(self, channel_slug: str):
         published = self.published(channel_slug)
         return published.filter(variants__isnull=False).distinct()
@@ -399,17 +408,14 @@ class ProductVariantQueryset(models.QuerySet):
 class ProductVariant(ModelWithMetadata):
     sku = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255, blank=True)
+    # TODO: Consider this field is required for `cost_price`. In multichannel MVP we
+    # don't want to update this field because we don't have requirements.
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
         default=settings.DEFAULT_CURRENCY,
         blank=True,
         null=True,
     )
-    price_amount = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-    )
-    price = MoneyField(amount_field="price_amount", currency_field="currency")
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
     )
@@ -437,10 +443,13 @@ class ProductVariant(ModelWithMetadata):
     def __str__(self) -> str:
         return self.name or self.sku
 
-    def get_price(self, discounts: Optional[Iterable[DiscountInfo]] = None) -> "Money":
+    def get_price(
+        self, channel_slug: str, discounts: Optional[Iterable[DiscountInfo]] = None
+    ) -> "Money":
+        price = self.channel_listing.get(channel__slug=channel_slug).price
         return calculate_discounted_price(
             product=self.product,
-            price=self.price,
+            price=price,
             collections=self.product.collections.all(),
             discounts=discounts,
         )
@@ -495,6 +504,33 @@ class ProductVariantTranslation(models.Model):
 
     def __str__(self):
         return self.name or str(self.product_variant)
+
+
+class ProductVariantChannelListing(models.Model):
+    variant = models.ForeignKey(
+        ProductVariant,
+        null=False,
+        blank=False,
+        related_name="channel_listing",
+        on_delete=models.CASCADE,
+    )
+    channel = models.ForeignKey(
+        Channel,
+        null=False,
+        blank=False,
+        related_name="variant_listing",
+        on_delete=models.CASCADE,
+    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
+    price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
+    price = MoneyField(amount_field="price_amount", currency_field="currency")
+
+    class Meta:
+        unique_together = [["variant", "channel"]]
+        ordering = ("pk",)
 
 
 class DigitalContent(ModelWithMetadata):

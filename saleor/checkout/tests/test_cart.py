@@ -82,9 +82,14 @@ def test_get_prices_of_discounted_specific_product(
     voucher.collections.add(collection)
     voucher.categories.add(category)
 
-    prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
+    prices = utils.get_prices_of_discounted_specific_product(
+        list(checkout), voucher, checkout.channel
+    )
 
-    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+    channel_slug = checkout.channel.slug
+    excepted_value = [
+        line.variant.get_price(channel_slug) for item in range(line.quantity)
+    ]
 
     assert prices == excepted_value
 
@@ -101,9 +106,14 @@ def test_get_prices_of_discounted_specific_product_only_product(
     add_variant_to_checkout(checkout, product2.variants.get(), 1)
     voucher.products.add(product)
 
-    prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
+    prices = utils.get_prices_of_discounted_specific_product(
+        list(checkout), voucher, checkout.channel
+    )
 
-    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+    channel_slug = checkout.channel.slug
+    excepted_value = [
+        line.variant.get_price(channel_slug) for item in range(line.quantity)
+    ]
 
     assert checkout.lines.count() > 1
     assert prices == excepted_value
@@ -125,9 +135,14 @@ def test_get_prices_of_discounted_specific_product_only_collection(
     product.collections.add(collection)
     voucher.collections.add(collection)
 
-    prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
+    prices = utils.get_prices_of_discounted_specific_product(
+        list(checkout), voucher, checkout.channel
+    )
 
-    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+    channel_slug = checkout.channel.slug
+    excepted_value = [
+        line.variant.get_price(channel_slug) for item in range(line.quantity)
+    ]
 
     assert checkout.lines.count() > 1
     assert prices == excepted_value
@@ -149,9 +164,14 @@ def test_get_prices_of_discounted_specific_product_only_category(
     add_variant_to_checkout(checkout, product2.variants.get(), 1)
     voucher.categories.add(category)
 
-    prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
+    prices = utils.get_prices_of_discounted_specific_product(
+        list(checkout), voucher, checkout.channel
+    )
 
-    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+    channel_slug = checkout.channel.slug
+    excepted_value = [
+        line.variant.get_price(channel_slug) for item in range(line.quantity)
+    ]
 
     assert checkout.lines.count() > 1
     assert prices == excepted_value
@@ -164,9 +184,14 @@ def test_get_prices_of_discounted_specific_product_all_products(
     voucher = voucher_specific_product_type
     line = checkout.lines.first()
 
-    prices = utils.get_prices_of_discounted_specific_product(checkout, voucher)
+    prices = utils.get_prices_of_discounted_specific_product(
+        list(checkout), voucher, checkout.channel
+    )
 
-    excepted_value = [line.variant.get_price() for item in range(line.quantity)]
+    channel_slug = checkout.channel.slug
+    excepted_value = [
+        line.variant.get_price(channel_slug) for item in range(line.quantity)
+    ]
 
     assert prices == excepted_value
 

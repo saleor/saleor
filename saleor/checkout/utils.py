@@ -13,8 +13,7 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ..account.models import User
 from ..account.utils import store_user_address
-from ..checkout import calculations
-from ..checkout.error_codes import CheckoutErrorCode
+from ..channel.models import Channel
 from ..core.exceptions import ProductNotPublished
 from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
@@ -45,7 +44,8 @@ from ..plugins.manager import get_plugins_manager
 from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity
 from ..warehouse.management import allocate_stock
-from . import AddressType
+from . import AddressType, calculations
+from .error_codes import CheckoutErrorCode
 from .models import Checkout, CheckoutLine
 
 
@@ -202,12 +202,14 @@ def _get_shipping_voucher_discount_for_checkout(
 
 
 def _get_products_voucher_discount(
-    lines, voucher, discounts: Optional[Iterable[DiscountInfo]] = None
+    lines, voucher, channel, discounts: Optional[Iterable[DiscountInfo]] = None
 ):
     """Calculate products discount value for a voucher, depending on its type."""
     prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        prices = get_prices_of_discounted_specific_product(lines, voucher, discounts)
+        prices = get_prices_of_discounted_specific_product(
+            lines, voucher, channel, discounts
+        )
     if not prices:
         msg = "This offer is only valid for selected items."
         raise NotApplicable(msg)
@@ -217,6 +219,7 @@ def _get_products_voucher_discount(
 def get_prices_of_discounted_specific_product(
     lines: List[CheckoutLine],
     voucher: Voucher,
+    channel: Channel,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> List[Money]:
     """Get prices of variants belonging to the discounted specific products.
@@ -229,7 +232,7 @@ def get_prices_of_discounted_specific_product(
     discounted_lines = get_discounted_lines(lines, voucher)
     for line in discounted_lines:
         line_total = calculations.checkout_line_total(
-            line=line, discounts=discounts or []
+            line=line, discounts=discounts or [], channel=channel
         ).gross
         line_unit_price = quantize_price(
             (line_total / line.quantity), line_total.currency
@@ -260,7 +263,9 @@ def get_voucher_discount_for_checkout(
             voucher, checkout, lines, discounts
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        return _get_products_voucher_discount(lines, voucher, discounts)
+        return _get_products_voucher_discount(
+            lines, voucher, checkout.channel, discounts
+        )
     raise NotImplementedError("Unknown discount type")
 
 
@@ -576,7 +581,9 @@ def validate_gift_cards(checkout: Checkout):
         raise NotApplicable(msg)
 
 
-def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine:
+def create_line_for_order(
+    checkout_line: "CheckoutLine", discounts, channel: "Channel"
+) -> OrderLine:
     """Create a line for the given order.
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
@@ -601,7 +608,9 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
         translated_variant_name = ""
 
     manager = get_plugins_manager()
-    total_line_price = manager.calculate_checkout_line_total(checkout_line, discounts)
+    total_line_price = manager.calculate_checkout_line_total(
+        checkout_line, discounts, channel
+    )
     unit_price = quantize_price(
         total_line_price / checkout_line.quantity, total_line_price.currency
     )
@@ -656,8 +665,10 @@ def prepare_order_data(
         }
     )
 
+    channel = checkout.channel
     order_data["lines"] = [
-        create_line_for_order(checkout_line=line, discounts=discounts) for line in lines
+        create_line_for_order(checkout_line=line, discounts=discounts, channel=channel)
+        for line in checkout
     ]
 
     # validate checkout gift cards

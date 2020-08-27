@@ -9,6 +9,7 @@ from ...core.taxes import display_gross_prices, zero_taxed_money
 from ...plugins.manager import get_plugins_manager
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
+from ..channel.dataloaders import ChannelByCheckoutLineIDLoader
 from ..core.connection import CountableDjangoObjectType
 from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
@@ -74,15 +75,21 @@ class CheckoutLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_total_price(root, info):
-        def calculate_total_price(discounts):
-            return info.context.plugins.calculate_checkout_line_total(
-                checkout_line=root, discounts=discounts
-            )
+        context = info.context
+        channel = ChannelByCheckoutLineIDLoader(context).load(root.id)
+
+        def calculate_total_price_with_discounts(discounts):
+            def calculate_total_price_with_channel(channel):
+                return info.context.plugins.calculate_checkout_line_total(
+                    checkout_line=root, discounts=discounts, channel=channel,
+                )
+
+            return channel.then(calculate_total_price_with_channel)
 
         return (
-            DiscountsByDateTimeLoader(info.context)
-            .load(info.context.request_time)
-            .then(calculate_total_price)
+            DiscountsByDateTimeLoader(context)
+            .load(context.request_time)
+            .then(calculate_total_price_with_discounts)
         )
 
     @staticmethod
@@ -226,6 +233,7 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_lines(root: models.Checkout, *_args):
+        # TODO: We should add dataloader here.
         return root.lines.prefetch_related("variant")
 
     @staticmethod

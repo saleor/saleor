@@ -121,7 +121,9 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     payment_data["shopperEmail"] = payment_information.customer_email
     line_items = []
     for line in lines:
-        total = checkout_line_total(line=line, discounts=discounts)
+        total = checkout_line_total(
+            line=line, discounts=discounts, channel=checkout.channel
+        )
         total_gross = total.gross.amount
         total_net = total.net.amount
         tax_amount = total.tax.amount

@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 
 from ...core.exceptions import InsufficientStock
 from ...order.error_codes import OrderErrorCode
+from ...product.models import Product
 from ...warehouse.availability import check_stock_quantity
 
 
@@ -61,17 +62,24 @@ def validate_order_lines(order, country):
                 )
 
 
+# TODO: We should reuse this logic in DraftOrderCreate validation
+# `validate_product_is_published_in_channel` after merge #5975
 def validate_product_is_published(order):
+    variant_ids = []
     for line in order:
-        if not line.variant.product.is_published:
-            raise ValidationError(
-                {
-                    "lines": ValidationError(
-                        "Can't finalize draft with unpublished product.",
-                        code=OrderErrorCode.PRODUCT_NOT_PUBLISHED,
-                    )
-                }
-            )
+        variant_ids.append(line.variant_id)
+    unpublished_product = Product.objects.filter(
+        variants__id__in=variant_ids
+    ).not_published(order.channel.slug)
+    if unpublished_product.exists():
+        raise ValidationError(
+            {
+                "lines": ValidationError(
+                    "Can't finalize draft with unpublished product.",
+                    code=OrderErrorCode.PRODUCT_NOT_PUBLISHED,
+                )
+            }
+        )
 
 
 def validate_draft_order(order, country):

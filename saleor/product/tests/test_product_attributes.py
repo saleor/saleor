@@ -4,7 +4,13 @@ from unittest.mock import MagicMock, Mock
 import pytest
 
 from .. import AttributeInputType
-from ..models import AttributeValue, Product, ProductType, ProductVariant
+from ..models import (
+    AttributeValue,
+    Product,
+    ProductType,
+    ProductVariant,
+    ProductVariantChannelListing,
+)
 from ..tasks import _update_variants_names
 from ..utils.attributes import (
     associate_attribute_values_to_instance,
@@ -13,7 +19,7 @@ from ..utils.attributes import (
 
 
 @pytest.fixture()
-def variant_with_no_attributes(category):
+def variant_with_no_attributes(category, channel_USD):
     """Create a variant having no attributes, the same for the parent product."""
     product_type = ProductType.objects.create(
         name="Test product type", has_variants=True, is_shipping_required=True
@@ -21,8 +27,12 @@ def variant_with_no_attributes(category):
     product = Product.objects.create(
         name="Test product", product_type=product_type, category=category,
     )
-    variant = ProductVariant.objects.create(
-        product=product, sku="123", price_amount=Decimal(10)
+    variant = ProductVariant.objects.create(product=product, sku="123")
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     return variant
 

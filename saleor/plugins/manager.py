@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from .base_plugin import BasePlugin
     from ..checkout.models import Checkout, CheckoutLine
+    from ..channel.models import Channel
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
     from ..order.models import Fulfillment, OrderLine, Order
@@ -121,7 +122,8 @@ class PluginsManager(PaymentInterface):
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         line_totals = [
-            self.calculate_checkout_line_total(line, discounts) for line in lines
+            self.calculate_checkout_line_total(line, discounts, checkout.channel)
+            for line in lines
         ]
         default_value = base_calculations.base_checkout_subtotal(
             line_totals, checkout.currency
@@ -156,13 +158,20 @@ class PluginsManager(PaymentInterface):
         )
 
     def calculate_checkout_line_total(
-        self, checkout_line: "CheckoutLine", discounts: Iterable[DiscountInfo]
+        self,
+        checkout_line: "CheckoutLine",
+        discounts: Iterable[DiscountInfo],
+        channel: "Channel",
     ):
         default_value = base_calculations.base_checkout_line_total(
-            checkout_line, discounts
+            checkout_line, channel, discounts
         )
         return self.__run_method_on_plugins(
-            "calculate_checkout_line_total", default_value, checkout_line, discounts
+            "calculate_checkout_line_total",
+            default_value,
+            checkout_line,
+            discounts,
+            channel,
         )
 
     def calculate_order_line_unit(self, order_line: "OrderLine") -> TaxedMoney:
