@@ -205,10 +205,11 @@ def test_handle_capture_for_order(notification, adyen_plugin, payment_adyen_for_
     config = adyen_plugin().config
     handle_capture(notification, config)
 
-    assert payment.transactions.count() == 1
-    transaction = payment.transactions.get()
+    payment.refresh_from_db()
+    assert payment.transactions.count() == 2
+    transaction = payment.transactions.filter(kind=TransactionKind.CAPTURE).get()
     assert transaction.is_success is True
-    assert transaction.kind == TransactionKind.AUTH
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
 
 
 def test_handle_capture_for_checkout(

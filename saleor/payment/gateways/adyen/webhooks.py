@@ -27,7 +27,7 @@ from ....checkout.complete_checkout import complete_checkout
 from ....checkout.models import Checkout
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_active_discounts
-from ....order.actions import cancel_order, order_refunded
+from ....order.actions import cancel_order, order_captured, order_refunded
 from ....order.events import external_notification_event
 from ....payment.models import Payment, Transaction
 from ... import ChargeStatus, PaymentError, TransactionKind
@@ -228,24 +228,24 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
         return
 
     transaction_id = notification.get("pspReference")
-    transaction = payment.transactions.filter(
+    capture_transaction = payment.transactions.filter(
         token=transaction_id,
         action_required=False,
         is_success=True,
         kind=TransactionKind.CAPTURE,
     ).last()
 
-    if transaction:
+    if capture_transaction:
         # We already have this transaction
         return
 
-    action_transaction = payment.transactions.filter(
-        token=transaction_id,
-        action_required=False,
-        is_success=True,
-        kind=TransactionKind.ACTION_TO_CONFIRM,
-    ).last()
     if not payment.order:
+        action_transaction = payment.transactions.filter(
+            token=transaction_id,
+            action_required=False,
+            is_success=True,
+            kind=TransactionKind.ACTION_TO_CONFIRM,
+        ).last()
         # If the payment is not Auth/Capture, it means that user didn't return to the
         # storefront and we need to finalize the checkout asynchronously.
         if not action_transaction:
@@ -266,6 +266,12 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
             except ValidationError:
                 payment_refund_or_void(payment)
                 return
+    else:
+        new_transaction = create_new_transaction(
+            notification, payment, TransactionKind.CAPTURE
+        )
+        gateway_postprocess(new_transaction, payment)
+        order_captured(payment.order, None, new_transaction.amount, payment)
 
     reason = notification.get("reason", "-")
     is_success = True if notification.get("success") == "true" else False
@@ -347,7 +353,7 @@ def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     create_payment_notification_for_order(
         payment, success_msg, failed_msg, new_transaction.is_success
     )
-    if payment.order:
+    if payment.order and new_transaction.is_success:
         order_refunded(payment.order, None, new_transaction.amount, payment)
 
 
