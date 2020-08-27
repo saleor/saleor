@@ -99,7 +99,6 @@ class SumiPlugin(BasePlugin):
     @staticmethod
     def reserve_product(product_variant_stock):
         try:
-            # product_variant_stock.decrease_stock(1)
             SumiPlugin.update_reservation_status_in_metadata(product_variant_stock.product_variant, True)
             return product_variant_stock
         except:
@@ -108,7 +107,7 @@ class SumiPlugin(BasePlugin):
     @staticmethod
     def sell_product(product_variant_stock):
         try:
-            product_variant_stock.decrease_stock(1)
+            # product_variant_stock.decrease_stock(1)
             return {"sku": str(product_variant_stock.product_variant),
                     "name": str(product_variant_stock.product_variant.product),
                     "netPrice": str(product_variant_stock.product_variant.price_amount),
@@ -121,14 +120,14 @@ class SumiPlugin(BasePlugin):
 
     @staticmethod
     def update_reservation_status_in_metadata(product, status):
-        product.store_value_in_metadata({'reservation': status})
-        product.save(update_fields=["private_metadata"])
+        # product.store_value_in_metadata({'reserved': status})
+        # product.save(update_fields=["metadata"])
         pass
 
     @staticmethod
     def is_product_reserved(product_variant):
-        if product_variant.private_metadata.get('reservation') is not None:
-            if product_variant.private_metadata.get('reservation') == True:
+        if product_variant.metadata.get('reserved') is not None:
+            if product_variant.metadata.get('reserved') == True:
                 return True
             else:
                 return False
@@ -138,7 +137,6 @@ class SumiPlugin(BasePlugin):
     @staticmethod
     def cancel_product_reservation(product_variant_stock):
         try:
-            # product_variant_stock.increase_stock(1)
             SumiPlugin.update_reservation_status_in_metadata(product_variant_stock.product_variant, False)
             return product_variant_stock
         except:
