@@ -166,7 +166,7 @@ def test_export_products_mutation_ids_scope(
             "scope": ExportScope.IDS.name,
             "ids": ids,
             "exportInfo": {
-                "fields": [ProductFieldEnum.VARIANT_PRICE.name],
+                "fields": [ProductFieldEnum.NAME.name],
                 "warehouses": [],
                 "attributes": [],
             },
@@ -187,7 +187,7 @@ def test_export_products_mutation_ids_scope(
     (call_args, call_kwargs,) = export_products_mock.call_args
 
     assert set(call_args[1]["ids"]) == pks
-    assert call_args[2] == {"fields": [ProductFieldEnum.VARIANT_PRICE.value]}
+    assert call_args[2] == {"fields": [ProductFieldEnum.NAME.value]}
     assert call_args[3] == FileTypeEnum.XLSX.value
 
     assert not data["exportErrors"]
@@ -238,7 +238,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
             "scope": ExportScope.IDS.name,
             "ids": ids,
             "exportInfo": {
-                "fields": [ProductFieldEnum.VARIANT_PRICE.name],
+                "fields": [ProductFieldEnum.NAME.name],
                 "warehouses": warehouse_ids,
                 "attributes": attribute_ids,
                 "channels": channel_ids,
@@ -261,7 +261,7 @@ def test_export_products_mutation_with_warehouse_and_attribute_ids(
 
     assert set(call_args[1]["ids"]) == pks
     assert call_args[2] == {
-        "fields": [ProductFieldEnum.VARIANT_PRICE.value],
+        "fields": [ProductFieldEnum.NAME.value],
         "warehouses": warehouse_pks,
         "attributes": attribute_pks,
         "channels": channel_pks,

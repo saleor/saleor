@@ -1,4 +1,3 @@
-import pytest
 from measurement.measures import Weight
 
 from .....product.models import Attribute, Product, ProductVariant, VariantImage
@@ -11,7 +10,6 @@ from .utils import (
 )
 
 
-@pytest.mark.skip(reason="We should fix it when we know how to export channels.")
 def test_get_products_data(product, product_with_image, collection, image):
     # given
     product.weight = Weight(kg=5)
@@ -57,7 +55,6 @@ def test_get_products_data(product, product_with_image, collection, image):
         product_data = {
             "id": product.id,
             "name": product.name,
-            "is_published": product.is_published,
             "description": product.description,
             "category__slug": product.category.slug,
             "product_type__name": product.product_type.name,
@@ -87,7 +84,6 @@ def test_get_products_data(product, product_with_image, collection, image):
             data = {
                 "variants__sku": variant.sku,
                 "variants__currency": variant.currency,
-                "variants__price_amount": variant.price_amount,
                 "variants__cost_price_amount": variant.cost_price_amount,
                 "variants__images__image": (
                     ""
@@ -145,7 +141,6 @@ def test_get_products_data_for_specified_attributes(
     assert result_data == expected_data
 
 
-@pytest.mark.skip(reason="We should fix it when we know how to export channels.")
 def test_get_products_data_for_specified_warehouses(
     product, product_with_image, variant_with_many_stocks
 ):
@@ -179,7 +174,6 @@ def test_get_products_data_for_specified_warehouses(
         assert res in expected_data
 
 
-@pytest.mark.skip(reason="We should fix it when we know how to export channels.")
 def test_get_products_data_for_specified_warehouses_and_attributes(
     product,
     variant_with_many_stocks,

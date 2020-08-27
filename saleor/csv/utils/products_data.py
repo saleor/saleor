@@ -23,7 +23,6 @@ class ProductExportFields:
             "id": "id",
             "name": "name",
             "description": "description",
-            "visible": "is_published",
             "category": "category__slug",
             "product type": "product_type__name",
             "charge taxes": "charge_taxes",
@@ -31,7 +30,6 @@ class ProductExportFields:
             "variant sku": "variants__sku",
             "variant weight": "variant_weight",
             "cost price": "variants__cost_price_amount",
-            "variant price": "variants__price_amount",
             "variant currency": "variants__currency",
         },
         "product_many_to_many": {
@@ -102,11 +100,10 @@ def get_product_export_fields_and_headers(
         export_fields.append(lookup_field)
         file_headers.append(field)
         # if price is exported, currency is needed too
-        if field == "variant price" or field == "cost price":
+        if field == "cost price":
             lookup_field = fields_mapping["variant currency"]
-            if lookup_field not in export_fields:
-                export_fields.append(lookup_field)
-                file_headers.append("variant currency")
+            export_fields.append(lookup_field)
+            file_headers.append("variant currency")
 
     return export_fields, file_headers
 
