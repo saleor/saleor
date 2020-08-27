@@ -566,7 +566,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
     mutation draftCreate(
         $user: ID, $discount: Decimal, $lines: [OrderLineCreateInput],
         $shippingAddress: AddressInput, $shippingMethod: ID, $voucher: ID,
-        $customerNote: String, $channel :ID!
+        $customerNote: String, $channel: ID
         ) {
             draftOrderCreate(
                 input: {user: $user, discount: $discount,
