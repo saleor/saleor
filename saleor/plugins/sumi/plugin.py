@@ -70,10 +70,12 @@ class SumiPlugin(BasePlugin):
                         else:
                             # FIXME: czy kod błędu powinien byc 001???
                             results.get('errors').append('001: nie znaleziono produktu o kodzie ' + str(product))
+                            results['status'] = 'error'
                     else:
                         pass
                 else:
                     results.get('errors').append('001: nie znaleziono produktu o kodzie ' + str(product))
+                    results['status'] = 'error'
             return JsonResponse(results)
         else:
             http_response = HttpResponse()
@@ -170,6 +172,8 @@ class SumiPlugin(BasePlugin):
                 else:
                     results.get('errors').append(
                         '001: nie znaleziono produktu o kodzie ' + str(product))
+                    results['status'] = 'error'
+
             return JsonResponse(results)
         else:
             http_response = HttpResponse()
@@ -194,16 +198,20 @@ class SumiPlugin(BasePlugin):
                             result = SumiPlugin.sell_product(product_variant_stock)
                             results.get('data').append(result)
                         else:
-                            results.get('errors').append({'error': '002: stan magazynowy produktu ' + str(
-                product_variant_stock.product_variant) + ' wynosi 0'})
+                            results.get('errors').append('002: stan magazynowy produktu ' + str(
+                product_variant_stock.product_variant) + ' wynosi 0')
                             results['status'] = 'error'
                     else:
                         results.get('errors').append(
                             '001: nie znaleziono produktu o kodzie ' + str(
                                 product))
+                        results['status'] = 'error'
+
                 else:
                     results.get('errors').append(
                         '001: nie znaleziono produktu o kodzie ' + str(product))
+                    results['status'] = 'error'
+
             return JsonResponse(results)
         else:
             http_response = HttpResponse()
