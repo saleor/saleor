@@ -173,7 +173,7 @@ class Checkout(CountableDjangoObjectType):
         shipping_method = root.shipping_method
         if shipping_method is None:
             return None
-        return ChannelContext(node=shipping_method, channel_slug=None)
+        return ChannelContext(node=shipping_method, channel_slug=root.channel.slug)
 
     @staticmethod
     def resolve_total_price(root: models.Checkout, info):
