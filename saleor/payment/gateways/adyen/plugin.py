@@ -423,12 +423,23 @@ class AdyenGatewayPlugin(BasePlugin):
         transaction = (
             Transaction.objects.filter(
                 payment__id=payment_information.payment_id,
-                kind__in=[TransactionKind.AUTH, TransactionKind.CAPTURE],
+                kind=TransactionKind.AUTH,
                 is_success=True,
             )
             .exclude(token__isnull=True, token__exact="")
             .last()
         )
+        if not transaction:
+            # If we don't find the Auth kind we will try to get Capture kind
+            transaction = (
+                Transaction.objects.filter(
+                    payment__id=payment_information.payment_id,
+                    kind=TransactionKind.CAPTURE,
+                    is_success=True,
+                )
+                .exclude(token__isnull=True, token__exact="")
+                .last()
+            )
 
         if not transaction:
             raise PaymentError("Cannot find a payment reference to refund.")

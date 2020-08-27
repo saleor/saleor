@@ -166,7 +166,7 @@ def complete_checkout(
         store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
 
     action_required = txn.action_required
-    action_data = txn.action_required_data if action_data else {}
+    action_data = txn.action_required_data if action_required else {}
 
     if not action_required:
         try:
