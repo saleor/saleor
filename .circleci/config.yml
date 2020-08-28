@@ -56,4 +56,6 @@ workflows:
             branches:
               only: master
             tags:
-              only: /demo.*/
+              only:
+                - /demo.*/
+                - /2.*/
