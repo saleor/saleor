@@ -798,6 +798,7 @@ class CheckoutComplete(BaseMutation):
                 .select_related("shipping_method", "shipping_method__shipping_zone"),
             )
         tracking_code = analytics.get_client_id(info.context)
+        print(data.get("payment_data", {}))
         order, action_required, action_data = complete_checkout(
             checkout=checkout,
             payment_data=data.get("payment_data", {}),
