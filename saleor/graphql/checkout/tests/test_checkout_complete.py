@@ -59,6 +59,26 @@ ACTION_REQUIRED_GATEWAY_RESPONSE = GatewayResponse(
 )
 
 
+def test_checkout_complete_order_already_exists(
+    user_api_client, order_with_lines, checkout_with_gift_card,
+):
+    checkout = checkout_with_gift_card
+    orders_count = Order.objects.count()
+    order_with_lines.checkout_token = checkout.pk
+    order_with_lines.save()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["checkoutErrors"]
+
+    order_token = data["order"]["token"]
+    assert Order.objects.count() == orders_count
+    assert order_with_lines.token == order_token
+
+
 @pytest.mark.integration
 def test_checkout_complete(
     user_api_client,

@@ -54,6 +54,7 @@ def prepare_checkout(checkout: models.Checkout, discounts, tracking_code, redire
         to_update.append("tracking_code")
 
     if to_update:
+        to_update.append("last_change")
         checkout.save(update_fields=to_update)
 
 
@@ -70,10 +71,8 @@ def convert_checkout_to_order(
 
 
 def validate_payment_amount(discounts, payment, checkout):
-    if (
-        payment.total
-        != calculate_checkout_total_with_gift_cards(checkout, discounts).gross.amount
-    ):
+    checkout_total = calculate_checkout_total_with_gift_cards(checkout, discounts)
+    if payment.total != checkout_total.gross.amount:
         gateway.payment_refund_or_void(payment)
         raise ValidationError(
             "Payment does not cover all checkout value.",
