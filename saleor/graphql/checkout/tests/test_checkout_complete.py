@@ -857,3 +857,77 @@ def test_checkout_complete_with_digital(
     assert (
         Order.objects.count() == order_count + 1
     ), "The order should have been created"
+
+
+@pytest.mark.integration
+def test_checkout_complete_0_total_value(
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_item
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line_quantity = checkout_line.quantity
+    checkout_line_variant = checkout_line.variant
+
+    product_type = checkout_line_variant.product.product_type
+    product_type.is_shipping_required = False
+    product_type.save(update_fields=["is_shipping_required"])
+
+    checkout_line_variant.cost_price_amount = Decimal(0)
+    checkout_line_variant.price_amount = Decimal(0)
+    checkout_line_variant.save()
+
+    checkout.refresh_from_db()
+
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["checkoutErrors"]
+
+    order_token = data["order"]["token"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert order.token == order_token
+    assert order.total.gross == total.gross
+    assert order.metadata == checkout.metadata
+    assert order.private_metadata == checkout.private_metadata
+
+    order_line = order.lines.first()
+    assert checkout_line_quantity == order_line.quantity
+    assert checkout_line_variant == order_line.variant
+    assert order.shipping_address is None
+    assert order.shipping_method is None
+    assert order.payments.exists()
+    order_payment = order.payments.first()
+    assert order_payment == payment
+    assert payment.transactions.count() == 1
+
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"
