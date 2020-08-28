@@ -110,8 +110,11 @@ class PluginsManager(PaymentInterface):
             discount=checkout.discount,
             currency=checkout.currency,
         )
-        return self.__run_method_on_plugins(
-            "calculate_checkout_total", default_value, checkout, lines, discounts
+        return quantize_price(
+            self.__run_method_on_plugins(
+                "calculate_checkout_total", default_value, checkout, lines, discounts
+            ),
+            checkout.currency,
         )
 
     def calculate_checkout_subtotal(
@@ -126,8 +129,11 @@ class PluginsManager(PaymentInterface):
         default_value = base_calculations.base_checkout_subtotal(
             line_totals, checkout.currency
         )
-        return self.__run_method_on_plugins(
-            "calculate_checkout_subtotal", default_value, checkout, lines, discounts
+        return quantize_price(
+            self.__run_method_on_plugins(
+                "calculate_checkout_subtotal", default_value, checkout, lines, discounts
+            ),
+            checkout.currency,
         )
 
     def calculate_checkout_shipping(
@@ -137,8 +143,11 @@ class PluginsManager(PaymentInterface):
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         default_value = base_calculations.base_checkout_shipping_price(checkout, lines)
-        return self.__run_method_on_plugins(
-            "calculate_checkout_shipping", default_value, checkout, lines, discounts
+        return quantize_price(
+            self.__run_method_on_plugins(
+                "calculate_checkout_shipping", default_value, checkout, lines, discounts
+            ),
+            checkout.currency,
         )
 
     def calculate_order_shipping(self, order: "Order") -> TaxedMoney:
@@ -149,8 +158,11 @@ class PluginsManager(PaymentInterface):
             TaxedMoney(net=shipping_price, gross=shipping_price),
             shipping_price.currency,
         )
-        return self.__run_method_on_plugins(
-            "calculate_order_shipping", default_value, order
+        return quantize_price(
+            self.__run_method_on_plugins(
+                "calculate_order_shipping", default_value, order
+            ),
+            order.currency,
         )
 
     def calculate_checkout_line_total(
@@ -159,15 +171,21 @@ class PluginsManager(PaymentInterface):
         default_value = base_calculations.base_checkout_line_total(
             checkout_line, discounts
         )
-        return self.__run_method_on_plugins(
-            "calculate_checkout_line_total", default_value, checkout_line, discounts
+        return quantize_price(
+            self.__run_method_on_plugins(
+                "calculate_checkout_line_total", default_value, checkout_line, discounts
+            ),
+            checkout_line.checkout.currency,
         )
 
     def calculate_order_line_unit(self, order_line: "OrderLine") -> TaxedMoney:
         unit_price = order_line.unit_price
         default_value = quantize_price(unit_price, unit_price.currency)
-        return self.__run_method_on_plugins(
-            "calculate_order_line_unit", default_value, order_line
+        return quantize_price(
+            self.__run_method_on_plugins(
+                "calculate_order_line_unit", default_value, order_line
+            ),
+            order_line.currency,
         )
 
     def get_tax_rate_type_choices(self) -> List[TaxType]:
@@ -184,8 +202,11 @@ class PluginsManager(PaymentInterface):
         default_value = quantize_price(
             TaxedMoney(net=price, gross=price), price.currency
         )
-        return self.__run_method_on_plugins(
-            "apply_taxes_to_product", default_value, product, price, country
+        return quantize_price(
+            self.__run_method_on_plugins(
+                "apply_taxes_to_product", default_value, product, price, country
+            ),
+            price.currency,
         )
 
     def apply_taxes_to_shipping(
@@ -194,8 +215,11 @@ class PluginsManager(PaymentInterface):
         default_value = quantize_price(
             TaxedMoney(net=price, gross=price), price.currency
         )
-        return self.__run_method_on_plugins(
-            "apply_taxes_to_shipping", default_value, price, shipping_address
+        return quantize_price(
+            self.__run_method_on_plugins(
+                "apply_taxes_to_shipping", default_value, price, shipping_address
+            ),
+            price.currency,
         )
 
     def apply_taxes_to_shipping_price_range(self, prices: MoneyRange, country: Country):
@@ -204,8 +228,11 @@ class PluginsManager(PaymentInterface):
         default_value = quantize_price(
             TaxedMoneyRange(start=start, stop=stop), start.currency
         )
-        return self.__run_method_on_plugins(
-            "apply_taxes_to_shipping_price_range", default_value, prices, country
+        return quantize_price(
+            self.__run_method_on_plugins(
+                "apply_taxes_to_shipping_price_range", default_value, prices, country
+            ),
+            start.currency,
         )
 
     def preprocess_order_creation(

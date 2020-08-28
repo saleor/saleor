@@ -35,12 +35,13 @@ def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity:
     If so - returns None. If there is less stock then required raise InsufficientStock
     exception.
     """
-    stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
-    if not stocks:
-        raise InsufficientStock(variant)
+    if variant.track_inventory:
+        stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
+        if not stocks:
+            raise InsufficientStock(variant)
 
-    if variant.track_inventory and quantity > _get_available_quantity(stocks):
-        raise InsufficientStock(variant)
+        if quantity > _get_available_quantity(stocks):
+            raise InsufficientStock(variant)
 
 
 def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:
