@@ -420,9 +420,17 @@ def test_product_channel_listing_update_update_publication_data(
 
 
 def test_product_channel_listing_update_remove_channel(
-    staff_api_client, product, permission_manage_products, channel_USD
+    staff_api_client,
+    product_available_in_many_channels,
+    permission_manage_products,
+    channel_USD,
+    channel_PLN,
 ):
     # given
+    product = product_available_in_many_channels
+    product_channel_listing_pln = product.channel_listing.get(channel=channel_PLN)
+    variant = product.variants.get()
+    variant_channel_listing_pln = variant.channel_listing.get(channel=channel_PLN)
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -443,7 +451,9 @@ def test_product_channel_listing_update_remove_channel(
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert len(product_data["channelListing"]) == 0
+    assert len(product_data["channelListing"]) == 1
+    assert product.channel_listing.get() == product_channel_listing_pln
+    assert variant.channel_listing.get() == variant_channel_listing_pln
 
 
 def test_product_channel_listing_update_remove_not_assigned_channel(
