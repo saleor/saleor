@@ -14,7 +14,7 @@ from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from saleor.plugins.manager import get_plugins_manager
 from saleor.plugins.models import PluginConfiguration
 from saleor.product.models import Product, AssignedProductAttribute, \
-    AttributeValue, ProductImage
+    AttributeValue, ProductImage, ProductVariant
 
 
 @dataclass
@@ -810,6 +810,10 @@ class AllegroProductMapper:
         self.product['parameters'] = parameters
         return self
 
+    def set_external(self, sku):
+        self.product['external']['id'] = sku
+        return self
+
     def run_mapper(self):
         self.set_implied_warranty('59f8273f-6dff-4242-a6c2-60dd385e9525')
         self.set_return_policy('8b0ecc6b-8812-4b0f-b8a4-a0b56585c403')
@@ -852,5 +856,5 @@ class AllegroProductMapper:
         self.set_publication_republish('False')
 
         self.set_parameters(self.saleor_parameters)
-
+        self.set_external(str(ProductVariant.objects.filter(product=self.saleor_product).first()))
         return self.product
