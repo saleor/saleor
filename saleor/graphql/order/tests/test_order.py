@@ -100,6 +100,19 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
                             variant {
                                 id
                             }
+                            quantity
+                            unitPrice {
+                                currency
+                                gross {
+                                    amount
+                                }
+                            }
+                            totalPrice {
+                                currency
+                                gross {
+                                    amount
+                                }
+                            }
                         }
                     }
                 }
@@ -116,6 +129,19 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
     assert order_data["lines"][0]["thumbnail"] is None
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
     assert order_data["lines"][0]["variant"]["id"] == variant_id
+    assert order_data["lines"][0]["quantity"] == line.quantity
+    assert order_data["lines"][0]["unitPrice"]["currency"] == line.unit_price.currency
+    expected_unit_price = Money(
+        amount=str(order_data["lines"][0]["unitPrice"]["gross"]["amount"]),
+        currency="USD",
+    )
+    assert order_data["lines"][0]["totalPrice"]["currency"] == line.unit_price.currency
+    assert expected_unit_price == line.unit_price.gross
+    expected_total_price = Money(
+        amount=str(order_data["lines"][0]["totalPrice"]["gross"]["amount"]),
+        currency="USD",
+    )
+    assert expected_total_price == line.unit_price.gross * line.quantity
 
 
 def test_order_query(
