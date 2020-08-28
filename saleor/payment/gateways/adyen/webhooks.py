@@ -614,7 +614,6 @@ def handle_additional_actions(
             "Cannot perform payment. "
             "There is no active adyen payment with specified checkout."
         )
-
     extra_data = json.loads(payment.extra_data)
     data = extra_data[-1] if isinstance(extra_data, list) else extra_data
 
@@ -628,6 +627,7 @@ def handle_additional_actions(
     try:
         request_data = prepare_api_request_data(request, data)
     except KeyError as e:
+
         return HttpResponseBadRequest(e.args[0])
     try:
         result = api_call(request_data, payment_details)
@@ -655,8 +655,9 @@ def prepare_api_request_data(request: WSGIRequest, data: dict):
         request_data = request.POST
 
     if not request_data:
+        ss = json.dumps(data)
         raise KeyError(
-            "Cannot perform payment. Lack of required parameters in request."
+            "Cannot perform payment. Lack of required parameters in request. %s" % ss
         )
 
     api_request_data = {
