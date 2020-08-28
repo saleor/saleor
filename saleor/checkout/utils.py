@@ -702,9 +702,7 @@ def get_order(checkout_token: UUID) -> Optional[Order]:
 
 
 @transaction.atomic
-def create_order(
-    *, checkout: Checkout, order_data: dict, user: User  # type: ignore
-) -> Order:
+def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     """Create an order from the checkout.
 
     Each order will get a private copy of both the billing and the shipping
