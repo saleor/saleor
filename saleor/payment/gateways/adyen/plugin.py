@@ -192,10 +192,10 @@ class AdyenGatewayPlugin(BasePlugin):
         )
         api_key = self.config.connection_params["api_key"]
 
-        live_endoint = self.config.connection_params["live"] or None
-        platform = "live" if live_endoint else "test"
+        live_endpoint = self.config.connection_params["live"] or None
+        platform = "live" if live_endpoint else "test"
         self.adyen = Adyen.Adyen(
-            xapikey=api_key, live_endpoint_prefix=live_endoint, platform=platform
+            xapikey=api_key, live_endpoint_prefix=live_endpoint, platform=platform
         )
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:

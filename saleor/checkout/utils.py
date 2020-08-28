@@ -615,11 +615,11 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
     unit_price = quantize_price(
         total_line_price / checkout_line.quantity, total_line_price.currency
     )
-    tax_rate = (
-        unit_price.tax / unit_price.net
-        if not isinstance(unit_price, Decimal)
-        else Decimal("0.0")
-    )
+    tax_rate = Decimal("0.0")
+    # The condition will return False when unit_price.gross is 0.0
+    if not isinstance(unit_price, Decimal) and unit_price.gross:
+        tax_rate = unit_price.tax / unit_price.net
+
     line = OrderLine(
         product_name=product_name,
         variant_name=variant_name,
