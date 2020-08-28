@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-from .....graphql.csv.enums import ProductFieldEnum
 from .....product.models import Attribute, Product, ProductImage, VariantImage
 from .....warehouse.models import Warehouse
 from ....utils.products_data import (
@@ -21,7 +20,8 @@ def test_get_products_relations_data(prepare_products_data_mocked, product_list)
     # given
     qs = Product.objects.all()
     export_fields = {
-        "collections__slug" "images__image",
+        "collections__slug",
+        "images__image",
         "name",
         "description",
     }
@@ -32,8 +32,15 @@ def test_get_products_relations_data(prepare_products_data_mocked, product_list)
     get_products_relations_data(qs, export_fields, attribute_ids, channel_ids)
 
     # then
-    prepare_products_data_mocked.called_once_with(
-        qs, {"collections__slug", "images__image"}, attribute_ids, channel_ids
+    assert prepare_products_data_mocked.call_count == 1
+    args, kwargs = prepare_products_data_mocked.call_args
+    assert set(args[0].values_list("pk", flat=True)) == set(
+        qs.values_list("pk", flat=True)
+    )
+    assert args[1:] == (
+        {"collections__slug", "images__image"},
+        attribute_ids,
+        channel_ids,
     )
 
 
@@ -68,7 +75,13 @@ def test_get_products_relations_data_attribute_ids(
     get_products_relations_data(qs, export_fields, attribute_ids, channel_ids)
 
     # then
-    prepare_products_data_mocked.called_once_with(qs, {}, attribute_ids)
+    # then
+    assert prepare_products_data_mocked.call_count == 1
+    args, kwargs = prepare_products_data_mocked.call_args
+    assert set(args[0].values_list("pk", flat=True)) == set(
+        qs.values_list("pk", flat=True)
+    )
+    assert args[1:] == (set(), attribute_ids, channel_ids)
 
 
 def test_prepare_products_relations_data(product_with_image, collection_list):
@@ -181,9 +194,13 @@ def test_get_variants_relations_data(prepare_variants_data_mocked, product_list)
     )
 
     # then
-    prepare_variants_data_mocked.called_once_with(
-        qs,
-        {ProductFieldEnum.VARIANT_IMAGES.value},
+    assert prepare_variants_data_mocked.call_count == 1
+    args, kwargs = prepare_variants_data_mocked.call_args
+    assert set(args[0].values_list("pk", flat=True)) == set(
+        qs.values_list("pk", flat=True)
+    )
+    assert args[1:] == (
+        {"variants__images__image"},
         attribute_ids,
         warehouse_ids,
         channel_ids,
@@ -227,9 +244,12 @@ def test_get_variants_relations_data_attribute_ids(
     )
 
     # then
-    prepare_variants_data_mocked.called_once_with(
-        qs, {}, attribute_ids, warehouse_ids, channel_ids
+    assert prepare_variants_data_mocked.call_count == 1
+    args, kwargs = prepare_variants_data_mocked.call_args
+    assert set(args[0].values_list("pk", flat=True)) == set(
+        qs.values_list("pk", flat=True)
     )
+    assert args[1:] == (set(), attribute_ids, warehouse_ids, channel_ids)
 
 
 @patch("saleor.csv.utils.products_data.prepare_variants_relations_data")
@@ -249,7 +269,12 @@ def test_get_variants_relations_data_warehouse_ids(
     )
 
     # then
-    prepare_variants_data_mocked.called_once_with(qs, {}, attribute_ids, warehouse_ids)
+    assert prepare_variants_data_mocked.call_count == 1
+    args, kwargs = prepare_variants_data_mocked.call_args
+    assert set(args[0].values_list("pk", flat=True)) == set(
+        qs.values_list("pk", flat=True)
+    )
+    assert args[1:] == (set(), attribute_ids, warehouse_ids, channel_ids)
 
 
 @patch("saleor.csv.utils.products_data.prepare_variants_relations_data")
@@ -269,9 +294,12 @@ def test_get_variants_relations_data_attributes_and_warehouses_ids(
     )
 
     # then
-    prepare_variants_data_mocked.called_once_with(
-        qs, {}, attribute_ids, warehouse_ids, channel_ids
+    assert prepare_variants_data_mocked.call_count == 1
+    args, kwargs = prepare_variants_data_mocked.call_args
+    assert set(args[0].values_list("pk", flat=True)) == set(
+        qs.values_list("pk", flat=True)
     )
+    assert args[1:] == (set(), attribute_ids, warehouse_ids, channel_ids)
 
 
 def test_prepare_variants_relations_data(
