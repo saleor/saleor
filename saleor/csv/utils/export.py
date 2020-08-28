@@ -105,6 +105,7 @@ def export_products_in_batches(
 ):
     warehouses = export_info.get("warehouses")
     attributes = export_info.get("attributes")
+    channels = export_info.get("channels")
 
     for batch_pks in queryset_in_batches(queryset):
         product_batch = Product.objects.filter(pk__in=batch_pks).prefetch_related(
@@ -117,7 +118,7 @@ def export_products_in_batches(
         )
 
         export_data = get_products_data(
-            product_batch, export_fields, attributes, warehouses
+            product_batch, export_fields, attributes, warehouses, channels
         )
 
         append_to_file(export_data, headers, temporary_file, file_type, delimiter)

@@ -1,3 +1,4 @@
+from .....channel.models import Channel
 from .....graphql.csv.enums import ProductFieldEnum
 from .....product.models import Attribute
 from ....utils.products_data import (
@@ -183,9 +184,13 @@ def test_get_channels_headers(channel_USD, channel_PLN):
         f"{channel_pln_slug} (channel currency code)",
         f"{channel_pln_slug} (channel published)",
         f"{channel_pln_slug} (channel publication date)",
+        f"{channel_pln_slug} (channel price amount)",
+        f"{channel_pln_slug} (channel currency)",
         f"{channel_usd_slug} (channel currency code)",
         f"{channel_usd_slug} (channel published)",
         f"{channel_usd_slug} (channel publication date)",
+        f"{channel_usd_slug} (channel price amount)",
+        f"{channel_usd_slug} (channel currency)",
     ]
 
 
@@ -201,11 +206,12 @@ def test_get_channels_headers_lack_of_channel_ids():
 
 
 def test_get_export_fields_and_headers_info(
-    warehouses, product_with_multiple_values_attributes
+    warehouses, product_with_multiple_values_attributes, channel_PLN, channel_USD
 ):
     # given
     warehouse_ids = [w.pk for w in warehouses]
     attribute_ids = [attr.pk for attr in Attribute.objects.all()]
+    channel_ids = [channel_PLN.pk, channel_USD.pk]
     export_info = {
         "fields": [
             ProductFieldEnum.COST_PRICE.value,
@@ -214,6 +220,7 @@ def test_get_export_fields_and_headers_info(
         ],
         "warehouses": warehouse_ids,
         "attributes": attribute_ids,
+        "channels": channel_ids,
     }
 
     expected_file_headers = [
@@ -247,11 +254,31 @@ def test_get_export_fields_and_headers_info(
             variant_headers.append(f"{attr.slug} (variant attribute)")
 
     warehouse_headers = [f"{w.slug} (warehouse quantity)" for w in warehouses]
+
+    channel_headers = []
+    for channel in Channel.objects.all().order_by("slug"):
+        slug = channel.slug
+        channel_headers.extend(
+            [
+                f"{slug} (channel currency code)",
+                f"{slug} (channel published)",
+                f"{slug} (channel publication date)",
+                f"{slug} (channel price amount)",
+                f"{slug} (channel currency)",
+            ]
+        )
+
     excepted_headers = (
-        expected_fields + product_headers + variant_headers + warehouse_headers
+        expected_fields
+        + product_headers
+        + variant_headers
+        + warehouse_headers
+        + channel_headers
     )
 
-    expected_file_headers += product_headers + variant_headers + warehouse_headers
+    expected_file_headers += (
+        product_headers + variant_headers + warehouse_headers + channel_headers
+    )
 
     assert expected_file_headers == file_headers
     assert set(export_fields) == set(expected_fields)

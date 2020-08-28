@@ -28,6 +28,7 @@ def test_get_products_data(product, product_with_image, collection, image):
     )
     warehouse_ids = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()]
+    channel_ids = []
 
     variants = []
     for variant in product.variants.all():
@@ -46,7 +47,7 @@ def test_get_products_data(product, product_with_image, collection, image):
 
     # when
     result_data = get_products_data(
-        products, export_fields, attribute_ids, warehouse_ids
+        products, export_fields, attribute_ids, warehouse_ids, channel_ids
     )
 
     # then
@@ -115,9 +116,13 @@ def test_get_products_data_for_specified_attributes(
     products = Product.objects.all()
     export_fields = {"id", "variants__sku"}
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()][:1]
+    warehouse_ids = []
+    channel_ids = []
 
     # when
-    result_data = get_products_data(products, export_fields, attribute_ids, [])
+    result_data = get_products_data(
+        products, export_fields, attribute_ids, warehouse_ids, channel_ids
+    )
 
     # then
     expected_data = []
@@ -151,10 +156,11 @@ def test_get_products_data_for_specified_warehouses(
     export_fields = {"id", "variants__sku"}
     warehouse_ids = [str(warehouse.pk) for warehouse in Warehouse.objects.all()][:2]
     attribute_ids = []
+    channel_ids = []
 
     # when
     result_data = get_products_data(
-        products, export_fields, attribute_ids, warehouse_ids
+        products, export_fields, attribute_ids, warehouse_ids, channel_ids
     )
 
     # then
@@ -187,10 +193,11 @@ def test_get_products_data_for_specified_warehouses_and_attributes(
     export_fields = {"id", "variants__sku"}
     warehouse_ids = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()]
+    channel_ids = []
 
     # when
     result_data = get_products_data(
-        products, export_fields, attribute_ids, warehouse_ids
+        products, export_fields, attribute_ids, warehouse_ids, channel_ids
     )
 
     # then
