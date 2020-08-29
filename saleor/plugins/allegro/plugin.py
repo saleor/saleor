@@ -1,4 +1,5 @@
 import json
+import re
 import uuid
 import webbrowser
 from collections import defaultdict
@@ -871,6 +872,29 @@ class AllegroProductMapper:
         self.product['external']['id'] = sku
         return self
 
+    def calculate_name_lenght(self, name):
+        name_length = len(name.strip())
+        if '&' in name:
+            name_length += 4
+        return name_length
+
+    def prepare_name(self, name):
+        if self.calculate_name_lenght(name) > 50:
+            name = re.sub(
+                "NIEMOWLĘC(A|E|Y)|DZIECIĘC(A|E|Y)|DAMSK(A|I)E?|MĘSK(A|I)E?|INN(E|Y)",
+                " ", name)
+            name = re.sub("\s{3}", " ", name)
+            if self.calculate_name_lenght(name) > 50:
+                name = re.sub("\sROZM.*$", "", name)
+            if self.calculate_name_lenght(name) > 50:
+                name = re.sub("\s\w+$", "", name)
+            if self.calculate_name_lenght(name) > 50:
+                return self.prepare_name(name)
+            return name
+        else:
+            return name
+
+
     def run_mapper(self):
         self.set_implied_warranty('59f8273f-6dff-4242-a6c2-60dd385e9525')
         self.set_return_policy('8b0ecc6b-8812-4b0f-b8a4-a0b56585c403')
@@ -896,7 +920,7 @@ class AllegroProductMapper:
 
         # TODO: zmienic na product_variant_stock.product_variant.currency
         self.set_starting_price_currency('PLN')
-        self.set_name(self.saleor_product.name)
+        self.set_name(self.prepare_name(self.saleor_product.name))
         self.set_images(self.saleor_images)
 
         self.set_description(self.saleor_product.plain_text_description)
