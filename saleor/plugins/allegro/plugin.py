@@ -89,13 +89,13 @@ class AllegroPlugin(BasePlugin):
         },
         "auth_env": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "Adres do środowiska.",
-            "label": "Adres do środowiska:",
+            "help_text": "Adres do środowiska allegro.pl.",
+            "label": "Adres do środowiska allegro.pl:",
         },
         "env": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "Adres do środowiska.",
-            "label": "Adres do środowiska:",
+            "help_text": "Adres do środowiska api.allegro.pl.",
+            "label": "Adres do środowiska api.allegro.pl:",
         }
     }
 
@@ -118,7 +118,7 @@ class AllegroPlugin(BasePlugin):
         HOURS_LESS_THAN_WE_REFRESH_TOKEN = 6
 
         if self.config.token_access and self.calculate_hours_to_token_expire() < HOURS_LESS_THAN_WE_REFRESH_TOKEN:
-            access_token, refresh_token, expires_in = AllegroAPI(self.config.token_access).refresh_token(self.config.refresh_token, self.config.client_id, self.config.client_secret, self.config.saleor_redirect_url) or (None, None, None)
+            access_token, refresh_token, expires_in = AllegroAPI(self.config.token_access).refresh_token(self.config.refresh_token, self.config.client_id, self.config.client_secret, self.config.saleor_redirect_url, self.config.auth_env) or (None, None, None)
             if access_token and refresh_token and expires_in is not None:
                 AllegroAuth.save_token_in_plugin_configuration(AllegroAuth, access_token, refresh_token, expires_in)
 
@@ -252,7 +252,7 @@ class AllegroAPI:
         self.token = token
 
 
-    def refresh_token(self, refresh_token, client_id, client_secret, saleor_redirect_url):
+    def refresh_token(self, refresh_token, client_id, client_secret, saleor_redirect_url, url_env):
 
         endpoint = 'auth/oauth/token?grant_type=refresh_token&refresh_token=' + refresh_token + '&redirect_uri=' + str(saleor_redirect_url)
 
@@ -263,7 +263,7 @@ class AllegroAPI:
         }
 
         response = self.auth_request(endpoint=endpoint, data=data, client_id=client_id,
-                                     client_secret=client_secret)
+                                     client_secret=client_secret, url_env=url_env)
 
         if response.status_code is 200:
             return json.loads(response.text)['access_token'], json.loads(response.text)['refresh_token'], json.loads(response.text)['expires_in']
@@ -382,11 +382,11 @@ class AllegroAPI:
 
         return response
 
-    def auth_request(self, endpoint, data, client_id, client_secret):
+    def auth_request(self, endpoint, data, client_id, client_secret, url_env):
 
-        config = self.get_plugin_configuration()
-        env = config.get('auth_env')
-        url = env + '/' + endpoint
+        # config = self.get_plugin_configuration()
+        # env = config.get('auth_env')
+        url = url_env + '/' + endpoint
 
         response = requests.post(url, auth=requests.auth.HTTPBasicAuth(client_id,
                                                                        client_secret),
