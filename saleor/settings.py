@@ -514,6 +514,7 @@ PLUGINS = [
     "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
     "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
     "saleor.plugins.allegro.plugin.AllegroPlugin",
+    "saleor.plugins.sumi.plugin.SumiPlugin",
 ]
 
 # Plugin discovery
