@@ -119,9 +119,9 @@ class SumiPlugin(BasePlugin):
                 product_variant_stock.product_variant) + ' wynosi 0'}
 
     @staticmethod
-    def update_reservation_status_in_metadata(product, status):
-        # product.store_value_in_metadata({'reserved': status})
-        # product.save(update_fields=["metadata"])
+    def update_reservation_status_in_metadata(product_variant, status):
+        # product_variant.store_value_in_metadata({'reserved': status})
+        # product_variant.save(update_fields=["metadata"])
         pass
 
     @staticmethod
