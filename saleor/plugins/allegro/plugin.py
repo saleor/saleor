@@ -878,18 +878,23 @@ class AllegroProductMapper:
             name_length += 4
         return name_length
 
+    def remove_last_word(self, name):
+        name = re.sub("\s\w+$", "", name)
+        if self.calculate_name_lenght(name) > 50:
+            return self.remove_last_word(name)
+        else:
+            return name
+
     def prepare_name(self, name):
         if self.calculate_name_lenght(name) > 50:
             name = re.sub(
-                "NIEMOWLĘC(A|E|Y)|DZIECIĘC(A|E|Y)|DAMSK(A|I)E?|MĘSK(A|I)E?|INN(E|Y)",
-                " ", name)
+                "NIEMOWLĘC(A|E|Y)|DZIECIĘC(A|E|Y)|DAMSK(A|I)E?|MĘSK(A|I)E?|INN(A|E|Y)",
+                "", name)
             name = re.sub("\s{3}", " ", name)
             if self.calculate_name_lenght(name) > 50:
                 name = re.sub("\sROZM.*$", "", name)
             if self.calculate_name_lenght(name) > 50:
-                name = re.sub("\s\w+$", "", name)
-            if self.calculate_name_lenght(name) > 50:
-                return self.prepare_name(name)
+                name = self.remove_last_word(name)
             return name
         else:
             return name
