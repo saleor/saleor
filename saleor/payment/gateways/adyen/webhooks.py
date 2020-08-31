@@ -655,9 +655,8 @@ def prepare_api_request_data(request: WSGIRequest, data: dict):
         request_data = request.POST
 
     if not request_data:
-        ss = json.dumps(data)
         raise KeyError(
-            "Cannot perform payment. Lack of required parameters in request. %s" % ss
+            "Cannot perform payment. Lack of required parameters in request."
         )
 
     api_request_data = {
