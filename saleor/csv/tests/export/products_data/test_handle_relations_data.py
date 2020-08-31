@@ -5,6 +5,7 @@ from .....warehouse.models import Warehouse
 from ....utils.products_data import (
     ProductExportFields,
     add_attribute_info_to_data,
+    add_channel_info_to_data,
     add_collection_info_to_data,
     add_image_uris_to_data,
     add_warehouse_info_to_data,
@@ -211,6 +212,42 @@ def test_prepare_products_relations_data_only_attributes_ids(
     if assigned_attribute:
         header = f"{assigned_attribute.attribute.slug} (product attribute)"
         expected_result[pk][header] = assigned_attribute.values.first().slug
+
+    assert result == expected_result
+
+
+def test_prepare_products_relations_data_only_channel_ids(
+    product_with_image, collection_list, channel_PLN, channel_USD
+):
+    # given
+    pk = product_with_image.pk
+    collection_list[0].products.add(product_with_image)
+    collection_list[1].products.add(product_with_image)
+    qs = Product.objects.all()
+    fields = {"name"}
+    attribute_ids = []
+    channel_ids = [str(channel_PLN.pk), str(channel_USD.pk)]
+
+    # when
+    result = prepare_products_relations_data(qs, fields, attribute_ids, channel_ids)
+
+    # then
+    expected_result = {pk: {}}
+
+    for channel_listing in product_with_image.channel_listing.all():
+        if channel_listing.channel in [channel_PLN, channel_USD]:
+            channel_slug = channel_listing.channel.slug
+            for lookup, field in [
+                ("currency_code", "currency code"),
+                ("is_published", "published"),
+                ("publication_date", "publication date"),
+            ]:
+                header = f"{channel_slug} (channel {field})"
+                if lookup == "currency_code":
+                    value = getattr(channel_listing.channel, lookup)
+                else:
+                    value = getattr(channel_listing, lookup)
+                expected_result[pk][header] = value
 
     assert result == expected_result
 
@@ -766,6 +803,71 @@ def test_add_warehouse_info_to_data_data_no_slug(product):
 
     # when
     result = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
+
+    # then
+    assert result == input_data
+
+
+def test_add_channel_info_to_data(product):
+    # given
+    pk = product.pk
+    slug = "test_channel"
+    channel_data = {
+        "slug": slug,
+        "currency_code": "USD",
+        "published": True,
+    }
+    input_data = {pk: {}}
+    fields = ["currency_code", "published"]
+
+    # when
+    result = add_channel_info_to_data(product.pk, channel_data, input_data, fields)
+
+    # then
+    assert len(result[pk]) == 2
+    assert (
+        result[pk][f"{slug} (channel currency code)"] == channel_data["currency_code"]
+    )
+    assert result[pk][f"{slug} (channel published)"] == channel_data["published"]
+
+
+def test_add_channel_info_to_data_not_changed(product):
+    # given
+    pk = product.pk
+    slug = "test_channel"
+    channel_data = {
+        "slug": slug,
+        "currency_code": "USD",
+        "published": False,
+    }
+    input_data = {
+        pk: {
+            f"{slug} (channel currency code)": "PLN",
+            f"{slug} (channel published)": True,
+        }
+    }
+    fields = ["currency_code", "published"]
+
+    # when
+    result = add_channel_info_to_data(product.pk, channel_data, input_data, fields)
+
+    # then
+    assert result == input_data
+
+
+def test_add_channel_info_to_data_no_slug(product):
+    # given
+    pk = product.pk
+    channel_data = {
+        "slug": None,
+        "currency_code": None,
+        "published": None,
+    }
+    input_data = {pk: {}}
+    fields = ["currency_code"]
+
+    # when
+    result = add_channel_info_to_data(product.pk, channel_data, input_data, fields)
 
     # then
     assert result == input_data

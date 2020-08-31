@@ -361,7 +361,7 @@ def prepare_products_relations_data(
             channel_data[field] = data.pop(lookup, None)
 
         if channel_ids and channel_pk in channel_ids:
-            result_data = add_product_channel_info_to_data(
+            result_data = add_channel_info_to_data(
                 pk, channel_data, result_data, list(channel_fields.keys())
             )
 
@@ -471,7 +471,7 @@ def prepare_variants_relations_data(
             channel_data[field] = data.pop(lookup, None)
 
         if channel_ids and channel_pk in channel_ids:
-            result_data = add_product_channel_info_to_data(
+            result_data = add_channel_info_to_data(
                 pk, channel_data, result_data, list(channel_fields.keys())
             )
 
@@ -567,7 +567,7 @@ def add_warehouse_info_to_data(
     return result_data
 
 
-def add_product_channel_info_to_data(
+def add_channel_info_to_data(
     pk: int,
     channel_data: Dict[str, Union[Optional[str]]],
     result_data: Dict[int, dict],
