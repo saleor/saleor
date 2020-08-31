@@ -10,31 +10,27 @@ from ..core.taxes import TaxError
 from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountInfo
 from ..discount.models import NotApplicable
-from ..graphql.checkout.utils import (  # TODO move from graphql
-    clean_checkout_payment,
-    clean_checkout_shipping,
-)
 from ..order import models as order_models
 from ..order.models import Order
 from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import store_customer_id
 from . import models
-from .calculations import calculate_checkout_total_with_gift_cards
+from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .error_codes import CheckoutErrorCode
 from .utils import abort_order_data, create_order, get_order, prepare_order_data
 
 
 @transaction.atomic
-def prepare_checkout(checkout: models.Checkout, discounts, tracking_code, redirect_url):
+def prepare_checkout(
+    checkout: models.Checkout, discounts, tracking_code, redirect_url, payment
+):
     lines = list(checkout)
 
     clean_checkout_shipping(checkout, lines, discounts, CheckoutErrorCode)
-    clean_checkout_payment(checkout, lines, discounts, CheckoutErrorCode)
-
-    payment = checkout.get_last_active_payment()
-
-    validate_payment_amount(discounts, payment, checkout)
+    clean_checkout_payment(
+        checkout, lines, discounts, CheckoutErrorCode, last_payment=payment
+    )
 
     if redirect_url:
         try:
@@ -68,16 +64,6 @@ def convert_checkout_to_order(
     # remove checkout after order is successfully created
     checkout.delete()
     return order
-
-
-def validate_payment_amount(discounts, payment, checkout):
-    checkout_total = calculate_checkout_total_with_gift_cards(checkout, discounts)
-    if payment.total != checkout_total.gross.amount:
-        gateway.payment_refund_or_void(payment)
-        raise ValidationError(
-            "Payment does not cover all checkout value.",
-            code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,
-        )
 
 
 def get_order_data(checkout: models.Checkout, discounts: List[DiscountInfo]) -> dict:
@@ -140,14 +126,16 @@ def complete_checkout(
     order = get_order(checkout.token)
     if order:
         return order, action_required, action_data
+
+    payment = checkout.get_last_active_payment()
     prepare_checkout(
         checkout=checkout,
         discounts=discounts,
         tracking_code=tracking_code,
         redirect_url=redirect_url,
+        payment=payment,
     )
 
-    payment = checkout.get_last_active_payment()
     try:
         order_data = get_order_data(checkout, discounts)
     except ValidationError as error:

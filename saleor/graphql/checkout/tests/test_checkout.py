@@ -11,6 +11,10 @@ from prices import Money, TaxedMoney
 
 from ....account.models import User
 from ....checkout import calculations
+from ....checkout.checkout_cleaner import (
+    clean_checkout_payment,
+    clean_checkout_shipping,
+)
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout
 from ....checkout.utils import add_variant_to_checkout
@@ -25,7 +29,6 @@ from ..mutations import (
     clean_shipping_method,
     update_checkout_shipping_method_if_invalid,
 )
-from ..utils import clean_checkout_payment, clean_checkout_shipping
 
 
 def test_clean_shipping_method_after_shipping_address_changes_stay_the_same(
@@ -2116,7 +2119,9 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
     # Shouldn't raise any errors
     lines = list(checkout)
     clean_checkout_shipping(checkout, lines, None, CheckoutErrorCode)
-    clean_checkout_payment(checkout, lines, None, CheckoutErrorCode)
+    clean_checkout_payment(
+        checkout, lines, None, CheckoutErrorCode, last_payment=payment
+    )
 
 
 def test_clean_checkout_no_shipping_method(checkout_with_item, address):
@@ -2166,9 +2171,12 @@ def test_clean_checkout_no_billing_address(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.save()
+    payment = checkout.get_last_active_payment()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout_payment(checkout, list(checkout), None, CheckoutErrorCode)
+        clean_checkout_payment(
+            checkout, list(checkout), None, CheckoutErrorCode, last_payment=payment
+        )
     msg = "Billing address is not set"
     assert e.value.error_dict["billing_address"][0].message == msg
 
@@ -2179,9 +2187,12 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.save()
+    payment = checkout.get_last_active_payment()
 
     with pytest.raises(ValidationError) as e:
-        clean_checkout_payment(checkout, list(checkout), None, CheckoutErrorCode)
+        clean_checkout_payment(
+            checkout, list(checkout), None, CheckoutErrorCode, last_payment=payment
+        )
 
     msg = "Provided payment methods can not cover the checkout's total amount"
     assert e.value.error_list[0].message == msg

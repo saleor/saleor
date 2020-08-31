@@ -741,7 +741,7 @@ def test_checkout_complete_payment_payment_total_different_than_checkout(
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
-    payment.total = total.gross.amount + Decimal(10)
+    payment.total = total.gross.amount - Decimal(10)
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
@@ -750,7 +750,6 @@ def test_checkout_complete_payment_payment_total_different_than_checkout(
     orders_count = Order.objects.count()
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # when
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
