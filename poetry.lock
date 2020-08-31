@@ -913,7 +913,7 @@ description = "Address validation helpers for Google's i18n address database"
 name = "google-i18n-address"
 optional = false
 python-versions = "*"
-version = "2.3.5"
+version = "2.4.0"
 
 [package.dependencies]
 requests = ">=2.7.0"
@@ -2783,8 +2783,8 @@ google-crc32c = [
     {file = "google_crc32c-0.1.0-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:57893cf04cfa924c4e75e9ba29c9878304687bd776f15fb02b6ecdb867d181a3"},
 ]
 google-i18n-address = [
-    {file = "google-i18n-address-2.3.5.tar.gz", hash = "sha256:7c6cd436e9abcdd69ea347d2e440d718019eed55e98b7078051f902a521f6fce"},
-    {file = "google_i18n_address-2.3.5-py2.py3-none-any.whl", hash = "sha256:1350d69e2df80c519b7db25c0056f696dae2b4956cd55c39bd16892cb9015645"},
+    {file = "google-i18n-address-2.4.0.tar.gz", hash = "sha256:8454a58f254a29988b8d1ca9ab663fd28a1f392a3d29b844d8824807db6333d7"},
+    {file = "google_i18n_address-2.4.0-py2.py3-none-any.whl", hash = "sha256:9207bcbeaee4364dd6216295ac8d61d282ed3720e8df0d26b8d8a388ee9ec17f"},
 ]
 google-measurement-protocol = [
     {file = "google-measurement-protocol-1.0.0.tar.gz", hash = "sha256:7618c44b875a0c9e80e6cf55e44ed80c04cf74cd2eff7eacdd76bf9b03029551"},
