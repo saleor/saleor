@@ -550,14 +550,16 @@ class BaseBulkMutation(BaseMutation):
         model_type = registry.get_type_for_model(instance_model)
         instances = cls.get_nodes_or_error(ids, "id", model_type)
 
+        publish_errors = []
         if type(instance_model) == type(Product) and cls == ProductBulkPublish:
-            product_errors = []
             for instance in instances:
                 instance.store_value_in_private_metadata({'publish.allegro.status': 'moderated'})
                 info.context.plugins.product_created(instance)
                 error = instance.get_value_from_private_metadata('publish.allegro.errors')
-                product_errors.append(error)
-            cls.send_mail(product_errors)
+                if error is not None and instance.is_published == False:
+                    publish_errors.append(error)
+            if len(publish_errors) > 0:
+                cls.send_mail(publish_errors)
 
         for instance, node_id in zip(instances, ids):
             instance_errors = []
@@ -581,6 +583,9 @@ class BaseBulkMutation(BaseMutation):
         if errors:
             errors = ValidationError(errors)
         count = len(clean_instance_ids)
+
+        if len(publish_errors) > 0:
+            return count, errors
         if count:
             qs = instance_model.objects.filter(pk__in=clean_instance_ids)
             cls.bulk_action(queryset=qs, **data)

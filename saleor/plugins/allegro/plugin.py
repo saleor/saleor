@@ -165,7 +165,7 @@ class AllegroPlugin(BasePlugin):
         return plugin_configuration
 
     def product_created(self, product: "Product", previous_value: Any) -> Any:
-        if product.get_value_from_private_metadata('publish.allegro.status') == 'moderated':
+        if product.get_value_from_private_metadata('publish.allegro.status') == 'moderated' and product.is_published == False:
             allegro_api = AllegroAPI(self.config.token_value)
             allegro_api.product_publish(saleor_product=product)
 
@@ -267,7 +267,7 @@ class AllegroAPI:
         response = self.auth_request(endpoint=endpoint, data=data, client_id=client_id,
                                      client_secret=client_secret, url_env=url_env)
 
-        if response.status_code is 200:
+        if response.status_code == 200:
             return json.loads(response.text)['access_token'], json.loads(response.text)['refresh_token'], json.loads(response.text)['expires_in']
         else:
             return None
@@ -277,10 +277,9 @@ class AllegroAPI:
         config = self.get_plugin_configuration()
         env = config.get('auth_env')
 
-        if saleor_product.get_value_from_private_metadata('publish.allegro.status') == 'moderated' and saleor_product.is_published is False:
+        if saleor_product.get_value_from_private_metadata('publish.allegro.status') == 'moderated' and saleor_product.get_value_from_private_metadata('publish.allegro.date') == None and saleor_product.is_published == False:
 
-            categoryId = saleor_product.product_type.metadata[
-                'allegro.mapping.categoryId']
+            categoryId = saleor_product.product_type.metadata.get('allegro.mapping.categoryId')
 
             require_parameters = self.get_require_parameters(categoryId)
 
@@ -318,8 +317,7 @@ class AllegroAPI:
 
                 return offer['id']
 
-        if saleor_product.get_value_from_private_metadata('publish.allegro.status') == 'moderated' and saleor_product.is_published is True:
-
+        if saleor_product.get_value_from_private_metadata('publish.allegro.status') == 'moderated' and saleor_product.get_value_from_private_metadata('publish.allegro.date') is not None and saleor_product.is_published == False:
             offerId = saleor_product.private_metadata.get('publish.allegro.id')
             if offerId is not None:
                 offer = self.valid_offer(offerId)
