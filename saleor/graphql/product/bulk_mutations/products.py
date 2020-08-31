@@ -563,7 +563,7 @@ class ProductBulkPublish(BaseBulkMutation):
     def send_mail(cls, errors):
         subject = 'Logi z wystawiania ofert'
         from_email = 'noreply.salingo@gmail.com'
-        to = 'patryk.pazura@gammasoft.pl'
+        to = 'noreply.salingo@gmail.com'
         text_content = 'Logi z wystawiania ofert:'
         html_content = cls.create_table(errors)
         message = EmailMultiAlternatives(subject, text_content, from_email, [to])
