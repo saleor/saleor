@@ -33,9 +33,9 @@ def create_shipping_method_channel_listing(apps, schema_editor):
         ShippingMethodChannelListing.objects.create(
             channel=channel,
             shipping_method=shipping_method,
-            max_value=max_value,
-            min_value=min_value,
-            price=shipping_method.price_amount,
+            maximum_order_price_amount=max_value,
+            minimum_order_price_amount=min_value,
+            price_amount=shipping_method.price_amount,
         )
 
 
