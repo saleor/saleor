@@ -1,8 +1,5 @@
-import datetime
-
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Q
 from graphene.types import InputObjectType
 
 from ....account.models import User
@@ -20,7 +17,7 @@ from ....order.utils import (
     recalculate_order,
     update_order_prices,
 )
-from ....product.models import ProductChannelListing
+from ....product import models as product_models
 from ....warehouse.management import allocate_stock
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
@@ -93,9 +90,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     def validate_product_is_published_in_channel(
         cls, info, instance, variants, channel_id
     ):
-        channel = instance.channel_id
+        channel = instance.channel if hasattr(instance, "channel") else None
         if not channel and channel_id:
-            channel = cls.get_node_or_error(info, channel_id, only_type=Channel).id
+            channel = cls.get_node_or_error(info, channel_id, only_type=Channel)
 
         if not channel:
             raise ValidationError(
@@ -107,13 +104,15 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 }
             )
         variant_ids = [variant.id for variant in variants]
-        today = datetime.date.today()
-        unpublished_variants = ProductChannelListing.objects.filter(
-            Q(product__variants__id__in=variant_ids),
-            Q(channel__id=channel),
-            Q(is_published=False) | Q(publication_date__gte=today),
-        ).values_list("product__variants__id", flat=True)
-        if unpublished_variants:
+        unpublished_product = list(
+            product_models.Product.objects.filter(
+                variants__id__in=variant_ids
+            ).not_published(channel.slug)
+        )
+        if unpublished_product:
+            unpublished_variants = product_models.ProductVariant.objects.filter(
+                product_id__in=unpublished_product
+            ).values_list("pk", flat=True)
             unpublished_variants_global_ids = [
                 graphene.Node.to_global_id("ProductVariant", unpublished_variant)
                 for unpublished_variant in unpublished_variants
