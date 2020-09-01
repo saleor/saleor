@@ -553,11 +553,10 @@ description = "An international phone number field for django models."
 name = "django-phonenumber-field"
 optional = false
 python-versions = ">=3.5"
-version = "4.0.0"
+version = "5.0.0"
 
 [package.dependencies]
-Django = ">=1.11.3"
-babel = "*"
+Django = ">=2.2"
 
 [package.extras]
 phonenumbers = ["phonenumbers (>=7.0.2)"]
@@ -2415,7 +2414,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "5cfe03b3873fd74f01859bbc03864f1ad062e8731860d01d944ffc3111ed29cd"
+content-hash = "75085e89ff971b7ca703fbf9e65484ca6a50c1f36297d23236c83a6e1311b892"
 lock-version = "1.0"
 python-versions = "~3.8"
 
@@ -2662,8 +2661,8 @@ django-mptt = [
     {file = "django_mptt-0.11.0-py2.py3-none-any.whl", hash = "sha256:90eb236eb4f1a92124bd7c37852bbe09c0d21158477cc237556d59842a91c509"},
 ]
 django-phonenumber-field = [
-    {file = "django-phonenumber-field-4.0.0.tar.gz", hash = "sha256:d4580cc3352f4433962825f9927e6669852c1b40ec484fcb5a74064dabc1201a"},
-    {file = "django_phonenumber_field-4.0.0-py3-none-any.whl", hash = "sha256:2ca3bb0ada0ebc164bd903a981a34f1202a4294006e520b0da961bd7ce9f20a4"},
+    {file = "django-phonenumber-field-5.0.0.tar.gz", hash = "sha256:1eb7af3a108744665f7c3939d38aa15b3728c57d13d45d656b0a2aa11e8cdc3c"},
+    {file = "django_phonenumber_field-5.0.0-py3-none-any.whl", hash = "sha256:adb46905cc4ecb19d8494424e1c4352f24946bb472340a2a17257d44bf8228e6"},
 ]
 django-prices = [
     {file = "django-prices-2.2.0.tar.gz", hash = "sha256:cdbea06db683c589d4cf3ec48d4b2385000ddc4df6e641f48cea563e19f645a3"},
