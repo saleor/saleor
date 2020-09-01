@@ -180,18 +180,18 @@ def test_get_channels_headers(channel_USD, channel_PLN):
     channel_headers = get_channels_headers(export_info)
 
     # then
-    assert channel_headers == [
-        f"{channel_pln_slug} (channel currency code)",
-        f"{channel_pln_slug} (channel published)",
-        f"{channel_pln_slug} (channel publication date)",
-        f"{channel_pln_slug} (channel price amount)",
-        f"{channel_pln_slug} (channel currency)",
-        f"{channel_usd_slug} (channel currency code)",
-        f"{channel_usd_slug} (channel published)",
-        f"{channel_usd_slug} (channel publication date)",
-        f"{channel_usd_slug} (channel price amount)",
-        f"{channel_usd_slug} (channel currency)",
-    ]
+    expected_headers = []
+    for channel_slug in [channel_pln_slug, channel_usd_slug]:
+        for field in [
+            "currency code",
+            "published",
+            "publication date",
+            "price amount",
+            "currency",
+        ]:
+            expected_headers.append(f"{channel_slug} (channel {field})")
+
+    assert channel_headers == expected_headers
 
 
 def test_get_channels_headers_lack_of_channel_ids():
@@ -258,15 +258,14 @@ def test_get_export_fields_and_headers_info(
     channel_headers = []
     for channel in Channel.objects.all().order_by("slug"):
         slug = channel.slug
-        channel_headers.extend(
-            [
-                f"{slug} (channel currency code)",
-                f"{slug} (channel published)",
-                f"{slug} (channel publication date)",
-                f"{slug} (channel price amount)",
-                f"{slug} (channel currency)",
-            ]
-        )
+        for field in [
+            "currency code",
+            "published",
+            "publication date",
+            "price amount",
+            "currency",
+        ]:
+            channel_headers.append(f"{slug} (channel {field})")
 
     excepted_headers = (
         expected_fields
