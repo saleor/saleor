@@ -20,7 +20,7 @@ from ...search.backends import picker
 from ...warehouse.models import Stock
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types import FilterInputObjectType
-from ..core.types.common import IntRangeInput, PriceRangeInput
+from ..core.types.common import IntRangeInput
 from ..core.utils import from_global_id_strict_type
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_by_query_param, filter_range_field
@@ -296,12 +296,12 @@ class ProductFilter(django_filters.FilterSet):
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
     has_category = django_filters.BooleanFilter(method=filter_has_category)
-    price = ObjectTypeFilter(input_class=PriceRangeInput, method=filter_variant_price)
-    minimal_price = ObjectTypeFilter(
-        input_class=PriceRangeInput,
-        method=filter_minimal_price,
-        field_name="minimal_price_amount",
-    )
+    # price = ObjectTypeFilter(input_class=PriceRangeInput, method=filter_variant_price)
+    # minimal_price = ObjectTypeFilter(
+    #     input_class=PriceRangeInput,
+    #     method=filter_minimal_price,
+    #     field_name="minimal_price_amount",
+    # )
     attributes = ListObjectTypeFilter(
         input_class="saleor.graphql.product.types.attributes.AttributeInput",
         method=filter_attributes,

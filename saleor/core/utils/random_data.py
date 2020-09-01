@@ -60,7 +60,7 @@ from ...product.models import (
     ProductType,
     ProductVariant,
 )
-from ...product.tasks import update_products_minimal_variant_prices_of_discount_task
+from ...product.tasks import update_products_discounted_prices_of_discount_task
 from ...product.thumbnails import (
     create_category_background_image_thumbnails,
     create_collection_background_image_thumbnails,
@@ -641,7 +641,7 @@ def create_orders(how_many=10):
 def create_product_sales(how_many=5):
     for dummy in range(how_many):
         sale = create_fake_sale()
-        update_products_minimal_variant_prices_of_discount_task.delay(sale.pk)
+        update_products_discounted_prices_of_discount_task.delay(sale.pk)
         yield "Sale: %s" % (sale,)
 
 

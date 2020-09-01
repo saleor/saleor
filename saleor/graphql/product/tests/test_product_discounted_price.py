@@ -1,7 +1,5 @@
 from unittest.mock import patch
 
-import graphene
-import pytest
 from freezegun import freeze_time
 from graphql_relay import from_global_id, to_global_id
 
@@ -10,182 +8,8 @@ from ...discount.enums import DiscountValueTypeEnum
 from ...tests.utils import get_graphql_content
 
 
-@patch(
-    "saleor.graphql.product.mutations.products"
-    ".update_product_minimal_variant_price_task"
-)
-@pytest.mark.skip(
-    "We should refactor this in separete PR https://app.clickup.com/t/6a5txz"
-)
-def test_product_variant_create_updates_minimal_variant_price(
-    mock_update_product_minimal_variant_price_task,
-    staff_api_client,
-    product,
-    permission_manage_products,
-):
-    query = """
-        mutation ProductVariantCreate(
-            $productId: ID!,
-            $sku: String!,
-            $price: Decimal,
-            $attributes: [AttributeValueInput]!,
-        ) {
-            productVariantCreate(
-                input: {
-                    product: $productId,
-                    sku: $sku,
-                    price: $price,
-                    attributes: $attributes
-                }
-            ) {
-                productVariant {
-                    name
-                }
-                productErrors {
-                    message
-                    field
-                }
-            }
-        }
-    """
-    product_id = to_global_id("Product", product.pk)
-    sku = "1"
-    price = "1.99"
-    variant_id = graphene.Node.to_global_id(
-        "Attribute", product.product_type.variant_attributes.first().pk
-    )
-    variant_value = "test-value"
-    variables = {
-        "productId": product_id,
-        "sku": sku,
-        "price": price,
-        "attributes": [{"id": variant_id, "values": [variant_value]}],
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    assert response.status_code == 200
-
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantCreate"]
-    assert data["productErrors"] == []
-
-    mock_update_product_minimal_variant_price_task.delay.assert_called_once_with(
-        product.pk
-    )
-
-
-@patch(
-    "saleor.graphql.product.mutations.products"
-    ".update_product_minimal_variant_price_task"
-)
-@pytest.mark.skip(
-    "We should refactor this in separete PR https://app.clickup.com/t/6a5txz"
-)
-def test_product_variant_update_updates_minimal_variant_price(
-    mock_update_product_minimal_variant_price_task,
-    staff_api_client,
-    product,
-    permission_manage_products,
-):
-    query = """
-        mutation ProductVariantUpdate(
-            $id: ID!,
-            $price: Decimal,
-        ) {
-            productVariantUpdate(
-                id: $id,
-                input: {
-                    price: $price,
-                }
-            ) {
-                productVariant {
-                    name
-                }
-                errors {
-                    message
-                    field
-                }
-            }
-        }
-    """
-    variant = product.variants.first()
-    variant_id = to_global_id("ProductVariant", variant.pk)
-    price = "1.99"
-    variables = {"id": variant_id, "price": price}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    assert response.status_code == 200
-
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantUpdate"]
-    assert data["errors"] == []
-
-    mock_update_product_minimal_variant_price_task.delay.assert_called_once_with(
-        product.pk
-    )
-
-
-@patch(
-    "saleor.graphql.product.mutations.products"
-    ".update_product_minimal_variant_price_task"
-)
-@pytest.mark.skip(
-    "We should refactor this in separete PR https://app.clickup.com/t/6a5txz"
-)
-def test_product_variant_update_updates_invalid_variant_price(
-    mock_update_product_minimal_variant_price_task,
-    staff_api_client,
-    product,
-    permission_manage_products,
-):
-    query = """
-        mutation ProductVariantUpdate(
-            $id: ID!,
-            $price: Decimal,
-        ) {
-            productVariantUpdate(
-                id: $id,
-                input: {
-                    price: $price,
-                }
-            ) {
-                productVariant {
-                    name
-                }
-                productErrors {
-                    field
-                    message
-                    code
-                }
-            }
-        }
-    """
-    variant = product.variants.first()
-    variant_id = to_global_id("ProductVariant", variant.pk)
-    price = "-1.99"
-    variables = {"id": variant_id, "price": price}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    assert response.status_code == 200
-
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantUpdate"]
-    assert data["productErrors"][0]["field"] == "price"
-    assert data["productErrors"][0]["code"] == ProductErrorCode.INVALID.name
-
-
-@patch(
-    "saleor.graphql.product.mutations.products"
-    ".update_product_minimal_variant_price_task"
-)
 def test_product_variant_update_updates_invalid_cost_price(
-    mock_update_product_minimal_variant_price_task,
-    staff_api_client,
-    product,
-    permission_manage_products,
+    staff_api_client, product, permission_manage_products,
 ):
     query = """
         mutation ProductVariantUpdate(
@@ -225,11 +49,10 @@ def test_product_variant_update_updates_invalid_cost_price(
 
 
 @patch(
-    "saleor.graphql.product.mutations.products."
-    "update_product_minimal_variant_price_task"
+    "saleor.graphql.product.mutations.products." "update_product_discounted_price_task"
 )
-def test_product_variant_delete_updates_minimal_variant_price(
-    mock_update_product_minimal_variant_price_task,
+def test_product_variant_delete_updates_discounted_price(
+    mock_update_product_discounted_price_task,
     staff_api_client,
     product,
     permission_manage_products,
@@ -257,14 +80,12 @@ def test_product_variant_delete_updates_minimal_variant_price(
     data = content["data"]["productVariantDelete"]
     assert data["errors"] == []
 
-    mock_update_product_minimal_variant_price_task.delay.assert_called_once_with(
-        product.pk
-    )
+    mock_update_product_discounted_price_task.delay.assert_called_once_with(product.pk)
 
 
-@patch("saleor.product.utils.update_products_minimal_variant_prices_task")
-def test_category_delete_updates_minimal_variant_price(
-    mock_update_products_minimal_variant_prices_task,
+@patch("saleor.product.utils.update_products_discounted_prices_task")
+def test_category_delete_updates_discounted_price(
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     categories_tree_with_published_products,
     permission_manage_products,
@@ -295,11 +116,11 @@ def test_category_delete_updates_minimal_variant_price(
     data = content["data"]["categoryDelete"]
     assert data["errors"] == []
 
-    mock_update_products_minimal_variant_prices_task.delay.assert_called_once()
+    mock_update_products_discounted_prices_task.delay.assert_called_once()
     (
         _call_args,
         call_kwargs,
-    ) = mock_update_products_minimal_variant_prices_task.delay.call_args
+    ) = mock_update_products_discounted_prices_task.delay.call_args
     assert set(call_kwargs["product_ids"]) == set(p.pk for p in product_list)
 
     for product in product_list:
@@ -309,10 +130,10 @@ def test_category_delete_updates_minimal_variant_price(
 
 @patch(
     "saleor.graphql.product.mutations.products"
-    ".update_products_minimal_variant_prices_of_catalogues_task"
+    ".update_products_discounted_prices_of_catalogues_task"
 )
-def test_collection_add_products_updates_minimal_variant_price(
-    mock_update_minimal_variant_prices_task,
+def test_collection_add_products_updates_discounted_price(
+    mock_update_products_discounted_prices_of_catalogues,
     staff_api_client,
     sale,
     collection,
@@ -346,17 +167,17 @@ def test_collection_add_products_updates_minimal_variant_price(
     data = content["data"]["collectionAddProducts"]
     assert data["errors"] == []
 
-    mock_update_minimal_variant_prices_task.delay.assert_called_once_with(
+    mock_update_products_discounted_prices_of_catalogues.delay.assert_called_once_with(
         product_ids=[p.pk for p in product_list]
     )
 
 
 @patch(
     "saleor.graphql.product.mutations"
-    ".products.update_products_minimal_variant_prices_of_catalogues_task"
+    ".products.update_products_discounted_prices_of_catalogues_task"
 )
-def test_collection_remove_products_updates_minimal_variant_price(
-    mock_update_minimal_variant_prices_task,
+def test_collection_remove_products_updates_discounted_price(
+    mock_update_products_discounted_prices_of_catalogues,
     staff_api_client,
     sale,
     collection,
@@ -390,7 +211,7 @@ def test_collection_remove_products_updates_minimal_variant_price(
     data = content["data"]["collectionRemoveProducts"]
     assert data["errors"] == []
 
-    mock_update_minimal_variant_prices_task.delay.assert_called_once_with(
+    mock_update_products_discounted_prices_of_catalogues.delay.assert_called_once_with(
         product_ids=[p.pk for p in product_list]
     )
 
@@ -398,10 +219,10 @@ def test_collection_remove_products_updates_minimal_variant_price(
 @freeze_time("2010-05-31 12:00:01")
 @patch(
     "saleor.graphql.discount.mutations"
-    ".update_products_minimal_variant_prices_of_discount_task"
+    ".update_products_discounted_prices_of_discount_task"
 )
-def test_sale_create_updates_products_minimal_variant_prices(
-    mock_update_minimal_variant_prices_task,
+def test_sale_create_updates_products_discounted_prices(
+    mock_update_products_discounted_prices_of_catalogues,
     staff_api_client,
     permission_manage_discounts,
 ):
@@ -444,15 +265,17 @@ def test_sale_create_updates_products_minimal_variant_prices(
     relay_sale_id = content["data"]["saleCreate"]["sale"]["id"]
     _sale_class_name, sale_id_str = from_global_id(relay_sale_id)
     sale_id = int(sale_id_str)
-    mock_update_minimal_variant_prices_task.delay.assert_called_once_with(sale_id)
+    mock_update_products_discounted_prices_of_catalogues.delay.assert_called_once_with(
+        sale_id
+    )
 
 
 @patch(
     "saleor.graphql.discount.mutations"
-    ".update_products_minimal_variant_prices_of_discount_task"
+    ".update_products_discounted_prices_of_discount_task"
 )
-def test_sale_update_updates_products_minimal_variant_prices(
-    mock_update_minimal_variant_prices_task,
+def test_sale_update_updates_products_discounted_prices(
+    mock_update_products_discounted_prices_of_discount,
     staff_api_client,
     sale,
     permission_manage_discounts,
@@ -479,15 +302,17 @@ def test_sale_update_updates_products_minimal_variant_prices(
     content = get_graphql_content(response)
     assert content["data"]["saleUpdate"]["errors"] == []
 
-    mock_update_minimal_variant_prices_task.delay.assert_called_once_with(sale.pk)
+    mock_update_products_discounted_prices_of_discount.delay.assert_called_once_with(
+        sale.pk
+    )
 
 
 @patch(
     "saleor.graphql.discount.mutations"
-    ".update_products_minimal_variant_prices_of_discount_task"
+    ".update_products_discounted_prices_of_discount_task"
 )
-def test_sale_delete_updates_products_minimal_variant_prices(
-    mock_update_minimal_variant_prices_task,
+def test_sale_delete_updates_products_discounted_prices(
+    mock_update_products_discounted_prices_of_discount,
     staff_api_client,
     sale,
     permission_manage_discounts,
@@ -514,15 +339,17 @@ def test_sale_delete_updates_products_minimal_variant_prices(
     content = get_graphql_content(response)
     assert content["data"]["saleDelete"]["errors"] == []
 
-    mock_update_minimal_variant_prices_task.delay.assert_called_once_with(sale.pk)
+    mock_update_products_discounted_prices_of_discount.delay.assert_called_once_with(
+        sale.pk
+    )
 
 
 @patch(
     "saleor.graphql.discount.mutations"
-    ".update_products_minimal_variant_prices_of_catalogues_task"
+    ".update_products_discounted_prices_of_catalogues_task"
 )
-def test_sale_add_catalogues_updates_products_minimal_variant_prices(
-    mock_update_minimal_variant_prices_task,
+def test_sale_add_catalogues_updates_products_discounted_prices(
+    mock_update_products_discounted_prices_of_catalogues,
     staff_api_client,
     sale,
     product,
@@ -561,7 +388,7 @@ def test_sale_add_catalogues_updates_products_minimal_variant_prices(
     content = get_graphql_content(response)
     assert content["data"]["saleCataloguesAdd"]["errors"] == []
 
-    mock_update_minimal_variant_prices_task.delay.assert_called_once_with(
+    mock_update_products_discounted_prices_of_catalogues.delay.assert_called_once_with(
         product_ids=[product.pk],
         category_ids=[category.pk],
         collection_ids=[collection.pk],
@@ -570,10 +397,10 @@ def test_sale_add_catalogues_updates_products_minimal_variant_prices(
 
 @patch(
     "saleor.graphql.discount.mutations"
-    ".update_products_minimal_variant_prices_of_catalogues_task"
+    ".update_products_discounted_prices_of_catalogues_task"
 )
-def test_sale_remove_catalogues_updates_products_minimal_variant_prices(
-    mock_update_minimal_variant_prices_task,
+def test_sale_remove_catalogues_updates_products_discounted_prices(
+    mock_update_products_discounted_prices_of_catalogues,
     staff_api_client,
     sale,
     product,
@@ -615,7 +442,7 @@ def test_sale_remove_catalogues_updates_products_minimal_variant_prices(
     content = get_graphql_content(response)
     assert content["data"]["saleCataloguesRemove"]["errors"] == []
 
-    mock_update_minimal_variant_prices_task.delay.assert_called_once_with(  # noqa
+    mock_update_products_discounted_prices_of_catalogues.delay.assert_called_once_with(
         product_ids=[product.pk],
         category_ids=[category.pk],
         collection_ids=[collection.pk],

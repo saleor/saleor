@@ -132,7 +132,7 @@ class CollectionSortingInput(SortInputObjectType):
 class ProductOrderField(graphene.Enum):
     NAME = ["name", "slug"]
     PRICE = ["min_variants_price_amount", "name", "slug"]
-    MINIMAL_PRICE = ["minimal_variant_price_amount", "name", "slug"]
+    # MINIMAL_PRICE = ["minimal_variant_price_amount", "name", "slug"]
     DATE = ["updated_at", "name", "slug"]
     TYPE = ["product_type__name", "name", "slug"]
     PUBLISHED = ["is_published", "name", "slug"]
@@ -144,9 +144,9 @@ class ProductOrderField(graphene.Enum):
             ProductOrderField.NAME.name: "name",
             ProductOrderField.PRICE.name: "price",
             ProductOrderField.TYPE.name: "type",
-            ProductOrderField.MINIMAL_PRICE.name: (
-                "a minimal price of a product's variant"
-            ),
+            # ProductOrderField.MINIMAL_PRICE.name: (
+            #     "a minimal price of a product's variant"
+            # ),
             ProductOrderField.DATE.name: "update date",
             ProductOrderField.PUBLISHED.name: "publication status",
         }

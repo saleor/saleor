@@ -6,7 +6,7 @@ from django.db import transaction
 
 from ...core.taxes import TaxedMoney, zero_taxed_money
 from ..models import Product, ProductChannelListing
-from ..tasks import update_products_minimal_variant_prices_task
+from ..tasks import update_products_discounted_prices_task
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -51,7 +51,7 @@ def delete_categories(categories_ids: List[str]):
     )
     product_ids = list(products.values_list("id", flat=True))
     categories.delete()
-    update_products_minimal_variant_prices_task.delay(product_ids=product_ids)
+    update_products_discounted_prices_task.delay(product_ids=product_ids)
 
 
 def collect_categories_tree_products(category: "Category") -> "QuerySet[Product]":

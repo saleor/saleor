@@ -14,8 +14,8 @@ from ....core.permissions import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import (
-    update_product_minimal_variant_price_task,
-    update_products_minimal_variant_prices_of_catalogues_task,
+    update_product_discounted_price_task,
+    update_products_discounted_prices_of_catalogues_task,
     update_variants_names,
 )
 from ....product.thumbnails import (
@@ -367,7 +367,7 @@ class CollectionAddProducts(BaseMutation):
         collection.products.add(*products)
         if collection.sale_set.exists():
             # Updated the db entries, recalculating discounts of affected products
-            update_products_minimal_variant_prices_of_catalogues_task.delay(
+            update_products_discounted_prices_of_catalogues_task.delay(
                 product_ids=[pq.pk for pq in products]
             )
         return CollectionAddProducts(collection=collection)
@@ -415,7 +415,7 @@ class CollectionRemoveProducts(BaseMutation):
         collection.products.remove(*products)
         if collection.sale_set.exists():
             # Updated the db entries, recalculating discounts of affected products
-            update_products_minimal_variant_prices_of_catalogues_task.delay(
+            update_products_discounted_prices_of_catalogues_task.delay(
                 product_ids=[p.pk for p in products]
             )
         return CollectionRemoveProducts(collection=collection)
@@ -1148,7 +1148,7 @@ class ProductVariantCreate(ModelMutation):
     def save(cls, info, instance, cleaned_input):
         instance.save()
         # Recalculate the "minimal variant price" for the parent product
-        update_product_minimal_variant_price_task.delay(instance.product_id)
+        update_product_discounted_price_task.delay(instance.product_id)
         stocks = cleaned_input.get("stocks")
         if stocks:
             cls.create_variant_stocks(instance, stocks)
@@ -1221,8 +1221,8 @@ class ProductVariantDelete(ModelDeleteMutation):
 
     @classmethod
     def success_response(cls, instance):
-        # Update the "minimal_variant_prices" of the parent product
-        update_product_minimal_variant_price_task.delay(instance.product_id)
+        # Update the "discounted_prices" of the parent product
+        update_product_discounted_price_task.delay(instance.product_id)
         instance = ChannelContext(node=instance, channel_slug=None)
         return super().success_response(instance)
 

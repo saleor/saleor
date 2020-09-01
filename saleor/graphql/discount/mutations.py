@@ -6,8 +6,8 @@ from ...core.utils.promo_code import generate_promo_code, is_available_promo_cod
 from ...discount import models
 from ...discount.error_codes import DiscountErrorCode
 from ...product.tasks import (
-    update_products_minimal_variant_prices_of_catalogues_task,
-    update_products_minimal_variant_prices_of_discount_task,
+    update_products_discounted_prices_of_catalogues_task,
+    update_products_discounted_prices_of_discount_task,
 )
 from ...product.utils import get_products_ids_without_variants
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -40,7 +40,7 @@ class BaseDiscountCatalogueMutation(BaseMutation):
 
     @classmethod
     def recalculate_minimal_prices(cls, products, categories, collections):
-        update_products_minimal_variant_prices_of_catalogues_task.delay(
+        update_products_discounted_prices_of_catalogues_task.delay(
             product_ids=[p.pk for p in products],
             category_ids=[c.pk for c in categories],
             collection_ids=[c.pk for c in collections],
@@ -284,9 +284,9 @@ class SaleInput(graphene.InputObjectType):
 class SaleUpdateMinimalVariantPriceMixin:
     @classmethod
     def success_response(cls, instance):
-        # Update the "minimal_variant_prices" of the associated, discounted
+        # Update the "discounted_prices" of the associated, discounted
         # products (including collections and categories).
-        update_products_minimal_variant_prices_of_discount_task.delay(instance.pk)
+        update_products_discounted_prices_of_discount_task.delay(instance.pk)
         return super().success_response(instance)
 
 

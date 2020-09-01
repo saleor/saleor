@@ -8,6 +8,7 @@ from django.db import transaction
 from ....core.permissions import ProductPermissions
 from ....product.error_codes import ProductErrorCode
 from ....product.models import ProductChannelListing, ProductVariantChannelListing
+from ....product.tasks import update_product_discounted_price_task
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
@@ -135,7 +136,7 @@ class ProductVariantChannelListingAddInput(graphene.InputObjectType):
 
 
 # TODO: Use BaseChannelListingMutation after merge #5975.
-class ProductVaraintChannelListingUpdate(BaseMutation):
+class ProductVariantChannelListingUpdate(BaseMutation):
     variant = graphene.Field(
         ProductVariant, description="An updated product variant instance."
     )
@@ -154,7 +155,7 @@ class ProductVaraintChannelListingUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Manage product varaint prices in channels."
+        description = "Manage product variant prices in channels."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductChannelListingError
         error_type_field = "product_channel_listing_errors"
@@ -246,6 +247,7 @@ class ProductVaraintChannelListingUpdate(BaseMutation):
             ProductVariantChannelListing.objects.update_or_create(
                 variant=variant, channel=channel, defaults=defaults,
             )
+            update_product_discounted_price_task.delay(variant.product_id)
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
@@ -263,6 +265,6 @@ class ProductVaraintChannelListingUpdate(BaseMutation):
 
         cls.save(info, variant, cleaned_input)
 
-        return ProductVaraintChannelListingUpdate(
+        return ProductVariantChannelListingUpdate(
             variant=ChannelContext(node=variant, channel_slug=None)
         )
