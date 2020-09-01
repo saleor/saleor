@@ -540,7 +540,6 @@ class BaseBulkMutation(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, ids, **data):
-        from saleor.graphql.product.bulk_mutations.products import ProductBulkPublish
         """Perform a mutation that deletes a list of model instances."""
         clean_instance_ids, errors = [], {}
         # Allow to pass empty list for dummy mutation
@@ -550,14 +549,10 @@ class BaseBulkMutation(BaseMutation):
         model_type = registry.get_type_for_model(instance_model)
         instances = cls.get_nodes_or_error(ids, "id", model_type)
 
-        if type(instance_model) == type(Product) and cls == ProductBulkPublish:
-            product_errors = []
+        if type(instance_model) == type(Product):
             for instance in instances:
-                instance.store_value_in_private_metadata({'publish.allegro.status': 'moderated'})
+                instance.is_published = True
                 info.context.plugins.product_created(instance)
-                error = instance.get_value_from_private_metadata('publish.allegro.errors')
-                product_errors.append(error)
-            cls.send_mail(product_errors)
 
         for instance, node_id in zip(instances, ids):
             instance_errors = []
@@ -581,6 +576,10 @@ class BaseBulkMutation(BaseMutation):
         if errors:
             errors = ValidationError(errors)
         count = len(clean_instance_ids)
+
+        if type(instance_model) == type(Product):
+            return count, errors
+
         if count:
             qs = instance_model.objects.filter(pk__in=clean_instance_ids)
             cls.bulk_action(queryset=qs, **data)
