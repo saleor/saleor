@@ -321,7 +321,7 @@ class ProductVariantBulkCreate(BaseMutation):
             raise ValidationError(errors)
         cls.save_variants(info, instances, cleaned_inputs)
 
-        # Recalculate the "minimal variant price" for the parent product
+        # Recalculate the "discounted price" for the parent product
         update_product_discounted_price_task.delay(product.pk)
 
         instances = [

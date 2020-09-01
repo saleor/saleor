@@ -39,7 +39,7 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         abstract = True
 
     @classmethod
-    def recalculate_minimal_prices(cls, products, categories, collections):
+    def recalculate_discounted_prices(cls, products, categories, collections):
         update_products_discounted_prices_of_catalogues_task.delay(
             product_ids=[p.pk for p in products],
             category_ids=[c.pk for c in categories],
@@ -62,7 +62,7 @@ class BaseDiscountCatalogueMutation(BaseMutation):
             collections = cls.get_nodes_or_error(collections, "collections", Collection)
             node.collections.add(*collections)
         # Updated the db entries, recalculating discounts of affected products
-        cls.recalculate_minimal_prices(products, categories, collections)
+        cls.recalculate_discounted_prices(products, categories, collections)
 
     @classmethod
     def clean_product(cls, products):
@@ -93,7 +93,7 @@ class BaseDiscountCatalogueMutation(BaseMutation):
             collections = cls.get_nodes_or_error(collections, "collections", Collection)
             node.collections.remove(*collections)
         # Updated the db entries, recalculating discounts of affected products
-        cls.recalculate_minimal_prices(products, categories, collections)
+        cls.recalculate_discounted_prices(products, categories, collections)
 
 
 class VoucherInput(graphene.InputObjectType):
@@ -281,7 +281,7 @@ class SaleInput(graphene.InputObjectType):
     )
 
 
-class SaleUpdateMinimalVariantPriceMixin:
+class SaleUpdateDiscountedPriceMixin:
     @classmethod
     def success_response(cls, instance):
         # Update the "discounted_prices" of the associated, discounted
@@ -290,7 +290,7 @@ class SaleUpdateMinimalVariantPriceMixin:
         return super().success_response(instance)
 
 
-class SaleCreate(SaleUpdateMinimalVariantPriceMixin, ModelMutation):
+class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     class Arguments:
         input = SaleInput(
             required=True, description="Fields required to create a sale."
@@ -304,7 +304,7 @@ class SaleCreate(SaleUpdateMinimalVariantPriceMixin, ModelMutation):
         error_type_field = "discount_errors"
 
 
-class SaleUpdate(SaleUpdateMinimalVariantPriceMixin, ModelMutation):
+class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a sale to update.")
         input = SaleInput(
@@ -319,7 +319,7 @@ class SaleUpdate(SaleUpdateMinimalVariantPriceMixin, ModelMutation):
         error_type_field = "discount_errors"
 
 
-class SaleDelete(SaleUpdateMinimalVariantPriceMixin, ModelDeleteMutation):
+class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a sale to delete.")
 

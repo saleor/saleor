@@ -1147,7 +1147,7 @@ class ProductVariantCreate(ModelMutation):
     @transaction.atomic()
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        # Recalculate the "minimal variant price" for the parent product
+        # Recalculate the "discounted price" for the parent product
         update_product_discounted_price_task.delay(instance.product_id)
         stocks = cleaned_input.get("stocks")
         if stocks:
