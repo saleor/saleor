@@ -794,11 +794,7 @@ class CheckoutComplete(BaseMutation):
                     checkout_id, Checkout, field="checkout_id"
                 )
 
-                order = (
-                    order_models.Order.objects.confirmed()
-                    .filter(checkout_token=checkout_token)
-                    .first()
-                )
+                order = order_models.Order.objects.get_by_checkout_token(checkout_token)
                 if order:
                     # The order is already created. We return it as a success
                     # checkoutComplete response. Order is anonymized for not logged in

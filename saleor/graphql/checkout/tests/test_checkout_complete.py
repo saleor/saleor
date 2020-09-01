@@ -793,7 +793,7 @@ def test_order_already_exists(
     assert Checkout.objects.count() == 0
 
 
-@patch("saleor.checkout.complete_checkout.create_order")
+@patch("saleor.checkout.complete_checkout._create_order")
 def test_create_order_raises_insufficient_stock(
     mocked_create_order, user_api_client, checkout_ready_to_complete, payment_dummy
 ):
