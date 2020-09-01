@@ -30,6 +30,11 @@ class AllegroConfiguration:
     token_access: str
     auth_env: str
     env: str
+    implied_warranty: str
+    return_policy: str
+    warranty: str
+    delivery_shipping_rates: str
+    delivery_handling_time: str
 
 
 class AllegroPlugin(BasePlugin):
@@ -47,7 +52,12 @@ class AllegroPlugin(BasePlugin):
                              {"name": "refresh_token", "value": None},
                              {"name": "token_access", "value": None},
                              {"name": "auth_env", "value":  "https://allegro.pl.allegrosandbox.pl"},
-                             {"name": "env", "value":  "https://api.allegro.pl.allegrosandbox.pl"},]
+                             {"name": "env", "value":  "https://api.allegro.pl.allegrosandbox.pl"},
+                             {"name": "implied_warranty", "value":  None},
+                             {"name": "return_policy", "value":  None},
+                             {"name": "warranty", "value":  None},
+                             {"name": "delivery_shipping_rates", "value":  None},
+                             {"name": "delivery_handling_time", "value":  None},]
     CONFIG_STRUCTURE = {
         "redirect_url": {
             "type": ConfigurationTypeField.STRING,
@@ -97,6 +107,31 @@ class AllegroPlugin(BasePlugin):
             "type": ConfigurationTypeField.STRING,
             "help_text": "Adres do środowiska api.allegro.pl.",
             "label": "Adres do środowiska api.allegro.pl:",
+        },
+        "implied_warranty": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "implied_warranty",
+            "label": "implied_warranty",
+        },
+        "return_policy": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "return_policy",
+            "label": "return_policy",
+        },
+        "warranty": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "warranty",
+            "label": "warranty",
+        },
+        "delivery_shipping_rates": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "delivery_shipping_rates",
+            "label": "delivery_shipping_rates",
+        },
+        "delivery_handling_time": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "delivery_handling_time",
+            "label": "delivery_handling_time",
         }
     }
 
@@ -114,7 +149,12 @@ class AllegroPlugin(BasePlugin):
                                            client_secret=configuration["client_secret"],
                                            refresh_token=configuration["refresh_token"],
                                            auth_env=configuration["auth_env"],
-                                           env=configuration["env"])
+                                           env=configuration["env"],
+                                           implied_warranty=configuration["implied_warranty"],
+                                           return_policy=configuration["return_policy"],
+                                           warranty=configuration["warranty"],
+                                           delivery_shipping_rates=configuration["delivery_shipping_rates"],
+                                           delivery_handling_time=configuration["delivery_handling_time"])
 
         HOURS_LESS_THAN_WE_REFRESH_TOKEN = 6
 
@@ -165,7 +205,7 @@ class AllegroPlugin(BasePlugin):
         return plugin_configuration
 
     def product_published(self, product: "Product", previous_value: Any) -> Any:
-        if product.is_published == False:
+        if self.active == True and product.is_published == False:
             product.store_value_in_private_metadata({'publish.allegro.status': ProductPublishState.MODERATED.value})
             allegro_api = AllegroAPI(self.config.token_value)
             allegro_api.product_publish(saleor_product=product)
@@ -905,21 +945,47 @@ class AllegroProductMapper:
         else:
             return name
 
+    def get_plugin_configuration(self):
+        manager = get_plugins_manager()
+        plugin = manager.get_plugin(AllegroPlugin.PLUGIN_ID)
+        configuration = {item["name"]: item["value"] for item in plugin.configuration}
+        return configuration
+
+    def get_implied_warranty(self):
+        config = self.get_plugin_configuration()
+        return config.get('implied_warranty')
+
+
+    def get_return_policy(self):
+        config = self.get_plugin_configuration()
+        return config.get('return_policy')
+
+    def get_warranty(self):
+        config = self.get_plugin_configuration()
+        return config.get('warranty')
+
+    def get_delivery_shipping_rates(self):
+        config = self.get_plugin_configuration()
+        return config.get('delivery_shipping_rates')
+
+    def get_delivery_handling_time(self):
+        config = self.get_plugin_configuration()
+        return config.get('delivery_handling_time')
+
+
 
     def run_mapper(self):
-        self.set_implied_warranty('59f8273f-6dff-4242-a6c2-60dd385e9525')
-        self.set_return_policy('8b0ecc6b-8812-4b0f-b8a4-a0b56585c403')
-        self.set_warranty('d3605a54-3cfb-4cce-8e1b-1c1adafb498c')
+        self.set_implied_warranty(self.get_implied_warranty())
+        self.set_return_policy(self.get_return_policy())
+        self.set_warranty(self.get_warranty())
 
-        self.set_delivery_additional_info('test')
-        self.set_delivery_handling_time('PT72H')
-        self.set_delivery_shipment_date('2020-07-25T08:03:59Z')
-        self.set_delivery_shipping_rates('9d7f48de-87a3-449f-9028-d83512a17003')
+        self.set_delivery_handling_time(self.get_delivery_handling_time())
+        self.set_delivery_shipping_rates(self.get_delivery_shipping_rates())
 
         self.set_location_country_code('PL')
-        self.set_location_province('WIELKOPOLSKIE')
-        self.set_location_city('Pozna\u0144')
-        self.set_location_post_code('60-122')
+        self.set_location_province('MAZOWIECKIE')
+        self.set_location_city('Piaseczno')
+        self.set_location_post_code('05-500')
 
         self.set_invoice('NO_INVOICE')
 
