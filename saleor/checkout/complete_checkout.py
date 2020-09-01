@@ -317,9 +317,9 @@ def _prepare_checkout(
         checkout.save(update_fields=to_update)
 
 
-def abort_order_data(order_data: dict):
-    if "voucher" in order_data:
-        voucher = order_data["voucher"]
+def release_voucher_usage(order_data: dict):
+    voucher = order_data.get("voucher")
+    if voucher:
         decrease_voucher_usage(voucher)
         if "user_email" in order_data:
             remove_voucher_usage_by_customer(voucher, order_data["user_email"])
@@ -367,7 +367,7 @@ def _process_payment(
         if not txn.is_success:
             raise PaymentError(txn.error)
     except PaymentError as e:
-        abort_order_data(order_data)
+        release_voucher_usage(order_data)
         raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
     return txn
 
@@ -424,7 +424,7 @@ def complete_checkout(
             # remove checkout after order is successfully created
             checkout.delete()
         except InsufficientStock as e:
-            abort_order_data(order_data)
+            release_voucher_usage(order_data)
             gateway.payment_refund_or_void(payment)
             raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
 
