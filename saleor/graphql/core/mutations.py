@@ -586,6 +586,7 @@ class BaseBulkMutation(BaseMutation):
 
         if len(publish_errors) > 0:
             return count, errors
+
         if count:
             qs = instance_model.objects.filter(pk__in=clean_instance_ids)
             cls.bulk_action(queryset=qs, **data)
