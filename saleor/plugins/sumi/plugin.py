@@ -68,7 +68,6 @@ class SumiPlugin(BasePlugin):
                                     results.get('errors').append(result.get('error'))
                                     results['status'] = 'error'
                         else:
-                            # FIXME: czy kod błędu powinien byc 001???
                             results.get('errors').append('001: nie znaleziono produktu o kodzie ' + str(product))
                             results['status'] = 'error'
                     else:
@@ -107,7 +106,7 @@ class SumiPlugin(BasePlugin):
     @staticmethod
     def sell_product(product_variant_stock):
         try:
-            # product_variant_stock.decrease_stock(1)
+            product_variant_stock.decrease_stock(1)
             return {"sku": str(product_variant_stock.product_variant),
                     "name": str(product_variant_stock.product_variant.product),
                     "netPrice": str(product_variant_stock.product_variant.cost_price_amount),
@@ -120,9 +119,8 @@ class SumiPlugin(BasePlugin):
 
     @staticmethod
     def update_reservation_status_in_metadata(product_variant, status):
-        # product_variant.store_value_in_metadata({'reserved': status})
-        # product_variant.save(update_fields=["metadata"])
-        pass
+        product_variant.store_value_in_metadata({'reserved': status})
+        product_variant.save(update_fields=["metadata"])
 
     @staticmethod
     def is_product_reserved(product_variant):
