@@ -14,7 +14,7 @@ from .models import Fulfillment, Order
 if TYPE_CHECKING:
     from decimal import Decimal
 
-    from ..account.models import User
+    from ..account.models import User  # noqa: F401
 
 CONFIRM_ORDER_TEMPLATE = "order/confirm_order"
 STAFF_CONFIRM_ORDER_TEMPLATE = "order/staff_confirm_order"
@@ -43,7 +43,9 @@ def collect_data_for_email(
     order_pk: int, template: str, redirect_url: str = ""
 ) -> dict:
     """Collect the required data for sending emails."""
-    order = Order.objects.get(pk=order_pk)
+    order = Order.objects.prefetch_related("lines__variant__product__images").get(
+        pk=order_pk
+    )
     recipient_email = order.get_customer_email()
     send_kwargs, email_context = get_email_context()
 

@@ -18,10 +18,9 @@ from ..payment.utils import store_customer_id
 from . import models
 from .checkout_cleaner import clean_checkout_payment, clean_checkout_shipping
 from .error_codes import CheckoutErrorCode
-from .utils import abort_order_data, create_order, get_order, prepare_order_data
+from .utils import abort_order_data, create_order, prepare_order_data
 
 
-@transaction.atomic
 def prepare_checkout(
     checkout: models.Checkout, discounts, tracking_code, redirect_url, payment
 ):
@@ -54,7 +53,6 @@ def prepare_checkout(
         checkout.save(update_fields=to_update)
 
 
-@transaction.atomic
 def convert_checkout_to_order(
     checkout: models.Checkout, order_data: dict, user: Optional[User]
 ) -> order_models.Order:
@@ -121,12 +119,11 @@ def complete_checkout(
     tracking_code=None,
     redirect_url=None,
 ) -> Tuple[Optional[Order], bool, dict]:
-    action_required = False
-    action_data = {}  # type: ignore
-    order = get_order(checkout.token)
-    if order:
-        return order, action_required, action_data
+    """Logic required to finalize the checkout and convert it to order.
 
+    Should be used with transaction_with_commit_on_errors. As there is a possibility
+    for thread race.
+    """
     payment = checkout.get_last_active_payment()
     prepare_checkout(
         checkout=checkout,
@@ -155,24 +152,15 @@ def complete_checkout(
     action_required = txn.action_required
     action_data = txn.action_required_data if action_required else {}
 
+    order = None
     if not action_required:
         try:
-            with transaction.atomic():
-                order = get_order(checkout.token)
-                if order:
-                    # Order was created asynchronously, we can release the lock made
-                    # on order_data
-                    abort_order_data(order_data)
-                else:
-                    order = convert_checkout_to_order(
-                        checkout=checkout, order_data=order_data, user=user
-                    )
+            order = convert_checkout_to_order(
+                checkout=checkout, order_data=order_data, user=user
+            )
         except InsufficientStock as e:
             abort_order_data(order_data)
             gateway.payment_refund_or_void(payment)
             raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
-
-    if not order:
-        abort_order_data(order_data)
 
     return order, action_required, action_data

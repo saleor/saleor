@@ -12,7 +12,6 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
-from django.db import transaction as django_transaction
 from django.http import (
     HttpResponse,
     HttpResponseBadRequest,
@@ -25,6 +24,7 @@ from graphql_relay import from_global_id
 
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.models import Checkout
+from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_active_discounts
 from ....order.actions import cancel_order, order_captured, order_refunded
@@ -59,8 +59,8 @@ def get_checkout(payment: Payment) -> Optional[Checkout]:
     # Lock checkout in the same way as in checkoutComplete
     return (
         Checkout.objects.select_for_update(of=("self",))
-        .prefetch_related("gift_cards", "lines",)
-        .select_related("shipping_method", "shipping_method__shipping_zone")
+        .prefetch_related("gift_cards", "lines__variant__product",)
+        .select_related("shipping_method__shipping_zone")
         .filter(pk=payment.checkout.pk)
         .first()
     )
@@ -114,7 +114,7 @@ def create_payment_notification_for_order(
     )
 
 
-@django_transaction.atomic
+@transaction_with_commit_on_errors()
 def handle_authorization(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     payment = get_payment(notification.get("merchantReference"))
     if not payment:
@@ -175,7 +175,7 @@ def handle_authorization(notification: Dict[str, Any], _gateway_config: GatewayC
     create_payment_notification_for_order(payment, success_msg, failed_msg, is_success)
 
 
-@django_transaction.atomic
+@transaction_with_commit_on_errors()
 def handle_cancellation(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/cancel#cancellation-notifciation
     payment = get_payment(notification.get("merchantReference"))
@@ -215,7 +215,7 @@ def handle_cancel_or_refund(
         handle_cancellation(notification, gateway_config)
 
 
-@django_transaction.atomic
+@transaction_with_commit_on_errors()
 def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/capture#capture-notification
     payment = get_payment(notification.get("merchantReference"))
@@ -280,7 +280,7 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
     create_payment_notification_for_order(payment, success_msg, failed_msg, is_success)
 
 
-@django_transaction.atomic
+@transaction_with_commit_on_errors()
 def handle_failed_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/capture#failed-capture
     payment = get_payment(notification.get("merchantReference"))
@@ -307,7 +307,7 @@ def handle_failed_capture(notification: Dict[str, Any], _gateway_config: Gateway
     create_payment_notification_for_order(payment, msg, None, True)
 
 
-@django_transaction.atomic
+@transaction_with_commit_on_errors()
 def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
     # https://docs.adyen.com/development-resources/webhooks/understand-notifications#
     # event-codes"
@@ -331,7 +331,7 @@ def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
     )
 
 
-@django_transaction.atomic
+@transaction_with_commit_on_errors()
 def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/refund#refund-notification
     payment = get_payment(notification.get("merchantReference"))
@@ -364,7 +364,7 @@ def _get_kind(transaction: Optional[Transaction]) -> str:
     return TransactionKind.CAPTURE
 
 
-@django_transaction.atomic
+@transaction_with_commit_on_errors()
 def handle_failed_refund(notification: Dict[str, Any], gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/refund#failed-refund
     payment = get_payment(notification.get("merchantReference"))
@@ -428,7 +428,7 @@ def handle_failed_refund(notification: Dict[str, Any], gateway_config: GatewayCo
         gateway_postprocess(new_transaction, payment)
 
 
-@django_transaction.atomic
+@transaction_with_commit_on_errors()
 def handle_reversed_refund(
     notification: Dict[str, Any], _gateway_config: GatewayConfig
 ):
@@ -465,7 +465,7 @@ def handle_refund_with_data(
     handle_refund(notification, gateway_config)
 
 
-@django_transaction.atomic
+@transaction_with_commit_on_errors()
 def webhook_not_implemented(
     notification: Dict[str, Any], gateway_config: GatewayConfig
 ):
