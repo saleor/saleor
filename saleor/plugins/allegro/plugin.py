@@ -16,7 +16,7 @@ from saleor.plugins.manager import get_plugins_manager
 from saleor.plugins.models import PluginConfiguration
 from saleor.product.models import Product, AssignedProductAttribute, \
     AttributeValue, ProductImage, ProductVariant
-
+from . import ProductPublishState
 
 @dataclass
 class AllegroConfiguration:
@@ -30,6 +30,11 @@ class AllegroConfiguration:
     token_access: str
     auth_env: str
     env: str
+    implied_warranty: str
+    return_policy: str
+    warranty: str
+    delivery_shipping_rates: str
+    delivery_handling_time: str
 
 
 class AllegroPlugin(BasePlugin):
@@ -47,7 +52,12 @@ class AllegroPlugin(BasePlugin):
                              {"name": "refresh_token", "value": None},
                              {"name": "token_access", "value": None},
                              {"name": "auth_env", "value":  "https://allegro.pl.allegrosandbox.pl"},
-                             {"name": "env", "value":  "https://api.allegro.pl.allegrosandbox.pl"},]
+                             {"name": "env", "value":  "https://api.allegro.pl.allegrosandbox.pl"},
+                             {"name": "implied_warranty", "value":  None},
+                             {"name": "return_policy", "value":  None},
+                             {"name": "warranty", "value":  None},
+                             {"name": "delivery_shipping_rates", "value":  None},
+                             {"name": "delivery_handling_time", "value":  None},]
     CONFIG_STRUCTURE = {
         "redirect_url": {
             "type": ConfigurationTypeField.STRING,
@@ -97,6 +107,31 @@ class AllegroPlugin(BasePlugin):
             "type": ConfigurationTypeField.STRING,
             "help_text": "Adres do środowiska api.allegro.pl.",
             "label": "Adres do środowiska api.allegro.pl:",
+        },
+        "implied_warranty": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "implied_warranty",
+            "label": "implied_warranty",
+        },
+        "return_policy": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "return_policy",
+            "label": "return_policy",
+        },
+        "warranty": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "warranty",
+            "label": "warranty",
+        },
+        "delivery_shipping_rates": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "delivery_shipping_rates",
+            "label": "delivery_shipping_rates",
+        },
+        "delivery_handling_time": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "delivery_handling_time",
+            "label": "delivery_handling_time",
         }
     }
 
@@ -114,7 +149,12 @@ class AllegroPlugin(BasePlugin):
                                            client_secret=configuration["client_secret"],
                                            refresh_token=configuration["refresh_token"],
                                            auth_env=configuration["auth_env"],
-                                           env=configuration["env"])
+                                           env=configuration["env"],
+                                           implied_warranty=configuration["implied_warranty"],
+                                           return_policy=configuration["return_policy"],
+                                           warranty=configuration["warranty"],
+                                           delivery_shipping_rates=configuration["delivery_shipping_rates"],
+                                           delivery_handling_time=configuration["delivery_handling_time"])
 
         HOURS_LESS_THAN_WE_REFRESH_TOKEN = 6
 
@@ -164,16 +204,18 @@ class AllegroPlugin(BasePlugin):
 
         return plugin_configuration
 
-    def product_created(self, product: "Product", previous_value: Any) -> Any:
-
-        if product.is_published == True:
+    def product_published(self, product: "Product", previous_value: Any) -> Any:
+        if self.active == True and product.is_published == False:
+            product.store_value_in_private_metadata({'publish.allegro.status': ProductPublishState.MODERATED.value})
             allegro_api = AllegroAPI(self.config.token_value)
             allegro_api.product_publish(saleor_product=product)
+
 
     def calculate_hours_to_token_expire(self):
         token_expire = datetime.strptime(self.config.token_access, '%d/%m/%Y %H:%M:%S')
         duration = token_expire - datetime.now()
         return divmod(duration.total_seconds(), 3600)[0]
+
 
 class AllegroAuth:
 
@@ -184,7 +226,7 @@ class AllegroAuth:
                    '?response_type=code' \
                    '&client_id={}' \
                    '&api-key={}' \
-                   '&redirect_uri={}&prompt=none'.format(oauth_url, client_id,
+                   '&redirect_uri={}&prompt=confirm'.format(oauth_url, client_id,
                                                            api_key,
                                                            redirect_uri)
 
@@ -266,7 +308,7 @@ class AllegroAPI:
         response = self.auth_request(endpoint=endpoint, data=data, client_id=client_id,
                                      client_secret=client_secret, url_env=url_env)
 
-        if response.status_code is 200:
+        if response.status_code == 200:
             return json.loads(response.text)['access_token'], json.loads(response.text)['refresh_token'], json.loads(response.text)['expires_in']
         else:
             return None
@@ -276,10 +318,9 @@ class AllegroAPI:
         config = self.get_plugin_configuration()
         env = config.get('auth_env')
 
-        if saleor_product.private_metadata.get('publish.status') is None and saleor_product.is_published is True:
+        if saleor_product.get_value_from_private_metadata('publish.allegro.status') == ProductPublishState.MODERATED.value and saleor_product.get_value_from_private_metadata('publish.allegro.date') == None and saleor_product.is_published == False:
 
-            categoryId = saleor_product.product_type.metadata[
-                'allegro.mapping.categoryId']
+            categoryId = saleor_product.product_type.metadata.get('allegro.mapping.categoryId')
 
             require_parameters = self.get_require_parameters(categoryId)
 
@@ -290,6 +331,7 @@ class AllegroAPI:
 
             product_mapper = ProductMapperFactory().getMapper()
 
+
             product = product_mapper.set_saleor_product(saleor_product) \
                 .set_saleor_images(self.upload_images(saleor_product)) \
                 .set_saleor_parameters(parameters) \
@@ -298,39 +340,40 @@ class AllegroAPI:
             offer = self.publish_to_allegro(allegro_product=product)
 
             if 'errors' in offer:
-                print('Wystąpił bład z zapisem', offer['errors'])
+                error = offer['errors']
+                self.update_errors_in_private_metadata(saleor_product, [error])
                 return None
             else:
                 if offer['validation'].get('errors') is not None:
                     if len(offer['validation'].get('errors')) > 0:
-                        print(offer['validation'].get('errors')[0]['message'], 'dla ogłoszenia: ', env + '/offer/' +  offer['id'] + '/restore')
-                        self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], 'moderated', False)
+                        errors = []
+                        for error in offer['validation'].get('errors'):
+                            print(error['message'], 'dla ogłoszenia: ', env + '/offer/' +  offer['id'] + '/restore')
+                            errors.append(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' +  offer['id'] + '/restore')
+                        self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, errors)
                     else:
+                        errors = []
                         offer_publication = self.offer_publication(offer['id'])
                         self.update_status_and_publish_data_in_private_metadata(
-                            saleor_product, offer['id'], 'published', True)
+                            saleor_product, offer['id'], ProductPublishState.PUBLISHED.value, True, errors)
 
                 return offer['id']
 
-        if saleor_product.private_metadata.get('publish.status') == 'moderated' and saleor_product.is_published is True:
-
-            offerId = saleor_product.private_metadata.get('publish.allegroId')
-            offer = self.valid_offer(offerId)
-
-            if offer['validation'].get('errors') is not None:
-                if len(offer['validation'].get('errors')) > 0:
-                    print(offer['validation'].get('errors')[0]['message'],
-                          'dla ogłoszenia: ',
-                          env + '/offer/' + offer[
-                              'id'] + '/restore')
-                    self.update_status_and_publish_data_in_private_metadata(
-                        saleor_product, offer['id'], 'moderated', False)
-                else:
-                    self.offer_publication(
-                        saleor_product.private_metadata.get('publish.allegroId'))
-
-                    self.update_status_and_publish_data_in_private_metadata(
-                        saleor_product, offer['id'], 'published', True)
+        if saleor_product.get_value_from_private_metadata('publish.allegro.status') == ProductPublishState.MODERATED.value and saleor_product.get_value_from_private_metadata('publish.allegro.date') is not None and saleor_product.is_published == False:
+            offerId = saleor_product.private_metadata.get('publish.allegro.id')
+            if offerId is not None:
+                offer = self.valid_offer(offerId)
+                if offer['validation'].get('errors') is not None:
+                    if len(offer['validation'].get('errors')) > 0:
+                        errors = []
+                        for error in offer['validation'].get('errors'):
+                            print(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
+                            errors.append(error['message'] + 'dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
+                        self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, errors)
+                    else:
+                        errors = []
+                        self.offer_publication(saleor_product.private_metadata.get('publish.allegro.id'))
+                        self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.PUBLISHED.value, True, errors)
 
 
     def get_plugin_configuration(self):
@@ -385,8 +428,6 @@ class AllegroAPI:
 
     def auth_request(self, endpoint, data, client_id, client_secret, url_env):
 
-        # config = self.get_plugin_configuration()
-        # env = config.get('auth_env')
         url = url_env + '/' + endpoint
 
         response = requests.post(url, auth=requests.auth.HTTPBasicAuth(client_id,
@@ -427,13 +468,18 @@ class AllegroAPI:
         response = self.post_request(endpoint=endpoint, data=data)
         return json.loads(response.text)['location']
 
-    def update_status_and_publish_data_in_private_metadata(self, product, allegro_offer_id, status, is_published):
-        product.store_value_in_private_metadata({'publish.status': status})
+    def update_status_and_publish_data_in_private_metadata(self, product, allegro_offer_id, status, is_published, errors):
+        product.store_value_in_private_metadata({'publish.allegro.status': status})
         product.store_value_in_private_metadata(
-            {'publish.date': datetime.today().strftime('%Y-%m-%d-%H:%M:%S')})
-        product.store_value_in_private_metadata({'publish.allegroId': str(allegro_offer_id)})
+            {'publish.allegro.date': datetime.today().strftime('%Y-%m-%d-%H:%M:%S')})
+        product.store_value_in_private_metadata({'publish.allegro.id': str(allegro_offer_id)})
+        self.update_errors_in_private_metadata(product, errors)
         product.is_published = is_published
         product.save(update_fields=["private_metadata", "is_published"])
+
+    def update_errors_in_private_metadata(self, product, errors):
+        product.store_value_in_private_metadata({'publish.allegro.errors': str(errors)})
+        product.save(update_fields=["private_metadata"])
 
     def get_detailed_offer_publication(self, offer_id):
         endpoint = 'sale/offer-publication-commands/' + str(offer_id) + '/tasks'
@@ -888,7 +934,7 @@ class AllegroProductMapper:
     def prepare_name(self, name):
         if self.calculate_name_lenght(name) > 50:
             name = re.sub(
-                "NIEMOWLĘC(A|E|Y)|DZIECIĘC(A|E|Y)|DAMSK(A|I)E?|MĘSK(A|I)E?|INN(A|E|Y)",
+                "NIEMOWLĘC[AEY]|DZIECIĘC[AEY]|DAMSK[AI]E?|MĘSK[AI]E?|INN[AEY]",
                 "", name)
             name = re.sub("\s{3}", " ", name)
             if self.calculate_name_lenght(name) > 50:
@@ -899,21 +945,47 @@ class AllegroProductMapper:
         else:
             return name
 
+    def get_plugin_configuration(self):
+        manager = get_plugins_manager()
+        plugin = manager.get_plugin(AllegroPlugin.PLUGIN_ID)
+        configuration = {item["name"]: item["value"] for item in plugin.configuration}
+        return configuration
+
+    def get_implied_warranty(self):
+        config = self.get_plugin_configuration()
+        return config.get('implied_warranty')
+
+
+    def get_return_policy(self):
+        config = self.get_plugin_configuration()
+        return config.get('return_policy')
+
+    def get_warranty(self):
+        config = self.get_plugin_configuration()
+        return config.get('warranty')
+
+    def get_delivery_shipping_rates(self):
+        config = self.get_plugin_configuration()
+        return config.get('delivery_shipping_rates')
+
+    def get_delivery_handling_time(self):
+        config = self.get_plugin_configuration()
+        return config.get('delivery_handling_time')
+
+
 
     def run_mapper(self):
-        self.set_implied_warranty('59f8273f-6dff-4242-a6c2-60dd385e9525')
-        self.set_return_policy('8b0ecc6b-8812-4b0f-b8a4-a0b56585c403')
-        self.set_warranty('d3605a54-3cfb-4cce-8e1b-1c1adafb498c')
+        self.set_implied_warranty(self.get_implied_warranty())
+        self.set_return_policy(self.get_return_policy())
+        self.set_warranty(self.get_warranty())
 
-        self.set_delivery_additional_info('test')
-        self.set_delivery_handling_time('PT72H')
-        self.set_delivery_shipment_date('2020-07-25T08:03:59Z')
-        self.set_delivery_shipping_rates('9d7f48de-87a3-449f-9028-d83512a17003')
+        self.set_delivery_handling_time(self.get_delivery_handling_time())
+        self.set_delivery_shipping_rates(self.get_delivery_shipping_rates())
 
         self.set_location_country_code('PL')
-        self.set_location_province('WIELKOPOLSKIE')
-        self.set_location_city('Pozna\u0144')
-        self.set_location_post_code('60-122')
+        self.set_location_province('MAZOWIECKIE')
+        self.set_location_city('Piaseczno')
+        self.set_location_post_code('05-500')
 
         self.set_invoice('NO_INVOICE')
 

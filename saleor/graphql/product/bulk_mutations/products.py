@@ -544,3 +544,27 @@ class ProductBulkPublish(BaseBulkMutation):
     @classmethod
     def bulk_action(cls, queryset, is_published):
         queryset.update(is_published=is_published)
+
+    @classmethod
+    def create_table(cls, errors):
+        html = '<table style="width:100%; margin-bottom: 1rem;">'
+        html += '<tr>'
+        html += '<th></th>'
+        html += '</tr>'
+        for error in errors:
+            html += '<tr>'
+            html += '<td>' + error + '</td>'
+            html += '</tr>'
+        html += '</table>'
+        return html
+
+    @classmethod
+    def send_mail(cls, errors):
+        subject = 'Logi z wystawiania ofert'
+        from_email = 'noreply.salingo@gmail.com'
+        to = 'noreply.salingo@gmail.com'
+        text_content = 'Logi z wystawiania ofert:'
+        html_content = cls.create_table(errors)
+        message = EmailMultiAlternatives(subject, text_content, from_email, [to])
+        message.attach_alternative(html_content, "text/html")
+        return message.send()
