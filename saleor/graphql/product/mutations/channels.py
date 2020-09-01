@@ -102,6 +102,9 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         ProductChannelListing.objects.filter(
             product=product, channel_id__in=remove_channels
         ).delete()
+        ProductVariantChannelListing.objects.filter(
+            variant__product_id=product.pk, channel_id__in=remove_channels
+        ).delete()
 
     @classmethod
     @transaction.atomic()
