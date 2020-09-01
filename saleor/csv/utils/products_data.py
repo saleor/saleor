@@ -122,7 +122,7 @@ def prepare_products_relations_data(
     if attribute_ids:
         fields.update(attribute_fields.values())
     if channel_ids:
-        fields.update(ProductExportFields.PRODUCT_CHANNEL_LISTING_FIELDS.values())
+        fields.update(channel_fields.values())
 
     relations_data = queryset.values(*fields)
 
@@ -204,9 +204,9 @@ def prepare_variants_relations_data(
     fields.add("variants__pk")
 
     if attribute_ids:
-        fields.update(ProductExportFields.VARIANT_ATTRIBUTE_FIELDS.values())
+        fields.update(attribute_fields.values())
     if warehouse_ids:
-        fields.update(ProductExportFields.WAREHOUSE_FIELDS.values())
+        fields.update(warehouse_fields.values())
     if channel_ids:
         fields.update(channel_fields.values())
 
