@@ -2,7 +2,6 @@
 from datetime import date
 from decimal import Decimal
 from typing import Iterable, List, Optional, Tuple
-from uuid import UUID
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -696,11 +695,6 @@ def abort_order_data(order_data: dict):
             remove_voucher_usage_by_customer(voucher, order_data["user_email"])
 
 
-def get_order(checkout_token: UUID) -> Optional[Order]:
-    """Get order based on checkout token."""
-    return Order.objects.confirmed().filter(checkout_token=checkout_token).first()
-
-
 @transaction.atomic
 def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     """Create an order from the checkout.
@@ -724,7 +718,9 @@ def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     order_lines = order_data.pop("lines")
 
     order = Order.objects.create(**order_data, checkout_token=checkout.token)
-    order.lines.set(order_lines, bulk=False)
+    for line in order_lines:
+        line.order_id = order.pk
+    order_lines = OrderLine.objects.bulk_create(order_lines)
 
     # allocate stocks from the lines
     for line in order_lines:  # type: OrderLine

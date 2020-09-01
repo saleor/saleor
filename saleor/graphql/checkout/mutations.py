@@ -14,7 +14,6 @@ from ...checkout.utils import (
     add_variant_to_checkout,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
-    get_order,
     get_user_checkout,
     get_valid_shipping_methods_for_checkout,
     recalculate_checkout_discount,
@@ -23,6 +22,8 @@ from ...checkout.utils import (
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
 from ...core.permissions import OrderPermissions
+from ...core.transactions import transaction_with_commit_on_errors
+from ...order import models as order_models
 from ...payment import models as payment_models
 from ...product import models as product_models
 from ...warehouse.availability import check_stock_quantity, get_available_quantity
@@ -767,46 +768,55 @@ class CheckoutComplete(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, store_source, **data):
-        checkout_token = from_global_id_strict_type(
-            checkout_id, Checkout, field="checkout_id"
-        )
-        order = get_order(checkout_token)
-        if order:
-            # The order is already created. We return it as a success checkoutComplete
-            # response. Order is anonymized for not logged in user
-            return CheckoutComplete(
-                order=order, confirmation_needed=False, confirmation_data={}
-            )
-
-        with transaction.atomic():
-            checkout = cls.get_node_or_error(
-                info,
-                checkout_id,
-                only_type=Checkout,
-                field="checkout_id",
-                qs=models.Checkout.objects.select_for_update(of=("self",))
-                .prefetch_related(
-                    "gift_cards",
-                    "lines",
-                    Prefetch(
-                        "payments",
-                        queryset=payment_models.Payment.objects.prefetch_related(
-                            "order", "order__lines"
-                        ),
-                    ),
-                )
-                .select_related("shipping_method", "shipping_method__shipping_zone"),
-            )
         tracking_code = analytics.get_client_id(info.context)
-        order, action_required, action_data = complete_checkout(
-            checkout=checkout,
-            payment_data=data.get("payment_data", {}),
-            store_source=store_source,
-            discounts=info.context.discounts,
-            user=info.context.user,
-            tracking_code=tracking_code,
-            redirect_url=data.get("redirect_url"),
-        )
+        with transaction_with_commit_on_errors():
+            try:
+                checkout = cls.get_node_or_error(
+                    info,
+                    checkout_id,
+                    only_type=Checkout,
+                    field="checkout_id",
+                    qs=models.Checkout.objects.select_for_update(of=("self",))
+                    .prefetch_related(
+                        "gift_cards",
+                        "lines__variant__product",
+                        Prefetch(
+                            "payments",
+                            queryset=payment_models.Payment.objects.prefetch_related(
+                                "order__lines"
+                            ),
+                        ),
+                    )
+                    .select_related("shipping_method__shipping_zone"),
+                )
+            except ValidationError as e:
+                checkout_token = from_global_id_strict_type(
+                    checkout_id, Checkout, field="checkout_id"
+                )
+
+                order = (
+                    order_models.Order.objects.confirmed()
+                    .filter(checkout_token=checkout_token)
+                    .first()
+                )
+                if order:
+                    # The order is already created. We return it as a success
+                    # checkoutComplete response. Order is anonymized for not logged in
+                    # user
+                    return CheckoutComplete(
+                        order=order, confirmation_needed=False, confirmation_data={}
+                    )
+                raise e
+
+            order, action_required, action_data = complete_checkout(
+                checkout=checkout,
+                payment_data=data.get("payment_data", {}),
+                store_source=store_source,
+                discounts=info.context.discounts,
+                user=info.context.user,
+                tracking_code=tracking_code,
+                redirect_url=data.get("redirect_url"),
+            )
         # If gateway returns information that additional steps are required we need
         # to inform the frontend and pass all required data
         return CheckoutComplete(

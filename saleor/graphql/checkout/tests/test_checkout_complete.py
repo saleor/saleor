@@ -68,6 +68,7 @@ def test_checkout_complete_order_already_exists(
     order_with_lines.save()
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    checkout.delete()
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     content = get_graphql_content(response)
