@@ -186,7 +186,7 @@ class AllegroAuth:
                    '?response_type=code' \
                    '&client_id={}' \
                    '&api-key={}' \
-                   '&redirect_uri={}&prompt=none'.format(oauth_url, client_id,
+                   '&redirect_uri={}&prompt=confirm'.format(oauth_url, client_id,
                                                            api_key,
                                                            redirect_uri)
 
@@ -300,7 +300,8 @@ class AllegroAPI:
             offer = self.publish_to_allegro(allegro_product=product)
 
             if 'errors' in offer:
-                print('Wystąpił bład z zapisem', offer['errors'])
+                error = offer['errors']
+                self.update_errors_in_private_metadata(saleor_product, [error])
                 return None
             else:
                 if offer['validation'].get('errors') is not None:
@@ -432,9 +433,13 @@ class AllegroAPI:
         product.store_value_in_private_metadata(
             {'publish.allegro.date': datetime.today().strftime('%Y-%m-%d-%H:%M:%S')})
         product.store_value_in_private_metadata({'publish.allegro.id': str(allegro_offer_id)})
-        product.store_value_in_private_metadata({'publish.allegro.errors': str(errors)})
+        self.update_errors_in_private_metadata(product, errors)
         product.is_published = is_published
         product.save(update_fields=["private_metadata", "is_published"])
+
+    def update_errors_in_private_metadata(self, product, errors):
+        product.store_value_in_private_metadata({'publish.allegro.errors': str(errors)})
+        product.save(update_fields=["private_metadata"])
 
     def get_detailed_offer_publication(self, offer_id):
         endpoint = 'sale/offer-publication-commands/' + str(offer_id) + '/tasks'
