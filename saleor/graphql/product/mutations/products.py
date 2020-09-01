@@ -542,7 +542,10 @@ class ProductInput(graphene.InputObjectType):
         )
     )
     visible_in_listings = graphene.Boolean(
-        description="Determines if product is visible in product listings."
+        description=(
+            "Determines if product is visible in product listings "
+            "(doesn't apply to product collections)."
+        )
     )
 
 
@@ -1840,7 +1843,7 @@ class ProductSetAvailabilityForPurchase(BaseMutation):
         start_date = graphene.Date(
             description=(
                 "A start date from which a product will be available for purchase. "
-                "When not set and is_available is set to True, "
+                "When not set and isAvailable is set to True, "
                 "the current day is assumed."
             ),
             required=False,
@@ -1862,7 +1865,7 @@ class ProductSetAvailabilityForPurchase(BaseMutation):
             raise ValidationError(
                 {
                     "start_date": ValidationError(
-                        "Cannot set start date when is_available is false.",
+                        "Cannot set start date when isAvailable is false.",
                         code=ProductErrorCode.INVALID,
                     )
                 }
