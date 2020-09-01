@@ -369,7 +369,7 @@ class AdyenGatewayPlugin(BasePlugin):
                 is_success=True,
                 action_required=False,
             )
-            .exclude(token__isnull=True, token__exact="")
+            .exclude(token__isnull=False, token__exact="")
             .last()
         )
 
@@ -426,9 +426,10 @@ class AdyenGatewayPlugin(BasePlugin):
                 kind=TransactionKind.AUTH,
                 is_success=True,
             )
-            .exclude(token__isnull=True, token__exact="")
+            .exclude(token__isnull=False, token__exact="")
             .last()
         )
+
         if not transaction:
             # If we don't find the Auth kind we will try to get Capture kind
             transaction = (
@@ -437,7 +438,7 @@ class AdyenGatewayPlugin(BasePlugin):
                     kind=TransactionKind.CAPTURE,
                     is_success=True,
                 )
-                .exclude(token__isnull=True, token__exact="")
+                .exclude(token__isnull=False, token__exact="")
                 .last()
             )
 
