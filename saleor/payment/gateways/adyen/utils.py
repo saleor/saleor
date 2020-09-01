@@ -49,7 +49,7 @@ def api_call(request_data: Optional[Dict[str, Any]], method: Callable) -> Adyen.
     try:
         return method(request_data)
     except (Adyen.AdyenError, ValueError, TypeError) as e:
-        logger.error(f"Unable to process the payment: {e}")
+        logger.warning(f"Unable to process the payment: {e}")
         raise PaymentError("Unable to process the payment request.")
 
 
