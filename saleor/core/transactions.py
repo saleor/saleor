@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 
-from django.db import DatabaseError, IntegrityError, transaction
+from django.db import DatabaseError, transaction
 
 
 @contextmanager
@@ -10,7 +10,7 @@ def transaction_with_commit_on_errors():
     with transaction.atomic():
         try:
             yield
-        except (DatabaseError, IntegrityError):
+        except DatabaseError:
             raise
         except Exception as e:
             error = e
