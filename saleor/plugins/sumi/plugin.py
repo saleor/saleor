@@ -110,8 +110,8 @@ class SumiPlugin(BasePlugin):
             # product_variant_stock.decrease_stock(1)
             return {"sku": str(product_variant_stock.product_variant),
                     "name": str(product_variant_stock.product_variant.product),
-                    "netPrice": str(product_variant_stock.product_variant.price_amount),
-                    "grossPrice": str(round(float(product_variant_stock.product_variant.price_amount) + (0.23 * float(product_variant_stock.product_variant.price_amount)), 2)),
+                    "netPrice": str(product_variant_stock.product_variant.cost_price_amount),
+                    "grossPrice": str(round(float(product_variant_stock.product_variant.cost_price_amount) + (0.23 * float(product_variant_stock.product_variant.cost_price_amount)), 2)),
                     "vatRate": '23'
                     }
         except:
