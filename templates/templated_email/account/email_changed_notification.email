@@ -8,7 +8,7 @@
 {% include 'templated_email/shared/_header.email' %}
 {% blocktrans context "Email change e-mail text" %}
 
-You're receiving this e-mail because you or someone else has changed email for your user account at {{ domain }}.
+You're receiving this e-mail because you or someone else has changed email for your user account at {{ site_name }}.
 If you didn't request this change, please contact the administrator.
 {% endblocktrans %}
 
