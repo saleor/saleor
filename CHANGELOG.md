@@ -40,6 +40,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Update google merchant to get tax rate based by plugin manager - #5823 by @gabmartinez
 - Allow unicode in slug fields - #5877 by @IKarbowiak
 - Fix empty plugin object result after PluginUpdate mutation - #5968 by @gabmartinez
+- Allow to finish checkout when price amount is 0 - #6064 by @IKarbowiak
+- Fix incorrect tax calculation for Avatax - #6035 by @korycins
+- Fix incorrect calculation of subtotal with active Avatax - #6035 by @korycins
+- Fix incorrect assigment of tax_code for Avatax - #6035 by @korycins
 
 ## 2.10.2
 
