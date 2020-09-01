@@ -7,7 +7,8 @@ from django.utils import timezone
 from ...product.models import Product
 from .. import FileTypes
 from ..emails import send_email_with_link_to_download_file
-from .products_data import get_export_fields_and_headers_info, get_products_data
+from .product_headers import get_export_fields_and_headers_info
+from .products_data import get_products_data
 
 if TYPE_CHECKING:
     # flake8: noqa

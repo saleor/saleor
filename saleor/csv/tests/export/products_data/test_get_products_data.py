@@ -2,7 +2,8 @@ from measurement.measures import Weight
 
 from .....product.models import Attribute, Product, ProductVariant, VariantImage
 from .....warehouse.models import Warehouse
-from ....utils.products_data import ProductExportFields, get_products_data
+from ....utils import ProductExportFields
+from ....utils.products_data import get_products_data
 from .utils import (
     add_product_attribute_data_to_expected_data,
     add_stocks_to_expected_data,

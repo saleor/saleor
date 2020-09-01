@@ -1,7 +1,7 @@
 from .....channel.models import Channel
 from .....graphql.csv.enums import ProductFieldEnum
 from .....product.models import Attribute
-from ....utils.products_data import (
+from ....utils.product_headers import (
     get_attributes_headers,
     get_channels_headers,
     get_export_fields_and_headers_info,
