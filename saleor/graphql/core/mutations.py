@@ -540,7 +540,6 @@ class BaseBulkMutation(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, ids, **data):
-        from saleor.graphql.product.bulk_mutations.products import ProductBulkPublish
         """Perform a mutation that deletes a list of model instances."""
         clean_instance_ids, errors = [], {}
         # Allow to pass empty list for dummy mutation

@@ -2,7 +2,6 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 
 from ....core.permissions import ProductPermissions
@@ -569,5 +568,3 @@ class ProductBulkPublish(BaseBulkMutation):
         message = EmailMultiAlternatives(subject, text_content, from_email, [to])
         message.attach_alternative(html_content, "text/html")
         return message.send()
-
-
