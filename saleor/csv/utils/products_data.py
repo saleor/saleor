@@ -1,6 +1,6 @@
 import os
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 
 from django.conf import settings
 from django.db.models import Case, CharField, Value as V, When
