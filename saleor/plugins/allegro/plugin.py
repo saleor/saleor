@@ -39,6 +39,8 @@ class AllegroConfiguration:
     delivery_shipping_rates: str
     delivery_handling_time: str
     publication_duration: str
+    publication_starting_at: str
+    auction_format: str
 
 
 class AllegroPlugin(BasePlugin):
@@ -62,7 +64,9 @@ class AllegroPlugin(BasePlugin):
                              {"name": "warranty", "value":  None},
                              {"name": "delivery_shipping_rates", "value":  None},
                              {"name": "delivery_handling_time", "value":  None},
-                             {"name": "publication_duration", "value":  None},]
+                             {"name": "publication_duration", "value":  None},
+                             {"name": "publication_starting_at", "value": ''},
+                             {"name": "auction_format", "value": 'AUCTION'},]
     CONFIG_STRUCTURE = {
         "redirect_url": {
             "type": ConfigurationTypeField.STRING,
@@ -135,13 +139,23 @@ class AllegroPlugin(BasePlugin):
         },
         "delivery_handling_time": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "delivery_handling_time",
+            "help_text": "delivery_handling_time (PT72H)",
             "label": "delivery_handling_time",
         },
         "publication_duration": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": "publication_duration",
+            "help_text": "publication_duration (PT72H)",
             "label": "publication_duration",
+        },
+        "publication_starting_at": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "publication_starting_at w formacie %Y-%m-%d %H:%M (2020-09-02 20:00)",
+            "label": "publication_starting_at",
+        },
+        "auction_format": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "AUCTION lub BUY_NOW",
+            "label": "auction_format",
         }
     }
 
@@ -165,7 +179,9 @@ class AllegroPlugin(BasePlugin):
                                            warranty=configuration["warranty"],
                                            delivery_shipping_rates=configuration["delivery_shipping_rates"],
                                            delivery_handling_time=configuration["delivery_handling_time"],
-                                           publication_duration=configuration["publication_duration"])
+                                           publication_duration=configuration["publication_duration"],
+                                           publication_starting_at=configuration["publication_starting_at"],
+                                           auction_format=configuration["auction_format"])
 
         HOURS_LESS_THAN_WE_REFRESH_TOKEN = 6
 
@@ -471,7 +487,7 @@ class AllegroAPI:
 
     def upload_images(self, saleor_product):
 
-        images_url = [pi.image.url.replace('/media', '') for pi in ProductImage.objects.filter(product=saleor_product)]
+        images_url = ['https://saleor-test-media.s3.amazonaws.com' + pi.image.url.replace('/media', '') for pi in ProductImage.objects.filter(product=saleor_product)]
 
         return [self.upload_image(image_url) for image_url in images_url]
 
@@ -864,6 +880,14 @@ class AllegroProductMapper:
         self.product['sellingMode']['startingPrice']['amount'] = starting_price_amount
         return self
 
+    def set_price_amount(self, price_amount):
+        self.product['sellingMode']['price']['amount'] = price_amount
+        return self
+
+    def set_price_currency(self, price_currency):
+        self.product['sellingMode']['price']['currency'] = price_currency
+        return self
+
     def set_starting_price_currency(self, starting_price_currency):
         self.product['sellingMode']['startingPrice']['currency'] = starting_price_currency
         return self
@@ -998,6 +1022,14 @@ class AllegroProductMapper:
         config = self.get_plugin_configuration()
         return config.get('publication_duration')
 
+    def get_publication_starting_at(self):
+            config = self.get_plugin_configuration()
+            return config.get('publication_starting_at')
+
+    def get_auction_format(self):
+            config = self.get_plugin_configuration()
+            return config.get('auction_format')
+
 
 
     def run_mapper(self):
@@ -1015,15 +1047,20 @@ class AllegroProductMapper:
 
         self.set_invoice('NO_INVOICE')
 
-        self.set_format('AUCTION')
+        self.set_format(self.get_auction_format())
 
-        product_variant = ProductVariant.objects.filter(product=self.saleor_product).first()
-        # TODO: zmienic na product_variant_stock.product_variant.price_amount
-        self.set_starting_price_amount(
-            str(product_variant.price_amount))
+        if self.get_auction_format() == 'BUY_NOW':
+            product_variant = ProductVariant.objects.filter(
+                product=self.saleor_product).first()
+            self.set_price_amount(
+                str(product_variant.price_amount))
+            self.set_price_currency(product_variant.currency)
+        else:
+            product_variant = ProductVariant.objects.filter(product=self.saleor_product).first()
+            self.set_starting_price_amount(
+                str(product_variant.price_amount))
+            self.set_starting_price_currency(product_variant.currency)
 
-        # TODO: zmienic na product_variant_stock.product_variant.currency
-        self.set_starting_price_currency('PLN')
         self.set_name(self.prepare_name(self.saleor_product.name))
         self.set_images(self.saleor_images)
 
@@ -1035,7 +1072,10 @@ class AllegroProductMapper:
         self.set_stock_unit('SET')
         self.set_publication_duration(self.get_publication_duration())
         self.set_publication_ending_at('')
-        # self.set_publication_starting_at('2020-07-25T08:03:59Z')
+        if self.get_publication_starting_at() != '':
+            self.set_publication_starting_at(str((datetime.strptime(self.get_publication_starting_at(), '%Y-%m-%d %H:%M') - timedelta(
+                                  hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ")))
+
         self.set_publication_status('INACTIVE')
         self.set_publication_ended_by('USER')
         self.set_publication_republish('False')
