@@ -487,7 +487,7 @@ class AllegroAPI:
 
     def upload_images(self, saleor_product):
 
-        images_url = ['https://saleor-test-media.s3.amazonaws.com' + pi.image.url.replace('/media', '') for pi in ProductImage.objects.filter(product=saleor_product)]
+        images_url = [pi.image.url.replace('/media', '') for pi in ProductImage.objects.filter(product=saleor_product)]
 
         return [self.upload_image(image_url) for image_url in images_url]
 
