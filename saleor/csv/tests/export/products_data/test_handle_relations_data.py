@@ -14,6 +14,13 @@ from ....utils.products_data import (
     prepare_products_relations_data,
     prepare_variants_relations_data,
 )
+from .utils import (
+    add_channel_to_expected_product_data,
+    add_channel_to_expected_variant_data,
+    add_product_attribute_data_to_expected_data,
+    add_stocks_to_expected_data,
+    add_variant_attribute_data_to_expected_data,
+)
 
 
 @patch("saleor.csv.utils.products_data.prepare_products_relations_data")
@@ -99,7 +106,6 @@ def test_get_products_relations_data_channel_ids(
     get_products_relations_data(qs, export_fields, attribute_ids, channel_ids)
 
     # then
-    # then
     assert prepare_products_data_mocked.call_count == 1
     args, kwargs = prepare_products_data_mocked.call_args
     assert set(args[0].values_list("pk", flat=True)) == set(
@@ -140,25 +146,12 @@ def test_prepare_products_relations_data(
     )
     expected_result = {pk: {"collections__slug": collections, "images__image": images}}
 
-    assigned_attribute = product_with_image.attributes.first()
-    if assigned_attribute:
-        header = f"{assigned_attribute.attribute.slug} (product attribute)"
-        expected_result[pk][header] = assigned_attribute.values.first().slug
-
-    for channel_listing in product_with_image.channel_listing.all():
-        if channel_listing.channel in [channel_PLN, channel_USD]:
-            channel_slug = channel_listing.channel.slug
-            for lookup, field in [
-                ("currency_code", "currency code"),
-                ("is_published", "published"),
-                ("publication_date", "publication date"),
-            ]:
-                header = f"{channel_slug} (channel {field})"
-                if lookup == "currency_code":
-                    value = getattr(channel_listing.channel, lookup)
-                else:
-                    value = getattr(channel_listing, lookup)
-                expected_result[pk][header] = value
+    expected_result = add_product_attribute_data_to_expected_data(
+        expected_result, product_with_image, attribute_ids, pk
+    )
+    expected_result = add_channel_to_expected_product_data(
+        expected_result, product_with_image, channel_ids, pk
+    )
 
     assert result == expected_result
 
@@ -208,10 +201,9 @@ def test_prepare_products_relations_data_only_attributes_ids(
     # then
     expected_result = {pk: {}}
 
-    assigned_attribute = product_with_image.attributes.first()
-    if assigned_attribute:
-        header = f"{assigned_attribute.attribute.slug} (product attribute)"
-        expected_result[pk][header] = assigned_attribute.values.first().slug
+    expected_result = add_product_attribute_data_to_expected_data(
+        expected_result, product_with_image, attribute_ids, pk
+    )
 
     assert result == expected_result
 
@@ -234,20 +226,9 @@ def test_prepare_products_relations_data_only_channel_ids(
     # then
     expected_result = {pk: {}}
 
-    for channel_listing in product_with_image.channel_listing.all():
-        if channel_listing.channel in [channel_PLN, channel_USD]:
-            channel_slug = channel_listing.channel.slug
-            for lookup, field in [
-                ("currency_code", "currency code"),
-                ("is_published", "published"),
-                ("publication_date", "publication date"),
-            ]:
-                header = f"{channel_slug} (channel {field})"
-                if lookup == "currency_code":
-                    value = getattr(channel_listing.channel, lookup)
-                else:
-                    value = getattr(channel_listing, lookup)
-                expected_result[pk][header] = value
+    expected_result = add_channel_to_expected_product_data(
+        expected_result, product_with_image, channel_ids, pk
+    )
 
     assert result == expected_result
 
@@ -439,27 +420,16 @@ def test_prepare_variants_relations_data(
     )
     expected_result = {pk: {"variants__images__image": images}}
 
-    for assigned_attribute in variant.attributes.all():
-        header = f"{assigned_attribute.attribute.slug} (variant attribute)"
-        if str(assigned_attribute.attribute.pk) in attribute_ids:
-            expected_result[pk][header] = assigned_attribute.values.first().slug
+    expected_result = add_variant_attribute_data_to_expected_data(
+        expected_result, variant, attribute_ids, pk
+    )
+    expected_result = add_stocks_to_expected_data(
+        expected_result, variant, warehouse_ids, pk
+    )
 
-    for stock in variant.stocks.all():
-        if str(stock.warehouse.pk) in warehouse_ids:
-            slug = stock.warehouse.slug
-            warehouse_headers = [
-                f"{slug} (warehouse quantity)",
-            ]
-            expected_result[pk][warehouse_headers[0]] = stock.quantity
-
-    for channel_listing in variant.channel_listing.all():
-        if channel_listing.channel in [channel_PLN, channel_USD]:
-            channel_slug = channel_listing.channel.slug
-            header = f"{channel_slug} (channel price amount)"
-            expected_result[pk][header] = channel_listing.price_amount
-
-            header = f"{channel_slug} (channel currency)"
-            expected_result[pk][header] = channel_listing.currency
+    expected_result = add_channel_to_expected_variant_data(
+        expected_result, variant, channel_ids, pk
+    )
 
     assert result == expected_result
 
@@ -523,10 +493,9 @@ def test_prepare_variants_relations_data_attributes_ids(
     pk = variant.pk
     expected_result = {pk: {}}
 
-    for assigned_attribute in variant.attributes.all():
-        header = f"{assigned_attribute.attribute.slug} (variant attribute)"
-        if str(assigned_attribute.attribute.pk) in attribute_ids:
-            expected_result[pk][header] = assigned_attribute.values.first().slug
+    expected_result = add_variant_attribute_data_to_expected_data(
+        expected_result, variant, attribute_ids, pk
+    )
 
     assert result == expected_result
 
@@ -552,13 +521,9 @@ def test_prepare_variants_relations_data_warehouse_ids(
     pk = variant.pk
     expected_result = {pk: {}}
 
-    for stock in variant.stocks.all():
-        if str(stock.warehouse.pk) in warehouse_ids:
-            slug = stock.warehouse.slug
-            warehouse_headers = [
-                f"{slug} (warehouse quantity)",
-            ]
-            expected_result[pk][warehouse_headers[0]] = stock.quantity
+    expected_result = add_stocks_to_expected_data(
+        expected_result, variant, warehouse_ids, pk
+    )
 
     assert result == expected_result
 
@@ -584,22 +549,9 @@ def test_prepare_variants_relations_data_channel_ids(
     pk = variant.pk
     expected_result = {pk: {}}
 
-    for stock in variant.stocks.all():
-        if str(stock.warehouse.pk) in warehouse_ids:
-            slug = stock.warehouse.slug
-            warehouse_headers = [
-                f"{slug} (warehouse quantity)",
-            ]
-            expected_result[pk][warehouse_headers[0]] = stock.quantity
-
-    for channel_listing in variant.channel_listing.all():
-        if channel_listing.channel in [channel_PLN, channel_USD]:
-            channel_slug = channel_listing.channel.slug
-            header = f"{channel_slug} (channel price amount)"
-            expected_result[pk][header] = channel_listing.price_amount
-
-            header = f"{channel_slug} (channel currency)"
-            expected_result[pk][header] = channel_listing.currency
+    expected_result = add_channel_to_expected_variant_data(
+        expected_result, variant, channel_ids, pk
+    )
 
     assert result == expected_result
 
