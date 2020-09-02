@@ -823,6 +823,17 @@ class ProductCreate(ModelMutation):
                 }
             )
 
+        base_price = cleaned_input.get("base_price")
+        if base_price is not None and base_price < 0:
+            raise ValidationError(
+                {
+                    "base_price": ValidationError(
+                        "Product price cannot be lower than 0.",
+                        code=ProductErrorCode.INVALID.value,
+                    )
+                }
+            )
+
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
