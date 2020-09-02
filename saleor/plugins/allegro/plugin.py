@@ -6,6 +6,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
+import logging
 
 import requests
 from django.shortcuts import redirect
@@ -17,6 +18,8 @@ from saleor.plugins.models import PluginConfiguration
 from saleor.product.models import Product, AssignedProductAttribute, \
     AttributeValue, ProductImage, ProductVariant
 from . import ProductPublishState
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class AllegroConfiguration:
@@ -393,9 +396,15 @@ class AllegroAPI:
         config = self.get_plugin_configuration()
         env = config.get('env')
         url = env + '/' + endpoint
+
         headers = {'Authorization': 'Bearer ' + self.token,
                    'Accept': 'application/vnd.allegro.public.v1+json',
                    'Content-Type': 'application/vnd.allegro.public.v1+json'}
+
+        logger.info("Post request url: " + str(url))
+        logger.info("Post request headers: " + str(headers))
+
+
         response = requests.post(url, data=json.dumps(data), headers=headers)
 
         return response
@@ -464,8 +473,13 @@ class AllegroAPI:
         data = {
             "url": url
         }
+        logger.info("Upload images from: " + str(url))
 
         response = self.post_request(endpoint=endpoint, data=data)
+
+        logger.info("Upload images response " +  str(json.loads(response.text)))
+
+
         return json.loads(response.text)['location']
 
     def update_status_and_publish_data_in_private_metadata(self, product, allegro_offer_id, status, is_published, errors):

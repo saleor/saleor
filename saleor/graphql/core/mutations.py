@@ -550,6 +550,7 @@ class BaseBulkMutation(BaseMutation):
         instances = cls.get_nodes_or_error(ids, "id", model_type)
 
         publish_errors = []
+        from saleor.graphql.product.bulk_mutations.products import ProductBulkPublish
         if type(instance_model) == type(Product) and cls == ProductBulkPublish:
             for instance in instances:
                 if instance.is_published == False:

@@ -2,6 +2,7 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 
 from ....core.permissions import ProductPermissions
