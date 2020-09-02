@@ -3,6 +3,7 @@ import binascii
 import hashlib
 import hmac
 import json
+import logging
 from typing import Any, Callable, Dict, Optional
 from urllib.parse import urlencode
 
@@ -36,13 +37,24 @@ from ...interface import GatewayConfig, GatewayResponse
 from ...utils import create_payment_information, create_transaction, gateway_postprocess
 from .utils import FAILED_STATUSES, api_call, from_adyen_price
 
+logger = logging.getLogger(__name__)
 
-def get_payment(payment_id: Optional[str]) -> Optional[Payment]:
+
+def get_payment(
+    payment_id: Optional[str], transaction_id: Optional[str]
+) -> Optional[Payment]:
+    transaction_id = transaction_id or ""
     if not payment_id:
+        logger.warning("Missing payment ID. Reference %s", transaction_id)
         return None
     try:
         _type, db_payment_id = from_global_id(payment_id)
     except UnicodeDecodeError:
+        logger.warning(
+            "Unable to decode the payment ID %s. Reference %s",
+            payment_id,
+            transaction_id,
+        )
         return None
     payment = (
         Payment.objects.prefetch_related("order", "checkout")
@@ -50,6 +62,10 @@ def get_payment(payment_id: Optional[str]) -> Optional[Payment]:
         .filter(id=db_payment_id)
         .first()
     )
+    if not payment:
+        logger.warning(
+            "Payment for %s was not found. Reference %s", payment_id, transaction_id
+        )
     return payment
 
 
@@ -116,18 +132,18 @@ def create_payment_notification_for_order(
 
 @transaction_with_commit_on_errors()
 def handle_authorization(notification: Dict[str, Any], _gateway_config: GatewayConfig):
-    payment = get_payment(notification.get("merchantReference"))
+    transaction_id = notification.get("pspReference")
+    payment = get_payment(notification.get("merchantReference"), transaction_id)
     if not payment:
         # We don't know anything about that payment
         return
     checkout = get_checkout(payment)
-    if payment.charge_status in {
+    if payment.order and payment.charge_status in {
         ChargeStatus.FULLY_CHARGED,
         ChargeStatus.PARTIALLY_CHARGED,
     }:
         return
 
-    transaction_id = notification.get("pspReference")
     transaction = payment.transactions.filter(
         token=transaction_id,
         action_required=False,
@@ -135,8 +151,8 @@ def handle_authorization(notification: Dict[str, Any], _gateway_config: GatewayC
         kind__in=[TransactionKind.AUTH, TransactionKind.CAPTURE],
     ).last()
 
-    if transaction:
-        # We already have this transaction
+    if transaction and payment.order:
+        # We already have this transaction and order is created
         return
 
     action_transaction = payment.transactions.filter(
@@ -178,10 +194,10 @@ def handle_authorization(notification: Dict[str, Any], _gateway_config: GatewayC
 @transaction_with_commit_on_errors()
 def handle_cancellation(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/cancel#cancellation-notifciation
-    payment = get_payment(notification.get("merchantReference"))
+    transaction_id = notification.get("pspReference")
+    payment = get_payment(notification.get("merchantReference"), transaction_id)
     if not payment:
         return
-    transaction_id = notification.get("pspReference")
     transaction = get_transaction(payment, transaction_id, TransactionKind.CANCEL)
     if transaction and transaction.is_success:
         # it is already cancelled
@@ -218,7 +234,8 @@ def handle_cancel_or_refund(
 @transaction_with_commit_on_errors()
 def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/capture#capture-notification
-    payment = get_payment(notification.get("merchantReference"))
+    transaction_id = notification.get("pspReference")
+    payment = get_payment(notification.get("merchantReference"), transaction_id)
     if not payment:
         return
     checkout = get_checkout(payment)
@@ -227,7 +244,6 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
         # the payment has already status captured.
         return
 
-    transaction_id = notification.get("pspReference")
     capture_transaction = payment.transactions.filter(
         token=transaction_id,
         action_required=False,
@@ -283,10 +299,10 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
 @transaction_with_commit_on_errors()
 def handle_failed_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/capture#failed-capture
-    payment = get_payment(notification.get("merchantReference"))
+    transaction_id = notification.get("pspReference")
+    payment = get_payment(notification.get("merchantReference"), transaction_id)
     if not payment:
         return
-    transaction_id = notification.get("pspReference")
 
     transaction = get_transaction(
         payment, transaction_id, TransactionKind.CAPTURE_FAILED
@@ -311,10 +327,10 @@ def handle_failed_capture(notification: Dict[str, Any], _gateway_config: Gateway
 def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
     # https://docs.adyen.com/development-resources/webhooks/understand-notifications#
     # event-codes"
-    payment = get_payment(notification.get("merchantReference"))
+    transaction_id = notification.get("pspReference")
+    payment = get_payment(notification.get("merchantReference"), transaction_id)
     if not payment:
         return
-    transaction_id = notification.get("pspReference")
     transaction = get_transaction(payment, transaction_id, TransactionKind.PENDING)
     if transaction and transaction.is_success:
         # it is already pending
@@ -334,10 +350,10 @@ def handle_pending(notification: Dict[str, Any], gateway_config: GatewayConfig):
 @transaction_with_commit_on_errors()
 def handle_refund(notification: Dict[str, Any], _gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/refund#refund-notification
-    payment = get_payment(notification.get("merchantReference"))
+    transaction_id = notification.get("pspReference")
+    payment = get_payment(notification.get("merchantReference"), transaction_id)
     if not payment:
         return
-    transaction_id = notification.get("pspReference")
     transaction = get_transaction(payment, transaction_id, TransactionKind.REFUND)
     if transaction and transaction.is_success:
         # it is already refunded
@@ -367,10 +383,10 @@ def _get_kind(transaction: Optional[Transaction]) -> str:
 @transaction_with_commit_on_errors()
 def handle_failed_refund(notification: Dict[str, Any], gateway_config: GatewayConfig):
     # https://docs.adyen.com/checkout/refund#failed-refund
-    payment = get_payment(notification.get("merchantReference"))
+    transaction_id = notification.get("pspReference")
+    payment = get_payment(notification.get("merchantReference"), transaction_id)
     if not payment:
         return
-    transaction_id = notification.get("pspReference")
 
     # take the last status of payment before we tried to perform the refund
     last_transaction = payment.transactions.filter(
@@ -433,10 +449,10 @@ def handle_reversed_refund(
     notification: Dict[str, Any], _gateway_config: GatewayConfig
 ):
     # https://docs.adyen.com/checkout/refund#failed-refund
-    payment = get_payment(notification.get("merchantReference"))
+    transaction_id = notification.get("pspReference")
+    payment = get_payment(notification.get("merchantReference"), transaction_id)
     if not payment:
         return
-    transaction_id = notification.get("pspReference")
     transaction = get_transaction(
         payment, transaction_id, TransactionKind.REFUND_REVERSED
     )
@@ -472,7 +488,8 @@ def webhook_not_implemented(
     adyen_id = notification.get("pspReference")
     success = notification.get("success", True)
     event = notification.get("eventCode")
-    payment = get_payment(notification.get("merchantReference"))
+    transaction_id = notification.get("pspReference")
+    payment = get_payment(notification.get("merchantReference"), transaction_id)
     if not payment:
         return
     msg = (
