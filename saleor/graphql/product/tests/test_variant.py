@@ -819,6 +819,7 @@ def test_update_product_variant_with_duplicated_attribute(
         ([], "size expects a value but none were given"),
         (["one", "two"], "A variant attribute cannot take more than one value"),
         (["   "], "Attribute values cannot be blank"),
+        ([None], "Attribute values cannot be blank"),
     ),
 )
 def test_update_product_variant_requires_values(
@@ -828,6 +829,7 @@ def test_update_product_variant_requires_values(
 
     - No values
     - Blank value
+    - None as value
     - More than one value
     """
 
