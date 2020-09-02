@@ -7,7 +7,7 @@ from measurement.measures import Weight
 
 from ....core.weight import WeightUnits
 from ....product.error_codes import ProductErrorCode
-from ....product.models import Product, ProductVariant
+from ....product.models import Product, ProductChannelListing, ProductVariant
 from ....product.utils.attributes import associate_attribute_values_to_instance
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.models import Stock, Warehouse
@@ -1199,6 +1199,7 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
                 code
                 index
                 warehouses
+                channels
             }
             productVariants{
                 id
@@ -1208,6 +1209,15 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
                         slug
                     }
                     quantity
+                }
+                channelListing {
+                    channel {
+                        slug
+                    }
+                    price {
+                        currency
+                        amount
+                    }
                 }
             }
             count
@@ -1250,7 +1260,7 @@ def test_product_variant_bulk_create_by_attribute_id(
     assert not product_variant.cost_price
 
 
-def test_product_variant_bulk_create_by_attribute_id_with_invalid_price(
+def test_product_variant_bulk_create_by_attribute_id_with_invalid_cost_price(
     staff_api_client, product, size_attribute, permission_manage_products
 ):
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -1460,6 +1470,228 @@ def test_product_variant_bulk_create_duplicated_warehouses(
     assert error["warehouses"] == [warehouse1_id]
 
 
+def test_product_variant_bulk_create_channel_listings_input(
+    staff_api_client,
+    product_available_in_many_channels,
+    permission_manage_products,
+    warehouses,
+    size_attribute,
+    channel_USD,
+    channel_PLN,
+):
+    product = product_available_in_many_channels
+    ProductChannelListing.objects.filter(product=product, channel=channel_PLN).update(
+        is_published=False
+    )
+    product_variant_count = ProductVariant.objects.count()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_value_count = size_attribute.values.count()
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    attribute_value = size_attribute.values.last()
+    variants = [
+        {
+            "sku": str(uuid4())[:12],
+            "channelListings": [
+                {
+                    "price": 10.0,
+                    "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                }
+            ],
+            "attributes": [{"id": size_attribute_id, "values": [attribute_value.name]}],
+        },
+        {
+            "sku": str(uuid4())[:12],
+            "attributes": [{"id": size_attribute_id, "values": ["Test-attribute"]}],
+            "channelListings": [
+                {
+                    "price": 15.0,
+                    "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                },
+                {
+                    "price": 12.0,
+                    "channelId": graphene.Node.to_global_id("Channel", channel_PLN.pk),
+                },
+            ],
+        },
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+    assert not data["bulkProductErrors"]
+    assert data["count"] == 2
+    assert product_variant_count + 2 == ProductVariant.objects.count()
+    assert attribute_value_count + 1 == size_attribute.values.count()
+
+    expected_result = {
+        variants[0]["sku"]: {
+            "sku": variants[0]["sku"],
+            "channelListing": [
+                {
+                    "channel": {"slug": channel_USD.slug},
+                    "price": {
+                        "amount": variants[0]["channelListings"][0]["price"],
+                        "currency": channel_USD.currency_code,
+                    },
+                }
+            ],
+        },
+        variants[1]["sku"]: {
+            "sku": variants[1]["sku"],
+            "channelListing": [
+                {
+                    "channel": {"slug": channel_USD.slug},
+                    "price": {
+                        "amount": variants[1]["channelListings"][0]["price"],
+                        "currency": channel_USD.currency_code,
+                    },
+                },
+                {
+                    "channel": {"slug": channel_PLN.slug},
+                    "price": {
+                        "amount": variants[1]["channelListings"][1]["price"],
+                        "currency": channel_PLN.currency_code,
+                    },
+                },
+            ],
+        },
+    }
+    for variant_data in data["productVariants"]:
+        variant_data.pop("id")
+        assert variant_data["sku"] in expected_result
+        expected_variant = expected_result[variant_data["sku"]]
+        expected_channel_listing = expected_variant["channelListing"]
+        assert all(
+            [
+                channelListing in expected_channel_listing
+                for channelListing in variant_data["channelListing"]
+            ]
+        )
+
+
+def test_product_variant_bulk_create_duplicated_channels(
+    staff_api_client,
+    product_available_in_many_channels,
+    permission_manage_products,
+    warehouses,
+    size_attribute,
+    channel_USD,
+):
+    product = product_available_in_many_channels
+    product_variant_count = ProductVariant.objects.count()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    attribute_value = size_attribute.values.last()
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+    variants = [
+        {
+            "sku": str(uuid4())[:12],
+            "channelListings": [
+                {"price": 10.0, "channelId": channel_id},
+                {"price": 10.0, "channelId": channel_id},
+            ],
+            "attributes": [{"id": size_attribute_id, "values": [attribute_value.name]}],
+        },
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+    assert len(data["bulkProductErrors"]) == 1
+    error = data["bulkProductErrors"][0]
+    assert error["field"] == "channelListings"
+    assert error["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert error["index"] == 0
+    assert error["channels"] == [channel_id]
+    assert product_variant_count == ProductVariant.objects.count()
+
+
+def test_product_variant_bulk_create_negative_price(
+    staff_api_client,
+    product_available_in_many_channels,
+    permission_manage_products,
+    warehouses,
+    size_attribute,
+    channel_USD,
+):
+    product = product_available_in_many_channels
+    product_variant_count = ProductVariant.objects.count()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    attribute_value = size_attribute.values.last()
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+    variants = [
+        {
+            "sku": str(uuid4())[:12],
+            "channelListings": [{"price": -10.0, "channelId": channel_id}],
+            "attributes": [{"id": size_attribute_id, "values": [attribute_value.name]}],
+        },
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+    assert len(data["bulkProductErrors"]) == 1
+    error = data["bulkProductErrors"][0]
+    assert error["field"] == "price"
+    assert error["code"] == ProductErrorCode.INVALID.name
+    assert error["index"] == 0
+    assert error["channels"] == [channel_id]
+    assert product_variant_count == ProductVariant.objects.count()
+
+
+def test_product_variant_bulk_create_product_not_assigned_to_channel(
+    staff_api_client,
+    product,
+    permission_manage_products,
+    warehouses,
+    size_attribute,
+    channel_PLN,
+):
+    product_variant_count = ProductVariant.objects.count()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    assert not ProductChannelListing.objects.filter(
+        product=product, channel=channel_PLN
+    ).exists()
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    attribute_value = size_attribute.values.last()
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
+    variants = [
+        {
+            "sku": str(uuid4())[:12],
+            "channelListings": [{"price": 10.0, "channelId": channel_id}],
+            "attributes": [{"id": size_attribute_id, "values": [attribute_value.name]}],
+        },
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+    assert len(data["bulkProductErrors"]) == 1
+    error = data["bulkProductErrors"][0]
+    assert error["field"] == "channelId"
+    assert error["code"] == ProductErrorCode.PRODUCT_NOT_ASSIGNED_TO_CHANNEL.name
+    assert error["index"] == 0
+    assert error["channels"] == [channel_id]
+    assert product_variant_count == ProductVariant.objects.count()
+
+
 def test_product_variant_bulk_create_duplicated_sku(
     staff_api_client,
     product,
@@ -1579,6 +1811,7 @@ def test_product_variant_bulk_create_many_errors(
             "code": ProductErrorCode.UNIQUE.name,
             "message": ANY,
             "warehouses": None,
+            "channels": None,
         },
         {
             "field": "attributes",
@@ -1586,6 +1819,7 @@ def test_product_variant_bulk_create_many_errors(
             "code": ProductErrorCode.NOT_FOUND.name,
             "message": ANY,
             "warehouses": None,
+            "channels": None,
         },
     ]
     for expected_error in expected_errors:

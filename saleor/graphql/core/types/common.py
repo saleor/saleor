@@ -203,6 +203,11 @@ class BulkProductError(ProductError):
         description="List of warehouse IDs which causes the error.",
         required=False,
     )
+    channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channel IDs which causes the error.",
+        required=False,
+    )
 
 
 class ShopError(Error):
