@@ -44,6 +44,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix incorrect tax calculation for Avatax - #6035 by @korycins
 - Fix incorrect calculation of subtotal with active Avatax - #6035 by @korycins
 - Fix incorrect assigment of tax_code for Avatax - #6035 by @korycins
+- Do not allow negative product price - #6091 by @IKarbowiak
 
 ## 2.10.2
 
