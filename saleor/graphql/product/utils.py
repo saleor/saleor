@@ -50,7 +50,7 @@ def validate_attribute_input_for_variant(instance: "Attribute", values: List[str
             code=ProductErrorCode.INVALID.value,
         )
 
-    if not values[0].strip():
+    if values[0] is None or not values[0].strip():
         raise ValidationError(
             "Attribute values cannot be blank", code=ProductErrorCode.REQUIRED.value
         )
