@@ -38,6 +38,7 @@ class AllegroConfiguration:
     warranty: str
     delivery_shipping_rates: str
     delivery_handling_time: str
+    publication_duration: str
 
 
 class AllegroPlugin(BasePlugin):
@@ -60,7 +61,8 @@ class AllegroPlugin(BasePlugin):
                              {"name": "return_policy", "value":  None},
                              {"name": "warranty", "value":  None},
                              {"name": "delivery_shipping_rates", "value":  None},
-                             {"name": "delivery_handling_time", "value":  None},]
+                             {"name": "delivery_handling_time", "value":  None},
+                             {"name": "publication_duration", "value":  None},]
     CONFIG_STRUCTURE = {
         "redirect_url": {
             "type": ConfigurationTypeField.STRING,
@@ -135,6 +137,11 @@ class AllegroPlugin(BasePlugin):
             "type": ConfigurationTypeField.STRING,
             "help_text": "delivery_handling_time",
             "label": "delivery_handling_time",
+        },
+        "publication_duration": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "publication_duration",
+            "label": "publication_duration",
         }
     }
 
@@ -157,7 +164,8 @@ class AllegroPlugin(BasePlugin):
                                            return_policy=configuration["return_policy"],
                                            warranty=configuration["warranty"],
                                            delivery_shipping_rates=configuration["delivery_shipping_rates"],
-                                           delivery_handling_time=configuration["delivery_handling_time"])
+                                           delivery_handling_time=configuration["delivery_handling_time"],
+                                           publication_duration=configuration["publication_duration"])
 
         HOURS_LESS_THAN_WE_REFRESH_TOKEN = 6
 
@@ -463,7 +471,7 @@ class AllegroAPI:
 
     def upload_images(self, saleor_product):
 
-        images_url = [pi.image.url.replace('/media', '') for pi in ProductImage.objects.filter(product=saleor_product)]
+        images_url = ['https://saleor-test-media.s3.amazonaws.com' + pi.image.url.replace('/media', '') for pi in ProductImage.objects.filter(product=saleor_product)]
 
         return [self.upload_image(image_url) for image_url in images_url]
 
@@ -986,6 +994,10 @@ class AllegroProductMapper:
         config = self.get_plugin_configuration()
         return config.get('delivery_handling_time')
 
+    def get_publication_duration(self):
+        config = self.get_plugin_configuration()
+        return config.get('publication_duration')
+
 
 
     def run_mapper(self):
@@ -1005,9 +1017,10 @@ class AllegroProductMapper:
 
         self.set_format('AUCTION')
 
+        product_variant = ProductVariant.objects.filter(product=self.saleor_product).first()
         # TODO: zmienic na product_variant_stock.product_variant.price_amount
         self.set_starting_price_amount(
-            str(self.saleor_product.minimal_variant_price_amount))
+            str(product_variant.price_amount))
 
         # TODO: zmienic na product_variant_stock.product_variant.currency
         self.set_starting_price_currency('PLN')
@@ -1020,7 +1033,7 @@ class AllegroProductMapper:
         self.set_stock_available('1')
 
         self.set_stock_unit('SET')
-        self.set_publication_duration('PT72H')
+        self.set_publication_duration(self.get_publication_duration())
         self.set_publication_ending_at('')
         # self.set_publication_starting_at('2020-07-25T08:03:59Z')
         self.set_publication_status('INACTIVE')
