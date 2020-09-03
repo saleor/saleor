@@ -85,16 +85,17 @@ def test_update_products_discounted_prices_of_catalogues_for_collection(
 
 
 def test_update_products_discounted_prices_task(product_list):
+
     price = Money("0.01", "USD")
     for product in product_list:
         product_channel_listing = product.channel_listing.get()
-        assert product_channel_listing.discounted_price == Money("10.00", "USD")
+        assert product_channel_listing.discounted_price != price
         variant = product.variants.first()
         variant_channel_listing = variant.channel_listing.get()
         variant_channel_listing.price = price
         variant_channel_listing.save()
         # Check that "variant.save()" doesn't update the "discounted_price"
-        assert product_channel_listing.discounted_price == Money("10.00", "USD")
+        assert product_channel_listing.discounted_price != price
     update_products_discounted_prices_task.apply(
         kwargs={"product_ids": [product.pk for product in product_list]}
     )

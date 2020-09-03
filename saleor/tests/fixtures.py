@@ -1205,13 +1205,13 @@ def product_list(product_type, category, warehouse, channel_USD):
             ProductVariantChannelListing(
                 variant=variants[1],
                 channel=channel_USD,
-                price_amount=Decimal(10),
+                price_amount=Decimal(20),
                 currency=channel_USD.currency_code,
             ),
             ProductVariantChannelListing(
                 variant=variants[2],
                 channel=channel_USD,
-                price_amount=Decimal(10),
+                price_amount=Decimal(30),
                 currency=channel_USD.currency_code,
             ),
         ]

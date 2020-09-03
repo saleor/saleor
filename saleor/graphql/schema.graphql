@@ -3753,6 +3753,7 @@ type ProductChannelListing implements Node {
   publicationDate: Date
   isPublished: Boolean!
   channel: Channel!
+  discountedPrice: Money
 }
 
 input ProductChannelListingAddInput {

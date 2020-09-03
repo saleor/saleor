@@ -138,7 +138,6 @@ class ProductVariantChannelListingAddInput(graphene.InputObjectType):
     )
 
 
-# TODO: Use BaseChannelListingMutation after merge #5975.
 class ProductVariantChannelListingUpdate(BaseMutation):
     variant = graphene.Field(
         ProductVariant, description="An updated product variant instance."
@@ -250,7 +249,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
             ProductVariantChannelListing.objects.update_or_create(
                 variant=variant, channel=channel, defaults=defaults,
             )
-            update_product_discounted_price_task.delay(variant.product_id)
+        update_product_discounted_price_task.delay(variant.product_id)
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):

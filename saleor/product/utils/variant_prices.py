@@ -19,7 +19,7 @@ def _get_product_discounted_price(
         channel_id=product_channel_listing.channel_id,
     )
     product = product_channel_listing.product
-    collections = (product.collections.all(),)
+    collections = list(product.collections.all())
     for variant_channel_listing in variants_channel_listing:
         variant_price = calculate_discounted_price(
             product=product,

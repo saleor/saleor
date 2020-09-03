@@ -21,11 +21,13 @@ def migrate_minimal_variant_price_data(apps, schema_editor):
                 },
             )
             channels_dict[currency] = channel
-        ProductChannelListing.objects.create(
+        ProductChannelListing.objects.update_or_create(
             product=product,
             channel=channel,
-            currency=currency,
-            discounted_price_amount=product.minimal_variant_price_amount,
+            defaults={
+                "currency": currency,
+                "discounted_price_amount": product.minimal_variant_price_amount,
+            },
         )
 
 

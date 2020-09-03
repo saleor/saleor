@@ -296,6 +296,8 @@ class ProductFilter(django_filters.FilterSet):
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
     has_category = django_filters.BooleanFilter(method=filter_has_category)
+    # TODO: Consider filtering and sorting by `minimal_variant_price`
+    # Should be resolved by https://app.clickup.com/t/6crxxb
     # price = ObjectTypeFilter(input_class=PriceRangeInput, method=filter_variant_price)
     # minimal_price = ObjectTypeFilter(
     #     input_class=PriceRangeInput,

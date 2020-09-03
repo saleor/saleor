@@ -49,6 +49,8 @@ class ProductFilter(SortedFilterSet):
     sort_by = OrderingFilter(
         label="Sort by", fields=SORT_BY_FIELDS.keys(), field_labels=SORT_BY_FIELDS,
     )
+    # TODO: Consider filtering and sorting by `minimal_variant_price`
+    # Should be resolved by https://app.clickup.com/t/6crxxb
     # minimal_variant_price = RangeFilter(
     #     label="Price", field_name="minimal_variant_price_amount",
     # )

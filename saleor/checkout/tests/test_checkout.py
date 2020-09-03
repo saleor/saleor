@@ -821,7 +821,7 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
         (5, DiscountValueType.FIXED, False, 15),
         (10000, DiscountValueType.FIXED, True, 10),
         (10, DiscountValueType.PERCENTAGE, True, 1),
-        (10, DiscountValueType.PERCENTAGE, False, 3),
+        (10, DiscountValueType.PERCENTAGE, False, 6),
     ],
 )
 def test_get_discount_for_checkout_specific_products_voucher(
