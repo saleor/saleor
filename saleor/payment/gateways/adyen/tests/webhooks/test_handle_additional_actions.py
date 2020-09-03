@@ -10,12 +10,16 @@ from ...webhooks import handle_additional_actions
 
 
 @mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
-def test_handle_additional_actions_post(api_call_mock, payment_adyen_for_checkout):
+def test_handle_additional_actions_post(
+    api_call_mock, payment_adyen_for_checkout, adyen_plugin
+):
     # given
+    adyen_plugin()
+    payment_adyen_for_checkout.to_confirm = True
     payment_adyen_for_checkout.extra_data = json.dumps(
         [{"payment_data": "test_data", "parameters": ["payload"]}]
     )
-    payment_adyen_for_checkout.save(update_fields=["extra_data"])
+    payment_adyen_for_checkout.save(update_fields=["to_confirm", "extra_data"])
 
     transaction_count = payment_adyen_for_checkout.transactions.all().count()
 
@@ -29,6 +33,7 @@ def test_handle_additional_actions_post(api_call_mock, payment_adyen_for_checkou
 
     payment_details_mock = mock.Mock()
     message = {
+        "pspReference": "11111",
         "resultCode": "Test",
     }
     api_call_mock.return_value.message = message
@@ -42,20 +47,26 @@ def test_handle_additional_actions_post(api_call_mock, payment_adyen_for_checkou
     assert f"checkout={quote_plus(checkout_id)}" in response.url
     assert f"resultCode={message['resultCode']}" in response.url
     assert f"payment={quote_plus(payment_id)}" in response.url
-    assert (
-        payment_adyen_for_checkout.transactions.all().count() == transaction_count + 1
-    )
-    transaction = payment_adyen_for_checkout.transactions.last()
-    assert transaction.kind == TransactionKind.ACTION_TO_CONFIRM
+    transactions = payment_adyen_for_checkout.transactions.all()
+    assert transactions.count() == transaction_count + 2  # TO_CONFIRM, AUTH
+
+    assert transactions.first().kind == TransactionKind.ACTION_TO_CONFIRM
+    assert transactions.last().kind == TransactionKind.AUTH
+    assert payment_adyen_for_checkout.order
+    assert payment_adyen_for_checkout.checkout is None
 
 
 @mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
-def test_handle_additional_actions_get(api_call_mock, payment_adyen_for_checkout):
+def test_handle_additional_actions_get(
+    api_call_mock, payment_adyen_for_checkout, adyen_plugin
+):
     # given
+    adyen_plugin()
+    payment_adyen_for_checkout.to_confirm = True
     payment_adyen_for_checkout.extra_data = json.dumps(
         {"payment_data": "test_data", "parameters": ["payload"]}
     )
-    payment_adyen_for_checkout.save(update_fields=["extra_data"])
+    payment_adyen_for_checkout.save(update_fields=["to_confirm", "extra_data"])
 
     transaction_count = payment_adyen_for_checkout.transactions.all().count()
 
@@ -72,6 +83,7 @@ def test_handle_additional_actions_get(api_call_mock, payment_adyen_for_checkout
 
     payment_details_mock = mock.Mock()
     message = {
+        "pspReference": "11111",
         "resultCode": "Test",
     }
     api_call_mock.return_value.message = message
@@ -85,11 +97,12 @@ def test_handle_additional_actions_get(api_call_mock, payment_adyen_for_checkout
     assert f"checkout={quote_plus(checkout_id)}" in response.url
     assert f"resultCode={message['resultCode']}" in response.url
     assert f"payment={quote_plus(payment_id)}" in response.url
-    assert (
-        payment_adyen_for_checkout.transactions.all().count() == transaction_count + 1
-    )
-    transaction = payment_adyen_for_checkout.transactions.last()
-    assert transaction.kind == TransactionKind.ACTION_TO_CONFIRM
+    transactions = payment_adyen_for_checkout.transactions.all()
+    assert transactions.count() == transaction_count + 2  # TO_CONFIRM, AUTH
+    assert transactions.first().kind == TransactionKind.ACTION_TO_CONFIRM
+    assert transactions.last().kind == TransactionKind.AUTH
+    assert payment_adyen_for_checkout.order
+    assert payment_adyen_for_checkout.checkout is None
 
 
 def test_handle_additional_actions_more_action_required(payment_adyen_for_checkout):
@@ -136,6 +149,8 @@ def test_handle_additional_actions_more_action_required(payment_adyen_for_checko
     transaction = payment_adyen_for_checkout.transactions.last()
     assert transaction.kind == TransactionKind.ACTION_TO_CONFIRM
     assert transaction.action_required is True
+    assert payment_adyen_for_checkout.order is None
+    assert payment_adyen_for_checkout.checkout
 
 
 def test_handle_additional_actions_payment_does_not_exist(payment_adyen_for_checkout):
@@ -166,8 +181,7 @@ def test_handle_additional_actions_payment_does_not_exist(payment_adyen_for_chec
     # then
     assert response.status_code == 404
     assert response.content.decode() == (
-        "Cannot perform payment. "
-        "There is no active adyen payment with specified checkout."
+        "Cannot perform payment.There is no active adyen payment."
     )
 
 
@@ -256,8 +270,7 @@ def test_handle_additional_actions_checkout_not_related_to_payment(
     # then
     assert response.status_code == 404
     assert response.content.decode() == (
-        "Cannot perform payment. "
-        "There is no active adyen payment with specified checkout."
+        "Cannot perform payment.There is no checkout with this payment."
     )
 
 
@@ -289,8 +302,7 @@ def test_handle_additional_actions_payment_does_not_have_checkout(
     # then
     assert response.status_code == 404
     assert response.content.decode() == (
-        "Cannot perform payment. "
-        "There is no active adyen payment with specified checkout."
+        "Cannot perform payment.There is no checkout with this payment."
     )
 
 
@@ -357,8 +369,7 @@ def test_handle_additional_actions_payment_not_active(payment_adyen_for_checkout
     # then
     assert response.status_code == 404
     assert response.content.decode() == (
-        "Cannot perform payment. "
-        "There is no active adyen payment with specified checkout."
+        "Cannot perform payment.There is no active adyen payment."
     )
 
 
@@ -391,8 +402,7 @@ def test_handle_additional_actions_payment_with_no_adyen_gateway(
     # then
     assert response.status_code == 404
     assert response.content.decode() == (
-        "Cannot perform payment. "
-        "There is no active adyen payment with specified checkout."
+        "Cannot perform payment.There is no active adyen payment."
     )
 
 
