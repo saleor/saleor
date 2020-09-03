@@ -1985,6 +1985,7 @@ input ExportFileSortingInput {
 input ExportInfoInput {
   attributes: [ID!]
   warehouses: [ID!]
+  channels: [ID!]
   fields: [ProductFieldEnum!]
 }
 
@@ -3859,13 +3860,11 @@ enum ProductFieldEnum {
   DESCRIPTION
   PRODUCT_TYPE
   CATEGORY
-  VISIBLE
   PRODUCT_WEIGHT
   COLLECTIONS
   CHARGE_TAXES
   PRODUCT_IMAGES
   VARIANT_SKU
-  VARIANT_PRICE
   COST_PRICE
   VARIANT_WEIGHT
   VARIANT_IMAGES
