@@ -403,6 +403,8 @@ class AdyenGatewayPlugin(BasePlugin):
             currency=payment_information.currency,
         ).first()
         is_success = True
+
+        # confirm that we should proceed the capture action
         if (
             not transaction_already_processed
             and config.auto_capture

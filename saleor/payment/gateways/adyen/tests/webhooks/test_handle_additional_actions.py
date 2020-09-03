@@ -8,6 +8,11 @@ import graphene
 from ..... import PaymentError, TransactionKind
 from ...webhooks import handle_additional_actions
 
+ERROR_MSG_MISSING_PAYMENT = "Cannot perform payment.There is no active adyen payment."
+ERROR_MSG_MISSING_CHECKOUT = (
+    "Cannot perform payment.There is no checkout with this payment."
+)
+
 
 @mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
 def test_handle_additional_actions_post(
@@ -180,9 +185,7 @@ def test_handle_additional_actions_payment_does_not_exist(payment_adyen_for_chec
 
     # then
     assert response.status_code == 404
-    assert response.content.decode() == (
-        "Cannot perform payment.There is no active adyen payment."
-    )
+    assert response.content.decode() == ERROR_MSG_MISSING_PAYMENT
 
 
 def test_handle_additional_actions_payment_lack_of_return_url(
@@ -269,9 +272,7 @@ def test_handle_additional_actions_checkout_not_related_to_payment(
 
     # then
     assert response.status_code == 404
-    assert response.content.decode() == (
-        "Cannot perform payment.There is no checkout with this payment."
-    )
+    assert response.content.decode() == ERROR_MSG_MISSING_CHECKOUT
 
 
 def test_handle_additional_actions_payment_does_not_have_checkout(
@@ -301,9 +302,7 @@ def test_handle_additional_actions_payment_does_not_have_checkout(
 
     # then
     assert response.status_code == 404
-    assert response.content.decode() == (
-        "Cannot perform payment.There is no checkout with this payment."
-    )
+    assert response.content.decode() == ERROR_MSG_MISSING_CHECKOUT
 
 
 @mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
@@ -368,9 +367,7 @@ def test_handle_additional_actions_payment_not_active(payment_adyen_for_checkout
 
     # then
     assert response.status_code == 404
-    assert response.content.decode() == (
-        "Cannot perform payment.There is no active adyen payment."
-    )
+    assert response.content.decode() == ERROR_MSG_MISSING_PAYMENT
 
 
 def test_handle_additional_actions_payment_with_no_adyen_gateway(
@@ -401,9 +398,7 @@ def test_handle_additional_actions_payment_with_no_adyen_gateway(
 
     # then
     assert response.status_code == 404
-    assert response.content.decode() == (
-        "Cannot perform payment.There is no active adyen payment."
-    )
+    assert response.content.decode() == ERROR_MSG_MISSING_PAYMENT
 
 
 @mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
