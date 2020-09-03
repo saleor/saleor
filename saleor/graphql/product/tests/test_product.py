@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import ANY, Mock, patch
 
@@ -95,10 +95,11 @@ def query_categories_with_filter():
 
 QUERY_FETCH_ALL_PRODUCTS = """
     query {
-        products(first: 1) {
+        products(first: 10) {
             totalCount
             edges {
                 node {
+                    id
                     name
                     isPublished
                 }
@@ -120,6 +121,9 @@ QUERY_PRODUCT = """
                 unit
                 value
             }
+            availableForPurchase
+            isAvailableForPurchase
+            visibleInListings
         }
     }
     """
@@ -128,13 +132,21 @@ QUERY_PRODUCT = """
 def test_product_query_by_id(
     user_api_client, product,
 ):
+    # given
+    product.visible_in_listings = True
+    product.save(update_fields=["visible_in_listings"])
+
     variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
 
+    # when
     response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+
+    # then
     content = get_graphql_content(response)
     product_data = content["data"]["product"]
     assert product_data is not None
     assert product_data["name"] == product.name
+    assert product_data["visibleInListings"] is True
 
 
 def test_product_query_by_id_weight_returned_in_default_unit(
@@ -192,6 +204,68 @@ def test_product_query_by_slug(
     product_data = content["data"]["product"]
     assert product_data is not None
     assert product_data["name"] == product.name
+
+
+def test_product_query_is_available_for_purchase_true(user_api_client, product):
+    # given
+    available_for_purchase = datetime.today() - timedelta(days=1)
+    product.available_for_purchase = available_for_purchase
+    product.save(update_fields=["available_for_purchase"])
+
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    assert product_data["availableForPurchase"] == available_for_purchase.strftime(
+        "%Y-%m-%d"
+    )
+    assert product_data["isAvailableForPurchase"] is True
+
+
+def test_product_query_is_available_for_purchase_false(user_api_client, product):
+    # given
+    available_for_purchase = datetime.today() + timedelta(days=1)
+    product.available_for_purchase = available_for_purchase
+    product.save(update_fields=["available_for_purchase"])
+
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    assert product_data["availableForPurchase"] == available_for_purchase.strftime(
+        "%Y-%m-%d"
+    )
+    assert product_data["isAvailableForPurchase"] is False
+
+
+def test_product_query_is_available_for_purchase_false_no_available_for_purchase_date(
+    user_api_client, product
+):
+    # given
+    product.available_for_purchase = None
+    product.save(update_fields=["available_for_purchase"])
+
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_PRODUCT, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    assert not product_data["availableForPurchase"]
+    assert product_data["isAvailableForPurchase"] is False
 
 
 def test_product_query_unpublished_products_by_slug(
@@ -299,6 +373,110 @@ def test_fetch_unavailable_products(user_api_client, product):
     content = get_graphql_content(response)
     assert content["data"]["products"]["totalCount"] == 0
     assert not content["data"]["products"]["edges"]
+
+
+def test_fetch_all_products_visible_in_listings(
+    user_api_client, product_list, permission_manage_products,
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    response = user_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["products"]["edges"]
+    assert len(product_data) == product_count - 1
+    products_ids = [product["node"]["id"] for product in product_data]
+    assert graphene.Node.to_global_id("Product", product_list[0].pk) not in products_ids
+
+
+def test_fetch_all_products_visible_in_listings_by_staff_with_perm(
+    staff_api_client, product_list, permission_manage_products,
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["products"]["edges"]
+    assert len(product_data) == product_count
+
+
+def test_fetch_all_products_visible_in_listings_by_staff_without_perm(
+    staff_api_client, product_list, permission_manage_products,
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["products"]["edges"]
+    assert len(product_data) == product_count - 1
+    products_ids = [product["node"]["id"] for product in product_data]
+    assert graphene.Node.to_global_id("Product", product_list[0].pk) not in products_ids
+
+
+def test_fetch_all_products_visible_in_listings_by_app_with_perm(
+    app_api_client, product_list, permission_manage_products,
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["products"]["edges"]
+    assert len(product_data) == product_count
+
+
+def test_fetch_all_products_visible_in_listings_by_app_without_perm(
+    app_api_client, product_list, permission_manage_products,
+):
+    # given
+    product_list[0].visible_in_listings = False
+    product_list[0].save(update_fields=["visible_in_listings"])
+
+    product_count = Product.objects.count()
+
+    # when
+    response = app_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["products"]["edges"]
+    assert len(product_data) == product_count - 1
+    products_ids = [product["node"]["id"] for product in product_data]
+    assert graphene.Node.to_global_id("Product", product_list[0].pk) not in products_ids
 
 
 def test_product_query(staff_api_client, product, permission_manage_products, stock):
@@ -1120,6 +1298,7 @@ CREATE_PRODUCT_MUTATION = """
                                     slug
                                 }
                             }
+                            visibleInListings
                           }
                           productErrors {
                             field
@@ -1155,6 +1334,7 @@ def test_create_product(
     product_slug = "product-test-slug"
     product_is_published = True
     product_charge_taxes = True
+    visible_in_listings = True
     product_tax_rate = "STANDARD"
     product_price = "22.33"
 
@@ -1191,6 +1371,7 @@ def test_create_product(
                 {"id": color_attr_id, "values": [color_value_slug]},
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
             ],
+            "visibleInListings": visible_in_listings,
         }
     }
 
@@ -1208,6 +1389,7 @@ def test_create_product(
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
+    assert data["product"]["visibleInListings"] == visible_in_listings
     values = (
         data["product"]["attributes"][0]["values"][0]["slug"],
         data["product"]["attributes"][1]["values"][0]["slug"],
@@ -1723,6 +1905,7 @@ def test_update_product(
             $slug: String!,
             $descriptionJson: JSONString!,
             $isPublished: Boolean!,
+            $visibleInListings: Boolean!,
             $chargeTaxes: Boolean!,
             $taxCode: String!,
             $basePrice: Decimal!,
@@ -1735,6 +1918,7 @@ def test_update_product(
                         slug: $slug,
                         descriptionJson: $descriptionJson,
                         isPublished: $isPublished,
+                        visibleInListings: $visibleInListings,
                         chargeTaxes: $chargeTaxes,
                         taxCode: $taxCode,
                         basePrice: $basePrice,
@@ -1771,6 +1955,7 @@ def test_update_product(
                                     slug
                                 }
                             }
+                            visibleInListings
                           }
                           errors {
                             message
@@ -1788,6 +1973,7 @@ def test_update_product(
     product_slug = "updated-product"
     basePrice = 10.00
     product_is_published = True
+    product_visible_in_listings = False
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
 
@@ -1807,6 +1993,7 @@ def test_update_product(
         "slug": product_slug,
         "descriptionJson": other_description_json,
         "isPublished": product_is_published,
+        "visibleInListings": product_visible_in_listings,
         "chargeTaxes": product_charge_taxes,
         "taxCode": product_tax_rate,
         "basePrice": basePrice,
@@ -1823,6 +2010,7 @@ def test_update_product(
     assert data["product"]["slug"] == product_slug
     assert data["product"]["descriptionJson"] == other_description_json
     assert data["product"]["isPublished"] == product_is_published
+    assert data["product"]["visibleInListings"] == product_visible_in_listings
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["variants"][0]["price"]["amount"] == basePrice
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
@@ -3360,46 +3548,6 @@ def test_product_update_variants_names(mock__update_variants_names, product_type
     variant_attr_ids = [attr.pk for attr in variant_attributes]
     update_variants_names(product_type.pk, variant_attr_ids)
     assert mock__update_variants_names.call_count == 1
-
-
-def test_product_variants_by_ids(user_api_client, variant):
-    query = """
-        query getProduct($ids: [ID!]) {
-            productVariants(ids: $ids, first: 1) {
-                edges {
-                    node {
-                        id
-                    }
-                }
-            }
-        }
-    """
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-
-    variables = {"ids": [variant_id]}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["productVariants"]
-    assert data["edges"][0]["node"]["id"] == variant_id
-    assert len(data["edges"]) == 1
-
-
-def test_product_variants_no_ids_list(user_api_client, variant):
-    query = """
-        query getProductVariants {
-            productVariants(first: 10) {
-                edges {
-                    node {
-                        id
-                    }
-                }
-            }
-        }
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    data = content["data"]["productVariants"]
-    assert len(data["edges"]) == ProductVariant.objects.count()
 
 
 @pytest.mark.parametrize(

@@ -137,6 +137,28 @@ def check_lines_quantity(variants, quantities, country):
             raise ValidationError({"quantity": ValidationError(message, code=e.code)})
 
 
+def validate_variants_available_for_purchase(variants):
+    not_available_variants = [
+        variant.pk
+        for variant in variants
+        if not variant.product.is_available_for_purchase()
+    ]
+    if not_available_variants:
+        variant_ids = [
+            graphene.Node.to_global_id("ProductVariant", pk)
+            for pk in not_available_variants
+        ]
+        raise ValidationError(
+            {
+                "lines": ValidationError(
+                    "Cannot add lines for unavailable for purchase variants.",
+                    code=CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE,
+                    params={"variants": variant_ids},
+                )
+            }
+        )
+
+
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     variant_id = graphene.ID(required=True, description="ID of the product variant.")
@@ -199,6 +221,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         )
         quantities = [line.get("quantity") for line in lines]
 
+        validate_variants_available_for_purchase(variants)
         check_lines_quantity(variants, quantities, country)
 
         return variants, quantities
@@ -356,6 +379,7 @@ class CheckoutLinesAdd(BaseMutation):
         quantities = [line.get("quantity") for line in lines]
 
         check_lines_quantity(variants, quantities, checkout.get_country())
+        validate_variants_available_for_purchase(variants)
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):

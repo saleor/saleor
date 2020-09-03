@@ -595,6 +595,16 @@ def size_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def weight_attribute(db):
+    attribute = Attribute.objects.create(slug="material", name="Material")
+    AttributeValue.objects.create(attribute=attribute, name="Cotton", slug="cotton")
+    AttributeValue.objects.create(
+        attribute=attribute, name="Poliester", slug="poliester"
+    )
+    return attribute
+
+
+@pytest.fixture
 def attribute_list() -> List[Attribute]:
     return list(
         Attribute.objects.bulk_create(
@@ -642,6 +652,7 @@ def categories_tree(db, product_type):  # pylint: disable=W0613
         product_type=product_type,
         category=child,
         is_published=True,
+        visible_in_listings=True,
     )
 
     associate_attribute_values_to_instance(product, product_attr, attr_value)
@@ -732,6 +743,8 @@ def product(product_type, category, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
 
     associate_attribute_values_to_instance(product, product_attr, product_attr_value)
@@ -759,6 +772,8 @@ def product_with_single_variant(product_type, category, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -778,6 +793,8 @@ def product_with_two_variants(product_type, category, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
 
     variants = [
@@ -819,6 +836,8 @@ def product_with_variant_with_two_attributes(
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
 
     variant = ProductVariant.objects.create(
@@ -867,6 +886,8 @@ def product_with_default_variant(product_type_without_variant, category, warehou
         product_type=product_type_without_variant,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(
         product=product, sku="1234", track_inventory=True, price_amount=Decimal(10)
@@ -885,6 +906,8 @@ def variant_without_inventory_tracking(
         product_type=product_type_without_variant,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date.today(),
+        visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -961,6 +984,7 @@ def product_without_shipping(category, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_B", price_amount=Decimal(10)
@@ -992,6 +1016,7 @@ def product_list(product_type, category, warehouse):
                     category=category,
                     product_type=product_type,
                     is_published=True,
+                    visible_in_listings=True,
                 ),
                 Product(
                     pk=1487,
@@ -1000,6 +1025,7 @@ def product_list(product_type, category, warehouse):
                     category=category,
                     product_type=product_type,
                     is_published=True,
+                    visible_in_listings=True,
                 ),
                 Product(
                     pk=1489,
@@ -1008,6 +1034,7 @@ def product_list(product_type, category, warehouse):
                     category=category,
                     product_type=product_type,
                     is_published=True,
+                    visible_in_listings=True,
                 ),
             ]
         )
@@ -1090,6 +1117,7 @@ def unavailable_product(product_type, category):
         product_type=product_type,
         is_published=False,
         category=category,
+        visible_in_listings=False,
     )
     return product
 
@@ -1101,6 +1129,7 @@ def unavailable_product_with_variant(product_type, category, warehouse):
         slug="test-product-6",
         product_type=product_type,
         is_published=False,
+        visible_in_listings=False,
         category=category,
     )
 
@@ -1124,6 +1153,7 @@ def product_with_images(product_type, category, media_root):
         product_type=product_type,
         category=category,
         is_published=True,
+        visible_in_listings=True,
     )
     file_mock_0 = MagicMock(spec=File, name="FileMock0")
     file_mock_0.name = "image0.jpg"
@@ -1298,6 +1328,8 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date.today(),
+        visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -1330,6 +1362,8 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date.today(),
+        visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_B", cost_price=Money(2, "USD"), price_amount=20
@@ -1980,6 +2014,8 @@ def digital_content(category, media_root, warehouse) -> DigitalContent:
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
     product_variant = ProductVariant.objects.create(
         product=product,

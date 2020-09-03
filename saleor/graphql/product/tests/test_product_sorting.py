@@ -2,20 +2,6 @@ import graphene
 
 from ...tests.utils import get_graphql_content
 
-GET_SORTED_PRODUCTS_COLLECTION_QUERY = """
-query CollectionProducts($id: ID!) {
-  collection(id: $id) {
-    products(first: 10) {
-      edges {
-        node {
-          id
-        }
-      }
-    }
-  }
-}
-"""
-
 COLLECTION_RESORT_QUERY = """
 mutation ReorderCollectionProducts($collectionId: ID!, $moves: [MoveProductInput]!) {
   collectionReorderProducts(collectionId: $collectionId, moves: $moves) {
