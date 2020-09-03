@@ -49,7 +49,7 @@ def api_call(request_data: Optional[Dict[str, Any]], method: Callable) -> Adyen.
     try:
         return method(request_data)
     except (Adyen.AdyenError, ValueError, TypeError) as e:
-        logger.error(f"Unable to process the payment: {e}")
+        logger.warning(f"Unable to process the payment: {e}")
         raise PaymentError("Unable to process the payment request.")
 
 
@@ -125,10 +125,19 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
         total_gross = total.gross.amount
         total_net = total.net.amount
         tax_amount = total.tax.amount
+
+        tax_percentage_in_adyen_format = 0
+        if total_gross:
+            # get tax percent in adyen format
+            gross_percentage = total_gross / total_net
+            gross_percentage = gross_percentage.quantize(Decimal(".01"))  # 1.23
+            tax_percentage = gross_percentage * 100 - 100  # 23.00
+            tax_percentage_in_adyen_format = int(tax_percentage * 100)  # 2300
+
         line_data = {
             "quantity": line.quantity,
             "amountExcludingTax": to_adyen_price(total_net, currency),
-            "taxPercentage": round(tax_amount / total_gross * 100),
+            "taxPercentage": tax_percentage_in_adyen_format,
             "description": f"{line.variant.product.name}, {line.variant.name}",
             "id": line.variant.sku,
             "taxAmount": to_adyen_price(tax_amount, currency),

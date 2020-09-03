@@ -7,7 +7,7 @@ import pytest
 from graphql_relay import to_global_id
 
 from ....product.error_codes import ProductErrorCode
-from ....product.models import Collection
+from ....product.models import Collection, Product
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ...tests.utils import get_graphql_content, get_multipart_request_body
 
@@ -155,6 +155,50 @@ def test_collections_query(
     content = get_graphql_content(response)
     edges = content["data"]["collections"]["edges"]
     assert len(edges) == 2
+
+
+GET_FILTERED_PRODUCTS_COLLECTION_QUERY = """
+query CollectionProducts($id: ID!, $filters: ProductFilterInput) {
+  collection(id: $id) {
+    products(first: 10, filter: $filters) {
+      edges {
+        node {
+          id
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_filter_collection_products(user_api_client, product_list, collection):
+    # given
+    query = GET_FILTERED_PRODUCTS_COLLECTION_QUERY
+
+    for product in product_list:
+        collection.products.add(product)
+
+    p1 = product_list[0]
+    p1.is_published = False
+    p1.save(update_fields=["is_published"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection.pk),
+        "filters": {"isPublished": True},
+    }
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products_data = content["data"]["collection"]["products"]["edges"]
+
+    assert {node["node"]["id"] for node in products_data} == {
+        graphene.Node.to_global_id("Product", product.pk)
+        for product in product_list[1:]
+    }
 
 
 CREATE_COLLECTION_MUTATION = """
@@ -897,3 +941,43 @@ def test_bulk_unpublish_collection(
 
     assert content["data"]["collectionBulkPublish"]["count"] == len(collection_list)
     assert not any(collection.is_published for collection in collection_list)
+
+
+GET_SORTED_PRODUCTS_COLLECTION_QUERY = """
+query CollectionProducts($id: ID!, $sortBy: ProductOrder) {
+  collection(id: $id) {
+    products(first: 10, sortBy: $sortBy) {
+      edges {
+        node {
+          id
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_sort_collection_products_by_name(staff_api_client, collection, product_list):
+    # given
+    for product in product_list:
+        collection.products.add(product)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection.pk),
+        "sortBy": {"direction": "DESC", "field": "NAME"},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        GET_SORTED_PRODUCTS_COLLECTION_QUERY, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["collection"]["products"]["edges"]
+
+    assert [node["node"]["id"] for node in data] == [
+        graphene.Node.to_global_id("Product", product.pk)
+        for product in Product.objects.order_by("-name")
+    ]
