@@ -1,3 +1,4 @@
+import datetime
 from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
@@ -264,6 +265,8 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
+    available_for_purchase = models.DateField(blank=True, null=True)
+    visible_in_listings = models.BooleanField(default=False)
     objects = ProductsQueryset.as_manager()
     translated = TranslationProxy()
 
@@ -302,6 +305,12 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     @staticmethod
     def sort_by_attribute_fields() -> list:
         return ["concatenated_values_order", "concatenated_values", "name"]
+
+    def is_available_for_purchase(self):
+        return (
+            self.available_for_purchase is not None
+            and datetime.date.today() >= self.available_for_purchase
+        )
 
 
 class ProductTranslation(SeoModelTranslation):

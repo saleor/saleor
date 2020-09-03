@@ -100,6 +100,7 @@ def products_structures(category):
                     product_type=pt_apples,
                     category=category,
                     is_published=True,
+                    visible_in_listings=True,
                 )
                 for i, attrs in enumerate(zip(COLORS, TRADEMARKS))
             ]
@@ -118,6 +119,7 @@ def products_structures(category):
                     product_type=pt_oranges,
                     category=category,
                     is_published=True,
+                    visible_in_listings=True,
                 )
                 for i, attrs in enumerate(zip(COLORS, TRADEMARKS))
             ]
@@ -133,6 +135,7 @@ def products_structures(category):
         product_type=pt_other,
         category=category,
         is_published=True,
+        visible_in_listings=True,
     )
     product_models.ProductVariant.objects.create(
         product=dummy, sku=dummy.slug, price_amount=Decimal(10)
@@ -143,6 +146,7 @@ def products_structures(category):
         product_type=pt_other,
         category=category,
         is_published=True,
+        visible_in_listings=True,
     )
     product_models.ProductVariant.objects.create(
         product=other_dummy, sku=other_dummy.slug, price_amount=Decimal(10)

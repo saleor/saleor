@@ -1,5 +1,4 @@
-[
-  {
+[{
     "model": "product.category",
     "pk": 7,
     "fields": {
@@ -11,17 +10,15 @@
       "slug": "accessories",
       "description": "",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "parent": null,
@@ -45,17 +42,15 @@
       "slug": "groceries",
       "description": "",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "parent": null,
@@ -79,17 +74,15 @@
       "slug": "apparel",
       "description": "",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "parent": null,
@@ -281,17 +274,15 @@
       "slug": "ebooks",
       "description": "",
       "description_json": {
-        "blocks": [
-          {
-            "key": "89slb",
-            "data": {},
-            "text": "",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "89slb",
+          "data": {},
+          "text": "",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "parent": 7,
@@ -308,7 +299,10 @@
     "pk": 7,
     "fields": {
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "name": "Paint",
       "slug": "paint",
       "has_variants": true,
@@ -322,7 +316,10 @@
     "pk": 8,
     "fields": {
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "name": "Music",
       "slug": "music",
       "has_variants": true,
@@ -336,7 +333,10 @@
     "pk": 9,
     "fields": {
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "name": "Juice",
       "slug": "juice",
       "has_variants": true,
@@ -350,7 +350,10 @@
     "pk": 10,
     "fields": {
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "name": "Wine",
       "slug": "wine",
       "has_variants": false,
@@ -364,7 +367,10 @@
     "pk": 11,
     "fields": {
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "name": "Beer",
       "slug": "beer",
       "has_variants": false,
@@ -378,7 +384,10 @@
     "pk": 12,
     "fields": {
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "name": "Cushion",
       "slug": "cushion",
       "has_variants": true,
@@ -392,7 +401,10 @@
     "pk": 13,
     "fields": {
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "name": "Shoe",
       "slug": "shoe",
       "has_variants": true,
@@ -406,7 +418,10 @@
     "pk": 14,
     "fields": {
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "name": "Top (clothing)",
       "slug": "top-clothing",
       "has_variants": true,
@@ -437,7 +452,12 @@
       "is_published": true,
       "private_metadata": {},
       "metadata": {
-        "taxes": { "vatlayer": { "code": "standard", "description": "" } }
+        "taxes": {
+          "vatlayer": {
+            "code": "standard",
+            "description": ""
+          }
+        }
       },
       "seo_title": "",
       "seo_description": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether.",
@@ -446,25 +466,25 @@
       "slug": "nebula-night-sky-paint",
       "description": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 20,
       "currency": "USD",
       "minimal_variant_price_amount": "15.00",
-      "updated_at": "2020-08-19T13:31:53.947Z",
+      "updated_at": "2020-08-31T06:53:16.102Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-10-08",
+      "visible_in_listings": true
     }
   },
   {
@@ -474,7 +494,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color.",
       "product_type": 7,
@@ -482,25 +505,25 @@
       "slug": "space-dust-navy-paint",
       "description": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 20,
       "currency": "USD",
       "minimal_variant_price_amount": "15.00",
-      "updated_at": "2020-08-19T13:31:41.876Z",
+      "updated_at": "2020-08-31T06:53:16.307Z",
       "charge_taxes": true,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "available_for_purchase": "2021-02-26",
+      "visible_in_listings": true
     }
   },
   {
@@ -510,7 +533,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "",
       "product_type": 7,
@@ -518,25 +544,25 @@
       "slug": "red-dwarf-red-paint",
       "description": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan’s dreams.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan’s dreams.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan’s dreams.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 20,
       "currency": "USD",
-      "minimal_variant_price_amount": "9.00",
-      "updated_at": "2020-08-19T13:31:42.118Z",
+      "minimal_variant_price_amount": "15.00",
+      "updated_at": "2020-08-31T06:53:29.317Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2021-08-06",
+      "visible_in_listings": true
     }
   },
   {
@@ -546,7 +572,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed.",
       "product_type": 7,
@@ -554,25 +583,25 @@
       "slug": "light-speed-yellow-paint",
       "description": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 20,
       "currency": "USD",
-      "minimal_variant_price_amount": "7.50",
-      "updated_at": "2020-08-19T13:31:54.939Z",
+      "minimal_variant_price_amount": "12.00",
+      "updated_at": "2020-08-31T06:53:29.548Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2021-01-26",
+      "visible_in_listings": true
     }
   },
   {
@@ -582,7 +611,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint.",
       "product_type": 7,
@@ -590,25 +622,25 @@
       "slug": "hyperspace-turquoise-paint",
       "description": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 20,
       "currency": "USD",
-      "minimal_variant_price_amount": "10.50",
-      "updated_at": "2020-08-19T13:31:42.602Z",
+      "minimal_variant_price_amount": "7.50",
+      "updated_at": "2020-08-31T06:53:29.787Z",
       "charge_taxes": true,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "available_for_purchase": "2021-01-26",
+      "visible_in_listings": true
     }
   },
   {
@@ -618,7 +650,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges.",
       "product_type": 9,
@@ -626,25 +661,25 @@
       "slug": "orange-juice",
       "description": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 14,
       "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:31:55.505Z",
+      "minimal_variant_price_amount": "3.00",
+      "updated_at": "2020-08-31T06:53:17.155Z",
       "charge_taxes": true,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -654,7 +689,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
       "product_type": 9,
@@ -662,25 +700,25 @@
       "slug": "apple-juice",
       "description": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 14,
       "currency": "USD",
       "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:31:56.471Z",
+      "updated_at": "2020-08-31T06:53:17.312Z",
       "charge_taxes": true,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -690,7 +728,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth.",
       "product_type": 9,
@@ -698,25 +739,25 @@
       "slug": "carrot-juice",
       "description": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 14,
       "currency": "USD",
       "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:31:56.721Z",
+      "updated_at": "2020-08-31T06:53:17.473Z",
       "charge_taxes": true,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -726,7 +767,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
       "product_type": 9,
@@ -734,25 +778,25 @@
       "slug": "banana-juice",
       "description": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 14,
       "currency": "USD",
       "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:31:57.005Z",
+      "updated_at": "2020-08-31T06:53:17.630Z",
       "charge_taxes": true,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -762,7 +806,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out.",
       "product_type": 9,
@@ -770,25 +817,25 @@
       "slug": "pineapple-juice",
       "description": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 14,
       "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:31:57.391Z",
+      "minimal_variant_price_amount": "3.00",
+      "updated_at": "2020-08-31T06:53:17.782Z",
       "charge_taxes": true,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -798,7 +845,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some.",
       "product_type": 9,
@@ -806,25 +856,25 @@
       "slug": "coconut-juice",
       "description": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 14,
       "currency": "USD",
-      "minimal_variant_price_amount": "3.50",
-      "updated_at": "2020-08-19T13:31:57.777Z",
+      "minimal_variant_price_amount": "5.00",
+      "updated_at": "2020-08-31T06:53:31.827Z",
       "charge_taxes": true,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -834,7 +884,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Is it a bird? Is it a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!",
       "product_type": 9,
@@ -842,25 +895,25 @@
       "slug": "power-juice",
       "description": "Is it a bird? Is a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Is it a bird? Is a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Is it a bird? Is a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 14,
       "currency": "USD",
       "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:31:58.285Z",
+      "updated_at": "2020-08-31T06:53:18.105Z",
       "charge_taxes": true,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -870,7 +923,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice.",
       "product_type": 9,
@@ -878,25 +934,25 @@
       "slug": "green-juice",
       "description": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 14,
       "currency": "USD",
-      "minimal_variant_price_amount": "2.50",
-      "updated_at": "2020-08-19T13:31:58.763Z",
+      "minimal_variant_price_amount": "3.00",
+      "updated_at": "2020-08-31T06:53:32.287Z",
       "charge_taxes": true,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -906,7 +962,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
       "product_type": 9,
@@ -914,25 +973,25 @@
       "slug": "bean-juice",
       "description": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 14,
       "currency": "USD",
       "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:31:59.230Z",
+      "updated_at": "2020-08-31T06:53:18.411Z",
       "charge_taxes": true,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -942,7 +1001,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes.",
       "product_type": 10,
@@ -950,25 +1012,25 @@
       "slug": "red-wine",
       "description": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 15,
       "currency": "USD",
       "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:31:55.763Z",
+      "updated_at": "2020-08-31T06:53:18.558Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -978,7 +1040,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days.",
       "product_type": 10,
@@ -986,25 +1051,25 @@
       "slug": "white-wine",
       "description": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 15,
       "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
-      "updated_at": "2020-08-19T13:31:55.845Z",
+      "minimal_variant_price_amount": "5.00",
+      "updated_at": "2020-08-31T06:53:30.364Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1014,7 +1079,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!",
       "product_type": 11,
@@ -1022,25 +1090,25 @@
       "slug": "seaman-lager",
       "description": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 15,
       "currency": "USD",
       "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:31:55.938Z",
+      "updated_at": "2020-08-31T06:53:18.900Z",
       "charge_taxes": true,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1050,7 +1118,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love.",
       "product_type": 11,
@@ -1058,25 +1129,25 @@
       "slug": "seaman-beer",
       "description": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 15,
       "currency": "USD",
       "minimal_variant_price_amount": "3.00",
-      "updated_at": "2020-08-19T13:31:56.019Z",
+      "updated_at": "2020-08-31T06:53:30.527Z",
       "charge_taxes": true,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1086,7 +1157,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
       "product_type": 12,
@@ -1094,25 +1168,25 @@
       "slug": "colored-parrot-cushion",
       "description": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 22,
       "currency": "USD",
       "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:31:56.190Z",
+      "updated_at": "2020-08-31T06:53:30.677Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1122,7 +1196,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs.",
       "product_type": 12,
@@ -1130,25 +1207,25 @@
       "slug": "white-parrot-cushion",
       "description": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 22,
       "currency": "USD",
       "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:31:56.295Z",
+      "updated_at": "2020-08-31T06:53:20.430Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1158,7 +1235,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
       "product_type": 13,
@@ -1166,25 +1246,25 @@
       "slug": "yellow-plimsolls",
       "description": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 13,
       "currency": "USD",
-      "minimal_variant_price_amount": "4.00",
-      "updated_at": "2020-08-19T13:31:59.538Z",
+      "minimal_variant_price_amount": "5.00",
+      "updated_at": "2020-08-31T06:53:32.761Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1194,7 +1274,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
       "product_type": 13,
@@ -1202,25 +1285,25 @@
       "slug": "white-plimsolls",
       "description": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 13,
       "currency": "USD",
-      "minimal_variant_price_amount": "3.50",
-      "updated_at": "2020-08-19T13:32:00.069Z",
+      "minimal_variant_price_amount": "3.00",
+      "updated_at": "2020-08-31T06:53:33.172Z",
       "charge_taxes": true,
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1230,7 +1313,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Pay homage to the music and art of Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls.",
       "product_type": 14,
@@ -1238,25 +1324,25 @@
       "slug": "code-division-t-shirt",
       "description": "Pay homage to the music and art of a Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Pay homage to the music and art of a Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Pay homage to the music and art of a Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 10,
       "currency": "USD",
-      "minimal_variant_price_amount": "4.50",
-      "updated_at": "2020-08-19T13:32:00.373Z",
+      "minimal_variant_price_amount": "5.00",
+      "updated_at": "2020-08-31T06:53:33.473Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1266,7 +1352,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
       "product_type": 14,
@@ -1274,25 +1363,25 @@
       "slug": "polo-shirt",
       "description": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 11,
       "currency": "USD",
       "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:32:00.720Z",
+      "updated_at": "2020-08-31T06:53:22.365Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1302,7 +1391,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel.",
       "product_type": 14,
@@ -1310,25 +1402,25 @@
       "slug": "polo-shirt-2",
       "description": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 11,
       "currency": "USD",
-      "minimal_variant_price_amount": "4.00",
-      "updated_at": "2020-08-19T13:32:01.172Z",
+      "minimal_variant_price_amount": "5.00",
+      "updated_at": "2020-08-31T06:53:34.274Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1338,7 +1430,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling.",
       "product_type": 14,
@@ -1346,25 +1441,25 @@
       "slug": "polo-shirt-3",
       "description": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 11,
       "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:32:01.672Z",
+      "minimal_variant_price_amount": "2.50",
+      "updated_at": "2020-08-31T06:53:22.900Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1374,7 +1469,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night.",
       "product_type": 14,
@@ -1382,25 +1480,25 @@
       "slug": "polo-shirt-4",
       "description": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 11,
       "currency": "USD",
       "minimal_variant_price_amount": "4.00",
-      "updated_at": "2020-08-19T13:32:02.061Z",
+      "updated_at": "2020-08-31T06:53:35.075Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1410,7 +1508,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses.",
       "product_type": 14,
@@ -1418,25 +1519,25 @@
       "slug": "t-shirt-2",
       "description": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 10,
       "currency": "USD",
-      "minimal_variant_price_amount": "2.50",
-      "updated_at": "2020-08-19T13:32:02.624Z",
+      "minimal_variant_price_amount": "3.00",
+      "updated_at": "2020-08-31T06:53:35.478Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1446,7 +1547,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank.",
       "product_type": 14,
@@ -1454,25 +1558,25 @@
       "slug": "t-shirt",
       "description": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 10,
       "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:32:02.988Z",
+      "minimal_variant_price_amount": "2.50",
+      "updated_at": "2020-08-31T06:53:24.137Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1482,7 +1586,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day.",
       "product_type": 14,
@@ -1490,25 +1597,25 @@
       "slug": "t-shirt-4",
       "description": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 10,
       "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
-      "updated_at": "2020-08-19T13:32:03.324Z",
+      "minimal_variant_price_amount": "4.50",
+      "updated_at": "2020-08-31T06:53:36.267Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1518,7 +1625,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last.",
       "product_type": 14,
@@ -1526,25 +1636,25 @@
       "slug": "t-shirt-3",
       "description": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 10,
       "currency": "USD",
-      "minimal_variant_price_amount": "4.50",
-      "updated_at": "2020-08-19T13:32:03.715Z",
+      "minimal_variant_price_amount": "5.00",
+      "updated_at": "2020-08-31T06:53:36.707Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1554,7 +1664,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good.",
       "product_type": 14,
@@ -1562,25 +1675,25 @@
       "slug": "black-hoodie",
       "description": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 12,
       "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:32:04.176Z",
+      "minimal_variant_price_amount": "3.00",
+      "updated_at": "2020-08-31T06:53:25.468Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1590,7 +1703,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world.",
       "product_type": 14,
@@ -1598,25 +1714,25 @@
       "slug": "blue-hoodie",
       "description": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 12,
       "currency": "USD",
       "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:32:04.590Z",
+      "updated_at": "2020-08-31T06:53:25.725Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1626,7 +1742,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie.",
       "product_type": 14,
@@ -1634,25 +1753,25 @@
       "slug": "mustard-hoodie",
       "description": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 12,
       "currency": "USD",
-      "minimal_variant_price_amount": "2.50",
-      "updated_at": "2020-08-19T13:32:04.993Z",
+      "minimal_variant_price_amount": "3.00",
+      "updated_at": "2020-08-31T06:53:37.920Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1662,7 +1781,10 @@
       "publication_date": null,
       "is_published": true,
       "private_metadata": {},
-      "metadata": { "vatlayer.code": "standard", "vatlayer.description": "" },
+      "metadata": {
+        "vatlayer.code": "standard",
+        "vatlayer.description": ""
+      },
       "seo_title": "",
       "seo_description": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair.",
       "product_type": 14,
@@ -1670,25 +1792,25 @@
       "slug": "white-hoodie",
       "description": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 12,
       "currency": "USD",
       "minimal_variant_price_amount": "5.00",
-      "updated_at": "2020-08-19T13:32:05.507Z",
+      "updated_at": "2020-08-31T06:53:26.266Z",
       "charge_taxes": true,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1706,25 +1828,25 @@
       "slug": "sea-lullabies",
       "description": "",
       "description_json": {
-        "blocks": [
-          {
-            "key": "cjb65",
-            "data": {},
-            "text": "Sea Lullabies by Digital Audio.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "cjb65",
+          "data": {},
+          "text": "Sea Lullabies by Digital Audio.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 23,
       "currency": "USD",
-      "minimal_variant_price_amount": "9.99",
-      "updated_at": "2020-08-19T13:44:45.779Z",
+      "minimal_variant_price_amount": "5.00",
+      "updated_at": "2020-08-31T06:53:27.068Z",
       "charge_taxes": false,
-      "weight": null
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1742,25 +1864,25 @@
       "slug": "lake-tunes",
       "description": "",
       "description_json": {
-        "blocks": [
-          {
-            "key": "c6n3e",
-            "data": {},
-            "text": "Lake Tunes by Digital Audio.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "c6n3e",
+          "data": {},
+          "text": "Lake Tunes by Digital Audio.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 23,
       "currency": "USD",
       "minimal_variant_price_amount": "9.99",
-      "updated_at": "2020-08-19T13:46:02.456Z",
+      "updated_at": "2020-08-31T06:53:27.344Z",
       "charge_taxes": false,
-      "weight": null
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": true
     }
   },
   {
@@ -1778,25 +1900,25 @@
       "slug": "ocean-poems",
       "description": "",
       "description_json": {
-        "blocks": [
-          {
-            "key": "5gh2n",
-            "data": {},
-            "text": "Ocean Poems by Digital Audio.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "5gh2n",
+          "data": {},
+          "text": "Ocean Poems by Digital Audio.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 23,
       "currency": "USD",
       "minimal_variant_price_amount": "9.99",
-      "updated_at": "2020-08-19T13:47:00.961Z",
+      "updated_at": "2020-08-31T06:53:27.611Z",
       "charge_taxes": false,
-      "weight": null
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": false
     }
   },
   {
@@ -1814,25 +1936,25 @@
       "slug": "bathroom-songs",
       "description": "",
       "description_json": {
-        "blocks": [
-          {
-            "key": "buneo",
-            "data": {},
-            "text": "Bathroom Songs by Digital Audio.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "buneo",
+          "data": {},
+          "text": "Bathroom Songs by Digital Audio.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 23,
       "currency": "USD",
-      "minimal_variant_price_amount": "9.99",
-      "updated_at": "2020-08-19T13:48:53.600Z",
+      "minimal_variant_price_amount": "9.00",
+      "updated_at": "2020-08-31T06:53:27.873Z",
       "charge_taxes": false,
-      "weight": null
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": false
     }
   },
   {
@@ -1850,25 +1972,25 @@
       "slug": "lagoon-chants",
       "description": "",
       "description_json": {
-        "blocks": [
-          {
-            "key": "675on",
-            "data": {},
-            "text": "Lagoon Chants by Digital Audio.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "675on",
+          "data": {},
+          "text": "Lagoon Chants by Digital Audio.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 23,
       "currency": "USD",
       "minimal_variant_price_amount": "9.99",
-      "updated_at": "2020-08-19T13:50:22.157Z",
+      "updated_at": "2020-08-31T06:53:28.105Z",
       "charge_taxes": false,
-      "weight": null
+      "weight": "0.0:kg",
+      "available_for_purchase": "2020-08-31",
+      "visible_in_listings": false
     }
   },
   {
@@ -1886,25 +2008,25 @@
       "slug": "waterfall-ballads",
       "description": "",
       "description_json": {
-        "blocks": [
-          {
-            "key": "bbp2o",
-            "data": {},
-            "text": "Waterfall Ballads by Digital Audio.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "bbp2o",
+          "data": {},
+          "text": "Waterfall Ballads by Digital Audio.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       },
       "category": 23,
       "currency": "USD",
-      "minimal_variant_price_amount": "9.99",
-      "updated_at": "2020-08-19T13:51:21.577Z",
+      "minimal_variant_price_amount": "9.00",
+      "updated_at": "2020-08-31T06:53:28.398Z",
       "charge_taxes": false,
-      "weight": null
+      "weight": "0.0:kg",
+      "available_for_purchase": "2021-08-31",
+      "visible_in_listings": false
     }
   },
   {
@@ -3990,867 +4112,1879 @@
   {
     "model": "product.assignedproductattribute",
     "pk": 1,
-    "fields": { "product": 72, "assignment": 1, "values": [3] }
+    "fields": {
+      "product": 72,
+      "assignment": 1,
+      "values": [
+        3
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 2,
-    "fields": { "product": 74, "assignment": 1, "values": [50] }
+    "fields": {
+      "product": 74,
+      "assignment": 1,
+      "values": [
+        50
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 3,
-    "fields": { "product": 79, "assignment": 1, "values": [51] }
+    "fields": {
+      "product": 79,
+      "assignment": 1,
+      "values": [
+        51
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 4,
-    "fields": { "product": 115, "assignment": 5, "values": [72] }
+    "fields": {
+      "product": 115,
+      "assignment": 5,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 5,
-    "fields": { "product": 116, "assignment": 5, "values": [72] }
+    "fields": {
+      "product": 116,
+      "assignment": 5,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 6,
-    "fields": { "product": 73, "assignment": 1, "values": [52] }
+    "fields": {
+      "product": 73,
+      "assignment": 1,
+      "values": [
+        52
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 7,
-    "fields": { "product": 76, "assignment": 1, "values": [2] }
+    "fields": {
+      "product": 76,
+      "assignment": 1,
+      "values": [
+        2
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 8,
-    "fields": { "product": 89, "assignment": 5, "values": [72] }
+    "fields": {
+      "product": 89,
+      "assignment": 5,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 9,
-    "fields": { "product": 85, "assignment": 4, "values": [72] }
+    "fields": {
+      "product": 85,
+      "assignment": 4,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 10,
-    "fields": { "product": 78, "assignment": 1, "values": [53] }
+    "fields": {
+      "product": 78,
+      "assignment": 1,
+      "values": [
+        53
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 11,
-    "fields": { "product": 117, "assignment": 5, "values": [72] }
+    "fields": {
+      "product": 117,
+      "assignment": 5,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 12,
-    "fields": { "product": 71, "assignment": 1, "values": [49] }
+    "fields": {
+      "product": 71,
+      "assignment": 1,
+      "values": [
+        49
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 13,
-    "fields": { "product": 75, "assignment": 1, "values": [1] }
+    "fields": {
+      "product": 75,
+      "assignment": 1,
+      "values": [
+        1
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 14,
-    "fields": { "product": 107, "assignment": 5, "values": [72] }
+    "fields": {
+      "product": 107,
+      "assignment": 5,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 15,
-    "fields": { "product": 110, "assignment": 5, "values": [72] }
+    "fields": {
+      "product": 110,
+      "assignment": 5,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 16,
-    "fields": { "product": 109, "assignment": 5, "values": [72] }
+    "fields": {
+      "product": 109,
+      "assignment": 5,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 17,
-    "fields": { "product": 108, "assignment": 5, "values": [72] }
+    "fields": {
+      "product": 108,
+      "assignment": 5,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 18,
-    "fields": { "product": 77, "assignment": 1, "values": [54] }
+    "fields": {
+      "product": 77,
+      "assignment": 1,
+      "values": [
+        54
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 19,
-    "fields": { "product": 81, "assignment": 2, "values": [67] }
+    "fields": {
+      "product": 81,
+      "assignment": 2,
+      "values": [
+        67
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 20,
-    "fields": { "product": 84, "assignment": 3, "values": [69] }
+    "fields": {
+      "product": 84,
+      "assignment": 3,
+      "values": [
+        69
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 21,
-    "fields": { "product": 83, "assignment": 3, "values": [68] }
+    "fields": {
+      "product": 83,
+      "assignment": 3,
+      "values": [
+        68
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 22,
-    "fields": { "product": 114, "assignment": 5, "values": [72] }
+    "fields": {
+      "product": 114,
+      "assignment": 5,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 23,
-    "fields": { "product": 111, "assignment": 5, "values": [72] }
+    "fields": {
+      "product": 111,
+      "assignment": 5,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 24,
-    "fields": { "product": 112, "assignment": 5, "values": [72] }
+    "fields": {
+      "product": 112,
+      "assignment": 5,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 25,
-    "fields": { "product": 113, "assignment": 5, "values": [72] }
+    "fields": {
+      "product": 113,
+      "assignment": 5,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 26,
-    "fields": { "product": 118, "assignment": 5, "values": [72] }
+    "fields": {
+      "product": 118,
+      "assignment": 5,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 27,
-    "fields": { "product": 86, "assignment": 4, "values": [72] }
+    "fields": {
+      "product": 86,
+      "assignment": 4,
+      "values": [
+        72
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 28,
-    "fields": { "product": 82, "assignment": 2, "values": [67] }
+    "fields": {
+      "product": 82,
+      "assignment": 2,
+      "values": [
+        67
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 29,
-    "fields": { "product": 119, "assignment": 7, "values": [86] }
+    "fields": {
+      "product": 119,
+      "assignment": 7,
+      "values": [
+        86
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 30,
-    "fields": { "product": 120, "assignment": 7, "values": [86] }
+    "fields": {
+      "product": 120,
+      "assignment": 7,
+      "values": [
+        86
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 31,
-    "fields": { "product": 121, "assignment": 7, "values": [86] }
+    "fields": {
+      "product": 121,
+      "assignment": 7,
+      "values": [
+        86
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 32,
-    "fields": { "product": 122, "assignment": 7, "values": [86] }
+    "fields": {
+      "product": 122,
+      "assignment": 7,
+      "values": [
+        86
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 33,
-    "fields": { "product": 123, "assignment": 7, "values": [86] }
+    "fields": {
+      "product": 123,
+      "assignment": 7,
+      "values": [
+        86
+      ]
+    }
   },
   {
     "model": "product.assignedproductattribute",
     "pk": 34,
-    "fields": { "product": 124, "assignment": 7, "values": [86] }
+    "fields": {
+      "product": 124,
+      "assignment": 7,
+      "values": [
+        86
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 1,
-    "fields": { "variant": 172, "assignment": 3, "values": [61] }
+    "fields": {
+      "variant": 172,
+      "assignment": 3,
+      "values": [
+        61
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 2,
-    "fields": { "variant": 173, "assignment": 3, "values": [62] }
+    "fields": {
+      "variant": 173,
+      "assignment": 3,
+      "values": [
+        62
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 3,
-    "fields": { "variant": 174, "assignment": 3, "values": [60] }
+    "fields": {
+      "variant": 174,
+      "assignment": 3,
+      "values": [
+        60
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 4,
-    "fields": { "variant": 175, "assignment": 3, "values": [61] }
+    "fields": {
+      "variant": 175,
+      "assignment": 3,
+      "values": [
+        61
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 5,
-    "fields": { "variant": 176, "assignment": 3, "values": [62] }
+    "fields": {
+      "variant": 176,
+      "assignment": 3,
+      "values": [
+        62
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 6,
-    "fields": { "variant": 177, "assignment": 3, "values": [60] }
+    "fields": {
+      "variant": 177,
+      "assignment": 3,
+      "values": [
+        60
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 7,
-    "fields": { "variant": 178, "assignment": 3, "values": [61] }
+    "fields": {
+      "variant": 178,
+      "assignment": 3,
+      "values": [
+        61
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 8,
-    "fields": { "variant": 179, "assignment": 3, "values": [62] }
+    "fields": {
+      "variant": 179,
+      "assignment": 3,
+      "values": [
+        62
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 9,
-    "fields": { "variant": 181, "assignment": 3, "values": [61] }
+    "fields": {
+      "variant": 181,
+      "assignment": 3,
+      "values": [
+        61
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 10,
-    "fields": { "variant": 183, "assignment": 3, "values": [60] }
+    "fields": {
+      "variant": 183,
+      "assignment": 3,
+      "values": [
+        60
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 11,
-    "fields": { "variant": 184, "assignment": 3, "values": [61] }
+    "fields": {
+      "variant": 184,
+      "assignment": 3,
+      "values": [
+        61
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 12,
-    "fields": { "variant": 190, "assignment": 2, "values": [46] }
+    "fields": {
+      "variant": 190,
+      "assignment": 2,
+      "values": [
+        46
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 13,
-    "fields": { "variant": 191, "assignment": 2, "values": [47] }
+    "fields": {
+      "variant": 191,
+      "assignment": 2,
+      "values": [
+        47
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 14,
-    "fields": { "variant": 192, "assignment": 2, "values": [48] }
+    "fields": {
+      "variant": 192,
+      "assignment": 2,
+      "values": [
+        48
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 15,
-    "fields": { "variant": 197, "assignment": 5, "values": [70] }
+    "fields": {
+      "variant": 197,
+      "assignment": 5,
+      "values": [
+        70
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 16,
-    "fields": { "variant": 198, "assignment": 5, "values": [71] }
+    "fields": {
+      "variant": 198,
+      "assignment": 5,
+      "values": [
+        71
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 17,
-    "fields": { "variant": 199, "assignment": 5, "values": [70] }
+    "fields": {
+      "variant": 199,
+      "assignment": 5,
+      "values": [
+        70
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 18,
-    "fields": { "variant": 200, "assignment": 5, "values": [71] }
+    "fields": {
+      "variant": 200,
+      "assignment": 5,
+      "values": [
+        71
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 19,
-    "fields": { "variant": 205, "assignment": 2, "values": [46] }
+    "fields": {
+      "variant": 205,
+      "assignment": 2,
+      "values": [
+        46
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 20,
-    "fields": { "variant": 206, "assignment": 2, "values": [47] }
+    "fields": {
+      "variant": 206,
+      "assignment": 2,
+      "values": [
+        47
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 21,
-    "fields": { "variant": 207, "assignment": 2, "values": [48] }
+    "fields": {
+      "variant": 207,
+      "assignment": 2,
+      "values": [
+        48
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 22,
-    "fields": { "variant": 208, "assignment": 2, "values": [46] }
+    "fields": {
+      "variant": 208,
+      "assignment": 2,
+      "values": [
+        46
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 23,
-    "fields": { "variant": 209, "assignment": 2, "values": [47] }
+    "fields": {
+      "variant": 209,
+      "assignment": 2,
+      "values": [
+        47
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 24,
-    "fields": { "variant": 210, "assignment": 2, "values": [48] }
+    "fields": {
+      "variant": 210,
+      "assignment": 2,
+      "values": [
+        48
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 25,
-    "fields": { "variant": 211, "assignment": 2, "values": [46] }
+    "fields": {
+      "variant": 211,
+      "assignment": 2,
+      "values": [
+        46
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 26,
-    "fields": { "variant": 213, "assignment": 2, "values": [48] }
+    "fields": {
+      "variant": 213,
+      "assignment": 2,
+      "values": [
+        48
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 27,
-    "fields": { "variant": 214, "assignment": 2, "values": [46] }
+    "fields": {
+      "variant": 214,
+      "assignment": 2,
+      "values": [
+        46
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 28,
-    "fields": { "variant": 216, "assignment": 2, "values": [48] }
+    "fields": {
+      "variant": 216,
+      "assignment": 2,
+      "values": [
+        48
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 29,
-    "fields": { "variant": 217, "assignment": 2, "values": [46] }
+    "fields": {
+      "variant": 217,
+      "assignment": 2,
+      "values": [
+        46
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 30,
-    "fields": { "variant": 218, "assignment": 2, "values": [47] }
+    "fields": {
+      "variant": 218,
+      "assignment": 2,
+      "values": [
+        47
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 31,
-    "fields": { "variant": 220, "assignment": 2, "values": [46] }
+    "fields": {
+      "variant": 220,
+      "assignment": 2,
+      "values": [
+        46
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 32,
-    "fields": { "variant": 221, "assignment": 2, "values": [47] }
+    "fields": {
+      "variant": 221,
+      "assignment": 2,
+      "values": [
+        47
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 33,
-    "fields": { "variant": 223, "assignment": 2, "values": [46] }
+    "fields": {
+      "variant": 223,
+      "assignment": 2,
+      "values": [
+        46
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 34,
-    "fields": { "variant": 224, "assignment": 2, "values": [47] }
+    "fields": {
+      "variant": 224,
+      "assignment": 2,
+      "values": [
+        47
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 35,
-    "fields": { "variant": 225, "assignment": 2, "values": [48] }
+    "fields": {
+      "variant": 225,
+      "assignment": 2,
+      "values": [
+        48
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 36,
-    "fields": { "variant": 242, "assignment": 6, "values": [75] }
+    "fields": {
+      "variant": 242,
+      "assignment": 6,
+      "values": [
+        75
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 37,
-    "fields": { "variant": 243, "assignment": 6, "values": [76] }
+    "fields": {
+      "variant": 243,
+      "assignment": 6,
+      "values": [
+        76
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 38,
-    "fields": { "variant": 248, "assignment": 6, "values": [77] }
+    "fields": {
+      "variant": 248,
+      "assignment": 6,
+      "values": [
+        77
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 39,
-    "fields": { "variant": 249, "assignment": 6, "values": [76] }
+    "fields": {
+      "variant": 249,
+      "assignment": 6,
+      "values": [
+        76
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 40,
-    "fields": { "variant": 251, "assignment": 1, "values": [36] }
+    "fields": {
+      "variant": 251,
+      "assignment": 1,
+      "values": [
+        36
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 41,
-    "fields": { "variant": 252, "assignment": 1, "values": [37] }
+    "fields": {
+      "variant": 252,
+      "assignment": 1,
+      "values": [
+        37
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 42,
-    "fields": { "variant": 253, "assignment": 1, "values": [38] }
+    "fields": {
+      "variant": 253,
+      "assignment": 1,
+      "values": [
+        38
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 43,
-    "fields": { "variant": 180, "assignment": 3, "values": [60] }
+    "fields": {
+      "variant": 180,
+      "assignment": 3,
+      "values": [
+        60
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 44,
-    "fields": { "variant": 202, "assignment": 2, "values": [46] }
+    "fields": {
+      "variant": 202,
+      "assignment": 2,
+      "values": [
+        46
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 45,
-    "fields": { "variant": 250, "assignment": 6, "values": [81] }
+    "fields": {
+      "variant": 250,
+      "assignment": 6,
+      "values": [
+        81
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 46,
-    "fields": { "variant": 212, "assignment": 2, "values": [47] }
+    "fields": {
+      "variant": 212,
+      "assignment": 2,
+      "values": [
+        47
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 47,
-    "fields": { "variant": 244, "assignment": 6, "values": [77] }
+    "fields": {
+      "variant": 244,
+      "assignment": 6,
+      "values": [
+        77
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 48,
-    "fields": { "variant": 204, "assignment": 2, "values": [48] }
+    "fields": {
+      "variant": 204,
+      "assignment": 2,
+      "values": [
+        48
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 49,
-    "fields": { "variant": 215, "assignment": 2, "values": [47] }
+    "fields": {
+      "variant": 215,
+      "assignment": 2,
+      "values": [
+        47
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 50,
-    "fields": { "variant": 171, "assignment": 3, "values": [60] }
+    "fields": {
+      "variant": 171,
+      "assignment": 3,
+      "values": [
+        60
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 51,
-    "fields": { "variant": 245, "assignment": 6, "values": [78] }
+    "fields": {
+      "variant": 245,
+      "assignment": 6,
+      "values": [
+        78
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 52,
-    "fields": { "variant": 247, "assignment": 6, "values": [76] }
+    "fields": {
+      "variant": 247,
+      "assignment": 6,
+      "values": [
+        76
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 53,
-    "fields": { "variant": 203, "assignment": 2, "values": [47] }
+    "fields": {
+      "variant": 203,
+      "assignment": 2,
+      "values": [
+        47
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 54,
-    "fields": { "variant": 219, "assignment": 2, "values": [48] }
+    "fields": {
+      "variant": 219,
+      "assignment": 2,
+      "values": [
+        48
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 55,
-    "fields": { "variant": 255, "assignment": 1, "values": [40] }
+    "fields": {
+      "variant": 255,
+      "assignment": 1,
+      "values": [
+        40
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 56,
-    "fields": { "variant": 256, "assignment": 1, "values": [36] }
+    "fields": {
+      "variant": 256,
+      "assignment": 1,
+      "values": [
+        36
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 57,
-    "fields": { "variant": 259, "assignment": 1, "values": [39] }
+    "fields": {
+      "variant": 259,
+      "assignment": 1,
+      "values": [
+        39
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 58,
-    "fields": { "variant": 261, "assignment": 1, "values": [36] }
+    "fields": {
+      "variant": 261,
+      "assignment": 1,
+      "values": [
+        36
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 59,
-    "fields": { "variant": 263, "assignment": 1, "values": [38] }
+    "fields": {
+      "variant": 263,
+      "assignment": 1,
+      "values": [
+        38
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 60,
-    "fields": { "variant": 264, "assignment": 1, "values": [39] }
+    "fields": {
+      "variant": 264,
+      "assignment": 1,
+      "values": [
+        39
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 61,
-    "fields": { "variant": 265, "assignment": 1, "values": [40] }
+    "fields": {
+      "variant": 265,
+      "assignment": 1,
+      "values": [
+        40
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 62,
-    "fields": { "variant": 266, "assignment": 1, "values": [36] }
+    "fields": {
+      "variant": 266,
+      "assignment": 1,
+      "values": [
+        36
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 63,
-    "fields": { "variant": 267, "assignment": 1, "values": [37] }
+    "fields": {
+      "variant": 267,
+      "assignment": 1,
+      "values": [
+        37
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 64,
-    "fields": { "variant": 270, "assignment": 1, "values": [40] }
+    "fields": {
+      "variant": 270,
+      "assignment": 1,
+      "values": [
+        40
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 65,
-    "fields": { "variant": 271, "assignment": 1, "values": [36] }
+    "fields": {
+      "variant": 271,
+      "assignment": 1,
+      "values": [
+        36
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 66,
-    "fields": { "variant": 272, "assignment": 1, "values": [37] }
+    "fields": {
+      "variant": 272,
+      "assignment": 1,
+      "values": [
+        37
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 67,
-    "fields": { "variant": 273, "assignment": 1, "values": [38] }
+    "fields": {
+      "variant": 273,
+      "assignment": 1,
+      "values": [
+        38
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 68,
-    "fields": { "variant": 275, "assignment": 1, "values": [40] }
+    "fields": {
+      "variant": 275,
+      "assignment": 1,
+      "values": [
+        40
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 69,
-    "fields": { "variant": 277, "assignment": 1, "values": [37] }
+    "fields": {
+      "variant": 277,
+      "assignment": 1,
+      "values": [
+        37
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 70,
-    "fields": { "variant": 278, "assignment": 1, "values": [38] }
+    "fields": {
+      "variant": 278,
+      "assignment": 1,
+      "values": [
+        38
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 71,
-    "fields": { "variant": 280, "assignment": 1, "values": [40] }
+    "fields": {
+      "variant": 280,
+      "assignment": 1,
+      "values": [
+        40
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 72,
-    "fields": { "variant": 281, "assignment": 1, "values": [36] }
+    "fields": {
+      "variant": 281,
+      "assignment": 1,
+      "values": [
+        36
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 73,
-    "fields": { "variant": 282, "assignment": 1, "values": [37] }
+    "fields": {
+      "variant": 282,
+      "assignment": 1,
+      "values": [
+        37
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 74,
-    "fields": { "variant": 283, "assignment": 1, "values": [38] }
+    "fields": {
+      "variant": 283,
+      "assignment": 1,
+      "values": [
+        38
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 75,
-    "fields": { "variant": 284, "assignment": 1, "values": [39] }
+    "fields": {
+      "variant": 284,
+      "assignment": 1,
+      "values": [
+        39
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 76,
-    "fields": { "variant": 286, "assignment": 1, "values": [36] }
+    "fields": {
+      "variant": 286,
+      "assignment": 1,
+      "values": [
+        36
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 77,
-    "fields": { "variant": 287, "assignment": 1, "values": [37] }
+    "fields": {
+      "variant": 287,
+      "assignment": 1,
+      "values": [
+        37
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 78,
-    "fields": { "variant": 288, "assignment": 1, "values": [38] }
+    "fields": {
+      "variant": 288,
+      "assignment": 1,
+      "values": [
+        38
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 79,
-    "fields": { "variant": 290, "assignment": 1, "values": [40] }
+    "fields": {
+      "variant": 290,
+      "assignment": 1,
+      "values": [
+        40
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 80,
-    "fields": { "variant": 291, "assignment": 1, "values": [36] }
+    "fields": {
+      "variant": 291,
+      "assignment": 1,
+      "values": [
+        36
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 81,
-    "fields": { "variant": 292, "assignment": 1, "values": [37] }
+    "fields": {
+      "variant": 292,
+      "assignment": 1,
+      "values": [
+        37
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 82,
-    "fields": { "variant": 293, "assignment": 1, "values": [38] }
+    "fields": {
+      "variant": 293,
+      "assignment": 1,
+      "values": [
+        38
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 83,
-    "fields": { "variant": 296, "assignment": 1, "values": [36] }
+    "fields": {
+      "variant": 296,
+      "assignment": 1,
+      "values": [
+        36
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 84,
-    "fields": { "variant": 297, "assignment": 1, "values": [37] }
+    "fields": {
+      "variant": 297,
+      "assignment": 1,
+      "values": [
+        37
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 85,
-    "fields": { "variant": 299, "assignment": 1, "values": [39] }
+    "fields": {
+      "variant": 299,
+      "assignment": 1,
+      "values": [
+        39
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 86,
-    "fields": { "variant": 302, "assignment": 1, "values": [37] }
+    "fields": {
+      "variant": 302,
+      "assignment": 1,
+      "values": [
+        37
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 87,
-    "fields": { "variant": 305, "assignment": 1, "values": [40] }
+    "fields": {
+      "variant": 305,
+      "assignment": 1,
+      "values": [
+        40
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 88,
-    "fields": { "variant": 306, "assignment": 1, "values": [36] }
+    "fields": {
+      "variant": 306,
+      "assignment": 1,
+      "values": [
+        36
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 89,
-    "fields": { "variant": 308, "assignment": 1, "values": [38] }
+    "fields": {
+      "variant": 308,
+      "assignment": 1,
+      "values": [
+        38
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 90,
-    "fields": { "variant": 309, "assignment": 1, "values": [39] }
+    "fields": {
+      "variant": 309,
+      "assignment": 1,
+      "values": [
+        39
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 91,
-    "fields": { "variant": 311, "assignment": 1, "values": [36] }
+    "fields": {
+      "variant": 311,
+      "assignment": 1,
+      "values": [
+        36
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 92,
-    "fields": { "variant": 312, "assignment": 1, "values": [37] }
+    "fields": {
+      "variant": 312,
+      "assignment": 1,
+      "values": [
+        37
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 93,
-    "fields": { "variant": 313, "assignment": 1, "values": [38] }
+    "fields": {
+      "variant": 313,
+      "assignment": 1,
+      "values": [
+        38
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 94,
-    "fields": { "variant": 314, "assignment": 1, "values": [39] }
+    "fields": {
+      "variant": 314,
+      "assignment": 1,
+      "values": [
+        39
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 95,
-    "fields": { "variant": 315, "assignment": 1, "values": [40] }
+    "fields": {
+      "variant": 315,
+      "assignment": 1,
+      "values": [
+        40
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 96,
-    "fields": { "variant": 185, "assignment": 3, "values": [62] }
+    "fields": {
+      "variant": 185,
+      "assignment": 3,
+      "values": [
+        62
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 97,
-    "fields": { "variant": 254, "assignment": 1, "values": [39] }
+    "fields": {
+      "variant": 254,
+      "assignment": 1,
+      "values": [
+        39
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 98,
-    "fields": { "variant": 260, "assignment": 1, "values": [40] }
+    "fields": {
+      "variant": 260,
+      "assignment": 1,
+      "values": [
+        40
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 99,
-    "fields": { "variant": 274, "assignment": 1, "values": [39] }
+    "fields": {
+      "variant": 274,
+      "assignment": 1,
+      "values": [
+        39
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 100,
-    "fields": { "variant": 262, "assignment": 1, "values": [37] }
+    "fields": {
+      "variant": 262,
+      "assignment": 1,
+      "values": [
+        37
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 101,
-    "fields": { "variant": 310, "assignment": 1, "values": [40] }
+    "fields": {
+      "variant": 310,
+      "assignment": 1,
+      "values": [
+        40
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 102,
-    "fields": { "variant": 289, "assignment": 1, "values": [39] }
+    "fields": {
+      "variant": 289,
+      "assignment": 1,
+      "values": [
+        39
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 103,
-    "fields": { "variant": 304, "assignment": 1, "values": [39] }
+    "fields": {
+      "variant": 304,
+      "assignment": 1,
+      "values": [
+        39
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 104,
-    "fields": { "variant": 268, "assignment": 1, "values": [38] }
+    "fields": {
+      "variant": 268,
+      "assignment": 1,
+      "values": [
+        38
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 105,
-    "fields": { "variant": 301, "assignment": 1, "values": [36] }
+    "fields": {
+      "variant": 301,
+      "assignment": 1,
+      "values": [
+        36
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 106,
-    "fields": { "variant": 269, "assignment": 1, "values": [39] }
+    "fields": {
+      "variant": 269,
+      "assignment": 1,
+      "values": [
+        39
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 107,
-    "fields": { "variant": 303, "assignment": 1, "values": [38] }
+    "fields": {
+      "variant": 303,
+      "assignment": 1,
+      "values": [
+        38
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 108,
-    "fields": { "variant": 279, "assignment": 1, "values": [39] }
+    "fields": {
+      "variant": 279,
+      "assignment": 1,
+      "values": [
+        39
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 109,
-    "fields": { "variant": 294, "assignment": 1, "values": [39] }
+    "fields": {
+      "variant": 294,
+      "assignment": 1,
+      "values": [
+        39
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 110,
-    "fields": { "variant": 300, "assignment": 1, "values": [40] }
+    "fields": {
+      "variant": 300,
+      "assignment": 1,
+      "values": [
+        40
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 111,
-    "fields": { "variant": 257, "assignment": 1, "values": [37] }
+    "fields": {
+      "variant": 257,
+      "assignment": 1,
+      "values": [
+        37
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 112,
-    "fields": { "variant": 276, "assignment": 1, "values": [36] }
+    "fields": {
+      "variant": 276,
+      "assignment": 1,
+      "values": [
+        36
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 113,
-    "fields": { "variant": 298, "assignment": 1, "values": [38] }
+    "fields": {
+      "variant": 298,
+      "assignment": 1,
+      "values": [
+        38
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 114,
-    "fields": { "variant": 307, "assignment": 1, "values": [37] }
+    "fields": {
+      "variant": 307,
+      "assignment": 1,
+      "values": [
+        37
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 115,
-    "fields": { "variant": 258, "assignment": 1, "values": [38] }
+    "fields": {
+      "variant": 258,
+      "assignment": 1,
+      "values": [
+        38
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 116,
-    "fields": { "variant": 285, "assignment": 1, "values": [40] }
+    "fields": {
+      "variant": 285,
+      "assignment": 1,
+      "values": [
+        40
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 117,
-    "fields": { "variant": 295, "assignment": 1, "values": [40] }
+    "fields": {
+      "variant": 295,
+      "assignment": 1,
+      "values": [
+        40
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 118,
-    "fields": { "variant": 246, "assignment": 6, "values": [79] }
+    "fields": {
+      "variant": 246,
+      "assignment": 6,
+      "values": [
+        79
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 119,
-    "fields": { "variant": 222, "assignment": 2, "values": [48] }
+    "fields": {
+      "variant": 222,
+      "assignment": 2,
+      "values": [
+        48
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 120,
-    "fields": { "variant": 182, "assignment": 3, "values": [62] }
+    "fields": {
+      "variant": 182,
+      "assignment": 3,
+      "values": [
+        62
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 121,
-    "fields": { "variant": 316, "assignment": 8, "values": [85] }
+    "fields": {
+      "variant": 316,
+      "assignment": 8,
+      "values": [
+        85
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 122,
-    "fields": { "variant": 317, "assignment": 8, "values": [85] }
+    "fields": {
+      "variant": 317,
+      "assignment": 8,
+      "values": [
+        85
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 123,
-    "fields": { "variant": 318, "assignment": 8, "values": [85] }
+    "fields": {
+      "variant": 318,
+      "assignment": 8,
+      "values": [
+        85
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 124,
-    "fields": { "variant": 319, "assignment": 8, "values": [85] }
+    "fields": {
+      "variant": 319,
+      "assignment": 8,
+      "values": [
+        85
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 125,
-    "fields": { "variant": 320, "assignment": 8, "values": [85] }
+    "fields": {
+      "variant": 320,
+      "assignment": 8,
+      "values": [
+        85
+      ]
+    }
   },
   {
     "model": "product.assignedvariantattribute",
     "pk": 126,
-    "fields": { "variant": 321, "assignment": 8, "values": [85] }
+    "fields": {
+      "variant": 321,
+      "assignment": 8,
+      "values": [
+        85
+      ]
+    }
   },
   {
     "model": "product.attributeproduct",
     "pk": 1,
-    "fields": { "sort_order": null, "attribute": 16, "product_type": 9 }
+    "fields": {
+      "sort_order": null,
+      "attribute": 16,
+      "product_type": 9
+    }
   },
   {
     "model": "product.attributeproduct",
     "pk": 2,
-    "fields": { "sort_order": null, "attribute": 20, "product_type": 10 }
+    "fields": {
+      "sort_order": null,
+      "attribute": 20,
+      "product_type": 10
+    }
   },
   {
     "model": "product.attributeproduct",
     "pk": 3,
-    "fields": { "sort_order": null, "attribute": 21, "product_type": 11 }
+    "fields": {
+      "sort_order": null,
+      "attribute": 21,
+      "product_type": 11
+    }
   },
   {
     "model": "product.attributeproduct",
     "pk": 4,
-    "fields": { "sort_order": null, "attribute": 23, "product_type": 12 }
+    "fields": {
+      "sort_order": null,
+      "attribute": 23,
+      "product_type": 12
+    }
   },
   {
     "model": "product.attributeproduct",
     "pk": 5,
-    "fields": { "sort_order": null, "attribute": 23, "product_type": 14 }
+    "fields": {
+      "sort_order": null,
+      "attribute": 23,
+      "product_type": 14
+    }
   },
   {
     "model": "product.attributeproduct",
     "pk": 7,
-    "fields": { "sort_order": 1, "attribute": 26, "product_type": 15 }
+    "fields": {
+      "sort_order": 1,
+      "attribute": 26,
+      "product_type": 15
+    }
   },
   {
     "model": "product.attributevariant",
     "pk": 1,
-    "fields": { "sort_order": null, "attribute": 13, "product_type": 14 }
+    "fields": {
+      "sort_order": null,
+      "attribute": 13,
+      "product_type": 14
+    }
   },
   {
     "model": "product.attributevariant",
     "pk": 2,
-    "fields": { "sort_order": null, "attribute": 15, "product_type": 9 }
+    "fields": {
+      "sort_order": null,
+      "attribute": 15,
+      "product_type": 9
+    }
   },
   {
     "model": "product.attributevariant",
     "pk": 3,
-    "fields": { "sort_order": null, "attribute": 18, "product_type": 7 }
+    "fields": {
+      "sort_order": null,
+      "attribute": 18,
+      "product_type": 7
+    }
   },
   {
     "model": "product.attributevariant",
     "pk": 4,
-    "fields": { "sort_order": null, "attribute": 19, "product_type": 8 }
+    "fields": {
+      "sort_order": null,
+      "attribute": 19,
+      "product_type": 8
+    }
   },
   {
     "model": "product.attributevariant",
     "pk": 5,
-    "fields": { "sort_order": null, "attribute": 22, "product_type": 12 }
+    "fields": {
+      "sort_order": null,
+      "attribute": 22,
+      "product_type": 12
+    }
   },
   {
     "model": "product.attributevariant",
     "pk": 6,
-    "fields": { "sort_order": null, "attribute": 24, "product_type": 13 }
+    "fields": {
+      "sort_order": null,
+      "attribute": 24,
+      "product_type": 13
+    }
   },
   {
     "model": "product.attributevariant",
     "pk": 8,
-    "fields": { "sort_order": 0, "attribute": 19, "product_type": 15 }
+    "fields": {
+      "sort_order": 0,
+      "attribute": 19,
+      "product_type": 15
+    }
   },
   {
     "model": "product.attribute",
@@ -6244,42 +7378,74 @@
   {
     "model": "product.collectionproduct",
     "pk": 1,
-    "fields": { "sort_order": null, "collection": 1, "product": 73 }
+    "fields": {
+      "sort_order": null,
+      "collection": 1,
+      "product": 73
+    }
   },
   {
     "model": "product.collectionproduct",
     "pk": 2,
-    "fields": { "sort_order": null, "collection": 1, "product": 83 }
+    "fields": {
+      "sort_order": null,
+      "collection": 1,
+      "product": 83
+    }
   },
   {
     "model": "product.collectionproduct",
     "pk": 3,
-    "fields": { "sort_order": null, "collection": 1, "product": 110 }
+    "fields": {
+      "sort_order": null,
+      "collection": 1,
+      "product": 110
+    }
   },
   {
     "model": "product.collectionproduct",
     "pk": 4,
-    "fields": { "sort_order": null, "collection": 1, "product": 86 }
+    "fields": {
+      "sort_order": null,
+      "collection": 1,
+      "product": 86
+    }
   },
   {
     "model": "product.collectionproduct",
     "pk": 5,
-    "fields": { "sort_order": null, "collection": 2, "product": 83 }
+    "fields": {
+      "sort_order": null,
+      "collection": 2,
+      "product": 83
+    }
   },
   {
     "model": "product.collectionproduct",
     "pk": 6,
-    "fields": { "sort_order": null, "collection": 2, "product": 84 }
+    "fields": {
+      "sort_order": null,
+      "collection": 2,
+      "product": 84
+    }
   },
   {
     "model": "product.collectionproduct",
     "pk": 7,
-    "fields": { "sort_order": null, "collection": 2, "product": 61 }
+    "fields": {
+      "sort_order": null,
+      "collection": 2,
+      "product": 61
+    }
   },
   {
     "model": "product.collectionproduct",
     "pk": 8,
-    "fields": { "sort_order": null, "collection": 2, "product": 110 }
+    "fields": {
+      "sort_order": null,
+      "collection": 2,
+      "product": 110
+    }
   },
   {
     "model": "product.collection",
@@ -6297,17 +7463,15 @@
       "background_image_alt": "",
       "description": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       }
     }
@@ -6328,17 +7492,15 @@
       "background_image_alt": "",
       "description": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
       "description_json": {
-        "blocks": [
-          {
-            "key": "",
-            "data": {},
-            "text": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
-            "type": "unstyled",
-            "depth": 0,
-            "entityRanges": [],
-            "inlineStyleRanges": []
-          }
-        ],
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
         "entityMap": {}
       }
     }
