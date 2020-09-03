@@ -26,6 +26,22 @@ def assert_no_permission(response):
     ), content["errors"]
 
 
+def assert_negative_price_amount(response):
+    content = _get_graphql_content_from_response(response)
+    assert "errors" in content, content
+    assert content["errors"][0]["message"] == (
+        "Money value cannot be lower than 0."
+    ), content["errors"]
+
+
+def assert_too_many_decimal_places_in_amount(response):
+    content = _get_graphql_content_from_response(response)
+    assert "errors" in content, content
+    assert content["errors"][0]["message"] == (
+        "Ensure the provided money field value has no more than 2 decimal places."
+    ), content["errors"]
+
+
 def get_multipart_request_body(query, variables, file, file_name):
     """Create request body for multipart GraphQL requests.
 

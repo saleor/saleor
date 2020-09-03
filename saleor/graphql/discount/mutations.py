@@ -10,7 +10,7 @@ from ...product.tasks import (
     update_products_minimal_variant_prices_of_discount_task,
 )
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.scalars import Decimal
+from ..core.scalars import Decimal, MoneyScalar
 from ..core.types.common import DiscountError
 from ..product.types import Category, Collection, Product
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
@@ -109,7 +109,7 @@ class VoucherInput(graphene.InputObjectType):
         description="Categories discounted by the voucher.",
         name="categories",
     )
-    min_amount_spent = Decimal(
+    min_amount_spent = MoneyScalar(
         description="Min purchase amount required to apply the voucher."
     )
     min_checkout_items_quantity = graphene.Int(

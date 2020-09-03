@@ -234,7 +234,7 @@ def test_query_gift_card_by_app_without_premissions(
 CREATE_GIFT_CARD_MUTATION = """
 mutation giftCardCreate(
     $code: String, $startDate: Date, $endDate: Date,
-    $balance: Decimal!, $userEmail: String) {
+    $balance: MoneyScalar!, $userEmail: String) {
         giftCardCreate(input: {
                 code: $code, startDate: $startDate,
                 endDate: $endDate,
@@ -476,7 +476,7 @@ def test_create_gift_card_without_premissions(staff_api_client):
 UPDATE_GIFT_CARD_MUTATION = """
 mutation giftCardUpdate(
     $id: ID!, $startDate: Date, $endDate: Date,
-    $balance: Decimal, $userEmail: String!) {
+    $balance: MoneyScalar, $userEmail: String!) {
         giftCardUpdate(id: $id, input: {startDate: $startDate,
                 endDate: $endDate,
                 balance: $balance, userEmail: $userEmail}) {

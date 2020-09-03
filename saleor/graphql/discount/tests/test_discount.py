@@ -143,7 +143,8 @@ CREATE_VOUCHER_MUTATION = """
 mutation  voucherCreate(
     $type: VoucherTypeEnum, $name: String, $code: String,
     $discountValueType: DiscountValueTypeEnum, $usageLimit: Int,
-    $discountValue: Decimal, $minAmountSpent: Decimal, $minCheckoutItemsQuantity: Int,
+    $discountValue: Decimal,
+    $minAmountSpent: MoneyScalar, $minCheckoutItemsQuantity: Int,
     $startDate: DateTime, $endDate: DateTime, $applyOncePerOrder: Boolean,
     $applyOncePerCustomer: Boolean) {
         voucherCreate(input: {

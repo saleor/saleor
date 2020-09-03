@@ -12,7 +12,7 @@ from ...giftcard import models
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelMutation
-from ..core.scalars import Decimal
+from ..core.scalars import MoneyScalar
 from ..core.types.common import GiftCardError
 from .types import GiftCard
 
@@ -24,7 +24,7 @@ class GiftCardUpdateInput(graphene.InputObjectType):
     end_date = graphene.types.datetime.Date(
         description="End date of the gift card in ISO 8601 format."
     )
-    balance = Decimal(description="Value of the gift card.")
+    balance = MoneyScalar(description="Value of the gift card.")
     user_email = graphene.String(
         required=False, description="The customer's email of the gift card buyer."
     )
