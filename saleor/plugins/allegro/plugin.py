@@ -905,13 +905,27 @@ class AllegroProductMapper:
         self.product['images'] = [{'url': image} for image in images]
         return self
 
-    def set_description(self, id):
+    def set_description(self, product):
         product_sections = []
         product_items = []
 
         product_items.append({
+            'type': 'IMAGE',
+            'url': self.saleor_images[0]
+        })
+
+        product_items.append({
             'type': 'TEXT',
-            'content': '<h1>' + id.replace('&', '&amp;') + '</h1>'
+            'content': '<ul>' + ''.join(['<li>' + element['text'].replace('&', '&amp;') + '</li>' for element in product.description_json['blocks'][1:] if 'Jakość' not in element['text'] and element['text'] != '']) + '</ul>'
+        })
+
+        product_sections.append({'items': product_items})
+
+        product_items = []
+
+        product_items.append({
+            'type': 'TEXT',
+            'content': '<p>' + product.description_json['blocks'][0]['text'].replace('&', '&amp;') + '</p>'
         })
 
         product_sections.append({'items': product_items})
@@ -1045,7 +1059,7 @@ class AllegroProductMapper:
         self.set_location_city('Piaseczno')
         self.set_location_post_code('05-500')
 
-        self.set_invoice('NO_INVOICE')
+        self.set_invoice('VAT')
 
         self.set_format(self.get_auction_format())
 
@@ -1064,7 +1078,7 @@ class AllegroProductMapper:
         self.set_name(self.prepare_name(self.saleor_product.name))
         self.set_images(self.saleor_images)
 
-        self.set_description(self.saleor_product.plain_text_description)
+        self.set_description(self.saleor_product)
 
         # FIXME: po sprzedaniu przedmiotu na tym parametrze update?
         self.set_stock_available('1')
