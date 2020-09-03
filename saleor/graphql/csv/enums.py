@@ -31,6 +31,8 @@ class ProductFieldEnum(graphene.Enum):
     PRODUCT_TYPE = "product type"
     CATEGORY = "category"
     VISIBLE = "visible"
+    AVAILABLE_FOR_PURCHASE = "available for purchase"
+    SEARCHABLE = "searchable"
     PRODUCT_WEIGHT = "product weight"
     COLLECTIONS = "collections"
     CHARGE_TAXES = "charge taxes"

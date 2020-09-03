@@ -16,6 +16,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Send a confirmation email when the order is canceled or refunded - #6017
 - Add `TotalPrice` to `OrderLine` - #6068 @fowczarek
 - No secure cookie in debug mode - #6082 by @patrys, @orzechdev
+- Add searchable and available for purchase flags to product - #6060 by @IKarbowiak
 
 ### Breaking Changes
 

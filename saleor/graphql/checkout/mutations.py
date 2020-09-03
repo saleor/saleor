@@ -6,33 +6,25 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Prefetch
 
-from ...account.error_codes import AccountErrorCode
 from ...checkout import models
-from ...checkout.calculations import calculate_checkout_total_with_gift_cards
+from ...checkout.complete_checkout import complete_checkout
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
-    abort_order_data,
     add_promo_code_to_checkout,
     add_variant_to_checkout,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
-    create_order,
     get_user_checkout,
     get_valid_shipping_methods_for_checkout,
-    prepare_order_data,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
 from ...core.permissions import OrderPermissions
-from ...core.taxes import TaxError
-from ...core.utils.url import validate_storefront_url
-from ...discount import models as voucher_model
-from ...graphql.checkout.utils import clean_checkout_payment, clean_checkout_shipping
-from ...payment import PaymentError, gateway, models as payment_models
-from ...payment.interface import AddressData
-from ...payment.utils import store_customer_id
+from ...core.transactions import transaction_with_commit_on_errors
+from ...order import models as order_models
+from ...payment import models as payment_models
 from ...product import models as product_models
 from ...warehouse.availability import check_stock_quantity, get_available_quantity
 from ..account.i18n import I18nMixin
@@ -137,6 +129,28 @@ def check_lines_quantity(variants, quantities, country):
             raise ValidationError({"quantity": ValidationError(message, code=e.code)})
 
 
+def validate_variants_available_for_purchase(variants):
+    not_available_variants = [
+        variant.pk
+        for variant in variants
+        if not variant.product.is_available_for_purchase()
+    ]
+    if not_available_variants:
+        variant_ids = [
+            graphene.Node.to_global_id("ProductVariant", pk)
+            for pk in not_available_variants
+        ]
+        raise ValidationError(
+            {
+                "lines": ValidationError(
+                    "Cannot add lines for unavailable for purchase variants.",
+                    code=CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE,
+                    params={"variants": variant_ids},
+                )
+            }
+        )
+
+
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     variant_id = graphene.ID(required=True, description="ID of the product variant.")
@@ -199,6 +213,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         )
         quantities = [line.get("quantity") for line in lines]
 
+        validate_variants_available_for_purchase(variants)
         check_lines_quantity(variants, quantities, country)
 
         return variants, quantities
@@ -356,6 +371,7 @@ class CheckoutLinesAdd(BaseMutation):
         quantities = [line.get("quantity") for line in lines]
 
         check_lines_quantity(variants, quantities, checkout.get_country())
+        validate_variants_available_for_purchase(variants)
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
@@ -775,130 +791,58 @@ class CheckoutComplete(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def validate_payment_amount(cls, discounts, payment, checkout):
-        if (
-            payment.total
-            != calculate_checkout_total_with_gift_cards(
-                checkout, discounts
-            ).gross.amount
-        ):
-            gateway.payment_refund_or_void(payment)
-            raise ValidationError(
-                "Payment does not cover all checkout value.",
-                code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,
-            )
-
-    @classmethod
     def perform_mutation(cls, _root, info, checkout_id, store_source, **data):
-        checkout = cls.get_node_or_error(
-            info,
-            checkout_id,
-            only_type=Checkout,
-            field="checkout_id",
-            qs=models.Checkout.objects.prefetch_related(
-                "gift_cards",
-                "lines",
-                Prefetch(
-                    "payments",
-                    queryset=payment_models.Payment.objects.prefetch_related(
-                        "order", "order__lines"
-                    ),
-                ),
-            ).select_related("shipping_method", "shipping_method__shipping_zone"),
-        )
-        lines = list(checkout)
-
-        discounts = info.context.discounts
-        user = info.context.user
-
-        clean_checkout_shipping(checkout, lines, discounts, CheckoutErrorCode)
-        clean_checkout_payment(checkout, lines, discounts, CheckoutErrorCode)
-
-        payment = checkout.get_last_active_payment()
-
-        cls.validate_payment_amount(discounts, payment, checkout)
-
-        redirect_url = data.get("redirect_url", "")
-        if redirect_url:
+        tracking_code = analytics.get_client_id(info.context)
+        with transaction_with_commit_on_errors():
             try:
-                validate_storefront_url(redirect_url)
-            except ValidationError as error:
-                raise ValidationError(
-                    {"redirect_url": error}, code=AccountErrorCode.INVALID
+                checkout = cls.get_node_or_error(
+                    info,
+                    checkout_id,
+                    only_type=Checkout,
+                    field="checkout_id",
+                    qs=models.Checkout.objects.select_for_update(of=("self",))
+                    .prefetch_related(
+                        "gift_cards",
+                        "lines__variant__product",
+                        Prefetch(
+                            "payments",
+                            queryset=payment_models.Payment.objects.prefetch_related(
+                                "order__lines"
+                            ),
+                        ),
+                    )
+                    .select_related("shipping_method__shipping_zone"),
+                )
+            except ValidationError as e:
+                checkout_token = from_global_id_strict_type(
+                    checkout_id, Checkout, field="checkout_id"
                 )
 
-        with transaction.atomic():
-            try:
-                order_data = prepare_order_data(
-                    checkout=checkout,
-                    lines=lines,
-                    tracking_code=analytics.get_client_id(info.context),
-                    discounts=discounts,
-                )
-            except InsufficientStock as e:
-                gateway.payment_refund_or_void(payment)
-                raise ValidationError(
-                    f"Insufficient product stock: {e.item}", code=e.code
-                )
-            except voucher_model.NotApplicable:
-                raise ValidationError(
-                    "Voucher not applicable",
-                    code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE,
-                )
-            except TaxError as tax_error:
-                raise ValidationError(
-                    "Unable to calculate taxes - %s" % str(tax_error),
-                    code=CheckoutErrorCode.TAX_ERROR,
-                )
+                order = order_models.Order.objects.get_by_checkout_token(checkout_token)
+                if order:
+                    # The order is already created. We return it as a success
+                    # checkoutComplete response. Order is anonymized for not logged in
+                    # user
+                    return CheckoutComplete(
+                        order=order, confirmation_needed=False, confirmation_data={}
+                    )
+                raise e
 
-        billing_address = order_data["billing_address"]
-        shipping_address = order_data.get("shipping_address", None)
-
-        billing_address = AddressData(**billing_address.as_data())
-
-        if shipping_address is not None:
-            shipping_address = AddressData(**shipping_address.as_data())
-
-        payment_confirmation = payment.to_confirm
-        try:
-            if payment_confirmation:
-                txn = gateway.confirm(payment, additional_data=data.get("payment_data"))
-            else:
-                txn = gateway.process_payment(
-                    payment=payment,
-                    token=payment.token,
-                    store_source=store_source,
-                    additional_data=data.get("payment_data"),
-                )
-            if not txn.is_success:
-                raise PaymentError(txn.error)
-
-        except PaymentError as e:
-            abort_order_data(order_data)
-            raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR)
-
-        if txn.customer_id and user.is_authenticated:
-            store_customer_id(user, payment.gateway, txn.customer_id)
-
-        order = None
-
-        if not txn.action_required:
-            order = create_order(
+            order, action_required, action_data = complete_checkout(
                 checkout=checkout,
-                order_data=order_data,
-                user=user,
-                redirect_url=redirect_url,
+                payment_data=data.get("payment_data", {}),
+                store_source=store_source,
+                discounts=info.context.discounts,
+                user=info.context.user,
+                tracking_code=tracking_code,
+                redirect_url=data.get("redirect_url"),
             )
-
-            # remove checkout after order is successfully paid
-            checkout.delete()
-
         # If gateway returns information that additional steps are required we need
         # to inform the frontend and pass all required data
         return CheckoutComplete(
             order=order,
-            confirmation_needed=txn.action_required,
-            confirmation_data=txn.action_required_data if txn.action_required else {},
+            confirmation_needed=action_required,
+            confirmation_data=action_data,
         )
 
 

@@ -3,37 +3,18 @@ import graphene
 import pytest
 
 from ....account.models import Address
-from ....checkout import calculations
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout
 from ....checkout.utils import add_variant_to_checkout
-from ....order.models import Order
 from ...checkout.mutations import update_checkout_shipping_method_if_invalid
 from ...tests.utils import get_graphql_content
 from .test_checkout import (
-    MUTATION_CHECKOUT_COMPLETE,
     MUTATION_CHECKOUT_CREATE,
     MUTATION_CHECKOUT_LINES_DELETE,
     MUTATION_CHECKOUT_LINES_UPDATE,
     MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
     MUTATION_UPDATE_SHIPPING_METHOD,
 )
-
-
-@pytest.fixture
-def checkout_with_digital_item(checkout, digital_content):
-    """Create a checkout with a digital line."""
-    variant = digital_content.product_variant
-    add_variant_to_checkout(checkout, variant, 1)
-    checkout.email = "customer@example.com"
-    checkout.save()
-    return checkout
-
-
-@pytest.fixture(autouse=True)
-def enable_dummy_gateway(settings):
-    settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
-    return settings
 
 
 @pytest.mark.parametrize("with_shipping_address", (True, False))
@@ -161,42 +142,6 @@ def test_checkout_update_shipping_method(
     # Ensure the shipping method was unchanged
     checkout.refresh_from_db(fields=["shipping_method"])
     assert checkout.shipping_method is None
-
-
-def test_checkout_complete(
-    api_client, checkout_with_digital_item, address, payment_dummy
-):
-    """Ensure it is possible to complete a digital checkout without shipping."""
-
-    order_count = Order.objects.count()
-    checkout = checkout_with_digital_item
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
-
-    # Set a billing address
-    checkout.billing_address = address
-    checkout.save(update_fields=["billing_address"])
-
-    # Create a dummy payment to charge
-    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
-    payment = payment_dummy
-    payment.is_active = True
-    payment.order = None
-    payment.total = total.gross.amount
-    payment.currency = total.gross.currency
-    payment.checkout = checkout
-    payment.save()
-    assert not payment.transactions.exists()
-
-    # Send the creation request
-    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
-    content = get_graphql_content(response)["data"]["checkoutComplete"]
-    assert not content["checkoutErrors"]
-
-    # Ensure the order was actually created
-    assert (
-        Order.objects.count() == order_count + 1
-    ), "The order should have been created"
 
 
 def test_remove_shipping_method_if_only_digital_in_checkout(

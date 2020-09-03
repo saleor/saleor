@@ -22,7 +22,11 @@ from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types import FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
 from ..core.utils import from_global_id_strict_type
-from ..utils import get_nodes, resolve_global_ids_to_primary_keys
+from ..utils import (
+    get_nodes,
+    get_user_or_app_from_context,
+    resolve_global_ids_to_primary_keys,
+)
 from ..utils.filters import filter_by_query_param, filter_range_field
 from ..warehouse import types as warehouse_types
 from .enums import (
@@ -206,7 +210,7 @@ def filter_product_type(qs, _, value):
     return qs
 
 
-def filter_attributes_by_product_types(qs, field, value):
+def filter_attributes_by_product_types(qs, field, value, requestor):
     if not value:
         return qs
 
@@ -221,6 +225,9 @@ def filter_attributes_by_product_types(qs, field, value):
 
         tree = category.get_descendants(include_self=True)
         product_qs = Product.objects.filter(category__in=tree)
+
+        if not product_qs.user_has_access_to_all(requestor):
+            product_qs = product_qs.exclude(visible_in_listings=False)
 
     elif field == "in_collection":
         collection_id = from_global_id_strict_type(
@@ -378,8 +385,8 @@ class AttributeFilter(django_filters.FilterSet):
     )
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
-    in_collection = GlobalIDFilter(method=filter_attributes_by_product_types)
-    in_category = GlobalIDFilter(method=filter_attributes_by_product_types)
+    in_collection = GlobalIDFilter(method="filter_in_collection")
+    in_category = GlobalIDFilter(method="filter_in_category")
 
     class Meta:
         model = Attribute
@@ -391,6 +398,14 @@ class AttributeFilter(django_filters.FilterSet):
             "filterable_in_dashboard",
             "available_in_grid",
         ]
+
+    def filter_in_collection(self, queryset, name, value):
+        requestor = get_user_or_app_from_context(self.request)
+        return filter_attributes_by_product_types(queryset, name, value, requestor)
+
+    def filter_in_category(self, queryset, name, value):
+        requestor = get_user_or_app_from_context(self.request)
+        return filter_attributes_by_product_types(queryset, name, value, requestor)
 
 
 class ProductFilterInput(FilterInputObjectType):

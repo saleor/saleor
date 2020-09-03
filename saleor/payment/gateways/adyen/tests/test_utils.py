@@ -71,9 +71,9 @@ def test_append_klarna_data_tax_included(
     mocked_checkout_line_total, dummy_payment_data, payment_dummy, checkout_with_item
 ):
     # given
-    tax_percent = 5
-    net = Money(10, "USD")
-    gross = tax_percent * net / 100 + net
+    net = Money(100, "USD")
+    gross = Money(123, "USD")
+    # tax 23 %
     mocked_checkout_line_total.return_value = quantize_price(
         TaxedMoney(net=net, gross=gross), "USD"
     )
@@ -100,7 +100,7 @@ def test_append_klarna_data_tax_included(
                 "quantity": line.quantity,
                 "id": line.variant.sku,
                 "taxAmount": to_adyen_price((gross - net).amount, "USD"),
-                "taxPercentage": tax_percent,
+                "taxPercentage": 2300,
                 "amountExcludingTax": to_adyen_price(net.amount, "USD"),
                 "amountIncludingTax": to_adyen_price(gross.amount, "USD"),
             }

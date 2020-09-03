@@ -50,7 +50,10 @@ def attributes_for_pagination(collection, category):
 
     product_type = ProductType.objects.create(name="My Product Type")
     product = Product.objects.create(
-        name="Test product", product_type=product_type, category=category,
+        name="Test product",
+        product_type=product_type,
+        category=category,
+        visible_in_listings=True,
     )
     collection.products.add(product)
     AttributeVariant.objects.bulk_create(
