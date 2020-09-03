@@ -6,7 +6,7 @@ from ....core.weight import WeightUnits
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.utils import get_countries_without_shipping_zone
 from ...core.enums import WeightUnitsEnum
-from ...tests.utils import get_graphql_content
+from ...tests.utils import assert_negative_price_amount, get_graphql_content
 from ..types import ShippingMethodTypeEnum
 
 SHIPPING_ZONE_QUERY = """
@@ -523,9 +523,9 @@ def test_delete_shipping_zone(
 
 PRICE_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
-        $type: ShippingMethodTypeEnum, $name: String!, $price: Decimal,
-        $shippingZone: ID!, $minimumOrderPrice: Decimal,
-        $maximumOrderPrice: Decimal) {
+        $type: ShippingMethodTypeEnum, $name: String!, $price: MoneyScalar,
+        $shippingZone: ID!, $minimumOrderPrice: MoneyScalar,
+        $maximumOrderPrice: MoneyScalar) {
     shippingPriceCreate(input: {
             name: $name, price: $price, shippingZone: $shippingZone,
             minimumOrderPrice: $minimumOrderPrice,
@@ -604,6 +604,7 @@ def test_create_shipping_method_with_invalid_price(
     staff_api_client, shipping_zone, permission_manage_shipping,
 ):
     query = PRICE_BASED_SHIPPING_QUERY
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
     name = "DHL"
     price = -12.34
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -615,13 +616,10 @@ def test_create_shipping_method_with_invalid_price(
         "maximumOrderPrice": 20,
         "type": ShippingMethodTypeEnum.PRICE.name,
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["shippingPriceCreate"]
-    assert data["shippingErrors"][0]["field"] == "price"
-    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
+
+    response = staff_api_client.post_graphql(query, variables)
+
+    assert_negative_price_amount(response)
 
 
 def test_create_price_shipping_method_errors(
@@ -646,7 +644,7 @@ def test_create_price_shipping_method_errors(
 
 WEIGHT_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
-        $type: ShippingMethodTypeEnum, $name: String!, $price: Decimal,
+        $type: ShippingMethodTypeEnum, $name: String!, $price: MoneyScalar,
         $shippingZone: ID!, $maximumOrderWeight: WeightScalar,
         $minimumOrderWeight: WeightScalar) {
         shippingPriceCreate(
@@ -783,8 +781,8 @@ def test_update_shipping_method(
 ):
     query = """
     mutation updateShippingPrice(
-        $id: ID!, $price: Decimal, $shippingZone: ID!,
-        $type: ShippingMethodTypeEnum!, $minimumOrderPrice: Decimal) {
+        $id: ID!, $price: MoneyScalar, $shippingZone: ID!,
+        $type: ShippingMethodTypeEnum!, $minimumOrderPrice: MoneyScalar) {
         shippingPriceUpdate(
             id: $id, input: {
                 price: $price, shippingZone: $shippingZone,

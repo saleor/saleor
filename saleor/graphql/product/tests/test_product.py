@@ -33,6 +33,7 @@ from ....product.utils.attributes import associate_attribute_values_to_instance
 from ....warehouse.models import Allocation, Stock, Warehouse
 from ...core.enums import ReportingPeriod
 from ...tests.utils import (
+    assert_negative_price_amount,
     assert_no_permission,
     get_graphql_content,
     get_multipart_request_body,
@@ -1365,6 +1366,7 @@ def test_create_product_with_negative_base_price(
 ):
     query = CREATE_PRODUCT_MUTATION
 
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     description_json = json.dumps(description_json)
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -1380,14 +1382,9 @@ def test_create_product_with_negative_base_price(
         }
     }
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productCreate"]
-    error = data["productErrors"][0]
-    assert error["field"] == "basePrice"
-    assert error["code"] == ProductErrorCode.INVALID.name
+    response = staff_api_client.post_graphql(query, variables)
+
+    assert_negative_price_amount(response)
 
 
 def test_create_product_with_unicode_in_slug_and_name(
@@ -1431,7 +1428,7 @@ QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
         $productTypeId: ID!,
         $categoryId: ID!
         $name: String!,
-        $basePrice: Decimal!,
+        $basePrice: MoneyScalar!,
         $sku: String,
         $trackInventory: Boolean)
     {
@@ -1725,7 +1722,7 @@ def test_update_product(
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
             $taxCode: String!,
-            $basePrice: Decimal!,
+            $basePrice: MoneyScalar!,
             $attributes: [AttributeValueInput!]) {
                 productUpdate(
                     id: $productId,
@@ -2287,7 +2284,7 @@ def test_update_product_with_negative_base_price(
     query = """
         mutation updateProduct(
             $productId: ID!,
-            $basePrice: Decimal)
+            $basePrice: MoneyScalar)
         {
             productUpdate(
                 id: $productId,
@@ -2306,19 +2303,15 @@ def test_update_product_with_negative_base_price(
             }
         }
     """
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     product = product_with_default_variant
     product_id = graphene.Node.to_global_id("Product", product.pk)
 
     variables = {"productId": product_id, "basePrice": -1}
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productUpdate"]
-    error = data["productErrors"][0]
-    assert error["field"] == "basePrice"
-    assert error["code"] == ProductErrorCode.INVALID.name
+    response = staff_api_client.post_graphql(query, variables)
+
+    assert_negative_price_amount(response)
 
 
 def test_update_product_without_category_and_true_is_published_value(
@@ -4220,7 +4213,7 @@ mutation createProduct(
         $name: String!,
         $sku: String,
         $stocks: [StockInput!],
-        $basePrice: Decimal!
+        $basePrice: MoneyScalar!
         $trackInventory: Boolean)
     {
         productCreate(
@@ -4410,7 +4403,7 @@ mutation createProduct(
         $category: ID!
         $name: String!,
         $sku: String,
-        $basePrice: Decimal!,
+        $basePrice: MoneyScalar!,
         $weight: WeightScalar)
     {
         productCreate(
@@ -4515,7 +4508,7 @@ def test_create_product_with_weight_input(
             $category: ID!,
             $name: String!,
             $sku: String,
-            $basePrice: Decimal!)
+            $basePrice: MoneyScalar!)
         {{
             productCreate(
                 input: {{

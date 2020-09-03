@@ -168,22 +168,10 @@ class ProductVariantBulkCreate(BaseMutation):
 
         cost_price_amount = cleaned_input.pop("cost_price", None)
         if cost_price_amount is not None:
-            if cost_price_amount < 0:
-                errors["costPrice"] = ValidationError(
-                    "Product price cannot be lower than 0.",
-                    code=ProductErrorCode.INVALID.value,
-                    params={"index": variant_index},
-                )
             cleaned_input["cost_price_amount"] = cost_price_amount
 
         price_amount = cleaned_input.pop("price", None)
         if price_amount is not None:
-            if price_amount < 0:
-                errors["price"] = ValidationError(
-                    "Product price cannot be lower than 0.",
-                    code=ProductErrorCode.INVALID.value,
-                    params={"index": variant_index},
-                )
             cleaned_input["price_amount"] = price_amount
 
         attributes = cleaned_input.get("attributes")

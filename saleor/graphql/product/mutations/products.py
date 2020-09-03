@@ -29,7 +29,7 @@ from ....product.utils.attributes import (
     generate_name_for_variant,
 )
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.scalars import Decimal, WeightScalar
+from ...core.scalars import MoneyScalar, WeightScalar
 from ...core.types import SeoInput, Upload
 from ...core.types.common import ProductError
 from ...core.utils import (
@@ -534,7 +534,7 @@ class ProductInput(graphene.InputObjectType):
             "is only used if a product doesn't use variants."
         )
     )
-    base_price = Decimal(
+    base_price = MoneyScalar(
         description=(
             "Default price for product variant. "
             "Note: this field is only used if a product doesn't use variants."
@@ -823,17 +823,6 @@ class ProductCreate(ModelMutation):
                 }
             )
 
-        base_price = cleaned_input.get("base_price")
-        if base_price is not None and base_price < 0:
-            raise ValidationError(
-                {
-                    "base_price": ValidationError(
-                        "Product price cannot be lower than 0.",
-                        code=ProductErrorCode.INVALID.value,
-                    )
-                }
-            )
-
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
@@ -1108,8 +1097,8 @@ class ProductVariantInput(graphene.InputObjectType):
         required=False,
         description="List of attributes specific to this variant.",
     )
-    cost_price = Decimal(description="Cost price of the variant.")
-    price = Decimal(description="Price of the particular variant.")
+    cost_price = MoneyScalar(description="Cost price of the variant.")
+    price = MoneyScalar(description="Price of the particular variant.")
     sku = graphene.String(description="Stock keeping unit.")
     track_inventory = graphene.Boolean(
         description=(
@@ -1194,17 +1183,7 @@ class ProductVariantCreate(ModelMutation):
             )
 
         if "cost_price" in cleaned_input:
-            cost_price = cleaned_input.pop("cost_price")
-            if cost_price and cost_price < 0:
-                raise ValidationError(
-                    {
-                        "costPrice": ValidationError(
-                            "Product price cannot be lower than 0.",
-                            code=ProductErrorCode.INVALID.value,
-                        )
-                    }
-                )
-            cleaned_input["cost_price_amount"] = cost_price
+            cleaned_input["cost_price_amount"] = cleaned_input.pop("cost_price")
 
         price = cleaned_input.get("price")
         if price is None and instance.price is None:
@@ -1218,17 +1197,7 @@ class ProductVariantCreate(ModelMutation):
             )
 
         if "price" in cleaned_input:
-            price = cleaned_input.pop("price")
-            if price is not None and price < 0:
-                raise ValidationError(
-                    {
-                        "price": ValidationError(
-                            "Product price cannot be lower than 0.",
-                            code=ProductErrorCode.INVALID.value,
-                        )
-                    }
-                )
-            cleaned_input["price_amount"] = price
+            cleaned_input["price_amount"] = cleaned_input.pop("price")
 
         stocks = cleaned_input.get("stocks")
         if stocks:

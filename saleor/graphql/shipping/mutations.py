@@ -10,7 +10,7 @@ from ...shipping.utils import (
     get_countries_without_shipping_zone,
 )
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.scalars import Decimal, WeightScalar
+from ..core.scalars import MoneyScalar, WeightScalar
 from ..core.types.common import ShippingError
 from ..core.utils import get_duplicates_ids
 from .enums import ShippingMethodTypeEnum
@@ -19,11 +19,11 @@ from .types import ShippingMethod, ShippingZone
 
 class ShippingPriceInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the shipping method.")
-    price = Decimal(description="Shipping price of the shipping method.")
-    minimum_order_price = Decimal(
+    price = MoneyScalar(description="Shipping price of the shipping method.")
+    minimum_order_price = MoneyScalar(
         description="Minimum order price to use this shipping method."
     )
-    maximum_order_price = Decimal(
+    maximum_order_price = MoneyScalar(
         description="Maximum order price to use this shipping method."
     )
     minimum_order_weight = WeightScalar(
@@ -170,15 +170,6 @@ class ShippingPriceMixin:
         # Rename the price field to price_amount (the model's)
         price_amount = cleaned_input.pop("price", None)
         if price_amount is not None:
-            if price_amount < 0:
-                raise ValidationError(
-                    {
-                        "price": ValidationError(
-                            ("Shipping rate price cannot be lower than 0."),
-                            code=ShippingErrorCode.INVALID,
-                        )
-                    }
-                )
             cleaned_input["price_amount"] = price_amount
 
         cleaned_type = cleaned_input.get("type")

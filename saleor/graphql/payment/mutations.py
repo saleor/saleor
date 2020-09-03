@@ -15,7 +15,7 @@ from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
-from ..core.scalars import Decimal
+from ..core.scalars import MoneyScalar
 from ..core.types import common as common_types
 from ..core.utils import from_global_id_strict_type
 from .types import Payment
@@ -34,7 +34,7 @@ class PaymentInput(graphene.InputObjectType):
             "billing data in a secure manner."
         ),
     )
-    amount = Decimal(
+    amount = MoneyScalar(
         required=False,
         description=(
             "Total amount of the transaction, including "
@@ -190,7 +190,7 @@ class PaymentCapture(BaseMutation):
 
     class Arguments:
         payment_id = graphene.ID(required=True, description="Payment ID.")
-        amount = Decimal(description="Transaction amount.")
+        amount = MoneyScalar(description="Transaction amount.")
 
     class Meta:
         description = "Captures the authorized payment amount."
