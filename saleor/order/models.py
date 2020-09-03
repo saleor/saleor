@@ -242,7 +242,9 @@ class Order(ModelWithMetadata):
     def is_pre_authorized(self):
         return (
             self.payments.filter(
-                is_active=True, transactions__kind=TransactionKind.AUTH
+                is_active=True,
+                transactions__kind=TransactionKind.AUTH,
+                transactions__action_required=False,
             )
             .filter(transactions__is_success=True)
             .exists()
@@ -251,7 +253,9 @@ class Order(ModelWithMetadata):
     def is_captured(self):
         return (
             self.payments.filter(
-                is_active=True, transactions__kind=TransactionKind.CAPTURE
+                is_active=True,
+                transactions__kind=TransactionKind.CAPTURE,
+                transactions__action_required=False,
             )
             .filter(transactions__is_success=True)
             .exists()

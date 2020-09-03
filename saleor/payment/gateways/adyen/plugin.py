@@ -334,10 +334,14 @@ class AdyenGatewayPlugin(BasePlugin):
             raise PaymentError("Unable to finish the payment.")
 
         result = api_call(additional_data, self.adyen.checkout.payments)
-        is_success = result.message["resultCode"].strip().lower() not in FAILED_STATUSES
-        # For enabled auto_capture on Saleor side we need to proceed an additional
-        # action
-        if is_success and config.auto_capture:
+        result_code = result.message["resultCode"].strip().lower()
+        is_success = result_code not in FAILED_STATUSES
+
+        if result_code in PENDING_STATUSES:
+            kind = TransactionKind.PENDING
+        elif is_success and config.auto_capture:
+            # For enabled auto_capture on Saleor side we need to proceed an additional
+            # action
             response = self.capture_payment(payment_information, None)
             is_success = response.is_success
 
@@ -383,6 +387,10 @@ class AdyenGatewayPlugin(BasePlugin):
             # standard flow for confirming an additional action
             return self._process_additional_action(payment_information, kind)
 
+        result_code = transaction.gateway_response.get("resultCode", "").strip().lower()
+        if result_code and result_code in PENDING_STATUSES:
+            kind = TransactionKind.PENDING
+
         # We already have the ACTION_TO_CONFIRM transaction, it means that
         # payment was processed asynchronous and no additional action is required
 
@@ -395,7 +403,11 @@ class AdyenGatewayPlugin(BasePlugin):
             currency=payment_information.currency,
         ).first()
         is_success = True
-        if not transaction_already_processed and config.auto_capture:
+        if (
+            not transaction_already_processed
+            and config.auto_capture
+            and kind == TransactionKind.CAPTURE
+        ):
             response = self.capture_payment(payment_information, None)
             is_success = response.is_success
 
