@@ -102,6 +102,11 @@ class StaffError(AccountError):
 
 class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.", required=True)
+    variants = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of varint IDs which causes the error.",
+        required=False,
+    )
 
 
 class DiscountError(Error):

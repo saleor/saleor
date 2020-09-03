@@ -248,7 +248,7 @@ def _fetch_gateway_response(fn, *args, **kwargs):
         logger.exception("Gateway response validation failed!")
         response = None
         error = ERROR_MSG
-    except Exception:
+    except PaymentError:
         logger.exception("Error encountered while executing payment gateway.")
         error = ERROR_MSG
         response = None
@@ -271,7 +271,9 @@ def _validate_refund_amount(payment: Payment, amount: Decimal):
         raise PaymentError("Cannot refund more than captured.")
 
 
-def payment_refund_or_void(payment):
+def payment_refund_or_void(payment: Optional[Payment]):
+    if payment is None:
+        return
     if payment.can_refund():
         refund(payment)
     elif payment.can_void():

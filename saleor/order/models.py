@@ -29,6 +29,10 @@ from . import FulfillmentStatus, OrderEvents, OrderStatus
 
 
 class OrderQueryset(models.QuerySet):
+    def get_by_checkout_token(self, token):
+        """Return non-draft order with matched checkout token."""
+        return self.confirmed().filter(checkout_token=token).first()
+
     def confirmed(self):
         """Return non-draft orders."""
         return self.exclude(status=OrderStatus.DRAFT)
@@ -238,7 +242,9 @@ class Order(ModelWithMetadata):
     def is_pre_authorized(self):
         return (
             self.payments.filter(
-                is_active=True, transactions__kind=TransactionKind.AUTH
+                is_active=True,
+                transactions__kind=TransactionKind.AUTH,
+                transactions__action_required=False,
             )
             .filter(transactions__is_success=True)
             .exists()
@@ -247,7 +253,9 @@ class Order(ModelWithMetadata):
     def is_captured(self):
         return (
             self.payments.filter(
-                is_active=True, transactions__kind=TransactionKind.CAPTURE
+                is_active=True,
+                transactions__kind=TransactionKind.CAPTURE,
+                transactions__action_required=False,
             )
             .filter(transactions__is_success=True)
             .exists()

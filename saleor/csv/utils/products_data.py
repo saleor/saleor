@@ -24,6 +24,8 @@ class ProductExportFields:
             "name": "name",
             "description": "description",
             "visible": "is_published",
+            "available for purchase": "available_for_purchase",
+            "searchable": "visible_in_listings",
             "category": "category__slug",
             "product type": "product_type__name",
             "charge taxes": "charge_taxes",

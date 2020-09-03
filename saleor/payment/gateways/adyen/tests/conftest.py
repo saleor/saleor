@@ -1,8 +1,9 @@
-from decimal import Decimal
-
 import pytest
 
+from .....checkout import calculations
 from .....plugins.manager import get_plugins_manager
+from .... import TransactionKind
+from ....models import Transaction
 from ....utils import create_payment
 from ..plugin import AdyenGatewayPlugin
 
@@ -51,13 +52,18 @@ def adyen_plugin(settings):
 
 
 @pytest.fixture
-def payment_adyen_for_checkout(checkout_with_items, address):
+def payment_adyen_for_checkout(checkout_with_items, address, shipping_method):
     checkout_with_items.billing_address = address
+    checkout_with_items.shipping_address = address
+    checkout_with_items.shipping_method = shipping_method
     checkout_with_items.save()
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        checkout=checkout_with_items
+    )
     payment = create_payment(
         gateway=AdyenGatewayPlugin.PLUGIN_ID,
         payment_token="",
-        total=Decimal("1234"),
+        total=total.gross.amount,
         currency=checkout_with_items.currency,
         email=checkout_with_items.email,
         customer_ip_address="",
@@ -72,6 +78,19 @@ def payment_adyen_for_order(payment_adyen_for_checkout, order_with_lines):
     payment_adyen_for_checkout.checkout = None
     payment_adyen_for_checkout.order = order_with_lines
     payment_adyen_for_checkout.save()
+
+    Transaction.objects.create(
+        payment=payment_adyen_for_checkout,
+        action_required=False,
+        kind=TransactionKind.AUTH,
+        token="token",
+        is_success=True,
+        amount=order_with_lines.total_gross_amount,
+        currency=order_with_lines.currency,
+        error="",
+        gateway_response={},
+        action_required_data={},
+    )
     return payment_adyen_for_checkout
 
 
