@@ -28,7 +28,7 @@ def test_handle_additional_actions_post(
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     request_mock = mock.Mock()
-    request_mock.GET = {"payment": payment_id, "checkout": checkout.pk}
+    request_mock.GET = {"payment": payment_id, "checkout": str(checkout.pk)}
     request_mock.POST = {"payload": "test"}
 
     payment_details_mock = mock.Mock()
@@ -77,7 +77,7 @@ def test_handle_additional_actions_get(
     request_mock = mock.Mock()
     request_mock.GET = {
         "payment": payment_id,
-        "checkout": checkout.pk,
+        "checkout": str(checkout.pk),
         "payload": "test",
     }
 
@@ -117,7 +117,7 @@ def test_handle_additional_actions_more_action_required(payment_adyen_for_checko
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     request_mock = mock.Mock()
-    request_mock.GET = {"payment": payment_id, "checkout": checkout.pk}
+    request_mock.GET = {"payment": payment_id, "checkout": str(checkout.pk)}
     request_mock.POST = {"payload": "test"}
 
     payment_details_mock = mock.Mock()
@@ -199,7 +199,7 @@ def test_handle_additional_actions_payment_lack_of_return_url(
     request_mock = mock.Mock()
     request_mock.GET = {
         "payment": payment_id,
-        "checkout": payment_adyen_for_checkout.checkout.pk,
+        "checkout": str(payment_adyen_for_checkout.checkout.pk),
     }
     request_mock.POST = {"payload": "test"}
 
@@ -324,7 +324,7 @@ def test_handle_additional_actions_api_call_error(
     request_mock = mock.Mock()
     request_mock.GET = {
         "payment": payment_id,
-        "checkout": payment_adyen_for_checkout.checkout.pk,
+        "checkout": str(payment_adyen_for_checkout.checkout.pk),
     }
     request_mock.POST = {"payload": "test"}
 
@@ -420,7 +420,7 @@ def test_handle_additional_actions_lack_of_parameter_in_request(
     payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
 
     request_mock = mock.Mock()
-    request_mock.GET = {"payment": payment_id, "checkout": checkout.pk}
+    request_mock.GET = {"payment": payment_id, "checkout": str(checkout.pk)}
     request_mock.POST = {"payload": "test"}
 
     payment_details_mock = mock.Mock()
