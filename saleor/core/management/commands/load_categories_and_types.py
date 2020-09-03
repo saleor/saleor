@@ -19,6 +19,7 @@ class Command(BaseCommand):
     @staticmethod
     def load_categories_and_types(path):
 
+        quality_attribute = Attribute.objects.get(slug='jakosc')
         color_attribute = Attribute.objects.get(slug='kolor')
         size_attribute = Attribute.objects.get(slug='rozmiar')
         material_attribute = Attribute.objects.get(slug='material')
@@ -107,3 +108,6 @@ class Command(BaseCommand):
                                                             product_type=product_type)
                             AttributeProduct.objects.create(
                                 attribute=material_attribute, product_type=product_type)
+
+                            AttributeProduct.objects.create(
+                                attribute=quality_attribute, product_type=product_type)
