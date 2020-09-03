@@ -39,12 +39,10 @@ def test_handle_authorization_for_order(
     transaction = payment.transactions.last()
     assert transaction.is_success is True
     assert transaction.kind == TransactionKind.AUTH
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_multiple_authorization_notification(
@@ -67,12 +65,10 @@ def test_handle_multiple_authorization_notification(
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     capture_transaction = payment.transactions.get(kind=TransactionKind.CAPTURE)
     assert capture_transaction.is_success is False
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
     second_notification = notification(
         merchant_reference=payment_id,
@@ -86,12 +82,10 @@ def test_handle_multiple_authorization_notification(
         kind=TransactionKind.CAPTURE
     ).last()
     assert capture_transaction.is_success is True
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 2
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 2
 
 
 def test_handle_authorization_for_pending_order(
@@ -114,12 +108,10 @@ def test_handle_authorization_for_pending_order(
     assert transaction.kind == TransactionKind.CAPTURE
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_authorization_for_checkout(
@@ -159,12 +151,10 @@ def test_handle_authorization_for_checkout(
     assert payment.checkout is None
     assert payment.order
     assert payment.order.checkout_token == checkout_token
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_authorization_with_adyen_auto_capture(
@@ -199,12 +189,10 @@ def test_handle_authorization_with_adyen_auto_capture(
     assert payment.transactions.count() == 2
     transaction = payment.transactions.filter(kind=TransactionKind.CAPTURE).get()
     assert transaction.is_success is True
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 @pytest.mark.vcr
@@ -230,12 +218,10 @@ def test_handle_authorization_with_auto_capture(
     transaction = payment.transactions.filter(kind=TransactionKind.CAPTURE).get()
     assert transaction.is_success is True
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_authorization_with_adyen_auto_capture_and_payment_charged(
@@ -256,12 +242,10 @@ def test_handle_authorization_with_adyen_auto_capture_and_payment_charged(
     payment.refresh_from_db()
     assert payment.transactions.count() == 2
     assert payment.transactions.filter(kind=TransactionKind.CAPTURE).exists()
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_cancel(notification, adyen_plugin, payment_adyen_for_order):
@@ -282,12 +266,10 @@ def test_handle_cancel(notification, adyen_plugin, payment_adyen_for_order):
     assert transaction.is_success is True
 
     assert payment.order.status == OrderStatus.CANCELED
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_cancel_already_canceled(
@@ -323,12 +305,10 @@ def test_handle_capture_for_order(notification, adyen_plugin, payment_adyen_for_
     transaction = payment.transactions.filter(kind=TransactionKind.CAPTURE).get()
     assert transaction.is_success is True
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_capture_for_checkout(
@@ -368,12 +348,10 @@ def test_handle_capture_for_checkout(
     assert payment.checkout is None
     assert payment.order
     assert payment.order.checkout_token == checkout_token
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_capture_with_payment_already_charged(
@@ -395,12 +373,10 @@ def test_handle_capture_with_payment_already_charged(
     # Payment is already captured so no need to save capture transaction
     payment.refresh_from_db()
     assert payment.transactions.count() == 2
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 @pytest.mark.parametrize(
@@ -427,12 +403,10 @@ def test_handle_failed_capture(
     assert transaction.is_success is True
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_failed_capture_partial_charge(
@@ -456,12 +430,10 @@ def test_handle_failed_capture_partial_charge(
     assert transaction.is_success is True
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.PARTIALLY_CHARGED
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_pending(notification, adyen_plugin, payment_adyen_for_order):
@@ -480,12 +452,10 @@ def test_handle_pending(notification, adyen_plugin, payment_adyen_for_order):
     assert transaction.is_success is True
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.PENDING
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_pending_with_adyen_auto_capture(
@@ -508,12 +478,10 @@ def test_handle_pending_with_adyen_auto_capture(
     assert payment.transactions.filter(kind=TransactionKind.PENDING).first()
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.PENDING
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_pending_already_pending(
@@ -561,12 +529,10 @@ def test_handle_refund(
     mock_order_refunded.assert_called_once_with(
         payment.order, None, transaction.amount, payment
     )
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 @mock.patch("saleor.payment.gateways.adyen.webhooks.order_refunded")
@@ -608,12 +574,10 @@ def test_handle_failed_refund_missing_transaction(
     handle_failed_refund(notification, config)
 
     assert payment.transactions.count() == 1
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_failed_refund_with_transaction_refund_ongoing(
@@ -632,17 +596,14 @@ def test_handle_failed_refund_with_transaction_refund_ongoing(
     create_new_transaction(notification, payment, TransactionKind.REFUND_ONGOING)
     handle_failed_refund(notification, config)
 
-    assert (
-        payment.transactions.count() == 4
-    )  # ACTION_TO_CONFIRM, REFUND_ONGOING, REFUND_FAILED, FULLY_CHARGED
+    # ACTION_TO_CONFIRM, REFUND_ONGOING, REFUND_FAILED, FULLY_CHARGED
+    assert payment.transactions.count() == 4
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.total == payment.captured_amount
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_failed_refund_with_transaction_refund(
@@ -665,12 +626,10 @@ def test_handle_failed_refund_with_transaction_refund(
     assert payment.transactions.count() == 4  # REFUND, REFUND_FAILED, FULLY_CHARGED
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.total == payment.captured_amount
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_reversed_refund(notification, adyen_plugin, payment_adyen_for_order):
@@ -690,12 +649,10 @@ def test_handle_reversed_refund(notification, adyen_plugin, payment_adyen_for_or
     assert payment.transactions.filter(kind=TransactionKind.REFUND_REVERSED).exists()
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.total == payment.captured_amount
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 def test_handle_reversed_refund_already_processed(
@@ -731,12 +688,10 @@ def test_webhook_not_implemented(notification, adyen_plugin, payment_adyen_for_o
 
     webhook_not_implemented(notification, config)
 
-    assert (
-        payment.order.events.filter(
-            type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-        ).count()
-        == 1
+    external_events = payment.order.events.filter(
+        type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
+    assert external_events.count() == 1
 
 
 @mock.patch("saleor.payment.gateways.adyen.webhooks.handle_refund")

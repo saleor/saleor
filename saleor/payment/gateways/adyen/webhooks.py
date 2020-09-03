@@ -148,7 +148,8 @@ def create_order(payment, checkout):
     except ValidationError:
         payment_refund_or_void(payment)
         return None
-    payment.order = order
+    # Refresh the payment to assign the newly created order
+    payment.refresh_from_db()
     return order
 
 
