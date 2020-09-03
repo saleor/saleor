@@ -1,6 +1,8 @@
 import decimal
 
 import graphene
+from django.conf import settings
+from django_prices.utils.formatting import get_currency_fraction
 from graphql.error import GraphQLError
 from graphql.language import ast
 from measurement.measures import Weight
@@ -34,6 +36,32 @@ class Decimal(graphene.Float):
             return decimal.Decimal(value)
         except decimal.DecimalException:
             return None
+
+
+class MoneyScalar(Decimal):
+    """Money scalar implementation.
+
+    Should be used in every price input field.
+    Contains validations that check if the money value is not lower than 0 and
+    if the value does not contain too many decimal values.
+    """
+
+    @staticmethod
+    def parse_value(value):
+        value = super(MoneyScalar, MoneyScalar).parse_value(value)
+        if not value:
+            return value
+        if value < 0:
+            raise GraphQLError("Money value cannot be lower than 0.")
+
+        currency_fraction = get_currency_fraction(settings.DEFAULT_CURRENCY)
+        value = value.normalize()
+        if abs(value.as_tuple().exponent) > currency_fraction:
+            raise GraphQLError(
+                "Ensure the provided money field value has no more than "
+                f"{currency_fraction} decimal places."
+            )
+        return value
 
 
 class WeightScalar(graphene.Scalar):
