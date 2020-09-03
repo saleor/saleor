@@ -628,7 +628,7 @@ class BaseParametersMapper():
 
     def set_allegro_fuzzy_value(self, param, mapped_value):
         value = next((value for value in param['dictionary'] if
-                      mapped_value.lower() in value["value"].lower()), None)
+                      mapped_value.lower()[:-1] in value["value"].lower()), None)
         if value is not None:
             return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
                 "rangeValue": None}
