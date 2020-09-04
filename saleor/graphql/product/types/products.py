@@ -46,7 +46,7 @@ from ...translations.types import (
     ProductTranslation,
     ProductVariantTranslation,
 )
-from ...utils import get_database_id
+from ...utils import get_database_id, get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdAndCountryCodeLoader,
@@ -66,8 +66,9 @@ from ..dataloaders import (
     VariantChannelListingByVariantIdLoader,
     VariantsChannelListingByProductIdAndChanneSlugLoader,
 )
-from ..filters import AttributeFilterInput
+from ..filters import AttributeFilterInput, ProductFilterInput
 from ..resolvers import resolve_attributes
+from ..sorters import ProductOrder
 from .attributes import Attribute, SelectedAttribute
 from .channels import ProductChannelListing, ProductVariantChannelListing
 from .digital_contents import DigitalContent
@@ -469,6 +470,9 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         type_name="product",
         resolver=ChannelContextType.resolve_translation,
     )
+    is_available_for_purchase = graphene.Boolean(
+        description="Whether the product is available for purchase."
+    )
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
@@ -476,6 +480,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Product
         only_fields = [
+            "available_for_purchase",
             "category",
             "charge_taxes",
             "description",
@@ -488,6 +493,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "seo_title",
             "updated_at",
             "weight",
+            "visible_in_listings",
         ]
 
     @staticmethod
@@ -659,6 +665,10 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     def resolve_weight(root: ChannelContext[models.Product], _info, **_kwargs):
         return convert_weight_to_default_weight_unit(root.node.weight)
 
+    @staticmethod
+    def resolve_is_available_for_purchase(root: ChannelContext[models.Product], _info):
+        return root.node.is_available_for_purchase()
+
 
 @key(fields="id")
 class ProductType(CountableDjangoObjectType):
@@ -763,6 +773,8 @@ class Collection(CountableDjangoObjectType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
+        filter=ProductFilterInput(description="Filtering options for products."),
+        sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
     )
     background_image = graphene.Field(
@@ -895,12 +907,15 @@ class Category(CountableDjangoObjectType):
         return ""
 
     @staticmethod
-    def resolve_products(root: models.Category, _info, channel=None, **_kwargs):
+    def resolve_products(root: models.Category, info, channel=None, **_kwargs):
+        requestor = get_user_or_app_from_context(info.context)
         tree = root.get_descendants(include_self=True)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         qs = models.Product.objects.published(channel)
-        qs = qs.filter(category__in=tree).distinct()
+        if not qs.user_has_access_to_all(requestor):
+            qs = qs.exclude(visible_in_listings=False)
+        qs = qs.filter(category__in=tree)
         return ChannelQsContext(qs=qs, channel_slug=channel)
 
     @staticmethod

@@ -14,6 +14,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Adyen drop-in integration - #5914 by @korycins, @IKarbowiak
 - Add `change_currency` command - #6016 by @maarcingebala
 - Send a confirmation email when the order is canceled or refunded - #6017
+- Add `TotalPrice` to `OrderLine` - #6068 @fowczarek
+- No secure cookie in debug mode - #6082 by @patrys, @orzechdev
+- Add searchable and available for purchase flags to product - #6060 by @IKarbowiak
 
 ### Breaking Changes
 
@@ -38,6 +41,13 @@ All notable, unreleased changes to this project will be documented in this file.
 - Update google merchant to get tax rate based by plugin manager - #5823 by @gabmartinez
 - Allow unicode in slug fields - #5877 by @IKarbowiak
 - Fix empty plugin object result after PluginUpdate mutation - #5968 by @gabmartinez
+- Allow to finish checkout when price amount is 0 - #6064 by @IKarbowiak
+- Fix incorrect tax calculation for Avatax - #6035 by @korycins
+- Fix incorrect calculation of subtotal with active Avatax - #6035 by @korycins
+- Fix incorrect assigment of tax_code for Avatax - #6035 by @korycins
+- Do not allow negative product price - #6091 by @IKarbowiak
+- Handle None as attribute value - #6092 by @IKarbowiak
+- Fix for calling order_created before the order was saved - #6095 by @korycins
 
 ## 2.10.2
 

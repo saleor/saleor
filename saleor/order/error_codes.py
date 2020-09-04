@@ -13,6 +13,7 @@ class OrderErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     PRODUCT_NOT_PUBLISHED = "product_not_published"
+    PRODUCT_UNAVAILABLE_FOR_PURCHASE = "product_unavailable_for_purchase"
     NOT_FOUND = "not_found"
     ORDER_NO_SHIPPING_ADDRESS = "order_no_shipping_address"
     PAYMENT_ERROR = "payment_error"

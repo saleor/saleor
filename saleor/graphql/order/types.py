@@ -241,6 +241,7 @@ class OrderLine(CountableDjangoObjectType):
     unit_price = graphene.Field(
         TaxedMoney, description="Price of the single item in the order line."
     )
+    total_price = graphene.Field(TaxedMoney, description="Price of the order line.",)
     variant = graphene.Field(
         ProductVariant,
         required=False,
@@ -286,6 +287,10 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_unit_price(root: models.OrderLine, _info):
         return root.unit_price
+
+    @staticmethod
+    def resolve_total_price(root: models.OrderLine, _info):
+        return root.unit_price * root.quantity
 
     @staticmethod
     def resolve_translated_product_name(root: models.OrderLine, _info):

@@ -135,7 +135,7 @@ def jwt_refresh_token_middleware(get_response):
                 jwt_refresh_token,
                 expires=expires,
                 httponly=True,  # protects token from leaking
-                secure=True,
+                secure=not settings.DEBUG,
             )
         return response
 

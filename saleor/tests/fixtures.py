@@ -252,6 +252,29 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_ready_to_complete(checkout_with_item, address, shipping_method, gift_card):
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout_with_item.gift_cards.add(gift_card)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
+def checkout_with_digital_item(checkout, digital_content):
+    """Create a checkout with a digital line."""
+    variant = digital_content.product_variant
+    add_variant_to_checkout(checkout, variant, 1)
+    checkout.email = "customer@example.com"
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def checkout_with_shipping_required(checkout_with_item, product):
     checkout = checkout_with_item
     variant = product.variants.get()
@@ -293,10 +316,15 @@ def checkout_with_single_item(checkout, product):
 
 @pytest.fixture
 def checkout_with_variant_without_inventory_tracking(
-    checkout, variant_without_inventory_tracking
+    checkout, variant_without_inventory_tracking, address, shipping_method
 ):
     variant = variant_without_inventory_tracking
     add_variant_to_checkout(checkout, variant, 1)
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
     return checkout
 
@@ -622,6 +650,16 @@ def size_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def weight_attribute(db):
+    attribute = Attribute.objects.create(slug="material", name="Material")
+    AttributeValue.objects.create(attribute=attribute, name="Cotton", slug="cotton")
+    AttributeValue.objects.create(
+        attribute=attribute, name="Poliester", slug="poliester"
+    )
+    return attribute
+
+
+@pytest.fixture
 def attribute_list() -> List[Attribute]:
     return list(
         Attribute.objects.bulk_create(
@@ -668,6 +706,7 @@ def categories_tree(db, product_type, channel_USD):  # pylint: disable=W0613
         slug="test-product-10",
         product_type=product_type,
         category=child,
+        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=True
@@ -781,6 +820,8 @@ def product(product_type, category, warehouse, channel_USD):
         minimal_variant_price_amount="10.00",
         product_type=product_type,
         category=category,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
 
     ProductChannelListing.objects.create(
@@ -829,6 +870,8 @@ def product_with_single_variant(product_type, category, warehouse, channel_USD):
         slug="test-product-with-single-variant",
         product_type=product_type,
         category=category,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=True,
@@ -853,6 +896,8 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
         slug="test-product-with-two-variant",
         product_type=product_type,
         category=category,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
 
     ProductChannelListing.objects.create(
@@ -906,6 +951,8 @@ def product_with_variant_with_two_attributes(
         slug="test-product-with-two-variant",
         product_type=product_type,
         category=category,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=True
@@ -961,6 +1008,8 @@ def product_with_default_variant(
         slug="test-product-3",
         product_type=product_type_without_variant,
         category=category,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=True,
@@ -987,6 +1036,8 @@ def variant_without_inventory_tracking(
         slug="test-product-without-tracking",
         product_type=product_type_without_variant,
         category=category,
+        available_for_purchase=datetime.date.today(),
+        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=True,
@@ -1093,6 +1144,7 @@ def product_without_shipping(category, warehouse, channel_USD):
         slug="test-product-4",
         product_type=product_type,
         category=category,
+        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=True
@@ -1130,6 +1182,7 @@ def product_list(product_type, category, warehouse, channel_USD):
                     slug="test-product-a",
                     category=category,
                     product_type=product_type,
+                    visible_in_listings=True,
                 ),
                 Product(
                     pk=1487,
@@ -1137,6 +1190,7 @@ def product_list(product_type, category, warehouse, channel_USD):
                     slug="test-product-b",
                     category=category,
                     product_type=product_type,
+                    visible_in_listings=True,
                 ),
                 Product(
                     pk=1489,
@@ -1144,6 +1198,7 @@ def product_list(product_type, category, warehouse, channel_USD):
                     slug="test-product-c",
                     category=category,
                     product_type=product_type,
+                    visible_in_listings=True,
                 ),
             ]
         )
@@ -1280,6 +1335,7 @@ def unavailable_product(product_type, category, channel_USD):
         slug="test-product-5",
         product_type=product_type,
         category=category,
+        visible_in_listings=False,
     )
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=False
@@ -1293,6 +1349,7 @@ def unavailable_product_with_variant(product_type, category, warehouse, channel_
         name="Test product",
         slug="test-product-6",
         product_type=product_type,
+        visible_in_listings=False,
         category=category,
     )
     ProductChannelListing.objects.create(
@@ -1324,6 +1381,7 @@ def product_with_images(product_type, category, media_root, channel_USD):
         slug="test-product-7",
         product_type=product_type,
         category=category,
+        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=True
@@ -1515,6 +1573,8 @@ def order_with_lines(
         slug="test-product-8",
         product_type=product_type,
         category=category,
+        available_for_purchase=datetime.date.today(),
+        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=True
@@ -1552,6 +1612,8 @@ def order_with_lines(
         slug="test-product-9",
         product_type=product_type,
         category=category,
+        available_for_purchase=datetime.date.today(),
+        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=True
@@ -2222,6 +2284,8 @@ def digital_content(category, media_root, warehouse, channel_USD) -> DigitalCont
         slug="test-digital-product",
         product_type=product_type,
         category=category,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=True

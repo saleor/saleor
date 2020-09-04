@@ -299,7 +299,7 @@ def test_add_billing_address_to_checkout(
 @pytest.mark.count_queries(autouse=False)
 def test_update_checkout_lines(
     api_client,
-    checkout_with_variant,
+    checkout_with_items,
     stock,
     product_with_default_variant,
     product_with_single_variant,
@@ -333,7 +333,7 @@ def test_update_checkout_lines(
         """
     )
     variables = {
-        "checkoutId": Node.to_global_id("Checkout", checkout_with_variant.pk),
+        "checkoutId": Node.to_global_id("Checkout", checkout_with_items.pk),
         "lines": [
             {
                 "quantity": 1,
@@ -374,7 +374,7 @@ def test_update_checkout_lines(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_checkout_shipping_address_update(
-    api_client, graphql_address_data, checkout_with_variant, count_queries
+    api_client, graphql_address_data, checkout_with_variants, count_queries
 ):
     query = (
         FRAGMENT_CHECKOUT
@@ -397,7 +397,7 @@ def test_checkout_shipping_address_update(
         """
     )
     variables = {
-        "checkoutId": Node.to_global_id("Checkout", checkout_with_variant.pk),
+        "checkoutId": Node.to_global_id("Checkout", checkout_with_variants.pk),
         "shippingAddress": graphql_address_data,
     }
     response = get_graphql_content(api_client.post_graphql(query, variables))
@@ -406,7 +406,7 @@ def test_checkout_shipping_address_update(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_checkout_email_update(api_client, checkout_with_variant, count_queries):
+def test_checkout_email_update(api_client, checkout_with_variants, count_queries):
     query = (
         FRAGMENT_CHECKOUT
         + """
@@ -426,7 +426,7 @@ def test_checkout_email_update(api_client, checkout_with_variant, count_queries)
         """
     )
     variables = {
-        "checkoutId": Node.to_global_id("Checkout", checkout_with_variant.pk),
+        "checkoutId": Node.to_global_id("Checkout", checkout_with_variants.pk),
         "email": "newEmail@example.com",
     }
     response = get_graphql_content(api_client.post_graphql(query, variables))
