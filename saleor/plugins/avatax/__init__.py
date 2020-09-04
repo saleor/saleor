@@ -268,6 +268,9 @@ def get_order_lines_data(
             tax_code=tax_code,
             item_code=line.variant.sku,
             name=line.variant.product.name,
+            # The orders created from checkout have already assigned taxes,
+            # orders from draft doesn't have.
+            tax_included=line.unit_price_gross_amount != line.unit_price_net_amount,
         )
     if order.discount_amount:
         append_line_to_data(
