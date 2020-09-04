@@ -5,7 +5,7 @@ from freezegun import freeze_time
 from graphql_relay import from_global_id, to_global_id
 
 from ...discount.enums import DiscountValueTypeEnum
-from ...tests.utils import assert_negative_price_amount, get_graphql_content
+from ...tests.utils import assert_negative_positive_decimal_value, get_graphql_content
 
 
 @patch(
@@ -22,7 +22,7 @@ def test_product_variant_create_updates_minimal_variant_price(
         mutation ProductVariantCreate(
             $productId: ID!,
             $sku: String!,
-            $price: MoneyScalar,
+            $price: PositiveDecimal,
             $attributes: [AttributeValueInput]!,
         ) {
             productVariantCreate(
@@ -83,7 +83,7 @@ def test_product_variant_update_updates_minimal_variant_price(
     query = """
         mutation ProductVariantUpdate(
             $id: ID!,
-            $price: MoneyScalar,
+            $price: PositiveDecimal,
         ) {
             productVariantUpdate(
                 id: $id,
@@ -132,7 +132,7 @@ def test_product_variant_update_updates_invalid_variant_price(
     query = """
         mutation ProductVariantUpdate(
             $id: ID!,
-            $price: MoneyScalar,
+            $price: PositiveDecimal,
         ) {
             productVariantUpdate(
                 id: $id,
@@ -159,7 +159,7 @@ def test_product_variant_update_updates_invalid_variant_price(
 
     response = staff_api_client.post_graphql(query, variables)
 
-    assert_negative_price_amount(response)
+    assert_negative_positive_decimal_value(response)
 
 
 @patch(
@@ -175,7 +175,7 @@ def test_product_variant_update_updates_invalid_cost_price(
     query = """
         mutation ProductVariantUpdate(
             $id: ID!,
-            $costPrice: MoneyScalar,
+            $costPrice: PositiveDecimal,
         ) {
             productVariantUpdate(
                 id: $id,
@@ -202,7 +202,7 @@ def test_product_variant_update_updates_invalid_cost_price(
 
     response = staff_api_client.post_graphql(query, variables)
 
-    assert_negative_price_amount(response)
+    assert_negative_positive_decimal_value(response)
 
 
 @patch(
@@ -390,7 +390,7 @@ def test_sale_create_updates_products_minimal_variant_prices(
     mutation SaleCreate(
             $name: String,
             $type: DiscountValueTypeEnum,
-            $value: Decimal,
+            $value: PositiveDecimal,
             $products: [ID]
     ) {
         saleCreate(input: {
@@ -439,7 +439,7 @@ def test_sale_update_updates_products_minimal_variant_prices(
     permission_manage_discounts,
 ):
     query = """
-    mutation SaleUpdate($id: ID!, $value: Decimal) {
+    mutation SaleUpdate($id: ID!, $value: PositiveDecimal) {
         saleUpdate(id: $id, input: {value: $value}) {
             sale {
                 id

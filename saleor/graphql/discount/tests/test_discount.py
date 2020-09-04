@@ -143,8 +143,8 @@ CREATE_VOUCHER_MUTATION = """
 mutation  voucherCreate(
     $type: VoucherTypeEnum, $name: String, $code: String,
     $discountValueType: DiscountValueTypeEnum, $usageLimit: Int,
-    $discountValue: Decimal,
-    $minAmountSpent: MoneyScalar, $minCheckoutItemsQuantity: Int,
+    $discountValue: PositiveDecimal,
+    $minAmountSpent: PositiveDecimal, $minCheckoutItemsQuantity: Int,
     $startDate: DateTime, $endDate: DateTime, $applyOncePerOrder: Boolean,
     $applyOncePerCustomer: Boolean) {
         voucherCreate(input: {
@@ -533,7 +533,7 @@ def test_voucher_remove_no_catalogues(
 def test_create_sale(staff_api_client, permission_manage_discounts):
     query = """
     mutation  saleCreate(
-            $type: DiscountValueTypeEnum, $name: String, $value: Decimal,
+            $type: DiscountValueTypeEnum, $name: String, $value: PositiveDecimal,
             $startDate: DateTime, $endDate: DateTime) {
         saleCreate(input: {
                 name: $name, type: $type, value: $value,

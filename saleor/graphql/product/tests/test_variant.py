@@ -12,7 +12,7 @@ from ....product.utils.attributes import associate_attribute_values_to_instance
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.models import Stock, Warehouse
 from ...core.enums import WeightUnitsEnum
-from ...tests.utils import assert_negative_price_amount, get_graphql_content
+from ...tests.utils import assert_negative_positive_decimal_value, get_graphql_content
 
 
 def test_fetch_variant(
@@ -96,8 +96,8 @@ def test_create_variant(
             $productId: ID!,
             $sku: String!,
             $stocks: [StockInput!],
-            $price: MoneyScalar,
-            $costPrice: MoneyScalar,
+            $price: PositiveDecimal,
+            $costPrice: PositiveDecimal,
             $attributes: [AttributeValueInput]!,
             $weight: WeightScalar,
             $trackInventory: Boolean!) {
@@ -284,7 +284,7 @@ def test_create_product_variant_not_all_attributes(
     query = """
             mutation createVariant (
                 $productId: ID!,
-                $price: MoneyScalar,
+                $price: PositiveDecimal,
                 $sku: String!,
                 $attributes: [AttributeValueInput]!) {
                     productVariantCreate(
@@ -340,7 +340,7 @@ def test_create_product_variant_duplicated_attributes(
     query = """
         mutation createVariant (
             $productId: ID!,
-            $price: MoneyScalar,
+            $price: PositiveDecimal,
             $sku: String!,
             $attributes: [AttributeValueInput]!
         ) {
@@ -393,8 +393,8 @@ def test_create_product_variant_update_with_new_attributes(
         mutation VariantUpdate(
           $id: ID!
           $attributes: [AttributeValueInput]
-          $costPrice: MoneyScalar
-          $price: MoneyScalar
+          $costPrice: PositiveDecimal
+          $price: PositiveDecimal
           $sku: String
           $trackInventory: Boolean!
         ) {
@@ -466,8 +466,8 @@ def test_update_product_variant(staff_api_client, product, permission_manage_pro
         mutation updateVariant (
             $id: ID!,
             $sku: String!,
-            $price: MoneyScalar,
-            $costPrice: MoneyScalar,
+            $price: PositiveDecimal,
+            $costPrice: PositiveDecimal,
             $trackInventory: Boolean!) {
                 productVariantUpdate(
                     id: $id,
@@ -525,7 +525,7 @@ def test_update_product_variant_with_negative_weight(
     query = """
         mutation updateVariant (
             $id: ID!,
-            $price: MoneyScalar,
+            $price: PositiveDecimal,
             $weight: WeightScalar
         ) {
             productVariantUpdate(
@@ -570,8 +570,8 @@ def test_update_product_variant_unset_cost_price(
         mutation updateVariant (
             $id: ID!,
             $sku: String!,
-            $price: MoneyScalar,
-            $costPrice: MoneyScalar) {
+            $price: PositiveDecimal,
+            $costPrice: PositiveDecimal) {
                 productVariantUpdate(
                     id: $id,
                     input: {
@@ -615,7 +615,7 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
     mutation updateVariant (
         $id: ID!,
         $sku: String,
-        $price: MoneyScalar,
+        $price: PositiveDecimal,
         $attributes: [AttributeValueInput]!) {
             productVariantUpdate(
                 id: $id,
@@ -1214,7 +1214,7 @@ def test_product_variant_bulk_create_by_attribute_id_with_invalid_price(
     )
 
     # then
-    assert_negative_price_amount(response)
+    assert_negative_positive_decimal_value(response)
 
 
 def test_product_variant_bulk_create_empty_attribute(

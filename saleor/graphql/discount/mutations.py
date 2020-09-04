@@ -10,7 +10,7 @@ from ...product.tasks import (
     update_products_minimal_variant_prices_of_discount_task,
 )
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.scalars import Decimal, MoneyScalar
+from ..core.scalars import PositiveDecimal
 from ..core.types.common import DiscountError
 from ..product.types import Category, Collection, Product
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
@@ -95,7 +95,7 @@ class VoucherInput(graphene.InputObjectType):
     discount_value_type = DiscountValueTypeEnum(
         description="Choices: fixed or percentage."
     )
-    discount_value = Decimal(description="Value of the voucher.")
+    discount_value = PositiveDecimal(description="Value of the voucher.")
     products = graphene.List(
         graphene.ID, description="Products discounted by the voucher.", name="products"
     )
@@ -109,7 +109,7 @@ class VoucherInput(graphene.InputObjectType):
         description="Categories discounted by the voucher.",
         name="categories",
     )
-    min_amount_spent = MoneyScalar(
+    min_amount_spent = PositiveDecimal(
         description="Min purchase amount required to apply the voucher."
     )
     min_checkout_items_quantity = graphene.Int(
@@ -243,7 +243,7 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
 class SaleInput(graphene.InputObjectType):
     name = graphene.String(description="Voucher name.")
     type = DiscountValueTypeEnum(description="Fixed or percentage.")
-    value = Decimal(description="Value of the voucher.")
+    value = PositiveDecimal(description="Value of the voucher.")
     products = graphene.List(
         graphene.ID, description="Products related to the discount.", name="products"
     )

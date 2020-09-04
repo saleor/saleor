@@ -10,11 +10,7 @@ from graphene import InputField
 
 from ....product.models import Category, Product
 from ...product import types as product_types
-from ...tests.utils import (
-    _get_graphql_content_from_response,
-    assert_too_many_decimal_places_in_amount,
-    get_graphql_content,
-)
+from ...tests.utils import _get_graphql_content_from_response, get_graphql_content
 from ...utils import get_database_id, requestor_is_superuser
 from ...utils.filters import filter_range_field, reporting_period_to_date
 from ..enums import ReportingPeriod
@@ -137,7 +133,9 @@ def test_mutation_money_scalar_input(
     staff_api_client, variant, stock, permission_manage_products
 ):
     query = """
-    mutation moneyScalarInput($id: ID!, $cost: MoneyScalar, $price: MoneyScalar) {
+    mutation PositiveDecimalInput(
+        $id: ID!, $cost: PositiveDecimal, $price: PositiveDecimal
+    ) {
         productVariantUpdate(id: $id, input: {costPrice: $cost, price: $price}) {
             errors {
                 field
@@ -170,7 +168,7 @@ def test_mutation_money_scalar_input_without_arguments(
 ):
     query = """
     mutation ProductVariantUpdate(
-        $id: ID!, $price: MoneyScalar, $costPrice: MoneyScalar
+        $id: ID!, $price: PositiveDecimal, $costPrice: PositiveDecimal
     ) {
         productVariantUpdate(id: $id, input: {costPrice: $costPrice, price: $price}) {
             errors {
@@ -196,72 +194,6 @@ def test_mutation_money_scalar_input_without_arguments(
     content = get_graphql_content(response)
     data = content["data"]["productVariantUpdate"]
     assert data["errors"] == []
-
-
-def test_mutation_money_scalar_to_many_decimal_places(
-    staff_api_client, variant, permission_manage_products
-):
-    # given
-    query = """
-    mutation testMoneyScalar($id: ID!, $price: MoneyScalar, $costPrice: MoneyScalar) {
-        productVariantUpdate(id: $id,
-        input: {costPrice: $costPrice, price: $price}) {
-            errors {
-                field
-                message
-            }
-            productVariant {
-                id
-            }
-        }
-    }
-    """
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-    variables = {
-        "id": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "price": 15,
-        "costPrice": 12.1234,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(query, variables)
-
-    # then
-    assert_too_many_decimal_places_in_amount(response)
-
-
-def test_mutation_money_scalar_with_to_many_0_decimal_places(
-    staff_api_client, variant, permission_manage_products
-):
-    # given
-    query = """
-    mutation testMoneyScalar($id: ID!, $price: MoneyScalar, $costPrice: MoneyScalar) {
-        productVariantUpdate(id: $id,
-        input: {costPrice: $costPrice, price: $price}) {
-            errors {
-                field
-                message
-            }
-            productVariant {
-                id
-            }
-        }
-    }
-    """
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-    variables = {
-        "id": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "price": 15,
-        "costPrice": 12.1200,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(query, variables)
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantUpdate"]
-    assert not data["errors"]
 
 
 def test_filter_input():

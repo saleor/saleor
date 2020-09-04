@@ -30,7 +30,7 @@ from ....product.utils.attributes import (
     generate_name_for_variant,
 )
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.scalars import MoneyScalar, WeightScalar
+from ...core.scalars import PositiveDecimal, WeightScalar
 from ...core.types import SeoInput, Upload
 from ...core.types.common import ProductError
 from ...core.utils import (
@@ -535,7 +535,7 @@ class ProductInput(graphene.InputObjectType):
             "is only used if a product doesn't use variants."
         )
     )
-    base_price = MoneyScalar(
+    base_price = PositiveDecimal(
         description=(
             "Default price for product variant. "
             "Note: this field is only used if a product doesn't use variants."
@@ -1104,8 +1104,8 @@ class ProductVariantInput(graphene.InputObjectType):
         required=False,
         description="List of attributes specific to this variant.",
     )
-    cost_price = MoneyScalar(description="Cost price of the variant.")
-    price = MoneyScalar(description="Price of the particular variant.")
+    cost_price = PositiveDecimal(description="Cost price of the variant.")
+    price = PositiveDecimal(description="Price of the particular variant.")
     sku = graphene.String(description="Stock keeping unit.")
     track_inventory = graphene.Boolean(
         description=(

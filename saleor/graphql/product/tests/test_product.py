@@ -33,7 +33,7 @@ from ....product.utils.attributes import associate_attribute_values_to_instance
 from ....warehouse.models import Allocation, Stock, Warehouse
 from ...core.enums import ReportingPeriod
 from ...tests.utils import (
-    assert_negative_price_amount,
+    assert_negative_positive_decimal_value,
     assert_no_permission,
     get_graphql_content,
     get_multipart_request_body,
@@ -1566,7 +1566,7 @@ def test_create_product_with_negative_base_price(
 
     response = staff_api_client.post_graphql(query, variables)
 
-    assert_negative_price_amount(response)
+    assert_negative_positive_decimal_value(response)
 
 
 def test_create_product_with_unicode_in_slug_and_name(
@@ -1610,7 +1610,7 @@ QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
         $productTypeId: ID!,
         $categoryId: ID!
         $name: String!,
-        $basePrice: MoneyScalar!,
+        $basePrice: PositiveDecimal!,
         $sku: String,
         $trackInventory: Boolean)
     {
@@ -1905,7 +1905,7 @@ def test_update_product(
             $visibleInListings: Boolean!,
             $chargeTaxes: Boolean!,
             $taxCode: String!,
-            $basePrice: MoneyScalar!,
+            $basePrice: PositiveDecimal!,
             $attributes: [AttributeValueInput!]) {
                 productUpdate(
                     id: $productId,
@@ -2472,7 +2472,7 @@ def test_update_product_with_negative_base_price(
     query = """
         mutation updateProduct(
             $productId: ID!,
-            $basePrice: MoneyScalar)
+            $basePrice: PositiveDecimal)
         {
             productUpdate(
                 id: $productId,
@@ -2499,7 +2499,7 @@ def test_update_product_with_negative_base_price(
 
     response = staff_api_client.post_graphql(query, variables)
 
-    assert_negative_price_amount(response)
+    assert_negative_positive_decimal_value(response)
 
 
 def test_update_product_without_category_and_true_is_published_value(
@@ -4361,7 +4361,7 @@ mutation createProduct(
         $name: String!,
         $sku: String,
         $stocks: [StockInput!],
-        $basePrice: MoneyScalar!
+        $basePrice: PositiveDecimal!
         $trackInventory: Boolean)
     {
         productCreate(
@@ -4551,7 +4551,7 @@ mutation createProduct(
         $category: ID!
         $name: String!,
         $sku: String,
-        $basePrice: MoneyScalar!,
+        $basePrice: PositiveDecimal!,
         $weight: WeightScalar)
     {
         productCreate(
@@ -4656,7 +4656,7 @@ def test_create_product_with_weight_input(
             $category: ID!,
             $name: String!,
             $sku: String,
-            $basePrice: MoneyScalar!)
+            $basePrice: PositiveDecimal!)
         {{
             productCreate(
                 input: {{
