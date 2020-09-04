@@ -1321,6 +1321,7 @@ class ProductVariantCreate(ModelMutation):
             AttributeAssignmentMixin.save(instance, attributes)
             instance.name = generate_name_for_variant(instance)
             instance.save(update_fields=["name"])
+        info.context.plugins.product_updated(instance.product)
 
     @classmethod
     def create_variant_stocks(cls, variant, stocks):
