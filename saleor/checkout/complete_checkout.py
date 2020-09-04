@@ -271,7 +271,7 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     order.private_metadata = checkout.private_metadata
     order.save()
 
-    order_created(order=order, user=user)
+    transaction.on_commit(lambda: order_created(order=order, user=user))
 
     # Send the order confirmation email
     transaction.on_commit(
