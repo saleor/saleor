@@ -1055,6 +1055,7 @@ class ProductUpdate(ProductCreate):
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
+        info.context.plugins.product_updated(instance)
 
 
 class ProductDelete(ModelDeleteMutation):
