@@ -14,6 +14,7 @@ from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import GiftCardError
+from ..core.validators import validate_price_amount
 from .types import GiftCard
 
 
@@ -55,10 +56,17 @@ class GiftCardCreate(ModelMutation):
         elif not is_available_promo_code(code):
             raise PromoCodeAlreadyExists(code=GiftCardErrorCode.ALREADY_EXISTS)
         cleaned_input = super().clean_input(info, instance, data)
+
         balance = cleaned_input.get("balance", None)
         if balance:
+            try:
+                validate_price_amount(balance, instance.currency)
+            except ValidationError as error:
+                error.code = GiftCardErrorCode.INVALID.value
+                raise ValidationError({"balance": error})
             cleaned_input["current_balance_amount"] = balance
             cleaned_input["initial_balance_amount"] = balance
+
         user_email = data.get("user_email", None)
         if user_email:
             try:
