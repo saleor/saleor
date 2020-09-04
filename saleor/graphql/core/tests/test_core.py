@@ -129,7 +129,7 @@ def test_total_count_query(api_client, product):
     assert content["data"]["products"]["totalCount"] == Product.objects.count()
 
 
-def test_mutation_money_scalar_input(
+def test_mutation_positive_decimal_input(
     staff_api_client, variant, stock, permission_manage_products
 ):
     query = """
@@ -163,7 +163,7 @@ def test_mutation_money_scalar_input(
     assert data["errors"] == []
 
 
-def test_mutation_money_scalar_input_without_arguments(
+def test_mutation_positive_decimal_input_without_arguments(
     staff_api_client, variant, permission_manage_products
 ):
     query = """
