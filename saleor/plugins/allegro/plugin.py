@@ -920,7 +920,17 @@ class AllegroProductMapper:
 
         product_items.append({
             'type': 'TEXT',
-            'content': ''.join(['<p>' + element[0] + ': ' + element[1].replace('&', '&amp;') + '</p>' for element in product_description.items() if element[0] != 'Jakość'])
+            'content': '<h1>Charakterystyka produktu</h1><p></p>' + ''.join(['<p>' + '<b>' + element[0] + ': ' + '</b>' + element[1].replace('&', '&amp;') + '</p>' for element in product_description.items() if element[0] != 'Jakość'])
+        })
+
+        product_sections.append({'items': product_items})
+
+
+        product_items = []
+
+        product_items.append({
+            'type': 'TEXT',
+            'content': '<h1>Opis produktu</h1>'
         })
 
         product_sections.append({'items': product_items})
@@ -933,6 +943,18 @@ class AllegroProductMapper:
         })
 
         product_sections.append({'items': product_items})
+
+
+        product_items = []
+
+        product_items.append({
+            'type': 'IMAGE',
+            'url': self.saleor_images[0]
+        })
+
+        product_sections.append({'items': product_items})
+
+
 
         self.product['description']['sections'] = product_sections
 
