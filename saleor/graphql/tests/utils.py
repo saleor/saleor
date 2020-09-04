@@ -26,12 +26,12 @@ def assert_no_permission(response):
     ), content["errors"]
 
 
-def assert_negative_price_amount(response):
+def assert_negative_positive_decimal_value(response):
     content = _get_graphql_content_from_response(response)
     assert "errors" in content, content
-    assert content["errors"][0]["message"] == (
-        "Money value cannot be lower than 0."
-    ), content["errors"]
+    assert "Value cannot be lower than 0." in content["errors"][0]["message"], content[
+        "errors"
+    ]
 
 
 def assert_too_many_decimal_places_in_amount(response):

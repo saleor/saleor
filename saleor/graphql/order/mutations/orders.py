@@ -19,7 +19,7 @@ from ....order.utils import get_valid_shipping_methods_for_order
 from ....payment import CustomPaymentChoices, PaymentError, TransactionKind, gateway
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
-from ...core.scalars import UUID, MoneyScalar
+from ...core.scalars import UUID, PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import validate_required_string_field
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
@@ -362,7 +362,9 @@ class OrderCapture(BaseMutation):
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of the order to capture.")
-        amount = MoneyScalar(required=True, description="Amount of money to capture.")
+        amount = PositiveDecimal(
+            required=True, description="Amount of money to capture."
+        )
 
     class Meta:
         description = "Capture an order."
@@ -429,7 +431,9 @@ class OrderRefund(BaseMutation):
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of the order to refund.")
-        amount = MoneyScalar(required=True, description="Amount of money to refund.")
+        amount = PositiveDecimal(
+            required=True, description="Amount of money to refund."
+        )
 
     class Meta:
         description = "Refund an order."

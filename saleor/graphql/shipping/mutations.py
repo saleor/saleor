@@ -10,7 +10,7 @@ from ...shipping.utils import (
     get_countries_without_shipping_zone,
 )
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.scalars import MoneyScalar, WeightScalar
+from ..core.scalars import PositiveDecimal, WeightScalar
 from ..core.types.common import ShippingError
 from ..core.utils import get_duplicates_ids
 from .enums import ShippingMethodTypeEnum
@@ -19,11 +19,11 @@ from .types import ShippingMethod, ShippingZone
 
 class ShippingPriceInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the shipping method.")
-    price = MoneyScalar(description="Shipping price of the shipping method.")
-    minimum_order_price = MoneyScalar(
+    price = PositiveDecimal(description="Shipping price of the shipping method.")
+    minimum_order_price = PositiveDecimal(
         description="Minimum order price to use this shipping method."
     )
-    maximum_order_price = MoneyScalar(
+    maximum_order_price = PositiveDecimal(
         description="Maximum order price to use this shipping method."
     )
     minimum_order_weight = WeightScalar(

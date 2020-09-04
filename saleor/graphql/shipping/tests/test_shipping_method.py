@@ -6,7 +6,7 @@ from ....core.weight import WeightUnits
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.utils import get_countries_without_shipping_zone
 from ...core.enums import WeightUnitsEnum
-from ...tests.utils import assert_negative_price_amount, get_graphql_content
+from ...tests.utils import assert_negative_positive_decimal_value, get_graphql_content
 from ..types import ShippingMethodTypeEnum
 
 SHIPPING_ZONE_QUERY = """
@@ -523,9 +523,9 @@ def test_delete_shipping_zone(
 
 PRICE_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
-        $type: ShippingMethodTypeEnum, $name: String!, $price: MoneyScalar,
-        $shippingZone: ID!, $minimumOrderPrice: MoneyScalar,
-        $maximumOrderPrice: MoneyScalar) {
+        $type: ShippingMethodTypeEnum, $name: String!, $price: PositiveDecimal,
+        $shippingZone: ID!, $minimumOrderPrice: PositiveDecimal,
+        $maximumOrderPrice: PositiveDecimal) {
     shippingPriceCreate(input: {
             name: $name, price: $price, shippingZone: $shippingZone,
             minimumOrderPrice: $minimumOrderPrice,
@@ -619,7 +619,7 @@ def test_create_shipping_method_with_invalid_price(
 
     response = staff_api_client.post_graphql(query, variables)
 
-    assert_negative_price_amount(response)
+    assert_negative_positive_decimal_value(response)
 
 
 def test_create_price_shipping_method_errors(
@@ -644,7 +644,7 @@ def test_create_price_shipping_method_errors(
 
 WEIGHT_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
-        $type: ShippingMethodTypeEnum, $name: String!, $price: MoneyScalar,
+        $type: ShippingMethodTypeEnum, $name: String!, $price: PositiveDecimal,
         $shippingZone: ID!, $maximumOrderWeight: WeightScalar,
         $minimumOrderWeight: WeightScalar) {
         shippingPriceCreate(
@@ -781,8 +781,8 @@ def test_update_shipping_method(
 ):
     query = """
     mutation updateShippingPrice(
-        $id: ID!, $price: MoneyScalar, $shippingZone: ID!,
-        $type: ShippingMethodTypeEnum!, $minimumOrderPrice: MoneyScalar) {
+        $id: ID!, $price: PositiveDecimal, $shippingZone: ID!,
+        $type: ShippingMethodTypeEnum!, $minimumOrderPrice: PositiveDecimal) {
         shippingPriceUpdate(
             id: $id, input: {
                 price: $price, shippingZone: $shippingZone,
