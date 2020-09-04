@@ -12,6 +12,7 @@ from ...product.tasks import (
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import DiscountError
+from ..core.validators import validate_price_amount
 from ..product.types import Category, Collection, Product
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 from .types import Sale, Voucher
@@ -161,6 +162,11 @@ class VoucherCreate(ModelMutation):
 
         min_spent_amount = cleaned_input.pop("min_amount_spent", None)
         if min_spent_amount is not None:
+            try:
+                validate_price_amount(min_spent_amount, instance.currency)
+            except ValidationError as error:
+                error.code = DiscountErrorCode.INVALID.value
+                raise ValidationError({"min_spent_amount": error})
             cleaned_input["min_spent_amount"] = min_spent_amount
         return cleaned_input
 
