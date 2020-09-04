@@ -1546,6 +1546,7 @@ def test_create_product_with_negative_base_price(
     description_json,
     permission_manage_products,
 ):
+    # given
     query = CREATE_PRODUCT_MUTATION
 
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -1564,9 +1565,48 @@ def test_create_product_with_negative_base_price(
         }
     }
 
+    # when
     response = staff_api_client.post_graphql(query, variables)
 
+    # then
     assert_negative_positive_decimal_value(response)
+
+
+def test_create_product_with_too_many_decimal_places_in_price(
+    staff_api_client,
+    product_type,
+    category,
+    description_json,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_PRODUCT_MUTATION
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    description_json = json.dumps(description_json)
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "basePrice": 1.1234,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    error = data["productErrors"][0]
+    assert error["field"] == "basePrice"
+    assert error["code"] == ProductErrorCode.INVALID.name
 
 
 def test_create_product_with_unicode_in_slug_and_name(
@@ -2500,6 +2540,94 @@ def test_update_product_with_negative_base_price(
     response = staff_api_client.post_graphql(query, variables)
 
     assert_negative_positive_decimal_value(response)
+
+
+def test_update_product_with_too_many_decimal_places_in_price(
+    staff_api_client, product_with_default_variant, permission_manage_products, product
+):
+    # given
+    query = """
+        mutation updateProduct(
+            $productId: ID!,
+            $basePrice: PositiveDecimal)
+        {
+            productUpdate(
+                id: $productId,
+                input: {
+                    basePrice: $basePrice
+                })
+            {
+                product {
+                    id
+                }
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    product = product_with_default_variant
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variables = {"productId": product_id, "basePrice": 1.1001}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    error = data["productErrors"][0]
+    assert error["field"] == "basePrice"
+    assert error["code"] == ProductErrorCode.INVALID.name
+
+
+def test_update_product_with_too_many_decimal_places_in_price_different_currency(
+    staff_api_client, product_with_default_variant, permission_manage_products, product
+):
+    # given
+    query = """
+        mutation updateProduct(
+            $productId: ID!,
+            $basePrice: PositiveDecimal)
+        {
+            productUpdate(
+                id: $productId,
+                input: {
+                    basePrice: $basePrice
+                })
+            {
+                product {
+                    id
+                }
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    product_with_default_variant.currency = "ISK"
+    product_with_default_variant.save(update_fields=["currency"])
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    product = product_with_default_variant
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variables = {"productId": product_id, "basePrice": 1.1}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    error = data["productErrors"][0]
+    assert error["field"] == "basePrice"
+    assert error["code"] == ProductErrorCode.INVALID.name
 
 
 def test_update_product_without_category_and_true_is_published_value(
