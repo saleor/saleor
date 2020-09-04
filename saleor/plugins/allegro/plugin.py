@@ -905,6 +905,9 @@ class AllegroProductMapper:
         self.product['images'] = [{'url': image} for image in images]
         return self
 
+    def parse_list_to_map(self, list):
+        return {item['text'].split(":")[0]: item['text'].split(":")[1].strip() for item in list if len(item['text'].split(':')) > 1}
+
     def set_description(self, product):
         product_sections = []
         product_items = []
@@ -913,10 +916,11 @@ class AllegroProductMapper:
             'type': 'IMAGE',
             'url': self.saleor_images[0]
         })
+        product_description = self.parse_list_to_map(product.description_json['blocks'])
 
         product_items.append({
             'type': 'TEXT',
-            'content': '<ul>' + ''.join(['<li>' + element['text'].replace('&', '&amp;') + '</li>' for element in product.description_json['blocks'][1:] if 'Jakość' not in element['text'] and element['text'] != '']) + '</ul>'
+            'content': ''.join(['<p>' + element[0] + ': ' + element[1].replace('&', '&amp;') + '</p>' for element in product_description.items() if element[0] != 'Jakość'])
         })
 
         product_sections.append({'items': product_items})
