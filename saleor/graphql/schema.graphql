@@ -690,6 +690,7 @@ type BulkProductError {
   code: ProductErrorCode!
   index: Int
   warehouses: [ID!]
+  channels: [ID!]
 }
 
 type BulkStockError {
@@ -4219,6 +4220,7 @@ input ProductVariantBulkCreateInput {
   trackInventory: Boolean
   weight: WeightScalar
   stocks: [StockInput!]
+  channelListings: [ProductVariantChannelListingAddInput!]
 }
 
 type ProductVariantBulkDelete {
