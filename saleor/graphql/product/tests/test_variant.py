@@ -1276,7 +1276,7 @@ def test_product_variant_bulk_create_by_attribute_id(
 @pytest.mark.parametrize(
     "price_field", ("price", "costPrice",),
 )
-def test_product_variant_bulk_create_by_attribute_id_with_invalid_price(
+def test_product_variant_bulk_create_by_attribute_id_with_negative_price(
     staff_api_client, product, size_attribute, permission_manage_products, price_field
 ):
     # given
@@ -1303,6 +1303,42 @@ def test_product_variant_bulk_create_by_attribute_id_with_invalid_price(
 
     # then
     assert_negative_positive_decimal_value(response)
+
+
+@pytest.mark.parametrize(
+    "price_field", ("price", "costPrice",),
+)
+def test_product_variant_bulk_create_too_many_decimal_places_in_price(
+    staff_api_client, product, size_attribute, permission_manage_products, price_field
+):
+    # given
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribut_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    attribute_value = size_attribute.values.last()
+    sku = str(uuid4())[:12]
+    variant = {
+        "sku": sku,
+        "weight": 2.5,
+        "trackInventory": True,
+        "attributes": [{"id": attribut_id, "values": [attribute_value.name]}],
+        "price": 10,
+        price_field: 1.1234,
+    }
+
+    variables = {"productId": product_id, "variants": [variant]}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+    error = data["bulkProductErrors"][0]
+    assert error["field"] == price_field
+    assert error["code"] == ProductErrorCode.INVALID.name
 
 
 def test_product_variant_bulk_create_empty_attribute(
