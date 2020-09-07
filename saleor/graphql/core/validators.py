@@ -20,7 +20,7 @@ def validate_one_of_args_is_in_query(arg1_name, arg1, arg2_name, arg2):
         )
 
 
-def validate_price_amount(value: Optional["Decimal"], currency: str = None):
+def validate_price_precision(value: Optional["Decimal"], currency: str = None):
     """Validate if price amount does not have too many decimal places.
 
     Price amount can't have more decimal places than currency allow to.

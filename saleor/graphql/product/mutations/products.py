@@ -41,7 +41,7 @@ from ...core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
-from ...core.validators import validate_price_amount
+from ...core.validators import validate_price_precision
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...warehouse.types import Warehouse
 from ..types import Category, Collection, Product, ProductImage, ProductVariant
@@ -833,7 +833,7 @@ class ProductCreate(ModelMutation):
 
         base_price = cleaned_input.get("base_price")
         try:
-            validate_price_amount(base_price, instance.currency)
+            validate_price_precision(base_price, instance.currency)
         except ValidationError as error:
             error.code = ProductErrorCode.INVALID.value
             raise ValidationError({"base_price": error})
@@ -1200,7 +1200,7 @@ class ProductVariantCreate(ModelMutation):
         if "cost_price" in cleaned_input:
             cost_price = cleaned_input.pop("cost_price")
             try:
-                validate_price_amount(cost_price, instance.currency)
+                validate_price_precision(cost_price, instance.currency)
             except ValidationError as error:
                 error.code = ProductErrorCode.INVALID.value
                 raise ValidationError({"cost_price": error})
@@ -1219,7 +1219,7 @@ class ProductVariantCreate(ModelMutation):
 
         if "price" in cleaned_input:
             try:
-                validate_price_amount(price, instance.currency)
+                validate_price_precision(price, instance.currency)
             except ValidationError as error:
                 error.code = ProductErrorCode.INVALID.value
                 raise ValidationError({"price": error})

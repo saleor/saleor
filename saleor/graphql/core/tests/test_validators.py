@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 from django.core.exceptions import ValidationError
 
-from ..validators import validate_price_amount
+from ..validators import validate_price_precision
 
 
 @pytest.mark.parametrize(
@@ -17,9 +17,9 @@ from ..validators import validate_price_amount
         (Decimal("5.12"), None),
     ],
 )
-def test_validate_price_amount(value, currency):
+def test_validate_price_precision(value, currency):
     # when
-    result = validate_price_amount(value, currency)
+    result = validate_price_precision(value, currency)
 
     # then
     assert result is None
@@ -35,6 +35,6 @@ def test_validate_price_amount(value, currency):
         (Decimal("5.123"), None),
     ],
 )
-def test_validate_price_amount_raise_error(value, currency):
+def test_validate_price_precision_raise_error(value, currency):
     with pytest.raises(ValidationError):
-        validate_price_amount(value, currency)
+        validate_price_precision(value, currency)

@@ -45,9 +45,7 @@ class PositiveDecimal(Decimal):
     @staticmethod
     def parse_value(value):
         value = super(PositiveDecimal, PositiveDecimal).parse_value(value)
-        if not value:
-            return value
-        if value < 0:
+        if value and value < 0:
             raise GraphQLError(
                 f"Value cannot be lower than 0. Unsupported value: {value}"
             )
