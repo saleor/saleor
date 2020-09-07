@@ -25,6 +25,7 @@ from ...core.types.common import (
     StockError,
 )
 from ...core.utils import get_duplicated_values
+from ...core.validators import validate_price_precision
 from ...utils import resolve_global_ids_to_primary_keys
 from ...warehouse.types import Warehouse
 from ..mutations.products import (
@@ -168,10 +169,20 @@ class ProductVariantBulkCreate(BaseMutation):
 
         cost_price_amount = cleaned_input.pop("cost_price", None)
         if cost_price_amount is not None:
+            try:
+                validate_price_precision(cost_price_amount)
+            except ValidationError as error:
+                error.code = ProductErrorCode.INVALID.value
+                raise ValidationError({"cost_price": error})
             cleaned_input["cost_price_amount"] = cost_price_amount
 
         price_amount = cleaned_input.pop("price", None)
         if price_amount is not None:
+            try:
+                validate_price_precision(price_amount)
+            except ValidationError as error:
+                error.code = ProductErrorCode.INVALID.value
+                raise ValidationError({"price": error})
             cleaned_input["price_amount"] = price_amount
 
         attributes = cleaned_input.get("attributes")
