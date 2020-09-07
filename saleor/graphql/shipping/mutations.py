@@ -13,7 +13,7 @@ from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal, WeightScalar
 from ..core.types.common import ShippingError
 from ..core.utils import get_duplicates_ids
-from ..core.validators import validate_price_amount
+from ..core.validators import validate_price_precision
 from .enums import ShippingMethodTypeEnum
 from .types import ShippingMethod, ShippingZone
 
@@ -172,7 +172,7 @@ class ShippingPriceMixin:
         price_amount = cleaned_input.pop("price", None)
         if price_amount is not None:
             try:
-                validate_price_amount(price_amount, instance.currency)
+                validate_price_precision(price_amount, instance.currency)
             except ValidationError as error:
                 error.code = ShippingErrorCode.INVALID.value
                 raise ValidationError({"price": error})
@@ -186,7 +186,7 @@ class ShippingPriceMixin:
 
                 if min_price is not None:
                     try:
-                        validate_price_amount(min_price, instance.currency)
+                        validate_price_precision(min_price, instance.currency)
                     except ValidationError as error:
                         error.code = ShippingErrorCode.INVALID.value
                         raise ValidationError({"minimum_order_price": error})
@@ -194,7 +194,7 @@ class ShippingPriceMixin:
 
                 if max_price is not None:
                     try:
-                        validate_price_amount(max_price, instance.currency)
+                        validate_price_precision(max_price, instance.currency)
                     except ValidationError as error:
                         error.code = ShippingErrorCode.INVALID.value
                         raise ValidationError({"maximum_order_price": error})

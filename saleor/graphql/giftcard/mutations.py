@@ -14,7 +14,7 @@ from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types.common import GiftCardError
-from ..core.validators import validate_price_amount
+from ..core.validators import validate_price_precision
 from .types import GiftCard
 
 
@@ -60,7 +60,7 @@ class GiftCardCreate(ModelMutation):
         balance = cleaned_input.get("balance", None)
         if balance:
             try:
-                validate_price_amount(balance, instance.currency)
+                validate_price_precision(balance, instance.currency)
             except ValidationError as error:
                 error.code = GiftCardErrorCode.INVALID.value
                 raise ValidationError({"balance": error})
