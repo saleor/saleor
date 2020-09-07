@@ -6,7 +6,7 @@ from typing import Dict, Iterable
 
 from django.db.models import Q, QuerySet
 from django.forms import CheckboxSelectMultiple
-from django_filters import MultipleChoiceFilter, OrderingFilter
+from django_filters import MultipleChoiceFilter, OrderingFilter, RangeFilter
 
 from ..core.filters import SortedFilterSet
 from .models import Attribute, Product
@@ -14,7 +14,7 @@ from .models import Attribute, Product
 SORT_BY_FIELDS = OrderedDict(
     [
         ("name", "name"),
-        # ("minimal_variant_price_amount", "price"),
+        ("minimal_variant_price_amount", "price"),
         ("updated_at", "last updated"),
     ]
 )
@@ -49,11 +49,9 @@ class ProductFilter(SortedFilterSet):
     sort_by = OrderingFilter(
         label="Sort by", fields=SORT_BY_FIELDS.keys(), field_labels=SORT_BY_FIELDS,
     )
-    # TODO: Consider filtering and sorting by `minimal_variant_price`
-    # Should be resolved by https://app.clickup.com/t/6crxxb
-    # minimal_variant_price = RangeFilter(
-    #     label="Price", field_name="minimal_variant_price_amount",
-    # )
+    minimal_variant_price = RangeFilter(
+        label="Price", field_name="minimal_variant_price_amount",
+    )
 
     class Meta:
         model = Product

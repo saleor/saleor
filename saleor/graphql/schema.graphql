@@ -3881,6 +3881,8 @@ input ProductFilterInput {
   productType: ID
   stocks: ProductStockFilterInput
   search: String
+  price: PriceRangeInput
+  minimalPrice: PriceRangeInput
   productTypes: [ID]
 }
 
@@ -3958,6 +3960,7 @@ input ProductOrder {
 enum ProductOrderField {
   NAME
   PRICE
+  MINIMAL_PRICE
   DATE
   TYPE
   PUBLISHED
