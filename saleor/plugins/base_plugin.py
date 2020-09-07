@@ -250,7 +250,7 @@ class BasePlugin:
 
         return NotImplemented
 
-    def product_published(self, product: "Product", previous_value: Any) -> Any:
+    def product_published(self, product: Any, previous_value: Any) -> Any:
         """Trigger when product is published.
 
         Overwrite this method if you need to trigger specific logic after a product is

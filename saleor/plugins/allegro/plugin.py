@@ -231,11 +231,12 @@ class AllegroPlugin(BasePlugin):
 
         return plugin_configuration
 
-    def product_published(self, product: "Product", previous_value: Any) -> Any:
+    def product_published(self, product_with_params: Any, previous_value: Any) -> Any:
+        product = product_with_params.get('product')
         if self.active == True and product.is_published == False:
             product.store_value_in_private_metadata({'publish.allegro.status': ProductPublishState.MODERATED.value})
             allegro_api = AllegroAPI(self.config.token_value)
-            allegro_api.product_publish(saleor_product=product)
+            allegro_api.product_publish(saleor_product=product, starting_at=product_with_params.get('starting_at'), offer_type=product_with_params.get('offer_type'))
 
 
     def calculate_hours_to_token_expire(self):
@@ -340,7 +341,7 @@ class AllegroAPI:
         else:
             return None
 
-    def product_publish(self, saleor_product):
+    def product_publish(self, saleor_product, offer_type, starting_at):
 
         config = self.get_plugin_configuration()
         env = config.get('auth_env')
@@ -361,8 +362,7 @@ class AllegroAPI:
 
             product = product_mapper.set_saleor_product(saleor_product) \
                 .set_saleor_images(self.upload_images(saleor_product)) \
-                .set_saleor_parameters(parameters) \
-                .set_category(categoryId).run_mapper()
+                .set_saleor_parameters(parameters).set_obj_publication_starting_at(starting_at).set_offer_type(offer_type).set_category(categoryId).run_mapper()
 
             offer = self.publish_to_allegro(allegro_product=product)
 
@@ -1062,13 +1062,19 @@ class AllegroProductMapper:
         config = self.get_plugin_configuration()
         return config.get('publication_duration')
 
-    def get_publication_starting_at(self):
-            config = self.get_plugin_configuration()
-            return config.get('publication_starting_at')
+    def set_obj_publication_starting_at(self, publication_starting_at):
+            self.publication_starting_at = publication_starting_at
+            return self
 
-    def get_auction_format(self):
-            config = self.get_plugin_configuration()
-            return config.get('auction_format')
+    def set_offer_type(self, offer_type):
+            self.offer_type = offer_type
+            return self
+
+    def get_publication_starting_at(self):
+            return self.publication_starting_at
+
+    def get_offer_type(self):
+            return self.offer_type
 
 
 
@@ -1087,9 +1093,9 @@ class AllegroProductMapper:
 
         self.set_invoice('VAT')
 
-        self.set_format(self.get_auction_format())
+        self.set_format(self.get_offer_type())
 
-        if self.get_auction_format() == 'BUY_NOW':
+        if self.get_offer_type() == 'BUY_NOW':
             product_variant = ProductVariant.objects.filter(
                 product=self.saleor_product).first()
             self.set_price_amount(
@@ -1112,7 +1118,7 @@ class AllegroProductMapper:
         self.set_stock_unit('SET')
         self.set_publication_duration(self.get_publication_duration())
         self.set_publication_ending_at('')
-        if self.get_publication_starting_at() != '':
+        if self.get_publication_starting_at() != None:
             self.set_publication_starting_at(str((datetime.strptime(self.get_publication_starting_at(), '%Y-%m-%d %H:%M') - timedelta(
                                   hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ")))
 

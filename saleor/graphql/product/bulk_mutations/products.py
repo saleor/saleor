@@ -534,6 +534,8 @@ class ProductBulkPublish(BaseBulkMutation):
         is_published = graphene.Boolean(
             required=True, description="Determine if products will be published or not."
         )
+        offer_type = graphene.String(description="Determine product offer type.")
+        starting_at = graphene.String(description="Determine date for publish offer.")
 
     class Meta:
         description = "Publish products."
