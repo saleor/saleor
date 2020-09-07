@@ -51,6 +51,7 @@ from ..dataloaders import (
     CategoryByIdLoader,
     CollectionsByProductIdLoader,
     ImagesByProductIdLoader,
+    ImagesByProductVariantIdLoader,
     ProductByIdLoader,
     ProductVariantsByProductIdLoader,
     SelectedAttributesByProductIdLoader,
@@ -400,8 +401,8 @@ class ProductVariant(CountableDjangoObjectType):
         return calculate_revenue_for_variant(root, start_date)
 
     @staticmethod
-    def resolve_images(root: models.ProductVariant, *_args):
-        return root.images.all()
+    def resolve_images(root: models.ProductVariant, info, *_args):
+        return ImagesByProductVariantIdLoader(info.context).load(root.id)
 
     @classmethod
     def get_node(cls, info, pk):
