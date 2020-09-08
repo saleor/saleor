@@ -922,12 +922,11 @@ description = "A Python implementation of Google Analytics Measurement Protocol"
 name = "google-measurement-protocol"
 optional = false
 python-versions = "*"
-version = "1.0.0"
+version = "1.1.0"
 
 [package.dependencies]
 prices = ">=1.0.0"
 requests = ">=2.0,<3.0a0"
-typing = ">=3.6.0"
 
 [[package]]
 category = "main"
@@ -2784,7 +2783,8 @@ google-i18n-address = [
     {file = "google_i18n_address-2.4.0-py2.py3-none-any.whl", hash = "sha256:9207bcbeaee4364dd6216295ac8d61d282ed3720e8df0d26b8d8a388ee9ec17f"},
 ]
 google-measurement-protocol = [
-    {file = "google-measurement-protocol-1.0.0.tar.gz", hash = "sha256:7618c44b875a0c9e80e6cf55e44ed80c04cf74cd2eff7eacdd76bf9b03029551"},
+    {file = "google-measurement-protocol-1.1.0.tar.gz", hash = "sha256:aba4a80d956a4b47974d26adc578ab48c363f21f61e8097250c6ef560f3b3416"},
+    {file = "google_measurement_protocol-1.1.0-py2.py3-none-any.whl", hash = "sha256:387800809d143bf490353e19d78bf856066875fdad80817d9f148219c483f087"},
 ]
 google-resumable-media = [
     {file = "google-resumable-media-1.0.0.tar.gz", hash = "sha256:173acc6bade1480a529fa29c6c2717543ae2dc09d42e9461fdb86f39502efcf2"},
