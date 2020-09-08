@@ -1,4 +1,5 @@
 import operator
+from collections import defaultdict
 from functools import reduce
 from typing import Optional
 
@@ -9,39 +10,42 @@ from ...discount.utils import calculate_discounted_price, fetch_active_discounts
 from ..models import Product, ProductChannelListing, ProductVariantChannelListing
 
 
+def _get_varaint_prices_in_channels_dict(product):
+    prices_dict = defaultdict(list)
+    for variant_channel_listing in ProductVariantChannelListing.objects.filter(
+        variant__product_id=product
+    ):
+        channel_id = variant_channel_listing.channel_id
+        prices_dict[channel_id].append(variant_channel_listing.price)
+    return prices_dict
+
+
 def _get_product_discounted_price(
-    product_channel_listing, discounts
+    variant_prices, product, collections, discounts
 ) -> Optional[Money]:
-    # Start with the product's price as the minimal one
-    minimal_variant_price = None
-    variants_channel_listing = ProductVariantChannelListing.objects.filter(
-        variant__product_id=product_channel_listing.product_id,
-        channel_id=product_channel_listing.channel_id,
-    )
-    product = product_channel_listing.product
-    collections = list(product.collections.all())
-    for variant_channel_listing in variants_channel_listing:
-        variant_price = calculate_discounted_price(
+    discounted_variants_price = []
+    for variant_price in variant_prices:
+        discounted_variant_price = calculate_discounted_price(
             product=product,
-            price=variant_channel_listing.price,
+            price=variant_price,
             collections=collections,
             discounts=discounts,
         )
-        if minimal_variant_price is None:
-            minimal_variant_price = variant_price
-        else:
-            minimal_variant_price = min(minimal_variant_price, variant_price)
-    return minimal_variant_price
+        discounted_variants_price.append(discounted_variant_price)
+    return min(discounted_variants_price)
 
 
 def update_product_discounted_price(product, discounts=None):
     if discounts is None:
         discounts = fetch_active_discounts()
-    product_channel_listings = product.channel_listing.all()
+    collections = list(product.collections.all())
+    variant_prices_in_channels_dict = _get_varaint_prices_in_channels_dict(product)
     changed_products_channels_to_update = []
-    for product_channel_listing in product_channel_listings:
+    for product_channel_listing in product.channel_listing.all():
+        channel_id = product_channel_listing.channel_id
+        variant_prices_dict = variant_prices_in_channels_dict[channel_id]
         product_discounted_price = _get_product_discounted_price(
-            product_channel_listing, discounts
+            variant_prices_dict, product, collections, discounts
         )
         if product_channel_listing.discounted_price != product_discounted_price:
             product_channel_listing.discounted_price_amount = (
