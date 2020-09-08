@@ -7,6 +7,7 @@ from ....product.models import (
     Product,
     ProductImage,
     ProductVariant,
+    VariantImage,
 )
 from ...core.dataloaders import DataLoader
 
@@ -57,6 +58,17 @@ class ProductVariantsByProductIdLoader(DataLoader):
             variant_map[variant.product_id].append(variant)
             variant_loader.prime(variant.id, variant)
         return [variant_map.get(product_id, []) for product_id in keys]
+
+
+class ImagesByProductVariantIdLoader(DataLoader):
+    context_key = "images_by_product_variant"
+
+    def batch_load(self, keys):
+        variant_images = VariantImage.objects.filter(variant_id__in=keys)
+        image_map = defaultdict(list)
+        for variant_image in variant_images:
+            image_map[variant_image.variant_id].append(variant_image.image)
+        return [image_map[product_id] for product_id in keys]
 
 
 class CollectionByIdLoader(DataLoader):
