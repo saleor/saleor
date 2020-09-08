@@ -36,6 +36,7 @@ from ...tests.utils import (
     assert_negative_positive_decimal_value,
     assert_no_permission,
     get_graphql_content,
+    get_graphql_content_from_response,
     get_multipart_request_body,
 )
 from ..bulk_mutations.products import ProductVariantStocksUpdate
@@ -3610,6 +3611,35 @@ def test_assign_variant_image(
     get_graphql_content(response)
     variant.refresh_from_db()
     assert variant.images.first() == image
+
+
+def test_assign_variant_image_second_time(
+    staff_api_client, user_api_client, product_with_image, permission_manage_products
+):
+    # given
+    query = ASSIGN_VARIANT_QUERY
+    variant = product_with_image.variants.first()
+    image = product_with_image.images.first()
+
+    image.variant_images.create(variant=variant)
+
+    variables = {
+        "variantId": to_global_id("ProductVariant", variant.pk),
+        "imageId": to_global_id("ProductImage", image.pk),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content_from_response(response)
+    assert "errors" in content
+    assert (
+        "duplicate key value violates unique constraint"
+        in content["errors"][0]["message"]
+    )
 
 
 def test_assign_variant_image_from_different_product(
