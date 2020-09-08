@@ -87,3 +87,11 @@ def test_obfuscate_address(address):
     )
     assert result.street_address_2 == ""
     assert result.phone == phone[:3] + "." * (len(phone) - 3)
+
+
+def test_obfuscate_address_no_address(address):
+    # when
+    result = obfuscate_address(None)
+
+    # then
+    assert result is None

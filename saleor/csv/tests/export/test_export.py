@@ -2,6 +2,7 @@ import shutil
 from tempfile import NamedTemporaryFile
 from unittest.mock import ANY, MagicMock, patch
 
+import graphene
 import openpyxl
 import petl as etl
 import pytest
@@ -30,7 +31,6 @@ from ...utils.export import (
 @patch("saleor.csv.utils.export.export_products_in_batches")
 @patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 @patch("saleor.csv.utils.export.save_csv_file_in_export_file")
-@pytest.mark.skip(reason="We should fix it when we know how to export channels.")
 def test_export_products(
     save_file_mock,
     send_email_mock,
@@ -45,6 +45,7 @@ def test_export_products(
         "fields": [ProductFieldEnum.NAME.value],
         "warehouses": [],
         "attributes": [],
+        "channels": [],
     }
 
     mock_file = MagicMock(spec=File)
@@ -80,7 +81,6 @@ def test_export_products(
 @patch("saleor.csv.utils.export.export_products_in_batches")
 @patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 @patch("saleor.csv.utils.export.save_csv_file_in_export_file")
-@pytest.mark.skip(reason="We should fix it when we know how to export channels.")
 def test_export_products_ids(
     save_file_mock,
     send_email_mock,
@@ -91,7 +91,7 @@ def test_export_products_ids(
 ):
     # given
     pks = [product.pk for product in product_list[:2]]
-    export_info = {"fields": [], "warehouses": [], "attributes": []}
+    export_info = {"fields": [], "warehouses": [], "attributes": [], "channels": []}
     file_type = FileTypes.CSV
 
     assert user_export_file.status == JobStatus.PENDING
@@ -122,9 +122,10 @@ def test_export_products_ids(
 @patch("saleor.csv.utils.export.export_products_in_batches")
 @patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 # TODO: Consider filtering and sorting by `isPublished`
+# Should be resolved by https://app.clickup.com/t/6crxxb
 @pytest.mark.skip(reason="We should know how to handle `isPublished` filter.")
 @patch("saleor.csv.utils.export.save_csv_file_in_export_file")
-def test_export_products_filter(
+def test_export_products_filter_is_published(
     save_file_mock,
     send_email_mock,
     export_products_in_batches_mock,
@@ -171,7 +172,57 @@ def test_export_products_filter(
 @patch("saleor.csv.utils.export.export_products_in_batches")
 @patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 @patch("saleor.csv.utils.export.save_csv_file_in_export_file")
-@pytest.mark.skip(reason="We should fix it when we know how to export channels.")
+def test_export_products_filter_collections(
+    save_file_mock,
+    send_email_mock,
+    export_products_in_batches_mock,
+    create_file_with_headers_mock,
+    product_list,
+    user_export_file,
+    channel_USD,
+    collection,
+):
+    # given
+    collection.products.add(product_list[-1])
+
+    export_info = {"fields": [], "warehouses": [], "attributes": []}
+    file_type = FileTypes.CSV
+
+    assert user_export_file.status == JobStatus.PENDING
+    assert not user_export_file.content_file
+
+    mock_file = MagicMock(spec=File)
+    create_file_with_headers_mock.return_value = mock_file
+
+    # when
+    export_products(
+        user_export_file,
+        {
+            "filter": {
+                "collections": [graphene.Node.to_global_id("Collection", collection.pk)]
+            }
+        },
+        export_info,
+        file_type,
+    )
+
+    # then
+    create_file_with_headers_mock.assert_called_once_with(["id"], ";", file_type)
+
+    assert export_products_in_batches_mock.call_count == 1
+    batch_args, _ = export_products_in_batches_mock.call_args
+    assert set(batch_args[0].values_list("pk", flat=True)) == {product_list[-1].pk}
+    assert batch_args[1:] == (export_info, {"id"}, ["id"], ";", mock_file, file_type)
+    send_email_mock.assert_called_once_with(
+        user_export_file, user_export_file.user.email, "export_products_success"
+    )
+    save_file_mock.assert_called_once_with(user_export_file, mock_file, ANY)
+
+
+@patch("saleor.csv.utils.export.create_file_with_headers")
+@patch("saleor.csv.utils.export.export_products_in_batches")
+@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
+@patch("saleor.csv.utils.export.save_csv_file_in_export_file")
 def test_export_products_by_app(
     save_file_mock,
     send_email_mock,
@@ -185,6 +236,7 @@ def test_export_products_by_app(
         "fields": [ProductFieldEnum.NAME.value],
         "warehouses": [],
         "attributes": [],
+        "channels": [],
     }
     file_type = FileTypes.CSV
 
@@ -232,14 +284,12 @@ def test_get_filename_xlsx():
         assert file_name == "test_data_09_02_2000.xlsx"
 
 
-@pytest.mark.skip(reason="We should fix it when we know how to export channels.")
 def test_get_product_queryset_all(product_list):
     queryset = get_product_queryset({"all": ""})
 
     assert queryset.count() == len(product_list)
 
 
-@pytest.mark.skip(reason="We should fix it when we know how to export channels.")
 def test_get_product_queryset_ids(product_list):
     pks = [product.pk for product in product_list[:2]]
     queryset = get_product_queryset({"ids": pks})
@@ -391,7 +441,6 @@ def test_append_to_file_for_xlsx(user_export_file, tmpdir, media_root):
 
 
 @patch("saleor.csv.utils.export.BATCH_SIZE", 1)
-@pytest.mark.skip(reason="We should fix it when we know how to export channels.")
 def test_export_products_in_batches_for_csv(
     product_list, user_export_file, tmpdir, media_root,
 ):
@@ -401,6 +450,7 @@ def test_export_products_in_batches_for_csv(
         "fields": [ProductFieldEnum.NAME.value, ProductFieldEnum.VARIANT_SKU.value],
         "warehouses": [],
         "attributes": [],
+        "channels": [],
     }
     export_fields = ["id", "name", "variants__sku"]
     expected_headers = ["id", "name", "variant sku"]
@@ -445,7 +495,6 @@ def test_export_products_in_batches_for_csv(
 
 
 @patch("saleor.csv.utils.export.BATCH_SIZE", 1)
-@pytest.mark.skip(reason="We should fix it when we know how to export channels.")
 def test_export_products_in_batches_for_xlsx(
     product_list, user_export_file, tmpdir, media_root,
 ):
@@ -455,6 +504,7 @@ def test_export_products_in_batches_for_xlsx(
         "fields": [ProductFieldEnum.NAME.value, ProductFieldEnum.VARIANT_SKU.value],
         "warehouses": [],
         "attributes": [],
+        "channels": [],
     }
     export_fields = ["id", "name", "variants__sku"]
     expected_headers = ["id", "name", "variant sku"]

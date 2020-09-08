@@ -119,6 +119,19 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
                             variant {
                                 id
                             }
+                            quantity
+                            unitPrice {
+                                currency
+                                gross {
+                                    amount
+                                }
+                            }
+                            totalPrice {
+                                currency
+                                gross {
+                                    amount
+                                }
+                            }
                         }
                     }
                 }
@@ -135,6 +148,19 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
     assert order_data["lines"][0]["thumbnail"] is None
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
     assert order_data["lines"][0]["variant"]["id"] == variant_id
+    assert order_data["lines"][0]["quantity"] == line.quantity
+    assert order_data["lines"][0]["unitPrice"]["currency"] == line.unit_price.currency
+    expected_unit_price = Money(
+        amount=str(order_data["lines"][0]["unitPrice"]["gross"]["amount"]),
+        currency="USD",
+    )
+    assert order_data["lines"][0]["totalPrice"]["currency"] == line.unit_price.currency
+    assert expected_unit_price == line.unit_price.gross
+    expected_total_price = Money(
+        amount=str(order_data["lines"][0]["totalPrice"]["gross"]["amount"]),
+        currency="USD",
+    )
+    assert expected_total_price == line.unit_price.gross * line.quantity
 
 
 def test_order_query(
@@ -1064,6 +1090,31 @@ def test_can_finalize_order_no_order_lines(
     assert content["data"]["order"]["canFinalize"] is False
 
 
+def test_can_finalize_order_product_unavailable_for_purchase(
+    staff_api_client, permission_manage_orders, draft_order
+):
+    # given
+    order = draft_order
+
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+
+    product = order.lines.first().variant.product
+    product.available_for_purchase = date.today() + timedelta(days=1)
+    product.save(update_fields=["available_for_purchase"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_CAN_FINALIZE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["order"]["canFinalize"] is False
+
+
 def test_validate_draft_order(draft_order):
     # should not raise any errors
     assert validate_draft_order(draft_order, "US") is None
@@ -1118,6 +1169,42 @@ def test_validate_draft_order_with_unpublished_product(draft_order):
 
     assert error.message == msg
     assert error.code == OrderErrorCode.PRODUCT_NOT_PUBLISHED
+
+
+def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order):
+    order = draft_order
+    line = order.lines.first()
+    variant = line.variant
+    variant.product.available_for_purchase = None
+    variant.product.save(update_fields=["available_for_purchase"])
+    line.refresh_from_db()
+
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order, "US")
+    msg = "Can't finalize draft with product unavailable for purchase."
+    error = e.value.error_dict["lines"][0]
+
+    assert error.message == msg
+    assert error.code == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE
+
+
+def test_validate_draft_order_with_product_available_for_purchase_in_future(
+    draft_order,
+):
+    order = draft_order
+    line = order.lines.first()
+    variant = line.variant
+    variant.product.available_for_purchase = date.today() + timedelta(days=2)
+    variant.product.save(update_fields=["available_for_purchase"])
+    line.refresh_from_db()
+
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order, "US")
+    msg = "Can't finalize draft with product unavailable for purchase."
+    error = e.value.error_dict["lines"][0]
+
+    assert error.message == msg
+    assert error.code == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE
 
 
 def test_validate_draft_order_out_of_stock_variant(draft_order):
@@ -1294,6 +1381,37 @@ def test_draft_order_complete_anonymous_user_no_email(
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
     assert data["status"] == OrderStatus.UNFULFILLED.upper()
+
+
+def test_draft_order_complete_unavailable_for_purchase(
+    staff_api_client, permission_manage_orders, staff_user, draft_order
+):
+    # given
+    order = draft_order
+
+    # Ensure no events were created
+    assert not OrderEvent.objects.exists()
+
+    product = order.lines.first().variant.product
+    product.available_for_purchase = date.today() + timedelta(days=5)
+    product.save(update_fields=["available_for_purchase"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderComplete"]["orderErrors"][0]
+    order.refresh_from_db()
+    assert order.status == OrderStatus.DRAFT
+
+    assert error["field"] == "lines"
+    assert error["code"] == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name
 
 
 DRAFT_ORDER_LINES_CREATE_MUTATION = """

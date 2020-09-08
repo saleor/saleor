@@ -13,6 +13,7 @@ from ....product.utils.attributes import generate_name_for_variant
 from ....warehouse import models as warehouse_models
 from ....warehouse.error_codes import StockErrorCode
 from ...channel import ChannelContext
+from ...channel.types import Channel
 from ...core.mutations import (
     BaseBulkMutation,
     BaseMutation,
@@ -28,6 +29,7 @@ from ...core.types.common import (
 from ...core.utils import get_duplicated_values
 from ...utils import resolve_global_ids_to_primary_keys
 from ...warehouse.types import Warehouse
+from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.products import (
     AttributeAssignmentMixin,
     AttributeValueInput,
@@ -120,6 +122,11 @@ class ProductVariantBulkCreateInput(ProductVariantInput):
         description=("Stocks of a product available for sale."),
         required=False,
     )
+    channel_listings = graphene.List(
+        graphene.NonNull(ProductVariantChannelListingAddInput),
+        description="List of prices assigned to channels.",
+        required=False,
+    )
     sku = graphene.String(required=True, description="Stock keeping unit.")
 
 
@@ -177,16 +184,6 @@ class ProductVariantBulkCreate(BaseMutation):
                 )
             cleaned_input["cost_price_amount"] = cost_price_amount
 
-        price_amount = cleaned_input.pop("price", None)
-        if price_amount is not None:
-            if price_amount < 0:
-                errors["price"] = ValidationError(
-                    "Product price cannot be lower than 0.",
-                    code=ProductErrorCode.INVALID.value,
-                    params={"index": variant_index},
-                )
-            cleaned_input["price_amount"] = price_amount
-
         attributes = cleaned_input.get("attributes")
         if attributes:
             try:
@@ -197,11 +194,78 @@ class ProductVariantBulkCreate(BaseMutation):
                 exc.params = {"index": variant_index}
                 errors["attributes"] = exc
 
+        channel_listings = cleaned_input.get("channel_listings")
+        if channel_listings:
+            cleaned_input["channel_listings"] = cls.clean_channel_listings(
+                channel_listings, errors, data["product"], variant_index
+            )
+
         stocks = cleaned_input.get("stocks")
         if stocks:
             cls.clean_stocks(stocks, errors, variant_index)
 
         return cleaned_input
+
+    @classmethod
+    def clean_channel_listings(cls, channels_data, errors, product, variant_index):
+        channel_ids = [
+            channel_listing["channel_id"] for channel_listing in channels_data
+        ]
+        duplicates = get_duplicated_values(channel_ids)
+        if duplicates:
+            errors["channel_listings"] = ValidationError(
+                "Duplicated channel ID.",
+                code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+                params={"channels": duplicates, "index": variant_index},
+            )
+            return channels_data
+        channels = cls.get_nodes_or_error(
+            channel_ids, "channel_listings", only_type=Channel
+        )
+        for index, channel_listing_data in enumerate(channels_data):
+            channel_listing_data["channel"] = channels[index]
+
+        channels_with_negative_price = []
+        for channel_listing_data in channels_data:
+            price_amount = channel_listing_data.get("price")
+            if price_amount is not None:
+                if price_amount < 0:
+                    channels_with_negative_price.append(
+                        channel_listing_data["channel_id"]
+                    )
+        if channels_with_negative_price:
+            errors["price"] = ValidationError(
+                "Product price cannot be lower than 0.",
+                code=ProductErrorCode.INVALID.value,
+                params={
+                    "index": variant_index,
+                    "channels": channels_with_negative_price,
+                },
+            )
+
+        channels_not_assigned_to_product = []
+        channels_assigned_to_product = list(
+            models.ProductChannelListing.objects.filter(product=product.id).values_list(
+                "channel_id", flat=True
+            )
+        )
+        for channel_listing_data in channels_data:
+            if not channel_listing_data["channel"].id in channels_assigned_to_product:
+                channels_not_assigned_to_product.append(
+                    channel_listing_data["channel_id"]
+                )
+        if channels_not_assigned_to_product:
+            errors["channel_id"].append(
+                ValidationError(
+                    "Product not available in channels.",
+                    code=ProductErrorCode.PRODUCT_NOT_ASSIGNED_TO_CHANNEL.value,
+                    params={
+                        "index": variant_index,
+                        "channels": channels_not_assigned_to_product,
+                    },
+                )
+            )
+        return channels_data
 
     @classmethod
     def clean_stocks(cls, stocks_data, errors, variant_index):
@@ -210,7 +274,7 @@ class ProductVariantBulkCreate(BaseMutation):
         if duplicates:
             errors["stocks"] = ValidationError(
                 "Duplicated warehouse ID.",
-                code=ProductErrorCode.DUPLICATED_INPUT_ITEM,
+                code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
                 params={"warehouses": duplicates, "index": variant_index},
             )
 
@@ -278,6 +342,7 @@ class ProductVariantBulkCreate(BaseMutation):
 
             cleaned_input = None
             variant_data["product_type"] = product.product_type
+            variant_data["product"] = product
             cleaned_input = cls.clean_variant_input(
                 info, None, variant_data, errors, index
             )
@@ -290,6 +355,27 @@ class ProductVariantBulkCreate(BaseMutation):
         return cleaned_inputs
 
     @classmethod
+    def create_variant_channel_listings(cls, variant, cleaned_input):
+        channel_listings_data = cleaned_input.get("channel_listings")
+        if not channel_listings_data:
+            return
+        variant_channel_listings = []
+        for channel_listing_data in channel_listings_data:
+            channel = channel_listing_data["channel"]
+            price = channel_listing_data["price"]
+            variant_channel_listings.append(
+                models.ProductVariantChannelListing(
+                    channel=channel,
+                    variant=variant,
+                    price_amount=price,
+                    currency=channel.currency_code,
+                )
+            )
+        models.ProductVariantChannelListing.objects.bulk_create(
+            variant_channel_listings
+        )
+
+    @classmethod
     @transaction.atomic
     def save_variants(cls, info, instances, cleaned_inputs):
         assert len(instances) == len(
@@ -298,6 +384,7 @@ class ProductVariantBulkCreate(BaseMutation):
         for instance, cleaned_input in zip(instances, cleaned_inputs):
             cls.save(info, instance, cleaned_input)
             cls.create_variant_stocks(instance, cleaned_input)
+            cls.create_variant_channel_listings(instance, cleaned_input)
 
     @classmethod
     def create_variant_stocks(cls, variant, cleaned_input):

@@ -107,6 +107,11 @@ class ChannelError(Error):
 
 class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.", required=True)
+    variants = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of varint IDs which causes the error.",
+        required=False,
+    )
 
 
 class ProductWithoutVariantError(Error):
@@ -196,6 +201,11 @@ class BulkProductError(ProductError):
     warehouses = graphene.List(
         graphene.NonNull(graphene.ID),
         description="List of warehouse IDs which causes the error.",
+        required=False,
+    )
+    channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channel IDs which causes the error.",
         required=False,
     )
 

@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 from urllib.parse import urljoin
 
 import requests
@@ -16,7 +16,7 @@ from ...checkout import base_calculations
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ...checkout.models import Checkout
+    from ...checkout.models import Checkout, CheckoutLine
     from ...order.models import Order
     from ...product.models import Product, ProductVariant, ProductType
 
@@ -35,6 +35,9 @@ COMMON_CARRIER_CODE = "FR020100"
 
 # Common discount code use to apply discount on order
 COMMON_DISCOUNT_VOUCHER_CODE = "OD010000"
+
+# Temporary Unmapped Other SKU - taxable default
+DEFAULT_TAX_CODE = "O9999999"
 
 
 @dataclass
@@ -73,25 +76,46 @@ def get_api_url(use_sandbox=True) -> str:
 def api_post_request(
     url: str, data: Dict[str, Any], config: AvataxConfiguration
 ) -> Dict[str, Any]:
+    response = None
     try:
         auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
         response = requests.post(url, auth=auth, data=json.dumps(data), timeout=TIMEOUT)
         logger.debug("Hit to Avatax to calculate taxes %s", url)
+        json_response = response.json()
+        if "error" in response:  # type: ignore
+            logger.exception("Avatax response contains errors %s", json_response)
+            return json_response
     except requests.exceptions.RequestException:
-        logger.warning("Fetching taxes failed %s", url)
+        logger.error("Fetching taxes failed %s", url)
         return {}
-    return response.json()
+    except json.JSONDecodeError:
+        content = response.content if response else "Unable to find the response"
+        logger.exception(
+            "Unable to decode the response from Avatax. Response: %s", content
+        )
+        return {}
+    return json_response  # type: ignore
 
 
 def api_get_request(url: str, config: AvataxConfiguration):
+    response = None
     try:
         auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
         response = requests.get(url, auth=auth, timeout=TIMEOUT)
+        json_response = response.json()
         logger.debug("[GET] Hit to %s", url)
+        if "error" in json_response:  # type: ignore
+            logger.error("Avatax response contains errors %s", json_response)
+        return json_response
     except requests.exceptions.RequestException:
-        logger.warning("Failed to fetch data from %s", url)
+        logger.error("Failed to fetch data from %s", url)
         return {}
-    return response.json()
+    except json.JSONDecodeError:
+        content = response.content if response else "Unable to find the response"
+        logger.exception(
+            "Unable to decode the response from Avatax. Response: %s", content
+        )
+        return {}
 
 
 def _validate_adddress_details(
@@ -118,9 +142,9 @@ def _validate_order(order: "Order") -> bool:
     )
 
 
-def _validate_checkout(checkout: "Checkout") -> bool:
+def _validate_checkout(checkout: "Checkout", lines: Iterable["CheckoutLine"]) -> bool:
     """Validate the checkout object if it is ready to generate a request to avatax."""
-    if not checkout.lines.exists():
+    if not lines:
         return False
 
     shipping_address = checkout.shipping_address
@@ -135,24 +159,6 @@ def _retrieve_from_cache(token):
     taxes_cache_key = CACHE_KEY + token
     cached_data = cache.get(taxes_cache_key)
     return cached_data
-
-
-def checkout_needs_new_fetch(data, checkout_token: str) -> bool:
-    """Check if avatax's checkout response is cached or not.
-
-    We store the response from avatax for checkout object for given time. If object
-    doesn't exist in cache or something has changed, then we fetch data from avatax.
-    """
-
-    cached_checkout = _retrieve_from_cache(checkout_token)
-
-    if not cached_checkout:
-        return True
-
-    cached_request_data, cached_response = cached_checkout
-    if data != cached_request_data:
-        return True
-    return False
 
 
 def taxes_need_new_fetch(data: Dict[str, Any], taxes_token: str) -> bool:
@@ -220,15 +226,13 @@ def get_checkout_lines_data(
         "variant__product__category",
         "variant__product__collections",
         "variant__product__product_type",
-    )
+    ).filter(variant__product__charge_taxes=True)
     channel = checkout.channel
     for line in lines:
-        if not line.variant.product.charge_taxes:
-            continue
         name = line.variant.product.name
         product = line.variant.product
         product_type = line.variant.product.product_type
-        tax_code = retrieve_tax_code_from_meta(product)
+        tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
         append_line_to_data(
             data=data,
@@ -253,18 +257,18 @@ def get_order_lines_data(
         "variant__product__category",
         "variant__product__collections",
         "variant__product__product_type",
-    )
+    ).filter(variant__product__charge_taxes=True)
     for line in lines:
-        if not line.variant or not line.variant.product.charge_taxes:
+        if not line.variant:
             continue
         product = line.variant.product
         product_type = line.variant.product.product_type
-        tax_code = retrieve_tax_code_from_meta(product)
+        tax_code = retrieve_tax_code_from_meta(product, default=None)
         tax_code = tax_code or retrieve_tax_code_from_meta(product_type)
         append_line_to_data(
             data=data,
             quantity=line.quantity,
-            amount=line.unit_price_net_amount * line.quantity,
+            amount=line.unit_price_gross_amount * line.quantity,
             tax_code=tax_code,
             item_code=line.variant.sku,
             name=line.variant.product.name,
@@ -288,7 +292,6 @@ def generate_request_data(
     lines: List[Dict[str, Any]],
     transaction_token: str,
     address: Dict[str, str],
-    customer_code: Optional[int],
     customer_email: str,
     config: AvataxConfiguration,
     currency=settings.DEFAULT_CURRENCY,
@@ -309,7 +312,8 @@ def generate_request_data(
         "lines": lines,
         "code": transaction_token,
         "date": str(date.today()),
-        "customerCode": customer_code,
+        # https://developer.avalara.com/avatax/dev-guide/transactions/simple-transaction/
+        "customerCode": 0,
         "addresses": {
             "shipFrom": {
                 "line1": company_address.get("street_address_1"),
@@ -352,7 +356,6 @@ def generate_request_data_from_checkout(
         lines=lines,
         transaction_token=transaction_token or str(checkout.token),
         address=address.as_data() if address else {},
-        customer_code=checkout.user.id if checkout.user else 0,
         customer_email=checkout.email,
         config=config,
         currency=currency,
@@ -401,9 +404,7 @@ def get_checkout_tax_data(
     return get_cached_response_or_fetch(data, str(checkout.token), config)
 
 
-def get_order_tax_data(
-    order: "Order", config: AvataxConfiguration, force_refresh=False
-) -> Dict[str, Any]:
+def get_order_request_data(order: "Order", config: AvataxConfiguration):
     address = order.shipping_address or order.billing_address
     lines = get_order_lines_data(order)
     transaction = (
@@ -414,11 +415,17 @@ def get_order_tax_data(
         lines=lines,
         transaction_token=order.token,
         address=address.as_data() if address else {},
-        customer_code=order.user.id if order.user else None,
         customer_email=order.user_email,
         config=config,
         currency=order.total.currency,
     )
+    return data
+
+
+def get_order_tax_data(
+    order: "Order", config: AvataxConfiguration, force_refresh=False
+) -> Dict[str, Any]:
+    data = get_order_request_data(order, config)
     response = get_cached_response_or_fetch(
         data, "order_%s" % order.token, config, force_refresh
     )
@@ -450,7 +457,9 @@ def get_cached_tax_codes_or_fetch(
     return tax_codes
 
 
-def retrieve_tax_code_from_meta(obj: Union["Product", "ProductVariant", "ProductType"]):
-    # O9999999 - "Temporary Unmapped Other SKU - taxable default"
-    tax_code = obj.get_value_from_metadata(META_CODE_KEY, "O9999999")
+def retrieve_tax_code_from_meta(
+    obj: Union["Product", "ProductVariant", "ProductType"],
+    default: Optional[str] = DEFAULT_TAX_CODE,
+):
+    tax_code = obj.get_value_from_metadata(META_CODE_KEY, default)
     return tax_code
