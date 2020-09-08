@@ -1032,6 +1032,17 @@ class ProductUpdate(ProductCreate):
             )
 
     @classmethod
+    def get_instance(cls, info, **data):
+        """Prefetch related fields that are needed to process the mutation."""
+        object_id = data.get("id")
+        if object_id:
+            # Prefetches needed by `product_updated` plugin hook
+            qs = cls._meta.model.objects.prefetch_related("variants")
+            return cls.get_node_or_error(info, object_id, only_type="Product", qs=qs)
+
+        return super().get_instance(info, **data)
+
+    @classmethod
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
@@ -1892,4 +1903,5 @@ class ProductSetAvailabilityForPurchase(BaseMutation):
             product.available_for_purchase = start_date
 
         product.save(update_fields=["available_for_purchase", "updated_at"])
+        info.context.plugins.product_updated(product)
         return ProductSetAvailabilityForPurchase(product=product)
