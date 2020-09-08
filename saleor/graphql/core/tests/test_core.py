@@ -10,7 +10,7 @@ from graphene import InputField
 
 from ....product.models import Category, Product
 from ...product import types as product_types
-from ...tests.utils import _get_graphql_content_from_response, get_graphql_content
+from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 from ...utils import get_database_id, requestor_is_superuser
 from ...utils.filters import filter_range_field, reporting_period_to_date
 from ..enums import ReportingPeriod
@@ -108,7 +108,7 @@ def test_require_pagination(api_client):
     }
     """
     response = api_client.post_graphql(query)
-    content = _get_graphql_content_from_response(response)
+    content = get_graphql_content_from_response(response)
     assert "errors" in content
     assert content["errors"][0]["message"] == (
         "You must provide a `first` or `last` value to properly paginate the "
