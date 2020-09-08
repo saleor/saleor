@@ -4,8 +4,10 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
+from saleor.plugins.manager import get_plugins_manager
 
 from ....core.permissions import ProductPermissions
+from ....plugins.allegro.plugin import AllegroPlugin
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_minimal_variant_price_task
@@ -571,3 +573,16 @@ class ProductBulkPublish(BaseBulkMutation):
         message = EmailMultiAlternatives(subject, text_content, from_email, [to])
         message.attach_alternative(html_content, "text/html")
         return message.send()
+
+    @classmethod
+    def chunkify(cls, a, n):
+        k, m = divmod(len(a), n)
+        return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n) if
+                len(a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)]) > 0)
+
+    @classmethod
+    def get_interval_for_offer_publication(cls):
+        manager = get_plugins_manager()
+        plugin = manager.get_plugin(AllegroPlugin.PLUGIN_ID)
+        configuration = {item["name"]: item["value"] for item in plugin.configuration}
+        return configuration.get('interval_for_offer_publication')

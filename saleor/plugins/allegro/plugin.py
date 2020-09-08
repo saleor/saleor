@@ -41,6 +41,7 @@ class AllegroConfiguration:
     publication_duration: str
     publication_starting_at: str
     auction_format: str
+    interval_for_offer_publication: str
 
 
 class AllegroPlugin(BasePlugin):
@@ -66,7 +67,8 @@ class AllegroPlugin(BasePlugin):
                              {"name": "delivery_handling_time", "value":  None},
                              {"name": "publication_duration", "value":  None},
                              {"name": "publication_starting_at", "value": ''},
-                             {"name": "auction_format", "value": 'AUCTION'},]
+                             {"name": "auction_format", "value": 'AUCTION'},
+                             {"name": "interval_for_offer_publication", "value": '5'},]
     CONFIG_STRUCTURE = {
         "redirect_url": {
             "type": ConfigurationTypeField.STRING,
@@ -156,6 +158,11 @@ class AllegroPlugin(BasePlugin):
             "type": ConfigurationTypeField.STRING,
             "help_text": "AUCTION lub BUY_NOW",
             "label": "auction_format",
+        },
+        "interval_for_offer_publication": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Podaj liczbe minut co ile mają być publikowane oferty.",
+            "label": "interval_for_offer_publication",
         }
     }
 
@@ -181,7 +188,8 @@ class AllegroPlugin(BasePlugin):
                                            delivery_handling_time=configuration["delivery_handling_time"],
                                            publication_duration=configuration["publication_duration"],
                                            publication_starting_at=configuration["publication_starting_at"],
-                                           auction_format=configuration["auction_format"])
+                                           auction_format=configuration["auction_format"],
+                                           interval_for_offer_publication=configuration["interval_for_offer_publication"])
 
         HOURS_LESS_THAN_WE_REFRESH_TOKEN = 6
 
