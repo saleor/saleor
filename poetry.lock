@@ -1173,14 +1173,13 @@ category = "dev"
 description = "A Python utility / library to sort Python imports."
 name = "isort"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "4.3.21"
+python-versions = ">=3.6,<4.0"
+version = "5.5.1"
 
 [package.extras]
-pipfile = ["pipreqs", "requirementslib"]
-pyproject = ["toml"]
-requirements = ["pipreqs", "pip-api"]
-xdg_home = ["appdirs (>=1.4.0)"]
+colors = ["colorama (>=0.4.3,<0.5.0)"]
+pipfile_deprecated_finder = ["pipreqs", "requirementslib"]
+requirements_deprecated_finder = ["pipreqs", "pip-api"]
 
 [[package]]
 category = "main"
@@ -2245,14 +2244,6 @@ python-versions = "*"
 version = "1.4.1"
 
 [[package]]
-category = "main"
-description = "Type Hints for Python"
-name = "typing"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "3.7.4.3"
-
-[[package]]
 category = "dev"
 description = "Backported and Experimental Type Hints for Python 3.5+"
 name = "typing-extensions"
@@ -2411,7 +2402,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "1eb870364f25085303b008812d45225fd4b3c3fa8b2b9ec4e5aa27671a35116c"
+content-hash = "b802baf2cfa095fff1c89e8320d5a0e69484e9b48be5ea34b753bcba87c8ee10"
 lock-version = "1.0"
 python-versions = "~3.8"
 
@@ -2899,8 +2890,8 @@ iniconfig = [
     {file = "iniconfig-1.0.1.tar.gz", hash = "sha256:e5f92f89355a67de0595932a6c6c02ab4afddc6fcdc0bfc5becd0d60884d3f69"},
 ]
 isort = [
-    {file = "isort-4.3.21-py2.py3-none-any.whl", hash = "sha256:6e811fcb295968434526407adb8796944f1988c5b65e8139058f2014cbe100fd"},
-    {file = "isort-4.3.21.tar.gz", hash = "sha256:54da7e92468955c4fceacd0c86bd0ec997b0e1ee80d97f67c35a78b719dccab1"},
+    {file = "isort-5.5.1-py3-none-any.whl", hash = "sha256:a200d47b7ee8b7f7d0a9646650160c4a51b6a91a9413fd31b1da2c4de789f5d3"},
+    {file = "isort-5.5.1.tar.gz", hash = "sha256:92533892058de0306e51c88f22ece002a209dc8e80288aa3cec6d443060d584f"},
 ]
 jaeger-client = [
     {file = "jaeger-client-4.3.0.tar.gz", hash = "sha256:7f72c341a21e3dcbc8498d1ed17c93e0eec71c5becc5c9333c4293793d4e6433"},
@@ -3509,10 +3500,6 @@ typed-ast = [
     {file = "typed_ast-1.4.1-cp38-cp38-win_amd64.whl", hash = "sha256:fc0fea399acb12edbf8a628ba8d2312f583bdbdb3335635db062fa98cf71fca4"},
     {file = "typed_ast-1.4.1-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:d43943ef777f9a1c42bf4e552ba23ac77a6351de620aa9acf64ad54933ad4d34"},
     {file = "typed_ast-1.4.1.tar.gz", hash = "sha256:8c8aaad94455178e3187ab22c8b01a3837f8ee50e09cf31f1ba129eb293ec30b"},
-]
-typing = [
-    {file = "typing-3.7.4.3-py2-none-any.whl", hash = "sha256:283d868f5071ab9ad873e5e52268d611e851c870a2ba354193026f2dfb29d8b5"},
-    {file = "typing-3.7.4.3.tar.gz", hash = "sha256:1187fb9c82fd670d10aa07bbb6cfcfe4bdda42d6fab8d5134f04e8c4d0b71cc9"},
 ]
 typing-extensions = [
     {file = "typing_extensions-3.7.4.3-py2-none-any.whl", hash = "sha256:dafc7639cde7f1b6e1acc0f457842a83e722ccca8eef5270af2d74792619a89f"},
