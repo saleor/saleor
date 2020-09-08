@@ -1533,11 +1533,10 @@ description = "Python price handling for humans"
 name = "prices"
 optional = false
 python-versions = "*"
-version = "1.0.0"
+version = "1.1.0"
 
 [package.dependencies]
 babel = ">=2.5.0"
-typing = ">=3.6.0"
 
 [[package]]
 category = "main"
@@ -3149,7 +3148,8 @@ pre-commit = [
     {file = "pre_commit-2.7.1.tar.gz", hash = "sha256:c54fd3e574565fe128ecc5e7d2f91279772ddb03f8729645fa812fe809084a70"},
 ]
 prices = [
-    {file = "prices-1.0.0.tar.gz", hash = "sha256:1e920a2f3b8d610985e7effcecd2b9ccfe58798c4c9641f76f6b5eb4a4bcd91b"},
+    {file = "prices-1.1.0-py2.py3-none-any.whl", hash = "sha256:4086cf0d895112317da51256901d81a68061434acb240aebf9146fa04fef4554"},
+    {file = "prices-1.1.0.tar.gz", hash = "sha256:2e88703f2f9b676d8360c14997592419602551c432b8dd9beef1a388ae834104"},
 ]
 promise = [
     {file = "promise-2.3.tar.gz", hash = "sha256:dfd18337c523ba4b6a58801c164c1904a9d4d1b1747c7d5dbf45b693a49d93d0"},
