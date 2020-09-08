@@ -474,42 +474,6 @@ class ProductVariantTranslation(models.Model):
         return self.name or str(self.product_variant)
 
 
-class ProductVariantChannelListingQueryset(models.QuerySet):
-    def create(self, **kwargs):
-        """Create a product's variant channel listing.
-
-        After the creation update the "discounted_price" of the product.
-        """
-        variant_channel_listing = super().create(**kwargs)
-
-        from .tasks import update_product_discounted_price_task
-
-        update_product_discounted_price_task.delay(
-            variant_channel_listing.variant.product_id
-        )
-        return variant_channel_listing
-
-    def bulk_create(self, objs, batch_size=None, ignore_conflicts=False):
-        """Insert each of the product's variant channel listings instances into the database.
-
-        After the creation update the "discounted_price" of all the products.
-        """
-        variants = super().bulk_create(
-            objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
-        )
-        product_ids = set()
-        for obj in objs:
-            product_ids.add(obj.variant.product_id)
-        product_ids = list(product_ids)
-
-        from .tasks import update_products_discounted_prices_of_catalogues_task
-
-        update_products_discounted_prices_of_catalogues_task.delay(
-            product_ids=product_ids
-        )
-        return variants
-
-
 class ProductVariantChannelListing(models.Model):
     variant = models.ForeignKey(
         ProductVariant,
@@ -531,7 +495,6 @@ class ProductVariantChannelListing(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
     )
     price = MoneyField(amount_field="price_amount", currency_field="currency")
-    objects = ProductVariantChannelListingQueryset.as_manager()
 
     class Meta:
         unique_together = [["variant", "channel"]]

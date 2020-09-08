@@ -3,7 +3,6 @@ from unittest.mock import patch
 from django.core.management import call_command
 from prices import Money
 
-from ..models import ProductVariant
 from ..tasks import (
     update_products_discounted_prices_of_catalogues,
     update_products_discounted_prices_task,
@@ -103,39 +102,6 @@ def test_update_products_discounted_prices_task(product_list):
         product.refresh_from_db()
         product_channel_listing = product.channel_listing.get()
         assert product_channel_listing.discounted_price == price
-
-
-def test_product_variant_objects_create_updates_discounted_price(product, channel_USD):
-    product_channel_listing = product.channel_listing.get()
-    assert product_channel_listing.discounted_price == Money("10.00", "USD")
-    variant = ProductVariant.objects.create(product=product, sku="1",)
-    variant.channel_listing.create(
-        channel=channel_USD, variant=variant, price=Money("1.00", "USD"),
-    )
-    product_channel_listing.refresh_from_db()
-    assert product_channel_listing.discounted_price == Money("1.00", "USD")
-
-
-def test_product_variant_objects_bulk_create_updates_discounted_price(
-    product, channel_USD
-):
-    product_channel_listing = product.channel_listing.get()
-
-    assert product_channel_listing.discounted_price == Money("10.00", "USD")
-    product_variants = ProductVariant.objects.bulk_create(
-        [
-            ProductVariant(product=product, sku="1"),
-            ProductVariant(product=product, sku="2"),
-        ]
-    )
-    product_variants[0].channel_listing.create(
-        channel=channel_USD, price=Money("1.00", "USD")
-    )
-    product_variants[1].channel_listing.create(
-        channel=channel_USD, price=Money("5.00", "USD")
-    )
-    product_channel_listing.refresh_from_db()
-    assert product_channel_listing.discounted_price == Money("1.00", "USD")
 
 
 @patch(
