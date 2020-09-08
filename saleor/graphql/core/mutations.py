@@ -554,7 +554,7 @@ class BaseBulkMutation(BaseMutation):
         if type(instance_model) == type(Product) and cls == ProductBulkPublish:
             for instance in instances:
                 if not instance.is_published:
-                    info.context.plugins.product_published(instance)
+                    info.context.plugins.product_published({"product": instance, "offer_type": data.get('offer_type'), "starting_at": data.get('starting_at')})
                     error = instance.get_value_from_private_metadata('publish.allegro.errors')
                     if error is not None:
                         publish_errors.append(error)
