@@ -48,6 +48,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Do not allow negative product price - #6091 by @IKarbowiak
 - Handle None as attribute value - #6092 by @IKarbowiak
 - Fix for calling order_created before the order was saved - #6095 by @korycins
+- Avoid assigning the same pictures twice to a variant - #6112 by @IKarbowiak
 
 ## 2.10.2
 
