@@ -677,7 +677,7 @@ def test_get_order_request_data_checks_when_taxes_are_included_to_price(
     request_data = get_order_request_data(order_with_lines, config)
     lines_data = request_data["createTransactionModel"]["lines"]
 
-    assert all([line for line in lines_data])
+    assert all([line for line in lines_data if line["taxIncluded"] is True])
 
 
 def test_get_order_request_data_checks_when_taxes_are_not_included_to_price(
