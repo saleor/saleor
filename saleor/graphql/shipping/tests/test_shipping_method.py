@@ -6,7 +6,7 @@ from ....core.weight import WeightUnits
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.utils import get_countries_without_shipping_zone
 from ...core.enums import WeightUnitsEnum
-from ...tests.utils import get_graphql_content
+from ...tests.utils import assert_negative_positive_decimal_value, get_graphql_content
 from ..types import ShippingMethodTypeEnum
 
 SHIPPING_ZONE_QUERY = """
@@ -523,9 +523,9 @@ def test_delete_shipping_zone(
 
 PRICE_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
-        $type: ShippingMethodTypeEnum, $name: String!, $price: Decimal,
-        $shippingZone: ID!, $minimumOrderPrice: Decimal,
-        $maximumOrderPrice: Decimal) {
+        $type: ShippingMethodTypeEnum, $name: String!, $price: PositiveDecimal,
+        $shippingZone: ID!, $minimumOrderPrice: PositiveDecimal,
+        $maximumOrderPrice: PositiveDecimal) {
     shippingPriceCreate(input: {
             name: $name, price: $price, shippingZone: $shippingZone,
             minimumOrderPrice: $minimumOrderPrice,
@@ -600,10 +600,11 @@ def test_create_shipping_method(
     assert data["shippingZone"]["id"] == shipping_zone_id
 
 
-def test_create_shipping_method_with_invalid_price(
+def test_create_shipping_method_with_negative_price(
     staff_api_client, shipping_zone, permission_manage_shipping,
 ):
     query = PRICE_BASED_SHIPPING_QUERY
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
     name = "DHL"
     price = -12.34
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -615,13 +616,94 @@ def test_create_shipping_method_with_invalid_price(
         "maximumOrderPrice": 20,
         "type": ShippingMethodTypeEnum.PRICE.name,
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
-    )
+
+    response = staff_api_client.post_graphql(query, variables)
+
+    assert_negative_positive_decimal_value(response)
+
+
+def test_create_shipping_method_with_to_many_decimal_places_in_price(
+    staff_api_client, shipping_zone, permission_manage_shipping,
+):  # given
+    query = PRICE_BASED_SHIPPING_QUERY
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+    name = "DHL"
+    price = 12.345
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "name": name,
+        "price": price,
+        "minimumOrderPrice": 0,
+        "maximumOrderPrice": 20,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
-    assert data["shippingErrors"][0]["field"] == "price"
-    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
+    error = data["shippingErrors"][0]
+    assert error["field"] == "price"
+    assert error["code"] == ShippingErrorCode.INVALID.name
+
+
+def test_create_shipping_method_with_to_many_decimal_places_in_minimum_order_price(
+    staff_api_client, shipping_zone, permission_manage_shipping,
+):  # given
+    query = PRICE_BASED_SHIPPING_QUERY
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+    name = "DHL"
+    price = 12.34
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "name": name,
+        "price": price,
+        "minimumOrderPrice": 1.2001,
+        "maximumOrderPrice": 20,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceCreate"]
+    error = data["shippingErrors"][0]
+    assert error["field"] == "minimumOrderPrice"
+    assert error["code"] == ShippingErrorCode.INVALID.name
+
+
+def test_create_shipping_method_with_to_many_decimal_places_in_maximum_order_price(
+    staff_api_client, shipping_zone, permission_manage_shipping,
+):  # given
+    query = PRICE_BASED_SHIPPING_QUERY
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+    name = "DHL"
+    price = 12.34
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "name": name,
+        "price": price,
+        "minimumOrderPrice": 0,
+        "maximumOrderPrice": 20.00001,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceCreate"]
+    error = data["shippingErrors"][0]
+    assert error["field"] == "maximumOrderPrice"
+    assert error["code"] == ShippingErrorCode.INVALID.name
 
 
 def test_create_price_shipping_method_errors(
@@ -633,7 +715,7 @@ def test_create_price_shipping_method_errors(
         "name": "DHL",
         "price": 12.34,
         "minimumOrderPrice": 20,
-        "maximumOrderPrice": 15,
+        "maximumOrderPrice": 10,
         "type": ShippingMethodTypeEnum.PRICE.name,
     }
     response = staff_api_client.post_graphql(
@@ -646,7 +728,7 @@ def test_create_price_shipping_method_errors(
 
 WEIGHT_BASED_SHIPPING_QUERY = """
     mutation createShippingPrice(
-        $type: ShippingMethodTypeEnum, $name: String!, $price: Decimal,
+        $type: ShippingMethodTypeEnum, $name: String!, $price: PositiveDecimal,
         $shippingZone: ID!, $maximumOrderWeight: WeightScalar,
         $minimumOrderWeight: WeightScalar) {
         shippingPriceCreate(
@@ -783,8 +865,8 @@ def test_update_shipping_method(
 ):
     query = """
     mutation updateShippingPrice(
-        $id: ID!, $price: Decimal, $shippingZone: ID!,
-        $type: ShippingMethodTypeEnum!, $minimumOrderPrice: Decimal) {
+        $id: ID!, $price: PositiveDecimal, $shippingZone: ID!,
+        $type: ShippingMethodTypeEnum!, $minimumOrderPrice: PositiveDecimal) {
         shippingPriceUpdate(
             id: $id, input: {
                 price: $price, shippingZone: $shippingZone,

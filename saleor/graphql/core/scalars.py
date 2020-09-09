@@ -36,6 +36,22 @@ class Decimal(graphene.Float):
             return None
 
 
+class PositiveDecimal(Decimal):
+    """Positive Decimal scalar implementation.
+
+    Should be used in places where value must be positive.
+    """
+
+    @staticmethod
+    def parse_value(value):
+        value = super(PositiveDecimal, PositiveDecimal).parse_value(value)
+        if value and value < 0:
+            raise GraphQLError(
+                f"Value cannot be lower than 0. Unsupported value: {value}"
+            )
+        return value
+
+
 class WeightScalar(graphene.Scalar):
     @staticmethod
     def parse_value(value):
