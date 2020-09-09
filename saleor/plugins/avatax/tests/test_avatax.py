@@ -476,8 +476,10 @@ def test_get_plugin_configuration(settings):
     assert "Autocommit" in configuration_fields
 
 
-def test_save_plugin_configuration(settings):
+@patch("saleor.plugins.avatax.plugin.api_get_request")
+def test_save_plugin_configuration(api_get_request_mock, settings):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    api_get_request_mock.return_value = {"authenticated": True}
     manager = get_plugins_manager()
     manager.save_plugin_configuration(
         AvataxPlugin.PLUGIN_ID,
@@ -493,6 +495,32 @@ def test_save_plugin_configuration(settings):
         identifier=AvataxPlugin.PLUGIN_ID
     )
     assert plugin_configuration.active
+
+
+@patch("saleor.plugins.avatax.plugin.api_get_request")
+def test_save_plugin_configuration_authentication_failed(
+    api_get_request_mock, settings
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    api_get_request_mock.return_value = {"authenticated": False}
+    manager = get_plugins_manager()
+
+    # when
+    with pytest.raises(ValidationError) as e:
+        manager.save_plugin_configuration(
+            AvataxPlugin.PLUGIN_ID,
+            {
+                "configuration": [
+                    {"name": "Username or account", "value": "test"},
+                    {"name": "Password or license", "value": "test"},
+                    {"name": "Active", "value": True},
+                ],
+            },
+        )
+
+    # then
+    assert e._excinfo[1].args[0] == "Authentication failed. Please check provided data."
 
 
 def test_save_plugin_configuration_cannot_be_enabled_without_config(
@@ -653,7 +681,9 @@ def test_api_get_request_handles_request_errors(product, monkeypatch):
     )
     url = "https://www.avatax.api.com/some-get-path"
 
-    response = api_get_request(url, config)
+    response = api_get_request(
+        url, config.username_or_account, config.password_or_license
+    )
 
     assert response == {}
     assert mocked_response.called
@@ -668,7 +698,9 @@ def test_api_get_request_handles_json_errors(product, monkeypatch):
     )
     url = "https://www.avatax.api.com/some-get-path"
 
-    response = api_get_request(url, config)
+    response = api_get_request(
+        url, config.username_or_account, config.password_or_license
+    )
 
     assert response == {}
     assert mocked_response.called
