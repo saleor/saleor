@@ -13,6 +13,7 @@ from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
 from ...checkout import base_calculations
+from ...core.taxes import TaxError
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -428,6 +429,9 @@ def get_order_tax_data(
     response = get_cached_response_or_fetch(
         data, "order_%s" % order.token, config, force_refresh
     )
+    error = response.get("error")
+    if error:
+        raise TaxError(error)
     return response
 
 
