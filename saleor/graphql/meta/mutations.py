@@ -81,13 +81,17 @@ class BaseMetadataMutation(BaseMutation):
             return cls.handle_errors(e)
         if not cls.check_permissions(info.context, permissions):
             raise PermissionDenied()
-        return super().mutate(root, info, **data)
+        result = super().mutate(root, info, **data)
+        if not result.errors:
+            cls.perform_model_extra_actions(root, info, **data)
+        return result
 
     @classmethod
-    def perform_model_extra_actions(cls, instance, info, **data):
+    def perform_model_extra_actions(cls, root, info, **data):
         """Run extra metadata method based on mutating model."""
         type_name, _ = graphene.Node.from_global_id(data["id"])
         if MODEL_EXTRA_METHODS.get(type_name):
+            instance = cls.get_instance(info, **data)
             MODEL_EXTRA_METHODS[type_name](instance, info, **data)
 
     @classmethod
@@ -124,7 +128,6 @@ class UpdateMetadata(BaseMetadataMutation):
             items = {data.key: data.value for data in metadata_list}
             instance.store_value_in_metadata(items=items)
             instance.save(update_fields=["metadata"])
-            cls.perform_model_extra_actions(instance, info, **data)
         return cls.success_response(instance)
 
 
@@ -151,7 +154,6 @@ class DeleteMetadata(BaseMetadataMutation):
             for key in metadata_keys:
                 instance.delete_value_from_metadata(key)
             instance.save(update_fields=["metadata"])
-            cls.perform_model_extra_actions(instance, info, **data)
         return cls.success_response(instance)
 
 
@@ -178,7 +180,6 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
             items = {data.key: data.value for data in metadata_list}
             instance.store_value_in_private_metadata(items=items)
             instance.save(update_fields=["private_metadata"])
-            cls.perform_model_extra_actions(instance, info, **data)
         return cls.success_response(instance)
 
 
@@ -205,5 +206,4 @@ class DeletePrivateMetadata(BaseMetadataMutation):
             for key in metadata_keys:
                 instance.delete_value_from_private_metadata(key)
             instance.save(update_fields=["private_metadata"])
-            cls.perform_model_extra_actions(instance, info, **data)
         return cls.success_response(instance)
