@@ -119,7 +119,21 @@ class UpdateMetadata(BaseMetadataMutation):
         return cls.success_response(instance)
 
 
-class DeleteMetadata(BaseMetadataMutation):
+class ExtraMethodMetadataMixin:
+    @classmethod
+    def extra_product_actions(cls, instance, info, **data):
+        info.context.plugins.product_updated(instance)
+
+    @classmethod
+    def perform_extra(cls, instance, info, **data):
+        MODEL_EXTRA_METHODS = {"Product": cls.extra_product_actions}
+
+        type_name, _ = graphene.Node.from_global_id(data["id"])
+        if MODEL_EXTRA_METHODS.get(type_name):
+            MODEL_EXTRA_METHODS[type_name](instance, info, **data)
+
+
+class DeleteMetadata(BaseMetadataMutation, ExtraMethodMetadataMixin):
     class Meta:
         description = "Delete metadata of an object."
         permission_map = PUBLIC_META_PERMISSION_MAP
@@ -142,10 +156,11 @@ class DeleteMetadata(BaseMetadataMutation):
             for key in metadata_keys:
                 instance.delete_value_from_metadata(key)
             instance.save(update_fields=["metadata"])
+            cls.perform_extra(instance, info, **data)
         return cls.success_response(instance)
 
 
-class UpdatePrivateMetadata(BaseMetadataMutation):
+class UpdatePrivateMetadata(BaseMetadataMutation, ExtraMethodMetadataMixin):
     class Meta:
         description = "Updates private metadata of an object."
         permission_map = PRIVATE_META_PERMISSION_MAP
@@ -168,10 +183,11 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
             items = {data.key: data.value for data in metadata_list}
             instance.store_value_in_private_metadata(items=items)
             instance.save(update_fields=["private_metadata"])
+            cls.perform_extra(instance, info, **data)
         return cls.success_response(instance)
 
 
-class DeletePrivateMetadata(BaseMetadataMutation):
+class DeletePrivateMetadata(BaseMetadataMutation, ExtraMethodMetadataMixin):
     class Meta:
         description = "Delete object's private metadata."
         permission_map = PRIVATE_META_PERMISSION_MAP
@@ -194,4 +210,5 @@ class DeletePrivateMetadata(BaseMetadataMutation):
             for key in metadata_keys:
                 instance.delete_value_from_private_metadata(key)
             instance.save(update_fields=["private_metadata"])
+            cls.perform_extra(instance, info, **data)
         return cls.success_response(instance)
