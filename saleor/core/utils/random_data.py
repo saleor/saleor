@@ -519,7 +519,11 @@ def create_fulfillments(order):
 
 
 def create_fake_order(discounts, max_order_lines=5):
-    customers = User.objects.filter(is_superuser=False).order_by("?")
+    customers = (
+        User.objects.filter(is_superuser=False)
+        .exclude(default_billing_address=None)
+        .order_by("?")
+    )
     customer = random.choice([None, customers.first()])
 
     if customer:

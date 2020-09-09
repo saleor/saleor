@@ -767,7 +767,7 @@ def product(product_type, category, warehouse):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-11",
-        minimal_variant_price_amount="10.00",
+        minimal_variant_price_amount=Decimal(10),
         product_type=product_type,
         category=category,
         is_published=True,

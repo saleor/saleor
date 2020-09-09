@@ -814,6 +814,9 @@ class VariantImage(models.Model):
         ProductImage, related_name="variant_images", on_delete=models.CASCADE
     )
 
+    class Meta:
+        unique_together = ("variant", "image")
+
 
 class CollectionProduct(SortableModel):
     collection = models.ForeignKey(

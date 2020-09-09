@@ -398,7 +398,7 @@ def test_create_payment_for_checkout_with_active_payments(
 
 
 CAPTURE_QUERY = """
-    mutation PaymentCapture($paymentId: ID!, $amount: Decimal!) {
+    mutation PaymentCapture($paymentId: ID!, $amount: PositiveDecimal!) {
         paymentCapture(paymentId: $paymentId, amount: $amount) {
             payment {
                 id,
@@ -547,7 +547,7 @@ def test_payment_capture_gateway_dummy_credit_card_error(
 
 
 REFUND_QUERY = """
-    mutation PaymentRefund($paymentId: ID!, $amount: Decimal!) {
+    mutation PaymentRefund($paymentId: ID!, $amount: PositiveDecimal!) {
         paymentRefund(paymentId: $paymentId, amount: $amount) {
             payment {
                 id,
