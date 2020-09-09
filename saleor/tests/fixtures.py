@@ -817,7 +817,6 @@ def product(product_type, category, warehouse, channel_USD):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-11",
-        minimal_variant_price_amount="10.00",
         product_type=product_type,
         category=category,
         available_for_purchase=datetime.date(1999, 1, 1),
@@ -825,7 +824,11 @@ def product(product_type, category, warehouse, channel_USD):
     )
 
     ProductChannelListing.objects.create(
-        product=product, channel=channel_USD, is_published=True,
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        discounted_price_amount="10.00",
+        currency=channel_USD.currency_code,
     )
 
     associate_attribute_values_to_instance(product, product_attr, product_attr_value)
@@ -1206,13 +1209,22 @@ def product_list(product_type, category, warehouse, channel_USD):
     ProductChannelListing.objects.bulk_create(
         [
             ProductChannelListing(
-                product=products[0], channel=channel_USD, is_published=True,
+                product=products[0],
+                channel=channel_USD,
+                is_published=True,
+                currency=channel_USD.currency_code,
             ),
             ProductChannelListing(
-                product=products[1], channel=channel_USD, is_published=True,
+                product=products[1],
+                channel=channel_USD,
+                is_published=True,
+                currency=channel_USD.currency_code,
             ),
             ProductChannelListing(
-                product=products[2], channel=channel_USD, is_published=True,
+                product=products[2],
+                channel=channel_USD,
+                is_published=True,
+                currency=channel_USD.currency_code,
             ),
         ]
     )

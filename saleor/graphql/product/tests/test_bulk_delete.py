@@ -133,9 +133,9 @@ def test_delete_categories(staff_api_client, category_list, permission_manage_pr
     ).exists()
 
 
-@patch("saleor.product.utils.update_products_minimal_variant_prices_task")
+@patch("saleor.product.utils.update_products_discounted_prices_task")
 def test_delete_categories_with_subcategories_and_products(
-    mock_update_products_minimal_variant_prices_task,
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     category_list,
     permission_manage_products,
@@ -188,11 +188,11 @@ def test_delete_categories_with_subcategories_and_products(
         id__in=[category.id for category in category_list]
     ).exists()
 
-    mock_update_products_minimal_variant_prices_task.delay.assert_called_once()
+    mock_update_products_discounted_prices_task.delay.assert_called_once()
     (
         _call_args,
         call_kwargs,
-    ) = mock_update_products_minimal_variant_prices_task.delay.call_args
+    ) = mock_update_products_discounted_prices_task.delay.call_args
 
     assert set(call_kwargs["product_ids"]) == set([p.pk for p in product_list])
 

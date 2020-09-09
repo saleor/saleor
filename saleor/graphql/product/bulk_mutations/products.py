@@ -7,7 +7,7 @@ from django.db import transaction
 from ....core.permissions import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
-from ....product.tasks import update_product_minimal_variant_price_task
+from ....product.tasks import update_product_discounted_price_task
 from ....product.utils import delete_categories
 from ....product.utils.attributes import generate_name_for_variant
 from ....warehouse import models as warehouse_models
@@ -408,8 +408,8 @@ class ProductVariantBulkCreate(BaseMutation):
             raise ValidationError(errors)
         cls.save_variants(info, instances, cleaned_inputs)
 
-        # Recalculate the "minimal variant price" for the parent product
-        update_product_minimal_variant_price_task.delay(product.pk)
+        # Recalculate the "discounted price" for the parent product
+        update_product_discounted_price_task.delay(product.pk)
 
         instances = [
             ChannelContext(node=instance, channel_slug=None) for instance in instances

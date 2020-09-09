@@ -434,9 +434,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     is_available = graphene.Boolean(
         description="Whether the product is in stock and visible or not."
     )
-    minimal_variant_price = graphene.Field(
-        Money, description="The price of the cheapest variant (including discounts)."
-    )
     tax_type = graphene.Field(
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
     )

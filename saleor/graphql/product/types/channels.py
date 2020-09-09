@@ -1,5 +1,6 @@
-from graphene import relay
+import graphene
 
+from ....graphql.core.types import Money
 from ....product import models
 from ...channel.dataloaders import (
     ChannelByProductChannelListingIDLoader,
@@ -9,10 +10,14 @@ from ...core.connection import CountableDjangoObjectType
 
 
 class ProductChannelListing(CountableDjangoObjectType):
+    discounted_price = graphene.Field(
+        Money, description="The price of the cheapest variant (including discounts)."
+    )
+
     class Meta:
         description = "Represents product channel listing."
         model = models.ProductChannelListing
-        interfaces = [relay.Node]
+        interfaces = [graphene.relay.Node]
         only_fields = ["id", "channel", "is_published", "publication_date"]
 
     @staticmethod
@@ -24,7 +29,7 @@ class ProductVariantChannelListing(CountableDjangoObjectType):
     class Meta:
         description = "Represents product varaint channel listing."
         model = models.ProductVariantChannelListing
-        interfaces = [relay.Node]
+        interfaces = [graphene.relay.Node]
         only_fields = ["id", "channel", "price"]
 
     @staticmethod

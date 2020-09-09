@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import graphene
 
 from ....product.error_codes import ProductErrorCode
@@ -5,11 +7,11 @@ from ....product.models import ProductChannelListing
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION = """
-mutation UpdateProductVaraintChannelListing(
+mutation UpdateProductVariantChannelListing(
     $id: ID!,
     $input: [ProductVariantChannelListingAddInput!]!
 ) {
-    productVaraintChannelListingUpdate(id: $id, input: $input) {
+    productVariantChannelListingUpdate(id: $id, input: $input) {
         productChannelListingErrors {
             field
             message
@@ -59,7 +61,7 @@ def test_variant_channel_listing_update_duplicated_channel(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productVaraintChannelListingUpdate"][
+    errors = content["data"]["productVariantChannelListingUpdate"][
         "productChannelListingErrors"
     ]
     assert len(errors) == 1
@@ -88,7 +90,7 @@ def test_variant_channel_listing_update_with_empty_input(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productVaraintChannelListingUpdate"][
+    errors = content["data"]["productVariantChannelListingUpdate"][
         "productChannelListingErrors"
     ]
     assert not errors
@@ -115,7 +117,7 @@ def test_variant_channel_listing_update_not_assigned_channel(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productVaraintChannelListingUpdate"][
+    errors = content["data"]["productVariantChannelListingUpdate"][
         "productChannelListingErrors"
     ]
     assert len(errors) == 1
@@ -145,7 +147,7 @@ def test_variant_channel_listing_update_negative_price(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productVaraintChannelListingUpdate"][
+    errors = content["data"]["productVariantChannelListingUpdate"][
         "productChannelListingErrors"
     ]
     assert len(errors) == 1
@@ -182,7 +184,7 @@ def test_variant_channel_listing_update_as_staff_user(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["productVaraintChannelListingUpdate"]
+    data = content["data"]["productVariantChannelListingUpdate"]
     variant_data = data["variant"]
     assert not data["productChannelListingErrors"]
     assert variant_data["id"] == variant_id
@@ -222,7 +224,7 @@ def test_variant_channel_listing_update_as_app(
     content = get_graphql_content(response)
 
     # then
-    data = content["data"]["productVaraintChannelListingUpdate"]
+    data = content["data"]["productVariantChannelListingUpdate"]
     variant_data = data["variant"]
     assert not data["productChannelListingErrors"]
     assert variant_data["id"] == variant_id
@@ -288,3 +290,32 @@ def test_variant_channel_listing_update_as_anonymous(
 
     # then
     assert_no_permission(response)
+
+
+@patch("saleor.graphql.product.mutations.channels.update_product_discounted_price_task")
+def test_product_variant_channel_listing_update_updates_discounted_price(
+    mock_update_product_discounted_price_task,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    channel_USD,
+):
+    query = PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION
+    variant = product.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "id": variant_id,
+        "input": [{"channelId": channel_id, "price": "1.99"}],
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    assert response.status_code == 200
+
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantChannelListingUpdate"]
+    assert data["productChannelListingErrors"] == []
+
+    mock_update_product_discounted_price_task.delay.assert_called_once_with(product.pk)

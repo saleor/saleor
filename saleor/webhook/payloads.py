@@ -189,7 +189,6 @@ def generate_product_payload(product: "Product"):
         "name",
         "description_json",
         "currency",
-        "minimal_variant_price_amount",
         "attributes",
         "updated_at",
         "charge_taxes",

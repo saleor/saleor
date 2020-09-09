@@ -263,21 +263,6 @@ class Product(SeoModel, ModelWithMetadata):
         null=True,
         blank=True,
     )
-
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        default=settings.DEFAULT_CURRENCY,
-    )
-
-    minimal_variant_price_amount = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        blank=True,
-        null=True,
-    )
-    minimal_variant_price = MoneyField(
-        amount_field="minimal_variant_price_amount", currency_field="currency"
-    )
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
     weight = MeasurementField(
@@ -373,44 +358,20 @@ class ProductChannelListing(PublishableModel):
         related_name="product_listing",
         on_delete=models.CASCADE,
     )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
+    discounted_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
+    discounted_price = MoneyField(
+        amount_field="discounted_price_amount", currency_field="currency"
+    )
 
     class Meta:
         unique_together = [["product", "channel"]]
         ordering = ("pk",)
-
-
-class ProductVariantQueryset(models.QuerySet):
-    def create(self, **kwargs):
-        """Create a product's variant.
-
-        After the creation update the "minimal_variant_price" of the product.
-        """
-        variant = super().create(**kwargs)
-
-        from .tasks import update_product_minimal_variant_price_task
-
-        update_product_minimal_variant_price_task.delay(variant.product_id)
-        return variant
-
-    def bulk_create(self, objs, batch_size=None, ignore_conflicts=False):
-        """Insert each of the product's variant instances into the database.
-
-        After the creation update the "minimal_variant_price" of all the products.
-        """
-        variants = super().bulk_create(
-            objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
-        )
-        product_ids = set()
-        for obj in objs:
-            product_ids.add(obj.product_id)
-        product_ids = list(product_ids)
-
-        from .tasks import update_products_minimal_variant_prices_of_catalogues_task
-
-        update_products_minimal_variant_prices_of_catalogues_task.delay(
-            product_ids=product_ids
-        )
-        return variants
 
 
 class ProductVariant(ModelWithMetadata):
@@ -441,7 +402,6 @@ class ProductVariant(ModelWithMetadata):
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
 
-    objects = ProductVariantQueryset.as_manager()
     translated = TranslationProxy()
 
     class Meta:

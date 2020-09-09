@@ -740,9 +740,9 @@ def test_category_delete_mutation(
         category.refresh_from_db()
 
 
-@patch("saleor.product.utils.update_products_minimal_variant_prices_task")
+@patch("saleor.product.utils.update_products_discounted_prices_task")
 def test_category_delete_mutation_for_categories_tree(
-    mock_update_products_minimal_variant_prices_task,
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     categories_tree_with_published_products,
     permission_manage_products,
@@ -763,11 +763,11 @@ def test_category_delete_mutation_for_categories_tree(
     with pytest.raises(parent._meta.model.DoesNotExist):
         parent.refresh_from_db()
 
-    mock_update_products_minimal_variant_prices_task.delay.assert_called_once()
+    mock_update_products_discounted_prices_task.delay.assert_called_once()
     (
         _call_args,
         call_kwargs,
-    ) = mock_update_products_minimal_variant_prices_task.delay.call_args
+    ) = mock_update_products_discounted_prices_task.delay.call_args
     assert set(call_kwargs["product_ids"]) == set(p.pk for p in product_list)
 
     product_channel_listings = ProductChannelListing.objects.filter(
@@ -779,9 +779,9 @@ def test_category_delete_mutation_for_categories_tree(
     assert product_channel_listings.count() == 4
 
 
-@patch("saleor.product.utils.update_products_minimal_variant_prices_task")
+@patch("saleor.product.utils.update_products_discounted_prices_task")
 def test_category_delete_mutation_for_children_from_categories_tree(
-    mock_update_products_minimal_variant_prices_task,
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     categories_tree_with_published_products,
     permission_manage_products,
@@ -801,7 +801,7 @@ def test_category_delete_mutation_for_children_from_categories_tree(
     with pytest.raises(child._meta.model.DoesNotExist):
         child.refresh_from_db()
 
-    mock_update_products_minimal_variant_prices_task.delay.assert_called_once_with(
+    mock_update_products_discounted_prices_task.delay.assert_called_once_with(
         product_ids=[child_product.pk]
     )
 

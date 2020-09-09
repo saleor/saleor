@@ -17,9 +17,9 @@ def test_collect_categories_tree_products(categories_tree):
     )
 
 
-@patch("saleor.product.utils.update_products_minimal_variant_prices_task")
+@patch("saleor.product.utils.update_products_discounted_prices_task")
 def test_delete_categories(
-    mock_update_products_minimal_variant_prices_task,
+    mock_update_products_discounted_prices_task,
     categories_tree_with_published_products,
 ):
     parent = categories_tree_with_published_products
@@ -32,7 +32,7 @@ def test_delete_categories(
         id__in=[category.id for category in [parent, child]]
     ).exists()
 
-    calls = mock_update_products_minimal_variant_prices_task.mock_calls
+    calls = mock_update_products_discounted_prices_task.mock_calls
     assert len(calls) == 1
     call_kwargs = calls[0].kwargs
     assert set(call_kwargs["product_ids"]) == {p.pk for p in product_list}
