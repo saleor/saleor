@@ -1,4 +1,4 @@
-from unittest.mock import ANY
+from unittest.mock import ANY, patch
 from uuid import uuid4
 
 import graphene
@@ -88,8 +88,14 @@ def test_fetch_variant(
     assert data["weight"]["unit"] == WeightUnitsEnum.G.name
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_create_variant(
-    staff_api_client, product, product_type, permission_manage_products, warehouse
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+    warehouse,
 ):
     query = """
         mutation createVariant (
@@ -196,6 +202,7 @@ def test_create_variant(
     assert len(data["stocks"]) == 1
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+    updated_webhook_mock.assert_called_once_with(product)
 
 
 def test_create_product_variant_without_price(
@@ -508,7 +515,10 @@ def test_create_product_variant_update_with_new_attributes(
     assert attributes[0]["attribute"]["id"] == size_attribute_id
 
 
-def test_update_product_variant(staff_api_client, product, permission_manage_products):
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_variant(
+    updated_webhook_mock, staff_api_client, product, permission_manage_products
+):
     query = """
         mutation updateVariant (
             $id: ID!,
@@ -564,6 +574,7 @@ def test_update_product_variant(staff_api_client, product, permission_manage_pro
     assert data["costPrice"]["amount"] == cost_price
     assert data["price"]["amount"] == price
     assert data["sku"] == sku
+    updated_webhook_mock.assert_called_once_with(product)
 
 
 def test_update_product_variant_with_negative_weight(
