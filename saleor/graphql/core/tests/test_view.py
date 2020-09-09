@@ -13,7 +13,7 @@ from ...tests.fixtures import (
     ACCESS_CONTROL_ALLOW_ORIGIN,
     API_PATH,
 )
-from ...tests.utils import _get_graphql_content_from_response, get_graphql_content
+from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 
 
 def test_batch_queries(category, product, api_client, channel_USD):
@@ -159,7 +159,7 @@ def test_invalid_request_body_non_debug(client):
     data = "invalid-data"
     response = client.post(API_PATH, data, content_type="application/json")
     assert response.status_code == 400
-    content = _get_graphql_content_from_response(response)
+    content = get_graphql_content_from_response(response)
     assert "errors" in content
 
 
@@ -168,7 +168,7 @@ def test_invalid_request_body_with_debug(client):
     data = "invalid-data"
     response = client.post(API_PATH, data, content_type="application/json")
     assert response.status_code == 400
-    content = _get_graphql_content_from_response(response)
+    content = get_graphql_content_from_response(response)
     errors = content.get("errors")
     assert errors == [
         {
@@ -182,14 +182,14 @@ def test_invalid_query(api_client):
     query = "query { invalid }"
     response = api_client.post_graphql(query, check_no_permissions=False)
     assert response.status_code == 400
-    content = _get_graphql_content_from_response(response)
+    content = get_graphql_content_from_response(response)
     assert "errors" in content
 
 
 def test_no_query(client):
     response = client.post(API_PATH, "", content_type="application/json")
     assert response.status_code == 400
-    content = _get_graphql_content_from_response(response)
+    content = get_graphql_content_from_response(response)
     assert content["errors"][0]["message"] == "Must provide a query string."
 
 
@@ -197,7 +197,7 @@ def test_query_is_dict(client):
     data = {"query": {"type": "dict"}}
     response = client.post(API_PATH, data, content_type="application/json")
     assert response.status_code == 400
-    content = _get_graphql_content_from_response(response)
+    content = get_graphql_content_from_response(response)
     assert content["errors"][0]["message"] == "Must provide a query string."
 
 
@@ -208,7 +208,7 @@ def test_graphql_execution_exception(monkeypatch, api_client):
     monkeypatch.setattr("graphql.backend.core.execute_and_validate", mocked_execute)
     response = api_client.post_graphql("{ shop { name }}")
     assert response.status_code == 400
-    content = _get_graphql_content_from_response(response)
+    content = get_graphql_content_from_response(response)
     assert content["errors"][0]["message"] == "Spanish inquisition"
 
 

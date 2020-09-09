@@ -12,6 +12,7 @@ from ....product.models import (
     ProductImage,
     ProductVariant,
     ProductVariantChannelListing,
+    VariantImage,
 )
 from ...core.dataloaders import DataLoader
 
@@ -268,6 +269,17 @@ class VariantsChannelListingByProductIdAndChanneSlugLoader(
             (products_id, variants_channel_listings_map.get(products_id))
             for products_id in products_ids
         ]
+
+
+class ImagesByProductVariantIdLoader(DataLoader):
+    context_key = "images_by_product_variant"
+
+    def batch_load(self, keys):
+        variant_images = VariantImage.objects.filter(variant_id__in=keys)
+        image_map = defaultdict(list)
+        for variant_image in variant_images:
+            image_map[variant_image.variant_id].append(variant_image.image)
+        return [image_map[product_id] for product_id in keys]
 
 
 class CollectionByIdLoader(DataLoader):

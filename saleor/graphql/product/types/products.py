@@ -56,6 +56,7 @@ from ..dataloaders import (
     CategoryByIdLoader,
     CollectionsByProductIdLoader,
     ImagesByProductIdLoader,
+    ImagesByProductVariantIdLoader,
     ProductByIdLoader,
     ProductChannelListingByProductIdAndChanneSlugLoader,
     ProductChannelListingByProductIdLoader,
@@ -389,8 +390,8 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return calculate_revenue_for_variant(root.node, start_date)
 
     @staticmethod
-    def resolve_images(root: ChannelContext[models.ProductVariant], *_args):
-        return root.node.images.all()
+    def resolve_images(root: ChannelContext[models.ProductVariant], info):
+        return ImagesByProductVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
