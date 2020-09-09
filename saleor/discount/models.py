@@ -32,6 +32,7 @@ class NotApplicable(ValueError):
 
 
 class VoucherQueryset(models.QuerySet):
+    # TODO: Add channel param
     def active(self, date):
         return self.filter(
             Q(usage_limit__isnull=True) | Q(used__lt=F("usage_limit")),
@@ -65,25 +66,9 @@ class Voucher(models.Model):
         choices=DiscountValueType.CHOICES,
         default=DiscountValueType.FIXED,
     )
-    discount_value = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-    )
-    discount = MoneyField(amount_field="discount_value", currency_field="currency")
 
     # not mandatory fields, usage depends on type
     countries = CountryField(multiple=True, blank=True)
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        default=settings.DEFAULT_CURRENCY,
-    )
-    min_spent_amount = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        blank=True,
-        null=True,
-    )
-    min_spent = MoneyField(amount_field="min_spent_amount", currency_field="currency")
     min_checkout_items_quantity = models.PositiveIntegerField(null=True, blank=True)
     products = models.ManyToManyField("product.Product", blank=True)
     collections = models.ManyToManyField("product.Collection", blank=True)
@@ -155,6 +140,39 @@ class Voucher(models.Model):
         if voucher_customer:
             msg = "This offer is valid only once per customer."
             raise NotApplicable(msg)
+
+
+class VoucherChannelListing(models.Model):
+    voucher = models.ForeignKey(
+        Voucher,
+        null=False,
+        blank=False,
+        related_name="channel_listing",
+        on_delete=models.CASCADE,
+    )
+    channel = models.ForeignKey(
+        Channel,
+        null=False,
+        blank=False,
+        related_name="voucher_listing",
+        on_delete=models.CASCADE,
+    )
+    discount_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
+    discount = MoneyField(amount_field="discount_value", currency_field="currency")
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+        default=settings.DEFAULT_CURRENCY,
+    )
+    min_spent_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
+    min_spent = MoneyField(amount_field="min_spent_amount", currency_field="currency")
 
 
 class VoucherCustomer(models.Model):
