@@ -10,20 +10,21 @@ from ...shipping.utils import (
     get_countries_without_shipping_zone,
 )
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.scalars import Decimal, WeightScalar
+from ..core.scalars import PositiveDecimal, WeightScalar
 from ..core.types.common import ShippingError
 from ..core.utils import get_duplicates_ids
+from ..core.validators import validate_price_precision
 from .enums import ShippingMethodTypeEnum
 from .types import ShippingMethod, ShippingZone
 
 
 class ShippingPriceInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the shipping method.")
-    price = Decimal(description="Shipping price of the shipping method.")
-    minimum_order_price = Decimal(
+    price = PositiveDecimal(description="Shipping price of the shipping method.")
+    minimum_order_price = PositiveDecimal(
         description="Minimum order price to use this shipping method."
     )
-    maximum_order_price = Decimal(
+    maximum_order_price = PositiveDecimal(
         description="Maximum order price to use this shipping method."
     )
     minimum_order_weight = WeightScalar(
@@ -170,15 +171,11 @@ class ShippingPriceMixin:
         # Rename the price field to price_amount (the model's)
         price_amount = cleaned_input.pop("price", None)
         if price_amount is not None:
-            if price_amount < 0:
-                raise ValidationError(
-                    {
-                        "price": ValidationError(
-                            ("Shipping rate price cannot be lower than 0."),
-                            code=ShippingErrorCode.INVALID,
-                        )
-                    }
-                )
+            try:
+                validate_price_precision(price_amount, instance.currency)
+            except ValidationError as error:
+                error.code = ShippingErrorCode.INVALID.value
+                raise ValidationError({"price": error})
             cleaned_input["price_amount"] = price_amount
 
         cleaned_type = cleaned_input.get("type")
@@ -188,9 +185,19 @@ class ShippingPriceMixin:
                 max_price = cleaned_input.pop("maximum_order_price", None)
 
                 if min_price is not None:
+                    try:
+                        validate_price_precision(min_price, instance.currency)
+                    except ValidationError as error:
+                        error.code = ShippingErrorCode.INVALID.value
+                        raise ValidationError({"minimum_order_price": error})
                     cleaned_input["minimum_order_price_amount"] = min_price
 
                 if max_price is not None:
+                    try:
+                        validate_price_precision(max_price, instance.currency)
+                    except ValidationError as error:
+                        error.code = ShippingErrorCode.INVALID.value
+                        raise ValidationError({"maximum_order_price": error})
                     cleaned_input["maximum_order_price_amount"] = max_price
 
                 if (

@@ -21,7 +21,7 @@ from ....warehouse.management import allocate_stock
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.scalars import Decimal
+from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
@@ -46,7 +46,7 @@ class DraftOrderInput(InputObjectType):
         descripton="Customer associated with the draft order.", name="user"
     )
     user_email = graphene.String(description="Email address of the customer.")
-    discount = Decimal(description="Discount amount for the order.")
+    discount = PositiveDecimal(description="Discount amount for the order.")
     shipping_address = AddressInput(description="Shipping address of the customer.")
     shipping_method = graphene.ID(
         description="ID of a selected shipping method.", name="shippingMethod"
