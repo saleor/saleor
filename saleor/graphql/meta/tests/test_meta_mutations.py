@@ -402,8 +402,9 @@ def test_add_public_metadata_for_fulfillment(
     )
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_add_public_metadata_for_product(
-    staff_api_client, permission_manage_products, product
+    updated_webhook_mock, staff_api_client, permission_manage_products, product
 ):
     # given
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -417,6 +418,7 @@ def test_add_public_metadata_for_product(
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], product, product_id
     )
+    updated_webhook_mock.assert_called_once_with(product)
 
 
 def test_add_public_metadata_for_product_type(
