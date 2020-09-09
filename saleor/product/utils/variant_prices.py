@@ -10,7 +10,7 @@ from ...discount.utils import calculate_discounted_price, fetch_active_discounts
 from ..models import Product, ProductChannelListing, ProductVariantChannelListing
 
 
-def _get_varaint_prices_in_channels_dict(product):
+def _get_variant_prices_in_channels_dict(product):
     prices_dict = defaultdict(list)
     for variant_channel_listing in ProductVariantChannelListing.objects.filter(
         variant__product_id=product
@@ -39,7 +39,7 @@ def update_product_discounted_price(product, discounts=None):
     if discounts is None:
         discounts = fetch_active_discounts()
     collections = list(product.collections.all())
-    variant_prices_in_channels_dict = _get_varaint_prices_in_channels_dict(product)
+    variant_prices_in_channels_dict = _get_variant_prices_in_channels_dict(product)
     changed_products_channels_to_update = []
     for product_channel_listing in product.channel_listing.all():
         channel_id = product_channel_listing.channel_id
