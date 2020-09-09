@@ -655,9 +655,12 @@ def test_api_post_request_handles_json_errors(product, monkeypatch):
     assert response == {}
 
 
-def test_get_order_request_data_checks_if_taxes_are_included_to_price(
+def test_get_order_request_data_checks_when_taxes_are_included_to_price(
     order_with_lines, shipping_zone, site_settings, address_usa
 ):
+    site_settings.include_taxes_in_prices = True
+    site_settings.company_address = address_usa
+    site_settings.save()
     method = shipping_zone.shipping_methods.get()
     line = order_with_lines.lines.first()
     line.unit_price_gross_amount = line.unit_price_net_amount
@@ -668,18 +671,41 @@ def test_get_order_request_data_checks_if_taxes_are_included_to_price(
     order_with_lines.shipping_method = method
     order_with_lines.save()
 
-    site_settings.company_address = address_usa
-    site_settings.save()
-
     config = AvataxConfiguration(
         username_or_account="", password_or_license="", use_sandbox=False,
     )
     request_data = get_order_request_data(order_with_lines, config)
     lines_data = request_data["createTransactionModel"]["lines"]
+
+    assert all([line for line in lines_data])
+
+
+def test_get_order_request_data_checks_when_taxes_are_not_included_to_price(
+    order_with_lines, shipping_zone, site_settings, address_usa
+):
+    site_settings.company_address = address_usa
+    site_settings.include_taxes_in_prices = False
+    site_settings.save()
+
+    method = shipping_zone.shipping_methods.get()
+    line = order_with_lines.lines.first()
+    line.unit_price_gross_amount = line.unit_price_net_amount
+    line.save()
+
+    order_with_lines.shipping_address = order_with_lines.billing_address.get_copy()
+    order_with_lines.shipping_method_name = method.name
+    order_with_lines.shipping_method = method
+    order_with_lines.save()
+
+    config = AvataxConfiguration(
+        username_or_account="", password_or_license="", use_sandbox=False,
+    )
+
+    request_data = get_order_request_data(order_with_lines, config)
+    lines_data = request_data["createTransactionModel"]["lines"]
     line_without_taxes = [line for line in lines_data if line["taxIncluded"] is False]
+    # if order line has different .net and .gross we already added tax to it
     lines_with_taxes = [line for line in lines_data if line["taxIncluded"] is True]
 
-    assert len(line_without_taxes) == 1
-    assert len(lines_with_taxes) == 2
-
-    assert line_without_taxes[0]["itemCode"] == line.product_sku
+    assert len(line_without_taxes) == 2
+    assert len(lines_with_taxes) == 1
