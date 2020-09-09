@@ -259,6 +259,24 @@ class BasePlugin:
 
         return NotImplemented
 
+    def get_intervals_and_chunks(self, previous_value: Any) -> Any:
+        """Trigger when product is published.
+
+        Overwrite this method if you need to trigger specific logic after a product is
+        published.
+        """
+
+        return NotImplemented
+
+    def send_mail_with_publish_errors(self, publish_errors: Any, previous_value: Any) -> Any:
+        """Trigger when product is published.
+
+        Overwrite this method if you need to trigger specific logic after a product is
+        published.
+        """
+
+        return NotImplemented
+
 
     def metadata_updated(self, product: "Product", previous_value: Any) -> Any:
         """Trigger when product is created.

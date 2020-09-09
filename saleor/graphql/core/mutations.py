@@ -1,3 +1,4 @@
+import math
 from datetime import datetime, timedelta
 from itertools import chain
 from typing import Tuple, Union
@@ -543,7 +544,7 @@ class BaseBulkMutation(BaseMutation):
     def perform_mutation(cls, _root, info, ids, **data):
         """Perform a mutation that deletes a list of model instances."""
         clean_instance_ids, errors = [], {}
-        NUMBER_OF_CHUNKS = 13
+        start = 0
         # Allow to pass empty list for dummy mutation
         if not ids:
             return 0, errors
@@ -554,17 +555,23 @@ class BaseBulkMutation(BaseMutation):
         publish_errors = []
         from saleor.graphql.product.bulk_mutations.products import ProductBulkPublish
         if type(instance_model) == type(Product) and cls == ProductBulkPublish:
-            chunk_of_instances = list(cls.chunkify(instances, NUMBER_OF_CHUNKS))
-            for i, instances in enumerate(chunk_of_instances):
-                for instance in instances:
-                    if not instance.is_published:
-                        starting_at = (datetime.strptime(data.get('starting_at'), '%Y-%m-%d %H:%M') + timedelta(minutes=(i * int(cls.get_interval_for_offer_publication())))).strftime("%Y-%m-%d %H:%M")
-                        info.context.plugins.product_published({"product": instance, "offer_type": data.get('offer_type'), "starting_at": starting_at})
-                        error = instance.get_value_from_private_metadata('publish.allegro.errors')
-                        if error is not None:
-                            publish_errors.append(error)
-                if len(publish_errors) > 0:
-                    cls.send_mail(publish_errors)
+
+            interval, chunks = info.context.plugins.get_intervals_and_chunks()
+            step = math.ceil(len(instances) / (chunks))
+
+            for i, instance in enumerate(instances):
+                if not instance.is_published:
+                    starting_at = (datetime.strptime(data.get('starting_at'), '%Y-%m-%d %H:%M') + timedelta(minutes=(start))).strftime("%Y-%m-%d %H:%M")
+                    info.context.plugins.product_published({"product": instance, "offer_type": data.get('offer_type'), "starting_at": starting_at})
+
+                    if (i + 1) % step == 0:
+                        start += interval
+
+                    error = instance.get_value_from_private_metadata('publish.allegro.errors')
+                    if error is not None:
+                        publish_errors.append(error)
+            if len(publish_errors) > 0:
+                info.context.plugins.send_mail_with_publish_errors(publish_errors)
 
             data.pop('offer_type', None)
             data.pop('starting_at', None)

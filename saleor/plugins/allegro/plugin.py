@@ -9,6 +9,7 @@ from typing import Any
 import logging
 
 import requests
+from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import redirect
 from slugify import slugify
 
@@ -42,6 +43,7 @@ class AllegroConfiguration:
     publication_starting_at: str
     auction_format: str
     interval_for_offer_publication: str
+    offer_publication_chunks: str
 
 
 class AllegroPlugin(BasePlugin):
@@ -68,7 +70,8 @@ class AllegroPlugin(BasePlugin):
                              {"name": "publication_duration", "value":  None},
                              {"name": "publication_starting_at", "value": ''},
                              {"name": "auction_format", "value": 'AUCTION'},
-                             {"name": "interval_for_offer_publication", "value": '5'},]
+                             {"name": "interval_for_offer_publication", "value": '5'},
+                             {"name": "offer_publication_chunks", "value": '13'},]
     CONFIG_STRUCTURE = {
         "redirect_url": {
             "type": ConfigurationTypeField.STRING,
@@ -163,6 +166,11 @@ class AllegroPlugin(BasePlugin):
             "type": ConfigurationTypeField.STRING,
             "help_text": "Podaj liczbe minut co ile mają być publikowane oferty.",
             "label": "interval_for_offer_publication",
+        },
+        "offer_publication_chunks": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Podaj liczbe przedziałow w ktorych mają być publikowane oferty.",
+            "label": "offer_publication_chunks",
         }
     }
 
@@ -189,7 +197,8 @@ class AllegroPlugin(BasePlugin):
                                            publication_duration=configuration["publication_duration"],
                                            publication_starting_at=configuration["publication_starting_at"],
                                            auction_format=configuration["auction_format"],
-                                           interval_for_offer_publication=configuration["interval_for_offer_publication"])
+                                           interval_for_offer_publication=configuration["interval_for_offer_publication"],
+                                           offer_publication_chunks=configuration["offer_publication_chunks"])
 
         HOURS_LESS_THAN_WE_REFRESH_TOKEN = 6
 
@@ -251,6 +260,36 @@ class AllegroPlugin(BasePlugin):
         token_expire = datetime.strptime(self.config.token_access, '%d/%m/%Y %H:%M:%S')
         duration = token_expire - datetime.now()
         return divmod(duration.total_seconds(), 3600)[0]
+
+
+    def get_intervals_and_chunks(self, previous_value: Any):
+        return [int(self.config.interval_for_offer_publication), int(self.config.offer_publication_chunks)]
+
+    def send_mail_with_publish_errors(self, publish_errors: Any, previous_value: Any) -> Any:
+        if publish_errors is not None:
+            return self.send_mail(publish_errors)
+
+    def create_table(self, errors):
+        html = '<table style="width:100%; margin-bottom: 1rem;">'
+        html += '<tr>'
+        html += '<th></th>'
+        html += '</tr>'
+        for error in errors:
+            html += '<tr>'
+            html += '<td>' + error + '</td>'
+            html += '</tr>'
+        html += '</table>'
+        return html
+
+    def send_mail(self, errors):
+        subject = 'Logi z wystawiania ofert'
+        from_email = 'noreply.salingo@gmail.com'
+        to = 'noreply.salingo@gmail.com'
+        text_content = 'Logi z wystawiania ofert:'
+        html_content = self.create_table(errors)
+        message = EmailMultiAlternatives(subject, text_content, from_email, [to])
+        message.attach_alternative(html_content, "text/html")
+        return message.send()
 
 
 class AllegroAuth:
@@ -383,8 +422,8 @@ class AllegroAPI:
                     if len(offer['validation'].get('errors')) > 0:
                         errors = []
                         for error in offer['validation'].get('errors'):
-                            print(error['message'], 'dla ogłoszenia: ', env + '/offer/' +  offer['id'] + '/restore')
-                            errors.append(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' +  offer['id'] + '/restore')
+                            print(error['message'], 'dla ogłoszenia: ', env + '/offer/' + offer['id'] + '/restore')
+                            errors.append(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
                         self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, errors)
                     else:
                         errors = []
