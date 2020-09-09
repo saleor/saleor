@@ -123,6 +123,18 @@ def test_product_created(mocked_webhook_trigger, settings, product):
 
 
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_product_updated(mocked_webhook_trigger, settings, product):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+    manager.product_updated(product)
+
+    expected_data = generate_product_payload(product)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_UPDATED, expected_data
+    )
+
+
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_updated(mocked_webhook_trigger, settings, order_with_lines):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()

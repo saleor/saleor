@@ -1994,7 +1994,9 @@ MUTATION_UPDATE_PRODUCT = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product(
+    updated_webhook_mock,
     staff_api_client,
     category,
     non_default_category,
@@ -2064,6 +2066,8 @@ def test_update_product(
     assert attributes[0]["attribute"]["id"] == attribute_id
     assert attributes[0]["values"][0]["name"] == "Rainbow"
     assert attributes[0]["values"][0]["slug"] == "rainbow"
+
+    updated_webhook_mock.assert_called_once_with(product)
 
 
 def test_update_product_when_default_currency_changeed(

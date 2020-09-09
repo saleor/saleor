@@ -1052,6 +1052,7 @@ class ProductUpdate(ProductCreate):
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
+        info.context.plugins.product_updated(instance)
 
 
 class ProductDelete(ModelDeleteMutation):
@@ -1308,6 +1309,7 @@ class ProductVariantCreate(ModelMutation):
             AttributeAssignmentMixin.save(instance, attributes)
             instance.name = generate_name_for_variant(instance)
             instance.save(update_fields=["name"])
+        info.context.plugins.product_updated(instance.product)
 
     @classmethod
     def create_variant_stocks(cls, variant, stocks):
@@ -1878,4 +1880,5 @@ class ProductSetAvailabilityForPurchase(BaseMutation):
             product.available_for_purchase = start_date
 
         product.save(update_fields=["available_for_purchase", "updated_at"])
+        info.context.plugins.product_updated(product)
         return ProductSetAvailabilityForPurchase(product=product)
