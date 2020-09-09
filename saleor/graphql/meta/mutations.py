@@ -6,6 +6,7 @@ from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
 from ..core.mutations import BaseMutation
 from ..core.types.common import MetadataError
+from .extra_methods import MODEL_EXTRA_METHODS
 from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from .types import ObjectWithMetadata
 
@@ -83,6 +84,13 @@ class BaseMetadataMutation(BaseMutation):
         return super().mutate(root, info, **data)
 
     @classmethod
+    def perform_model_extra_actions(cls, instance, info, **data):
+        """Run extra metadata method based on mutating model."""
+        type_name, _ = graphene.Node.from_global_id(data["id"])
+        if MODEL_EXTRA_METHODS.get(type_name):
+            MODEL_EXTRA_METHODS[type_name](instance, info, **data)
+
+    @classmethod
     def success_response(cls, instance):
         """Return a success response."""
         return cls(**{"item": instance, "errors": []})
@@ -116,24 +124,11 @@ class UpdateMetadata(BaseMetadataMutation):
             items = {data.key: data.value for data in metadata_list}
             instance.store_value_in_metadata(items=items)
             instance.save(update_fields=["metadata"])
+            cls.perform_model_extra_actions(instance, info, **data)
         return cls.success_response(instance)
 
 
-class ExtraMethodMetadataMixin:
-    @classmethod
-    def extra_product_actions(cls, instance, info, **data):
-        info.context.plugins.product_updated(instance)
-
-    @classmethod
-    def perform_extra(cls, instance, info, **data):
-        MODEL_EXTRA_METHODS = {"Product": cls.extra_product_actions}
-
-        type_name, _ = graphene.Node.from_global_id(data["id"])
-        if MODEL_EXTRA_METHODS.get(type_name):
-            MODEL_EXTRA_METHODS[type_name](instance, info, **data)
-
-
-class DeleteMetadata(BaseMetadataMutation, ExtraMethodMetadataMixin):
+class DeleteMetadata(BaseMetadataMutation):
     class Meta:
         description = "Delete metadata of an object."
         permission_map = PUBLIC_META_PERMISSION_MAP
@@ -156,11 +151,11 @@ class DeleteMetadata(BaseMetadataMutation, ExtraMethodMetadataMixin):
             for key in metadata_keys:
                 instance.delete_value_from_metadata(key)
             instance.save(update_fields=["metadata"])
-            cls.perform_extra(instance, info, **data)
+            cls.perform_model_extra_actions(instance, info, **data)
         return cls.success_response(instance)
 
 
-class UpdatePrivateMetadata(BaseMetadataMutation, ExtraMethodMetadataMixin):
+class UpdatePrivateMetadata(BaseMetadataMutation):
     class Meta:
         description = "Updates private metadata of an object."
         permission_map = PRIVATE_META_PERMISSION_MAP
@@ -183,11 +178,11 @@ class UpdatePrivateMetadata(BaseMetadataMutation, ExtraMethodMetadataMixin):
             items = {data.key: data.value for data in metadata_list}
             instance.store_value_in_private_metadata(items=items)
             instance.save(update_fields=["private_metadata"])
-            cls.perform_extra(instance, info, **data)
+            cls.perform_model_extra_actions(instance, info, **data)
         return cls.success_response(instance)
 
 
-class DeletePrivateMetadata(BaseMetadataMutation, ExtraMethodMetadataMixin):
+class DeletePrivateMetadata(BaseMetadataMutation):
     class Meta:
         description = "Delete object's private metadata."
         permission_map = PRIVATE_META_PERMISSION_MAP
@@ -210,5 +205,5 @@ class DeletePrivateMetadata(BaseMetadataMutation, ExtraMethodMetadataMixin):
             for key in metadata_keys:
                 instance.delete_value_from_private_metadata(key)
             instance.save(update_fields=["private_metadata"])
-            cls.perform_extra(instance, info, **data)
+            cls.perform_model_extra_actions(instance, info, **data)
         return cls.success_response(instance)
