@@ -8,7 +8,14 @@ from prices import Money
 from ...checkout.utils import get_voucher_discount_for_checkout
 from ...product.models import Product, ProductVariant, ProductVariantChannelListing
 from .. import DiscountInfo, DiscountValueType, VoucherType
-from ..models import NotApplicable, Sale, SaleChannelListing, Voucher, VoucherCustomer
+from ..models import (
+    NotApplicable,
+    Sale,
+    SaleChannelListing,
+    Voucher,
+    VoucherChannelListing,
+    VoucherCustomer,
+)
 from ..templatetags.voucher import discount_as_negative
 from ..utils import (
     add_voucher_usage_by_customer,
@@ -24,15 +31,38 @@ from ..utils import (
     "min_spent_amount, value",
     [(Money(5, "USD"), Money(10, "USD")), (Money(10, "USD"), Money(10, "USD"))],
 )
-def test_valid_voucher_min_spent_amount(min_spent_amount, value):
-    voucher = Voucher(
+def test_valid_voucher_min_spent_amount(min_spent_amount, value, channel_USD):
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SHIPPING,
         discount_value_type=DiscountValueType.FIXED,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
         discount=Money(10, "USD"),
         min_spent=min_spent_amount,
     )
-    voucher.validate_min_spent(value)
+
+    voucher.validate_min_spent(value, channel_USD)
+
+
+def test_valid_voucher_min_spent_amount_voucher_not_assigned_to_channel(
+    channel_USD, channel_PLN
+):
+    voucher = Voucher.objects.create(
+        code="unique",
+        type=VoucherType.SHIPPING,
+        discount_value_type=DiscountValueType.FIXED,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
+        min_spent=(Money(5, channel_USD.currency_code)),
+    )
+    with pytest.raises(NotApplicable):
+        voucher.validate_min_spent(Money(10, channel_PLN.currency_code), channel_PLN)
 
 
 def test_valid_voucher_min_checkout_items_quantity(voucher):
@@ -149,6 +179,7 @@ def test_specific_products_voucher_checkout_discount(
     expected_value,
     apply_once_per_order,
     checkout_with_item,
+    channel_USD,
 ):
     discounts = []
     monkeypatch.setattr(
@@ -157,14 +188,17 @@ def test_specific_products_voucher_checkout_discount(
             Money(price, "USD") for price in prices
         ),
     )
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=discount_type,
-        discount_value=discount_value,
         apply_once_per_order=apply_once_per_order,
     )
-    voucher.save()
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(discount_value, channel_USD.currency_code),
+    )
     checkout = checkout_with_item
     discount = get_voucher_discount_for_checkout(
         voucher, checkout, list(checkout), discounts
@@ -226,27 +260,35 @@ def test_sale_applies_to_correct_products(product_type, category, channel_USD):
         get_product_discount_on_sale(sec_variant.product, set(), discount, channel_USD)
 
 
-def test_increase_voucher_usage():
+def test_increase_voucher_usage(channel_USD):
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=DiscountValueType.FIXED,
-        discount_value=10,
         usage_limit=100,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
     )
     increase_voucher_usage(voucher)
     voucher.refresh_from_db()
     assert voucher.used == 1
 
 
-def test_decrease_voucher_usage():
+def test_decrease_voucher_usage(channel_USD):
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=DiscountValueType.FIXED,
-        discount_value=10,
         usage_limit=100,
         used=10,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
     )
     decrease_voucher_usage(voucher)
     voucher.refresh_from_db()
@@ -297,18 +339,24 @@ def test_validate_voucher(
     total_quantity,
     min_checkout_items_quantity,
     discount_value_type,
+    channel_USD,
 ):
     voucher = Voucher.objects.create(
         code="unique",
-        currency="USD",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
-        discount_value=50,
-        min_spent_amount=min_spent_amount,
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(50, channel_USD.currency_code),
+        min_spent_amount=min_spent_amount,
+    )
     total_price = Money(total, "USD")
-    validate_voucher(voucher, total_price, total_quantity, "test@example.com")
+    validate_voucher(
+        voucher, total_price, total_quantity, "test@example.com", channel_USD
+    )
 
 
 @pytest.mark.parametrize(
@@ -327,27 +375,35 @@ def test_validate_voucher_not_applicable(
     min_checkout_items_quantity,
     discount_value,
     discount_value_type,
+    channel_USD,
 ):
     voucher = Voucher.objects.create(
         code="unique",
-        currency="USD",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
-        discount_value=discount_value,
-        min_spent_amount=min_spent_amount,
         min_checkout_items_quantity=min_checkout_items_quantity,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(50, channel_USD.currency_code),
+        min_spent_amount=min_spent_amount,
     )
     total_price = Money(total, "USD")
     with pytest.raises(NotApplicable):
-        validate_voucher(voucher, total_price, total_quantity, "test@example.com")
+        validate_voucher(
+            voucher, total_price, total_quantity, "test@example.com", channel_USD
+        )
 
 
-def test_validate_voucher_not_applicable_once_per_customer(voucher, customer_user):
+def test_validate_voucher_not_applicable_once_per_customer(
+    voucher, customer_user, channel_USD
+):
     voucher.apply_once_per_customer = True
     voucher.save()
     VoucherCustomer.objects.create(voucher=voucher, customer_email=customer_user.email)
     with pytest.raises(NotApplicable):
-        validate_voucher(voucher, 0, 0, customer_user.email)
+        validate_voucher(voucher, 0, 0, customer_user.email, channel_USD)
 
 
 date_time_now = timezone.now()

@@ -102,25 +102,36 @@ class Voucher(models.Model):
             and self.discount_value_type == DiscountValueType.PERCENTAGE
         )
 
-    def get_discount(self):
+    def get_discount(self, channel: Channel):
+        voucher_channel_listing = self.channel_listing.filter(channel=channel).first()
+        if not voucher_channel_listing:
+            raise NotApplicable("This voucher is not assigned to this channel")
         if self.discount_value_type == DiscountValueType.FIXED:
-            discount_amount = Money(self.discount_value, settings.DEFAULT_CURRENCY)
+            discount_amount = Money(
+                voucher_channel_listing.discount_value, voucher_channel_listing.currency
+            )
             return partial(fixed_discount, discount=discount_amount)
         if self.discount_value_type == DiscountValueType.PERCENTAGE:
-            return partial(percentage_discount, percentage=self.discount_value)
+            return partial(
+                percentage_discount, percentage=voucher_channel_listing.discount_value
+            )
         raise NotImplementedError("Unknown discount type")
 
-    def get_discount_amount_for(self, price: Money):
-        discount = self.get_discount()
+    def get_discount_amount_for(self, price: Money, channel: Channel):
+        discount = self.get_discount(channel)
         after_discount = discount(price)
         if after_discount.amount < 0:
             return price
         return price - after_discount
 
-    def validate_min_spent(self, value: Money):
-        if self.min_spent and value < self.min_spent:
-            msg = f"This offer is only valid for orders over {amount(self.min_spent)}."
-            raise NotApplicable(msg, min_spent=self.min_spent)
+    def validate_min_spent(self, value: Money, channel: Channel):
+        voucher_channel_listing = self.channel_listing.filter(channel=channel).first()
+        if not voucher_channel_listing:
+            raise NotApplicable("This voucher is not assigned to this channel")
+        min_spent = voucher_channel_listing.min_spent
+        if min_spent and value < min_spent:
+            msg = f"This offer is only valid for orders over {amount(min_spent)}."
+            raise NotApplicable(msg, min_spent=min_spent)
 
     def validate_min_checkout_items_quantity(self, quantity):
         min_checkout_items_quantity = self.min_checkout_items_quantity

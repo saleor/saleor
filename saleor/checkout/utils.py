@@ -185,7 +185,7 @@ def _get_shipping_voucher_discount_for_checkout(
     shipping_price = calculations.checkout_shipping_price(
         checkout=checkout, lines=lines, discounts=discounts
     ).gross
-    return voucher.get_discount_amount_for(shipping_price)
+    return voucher.get_discount_amount_for(shipping_price, checkout.channel)
 
 
 def _get_products_voucher_discount(
@@ -200,7 +200,7 @@ def _get_products_voucher_discount(
     if not prices:
         msg = "This offer is only valid for selected items."
         raise NotApplicable(msg)
-    return get_products_voucher_discount(voucher, prices)
+    return get_products_voucher_discount(voucher, prices, channel)
 
 
 def get_prices_of_discounted_specific_product(
@@ -244,7 +244,7 @@ def get_voucher_discount_for_checkout(
         subtotal = calculations.checkout_subtotal(
             checkout=checkout, lines=lines, discounts=discounts
         ).gross
-        return voucher.get_discount_amount_for(subtotal)
+        return voucher.get_discount_amount_for(subtotal, checkout.channel)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(
             voucher, checkout, lines, discounts
