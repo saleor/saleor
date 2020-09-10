@@ -77,37 +77,6 @@ def test_snake_to_camel_case():
     assert snake_to_camel_case(123) == 123
 
 
-def test_mutation_returns_error_field_in_camel_case(
-    staff_api_client, variant, permission_manage_products
-):
-    # costPrice is snake case variable (cost_price) in the backend
-    query = """
-    mutation testCamel($id: ID!, $cost: Decimal) {
-        productVariantUpdate(id: $id,
-        input: {costPrice: $cost, trackInventory: false}) {
-            errors {
-                field
-                message
-            }
-            productVariant {
-                id
-            }
-        }
-    }
-    """
-    variables = {
-        "id": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "cost": 12.1234,
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    errors = content["data"]["productVariantUpdate"]["errors"]
-    assert len(errors) == 1
-    assert errors[0]["field"] == "costPriceAmount"
-
-
 def test_reporting_period_to_date():
     now = timezone.now()
     start_date = reporting_period_to_date(ReportingPeriod.TODAY)
@@ -160,21 +129,20 @@ def test_total_count_query(api_client, product, channel_USD):
     assert content["data"]["products"]["totalCount"] == Product.objects.count()
 
 
-@pytest.mark.parametrize(
-    "cost_price", [12.12, 15],
-)
-def test_mutation_decimal_input(
-    staff_api_client, variant, stock, permission_manage_products, cost_price
+def test_mutation_positive_decimal_input(
+    staff_api_client, variant, stock, permission_manage_products
 ):
     query = """
-    mutation decimalInput($id: ID!, $cost: Decimal) {
+    mutation PositiveDecimalInput(
+        $id: ID!, $cost: PositiveDecimal
+    ) {
         productVariantUpdate(id: $id, input: {costPrice: $cost}) {
             errors {
                 field
                 message
             }
             productVariant {
-                costPrice{
+                costPrice {
                     amount
                 }
             }
@@ -183,7 +151,7 @@ def test_mutation_decimal_input(
     """
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "cost": cost_price,
+        "cost": 12.12,
         "quantity": 17,
     }
     response = staff_api_client.post_graphql(
@@ -197,11 +165,13 @@ def test_mutation_decimal_input(
 @pytest.mark.parametrize(
     "cost_price", [12.12, 15],
 )
-def test_mutation_decimal_input_without_arguments(
+def test_mutation_positive_decimal_input_without_arguments(
     staff_api_client, variant, permission_manage_products, cost_price
 ):
     query = """
-    mutation ProductVariantUpdate($id: ID!, $costPrice: Decimal) {
+    mutation ProductVariantUpdate(
+        $id: ID!, $costPrice: PositiveDecimal
+    ) {
         productVariantUpdate(id: $id, input: {costPrice: $costPrice}) {
             errors {
                 field

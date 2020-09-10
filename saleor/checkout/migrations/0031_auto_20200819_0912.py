@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("checkout", "0029_checkout_channel"),
+        ("checkout", "0030_checkout_channel"),
     ]
 
     operations = [

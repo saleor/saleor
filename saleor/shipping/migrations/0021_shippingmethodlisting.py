@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("channel", "0001_initial"),
-        ("shipping", "0019_remove_shippingmethod_meta"),
+        ("shipping", "0020_auto_20200902_1249"),
     ]
 
     operations = [

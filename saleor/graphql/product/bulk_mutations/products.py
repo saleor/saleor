@@ -27,6 +27,7 @@ from ...core.types.common import (
     StockError,
 )
 from ...core.utils import get_duplicated_values
+from ...core.validators import validate_price_precision
 from ...utils import resolve_global_ids_to_primary_keys
 from ...warehouse.types import Warehouse
 from ..mutations.channels import ProductVariantChannelListingAddInput
@@ -176,12 +177,11 @@ class ProductVariantBulkCreate(BaseMutation):
 
         cost_price_amount = cleaned_input.pop("cost_price", None)
         if cost_price_amount is not None:
-            if cost_price_amount < 0:
-                errors["costPrice"] = ValidationError(
-                    "Product price cannot be lower than 0.",
-                    code=ProductErrorCode.INVALID.value,
-                    params={"index": variant_index},
-                )
+            try:
+                validate_price_precision(cost_price_amount)
+            except ValidationError as error:
+                error.code = ProductErrorCode.INVALID.value
+                raise ValidationError({"cost_price": error})
             cleaned_input["cost_price_amount"] = cost_price_amount
 
         attributes = cleaned_input.get("attributes")
@@ -225,23 +225,19 @@ class ProductVariantBulkCreate(BaseMutation):
         for index, channel_listing_data in enumerate(channels_data):
             channel_listing_data["channel"] = channels[index]
 
-        channels_with_negative_price = []
         for channel_listing_data in channels_data:
             price_amount = channel_listing_data.get("price")
-            if price_amount is not None:
-                if price_amount < 0:
-                    channels_with_negative_price.append(
-                        channel_listing_data["channel_id"]
-                    )
-        if channels_with_negative_price:
-            errors["price"] = ValidationError(
-                "Product price cannot be lower than 0.",
-                code=ProductErrorCode.INVALID.value,
-                params={
+            try:
+                validate_price_precision(
+                    price_amount, channel_listing_data["channel"].currency_code
+                )
+            except ValidationError as error:
+                error.code = ProductErrorCode.INVALID.value
+                error.params = {
                     "index": variant_index,
-                    "channels": channels_with_negative_price,
-                },
-            )
+                    "channels": [channel_listing_data["channel_id"]],
+                }
+                errors["price"].append(error)
 
         channels_not_assigned_to_product = []
         channels_assigned_to_product = list(

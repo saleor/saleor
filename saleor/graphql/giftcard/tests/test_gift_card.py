@@ -234,7 +234,7 @@ def test_query_gift_card_by_app_without_premissions(
 CREATE_GIFT_CARD_MUTATION = """
 mutation giftCardCreate(
     $code: String, $startDate: Date, $endDate: Date,
-    $balance: Decimal!, $userEmail: String) {
+    $balance: PositiveDecimal!, $userEmail: String) {
         giftCardCreate(input: {
                 code: $code, startDate: $startDate,
                 endDate: $endDate,
@@ -473,10 +473,38 @@ def test_create_gift_card_without_premissions(staff_api_client):
     assert_no_permission(response)
 
 
+def test_create_gift_card_with_to_many_decimal_places_in_amount(
+    staff_api_client, permission_manage_gift_card, permission_manage_users
+):
+    start_date = date(day=1, month=1, year=2018)
+    end_date = date(day=1, month=1, year=2019)
+    initial_balance = 10.123
+    variables = {
+        "code": "test12",
+        "startDate": start_date.isoformat(),
+        "endDate": end_date.isoformat(),
+        "balance": initial_balance,
+        "userEmail": staff_api_client.user.email,
+    }
+    response = staff_api_client.post_graphql(
+        CREATE_GIFT_CARD_MUTATION,
+        variables,
+        permissions=[permission_manage_gift_card, permission_manage_users],
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["giftCardCreate"]["giftCardErrors"]
+    data = content["data"]["giftCardCreate"]["giftCard"]
+
+    assert not data
+    assert len(errors) == 1
+    assert errors[0]["field"] == "balance"
+    assert errors[0]["code"] == GiftCardErrorCode.INVALID.name
+
+
 UPDATE_GIFT_CARD_MUTATION = """
 mutation giftCardUpdate(
     $id: ID!, $startDate: Date, $endDate: Date,
-    $balance: Decimal, $userEmail: String!) {
+    $balance: PositiveDecimal, $userEmail: String!) {
         giftCardUpdate(id: $id, input: {startDate: $startDate,
                 endDate: $endDate,
                 balance: $balance, userEmail: $userEmail}) {

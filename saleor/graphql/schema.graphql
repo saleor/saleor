@@ -1698,8 +1698,6 @@ type DeactivateAllUserTokens {
   accountErrors: [AccountError!]!
 }
 
-scalar Decimal
-
 type DeleteMetadata {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   metadataErrors: [MetadataError!]!
@@ -1848,7 +1846,7 @@ input DraftOrderCreateInput {
   billingAddress: AddressInput
   user: ID
   userEmail: String
-  discount: Decimal
+  discount: PositiveDecimal
   shippingAddress: AddressInput
   shippingMethod: ID
   voucher: ID
@@ -1867,7 +1865,7 @@ input DraftOrderInput {
   billingAddress: AddressInput
   user: ID
   userEmail: String
-  discount: Decimal
+  discount: PositiveDecimal
   shippingAddress: AddressInput
   shippingMethod: ID
   voucher: ID
@@ -2137,7 +2135,7 @@ type GiftCardCreate {
 input GiftCardCreateInput {
   startDate: Date
   endDate: Date
-  balance: Decimal
+  balance: PositiveDecimal
   userEmail: String
   code: String
 }
@@ -2172,7 +2170,7 @@ type GiftCardUpdate {
 input GiftCardUpdateInput {
   startDate: Date
   endDate: Date
-  balance: Decimal
+  balance: PositiveDecimal
   userEmail: String
 }
 
@@ -2750,8 +2748,8 @@ type Mutation {
   productVariantChannelListingUpdate(id: ID!, input: [ProductVariantChannelListingAddInput!]!): ProductVariantChannelListingUpdate
   variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
   variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
-  paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
-  paymentRefund(amount: Decimal, paymentId: ID!): PaymentRefund
+  paymentCapture(amount: PositiveDecimal, paymentId: ID!): PaymentCapture
+  paymentRefund(amount: PositiveDecimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
@@ -2770,7 +2768,7 @@ type Mutation {
   draftOrderUpdate(id: ID!, input: DraftOrderInput!): DraftOrderUpdate
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!): OrderCancel
-  orderCapture(amount: Decimal!, id: ID!): OrderCapture
+  orderCapture(amount: PositiveDecimal!, id: ID!): OrderCapture
   orderClearPrivateMeta(id: ID!, input: MetaPath!): OrderClearPrivateMeta @deprecated(reason: "Use the `deletePrivateMetadata` mutation instead. This field will be removed after 2020-07-31.")
   orderClearMeta(input: MetaPath!, token: UUID!): OrderClearMeta @deprecated(reason: "Use the `deleteMetadata` mutation instead. This field will be removed after 2020-07-31.")
   orderFulfill(input: OrderFulfillInput!, order: ID): OrderFulfill
@@ -2781,7 +2779,7 @@ type Mutation {
   orderFulfillmentUpdateMeta(id: ID!, input: MetaInput!): FulfillmentUpdateMeta @deprecated(reason: "Use the `updateMetadata` mutation instead. This field will be removed after 2020-07-31.")
   orderFulfillmentUpdatePrivateMeta(id: ID!, input: MetaInput!): FulfillmentUpdatePrivateMeta @deprecated(reason: "Use the `updatePrivateMetadata` mutation instead. This field will be removed after 2020-07-31.")
   orderMarkAsPaid(id: ID!): OrderMarkAsPaid
-  orderRefund(amount: Decimal!, id: ID!): OrderRefund
+  orderRefund(amount: PositiveDecimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
   orderUpdateMeta(input: MetaInput!, token: UUID!): OrderUpdateMeta @deprecated(reason: "Use the `updateMetadata` mutation instead. This field will be removed after 2020-07-31.")
   orderUpdatePrivateMeta(id: ID!, input: MetaInput!): OrderUpdatePrivateMeta @deprecated(reason: "Use the `updatePrivateMetadata` mutation instead. This field will be removed after 2020-07-31.")
@@ -3530,7 +3528,7 @@ type PaymentGateway {
 input PaymentInput {
   gateway: String!
   token: String
-  amount: Decimal
+  amount: PositiveDecimal
   billingAddress: AddressInput
   returnUrl: String
 }
@@ -3699,6 +3697,8 @@ input PluginUpdateInput {
   active: Boolean
   configuration: [ConfigurationItemInput]
 }
+
+scalar PositiveDecimal
 
 input PriceRangeInput {
   gte: Float
@@ -4209,7 +4209,7 @@ type ProductVariantBulkCreate {
 
 input ProductVariantBulkCreateInput {
   attributes: [AttributeValueInput]!
-  costPrice: Decimal
+  costPrice: PositiveDecimal
   sku: String!
   trackInventory: Boolean
   weight: WeightScalar
@@ -4231,7 +4231,7 @@ type ProductVariantChannelListing implements Node {
 
 input ProductVariantChannelListingAddInput {
   channelId: ID!
-  price: Decimal!
+  price: PositiveDecimal!
 }
 
 type ProductVariantChannelListingUpdate {
@@ -4271,7 +4271,7 @@ type ProductVariantCreate {
 
 input ProductVariantCreateInput {
   attributes: [AttributeValueInput]!
-  costPrice: Decimal
+  costPrice: PositiveDecimal
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
@@ -4287,7 +4287,7 @@ type ProductVariantDelete {
 
 input ProductVariantInput {
   attributes: [AttributeValueInput]
-  costPrice: Decimal
+  costPrice: PositiveDecimal
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
@@ -4516,7 +4516,7 @@ input SaleFilterInput {
 input SaleInput {
   name: String
   type: DiscountValueTypeEnum
-  value: Decimal
+  value: PositiveDecimal
   products: [ID]
   categories: [ID]
   collections: [ID]
@@ -4733,9 +4733,9 @@ type ShippingMethodChannelListing implements Node {
 
 input ShippingMethodChannelListingAddInput {
   channelId: ID!
-  price: Decimal
-  minimumOrderPrice: Decimal
-  maximumOrderPrice: Decimal
+  price: PositiveDecimal
+  minimumOrderPrice: PositiveDecimal
+  maximumOrderPrice: PositiveDecimal
 }
 
 input ShippingMethodChannelListingInput {
@@ -5498,11 +5498,11 @@ input VoucherInput {
   startDate: DateTime
   endDate: DateTime
   discountValueType: DiscountValueTypeEnum
-  discountValue: Decimal
+  discountValue: PositiveDecimal
   products: [ID]
   collections: [ID]
   categories: [ID]
-  minAmountSpent: Decimal
+  minAmountSpent: PositiveDecimal
   minCheckoutItemsQuantity: Int
   countries: [String]
   applyOncePerOrder: Boolean

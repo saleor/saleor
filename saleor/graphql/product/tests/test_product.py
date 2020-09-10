@@ -2251,18 +2251,8 @@ def test_product_create_with_collections_webhook(
     get_graphql_content(response)
 
 
-def test_update_product(
-    staff_api_client,
-    category,
-    non_default_category,
-    product,
-    other_description_json,
-    permission_manage_products,
-    monkeypatch,
-    color_attribute,
-):
-    query = """
-        mutation updateProduct(
+MUTATION_UPDATE_PRODUCT = """
+    mutation updateProduct(
             $productId: ID!,
             $categoryId: ID!,
             $name: String!,
@@ -2320,7 +2310,93 @@ def test_update_product(
                           }
                         }
                       }
-    """
+"""
+
+
+def test_update_product(
+    staff_api_client,
+    category,
+    non_default_category,
+    product,
+    other_description_json,
+    permission_manage_products,
+    monkeypatch,
+    color_attribute,
+):
+    query = MUTATION_UPDATE_PRODUCT
+    other_description_json = json.dumps(other_description_json)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
+    product_name = "updated name"
+    product_slug = "updated-product"
+    product_visible_in_listings = False
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    # Mock tax interface with fake response from tax gateway
+    monkeypatch.setattr(
+        PluginsManager,
+        "get_tax_code_from_object_meta",
+        lambda self, x: TaxType(description="", code=product_tax_rate),
+    )
+
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+
+    variables = {
+        "productId": product_id,
+        "categoryId": category_id,
+        "name": product_name,
+        "slug": product_slug,
+        "descriptionJson": other_description_json,
+        "visibleInListings": product_visible_in_listings,
+        "chargeTaxes": product_charge_taxes,
+        "taxCode": product_tax_rate,
+        "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["descriptionJson"] == other_description_json
+    assert data["product"]["visibleInListings"] == product_visible_in_listings
+    assert data["product"]["chargeTaxes"] == product_charge_taxes
+    assert data["product"]["taxType"]["taxCode"] == product_tax_rate
+    assert not data["product"]["category"]["name"] == category.name
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 1
+    assert len(attributes[0]["values"]) == 1
+
+    assert attributes[0]["attribute"]["id"] == attribute_id
+    assert attributes[0]["values"][0]["name"] == "Rainbow"
+    assert attributes[0]["values"][0]["slug"] == "rainbow"
+
+
+def test_update_product_when_default_currency_changeed(
+    staff_api_client,
+    category,
+    non_default_category,
+    product,
+    other_description_json,
+    permission_manage_products,
+    monkeypatch,
+    color_attribute,
+    settings,
+):
+    # Ensure that when default currency has changed, there is no errors
+    # when updating products with different currency which has different number
+    # of required decimal places
+
+    settings.DEFAULT_COUNTRY = "IS"
+    settings.DEFAULT_CURRENCY = "ISK"
+    query = MUTATION_UPDATE_PRODUCT
 
     other_description_json = json.dumps(other_description_json)
 
@@ -4633,7 +4709,7 @@ mutation createProduct(
         $name: String!,
         $sku: String,
         $stocks: [StockInput!],
-        $basePrice: Decimal!
+        $basePrice: PositiveDecimal!
         $trackInventory: Boolean)
     {
         productCreate(

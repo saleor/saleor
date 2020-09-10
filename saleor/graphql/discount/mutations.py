@@ -11,8 +11,9 @@ from ...product.tasks import (
 )
 from ...product.utils import get_products_ids_without_variants
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ..core.scalars import Decimal
+from ..core.scalars import PositiveDecimal
 from ..core.types.common import DiscountError
+from ..core.validators import validate_price_precision
 from ..product.types import Category, Collection, Product
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 from .types import Sale, Voucher
@@ -111,7 +112,7 @@ class VoucherInput(graphene.InputObjectType):
     discount_value_type = DiscountValueTypeEnum(
         description="Choices: fixed or percentage."
     )
-    discount_value = Decimal(description="Value of the voucher.")
+    discount_value = PositiveDecimal(description="Value of the voucher.")
     products = graphene.List(
         graphene.ID, description="Products discounted by the voucher.", name="products"
     )
@@ -125,7 +126,7 @@ class VoucherInput(graphene.InputObjectType):
         description="Categories discounted by the voucher.",
         name="categories",
     )
-    min_amount_spent = Decimal(
+    min_amount_spent = PositiveDecimal(
         description="Min purchase amount required to apply the voucher."
     )
     min_checkout_items_quantity = graphene.Int(
@@ -177,6 +178,11 @@ class VoucherCreate(ModelMutation):
 
         min_spent_amount = cleaned_input.pop("min_amount_spent", None)
         if min_spent_amount is not None:
+            try:
+                validate_price_precision(min_spent_amount, instance.currency)
+            except ValidationError as error:
+                error.code = DiscountErrorCode.INVALID.value
+                raise ValidationError({"min_spent_amount": error})
             cleaned_input["min_spent_amount"] = min_spent_amount
         return cleaned_input
 
@@ -259,7 +265,7 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
 class SaleInput(graphene.InputObjectType):
     name = graphene.String(description="Voucher name.")
     type = DiscountValueTypeEnum(description="Fixed or percentage.")
-    value = Decimal(description="Value of the voucher.")
+    value = PositiveDecimal(description="Value of the voucher.")
     products = graphene.List(
         graphene.ID, description="Products related to the discount.", name="products"
     )

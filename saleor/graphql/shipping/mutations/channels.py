@@ -10,8 +10,9 @@ from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.models import ShippingMethodChannelListing
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
-from ...core.scalars import Decimal
+from ...core.scalars import PositiveDecimal
 from ...core.types.common import ShippingError
+from ...core.validators import validate_price_precision
 from ..types import ShippingMethod
 
 if TYPE_CHECKING:
@@ -22,13 +23,13 @@ ErrorType = DefaultDict[str, List[ValidationError]]
 
 class ShippingMethodChannelListingAddInput(graphene.InputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
-    price = Decimal(
+    price = PositiveDecimal(
         description="Shipping price of the shipping method in this channel."
     )
-    minimum_order_price = Decimal(
+    minimum_order_price = PositiveDecimal(
         description=("Minimum order price to use this shipping method.")
     )
-    maximum_order_price = Decimal(
+    maximum_order_price = PositiveDecimal(
         description=("Maximum order price to use this shipping method.")
     )
 
@@ -128,16 +129,17 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
             channel_id = channel_input.get("channel_id")
             price_amount = channel_input.pop("price", None)
             if price_amount is not None:
-                if price_amount < 0:
-                    errors["price"].append(
-                        ValidationError(
-                            "Shipping rate price cannot be lower than 0.",
-                            code=ShippingErrorCode.INVALID,
-                            params={"channel": channel_id},
-                        )
+                try:
+                    validate_price_precision(
+                        price_amount, channel_input["channel"].currency_code
                     )
-                else:
                     channel_input["price_amount"] = price_amount
+                except ValidationError as error:
+                    error.code = ShippingErrorCode.INVALID.value
+                    error.params = {
+                        "channel": channel_id,
+                    }
+                    errors["price"].append(error)
             else:
                 if channel_id not in channel_listing_to_update:
                     errors["price"].append(
@@ -153,9 +155,29 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
 
             if min_price is not None:
                 channel_input["minimum_order_price_amount"] = min_price
+                try:
+                    validate_price_precision(
+                        min_price, channel_input["channel"].currency_code
+                    )
+                except ValidationError as error:
+                    error.code = ShippingErrorCode.INVALID.value
+                    error.params = {
+                        "channel": channel_id,
+                    }
+                    errors["minimum_order_price"].append(error)
 
             if max_price is not None:
                 channel_input["maximum_order_price_amount"] = max_price
+                try:
+                    validate_price_precision(
+                        max_price, channel_input["channel"].currency_code
+                    )
+                except ValidationError as error:
+                    error.code = ShippingErrorCode.INVALID.value
+                    error.params = {
+                        "channel": channel_id,
+                    }
+                    errors["maximum_order_price"].append(error)
 
             if (
                 min_price is not None

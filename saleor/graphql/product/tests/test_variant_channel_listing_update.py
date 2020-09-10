@@ -4,7 +4,11 @@ import graphene
 
 from ....product.error_codes import ProductErrorCode
 from ....product.models import ProductChannelListing
-from ...tests.utils import assert_no_permission, get_graphql_content
+from ...tests.utils import (
+    assert_negative_positive_decimal_value,
+    assert_no_permission,
+    get_graphql_content,
+)
 
 PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION = """
 mutation UpdateProductVariantChannelListing(
@@ -130,12 +134,34 @@ def test_variant_channel_listing_update_negative_price(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
     # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     variant = product.variants.get()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
         "id": variant_id,
         "input": [{"channelId": channel_id, "price": -1}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION, variables=variables
+    )
+
+    # then
+    assert_negative_positive_decimal_value(response)
+
+
+def test_variant_channel_listing_update_with_too_many_decimal_places_in_price(
+    staff_api_client, product, permission_manage_products, channel_USD
+):
+    # given
+    variant = product.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": variant_id,
+        "input": [{"channelId": channel_id, "price": 1.1234}],
     }
 
     # when
@@ -147,13 +173,11 @@ def test_variant_channel_listing_update_negative_price(
     content = get_graphql_content(response)
 
     # then
-    errors = content["data"]["productVariantChannelListingUpdate"][
+    error = content["data"]["productVariantChannelListingUpdate"][
         "productChannelListingErrors"
-    ]
-    assert len(errors) == 1
-    assert errors[0]["field"] == "price"
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
-    assert errors[0]["channels"] == [channel_id]
+    ][0]
+    assert error["field"] == "price"
+    assert error["code"] == ProductErrorCode.INVALID.name
 
 
 def test_variant_channel_listing_update_as_staff_user(

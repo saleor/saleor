@@ -13,9 +13,10 @@ from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
 from ...core.mutations import BaseMutation
-from ...core.scalars import Decimal
+from ...core.scalars import PositiveDecimal
 from ...core.types.common import ProductChannelListingError
 from ...core.utils import get_duplicated_values
+from ...core.validators import validate_price_precision
 from ..types.products import Product, ProductVariant
 
 if TYPE_CHECKING:
@@ -133,7 +134,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
 
 class ProductVariantChannelListingAddInput(graphene.InputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
-    price = Decimal(
+    price = PositiveDecimal(
         required=True, description="Price of the particular variant in channel."
     )
 
@@ -222,19 +223,18 @@ class ProductVariantChannelListingUpdate(BaseMutation):
 
     @classmethod
     def clean_prices(cls, info, cleaned_input, errors: ErrorType) -> List:
-        channels_with_invalid_price = []
         for channel_listing_data in cleaned_input:
             price = channel_listing_data.get("price")
-            if price is not None and price < 0:
-                channels_with_invalid_price.append(channel_listing_data["channel_id"])
-        if channels_with_invalid_price:
-            errors["price"].append(
-                ValidationError(
-                    "Product price cannot be lower than 0.",
-                    code=ProductErrorCode.INVALID.value,
-                    params={"channels": channels_with_invalid_price},
+            try:
+                validate_price_precision(
+                    price, channel_listing_data["channel"].currency_code
                 )
-            )
+            except ValidationError as error:
+                error.code = ProductErrorCode.INVALID.value
+                error.params = {
+                    "channels": [channel_listing_data["channel_id"]],
+                }
+                errors["price"].append(error)
         return cleaned_input
 
     @classmethod
