@@ -26,6 +26,14 @@ def assert_no_permission(response):
     ), content["errors"]
 
 
+def assert_negative_positive_decimal_value(response):
+    content = get_graphql_content_from_response(response)
+    assert "errors" in content, content
+    assert "Value cannot be lower than 0." in content["errors"][0]["message"], content[
+        "errors"
+    ]
+
+
 def get_multipart_request_body(query, variables, file, file_name):
     """Create request body for multipart GraphQL requests.
 

@@ -1,6 +1,7 @@
 import graphene
 from django_prices.templatetags import prices
 
+from ....core.prices import quantize_price
 from ..enums import TaxRateType
 
 
@@ -18,6 +19,10 @@ class Money(graphene.ObjectType):
 
     class Meta:
         description = "Represents amount of money in specific currency."
+
+    @staticmethod
+    def resolve_amount(root, _info):
+        return quantize_price(root.amount, root.currency)
 
     @staticmethod
     def resolve_localized(root, _info):

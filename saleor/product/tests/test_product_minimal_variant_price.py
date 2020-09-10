@@ -81,7 +81,7 @@ def test_product_update_updates_minimal_variant_price(
     query = """
         mutation ProductUpdate(
             $productId: ID!,
-            $basePrice: Decimal!,
+            $basePrice: PositiveDecimal!,
         ) {
             productUpdate(
                 id: $productId

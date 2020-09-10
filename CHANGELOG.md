@@ -17,6 +17,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `TotalPrice` to `OrderLine` - #6068 @fowczarek
 - No secure cookie in debug mode - #6082 by @patrys, @orzechdev
 - Add searchable and available for purchase flags to product - #6060 by @IKarbowiak
+- Add `PRODUCT_UPDATED` webhook event - #6100 by @tomaszszymanski129
 
 ### Breaking Changes
 
@@ -48,6 +49,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Do not allow negative product price - #6091 by @IKarbowiak
 - Handle None as attribute value - #6092 by @IKarbowiak
 - Fix for calling order_created before the order was saved - #6095 by @korycins
+- Update default decimal places - #6098 by @IKarbowiak
 - Avoid assigning the same pictures twice to a variant - #6112 by @IKarbowiak
 - Fix crashing system when avalara is improperly configured - #6117 by @IKarbowiak
 

@@ -110,6 +110,7 @@ def test_generate_sample_payload_fulfillment_created(fulfillment):
         WebhookEventType.ORDER_FULFILLED,
         WebhookEventType.ORDER_FULLY_PAID,
         WebhookEventType.PRODUCT_CREATED,
+        WebhookEventType.PRODUCT_UPDATED,
         "Non_existing_event",
         None,
         "",
@@ -128,6 +129,8 @@ def test_generate_sample_customer_payload(customer_user):
 
 def test_generate_sample_product_payload(variant):
     payload = generate_sample_payload(WebhookEventType.PRODUCT_CREATED)
+    product = variant.product
+    product.refresh_from_db()
     assert payload == json.loads(generate_product_payload(variant.product))
 
 

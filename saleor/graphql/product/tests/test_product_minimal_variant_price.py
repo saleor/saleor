@@ -4,9 +4,8 @@ import graphene
 from freezegun import freeze_time
 from graphql_relay import from_global_id, to_global_id
 
-from ....product.error_codes import ProductErrorCode
 from ...discount.enums import DiscountValueTypeEnum
-from ...tests.utils import get_graphql_content
+from ...tests.utils import assert_negative_positive_decimal_value, get_graphql_content
 
 
 @patch(
@@ -23,7 +22,7 @@ def test_product_variant_create_updates_minimal_variant_price(
         mutation ProductVariantCreate(
             $productId: ID!,
             $sku: String!,
-            $price: Decimal,
+            $price: PositiveDecimal,
             $attributes: [AttributeValueInput]!,
         ) {
             productVariantCreate(
@@ -84,7 +83,7 @@ def test_product_variant_update_updates_minimal_variant_price(
     query = """
         mutation ProductVariantUpdate(
             $id: ID!,
-            $price: Decimal,
+            $price: PositiveDecimal,
         ) {
             productVariantUpdate(
                 id: $id,
@@ -133,7 +132,7 @@ def test_product_variant_update_updates_invalid_variant_price(
     query = """
         mutation ProductVariantUpdate(
             $id: ID!,
-            $price: Decimal,
+            $price: PositiveDecimal,
         ) {
             productVariantUpdate(
                 id: $id,
@@ -152,19 +151,15 @@ def test_product_variant_update_updates_invalid_variant_price(
             }
         }
     """
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     variant = product.variants.first()
     variant_id = to_global_id("ProductVariant", variant.pk)
     price = "-1.99"
     variables = {"id": variant_id, "price": price}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    assert response.status_code == 200
 
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantUpdate"]
-    assert data["productErrors"][0]["field"] == "price"
-    assert data["productErrors"][0]["code"] == ProductErrorCode.INVALID.name
+    response = staff_api_client.post_graphql(query, variables)
+
+    assert_negative_positive_decimal_value(response)
 
 
 @patch(
@@ -180,7 +175,7 @@ def test_product_variant_update_updates_invalid_cost_price(
     query = """
         mutation ProductVariantUpdate(
             $id: ID!,
-            $costPrice: Decimal,
+            $costPrice: PositiveDecimal,
         ) {
             productVariantUpdate(
                 id: $id,
@@ -199,19 +194,15 @@ def test_product_variant_update_updates_invalid_cost_price(
             }
         }
     """
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     variant = product.variants.first()
     variant_id = to_global_id("ProductVariant", variant.pk)
     cost_price = "-1.99"
     variables = {"id": variant_id, "costPrice": cost_price}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    assert response.status_code == 200
 
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantUpdate"]
-    assert data["productErrors"][0]["field"] == "costPrice"
-    assert data["productErrors"][0]["code"] == ProductErrorCode.INVALID.name
+    response = staff_api_client.post_graphql(query, variables)
+
+    assert_negative_positive_decimal_value(response)
 
 
 @patch(
@@ -399,7 +390,7 @@ def test_sale_create_updates_products_minimal_variant_prices(
     mutation SaleCreate(
             $name: String,
             $type: DiscountValueTypeEnum,
-            $value: Decimal,
+            $value: PositiveDecimal,
             $products: [ID]
     ) {
         saleCreate(input: {
@@ -448,7 +439,7 @@ def test_sale_update_updates_products_minimal_variant_prices(
     permission_manage_discounts,
 ):
     query = """
-    mutation SaleUpdate($id: ID!, $value: Decimal) {
+    mutation SaleUpdate($id: ID!, $value: PositiveDecimal) {
         saleUpdate(id: $id, input: {value: $value}) {
             sale {
                 id
