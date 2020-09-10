@@ -32,7 +32,7 @@ from ...core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange,
 from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
-from ...meta.types import ObjectWithMetadata
+from ...meta.types import ObjectWithMetadata, ObjectWithJSONMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -477,7 +477,7 @@ class Product(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents an individual item for sale in the storefront."
-        interfaces = [relay.Node, ObjectWithMetadata]
+        interfaces = [relay.Node, ObjectWithJSONMetadata]
         model = models.Product
         only_fields = [
             "category",

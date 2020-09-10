@@ -5,13 +5,42 @@ from .resolvers import (
     resolve_metadata,
     resolve_object_with_metadata_type,
     resolve_private_metadata,
-)
+    resolve_json_metadata, resolve_json_private_metadata)
 
 
 class MetadataItem(graphene.ObjectType):
     key = graphene.String(required=True, description="Key of a metadata item.")
     value = graphene.String(required=True, description="Value of a metadata item.")
 
+
+class ObjectWithJSONMetadata(graphene.Interface):
+    private_metadata = graphene.List(
+        graphene.JSONString,
+        required=True,
+        description=(
+            "List of private metadata items."
+            "Requires proper staff permissions to access."
+        ),
+    )
+    metadata = graphene.List(
+        graphene.JSONString,
+        required=True,
+        description=(
+            "List of public metadata items. Can be accessed without permissions."
+        ),
+    )
+
+    @staticmethod
+    def resolve_metadata(root: ModelWithMetadata, _info):
+        return resolve_json_metadata(root.metadata)
+
+    @staticmethod
+    def resolve_private_metadata(root: ModelWithMetadata, info):
+        return resolve_json_private_metadata(root, info)
+
+    @classmethod
+    def resolve_type(cls, instance: ModelWithMetadata, _info):
+        return resolve_object_with_metadata_type(instance)
 
 class ObjectWithMetadata(graphene.Interface):
     private_metadata = graphene.List(
