@@ -51,6 +51,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix for calling order_created before the order was saved - #6095 by @korycins
 - Update default decimal places - #6098 by @IKarbowiak
 - Avoid assigning the same pictures twice to a variant - #6112 by @IKarbowiak
+- Fix crashing system when avalara is improperly configured - #6117 by @IKarbowiak
 
 ## 2.10.2
 

@@ -13,6 +13,7 @@ from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
 from ...checkout import base_calculations
+from ...core.taxes import TaxError
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -97,10 +98,12 @@ def api_post_request(
     return json_response  # type: ignore
 
 
-def api_get_request(url: str, config: AvataxConfiguration):
+def api_get_request(
+    url: str, username_or_account: str, password_or_license: str,
+):
     response = None
     try:
-        auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
+        auth = HTTPBasicAuth(username_or_account, password_or_license)
         response = requests.get(url, auth=auth, timeout=TIMEOUT)
         json_response = response.json()
         logger.debug("[GET] Hit to %s", url)
@@ -436,6 +439,9 @@ def get_order_tax_data(
     response = get_cached_response_or_fetch(
         data, "order_%s" % order.token, config, force_refresh
     )
+    error = response.get("error")
+    if error:
+        raise TaxError(error)
     return response
 
 
@@ -457,7 +463,9 @@ def get_cached_tax_codes_or_fetch(
     tax_codes = cache.get(TAX_CODES_CACHE_KEY, {})
     if not tax_codes:
         tax_codes_url = urljoin(get_api_url(config.use_sandbox), "definitions/taxcodes")
-        response = api_get_request(tax_codes_url, config)
+        response = api_get_request(
+            tax_codes_url, config.username_or_account, config.password_or_license
+        )
         if response and "error" not in response:
             tax_codes = generate_tax_codes_dict(response)
             cache.set(TAX_CODES_CACHE_KEY, tax_codes, cache_time)
