@@ -289,6 +289,14 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def product_updated(self, product: "Product", previous_value: Any) -> Any:
+        """Trigger when product is updated.
+
+        Overwrite this method if you need to trigger specific logic after a product is
+        updated.
+        """
+        return NotImplemented
+
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
         """Trigger when order is fully paid.
 

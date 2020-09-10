@@ -43,8 +43,8 @@ def test_saleor_feed_items(product, discount_info, site_settings):
     assert attributes.get("mpn") == valid_variant.sku
     assert attributes.get("availability") == "in stock"
     assert attributes.get("tax") is None
-    assert attributes.get("price") == "10.00 USD"
-    assert attributes.get("sale_price") == "5.00 USD"
+    assert attributes.get("price") == "10.000 USD"
+    assert attributes.get("sale_price") == "5.000 USD"
 
 
 def test_saleor_get_feed_items_having_no_stock_info(variant, site_settings):

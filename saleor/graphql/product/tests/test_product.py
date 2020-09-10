@@ -33,6 +33,7 @@ from ....product.utils.attributes import associate_attribute_values_to_instance
 from ....warehouse.models import Allocation, Stock, Warehouse
 from ...core.enums import ReportingPeriod
 from ...tests.utils import (
+    assert_negative_positive_decimal_value,
     assert_no_permission,
     get_graphql_content,
     get_graphql_content_from_response,
@@ -1546,8 +1547,10 @@ def test_create_product_with_negative_base_price(
     description_json,
     permission_manage_products,
 ):
+    # given
     query = CREATE_PRODUCT_MUTATION
 
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     description_json = json.dumps(description_json)
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -1563,9 +1566,43 @@ def test_create_product_with_negative_base_price(
         }
     }
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_negative_positive_decimal_value(response)
+
+
+def test_create_product_with_too_many_decimal_places_in_price(
+    staff_api_client,
+    product_type,
+    category,
+    description_json,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_PRODUCT_MUTATION
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    description_json = json.dumps(description_json)
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "basePrice": 1.1234,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
     error = data["productErrors"][0]
@@ -1614,7 +1651,7 @@ QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
         $productTypeId: ID!,
         $categoryId: ID!
         $name: String!,
-        $basePrice: Decimal!,
+        $basePrice: PositiveDecimal!,
         $sku: String,
         $trackInventory: Boolean)
     {
@@ -1888,7 +1925,78 @@ def test_product_create_with_collections_webhook(
     get_graphql_content(response)
 
 
+MUTATION_UPDATE_PRODUCT = """
+    mutation updateProduct(
+        $productId: ID!,
+        $categoryId: ID!,
+        $name: String!,
+        $slug: String!,
+        $descriptionJson: JSONString!,
+        $isPublished: Boolean!,
+        $visibleInListings: Boolean!,
+        $chargeTaxes: Boolean!,
+        $taxCode: String!,
+        $basePrice: PositiveDecimal!,
+        $attributes: [AttributeValueInput!]) {
+            productUpdate(
+                id: $productId,
+                input: {
+                    category: $categoryId,
+                    name: $name,
+                    slug: $slug,
+                    descriptionJson: $descriptionJson,
+                    isPublished: $isPublished,
+                    visibleInListings: $visibleInListings,
+                    chargeTaxes: $chargeTaxes,
+                    taxCode: $taxCode,
+                    basePrice: $basePrice,
+                    attributes: $attributes
+                }) {
+                    product {
+                        category {
+                            name
+                        }
+                        descriptionJson
+                        isPublished
+                        chargeTaxes
+                        variants {
+                            price {
+                                amount
+                            }
+                        }
+                        taxType {
+                            taxCode
+                            description
+                        }
+                        name
+                        slug
+                        productType {
+                            name
+                        }
+                        attributes {
+                            attribute {
+                                id
+                                name
+                            }
+                            values {
+                                name
+                                slug
+                            }
+                        }
+                        visibleInListings
+                        }
+                        errors {
+                        message
+                        field
+                        }
+                    }
+                    }
+"""
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product(
+    updated_webhook_mock,
     staff_api_client,
     category,
     non_default_category,
@@ -1898,74 +2006,7 @@ def test_update_product(
     monkeypatch,
     color_attribute,
 ):
-    query = """
-        mutation updateProduct(
-            $productId: ID!,
-            $categoryId: ID!,
-            $name: String!,
-            $slug: String!,
-            $descriptionJson: JSONString!,
-            $isPublished: Boolean!,
-            $visibleInListings: Boolean!,
-            $chargeTaxes: Boolean!,
-            $taxCode: String!,
-            $basePrice: Decimal!,
-            $attributes: [AttributeValueInput!]) {
-                productUpdate(
-                    id: $productId,
-                    input: {
-                        category: $categoryId,
-                        name: $name,
-                        slug: $slug,
-                        descriptionJson: $descriptionJson,
-                        isPublished: $isPublished,
-                        visibleInListings: $visibleInListings,
-                        chargeTaxes: $chargeTaxes,
-                        taxCode: $taxCode,
-                        basePrice: $basePrice,
-                        attributes: $attributes
-                    }) {
-                        product {
-                            category {
-                                name
-                            }
-                            descriptionJson
-                            isPublished
-                            chargeTaxes
-                            variants {
-                                price {
-                                    amount
-                                }
-                            }
-                            taxType {
-                                taxCode
-                                description
-                            }
-                            name
-                            slug
-                            productType {
-                                name
-                            }
-                            attributes {
-                                attribute {
-                                    id
-                                    name
-                                }
-                                values {
-                                    name
-                                    slug
-                                }
-                            }
-                            visibleInListings
-                          }
-                          errors {
-                            message
-                            field
-                          }
-                        }
-                      }
-    """
-
+    query = MUTATION_UPDATE_PRODUCT
     other_description_json = json.dumps(other_description_json)
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -1976,6 +2017,88 @@ def test_update_product(
     product_is_published = True
     product_visible_in_listings = False
     product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    # Mock tax interface with fake response from tax gateway
+    monkeypatch.setattr(
+        PluginsManager,
+        "get_tax_code_from_object_meta",
+        lambda self, x: TaxType(description="", code=product_tax_rate),
+    )
+
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+
+    variables = {
+        "productId": product_id,
+        "categoryId": category_id,
+        "name": product_name,
+        "slug": product_slug,
+        "descriptionJson": other_description_json,
+        "isPublished": product_is_published,
+        "visibleInListings": product_visible_in_listings,
+        "chargeTaxes": product_charge_taxes,
+        "taxCode": product_tax_rate,
+        "basePrice": basePrice,
+        "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["descriptionJson"] == other_description_json
+    assert data["product"]["isPublished"] == product_is_published
+    assert data["product"]["visibleInListings"] == product_visible_in_listings
+    assert data["product"]["chargeTaxes"] == product_charge_taxes
+    assert data["product"]["variants"][0]["price"]["amount"] == basePrice
+    assert data["product"]["taxType"]["taxCode"] == product_tax_rate
+    assert not data["product"]["category"]["name"] == category.name
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 1
+    assert len(attributes[0]["values"]) == 1
+
+    assert attributes[0]["attribute"]["id"] == attribute_id
+    assert attributes[0]["values"][0]["name"] == "Rainbow"
+    assert attributes[0]["values"][0]["slug"] == "rainbow"
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+def test_update_product_when_default_currency_changeed(
+    staff_api_client,
+    category,
+    non_default_category,
+    product,
+    other_description_json,
+    permission_manage_products,
+    monkeypatch,
+    color_attribute,
+    settings,
+):
+    # Ensure that when default currency has changed, there is no errors
+    # when updating products with different currency which has different number
+    # of required decimal places
+
+    settings.DEFAULT_COUNTRY = "IS"
+    settings.DEFAULT_CURRENCY = "ISK"
+    query = MUTATION_UPDATE_PRODUCT
+
+    other_description_json = json.dumps(other_description_json)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
+    product_name = "updated name"
+    product_slug = "updated-product"
+    product_is_published = True
+    product_visible_in_listings = False
+    product_charge_taxes = True
+    basePrice = 10.00
     product_tax_rate = "STANDARD"
 
     # Mock tax interface with fake response from tax gateway
@@ -2476,7 +2599,7 @@ def test_update_product_with_negative_base_price(
     query = """
         mutation updateProduct(
             $productId: ID!,
-            $basePrice: Decimal)
+            $basePrice: PositiveDecimal)
         {
             productUpdate(
                 id: $productId,
@@ -2495,14 +2618,98 @@ def test_update_product_with_negative_base_price(
             }
         }
     """
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     product = product_with_default_variant
     product_id = graphene.Node.to_global_id("Product", product.pk)
 
     variables = {"productId": product_id, "basePrice": -1}
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
+    response = staff_api_client.post_graphql(query, variables)
+
+    assert_negative_positive_decimal_value(response)
+
+
+def test_update_product_with_too_many_decimal_places_in_price(
+    staff_api_client, product_with_default_variant, permission_manage_products, product
+):
+    # given
+    query = """
+        mutation updateProduct(
+            $productId: ID!,
+            $basePrice: PositiveDecimal)
+        {
+            productUpdate(
+                id: $productId,
+                input: {
+                    basePrice: $basePrice
+                })
+            {
+                product {
+                    id
+                }
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    product = product_with_default_variant
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variables = {"productId": product_id, "basePrice": 1.1001}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    error = data["productErrors"][0]
+    assert error["field"] == "basePrice"
+    assert error["code"] == ProductErrorCode.INVALID.name
+
+
+def test_update_product_with_too_many_decimal_places_in_price_different_currency(
+    staff_api_client, product_with_default_variant, permission_manage_products, product
+):
+    # given
+    query = """
+        mutation updateProduct(
+            $productId: ID!,
+            $basePrice: PositiveDecimal)
+        {
+            productUpdate(
+                id: $productId,
+                input: {
+                    basePrice: $basePrice
+                })
+            {
+                product {
+                    id
+                }
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    product_with_default_variant.currency = "ISK"
+    product_with_default_variant.save(update_fields=["currency"])
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    product = product_with_default_variant
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variables = {"productId": product_id, "basePrice": 1.1}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
     error = data["productErrors"][0]
@@ -4398,7 +4605,7 @@ mutation createProduct(
         $name: String!,
         $sku: String,
         $stocks: [StockInput!],
-        $basePrice: Decimal!
+        $basePrice: PositiveDecimal!
         $trackInventory: Boolean)
     {
         productCreate(
@@ -4588,7 +4795,7 @@ mutation createProduct(
         $category: ID!
         $name: String!,
         $sku: String,
-        $basePrice: Decimal!,
+        $basePrice: PositiveDecimal!,
         $weight: WeightScalar)
     {
         productCreate(
@@ -4693,7 +4900,7 @@ def test_create_product_with_weight_input(
             $category: ID!,
             $name: String!,
             $sku: String,
-            $basePrice: Decimal!)
+            $basePrice: PositiveDecimal!)
         {{
             productCreate(
                 input: {{

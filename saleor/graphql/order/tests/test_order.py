@@ -560,7 +560,7 @@ def test_query_order_as_app(app_api_client, permission_manage_orders, order):
 
 DRAFT_ORDER_CREATE_MUTATION = """
 mutation draftCreate(
-    $user: ID, $discount: Decimal, $lines: [OrderLineCreateInput],
+    $user: ID, $discount: PositiveDecimal, $lines: [OrderLineCreateInput],
     $shippingAddress: AddressInput, $shippingMethod: ID, $voucher: ID,
     $customerNote: String) {
         draftOrderCreate(
@@ -1777,7 +1777,7 @@ def test_order_capture(
 ):
     order = payment_txn_preauth.order
     query = """
-        mutation captureOrder($id: ID!, $amount: Decimal!) {
+        mutation captureOrder($id: ID!, $amount: PositiveDecimal!) {
             orderCapture(id: $id, amount: $amount) {
                 order {
                     paymentStatus
@@ -1984,7 +1984,7 @@ def test_order_void_payment_error(
 def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):
     order = payment_txn_captured.order
     query = """
-        mutation refundOrder($id: ID!, $amount: Decimal!) {
+        mutation refundOrder($id: ID!, $amount: PositiveDecimal!) {
             orderRefund(id: $id, amount: $amount) {
                 order {
                     paymentStatus
