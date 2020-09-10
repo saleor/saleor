@@ -484,6 +484,7 @@ def test_save_plugin_configuration(api_get_request_mock, settings):
     manager.save_plugin_configuration(
         AvataxPlugin.PLUGIN_ID,
         {
+            "active": True,
             "configuration": [
                 {"name": "Username or account", "value": "test"},
                 {"name": "Password or license", "value": "test"},
@@ -511,16 +512,20 @@ def test_save_plugin_configuration_authentication_failed(
         manager.save_plugin_configuration(
             AvataxPlugin.PLUGIN_ID,
             {
+                "active": True,
                 "configuration": [
                     {"name": "Username or account", "value": "test"},
                     {"name": "Password or license", "value": "test"},
-                    {"name": "Active", "value": True},
                 ],
             },
         )
 
     # then
     assert e._excinfo[1].args[0] == "Authentication failed. Please check provided data."
+    plugin_configuration = PluginConfiguration.objects.get(
+        identifier=AvataxPlugin.PLUGIN_ID
+    )
+    assert not plugin_configuration.active
 
 
 def test_save_plugin_configuration_cannot_be_enabled_without_config(
