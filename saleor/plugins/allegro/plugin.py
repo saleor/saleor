@@ -9,6 +9,7 @@ from typing import Any
 import logging
 
 import requests
+from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import redirect
 from slugify import slugify
 
@@ -41,6 +42,8 @@ class AllegroConfiguration:
     publication_duration: str
     publication_starting_at: str
     auction_format: str
+    interval_for_offer_publication: str
+    offer_publication_chunks: str
 
 
 class AllegroPlugin(BasePlugin):
@@ -66,7 +69,9 @@ class AllegroPlugin(BasePlugin):
                              {"name": "delivery_handling_time", "value":  None},
                              {"name": "publication_duration", "value":  None},
                              {"name": "publication_starting_at", "value": ''},
-                             {"name": "auction_format", "value": 'AUCTION'},]
+                             {"name": "auction_format", "value": 'AUCTION'},
+                             {"name": "interval_for_offer_publication", "value": '5'},
+                             {"name": "offer_publication_chunks", "value": '13'},]
     CONFIG_STRUCTURE = {
         "redirect_url": {
             "type": ConfigurationTypeField.STRING,
@@ -156,6 +161,16 @@ class AllegroPlugin(BasePlugin):
             "type": ConfigurationTypeField.STRING,
             "help_text": "AUCTION lub BUY_NOW",
             "label": "auction_format",
+        },
+        "interval_for_offer_publication": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Podaj liczbe minut co ile mają być publikowane oferty.",
+            "label": "interval_for_offer_publication",
+        },
+        "offer_publication_chunks": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Podaj liczbe przedziałow w ktorych mają być publikowane oferty.",
+            "label": "offer_publication_chunks",
         }
     }
 
@@ -181,7 +196,9 @@ class AllegroPlugin(BasePlugin):
                                            delivery_handling_time=configuration["delivery_handling_time"],
                                            publication_duration=configuration["publication_duration"],
                                            publication_starting_at=configuration["publication_starting_at"],
-                                           auction_format=configuration["auction_format"])
+                                           auction_format=configuration["auction_format"],
+                                           interval_for_offer_publication=configuration["interval_for_offer_publication"],
+                                           offer_publication_chunks=configuration["offer_publication_chunks"])
 
         HOURS_LESS_THAN_WE_REFRESH_TOKEN = 6
 
@@ -243,6 +260,36 @@ class AllegroPlugin(BasePlugin):
         token_expire = datetime.strptime(self.config.token_access, '%d/%m/%Y %H:%M:%S')
         duration = token_expire - datetime.now()
         return divmod(duration.total_seconds(), 3600)[0]
+
+
+    def get_intervals_and_chunks(self, previous_value: Any):
+        return [int(self.config.interval_for_offer_publication), int(self.config.offer_publication_chunks)]
+
+    def send_mail_with_publish_errors(self, publish_errors: Any, previous_value: Any) -> Any:
+        if publish_errors is not None:
+            return self.send_mail(publish_errors)
+
+    def create_table(self, errors):
+        html = '<table style="width:100%; margin-bottom: 1rem;">'
+        html += '<tr>'
+        html += '<th></th>'
+        html += '</tr>'
+        for error in errors:
+            html += '<tr>'
+            html += '<td>' + error + '</td>'
+            html += '</tr>'
+        html += '</table>'
+        return html
+
+    def send_mail(self, errors):
+        subject = 'Logi z wystawiania ofert'
+        from_email = 'noreply.salingo@gmail.com'
+        to = 'noreply.salingo@gmail.com'
+        text_content = 'Logi z wystawiania ofert:'
+        html_content = self.create_table(errors)
+        message = EmailMultiAlternatives(subject, text_content, from_email, [to])
+        message.attach_alternative(html_content, "text/html")
+        return message.send()
 
 
 class AllegroAuth:
@@ -375,8 +422,8 @@ class AllegroAPI:
                     if len(offer['validation'].get('errors')) > 0:
                         errors = []
                         for error in offer['validation'].get('errors'):
-                            print(error['message'], 'dla ogłoszenia: ', env + '/offer/' +  offer['id'] + '/restore')
-                            errors.append(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' +  offer['id'] + '/restore')
+                            logger.error(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
+                            errors.append(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
                         self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, errors)
                     else:
                         errors = []
@@ -394,7 +441,7 @@ class AllegroAPI:
                     if len(offer['validation'].get('errors')) > 0:
                         errors = []
                         for error in offer['validation'].get('errors'):
-                            print(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
+                            logger.error(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
                             errors.append(error['message'] + 'dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
                         self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, errors)
                     else:
@@ -752,32 +799,22 @@ class AllegroParametersMapper(BaseParametersMapper):
         mapped_parameter_key, mapped_parameter_value = self.get_mapped_parameter_key_and_value(parameter)
         allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
 
-        # print('get_allegro_parameter 1: ', parameter, mapped_parameter_key, mapped_parameter_value, allegro_parameter)
-
         if allegro_parameter is None:
             mapped_parameter_value = self.get_value_one_to_one_global(mapped_parameter_key, mapped_parameter_value)
             allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
-
-        # print('get_allegro_parameter 2: ', parameter, mapped_parameter_key, mapped_parameter_value, allegro_parameter)
 
         if allegro_parameter is None:
             mapped_parameter_value = self.get_parameter_out_of_saleor_global(mapped_parameter_key)
             allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
 
-        # print('get_allegro_parameter 3: ', parameter, mapped_parameter_key, mapped_parameter_value, allegro_parameter)
-
         if allegro_parameter is None:
             mapped_parameter_value = self.get_universal_value_parameter(slugify(mapped_parameter_key))
             allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
-
-        # print('get_allegro_parameter 4: ', parameter, mapped_parameter_key, mapped_parameter_value, allegro_parameter)
 
         if allegro_parameter is None:
             if mapped_parameter_value is None:
                 mapped_parameter_value = self.get_parameter_out_of_saleor_global(mapped_parameter_key) or self.product_attributes.get(slugify(str(mapped_parameter_key)))
             allegro_parameter = self.create_allegro_fuzzy_parameter(slugify(parameter), str(mapped_parameter_value))
-
-        # print('get_allegro_parameter 5: ', parameter, mapped_parameter_key, mapped_parameter_value, allegro_parameter)
 
         return allegro_parameter
 

@@ -227,6 +227,12 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("product_published", default_value, product)
 
+    def get_intervals_and_chunks(self):
+        return self.__run_method_on_plugins("get_intervals_and_chunks", None)
+
+    def send_mail_with_publish_errors(self, publish_errors: Any):
+        return self.__run_method_on_plugins("send_mail_with_publish_errors", None, publish_errors)
+
     def order_created(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins("order_created", default_value, order)
