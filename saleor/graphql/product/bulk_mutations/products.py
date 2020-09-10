@@ -2,12 +2,9 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
-from saleor.plugins.manager import get_plugins_manager
 
 from ....core.permissions import ProductPermissions
-from ....plugins.allegro.plugin import AllegroPlugin
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_minimal_variant_price_task

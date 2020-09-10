@@ -422,7 +422,7 @@ class AllegroAPI:
                     if len(offer['validation'].get('errors')) > 0:
                         errors = []
                         for error in offer['validation'].get('errors'):
-                            print(error['message'], 'dla ogłoszenia: ', env + '/offer/' + offer['id'] + '/restore')
+                            logger.info(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
                             errors.append(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
                         self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, errors)
                     else:
@@ -441,7 +441,7 @@ class AllegroAPI:
                     if len(offer['validation'].get('errors')) > 0:
                         errors = []
                         for error in offer['validation'].get('errors'):
-                            print(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
+                            logger.info(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
                             errors.append(error['message'] + 'dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
                         self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, errors)
                     else:
@@ -799,32 +799,22 @@ class AllegroParametersMapper(BaseParametersMapper):
         mapped_parameter_key, mapped_parameter_value = self.get_mapped_parameter_key_and_value(parameter)
         allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
 
-        # print('get_allegro_parameter 1: ', parameter, mapped_parameter_key, mapped_parameter_value, allegro_parameter)
-
         if allegro_parameter is None:
             mapped_parameter_value = self.get_value_one_to_one_global(mapped_parameter_key, mapped_parameter_value)
             allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
-
-        # print('get_allegro_parameter 2: ', parameter, mapped_parameter_key, mapped_parameter_value, allegro_parameter)
 
         if allegro_parameter is None:
             mapped_parameter_value = self.get_parameter_out_of_saleor_global(mapped_parameter_key)
             allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
 
-        # print('get_allegro_parameter 3: ', parameter, mapped_parameter_key, mapped_parameter_value, allegro_parameter)
-
         if allegro_parameter is None:
             mapped_parameter_value = self.get_universal_value_parameter(slugify(mapped_parameter_key))
             allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
-
-        # print('get_allegro_parameter 4: ', parameter, mapped_parameter_key, mapped_parameter_value, allegro_parameter)
 
         if allegro_parameter is None:
             if mapped_parameter_value is None:
                 mapped_parameter_value = self.get_parameter_out_of_saleor_global(mapped_parameter_key) or self.product_attributes.get(slugify(str(mapped_parameter_key)))
             allegro_parameter = self.create_allegro_fuzzy_parameter(slugify(parameter), str(mapped_parameter_value))
-
-        # print('get_allegro_parameter 5: ', parameter, mapped_parameter_key, mapped_parameter_value, allegro_parameter)
 
         return allegro_parameter
 
