@@ -470,7 +470,10 @@ AUTHENTICATION_BACKENDS = [
 # CELERY SETTINGS
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_URL = (
-    os.environ.get("CELERY_BROKER_URL", os.environ.get("CLOUDAMQP_URL")) or ""
+    os.environ.get(
+        "CELERY_BROKER_URL", 
+        os.environ.get("CLOUDAMQP_URL", os.environ.get("REDIS_URL"))
+    ) or ""
 )
 CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 CELERY_ACCEPT_CONTENT = ["json"]
