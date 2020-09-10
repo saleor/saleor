@@ -462,7 +462,4 @@ class AvataxPlugin(BasePlugin):
                     code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
                 )
 
-            try:
-                cls.validate_authentication(plugin_configuration)
-            except ValidationError:
-                raise
+            cls.validate_authentication(plugin_configuration)
