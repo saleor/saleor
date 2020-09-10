@@ -15,7 +15,7 @@ from ....order.actions import (
     order_voided,
 )
 from ....order.error_codes import OrderErrorCode
-from ....order.utils import get_valid_shipping_methods_for_order
+from ....order.utils import get_valid_shipping_methods_for_order, update_order_prices
 from ....payment import CustomPaymentChoices, PaymentError, TransactionKind, gateway
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
@@ -249,6 +249,7 @@ class OrderUpdateShipping(BaseMutation):
                 "shipping_price_gross_amount",
             ]
         )
+        update_order_prices(order, info.context.discounts)
         # Post-process the results
         order_shipping_updated(order)
         return OrderUpdateShipping(order=order)
