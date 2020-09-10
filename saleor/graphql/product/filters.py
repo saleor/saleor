@@ -287,6 +287,23 @@ def filter_quantity(qs, quantity_value, warehouses=None):
     )
     return qs.filter(variants__in=product_variants)
 
+def filter_products_with_json_metadata_by_stock_availability(qs, stock_availability):
+    total_stock = (
+        Stock.objects.select_related("product_variant")
+        .values("product_variant__product_id")
+        .annotate(
+            total_quantity_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0)
+        )
+        .annotate(total_quantity=Coalesce(Sum("quantity"), 0))
+        .annotate(total_available=F("total_quantity") - F("total_quantity_allocated"))
+        .filter(total_available__lte=0)
+        .values_list("product_variant__product_id", flat=True)
+    )
+    if stock_availability == StockAvailability.IN_STOCK:
+        qs = qs.exclude(id__in=Subquery(total_stock))
+    elif stock_availability == StockAvailability.OUT_OF_STOCK:
+        qs = qs.filter(id__in=Subquery(total_stock))
+    return qs
 
 class ProductStockFilterInput(graphene.InputObjectType):
     warehouse_ids = graphene.List(graphene.NonNull(graphene.ID), required=False)
