@@ -422,7 +422,7 @@ class AllegroAPI:
                     if len(offer['validation'].get('errors')) > 0:
                         errors = []
                         for error in offer['validation'].get('errors'):
-                            logger.info(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
+                            logger.error(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
                             errors.append(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
                         self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, errors)
                     else:
@@ -441,7 +441,7 @@ class AllegroAPI:
                     if len(offer['validation'].get('errors')) > 0:
                         errors = []
                         for error in offer['validation'].get('errors'):
-                            logger.info(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
+                            logger.error(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
                             errors.append(error['message'] + 'dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
                         self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, errors)
                     else:
