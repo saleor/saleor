@@ -1,5 +1,6 @@
+import datetime
 from json import JSONDecodeError
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 from django.core.exceptions import ValidationError
@@ -15,11 +16,13 @@ from .. import (
     META_CODE_KEY,
     META_DESCRIPTION_KEY,
     AvataxConfiguration,
+    TransactionType,
     api_get_request,
     api_post_request,
     generate_request_data_from_checkout,
     get_cached_tax_codes_or_fetch,
     get_order_request_data,
+    get_order_tax_data,
     taxes_need_new_fetch,
 )
 from ..plugin import AvataxPlugin
@@ -473,12 +476,15 @@ def test_get_plugin_configuration(settings):
     assert "Autocommit" in configuration_fields
 
 
-def test_save_plugin_configuration(settings):
+@patch("saleor.plugins.avatax.plugin.api_get_request")
+def test_save_plugin_configuration(api_get_request_mock, settings):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    api_get_request_mock.return_value = {"authenticated": True}
     manager = get_plugins_manager()
     manager.save_plugin_configuration(
         AvataxPlugin.PLUGIN_ID,
         {
+            "active": True,
             "configuration": [
                 {"name": "Username or account", "value": "test"},
                 {"name": "Password or license", "value": "test"},
@@ -490,6 +496,36 @@ def test_save_plugin_configuration(settings):
         identifier=AvataxPlugin.PLUGIN_ID
     )
     assert plugin_configuration.active
+
+
+@patch("saleor.plugins.avatax.plugin.api_get_request")
+def test_save_plugin_configuration_authentication_failed(
+    api_get_request_mock, settings
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    api_get_request_mock.return_value = {"authenticated": False}
+    manager = get_plugins_manager()
+
+    # when
+    with pytest.raises(ValidationError) as e:
+        manager.save_plugin_configuration(
+            AvataxPlugin.PLUGIN_ID,
+            {
+                "active": True,
+                "configuration": [
+                    {"name": "Username or account", "value": "test"},
+                    {"name": "Password or license", "value": "test"},
+                ],
+            },
+        )
+
+    # then
+    assert e._excinfo[1].args[0] == "Authentication failed. Please check provided data."
+    plugin_configuration = PluginConfiguration.objects.get(
+        identifier=AvataxPlugin.PLUGIN_ID
+    )
+    assert not plugin_configuration.active
 
 
 def test_save_plugin_configuration_cannot_be_enabled_without_config(
@@ -508,19 +544,65 @@ def test_show_taxes_on_storefront(plugin_configuration):
     assert manager.show_taxes_on_storefront() is False
 
 
-def test_order_created(order, monkeypatch, plugin_configuration):
-    plugin_configuration()
+@patch("saleor.plugins.avatax.plugin.api_post_request_task.delay")
+def test_order_created(api_post_request_task_mock, order, plugin_configuration):
+    # given
+    plugin_conf = plugin_configuration()
+    conf = {data["name"]: data["value"] for data in plugin_conf.configuration}
+
     manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 
-    mocked_task = Mock()
-    monkeypatch.setattr("saleor.plugins.avatax.plugin.get_order_tax_data", Mock())
-    monkeypatch.setattr(
-        "saleor.plugins.avatax.plugin.api_post_request_task.delay", mocked_task,
-    )
-
+    # when
     manager.order_created(order)
-    # TODO test assert with
-    assert mocked_task.called
+
+    # then
+    address = order.billing_address
+    expected_request_data = {
+        "createTransactionModel": {
+            "companyCode": conf["Company name"],
+            "type": TransactionType.INVOICE,
+            "lines": [],
+            "code": order.token,
+            "date": datetime.date.today().strftime("%Y-%m-%d"),
+            "customerCode": 0,
+            "addresses": {
+                "shipFrom": {
+                    "line1": None,
+                    "line2": None,
+                    "city": None,
+                    "region": None,
+                    "country": None,
+                    "postalCode": None,
+                },
+                "shipTo": {
+                    "line1": address.street_address_1,
+                    "line2": address.street_address_2,
+                    "city": address.city,
+                    "region": address.city_area or "",
+                    "country": address.country,
+                    "postalCode": address.postal_code,
+                },
+            },
+            "commit": False,
+            "currencyCode": order.currency,
+            "email": order.user_email,
+        }
+    }
+
+    conf_data = {
+        "username_or_account": conf["Username or account"],
+        "password_or_license": conf["Password or license"],
+        "use_sandbox": conf["Use sandbox"],
+        "company_name": conf["Company name"],
+        "autocommit": conf["Autocommit"],
+    }
+
+    api_post_request_task_mock.assert_called_once_with(
+        "https://sandbox-rest.avatax.com/api/v2/transactions/createoradjust",
+        expected_request_data,
+        conf_data,
+        order.pk,
+    )
 
 
 @pytest.mark.vcr
@@ -604,7 +686,9 @@ def test_api_get_request_handles_request_errors(product, monkeypatch):
     )
     url = "https://www.avatax.api.com/some-get-path"
 
-    response = api_get_request(url, config)
+    response = api_get_request(
+        url, config.username_or_account, config.password_or_license
+    )
 
     assert response == {}
     assert mocked_response.called
@@ -619,7 +703,9 @@ def test_api_get_request_handles_json_errors(product, monkeypatch):
     )
     url = "https://www.avatax.api.com/some-get-path"
 
-    response = api_get_request(url, config)
+    response = api_get_request(
+        url, config.username_or_account, config.password_or_license
+    )
 
     assert response == {}
     assert mocked_response.called
@@ -709,3 +795,49 @@ def test_get_order_request_data_checks_when_taxes_are_not_included_to_price(
 
     assert len(line_without_taxes) == 2
     assert len(lines_with_taxes) == 1
+
+    assert line_without_taxes[0]["itemCode"] == line.product_sku
+
+
+@patch("saleor.plugins.avatax.get_order_request_data")
+@patch("saleor.plugins.avatax.get_cached_response_or_fetch")
+def test_get_order_tax_data(
+    get_cached_response_or_fetch_mock,
+    get_order_request_data_mock,
+    order,
+    plugin_configuration,
+):
+    # given
+    conf = plugin_configuration()
+
+    return_value = {"id": 0, "code": "3d4893da", "companyId": 123}
+    get_cached_response_or_fetch_mock.return_value = return_value
+
+    # when
+    response = get_order_tax_data(order, conf)
+
+    # then
+    get_order_request_data_mock.assert_called_once_with(order, conf)
+    assert response == return_value
+
+
+@patch("saleor.plugins.avatax.get_order_request_data")
+@patch("saleor.plugins.avatax.get_cached_response_or_fetch")
+def test_get_order_tax_data_raised_error(
+    get_cached_response_or_fetch_mock,
+    get_order_request_data_mock,
+    order,
+    plugin_configuration,
+):
+    # given
+    conf = plugin_configuration()
+
+    return_value = {"error": {"message": "test error"}}
+    get_cached_response_or_fetch_mock.return_value = return_value
+
+    # when
+    with pytest.raises(TaxError) as e:
+        get_order_tax_data(order, conf)
+
+    # then
+    assert e._excinfo[1].args[0] == return_value["error"]

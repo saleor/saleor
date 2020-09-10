@@ -1,6 +1,7 @@
 from io import StringIO
 
 from django.apps import apps
+from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
@@ -85,6 +86,13 @@ class Command(BaseCommand):
             cursor.execute(commands.getvalue())
 
     def handle(self, *args, **options):
+        # set only our custom plugin to not call external API when preparing
+        # example database
+        settings.PLUGINS = [
+            "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+            "saleor.payment.gateways.dummy_credit_card.plugin."
+            "DummyCreditCardGatewayPlugin",
+        ]
         self.make_database_faster()
         create_images = not options["withoutimages"]
         for msg in create_shipping_zones():

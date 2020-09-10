@@ -20,6 +20,7 @@ from . import (
     TransactionType,
     _validate_checkout,
     _validate_order,
+    api_get_request,
     api_post_request,
     generate_request_data_from_checkout,
     get_api_url,
@@ -422,6 +423,24 @@ class AvataxPlugin(BasePlugin):
         return True
 
     @classmethod
+    def validate_authentication(cls, plugin_configuration: "PluginConfiguration"):
+        conf = {
+            data["name"]: data["value"] for data in plugin_configuration.configuration
+        }
+        url = urljoin(get_api_url(conf["Use sandbox"]), "utilities/ping")
+        response = api_get_request(
+            url,
+            username_or_account=conf["Username or account"],
+            password_or_license=conf["Password or license"],
+        )
+
+        if not response.get("authenticated"):
+            raise ValidationError(
+                "Authentication failed. Please check provided data.",
+                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+            )
+
+    @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct."""
         missing_fields = []
@@ -432,12 +451,15 @@ class AvataxPlugin(BasePlugin):
         if not configuration["Password or license"]:
             missing_fields.append("Password or license")
 
-        if plugin_configuration.active and missing_fields:
-            error_msg = (
-                "To enable a plugin, you need to provide values for the "
-                "following fields: "
-            )
-            raise ValidationError(
-                error_msg + ", ".join(missing_fields),
-                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
-            )
+        if plugin_configuration.active:
+            if missing_fields:
+                error_msg = (
+                    "To enable a plugin, you need to provide values for the "
+                    "following fields: "
+                )
+                raise ValidationError(
+                    error_msg + ", ".join(missing_fields),
+                    code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                )
+
+            cls.validate_authentication(plugin_configuration)

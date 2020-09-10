@@ -11,7 +11,7 @@ from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
 from ....core.permissions import OrderPermissions
-from ....core.taxes import zero_taxed_money
+from ....core.taxes import TaxError, zero_taxed_money
 from ....order import OrderStatus, events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.models import Order, OrderEvent
@@ -558,6 +558,42 @@ def test_query_order_as_app(app_api_client, permission_manage_orders, order):
     assert order_data["token"] == order.token
 
 
+DRAFT_ORDER_CREATE_MUTATION = """
+mutation draftCreate(
+    $user: ID, $discount: PositiveDecimal, $lines: [OrderLineCreateInput],
+    $shippingAddress: AddressInput, $shippingMethod: ID, $voucher: ID,
+    $customerNote: String) {
+        draftOrderCreate(
+            input: {user: $user, discount: $discount,
+            lines: $lines, shippingAddress: $shippingAddress,
+            shippingMethod: $shippingMethod, voucher: $voucher,
+            customerNote: $customerNote}) {
+                orderErrors {
+                    field
+                    message
+                    code
+                }
+                order {
+                    discount {
+                        amount
+                    }
+                    discountName
+                    lines {
+                        productName
+                        productSku
+                        quantity
+                    }
+                    status
+                    voucher {
+                        code
+                    }
+                    customerNote
+                }
+            }
+    }
+"""
+
+
 def test_draft_order_create(
     staff_api_client,
     permission_manage_orders,
@@ -570,40 +606,7 @@ def test_draft_order_create(
     graphql_address_data,
 ):
     variant_0 = variant
-    query = """
-    mutation draftCreate(
-        $user: ID, $discount: PositiveDecimal, $lines: [OrderLineCreateInput],
-        $shippingAddress: AddressInput, $shippingMethod: ID, $voucher: ID,
-        $customerNote: String) {
-            draftOrderCreate(
-                input: {user: $user, discount: $discount,
-                lines: $lines, shippingAddress: $shippingAddress,
-                shippingMethod: $shippingMethod, voucher: $voucher,
-                customerNote: $customerNote}) {
-                    errors {
-                        field
-                        message
-                    }
-                    order {
-                        discount {
-                            amount
-                        }
-                        discountName
-                        lines {
-                            productName
-                            productSku
-                            quantity
-                        }
-                        status
-                        voucher {
-                            code
-                        }
-                        customerNote
-                    }
-                }
-        }
-    """
-
+    query = DRAFT_ORDER_CREATE_MUTATION
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
 
@@ -635,7 +638,7 @@ def test_draft_order_create(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    assert not content["data"]["draftOrderCreate"]["errors"]
+    assert not content["data"]["draftOrderCreate"]["orderErrors"]
     data = content["data"]["draftOrderCreate"]["order"]
     assert data["status"] == OrderStatus.DRAFT.upper()
     assert data["voucher"]["code"] == voucher.code
@@ -660,26 +663,95 @@ def test_draft_order_create(
     assert created_draft_event.parameters == {}
 
 
+@patch("saleor.graphql.order.mutations.draft_orders.add_variant_to_draft_order")
+def test_draft_order_create_tax_error(
+    add_variant_to_draft_order_mock,
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    variant,
+    voucher,
+    graphql_address_data,
+):
+    variant_0 = variant
+    err_msg = "Test error"
+    add_variant_to_draft_order_mock.side_effect = TaxError(err_msg)
+    query = DRAFT_ORDER_CREATE_MUTATION
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_1 = product_without_shipping.variants.first()
+    variant_1.quantity = 2
+    variant_1.save()
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    discount = "10"
+    customer_note = "Test note"
+    variant_list = [
+        {"variantId": variant_0_id, "quantity": 2},
+        {"variantId": variant_1_id, "quantity": 1},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    variables = {
+        "user": user_id,
+        "discount": discount,
+        "lines": variant_list,
+        "shippingAddress": shipping_address,
+        "shippingMethod": shipping_id,
+        "voucher": voucher_id,
+        "customerNote": customer_note,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderCreate"]
+    errors = data["orderErrors"]
+    assert not data["order"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.TAX_ERROR.name
+    assert errors[0]["message"] == f"Unable to calculate taxes - {err_msg}"
+
+    order_count = Order.objects.all().count()
+    assert order_count == 0
+
+
+DRAFT_ORDER_UPDATE_MUTATION = """
+    mutation draftUpdate(
+        $id: ID!, $voucher: ID!, $customerNote: String, $shippingAddress: AddressInput
+    ) {
+        draftOrderUpdate(id: $id,
+                            input: {
+                                voucher: $voucher,
+                                customerNote: $customerNote,
+                                shippingAddress: $shippingAddress,
+                            }) {
+            orderErrors {
+                field
+                message
+                code
+            }
+            order {
+                userEmail
+            }
+        }
+    }
+"""
+
+
 def test_draft_order_update(
     staff_api_client, permission_manage_orders, order_with_lines, voucher
 ):
     order = order_with_lines
     assert not order.voucher
     assert not order.customer_note
-    query = """
-        mutation draftUpdate($id: ID!, $voucher: ID!, $customerNote: String) {
-            draftOrderUpdate(id: $id,
-                             input: {voucher: $voucher, customerNote: $customerNote}) {
-                errors {
-                    field
-                    message
-                }
-                order {
-                    userEmail
-                }
-            }
-        }
-        """
+    query = DRAFT_ORDER_UPDATE_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     customer_note = "Test customer note"
@@ -689,10 +761,49 @@ def test_draft_order_update(
     )
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
-    assert not data["errors"]
+    assert not data["orderErrors"]
     order.refresh_from_db()
     assert order.voucher
     assert order.customer_note == customer_note
+
+
+@patch("saleor.graphql.order.mutations.draft_orders.update_order_prices")
+def test_draft_order_update_tax_error(
+    update_order_prices_mock,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    voucher,
+    graphql_address_data,
+):
+    err_msg = "Test error"
+    update_order_prices_mock.side_effect = TaxError(err_msg)
+    order = order_with_lines
+    assert not order.voucher
+    assert not order.customer_note
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    customer_note = "Test customer note"
+    variables = {
+        "id": order_id,
+        "voucher": voucher_id,
+        "customerNote": customer_note,
+        "shippingAddress": graphql_address_data,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    errors = data["orderErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.TAX_ERROR.name
+    assert errors[0]["message"] == f"Unable to calculate taxes - {err_msg}"
+
+    order.refresh_from_db()
+    assert not order.voucher
+    assert not order.customer_note
 
 
 def test_draft_order_update_doing_nothing_generates_no_events(
