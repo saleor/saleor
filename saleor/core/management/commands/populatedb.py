@@ -86,6 +86,8 @@ class Command(BaseCommand):
             cursor.execute(commands.getvalue())
 
     def handle(self, *args, **options):
+        # set only our custom plugin to not call external API when preparing
+        # example database
         settings.PLUGINS = [
             "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
             "saleor.payment.gateways.dummy_credit_card.plugin."
