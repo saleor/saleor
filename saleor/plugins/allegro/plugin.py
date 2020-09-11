@@ -276,7 +276,7 @@ class AllegroPlugin(BasePlugin):
         html += '</tr>'
         for error in errors:
             html += '<tr>'
-            html += '<td>' + error + '</td>'
+            html += '<td>' + str(error) + '</td>'
             html += '</tr>'
         html += '</table>'
         return html
@@ -414,16 +414,16 @@ class AllegroAPI:
             offer = self.publish_to_allegro(allegro_product=product)
 
             if 'errors' in offer:
-                error = offer['errors']
-                self.update_errors_in_private_metadata(saleor_product, [error])
+                errors = offer['errors']
+                self.update_errors_in_private_metadata(saleor_product, [error.get('message') for error in errors])
                 return None
             else:
                 if offer['validation'].get('errors') is not None:
                     if len(offer['validation'].get('errors')) > 0:
                         errors = []
                         for error in offer['validation'].get('errors'):
-                            logger.error(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
-                            errors.append(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
+                            logger.error((error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore'))
+                            errors.append((error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore'))
                         self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, errors)
                     else:
                         errors = []
@@ -441,8 +441,8 @@ class AllegroAPI:
                     if len(offer['validation'].get('errors')) > 0:
                         errors = []
                         for error in offer['validation'].get('errors'):
-                            logger.error(error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
-                            errors.append(error['message'] + 'dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore')
+                            logger.error((error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore'))
+                            errors.append((error['message'] + 'dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore'))
                         self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, errors)
                     else:
                         errors = []
@@ -563,7 +563,7 @@ class AllegroAPI:
         product.save(update_fields=["private_metadata", "is_published"])
 
     def update_errors_in_private_metadata(self, product, errors):
-        product.store_value_in_private_metadata({'publish.allegro.errors': str(errors)})
+        product.store_value_in_private_metadata({'publish.allegro.errors': errors})
         product.save(update_fields=["private_metadata"])
 
     def get_detailed_offer_publication(self, offer_id):
