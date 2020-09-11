@@ -10,10 +10,12 @@ from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from measurement.measures import Weight
-from prices import Money
+from prices import Money, TaxedMoney
 
 from ....core.taxes import TaxType
 from ....core.weight import WeightUnits
+from ....order import OrderStatus
+from ....order.models import OrderLine
 from ....plugins.manager import PluginsManager
 from ....product import AttributeInputType
 from ....product.error_codes import ProductErrorCode
@@ -2823,21 +2825,24 @@ def test_update_product_slug_with_existing_value(
     assert errors[0]["message"] == "Product with this Slug already exists."
 
 
-def test_delete_product(staff_api_client, product, permission_manage_products):
-    query = """
-        mutation DeleteProduct($id: ID!) {
-            productDelete(id: $id) {
-                product {
-                    name
-                    id
-                }
-                errors {
-                    field
-                    message
-                }
-              }
+DELETE_PRODUCT_MUTATION = """
+    mutation DeleteProduct($id: ID!) {
+        productDelete(id: $id) {
+            product {
+                name
+                id
             }
-    """
+            errors {
+                field
+                message
+            }
+            }
+        }
+"""
+
+
+def test_delete_product(staff_api_client, product, permission_manage_products):
+    query = DELETE_PRODUCT_MUTATION
     node_id = graphene.Node.to_global_id("Product", product.id)
     variables = {"id": node_id}
     response = staff_api_client.post_graphql(
@@ -2849,6 +2854,66 @@ def test_delete_product(staff_api_client, product, permission_manage_products):
     with pytest.raises(product._meta.model.DoesNotExist):
         product.refresh_from_db()
     assert node_id == data["product"]["id"]
+
+
+def test_delete_product_variant_in_draft_order(
+    staff_api_client, product_with_two_variants, permission_manage_products, order_list
+):
+    query = DELETE_PRODUCT_MUTATION
+    product = product_with_two_variants
+
+    not_draft_order = order_list[1]
+    draft_order = order_list[0]
+    draft_order.status = OrderStatus.DRAFT
+    draft_order.save(update_fields=["status"])
+
+    draft_order_lines_pks = []
+    not_draft_order_lines_pks = []
+    for variant in product.variants.all():
+        net = variant.get_price()
+        gross = Money(amount=net.amount, currency=net.currency)
+
+        order_line = OrderLine.objects.create(
+            variant=variant,
+            order=draft_order,
+            product_name=str(variant.product),
+            variant_name=str(variant),
+            product_sku=variant.sku,
+            is_shipping_required=variant.is_shipping_required(),
+            unit_price=TaxedMoney(net=net, gross=gross),
+            quantity=3,
+        )
+        draft_order_lines_pks.append(order_line.pk)
+
+        order_line_not_draft = OrderLine.objects.create(
+            variant=variant,
+            order=not_draft_order,
+            product_name=str(variant.product),
+            variant_name=str(variant),
+            product_sku=variant.sku,
+            is_shipping_required=variant.is_shipping_required(),
+            unit_price=TaxedMoney(net=net, gross=gross),
+            quantity=3,
+        )
+        not_draft_order_lines_pks.append(order_line_not_draft.pk)
+
+    node_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {"id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+    assert data["product"]["name"] == product.name
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
+    assert node_id == data["product"]["id"]
+
+    with pytest.raises(order_line._meta.model.DoesNotExist):
+        order_line.refresh_from_db()
+    assert not OrderLine.objects.filter(pk__in=draft_order_lines_pks).exists()
+
+    assert OrderLine.objects.filter(pk__in=not_draft_order_lines_pks).exists()
 
 
 def test_product_type(user_api_client, product_type):
