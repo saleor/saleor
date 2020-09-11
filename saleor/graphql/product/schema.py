@@ -1,6 +1,5 @@
 import graphene
 
-from .types.products import ProductWithJsonMetadata
 from ...core.permissions import ProductPermissions
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
@@ -117,7 +116,7 @@ from .resolvers import (
     resolve_product_variants,
     resolve_products,
     resolve_report_product_sales,
-    resolve_products_with_json_metadata)
+)
 from .sorters import (
     AttributeSortingInput,
     CategorySortingInput,
@@ -244,20 +243,6 @@ class ProductQueries(graphene.ObjectType):
         description="List of top selling products.",
     )
 
-    products_with_json_metadata = FilterInputConnectionField(
-        ProductWithJsonMetadata,
-        filter=ProductFilterInput(description="Filtering options for products."),
-        sort_by=ProductOrder(description="Sort products."),
-        stock_availability=graphene.Argument(
-            StockAvailability,
-            description=(
-                "[Deprecated] Filter products by stock availability. Use the `filter` "
-                "field instead. This field will be removed after 2020-07-31."
-            ),
-        ),
-        description="List of the shop's products.",
-    )
-
     def resolve_attributes(self, info, **kwargs):
         return resolve_attributes(info, **kwargs)
 
@@ -318,8 +303,6 @@ class ProductQueries(graphene.ObjectType):
     def resolve_report_product_sales(self, *_args, period, **_kwargs):
         return resolve_report_product_sales(period)
 
-    def resolve_products_with_json_metadata(self, info, **kwargs):
-        return resolve_products_with_json_metadata(info, **kwargs)
 
 class ProductMutations(graphene.ObjectType):
     attribute_create = AttributeCreate.Field()

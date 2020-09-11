@@ -7,6 +7,7 @@ from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
 
+from ...json_meta.types import ObjectWithJSONMetadata
 from ....core.permissions import ProductPermissions
 from ....product import models
 from ....product.templatetags.product_images import (
@@ -32,7 +33,7 @@ from ...core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange,
 from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
-from ...meta.types import ObjectWithMetadata, ObjectWithJSONMetadata
+from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -477,7 +478,7 @@ class Product(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents an individual item for sale in the storefront."
-        interfaces = [relay.Node, ObjectWithMetadata]
+        interfaces = [relay.Node, ObjectWithMetadata, ObjectWithJSONMetadata]
         model = models.Product
         only_fields = [
             "category",
@@ -623,207 +624,6 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
-
-@key(fields="id")
-class ProductWithJsonMetadata(CountableDjangoObjectType):
-    url = graphene.String(
-        description="The storefront URL for the product.",
-        required=True,
-        deprecation_reason="This field will be removed after 2020-07-31.",
-    )
-    thumbnail = graphene.Field(
-        Image,
-        description="The main thumbnail for a product.",
-        size=graphene.Argument(graphene.Int, description="Size of thumbnail."),
-    )
-    pricing = graphene.Field(
-        ProductPricingInfo,
-        description=(
-            "Lists the storefront product's pricing, the current price and discounts, "
-            "only meant for displaying."
-        ),
-    )
-    is_available = graphene.Boolean(
-        description="Whether the product is in stock and visible or not."
-    )
-    minimal_variant_price = graphene.Field(
-        Money, description="The price of the cheapest variant (including discounts)."
-    )
-    tax_type = graphene.Field(
-        TaxType, description="A type of tax. Assigned by enabled tax gateway"
-    )
-    attributes = graphene.List(
-        graphene.NonNull(SelectedAttribute),
-        required=True,
-        description="List of attributes assigned to this product.",
-    )
-    purchase_cost = graphene.Field(MoneyRange)
-    margin = graphene.Field(Margin)
-    image_by_id = graphene.Field(
-        lambda: ProductImage,
-        id=graphene.Argument(graphene.ID, description="ID of a product image."),
-        description="Get a single product image by ID.",
-    )
-    variants = graphene.List(
-        ProductVariant, description="List of variants for the product."
-    )
-    images = graphene.List(
-        lambda: ProductImage, description="List of images for the product."
-    )
-    collections = graphene.List(
-        lambda: Collection, description="List of collections for the product."
-    )
-    translation = TranslationField(ProductTranslation, type_name="product")
-
-    class Meta:
-        description = "Represents an individual item for sale in the storefront."
-        interfaces = [relay.Node, ObjectWithJSONMetadata]
-        model = models.Product
-        only_fields = [
-            "category",
-            "charge_taxes",
-            "description",
-            "description_json",
-            "id",
-            "is_published",
-            "name",
-            "slug",
-            "product_type",
-            "publication_date",
-            "seo_description",
-            "seo_title",
-            "updated_at",
-            "weight",
-        ]
-
-    @staticmethod
-    def resolve_category(root: models.Product, info):
-        category_id = root.category_id
-        if category_id is None:
-            return None
-
-        return CategoryByIdLoader(info.context).load(category_id)
-
-    @staticmethod
-    def resolve_tax_type(root: models.Product, info):
-        tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
-        return TaxType(tax_code=tax_data.code, description=tax_data.description)
-
-    @staticmethod
-    def resolve_thumbnail(root: models.Product, info, *, size=255):
-        def return_first_thumbnail(images):
-            image = images[0] if images else None
-            if image:
-                url = get_product_image_thumbnail(image, size, method="thumbnail")
-                alt = image.alt
-                return Image(alt=alt, url=info.context.build_absolute_uri(url))
-            return None
-
-        return (
-            ImagesByProductIdLoader(info.context)
-            .load(root.id)
-            .then(return_first_thumbnail)
-        )
-
-    @staticmethod
-    def resolve_url(root: models.Product, *_args):
-        return ""
-
-    @staticmethod
-    def resolve_pricing(root: models.Product, info):
-        context = info.context
-        variants = ProductVariantsByProductIdLoader(context).load(root.id)
-        collections = CollectionsByProductIdLoader(context).load(root.id)
-
-        def calculate_pricing_info(discounts):
-            def calculate_pricing_with_variants(variants):
-                def calculate_pricing_with_collections(collections):
-                    availability = get_product_availability(
-                        product=root,
-                        variants=variants,
-                        collections=collections,
-                        discounts=discounts,
-                        country=context.country,
-                        local_currency=context.currency,
-                        plugins=context.plugins,
-                    )
-                    return ProductPricingInfo(**asdict(availability))
-
-                return collections.then(calculate_pricing_with_collections)
-
-            return variants.then(calculate_pricing_with_variants)
-
-        return (
-            DiscountsByDateTimeLoader(context)
-            .load(info.context.request_time)
-            .then(calculate_pricing_info)
-        )
-
-    @staticmethod
-    def resolve_is_available(root: models.Product, info):
-        country = info.context.country
-        in_stock = is_product_in_stock(root, country)
-        return root.is_visible and in_stock
-
-    @staticmethod
-    def resolve_attributes(root: models.Product, info):
-        return SelectedAttributesByProductIdLoader(info.context).load(root.id)
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_purchase_cost(root: models.Product, *_args):
-        purchase_cost, _ = get_product_costs_data(root)
-        return purchase_cost
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_margin(root: models.Product, *_args):
-        _, margin = get_product_costs_data(root)
-        return Margin(margin[0], margin[1])
-
-    @staticmethod
-    def resolve_image_by_id(root: models.Product, info, id):
-        pk = get_database_id(info, id, ProductImage)
-        try:
-            return root.images.get(pk=pk)
-        except models.ProductImage.DoesNotExist:
-            raise GraphQLError("Product image not found.")
-
-    @staticmethod
-    def resolve_images(root: models.Product, info, **_kwargs):
-        return ImagesByProductIdLoader(info.context).load(root.id)
-
-    @staticmethod
-    def resolve_variants(root: models.Product, info, **_kwargs):
-        return ProductVariantsByProductIdLoader(info.context).load(root.id)
-
-    @staticmethod
-    def resolve_collections(root: models.Product, *_args):
-        return root.collections.all()
-
-    @classmethod
-    def get_node(cls, info, pk):
-
-        user = info.context.app or info.context.user
-
-        if info.context:
-            qs = cls._meta.model.objects.visible_to_user(user)
-            return qs.filter(pk=pk).first()
-        return None
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: models.Product, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.Product, _info):
-        return resolve_meta(root, _info)
-
-    @staticmethod
-    def __resolve_reference(root, _info, **_kwargs):
-        return graphene.Node.get_node_from_global_id(_info, root.id)
-
 
 
 @key(fields="id")

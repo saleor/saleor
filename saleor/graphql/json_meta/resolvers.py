@@ -1,5 +1,4 @@
-from operator import itemgetter
-
+from saleor.graphql.meta.permissions import PRIVATE_META_PERMISSION_MAP
 from ...account import models as account_models
 from ...app import models as app_models
 from ...checkout import models as checkout_models
@@ -8,10 +7,9 @@ from ...core.models import ModelWithMetadata
 from ...order import models as order_models
 from ...product import models as product_models
 from ..utils import get_user_or_app_from_context
-from .permissions import PRIVATE_META_PERMISSION_MAP
 
 
-def resolve_object_with_metadata_type(instance: ModelWithMetadata):
+def resolve_object_with_json_metadata_type(instance: ModelWithMetadata):
     # Imports inside resolvers to avoid circular imports.
     from ..account import types as account_types
     from ..app import types as app_types
@@ -36,14 +34,11 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     return MODEL_TO_TYPE_MAP.get(instance.__class__, None)
 
 
-def resolve_metadata(metadata: dict):
-    return sorted(
-        [{"key": k, "value": v} for k, v in metadata.items()], key=itemgetter("key"),
-    )
+def resolve_json_metadata(metadata: dict):
+    return [{k: v} for k, v in metadata.items()]
 
-
-def resolve_private_metadata(root: ModelWithMetadata, info):
-    item_type = resolve_object_with_metadata_type(root)
+def resolve_json_private_metadata(root: ModelWithMetadata, info):
+    item_type = resolve_object_with_json_metadata_type(root)
     if not item_type:
         raise NotImplementedError(
             f"Model {type(root)} can't be mapped to type with metadata. "
@@ -62,4 +57,4 @@ def resolve_private_metadata(root: ModelWithMetadata, info):
     if not requester.has_perms(required_permission):
         raise PermissionDenied()
 
-    return resolve_metadata(root.private_metadata)
+    return resolve_json_metadata(root.private_metadata)
