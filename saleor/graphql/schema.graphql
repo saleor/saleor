@@ -2553,6 +2553,15 @@ interface Node {
   id: ID!
 }
 
+interface ObjectWithJSONMetadata {
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
+  privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
+  meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
+  jsonPrivateMetadata: JSONString!
+  jsonMetadata: JSONString!
+}
+
 interface ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
@@ -3317,7 +3326,7 @@ input PriceRangeInput {
   lte: Float
 }
 
-type Product implements Node & ObjectWithMetadata {
+type Product implements Node & ObjectWithMetadata & ObjectWithJSONMetadata {
   id: ID!
   seoTitle: String
   seoDescription: String
@@ -3336,6 +3345,8 @@ type Product implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
+  jsonPrivateMetadata: JSONString!
+  jsonMetadata: JSONString!
   url: String! @deprecated(reason: "This field will be removed after 2020-07-31.")
   thumbnail(size: Int): Image
   pricing: ProductPricingInfo

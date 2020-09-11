@@ -7,6 +7,7 @@ from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
 
+from ...json_meta.types import ObjectWithJSONMetadata
 from ....core.permissions import ProductPermissions
 from ....product import models
 from ....product.templatetags.product_images import (
@@ -477,7 +478,7 @@ class Product(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents an individual item for sale in the storefront."
-        interfaces = [relay.Node, ObjectWithMetadata]
+        interfaces = [relay.Node, ObjectWithMetadata, ObjectWithJSONMetadata]
         model = models.Product
         only_fields = [
             "category",
