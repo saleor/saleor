@@ -3420,18 +3420,21 @@ def test_update_product_type_with_negative_weight(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
+PRODUCT_TYPE_DELETE_MUTATION = """
+    mutation deleteProductType($id: ID!) {
+        productTypeDelete(id: $id) {
+            productType {
+                name
+            }
+        }
+    }
+"""
+
+
 def test_product_type_delete_mutation(
     staff_api_client, product_type, permission_manage_products
 ):
-    query = """
-        mutation deleteProductType($id: ID!) {
-            productTypeDelete(id: $id) {
-                productType {
-                    name
-                }
-            }
-        }
-    """
+    query = PRODUCT_TYPE_DELETE_MUTATION
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.id)}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -3441,6 +3444,60 @@ def test_product_type_delete_mutation(
     assert data["productType"]["name"] == product_type.name
     with pytest.raises(product_type._meta.model.DoesNotExist):
         product_type.refresh_from_db()
+
+
+def test_product_type_delete_mutation_variants_in_draft_order(
+    staff_api_client, permission_manage_products, product, order_list
+):
+    query = PRODUCT_TYPE_DELETE_MUTATION
+    product_type = product.product_type
+
+    variant = product.variants.first()
+
+    order_not_draft = order_list[-1]
+    draft_order = order_list[1]
+    draft_order.status = OrderStatus.DRAFT
+    draft_order.save(update_fields=["status"])
+
+    net = variant.get_price()
+    gross = Money(amount=net.amount, currency=net.currency)
+
+    order_line_not_in_draft = OrderLine.objects.create(
+        variant=variant,
+        order=order_not_draft,
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        unit_price=TaxedMoney(net=net, gross=gross),
+        quantity=3,
+    )
+
+    order_line_in_draft = OrderLine.objects.create(
+        variant=variant,
+        order=draft_order,
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        unit_price=TaxedMoney(net=net, gross=gross),
+        quantity=3,
+    )
+
+    variables = {"id": graphene.Node.to_global_id("ProductType", product_type.id)}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeDelete"]
+    assert data["productType"]["name"] == product_type.name
+    with pytest.raises(product_type._meta.model.DoesNotExist):
+        product_type.refresh_from_db()
+
+    with pytest.raises(order_line_in_draft._meta.model.DoesNotExist):
+        order_line_in_draft.refresh_from_db()
+
+    assert OrderLine.objects.filter(pk=order_line_not_in_draft.pk).exists()
 
 
 def test_product_image_create_mutation(

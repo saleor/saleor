@@ -45,7 +45,14 @@ from ...core.utils.reordering import perform_reordering
 from ...core.validators import validate_price_precision
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...warehouse.types import Warehouse
-from ..types import Category, Collection, Product, ProductImage, ProductVariant
+from ..types import (
+    Category,
+    Collection,
+    Product,
+    ProductImage,
+    ProductType,
+    ProductVariant,
+)
 from ..utils import (
     create_stocks,
     get_used_attribute_values_for_variant,
@@ -1580,6 +1587,27 @@ class ProductTypeDelete(ModelDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        product_type_pk = from_global_id_strict_type(node_id, ProductType, field="pk")
+        variants_pks = models.Product.objects.filter(
+            product_type__pk=product_type_pk
+        ).values_list("variants__pk", flat=True)
+        # get draft order lines for products
+        order_line_pks = list(
+            order_models.OrderLine.objects.filter(
+                variant__pk__in=variants_pks, order__status=OrderStatus.DRAFT
+            ).values_list("pk", flat=True)
+        )
+
+        response = super().perform_mutation(_root, info, **data)
+
+        # delete order lines for deleted variants
+        order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()
+
+        return response
 
 
 class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
