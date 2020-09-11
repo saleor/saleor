@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from ....core.permissions import ProductPermissions
+from ....order import OrderStatus, models as order_models
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_minimal_variant_price_task
@@ -341,6 +342,23 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, ids, **data):
+        instances = cls.get_nodes_or_error(ids, "id", ProductVariant)
+        # get draft order lines for variants
+        order_line_pks = list(
+            order_models.OrderLine.objects.filter(
+                variant__in=instances, order__status=OrderStatus.DRAFT
+            ).values_list("pk", flat=True)
+        )
+
+        response = super().perform_mutation(_root, info, ids, **data)
+
+        # delete order lines for deleted variants
+        order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()
+
+        return response
 
 
 class ProductVariantStocksCreate(BaseMutation):
