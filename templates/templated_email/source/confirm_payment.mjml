@@ -15,7 +15,7 @@
         <mj-text>
           {% blocktrans trimmed context "Payment confirmation e-mail text" %}
             Thank you for your payment.
-            Your payment was successfully charged.
+            Your payment was successfully processed.
           {% endblocktrans %}
         </mj-text>
       </mj-column>
