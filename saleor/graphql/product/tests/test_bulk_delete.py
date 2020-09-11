@@ -2,7 +2,10 @@ from unittest.mock import patch
 
 import graphene
 import pytest
+from prices import Money, TaxedMoney
 
+from ....order import OrderStatus
+from ....order.models import OrderLine
 from ....product.models import (
     Attribute,
     AttributeValue,
@@ -296,16 +299,19 @@ def test_delete_product_types(
     ).exists()
 
 
+PRODUCT_VARIANT_BULK_DELETE_MUTATION = """
+mutation productVariantBulkDelete($ids: [ID]!) {
+    productVariantBulkDelete(ids: $ids) {
+        count
+    }
+}
+"""
+
+
 def test_delete_product_variants(
     staff_api_client, product_variant_list, permission_manage_products
 ):
-    query = """
-    mutation productVariantBulkDelete($ids: [ID]!) {
-        productVariantBulkDelete(ids: $ids) {
-            count
-        }
-    }
-    """
+    query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
 
     variables = {
         "ids": [
@@ -322,3 +328,79 @@ def test_delete_product_variants(
     assert not ProductVariant.objects.filter(
         id__in=[variant.id for variant in product_variant_list]
     ).exists()
+
+
+def test_delete_product_variants_in_draft_orders(
+    staff_api_client,
+    product_variant_list,
+    permission_manage_products,
+    order_line,
+    order_list,
+):
+    # given
+    query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
+    variants = product_variant_list
+
+    draft_order = order_line.order
+    draft_order.status = OrderStatus.DRAFT
+    draft_order.save(update_fields=["status"])
+
+    second_variant_in_draft = variants[1]
+    net = second_variant_in_draft.get_price()
+    gross = Money(amount=net.amount, currency=net.currency)
+    second_draft_order = OrderLine.objects.create(
+        variant=second_variant_in_draft,
+        order=draft_order,
+        product_name=str(second_variant_in_draft.product),
+        variant_name=str(second_variant_in_draft),
+        product_sku=second_variant_in_draft.sku,
+        is_shipping_required=second_variant_in_draft.is_shipping_required(),
+        unit_price=TaxedMoney(net=net, gross=gross),
+        quantity=3,
+    )
+
+    variant = variants[0]
+    net = variant.get_price()
+    gross = Money(amount=net.amount, currency=net.currency)
+    order_not_draft = order_list[-1]
+    order_line_not_in_draft = OrderLine.objects.create(
+        variant=variant,
+        order=order_not_draft,
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        unit_price=TaxedMoney(net=net, gross=gross),
+        quantity=3,
+    )
+    order_line_not_in_draft_pk = order_line_not_in_draft.pk
+
+    variant_count = ProductVariant.objects.count()
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("ProductVariant", variant.id)
+            for variant in ProductVariant.objects.all()
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["productVariantBulkDelete"]["count"] == variant_count
+    assert not ProductVariant.objects.filter(
+        id__in=[variant.id for variant in product_variant_list]
+    ).exists()
+
+    with pytest.raises(order_line._meta.model.DoesNotExist):
+        order_line.refresh_from_db()
+
+    with pytest.raises(second_draft_order._meta.model.DoesNotExist):
+        second_draft_order.refresh_from_db()
+
+    assert OrderLine.objects.filter(pk=order_line_not_in_draft_pk).exists()
