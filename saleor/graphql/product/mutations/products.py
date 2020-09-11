@@ -1067,6 +1067,25 @@ class ProductDelete(ModelDeleteMutation):
         error_type_class = ProductError
         error_type_field = "product_errors"
 
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        instance = cls.get_node_or_error(info, node_id, only_type=Product)
+
+        # get draft order lines for variant
+        line_pks = list(
+            order_models.OrderLine.objects.filter(
+                variant__in=instance.variants.all(), order__status=OrderStatus.DRAFT
+            ).values_list("pk", flat=True)
+        )
+
+        response = super().perform_mutation(_root, info, **data)
+
+        # delete order lines for deleted variant
+        order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
+
+        return response
+
 
 class ProductUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
