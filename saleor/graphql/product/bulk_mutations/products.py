@@ -111,7 +111,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, ids, **data):
-        nodes_type, pks = resolve_global_ids_to_primary_keys(ids, Product)
+        _, pks = resolve_global_ids_to_primary_keys(ids, Product)
         variants = models.ProductVariant.objects.filter(product__pk__in=pks)
         # get draft order lines for products
         order_line_pks = list(
@@ -363,11 +363,11 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, ids, **data):
-        instances = cls.get_nodes_or_error(ids, "id", ProductVariant)
+        _, pks = resolve_global_ids_to_primary_keys(ids, ProductVariant)
         # get draft order lines for variants
         order_line_pks = list(
             order_models.OrderLine.objects.filter(
-                variant__in=instances, order__status=OrderStatus.DRAFT
+                variant__pk__in=pks, order__status=OrderStatus.DRAFT
             ).values_list("pk", flat=True)
         )
 

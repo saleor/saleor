@@ -1402,12 +1402,12 @@ class ProductVariantDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
-        instance = cls.get_node_or_error(info, node_id, only_type=ProductVariant)
+        variant_pk = from_global_id_strict_type(node_id, ProductVariant, field="pk")
 
         # get draft order lines for variant
         line_pks = list(
             order_models.OrderLine.objects.filter(
-                variant=instance, order__status=OrderStatus.DRAFT
+                variant__pk=variant_pk, order__status=OrderStatus.DRAFT
             ).values_list("pk", flat=True)
         )
 
