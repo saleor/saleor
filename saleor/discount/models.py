@@ -80,21 +80,6 @@ class Voucher(models.Model):
     class Meta:
         ordering = ("code",)
 
-    def __str__(self):
-        if self.name:
-            return self.name
-        discount = "%s %s" % (
-            self.discount_value,
-            self.get_discount_value_type_display(),
-        )
-        if self.type == VoucherType.SHIPPING:
-            if self.is_free:
-                return "Free shipping"
-            return f"{discount} off shipping"
-        if self.type == VoucherType.SPECIFIC_PRODUCT:
-            return f"%{discount} off specific products"
-        return f"{discount} off"
-
     @property
     def is_free(self):
         return (

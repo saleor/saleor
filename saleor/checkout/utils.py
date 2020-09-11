@@ -298,7 +298,7 @@ def recalculate_checkout_discount(
                 if voucher.type != VoucherType.SHIPPING
                 else discount
             )
-            checkout.discount_name = str(voucher)
+            checkout.discount_name = voucher.name
             checkout.translated_discount_name = (
                 voucher.translated.name
                 if voucher.translated.name != voucher.name

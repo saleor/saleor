@@ -64,7 +64,6 @@ def get_product_discount_on_sale(
     )
     if is_product_on_sale:
         sale_channel_listing = discount.channel_listings.get(channel.slug)
-        # Remove type ignore after merge #6120
         return discount.sale.get_discount(sale_channel_listing)  # type: ignore
     raise NotApplicable("Discount not applicable for this product")
 
