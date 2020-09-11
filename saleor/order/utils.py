@@ -338,7 +338,7 @@ def get_products_voucher_discount_for_order(order: Order) -> Money:
     if not prices:
         msg = "This offer is only valid for selected items."
         raise NotApplicable(msg)
-    return get_products_voucher_discount(voucher, prices)  # type: ignore
+    return get_products_voucher_discount(voucher, prices, order.channel)  # type: ignore
 
 
 def get_voucher_discount_for_order(order: Order) -> Money:
@@ -351,9 +351,11 @@ def get_voucher_discount_for_order(order: Order) -> Money:
     validate_voucher_in_order(order)
     subtotal = order.get_subtotal()
     if order.voucher.type == VoucherType.ENTIRE_ORDER:
-        return order.voucher.get_discount_amount_for(subtotal.gross)
+        return order.voucher.get_discount_amount_for(subtotal.gross, order.channel)
     if order.voucher.type == VoucherType.SHIPPING:
-        return order.voucher.get_discount_amount_for(order.shipping_price)
+        return order.voucher.get_discount_amount_for(
+            order.shipping_price, order.channel
+        )
     if order.voucher.type == VoucherType.SPECIFIC_PRODUCT:
         return get_products_voucher_discount_for_order(order)
     raise NotImplementedError("Unknown discount type")

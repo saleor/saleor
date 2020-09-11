@@ -133,7 +133,12 @@ def test_create_address(db):
     assert Address.objects.all().count() == 1
 
 
-@pytest.mark.skip(reason="We should use channel from order when getting product.")
+@pytest.mark.skip(
+    reason=(
+        "We should use channel from order when getting product. "
+        "We should fix it in  https://app.clickup.com/2549495/v/g/2dtqq-1079"
+    )
+)
 def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
     # Tests shouldn't depend on images present in placeholder folder
     monkeypatch.setattr(
@@ -157,6 +162,7 @@ def test_create_product_sales(db):
     assert Sale.objects.all().count() == 5
 
 
+@pytest.mark.skip("We should fix it in https://app.clickup.com/t/2549495/SALEOR-649")
 def test_create_vouchers(db):
     assert Voucher.objects.all().count() == 0
     for _ in random_data.create_vouchers():
