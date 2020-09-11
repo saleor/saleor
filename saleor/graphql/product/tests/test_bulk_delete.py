@@ -216,14 +216,85 @@ def test_delete_collections(
     ).exists()
 
 
-def test_delete_products(staff_api_client, product_list, permission_manage_products):
-    query = """
-    mutation productBulkDelete($ids: [ID]!) {
-        productBulkDelete(ids: $ids) {
-            count
-        }
+DELETE_PRODUCTS_MUTATION = """
+mutation productBulkDelete($ids: [ID]!) {
+    productBulkDelete(ids: $ids) {
+        count
     }
-    """
+}
+"""
+
+
+def test_delete_products(
+    staff_api_client, product_list, permission_manage_products, order_list
+):
+    # given
+    query = DELETE_PRODUCTS_MUTATION
+
+    not_draft_order = order_list[0]
+    draft_order = order_list[1]
+    draft_order.status = OrderStatus.DRAFT
+    draft_order.save(update_fields=["status"])
+
+    draft_order_lines_pks = []
+    not_draft_order_lines_pks = []
+    for variant in [product_list[0].variants.first(), product_list[1].variants.first()]:
+        net = variant.get_price()
+        gross = Money(amount=net.amount, currency=net.currency)
+
+        order_line = OrderLine.objects.create(
+            variant=variant,
+            order=draft_order,
+            product_name=str(variant.product),
+            variant_name=str(variant),
+            product_sku=variant.sku,
+            is_shipping_required=variant.is_shipping_required(),
+            unit_price=TaxedMoney(net=net, gross=gross),
+            quantity=3,
+        )
+        draft_order_lines_pks.append(order_line.pk)
+
+        order_line_not_draft = OrderLine.objects.create(
+            variant=variant,
+            order=not_draft_order,
+            product_name=str(variant.product),
+            variant_name=str(variant),
+            product_sku=variant.sku,
+            is_shipping_required=variant.is_shipping_required(),
+            unit_price=TaxedMoney(net=net, gross=gross),
+            quantity=3,
+        )
+        not_draft_order_lines_pks.append(order_line_not_draft.pk)
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Product", product.id)
+            for product in product_list
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["productBulkDelete"]["count"] == 3
+    assert not Product.objects.filter(
+        id__in=[product.id for product in product_list]
+    ).exists()
+
+    assert not OrderLine.objects.filter(pk__in=draft_order_lines_pks).exists()
+
+    assert OrderLine.objects.filter(pk__in=not_draft_order_lines_pks).exists()
+
+
+def test_delete_products_variants_in_draft_order(
+    staff_api_client, product_list, permission_manage_products
+):
+    query = DELETE_PRODUCTS_MUTATION
 
     variables = {
         "ids": [
