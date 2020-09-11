@@ -7,7 +7,7 @@ from ..utils.filters import filter_by_period
 from .filters import (
     filter_attributes_by_product_types,
     filter_products_by_stock_availability,
-    filter_products_with_json_metadata_by_stock_availability)
+)
 
 
 def resolve_attributes(info, qs=None, in_category=None, in_collection=None, **_kwargs):
@@ -89,12 +89,3 @@ def resolve_report_product_sales(period):
     qs = qs.annotate(quantity_ordered=Sum("order_lines__quantity"))
     qs = qs.filter(quantity_ordered__isnull=False)
     return qs.order_by("-quantity_ordered")
-
-def resolve_products_with_json_metadata(info, stock_availability=None, **_kwargs):
-    user = get_user_or_app_from_context(info.context)
-    qs = models.Product.objects.visible_to_user(user)
-
-    if stock_availability:
-        qs = filter_products_with_json_metadata_by_stock_availability(qs, stock_availability)
-
-    return qs.distinct()
