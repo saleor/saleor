@@ -1,8 +1,7 @@
 import graphene
 from saleor.graphql.meta.types import ObjectWithMetadata
 from saleor.core.models import ModelWithMetadata
-from saleor.graphql.json_meta.resolvers import resolve_json_metadata, \
-    resolve_json_private_metadata
+from .resolvers import resolve_json_metadata, resolve_json_private_metadata
 
 
 class ObjectWithJSONMetadata(ObjectWithMetadata):
