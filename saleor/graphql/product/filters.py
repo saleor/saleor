@@ -287,6 +287,7 @@ def filter_quantity(qs, quantity_value, warehouses=None):
     )
     return qs.filter(variants__in=product_variants)
 
+
 class ProductStockFilterInput(graphene.InputObjectType):
     warehouse_ids = graphene.List(graphene.NonNull(graphene.ID), required=False)
     quantity = graphene.Field(IntRangeInput, required=False)

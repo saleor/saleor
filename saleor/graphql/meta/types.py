@@ -2,7 +2,10 @@ import graphene
 
 from ...core.models import ModelWithMetadata
 from .resolvers import (
-    resolve_metadata, resolve_private_metadata, resolve_object_with_metadata_type)
+    resolve_metadata,
+    resolve_object_with_metadata_type,
+    resolve_private_metadata,
+)
 
 
 class MetadataItem(graphene.ObjectType):
