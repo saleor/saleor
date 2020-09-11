@@ -2909,8 +2909,6 @@ def test_delete_product_variant_in_draft_order(
         product.refresh_from_db()
     assert node_id == data["product"]["id"]
 
-    with pytest.raises(order_line._meta.model.DoesNotExist):
-        order_line.refresh_from_db()
     assert not OrderLine.objects.filter(pk__in=draft_order_lines_pks).exists()
 
     assert OrderLine.objects.filter(pk__in=not_draft_order_lines_pks).exists()
