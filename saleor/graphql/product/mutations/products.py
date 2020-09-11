@@ -12,6 +12,7 @@ from graphql_relay import from_global_id
 
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions
+from ....order import OrderStatus, models as order_models
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import (
@@ -44,7 +45,14 @@ from ...core.utils.reordering import perform_reordering
 from ...core.validators import validate_price_precision
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...warehouse.types import Warehouse
-from ..types import Category, Collection, Product, ProductImage, ProductVariant
+from ..types import (
+    Category,
+    Collection,
+    Product,
+    ProductImage,
+    ProductType,
+    ProductVariant,
+)
 from ..utils import (
     create_stocks,
     get_used_attribute_values_for_variant,
@@ -1066,6 +1074,25 @@ class ProductDelete(ModelDeleteMutation):
         error_type_class = ProductError
         error_type_field = "product_errors"
 
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        instance = cls.get_node_or_error(info, node_id, only_type=Product)
+
+        # get draft order lines for variant
+        line_pks = list(
+            order_models.OrderLine.objects.filter(
+                variant__in=instance.variants.all(), order__status=OrderStatus.DRAFT
+            ).values_list("pk", flat=True)
+        )
+
+        response = super().perform_mutation(_root, info, **data)
+
+        # delete order lines for deleted variant
+        order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
+
+        return response
+
 
 class ProductUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
@@ -1372,6 +1399,25 @@ class ProductVariantDelete(ModelDeleteMutation):
         update_product_minimal_variant_price_task.delay(instance.product_id)
         return super().success_response(instance)
 
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        variant_pk = from_global_id_strict_type(node_id, ProductVariant, field="pk")
+
+        # get draft order lines for variant
+        line_pks = list(
+            order_models.OrderLine.objects.filter(
+                variant__pk=variant_pk, order__status=OrderStatus.DRAFT
+            ).values_list("pk", flat=True)
+        )
+
+        response = super().perform_mutation(_root, info, **data)
+
+        # delete order lines for deleted variant
+        order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
+
+        return response
+
 
 class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
@@ -1541,6 +1587,27 @@ class ProductTypeDelete(ModelDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        product_type_pk = from_global_id_strict_type(node_id, ProductType, field="pk")
+        variants_pks = models.Product.objects.filter(
+            product_type__pk=product_type_pk
+        ).values_list("variants__pk", flat=True)
+        # get draft order lines for products
+        order_line_pks = list(
+            order_models.OrderLine.objects.filter(
+                variant__pk__in=variants_pks, order__status=OrderStatus.DRAFT
+            ).values_list("pk", flat=True)
+        )
+
+        response = super().perform_mutation(_root, info, **data)
+
+        # delete order lines for deleted variants
+        order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()
+
+        return response
 
 
 class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
