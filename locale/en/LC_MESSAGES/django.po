@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-01 07:45+0000\n"
+"POT-Creation-Date: 2020-09-11 12:15+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -407,7 +407,7 @@ msgctxt "Payment confirmation email text"
 msgid ""
 "\n"
 "Thank you for your payment.\n"
-"Your payment was successfully charged.\n"
+"Your payment was successfully processed.\n"
 msgstr ""
 
 #: templates/templated_email/order/send_invoice.email:4
@@ -539,7 +539,7 @@ msgstr ""
 
 #: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
-msgid "Thank you for your payment. Your payment was successfully charged."
+msgid "Thank you for your payment. Your payment was successfully processed."
 msgstr ""
 
 #: templates/templated_email/source/email_changed_notification.mjml:16
