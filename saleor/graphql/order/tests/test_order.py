@@ -1176,6 +1176,28 @@ def test_draft_order_complete_anonymous_user_no_email(
     assert data["status"] == OrderStatus.UNFULFILLED.upper()
 
 
+def test_draft_order_complete_drops_shipping_address(
+    staff_api_client, permission_manage_orders, staff_user, draft_order, address,
+):
+    order = draft_order
+    order.shipping_address = address.get_copy()
+    order.billing_address = address.get_copy()
+    order.save()
+    order.lines.update(is_shipping_required=False)
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+    order.refresh_from_db()
+
+    assert data["status"] == order.status.upper()
+    assert order.shipping_address is None
+
+
 def test_draft_order_complete_unavailable_for_purchase(
     staff_api_client, permission_manage_orders, staff_user, draft_order
 ):

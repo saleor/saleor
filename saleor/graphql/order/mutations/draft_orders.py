@@ -268,6 +268,7 @@ class DraftOrderComplete(BaseMutation):
             order.shipping_price = zero_taxed_money()
             if order.shipping_address:
                 order.shipping_address.delete()
+                order.shipping_address = None
 
         order.save()
 
