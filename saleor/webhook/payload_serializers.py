@@ -14,7 +14,7 @@ class PythonSerializer(PythonBaseSerializer):
         Param extra_model_fields can be provided to add fields to serialization process
         which are normally ignored (fields that doesn't exist on model).
         extra_model_fields parameter example:
-        {"ModelName": ["annotated_prop_1", "annotated_prop_2"]}
+        {"ModelName": ["annotated_prop_1", "custom_property"]}
         """
         super().__init__()
         self.extra_model_fields = extra_model_fields
