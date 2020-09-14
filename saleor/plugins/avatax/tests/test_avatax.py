@@ -17,6 +17,7 @@ from .. import (
     META_DESCRIPTION_KEY,
     AvataxConfiguration,
     TransactionType,
+    _validate_adddress_details,
     api_get_request,
     api_post_request,
     generate_request_data_from_checkout,
@@ -841,3 +842,35 @@ def test_get_order_tax_data_raised_error(
 
     # then
     assert e._excinfo[1].args[0] == return_value["error"]
+
+
+@pytest.mark.parametrize(
+    "shipping_address_none, shipping_method_none, billing_address_none, "
+    "is_shipping_required, expected_is_valid",
+    [
+        (False, False, False, True, True),
+        (True, True, False, True, False),
+        (True, True, False, False, True),
+        (False, True, False, True, False),
+        (True, False, False, True, False),
+    ],
+)
+def test_validate_adddress_details(
+    shipping_address_none,
+    shipping_method_none,
+    billing_address_none,
+    is_shipping_required,
+    expected_is_valid,
+    checkout_ready_to_complete,
+):
+    shipping_address = checkout_ready_to_complete.shipping_address
+    shipping_address = None if shipping_address_none else shipping_address
+    billing_address = checkout_ready_to_complete.billing_address
+    billing_address = None if billing_address_none else billing_address
+    address = shipping_address or billing_address
+    shipping_method = checkout_ready_to_complete.shipping_method
+    shipping_method = None if shipping_method_none else shipping_method
+    is_valid = _validate_adddress_details(
+        shipping_address, is_shipping_required, address, shipping_method
+    )
+    assert is_valid is expected_is_valid
