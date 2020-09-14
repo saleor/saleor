@@ -1465,7 +1465,7 @@ description = "A Python package for extracting, transforming and loading tables 
 name = "petl"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "1.6.4"
+version = "1.6.5"
 
 [package.extras]
 avro = ["fastavro (>=0.24.0)"]
@@ -2245,14 +2245,6 @@ python-versions = "*"
 version = "1.4.1"
 
 [[package]]
-category = "main"
-description = "Type Hints for Python"
-name = "typing"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "3.7.4.3"
-
-[[package]]
 category = "dev"
 description = "Backported and Experimental Type Hints for Python 3.5+"
 name = "typing-extensions"
@@ -2411,7 +2403,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "1eb870364f25085303b008812d45225fd4b3c3fa8b2b9ec4e5aa27671a35116c"
+content-hash = "55b545a175f3dda917fa80060d3c4d32abb86746d3a37e1294ada1726dea461f"
 lock-version = "1.0"
 python-versions = "~3.8"
 
@@ -3103,7 +3095,7 @@ pathspec = [
     {file = "pathspec-0.8.0.tar.gz", hash = "sha256:da45173eb3a6f2a5a487efba21f050af2b41948be6ab52b6a1e3ff22bb8b7061"},
 ]
 petl = [
-    {file = "petl-1.6.4.tar.gz", hash = "sha256:6bdc1e2fe23bb0892e8b6851b24a9c250241fd82e9eb4b3a65826c0667df7652"},
+    {file = "petl-1.6.5.tar.gz", hash = "sha256:b27ad9e290ec6a2b919551dc0cec850f46933fdf5b6f895299baeb137788299b"},
 ]
 phonenumberslite = [
     {file = "phonenumberslite-8.12.9-py2.py3-none-any.whl", hash = "sha256:33d6e0683d5e4ca5d86b64f06cb0445756155c2e96dbd4a1246234d69317a6d2"},
@@ -3509,10 +3501,6 @@ typed-ast = [
     {file = "typed_ast-1.4.1-cp38-cp38-win_amd64.whl", hash = "sha256:fc0fea399acb12edbf8a628ba8d2312f583bdbdb3335635db062fa98cf71fca4"},
     {file = "typed_ast-1.4.1-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:d43943ef777f9a1c42bf4e552ba23ac77a6351de620aa9acf64ad54933ad4d34"},
     {file = "typed_ast-1.4.1.tar.gz", hash = "sha256:8c8aaad94455178e3187ab22c8b01a3837f8ee50e09cf31f1ba129eb293ec30b"},
-]
-typing = [
-    {file = "typing-3.7.4.3-py2-none-any.whl", hash = "sha256:283d868f5071ab9ad873e5e52268d611e851c870a2ba354193026f2dfb29d8b5"},
-    {file = "typing-3.7.4.3.tar.gz", hash = "sha256:1187fb9c82fd670d10aa07bbb6cfcfe4bdda42d6fab8d5134f04e8c4d0b71cc9"},
 ]
 typing-extensions = [
     {file = "typing_extensions-3.7.4.3-py2-none-any.whl", hash = "sha256:dafc7639cde7f1b6e1acc0f457842a83e722ccca8eef5270af2d74792619a89f"},
