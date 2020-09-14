@@ -15,13 +15,14 @@ from .test_checkout import (
 
 
 def test_checkout_lines_delete_with_not_applicable_voucher(
-    user_api_client, checkout_with_item, voucher
+    user_api_client, checkout_with_item, voucher, channel_USD
 ):
     subtotal = calculations.checkout_subtotal(
         checkout=checkout_with_item, lines=list(checkout_with_item)
     )
-    voucher.min_spent = subtotal.gross
-    voucher.save(update_fields=["min_spent_amount", "currency"])
+    voucher.channel_listing.filter(channel=channel_USD).update(
+        min_spent_amount=subtotal.gross.amount
+    )
 
     add_voucher_to_checkout(checkout_with_item, list(checkout_with_item), voucher)
     assert checkout_with_item.voucher_code == voucher.code

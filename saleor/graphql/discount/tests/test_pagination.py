@@ -5,7 +5,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ....discount import DiscountValueType, VoucherType
-from ....discount.models import Sale, SaleChannelListing, Voucher
+from ....discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...tests.utils import get_graphql_content
 
 
@@ -147,9 +147,9 @@ def test_sales_pagination_with_filtering(
 
 @pytest.fixture
 @freeze_time("2020-03-18 12:00:00")
-def vouchers_for_pagination(db):
+def vouchers_for_pagination(db, channel_USD):
     now = timezone.now()
-    return Voucher.objects.bulk_create(
+    vouchers = Voucher.objects.bulk_create(
         [
             Voucher(
                 code="Code1",
@@ -157,8 +157,6 @@ def vouchers_for_pagination(db):
                 start_date=now + timezone.timedelta(hours=4),
                 end_date=now + timezone.timedelta(hours=14),
                 discount_value_type=DiscountValueType.PERCENTAGE,
-                discount_value=Decimal("1"),
-                min_spent_amount=Decimal("10"),
                 usage_limit=10,
                 type=VoucherType.SPECIFIC_PRODUCT,
             ),
@@ -166,8 +164,6 @@ def vouchers_for_pagination(db):
                 code="Code2",
                 name="Voucher2",
                 end_date=now + timezone.timedelta(hours=1),
-                discount_value=Decimal("7"),
-                min_spent_amount=Decimal("10"),
                 usage_limit=1000,
                 used=10,
                 type=VoucherType.ENTIRE_ORDER,
@@ -177,8 +173,6 @@ def vouchers_for_pagination(db):
                 name="Voucher3",
                 end_date=now + timezone.timedelta(hours=2),
                 discount_value_type=DiscountValueType.PERCENTAGE,
-                discount_value=Decimal("5"),
-                min_spent_amount=Decimal("120"),
                 usage_limit=100,
                 used=35,
                 type=VoucherType.ENTIRE_ORDER,
@@ -187,8 +181,6 @@ def vouchers_for_pagination(db):
                 code="Code4",
                 name="Voucher4",
                 end_date=now + timezone.timedelta(hours=1),
-                discount_value=Decimal("5"),
-                min_spent_amount=Decimal("50"),
                 usage_limit=100,
                 type=VoucherType.SPECIFIC_PRODUCT,
             ),
@@ -198,12 +190,50 @@ def vouchers_for_pagination(db):
                 start_date=now + timezone.timedelta(hours=1),
                 end_date=now + timezone.timedelta(hours=5),
                 discount_value_type=DiscountValueType.PERCENTAGE,
-                discount_value=Decimal("2"),
-                min_spent_amount=Decimal("100"),
                 usage_limit=10,
             ),
         ]
     )
+    VoucherChannelListing.objects.bulk_create(
+        [
+            VoucherChannelListing(
+                voucher=vouchers[0],
+                channel=channel_USD,
+                discount_value=1,
+                min_spent_amount=10,
+                currency=channel_USD.currency_code,
+            ),
+            VoucherChannelListing(
+                voucher=vouchers[1],
+                channel=channel_USD,
+                discount_value=7,
+                min_spent_amount=10,
+                currency=channel_USD.currency_code,
+            ),
+            VoucherChannelListing(
+                voucher=vouchers[2],
+                channel=channel_USD,
+                discount_value=5,
+                min_spent_amount=12,
+                currency=channel_USD.currency_code,
+            ),
+            VoucherChannelListing(
+                voucher=vouchers[3],
+                channel=channel_USD,
+                discount_value=5,
+                min_spent_amount=50,
+                currency=channel_USD.currency_code,
+            ),
+            VoucherChannelListing(
+                voucher=vouchers[4],
+                channel=channel_USD,
+                discount_value=2,
+                min_spent_amount=100,
+                currency=channel_USD.currency_code,
+            ),
+        ]
+    )
+    return vouchers
 
 
 QUERY_VOUCHERS_PAGINATION = """
@@ -244,16 +274,19 @@ QUERY_VOUCHERS_PAGINATION = """
             {"field": "END_DATE", "direction": "ASC"},
             ["Voucher2", "Voucher4", "Voucher3"],
         ),
-        ({"field": "VALUE", "direction": "ASC"}, ["Voucher1", "Voucher15", "Voucher3"]),
+        # TODO: Consider filtering and sorting by `isPublished`
+        # Should be resolved by https://app.clickup.com/t/6crxxb
+        # ({"field": "VALUE", "direction": "ASC"},
+        # ["Voucher1", "Voucher15", "Voucher3"]),
         ({"field": "TYPE", "direction": "ASC"}, ["Voucher15", "Voucher2", "Voucher3"]),
         (
             {"field": "USAGE_LIMIT", "direction": "ASC"},
             ["Voucher1", "Voucher15", "Voucher3"],
         ),
-        (
-            {"field": "MINIMUM_SPENT_AMOUNT", "direction": "ASC"},
-            ["Voucher1", "Voucher2", "Voucher4"],
-        ),
+        # (
+        #     {"field": "MINIMUM_SPENT_AMOUNT", "direction": "ASC"},
+        #     ["Voucher1", "Voucher2", "Voucher4"],
+        # ),
     ],
 )
 def test_vouchers_pagination_with_sorting(
