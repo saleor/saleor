@@ -10,8 +10,7 @@ class MenuSortField(graphene.Enum):
 
     @property
     def description(self):
-        # pylint: disable=no-member
-        if self in [MenuSortField.NAME, MenuSortField.ITEMS_COUNT]:
+        if self.name in MenuSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort menus by {sort_name}."
         raise ValueError("Unsupported enum value: %s" % self.value)
@@ -32,8 +31,7 @@ class MenuItemsSortField(graphene.Enum):
 
     @property
     def description(self):
-        # pylint: disable=no-member
-        if self in [MenuItemsSortField.NAME]:
+        if self.name in MenuItemsSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort menu items by {sort_name}."
         raise ValueError("Unsupported enum value: %s" % self.value)

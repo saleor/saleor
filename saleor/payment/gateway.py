@@ -2,8 +2,8 @@ import logging
 from decimal import Decimal
 from typing import TYPE_CHECKING, Callable, List
 
-from ..plugins.manager import get_plugins_manager
 from ..payment.interface import TokenConfig
+from ..plugins.manager import get_plugins_manager
 from . import GatewayError, PaymentError, TransactionKind
 from .models import Payment, Transaction
 from .utils import (

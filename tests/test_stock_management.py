@@ -39,16 +39,18 @@ def test_allocate_stock_many_stocks(order_line, variant_with_many_stocks):
 
 
 def test_allocate_stock_many_stocks_partially_allocated(
-    order_line, order_line_with_allocation_in_many_stocks
+    order_line,
+    order_line_with_allocation_in_many_stocks,
+    order_line_with_one_allocation,
 ):
     allocated_line = order_line_with_allocation_in_many_stocks
     variant = allocated_line.variant
     stocks = variant.stocks.all()
 
-    allocate_stock(order_line, COUNTRY_CODE, 4)
+    allocate_stock(order_line, COUNTRY_CODE, 3)
 
     allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
-    assert allocations[0].quantity_allocated == 2
+    assert allocations[0].quantity_allocated == 1
     assert allocations[1].quantity_allocated == 2
 
 

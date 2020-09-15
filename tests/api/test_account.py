@@ -2699,9 +2699,9 @@ def test_address_update_mutation(
     )
     content = get_graphql_content(response)
     data = content["data"]["addressUpdate"]
-    assert data["address"]["city"] == graphql_address_data["city"]
+    assert data["address"]["city"] == graphql_address_data["city"].upper()
     address_obj.refresh_from_db()
-    assert address_obj.city == graphql_address_data["city"]
+    assert address_obj.city == graphql_address_data["city"].upper()
 
 
 ACCOUNT_ADDRESS_UPDATE_MUTATION = """
@@ -2734,9 +2734,29 @@ def test_customer_update_own_address(
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["accountAddressUpdate"]
-    assert data["address"]["city"] == address_data["city"]
+    assert data["address"]["city"] == address_data["city"].upper()
     address_obj.refresh_from_db()
-    assert address_obj.city == address_data["city"]
+    assert address_obj.city == address_data["city"].upper()
+
+
+def test_customer_update_own_address_not_updated_when_validation_fails(
+    user_api_client, customer_user, graphql_address_data
+):
+    query = ACCOUNT_ADDRESS_UPDATE_MUTATION
+    address_obj = customer_user.addresses.first()
+    address_data = graphql_address_data
+    address_data["city"] = "Poznań"
+    address_data["postalCode"] = "wrong postal code"
+    assert address_data["city"] != address_obj.city
+
+    variables = {
+        "addressId": graphene.Node.to_global_id("Address", address_obj.id),
+        "address": address_data,
+    }
+    user_api_client.post_graphql(query, variables)
+    address_obj.refresh_from_db()
+    assert address_obj.city != address_data["city"]
+    assert address_obj.postal_code != address_data["postalCode"]
 
 
 @pytest.mark.parametrize(
@@ -3190,7 +3210,7 @@ def test_customer_create_address(user_api_client, graphql_address_data):
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
 
-    assert data["address"]["city"] == graphql_address_data["city"]
+    assert data["address"]["city"] == graphql_address_data["city"].upper()
 
     user.refresh_from_db()
     assert user.addresses.count() == nr_of_addresses + 1
@@ -3217,7 +3237,7 @@ def test_customer_create_default_address(user_api_client, graphql_address_data):
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
-    assert data["address"]["city"] == graphql_address_data["city"]
+    assert data["address"]["city"] == graphql_address_data["city"].upper()
 
     user.refresh_from_db()
     assert user.addresses.count() == nr_of_addresses + 1
@@ -3230,7 +3250,7 @@ def test_customer_create_default_address(user_api_client, graphql_address_data):
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
-    assert data["address"]["city"] == graphql_address_data["city"]
+    assert data["address"]["city"] == graphql_address_data["city"].upper()
 
     user.refresh_from_db()
     assert user.addresses.count() == nr_of_addresses + 2
@@ -3244,6 +3264,24 @@ def test_anonymous_user_create_address(api_client, graphql_address_data):
     variables = {"addressInput": graphql_address_data}
     response = api_client.post_graphql(query, variables)
     assert_no_permission(response)
+
+
+def test_address_not_created_after_validation_fails(
+    user_api_client, graphql_address_data
+):
+    user = user_api_client.user
+    nr_of_addresses = user.addresses.count()
+
+    query = ACCOUNT_ADDRESS_CREATE_MUTATION
+
+    graphql_address_data["postalCode"] = "wrong postal code"
+
+    address_type = AddressType.SHIPPING.upper()
+    variables = {"addressInput": graphql_address_data, "addressType": address_type}
+    user_api_client.post_graphql(query, variables)
+
+    user.refresh_from_db()
+    assert user.addresses.count() == nr_of_addresses
 
 
 ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION = """

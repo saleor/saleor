@@ -346,8 +346,6 @@ class PluginsManager(PaymentInterface):
     ) -> "GatewayResponse":
         default_value = None
         gtw = self.get_plugin(gateway)
-        print('gateway: ', gateway)
-        print('gtw: ', gtw)
         if gtw is not None:
             resp = self.__run_method_on_single_plugin(
                 gtw,
@@ -410,11 +408,13 @@ class PluginsManager(PaymentInterface):
 
     def get_plugin(self, plugin_id: str) -> Optional["BasePlugin"]:
         for plugin in self.plugins:
-            print('plugin_name', plugin.PLUGIN_NAME)
-            print('plugin: ', plugin.PLUGIN_ID)
             if plugin.PLUGIN_ID == plugin_id:
                 return plugin
         return None
+
+    def fetch_taxes_data(self) -> bool:
+        default_value = False
+        return self.__run_method_on_plugins("fetch_taxes_data", default_value)
 
 
 def get_plugins_manager(

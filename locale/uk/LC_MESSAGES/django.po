@@ -4,35 +4,24 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# Roman Starenkyi <rstar2808@gmail.com>, 2017
-# Patryk Zawadzki <patrys@room-303.com>, 2018
-# Anatolii Krivko <anatolii.krivko@gmail.com>, 2018
-# Yevhenii Dehtiar <yevhenii.dehtiar@gmail.com>, 2018
-# Roman Storozhuk <roman.storozhuk@gmail.com>, 2019
-# Oleksandr Pryymak <235@inmind.org>, 2019
-# rice_ua <derkach.m@gmail.com>, 2019
-# Николай Инкогнито <mmmsvit@gmail.com>, 2019
-# Marysya Rudska <rudmari@gmail.com>, 2019
-# Andriy Kovalchuk <tulsluper@gmail.com>, 2019
+# Николай Инкогнито <mmmsvit@gmail.com>, 2018
+# Marysya Rudska <rudmari@gmail.com>, 2018
+# Nikolay T. <damyen441@gmail.com>, 2020
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-14 04:02-0500\n"
+"POT-Creation-Date: 2020-05-14 03:45-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Andriy Kovalchuk <tulsluper@gmail.com>, 2019\n"
-"Language-Team: Ukrainian (https://www.transifex.com/mirumee/teams/34782/"
-"uk/)\n"
-"Language: uk\n"
+"Last-Translator: Nikolay T. <damyen441@gmail.com>, 2020\n"
+"Language-Team: Ukrainian (https://www.transifex.com/mirumee/teams/34782/uk/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != "
-"11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
-"100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
-"(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+"Language: uk\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
 #, python-format
@@ -50,2952 +39,474 @@ msgstr ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 
-#: templates/read_only/read_only_splash.html:48
-msgid "Be aware pirate! <br> Saleor runs in <span>read only mode!</span>"
+#: templates/templated_email/account/account_delete.email:4
+msgctxt "Account delete reset e-mail subject"
+msgid "Delete your account"
 msgstr ""
 
-#: templates/read_only/read_only_splash.html:49
-#, fuzzy
-#| msgctxt "Close modal action button"
-#| msgid "Close"
-msgid "Close"
-msgstr "Закрити"
+#: templates/templated_email/account/account_delete.email:9
+#, python-format
+msgctxt "Account delete reset e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"Click the link below to delete your account.\n"
+"\n"
+"Please note that this action is permanent and cannot be reversed.\n"
+msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:174
-#: templates/templated_email/compiled/confirm.html:174
-#: templates/templated_email/compiled/confirm_fulfillment.html:174
-#: templates/templated_email/compiled/confirm_order.html:175
-#: templates/templated_email/compiled/confirm_payment.html:174
-#: templates/templated_email/compiled/email_changed_notification.html:174
-#: templates/templated_email/compiled/password_reset.html:174
-#: templates/templated_email/compiled/request_email_change.html:174
-#: templates/templated_email/compiled/set_customer_password.html:174
-#: templates/templated_email/compiled/set_password.html:174
-#: templates/templated_email/compiled/staff_confirm_order.html:175
-#: templates/templated_email/compiled/update_fulfillment.html:174
+#: templates/templated_email/account/confirm.email:4
+msgctxt "Account confirmation e-mail subject"
+msgid "Account confirmation e-mail"
+msgstr ""
+
+#: templates/templated_email/account/confirm.email:9
+#, python-format
+msgctxt "Account confirmation e-mail text"
+msgid ""
+"\n"
+"In order to log into %(domain)s, you have to confirm your email address first.\n"
+"Please click the link below to do so and log into your account.\n"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:4
+#: templates/templated_email/account/request_email_change.email:4
+msgctxt "Email change e-mail subject"
+msgid "Email change e-mail"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
+"If you didn't request this change, please contact the administrator.\n"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:9
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/account/request_email_change.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:2
+#, python-format
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:6
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:6
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment confirmation email subject"
+msgid "Your order %(order)s has been fulfilled"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:11
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of fulfilled products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:15
+#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr ""
+"Ви можете відслідковувати доставку за допомогою коду %(tracking_number)s."
+
+#: templates/templated_email/order/confirm_order.email:6
+#: templates/templated_email/order/staff_confirm_order.email:6
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:11
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:15
+#: templates/templated_email/order/staff_confirm_order.email:15
+#, python-format
+msgctxt "Order confirmation e-mail payment details"
+msgid ""
+"\n"
+"To see your payment details please visit:\n"
+"%(order_details_url)s\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:23
+#: templates/templated_email/order/staff_confirm_order.email:23
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:24
+#: templates/templated_email/order/staff_confirm_order.email:24
+msgctxt "Order confirmation e-mail table header"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/order/staff_confirm_order.email:25
+msgctxt "Order confirmation e-mail table header"
+msgid "Shipping"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:27
+#: templates/templated_email/order/staff_confirm_order.email:27
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/staff_confirm_order.email:28
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:30
+#: templates/templated_email/order/staff_confirm_order.email:30
+#: templates/templated_email/source/confirm_order.mjml:29
+#: templates/templated_email/source/staff_confirm_order.mjml:29
+msgctxt "Order confirmation e-mail billing address"
+msgid "Billing address"
+msgstr "Адреса оплати"
+
+#: templates/templated_email/order/confirm_order.email:31
+#: templates/templated_email/order/staff_confirm_order.email:31
+#: templates/templated_email/source/confirm_order.mjml:39
+#: templates/templated_email/source/staff_confirm_order.mjml:39
+msgctxt "Order confirmation e-mail text"
+msgid "No billing address"
+msgstr "Відсутня платіжна адреса"
+
+#: templates/templated_email/order/confirm_order.email:33
+#: templates/templated_email/order/staff_confirm_order.email:33
+#: templates/templated_email/source/confirm_order.mjml:30
+#: templates/templated_email/source/staff_confirm_order.mjml:30
+msgctxt "Order confirmation e-mail shipping address"
+msgid "Shipping address"
+msgstr "Адреса доставки "
+
+#: templates/templated_email/order/confirm_order.email:34
+#: templates/templated_email/order/staff_confirm_order.email:34
+#: templates/templated_email/source/confirm_order.mjml:46
+#: templates/templated_email/source/staff_confirm_order.mjml:46
+msgctxt "Order confirmation e-mail text"
+msgid "No shipping required"
+msgstr "Доставка не потрібна"
+
+#: templates/templated_email/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:9
+msgctxt "Payment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your payment.\n"
+"Your payment was successfully charged.\n"
+msgstr ""
+
+#: templates/templated_email/order/staff_confirm_order.email:11
+msgctxt "Order confirmation staff e-mail text"
+msgid ""
+"\n"
+"Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment update email subject"
+msgid "Shipping update for order %(order)s"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:11
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:15
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid ""
+"You can track your shipment with the following code: %(tracking_number)s."
+msgstr ""
+
+#: templates/templated_email/shared/_footer.email:2
+#: templates/templated_email/source/shared/footer.mjml:4
+msgctxt "Base email text"
+msgid "This is an automatically generated e-mail, please do not reply."
+msgstr ""
+"Це автоматично створений електронний лист, будь-ласка не відповідайте."
+
+#: templates/templated_email/shared/_footer.email:5
+#: templates/templated_email/source/shared/footer.mjml:13
+#, python-format
+msgctxt "Base email footer"
+msgid "Sincerely, %(site_name)s"
+msgstr "З повагою, %(site_name)s"
+
+#: templates/templated_email/shared/_header.email:2
+#: templates/templated_email/source/account_delete.mjml:13
+#: templates/templated_email/source/confirm.mjml:13
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+#: templates/templated_email/source/confirm_order.mjml:14
+#: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/email_changed_notification.mjml:13
+#: templates/templated_email/source/password_reset.mjml:13
+#: templates/templated_email/source/request_email_change.mjml:13
+#: templates/templated_email/source/set_customer_password.mjml:13
+#: templates/templated_email/source/set_password.mjml:13
+#: templates/templated_email/source/staff_confirm_order.mjml:14
+#: templates/templated_email/source/update_fulfillment.mjml:13
 msgctxt "Standard e-mail greeting"
 msgid "Hi!"
-msgstr ""
+msgstr "Привіт!"
 
-#: templates/templated_email/compiled/account_delete.html:182
+#: templates/templated_email/source/account_delete.mjml:16
 #, python-format
 msgctxt "Account delete e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be "
-"reversed."
+"deletion of your user account at %(domain)s.<br/> Click the link below to "
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:255
-#: templates/templated_email/compiled/confirm.html:255
-#: templates/templated_email/compiled/confirm_fulfillment.html:362
-#: templates/templated_email/compiled/confirm_order.html:465
-#: templates/templated_email/compiled/confirm_payment.html:245
-#: templates/templated_email/compiled/email_changed_notification.html:245
-#: templates/templated_email/compiled/password_reset.html:255
-#: templates/templated_email/compiled/request_email_change.html:255
-#: templates/templated_email/compiled/set_customer_password.html:255
-#: templates/templated_email/compiled/set_password.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:465
-#: templates/templated_email/compiled/update_fulfillment.html:350
-msgctxt "Base email text"
-msgid "This is an automatically generated e-mail, please do not reply."
-msgstr ""
-
-#: templates/templated_email/compiled/account_delete.html:317
-#: templates/templated_email/compiled/confirm.html:317
-#: templates/templated_email/compiled/confirm_fulfillment.html:424
-#: templates/templated_email/compiled/confirm_order.html:527
-#: templates/templated_email/compiled/confirm_payment.html:307
-#: templates/templated_email/compiled/email_changed_notification.html:307
-#: templates/templated_email/compiled/password_reset.html:317
-#: templates/templated_email/compiled/request_email_change.html:317
-#: templates/templated_email/compiled/set_customer_password.html:317
-#: templates/templated_email/compiled/set_password.html:317
-#: templates/templated_email/compiled/staff_confirm_order.html:527
-#: templates/templated_email/compiled/update_fulfillment.html:412
-#, python-format
-msgctxt "Base email footer"
-msgid "Sincerely, %(site_name)s"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm.html:182
+#: templates/templated_email/source/confirm.mjml:16
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
 "In order to log into %(domain)s, you have to confirm your email address "
 "first. Please click the link below to do so and log into your account."
 msgstr ""
+"Для того, щоб увійти на %(domain)s, ви повинні спочатку підтвердити свою "
+"електронну адресу. Для цього натисніть посилання нижче та увійдіть у свій "
+"обліковий запис."
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:182
+#: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
-msgstr ""
+msgstr "Дякуємо за ваше замовлення. Нижче перелік виконаних товарів."
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:186
-#, python-format
-msgctxt "Fulfillment confirmation email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_fulfillment.html:198
+#: templates/templated_email/source/confirm_fulfillment.mjml:27
 msgctxt "Fulfillment digital products email text"
-msgid "You can download your digital products by clicking in download link(s)."
+msgid ""
+"You can download your digital products by clicking in download link(s)."
 msgstr ""
+"Ви можете завантажити ваш список товарів, натиснувши на посилання для "
+"завантаження."
 
-#: templates/templated_email/compiled/confirm_order.html:183
+#: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit: <a href=\"%(order_details_url)s\">"
-"%(order_details_url)s</a>"
+"Thank you for your order. Below is the list of ordered products. To see your"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
+"Дякуємо за ваше замовлення. Нижче перелік замовлених товарів. Щоб побачити "
+"свої дані про платіжні, відвідайте сторінку: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 
-#: templates/templated_email/compiled/confirm_order.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:255
-msgctxt "E-mail order lines summary table"
-msgid "Subtotal"
-msgstr "Загалом"
-
-#: templates/templated_email/compiled/confirm_order.html:263
-#: templates/templated_email/compiled/staff_confirm_order.html:263
-msgctxt "E-mail order lines summary table"
-msgid "Shipping"
-msgstr "Всі покупки"
-
-#: templates/templated_email/compiled/confirm_order.html:272
-#: templates/templated_email/compiled/staff_confirm_order.html:272
-msgctxt "E-mail order lines summary table"
-msgid "Taxes (included)"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:274
-#: templates/templated_email/compiled/staff_confirm_order.html:274
-msgctxt "E-mail order lines summary table"
-msgid "Taxes"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:284
-#: templates/templated_email/compiled/staff_confirm_order.html:284
-msgctxt "E-mail order lines summary table"
-msgid "Discount"
-msgstr "Знижка "
-
-#: templates/templated_email/compiled/confirm_order.html:293
-#: templates/templated_email/compiled/staff_confirm_order.html:293
-msgctxt "E-mail order lines summary table"
-msgid "Total"
-msgstr "Разом"
-
-#: templates/templated_email/compiled/confirm_order.html:302
-#: templates/templated_email/compiled/staff_confirm_order.html:302
-msgctxt "Ordered item name"
-msgid "Item"
-msgstr "Позиція"
-
-#: templates/templated_email/compiled/confirm_order.html:303
-#: templates/templated_email/compiled/staff_confirm_order.html:303
-msgctxt "Quantity ordered of a product"
-msgid "Quantity"
-msgstr "Кількість"
-
-#: templates/templated_email/compiled/confirm_order.html:304
-#: templates/templated_email/compiled/staff_confirm_order.html:304
-msgctxt "Unit price of a product"
-msgid "Per unit"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:305
-#: templates/templated_email/compiled/staff_confirm_order.html:305
-msgctxt "Ordered item subtotal (unit price * quantity)"
-msgid "Subtotal"
-msgstr "Загалом"
-
-#: templates/templated_email/compiled/confirm_order.html:383
-#: templates/templated_email/compiled/staff_confirm_order.html:383
-msgctxt "Order confirmation e-mail billing address"
-msgid "Billing address"
-msgstr "Адреса оплати"
-
-#: templates/templated_email/compiled/confirm_order.html:384
-#: templates/templated_email/compiled/staff_confirm_order.html:384
-msgctxt "Order confirmation e-mail shipping address"
-msgid "Shipping address"
-msgstr "Адреса доставки "
-
-#: templates/templated_email/compiled/confirm_order.html:393
-#: templates/templated_email/compiled/staff_confirm_order.html:393
-msgctxt "Order confirmation e-mail text"
-msgid "No billing address"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:400
-#: templates/templated_email/compiled/staff_confirm_order.html:400
-msgctxt "Order confirmation e-mail text"
-msgid "No shipping required"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_payment.html:182
+#: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
 msgid "Thank you for your payment. Your payment was successfully charged."
-msgstr ""
+msgstr "Дякуємо за вашу оплату. Ваш платіж успішно сплачений."
 
-#: templates/templated_email/compiled/email_changed_notification.html:182
+#: templates/templated_email/source/email_changed_notification.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
-"for your user account at %(domain)s.<br> If you didn't request this change, "
-"please contact the administrator."
+"for your user account at %(domain)s.<br /> If you didn't request this "
+"change, please contact the administrator."
 msgstr ""
 
-#: templates/templated_email/compiled/password_reset.html:182
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:29
+#: templates/templated_email/source/partials/_order_lines.mjml:59
+msgctxt "Ordered item name"
+msgid "Item"
+msgstr "Позиція"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
+#: templates/templated_email/source/partials/_order_lines.mjml:60
+msgctxt "Quantity ordered of a product"
+msgid "Quantity"
+msgstr "Кількість"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
+msgctxt "Ordered item download links"
+msgid "Download Link"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:12
+msgctxt "E-mail order lines summary table"
+msgid "Subtotal"
+msgstr "Разом"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:20
+msgctxt "E-mail order lines summary table"
+msgid "Shipping"
+msgstr "Доставка"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:29
+msgctxt "E-mail order lines summary table"
+msgid "Taxes (included)"
+msgstr "Податки (включно)"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:31
+msgctxt "E-mail order lines summary table"
+msgid "Taxes"
+msgstr "Податки"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:41
+msgctxt "E-mail order lines summary table"
+msgid "Discount"
+msgstr "Знижка "
+
+#: templates/templated_email/source/partials/_order_lines.mjml:50
+msgctxt "E-mail order lines summary table"
+msgid "Total"
+msgstr "Всього"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:61
+msgctxt "Unit price of a product"
+msgid "Per unit"
+msgstr "За одиницю"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:62
+msgctxt "Ordered item subtotal (unit price * quantity)"
+msgid "Subtotal"
+msgstr "Разом"
+
+#: templates/templated_email/source/password_reset.mjml:16
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br> It can be safely ignored "
+"password for your user account at %(domain)s.<br/> It can be safely ignored "
 "if you did not request a password reset. Click the link below to reset your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/request_email_change.html:182
+#: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested an "
-"email change for your user account at %(domain)s.<br> It can be safely "
+"email change for your user account at %(domain)s.<br /> It can be safely "
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
 
-#: templates/templated_email/compiled/set_customer_password.html:182
+#: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your "
-"customer account at %(domain)s.<br> Click the link below to set up your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/set_password.html:182
+#: templates/templated_email/source/set_password.mjml:16
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
-"You're receiving this e-mail because you have to set password for your staff "
-"member account at %(domain)s.<br> Click the link below to set up your "
+"You're receiving this e-mail because you have to set password for your staff"
+" member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/staff_confirm_order.html:183
+#: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
-"Someone placed a new order in your store. To see order details please visit: "
-"<a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+"Someone placed a new order in your store. To see order details please visit:"
+" <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
+"Хтось розмістив нове замовлення у вашому магазині. Щоб переглянути деталі "
+"замовлення, відвідайте сторінку: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 
-#: templates/templated_email/compiled/update_fulfillment.html:182
+#: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number."
+"Your shipping status has been updated. Below is the list of ordered products"
+" that have been updated with new tracking number."
 msgstr ""
+"Ваш статус доставки оновлено. Нижче наведено список замовлених товарів, "
+"оновлених новим номером відстеження."
 
-#: templates/templated_email/compiled/update_fulfillment.html:186
+#: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
 msgstr ""
-
-#~ msgctxt "Form field"
-#~ msgid "Email"
-#~ msgstr "Email"
-
-#~ msgctxt "Password"
-#~ msgid "Password"
-#~ msgstr "Пароль"
-
-#~ msgctxt "Email"
-#~ msgid "Email"
-#~ msgstr "Email"
-
-#~ msgctxt "Registration error"
-#~ msgid "This email has already been registered."
-#~ msgstr "Ця електронна адреса вже зареєстрована."
-
-#~ msgctxt "Customer form: Given name field"
-#~ msgid "Given name"
-#~ msgstr "ім’я"
-
-#~ msgctxt "Customer form: Family name field"
-#~ msgid "Family name"
-#~ msgstr "Прізвище"
-
-#~ msgctxt "Address field"
-#~ msgid "Area"
-#~ msgstr "Область"
-
-#~ msgctxt "Address field"
-#~ msgid "County"
-#~ msgstr "Країна"
-
-#~ msgctxt "Address field"
-#~ msgid "Department"
-#~ msgstr "Відділ"
-
-#~ msgctxt "Address field"
-#~ msgid "District"
-#~ msgstr "Район"
-
-#~ msgctxt "Address field"
-#~ msgid "Do/si"
-#~ msgstr "До/сі"
-
-#~ msgctxt "Address field"
-#~ msgid "Emirate"
-#~ msgstr "Емірати"
-
-#~ msgctxt "Address field"
-#~ msgid "Island"
-#~ msgstr "Острів"
-
-#~ msgctxt "Address field"
-#~ msgid "Neighborhood"
-#~ msgstr "Район"
-
-#~ msgctxt "Address field"
-#~ msgid "Oblast"
-#~ msgstr "Область"
-
-#~ msgctxt "Address field"
-#~ msgid "Parish"
-#~ msgstr "Париж"
-
-#~ msgctxt "Address field"
-#~ msgid "PIN"
-#~ msgstr "пін-код"
-
-#~ msgctxt "Address field"
-#~ msgid "Postal code"
-#~ msgstr "Індекс"
-
-#~ msgctxt "Address field"
-#~ msgid "Prefecture"
-#~ msgstr "Префектура"
-
-#~ msgctxt "Address field"
-#~ msgid "Province"
-#~ msgstr "Провінція"
-
-#~ msgctxt "Address field"
-#~ msgid "State"
-#~ msgstr "Штат"
-
-#~ msgctxt "Address field"
-#~ msgid "Suburb"
-#~ msgstr "Передмістя"
-
-#~ msgctxt "Address field"
-#~ msgid "Townland"
-#~ msgstr "Область"
-
-#~ msgctxt "Address field"
-#~ msgid "Village/township"
-#~ msgstr "Місто"
-
-#~ msgctxt "Address field"
-#~ msgid "ZIP code"
-#~ msgstr "Індекс"
-
-#~ msgctxt "Country"
-#~ msgid "Country"
-#~ msgstr "Країна"
-
-#~ msgctxt "Personal name"
-#~ msgid "Given name"
-#~ msgstr "ім’я"
-
-#~ msgctxt "Personal name"
-#~ msgid "Family name"
-#~ msgstr "Прізвище"
-
-#~ msgctxt "Company or organization"
-#~ msgid "Company or organization"
-#~ msgstr "Компанія або організація"
-
-#~ msgctxt "Address"
-#~ msgid "Address"
-#~ msgstr "Адреса"
-
-#~ msgctxt "City"
-#~ msgid "City"
-#~ msgstr "місто"
-
-#~ msgctxt "City area"
-#~ msgid "District"
-#~ msgstr "Район"
-
-#~ msgctxt "Postal code"
-#~ msgid "Postal code"
-#~ msgstr "Індекс"
-
-#~ msgctxt "Country area"
-#~ msgid "State or province"
-#~ msgstr "область"
-
-#~ msgctxt "Phone number"
-#~ msgid "Phone number"
-#~ msgstr "номер телефону"
-
-#~ msgctxt "Address"
-#~ msgid "Street address, P.O. box, company name"
-#~ msgstr "Вулиця"
-
-#~ msgctxt "Address"
-#~ msgid "Apartment, suite, unit, building, floor, etc"
-#~ msgstr "Будинок, квартира"
-
-#~ msgctxt "Address form"
-#~ msgid "This value is invalid for selected country"
-#~ msgstr "Це значення невірне для обраної країни"
-
-#~ msgid "The phone number entered is not valid."
-#~ msgstr "Некоректно ведений номер телефону."
-
-#~ msgid "You have been successfully logged out."
-#~ msgstr "Ви успішно вийшли."
-
-#~ msgid "User has been created"
-#~ msgstr "Користувача створено"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Password successfully changed."
-#~ msgstr "Пароль змінено успішно."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Account successfully updated."
-#~ msgstr "Обліковий запис успішно оновлений."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully updated."
-#~ msgstr "Адресу оновлено успішно."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully removed"
-#~ msgstr "Адресу видалено успішно"
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Shipping"
-#~ msgstr "Всі покупки"
-
-#~ msgctxt "Add to checkout form field label"
-#~ msgid "Quantity"
-#~ msgstr "Кількість"
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently not available."
-#~ msgstr "Просимо вибачення. На даний момент цей товар недоступний."
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently out of stock."
-#~ msgstr "Просимо вибачення. На даний момент цей товар відсутній на складі."
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Oops. We could not find that product."
-#~ msgstr "Ой. Ми не можемо знайти цей товар."
-
-#~ msgctxt "Country form field label"
-#~ msgid "Country"
-#~ msgstr "Країна"
-
-#~ msgctxt "Address form field label"
-#~ msgid "Email"
-#~ msgstr "Email"
-
-#~ msgctxt "Shipping addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Вкажіть нову адресу"
-
-#~ msgctxt "Shipping addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Адреса"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Вкажіть нову адресу"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Same as shipping"
-#~ msgstr "Так само, як і доставка"
-
-#~ msgctxt "Billing addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Адреса"
-
-#~ msgctxt "Shipping method form field label"
-#~ msgid "Shipping method"
-#~ msgstr "Метод доставки"
-
-#~ msgctxt "Voucher form error"
-#~ msgid "Discount code incorrect or expired"
-#~ msgstr "Код знижки неправильний або його термін дії закінчився."
-
-#~ msgctxt "Checkout discount form label for voucher field"
-#~ msgid "Gift card or discount code"
-#~ msgstr "Подарункова картка або код знижки"
-
-#~ msgctxt "Checkout warning message"
-#~ msgid ""
-#~ "Sorry. We don't have that many items in stock. Quantity was set to "
-#~ "maximum available for now."
-#~ msgstr ""
-#~ "Вибачте. У нас нема стільки одиниць в наявності. Кількість була "
-#~ "встановлена на максимально доступну зараз."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Your order does not require shipping."
-#~ msgstr "Ваше замовлення не вимагає доставки."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Please select a shipping method first."
-#~ msgstr "Будь ласка, спочатку виберіть метод доставки."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for selected items."
-#~ msgstr "Ця пропозиція дійсна лише на обрані позиції"
-
-#~ msgctxt "Checkout warning"
-#~ msgid "This voucher has expired. Please review your checkout."
-#~ msgstr ""
-#~ "Термін дії ваучера закінчився. Будь ласка, перегляньте оформлення "
-#~ "замовлення."
-
-#~ msgctxt "Checkout warning"
-#~ msgid "Please review your checkout."
-#~ msgstr "Будь ласка перегляньте Ваш розрахунок"
-
-#, python-format
-#~ msgctxt "Number of matching records in the dashboard list"
-#~ msgid "Found %(counter)d matching record"
-#~ msgid_plural "Found %(counter)d matching records"
-#~ msgstr[0] "Знайдено %(counter)d запис"
-#~ msgstr[1] "Знайдено %(counter)d записів"
-#~ msgstr[2] "Знайдено %(counter)d записів"
-#~ msgstr[3] "Знайдено %(counter)d записів"
-
-#~ msgctxt "Impersonation message"
-#~ msgid "You are now logged as {}"
-#~ msgstr "Ви увійшли як  {}"
-
-#~ msgctxt "Discount type"
-#~ msgid "%"
-#~ msgstr "%"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Shipping"
-#~ msgstr "Всі покупки"
-
-#~ msgctxt "Voucher type"
-#~ msgid "Free shipping"
-#~ msgstr "Безкоштовна доставка"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off shipping"
-#~ msgstr "%(discount)s з доставки"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off"
-#~ msgstr "%(discount)s знижка"
-
-#, python-format
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for orders over %(amount)s."
-#~ msgstr "Ця пропозиція дійсна лише при замовленні більш ніж %(amount)s"
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Discount not applicable for this product"
-#~ msgstr "На цей продукт знижка не дійсна"
-
-#~ msgctxt "Payment delete form error"
-#~ msgid "Payment does not exist"
-#~ msgstr "Цієї оплати немає"
-
-#~ msgctxt "storefront message"
-#~ msgid "The order is now assigned to your account"
-#~ msgstr "Тепер замовлення прив'язано до вашого профілю"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Refund"
-#~ msgstr "Відшкодування"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Capture"
-#~ msgstr "Зарахувати"
-
-#~ msgctxt "Payment status form field"
-#~ msgid "Payment status"
-#~ msgstr "Статус оплати "
-
-#~ msgctxt "Product status"
-#~ msgid "not published"
-#~ msgstr "неопубліковано"
-
-#~ msgctxt "Product status"
-#~ msgid "variants missing"
-#~ msgstr "варіанти пропущено"
-
-#~ msgctxt "Product status"
-#~ msgid "out of stock"
-#~ msgstr "закінчився"
-
-#~ msgctxt "Product status"
-#~ msgid "stock running low"
-#~ msgstr "закінчується"
-
-#~ msgctxt "Product status"
-#~ msgid "not yet available"
-#~ msgstr "поки що відсутній"
-
-#~ msgctxt "Product status"
-#~ msgid "ready for purchase"
-#~ msgstr "можна продавати"
-
-#~ msgctxt "Variant status"
-#~ msgid "available"
-#~ msgstr "доступний"
-
-#~ msgctxt "Variant status"
-#~ msgid "out of stock"
-#~ msgstr "закінчився"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "name"
-#~ msgstr "назва"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "price"
-#~ msgstr "ціна"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "last updated"
-#~ msgstr "Оновлений останнього разу "
-
-#~ msgctxt "Product list sorting form"
-#~ msgid "Sort by"
-#~ msgstr "Сортувати по"
-
-#~ msgctxt "Currency amount"
-#~ msgid "Price"
-#~ msgstr "Ціна"
-
-#, python-format
-#~ msgctxt "Variant choice field label"
-#~ msgid "%(variant_label)s - %(price)s"
-#~ msgstr "%(variant_label)s-%(price)s"
-
-#~ msgctxt "Search form label"
-#~ msgid "Query"
-#~ msgstr "Запит"
-
-#~ msgctxt "Change language action button"
-#~ msgid "Change"
-#~ msgstr "Змінити"
-
-#~ msgctxt "Account deletetion confirmation page title"
-#~ msgid "Are you sure?"
-#~ msgstr "Ви впевнені? "
-
-#~ msgctxt "Remove address form action"
-#~ msgid "Cancel"
-#~ msgstr "Відмінити"
-
-#~ msgctxt "Edit address page title"
-#~ msgid "Edit address"
-#~ msgstr "Редагувати адресу"
-
-#~ msgctxt "New address page title"
-#~ msgid "New address"
-#~ msgstr "Нова адреса"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Home"
-#~ msgstr "Дім"
-
-#~ msgctxt "Edit/new address breadcrumb"
-#~ msgid "Your profile"
-#~ msgstr "Ваш профіль"
-
-#~ msgctxt "Edit address breadcrumb"
-#~ msgid "Edit address"
-#~ msgstr "Редагувати адресу"
-
-#~ msgctxt "New address breadcrumb"
-#~ msgid "New address"
-#~ msgstr "Нова адреса"
-
-#~ msgctxt "Edit address title"
-#~ msgid "Edit address"
-#~ msgstr "Редагувати адресу"
-
-#~ msgctxt "New address title"
-#~ msgid "New address"
-#~ msgstr "Нова адреса"
-
-#~ msgctxt "Edit/new address primary action"
-#~ msgid "Save changes"
-#~ msgstr "Зберегти зміни"
-
-#~ msgctxt "User profile page title"
-#~ msgid "Your profile"
-#~ msgstr "Ваш профіль "
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your account"
-#~ msgstr "Ваш обліковий запис"
-
-#~ msgid "My account"
-#~ msgstr "Мій обліковий запис"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Recent Orders"
-#~ msgstr "Нещодавні замовлення"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Change password"
-#~ msgstr "Змінити пароль"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order"
-#~ msgstr "Замовлення"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Date"
-#~ msgstr "Дата"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Summary"
-#~ msgstr "Підсумок"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Payment status"
-#~ msgstr "Статус оплати "
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order status"
-#~ msgstr "Статус замовлення"
-
-#~ msgctxt "Recent orders link text"
-#~ msgid "Details"
-#~ msgstr "Деталі"
-
-#~ msgctxt "No recent orders text"
-#~ msgid "There are not any completed orders yet."
-#~ msgstr "Немає виконаних замовлень."
-
-#~ msgctxt "User profile action"
-#~ msgid "Change password"
-#~ msgstr "Змінити пароль"
-
-#~ msgctxt "User profile action"
-#~ msgid "Update"
-#~ msgstr "Оновити"
-
-#~ msgctxt "User address action"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "No addresses text"
-#~ msgid "You will see new addresses here after first successful checkout."
-#~ msgstr "Тут відображатиметься адреса після першого успішного замовлення."
-
-#~ msgctxt "Login page title"
-#~ msgid "Log in"
-#~ msgstr "Вхід"
-
-#~ msgctxt "Login form secondary title"
-#~ msgid "Don't have an account yet?"
-#~ msgstr "Ще не маєте акаунта?"
-
-#~ msgctxt "Login form secondary action"
-#~ msgid "Register"
-#~ msgstr "Зареєструватися"
-
-#~ msgctxt "Login form title"
-#~ msgid "Log in"
-#~ msgstr "Вхід "
-
-#~ msgctxt "Login form primary action"
-#~ msgid "Log in"
-#~ msgstr "Вхід "
-
-#~ msgctxt "Login form secondary link"
-#~ msgid "Forgot password?"
-#~ msgstr "Забули пароль?"
-
-#~ msgid "Facebook"
-#~ msgstr "Facebook"
-
-#~ msgid "Google"
-#~ msgstr "Google"
-
-#~ msgctxt "Password change breadcrumb"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Password change form legend"
-#~ msgid "Change Password"
-#~ msgstr "Змінити Пароль"
-
-#~ msgctxt "Password change form primary action"
-#~ msgid "Save new password"
-#~ msgstr "Зберегти новий пароль"
-
-#~ msgctxt "Password reset page title"
-#~ msgid "Password reset"
-#~ msgstr "Скинути пароль"
-
-#~ msgctxt "Password reset form title"
-#~ msgid "Forgot your password?"
-#~ msgstr "Забули свій пароль?"
-
-#~ msgctxt "Password reset form help text"
-#~ msgid ""
-#~ "Please let us know the email you have used to register or purchase at our "
-#~ "store."
-#~ msgstr ""
-#~ "Будь ласка, повідомте нам email, який ви використовували для реєстрації "
-#~ "або покупок в нашому магазині."
-
-#~ msgctxt "Password reset primary action"
-#~ msgid "Continue"
-#~ msgstr "Продовжити"
-
-#~ msgctxt "Password reset done page title"
-#~ msgid "Password Reset"
-#~ msgstr "Скинути Пароль"
-
-#~ msgctxt "Password reset done title"
-#~ msgid "Password Reset"
-#~ msgstr "Скинути Пароль "
-
-#~ msgctxt "Password reset done text"
-#~ msgid ""
-#~ "We have sent you an e-mail. Please contact us if you do not receive it "
-#~ "within a few minutes."
-#~ msgstr ""
-#~ "Ми надіслали Вам лист. Будь ласка зв’яжіться з нами, якщо не отримаєте "
-#~ "його упродовж кількох хвилин."
-
-#~ msgctxt "Password reset from key page title"
-#~ msgid "Change Password"
-#~ msgstr "Змінити Пароль"
-
-#~ msgid "Bad Token"
-#~ msgstr "Поганий токен"
-
-#, python-format
-#~ msgctxt "Password reset text if key is invalid"
-#~ msgid ""
-#~ "The password reset link was invalid, possibly because it has already been "
-#~ "used.<br> Please request a <a href=\"%(passwd_reset_url)s\">new password "
-#~ "reset</a>."
-#~ msgstr ""
-#~ "Посилання на скидання пароля — недійсне, ймовірно воно вже було "
-#~ "використане.<br>Будь ласка зробіть запит<a href=\"%(passwd_reset_url)s"
-#~ "\">на нове скидання пароля</a>."
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Password Reset"
-#~ msgstr "Скинути Пароль "
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Now you can set new password for you account."
-#~ msgstr "Тепер Ви можете встановити новий пароль для свого акаунта."
-
-#~ msgctxt "Password reset from key form primary action"
-#~ msgid "Continue"
-#~ msgstr "Продовжити"
-
-#~ msgctxt "Password reset link expired from key form title"
-#~ msgid "Password Reset Link Expired"
-#~ msgstr "Посилання на скидання паролю не вже дійсне"
-
-#~ msgctxt "Reset my password link"
-#~ msgid "Reset my password"
-#~ msgstr "Скинути пароль"
-
-#~ msgctxt "Password reset from key done page title"
-#~ msgid "Password Changed"
-#~ msgstr "Пароль змінено"
-
-#~ msgctxt "Password reset from key done title"
-#~ msgid "Password Changed"
-#~ msgstr "Пароль змінено"
-
-#~ msgid "Your password is now changed."
-#~ msgstr "Ваш пароль тепер змінений."
-
-#, python-format
-#~ msgctxt "Password reset from key done text"
-#~ msgid ""
-#~ "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
-#~ msgstr ""
-#~ "Тепер Ви можете<a href=\"%(login_url)s\">увійти </a>використовуючи свій "
-#~ "новий пароль"
-
-#~ msgctxt "Signup page title"
-#~ msgid "Sign Up"
-#~ msgstr "Зареєструватися"
-
-#~ msgctxt "Signup form secondary title"
-#~ msgid "Already have an account?"
-#~ msgstr "Уже маєте акаунт?"
-
-#~ msgctxt "Signup form secondary action"
-#~ msgid "Log in"
-#~ msgstr "Вхід "
-
-#~ msgctxt "Signup form title"
-#~ msgid "Create an account"
-#~ msgstr "Створити обліковий запис"
-
-#~ msgctxt "Signup form primary action"
-#~ msgid "Create an account"
-#~ msgstr "Створити обліковий запис"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Dashboard"
-#~ msgstr "Центр керування "
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log out"
-#~ msgstr "Вийти"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Register"
-#~ msgstr "Зареєструватися"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log in"
-#~ msgstr "Вхід "
-
-#~ msgid "Search for product"
-#~ msgstr "Пошук продукту"
-
-#~ msgid "Search"
-#~ msgstr "Пошук"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your cart"
-#~ msgstr "Ваша корзина"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Style guide"
-#~ msgstr "Гід стилю"
-
-#~ msgctxt "Category breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "Дім "
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Subtotal"
-#~ msgstr "Загалом"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Total"
-#~ msgstr "Разом"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Checkout"
-#~ msgstr "Оформити замовлення"
-
-#~ msgctxt "Checkout top message"
-#~ msgid "Easy and secure!"
-#~ msgstr "Просто і безпечно!"
-
-#~ msgctxt "Checkout title"
-#~ msgid "Checkout"
-#~ msgstr "Оформити замовлення"
-
-#~ msgctxt "Order review title"
-#~ msgid "Order review"
-#~ msgstr "Перегляд замовлення"
-
-#~ msgctxt "Order review section"
-#~ msgid "Subtotal"
-#~ msgstr "Загалом"
-
-#~ msgctxt "Order review section"
-#~ msgid "Shipment"
-#~ msgstr "Відправлення "
-
-#~ msgctxt "Order review section title"
-#~ msgid "Promo code"
-#~ msgstr "Промо-код"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Total"
-#~ msgstr "Підсумок"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Your cart"
-#~ msgstr "Ваша корзина"
-
-#~ msgctxt "Checkout breadcrumb"
-#~ msgid "Cart"
-#~ msgstr "Корзина"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Product"
-#~ msgstr "Товар"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Quantity"
-#~ msgstr "Кількість"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Price"
-#~ msgstr "Ціна"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Checkout"
-#~ msgstr "Оформити замовлення"
-
-#~ msgctxt "Empty checkout message"
-#~ msgid "There are no products in your shopping cart."
-#~ msgstr "Ваш кошик  — порожній"
-
-#~ msgctxt "Empty checkout link"
-#~ msgid "Check out our sales"
-#~ msgstr "Погляньте на наші розпродажі"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "Login"
-#~ msgstr "Вхід"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "New customer?"
-#~ msgstr "Новий покупець?"
-
-#~ msgctxt "Checkout login page new users action"
-#~ msgid "Continue"
-#~ msgstr "Продовжити"
-
-#~ msgctxt "Checkout login page new users message"
-#~ msgid "Registration is not required!"
-#~ msgstr "Реєстрація не потрібна!"
-
-#~ msgctxt "Checkout login form title"
-#~ msgid "Existing customer? Log in."
-#~ msgstr "Існуючий покупець? Вхід."
-
-#~ msgctxt "Checkout payment title"
-#~ msgid "Payment"
-#~ msgstr "Платіж"
-
-#~ msgctxt "Checkout payment primary action"
-#~ msgid "Place order"
-#~ msgstr "Зробити замовлення"
-
-#~ msgctxt "Checkout shipping address title"
-#~ msgid "Shipping address"
-#~ msgstr "Адреса доставки"
-
-#~ msgctxt "Checkout shipping address primary action"
-#~ msgid "Continue"
-#~ msgstr "Продовжити"
-
-#~ msgid "Select other address"
-#~ msgstr "Вибір іншої адреси"
-
-#~ msgctxt "Checkout shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Метод доставки"
-
-#~ msgctxt "Checkout shipping method primary action"
-#~ msgid "Continue"
-#~ msgstr "Продовжити"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Same as shipping"
-#~ msgstr "Так само, як і доставка"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Enter a new address"
-#~ msgstr "Вкажіть нову адресу"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "Remove"
-#~ msgstr "Видалити"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "(Remove)"
-#~ msgstr "(Видалити)"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "Use"
-#~ msgstr "Застосувати"
-
-#~ msgctxt "Checkout summary title"
-#~ msgid "Billing address"
-#~ msgstr "Платіжна адреса"
-
-#~ msgctxt "Checkout summary note title"
-#~ msgid "Add a note to your order"
-#~ msgstr "Додати помітку до замовлення"
-
-#~ msgctxt "Checkout summary primary action"
-#~ msgid "Order & Pay"
-#~ msgstr "Замовити і Оплатити"
-
-#~ msgctxt "Checkout summary without shipping title"
-#~ msgid "Billing address"
-#~ msgstr "Платіжна адреса"
-
-#~ msgctxt "Checkout summary without shipping note title"
-#~ msgid "Add a note to your order"
-#~ msgstr "Додати помітку до замовлення"
-
-#~ msgctxt "Checkout summary without shipping action"
-#~ msgid "Place order"
-#~ msgstr "Зробити замовлення "
-
-#~ msgctxt "Checkout dropdown secondary action"
-#~ msgid "Go to cart"
-#~ msgstr "Перейти до корзини"
-
-#~ msgctxt "Checkout dropdown primary action"
-#~ msgid "Checkout"
-#~ msgstr "Оформити замовлення"
-
-#~ msgctxt "Site breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "Дім "
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Visit storefront"
-#~ msgstr "Відвідайте головну"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Style guide"
-#~ msgstr "Гід стилю"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Log out"
-#~ msgstr "Вийти"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search"
-#~ msgstr "Пошук"
-
-#~ msgctxt "Dashboard homepage"
-#~ msgid "Home"
-#~ msgstr "Дім "
-
-#~ msgctxt "Dashboard catalogue"
-#~ msgid "Catalogue"
-#~ msgstr "Каталог"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Products"
-#~ msgstr "Товари"
-
-#~ msgctxt "Dashboard categories list"
-#~ msgid "Categories"
-#~ msgstr "Категорії"
-
-#~ msgctxt "Dashboard side navigation link"
-#~ msgid "Collections"
-#~ msgstr "Колекції"
-
-#~ msgctxt "Dashboard discounts list"
-#~ msgid "Discounts"
-#~ msgstr "Знижки "
-
-#~ msgctxt "Dashboard sales (discounts) list"
-#~ msgid "Sales"
-#~ msgstr "Розпродажі"
-
-#~ msgctxt "Dashboard vouchers list"
-#~ msgid "Vouchers"
-#~ msgstr "Ваучери"
-
-#~ msgctxt "Dashboard sales. `Sales' is noun of to sell"
-#~ msgid "Sales"
-#~ msgstr "Розпродажі "
-
-#~ msgctxt "Dashboard orders list"
-#~ msgid "Orders"
-#~ msgstr "Замовлення"
-
-#~ msgctxt "Dashboard customers list"
-#~ msgid "Customers"
-#~ msgstr "Покупці"
-
-#~ msgctxt "Management section"
-#~ msgid "Staff management"
-#~ msgstr "Управління персоналом"
-
-#~ msgctxt "Dashboard staff members list"
-#~ msgid "Staff members"
-#~ msgstr "Персонал"
-
-#~ msgctxt "Dashboard configuration"
-#~ msgid "Configuration"
-#~ msgstr "Конфігурація"
-
-#~ msgctxt "Dashboard product types list"
-#~ msgid "Product types"
-#~ msgstr "Типи товару"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Attributes"
-#~ msgstr "Атрибути"
-
-#~ msgctxt "Dashboard shipping zones list"
-#~ msgid "Shipping"
-#~ msgstr "Всі покупки"
-
-#~ msgctxt "Dashboard site settings"
-#~ msgid "Site settings"
-#~ msgstr "Налаштування сайту"
-
-#~ msgctxt "Dashboard software version"
-#~ msgid "Release:"
-#~ msgstr "Версія:"
-
-#~ msgctxt "Dashboard cancel action"
-#~ msgid "Cancel"
-#~ msgstr "Відмінити"
-
-#~ msgctxt "Category list page title"
-#~ msgid "Categories"
-#~ msgstr "Категорії"
-
-#~ msgctxt "Category field"
-#~ msgid "Description"
-#~ msgstr "Опис"
-
-#~ msgctxt "Category detail view action"
-#~ msgid "Edit category"
-#~ msgstr "Редагувати категорію"
-
-#~ msgctxt "Category detail view action"
-#~ msgid "Remove category"
-#~ msgstr "Видалити категорію"
-
-#~ msgctxt "Title of the subcategories list"
-#~ msgid "Subcategories"
-#~ msgstr "Підкатегорії"
-
-#~ msgid "Add"
-#~ msgstr "Додати"
-
-#~ msgctxt "Category list table header name"
-#~ msgid "Name"
-#~ msgstr "Назва"
-
-#~ msgctxt "Category list table header description"
-#~ msgid "Description"
-#~ msgstr "Опис"
-
-#~ msgctxt "Category edit action"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Category list action link"
-#~ msgid "Remove"
-#~ msgstr "Видалити"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Edit category"
-#~ msgstr "Редагувати категорію"
-
-#~ msgctxt "Category detail page title"
-#~ msgid "Add new category"
-#~ msgstr "Додати нову категорію"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Add new category"
-#~ msgstr "Додати нову категорію"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Category detail breadcrumbs"
-#~ msgid "Add new category"
-#~ msgstr "Додати нову категорію"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Update"
-#~ msgstr "Оновити"
-
-#~ msgctxt "Dashboard create action"
-#~ msgid "Create"
-#~ msgstr "Створити"
-
-#~ msgctxt "Category list add button text"
-#~ msgid "Add category"
-#~ msgstr "Додати категорію"
-
-#~ msgctxt "Empty category list message"
-#~ msgid "No categories found."
-#~ msgstr "Нема категорій."
-
-#~ msgctxt "Dashboard delete action"
-#~ msgid "Remove"
-#~ msgstr "Видалити"
-
-#~ msgid "No categories found."
-#~ msgstr "Нема категорій."
-
-#~ msgid "Collections"
-#~ msgstr "Колекції"
-
-#~ msgctxt "Collection action"
-#~ msgid "View on site"
-#~ msgstr "Подивитися на сайті"
-
-#~ msgctxt "Collection secondary action"
-#~ msgid "Cancel"
-#~ msgstr "Відмінити"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Update"
-#~ msgstr "Оновити"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Create"
-#~ msgstr "Створити"
-
-#~ msgctxt "Collection field"
-#~ msgid "Published"
-#~ msgstr "Опубліковано"
-
-#~ msgctxt "Collection field"
-#~ msgid "Draft"
-#~ msgstr "Чернетка"
-
-#~ msgctxt "Collections list page title "
-#~ msgid "Collections"
-#~ msgstr "Колекції"
-
-#~ msgctxt "Collections list table header name"
-#~ msgid "Name"
-#~ msgstr "Назва"
-
-#~ msgctxt "Homepage collection save"
-#~ msgid "Save"
-#~ msgstr "Зберегти"
-
-#~ msgctxt "Customer field"
-#~ msgid "Date joined"
-#~ msgstr "Дата приєднання"
-
-#~ msgctxt "Customer field"
-#~ msgid "Note"
-#~ msgstr "Помітка"
-
-#~ msgctxt "Customer action"
-#~ msgid "Edit customer"
-#~ msgstr "Редагувати покупця"
-
-#~ msgctxt "Customer recent orders table title"
-#~ msgid "Recent orders"
-#~ msgstr "Нещодавні замовлення"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Number"
-#~ msgstr "Номер"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Placed on"
-#~ msgstr "Розміщено"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Order status"
-#~ msgstr "Статус замовлення"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Total"
-#~ msgstr "Підсумок "
-
-#~ msgctxt "Empty customer orders table message"
-#~ msgid "No orders found."
-#~ msgstr "Жодного замовлення не знайдено"
-
-#~ msgctxt "Customer notes card action"
-#~ msgid "Add note"
-#~ msgstr "Додати помітку "
-
-#~ msgctxt "Customer default shipping address card title"
-#~ msgid "Default shipping address"
-#~ msgstr "Адреса доставки за замовчуванням"
-
-#~ msgctxt "Customer without default shipping address message"
-#~ msgid "No default shipping address."
-#~ msgstr "Немає адреси доставки за замовчуванням"
-
-#~ msgctxt "Customer default billing address card title"
-#~ msgid "Default billing address"
-#~ msgstr "Платіжна адреса за замовчуванням"
-
-#~ msgctxt "Customer without default billing address message"
-#~ msgid "No default billing address."
-#~ msgstr "Немає платіжної адреси за замовчуванням"
-
-#~ msgctxt "Dashboard add customer"
-#~ msgid "Add new customer"
-#~ msgstr "Додати нового покупця"
-
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer"
-#~ msgstr "Покупець "
-
-#~ msgctxt "Dashboard add customer action"
-#~ msgid "Add customer"
-#~ msgstr "Додати покупця"
-
-#~ msgctxt "Customer details header"
-#~ msgid "Customer details"
-#~ msgstr "Деталі покупця"
-
-#~ msgctxt "Dashboard add action"
-#~ msgid "Add"
-#~ msgstr "Додати"
-
-#~ msgctxt "Customer list add button text"
-#~ msgid "Add customer"
-#~ msgstr "Додати покупця"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Name"
-#~ msgstr "Назва"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Email"
-#~ msgstr "Email"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Location"
-#~ msgstr "Розташування"
-
-#~ msgctxt "Empty customers table message"
-#~ msgid "No customers found."
-#~ msgstr "Жодного покупця не знайдено"
-
-#~ msgctxt "Modal add note title"
-#~ msgid "Add note"
-#~ msgstr "Додати помітку"
-
-#~ msgctxt "Modal add note primary action"
-#~ msgid "Save note"
-#~ msgstr "Зберегти помітку"
-
-#~ msgctxt "Dashboard promote action"
-#~ msgid "Promote"
-#~ msgstr "Рекламувати"
-
-#~ msgid "No customers found."
-#~ msgstr "Покупці не знайдені."
-
-#~ msgctxt "Sale (discount) page title"
-#~ msgid "Add new sale"
-#~ msgstr "Додати новий розпродаж"
-
-#~ msgctxt "Dashboard sales (discounts) list."
-#~ msgid "Sales"
-#~ msgstr "Розпродажі "
-
-#~ msgctxt "Sale (discount) action"
-#~ msgid "Remove sale"
-#~ msgstr "Видалити розпродаж"
-
-#~ msgctxt "Sale (discount) breadcrumbs"
-#~ msgid "Add new sale"
-#~ msgstr "Додати новий розпродаж "
-
-#~ msgid "Sales"
-#~ msgstr "Розпродажі "
-
-#~ msgctxt "Sale (discount) list add button text"
-#~ msgid "Add sale"
-#~ msgstr "Додати розпродаж"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Name"
-#~ msgstr "Назва"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Start date"
-#~ msgstr "Дата початку"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "End date"
-#~ msgstr "Дата закінчення"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Discount"
-#~ msgstr "Знижка"
-
-#~ msgctxt "Empty sales table message"
-#~ msgid "No sales found"
-#~ msgstr "Жодного розпродажу не знайдено"
-
-#~ msgctxt "Remove sale (discount) text"
-#~ msgid "Remove sale"
-#~ msgstr "Видалити розпродаж"
-
-#~ msgid "No sales found."
-#~ msgstr "Жодного розпродажу не знайдено"
-
-#~ msgctxt "Voucher page title"
-#~ msgid "Add new voucher"
-#~ msgstr "Додати новий ваучер"
-
-#~ msgctxt "Voucher action"
-#~ msgid "Remove voucher"
-#~ msgstr "Видалити ваучер"
-
-#~ msgctxt "Voucher breadcrumbs"
-#~ msgid "Add new voucher"
-#~ msgstr "Додати новий ваучер "
-
-#~ msgctxt "Voucher list add button text"
-#~ msgid "Add voucher"
-#~ msgstr "Додати ваучер"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Name"
-#~ msgstr "Назва"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Discount"
-#~ msgstr "Знижка "
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Start date"
-#~ msgstr "Дата початку"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "End date"
-#~ msgstr "Дата закінчення"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Used"
-#~ msgstr "Використано"
-
-#~ msgctxt "Empty vouchers table message"
-#~ msgid "No vouchers found"
-#~ msgstr "Жодного ваучера не знайдено"
-
-#, python-format
-#~ msgctxt "Remove voucher text"
-#~ msgid "Remove voucher %(voucher)s"
-#~ msgstr "Видалений ваучер %(voucher)s"
-
-#~ msgid "No vouchers found."
-#~ msgstr "Жодного ваучера не знайдено."
-
-#~ msgctxt "Collection availability status"
-#~ msgid "Published"
-#~ msgstr "Опубліковано"
-
-#~ msgctxt "Dashboard card title"
-#~ msgid "Filters"
-#~ msgstr "Фільтр"
-
-#~ msgctxt "Category page filters"
-#~ msgid "Clear"
-#~ msgstr "Очистити"
-
-#~ msgctxt "Category price filter"
-#~ msgid "Filter"
-#~ msgstr "Фільтр"
-
-#~ msgctxt "Menu items list table header name"
-#~ msgid "Name"
-#~ msgstr "Назва"
-
-#~ msgctxt "Menu items list table header points to"
-#~ msgid "Points to"
-#~ msgstr "Вказує на"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Status"
-#~ msgstr "Статус"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Published"
-#~ msgstr "Опубліковано"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Not published"
-#~ msgstr "Неопубліковано"
-
-#~ msgctxt "Menu item edit action"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Menu item list action link"
-#~ msgid "Remove"
-#~ msgstr "Видалити"
-
-#~ msgctxt "Page availability status"
-#~ msgid "Published"
-#~ msgstr "Опубліковано"
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Orders ready for shipment"
-#~ msgstr "Замовлення готові до відправлення"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Placed on"
-#~ msgstr "Розміщено на"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Customer"
-#~ msgstr "Покупець"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Payment status"
-#~ msgstr "Статус оплати"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Order status"
-#~ msgstr "Статус замовлення"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Total"
-#~ msgstr "Підсумок "
-
-#~ msgctxt "Anonymous user account value"
-#~ msgid "Guest"
-#~ msgstr "Гість"
-
-#~ msgctxt "Empty order table message"
-#~ msgid "No orders are ready for shipment."
-#~ msgstr "Немає замовлень готових до відправлення"
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Preauthorized payments"
-#~ msgstr "Попередньо авторизована оплата"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Order"
-#~ msgstr "Замовлення"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Date"
-#~ msgstr "Дата"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Customer"
-#~ msgstr "Покупець "
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Amount"
-#~ msgstr "Обсяг"
-
-#~ msgid "Guest"
-#~ msgstr "Гість "
-
-#~ msgctxt "Empty Preauthorized payments table message"
-#~ msgid "No preauthorized payments."
-#~ msgstr "Немає попередньо авторизованих оплат"
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Products with low stock"
-#~ msgstr "Товари з невеликими запасами"
-
-#~ msgctxt "Low stock product list"
-#~ msgid "Product name"
-#~ msgstr "Назва продукту"
-
-#~ msgctxt "Low stock product list"
-#~ msgid "Stock left"
-#~ msgstr "Залишки"
-
-#~ msgctxt "Empty low stock table message"
-#~ msgid "No products are low in stock."
-#~ msgstr "Усі товари з достатніми запасами."
-
-#~ msgctxt "Menu item field"
-#~ msgid "Points to"
-#~ msgstr "Вказує на"
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Menu list table header Menu name"
-#~ msgid "Menu name"
-#~ msgstr "Назва меню"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Save"
-#~ msgstr "Зберегти"
-
-#~ msgctxt ""
-#~ msgid "Edit address"
-#~ msgstr "Редагувати адресу"
-
-#~ msgctxt ""
-#~ msgid "Shipping address"
-#~ msgstr "Адреса доставки "
-
-#~ msgctxt ""
-#~ msgid "Billing address"
-#~ msgstr "Платіжна адреса"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Cancel Order"
-#~ msgstr "Відмінити замовлення"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Print"
-#~ msgstr "Друк"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Details"
-#~ msgstr "Деталі"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Payments"
-#~ msgstr "Платежі"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "History"
-#~ msgstr "Історія"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Payments"
-#~ msgstr "Платежі"
-
-#~ msgctxt "Payment status not available"
-#~ msgid "N/A"
-#~ msgstr "N/A"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Outstanding balance"
-#~ msgstr "Залишок до олати"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Preauthorized amount"
-#~ msgstr "Попередньо авторизована оплата"
-
-#~ msgctxt "Preauthorized amount not available"
-#~ msgid "N/A"
-#~ msgstr "N/A"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Captured amount"
-#~ msgstr "Зарахований обсяг"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Capture"
-#~ msgstr "Зарахувати"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Refund"
-#~ msgstr "Відшкодування"
-
-#~ msgctxt "Dashboard edit action"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Missing shipping address message"
-#~ msgid "No shipping address"
-#~ msgstr "Немає адреси доставки"
-
-#~ msgctxt "Order placed on date"
-#~ msgid "Placed on"
-#~ msgstr "Розміщено на"
-
-#~ msgctxt "Order table header"
-#~ msgid "Item"
-#~ msgstr "Позиція"
-
-#~ msgctxt "Order table header"
-#~ msgid "Price"
-#~ msgstr "Ціна"
-
-#~ msgctxt "Order table header"
-#~ msgid "Quantity"
-#~ msgstr "Кількість"
-
-#~ msgctxt "Order table header"
-#~ msgid "Total"
-#~ msgstr "Разом"
-
-#~ msgctxt "Order table row action"
-#~ msgid "Change quantity"
-#~ msgstr "Змінити кількість"
-
-#~ msgctxt "Order table row action"
-#~ msgid "Remove line"
-#~ msgstr "Видалити запис"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Shipping"
-#~ msgstr "Доставка"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Grand total"
-#~ msgstr "Повна сума"
-
-#~ msgctxt "Order summary card action title"
-#~ msgid "Add product to order"
-#~ msgstr "Додати продукт до замовлення"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Add product"
-#~ msgstr "Додати продукт"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Invoice"
-#~ msgstr "Рахунок"
-
-#~ msgctxt "Order detail action"
-#~ msgid "View on site"
-#~ msgstr "Подивитися на сайті"
-
-#, python-format
-#~ msgctxt "Fulfillment table text"
-#~ msgid "Tracking number: %(tracking)s"
-#~ msgstr "Номер відслідковування:%(tracking)s"
-
-#~ msgctxt "Fulfillment summary card action"
-#~ msgid "Cancel"
-#~ msgstr "Відмінити"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Packing Slips"
-#~ msgstr "Упаковки"
-
-#~ msgctxt "Order notes card title"
-#~ msgid "Order notes"
-#~ msgstr "Помітки про замовлення  "
-
-#~ msgctxt "Empty order notes card message"
-#~ msgid "There are no notes associated with this order."
-#~ msgstr "Немає поміток, пов’язаних з цим замовленням."
-
-#~ msgctxt "Order notes card action"
-#~ msgid "Add note"
-#~ msgstr "Додати помітку "
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Transaction ID"
-#~ msgstr "Транзакція"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Date"
-#~ msgstr "Дата"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Payment status"
-#~ msgstr "Статус оплати"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Amount"
-#~ msgstr "Обсяг"
-
-#, python-format
-#~ msgctxt "Payment item column data"
-#~ msgid "#%(payment_id)s"
-#~ msgstr "#%(payment_id)s"
-
-#~ msgctxt "Empty payment history table message"
-#~ msgid "No payments made for this order."
-#~ msgstr "Оплата не здійснена за це замовлення"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Item"
-#~ msgstr "Позиція"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Quantity"
-#~ msgstr "Кількість"
-
-#~ msgctxt "Empty order list message"
-#~ msgid "No orders found."
-#~ msgstr "Жодного замовлення не знайдено "
-
-#~ msgctxt "Modal order add variant primary action"
-#~ msgid "Add"
-#~ msgstr "Додати"
-
-#~ msgctxt "Modal cancel fulfillment cancel action"
-#~ msgid "Abort"
-#~ msgstr "Перервати"
-
-#~ msgctxt "Modal remove order line title"
-#~ msgid "Remove order line"
-#~ msgstr "Видалити рядок замовлення"
-
-#~ msgctxt "Modal remove order line text"
-#~ msgid "Are you sure you want remove this order line?"
-#~ msgstr "Ви впевнені, що бажаєте видалити цей рядок замовлення?"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Price"
-#~ msgstr "Ціна"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Total"
-#~ msgstr "Підсумок"
-
-#~ msgctxt "Modal cancel order title"
-#~ msgid "Cancel order"
-#~ msgstr "Відмінити замовлення"
-
-#, python-format
-#~ msgctxt "Modal cancel order text"
-#~ msgid "Are you sure you want cancel order %(order)s?"
-#~ msgstr "Ви впевнені, що бажаєте відмінити замовлення %(order)s?"
-
-#~ msgctxt "Modal cancel order cancel action"
-#~ msgid "Abort"
-#~ msgstr "Перервати"
-
-#~ msgctxt "Modal cancel order primary action"
-#~ msgid "Cancel Order"
-#~ msgstr "Відмінити замовлення"
-
-#~ msgctxt "Modal capture payment title"
-#~ msgid "Capture payment"
-#~ msgstr "Зарахування платежу"
-
-#~ msgctxt "Modal capture payment title"
-#~ msgid "Before this action:"
-#~ msgstr "Перед цією дією:"
-
-#~ msgctxt "Modal capture payment list title"
-#~ msgid "Order total:"
-#~ msgstr "Підсумок замовлення:"
-
-#~ msgctxt "Modal capture payment list title"
-#~ msgid "Captured amount:"
-#~ msgstr "Зарахований обсяг"
-
-#~ msgctxt "Modal capture payment primary action"
-#~ msgid "Capture"
-#~ msgstr "Зарахувати"
-
-#~ msgctxt "Modal change quantity title"
-#~ msgid "Change quantity"
-#~ msgstr "Змінити кількість"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Update"
-#~ msgstr "Оновити"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Save"
-#~ msgstr "Зберегти"
-
-#~ msgctxt "Modal refund payment title"
-#~ msgid "Refund payment"
-#~ msgstr "Відшкодування оплати"
-
-#~ msgctxt "Modal refund payment title"
-#~ msgid "Before this action:"
-#~ msgstr "Перед цією дією:"
-
-#~ msgctxt "Modal refund payment list title"
-#~ msgid "Order total:"
-#~ msgstr "Підсумок замовлення: "
-
-#~ msgctxt "Modal refund payment list title"
-#~ msgid "Captured amount:"
-#~ msgstr "Зарахований обсяг "
-
-#~ msgctxt "Modal refund payment primary action"
-#~ msgid "Refund"
-#~ msgstr "Відшкодування"
-
-#~ msgctxt "Order invoice"
-#~ msgid "Invoice"
-#~ msgstr "Рахунок"
-
-#~ msgctxt "Invoice shipping address"
-#~ msgid "Shipping address"
-#~ msgstr "Адреса доставки "
-
-#~ msgctxt "Invoice billing address"
-#~ msgid "Billing address"
-#~ msgstr "Адреса оплати"
-
-#~ msgctxt "Invoice ordered items header"
-#~ msgid "Items Ordered"
-#~ msgstr "Позиція замовлень"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Item"
-#~ msgstr "Позиція"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Gross price"
-#~ msgstr "Валова ціна"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Quantity"
-#~ msgstr "Кількість"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Total"
-#~ msgstr "Разом"
-
-#~ msgctxt "Order subtotal net price"
-#~ msgid "Subtotal"
-#~ msgstr "Загалом"
-
-#~ msgctxt "Order voucher header"
-#~ msgid "Discount"
-#~ msgstr "Знижка "
-
-#~ msgctxt "Order total price header"
-#~ msgid "Grand total"
-#~ msgstr "Повна сума"
-
-#~ msgctxt "Packing slips header"
-#~ msgid "Packing Slips"
-#~ msgstr "Упаковки"
-
-#~ msgctxt "Packing slip shipping details"
-#~ msgid "Shipping Details"
-#~ msgstr "Деталі доставки"
-
-#~ msgctxt "Packing slip shipping details"
-#~ msgid "Billing Details"
-#~ msgstr "Деталі оплати"
-
-#~ msgctxt "Packing slip shipping address"
-#~ msgid "Shipping address"
-#~ msgstr "Адреса доставки "
-
-#~ msgctxt "Packing slip billing address"
-#~ msgid "Billing address"
-#~ msgstr "Адреса оплати"
-
-#~ msgctxt "Order invoice"
-#~ msgid "Items Ordered"
-#~ msgstr "Позиція замовлення"
-
-#~ msgctxt "Order table header"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgid "No orders found."
-#~ msgstr "Замовлення не знайдено."
-
-#~ msgctxt "Page action"
-#~ msgid "View on site"
-#~ msgstr "Подивитися на сайті"
-
-#~ msgctxt "Page form page title"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Page form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgid "Cancel"
-#~ msgstr "Відмінити"
-
-#~ msgid "Save"
-#~ msgstr "Зберегти"
-
-#~ msgid "Create"
-#~ msgstr "Створити"
-
-#~ msgctxt "Static pages table header name"
-#~ msgid "Title"
-#~ msgstr "Назва"
-
-#~ msgctxt "Static pages table header url"
-#~ msgid "URL"
-#~ msgstr "URL"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Attributes"
-#~ msgstr "Атрибути"
-
-#~ msgid "Product types"
-#~ msgstr "Типи товару"
-
-#~ msgctxt "Attribute detail action"
-#~ msgid "Edit attribute"
-#~ msgstr "Редагувати атрибут"
-
-#~ msgctxt "Attribute detail action"
-#~ msgid "Remove attribute"
-#~ msgstr "Видалити властивість"
-
-#~ msgid "Attribute values"
-#~ msgstr "Значення атрибутів"
-
-#~ msgid "Display name"
-#~ msgstr "Назва для відображення"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Remove"
-#~ msgstr "Видалити"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Attribute detail page title"
-#~ msgid "Add new attribute"
-#~ msgstr "Додати нову властивість "
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Add new attribute"
-#~ msgstr "Додати нову властивість"
-
-#~ msgctxt "Attribute list add button text"
-#~ msgid "Add attribute"
-#~ msgstr "Додати властивість"
-
-#~ msgctxt "Dashboard attributes list table header name"
-#~ msgid "Name"
-#~ msgstr "Назва"
-
-#~ msgctxt "Name of product types related to the attribute"
-#~ msgid "Product types"
-#~ msgstr "Типи товару"
-
-#~ msgctxt "Dashboard attributes list table header values"
-#~ msgid "Values"
-#~ msgstr "Значення"
-
-#~ msgctxt "Empty attribute list message"
-#~ msgid "No attributes found."
-#~ msgstr "Жодної властивості не знайдено"
-
-#, python-format
-#~ msgctxt "Modal remove attribute text"
-#~ msgid "Remove attribute %(attribute)s"
-#~ msgstr "Видалити атрибут %(attribute)s"
-
-#, python-format
-#~ msgctxt "Modal remove attribute text"
-#~ msgid ""
-#~ "Are you sure you want to remove attribute <strong>%(attribute)s</strong>?"
-#~ msgstr ""
-#~ "Ви впевнені, що хочете видалити атрибут<strong>%(attribute)s</strong>?"
-
-#~ msgctxt "Attribute values form title"
-#~ msgid "Attribute values"
-#~ msgstr "Значення атрибутів"
-
-#~ msgid "No attributes found."
-#~ msgstr "Атрибути не знайдено."
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Products"
-#~ msgstr "Продукти"
-
-#~ msgctxt "Product field"
-#~ msgid "Published"
-#~ msgstr "Опубліковано"
-
-#~ msgctxt "Product field"
-#~ msgid "Draft"
-#~ msgstr "Чернетка"
-
-#~ msgctxt "Product action"
-#~ msgid "Edit product"
-#~ msgstr "Змінити товар"
-
-#~ msgctxt "Product action"
-#~ msgid "Remove product"
-#~ msgstr "Видалити товар"
-
-#~ msgctxt "Product action"
-#~ msgid "View on site"
-#~ msgstr "Подивитися на сайті"
-
-#~ msgid "Variant"
-#~ msgstr "Варіант"
-
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgid "Name"
-#~ msgstr "Назва"
-
-#~ msgid "Status"
-#~ msgstr "Статус"
-
-#~ msgid "Gross price"
-#~ msgstr "Валова ціна"
-
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Dashboard product details page"
-#~ msgid "No variants found"
-#~ msgstr "Варіантів не знайдено"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "Allocated"
-#~ msgstr "Зарезервовано"
-
-#~ msgid "Images"
-#~ msgstr "Зображення"
-
-#~ msgid "Edit images"
-#~ msgstr "Редагувати зображення"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Product form page title"
-#~ msgid "Add new product"
-#~ msgstr "Додати новий товар"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Add new product"
-#~ msgstr "Додати новий товар"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgid "Shipping"
-#~ msgstr "Всі покупки"
-
-#~ msgid "Attributes"
-#~ msgstr "Атрибути"
-
-#~ msgctxt "Product list add button text"
-#~ msgid "Add product"
-#~ msgstr "Додати продукт"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Name"
-#~ msgstr "Назва"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Price"
-#~ msgstr "Ціна"
-
-#~ msgctxt "Empty product list message"
-#~ msgid "No products found."
-#~ msgstr "Жодного продукта не знайдено"
-
-#, python-format
-#~ msgctxt "Modal remove product text"
-#~ msgid "Remove product %(product)s"
-#~ msgstr "Видалити продукт %(product)s"
-
-#, python-format
-#~ msgctxt "Modal remove product text"
-#~ msgid ""
-#~ "Are you sure you want to remove product <strong>%(product)s</strong>?"
-#~ msgstr ""
-#~ "Ви впевнені, що хочете видалити продкт <strong>%(product)s</strong>?"
-
-#~ msgctxt "Modal select product types title"
-#~ msgid "Product type"
-#~ msgstr "Тип товару"
-
-#~ msgctxt "Dashboard add action"
-#~ msgid "Create"
-#~ msgstr "Створити"
-
-#~ msgctxt "Image form text"
-#~ msgid "Edit - Image"
-#~ msgstr "Редагувати - Зображення"
-
-#~ msgctxt "Image form text"
-#~ msgid "Add image"
-#~ msgstr "Додати зображення"
-
-#~ msgctxt "Image form text"
-#~ msgid "Image"
-#~ msgstr "Зображення"
-
-#~ msgctxt "Image form text"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Image form breadcrumbs"
-#~ msgid "Add image"
-#~ msgstr "Додати зображення"
-
-#, python-format
-#~ msgctxt "Image form breadcrumbs"
-#~ msgid "Add image for %(product)s"
-#~ msgstr "Додати зображення для %(product)s"
-
-#~ msgctxt "Add image button text"
-#~ msgid "Add image"
-#~ msgstr "Додати зображення"
-
-#~ msgctxt "Image card text"
-#~ msgid "No description"
-#~ msgstr "Нема опису"
-
-#~ msgctxt "Dashboard remove action"
-#~ msgid "Remove"
-#~ msgstr "Видалити"
-
-#~ msgctxt "Image gallery upload box text"
-#~ msgid "Drop images here to upload"
-#~ msgstr "Перетягніть зображення сбди, щоб завантажити"
-
-#~ msgctxt "Empty image gallery message"
-#~ msgid "No description"
-#~ msgstr "Нема опису"
-
-#~ msgctxt "Modal remove image text"
-#~ msgid "Remove product image"
-#~ msgstr "Видалити зображення продукту"
-
-#~ msgctxt "Modal remove image text"
-#~ msgid "Are you sure you want to remove product image?"
-#~ msgstr "Ви впевнені, що бажаєте видалити зображення продукту?"
-
-#~ msgctxt "Image form text"
-#~ msgid "Pick the most relevant part of the image using the red circle."
-#~ msgstr ""
-#~ "Виберіть найбільш відповідну частину зображення використовуючи червоне "
-#~ "кільце"
-
-#~ msgctxt "Product type page title"
-#~ msgid "Add new product type"
-#~ msgstr "Додати новий тип продукту"
-
-#~ msgctxt "Product type breadcrumbs"
-#~ msgid "Add new product type"
-#~ msgstr "Додати новий тип продукту"
-
-#~ msgctxt "Product type action"
-#~ msgid "Remove product type"
-#~ msgstr "Видалити тип продукту"
-
-#~ msgctxt "Product type list add button text"
-#~ msgid "Add product type"
-#~ msgstr "Додати тип продукта"
-
-#~ msgctxt "Dashboard product types list table header name"
-#~ msgid "Name"
-#~ msgstr "Назва"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Product attributes"
-#~ msgstr "Властивості продукта"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Variant attributes"
-#~ msgstr "Властивості варіанта"
-
-#~ msgctxt "Empty product type list message"
-#~ msgid "No product types found."
-#~ msgstr "Жодного типу продукта не знайдено"
-
-#, python-format
-#~ msgctxt "Modal remove product type text"
-#~ msgid "Remove product type %(product_type)s"
-#~ msgstr "Видалений тип продукту %(product_type)s"
-
-#~ msgctxt "Modal remove product type text"
-#~ msgid "There are no products in this product type."
-#~ msgstr "Немає продуктів цього типу."
-
-#~ msgid "No product types found."
-#~ msgstr "Тип продукту не знайдено."
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Dashboard action"
-#~ msgid "Edit variant"
-#~ msgstr "Редагувати варіант"
-
-#~ msgctxt "Dashboard action"
-#~ msgid "Remove variant"
-#~ msgstr "Видалити варіант"
-
-#~ msgid "No images"
-#~ msgstr "Немає зображення"
-
-#~ msgctxt "Dashboard action"
-#~ msgid "Select images"
-#~ msgstr "Вибрати зображення"
-
-#~ msgctxt "Variant form page title"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Variant form page title"
-#~ msgid "Add variant"
-#~ msgstr "Додати варіант"
-
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Add variant"
-#~ msgstr "Додати варіант"
-
-#, python-format
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Add variant for %(product)s"
-#~ msgstr "Додати варіант для %(product)s"
-
-#, python-format
-#~ msgctxt "Dashboard confirmation modal"
-#~ msgid ""
-#~ "\n"
-#~ "  Remove variant %(variant)s\n"
-#~ msgstr ""
-#~ "\n"
-#~ "Видалити варіант %(variant)s\n"
-
-#~ msgctxt "Dashboard variant images modal"
-#~ msgid "Select variant images"
-#~ msgstr "Вибрати варіант зображення"
-
-#~ msgctxt "Dashboard modal action"
-#~ msgid "Save"
-#~ msgstr "Зберегти"
-
-#~ msgid "No products found."
-#~ msgstr "Продукт не знайдено."
-
-#~ msgctxt "Search page title"
-#~ msgid "Search results"
-#~ msgstr "Результат пошуку"
-
-#~ msgctxt "Search results list products"
-#~ msgid "Products"
-#~ msgstr "Продукти"
-
-#~ msgctxt "Search results list orders"
-#~ msgid "Orders"
-#~ msgstr "Замовлення"
-
-#, python-format
-#~ msgctxt "Dashboard order"
-#~ msgid "Order #%(order_number)s"
-#~ msgstr "Замовлення #%(order_number)s"
-
-#, python-format
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer: %(email)s"
-#~ msgstr "Покупець: %(email)s"
-
-#, python-format
-#~ msgctxt "Dashboard order info"
-#~ msgid "Placed on: %(placed)s"
-#~ msgstr "Розміщено: %(placed)s"
-
-#~ msgctxt "Search results list users"
-#~ msgid "Users"
-#~ msgstr "Користувачі"
-
-#, python-format
-#~ msgctxt "Dashboard user"
-#~ msgid "User %(full_name)s"
-#~ msgstr "Користувач %(full_name)s"
-
-#, python-format
-#~ msgctxt "No Search result message"
-#~ msgid "No results for query \"%(query)s\"."
-#~ msgstr "Немає результатів запиту \"%(query)s\"."
-
-#~ msgctxt "Dashboard shipping zones"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Shipping zone form page title"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, price range of shipping methods within "
-#~ "shipping zone"
-#~ msgid "Price range"
-#~ msgstr "Діапазон цін"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, list of countries within of shipping zone"
-#~ msgid "Countries"
-#~ msgstr "Країни"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Name"
-#~ msgstr "Назва"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Price"
-#~ msgstr "Ціна"
-
-#~ msgctxt "Attribute value remove action"
-#~ msgid "Remove"
-#~ msgstr "Видалити"
-
-#~ msgctxt "Dashboard shipping method edit page"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Метод доставки"
-
-#~ msgctxt "Dashboard authorization key list"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Add new authorization key page title"
-#~ msgid "Add new authorization key"
-#~ msgstr "Додати ключ авторизації"
-
-#~ msgctxt "Dashboard site setting detail"
-#~ msgid "Site settings"
-#~ msgstr "Налаштування сайту"
-
-#~ msgctxt "Authorization key breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Authorization key breadcrumbs"
-#~ msgid "Add new authorization key"
-#~ msgstr "Додати ключ авторизації"
-
-#~ msgctxt "Authorization key form title"
-#~ msgid "Authorization key"
-#~ msgstr "Ключі авторизації"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Domain"
-#~ msgstr "Домен"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Header text"
-#~ msgstr "Текст заголовку"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Description"
-#~ msgstr "Опис"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Name"
-#~ msgstr "Назва"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Key"
-#~ msgstr "Ключ"
-
-#~ msgctxt "Authorization key edit action"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Authorization key remove action"
-#~ msgid "Remove"
-#~ msgstr "Видалити"
-
-#~ msgctxt "Site settings page title"
-#~ msgid "Add new site settings"
-#~ msgstr "Додати нові налаштування сайту"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Site settings"
-#~ msgstr "Налаштування сайту"
-
-#~ msgctxt "Dashboard site settings"
-#~ msgid "Edit"
-#~ msgstr "Редагувати"
-
-#~ msgctxt "Dashboard add staff member"
-#~ msgid "Add new staff member"
-#~ msgstr "Додати нового співробітника"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Name"
-#~ msgstr "Назва"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Email"
-#~ msgstr "Email"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Location"
-#~ msgstr "Розташування"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Name"
-#~ msgstr "Назва"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Value"
-#~ msgstr "Значення"
-
-#~ msgid "Dashboard"
-#~ msgstr "Центр керування "
-
-#~ msgctxt "Taxes table header"
-#~ msgid "Country name"
-#~ msgstr "Назва країни"
-
-#~ msgctxt "Taxes site settings title"
-#~ msgid "Configuration"
-#~ msgstr "Конфігурація"
-
-#~ msgctxt "Include taxes in prices setting description"
-#~ msgid "Yes"
-#~ msgstr "Так "
-
-#~ msgctxt "Include taxes in prices setting description"
-#~ msgid "No"
-#~ msgstr "Ні"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Show gross prices to customers in the storefront"
-#~ msgstr "Показувати валові ціни клієнтам у магазині"
-
-#~ msgctxt "Show customers gross prices setting description"
-#~ msgid "Yes"
-#~ msgstr "Так "
-
-#~ msgctxt "Show customers gross prices setting description"
-#~ msgid "No"
-#~ msgstr "Ні"
-
-#~ msgctxt "Charge taxes on shipping rates setting description"
-#~ msgid "Yes"
-#~ msgstr "Так "
-
-#~ msgctxt "Charge taxes on shipping rates setting description"
-#~ msgid "No"
-#~ msgstr "Ні"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Promo & Sale"
-#~ msgstr "Промо і Продажі"
-
-#~ msgctxt "Homepage title"
-#~ msgid "from the Northpole"
-#~ msgstr "з Північого полюсу"
-
-#~ msgctxt "Homepage action"
-#~ msgid "Shop now"
-#~ msgstr "Купуй зараз"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Size & Colours"
-#~ msgstr "Позміри і Кольори"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Digital Downloads"
-#~ msgstr "Цифрові завантаження"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Featured products"
-#~ msgstr "Рекламовані товари"
-
-#~ msgctxt "Dashboard form labels"
-#~ msgid "(optional)"
-#~ msgstr "(необов'язково)"
-
-#~ msgid "File"
-#~ msgstr "Файл"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Shipping address"
-#~ msgstr "Адреса доставки"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Billing address"
-#~ msgstr "Платіжна адреса"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Product"
-#~ msgstr "Товар"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Quantity"
-#~ msgstr "Кількість"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Price"
-#~ msgstr "Ціна"
-
-#~ msgctxt "Order details subtotal row text"
-#~ msgid "Subtotal"
-#~ msgstr "Загалом"
-
-#~ msgctxt "Order details shipment row text"
-#~ msgid "Shipping"
-#~ msgstr "Всі покупки"
-
-#~ msgctxt "Order details total text"
-#~ msgid "Total"
-#~ msgstr "Підсумок"
-
-#~ msgctxt "Fulfillment tracking number details"
-#~ msgid "Tracking number"
-#~ msgstr "Номер відслідковування"
-
-#~ msgctxt "Checkout success page title"
-#~ msgid "Thank you"
-#~ msgstr "Дякую"
-
-#, python-format
-#~ msgctxt "Checkout title"
-#~ msgid "Thank you for your <a href=\"%(order_url)s\">order</a>!"
-#~ msgstr "Дякуємо за ваше <a href=\"%(order_url)s\">замовлення</a>!"
-
-#~ msgctxt "Checkout secondary action"
-#~ msgid "Continue shopping"
-#~ msgstr "Продовжити покупки"
-
-#~ msgctxt "Checkout text"
-#~ msgid ""
-#~ "It looks like you already are our customer! <br> Please log in to connect "
-#~ "order with your account."
-#~ msgstr ""
-#~ "Здається Ви уже наш покупець!<br>Будь ласка увійдіть, щоб з’єднати "
-#~ "замовлення з Вашим акаунтом."
-
-#~ msgctxt "Checkout title"
-#~ msgid "Why not to create an account"
-#~ msgstr "Чому б не створити акаунт"
-
-#~ msgid ""
-#~ "Make your shopping experience even better! Save your shipping and payment "
-#~ "details for faster checkout."
-#~ msgstr ""
-#~ "Зробіть Ваші закупи ще приємнішими! Збережіть адресу доставки та платіжні "
-#~ "деталі для швидшого розрахунку."
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Create an account"
-#~ msgstr "Створити обліковий запис"
-
-#, python-format
-#~ msgctxt "Order details page title"
-#~ msgid "Order %(order)s"
-#~ msgstr "Замовлення%(order)s "
-
-#, python-format
-#~ msgctxt "Order details breadcrumb"
-#~ msgid "Order %(order)s"
-#~ msgstr "Замовлення%(order)s "
-
-#~ msgctxt "Order details link text"
-#~ msgid "Payment details"
-#~ msgstr "Деталі платежу"
-
-#~ msgctxt "Order details primary action"
-#~ msgid "Pay for order"
-#~ msgstr "Заплатіть за замовлення"
-
-#~ msgctxt "Order note title"
-#~ msgid "Add a note to your order"
-#~ msgstr "Додати помітку до замовлення"
-
-#, python-format
-#~ msgctxt "Payment details page title"
-#~ msgid "Pay for order %(order)s"
-#~ msgstr "Заплатіть за замовлення%(order)s "
-
-#, python-format
-#~ msgctxt "Payment details breadcrumb"
-#~ msgid "Order %(order)s"
-#~ msgstr "Замовлення%(order)s"
-
-#~ msgctxt "Payment details title"
-#~ msgid "Payment pending"
-#~ msgstr "Очікується оплата"
-
-#~ msgctxt "Payment pending text"
-#~ msgid ""
-#~ "We are currently waiting for an external service to authorize your "
-#~ "payment for this order."
-#~ msgstr ""
-#~ "Ми очікуємо, щоб зовнішня служба авторизувала Вашу оплату цього "
-#~ "замовлення."
-
-#~ msgctxt "Payment status text"
-#~ msgid "Current status:"
-#~ msgstr "Поточний статус:"
-
-#~ msgctxt "Payment pending text"
-#~ msgid ""
-#~ "Unless you are absolutely sure that the process will not complete (for "
-#~ "example you have closed the browser window before paying), you should "
-#~ "wait before attempting a new payment. Please be warned that if you try "
-#~ "again and the previous transaction succeeds you might end up being "
-#~ "charged twice."
-#~ msgstr ""
-#~ "Лише якщо ви переконані що процес не завершиться (наприклад, ви закрили "
-#~ "вкладку до завершення оплати), ви маєте зачекати перед здійсненням нової "
-#~ "оплати. Будь ласка, зважайте що якщо ви спробуєте знову, а попередня "
-#~ "транзакція пройде, ваш рахунок буде оплачено двічі."
-
-#~ msgctxt "Payment pending action"
-#~ msgid "I understand, allow me to pay again"
-#~ msgstr "Зрозуміло, дозвольте мені заплатити знову"
-
-#, python-format
-#~ msgctxt "Payment details title"
-#~ msgid "Pay for order %(order)s"
-#~ msgstr "Заплатіть за замовлення%(order)s"
-
-#~ msgctxt "Payment details primary action"
-#~ msgid "Proceed to payment"
-#~ msgstr "Перейти до оплати"
-
-#~ msgctxt "Payment details text"
-#~ msgid "You've authorized transaction. Order is in processing"
-#~ msgstr "Ви авторизували транзакцію. Замовлення в обробці"
-
-#~ msgctxt "Payment form page title"
-#~ msgid "Payment"
-#~ msgstr "Платіж"
-
-#~ msgctxt "Payment form breadcrumb"
-#~ msgid "Payment"
-#~ msgstr "Платіж"
-
-#~ msgctxt "Payment form title"
-#~ msgid "Payment"
-#~ msgstr "Платіж"
-
-#~ msgctxt "Header of the order summary table"
-#~ msgid "Order details"
-#~ msgstr "Деталі замовлення"
-
-#~ msgctxt "Product price filter"
-#~ msgid "from"
-#~ msgstr "від"
-
-#~ msgctxt "Product price filter"
-#~ msgid "to"
-#~ msgstr "до"
-
-#~ msgctxt "Product list page filters"
-#~ msgid "Clear filters"
-#~ msgstr "Очистити фільтри"
-
-#~ msgctxt "Sale (discount) label for item in product list"
-#~ msgid "Sale"
-#~ msgstr "Розпродаж"
-
-#~ msgctxt "product price range"
-#~ msgid "from"
-#~ msgstr "від"
-
-#, python-format
-#~ msgctxt "Product details text"
-#~ msgid ""
-#~ "<strong>Warning!</strong> You are previewing a product that will become "
-#~ "visible on <strong>%(date)s</strong>."
-#~ msgstr ""
-#~ "<strong>Увага!</strong> Перегляд продукту що буде видимий <strong>"
-#~ "%(date)s</strong>."
-
-#~ msgctxt "Product details link text"
-#~ msgid "Edit in dashboard"
-#~ msgstr "Редагування в центрі керування"
-
-#~ msgctxt "Product details primary action"
-#~ msgid "Add to cart"
-#~ msgstr "Купити"
-
-#~ msgctxt "Product details text"
-#~ msgid "This product is currently <strong>unavailable</strong>."
-#~ msgstr "Товару наразі <strong>немає в наявності</strong>."
-
-#~ msgctxt "Product details title"
-#~ msgid "Description"
-#~ msgstr "Опис"
-
-#~ msgctxt "Filter heading title"
-#~ msgid "Filters"
-#~ msgstr "Фільтр"
-
-#~ msgid "Sort by: <b>name</b>"
-#~ msgstr "Сортувати по: <b>імені</b>"
-
-#~ msgid "Sort by: <b>price</b>"
-#~ msgstr "Сортувати по: <b>ціні</b>"
-
-#~ msgctxt "Product list filters"
-#~ msgid "Sort by"
-#~ msgstr "Сортувати по"
-
-#~ msgctxt "sort by option"
-#~ msgid "ascending"
-#~ msgstr "висхідний"
-
-#~ msgctxt "sort by option"
-#~ msgid "descending"
-#~ msgstr "спускаєтся"
-
-#~ msgctxt "Search without results text"
-#~ msgid "Sorry, no matches found for your request."
-#~ msgstr "Вибачте, збіги відсутні."
-
-#~ msgctxt "Search without results text"
-#~ msgid "Try again or shop new arrivals."
-#~ msgstr "Спробуйте знову чи замовте нові надходження."
-
-#~ msgid "Search:"
-#~ msgstr "Пошук:"
-
-#~ msgctxt "Order confirmation e-mail subject"
-#~ msgid "Order details"
-#~ msgstr "Деталі замовлення"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Order summary"
-#~ msgstr "Підсумок замовлення"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Subtotal"
-#~ msgstr "Загалом"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Shipping"
-#~ msgstr "Всі покупки"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Total"
-#~ msgstr "Разом"
-
-#~ msgctxt "Payment confirmation subject"
-#~ msgid "Payment details"
-#~ msgstr "Деталі платежу"
+"Ви можете відслідковувати доставку за допомогою коду %(tracking_number)s."

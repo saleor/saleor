@@ -2,7 +2,7 @@ import django_filters
 
 from ...menu.models import Menu, MenuItem
 from ..core.types import FilterInputObjectType
-from ..utils import filter_by_query_param
+from ..utils.filters import filter_by_query_param
 
 
 def filter_menu_search(qs, _, value):

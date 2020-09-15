@@ -5,24 +5,21 @@
 #
 # Translators:
 # Patryk Zawadzki <patrys@room-303.com>, 2018
-# Joost Aafjes <joostaafjes@gmail.com>, 2019
-# Dominique Veenman <dominiqueveenman@gmail.com>, 2019
-# Oele Geirnaert <oelegeirnaert@hotmail.com>, 2019
-# Roy Waterman <shopsupport@knijter.nl>, 2019
+# Roy Waterman <shopsupport@knijter.nl>, 2020
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-14 04:02-0500\n"
+"POT-Creation-Date: 2020-05-14 03:45-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Roy Waterman <shopsupport@knijter.nl>, 2019\n"
+"Last-Translator: Roy Waterman <shopsupport@knijter.nl>, 2020\n"
 "Language-Team: Dutch (https://www.transifex.com/mirumee/teams/34782/nl/)\n"
-"Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: nl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
@@ -41,77 +38,304 @@ msgstr ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 
-#: templates/read_only/read_only_splash.html:48
-msgid "Be aware pirate! <br> Saleor runs in <span>read only mode!</span>"
+#: templates/templated_email/account/account_delete.email:4
+msgctxt "Account delete reset e-mail subject"
+msgid "Delete your account"
 msgstr ""
 
-#: templates/read_only/read_only_splash.html:49
-#, fuzzy
-#| msgctxt "Close modal action button"
-#| msgid "Close"
-msgid "Close"
-msgstr "Sluit"
-
-#: templates/templated_email/compiled/account_delete.html:174
-#: templates/templated_email/compiled/confirm.html:174
-#: templates/templated_email/compiled/confirm_fulfillment.html:174
-#: templates/templated_email/compiled/confirm_order.html:175
-#: templates/templated_email/compiled/confirm_payment.html:174
-#: templates/templated_email/compiled/email_changed_notification.html:174
-#: templates/templated_email/compiled/password_reset.html:174
-#: templates/templated_email/compiled/request_email_change.html:174
-#: templates/templated_email/compiled/set_customer_password.html:174
-#: templates/templated_email/compiled/set_password.html:174
-#: templates/templated_email/compiled/staff_confirm_order.html:175
-#: templates/templated_email/compiled/update_fulfillment.html:174
-msgctxt "Standard e-mail greeting"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/compiled/account_delete.html:182
+#: templates/templated_email/account/account_delete.email:9
 #, python-format
-msgctxt "Account delete e-mail text"
+msgctxt "Account delete reset e-mail text"
 msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be "
-"reversed."
+"\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"Click the link below to delete your account.\n"
+"\n"
+"Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:255
-#: templates/templated_email/compiled/confirm.html:255
-#: templates/templated_email/compiled/confirm_fulfillment.html:362
-#: templates/templated_email/compiled/confirm_order.html:465
-#: templates/templated_email/compiled/confirm_payment.html:245
-#: templates/templated_email/compiled/email_changed_notification.html:245
-#: templates/templated_email/compiled/password_reset.html:255
-#: templates/templated_email/compiled/request_email_change.html:255
-#: templates/templated_email/compiled/set_customer_password.html:255
-#: templates/templated_email/compiled/set_password.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:465
-#: templates/templated_email/compiled/update_fulfillment.html:350
+#: templates/templated_email/account/confirm.email:4
+msgctxt "Account confirmation e-mail subject"
+msgid "Account confirmation e-mail"
+msgstr ""
+
+#: templates/templated_email/account/confirm.email:9
+#, python-format
+msgctxt "Account confirmation e-mail text"
+msgid ""
+"\n"
+"In order to log into %(domain)s, you have to confirm your email address first.\n"
+"Please click the link below to do so and log into your account.\n"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:4
+#: templates/templated_email/account/request_email_change.email:4
+msgctxt "Email change e-mail subject"
+msgid "Email change e-mail"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
+"If you didn't request this change, please contact the administrator.\n"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:9
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/account/request_email_change.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:2
+#, python-format
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:6
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:6
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment confirmation email subject"
+msgid "Your order %(order)s has been fulfilled"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:11
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of fulfilled products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:15
+#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:6
+#: templates/templated_email/order/staff_confirm_order.email:6
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:11
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:15
+#: templates/templated_email/order/staff_confirm_order.email:15
+#, python-format
+msgctxt "Order confirmation e-mail payment details"
+msgid ""
+"\n"
+"To see your payment details please visit:\n"
+"%(order_details_url)s\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:23
+#: templates/templated_email/order/staff_confirm_order.email:23
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr "Samenvatting bestelling"
+
+#: templates/templated_email/order/confirm_order.email:24
+#: templates/templated_email/order/staff_confirm_order.email:24
+msgctxt "Order confirmation e-mail table header"
+msgid "Subtotal"
+msgstr "Subtotaal"
+
+#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/order/staff_confirm_order.email:25
+msgctxt "Order confirmation e-mail table header"
+msgid "Shipping"
+msgstr "Verzending"
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:27
+#: templates/templated_email/order/staff_confirm_order.email:27
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/staff_confirm_order.email:28
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr "Totaal"
+
+#: templates/templated_email/order/confirm_order.email:30
+#: templates/templated_email/order/staff_confirm_order.email:30
+#: templates/templated_email/source/confirm_order.mjml:29
+#: templates/templated_email/source/staff_confirm_order.mjml:29
+msgctxt "Order confirmation e-mail billing address"
+msgid "Billing address"
+msgstr "Factuuradres"
+
+#: templates/templated_email/order/confirm_order.email:31
+#: templates/templated_email/order/staff_confirm_order.email:31
+#: templates/templated_email/source/confirm_order.mjml:39
+#: templates/templated_email/source/staff_confirm_order.mjml:39
+msgctxt "Order confirmation e-mail text"
+msgid "No billing address"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:33
+#: templates/templated_email/order/staff_confirm_order.email:33
+#: templates/templated_email/source/confirm_order.mjml:30
+#: templates/templated_email/source/staff_confirm_order.mjml:30
+msgctxt "Order confirmation e-mail shipping address"
+msgid "Shipping address"
+msgstr "Verzendadres"
+
+#: templates/templated_email/order/confirm_order.email:34
+#: templates/templated_email/order/staff_confirm_order.email:34
+#: templates/templated_email/source/confirm_order.mjml:46
+#: templates/templated_email/source/staff_confirm_order.mjml:46
+msgctxt "Order confirmation e-mail text"
+msgid "No shipping required"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr "Betalingsgegevens"
+
+#: templates/templated_email/order/payment/confirm_payment.email:9
+msgctxt "Payment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your payment.\n"
+"Your payment was successfully charged.\n"
+msgstr ""
+
+#: templates/templated_email/order/staff_confirm_order.email:11
+msgctxt "Order confirmation staff e-mail text"
+msgid ""
+"\n"
+"Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment update email subject"
+msgid "Shipping update for order %(order)s"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:11
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:15
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid ""
+"You can track your shipment with the following code: %(tracking_number)s."
+msgstr ""
+
+#: templates/templated_email/shared/_footer.email:2
+#: templates/templated_email/source/shared/footer.mjml:4
 msgctxt "Base email text"
 msgid "This is an automatically generated e-mail, please do not reply."
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:317
-#: templates/templated_email/compiled/confirm.html:317
-#: templates/templated_email/compiled/confirm_fulfillment.html:424
-#: templates/templated_email/compiled/confirm_order.html:527
-#: templates/templated_email/compiled/confirm_payment.html:307
-#: templates/templated_email/compiled/email_changed_notification.html:307
-#: templates/templated_email/compiled/password_reset.html:317
-#: templates/templated_email/compiled/request_email_change.html:317
-#: templates/templated_email/compiled/set_customer_password.html:317
-#: templates/templated_email/compiled/set_password.html:317
-#: templates/templated_email/compiled/staff_confirm_order.html:527
-#: templates/templated_email/compiled/update_fulfillment.html:412
+#: templates/templated_email/shared/_footer.email:5
+#: templates/templated_email/source/shared/footer.mjml:13
 #, python-format
 msgctxt "Base email footer"
 msgid "Sincerely, %(site_name)s"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm.html:182
+#: templates/templated_email/shared/_header.email:2
+#: templates/templated_email/source/account_delete.mjml:13
+#: templates/templated_email/source/confirm.mjml:13
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+#: templates/templated_email/source/confirm_order.mjml:14
+#: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/email_changed_notification.mjml:13
+#: templates/templated_email/source/password_reset.mjml:13
+#: templates/templated_email/source/request_email_change.mjml:13
+#: templates/templated_email/source/set_customer_password.mjml:13
+#: templates/templated_email/source/set_password.mjml:13
+#: templates/templated_email/source/staff_confirm_order.mjml:14
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Standard e-mail greeting"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/account_delete.mjml:16
+#, python-format
+msgctxt "Account delete e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"deletion of your user account at %(domain)s.<br/> Click the link below to "
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
+msgstr ""
+
+#: templates/templated_email/source/confirm.mjml:16
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
@@ -119,2525 +343,153 @@ msgid ""
 "first. Please click the link below to do so and log into your account."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:182
+#: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:186
-#, python-format
-msgctxt "Fulfillment confirmation email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_fulfillment.html:198
+#: templates/templated_email/source/confirm_fulfillment.mjml:27
 msgctxt "Fulfillment digital products email text"
-msgid "You can download your digital products by clicking in download link(s)."
+msgid ""
+"You can download your digital products by clicking in download link(s)."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:183
+#: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit: <a href=\"%(order_details_url)s\">"
-"%(order_details_url)s</a>"
+"Thank you for your order. Below is the list of ordered products. To see your"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:255
-msgctxt "E-mail order lines summary table"
-msgid "Subtotal"
-msgstr "Subtotaal"
-
-#: templates/templated_email/compiled/confirm_order.html:263
-#: templates/templated_email/compiled/staff_confirm_order.html:263
-msgctxt "E-mail order lines summary table"
-msgid "Shipping"
-msgstr "Verzending"
-
-#: templates/templated_email/compiled/confirm_order.html:272
-#: templates/templated_email/compiled/staff_confirm_order.html:272
-msgctxt "E-mail order lines summary table"
-msgid "Taxes (included)"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:274
-#: templates/templated_email/compiled/staff_confirm_order.html:274
-msgctxt "E-mail order lines summary table"
-msgid "Taxes"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:284
-#: templates/templated_email/compiled/staff_confirm_order.html:284
-msgctxt "E-mail order lines summary table"
-msgid "Discount"
-msgstr "Korting"
-
-#: templates/templated_email/compiled/confirm_order.html:293
-#: templates/templated_email/compiled/staff_confirm_order.html:293
-msgctxt "E-mail order lines summary table"
-msgid "Total"
-msgstr "Totaal"
-
-#: templates/templated_email/compiled/confirm_order.html:302
-#: templates/templated_email/compiled/staff_confirm_order.html:302
-msgctxt "Ordered item name"
-msgid "Item"
-msgstr "Artikel"
-
-#: templates/templated_email/compiled/confirm_order.html:303
-#: templates/templated_email/compiled/staff_confirm_order.html:303
-msgctxt "Quantity ordered of a product"
-msgid "Quantity"
-msgstr "Hoeveelheid"
-
-#: templates/templated_email/compiled/confirm_order.html:304
-#: templates/templated_email/compiled/staff_confirm_order.html:304
-msgctxt "Unit price of a product"
-msgid "Per unit"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:305
-#: templates/templated_email/compiled/staff_confirm_order.html:305
-msgctxt "Ordered item subtotal (unit price * quantity)"
-msgid "Subtotal"
-msgstr "Subtotaal"
-
-#: templates/templated_email/compiled/confirm_order.html:383
-#: templates/templated_email/compiled/staff_confirm_order.html:383
-msgctxt "Order confirmation e-mail billing address"
-msgid "Billing address"
-msgstr "Factuuradres"
-
-#: templates/templated_email/compiled/confirm_order.html:384
-#: templates/templated_email/compiled/staff_confirm_order.html:384
-msgctxt "Order confirmation e-mail shipping address"
-msgid "Shipping address"
-msgstr "Verzendadres"
-
-#: templates/templated_email/compiled/confirm_order.html:393
-#: templates/templated_email/compiled/staff_confirm_order.html:393
-msgctxt "Order confirmation e-mail text"
-msgid "No billing address"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:400
-#: templates/templated_email/compiled/staff_confirm_order.html:400
-msgctxt "Order confirmation e-mail text"
-msgid "No shipping required"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_payment.html:182
+#: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
 msgid "Thank you for your payment. Your payment was successfully charged."
 msgstr ""
 
-#: templates/templated_email/compiled/email_changed_notification.html:182
+#: templates/templated_email/source/email_changed_notification.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
-"for your user account at %(domain)s.<br> If you didn't request this change, "
-"please contact the administrator."
+"for your user account at %(domain)s.<br /> If you didn't request this "
+"change, please contact the administrator."
 msgstr ""
 
-#: templates/templated_email/compiled/password_reset.html:182
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:29
+#: templates/templated_email/source/partials/_order_lines.mjml:59
+msgctxt "Ordered item name"
+msgid "Item"
+msgstr "Artikel"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
+#: templates/templated_email/source/partials/_order_lines.mjml:60
+msgctxt "Quantity ordered of a product"
+msgid "Quantity"
+msgstr "Hoeveelheid"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
+msgctxt "Ordered item download links"
+msgid "Download Link"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:12
+msgctxt "E-mail order lines summary table"
+msgid "Subtotal"
+msgstr "Subtotaal"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:20
+msgctxt "E-mail order lines summary table"
+msgid "Shipping"
+msgstr "Verzending"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:29
+msgctxt "E-mail order lines summary table"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:31
+msgctxt "E-mail order lines summary table"
+msgid "Taxes"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:41
+msgctxt "E-mail order lines summary table"
+msgid "Discount"
+msgstr "Korting"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:50
+msgctxt "E-mail order lines summary table"
+msgid "Total"
+msgstr "Totaal"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:61
+msgctxt "Unit price of a product"
+msgid "Per unit"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:62
+msgctxt "Ordered item subtotal (unit price * quantity)"
+msgid "Subtotal"
+msgstr "Subtotaal"
+
+#: templates/templated_email/source/password_reset.mjml:16
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br> It can be safely ignored "
+"password for your user account at %(domain)s.<br/> It can be safely ignored "
 "if you did not request a password reset. Click the link below to reset your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/request_email_change.html:182
+#: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested an "
-"email change for your user account at %(domain)s.<br> It can be safely "
+"email change for your user account at %(domain)s.<br /> It can be safely "
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
 
-#: templates/templated_email/compiled/set_customer_password.html:182
+#: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your "
-"customer account at %(domain)s.<br> Click the link below to set up your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/set_password.html:182
+#: templates/templated_email/source/set_password.mjml:16
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
-"You're receiving this e-mail because you have to set password for your staff "
-"member account at %(domain)s.<br> Click the link below to set up your "
+"You're receiving this e-mail because you have to set password for your staff"
+" member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/staff_confirm_order.html:183
+#: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
-"Someone placed a new order in your store. To see order details please visit: "
-"<a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+"Someone placed a new order in your store. To see order details please visit:"
+" <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:182
+#: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number."
+"Your shipping status has been updated. Below is the list of ordered products"
+" that have been updated with new tracking number."
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:186
+#: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
 msgstr ""
-
-#~ msgctxt "Form field"
-#~ msgid "Email"
-#~ msgstr "E-mail"
-
-#~ msgctxt "Password"
-#~ msgid "Password"
-#~ msgstr "Wachtwoord"
-
-#~ msgctxt "Email"
-#~ msgid "Email"
-#~ msgstr "E-mail"
-
-#~ msgctxt "Registration error"
-#~ msgid "This email has already been registered."
-#~ msgstr "Dit emailadres is al geregistreerd."
-
-#~ msgctxt "Address field"
-#~ msgid "Area"
-#~ msgstr "Gebied/regio"
-
-#~ msgctxt "Address field"
-#~ msgid "County"
-#~ msgstr "Land"
-
-#~ msgctxt "Address field"
-#~ msgid "Department"
-#~ msgstr "Afdeling"
-
-#~ msgctxt "Address field"
-#~ msgid "District"
-#~ msgstr "District"
-
-#~ msgctxt "Address field"
-#~ msgid "Do/si"
-#~ msgstr "Do/si"
-
-#~ msgctxt "Address field"
-#~ msgid "Emirate"
-#~ msgstr "Emiraat"
-
-#~ msgctxt "Address field"
-#~ msgid "Island"
-#~ msgstr "Eiland"
-
-#~ msgctxt "Address field"
-#~ msgid "Neighborhood"
-#~ msgstr "Buurt/wijk"
-
-#~ msgctxt "Address field"
-#~ msgid "Oblast"
-#~ msgstr "Oblast"
-
-#~ msgctxt "Address field"
-#~ msgid "Parish"
-#~ msgstr "Parochie"
-
-#~ msgctxt "Address field"
-#~ msgid "PIN"
-#~ msgstr "PIN"
-
-#~ msgctxt "Address field"
-#~ msgid "Postal code"
-#~ msgstr "Postcode"
-
-#~ msgctxt "Address field"
-#~ msgid "Prefecture"
-#~ msgstr "Prefectuur"
-
-#~ msgctxt "Address field"
-#~ msgid "Province"
-#~ msgstr "Provincie"
-
-#~ msgctxt "Address field"
-#~ msgid "State"
-#~ msgstr "Staat"
-
-#~ msgctxt "Address field"
-#~ msgid "Suburb"
-#~ msgstr "Buitenwijk/voorstad"
-
-#~ msgctxt "Address field"
-#~ msgid "Townland"
-#~ msgstr "Thuisland"
-
-#~ msgctxt "Address field"
-#~ msgid "Village/township"
-#~ msgstr "Dorp/plaats"
-
-#~ msgctxt "Address field"
-#~ msgid "ZIP code"
-#~ msgstr "ZIP code"
-
-#~ msgctxt "Country"
-#~ msgid "Country"
-#~ msgstr "Land"
-
-#~ msgctxt "Company or organization"
-#~ msgid "Company or organization"
-#~ msgstr "Bedrijf of organisatie"
-
-#~ msgctxt "Address"
-#~ msgid "Address"
-#~ msgstr "Adres"
-
-#~ msgctxt "City"
-#~ msgid "City"
-#~ msgstr "Stad"
-
-#~ msgctxt "City area"
-#~ msgid "District"
-#~ msgstr "Wijk/buurt"
-
-#~ msgctxt "Postal code"
-#~ msgid "Postal code"
-#~ msgstr "Postcode"
-
-#~ msgctxt "Country area"
-#~ msgid "State or province"
-#~ msgstr "Staat of provincie"
-
-#~ msgctxt "Phone number"
-#~ msgid "Phone number"
-#~ msgstr "Telefoon nummer"
-
-#~ msgctxt "Address"
-#~ msgid "Street address, P.O. box, company name"
-#~ msgstr "Adres"
-
-#~ msgctxt "Address"
-#~ msgid "Apartment, suite, unit, building, floor, etc"
-#~ msgstr "Adres"
-
-#~ msgctxt "Address form"
-#~ msgid "This value is invalid for selected country"
-#~ msgstr "Deze waarde is ongeldig voor het geselecteerde land"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage customers."
-#~ msgstr "Toestemming omschrijving"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage staff."
-#~ msgstr "Toestemming omschrijving"
-
-#~ msgctxt "Permission description"
-#~ msgid "Impersonate customers."
-#~ msgstr "Toestemming omschrijving"
-
-#~ msgid "The phone number entered is not valid."
-#~ msgstr "Het ingevoerde telefoonnummer is ongeldig"
-
-#~ msgid "You have been successfully logged out."
-#~ msgstr "Je bent nu uitgelogd."
-
-#~ msgid "User has been created"
-#~ msgstr "Gebruiker is aangemaakt"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Password successfully changed."
-#~ msgstr "Wachtwoord met succes gewijzigd"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully updated."
-#~ msgstr "Adres met succes gewijzigd"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully removed"
-#~ msgstr "Adres is nu verwijderd"
-
-#~ msgctxt "Storefront message, when user requested his account removed"
-#~ msgid "Please check your inbox for a confirmation e-mail."
-#~ msgstr "Controleer uw emailinbox op een bevestigingsmail "
-
-#~ msgctxt "Account deleted"
-#~ msgid ""
-#~ "Your account was deleted successfully. In case of any trouble or "
-#~ "questions feel free to contact us."
-#~ msgstr ""
-#~ "Uw account is met succes verwijderd. Bij eventuele problemen of "
-#~ "vragenneem dan conctact met ons op."
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Billing"
-#~ msgstr "Betaling en facturering"
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Shipping"
-#~ msgstr "Verzending"
-
-#~ msgctxt "Add to checkout form field label"
-#~ msgid "Quantity"
-#~ msgstr "Hoeveelheid"
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently not available."
-#~ msgstr "Sorry, dit product is momenteel niet beschikbaar."
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently out of stock."
-#~ msgstr "Sorry, dit product is momenteel niet op voorraad."
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Oops. We could not find that product."
-#~ msgstr "Oeps, we kunnen dit product niet vinden."
-
-#~ msgctxt "Country form field label"
-#~ msgid "Country"
-#~ msgstr "Land"
-
-#~ msgctxt "Address form field label"
-#~ msgid "Email"
-#~ msgstr "E-mail"
-
-#~ msgctxt "Shipping addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Voer een nieuw adres in"
-
-#~ msgctxt "Shipping addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Adres"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Voer een nieuw adres in"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Same as shipping"
-#~ msgstr "Identiek aan verzendadres"
-
-#~ msgctxt "Billing addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Adres"
-
-#~ msgctxt "Shipping method form field label"
-#~ msgid "Shipping method"
-#~ msgstr "Verzendmethode"
-
-#~ msgctxt "Voucher form error"
-#~ msgid "Discount code incorrect or expired"
-#~ msgstr "Deze kortingscode is ongeldig"
-
-#~ msgctxt "Checkout discount form label for voucher field"
-#~ msgid "Gift card or discount code"
-#~ msgstr "Cadeaukaart of kortingscode"
-
-#~ msgctxt "Checkout warning message"
-#~ msgid ""
-#~ "Sorry. We don't have that many items in stock. Quantity was set to "
-#~ "maximum available for now."
-#~ msgstr ""
-#~ "Sorry, zoveel hebben we niet op voorraad. Het aantal is gewijzigd naar "
-#~ "wat op dit moment bescikbaar is."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Your order does not require shipping."
-#~ msgstr "Je bestelling hoeft niet verzonden te worden."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Please select a shipping method first."
-#~ msgstr "Kies aub eerst een verzendmethode."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is not valid in your country."
-#~ msgstr "Deze kortingsbon is niet geldig in jouw land"
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for selected items."
-#~ msgstr "Deze aanbieding is alleen geldig voor geselecteerde producten."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Voucher expired in meantime. Order placement aborted."
-#~ msgstr "Kortingsbon is verlopen. Orderplaatsing is afgebroken"
-
-#~ msgctxt "Checkout warning"
-#~ msgid "This voucher has expired. Please review your checkout."
-#~ msgstr "Deze cadeaubon is verlopen, herzie uw order"
-
-#~ msgctxt "Checkout warning"
-#~ msgid "Please review your checkout."
-#~ msgstr "Doorloop aub nogmaals het betaalproces"
-
-#, python-format
-#~ msgctxt "Number of matching records in the dashboard list"
-#~ msgid "Found %(counter)d matching record"
-#~ msgid_plural "Found %(counter)d matching records"
-#~ msgstr[0] "Er is %(counter)d overeenkomst gevonden"
-#~ msgstr[1] "Er zijn %(counter)d overeenkomsten gevonden"
-
-#~ msgctxt "Discount type"
-#~ msgid "%"
-#~ msgstr "%"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Shipping"
-#~ msgstr "Verzending"
-
-#~ msgctxt "Voucher type"
-#~ msgid "Free shipping"
-#~ msgstr "Gratis verzenden"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off shipping"
-#~ msgstr "%(discount)s op verzenden"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off"
-#~ msgstr "%(discount)s op"
-
-#, python-format
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for orders over %(amount)s."
-#~ msgstr "Deze aanbieding is alleen geldig voor bestellingen vanaf %(amount)s"
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Discount not applicable for this product"
-#~ msgstr "Korting niet van toepassing op dit product"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "accommodation"
-#~ msgstr "accommodatie"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "admission to cultural events"
-#~ msgstr "toelating tot culturele evenementen"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "admission to entertainment events"
-#~ msgstr "toelating tot entertainment evenementen"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "admission to sporting events"
-#~ msgstr "toelating tot sport evenementen"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "advertising"
-#~ msgstr "reclame"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "agricultural supplies"
-#~ msgstr "agrarische benodigdheden"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "baby foodstuffs"
-#~ msgstr "babyvoeding"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "bikes"
-#~ msgstr "fietsen"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "books"
-#~ msgstr "boeken"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "childrens clothing"
-#~ msgstr "kinderkleding"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "domestic fuel"
-#~ msgstr "fossiele brandstoffen"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "domestic services"
-#~ msgstr "huishoudelijke diensten"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "e-books"
-#~ msgstr "e-books"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "foodstuffs"
-#~ msgstr "etenswaren"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "hotels"
-#~ msgstr "hotel"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "medical"
-#~ msgstr "medicinaal"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "newspapers"
-#~ msgstr "kranten en tijdschriften"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "passenger transport"
-#~ msgstr "openbaar vervoer"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "pharmaceuticals"
-#~ msgstr "geneesmiddelen"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "property renovations"
-#~ msgstr "gebouwrenovatie's"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "restaurants"
-#~ msgstr "restaurants"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "social housing"
-#~ msgstr "sociale huisvesting"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "standard"
-#~ msgstr "standaard"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "water"
-#~ msgstr "water"
-
-#~ msgctxt "Payment delete form error"
-#~ msgid "Payment does not exist"
-#~ msgstr "Betaling bestaat niet"
-
-#~ msgctxt "Connect order with user warning message"
-#~ msgid ""
-#~ "We couldn't assign the order to your account as the email addresses don't "
-#~ "match"
-#~ msgstr "We konden "
-
-#~ msgctxt "storefront message"
-#~ msgid "The order is now assigned to your account"
-#~ msgstr "De order is aan jou account toegewezen"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage pages."
-#~ msgstr "Beheer pagina's"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Refund"
-#~ msgstr "Terugbetaling"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Capture"
-#~ msgstr "Incassering"
-
-#~ msgctxt "Payment status form field"
-#~ msgid "Payment status"
-#~ msgstr "Betaalstatus"
-
-#~ msgctxt "Product status"
-#~ msgid "not published"
-#~ msgstr "niet gepubliceerd"
-
-#~ msgctxt "Product status"
-#~ msgid "variants missing"
-#~ msgstr "er ontbreken productversies"
-
-#~ msgctxt "Product status"
-#~ msgid "out of stock"
-#~ msgstr "niet op voorraad"
-
-#~ msgctxt "Product status"
-#~ msgid "stock running low"
-#~ msgstr "de voorraad begint op te raken"
-
-#~ msgctxt "Product status"
-#~ msgid "not yet available"
-#~ msgstr "nog niet beschikbaar"
-
-#~ msgctxt "Product status"
-#~ msgid "ready for purchase"
-#~ msgstr "klaar voor verkoop"
-
-#~ msgctxt "Variant status"
-#~ msgid "available"
-#~ msgstr "beschikbaar"
-
-#~ msgctxt "Variant status"
-#~ msgid "out of stock"
-#~ msgstr "niet op voorraad"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "name"
-#~ msgstr "Naam"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "price"
-#~ msgstr "Prijs"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "last updated"
-#~ msgstr "voor het laatst bijgewerkt"
-
-#~ msgctxt "Product list sorting form"
-#~ msgid "Sort by"
-#~ msgstr "Sorteer per"
-
-#~ msgctxt "Currency amount"
-#~ msgid "Price"
-#~ msgstr "Prijs"
-
-#, python-format
-#~ msgctxt "Variant choice field label"
-#~ msgid "%(variant_label)s - %(price)s"
-#~ msgstr "%(variant_label)s - %(price)s"
-
-#~ msgctxt "Search form label"
-#~ msgid "Query"
-#~ msgstr "Zoekopdracht"
-
-#~ msgctxt "Account deletetion confirmation page title"
-#~ msgid "Are you sure?"
-#~ msgstr "Weet je het zeker?"
-
-#~ msgctxt "Edit address page title"
-#~ msgid "Edit address"
-#~ msgstr "Bewerk adres"
-
-#~ msgctxt "New address page title"
-#~ msgid "New address"
-#~ msgstr "Nieuw adres"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Home"
-#~ msgstr "Home"
-
-#~ msgctxt "Edit/new address breadcrumb"
-#~ msgid "Your profile"
-#~ msgstr "Je profiel"
-
-#~ msgctxt "Edit address breadcrumb"
-#~ msgid "Edit address"
-#~ msgstr "Bewerk adres"
-
-#~ msgctxt "New address breadcrumb"
-#~ msgid "New address"
-#~ msgstr "Nieuw adres"
-
-#~ msgctxt "Edit address title"
-#~ msgid "Edit address"
-#~ msgstr "Bewerk adres"
-
-#~ msgctxt "New address title"
-#~ msgid "New address"
-#~ msgstr "Nieuw adres"
-
-#~ msgctxt "Edit/new address primary action"
-#~ msgid "Save changes"
-#~ msgstr "Sla wijzigingen op"
-
-#~ msgctxt "User profile page title"
-#~ msgid "Your profile"
-#~ msgstr "Je profiel"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your account"
-#~ msgstr "Je account"
-
-#~ msgid "My account"
-#~ msgstr "Mijn account"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Recent Orders"
-#~ msgstr "Recente bestellingen"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Change password"
-#~ msgstr "Wijzig wachtwoord"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order"
-#~ msgstr "Bestelling"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Date"
-#~ msgstr "Datum"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Summary"
-#~ msgstr "Samenvatting"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Payment status"
-#~ msgstr "Betaalstatus"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order status"
-#~ msgstr "Bestelstatus"
-
-#~ msgctxt "Recent orders link text"
-#~ msgid "Details"
-#~ msgstr "Details"
-
-#~ msgctxt "No recent orders text"
-#~ msgid "There are not any completed orders yet."
-#~ msgstr "Er zijn nog geen voltooide bestellingen."
-
-#~ msgctxt "User profile action"
-#~ msgid "Change password"
-#~ msgstr "Wijzig wachtwoord"
-
-#~ msgctxt "User profile action"
-#~ msgid "Update"
-#~ msgstr "Update"
-
-#~ msgctxt "User address action"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "No addresses text"
-#~ msgid "You will see new addresses here after first successful checkout."
-#~ msgstr "Je ziet hier nieuwe adressen na eerste succesvolle afrekening."
-
-#~ msgctxt "Login page title"
-#~ msgid "Log in"
-#~ msgstr "Log in"
-
-#~ msgctxt "Login form secondary title"
-#~ msgid "Don't have an account yet?"
-#~ msgstr "Heb je nog geen account?"
-
-#~ msgctxt "Login form secondary action"
-#~ msgid "Register"
-#~ msgstr "Schrijf je in"
-
-#~ msgctxt "Login form title"
-#~ msgid "Log in"
-#~ msgstr "Log in"
-
-#~ msgctxt "Login form primary action"
-#~ msgid "Log in"
-#~ msgstr "Log in"
-
-#~ msgctxt "Login form secondary link"
-#~ msgid "Forgot password?"
-#~ msgstr "Wachtwoord vergeten?"
-
-#~ msgid "Facebook"
-#~ msgstr "Facebook"
-
-#~ msgid "Google"
-#~ msgstr "Google"
-
-#~ msgctxt "Password change breadcrumb"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Password change form legend"
-#~ msgid "Change Password"
-#~ msgstr "Wijzig wachtwoord"
-
-#~ msgctxt "Password change form primary action"
-#~ msgid "Save new password"
-#~ msgstr "Bewaar nieuw wachtwoord"
-
-#~ msgctxt "Password reset page title"
-#~ msgid "Password reset"
-#~ msgstr "Wachtwoord reset"
-
-#~ msgctxt "Password reset form title"
-#~ msgid "Forgot your password?"
-#~ msgstr "Wachtwoord vergeten?"
-
-#~ msgctxt "Password reset form help text"
-#~ msgid ""
-#~ "Please let us know the email you have used to register or purchase at our "
-#~ "store."
-#~ msgstr ""
-#~ "Laat ons aub weten welk e-mailadres je hebt gebruikt om je te registreren "
-#~ "of een aankoop te doen."
-
-#~ msgctxt "Password reset primary action"
-#~ msgid "Continue"
-#~ msgstr "Ga door"
-
-#~ msgctxt "Password reset done page title"
-#~ msgid "Password Reset"
-#~ msgstr "Wachtwoord reset"
-
-#~ msgctxt "Password reset done title"
-#~ msgid "Password Reset"
-#~ msgstr "Wachtwoord reset"
-
-#~ msgctxt "Password reset done text"
-#~ msgid ""
-#~ "We have sent you an e-mail. Please contact us if you do not receive it "
-#~ "within a few minutes."
-#~ msgstr ""
-#~ "We hebben je een e-mail gestuurd. Neem aub contact met ons op indien je "
-#~ "die niet binnen enkele minuten hebt ontvangen."
-
-#~ msgctxt "Password reset from key page title"
-#~ msgid "Change Password"
-#~ msgstr "Wijzig wachtwoord"
-
-#~ msgid "Bad Token"
-#~ msgstr "Onjuiste code"
-
-#, python-format
-#~ msgctxt "Password reset text if key is invalid"
-#~ msgid ""
-#~ "The password reset link was invalid, possibly because it has already been "
-#~ "used.<br> Please request a <a href=\"%(passwd_reset_url)s\">new password "
-#~ "reset</a>."
-#~ msgstr ""
-#~ "De link om je wachtwoord te wijzigen is ongeldig, misschien is hij al een "
-#~ "keer gebruikt. <br>Vraag aub een nieuwe <a href=\"%(passwd_reset_url)s\"> "
-#~ "aan </a>."
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Password Reset"
-#~ msgstr "Wachtwoord reset"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Now you can set new password for you account."
-#~ msgstr "Nu kan je een nieuw wachtwoord voor je account instellen."
-
-#~ msgctxt "Password reset from key form primary action"
-#~ msgid "Continue"
-#~ msgstr "Ga door"
-
-#~ msgctxt "Password reset from key done page title"
-#~ msgid "Password Changed"
-#~ msgstr "Wachtwoord gewijzigd"
-
-#~ msgctxt "Password reset from key done title"
-#~ msgid "Password Changed"
-#~ msgstr "Wachtwoord gewijzigd"
-
-#~ msgid "Your password is now changed."
-#~ msgstr "Je wachtwoord is nu gewijzigd"
-
-#, python-format
-#~ msgctxt "Password reset from key done text"
-#~ msgid ""
-#~ "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
-#~ msgstr ""
-#~ "Je kan nu <a href=\"%(login_url)s\">inloggen</a> met je nieuwe wachtwoord"
-
-#~ msgctxt "Signup page title"
-#~ msgid "Sign Up"
-#~ msgstr "Meld je aan"
-
-#~ msgctxt "Signup form secondary title"
-#~ msgid "Already have an account?"
-#~ msgstr "Heb je al een account?"
-
-#~ msgctxt "Signup form secondary action"
-#~ msgid "Log in"
-#~ msgstr "Log in"
-
-#~ msgctxt "Signup form title"
-#~ msgid "Create an account"
-#~ msgstr "Maak een account aan"
-
-#~ msgctxt "Signup form primary action"
-#~ msgid "Create an account"
-#~ msgstr "Maak een account aan"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Dashboard"
-#~ msgstr "Dashboard"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log out"
-#~ msgstr "Uitloggen"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Register"
-#~ msgstr "Schrijf je in"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log in"
-#~ msgstr "Log in"
-
-#~ msgid "Search for product"
-#~ msgstr "Zoek naar product"
-
-#~ msgid "Search"
-#~ msgstr "Zoeken"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your cart"
-#~ msgstr "Je winkelwagentje"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Style guide"
-#~ msgstr "Stijlgids"
-
-#~ msgctxt "Category breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "Home"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Subtotal"
-#~ msgstr "Subtotaal"
-
-#~ msgctxt "Checkout shipping cost form"
-#~ msgid "Shipping cost for:"
-#~ msgstr "Verzendkosten voor:"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Total"
-#~ msgstr "Totaal"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Checkout"
-#~ msgstr "Kassa"
-
-#~ msgctxt "Checkout top message"
-#~ msgid "Easy and secure!"
-#~ msgstr "Gemakkelijk en veilig!"
-
-#~ msgctxt "Checkout title"
-#~ msgid "Checkout"
-#~ msgstr "Kassa"
-
-#~ msgctxt "Order review title"
-#~ msgid "Order review"
-#~ msgstr "Besteloverzicht"
-
-#~ msgctxt "Order review section"
-#~ msgid "Subtotal"
-#~ msgstr "Subtotaal"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Promo code"
-#~ msgstr "Promo code"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Total"
-#~ msgstr "Totaal"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Your cart"
-#~ msgstr "Je winkelwagentje"
-
-#~ msgctxt "Checkout breadcrumb"
-#~ msgid "Cart"
-#~ msgstr "Winkelwagen"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Product"
-#~ msgstr "Product"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Quantity"
-#~ msgstr "Hoeveelheid"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Price"
-#~ msgstr "Prijs"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Checkout"
-#~ msgstr "Kassa"
-
-#~ msgctxt "Empty checkout message"
-#~ msgid "There are no products in your shopping cart."
-#~ msgstr "Je winkelwagentje is leeg."
-
-#~ msgctxt "Empty checkout link"
-#~ msgid "Check out our sales"
-#~ msgstr "Bekijk onze uitverkoop"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "Login"
-#~ msgstr "Login"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "New customer?"
-#~ msgstr "Nieuwe klant?"
-
-#~ msgctxt "Checkout login page new users action"
-#~ msgid "Continue"
-#~ msgstr "Ga door"
-
-#~ msgctxt "Checkout login page new users message"
-#~ msgid "Registration is not required!"
-#~ msgstr "Registratie is niet vereist!"
-
-#~ msgctxt "Checkout login form title"
-#~ msgid "Existing customer? Log in."
-#~ msgstr "Bestaande klant? Log in."
-
-#~ msgctxt "Checkout payment title"
-#~ msgid "Payment"
-#~ msgstr "Betaling"
-
-#~ msgctxt "Checkout payment primary action"
-#~ msgid "Place order"
-#~ msgstr "Plaats bestelling"
-
-#~ msgctxt "Checkout shipping address title"
-#~ msgid "Shipping address"
-#~ msgstr "Verzendadres"
-
-#~ msgctxt "Checkout shipping address primary action"
-#~ msgid "Continue"
-#~ msgstr "Ga door"
-
-#~ msgid "Select other address"
-#~ msgstr "Kies ander adres"
-
-#~ msgctxt "Checkout shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Verzendwijze"
-
-#~ msgctxt "Checkout shipping method primary action"
-#~ msgid "Continue"
-#~ msgstr "Ga door"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Same as shipping"
-#~ msgstr "Identiek aan verzendadres"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Enter a new address"
-#~ msgstr "Voer een nieuw adres in"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "Remove"
-#~ msgstr "Verwijder"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "(Remove)"
-#~ msgstr "(Verwijder)"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "Use"
-#~ msgstr "Gebruik"
-
-#~ msgctxt "Checkout summary title"
-#~ msgid "Billing address"
-#~ msgstr "Factuuradres"
-
-#~ msgctxt "Checkout summary primary action"
-#~ msgid "Order & Pay"
-#~ msgstr "Bestel & betaal"
-
-#~ msgctxt "Checkout summary without shipping title"
-#~ msgid "Billing address"
-#~ msgstr "Factuuradres"
-
-#~ msgctxt "Checkout summary without shipping action"
-#~ msgid "Place order"
-#~ msgstr "Plaats bestelling"
-
-#~ msgctxt "Checkout dropdown secondary action"
-#~ msgid "Go to cart"
-#~ msgstr "Ga naar winkelwagentje"
-
-#~ msgctxt "Checkout dropdown primary action"
-#~ msgid "Checkout"
-#~ msgstr "Kassa"
-
-#~ msgctxt "Site breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "Home"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Visit storefront"
-#~ msgstr "Bezoek de etalage"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Style guide"
-#~ msgstr "Stijlgids"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Log out"
-#~ msgstr "Uitloggen"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search"
-#~ msgstr "Zoeken"
-
-#~ msgctxt "Dashboard homepage"
-#~ msgid "Home"
-#~ msgstr "Home"
-
-#~ msgctxt "Dashboard catalogue"
-#~ msgid "Catalogue"
-#~ msgstr "Catalogus"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Products"
-#~ msgstr "Producten"
-
-#~ msgctxt "Dashboard categories list"
-#~ msgid "Categories"
-#~ msgstr "Categorieen"
-
-#~ msgctxt "Dashboard discounts list"
-#~ msgid "Discounts"
-#~ msgstr "Kortingen"
-
-#~ msgctxt "Dashboard sales (discounts) list"
-#~ msgid "Sales"
-#~ msgstr "Verkopen"
-
-#~ msgctxt "Dashboard vouchers list"
-#~ msgid "Vouchers"
-#~ msgstr "Vouchers"
-
-#~ msgctxt "Dashboard sales. `Sales' is noun of to sell"
-#~ msgid "Sales"
-#~ msgstr "Verkopen"
-
-#~ msgctxt "Dashboard orders list"
-#~ msgid "Orders"
-#~ msgstr "Bestellingen"
-
-#~ msgctxt "Dashboard customers list"
-#~ msgid "Customers"
-#~ msgstr "Klanten"
-
-#~ msgctxt "Dashboard staff members list"
-#~ msgid "Staff members"
-#~ msgstr "Personeelsleden"
-
-#~ msgctxt "Dashboard configuration"
-#~ msgid "Configuration"
-#~ msgstr "Configuratie"
-
-#~ msgctxt "Dashboard product types list"
-#~ msgid "Product types"
-#~ msgstr "Productsoorten"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Attributes"
-#~ msgstr "Eigenschappen"
-
-#~ msgctxt "Dashboard shipping zones list"
-#~ msgid "Shipping"
-#~ msgstr "Verzending"
-
-#~ msgctxt "Dashboard site settings"
-#~ msgid "Site settings"
-#~ msgstr "Site-instellingen"
-
-#~ msgctxt "Dashboard software version"
-#~ msgid "Release:"
-#~ msgstr "Uitgifte:"
-
-#~ msgctxt "Dashboard cancel action"
-#~ msgid "Cancel"
-#~ msgstr "Annuleer"
-
-#~ msgctxt "Category list page title"
-#~ msgid "Categories"
-#~ msgstr "Categorieën"
-
-#~ msgctxt "Category field"
-#~ msgid "Description"
-#~ msgstr "Omschrijving"
-
-#~ msgid "Add"
-#~ msgstr "Voeg toe"
-
-#~ msgctxt "Category list table header name"
-#~ msgid "Name"
-#~ msgstr "Naam"
-
-#~ msgctxt "Category list table header description"
-#~ msgid "Description"
-#~ msgstr "Beschrijving"
-
-#~ msgctxt "Category detail page title"
-#~ msgid "Add new category"
-#~ msgstr "Voeg nieuwe categorie toe"
-
-#~ msgctxt "Category detail breadcrumbs"
-#~ msgid "Add new category"
-#~ msgstr "Voeg nieuwe categorie toe"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Update"
-#~ msgstr "Update"
-
-#~ msgctxt "Dashboard create action"
-#~ msgid "Create"
-#~ msgstr "Maak aan"
-
-#~ msgctxt "Category list add button text"
-#~ msgid "Add category"
-#~ msgstr "Voeg categorie toe"
-
-#~ msgctxt "Collection action"
-#~ msgid "View on site"
-#~ msgstr "Bekijk op de website"
-
-#~ msgctxt "Collection secondary action"
-#~ msgid "Cancel"
-#~ msgstr "Annuleer"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Update"
-#~ msgstr "Update"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Create"
-#~ msgstr "Maak aan"
-
-#~ msgctxt "Collection field"
-#~ msgid "Published"
-#~ msgstr "Gepubliceerd"
-
-#~ msgctxt "Collection field"
-#~ msgid "Draft"
-#~ msgstr "Conceptversie"
-
-#~ msgctxt "Collections list table header name"
-#~ msgid "Name"
-#~ msgstr "Naam"
-
-#~ msgctxt "Homepage collection save"
-#~ msgid "Save"
-#~ msgstr "Bewaar"
-
-#~ msgctxt "Customer field"
-#~ msgid "Note"
-#~ msgstr "Aantekening"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Number"
-#~ msgstr "Nummer"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Placed on"
-#~ msgstr "Geplaatst op"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Order status"
-#~ msgstr "Bestelstatus"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Total"
-#~ msgstr "Totaal"
-
-#~ msgctxt "Empty customer orders table message"
-#~ msgid "No orders found."
-#~ msgstr "Geen bestellingen gevonden."
-
-#~ msgctxt "Customer notes card action"
-#~ msgid "Add note"
-#~ msgstr "Voeg opmerking toe"
-
-#~ msgctxt "Customer default shipping address card title"
-#~ msgid "Default shipping address"
-#~ msgstr "Standaard verzendadres"
-
-#~ msgctxt "Customer without default shipping address message"
-#~ msgid "No default shipping address."
-#~ msgstr "Geen standaard verzendadres."
-
-#~ msgctxt "Customer default billing address card title"
-#~ msgid "Default billing address"
-#~ msgstr "Standaard factuuradres"
-
-#~ msgctxt "Customer without default billing address message"
-#~ msgid "No default billing address."
-#~ msgstr "Geen standaard factuuradres."
-
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer"
-#~ msgstr "Klant"
-
-#~ msgctxt "Dashboard add action"
-#~ msgid "Add"
-#~ msgstr "Voeg toe"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Name"
-#~ msgstr "Naam"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Email"
-#~ msgstr "E-mail"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Location"
-#~ msgstr "Locatie"
-
-#~ msgctxt "Empty customers table message"
-#~ msgid "No customers found."
-#~ msgstr "Geen klanten gevonden."
-
-#~ msgctxt "Modal add note title"
-#~ msgid "Add note"
-#~ msgstr "Voeg opmerking toe"
-
-#~ msgctxt "Modal add note primary action"
-#~ msgid "Save note"
-#~ msgstr "Bewaar opmerking"
-
-#~ msgctxt "Sale (discount) page title"
-#~ msgid "Add new sale"
-#~ msgstr "Voeg nieuwe verkoop toe"
-
-#~ msgctxt "Dashboard sales (discounts) list."
-#~ msgid "Sales"
-#~ msgstr "Verkopen"
-
-#~ msgctxt "Sale (discount) action"
-#~ msgid "Remove sale"
-#~ msgstr "Verwijder verkoop"
-
-#~ msgctxt "Sale (discount) breadcrumbs"
-#~ msgid "Add new sale"
-#~ msgstr "Voeg nieuwe verkoop toe"
-
-#~ msgid "Sales"
-#~ msgstr "Verkopen"
-
-#~ msgctxt "Sale (discount) list add button text"
-#~ msgid "Add sale"
-#~ msgstr "Voeg verkoop toe"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Name"
-#~ msgstr "Naam"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Start date"
-#~ msgstr "Begindatum"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "End date"
-#~ msgstr "Einddatum"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Discount"
-#~ msgstr "Korting"
-
-#~ msgctxt "Empty sales table message"
-#~ msgid "No sales found"
-#~ msgstr "Geen verkopen gevonden"
-
-#~ msgctxt "Voucher page title"
-#~ msgid "Add new voucher"
-#~ msgstr "Voeg nieuwe voucher toe"
-
-#~ msgctxt "Voucher action"
-#~ msgid "Remove voucher"
-#~ msgstr "Verwijder voucher"
-
-#~ msgctxt "Voucher breadcrumbs"
-#~ msgid "Add new voucher"
-#~ msgstr "Voeg nieuwe voucher toe"
-
-#~ msgctxt "Voucher list add button text"
-#~ msgid "Add voucher"
-#~ msgstr "Voeg voucher toe"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Name"
-#~ msgstr "Naam"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Discount"
-#~ msgstr "Korting"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Start date"
-#~ msgstr "Begindatum"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "End date"
-#~ msgstr "Einddatum"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Used"
-#~ msgstr "Gebruikt"
-
-#~ msgctxt "Empty vouchers table message"
-#~ msgid "No vouchers found"
-#~ msgstr "Geen vouchers gevonden"
-
-#~ msgctxt "Collection availability status"
-#~ msgid "Published"
-#~ msgstr "Gepubliceerd"
-
-#~ msgctxt "Menu items list table header name"
-#~ msgid "Name"
-#~ msgstr "Naam"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Status"
-#~ msgstr "Status"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Published"
-#~ msgstr "Gepubliceerd"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Not published"
-#~ msgstr "Niet gepubliceerd"
-
-#~ msgctxt "Menu item edit action"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Menu item list action link"
-#~ msgid "Remove"
-#~ msgstr "Verwijder"
-
-#~ msgctxt "Page availability status"
-#~ msgid "Published"
-#~ msgstr "Gepubliceerd"
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Orders ready for shipment"
-#~ msgstr "Bestellingen klaar voor verzending"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Placed on"
-#~ msgstr "Geplaatst op"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Customer"
-#~ msgstr "Klant"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Payment status"
-#~ msgstr "Betaalstatus"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Order status"
-#~ msgstr "Bestelstatus"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Total"
-#~ msgstr "Totaal"
-
-#~ msgctxt "Anonymous user account value"
-#~ msgid "Guest"
-#~ msgstr "Gast"
-
-#~ msgctxt "Empty order table message"
-#~ msgid "No orders are ready for shipment."
-#~ msgstr "Geen bestellingen klaar voor verzending."
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Preauthorized payments"
-#~ msgstr "Vooraf goedgekeurde betalingen"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Order"
-#~ msgstr "Bestelling"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Date"
-#~ msgstr "Datum"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Customer"
-#~ msgstr "Klant"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Amount"
-#~ msgstr "Bedrag"
-
-#~ msgid "Guest"
-#~ msgstr "Gast"
-
-#~ msgctxt "Empty Preauthorized payments table message"
-#~ msgid "No preauthorized payments."
-#~ msgstr "Geen vooraf goedgekeurde betalingen."
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Products with low stock"
-#~ msgstr "Producten met geringe voorraad"
-
-#~ msgctxt "Low stock product list"
-#~ msgid "Product name"
-#~ msgstr "Productnaam"
-
-#~ msgctxt "Low stock product list"
-#~ msgid "Stock left"
-#~ msgstr "Resterende voorraad"
-
-#~ msgctxt "Empty low stock table message"
-#~ msgid "No products are low in stock."
-#~ msgstr "Geen producten met geringe voorraad."
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Save"
-#~ msgstr "Bewaar"
-
-#~ msgctxt ""
-#~ msgid "Edit address"
-#~ msgstr "Bewerk adres"
-
-#~ msgctxt ""
-#~ msgid "Shipping address"
-#~ msgstr "Verzendadres"
-
-#~ msgctxt ""
-#~ msgid "Billing address"
-#~ msgstr "Factuuradres"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Cancel Order"
-#~ msgstr "Annuleer bestelling"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Print"
-#~ msgstr "Druk af"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Details"
-#~ msgstr "Details"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Payments"
-#~ msgstr "Betalingen"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "History"
-#~ msgstr "Geschiedenis"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Payments"
-#~ msgstr "Betalingen"
-
-#~ msgctxt "Payment status not available"
-#~ msgid "N/A"
-#~ msgstr "N/A"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Outstanding balance"
-#~ msgstr "Uitstaande balans"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Preauthorized amount"
-#~ msgstr "Vooraf goedgekeurd bedrag"
-
-#~ msgctxt "Preauthorized amount not available"
-#~ msgid "N/A"
-#~ msgstr "N/A"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Captured amount"
-#~ msgstr "Geïncasseerd bedrag"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Capture"
-#~ msgstr "Incassering"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Refund"
-#~ msgstr "Terugbetaling"
-
-#~ msgctxt "Dashboard edit action"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Order placed on date"
-#~ msgid "Placed on"
-#~ msgstr "Geplaatst op"
-
-#~ msgctxt "Order table header"
-#~ msgid "Item"
-#~ msgstr "Artikel"
-
-#~ msgctxt "Order table header"
-#~ msgid "Price"
-#~ msgstr "Prijs"
-
-#~ msgctxt "Order table header"
-#~ msgid "Quantity"
-#~ msgstr "Hoeveelheid"
-
-#~ msgctxt "Order table header"
-#~ msgid "Total"
-#~ msgstr "Totaal"
-
-#~ msgctxt "Order table row action"
-#~ msgid "Change quantity"
-#~ msgstr "Wijzig aantal"
-
-#~ msgctxt "Order table row action"
-#~ msgid "Remove line"
-#~ msgstr "Verwijder regel"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Shipping"
-#~ msgstr "Verzending"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Grand total"
-#~ msgstr "Totaal"
-
-#~ msgctxt "Order detail action"
-#~ msgid "View on site"
-#~ msgstr "Bekijk op de website"
-
-#, python-format
-#~ msgctxt "Fulfillment table text"
-#~ msgid "Tracking number: %(tracking)s"
-#~ msgstr "Tracking nummer: %(tracking)s"
-
-#~ msgctxt "Fulfillment summary card action"
-#~ msgid "Cancel"
-#~ msgstr "Annuleer"
-
-#~ msgctxt "Order notes card title"
-#~ msgid "Order notes"
-#~ msgstr "Opmerkingen bij bestelling"
-
-#~ msgctxt "Empty order notes card message"
-#~ msgid "There are no notes associated with this order."
-#~ msgstr "Er zijn geen opmerkingen bij deze bestelling"
-
-#~ msgctxt "Order notes card action"
-#~ msgid "Add note"
-#~ msgstr "Voeg opmerking toe"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Transaction ID"
-#~ msgstr "Transactiekenmerk"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Date"
-#~ msgstr "Datum"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Payment status"
-#~ msgstr "Betaalstatus"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Amount"
-#~ msgstr "Bedrag"
-
-#, python-format
-#~ msgctxt "Payment item column data"
-#~ msgid "#%(payment_id)s"
-#~ msgstr "Nummer %(payment_id)s"
-
-#~ msgctxt "Empty payment history table message"
-#~ msgid "No payments made for this order."
-#~ msgstr "Voor deze bestelling zijn geen betalingen gedaan."
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Item"
-#~ msgstr "Artikel"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Quantity"
-#~ msgstr "Aantal"
-
-#~ msgctxt "Empty order list message"
-#~ msgid "No orders found."
-#~ msgstr "Geen bestellingen gevonden."
-
-#~ msgctxt "Modal order add variant primary action"
-#~ msgid "Add"
-#~ msgstr "Voeg toe"
-
-#~ msgctxt "Modal cancel fulfillment cancel action"
-#~ msgid "Abort"
-#~ msgstr "Annuleren"
-
-#~ msgctxt "Modal remove order line text"
-#~ msgid "Are you sure you want remove this order line?"
-#~ msgstr "Weet je zeker dat je deze bestelregel wilt verwijderen?"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Price"
-#~ msgstr "Prijs"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Total"
-#~ msgstr "Totaal"
-
-#~ msgctxt "Modal cancel order primary action"
-#~ msgid "Cancel Order"
-#~ msgstr "Annuleer bestelling"
-
-#~ msgctxt "Modal capture payment title"
-#~ msgid "Capture payment"
-#~ msgstr "Incasseer betaling"
-
-#~ msgctxt "Modal capture payment list title"
-#~ msgid "Order total:"
-#~ msgstr "Totaal bestelling:"
-
-#~ msgctxt "Modal capture payment list title"
-#~ msgid "Captured amount:"
-#~ msgstr "Geïncasseerd bedrag:"
-
-#~ msgctxt "Modal capture payment primary action"
-#~ msgid "Capture"
-#~ msgstr "Incassering"
-
-#~ msgctxt "Modal change quantity title"
-#~ msgid "Change quantity"
-#~ msgstr "Wijzig aantal"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Update"
-#~ msgstr "Update"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Save"
-#~ msgstr "Bewaar"
-
-#~ msgctxt "Modal refund payment title"
-#~ msgid "Refund payment"
-#~ msgstr "Terugbetaling"
-
-#~ msgctxt "Modal refund payment list title"
-#~ msgid "Order total:"
-#~ msgstr "Totaal bestelling:"
-
-#~ msgctxt "Modal refund payment list title"
-#~ msgid "Captured amount:"
-#~ msgstr "Geïncasseerd bedrag:"
-
-#~ msgctxt "Modal refund payment primary action"
-#~ msgid "Refund"
-#~ msgstr "Terugbetaling"
-
-#~ msgctxt "Order subtotal net price"
-#~ msgid "Subtotal"
-#~ msgstr "Subtotaal"
-
-#~ msgctxt "Order voucher header"
-#~ msgid "Discount"
-#~ msgstr "Korting"
-
-#~ msgctxt "Order table header"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Page action"
-#~ msgid "View on site"
-#~ msgstr "Bekijk op de website"
-
-#~ msgctxt "Page form page title"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Page form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgid "Cancel"
-#~ msgstr "Annuleer"
-
-#~ msgid "Save"
-#~ msgstr "Bewaar"
-
-#~ msgid "Create"
-#~ msgstr "Maak aan"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Attributes"
-#~ msgstr "Eigenschappen"
-
-#~ msgid "Product types"
-#~ msgstr "Productsoorten"
-
-#~ msgctxt "Attribute detail action"
-#~ msgid "Edit attribute"
-#~ msgstr "Bewerk eigenschap"
-
-#~ msgctxt "Attribute detail action"
-#~ msgid "Remove attribute"
-#~ msgstr "Verwijder eigenschap"
-
-#~ msgid "Attribute values"
-#~ msgstr "Waarden van eigenschappen"
-
-#~ msgid "Display name"
-#~ msgstr "Toon naam"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Remove"
-#~ msgstr "Verwijder"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Attribute detail page title"
-#~ msgid "Add new attribute"
-#~ msgstr "Voeg nieuwe eigenschap toe"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Add new attribute"
-#~ msgstr "Voeg nieuwe eigenschap toe"
-
-#~ msgctxt "Attribute list add button text"
-#~ msgid "Add attribute"
-#~ msgstr "Voeg eigenschap toe"
-
-#~ msgctxt "Dashboard attributes list table header name"
-#~ msgid "Name"
-#~ msgstr "Naam"
-
-#~ msgctxt "Name of product types related to the attribute"
-#~ msgid "Product types"
-#~ msgstr "Productsoorten"
-
-#~ msgctxt "Empty attribute list message"
-#~ msgid "No attributes found."
-#~ msgstr "Geen eigenschappen gevonden"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Products"
-#~ msgstr "Producten"
-
-#~ msgctxt "Product field"
-#~ msgid "Published"
-#~ msgstr "Gepubliceerd"
-
-#~ msgctxt "Product field"
-#~ msgid "Draft"
-#~ msgstr "Conceptversie"
-
-#~ msgctxt "Product action"
-#~ msgid "Edit product"
-#~ msgstr "Bewerk product"
-
-#~ msgctxt "Product action"
-#~ msgid "Remove product"
-#~ msgstr "Verwijder product"
-
-#~ msgctxt "Product action"
-#~ msgid "View on site"
-#~ msgstr "Bekijk op de website"
-
-#~ msgid "Variant"
-#~ msgstr "Productversie"
-
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgid "Name"
-#~ msgstr "Naam"
-
-#~ msgid "Status"
-#~ msgstr "Status"
-
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Dashboard product details page"
-#~ msgid "No variants found"
-#~ msgstr "Geen productversies gevonden"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "Allocated"
-#~ msgstr "Toegewezen"
-
-#~ msgid "Images"
-#~ msgstr "Afbeedlingen"
-
-#~ msgid "Edit images"
-#~ msgstr "Bewerk afbeedlingen"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Product form page title"
-#~ msgid "Add new product"
-#~ msgstr "Voeg nieuw product toe"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Add new product"
-#~ msgstr "Voeg nieuw product toe"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgid "Shipping"
-#~ msgstr "Verzending"
-
-#~ msgid "Attributes"
-#~ msgstr "Eigenschappen"
-
-#~ msgctxt "Product list add button text"
-#~ msgid "Add product"
-#~ msgstr "Voeg product toe"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Name"
-#~ msgstr "Naam"
-
-#~ msgctxt "Empty product list message"
-#~ msgid "No products found."
-#~ msgstr "Geen producten gevonden"
-
-#~ msgctxt "Image form text"
-#~ msgid "Edit - Image"
-#~ msgstr "Bewerk - afbeelding"
-
-#~ msgctxt "Image form text"
-#~ msgid "Add image"
-#~ msgstr "Voeg afbeelding toe"
-
-#~ msgctxt "Image form text"
-#~ msgid "Image"
-#~ msgstr "Afbeelding"
-
-#~ msgctxt "Image form text"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Image form breadcrumbs"
-#~ msgid "Add image"
-#~ msgstr "Voeg afbeelding toe"
-
-#, python-format
-#~ msgctxt "Image form breadcrumbs"
-#~ msgid "Add image for %(product)s"
-#~ msgstr "Voeg afbeelding toe voor %(product)s"
-
-#~ msgctxt "Add image button text"
-#~ msgid "Add image"
-#~ msgstr "Voeg afbeelding toe"
-
-#~ msgctxt "Image card text"
-#~ msgid "No description"
-#~ msgstr "Geen beschrijving"
-
-#~ msgctxt "Dashboard remove action"
-#~ msgid "Remove"
-#~ msgstr "Verwijder"
-
-#~ msgctxt "Image gallery upload box text"
-#~ msgid "Drop images here to upload"
-#~ msgstr "Plaats hier afbeeldingen om te uploaden"
-
-#~ msgctxt "Empty image gallery message"
-#~ msgid "No description"
-#~ msgstr "Geen beschrijving"
-
-#~ msgctxt "Image form text"
-#~ msgid "Pick the most relevant part of the image using the red circle."
-#~ msgstr ""
-#~ "Gebruik de rode cirkel om het meest relevante deel van de foto te "
-#~ "selecteren."
-
-#~ msgctxt "Product type list add button text"
-#~ msgid "Add product type"
-#~ msgstr "Voeg productsoort toe"
-
-#~ msgctxt "Dashboard product types list table header name"
-#~ msgid "Name"
-#~ msgstr "Naam"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Product attributes"
-#~ msgstr "Producteigenschappen"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Variant attributes"
-#~ msgstr "Varianteigenschappen"
-
-#~ msgctxt "Empty product type list message"
-#~ msgid "No product types found."
-#~ msgstr "Geen productsoort gevonden"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Dashboard action"
-#~ msgid "Edit variant"
-#~ msgstr "Bewerk productversie"
-
-#~ msgid "No images"
-#~ msgstr "Geen afbeeldingen"
-
-#~ msgctxt "Dashboard action"
-#~ msgid "Select images"
-#~ msgstr "Selecteer afbeeldingen"
-
-#~ msgctxt "Variant form page title"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Variant form page title"
-#~ msgid "Add variant"
-#~ msgstr "Voeg productversie toe"
-
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Add variant"
-#~ msgstr "Voeg productversie toe"
-
-#, python-format
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Add variant for %(product)s"
-#~ msgstr "Voeg productversie toe voor %(product)s"
-
-#~ msgctxt "Dashboard confirmation modal"
-#~ msgid ""
-#~ "This is the only variant of this product. If you remove it, the product "
-#~ "will become unavailable."
-#~ msgstr ""
-#~ "Dit is de enige versie van dit product. Als je hem verwijdert is het "
-#~ "product niet beschikbaar meer/"
-
-#~ msgctxt "Dashboard variant images modal"
-#~ msgid "Select variant images"
-#~ msgstr "Selecteer versie-afbeeldingen"
-
-#~ msgctxt "Dashboard modal action"
-#~ msgid "Save"
-#~ msgstr "Bewaar"
-
-#~ msgctxt "Search page title"
-#~ msgid "Search results"
-#~ msgstr "Zoekresultaten"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search results"
-#~ msgstr "Zoekresultaten"
-
-#, python-format
-#~ msgctxt "Dashboard order"
-#~ msgid "Order #%(order_number)s"
-#~ msgstr "Bestelnummer %(order_number)s"
-
-#, python-format
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer: %(email)s"
-#~ msgstr "Klant: %(email)s"
-
-#, python-format
-#~ msgctxt "Dashboard order info"
-#~ msgid "Placed on: %(placed)s"
-#~ msgstr "Geplaatst op: %(placed)s"
-
-#, python-format
-#~ msgctxt "Dashboard user"
-#~ msgid "User %(full_name)s"
-#~ msgstr "Gebruiker %(full_name)s"
-
-#, python-format
-#~ msgctxt "No Search result message"
-#~ msgid "No results for query \"%(query)s\"."
-#~ msgstr "Geen resultaten voor zoekopdracht %(query)s"
-
-#~ msgctxt "Dashboard shipping zones"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Shipping zone form page title"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, price range of shipping methods within "
-#~ "shipping zone"
-#~ msgid "Price range"
-#~ msgstr "Bandbreedte prijs"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, list of countries within of shipping zone"
-#~ msgid "Countries"
-#~ msgstr "Landen"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Name"
-#~ msgstr "Naam"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Price"
-#~ msgstr "Prijs"
-
-#~ msgctxt "Attribute value remove action"
-#~ msgid "Remove"
-#~ msgstr "Verwijder"
-
-#~ msgctxt "Dashboard shipping method edit page"
-#~ msgid "Edit"
-#~ msgstr "Bewerken"
-
-#~ msgctxt "Shipping method breadcrumbs"
-#~ msgid "Edit shipping method"
-#~ msgstr "Bewerk verzendmethode"
-
-#~ msgctxt "Shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Verzendwijze"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Description"
-#~ msgstr "Omschrijving"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Name"
-#~ msgstr "Naam"
-
-#~ msgctxt "Site settings page title"
-#~ msgid "Add new site settings"
-#~ msgstr "Voeg nieuwe site-instellingen toe"
-
-#~ msgctxt "Dashboard staff list"
-#~ msgid "Staff"
-#~ msgstr "Personeel"
-
-#~ msgctxt "Dashboard staff members list"
-#~ msgid "Staff"
-#~ msgstr "Personeel"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Name"
-#~ msgstr "Naam"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Email"
-#~ msgstr "E-mail"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Name"
-#~ msgstr "Naam"
-
-#~ msgid "Dashboard"
-#~ msgstr "Dashboard"
-
-#~ msgctxt "Taxes site settings title"
-#~ msgid "Configuration"
-#~ msgstr "Configuratie"
-
-#~ msgctxt "Include taxes in prices setting description"
-#~ msgid "Yes"
-#~ msgstr "Ja"
-
-#~ msgctxt "Include taxes in prices setting description"
-#~ msgid "No"
-#~ msgstr "Nee"
-
-#~ msgctxt "Show customers gross prices setting description"
-#~ msgid "Yes"
-#~ msgstr "Ja"
-
-#~ msgctxt "Show customers gross prices setting description"
-#~ msgid "No"
-#~ msgstr "Nee"
-
-#~ msgctxt "Charge taxes on shipping rates setting description"
-#~ msgid "Yes"
-#~ msgstr "Ja"
-
-#~ msgctxt "Charge taxes on shipping rates setting description"
-#~ msgid "No"
-#~ msgstr "Nee"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Promo & Sale"
-#~ msgstr "Promo & Sale"
-
-#~ msgctxt "Homepage title"
-#~ msgid "from the Northpole"
-#~ msgstr "van de Noordpool"
-
-#~ msgctxt "Homepage action"
-#~ msgid "Shop now"
-#~ msgstr "Shop nu"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Size & Colours"
-#~ msgstr "Formaat & Kleuren"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Digital Downloads"
-#~ msgstr "Digitale downloads"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Featured products"
-#~ msgstr "Aanbevolen producten"
-
-#~ msgctxt "Dashboard form labels"
-#~ msgid "(optional)"
-#~ msgstr "(optioneel)"
-
-#~ msgid "File"
-#~ msgstr "Bestand"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Shipping address"
-#~ msgstr "Verzendadres"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Billing address"
-#~ msgstr "Factuuradres"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Product"
-#~ msgstr "Product"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Quantity"
-#~ msgstr "Aantal"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Price"
-#~ msgstr "Prijs"
-
-#~ msgctxt "Order details subtotal row text"
-#~ msgid "Subtotal"
-#~ msgstr "Subtotaal"
-
-#~ msgctxt "Order details shipment row text"
-#~ msgid "Shipping"
-#~ msgstr "Verzending"
-
-#~ msgctxt "Order details total text"
-#~ msgid "Total"
-#~ msgstr "Totaal"
-
-#, python-format
-#~ msgctxt "Checkout title"
-#~ msgid "Thank you for your <a href=\"%(order_url)s\">order</a>!"
-#~ msgstr "Bedankt voor je <a href=\"%(order_url)s\">bestelling</a>!"
-
-#~ msgctxt "Checkout secondary action"
-#~ msgid "Continue shopping"
-#~ msgstr "Ga door met winkelen"
-
-#~ msgctxt "Checkout text"
-#~ msgid ""
-#~ "It looks like you already are our customer! <br> Please log in to connect "
-#~ "order with your account."
-#~ msgstr ""
-#~ "Het lijkt erop dat je al klant bent bij ons! Als je toegang wilt tot je "
-#~ "account hoef je alleen in te loggen."
-
-#~ msgctxt "Checkout title"
-#~ msgid "Why not to create an account"
-#~ msgstr "Waarom je geen account zou moeten maken"
-
-#~ msgid ""
-#~ "Make your shopping experience even better! Save your shipping and payment "
-#~ "details for faster checkout."
-#~ msgstr ""
-#~ "Maak je winkelervaring nog beter! Sla je verzend- en betalingsgegevens op "
-#~ "om sneller af te rekenen."
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Create an account"
-#~ msgstr "Maak een account aan"
-
-#, python-format
-#~ msgctxt "Order details page title"
-#~ msgid "Order %(order)s"
-#~ msgstr "Bestelling %(order)s"
-
-#, python-format
-#~ msgctxt "Order details breadcrumb"
-#~ msgid "Order %(order)s"
-#~ msgstr "Bestelling %(order)s"
-
-#~ msgctxt "Order details link text"
-#~ msgid "Payment details"
-#~ msgstr "Betalingsgegevens"
-
-#~ msgctxt "Order details primary action"
-#~ msgid "Pay for order"
-#~ msgstr "Betaal voor bestelling"
-
-#, python-format
-#~ msgctxt "Payment details page title"
-#~ msgid "Pay for order %(order)s"
-#~ msgstr "Reken bestelling %(order)s af"
-
-#, python-format
-#~ msgctxt "Payment details breadcrumb"
-#~ msgid "Order %(order)s"
-#~ msgstr "Bestelling %(order)s"
-
-#~ msgctxt "Payment details title"
-#~ msgid "Payment pending"
-#~ msgstr "Wacht op betaling"
-
-#~ msgctxt "Payment pending text"
-#~ msgid ""
-#~ "We are currently waiting for an external service to authorize your "
-#~ "payment for this order."
-#~ msgstr ""
-#~ "We wachten op goedkeuring van een externe service voor je betaling van "
-#~ "deze bestelling."
-
-#~ msgctxt "Payment status text"
-#~ msgid "Current status:"
-#~ msgstr "Huidige status:"
-
-#~ msgctxt "Payment pending text"
-#~ msgid ""
-#~ "Unless you are absolutely sure that the process will not complete (for "
-#~ "example you have closed the browser window before paying), you should "
-#~ "wait before attempting a new payment. Please be warned that if you try "
-#~ "again and the previous transaction succeeds you might end up being "
-#~ "charged twice."
-#~ msgstr ""
-#~ "Tenzij je zeker weet dat het betaalproces is vastgelopen raden we je aan "
-#~ "nog even te wachten met opnieuw betalen. Mocht de betaling intussen toch "
-#~ "worden verwerkt dan bestaat de kans dat je dubbel afrekent."
-
-#~ msgctxt "Payment pending action"
-#~ msgid "I understand, allow me to pay again"
-#~ msgstr "Ik begrijp het, laat me opnieuw betalen"
-
-#, python-format
-#~ msgctxt "Payment details title"
-#~ msgid "Pay for order %(order)s"
-#~ msgstr "Reken bestelling %(order)s af"
-
-#~ msgctxt "Payment details primary action"
-#~ msgid "Proceed to payment"
-#~ msgstr "Ga verder naar betaling"
-
-#~ msgctxt "Payment details text"
-#~ msgid "You've authorized transaction. Order is in processing"
-#~ msgstr ""
-#~ "Je hebt toestemming gegeven voor de betaling. Je bestelling wordt verwerkt"
-
-#~ msgctxt "Payment form page title"
-#~ msgid "Payment"
-#~ msgstr "Betaling"
-
-#~ msgctxt "Payment form breadcrumb"
-#~ msgid "Payment"
-#~ msgstr "Betaling"
-
-#~ msgctxt "Payment form title"
-#~ msgid "Payment"
-#~ msgstr "Betaling"
-
-#~ msgctxt "Product price filter"
-#~ msgid "from"
-#~ msgstr "vanaf"
-
-#~ msgctxt "Product price filter"
-#~ msgid "to"
-#~ msgstr "naar"
-
-#~ msgctxt "Product list page filters"
-#~ msgid "Clear filters"
-#~ msgstr "Schakel filters uit"
-
-#~ msgctxt "Sale (discount) label for item in product list"
-#~ msgid "Sale"
-#~ msgstr "Uitverkoop"
-
-#~ msgctxt "product price range"
-#~ msgid "from"
-#~ msgstr "vanaf"
-
-#, python-format
-#~ msgctxt "Product details text"
-#~ msgid ""
-#~ "<strong>Warning!</strong> You are previewing a product that will become "
-#~ "visible on <strong>%(date)s</strong>."
-#~ msgstr "Let op! Je bekijkt een product dat pas op %(date)s zichtbaar wordt."
-
-#~ msgctxt "Product details link text"
-#~ msgid "Edit in dashboard"
-#~ msgstr "Bewerk in dashboard"
-
-#~ msgctxt "Product details primary action"
-#~ msgid "Add to cart"
-#~ msgstr "Voeg toe aan winkelwagentje"
-
-#~ msgctxt "Product details text"
-#~ msgid "This product is currently <strong>unavailable</strong>."
-#~ msgstr "Dit product is momenteel niet beschikbaar."
-
-#~ msgctxt "Product details title"
-#~ msgid "Description"
-#~ msgstr "Beschrijving"
-
-#~ msgctxt "Filter heading title"
-#~ msgid "Filters"
-#~ msgstr "Filters"
-
-#~ msgctxt "Product list filters"
-#~ msgid "Sort by"
-#~ msgstr "Sorteer op"
-
-#~ msgctxt "sort by option"
-#~ msgid "ascending"
-#~ msgstr "oplopend"
-
-#~ msgctxt "sort by option"
-#~ msgid "descending"
-#~ msgstr "aflopend"
-
-#~ msgctxt "Search without results text"
-#~ msgid "Sorry, no matches found for your request."
-#~ msgstr "Sorry, je verzoek heeft geen resultaat opgeleverd"
-
-#~ msgctxt "Search without results text"
-#~ msgid "Try again or shop new arrivals."
-#~ msgstr "Probeer het opnieuw of shop producten die nieuw binnen zijn."
-
-#~ msgid "Search:"
-#~ msgstr "Zoek:"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Order summary"
-#~ msgstr "Samenvatting bestelling"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Subtotal"
-#~ msgstr "Subtotaal"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Shipping"
-#~ msgstr "Verzending"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Total"
-#~ msgstr "Totaal"
-
-#~ msgctxt "Payment confirmation subject"
-#~ msgid "Payment details"
-#~ msgstr "Betalingsgegevens"

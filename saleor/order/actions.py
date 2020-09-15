@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Dict, List
 from django.db import transaction
 
 from ..core import analytics
+from ..core.exceptions import InsufficientStock
 from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deallocate_stock_for_order, decrease_stock
@@ -265,6 +266,10 @@ def _create_fulfillment_lines(
         quantity = line["quantity"]
         order_line = line["order_line"]
         if quantity > 0:
+            stock = order_line.variant.stocks.filter(warehouse=warehouse_pk).first()
+            if stock is None:
+                error_context = {"order_line": order_line, "warehouse_pk": warehouse_pk}
+                raise InsufficientStock(order_line.variant, error_context)
             fulfill_order_line(order_line, quantity, warehouse_pk)
             if order_line.is_digital:
                 order_line.variant.digital_content.urls.create(line=order_line)
@@ -273,7 +278,7 @@ def _create_fulfillment_lines(
                     order_line=order_line,
                     fulfillment=fulfillment,
                     quantity=quantity,
-                    stock=order_line.variant.stocks.get(warehouse=warehouse_pk),
+                    stock=stock,
                 )
             )
     return fulfillment_lines

@@ -189,10 +189,11 @@ def test_vatlayer_plugin_caches_taxes(vatlayer, monkeypatch, product, address):
     manager = get_plugins_manager()
     plugin = manager.get_plugin(VatlayerPlugin.PLUGIN_ID)
     price = product.variants.first().get_price()
-    price = TaxedMoney(price, price)
     address.country = Country("de")
-    plugin.apply_taxes_to_product(product, price, address.country, price)
-    plugin.apply_taxes_to_shipping(price, address, price)
+    plugin.apply_taxes_to_product(
+        product, price, address.country, TaxedMoney(price, price)
+    )
+    plugin.apply_taxes_to_shipping(price, address, TaxedMoney(price, price))
     assert mocked_taxes.call_count == 1
 
 
@@ -473,7 +474,6 @@ def test_calculations_checkout_shipping_price_with_vatlayer(
 
 def test_skip_diabled_plugin(settings):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
-    settings.VATLAYER_ACCESS_KEY = None
     manager = get_plugins_manager()
     plugin: VatlayerPlugin = manager.get_plugin(VatlayerPlugin.PLUGIN_ID)
 

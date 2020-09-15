@@ -15,6 +15,7 @@ from ..account.models import User
 from ..account.utils import store_user_address
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
+from ..core.exceptions import ProductNotPublished
 from ..core.taxes import quantize_price, zero_taxed_money
 from ..core.utils.promo_code import (
     InvalidPromoCode,
@@ -129,6 +130,8 @@ def add_variant_to_checkout(
     If `replace` is truthy then any previous quantity is discarded instead
     of added to.
     """
+    if not variant.product.is_published:
+        raise ProductNotPublished()
 
     new_quantity, line = check_variant_in_stock(
         checkout,

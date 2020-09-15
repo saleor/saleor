@@ -1,5 +1,4 @@
 import graphene
-from django.conf import settings
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
@@ -61,10 +60,6 @@ class Warehouse(CountableDjangoObjectType):
 
 
 class Stock(CountableDjangoObjectType):
-    stock_quantity = graphene.Int(
-        description="Quantity of a product available for sale.", required=True
-    )
-
     quantity = graphene.Int(
         required=True,
         description="Quantity of a product in the warehouse's possession, "
@@ -79,14 +74,6 @@ class Stock(CountableDjangoObjectType):
         model = models.Stock
         interfaces = [graphene.relay.Node]
         only_fields = ["warehouse", "product_variant", "quantity", "quantity_allocated"]
-
-    @staticmethod
-    def resolve_stock_quantity(root, *_args):
-        quantity_allocated = root.allocations.aggregate(
-            quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
-        )["quantity_allocated"]
-        available_quantity = max(root.quantity - quantity_allocated, 0)
-        return min(available_quantity, settings.MAX_CHECKOUT_LINE_QUANTITY)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

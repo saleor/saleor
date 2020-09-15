@@ -5,7 +5,6 @@ from ....order import models
 from ....order.actions import cancel_order
 from ...core.mutations import BaseBulkMutation
 from ...core.types.common import OrderError
-from ...utils import get_user_or_app_from_context
 from ..mutations.orders import clean_order_cancel
 
 
@@ -28,7 +27,7 @@ class OrderBulkCancel(BaseBulkMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, ids, **data):
-        data["user"] = get_user_or_app_from_context(info.context)
+        data["user"] = info.context.user
         return super().perform_mutation(root, info, ids, **data)
 
     @classmethod

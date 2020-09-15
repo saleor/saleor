@@ -1,9 +1,11 @@
 import ast
 import os.path
 import warnings
+from datetime import timedelta
 
 import dj_database_url
 import dj_email_url
+import django_cache_url
 import jaeger_client
 import jaeger_client.config
 import sentry_sdk
@@ -39,7 +41,7 @@ ROOT_URLCONF = "saleor.urls"
 WSGI_APPLICATION = "saleor.wsgi.application"
 
 ADMINS = (
-    ('jiawei', 'cuijiaweiyes@gmail.com'),
+    # ('Your Name', 'your_email@example.com'),
 )
 MANAGERS = ADMINS
 
@@ -65,7 +67,7 @@ DATABASES = {
 }
 
 
-TIME_ZONE = "Europe/Berlin"
+TIME_ZONE = "America/Chicago"
 LANGUAGE_CODE = "en"
 LANGUAGES = [
     ("ar", "Arabic"),
@@ -82,6 +84,7 @@ LANGUAGES = [
     ("es-co", "Colombian Spanish"),
     ("et", "Estonian"),
     ("fa", "Persian"),
+    ("fi", "Finnish"),
     ("fr", "French"),
     ("hi", "Hindi"),
     ("hu", "Hungarian"),
@@ -101,10 +104,12 @@ LANGUAGES = [
     ("ro", "Romanian"),
     ("ru", "Russian"),
     ("sk", "Slovak"),
+    ("sl", "Slovenian"),
     ("sq", "Albanian"),
     ("sr", "Serbian"),
-    ("sw", "Swahili"),
     ("sv", "Swedish"),
+    ("sw", "Swahili"),
+    ("ta", "Tamil"),
     ("th", "Thai"),
     ("tr", "Turkish"),
     ("uk", "Ukrainian"),
@@ -218,7 +223,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.auth",
     "django.contrib.postgres",
-    "dbbackup",
     # Local apps
     "saleor.plugins",
     "saleor.account",
@@ -342,8 +346,8 @@ AUTH_PASSWORD_VALIDATORS = [
     }
 ]
 
-DEFAULT_COUNTRY = os.environ.get("DEFAULT_COUNTRY", "DE")
-DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "EU")
+DEFAULT_COUNTRY = os.environ.get("DEFAULT_COUNTRY", "US")
+DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "USD")
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 DEFAULT_MAX_DIGITS = 12
 DEFAULT_CURRENCY_CODE_LENGTH = 3
@@ -360,19 +364,6 @@ COUNTRIES_OVERRIDE = {"EU": "European Union"}
 
 OPENEXCHANGERATES_API_KEY = os.environ.get("OPENEXCHANGERATES_API_KEY")
 
-# VAT configuration
-# Enabling vat requires valid vatlayer access key.
-# If you are subscribed to a paid vatlayer plan, you can enable HTTPS.
-VATLAYER_ACCESS_KEY = os.environ.get("VATLAYER_ACCESS_KEY")
-VATLAYER_USE_HTTPS = get_bool_from_env("VATLAYER_USE_HTTPS", False)
-
-# Avatax supports two ways of log in - username:password or account:license
-AVATAX_USERNAME_OR_ACCOUNT = os.environ.get("AVATAX_USERNAME_OR_ACCOUNT")
-AVATAX_PASSWORD_OR_LICENSE = os.environ.get("AVATAX_PASSWORD_OR_LICENSE")
-AVATAX_USE_SANDBOX = get_bool_from_env("AVATAX_USE_SANDBOX", DEBUG)
-AVATAX_COMPANY_NAME = os.environ.get("AVATAX_COMPANY_NAME", "DEFAULT")
-AVATAX_AUTOCOMMIT = get_bool_from_env("AVATAX_AUTOCOMMIT", False)
-
 GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get("GOOGLE_ANALYTICS_TRACKING_ID")
 
 
@@ -385,8 +376,6 @@ def get_host():
 PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = "order.Payment"
-
-SESSION_SERIALIZER = "django.contrib.sessions.serializers.JSONSerializer"
 
 MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
 
@@ -412,9 +401,6 @@ AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", None)
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
 AWS_DEFAULT_ACL = os.environ.get("AWS_DEFAULT_ACL", None)
-AWS_DB_BACKUP_BUCKET_NAME = os.environ.get("AWS_DB_BACKUP_BUCKET_NAME")
-
-
 
 # Google Cloud Storage configuration
 GS_PROJECT_ID = os.environ.get("GS_PROJECT_ID")
@@ -477,9 +463,11 @@ AUTHENTICATION_BACKENDS = [
 # Django GraphQL JWT settings
 GRAPHQL_JWT = {
     "JWT_PAYLOAD_HANDLER": "saleor.graphql.utils.create_jwt_payload",
+    # How long until a token expires, default is 5m from graphql_jwt.settings
+    "JWT_EXPIRATION_DELTA": timedelta(minutes=5),
+    # Whether the JWT tokens should expire or not
+    "JWT_VERIFY_EXPIRATION": get_bool_from_env("JWT_VERIFY_EXPIRATION", False),
 }
-if not DEBUG:
-    GRAPHQL_JWT["JWT_VERIFY_EXPIRATION"] = True  # type: ignore
 
 # CELERY SETTINGS
 CELERY_BROKER_URL = (
@@ -563,12 +551,9 @@ if "JAEGER_AGENT_HOST" in os.environ:
         validate=True,
     ).initialize_tracer()
 
-# DB backup
-if AWS_DB_BACKUP_BUCKET_NAME:
-    DBBACKUP_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    DBBACKUP_STORAGE_OPTIONS = {
-        'access_key': AWS_ACCESS_KEY_ID,
-        'secret_key': AWS_SECRET_ACCESS_KEY,
-        'bucket_name': AWS_DB_BACKUP_BUCKET_NAME,
-        'default_acl': 'private'
-    }
+
+# Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
+REDIS_URL = os.environ.get("REDIS_URL")
+if REDIS_URL:
+    CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
+CACHES = {"default": django_cache_url.config()}

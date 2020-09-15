@@ -4,32 +4,25 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# Patryk Zawadzki <patrys@room-303.com>, 2018
-# NyаnKiyoshi <hello@vanille.bid>, 2018
-# R.Sercan Arıcı <sercanarici@hotmail.com>, 2018
-# Cihad GÜNDOĞDU <cihadgundogdu@gmail.com>, 2018
-# Taygun YI <yildirimtaygun@gmail.com>, 2019
+# Ömer Faruk Demirel <farukdemirel@hotmail.com.tr>, 2018
 # Yasin Karadeniz <antiykd@gmail.com>, 2019
-# Tugba Cekirge <tugbacekirge@gmail.com>, 2019
-# Hakan ıı, 2019
-# Engin Öz <o.enginoz@gmail.com>, 2019
-# İsmail Bülent Önsoy <bulent@gaia.gen.tr>, 2019
-# Ömer Faruk Demirel <farukdemirel@hotmail.com.tr>, 2019
 # Ramazan Acar <acarist@gmail.com>, 2019
+# Taygun YI <yildirimtaygun@gmail.com>, 2020
+# Engin Öz <o.enginoz@gmail.com>, 2020
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-14 04:02-0500\n"
+"POT-Creation-Date: 2020-05-14 03:45-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Ramazan Acar <acarist@gmail.com>, 2019\n"
+"Last-Translator: Engin Öz <o.enginoz@gmail.com>, 2020\n"
 "Language-Team: Turkish (https://www.transifex.com/mirumee/teams/34782/tr/)\n"
-"Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: tr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
@@ -48,77 +41,304 @@ msgstr ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 
-#: templates/read_only/read_only_splash.html:48
-msgid "Be aware pirate! <br> Saleor runs in <span>read only mode!</span>"
+#: templates/templated_email/account/account_delete.email:4
+msgctxt "Account delete reset e-mail subject"
+msgid "Delete your account"
 msgstr ""
 
-#: templates/read_only/read_only_splash.html:49
-#, fuzzy
-#| msgctxt "Close modal action button"
-#| msgid "Close"
-msgid "Close"
-msgstr "Kapat"
-
-#: templates/templated_email/compiled/account_delete.html:174
-#: templates/templated_email/compiled/confirm.html:174
-#: templates/templated_email/compiled/confirm_fulfillment.html:174
-#: templates/templated_email/compiled/confirm_order.html:175
-#: templates/templated_email/compiled/confirm_payment.html:174
-#: templates/templated_email/compiled/email_changed_notification.html:174
-#: templates/templated_email/compiled/password_reset.html:174
-#: templates/templated_email/compiled/request_email_change.html:174
-#: templates/templated_email/compiled/set_customer_password.html:174
-#: templates/templated_email/compiled/set_password.html:174
-#: templates/templated_email/compiled/staff_confirm_order.html:175
-#: templates/templated_email/compiled/update_fulfillment.html:174
-msgctxt "Standard e-mail greeting"
-msgid "Hi!"
-msgstr "Selam!"
-
-#: templates/templated_email/compiled/account_delete.html:182
+#: templates/templated_email/account/account_delete.email:9
 #, python-format
-msgctxt "Account delete e-mail text"
+msgctxt "Account delete reset e-mail text"
 msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be "
-"reversed."
+"\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"Click the link below to delete your account.\n"
+"\n"
+"Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:255
-#: templates/templated_email/compiled/confirm.html:255
-#: templates/templated_email/compiled/confirm_fulfillment.html:362
-#: templates/templated_email/compiled/confirm_order.html:465
-#: templates/templated_email/compiled/confirm_payment.html:245
-#: templates/templated_email/compiled/email_changed_notification.html:245
-#: templates/templated_email/compiled/password_reset.html:255
-#: templates/templated_email/compiled/request_email_change.html:255
-#: templates/templated_email/compiled/set_customer_password.html:255
-#: templates/templated_email/compiled/set_password.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:465
-#: templates/templated_email/compiled/update_fulfillment.html:350
+#: templates/templated_email/account/confirm.email:4
+msgctxt "Account confirmation e-mail subject"
+msgid "Account confirmation e-mail"
+msgstr ""
+
+#: templates/templated_email/account/confirm.email:9
+#, python-format
+msgctxt "Account confirmation e-mail text"
+msgid ""
+"\n"
+"In order to log into %(domain)s, you have to confirm your email address first.\n"
+"Please click the link below to do so and log into your account.\n"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:4
+#: templates/templated_email/account/request_email_change.email:4
+msgctxt "Email change e-mail subject"
+msgid "Email change e-mail"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
+"If you didn't request this change, please contact the administrator.\n"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:9
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/account/request_email_change.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:2
+#, python-format
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:6
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:6
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment confirmation email subject"
+msgid "Your order %(order)s has been fulfilled"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:11
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of fulfilled products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:15
+#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr "Kargonuzu %(tracking_number)s kodu ile takip edebilirsiniz."
+
+#: templates/templated_email/order/confirm_order.email:6
+#: templates/templated_email/order/staff_confirm_order.email:6
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:11
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:15
+#: templates/templated_email/order/staff_confirm_order.email:15
+#, python-format
+msgctxt "Order confirmation e-mail payment details"
+msgid ""
+"\n"
+"To see your payment details please visit:\n"
+"%(order_details_url)s\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:23
+#: templates/templated_email/order/staff_confirm_order.email:23
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:24
+#: templates/templated_email/order/staff_confirm_order.email:24
+msgctxt "Order confirmation e-mail table header"
+msgid "Subtotal"
+msgstr "Ara toplam"
+
+#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/order/staff_confirm_order.email:25
+msgctxt "Order confirmation e-mail table header"
+msgid "Shipping"
+msgstr "Kargo"
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes (included)"
+msgstr "Vergiler(dahildir)"
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr "Vergiler"
+
+#: templates/templated_email/order/confirm_order.email:27
+#: templates/templated_email/order/staff_confirm_order.email:27
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/staff_confirm_order.email:28
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr "Toplam"
+
+#: templates/templated_email/order/confirm_order.email:30
+#: templates/templated_email/order/staff_confirm_order.email:30
+#: templates/templated_email/source/confirm_order.mjml:29
+#: templates/templated_email/source/staff_confirm_order.mjml:29
+msgctxt "Order confirmation e-mail billing address"
+msgid "Billing address"
+msgstr "Fatura adresi"
+
+#: templates/templated_email/order/confirm_order.email:31
+#: templates/templated_email/order/staff_confirm_order.email:31
+#: templates/templated_email/source/confirm_order.mjml:39
+#: templates/templated_email/source/staff_confirm_order.mjml:39
+msgctxt "Order confirmation e-mail text"
+msgid "No billing address"
+msgstr "Fatura adresi yok"
+
+#: templates/templated_email/order/confirm_order.email:33
+#: templates/templated_email/order/staff_confirm_order.email:33
+#: templates/templated_email/source/confirm_order.mjml:30
+#: templates/templated_email/source/staff_confirm_order.mjml:30
+msgctxt "Order confirmation e-mail shipping address"
+msgid "Shipping address"
+msgstr "Kargo adresi"
+
+#: templates/templated_email/order/confirm_order.email:34
+#: templates/templated_email/order/staff_confirm_order.email:34
+#: templates/templated_email/source/confirm_order.mjml:46
+#: templates/templated_email/source/staff_confirm_order.mjml:46
+msgctxt "Order confirmation e-mail text"
+msgid "No shipping required"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:9
+msgctxt "Payment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your payment.\n"
+"Your payment was successfully charged.\n"
+msgstr ""
+
+#: templates/templated_email/order/staff_confirm_order.email:11
+msgctxt "Order confirmation staff e-mail text"
+msgid ""
+"\n"
+"Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment update email subject"
+msgid "Shipping update for order %(order)s"
+msgstr "Sipariş için kargo güncellendi %(order)s"
+
+#: templates/templated_email/order/update_fulfillment.email:11
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:15
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid ""
+"You can track your shipment with the following code: %(tracking_number)s."
+msgstr ""
+
+#: templates/templated_email/shared/_footer.email:2
+#: templates/templated_email/source/shared/footer.mjml:4
 msgctxt "Base email text"
 msgid "This is an automatically generated e-mail, please do not reply."
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:317
-#: templates/templated_email/compiled/confirm.html:317
-#: templates/templated_email/compiled/confirm_fulfillment.html:424
-#: templates/templated_email/compiled/confirm_order.html:527
-#: templates/templated_email/compiled/confirm_payment.html:307
-#: templates/templated_email/compiled/email_changed_notification.html:307
-#: templates/templated_email/compiled/password_reset.html:317
-#: templates/templated_email/compiled/request_email_change.html:317
-#: templates/templated_email/compiled/set_customer_password.html:317
-#: templates/templated_email/compiled/set_password.html:317
-#: templates/templated_email/compiled/staff_confirm_order.html:527
-#: templates/templated_email/compiled/update_fulfillment.html:412
+#: templates/templated_email/shared/_footer.email:5
+#: templates/templated_email/source/shared/footer.mjml:13
 #, python-format
 msgctxt "Base email footer"
 msgid "Sincerely, %(site_name)s"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm.html:182
+#: templates/templated_email/shared/_header.email:2
+#: templates/templated_email/source/account_delete.mjml:13
+#: templates/templated_email/source/confirm.mjml:13
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+#: templates/templated_email/source/confirm_order.mjml:14
+#: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/email_changed_notification.mjml:13
+#: templates/templated_email/source/password_reset.mjml:13
+#: templates/templated_email/source/request_email_change.mjml:13
+#: templates/templated_email/source/set_customer_password.mjml:13
+#: templates/templated_email/source/set_password.mjml:13
+#: templates/templated_email/source/staff_confirm_order.mjml:14
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Standard e-mail greeting"
+msgid "Hi!"
+msgstr "Selam!"
+
+#: templates/templated_email/source/account_delete.mjml:16
+#, python-format
+msgctxt "Account delete e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"deletion of your user account at %(domain)s.<br/> Click the link below to "
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
+msgstr ""
+
+#: templates/templated_email/source/confirm.mjml:16
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
@@ -126,3397 +346,158 @@ msgid ""
 "first. Please click the link below to do so and log into your account."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:182
+#: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:186
-#, python-format
-msgctxt "Fulfillment confirmation email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr "Kargonuzu %(tracking_number)s kodu ile takip edebilirsiniz."
-
-#: templates/templated_email/compiled/confirm_fulfillment.html:198
+#: templates/templated_email/source/confirm_fulfillment.mjml:27
 msgctxt "Fulfillment digital products email text"
-msgid "You can download your digital products by clicking in download link(s)."
+msgid ""
+"You can download your digital products by clicking in download link(s)."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:183
+#: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit: <a href=\"%(order_details_url)s\">"
-"%(order_details_url)s</a>"
+"Thank you for your order. Below is the list of ordered products. To see your"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 "Siparişiniz için teşekkürler. Sipariş ürünlerinin listesi alttadır. Sipariş "
-"detayını görmek için <a href=\"%(order_details_url)s\">"
-"%(order_details_url)s</a> ziyaret ediniz."
+"detayını görmek için <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a> ziyaret ediniz."
 
-#: templates/templated_email/compiled/confirm_order.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:255
-msgctxt "E-mail order lines summary table"
-msgid "Subtotal"
-msgstr "Ara toplam"
-
-#: templates/templated_email/compiled/confirm_order.html:263
-#: templates/templated_email/compiled/staff_confirm_order.html:263
-msgctxt "E-mail order lines summary table"
-msgid "Shipping"
-msgstr "Kargo"
-
-#: templates/templated_email/compiled/confirm_order.html:272
-#: templates/templated_email/compiled/staff_confirm_order.html:272
-msgctxt "E-mail order lines summary table"
-msgid "Taxes (included)"
-msgstr "Vergiler(dahildir)"
-
-#: templates/templated_email/compiled/confirm_order.html:274
-#: templates/templated_email/compiled/staff_confirm_order.html:274
-msgctxt "E-mail order lines summary table"
-msgid "Taxes"
-msgstr "Vergiler"
-
-#: templates/templated_email/compiled/confirm_order.html:284
-#: templates/templated_email/compiled/staff_confirm_order.html:284
-msgctxt "E-mail order lines summary table"
-msgid "Discount"
-msgstr "İndirim"
-
-#: templates/templated_email/compiled/confirm_order.html:293
-#: templates/templated_email/compiled/staff_confirm_order.html:293
-msgctxt "E-mail order lines summary table"
-msgid "Total"
-msgstr "Toplam"
-
-#: templates/templated_email/compiled/confirm_order.html:302
-#: templates/templated_email/compiled/staff_confirm_order.html:302
-msgctxt "Ordered item name"
-msgid "Item"
-msgstr "Ürün"
-
-#: templates/templated_email/compiled/confirm_order.html:303
-#: templates/templated_email/compiled/staff_confirm_order.html:303
-msgctxt "Quantity ordered of a product"
-msgid "Quantity"
-msgstr "Adet"
-
-#: templates/templated_email/compiled/confirm_order.html:304
-#: templates/templated_email/compiled/staff_confirm_order.html:304
-msgctxt "Unit price of a product"
-msgid "Per unit"
-msgstr "Birim başına"
-
-#: templates/templated_email/compiled/confirm_order.html:305
-#: templates/templated_email/compiled/staff_confirm_order.html:305
-msgctxt "Ordered item subtotal (unit price * quantity)"
-msgid "Subtotal"
-msgstr "Ara toplam"
-
-#: templates/templated_email/compiled/confirm_order.html:383
-#: templates/templated_email/compiled/staff_confirm_order.html:383
-msgctxt "Order confirmation e-mail billing address"
-msgid "Billing address"
-msgstr "Fatura adresi"
-
-#: templates/templated_email/compiled/confirm_order.html:384
-#: templates/templated_email/compiled/staff_confirm_order.html:384
-msgctxt "Order confirmation e-mail shipping address"
-msgid "Shipping address"
-msgstr "Kargo adresi"
-
-#: templates/templated_email/compiled/confirm_order.html:393
-#: templates/templated_email/compiled/staff_confirm_order.html:393
-msgctxt "Order confirmation e-mail text"
-msgid "No billing address"
-msgstr "Fatura adresi yok"
-
-#: templates/templated_email/compiled/confirm_order.html:400
-#: templates/templated_email/compiled/staff_confirm_order.html:400
-msgctxt "Order confirmation e-mail text"
-msgid "No shipping required"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_payment.html:182
+#: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
 msgid "Thank you for your payment. Your payment was successfully charged."
 msgstr ""
 
-#: templates/templated_email/compiled/email_changed_notification.html:182
+#: templates/templated_email/source/email_changed_notification.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
-"for your user account at %(domain)s.<br> If you didn't request this change, "
-"please contact the administrator."
+"for your user account at %(domain)s.<br /> If you didn't request this "
+"change, please contact the administrator."
 msgstr ""
 
-#: templates/templated_email/compiled/password_reset.html:182
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:29
+#: templates/templated_email/source/partials/_order_lines.mjml:59
+msgctxt "Ordered item name"
+msgid "Item"
+msgstr "Ürün"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
+#: templates/templated_email/source/partials/_order_lines.mjml:60
+msgctxt "Quantity ordered of a product"
+msgid "Quantity"
+msgstr "Adet"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
+msgctxt "Ordered item download links"
+msgid "Download Link"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:12
+msgctxt "E-mail order lines summary table"
+msgid "Subtotal"
+msgstr "Ara toplam"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:20
+msgctxt "E-mail order lines summary table"
+msgid "Shipping"
+msgstr "Kargo"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:29
+msgctxt "E-mail order lines summary table"
+msgid "Taxes (included)"
+msgstr "Vergiler(dahildir)"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:31
+msgctxt "E-mail order lines summary table"
+msgid "Taxes"
+msgstr "Vergiler"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:41
+msgctxt "E-mail order lines summary table"
+msgid "Discount"
+msgstr "İndirim"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:50
+msgctxt "E-mail order lines summary table"
+msgid "Total"
+msgstr "Toplam"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:61
+msgctxt "Unit price of a product"
+msgid "Per unit"
+msgstr "Birim başına"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:62
+msgctxt "Ordered item subtotal (unit price * quantity)"
+msgid "Subtotal"
+msgstr "Ara toplam"
+
+#: templates/templated_email/source/password_reset.mjml:16
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br> It can be safely ignored "
+"password for your user account at %(domain)s.<br/> It can be safely ignored "
 "if you did not request a password reset. Click the link below to reset your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/request_email_change.html:182
+#: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested an "
-"email change for your user account at %(domain)s.<br> It can be safely "
+"email change for your user account at %(domain)s.<br /> It can be safely "
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
 
-#: templates/templated_email/compiled/set_customer_password.html:182
+#: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your "
-"customer account at %(domain)s.<br> Click the link below to set up your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/set_password.html:182
+#: templates/templated_email/source/set_password.mjml:16
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
-"You're receiving this e-mail because you have to set password for your staff "
-"member account at %(domain)s.<br> Click the link below to set up your "
+"You're receiving this e-mail because you have to set password for your staff"
+" member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/staff_confirm_order.html:183
-#, fuzzy, python-format
-#| msgctxt "Payment confirmation e-mail text"
-#| msgid ""
-#| "Thank you for your payment. To see your payment details please visit: <a "
-#| "href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+#: templates/templated_email/source/staff_confirm_order.mjml:17
+#, python-format
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
-"Someone placed a new order in your store. To see order details please visit: "
-"<a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+"Someone placed a new order in your store. To see order details please visit:"
+" <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
-"Ödemeniz için teşekkürler. Ödeme detaylarını için lütfen <a href="
-"\"%(order_details_url)s\">%(order_details_url)s</a> ziyaret ediniz."
 
-#: templates/templated_email/compiled/update_fulfillment.html:182
+#: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number."
+"Your shipping status has been updated. Below is the list of ordered products"
+" that have been updated with new tracking number."
 msgstr ""
 "Kargo durumunuz güncellendi. Alttaki sipariş ürünleri lisresi yeni takip "
 "numarası ile güncellenmiştir."
 
-#: templates/templated_email/compiled/update_fulfillment.html:186
+#: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
 msgstr "Kargonuzu %(tracking_number)s kodu ile takip edebilirsiniz."
-
-#~ msgctxt "Form field"
-#~ msgid "Email"
-#~ msgstr "E-posta"
-
-#~ msgctxt "Password"
-#~ msgid "Password"
-#~ msgstr "Şifre"
-
-#~ msgctxt "Email"
-#~ msgid "Email"
-#~ msgstr "E-posta"
-
-#~ msgctxt "Registration error"
-#~ msgid "This email has already been registered."
-#~ msgstr "Bu e-posta zaten kayıtlı."
-
-#~ msgctxt "Customer form: Given name field"
-#~ msgid "Given name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Customer form: Family name field"
-#~ msgid "Family name"
-#~ msgstr "Soyadı"
-
-#~ msgctxt "Address field"
-#~ msgid "Area"
-#~ msgstr "Bölge"
-
-#~ msgctxt "Address field"
-#~ msgid "County"
-#~ msgstr "Ülke"
-
-#~ msgctxt "Address field"
-#~ msgid "Department"
-#~ msgstr "Bölüm"
-
-#~ msgctxt "Address field"
-#~ msgid "District"
-#~ msgstr "İlçe"
-
-#~ msgctxt "Address field"
-#~ msgid "Eircode"
-#~ msgstr "Posta Kodu"
-
-#~ msgctxt "Address field"
-#~ msgid "Emirate"
-#~ msgstr "Emirlik"
-
-#~ msgctxt "Address field"
-#~ msgid "Island"
-#~ msgstr "Ada"
-
-#~ msgctxt "Address field"
-#~ msgid "Neighborhood"
-#~ msgstr "Mahalle"
-
-#~ msgctxt "Address field"
-#~ msgid "Oblast"
-#~ msgstr "Şehir"
-
-#~ msgctxt "Address field"
-#~ msgid "Parish"
-#~ msgstr "Mahalle"
-
-#~ msgctxt "Address field"
-#~ msgid "PIN"
-#~ msgstr "Pin"
-
-#~ msgctxt "Address field"
-#~ msgid "Postal code"
-#~ msgstr "Posta Kodu"
-
-#~ msgctxt "Address field"
-#~ msgid "Prefecture"
-#~ msgstr "Kasaba"
-
-#~ msgctxt "Address field"
-#~ msgid "Province"
-#~ msgstr "Şehir"
-
-#~ msgctxt "Address field"
-#~ msgid "State"
-#~ msgstr "Eyalet"
-
-#~ msgctxt "Address field"
-#~ msgid "Suburb"
-#~ msgstr "Banliyö"
-
-#~ msgctxt "Address field"
-#~ msgid "Townland"
-#~ msgstr "Kasaba"
-
-#~ msgctxt "Address field"
-#~ msgid "Village/township"
-#~ msgstr "Köy"
-
-#~ msgctxt "Address field"
-#~ msgid "ZIP code"
-#~ msgstr "Posta Kodu"
-
-#~ msgctxt "Country"
-#~ msgid "Country"
-#~ msgstr "Ülke"
-
-#~ msgctxt "Personal name"
-#~ msgid "Given name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Personal name"
-#~ msgid "Family name"
-#~ msgstr "Soyadı"
-
-#~ msgctxt "Company or organization"
-#~ msgid "Company or organization"
-#~ msgstr "Şirket veya organizasyon"
-
-#~ msgctxt "Address"
-#~ msgid "Address"
-#~ msgstr "Adres"
-
-#~ msgctxt "City"
-#~ msgid "City"
-#~ msgstr "Şehir"
-
-#~ msgctxt "City area"
-#~ msgid "District"
-#~ msgstr "İlçe"
-
-#~ msgctxt "Postal code"
-#~ msgid "Postal code"
-#~ msgstr "Posta Kodu"
-
-#~ msgctxt "Country area"
-#~ msgid "State or province"
-#~ msgstr "Eyalet"
-
-#~ msgctxt "Phone number"
-#~ msgid "Phone number"
-#~ msgstr "Telefon numarası"
-
-#~ msgctxt "Address"
-#~ msgid "Street address, P.O. box, company name"
-#~ msgstr "Açık adres, posta kutusu, şirket adı"
-
-#~ msgctxt "Address"
-#~ msgid "Apartment, suite, unit, building, floor, etc"
-#~ msgstr "Apartman, süit, ünite, bina, kat, vs..."
-
-#~ msgctxt "Address form"
-#~ msgid "This value is invalid for selected country"
-#~ msgstr "Bu değer seçilen ülke için geçersiz"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage customers."
-#~ msgstr "Müşterileri yönet."
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage staff."
-#~ msgstr "Personel yönet."
-
-#~ msgctxt "Permission description"
-#~ msgid "Impersonate customers."
-#~ msgstr "Müşterilerinizi tanıyın."
-
-#~ msgid "The phone number entered is not valid."
-#~ msgstr "Girmiş olduğunuz telefon numarası geçersiz."
-
-#~ msgid "You have been successfully logged out."
-#~ msgstr "Başarılı bir şekilde çıkış yaptınız."
-
-#~ msgid "User has been created"
-#~ msgstr "Kullanıcı oluşturuldu"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Password successfully changed."
-#~ msgstr "Şifreniz başarılı bir şekilde değiştirildi."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Account successfully updated."
-#~ msgstr "Hesap başarıyla güncellendi."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully updated."
-#~ msgstr "Adres başarıyla güncellendi."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully removed"
-#~ msgstr "Adres silindi"
-
-#~ msgctxt "Storefront message, when user requested his account removed"
-#~ msgid "Please check your inbox for a confirmation e-mail."
-#~ msgstr "Aktivasyon e-postası için mailinizi kontrol edin."
-
-#~ msgctxt "Account deleted"
-#~ msgid ""
-#~ "Your account was deleted successfully. In case of any trouble or "
-#~ "questions feel free to contact us."
-#~ msgstr ""
-#~ "Hesabınız silindi. Bir sorun yaşamanız halinde ya da sorularınız için "
-#~ "bizimle iletişime geçebilirsiniz."
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Billing"
-#~ msgstr "Ödeme"
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Shipping"
-#~ msgstr "Kargo"
-
-#~ msgctxt "Add to checkout form field label"
-#~ msgid "Quantity"
-#~ msgstr "Adet"
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently not available."
-#~ msgstr "Üzgünüz. Bu ürünmevcut değil."
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently out of stock."
-#~ msgstr "Üzgünüz. Ürün stokta yok."
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Oops. We could not find that product."
-#~ msgstr "Oops. Ürünü bulamadık."
-
-#~ msgctxt "Country form field label"
-#~ msgid "Country"
-#~ msgstr "Ülke"
-
-#~ msgctxt "Address form field label"
-#~ msgid "Email"
-#~ msgstr "E-posta"
-
-#~ msgctxt "Shipping addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Yeni adresi girin"
-
-#~ msgctxt "Shipping addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Adres"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Yeni adresi girin"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Same as shipping"
-#~ msgstr "Kargo adresiyle aynı"
-
-#~ msgctxt "Billing addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Adres"
-
-#~ msgctxt "Shipping method form field label"
-#~ msgid "Shipping method"
-#~ msgstr "Kargo şekli"
-
-#~ msgctxt "Voucher form error"
-#~ msgid "Discount code incorrect or expired"
-#~ msgstr "İndirim kodu geçersiz veya süresi dolmuş"
-
-#~ msgctxt "Checkout discount form label for voucher field"
-#~ msgid "Gift card or discount code"
-#~ msgstr "İndirim kodu veya hediye kartı"
-
-#~ msgctxt "Checkout warning message"
-#~ msgid ""
-#~ "Sorry. We don't have that many items in stock. Quantity was set to "
-#~ "maximum available for now."
-#~ msgstr ""
-#~ "Üzgünüz. Seçtiğiniz üründen stokta istediğiniz miktarda yok. Bu nedenle "
-#~ "miktar alanına, stokta bulunan miktarı yazdırdık."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Your order does not require shipping."
-#~ msgstr "Siparişiniz kargo gerektirmiyor."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Please select a shipping method first."
-#~ msgstr "Lütfen önce teslimat metodunu seçiniz."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is not valid in your country."
-#~ msgstr "Bu teklif ülkeniz için geçerli değil."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for selected items."
-#~ msgstr "Bu teklif sadece belirlenen ürünler içindir."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Voucher expired in meantime. Order placement aborted."
-#~ msgstr ""
-#~ "Kupon kısa süre içinde geçerliliğini yitirdi.  Verilen sipariş iptal "
-#~ "edildi."
-
-#~ msgctxt "Checkout warning"
-#~ msgid "This voucher has expired. Please review your checkout."
-#~ msgstr ""
-#~ "Kuponun son kullanma tarihi geçmiş. Lütfen bilgileri kontrol ediniz."
-
-#~ msgctxt "Checkout warning"
-#~ msgid "Please review your checkout."
-#~ msgstr "Lütfen bilgileri kontrol ediniz."
-
-#, python-format
-#~ msgctxt "Number of matching records in the dashboard list"
-#~ msgid "Found %(counter)d matching record"
-#~ msgid_plural "Found %(counter)d matching records"
-#~ msgstr[0] "%(counter)d adet eşleşen kayıt bulundu "
-#~ msgstr[1] "%(counter)d adet eşleşen kayıt bulundu"
-
-#~ msgctxt "Country choice"
-#~ msgid "Any Country"
-#~ msgstr "Herhangi Bir Ülke"
-
-#~ msgctxt "Impersonation message"
-#~ msgid "You are now logged as {}"
-#~ msgstr "{} olarak giriş yaptınız"
-
-#~ msgctxt "Kilogram weight unit symbol"
-#~ msgid "kg"
-#~ msgstr "kg"
-
-#~ msgctxt "Pound weight unit symbol"
-#~ msgid "lb"
-#~ msgstr "lb"
-
-#~ msgctxt "Ounce weight unit symbol"
-#~ msgid "oz"
-#~ msgstr "oz"
-
-#~ msgctxt "Gram weight unit symbol"
-#~ msgid "g"
-#~ msgstr "g"
-
-#~ msgctxt "Discount type"
-#~ msgid "%"
-#~ msgstr "%"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific products"
-#~ msgstr "Özel ürünler"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific collections of products"
-#~ msgstr "Özel ürün koleksiyonları"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific categories of products"
-#~ msgstr "Özel ürün kategorileri"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Shipping"
-#~ msgstr "Kargo"
-
-#~ msgctxt "Voucher type"
-#~ msgid "Free shipping"
-#~ msgstr "Bedava kargo"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off shipping"
-#~ msgstr "Kargoda %(discount)s indirim"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off %(product_num)d products"
-#~ msgstr "%(product_num)d üründe %(discount)s indirim"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off %(collections_num)d collections"
-#~ msgstr "%(collections_num)d koleksiyonda %(discount)s indirim"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off %(categories_num)d categories"
-#~ msgstr "%(categories_num)d kategoride %(discount)s indirim"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off"
-#~ msgstr "%(discount)s indirim"
-
-#, python-format
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for orders over %(amount)s."
-#~ msgstr "Bu teklif sadece %(amount)s üstü siparişlerde geçerlidir."
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage sales and vouchers."
-#~ msgstr "Satışları ve kuponları yönet."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Discount not applicable for this product"
-#~ msgstr "İndirim bu ürüne uygulanamaz."
-
-#~ msgctxt "VAT rate type"
-#~ msgid "accommodation"
-#~ msgstr "Borç Tutarı"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "admission to cultural events"
-#~ msgstr "kültürel etkinliklere giriş"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "admission to entertainment events"
-#~ msgstr "eğlence etkinliklerine giriş"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "admission to sporting events"
-#~ msgstr "spor etkinliklerine giriş"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "advertising"
-#~ msgstr "reklam"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "agricultural supplies"
-#~ msgstr "tarım ürünleri"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "baby foodstuffs"
-#~ msgstr "bebek gıdaları"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "bikes"
-#~ msgstr "bisikletler"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "books"
-#~ msgstr "kitaplar"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "childrens clothing"
-#~ msgstr "çocuk giyim"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "domestic services"
-#~ msgstr "yurtiçi hizmetler"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "e-books"
-#~ msgstr "e-kitaplar"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "foodstuffs"
-#~ msgstr "gıdalar"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "hotels"
-#~ msgstr "oteller"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "medical"
-#~ msgstr "tıbbi"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "newspapers"
-#~ msgstr "gazeteler"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "passenger transport"
-#~ msgstr "yolcu taşıması"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "pharmaceuticals"
-#~ msgstr "tıbbi ilaçlar"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "property renovations"
-#~ msgstr "mülk tadilatları"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "restaurants"
-#~ msgstr "restoranlar"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "social housing"
-#~ msgstr "sosyal konutlandırma"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "standard"
-#~ msgstr "standart"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "water"
-#~ msgstr "su"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "wine"
-#~ msgstr "şarap"
-
-#~ msgctxt "Cancel fulfillment mutation error"
-#~ msgid "This fulfillment can't be canceled"
-#~ msgstr "Tamamlanmış sipariş iptal olamaz"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage navigation."
-#~ msgstr "Navigasyonu yönet."
-
-#~ msgctxt "Link object type description"
-#~ msgid "URL: "
-#~ msgstr "URL:"
-
-#~ msgctxt "Link object type description"
-#~ msgid "Category: "
-#~ msgstr "Kategori:"
-
-#~ msgctxt "Link object type description"
-#~ msgid "Collection: "
-#~ msgstr "Koleksiyon:"
-
-#~ msgctxt "Link object type description"
-#~ msgid "Page: "
-#~ msgstr "Sayfa:"
-
-#~ msgctxt ""
-#~ "Status for a fully editable, not confirmed order created by staff users"
-#~ msgid "Draft"
-#~ msgstr "Taslak:"
-
-#~ msgctxt "Status for an order with no items marked as fulfilled"
-#~ msgid "Unfulfilled"
-#~ msgstr "Tamamlanmamış"
-
-#~ msgctxt "Status for an order with some items marked as fulfilled"
-#~ msgid "Partially fulfilled"
-#~ msgstr "Kısmen tamamlanmış"
-
-#~ msgctxt "Status for an order with all items marked as fulfilled"
-#~ msgid "Fulfilled"
-#~ msgstr "Tamamlanmış"
-
-#~ msgctxt "Status for a permanently canceled order"
-#~ msgid "Canceled"
-#~ msgstr "İptal edilmiş"
-
-#~ msgctxt "Status for a group of products in an order marked as fulfilled"
-#~ msgid "Fulfilled"
-#~ msgstr "Tamamlanmış"
-
-#~ msgctxt ""
-#~ "Status for a fulfilled group of products in an order marked as canceled"
-#~ msgid "Canceled"
-#~ msgstr "İptal edilmiş"
-
-#~ msgctxt "Payments form label"
-#~ msgid "Payment Method"
-#~ msgstr "Ödeme Metodu"
-
-#~ msgctxt "Payment delete form error"
-#~ msgid "Payment does not exist"
-#~ msgstr "Ödeme mevcut değil"
-
-#~ msgctxt "Payment delete form error"
-#~ msgid "Payment cannot be cancelled."
-#~ msgstr "Ödeme iptal edilemez."
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage orders."
-#~ msgstr "Siparişleri yönet."
-
-#~ msgctxt "Connect order with user warning message"
-#~ msgid ""
-#~ "We couldn't assign the order to your account as the email addresses don't "
-#~ "match"
-#~ msgstr "E-posta adresleri eşleşmediğinden siparişinizi hesabınıza atamadık"
-
-#~ msgctxt "storefront message"
-#~ msgid "The order is now assigned to your account"
-#~ msgstr "Sipariş hesabınıza atandı"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage pages."
-#~ msgstr "Sayfaları yönet."
-
-#~ msgctxt "transaction kind"
-#~ msgid "Authorization"
-#~ msgstr "Yetkilendirme"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Refund"
-#~ msgstr "Geri ödeme"
-
-#~ msgctxt "payment error"
-#~ msgid "Unable to process transaction. Please try again in a moment"
-#~ msgstr "Ödemeniz alınamadı. Daha sonra tekrar deneyiniz"
-
-#~ msgctxt "Payment status form field"
-#~ msgid "Payment status"
-#~ msgstr "Ödeme durumu"
-
-#~ msgctxt "Razorpay payment error"
-#~ msgid "Order was not charged."
-#~ msgstr "Ödeme alınamadı"
-
-#~ msgctxt "Razorpay payment error"
-#~ msgid "The payment data was invalid."
-#~ msgstr "Ödeme bilgileriniz yanlış"
-
-#~ msgctxt "Razorpay payment error"
-#~ msgid "The order couldn't be proceeded."
-#~ msgstr "Siparişinize devam edemiyoruz"
-
-#, python-format
-#~ msgctxt "Razorpay payment error"
-#~ msgid "The %(currency)s currency is not supported."
-#~ msgstr "%(currency)s para birimi desteklenmiyor."
-
-#~ msgctxt "Razorpay payment gateway primary button"
-#~ msgid "Pay now with Razorpay"
-#~ msgstr "Razorpay ile ödeme"
-
-#~ msgctxt "Razorpay payment gateway secondary title"
-#~ msgid "Total payment"
-#~ msgstr "Toplam ödeme"
-
-#~ msgctxt "Stripe payment error"
-#~ msgid "Order was not charged."
-#~ msgstr "Ödeme alınamadı"
-
-#~ msgctxt "Stripe payment gateway description"
-#~ msgid "Total payment"
-#~ msgstr "Toplam ödeme"
-
-#~ msgctxt "Mark order as paid validation error"
-#~ msgid "Orders with payments can not be manually marked as paid."
-#~ msgstr "Siparişlere ait ödemeler ödendi olarak işaretlenemez."
-
-#~ msgctxt "Product status"
-#~ msgid "not published"
-#~ msgstr "yayınlanmadı"
-
-#~ msgctxt "Product status"
-#~ msgid "out of stock"
-#~ msgstr "stokta kalmadı"
-
-#~ msgctxt "Product status"
-#~ msgid "stock running low"
-#~ msgstr "stok azaldı"
-
-#~ msgctxt "Product status"
-#~ msgid "not yet available"
-#~ msgstr "henüz mevcut değil"
-
-#~ msgctxt "Product status"
-#~ msgid "ready for purchase"
-#~ msgstr "satın almak için hazır"
-
-#~ msgctxt "Variant status"
-#~ msgid "available"
-#~ msgstr "mevcut"
-
-#~ msgctxt "Variant status"
-#~ msgid "out of stock"
-#~ msgstr "stokta kalmadı"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "name"
-#~ msgstr "isim"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "price"
-#~ msgstr "ücret"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "last updated"
-#~ msgstr "son güncelleme"
-
-#~ msgctxt "Product list sorting form"
-#~ msgid "Sort by"
-#~ msgstr "Sırala"
-
-#~ msgctxt "Currency amount"
-#~ msgid "Price"
-#~ msgstr "Ücret"
-
-#, python-format
-#~ msgctxt "Variant choice field label"
-#~ msgid "%(variant_label)s - %(price)s"
-#~ msgstr "%(variant_label)s - %(price)s"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage products."
-#~ msgstr "Ürünleri yönet"
-
-#~ msgctxt "Search form label"
-#~ msgid "Query"
-#~ msgstr "Sorgu"
-
-#~ msgid "Arabic"
-#~ msgstr "Arapça"
-
-#~ msgid "Azerbaijani"
-#~ msgstr "Azerice"
-
-#~ msgid "Bulgarian"
-#~ msgstr "Bulgarca"
-
-#~ msgid "Bengali"
-#~ msgstr "Bengalce"
-
-#~ msgid "Catalan"
-#~ msgstr "Katalanca"
-
-#~ msgid "Czech"
-#~ msgstr "Çekçe"
-
-#~ msgid "Danish"
-#~ msgstr "Danca"
-
-#~ msgid "German"
-#~ msgstr "Almanca"
-
-#~ msgid "English"
-#~ msgstr "İngilizce"
-
-#~ msgid "Spanish"
-#~ msgstr "İspanyolca"
-
-#~ msgid "Persian"
-#~ msgstr "Farsça"
-
-#~ msgid "French"
-#~ msgstr "Fransızca"
-
-#~ msgid "Hindi"
-#~ msgstr "Hintçe"
-
-#~ msgid "Hungarian"
-#~ msgstr "Macarca"
-
-#~ msgid "Indonesian"
-#~ msgstr "Endonezce"
-
-#~ msgid "Italian"
-#~ msgstr "İtalyanca"
-
-#~ msgid "Japanese"
-#~ msgstr "Japonca"
-
-#~ msgid "Korean"
-#~ msgstr "Korece"
-
-#~ msgid "Mongolian"
-#~ msgstr "Moğolca"
-
-#~ msgid "Norwegian"
-#~ msgstr "Norveççe"
-
-#~ msgid "Dutch"
-#~ msgstr "Flemenkçe"
-
-#~ msgid "Polish"
-#~ msgstr "Polonyaca"
-
-#~ msgid "Romanian"
-#~ msgstr "Romence"
-
-#~ msgid "Russian"
-#~ msgstr "Rusça"
-
-#~ msgid "Slovak"
-#~ msgstr "Slovakça"
-
-#~ msgid "Serbian"
-#~ msgstr "Sırpça"
-
-#~ msgid "Turkish"
-#~ msgstr "Türkçe"
-
-#~ msgid "Simplified Chinese"
-#~ msgstr "Basitleştirilmiş Çince"
-
-#~ msgid "Traditional Chinese"
-#~ msgstr "Geleneksel Çince"
-
-#~ msgctxt "Name of political and economical union of european countries"
-#~ msgid "European Union"
-#~ msgstr "Avrupa Birliği"
-
-#~ msgctxt "Type of shipping"
-#~ msgid "Price based shipping"
-#~ msgstr "Fiyata bağlı kargo"
-
-#~ msgctxt "Type of shipping"
-#~ msgid "Weight based shipping"
-#~ msgstr "Ağırlığa bağlı kargo"
-
-#, python-format
-#~ msgctxt "Applies to orders more expensive than the min value"
-#~ msgid "%(min_price)s and up"
-#~ msgstr "%(min_price)s ve üzeri"
-
-#, python-format
-#~ msgctxt "Applies to order valued within this price range"
-#~ msgid "%(min_price)s to %(max_price)s"
-#~ msgstr "%(min_price)s ile %(max_price)s arasında"
-
-#, python-format
-#~ msgctxt "Applies to orders heavier than the threshold"
-#~ msgid "%(min_weight)s and up"
-#~ msgstr "%(min_weight)s ve üzeri"
-
-#, python-format
-#~ msgctxt "Applies to orders of total weight within this range"
-#~ msgid "%(min_weight)s to %(max_weight)s"
-#~ msgstr "%(min_weight)s ile %(max_weight)s arası"
-
-#, python-format
-#~ msgctxt "Number of countries shipping zone apply to"
-#~ msgid "%(num_of_countries)d countries"
-#~ msgstr "%(num_of_countries)d ülke"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage shipping."
-#~ msgstr "Kargo Yönetimi"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage settings."
-#~ msgstr "Ayarları Yönet"
-
-#~ msgctxt "Eror page not found"
-#~ msgid "Page not found"
-#~ msgstr "Sayfa bulunamadı"
-
-#~ msgctxt "Change language modal title"
-#~ msgid "Select language"
-#~ msgstr "Dil seçiniz"
-
-#~ msgctxt "Change language action button"
-#~ msgid "Change"
-#~ msgstr "Değiştir"
-
-#~ msgctxt "Account deletetion confirmation page title"
-#~ msgid "Are you sure?"
-#~ msgstr "Emin misiniz?"
-
-#~ msgctxt ""
-#~ "Message displayed to the user requesting for his account deletetion"
-#~ msgid "Sorry to see you go!"
-#~ msgstr "Ayrıldığınızı görmek üzücü!"
-
-#~ msgctxt ""
-#~ "Message displayed to the user requesting for his account deletetion"
-#~ msgid "Are you sure you want to delete your account?"
-#~ msgstr "Hesabınızı silmek istediğinize emin misiniz?"
-
-#~ msgctxt "Confirm account deletion button"
-#~ msgid "Delete account"
-#~ msgstr "Hesabı Sil"
-
-#~ msgctxt "Remove address form action"
-#~ msgid "Remove Address"
-#~ msgstr "Adresi Sil"
-
-#~ msgctxt "Remove address form action"
-#~ msgid "Cancel"
-#~ msgstr "İptal et"
-
-#~ msgctxt "Edit address page title"
-#~ msgid "Edit address"
-#~ msgstr "Adresi Düzenle"
-
-#~ msgctxt "New address page title"
-#~ msgid "New address"
-#~ msgstr "Yeni Adres"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Home"
-#~ msgstr "Anasayfa"
-
-#~ msgctxt "Edit/new address breadcrumb"
-#~ msgid "Your profile"
-#~ msgstr "Profiliniz"
-
-#~ msgctxt "Edit address breadcrumb"
-#~ msgid "Edit address"
-#~ msgstr "Adresi Düzenle"
-
-#~ msgctxt "New address breadcrumb"
-#~ msgid "New address"
-#~ msgstr "Yeni Adres"
-
-#~ msgctxt "Edit address title"
-#~ msgid "Edit address"
-#~ msgstr "Adresi Düzenle"
-
-#~ msgctxt "New address title"
-#~ msgid "New address"
-#~ msgstr "Yeni Adres"
-
-#~ msgctxt "Edit/new address primary action"
-#~ msgid "Save changes"
-#~ msgstr "Değişiklikleri kaydet"
-
-#~ msgctxt "User profile page title"
-#~ msgid "Your profile"
-#~ msgstr "Profiliniz"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your account"
-#~ msgstr "Hesabınız"
-
-#~ msgid "My account"
-#~ msgstr "Hesabım"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Recent Orders"
-#~ msgstr "Önceki Siparişler"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Change password"
-#~ msgstr "Şifre Değiştir"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Contact details"
-#~ msgstr "İletişim Bilgileri"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Settings"
-#~ msgstr "Ayarlar"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order"
-#~ msgstr "Sipariş"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Date"
-#~ msgstr "Tarih"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Summary"
-#~ msgstr "Özet"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Payment status"
-#~ msgstr "Ödeme durumu"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order status"
-#~ msgstr "Sipariş durumu"
-
-#~ msgctxt "Recent orders link text"
-#~ msgid "Details"
-#~ msgstr "Detaylar"
-
-#~ msgctxt "No recent orders text"
-#~ msgid "There are not any completed orders yet."
-#~ msgstr "Tamamlanmamış sipariş bulunmamaktadır."
-
-#~ msgctxt "User profile action"
-#~ msgid "Change password"
-#~ msgstr "Şifre Değiştir"
-
-#~ msgctxt "User profile settings"
-#~ msgid "Personal Data"
-#~ msgstr "Kişisel Bilgiler"
-
-#~ msgctxt "User profile action"
-#~ msgid "Update"
-#~ msgstr "Güncelle"
-
-#~ msgctxt "List of adresses in contact details"
-#~ msgid "Addresses"
-#~ msgstr "Adresler"
-
-#~ msgctxt "User address action"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "No addresses text"
-#~ msgid "You will see new addresses here after first successful checkout."
-#~ msgstr "İlk başarılı siparişinizden sonra burada adresler gorünecektir."
-
-#~ msgctxt "Message informing about the process of account removal"
-#~ msgid ""
-#~ "\n"
-#~ "                  If you'd like to remove your account, please click on "
-#~ "the button below and a confirmation email will be sent to you.\n"
-#~ "                "
-#~ msgstr ""
-#~ "\n"
-#~ "Hesabınızı kaldırmak istiyorsanız aşağıdaki butona tıklayın ve size "
-#~ "gönderilen e-posta içerisinden onaylayın."
-
-#~ msgctxt "Remove account form action"
-#~ msgid "Remove Account"
-#~ msgstr "Hesabı Kaldır"
-
-#~ msgctxt "Login page title"
-#~ msgid "Log in"
-#~ msgstr "Giriş Yap"
-
-#~ msgctxt "Login form secondary title"
-#~ msgid "Don't have an account yet?"
-#~ msgstr "Henüz hesabınız yok mu?"
-
-#~ msgctxt "Login form secondary action"
-#~ msgid "Register"
-#~ msgstr "Kaydol"
-
-#~ msgctxt "Login form title"
-#~ msgid "Log in"
-#~ msgstr "Giriş Yap"
-
-#, python-format
-#~ msgctxt "Already logged in warning message"
-#~ msgid "You are already logged in as %(user)s."
-#~ msgstr "%(user)s olarak giriş yapmış durumdasınız."
-
-#~ msgctxt "Login form primary action"
-#~ msgid "Log in"
-#~ msgstr "Giriş Yap"
-
-#~ msgctxt "Login form secondary link"
-#~ msgid "Forgot password?"
-#~ msgstr "Şifrenizi mi unuttunuz?"
-
-#~ msgid "Facebook"
-#~ msgstr "Facebook"
-
-#~ msgid "Google"
-#~ msgstr "Google"
-
-#~ msgctxt "Password change breadcrumb"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Password change form legend"
-#~ msgid "Change Password"
-#~ msgstr "Şifre Değiştir"
-
-#~ msgctxt "Password change form primary action"
-#~ msgid "Save new password"
-#~ msgstr "Yeni şifreyi kaydet"
-
-#~ msgctxt "Password reset page title"
-#~ msgid "Password reset"
-#~ msgstr "Şifreyi Sıfırla"
-
-#~ msgctxt "Password reset form title"
-#~ msgid "Forgot your password?"
-#~ msgstr "Şifrenizi mi unuttunuz?"
-
-#~ msgctxt "Password reset form help text"
-#~ msgid ""
-#~ "Please let us know the email you have used to register or purchase at our "
-#~ "store."
-#~ msgstr ""
-#~ "Kayıt olurken/Sipariş verirken kullandığınız e-posta adresini giriniz."
-
-#~ msgctxt "Password reset primary action"
-#~ msgid "Continue"
-#~ msgstr "Devam"
-
-#~ msgctxt "Password reset done page title"
-#~ msgid "Password Reset"
-#~ msgstr "Şifreyi Sıfırla"
-
-#~ msgctxt "Password reset done title"
-#~ msgid "Password Reset"
-#~ msgstr "Şifreyi Sıfırla"
-
-#~ msgctxt "Password reset done text"
-#~ msgid ""
-#~ "We have sent you an e-mail. Please contact us if you do not receive it "
-#~ "within a few minutes."
-#~ msgstr ""
-#~ "Tarafınıza e-posta gönderilmiştir. Eğer bir kaç dakika içerisinde "
-#~ "tarafınıza ulaşmazsa iletişime geçin."
-
-#~ msgctxt "Password reset from key page title"
-#~ msgid "Change Password"
-#~ msgstr "Şifre Değiştir"
-
-#~ msgid "Bad Token"
-#~ msgstr "Bad Token"
-
-#, python-format
-#~ msgctxt "Password reset text if key is invalid"
-#~ msgid ""
-#~ "The password reset link was invalid, possibly because it has already been "
-#~ "used.<br> Please request a <a href=\"%(passwd_reset_url)s\">new password "
-#~ "reset</a>."
-#~ msgstr ""
-#~ "Şifre yenileme linkiniz yanlış. Bunun nedeni daha önce kullanılmış olması "
-#~ "olabilir. <br> Lütfen <a href=\"%(passwd_reset_url)s\">yeniden deneyiniz</"
-#~ "a>."
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Password Reset"
-#~ msgstr "Şifreyi Sıfırla"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Now you can set new password for you account."
-#~ msgstr "Şimdi lütfen hesabınız için yeni bir şifre belirleyiniz."
-
-#~ msgctxt "Password reset from key form primary action"
-#~ msgid "Continue"
-#~ msgstr "Devam"
-
-#~ msgctxt "Password reset link expired from key form title"
-#~ msgid "Password Reset Link Expired"
-#~ msgstr "Şifre Yenileme Linki Geçersiz"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid ""
-#~ "Sorry but this link is no longer valid. If you forget your password, "
-#~ "please use link below."
-#~ msgstr ""
-#~ "Üzgünüz, bu link artık geçersiz. Eğer şifrenizi unuttuysanız, aşağıdaki "
-#~ "linke tıklayınız."
-
-#~ msgctxt "Reset my password link"
-#~ msgid "Reset my password"
-#~ msgstr "Şifremi sıfırla"
-
-#~ msgctxt "Password reset from key done page title"
-#~ msgid "Password Changed"
-#~ msgstr "Şifre değişti"
-
-#~ msgctxt "Password reset from key done title"
-#~ msgid "Password Changed"
-#~ msgstr "Şifre değişti"
-
-#~ msgid "Your password is now changed."
-#~ msgstr "Şifreniz başarıyla değiştirildi."
-
-#, python-format
-#~ msgctxt "Password reset from key done text"
-#~ msgid ""
-#~ "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
-#~ msgstr "Yeni şifrenizle <a href=\"%(login_url)s\">giriş</a> yapabilirsiniz"
-
-#~ msgctxt "Signup page title"
-#~ msgid "Sign Up"
-#~ msgstr "Kayıt Ol"
-
-#~ msgctxt "Signup form secondary title"
-#~ msgid "Already have an account?"
-#~ msgstr "Hesabınız var mı?"
-
-#~ msgctxt "Signup form secondary action"
-#~ msgid "Log in"
-#~ msgstr "Giriş Yap"
-
-#~ msgctxt "Signup form title"
-#~ msgid "Create an account"
-#~ msgstr "Hesap Oluştur"
-
-#~ msgctxt "Signup form primary action"
-#~ msgid "Create an account"
-#~ msgstr "Hesap Oluştur"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Dashboard"
-#~ msgstr "Panel"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log out"
-#~ msgstr "Çıkış"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Register"
-#~ msgstr "Kaydol"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log in"
-#~ msgstr "Giriş Yap"
-
-#~ msgid "Search for product"
-#~ msgstr "Ürün ara"
-
-#~ msgid "Search"
-#~ msgstr "Ara"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your cart"
-#~ msgstr "Sepetiniz"
-
-#~ msgid "Account"
-#~ msgstr "Hesap"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Style guide"
-#~ msgstr "Tasarım Şekli"
-
-#~ msgctxt "Category breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "Anasayfa"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Subtotal"
-#~ msgstr "Ara toplam"
-
-#~ msgctxt "Checkout shipping cost form"
-#~ msgid "Shipping cost for:"
-#~ msgstr " Kargo ücreti:"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Total"
-#~ msgstr "Toplam"
-
-#~ msgctxt "Checkout summary text"
-#~ msgid "Shipment and taxes calculated at checkout"
-#~ msgstr "Kargo ve vergiler ödeme sırasında hesaplanacaktır"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Checkout"
-#~ msgstr "Ödeme"
-
-#~ msgctxt "Checkout top message"
-#~ msgid "Easy and secure!"
-#~ msgstr "Kolay ve güvenli!"
-
-#~ msgctxt "Checkout title"
-#~ msgid "Checkout"
-#~ msgstr "Ödeme"
-
-#~ msgctxt "Order review title"
-#~ msgid "Order review"
-#~ msgstr "Sipariş önizlemesi"
-
-#~ msgctxt "Order review section"
-#~ msgid "Subtotal"
-#~ msgstr "Ara toplam"
-
-#~ msgctxt "Order review section"
-#~ msgid "Shipment"
-#~ msgstr "Kargo yöntemi"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Taxes (included)"
-#~ msgstr "Vergiler(dahildir)"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Taxes"
-#~ msgstr "Vergiler"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Promo code"
-#~ msgstr "Promosyon Kodu"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Total"
-#~ msgstr "Toplam"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Your cart"
-#~ msgstr "Sepetiniz"
-
-#~ msgctxt "Checkout breadcrumb"
-#~ msgid "Cart"
-#~ msgstr "Sepet"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Product"
-#~ msgstr "Ürün"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Quantity"
-#~ msgstr "Adet"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Price"
-#~ msgstr "Ücret"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Checkout"
-#~ msgstr "Ödeme"
-
-#~ msgctxt "checkout page: secondary action, empty the checkout"
-#~ msgid "Clear cart"
-#~ msgstr "Sepeti boşalt"
-
-#~ msgctxt "Empty checkout message"
-#~ msgid "There are no products in your shopping cart."
-#~ msgstr "Sepetinizde ürün yok."
-
-#~ msgctxt "Empty checkout link"
-#~ msgid "Check out our sales"
-#~ msgstr "İndirimlere göz atın"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "Login"
-#~ msgstr "Giriş"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "New customer?"
-#~ msgstr "Yeni müşteri misiniz?"
-
-#~ msgctxt "Checkout login page new users action"
-#~ msgid "Continue"
-#~ msgstr "Devam"
-
-#~ msgctxt "Checkout login page new users message"
-#~ msgid "Registration is not required!"
-#~ msgstr "Kaydolmanız gerekmez!"
-
-#~ msgctxt "Checkout login form title"
-#~ msgid "Existing customer? Log in."
-#~ msgstr "Hesabınız var mı? Giriş yapın"
-
-#~ msgctxt "Checkout payment title"
-#~ msgid "Payment"
-#~ msgstr "Ödeme"
-
-#~ msgctxt "Checkout payment primary action"
-#~ msgid "Place order"
-#~ msgstr "Sipariş ver"
-
-#~ msgctxt "Checkout shipping address title"
-#~ msgid "Shipping address"
-#~ msgstr "Kargo adresi"
-
-#~ msgctxt "Checkout shipping address primary action"
-#~ msgid "Continue"
-#~ msgstr "Devam"
-
-#~ msgid "Select other address"
-#~ msgstr "Başka adres seç"
-
-#~ msgctxt "Checkout shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Kargo şekli"
-
-#~ msgctxt "Checkout shipping method primary action"
-#~ msgid "Continue"
-#~ msgstr "Devam"
-
-#~ msgctxt ""
-#~ "Message displayed to the user if there's no shipping methods for his "
-#~ "country"
-#~ msgid ""
-#~ "\n"
-#~ "        Unfortunately we do not ship to your selected country.\n"
-#~ "        <br>\n"
-#~ "        Please enter an alternative shipping address or contact us, if "
-#~ "you think that's a mistake.\n"
-#~ "      "
-#~ msgstr ""
-#~ "\n"
-#~ "Seçtiğiniz bölgeye kargo seçeneği mevcut değildir. <br>\n"
-#~ "Başka bir adres seçiniz veya bizimle iletişime geçiniz."
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Same as shipping"
-#~ msgstr "Kargo adresiyle aynı"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Enter a new address"
-#~ msgstr "Yeni adresi girin"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "Remove"
-#~ msgstr "Kaldır"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "(Remove)"
-#~ msgstr "(Kaldır)"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "Use"
-#~ msgstr "Kullan"
-
-#~ msgctxt "Checkout summary title"
-#~ msgid "Billing address"
-#~ msgstr "Fatura adresi"
-
-#~ msgctxt "Checkout shipping method"
-#~ msgid "Change shipping method"
-#~ msgstr "Kargolama yöntemini değiştir"
-
-#~ msgctxt "Checkout summary note title"
-#~ msgid "Add a note to your order"
-#~ msgstr "Siparişe not ekle"
-
-#~ msgctxt "Checkout summary primary action"
-#~ msgid "Order & Pay"
-#~ msgstr "Sipariş ve Ödeme"
-
-#~ msgctxt "Checkout summary without shipping title"
-#~ msgid "Billing address"
-#~ msgstr "Fatura adresi"
-
-#~ msgctxt "Checkout summary without shipping note title"
-#~ msgid "Add a note to your order"
-#~ msgstr "Siparişe not ekle"
-
-#~ msgctxt "Checkout summary without shipping action"
-#~ msgid "Place order"
-#~ msgstr "Sipariş ver"
-
-#~ msgctxt "Checkout dropdown text"
-#~ msgid "Shipment and taxes calculated at checkout"
-#~ msgstr "Kargo ve vergiler ödeme sırasında hesaplanacaktır"
-
-#~ msgctxt "Checkout dropdown secondary action"
-#~ msgid "Go to cart"
-#~ msgstr "Sepete git"
-
-#~ msgctxt "Checkout dropdown primary action"
-#~ msgid "Checkout"
-#~ msgstr "Ödeme"
-
-#~ msgctxt "Site breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "Anasayfa"
-
-#, python-format
-#~ msgctxt "Unpublished collection details text"
-#~ msgid ""
-#~ "<strong>Warning!</strong> You are previewing a collection that will "
-#~ "become visible on <strong>%(date)s</strong>."
-#~ msgstr ""
-#~ "<strong>Dikkat!</strong> Bu ürün <strong>%(date)s</strong> tarihinde "
-#~ "satışa sunulacaktır."
-
-#~ msgctxt "Unavailable collection detail text"
-#~ msgid ""
-#~ "\n"
-#~ "          <strong>Warning!</strong>\n"
-#~ "          You are previewing a collection that is not published.\n"
-#~ "        "
-#~ msgstr ""
-#~ "\n"
-#~ "<strong>Dikkat!</strong>\n"
-#~ "Henüz satışta olmayan bir ürünü inceliyorsunuz."
-
-#, python-format
-#~ msgctxt "Dashboard default page title"
-#~ msgid "Dashboard - %(site_name)s"
-#~ msgstr "Panel - %(site_name)s"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Visit storefront"
-#~ msgstr "Mağazaya Git"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Style guide"
-#~ msgstr "Tasarım Şekli"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Log out"
-#~ msgstr "Çıkış"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search"
-#~ msgstr "Ara"
-
-#~ msgctxt "Dashboard homepage"
-#~ msgid "Home"
-#~ msgstr "Anasayfa"
-
-#~ msgctxt "Dashboard catalogue"
-#~ msgid "Catalogue"
-#~ msgstr "Katalog"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Products"
-#~ msgstr "Ürünler"
-
-#~ msgctxt "Dashboard categories list"
-#~ msgid "Categories"
-#~ msgstr "Kategoriler"
-
-#~ msgctxt "Dashboard side navigation link"
-#~ msgid "Collections"
-#~ msgstr "Koleksiyonlar"
-
-#~ msgctxt "Dashboard discounts list"
-#~ msgid "Discounts"
-#~ msgstr "İndirimler"
-
-#~ msgctxt "Dashboard sales (discounts) list"
-#~ msgid "Sales"
-#~ msgstr "Satışlar"
-
-#~ msgctxt "Dashboard vouchers list"
-#~ msgid "Vouchers"
-#~ msgstr "Kuponlar"
-
-#~ msgctxt "Dashboard sales. `Sales' is noun of to sell"
-#~ msgid "Sales"
-#~ msgstr "Satışlar"
-
-#~ msgctxt "Dashboard orders list"
-#~ msgid "Orders"
-#~ msgstr "Siparişler"
-
-#~ msgctxt "Dashboard customers list"
-#~ msgid "Customers"
-#~ msgstr "Müşteriler"
-
-#~ msgctxt "Management section"
-#~ msgid "Staff management"
-#~ msgstr "Personel Yönetimi"
-
-#~ msgctxt "Dashboard staff members list"
-#~ msgid "Staff members"
-#~ msgstr "Personeller"
-
-#~ msgctxt "Dashboard configuration"
-#~ msgid "Configuration"
-#~ msgstr "Konfigürasyon"
-
-#~ msgctxt "Dashboard product types list"
-#~ msgid "Product types"
-#~ msgstr "Ürün Tipleri"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Attributes"
-#~ msgstr "Özellikler"
-
-#~ msgctxt "Dashboard shipping zones list"
-#~ msgid "Shipping"
-#~ msgstr "Kargo"
-
-#~ msgctxt "Dashboard menus list"
-#~ msgid "Navigation"
-#~ msgstr "Menü"
-
-#~ msgctxt "Dashboard site settings"
-#~ msgid "Site settings"
-#~ msgstr "Site Ayarları"
-
-#~ msgctxt "Dashboard taxes"
-#~ msgid "Taxes"
-#~ msgstr "Vergiler"
-
-#~ msgctxt "Dashboard static pages"
-#~ msgid "Pages"
-#~ msgstr "Sayfalar"
-
-#~ msgctxt "Dashboard cancel action"
-#~ msgid "Cancel"
-#~ msgstr "İptal et"
-
-#~ msgctxt "Category list page title"
-#~ msgid "Categories"
-#~ msgstr "Kategoriler"
-
-#~ msgctxt "Category field"
-#~ msgid "Description"
-#~ msgstr "Açıklama"
-
-#~ msgctxt "Category detail view action"
-#~ msgid "Edit category"
-#~ msgstr "Kategoriyi Düzenle"
-
-#~ msgctxt "Category detail view action"
-#~ msgid "Remove category"
-#~ msgstr "Kategori Sil"
-
-#~ msgctxt "Title of the subcategories list"
-#~ msgid "Subcategories"
-#~ msgstr "Alt Kategoriler"
-
-#~ msgid "Add"
-#~ msgstr "Ekle"
-
-#~ msgctxt "Category list table header name"
-#~ msgid "Name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Category list table header description"
-#~ msgid "Description"
-#~ msgstr "Açıklama"
-
-#~ msgctxt "Category edit action"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Category list action link"
-#~ msgid "Remove"
-#~ msgstr "Kaldır"
-
-#~ msgctxt "Empty list of categories"
-#~ msgid "No subcategories"
-#~ msgstr "Alt kategori yok"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Edit category"
-#~ msgstr "Kategoriyi Düzenle"
-
-#~ msgctxt "Category detail page title"
-#~ msgid "Add new category"
-#~ msgstr "Kategori ekle"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Add new category"
-#~ msgstr "Kategori ekle"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Category detail breadcrumbs"
-#~ msgid "Add new category"
-#~ msgstr "Kategori ekle"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Update"
-#~ msgstr "Güncelle"
-
-#~ msgctxt "Dashboard create action"
-#~ msgid "Create"
-#~ msgstr "Oluştur"
-
-#~ msgctxt "Category list add button text"
-#~ msgid "Add category"
-#~ msgstr "Kategori Ekle"
-
-#~ msgctxt "Empty category list message"
-#~ msgid "No categories found."
-#~ msgstr "Kategori bulunamadı"
-
-#, python-format
-#~ msgctxt "Remove category modal title"
-#~ msgid "Remove category %(category)s"
-#~ msgstr "%(category)s kategorisini kaldır"
-
-#, python-format
-#~ msgctxt "Remove category modal title"
-#~ msgid ""
-#~ "Are you sure you want to remove category <strong>%(category)s</strong>?"
-#~ msgstr ""
-#~ "<strong>%(category)s</strong> kategorisini kaldırmak istediğinizden emin "
-#~ "misiniz?"
-
-#~ msgctxt "Delete category form text about descendant categories"
-#~ msgid "The following child categories will be removed:"
-#~ msgstr "Alt kategori kaldırılacak:"
-
-#, python-format
-#~ msgctxt "Remove category form text about products"
-#~ msgid "There is one product in this category that will be removed."
-#~ msgid_plural ""
-#~ "There are %(counter)s products in this category that will be removed."
-#~ msgstr[0] "Bu kategoride bulunan 1 adet ürün silinecek."
-#~ msgstr[1] "Bu kategoride bulunan %(counter)s adet ürün silinecek."
-
-#~ msgctxt "Dashboard delete action"
-#~ msgid "Remove"
-#~ msgstr "Kaldır"
-
-#~ msgid "No categories found."
-#~ msgstr "Kategori bulunamadı"
-
-#, python-format
-#~ msgid ""
-#~ "\n"
-#~ "    Categories are used to organize products into groups that are "
-#~ "displayed in the navigation in the storefront.<br>\n"
-#~ "    You can create categories by using the <span class=\"btn-fab-"
-#~ "presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
-#~ "  "
-#~ msgstr ""
-#~ "\n"
-#~ "Kategoriler ürünlerin mağaza içerisindeki ve menüdeki yerlerini "
-#~ "ayarlamaya yardımcı olur.<br>\n"
-#~ "<span class=\"btn-fab-presentation\"><svg data-src=\"%(img_path)s\" /></"
-#~ "span> butonunu kullanarak kategori ekleyebilirsiniz."
-
-#, python-format
-#~ msgctxt "Modal remove collection text"
-#~ msgid "Remove collection %(collection)s"
-#~ msgstr "%(collection)s koleksiyonunu kaldır"
-
-#, python-format
-#~ msgctxt "Modal remove collection text"
-#~ msgid ""
-#~ "Are you sure you want to remove collection <strong>%(collection)s</"
-#~ "strong>?"
-#~ msgstr ""
-#~ "<strong>%(collection)s</strong> koleksiyonunu kaldırmak istediğinize emin "
-#~ "misiniz?"
-
-#~ msgid "Add new collection"
-#~ msgstr "Koleksiyon ekle"
-
-#~ msgid "Collections"
-#~ msgstr "Koleksiyonlar"
-
-#~ msgctxt "Collection action"
-#~ msgid "Remove collection"
-#~ msgstr "Koleksiyonu kaldır"
-
-#~ msgctxt "Collection action"
-#~ msgid "View on site"
-#~ msgstr "Sitede Gör"
-
-#~ msgctxt "Collection form card title: availability sub form"
-#~ msgid "Availability"
-#~ msgstr "Uygunluk"
-
-#~ msgctxt "Collection secondary action"
-#~ msgid "Cancel"
-#~ msgstr "İptal et"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Update"
-#~ msgstr "Güncelle"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Create"
-#~ msgstr "Oluştur"
-
-#~ msgctxt "Collection field"
-#~ msgid "Published"
-#~ msgstr "Yayınlandı"
-
-#~ msgctxt "Collection field"
-#~ msgid "Draft"
-#~ msgstr "Taslak:"
-
-#~ msgctxt "Collection field"
-#~ msgid "Can't unpublish homepage collection"
-#~ msgstr "Anasayfa koleksiyonu kaldırılamıyor"
-
-#~ msgctxt "Collections list page title "
-#~ msgid "Collections"
-#~ msgstr "Koleksiyonlar"
-
-#~ msgctxt "Collections list add button text"
-#~ msgid "Add collection"
-#~ msgstr "Koleksiyon ekle"
-
-#~ msgctxt "Collections list table header name"
-#~ msgid "Name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Number of products"
-#~ msgstr "Ürün sayısı"
-
-#~ msgctxt "Collections list table header"
-#~ msgid "Visibility"
-#~ msgstr "Görünüm"
-
-#~ msgid "Products in collection:"
-#~ msgstr "Koleksiyondaki ürünler:"
-
-#~ msgctxt "Empty collection list message"
-#~ msgid "No collections found."
-#~ msgstr "Koleksiyon bulunamadı"
-
-#~ msgid "Homepage collection"
-#~ msgstr "Anasayfa Koleksiyonu"
-
-#~ msgctxt "Homepage collection save"
-#~ msgid "Save"
-#~ msgstr "Kaydet"
-
-#~ msgid "No collections found."
-#~ msgstr "Koleksiyon bulunamadı"
-
-#~ msgctxt "Customer field"
-#~ msgid "Note"
-#~ msgstr "Not"
-
-#~ msgctxt "Customer action"
-#~ msgid "Edit customer"
-#~ msgstr "Müşteri düzenle"
-
-#~ msgctxt "Customer action"
-#~ msgid "Remove customer"
-#~ msgstr "Müşteri sil"
-
-#~ msgctxt "Customer recent orders table title"
-#~ msgid "Recent orders"
-#~ msgstr "Son siparişler"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Number"
-#~ msgstr "Numara"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Placed on"
-#~ msgstr "Sipariş tarihi"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Order status"
-#~ msgstr "Sipariş Durumu"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Total"
-#~ msgstr "Toplam"
-
-#~ msgctxt "Empty customer orders table message"
-#~ msgid "No orders found."
-#~ msgstr "Sipariş bulunamadı"
-
-#~ msgctxt "Customer notes card title"
-#~ msgid "Customer notes"
-#~ msgstr "Müşteri notları"
-
-#~ msgctxt "Customer without notes message"
-#~ msgid "There are no notes associated with this customer"
-#~ msgstr "Bu müşteri ile ilişkilendirilmiş not yok"
-
-#~ msgctxt "Customer notes card action"
-#~ msgid "Add note"
-#~ msgstr "Not ekle"
-
-#~ msgctxt "Customer default shipping address card title"
-#~ msgid "Default shipping address"
-#~ msgstr "Varsayılan teslimat adresi"
-
-#~ msgctxt "Customer without default shipping address message"
-#~ msgid "No default shipping address."
-#~ msgstr "Varsayılan teslimat adresi yok."
-
-#~ msgctxt "Customer default billing address card title"
-#~ msgid "Default billing address"
-#~ msgstr "Varsayılan fatura adresi"
-
-#~ msgctxt "Customer without default billing address message"
-#~ msgid "No default billing address."
-#~ msgstr "Varsayılan fatura adresi yok."
-
-#~ msgctxt "Dashboard add customer"
-#~ msgid "Add new customer"
-#~ msgstr "Yeni müşteri ekle"
-
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer"
-#~ msgstr "Müşteri"
-
-#~ msgctxt "Dashboard add customer action"
-#~ msgid "Add customer"
-#~ msgstr "Müşteri ekle"
-
-#~ msgctxt "Customer details header"
-#~ msgid "Customer details"
-#~ msgstr "Müşteri detayları"
-
-#~ msgctxt "Dashboard add action"
-#~ msgid "Add"
-#~ msgstr "Ekle"
-
-#~ msgctxt "Customer list add button text"
-#~ msgid "Add customer"
-#~ msgstr "Müşteri ekle"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Email"
-#~ msgstr "E-posta"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Location"
-#~ msgstr "Yer"
-
-#~ msgctxt "Empty customers table message"
-#~ msgid "No customers found."
-#~ msgstr "Müşteri yok."
-
-#~ msgctxt "Modal add note title"
-#~ msgid "Add note"
-#~ msgstr "Not ekle"
-
-#~ msgctxt "Modal add note primary action"
-#~ msgid "Save note"
-#~ msgstr "Not  kaydet"
-
-#, python-format
-#~ msgctxt "Header of modal used for removing customer's account "
-#~ msgid "Remove customer %(customer)s"
-#~ msgstr "%(customer)s kullanıcısını kaldır."
-
-#~ msgctxt "Dashboard confirmation modal"
-#~ msgid "Promote to staff member"
-#~ msgstr "Personel yetkisini yükselt"
-
-#, python-format
-#~ msgctxt "Modal promote to staff member text"
-#~ msgid "Are you sure you want to promote %(customer)s to staff member?"
-#~ msgstr ""
-#~ "%(customer)s kullanıcısının yetkisini yükseltmek istediğinize emin "
-#~ "misiniz?"
-
-#~ msgctxt "Dashboard promote action"
-#~ msgid "Promote"
-#~ msgstr "Yetki yükselt"
-
-#~ msgid "No customers found."
-#~ msgstr "Müşteri yok."
-
-#~ msgctxt "Sale (discount) page title"
-#~ msgid "Add new sale"
-#~ msgstr "Yeni satış ekle"
-
-#~ msgctxt "Dashboard sales (discounts) list."
-#~ msgid "Sales"
-#~ msgstr "Satışlar"
-
-#~ msgctxt "Sale (discount) action"
-#~ msgid "Remove sale"
-#~ msgstr "Satış sil"
-
-#~ msgctxt "Sale (discount) breadcrumbs"
-#~ msgid "Add new sale"
-#~ msgstr "Yeni satış ekle"
-
-#~ msgid "Sales"
-#~ msgstr "Satışlar"
-
-#~ msgctxt "Sale (discount) list add button text"
-#~ msgid "Add sale"
-#~ msgstr "Satış ekle"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Start date"
-#~ msgstr "Başlangıç tarihi"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "End date"
-#~ msgstr "Bitiş tarihi"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Discount"
-#~ msgstr "İndirim"
-
-#~ msgctxt "Empty sales table message"
-#~ msgid "No sales found"
-#~ msgstr "Satış bulunmadı"
-
-#~ msgctxt "Remove sale (discount) text"
-#~ msgid "Remove sale"
-#~ msgstr "Satış sil"
-
-#, python-format
-#~ msgctxt "Remove sale (discount) text"
-#~ msgid "Are you sure you want to remove <strong>%(sale)s</strong>?"
-#~ msgstr ""
-#~ "<strong>%(sale)s</strong> satışını silmek istediğinize emin misiniz?"
-
-#~ msgid "No sales found."
-#~ msgstr "Satış bulunamadı."
-
-#~ msgctxt "Voucher page title"
-#~ msgid "Add new voucher"
-#~ msgstr "Yeni kupon ekle"
-
-#~ msgctxt "Voucher action"
-#~ msgid "Remove voucher"
-#~ msgstr "Kupon kaldır"
-
-#~ msgctxt "Voucher breadcrumbs"
-#~ msgid "Add new voucher"
-#~ msgstr "Yeni kupon ekle"
-
-#~ msgctxt "Voucher list add button text"
-#~ msgid "Add voucher"
-#~ msgstr "Kupon ekle"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Discount"
-#~ msgstr "İndirim"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Start date"
-#~ msgstr "Başlangıç tarihi"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "End date"
-#~ msgstr "Bitiş tarihi"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Used"
-#~ msgstr "Kullanılmış"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Min amount spent"
-#~ msgstr "Minimum harcama tutarı"
-
-#~ msgctxt "Empty vouchers table message"
-#~ msgid "No vouchers found"
-#~ msgstr "Kupon bulunamadı"
-
-#, python-format
-#~ msgctxt "Remove voucher text"
-#~ msgid "Remove voucher %(voucher)s"
-#~ msgstr "%(voucher)s kuponu kaldır"
-
-#, python-format
-#~ msgctxt "Remove voucher text"
-#~ msgid ""
-#~ "Are you sure you want to remove voucher <strong>%(voucher)s</strong>?"
-#~ msgstr ""
-#~ "<strong>%(voucher)s</strong> kuponu kaldırmak istediğinize emin misiniz?"
-
-#~ msgid "No vouchers found."
-#~ msgstr "Kupon bulunamadı."
-
-#~ msgctxt "Collection availability status"
-#~ msgid "Published"
-#~ msgstr "Yayınlandı"
-
-#~ msgctxt "Collection availability status"
-#~ msgid "Hidden"
-#~ msgstr "Gizlenmiş"
-
-#~ msgctxt "Dashboard card title"
-#~ msgid "Filters"
-#~ msgstr "Filtreler"
-
-#~ msgctxt "Category page filters"
-#~ msgid "Clear"
-#~ msgstr "Temizle"
-
-#~ msgctxt "Category price filter"
-#~ msgid "Filter"
-#~ msgstr "Filtrele"
-
-#~ msgctxt ""
-#~ "Title of the box showing preview from the search engine perspective"
-#~ msgid "Search engine listing preview"
-#~ msgstr "Arama motoru listeleme önizlemesi"
-
-#~ msgctxt "Title of the menu items list"
-#~ msgid "Menu items"
-#~ msgstr "Menü öğeleri"
-
-#~ msgctxt "Menu items list table header name"
-#~ msgid "Name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Menu items list table header points to"
-#~ msgid "Points to"
-#~ msgstr "Gösterir"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Status"
-#~ msgstr "Durum"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Published"
-#~ msgstr "Yayınlanan"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Not published"
-#~ msgstr "Yayınlanmayan"
-
-#~ msgctxt "Menu item edit action"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Menu item list action link"
-#~ msgid "Remove"
-#~ msgstr "Kaldır"
-
-#~ msgctxt "Empty list of menu items"
-#~ msgid "No menu items"
-#~ msgstr "Menü öğesi yok"
-
-#~ msgctxt "Page availability status"
-#~ msgid "Published"
-#~ msgstr "Yayınlandı"
-
-#~ msgctxt "Page availability status"
-#~ msgid "Hidden"
-#~ msgstr "Gizlenmiş"
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Orders ready for shipment"
-#~ msgstr "Teslimata hazır siparişler"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Placed on"
-#~ msgstr "Sipariş tarihi"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Customer"
-#~ msgstr "Müşteri"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Payment status"
-#~ msgstr "Ödeme durumu"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Order status"
-#~ msgstr "Sipariş durumu"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Total"
-#~ msgstr "Toplam"
-
-#~ msgctxt "Anonymous user account value"
-#~ msgid "Guest"
-#~ msgstr "Misafir"
-
-#~ msgctxt "Empty order table message"
-#~ msgid "No orders are ready for shipment."
-#~ msgstr "Teslimata hazır sipariş yok."
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Preauthorized payments"
-#~ msgstr "Ön Onaylı Ödemeler"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Order"
-#~ msgstr "Sipariş"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Date"
-#~ msgstr "Tarih"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Customer"
-#~ msgstr "Müşteri"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Amount"
-#~ msgstr "Tutar"
-
-#~ msgid "Guest"
-#~ msgstr "Misafir"
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Products with low stock"
-#~ msgstr "Stoğu azalan ürünler"
-
-#~ msgctxt "Low stock product list"
-#~ msgid "Product name"
-#~ msgstr "Ürün adı"
-
-#~ msgctxt "Empty low stock table message"
-#~ msgid "No products are low in stock."
-#~ msgstr "Stoğu azalan ürün yok."
-
-#~ msgctxt "Menu list page title"
-#~ msgid "Navigation"
-#~ msgstr "Menü"
-
-#~ msgctxt "Menu detail view action"
-#~ msgid "Edit menu"
-#~ msgstr "Menü düzenle"
-
-#~ msgctxt "Menu detail view action"
-#~ msgid "Remove menu"
-#~ msgstr "Menü kaldır"
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Edit menu"
-#~ msgstr "Menü düzenle"
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Add new menu"
-#~ msgstr "Yeni menü ekle"
-
-#~ msgctxt "Menu detail breadcrumbs"
-#~ msgid "Add new menu"
-#~ msgstr "Yeni menü ekle"
-
-#~ msgctxt "Menu item list page title"
-#~ msgid "Menu items"
-#~ msgstr "Menü öğeleri"
-
-#~ msgctxt "Menu item field"
-#~ msgid "Points to"
-#~ msgstr "Gösterir"
-
-#~ msgctxt "Menu item detail view action"
-#~ msgid "Edit menu item"
-#~ msgstr "Menü öğesi düzenle"
-
-#~ msgctxt "Menu item detail view action"
-#~ msgid "Remove menu item"
-#~ msgstr "Menü öğesi kaldır"
-
-#~ msgctxt "Menu item page title"
-#~ msgid "Edit menu item"
-#~ msgstr "Menü öğesi düzenle"
-
-#~ msgctxt "Menu item page title"
-#~ msgid "Add new menu item"
-#~ msgstr "Yeni menü öğesi ekle"
-
-#~ msgctxt "Dashboard menu items list"
-#~ msgid "Menu items"
-#~ msgstr "Menü öğeleri"
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Add new menu item"
-#~ msgstr "Yeni menü öğesi ekle"
-
-#, python-format
-#~ msgctxt "Remove menu item modal title"
-#~ msgid "Remove menu item %(menu_item)s"
-#~ msgstr "%(menu_item)s menü öğesini kaldır"
-
-#~ msgctxt "Menu list add button text"
-#~ msgid "Add menu"
-#~ msgstr "Menü ekle"
-
-#~ msgctxt "Menu list table header Menu name"
-#~ msgid "Menu name"
-#~ msgstr "Menü adı"
-
-#~ msgctxt "Empty menu list message"
-#~ msgid "No menus found."
-#~ msgstr "Menü bulunmadı."
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Save"
-#~ msgstr "KAydet"
-
-#, python-format
-#~ msgctxt "Remove menu modal title"
-#~ msgid "Remove menu %(menu)s"
-#~ msgstr "%(menu)s menüsünü kaldır"
-
-#, python-format
-#~ msgctxt "Remove menu modal title"
-#~ msgid "Are you sure you want to remove menu <strong>%(menu)s</strong>?"
-#~ msgstr ""
-#~ "<strong>%(menu)s</strong> menüyü kaldırmak istediğinize emin misiniz?"
-
-#~ msgid "No menus found."
-#~ msgstr "Menü bulunmadı."
-
-#~ msgctxt ""
-#~ msgid "Edit address"
-#~ msgstr "Adresi Düzenle"
-
-#~ msgctxt ""
-#~ msgid "Shipping address"
-#~ msgstr "Kargo adresi"
-
-#~ msgctxt ""
-#~ msgid "Billing address"
-#~ msgstr "Fatura adresi"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Cancel Order"
-#~ msgstr "Sipariş İptal"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Remove draft order"
-#~ msgstr "Taslak siparişi kaldır"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Print"
-#~ msgstr "Yazdır"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Details"
-#~ msgstr "Detaylar"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Payments"
-#~ msgstr "Ödemeler"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "History"
-#~ msgstr "Geçmiş"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Payments"
-#~ msgstr "Ödemeler"
-
-#~ msgctxt "Payment status not available"
-#~ msgid "N/A"
-#~ msgstr "Bilinmiyor"
-
-#~ msgctxt "Preauthorized amount not available"
-#~ msgid "N/A"
-#~ msgstr "Bilinmiyor"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Refund"
-#~ msgstr "Geri ödeme"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Mark as paid"
-#~ msgstr "Ödendi olarak işaretle"
-
-#~ msgctxt "Order details summary header"
-#~ msgid "Customer"
-#~ msgstr "Müşteri"
-
-#~ msgctxt "Order customer details action title"
-#~ msgid "Edit customer details"
-#~ msgstr "Müşteri detaylarını düzenle"
-
-#~ msgctxt "Dashboard edit action"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Missing shipping address message"
-#~ msgid "No shipping address"
-#~ msgstr "Kargo adresi yok"
-
-#~ msgctxt "Order billing address same as shipping address"
-#~ msgid "Same as shipping address"
-#~ msgstr "Kargo adresi ile aynı"
-
-#~ msgctxt "Missing billing address message"
-#~ msgid "No billing address"
-#~ msgstr "Fatura adresi yok"
-
-#, python-format
-#~ msgctxt "Order table title"
-#~ msgid "Order draft #%(order)s"
-#~ msgstr "#%(order)s taslak sipariş"
-
-#, python-format
-#~ msgctxt "Order table title"
-#~ msgid "Order #%(order)s"
-#~ msgstr "#%(order)s sipariş"
-
-#~ msgctxt "Order placed on date"
-#~ msgid "Placed on"
-#~ msgstr "Sipariş tarihi"
-
-#~ msgctxt "Order table header"
-#~ msgid "Item"
-#~ msgstr "Ürün"
-
-#~ msgctxt "Order table header"
-#~ msgid "Price"
-#~ msgstr "Ücret"
-
-#~ msgctxt "Order table header"
-#~ msgid "Quantity"
-#~ msgstr "Adet"
-
-#~ msgctxt "Order table header"
-#~ msgid "Total"
-#~ msgstr "Toplam"
-
-#, python-format
-#~ msgctxt "Order table text"
-#~ msgid "SKU: %(sku)s"
-#~ msgstr "Barkod: %(sku)s"
-
-#~ msgctxt "Order table row action"
-#~ msgid "Change quantity"
-#~ msgstr "Adet değiştir"
-
-#~ msgctxt "Order totals action"
-#~ msgid "Edit shipping"
-#~ msgstr "Teslimatı düzenle"
-
-#, python-format
-#~ msgctxt "Order totals header"
-#~ msgid "Shipping (%(shipping_name)s)"
-#~ msgstr "Teslimat(%(shipping_name)s)"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Shipping"
-#~ msgstr "Kargo"
-
-#~ msgctxt "Order total taxes"
-#~ msgid "Taxes (included)"
-#~ msgstr "Vergiler(dahildir)"
-
-#~ msgctxt "Order total taxes"
-#~ msgid "Taxes"
-#~ msgstr "Vergiler"
-
-#, python-format
-#~ msgctxt "Order totals header"
-#~ msgid "Discount (%(voucher)s)"
-#~ msgstr "İndirim(%(voucher)s)"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Discount"
-#~ msgstr "İndirim"
-
-#~ msgctxt "Order totals action"
-#~ msgid "Edit voucher"
-#~ msgstr "Kupon düzenle"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Edit voucher"
-#~ msgstr "Kupon düzenle"
-
-#~ msgctxt "Order totals action"
-#~ msgid "Edit discount"
-#~ msgstr "İndirim düzenle"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Edit discount"
-#~ msgstr "İndirim düzenle"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Grand total"
-#~ msgstr "Toplam tutar"
-
-#~ msgctxt "Order summary card action title"
-#~ msgid "Fulfill order"
-#~ msgstr "Siparişi tamamla"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Fulfill"
-#~ msgstr "Tamamla"
-
-#~ msgctxt "Order summary card action title"
-#~ msgid "Add product to order"
-#~ msgstr "Siparişe ürün ekle"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Add product"
-#~ msgstr "Ürün ekle"
-
-#~ msgctxt "Order summary card action title"
-#~ msgid "Create order"
-#~ msgstr "Sipariş oluştur"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Create order"
-#~ msgstr "Sipariş oluştur"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Invoice"
-#~ msgstr "Fatura"
-
-#~ msgctxt "Order detail action"
-#~ msgid "View on site"
-#~ msgstr "Sitede Gör"
-
-#, python-format
-#~ msgctxt "Fulfillment table title"
-#~ msgid "Fulfillment #%(fulfillment)s"
-#~ msgstr "#%(fulfillment)s tamamlandı"
-
-#, python-format
-#~ msgctxt "Fulfillment table text"
-#~ msgid "Tracking number: %(tracking)s"
-#~ msgstr "Takip numarası : %(tracking)s"
-
-#~ msgctxt "Fulfillment summary card action title"
-#~ msgid "Cancel fulfillment"
-#~ msgstr "Tamamlamayı iptal et"
-
-#~ msgctxt "Fulfillment summary card action"
-#~ msgid "Cancel"
-#~ msgstr "İptal et"
-
-#~ msgctxt "Fulfillment summary card action title"
-#~ msgid "Edit tracking number"
-#~ msgstr "Takip numarası düzenelendi"
-
-#~ msgctxt "Fulfillment summary card action"
-#~ msgid "Edit tracking"
-#~ msgstr "Takip düzenle"
-
-#~ msgctxt "Fulfillment summary card action"
-#~ msgid "Add tracking"
-#~ msgstr "Takip ekle"
-
-#~ msgctxt "Customer order note card title"
-#~ msgid "Customer note"
-#~ msgstr "Müşteri notu"
-
-#~ msgctxt "Order notes card title"
-#~ msgid "Order notes"
-#~ msgstr "Sipariş notu"
-
-#~ msgctxt "Order notes card action"
-#~ msgid "Add note"
-#~ msgstr "Not ekle"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Transaction ID"
-#~ msgstr "İşlem No"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Date"
-#~ msgstr "Tarih"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Payment status"
-#~ msgstr "Ödeme durumu"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Amount"
-#~ msgstr "Tutar"
-
-#, python-format
-#~ msgctxt "Payment item column data"
-#~ msgid "#%(payment_id)s"
-#~ msgstr "#%(payment_id)s"
-
-#~ msgctxt "Empty payment history table message"
-#~ msgid "No payments made for this order."
-#~ msgstr "Bu sipariş için ödeme yok"
-
-#~ msgctxt "Dashboard order fulfillment"
-#~ msgid "Fulfill"
-#~ msgstr "Tamamla"
-
-#~ msgctxt "Fulfill order title"
-#~ msgid "Fulfill order"
-#~ msgstr "Siparişi tamamla"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Item"
-#~ msgstr "Ürün"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Quantity"
-#~ msgstr "Adet"
-
-#, python-format
-#~ msgctxt "Fulfill order table quantity unfulfilled"
-#~ msgid "of %(quantity_unfulfilled)s"
-#~ msgstr "%(quantity_unfulfilled)s"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Fulfill"
-#~ msgstr "Tamamla"
-
-#~ msgctxt "Order list add button text"
-#~ msgid "Add order"
-#~ msgstr "Sipariş ekle"
-
-#~ msgctxt "Empty order list message"
-#~ msgid "No orders found."
-#~ msgstr "Sipariş bulunamadı"
-
-#, python-format
-#~ msgctxt "Modal order add variant title"
-#~ msgid "Add product to %(order)s"
-#~ msgstr "Ürün ekle : %(order)s"
-
-#~ msgctxt "Modal order add variant primary action"
-#~ msgid "Add"
-#~ msgstr "Ekle"
-
-#, python-format
-#~ msgctxt "Modal cancel fulfillment title"
-#~ msgid "Cancel fulfillment #%(fulfillment)s"
-#~ msgstr "#%(fulfillment)s siparişi iptal et"
-
-#~ msgctxt "Modal cancel fulfillment cancel action"
-#~ msgid "Abort"
-#~ msgstr "İptal Et"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "SKU"
-#~ msgstr "Barkod"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Price"
-#~ msgstr "Ücret"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Total"
-#~ msgstr "Toplam"
-
-#~ msgctxt "Modal cancel order cancel action"
-#~ msgid "Abort"
-#~ msgstr "İptal Et"
-
-#~ msgctxt "Modal cancel order primary action"
-#~ msgid "Cancel Order"
-#~ msgstr "Sipariş İptal"
-
-#~ msgctxt "Modal change quantity title"
-#~ msgid "Change quantity"
-#~ msgstr "Adet değiştir"
-
-#~ msgctxt "Modal create order title"
-#~ msgid "Create order"
-#~ msgstr "Sipariş oluştur"
-
-#~ msgctxt "Modal create order primary action"
-#~ msgid "Create"
-#~ msgstr "Oluştur"
-
-#~ msgctxt "Modal edit customer title"
-#~ msgid "Edit customer details"
-#~ msgstr "Müşteri detaylarını düzenle"
-
-#~ msgctxt "Modal edit customer primary action"
-#~ msgid "Update"
-#~ msgstr "Güncelle"
-
-#~ msgctxt "Modal edit discount title"
-#~ msgid "Edit discount"
-#~ msgstr "İndirim güncelle"
-
-#~ msgctxt "Modal edit discount primary action"
-#~ msgid "Update"
-#~ msgstr "Güncelle"
-
-#~ msgctxt "Modal edit shipping title"
-#~ msgid "Edit shipping"
-#~ msgstr "Teslimatı düzenle"
-
-#~ msgctxt "Modal edit shipping primary action"
-#~ msgid "Update"
-#~ msgstr "Güncelle"
-
-#~ msgctxt "Modal edit voucher title"
-#~ msgid "Edit voucher"
-#~ msgstr "Kupon güncellendi"
-
-#~ msgctxt "Modal edit voucher primary action"
-#~ msgid "Update"
-#~ msgstr "Güncelle"
-
-#~ msgctxt "Modal change fulfillment tracking title"
-#~ msgid "Edit tracking"
-#~ msgstr "Takip düzenle"
-
-#~ msgctxt "Modal change fulfillment tracking title"
-#~ msgid "Add tracking"
-#~ msgstr "Takip ekle"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Update"
-#~ msgstr "Güncelle"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Save"
-#~ msgstr "KAydet"
-
-#~ msgctxt "Modal mark order as paid cancel action"
-#~ msgid "Abort"
-#~ msgstr "İptal Et"
-
-#~ msgctxt "Modal mark order as paid primary action"
-#~ msgid "Mark as paid"
-#~ msgstr "Ödendi olarak işaretle"
-
-#~ msgctxt "Modal refund payment primary action"
-#~ msgid "Refund"
-#~ msgstr "Geri ödeme"
-
-#~ msgctxt "Modal remove order title"
-#~ msgid "Remove draft order"
-#~ msgstr "Taslak siparişi kaldır"
-
-#~ msgctxt "Modal remove order cancel action"
-#~ msgid "Abort"
-#~ msgstr "İptal Et"
-
-#~ msgctxt "Modal remove order primary action"
-#~ msgid "Remove draft order"
-#~ msgstr "Taslak siparişi kaldır"
-
-#~ msgctxt "Order invoice"
-#~ msgid "Invoice"
-#~ msgstr "Fatura"
-
-#~ msgctxt "Invoice shipping address"
-#~ msgid "Shipping address"
-#~ msgstr "Kargo adresi"
-
-#~ msgctxt "Invoice billing address"
-#~ msgid "Billing address"
-#~ msgstr "Fatura adresi"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Item"
-#~ msgstr "Ürün"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "SKU"
-#~ msgstr "Barkod"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Tax rate"
-#~ msgstr "Vergi oranı"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Gross price"
-#~ msgstr "Bürüt fiyat"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Quantity"
-#~ msgstr "Adet"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Total"
-#~ msgstr "Toplam"
-
-#~ msgctxt "Order subtotal net price"
-#~ msgid "Subtotal"
-#~ msgstr "Ara toplam"
-
-#~ msgctxt "Order total shipping price header"
-#~ msgid "Shipping"
-#~ msgstr "Kargo"
-
-#~ msgctxt "Order voucher header"
-#~ msgid "Discount"
-#~ msgstr "İndirim"
-
-#~ msgctxt "Order total price header"
-#~ msgid "Grand total"
-#~ msgstr "Toplam tutar"
-
-#~ msgctxt "Packing slip shipping address"
-#~ msgid "Shipping address"
-#~ msgstr "Kargo adresi"
-
-#~ msgctxt "Packing slip billing address"
-#~ msgid "Billing address"
-#~ msgstr "Fatura adresi"
-
-#~ msgctxt "Order table header"
-#~ msgid "SKU"
-#~ msgstr "Barkod"
-
-#~ msgid "No orders found."
-#~ msgstr "Sipariş bulunamadı"
-
-#~ msgctxt "Pages list page title"
-#~ msgid "Pages"
-#~ msgstr "Sayfalar"
-
-#~ msgctxt "Pages form breadcrumbs"
-#~ msgid "Pages"
-#~ msgstr "Sayfalar"
-
-#~ msgctxt "Page action"
-#~ msgid "View on site"
-#~ msgstr "Sitede Gör"
-
-#~ msgctxt "Page form page title"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Dashboard pages list"
-#~ msgid "Pages"
-#~ msgstr "Sayfalar"
-
-#~ msgctxt "Page form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgid "Cancel"
-#~ msgstr "İptal et"
-
-#~ msgid "Save"
-#~ msgstr "KAydet"
-
-#~ msgid "Create"
-#~ msgstr "Oluştur"
-
-#~ msgid "Pages"
-#~ msgstr "Sayfalar"
-
-#~ msgctxt "Static pages table header name"
-#~ msgid "Title"
-#~ msgstr "Başlık"
-
-#~ msgctxt "Static pages table header url"
-#~ msgid "URL"
-#~ msgstr "URL"
-
-#~ msgctxt "Pages table header"
-#~ msgid "Visibility"
-#~ msgstr "Görünüm"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Attributes"
-#~ msgstr "Özellikler"
-
-#~ msgid "Product types"
-#~ msgstr "Ürün Tipleri"
-
-#~ msgid "Display name"
-#~ msgstr "Görünecek isim"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Remove"
-#~ msgstr "Kaldır"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Dashboard attributes list table header name"
-#~ msgid "Name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Name of product types related to the attribute"
-#~ msgid "Product types"
-#~ msgstr "Ürün Tipleri"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Products"
-#~ msgstr "Ürünler"
-
-#~ msgctxt "Product field"
-#~ msgid "Published"
-#~ msgstr "Yayınlandı"
-
-#~ msgctxt "Product field"
-#~ msgid "Draft"
-#~ msgstr "Taslak:"
-
-#~ msgctxt "Product action"
-#~ msgid "View on site"
-#~ msgstr "Sitede Gör"
-
-#~ msgid "Variant"
-#~ msgstr "Varyant"
-
-#~ msgid "SKU"
-#~ msgstr "Barkod"
-
-#~ msgid "Name"
-#~ msgstr "İsim"
-
-#~ msgid "Status"
-#~ msgstr "Durum"
-
-#~ msgid "Gross price"
-#~ msgstr "Bürüt fiyat"
-
-#~ msgid "Net price"
-#~ msgstr "Net fiyat"
-
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "Number in stock"
-#~ msgstr "Kalan stok sayısı"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgid "Shipping"
-#~ msgstr "Kargo"
-
-#~ msgid "Attributes"
-#~ msgstr "Özellikler"
-
-#~ msgctxt "Product list add button text"
-#~ msgid "Add product"
-#~ msgstr "Ürün ekle"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Price"
-#~ msgstr "Ücret"
-
-#~ msgctxt "Modal select product types title"
-#~ msgid "Product type"
-#~ msgstr "Ürün tipi"
-
-#~ msgctxt "Dashboard add action"
-#~ msgid "Create"
-#~ msgstr "Oluştur"
-
-#~ msgctxt "Image form text"
-#~ msgid "Image"
-#~ msgstr "İmaj"
-
-#~ msgctxt "Image form text"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Dashboard remove action"
-#~ msgid "Remove"
-#~ msgstr "Kaldır"
-
-#~ msgid "Taxes"
-#~ msgstr "Vergiler"
-
-#~ msgctxt "Dashboard product types list table header name"
-#~ msgid "Name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Product attributes"
-#~ msgstr "Ürün özellikleri"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Variant attributes"
-#~ msgstr "Varyant özellikleri"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "SKU"
-#~ msgstr "Barkod"
-
-#~ msgctxt "Variant form page title"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Dashboard modal action"
-#~ msgid "Save"
-#~ msgstr "KAydet"
-
-#~ msgctxt "Search results list products"
-#~ msgid "Products"
-#~ msgstr "Ürünler"
-
-#~ msgctxt "Search results list orders"
-#~ msgid "Orders"
-#~ msgstr "Siparişler"
-
-#~ msgctxt "Title of the shipping methods list"
-#~ msgid "Price based shipping"
-#~ msgstr "Fiyata bağlı kargo"
-
-#~ msgctxt "Title of the shipping methods list"
-#~ msgid "Weight based shipping"
-#~ msgstr "Ağırlığa baağlı kargo"
-
-#~ msgctxt "Dashboard shipping zones"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Shipping zone form page title"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, price range of shipping methods within "
-#~ "shipping zone"
-#~ msgid "Price range"
-#~ msgstr "Fiyat aralığı"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, list of countries within of shipping zone"
-#~ msgid "Countries"
-#~ msgstr "Ülkeler"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Price"
-#~ msgstr "Ücret"
-
-#~ msgctxt "Attribute value remove action"
-#~ msgid "Remove"
-#~ msgstr "Kaldır"
-
-#~ msgctxt "Dashboard shipping method edit page"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Kargo şekli"
-
-#~ msgctxt "Dashboard authorization key list"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Dashboard site setting detail"
-#~ msgid "Site settings"
-#~ msgstr "Site Ayarları"
-
-#~ msgctxt "Authorization key breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Header text"
-#~ msgstr "Başlık metni"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Description"
-#~ msgstr "Açıklama"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Key"
-#~ msgstr "Anahtar"
-
-#~ msgctxt "Authorization key edit action"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Authorization key remove action"
-#~ msgid "Remove"
-#~ msgstr "Kaldır"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Site settings"
-#~ msgstr "Site Ayarları"
-
-#~ msgctxt "Dashboard site settings"
-#~ msgid "Edit"
-#~ msgstr "Düzenle"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Email"
-#~ msgstr "E-posta"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Location"
-#~ msgstr "Yer"
-
-#~ msgctxt "Tax details breadcrumbs"
-#~ msgid "Taxes"
-#~ msgstr "Vergiler"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Name"
-#~ msgstr "İsim"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Value"
-#~ msgstr "Değer"
-
-#~ msgctxt "Dashboard taxes list"
-#~ msgid "Taxes"
-#~ msgstr "Vergiler"
-
-#~ msgctxt "Dashboard site taxes settings form title"
-#~ msgid "Taxes"
-#~ msgstr "Vergiler"
-
-#~ msgid "Dashboard"
-#~ msgstr "Panel"
-
-#~ msgctxt "Taxes table header"
-#~ msgid "Country name"
-#~ msgstr "Ülke adı"
-
-#~ msgctxt "Taxes site settings title"
-#~ msgid "Configuration"
-#~ msgstr "Konfigürasyon"
-
-#~ msgctxt "Site settings field"
-#~ msgid "All products prices are entered with tax included"
-#~ msgstr "Tüm ürün fiyatları vergi ile girildi"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Show gross prices to customers in the storefront"
-#~ msgstr "Önyüzde kullanıcılara brüt fiyatı göster"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Charge taxes on shipping rates"
-#~ msgstr "Kargo oranına göre vergi yansıt"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Promo & Sale"
-#~ msgstr "Promosyon ve Satış"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Size & Colours"
-#~ msgstr "Boyut ve Renkler"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Shipping address"
-#~ msgstr "Kargo adresi"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Billing address"
-#~ msgstr "Fatura adresi"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Product"
-#~ msgstr "Ürün"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Quantity"
-#~ msgstr "Adet"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Price"
-#~ msgstr "Ücret"
-
-#~ msgctxt "Order details subtotal row text"
-#~ msgid "Subtotal"
-#~ msgstr "Ara toplam"
-
-#~ msgctxt "Order details shipment row text"
-#~ msgid "Shipping"
-#~ msgstr "Kargo"
-
-#~ msgctxt "Order details taxes text"
-#~ msgid "Taxes (included)"
-#~ msgstr "Vergiler(dahildir)"
-
-#~ msgctxt "Order details taxes text"
-#~ msgid "Taxes"
-#~ msgstr "Vergiler"
-
-#~ msgctxt "Order details total text"
-#~ msgid "Total"
-#~ msgstr "Toplam"
-
-#, python-format
-#~ msgctxt "Order details fulfillment title"
-#~ msgid "Fulfillment #%(fulfillment)s"
-#~ msgstr "#%(fulfillment)s tamamlandı"
-
-#~ msgctxt "Fulfillment tracking number details"
-#~ msgid "Tracking number"
-#~ msgstr "Takip numarası"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Create an account"
-#~ msgstr "Hesap Oluştur"
-
-#~ msgctxt "Order note title"
-#~ msgid "Add a note to your order"
-#~ msgstr "Siparişe not ekle"
-
-#~ msgctxt "Payment form page title"
-#~ msgid "Payment"
-#~ msgstr "Ödeme"
-
-#~ msgctxt "Payment form breadcrumb"
-#~ msgid "Payment"
-#~ msgstr "Ödeme"
-
-#~ msgctxt "Payment form title"
-#~ msgid "Payment"
-#~ msgstr "Ödeme"
-
-#~ msgctxt "Product details primary action"
-#~ msgid "Add to cart"
-#~ msgstr "Sepete ekle"
-
-#~ msgctxt "Product details title"
-#~ msgid "Description"
-#~ msgstr "Açıklama"
-
-#~ msgctxt "Filter heading title"
-#~ msgid "Filters"
-#~ msgstr "Filtreler"
-
-#~ msgctxt "Product list filters"
-#~ msgid "Sort by"
-#~ msgstr "Sırala"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Subtotal"
-#~ msgstr "Ara toplam"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Shipping"
-#~ msgstr "Kargo"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Taxes (included)"
-#~ msgstr "Vergiler(dahildir)"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Taxes"
-#~ msgstr "Vergiler"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Total"
-#~ msgstr "Toplam"
-
-#, python-format
-#~ msgctxt "Fulfillment update email subject"
-#~ msgid "Shipping update for order %(order)s"
-#~ msgstr "Sipariş için kargo güncellendi %(order)s"

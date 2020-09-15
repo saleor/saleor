@@ -238,7 +238,7 @@ def test_checkout_lines_update_remove_shipping_if_removed_product_with_shipping(
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLinesUpdate"]
-    assert not data["errors"]
+    assert not data["checkoutErrors"]
     checkout.refresh_from_db()
     assert checkout.lines.count() == 1
     assert not checkout.shipping_method

@@ -16,7 +16,6 @@ from ...checkout.utils import (
     add_variant_to_checkout,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
-    clean_checkout,
     create_order,
     get_user_checkout,
     get_valid_shipping_methods_for_checkout,
@@ -25,11 +24,12 @@ from ...checkout.utils import (
     remove_promo_code_from_checkout,
 )
 from ...core import analytics
-from ...core.exceptions import InsufficientStock
+from ...core.exceptions import InsufficientStock, ProductNotPublished
 from ...core.permissions import OrderPermissions
 from ...core.taxes import TaxError
 from ...core.utils.url import validate_storefront_url
 from ...discount import models as voucher_model
+from ...graphql.checkout.utils import clean_checkout_payment, clean_checkout_shipping
 from ...payment import PaymentError, gateway, models as payment_models
 from ...payment.interface import AddressData
 from ...payment.utils import store_customer_id
@@ -205,7 +205,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def retrieve_shipping_address(cls, user, data: dict) -> Optional[models.Address]:
-        if "shipping_address" in data:
+        if data.get("shipping_address") is not None:
             return cls.validate_address(data["shipping_address"])
         if user.is_authenticated:
             return user.default_shipping_address
@@ -213,7 +213,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def retrieve_billing_address(cls, user, data: dict) -> Optional[models.Address]:
-        if "billing_address" in data:
+        if data.get("billing_address") is not None:
             return cls.validate_address(data["billing_address"])
         if user.is_authenticated:
             return user.default_billing_address
@@ -283,7 +283,11 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                     raise ValidationError(
                         f"Insufficient product stock: {exc.item}", code=exc.code
                     )
-
+                except ProductNotPublished as exc:
+                    raise ValidationError(
+                        "Can't create checkout with unpublished product.",
+                        code=exc.code,
+                    )
         # Save provided addresses and associate them to the checkout
         cls.save_addresses(instance, cleaned_input)
 
@@ -353,6 +357,10 @@ class CheckoutLinesAdd(BaseMutation):
                 except InsufficientStock as exc:
                     raise ValidationError(
                         f"Insufficient product stock: {exc.item}", code=exc.code
+                    )
+                except ProductNotPublished as exc:
+                    raise ValidationError(
+                        "Can't add unpublished product.", code=exc.code,
                     )
 
         lines = list(checkout)
@@ -734,7 +742,9 @@ class CheckoutComplete(BaseMutation):
 
         discounts = info.context.discounts
         user = info.context.user
-        clean_checkout(checkout, list(checkout), discounts)
+
+        clean_checkout_shipping(checkout, lines, discounts, CheckoutErrorCode)
+        clean_checkout_payment(checkout, lines, discounts, CheckoutErrorCode)
 
         payment = checkout.get_last_active_payment()
 

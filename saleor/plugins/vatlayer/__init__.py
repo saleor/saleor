@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from django_prices_vatlayer.utils import get_tax_for_rate, get_tax_rates_for_country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
@@ -61,6 +63,11 @@ class TaxRateType:
 
 
 DEFAULT_TAX_RATE_NAME = TaxRateType.STANDARD
+
+
+@dataclass
+class VatlayerConfiguration:
+    access_key: str
 
 
 def _convert_to_naive_taxed_money(base, taxes, rate_name):

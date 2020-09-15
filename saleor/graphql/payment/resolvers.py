@@ -1,6 +1,6 @@
 from ...payment import gateway as payment_gateway, models
 from ...payment.utils import fetch_customer_id
-from ..utils import filter_by_query_param
+from ..utils.filters import filter_by_query_param
 
 PAYMENT_SEARCH_FIELDS = ["id"]
 

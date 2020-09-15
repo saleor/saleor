@@ -19,7 +19,6 @@ from ...core.types.common import OrderError
 from ...core.utils import from_global_id_strict_type, get_duplicated_values
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...order.types import Fulfillment, Order
-from ...utils import get_user_or_app_from_context
 from ...warehouse.types import Warehouse
 from ..types import OrderLine
 
@@ -236,13 +235,13 @@ class OrderFulfill(BaseMutation):
 
         cleaned_input = cls.clean_input(data)
 
-        requester = get_user_or_app_from_context(info.context)
+        user = info.context.user
         lines_for_warehouses = cleaned_input["lines_for_warehouses"]
         notify_customer = cleaned_input.get("notify_customer", True)
 
         try:
             fulfillments = create_fulfillments(
-                requester, order, dict(lines_for_warehouses), notify_customer
+                user, order, dict(lines_for_warehouses), notify_customer
             )
         except InsufficientStock as exc:
             order_line_global_id = graphene.Node.to_global_id(

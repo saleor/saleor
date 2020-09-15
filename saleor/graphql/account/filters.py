@@ -4,7 +4,7 @@ from django.db.models import Count, Sum
 from ...account.models import User
 from ..core.filters import EnumFilter, ObjectTypeFilter
 from ..core.types.common import DateRangeInput, IntRangeInput, PriceRangeInput
-from ..utils import filter_by_query_param, filter_range_field
+from ..utils.filters import filter_by_query_param, filter_range_field
 from .enums import StaffMemberStatus
 
 

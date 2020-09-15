@@ -46,7 +46,7 @@ def validate_attribute_input_for_variant(instance: "Attribute", values: List[str
 
     if len(values) != 1:
         raise ValidationError(
-            f"A variant attribute cannot take more than one value",
+            "A variant attribute cannot take more than one value",
             code=ProductErrorCode.INVALID.value,
         )
 

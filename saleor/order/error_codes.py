@@ -12,6 +12,7 @@ class OrderErrorCode(Enum):
     FULFILL_ORDER_LINE = "fulfill_order_line"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
+    PRODUCT_NOT_PUBLISHED = "product_not_published"
     NOT_FOUND = "not_found"
     ORDER_NO_SHIPPING_ADDRESS = "order_no_shipping_address"
     PAYMENT_ERROR = "payment_error"

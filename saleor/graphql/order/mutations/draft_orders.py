@@ -264,17 +264,18 @@ class DraftOrderComplete(BaseMutation):
         order.save()
 
         for line in order:
-            try:
-                allocate_stock(line, country, line.quantity)
-            except InsufficientStock as exc:
-                raise ValidationError(
-                    {
-                        "lines": ValidationError(
-                            f"Insufficient product stock: {exc.item}",
-                            code=OrderErrorCode.INSUFFICIENT_STOCK,
-                        )
-                    }
-                )
+            if line.variant.track_inventory:
+                try:
+                    allocate_stock(line, country, line.quantity)
+                except InsufficientStock as exc:
+                    raise ValidationError(
+                        {
+                            "lines": ValidationError(
+                                f"Insufficient product stock: {exc.item}",
+                                code=OrderErrorCode.INSUFFICIENT_STOCK,
+                            )
+                        }
+                    )
         order_created(order, user=info.context.user, from_draft=True)
 
         return DraftOrderComplete(order=order)

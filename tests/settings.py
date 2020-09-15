@@ -35,8 +35,6 @@ SEARCH_BACKEND = "saleor.search.backends.postgresql"
 
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
-VATLAYER_ACCESS_KEY = ""
-
 COUNTRIES_ONLY = None
 
 MEDIA_ROOT = None

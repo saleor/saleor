@@ -4,33 +4,42 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## 2.10.1
+
+- Fix multiplied stock quantity - #5675 by @fowczarek
+- Fix invalid allocation after migration - #5678 by @fowczarek
+- Fix order mutations as app - #5680 by @fowczarek
+- Prevent creating checkout/draft order with unpublished product - #5676 by @d-wysocki
+
+## 2.10.0
+
 - OpenTracing support - #5188 by @tomaszszymanski129
 - Account confirmation email - #5126 by @tomaszszymanski129
-- Relocate Checkout and CheckoutLine methods into separate module and update checkout related plugins to use them - #4980 by @krzysztofwolski
+- Relocate `Checkout` and `CheckoutLine` methods into separate module and update checkout related plugins to use them - #4980 by @krzysztofwolski
 - Fix problem with free shipping voucher - #4942 by @IKarbowiak
 - Add sub-categories to random data - #4949 by @IKarbowiak
 - Deprecate `localized` field in Money type - #4952 by @IKarbowiak
-- Fix for shipping api doesn't apply taxes - #4913 by @kswiatek92
-- Query object translation with only manage_translation permission - #4914 by @fowczarek
-- Add customer note to draft orders api - #4973 by @IKarbowiak
+- Fix for shipping API not applying taxes - #4913 by @kswiatek92
+- Query object translation with only `manage_translation` permission - #4914 by @fowczarek
+- Add customer note to draft orders API - #4973 by @IKarbowiak
 - Allow to delete category and leave products - #4970 by @IKarbowiak
 - Remove thumbnail generation from migration - #3494 by @kswiatek92
 - Rename 'shipping_date' field in fulfillment model to 'created' - #2433 by @kswiatek92
-- Reduce number of queries for 'completeCheckout' mutation - #4989 by @IKarbowiak
-- Now force pytest to ignore the environment variable containing the django settings module - #4992 by @NyanKiyoshi
+- Reduce number of queries for 'checkoutComplete' mutation - #4989 by @IKarbowiak
+- Force PyTest to ignore the environment variable containing the Django settings module - #4992 by @NyanKiyoshi
 - Extend JWT token payload with user information - #4987 by @salwator
 - Optimize the queries for product list in the dashboard - #4995 by @IKarbowiak
 - Drop dashboard 1.0 - #5000 by @IKarbowiak
 - Fixed serialization error on weight fields when running `loaddata` and `dumpdb` - #5005 by @NyanKiyoshi
 - Fixed JSON encoding error on Google Analytics reporting - #5004 by @NyanKiyoshi
 - Create custom field to translation, use new translation types in translations query - #5007 by @fowczarek
-- Take allocated stock in account in `StockAvailability` filter - #5019 by @simonbru
+- Take allocated stock into account in `StockAvailability` filter - #5019 by @simonbru
 - Generate matching postal codes for US addresses - #5033 by @maarcingebala
 - Update debug toolbar - #5032 by @IKarbowiak
 - Allow staff member to receive notification about customers orders - #4993 by @kswiatek92
-- JWT payload now contains user global id - #5039 by @salwator
-- Made middleware path resolving lazy and refactored middleware names - #5041 by @NyanKiyoshi
-- Generate slug in attribute value save - #5055 by @fowczarek
+- Add user's global id to the JWT payload - #5039 by @salwator
+- Make middleware path resolving lazy - #5041 by @NyanKiyoshi
+- Generate slug on saving the attribute value - #5055 by @fowczarek
 - Fix order status after order update - #5072 by @fowczarek
 - Extend top-level connection resolvers with ability to sort results - #5018 by @fowczarek
 - Drop storefront 1.0 - #5043 by @IKarbowiak
@@ -43,25 +52,25 @@ All notable, unreleased changes to this project will be documented in this file.
 - Send fulfillment update email - #5118 by @IKarbowiak
 - Add address query - #5148 by @kswiatek92
 - Add `checkout_quantity_changed` webhook - #5042 by @derenio
-- Remove unnecessary manage_orders permission - #5142 by @kswiatek92
-- Mutation to change user email - #5076 by @kswiatek92
-- Add mypy checks - #5150 by @IKarbowiak
-- Move extracting user or service_account from context to utils - #5152 by @kswiatek92
-- Add deprecate description to order status/created arguments - #5076 by @kswiatek92
+- Remove unnecessary `manage_orders` permission - #5142 by @kswiatek92
+- Mutation to change the user email - #5076 by @kswiatek92
+- Add MyPy checks - #5150 by @IKarbowiak
+- Move extracting user or service account to utils - #5152 by @kswiatek92
+- Deprecate order status/created arguments - #5076 by @kswiatek92
 - Fix getting title field in page mutations #5160 by @maarcingebala
 - Copy public and private metadata from the checkout to the order upon creation - #5165 by @dankolbman
 - Add warehouses and stocks- #4986 by @szewczykmira
 - Add permission groups - #5176, #5513 by @IKarbowiak
-- Drop gettext occurrences - #5189 by @IKarbowiak
+- Drop `gettext` occurrences - #5189 by @IKarbowiak
 - Fix `product_created` webhook - #5187 by @dzkb
 - Drop unused resolver `resolve_availability` - #5190 by @maarcingebala
 - Fix permission for `checkoutCustomerAttach` mutation - #5192 by @maarcingebala
 - Restrict access to user field - #5194 by @maarcingebala
-- Unify permission for service account api client in test - #5197 by @fowczarek
-- Add additional confirmation step to checkoutComplete mutation - #5179 by @salwator
+- Unify permission for service account API client in test - #5197 by @fowczarek
+- Add additional confirmation step to `checkoutComplete` mutation - #5179 by @salwator
 - Allow sorting warehouses by name - #5211 by @dominik-zeglen
 - Add anonymization to GraphQL's `webhookSamplePayload` endpoint - #5161 @derenio
-- Add slug to Warehouse, Product, ProductType and update slug in models which already using it - #5196 by @IKarbowiak
+- Add slug to `Warehouse`, `Product` and `ProductType` models - #5196 by @IKarbowiak
 - Add mutation for assigning, unassigning shipping zones to warehouse - #5217 by @kswiatek92
 - Fix passing addresses to `PaymentData` objects - #5223 by @maarcingebala
 - Return `null` when querying `me` as an anonymous user - #5231 by @maarcingebala
@@ -70,41 +79,49 @@ All notable, unreleased changes to this project will be documented in this file.
 - Customer shouldn't be able to see draft orders by token - #5259 by @fowczarek
 - Customer shouldn't be able to query checkout with another customer - #5268 by @fowczarek
 - Added integration support of Jaeger Tracing - #5282 by @NyanKiyoshi
-- Customer shouldn't be able to see draft orders by token - #5259 by @fowczarek
 - Return `null` when querying `me` as an anonymous user - #5231 as @maarcingebala
 - Add `fulfillment created` webhook - @szewczykmira
-- Unify saleor metadata - #5178 by @fowczarek
+- Unify metadata API - #5178 by @fowczarek
 - Add compiled versions of emails to the repository - #5260 by @tomaszszymanski129
 - Add required prop to fields where applicable - #5293 by @dominik-zeglen
-- Drop get_absolute_url methods - #5299 by @IKarbowiak
-- Add --force flag to cleardb command - #5302 by @maarcingebala
-- Require non-empty message in orderAddNote mutation - #5316 by @maarcingebala
+- Drop `get_absolute_url` methods - #5299 by @IKarbowiak
+- Add `--force` flag to `cleardb` command - #5302 by @maarcingebala
+- Require non-empty message in `orderAddNote` mutation - #5316 by @maarcingebala
 - Stock management refactor - #5323 by @IKarbowiak
 - Add discount error codes - #5348 by @IKarbowiak
 - Add benchmarks to checkout mutations - #5339 by @fowczarek
 - Add pagination tests - #5363 by @fowczarek
 - Add ability to assign multiple warehouses in mutations to create/update a shipping zone - #5399 by @fowczarek
-- Add filter by ids to warehouses query - #5414 by @fowczarek
+- Add filter by ids to the `warehouses` query - #5414 by @fowczarek
 - Add shipping rate price validation - #5411 by @kswiatek92
 - Remove unused settings and environment variables - #5420 by @maarcingebala
 - Add product price validation - #5413 by @kswiatek92
-- Add attribute validation to attributeAssign - #5423 by @kswiatek92
-- Add possibility to Update/Delete more than one item in metadata - #5446 by @koradon
+- Add attribute validation to `attributeAssign` mutation - #5423 by @kswiatek92
+- Add possibility to update/delete more than one item in metadata - #5446 by @koradon
 - Check if image exists before validating - #5425 by @kswiatek92
 - Fix warehouses query not working without id - #5441 by @koradon
-- Add accountErrors to CreateToken as a required field - #5437 by @koradon
-- Raise GraphQLError if filter has not valid IDs - #5460 by @gabmartinez
-- Fix missing accountError when JSONWebTokenError is raised in CreateToken - #5465 by @koradon
-- Use AccountErrorCode.INVALID_CREDENTIALS instead of INVALID_PASSWORD - #5495 by @koradon
+- Add `accountErrors` to `CreateToken` mutation - #5437, #5465 by @koradon
+- Raise `GraphQLError` if filter has invalid IDs - #5460 by @gabmartinez
+- Use `AccountErrorCode.INVALID_CREDENTIALS` instead of `INVALID_PASSWORD` - #5495 by @koradon
 - Add tests for pagination - #5468 by @koradon
-- Add job abstract model and interface - #5510 by @IKarbowiak
+- Add `Job` abstract model and interface - #5510 by @IKarbowiak
 - Refactor implementation of allocation - #5445 by @fowczarek
-- Fix WeightScalar - #5530 by @koradon
-- Add OrderFulfill mutation - #5525 by @fowczarek
-- Add home page - #5494 by @IKarbowiak and @dominik-zeglen
-- Extend errors in OrderFulfill mutation - #5553 by @fowczarek
-- Refactor OrderCancel mutation for many warehouses - #5554 by @fowczarek
+- Fix `WeightScalar` - #5530 by @koradon
+- Add `OrderFulfill` mutation - #5525 by @fowczarek
+- Add "It Works" page - #5494 by @IKarbowiak and @dominik-zeglen
+- Extend errors in `OrderFulfill` mutation - #5553 by @fowczarek
+- Refactor `OrderCancel` mutation for multiple warehouses - #5554 by @fowczarek
 - Add negative weight validation - #5564 by @fowczarek
+- Add error when user pass empty object as address - #5585 by @fowczarek
+- Fix payment creation without shipping method - #5444 by @d-wysocki
+- Fix checkout and order flow with variant without inventory tracking - #5599 by @fowczarek
+- Fixed JWT expired token being flagged as unhandled error rather than handled. - #5603 by @NyanKiyoshi
+- Refactor read-only middleware - #5602 by @maarcingebala
+- Fix availability for variants without inventory tracking - #5605 by @fowczarek
+- Drop support for configuring Vatlayer plugin from settings file. - #5614 by @korycins
+- Add ability to query category, collection or product by slug - #5574 by @koradon
+- Add `quantityAvailable` field to `ProductVariant` type - #5628 by @fowczarek
+- Use tags rather than time-based logs for information on requests - #5608 by @NyanKiyoshi
 
 ## 2.9.0
 

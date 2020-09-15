@@ -125,7 +125,7 @@ def products_structures(category):
     )
 
     dummy = product_models.Product.objects.create(
-        name=f"Oopsie Dummy",
+        name="Oopsie Dummy",
         slug="oopsie-dummy",
         product_type=pt_other,
         category=category,
@@ -133,7 +133,7 @@ def products_structures(category):
         is_published=True,
     )
     product_models.Product.objects.create(
-        name=f"Another Dummy but first in ASC and has no attribute value",
+        name="Another Dummy but first in ASC and has no attribute value",
         slug="another-dummy",
         product_type=pt_other,
         category=category,

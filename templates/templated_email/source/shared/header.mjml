@@ -1,8 +1,3 @@
 <mj-raw>
   {% load static %}
 </mj-raw>
-<mj-section>
-  <mj-column>
-    <mj-image src="{{ logo_url }}" height="38px" width="176px"/>
-  </mj-column>
-</mj-section>

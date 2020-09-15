@@ -1,7 +1,7 @@
 import django_filters
 
 from ...app import models
-from ..utils import filter_by_query_param
+from ..utils.filters import filter_by_query_param
 
 
 def filter_app_search(qs, _, value):

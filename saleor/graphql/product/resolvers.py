@@ -2,7 +2,8 @@ from django.db.models import Sum
 
 from ...order import OrderStatus
 from ...product import models
-from ..utils import filter_by_period, get_database_id, get_user_or_app_from_context
+from ..utils import get_database_id, get_user_or_app_from_context
+from ..utils.filters import filter_by_period
 from .filters import (
     filter_attributes_by_product_types,
     filter_products_by_stock_availability,
@@ -21,11 +22,19 @@ def resolve_attributes(info, qs=None, in_category=None, in_collection=None, **_k
     return qs.distinct()
 
 
+def resolve_category_by_slug(slug):
+    return models.Category.objects.filter(slug=slug).first()
+
+
 def resolve_categories(info, level=None, **_kwargs):
     qs = models.Category.objects.prefetch_related("children")
     if level is not None:
         qs = qs.filter(level=level)
     return qs.distinct()
+
+
+def resolve_collection_by_slug(slug):
+    return models.Collection.objects.filter(slug=slug).first()
 
 
 def resolve_collections(info, **_kwargs):
@@ -35,6 +44,10 @@ def resolve_collections(info, **_kwargs):
 
 def resolve_digital_contents(info):
     return models.DigitalContent.objects.all()
+
+
+def resolve_product_by_slug(slug):
+    return models.Product.objects.filter(slug=slug).first()
 
 
 def resolve_products(info, stock_availability=None, **_kwargs):

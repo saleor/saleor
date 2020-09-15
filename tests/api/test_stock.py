@@ -19,7 +19,6 @@ query stock($id: ID!) {
         }
         quantity
         quantityAllocated
-        stockQuantity
     }
 }
 """
@@ -165,27 +164,3 @@ def test_query_stocks_with_filters_product_variant__product(
         total_count
         == Stock.objects.filter(product_variant__product__name=product.name).count()
     )
-
-
-def test_query_available_stock_quantity(
-    staff_api_client, permission_manage_products, stock, settings
-):
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-    stock_id = graphene.Node.to_global_id("Stock", stock.pk)
-
-    available_quantity = stock.quantity - get_quantity_allocated_for_stock(stock)
-    # set MAX_CHECKOUT_LINE_QUANTITY smaller than available quantity
-    settings.MAX_CHECKOUT_LINE_QUANTITY = available_quantity - 1
-
-    response = staff_api_client.post_graphql(QUERY_STOCK, variables={"id": stock_id})
-    content = get_graphql_content(response)
-    content_quantity_available = content["data"]["stock"]["stockQuantity"]
-    assert content_quantity_available == settings.MAX_CHECKOUT_LINE_QUANTITY
-
-    # set MAX_CHECKOUT_LINE_QUANTITY larger than available quantity
-    settings.MAX_CHECKOUT_LINE_QUANTITY = available_quantity + 1
-
-    response = staff_api_client.post_graphql(QUERY_STOCK, variables={"id": stock_id})
-    content = get_graphql_content(response)
-    content_quantity_available = content["data"]["stock"]["stockQuantity"]
-    assert content_quantity_available == available_quantity

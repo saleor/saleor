@@ -337,7 +337,8 @@ class StaffUpdate(StaffCreate):
 
         Args:
             instance: user instance which is going to deactivated
-            user: requestor
+            requestor: user who performs the mutation
+            errors: a dictionary to accumulate mutation errors
 
         """
         if requestor == instance:

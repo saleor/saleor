@@ -3,6 +3,9 @@
 import django.db.models.deletion
 from django.db import migrations, models
 
+UNFULFILLED = "unfulfilled"
+PARTIALLY_FULFILLED = "partially fulfilled"
+
 
 def create_allocation(
     product_variant, warehouse, order_line, quantity_allocated, Allocation
@@ -18,9 +21,13 @@ def create_allocations(apps, schema_editor):
     OrderLine = apps.get_model("order", "OrderLine")
     Warehouse = apps.get_model("warehouse", "Warehouse")
     for warehouse in Warehouse.objects.iterator():
-        shipping_zone_pk = warehouse.shipping_zones.first().pk
+        shipping_zone = warehouse.shipping_zones.first()
+        if not shipping_zone:
+            continue
+        shipping_zone_pk = shipping_zone.pk
         for order_line in OrderLine.objects.filter(
             order__shipping_method__shipping_zone__pk=shipping_zone_pk,
+            order__status__in=[UNFULFILLED, PARTIALLY_FULFILLED],
         ).iterator():
             quantity_unfulfilled = order_line.quantity - order_line.quantity_fulfilled
             if quantity_unfulfilled > 0 and order_line.variant:

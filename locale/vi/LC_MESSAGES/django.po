@@ -4,27 +4,25 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# Tran Van <vantxm@yahoo.co.uk>, 2018
 # Chung Hien Hoang <hoangchunghien@gmail.com>, 2018
-# Duc Dang <dangtrungduc17895@gmail.com>, 2019
-# Khoa <lnxkhoa@gmail.com>, 2019
-# Trong Lam Phan <lampt2509@gmail.com>, 2019
-# Hung Nguyen Tien <hung.nguyentien97@gmail.com>, 2019
+# longdo <longdx@vfdcorp.com>, 2020
+# Duc Dang <dangtrungduc17895@gmail.com>, 2020
+# Trong Lam Phan <lampt2509@gmail.com>, 2020
+# Hung Nguyen Tien <hung.nguyentien97@gmail.com>, 2020
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-14 04:02-0500\n"
+"POT-Creation-Date: 2020-05-14 03:45-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Hung Nguyen Tien <hung.nguyentien97@gmail.com>, 2019\n"
-"Language-Team: Vietnamese (https://www.transifex.com/mirumee/teams/34782/"
-"vi/)\n"
-"Language: vi\n"
+"Last-Translator: Hung Nguyen Tien <hung.nguyentien97@gmail.com>, 2020\n"
+"Language-Team: Vietnamese (https://www.transifex.com/mirumee/teams/34782/vi/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: vi\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
@@ -41,77 +39,304 @@ msgid ""
 "%(street_address_2)s"
 msgstr ""
 
-#: templates/read_only/read_only_splash.html:48
-msgid "Be aware pirate! <br> Saleor runs in <span>read only mode!</span>"
+#: templates/templated_email/account/account_delete.email:4
+msgctxt "Account delete reset e-mail subject"
+msgid "Delete your account"
 msgstr ""
 
-#: templates/read_only/read_only_splash.html:49
-#, fuzzy
-#| msgctxt "Close modal action button"
-#| msgid "Close"
-msgid "Close"
-msgstr "Đóng"
-
-#: templates/templated_email/compiled/account_delete.html:174
-#: templates/templated_email/compiled/confirm.html:174
-#: templates/templated_email/compiled/confirm_fulfillment.html:174
-#: templates/templated_email/compiled/confirm_order.html:175
-#: templates/templated_email/compiled/confirm_payment.html:174
-#: templates/templated_email/compiled/email_changed_notification.html:174
-#: templates/templated_email/compiled/password_reset.html:174
-#: templates/templated_email/compiled/request_email_change.html:174
-#: templates/templated_email/compiled/set_customer_password.html:174
-#: templates/templated_email/compiled/set_password.html:174
-#: templates/templated_email/compiled/staff_confirm_order.html:175
-#: templates/templated_email/compiled/update_fulfillment.html:174
-msgctxt "Standard e-mail greeting"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/compiled/account_delete.html:182
+#: templates/templated_email/account/account_delete.email:9
 #, python-format
-msgctxt "Account delete e-mail text"
+msgctxt "Account delete reset e-mail text"
 msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be "
-"reversed."
+"\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"Click the link below to delete your account.\n"
+"\n"
+"Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:255
-#: templates/templated_email/compiled/confirm.html:255
-#: templates/templated_email/compiled/confirm_fulfillment.html:362
-#: templates/templated_email/compiled/confirm_order.html:465
-#: templates/templated_email/compiled/confirm_payment.html:245
-#: templates/templated_email/compiled/email_changed_notification.html:245
-#: templates/templated_email/compiled/password_reset.html:255
-#: templates/templated_email/compiled/request_email_change.html:255
-#: templates/templated_email/compiled/set_customer_password.html:255
-#: templates/templated_email/compiled/set_password.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:465
-#: templates/templated_email/compiled/update_fulfillment.html:350
+#: templates/templated_email/account/confirm.email:4
+msgctxt "Account confirmation e-mail subject"
+msgid "Account confirmation e-mail"
+msgstr ""
+
+#: templates/templated_email/account/confirm.email:9
+#, python-format
+msgctxt "Account confirmation e-mail text"
+msgid ""
+"\n"
+"In order to log into %(domain)s, you have to confirm your email address first.\n"
+"Please click the link below to do so and log into your account.\n"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:4
+#: templates/templated_email/account/request_email_change.email:4
+msgctxt "Email change e-mail subject"
+msgid "Email change e-mail"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
+"If you didn't request this change, please contact the administrator.\n"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:9
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/account/request_email_change.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:2
+#, python-format
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:6
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:6
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment confirmation email subject"
+msgid "Your order %(order)s has been fulfilled"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:11
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of fulfilled products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:15
+#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:6
+#: templates/templated_email/order/staff_confirm_order.email:6
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:11
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:15
+#: templates/templated_email/order/staff_confirm_order.email:15
+#, python-format
+msgctxt "Order confirmation e-mail payment details"
+msgid ""
+"\n"
+"To see your payment details please visit:\n"
+"%(order_details_url)s\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:23
+#: templates/templated_email/order/staff_confirm_order.email:23
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:24
+#: templates/templated_email/order/staff_confirm_order.email:24
+msgctxt "Order confirmation e-mail table header"
+msgid "Subtotal"
+msgstr "Tạm tính"
+
+#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/order/staff_confirm_order.email:25
+msgctxt "Order confirmation e-mail table header"
+msgid "Shipping"
+msgstr "Vận chuyển"
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes (included)"
+msgstr "Thuế (đã tính)"
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr "Thuế"
+
+#: templates/templated_email/order/confirm_order.email:27
+#: templates/templated_email/order/staff_confirm_order.email:27
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/staff_confirm_order.email:28
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr "Tổng"
+
+#: templates/templated_email/order/confirm_order.email:30
+#: templates/templated_email/order/staff_confirm_order.email:30
+#: templates/templated_email/source/confirm_order.mjml:29
+#: templates/templated_email/source/staff_confirm_order.mjml:29
+msgctxt "Order confirmation e-mail billing address"
+msgid "Billing address"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:31
+#: templates/templated_email/order/staff_confirm_order.email:31
+#: templates/templated_email/source/confirm_order.mjml:39
+#: templates/templated_email/source/staff_confirm_order.mjml:39
+msgctxt "Order confirmation e-mail text"
+msgid "No billing address"
+msgstr "Không có địa chỉ thanh toán"
+
+#: templates/templated_email/order/confirm_order.email:33
+#: templates/templated_email/order/staff_confirm_order.email:33
+#: templates/templated_email/source/confirm_order.mjml:30
+#: templates/templated_email/source/staff_confirm_order.mjml:30
+msgctxt "Order confirmation e-mail shipping address"
+msgid "Shipping address"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:34
+#: templates/templated_email/order/staff_confirm_order.email:34
+#: templates/templated_email/source/confirm_order.mjml:46
+#: templates/templated_email/source/staff_confirm_order.mjml:46
+msgctxt "Order confirmation e-mail text"
+msgid "No shipping required"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:9
+msgctxt "Payment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your payment.\n"
+"Your payment was successfully charged.\n"
+msgstr ""
+
+#: templates/templated_email/order/staff_confirm_order.email:11
+msgctxt "Order confirmation staff e-mail text"
+msgid ""
+"\n"
+"Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment update email subject"
+msgid "Shipping update for order %(order)s"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:11
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:15
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid ""
+"You can track your shipment with the following code: %(tracking_number)s."
+msgstr ""
+
+#: templates/templated_email/shared/_footer.email:2
+#: templates/templated_email/source/shared/footer.mjml:4
 msgctxt "Base email text"
 msgid "This is an automatically generated e-mail, please do not reply."
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:317
-#: templates/templated_email/compiled/confirm.html:317
-#: templates/templated_email/compiled/confirm_fulfillment.html:424
-#: templates/templated_email/compiled/confirm_order.html:527
-#: templates/templated_email/compiled/confirm_payment.html:307
-#: templates/templated_email/compiled/email_changed_notification.html:307
-#: templates/templated_email/compiled/password_reset.html:317
-#: templates/templated_email/compiled/request_email_change.html:317
-#: templates/templated_email/compiled/set_customer_password.html:317
-#: templates/templated_email/compiled/set_password.html:317
-#: templates/templated_email/compiled/staff_confirm_order.html:527
-#: templates/templated_email/compiled/update_fulfillment.html:412
+#: templates/templated_email/shared/_footer.email:5
+#: templates/templated_email/source/shared/footer.mjml:13
 #, python-format
 msgctxt "Base email footer"
 msgid "Sincerely, %(site_name)s"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm.html:182
+#: templates/templated_email/shared/_header.email:2
+#: templates/templated_email/source/account_delete.mjml:13
+#: templates/templated_email/source/confirm.mjml:13
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+#: templates/templated_email/source/confirm_order.mjml:14
+#: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/email_changed_notification.mjml:13
+#: templates/templated_email/source/password_reset.mjml:13
+#: templates/templated_email/source/request_email_change.mjml:13
+#: templates/templated_email/source/set_customer_password.mjml:13
+#: templates/templated_email/source/set_password.mjml:13
+#: templates/templated_email/source/staff_confirm_order.mjml:14
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Standard e-mail greeting"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/account_delete.mjml:16
+#, python-format
+msgctxt "Account delete e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"deletion of your user account at %(domain)s.<br/> Click the link below to "
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
+msgstr ""
+
+#: templates/templated_email/source/confirm.mjml:16
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
@@ -119,2034 +344,153 @@ msgid ""
 "first. Please click the link below to do so and log into your account."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:182
+#: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:186
-#, python-format
-msgctxt "Fulfillment confirmation email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_fulfillment.html:198
+#: templates/templated_email/source/confirm_fulfillment.mjml:27
 msgctxt "Fulfillment digital products email text"
-msgid "You can download your digital products by clicking in download link(s)."
+msgid ""
+"You can download your digital products by clicking in download link(s)."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:183
+#: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit: <a href=\"%(order_details_url)s\">"
-"%(order_details_url)s</a>"
+"Thank you for your order. Below is the list of ordered products. To see your"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:255
-msgctxt "E-mail order lines summary table"
-msgid "Subtotal"
-msgstr "Tạm tính"
-
-#: templates/templated_email/compiled/confirm_order.html:263
-#: templates/templated_email/compiled/staff_confirm_order.html:263
-msgctxt "E-mail order lines summary table"
-msgid "Shipping"
-msgstr "Vận chuyển"
-
-#: templates/templated_email/compiled/confirm_order.html:272
-#: templates/templated_email/compiled/staff_confirm_order.html:272
-msgctxt "E-mail order lines summary table"
-msgid "Taxes (included)"
-msgstr "Thuế (đã tính)"
-
-#: templates/templated_email/compiled/confirm_order.html:274
-#: templates/templated_email/compiled/staff_confirm_order.html:274
-msgctxt "E-mail order lines summary table"
-msgid "Taxes"
-msgstr "Thuế"
-
-#: templates/templated_email/compiled/confirm_order.html:284
-#: templates/templated_email/compiled/staff_confirm_order.html:284
-msgctxt "E-mail order lines summary table"
-msgid "Discount"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:293
-#: templates/templated_email/compiled/staff_confirm_order.html:293
-msgctxt "E-mail order lines summary table"
-msgid "Total"
-msgstr "Tổng"
-
-#: templates/templated_email/compiled/confirm_order.html:302
-#: templates/templated_email/compiled/staff_confirm_order.html:302
-msgctxt "Ordered item name"
-msgid "Item"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:303
-#: templates/templated_email/compiled/staff_confirm_order.html:303
-msgctxt "Quantity ordered of a product"
-msgid "Quantity"
-msgstr "Số lượng"
-
-#: templates/templated_email/compiled/confirm_order.html:304
-#: templates/templated_email/compiled/staff_confirm_order.html:304
-msgctxt "Unit price of a product"
-msgid "Per unit"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:305
-#: templates/templated_email/compiled/staff_confirm_order.html:305
-msgctxt "Ordered item subtotal (unit price * quantity)"
-msgid "Subtotal"
-msgstr "Tạm tính"
-
-#: templates/templated_email/compiled/confirm_order.html:383
-#: templates/templated_email/compiled/staff_confirm_order.html:383
-msgctxt "Order confirmation e-mail billing address"
-msgid "Billing address"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:384
-#: templates/templated_email/compiled/staff_confirm_order.html:384
-msgctxt "Order confirmation e-mail shipping address"
-msgid "Shipping address"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:393
-#: templates/templated_email/compiled/staff_confirm_order.html:393
-msgctxt "Order confirmation e-mail text"
-msgid "No billing address"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:400
-#: templates/templated_email/compiled/staff_confirm_order.html:400
-msgctxt "Order confirmation e-mail text"
-msgid "No shipping required"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_payment.html:182
+#: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
 msgid "Thank you for your payment. Your payment was successfully charged."
 msgstr ""
 
-#: templates/templated_email/compiled/email_changed_notification.html:182
+#: templates/templated_email/source/email_changed_notification.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
-"for your user account at %(domain)s.<br> If you didn't request this change, "
-"please contact the administrator."
+"for your user account at %(domain)s.<br /> If you didn't request this "
+"change, please contact the administrator."
 msgstr ""
 
-#: templates/templated_email/compiled/password_reset.html:182
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:29
+#: templates/templated_email/source/partials/_order_lines.mjml:59
+msgctxt "Ordered item name"
+msgid "Item"
+msgstr ""
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
+#: templates/templated_email/source/partials/_order_lines.mjml:60
+msgctxt "Quantity ordered of a product"
+msgid "Quantity"
+msgstr "Số lượng"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
+msgctxt "Ordered item download links"
+msgid "Download Link"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:12
+msgctxt "E-mail order lines summary table"
+msgid "Subtotal"
+msgstr "Tạm tính"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:20
+msgctxt "E-mail order lines summary table"
+msgid "Shipping"
+msgstr "Vận chuyển"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:29
+msgctxt "E-mail order lines summary table"
+msgid "Taxes (included)"
+msgstr "Thuế (đã tính)"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:31
+msgctxt "E-mail order lines summary table"
+msgid "Taxes"
+msgstr "Thuế"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:41
+msgctxt "E-mail order lines summary table"
+msgid "Discount"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:50
+msgctxt "E-mail order lines summary table"
+msgid "Total"
+msgstr "Tổng"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:61
+msgctxt "Unit price of a product"
+msgid "Per unit"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:62
+msgctxt "Ordered item subtotal (unit price * quantity)"
+msgid "Subtotal"
+msgstr "Tạm tính"
+
+#: templates/templated_email/source/password_reset.mjml:16
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br> It can be safely ignored "
+"password for your user account at %(domain)s.<br/> It can be safely ignored "
 "if you did not request a password reset. Click the link below to reset your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/request_email_change.html:182
+#: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested an "
-"email change for your user account at %(domain)s.<br> It can be safely "
+"email change for your user account at %(domain)s.<br /> It can be safely "
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
 
-#: templates/templated_email/compiled/set_customer_password.html:182
+#: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your "
-"customer account at %(domain)s.<br> Click the link below to set up your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/set_password.html:182
+#: templates/templated_email/source/set_password.mjml:16
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
-"You're receiving this e-mail because you have to set password for your staff "
-"member account at %(domain)s.<br> Click the link below to set up your "
+"You're receiving this e-mail because you have to set password for your staff"
+" member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/staff_confirm_order.html:183
+#: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
-"Someone placed a new order in your store. To see order details please visit: "
-"<a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+"Someone placed a new order in your store. To see order details please visit:"
+" <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:182
+#: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number."
+"Your shipping status has been updated. Below is the list of ordered products"
+" that have been updated with new tracking number."
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:186
+#: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
 msgstr ""
-
-#~ msgctxt "Form field"
-#~ msgid "Email"
-#~ msgstr "Thư điện tử"
-
-#~ msgctxt "Password"
-#~ msgid "Password"
-#~ msgstr "Mật khẩu"
-
-#~ msgctxt "Email"
-#~ msgid "Email"
-#~ msgstr "Thư điện tử"
-
-#~ msgctxt "Registration error"
-#~ msgid "This email has already been registered."
-#~ msgstr "Email này đã được đăng ký."
-
-#~ msgctxt "Customer form: Given name field"
-#~ msgid "Given name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Customer form: Family name field"
-#~ msgid "Family name"
-#~ msgstr "Họ"
-
-#~ msgctxt "Address field"
-#~ msgid "Area"
-#~ msgstr "Vùng"
-
-#~ msgctxt "Address field"
-#~ msgid "County"
-#~ msgstr "Quận"
-
-#~ msgctxt "Address field"
-#~ msgid "Department"
-#~ msgstr "Bộ phận"
-
-#~ msgctxt "Address field"
-#~ msgid "District"
-#~ msgstr "Quận"
-
-#~ msgctxt "Address field"
-#~ msgid "Emirate"
-#~ msgstr "Tiểu vương quốc"
-
-#~ msgctxt "Address field"
-#~ msgid "Island"
-#~ msgstr "Đảo"
-
-#~ msgctxt "Address field"
-#~ msgid "Neighborhood"
-#~ msgstr "Khu vực lân cận"
-
-#~ msgctxt "Address field"
-#~ msgid "Postal code"
-#~ msgstr "Mã bưu điện"
-
-#~ msgctxt "Address field"
-#~ msgid "Prefecture"
-#~ msgstr "Quận"
-
-#~ msgctxt "Address field"
-#~ msgid "Province"
-#~ msgstr "Tỉnh"
-
-#~ msgctxt "Address field"
-#~ msgid "State"
-#~ msgstr "Tiểu bang"
-
-#~ msgctxt "Address field"
-#~ msgid "Suburb"
-#~ msgstr "Ngoại ô"
-
-#~ msgctxt "Address field"
-#~ msgid "Village/township"
-#~ msgstr "Làng/thị trấn"
-
-#~ msgctxt "Address field"
-#~ msgid "ZIP code"
-#~ msgstr "Mã bưu chính"
-
-#~ msgctxt "Country"
-#~ msgid "Country"
-#~ msgstr "Quốc gia"
-
-#~ msgctxt "Personal name"
-#~ msgid "Given name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Personal name"
-#~ msgid "Family name"
-#~ msgstr "Họ"
-
-#~ msgctxt "Company or organization"
-#~ msgid "Company or organization"
-#~ msgstr "Công ty hoặc tổ chức"
-
-#~ msgctxt "Address"
-#~ msgid "Address"
-#~ msgstr "Địa chỉ"
-
-#~ msgctxt "City"
-#~ msgid "City"
-#~ msgstr "Thành phố"
-
-#~ msgctxt "City area"
-#~ msgid "District"
-#~ msgstr "Quận"
-
-#~ msgctxt "Postal code"
-#~ msgid "Postal code"
-#~ msgstr "Mã bưu chính"
-
-#~ msgctxt "Country area"
-#~ msgid "State or province"
-#~ msgstr "Tỉnh thành"
-
-#~ msgctxt "Phone number"
-#~ msgid "Phone number"
-#~ msgstr "Số điện thoại"
-
-#~ msgctxt "Address"
-#~ msgid "Street address, P.O. box, company name"
-#~ msgstr "Địa chỉ, hộp thư P.O, tên công ty"
-
-#~ msgctxt "Address"
-#~ msgid "Apartment, suite, unit, building, floor, etc"
-#~ msgstr "Căn hộ, suite, đơn vị, tòa nhà, tầng, ..."
-
-#~ msgctxt "Address form"
-#~ msgid "This value is invalid for selected country"
-#~ msgstr "Giá trị này không hợp lệ cho quốc gia đã chọn"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage customers."
-#~ msgstr "Quản lý khách hàng."
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage staff."
-#~ msgstr "Quản lý nhân viên."
-
-#~ msgid "The phone number entered is not valid."
-#~ msgstr "Số điện thoại đã nhập không hợp lệ."
-
-#~ msgid "You have been successfully logged out."
-#~ msgstr "Bạn đã đăng xuất thành công."
-
-#~ msgid "User has been created"
-#~ msgstr "Người dùng đã được tạo"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Password successfully changed."
-#~ msgstr "Mật khẩu đã được thay đổi thành công."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Account successfully updated."
-#~ msgstr "Tài khoản cập nhập thành công"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully updated."
-#~ msgstr "Đã cập nhật thành công địa chỉ."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully removed"
-#~ msgstr "Đã xóa địa chỉ thành công"
-
-#~ msgctxt "Storefront message, when user requested his account removed"
-#~ msgid "Please check your inbox for a confirmation e-mail."
-#~ msgstr "Vui lòng kiểm tra hộp thư đến của bạn cho một email xác nhận."
-
-#~ msgctxt "Account deleted"
-#~ msgid ""
-#~ "Your account was deleted successfully. In case of any trouble or "
-#~ "questions feel free to contact us."
-#~ msgstr ""
-#~ "Tài khoản của bạn đã được xóa thành công. Trong trường hợp có rắc rối hay "
-#~ "câu hỏi hãy liên hệ với chúng tôi."
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Billing"
-#~ msgstr "Thanh toán"
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Shipping"
-#~ msgstr "Vận chuyển"
-
-#~ msgctxt "Add to checkout form field label"
-#~ msgid "Quantity"
-#~ msgstr "Số lượng"
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently not available."
-#~ msgstr "Xin thứ lỗi. Sản phẩm này hiện chưa có."
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently out of stock."
-#~ msgstr "Xin thứ lỗi. Sản phẩm này đang hết hàng."
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Oops. We could not find that product."
-#~ msgstr "Oops. Chúng tôi không tìm thấy sản phẩm."
-
-#~ msgctxt "Country form field label"
-#~ msgid "Country"
-#~ msgstr "Quốc gia"
-
-#~ msgctxt "Address form field label"
-#~ msgid "Email"
-#~ msgstr "Thư điện tử"
-
-#~ msgctxt "Shipping addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Nhập địa chỉ mới"
-
-#~ msgctxt "Shipping addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Địa chỉ"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "Nhập địa chỉ mới"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Same as shipping"
-#~ msgstr "Tương tự vận chuyển"
-
-#~ msgctxt "Billing addresses form field label"
-#~ msgid "Address"
-#~ msgstr "Địa chỉ"
-
-#~ msgctxt "Shipping method form field label"
-#~ msgid "Shipping method"
-#~ msgstr "Phương thức vận chuyển"
-
-#~ msgctxt "Voucher form error"
-#~ msgid "Discount code incorrect or expired"
-#~ msgstr "Mã giảm giá không chính xác hoặc đã hết hạn"
-
-#~ msgctxt "Checkout discount form label for voucher field"
-#~ msgid "Gift card or discount code"
-#~ msgstr "Thẻ quà tặng hoặc mã giảm giá"
-
-#~ msgctxt "Checkout warning message"
-#~ msgid ""
-#~ "Sorry. We don't have that many items in stock. Quantity was set to "
-#~ "maximum available for now."
-#~ msgstr ""
-#~ "Lấy làm tiếc. Chúng tôi không có nhiều mặt hàng trong kho. Số lượng được "
-#~ "đặt ở mức tối đa có sẵn ngay bây giờ."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Your order does not require shipping."
-#~ msgstr " Đơn đặt hàng của bạn không yêu cầu giao hàng."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Please select a shipping method first."
-#~ msgstr "Vui lòng chọn phương thức giao hàng trước."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is not valid in your country."
-#~ msgstr "Ưu đãi này không hợp lệ ở quốc gia của bạn."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for selected items."
-#~ msgstr "Phiếu mua hàng này chỉ hợp lệ cho các mục đã chọn."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Voucher expired in meantime. Order placement aborted."
-#~ msgstr ""
-#~ "Voucher hết hạn trong thời gian chờ đợi. Đã hủy vị trí đơn đặt hàng."
-
-#~ msgctxt "Checkout warning"
-#~ msgid "This voucher has expired. Please review your checkout."
-#~ msgstr "Phiếu giảm giá này đã hết hạn. Vui lòng xem lại thanh toán của bạn."
-
-#~ msgctxt "Checkout warning"
-#~ msgid "Please review your checkout."
-#~ msgstr "Vui lòng xem lại thanh toán của bạn."
-
-#~ msgctxt "Country choice"
-#~ msgid "Any Country"
-#~ msgstr "Bất kỳ quốc gia nào"
-
-#~ msgctxt "Impersonation message"
-#~ msgid "You are now logged as {}"
-#~ msgstr "Bạn đang đăng nhập là {}"
-
-#~ msgctxt "Discount type"
-#~ msgid "%"
-#~ msgstr "%"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific products"
-#~ msgstr "Sản phẩm cụ thể"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific collections of products"
-#~ msgstr "Bộ sưu tập sản phẩm cụ thể"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific categories of products"
-#~ msgstr "Danh mục sản phẩm cụ thể"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Shipping"
-#~ msgstr "Vận chuyển"
-
-#~ msgctxt "Voucher type"
-#~ msgid "Free shipping"
-#~ msgstr "Miễn phí vận chuyển"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off shipping"
-#~ msgstr "Giảm %(discount)sphí vận chuyển"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off %(product_num)d products"
-#~ msgstr "%(discount)s off %(product_num)dsản phẩm"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off %(collections_num)d collections"
-#~ msgstr "%(discount)s off %(collections_num)d bộ sưu tập"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off %(categories_num)d categories"
-#~ msgstr "%(discount)s off %(categories_num)d danh mục"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off"
-#~ msgstr "%(discount)s off"
-
-#, python-format
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for orders over %(amount)s."
-#~ msgstr "Ưu đãi này chỉ có với các đơn hàng trên %(amount)s."
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage sales and vouchers."
-#~ msgstr "Quản lý bán hàng và chứng từ."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Discount not applicable for this product"
-#~ msgstr "Giảm giá không áp dụng cho sản phẩm này"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "advertising"
-#~ msgstr "quảng cáo"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "hotels"
-#~ msgstr "Khách sạn"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "medical"
-#~ msgstr "Y tế"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "restaurants"
-#~ msgstr "Nhà hàng"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "standard"
-#~ msgstr "Tiêu chuẩn"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "water"
-#~ msgstr "Nước"
-
-#~ msgctxt "Cancel fulfillment mutation error"
-#~ msgid "This fulfillment can't be canceled"
-#~ msgstr "Không thể hủy quá trình thực hiện này"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage navigation."
-#~ msgstr "Quản lý điều hướng."
-
-#~ msgctxt "Link object type description"
-#~ msgid "Category: "
-#~ msgstr "Danh mục:"
-
-#~ msgctxt "Link object type description"
-#~ msgid "Collection: "
-#~ msgstr "Bộ sưu tập:"
-
-#~ msgctxt "Link object type description"
-#~ msgid "Page: "
-#~ msgstr "Trang:"
-
-#~ msgctxt "Status for an order with no items marked as fulfilled"
-#~ msgid "Unfulfilled"
-#~ msgstr "Chưa hoàn thành"
-
-#~ msgctxt "Status for an order with some items marked as fulfilled"
-#~ msgid "Partially fulfilled"
-#~ msgstr "Đã hoàn thành một phần"
-
-#~ msgctxt "Status for an order with all items marked as fulfilled"
-#~ msgid "Fulfilled"
-#~ msgstr "Đã hoàn thành"
-
-#~ msgctxt "Status for a permanently canceled order"
-#~ msgid "Canceled"
-#~ msgstr "Đã hủy"
-
-#~ msgctxt "Status for a group of products in an order marked as fulfilled"
-#~ msgid "Fulfilled"
-#~ msgstr "Đã hoàn thành"
-
-#~ msgctxt ""
-#~ "Status for a fulfilled group of products in an order marked as canceled"
-#~ msgid "Canceled"
-#~ msgstr "Đã hủy"
-
-#~ msgctxt "Payments form label"
-#~ msgid "Payment Method"
-#~ msgstr "Phương thức thanh toán"
-
-#~ msgctxt "Payment delete form error"
-#~ msgid "Payment does not exist"
-#~ msgstr "Thanh toán không tồn tại"
-
-#~ msgctxt "Payment delete form error"
-#~ msgid "Payment cannot be cancelled."
-#~ msgstr "Thanh toán không thể bị hủy"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage orders."
-#~ msgstr "Quản lý đơn hàng."
-
-#~ msgctxt "Connect order with user warning message"
-#~ msgid ""
-#~ "We couldn't assign the order to your account as the email addresses don't "
-#~ "match"
-#~ msgstr ""
-#~ "Chúng tôi không thể chỉ định đơn đặt hàng cho tài khoản của bạn vì địa "
-#~ "chỉ email không khớp"
-
-#~ msgctxt "storefront message"
-#~ msgid "The order is now assigned to your account"
-#~ msgstr " Đơn đặt hàng hiện được chỉ định cho tài khoản của bạn"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage pages."
-#~ msgstr "Quản lý trang."
-
-#~ msgctxt "Custom payment choice type"
-#~ msgid "Manual"
-#~ msgstr "Hướng dẫn"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Authorization"
-#~ msgstr "Ủy quyền"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Refund"
-#~ msgstr "Hoàn tiền"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Capture"
-#~ msgstr "Chụp"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Void"
-#~ msgstr "Trống"
-
-#~ msgctxt "payment status"
-#~ msgid "Not charged"
-#~ msgstr "Chưa thanh toán"
-
-#~ msgctxt "payment status"
-#~ msgid "Partially charged"
-#~ msgstr "Thanh toán một phần"
-
-#~ msgctxt "payment status"
-#~ msgid "Fully charged"
-#~ msgstr "Thanh toán hết"
-
-#~ msgctxt "payment status"
-#~ msgid "Partially refunded"
-#~ msgstr "Hoàn tiền một phần"
-
-#~ msgctxt "payment status"
-#~ msgid "Fully refunded"
-#~ msgstr "Hoàn tiền hết"
-
-#~ msgctxt "payment error"
-#~ msgid "Unable to process transaction. Please try again in a moment"
-#~ msgstr "Không thể thực hiện giao dịch. Thử lại trong giây lát"
-
-#~ msgctxt "Payment status form field"
-#~ msgid "Payment status"
-#~ msgstr "Tình trạng thanh toán"
-
-#~ msgctxt "Razorpay payment error"
-#~ msgid "Order was not charged."
-#~ msgstr "Đơn hàng chưa được thanh toán"
-
-#~ msgctxt "Razorpay payment error"
-#~ msgid "The payment data was invalid."
-#~ msgstr "Dữ liệu thanh toán không chính xác"
-
-#~ msgctxt "Razorpay payment error"
-#~ msgid "The order couldn't be proceeded."
-#~ msgstr "Đơn đặt hàng không thể thực hiện"
-
-#, python-format
-#~ msgctxt "Razorpay payment error"
-#~ msgid "The %(currency)s currency is not supported."
-#~ msgstr "Chưa hỗ trợ đồng %(currency)s"
-
-#~ msgctxt "Razorpay payment gateway primary button"
-#~ msgid "Pay now with Razorpay"
-#~ msgstr "Thanh toán ngay với Razorpay"
-
-#~ msgctxt "Razorpay payment gateway secondary title"
-#~ msgid "Total payment"
-#~ msgstr "Thanh toán tổng cộng"
-
-#~ msgctxt "Stripe payment error"
-#~ msgid "Order was not authorized."
-#~ msgstr "Đơn đặt hàng chưa được cấp phép"
-
-#~ msgctxt "Stripe payment error"
-#~ msgid "Order was not charged."
-#~ msgstr "Đơn đặt hàng chưa thanh toán"
-
-#~ msgctxt "Stripe payment gateway description"
-#~ msgid "Total payment"
-#~ msgstr "Thanh toán tổng cộng"
-
-#~ msgctxt "Mark order as paid validation error"
-#~ msgid "Orders with payments can not be manually marked as paid."
-#~ msgstr "Đơn đặc hàng với hóa đơn không thể được đánh dấu đã trả bằng tay"
-
-#~ msgctxt "Product status"
-#~ msgid "not published"
-#~ msgstr "Chưa xuất bản"
-
-#~ msgctxt "Product status"
-#~ msgid "variants missing"
-#~ msgstr "thiếu biến thể"
-
-#~ msgctxt "Product status"
-#~ msgid "out of stock"
-#~ msgstr "Hết hàng"
-
-#~ msgctxt "Product status"
-#~ msgid "stock running low"
-#~ msgstr "sắp hết hàng"
-
-#~ msgctxt "Product status"
-#~ msgid "not yet available"
-#~ msgstr "chưa có sẵn"
-
-#~ msgctxt "Product status"
-#~ msgid "ready for purchase"
-#~ msgstr " sẵn sàng mua"
-
-#~ msgctxt "Variant status"
-#~ msgid "available"
-#~ msgstr "có thể dùng"
-
-#~ msgctxt "Variant status"
-#~ msgid "out of stock"
-#~ msgstr "Hết hàng"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "name"
-#~ msgstr "tên"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "price"
-#~ msgstr "Giá"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "last updated"
-#~ msgstr "Cập nhật mới nhất"
-
-#~ msgctxt "Product list sorting form"
-#~ msgid "Sort by"
-#~ msgstr "Sắp xếp theo"
-
-#~ msgctxt "Currency amount"
-#~ msgid "Price"
-#~ msgstr "Giá"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage products."
-#~ msgstr "Quản lý sản phẩm"
-
-#~ msgctxt "File as a digital product"
-#~ msgid "digital_product"
-#~ msgstr "sản phẩm số"
-
-#~ msgctxt "Search form label"
-#~ msgid "Query"
-#~ msgstr "Truy vấn"
-
-#~ msgctxt "Type of shipping"
-#~ msgid "Price based shipping"
-#~ msgstr "Giá vận chuyển"
-
-#~ msgctxt "Type of shipping"
-#~ msgid "Weight based shipping"
-#~ msgstr "Giá theo khối lượng"
-
-#, python-format
-#~ msgctxt "Applies to orders more expensive than the min value"
-#~ msgid "%(min_price)s and up"
-#~ msgstr "%(min_price)s hoặc lớn hơn"
-
-#, python-format
-#~ msgctxt "Applies to order valued within this price range"
-#~ msgid "%(min_price)s to %(max_price)s"
-#~ msgstr "%(min_price)s đến %(max_price)s"
-
-#, python-format
-#~ msgctxt "Applies to orders heavier than the threshold"
-#~ msgid "%(min_weight)s and up"
-#~ msgstr "%(min_weight)s hoặc lớn hơn"
-
-#, python-format
-#~ msgctxt "Applies to orders of total weight within this range"
-#~ msgid "%(min_weight)s to %(max_weight)s"
-#~ msgstr "%(min_weight)s đến %(max_weight)s"
-
-#, python-format
-#~ msgctxt "Number of countries shipping zone apply to"
-#~ msgid "%(num_of_countries)d countries"
-#~ msgstr "%(num_of_countries)d quốc gia"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage shipping."
-#~ msgstr "Quản lý vận chuyển"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage settings."
-#~ msgstr "Quản lý hệ thống"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage translations."
-#~ msgstr "Quản lý ngôn ngữ"
-
-#~ msgctxt "Eror page not found"
-#~ msgid "Page not found"
-#~ msgstr "Trang không tìm thấy"
-
-#~ msgctxt "Change language modal title"
-#~ msgid "Select language"
-#~ msgstr "Chọn ngôn ngữ"
-
-#~ msgctxt "Change language action button"
-#~ msgid "Change"
-#~ msgstr "Thay đổi"
-
-#~ msgctxt "Account deletetion confirmation page title"
-#~ msgid "Are you sure?"
-#~ msgstr "Bạn có chắc chắn không?"
-
-#~ msgctxt ""
-#~ "Message displayed to the user requesting for his account deletetion"
-#~ msgid "Sorry to see you go!"
-#~ msgstr "Rất tiếc!"
-
-#~ msgctxt ""
-#~ "Message displayed to the user requesting for his account deletetion"
-#~ msgid "Are you sure you want to delete your account?"
-#~ msgstr "Bạn có chắc chắn muốn xóa tài khoản"
-
-#~ msgctxt "Confirm account deletion button"
-#~ msgid "Delete account"
-#~ msgstr "Xóa tài khoản"
-
-#~ msgctxt "Remove address form action"
-#~ msgid "Remove Address"
-#~ msgstr "Xóa địa chỉ"
-
-#~ msgctxt "Remove address form action"
-#~ msgid "Cancel"
-#~ msgstr "Hủy"
-
-#~ msgctxt "Edit address page title"
-#~ msgid "Edit address"
-#~ msgstr "Thay đổi địa chỉ"
-
-#~ msgctxt "New address page title"
-#~ msgid "New address"
-#~ msgstr "Địa chỉ mới"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Home"
-#~ msgstr "Trang chủ"
-
-#~ msgctxt "Edit/new address breadcrumb"
-#~ msgid "Your profile"
-#~ msgstr "Hồ sơ của bạn"
-
-#~ msgctxt "Edit address breadcrumb"
-#~ msgid "Edit address"
-#~ msgstr "Thay đổi địa chỉ"
-
-#~ msgctxt "New address breadcrumb"
-#~ msgid "New address"
-#~ msgstr "Địa chỉ mới"
-
-#~ msgctxt "Edit address title"
-#~ msgid "Edit address"
-#~ msgstr "Thay đổi địa chỉ"
-
-#~ msgctxt "New address title"
-#~ msgid "New address"
-#~ msgstr "Địa chỉ mới"
-
-#~ msgctxt "Edit/new address primary action"
-#~ msgid "Save changes"
-#~ msgstr "Lưu địa chỉ"
-
-#~ msgctxt "User profile page title"
-#~ msgid "Your profile"
-#~ msgstr "Hồ sơ của bạn"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your account"
-#~ msgstr "Trang cá nhân"
-
-#~ msgid "My account"
-#~ msgstr "Trang cá nhân"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Recent Orders"
-#~ msgstr "Đơn hàng gần đây"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Change password"
-#~ msgstr "Đổi mật khẩu"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Settings"
-#~ msgstr "Cài đặt"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order"
-#~ msgstr "Đơn đặt hàng"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Date"
-#~ msgstr "Ngày"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Summary"
-#~ msgstr "Tóm tắt"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Payment status"
-#~ msgstr "Tình trạng thanh toán"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order status"
-#~ msgstr "Tình trạng đặt hàng"
-
-#~ msgctxt "Recent orders link text"
-#~ msgid "Details"
-#~ msgstr "Chi tiết"
-
-#~ msgctxt "No recent orders text"
-#~ msgid "There are not any completed orders yet."
-#~ msgstr "Chưa có đơn hàng nào."
-
-#~ msgctxt "User profile action"
-#~ msgid "Change password"
-#~ msgstr "Đổi mật khẩu"
-
-#~ msgctxt "User profile settings"
-#~ msgid "Personal Data"
-#~ msgstr "Dữ liệu cá nhân"
-
-#~ msgctxt "User profile action"
-#~ msgid "Update"
-#~ msgstr "Cập nhập"
-
-#~ msgctxt "List of adresses in contact details"
-#~ msgid "Addresses"
-#~ msgstr "Địa chỉ"
-
-#~ msgctxt "User address action"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "No addresses text"
-#~ msgid "You will see new addresses here after first successful checkout."
-#~ msgstr "Bạn sẽ thấy địa chỉ mới sau khi đơn hàng đầu tiên thành công"
-
-#~ msgctxt "Message informing about the process of account removal"
-#~ msgid ""
-#~ "\n"
-#~ "                  If you'd like to remove your account, please click on "
-#~ "the button below and a confirmation email will be sent to you.\n"
-#~ "                "
-#~ msgstr ""
-#~ "\n"
-#~ "                  Nếu bạn muốn xoá tài khoản, vui lòng nhấn vào nút dưới "
-#~ "đây, sau đó bạn sẽ nhận được một email xác nhận thao tác này.\n"
-#~ "                "
-
-#~ msgctxt "Remove account form action"
-#~ msgid "Remove Account"
-#~ msgstr "Xoá tài khoản"
-
-#~ msgctxt "Login page title"
-#~ msgid "Log in"
-#~ msgstr "Đăng nhập"
-
-#~ msgctxt "Login form secondary title"
-#~ msgid "Don't have an account yet?"
-#~ msgstr "Bạn chưa có tài khoản ?"
-
-#~ msgctxt "Login form secondary action"
-#~ msgid "Register"
-#~ msgstr "Tạo tài khoản"
-
-#~ msgctxt "Login form title"
-#~ msgid "Log in"
-#~ msgstr "Đăng nhập"
-
-#, python-format
-#~ msgctxt "Already logged in warning message"
-#~ msgid "You are already logged in as %(user)s."
-#~ msgstr "Bạn đã đăng nhập với %(user)s."
-
-#~ msgctxt "Login form primary action"
-#~ msgid "Log in"
-#~ msgstr "Đăng nhập"
-
-#~ msgctxt "Login form secondary link"
-#~ msgid "Forgot password?"
-#~ msgstr "Quên mật khẩu ?"
-
-#~ msgctxt "Password change breadcrumb"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Password change form legend"
-#~ msgid "Change Password"
-#~ msgstr "Đổi mật khẩu"
-
-#~ msgctxt "Password change form primary action"
-#~ msgid "Save new password"
-#~ msgstr "Lưu mật khẩu mới"
-
-#~ msgctxt "Password reset page title"
-#~ msgid "Password reset"
-#~ msgstr "Thay đổi mật khẩu"
-
-#~ msgctxt "Password reset form title"
-#~ msgid "Forgot your password?"
-#~ msgstr "Quên mật khẩu ?"
-
-#~ msgctxt "Password reset form help text"
-#~ msgid ""
-#~ "Please let us know the email you have used to register or purchase at our "
-#~ "store."
-#~ msgstr ""
-#~ "Vui lòng cho chúng tôi biết email bạn đã dùng để đăng ký hoặc mua hàng "
-#~ "tại cửa hàng của chúng tôi."
-
-#~ msgctxt "Password reset primary action"
-#~ msgid "Continue"
-#~ msgstr "Tiếp tục"
-
-#~ msgctxt "Password reset done page title"
-#~ msgid "Password Reset"
-#~ msgstr "Thay đổi mật khẩu"
-
-#~ msgctxt "Password reset done title"
-#~ msgid "Password Reset"
-#~ msgstr "Thay đổi mật khẩu"
-
-#~ msgctxt "Password reset done text"
-#~ msgid ""
-#~ "We have sent you an e-mail. Please contact us if you do not receive it "
-#~ "within a few minutes."
-#~ msgstr ""
-#~ "Chúng tôi đã gửi cho bạn một email. Vui lòng liên hệ với chúng tôi nếu "
-#~ "bạn không nhận được nó trong vòng vài phút tới."
-
-#~ msgctxt "Password reset from key page title"
-#~ msgid "Change Password"
-#~ msgstr "Đổi mật khẩu"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Password Reset"
-#~ msgstr "Thay đổi mật khẩu"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Now you can set new password for you account."
-#~ msgstr "Bạn có thể đặt mật khẩu mới"
-
-#~ msgctxt "Password reset from key form primary action"
-#~ msgid "Continue"
-#~ msgstr "Tiếp tục"
-
-#~ msgctxt "Password reset link expired from key form title"
-#~ msgid "Password Reset Link Expired"
-#~ msgstr "Đường dẫn thay đổi mật khẩu hết hạn"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid ""
-#~ "Sorry but this link is no longer valid. If you forget your password, "
-#~ "please use link below."
-#~ msgstr ""
-#~ "Đường dẫn này không còn hiệu lực. Nếu bạn muốn thay đổi mật khẩu, hãy "
-#~ "dùng đường dẫn dưới đây."
-
-#~ msgctxt "Reset my password link"
-#~ msgid "Reset my password"
-#~ msgstr "Thay đổi mật khẩu"
-
-#~ msgctxt "Password reset from key done page title"
-#~ msgid "Password Changed"
-#~ msgstr "Mật khẩu đã thay đổi"
-
-#~ msgctxt "Password reset from key done title"
-#~ msgid "Password Changed"
-#~ msgstr "Mật khẩu đã thay đổi"
-
-#~ msgid "Your password is now changed."
-#~ msgstr "Mật khẩu của bạn đã được đổi"
-
-#, python-format
-#~ msgctxt "Password reset from key done text"
-#~ msgid ""
-#~ "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
-#~ msgstr "Bạn có thể <a href=\"%(login_url)s\">đăng nhập</a> với mật khẩu mới"
-
-#~ msgctxt "Signup page title"
-#~ msgid "Sign Up"
-#~ msgstr "Đăng ký"
-
-#~ msgctxt "Signup form secondary title"
-#~ msgid "Already have an account?"
-#~ msgstr "Bạn đã có tài khoản ?"
-
-#~ msgctxt "Signup form secondary action"
-#~ msgid "Log in"
-#~ msgstr "Đăng nhập"
-
-#~ msgctxt "Signup form title"
-#~ msgid "Create an account"
-#~ msgstr "Tạo tài khoản mới"
-
-#~ msgctxt "Signup form primary action"
-#~ msgid "Create an account"
-#~ msgstr "Tạo tài khoản mới"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Dashboard"
-#~ msgstr "Trang quản trị"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log out"
-#~ msgstr "Đăng xuất"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Register"
-#~ msgstr "Đăng ký"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log in"
-#~ msgstr "Đăng nhập"
-
-#~ msgid "Search for product"
-#~ msgstr "Tìm kiếm sản phẩm"
-
-#~ msgid "Search"
-#~ msgstr "Tìm kiếm"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your cart"
-#~ msgstr "Giỏ hàng"
-
-#~ msgid "Account"
-#~ msgstr "Tài khoản"
-
-#~ msgctxt "Category breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "Trang chủ"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Subtotal"
-#~ msgstr "Tạm tính"
-
-#~ msgctxt "Checkout shipping cost form"
-#~ msgid "Shipping cost for:"
-#~ msgstr "Phí vận chuyển cho:"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Total"
-#~ msgstr "Tổng"
-
-#~ msgctxt "Checkout summary text"
-#~ msgid "Shipment and taxes calculated at checkout"
-#~ msgstr "Phí vận chuyển và thuế sẽ được tính lúc thanh toán"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Checkout"
-#~ msgstr "Thanh toán"
-
-#~ msgctxt "Checkout top message"
-#~ msgid "Easy and secure!"
-#~ msgstr "Đơn giản và bảo mật!"
-
-#~ msgctxt "Checkout title"
-#~ msgid "Checkout"
-#~ msgstr "Thanh toán"
-
-#~ msgctxt "Order review title"
-#~ msgid "Order review"
-#~ msgstr "Kiểm tra đơn hàng"
-
-#~ msgctxt "Order review section"
-#~ msgid "Subtotal"
-#~ msgstr "Tạm tính"
-
-#~ msgctxt "Order review section"
-#~ msgid "Shipment"
-#~ msgstr "Vận chuyển"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Taxes (included)"
-#~ msgstr "Thuế (đã tính)"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Taxes"
-#~ msgstr "Thuế"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Promo code"
-#~ msgstr "Mã khuyến mãi"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Total"
-#~ msgstr "Tổng"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Your cart"
-#~ msgstr "Giỏ hàng"
-
-#~ msgctxt "Checkout breadcrumb"
-#~ msgid "Cart"
-#~ msgstr "Giỏ hàng"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Product"
-#~ msgstr "Sản phẩm"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Quantity"
-#~ msgstr "Số lượng"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Price"
-#~ msgstr "Giá"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Checkout"
-#~ msgstr "Thanh toán"
-
-#~ msgctxt "Empty checkout message"
-#~ msgid "There are no products in your shopping cart."
-#~ msgstr "Không có sản phẩm nào trong giỏ."
-
-#~ msgctxt "Checkout login page new users action"
-#~ msgid "Continue"
-#~ msgstr "Tiếp tục"
-
-#~ msgctxt "Checkout shipping address primary action"
-#~ msgid "Continue"
-#~ msgstr "Tiếp tục"
-
-#~ msgctxt "Checkout shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Phương thức vận chuyển"
-
-#~ msgctxt "Checkout shipping method primary action"
-#~ msgid "Continue"
-#~ msgstr "Tiếp tục"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Same as shipping"
-#~ msgstr "Tương tự vận chuyển"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Enter a new address"
-#~ msgstr "Nhập địa chỉ mới"
-
-#~ msgctxt "Checkout dropdown text"
-#~ msgid "Shipment and taxes calculated at checkout"
-#~ msgstr "Phí vận chuyển và thuế sẽ được tính lúc thanh toán"
-
-#~ msgctxt "Checkout dropdown secondary action"
-#~ msgid "Go to cart"
-#~ msgstr "Xem giỏ hàng"
-
-#~ msgctxt "Checkout dropdown primary action"
-#~ msgid "Checkout"
-#~ msgstr "Thanh toán"
-
-#~ msgctxt "Site breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "Trang chủ"
-
-#, python-format
-#~ msgctxt "Dashboard default page title"
-#~ msgid "Dashboard - %(site_name)s"
-#~ msgstr "Trang quản trị - %(site_name)s"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Log out"
-#~ msgstr "Đăng xuất"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search"
-#~ msgstr "Tìm kiếm"
-
-#~ msgctxt "Dashboard homepage"
-#~ msgid "Home"
-#~ msgstr "Trang chủ"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Products"
-#~ msgstr "Sản phẩm"
-
-#~ msgctxt "Dashboard categories list"
-#~ msgid "Categories"
-#~ msgstr "Thư mục"
-
-#~ msgctxt "Dashboard side navigation link"
-#~ msgid "Collections"
-#~ msgstr "Bộ sưu tập"
-
-#~ msgctxt "Dashboard shipping zones list"
-#~ msgid "Shipping"
-#~ msgstr "Vận chuyển"
-
-#~ msgctxt "Dashboard taxes"
-#~ msgid "Taxes"
-#~ msgstr "Thuế"
-
-#~ msgctxt "Dashboard cancel action"
-#~ msgid "Cancel"
-#~ msgstr "Hủy"
-
-#~ msgctxt "Category list page title"
-#~ msgid "Categories"
-#~ msgstr "Thư mục"
-
-#~ msgctxt "Category field"
-#~ msgid "Description"
-#~ msgstr "Mô tả"
-
-#~ msgctxt "Category list table header name"
-#~ msgid "Name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Category list table header description"
-#~ msgid "Description"
-#~ msgstr "Mô tả"
-
-#~ msgctxt "Category edit action"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Update"
-#~ msgstr "Cập nhập"
-
-#~ msgid "Collections"
-#~ msgstr "Bộ sưu tập"
-
-#~ msgctxt "Collection secondary action"
-#~ msgid "Cancel"
-#~ msgstr "Hủy"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Update"
-#~ msgstr "Cập nhập"
-
-#~ msgctxt "Collection field"
-#~ msgid "Published"
-#~ msgstr "Xuất bản"
-
-#~ msgctxt "Collections list page title "
-#~ msgid "Collections"
-#~ msgstr "Bộ sưu tập"
-
-#~ msgctxt "Collections list table header name"
-#~ msgid "Name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Customer field"
-#~ msgid "Note"
-#~ msgstr "Ghi chú"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Placed on"
-#~ msgstr "Nơi giao"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Order status"
-#~ msgstr "Tình trạng đặt hàng"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Total"
-#~ msgstr "Tổng"
-
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer"
-#~ msgstr "Khách hàng"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Email"
-#~ msgstr "Thư điện tử"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Location"
-#~ msgstr "Địa điểm"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Start date"
-#~ msgstr "Ngày bắt đầu"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "End date"
-#~ msgstr "Ngày kết thúc"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Start date"
-#~ msgstr "Ngày bắt đầu"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "End date"
-#~ msgstr "Ngày kết thúc"
-
-#~ msgctxt "Collection availability status"
-#~ msgid "Published"
-#~ msgstr "Xuất bản"
-
-#~ msgctxt "Category page filters"
-#~ msgid "Clear"
-#~ msgstr "Xóa"
-
-#~ msgctxt "Menu items list table header name"
-#~ msgid "Name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Menu items list table header points to"
-#~ msgid "Points to"
-#~ msgstr "Chuyển đến"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Published"
-#~ msgstr "Đã xuất bản"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Not published"
-#~ msgstr "Chưa xuất bản"
-
-#~ msgctxt "Menu item edit action"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Page availability status"
-#~ msgid "Published"
-#~ msgstr "Xuất bản"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Placed on"
-#~ msgstr "Nơi giao"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Customer"
-#~ msgstr "Khách hàng"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Payment status"
-#~ msgstr "Tình trạng thanh toán"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Order status"
-#~ msgstr "Tình trạng đặt hàng"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Total"
-#~ msgstr "Tổng"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Order"
-#~ msgstr "Đơn đặt hàng"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Date"
-#~ msgstr "Ngày"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Customer"
-#~ msgstr "Khách hàng"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Amount"
-#~ msgstr "Số tiền"
-
-#~ msgctxt "Menu item field"
-#~ msgid "Points to"
-#~ msgstr "Chuyển đến"
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Menu list table header Menu name"
-#~ msgid "Menu name"
-#~ msgstr "Tên menu"
-
-#~ msgctxt ""
-#~ msgid "Edit address"
-#~ msgstr "Thay đổi địa chỉ"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Details"
-#~ msgstr "Chi tiết"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Capture"
-#~ msgstr "Chụp"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Refund"
-#~ msgstr "Hoàn tiền"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Void"
-#~ msgstr "Trống"
-
-#~ msgctxt "Order details summary header"
-#~ msgid "Customer"
-#~ msgstr "Khách hàng"
-
-#~ msgctxt "Dashboard edit action"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Order placed on date"
-#~ msgid "Placed on"
-#~ msgstr "Nơi giao"
-
-#~ msgctxt "Order table header"
-#~ msgid "Price"
-#~ msgstr "Giá"
-
-#~ msgctxt "Order table header"
-#~ msgid "Quantity"
-#~ msgstr "Số lượng"
-
-#~ msgctxt "Order table header"
-#~ msgid "Total"
-#~ msgstr "Tổng"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Shipping"
-#~ msgstr "Vận chuyển"
-
-#~ msgctxt "Order total taxes"
-#~ msgid "Taxes (included)"
-#~ msgstr "Thuế (đã tính)"
-
-#~ msgctxt "Order total taxes"
-#~ msgid "Taxes"
-#~ msgstr "Thuế"
-
-#~ msgctxt "Fulfillment summary card action"
-#~ msgid "Cancel"
-#~ msgstr "Hủy"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Date"
-#~ msgstr "Ngày"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Payment status"
-#~ msgstr "Tình trạng thanh toán"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Amount"
-#~ msgstr "Số tiền"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Quantity"
-#~ msgstr "Số lượng"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Price"
-#~ msgstr "Giá"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Total"
-#~ msgstr "Tổng"
-
-#~ msgctxt "Modal capture payment primary action"
-#~ msgid "Capture"
-#~ msgstr "Chụp"
-
-#~ msgctxt "Modal edit customer primary action"
-#~ msgid "Update"
-#~ msgstr "Cập nhập"
-
-#~ msgctxt "Modal edit discount primary action"
-#~ msgid "Update"
-#~ msgstr "Cập nhập"
-
-#~ msgctxt "Modal edit shipping primary action"
-#~ msgid "Update"
-#~ msgstr "Cập nhập"
-
-#~ msgctxt "Modal edit voucher primary action"
-#~ msgid "Update"
-#~ msgstr "Cập nhập"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Update"
-#~ msgstr "Cập nhập"
-
-#~ msgctxt "Modal refund payment primary action"
-#~ msgid "Refund"
-#~ msgstr "Hoàn tiền"
-
-#~ msgctxt "Modal void payment primary action"
-#~ msgid "Void"
-#~ msgstr "Trống"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Tax rate"
-#~ msgstr "Thuế"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Gross price"
-#~ msgstr "Giá đã bao gồm thuế"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Quantity"
-#~ msgstr "Số lượng"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Total"
-#~ msgstr "Tổng"
-
-#~ msgctxt "Order subtotal net price"
-#~ msgid "Subtotal"
-#~ msgstr "Tạm tính"
-
-#~ msgctxt "Order total shipping price header"
-#~ msgid "Shipping"
-#~ msgstr "Vận chuyển"
-
-#~ msgctxt "Order table header"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Page form page title"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Page form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgid "Cancel"
-#~ msgstr "Hủy"
-
-#~ msgctxt "Static pages table header name"
-#~ msgid "Title"
-#~ msgstr "Tiêu đề"
-
-#~ msgctxt "Static pages table header url"
-#~ msgid "URL"
-#~ msgstr "Địa chỉ"
-
-#~ msgid "Display name"
-#~ msgstr "Tên hiển thị"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Dashboard attributes list table header name"
-#~ msgid "Name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Products"
-#~ msgstr "Sản phẩm"
-
-#~ msgctxt "Product field"
-#~ msgid "Published"
-#~ msgstr "Xuất bản"
-
-#~ msgid "Variant"
-#~ msgstr "Loại"
-
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgid "Name"
-#~ msgstr "Tên"
-
-#~ msgid "Gross price"
-#~ msgstr "Giá đã bao gồm thuế"
-
-#~ msgid "Net price"
-#~ msgstr "Giá ròng"
-
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "Number in stock"
-#~ msgstr "Số lượng còn lại"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgid "Shipping"
-#~ msgstr "Vận chuyển"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Price"
-#~ msgstr "Giá"
-
-#~ msgctxt "Modal select product types title"
-#~ msgid "Product type"
-#~ msgstr "Loại sản phẩm"
-
-#~ msgctxt "Image form text"
-#~ msgid "Image"
-#~ msgstr "Hình ảnh"
-
-#~ msgctxt "Image form text"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgid "Taxes"
-#~ msgstr "Thuế"
-
-#~ msgctxt "Dashboard product types list table header name"
-#~ msgid "Name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Product attributes"
-#~ msgstr "Thuộc tính sản phẩm"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Variant attributes"
-#~ msgstr "Biến thể của thuộc tính"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "SKU"
-#~ msgstr "SKU"
-
-#~ msgctxt "Variant form page title"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Search results list products"
-#~ msgid "Products"
-#~ msgstr "Sản phẩm"
-
-#~ msgctxt "Title of the shipping methods list"
-#~ msgid "Price based shipping"
-#~ msgstr "Giá vận chuyển"
-
-#~ msgctxt "Title of the shipping methods list"
-#~ msgid "Weight based shipping"
-#~ msgstr "Giá theo khối lượng"
-
-#~ msgctxt "Dashboard shipping zones"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Shipping zone form page title"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, price range of shipping methods within "
-#~ "shipping zone"
-#~ msgid "Price range"
-#~ msgstr "Khoảng giá"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, list of countries within of shipping zone"
-#~ msgid "Countries"
-#~ msgstr "Các nước"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Price"
-#~ msgstr "Giá"
-
-#~ msgctxt "Dashboard shipping method edit page"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "Phương thức vận chuyển"
-
-#~ msgctxt "Dashboard authorization key list"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Authorization key breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Header text"
-#~ msgstr "Nội dung header"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Description"
-#~ msgstr "Mô tả"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Key"
-#~ msgstr "Khoá"
-
-#~ msgctxt "Authorization key edit action"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Dashboard site settings"
-#~ msgid "Edit"
-#~ msgstr "Chỉnh sửa"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Email"
-#~ msgstr "Thư điện tử"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Location"
-#~ msgstr "Địa điểm"
-
-#~ msgctxt "Tax details breadcrumbs"
-#~ msgid "Taxes"
-#~ msgstr "Thuế"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Name"
-#~ msgstr "Tên"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Value"
-#~ msgstr "Giá trị"
-
-#~ msgctxt "Dashboard taxes list"
-#~ msgid "Taxes"
-#~ msgstr "Thuế"
-
-#~ msgctxt "Dashboard site taxes settings form title"
-#~ msgid "Taxes"
-#~ msgstr "Thuế"
-
-#~ msgid "Dashboard"
-#~ msgstr "Trang quản trị"
-
-#~ msgctxt "Taxes table header"
-#~ msgid "Country name"
-#~ msgstr "Tên đất nước"
-
-#~ msgctxt "Site settings field"
-#~ msgid "All products prices are entered with tax included"
-#~ msgstr "Tất cả giá đều đã bao gồm thuế"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Show gross prices to customers in the storefront"
-#~ msgstr "Hiển thị tổng giá cho ngừoi dùng ở trang chủ"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Charge taxes on shipping rates"
-#~ msgstr "Tính thuế vào phí ship"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Product"
-#~ msgstr "Sản phẩm"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Quantity"
-#~ msgstr "Số lượng"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Price"
-#~ msgstr "Giá"
-
-#~ msgctxt "Order details subtotal row text"
-#~ msgid "Subtotal"
-#~ msgstr "Tạm tính"
-
-#~ msgctxt "Order details shipment row text"
-#~ msgid "Shipping"
-#~ msgstr "Vận chuyển"
-
-#~ msgctxt "Order details taxes text"
-#~ msgid "Taxes (included)"
-#~ msgstr "Thuế (đã tính)"
-
-#~ msgctxt "Order details taxes text"
-#~ msgid "Taxes"
-#~ msgstr "Thuế"
-
-#~ msgctxt "Order details total text"
-#~ msgid "Total"
-#~ msgstr "Tổng"
-
-#~ msgctxt "Fulfillment tracking number details"
-#~ msgid "Tracking number"
-#~ msgstr "Tracking number"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Create an account"
-#~ msgstr "Tạo tài khoản mới"
-
-#, python-format
-#~ msgctxt "Order details page title"
-#~ msgid "Order %(order)s"
-#~ msgstr "Đặt hàng %(order)s"
-
-#, python-format
-#~ msgctxt "Order details breadcrumb"
-#~ msgid "Order %(order)s"
-#~ msgstr "Đặt hàng %(order)s"
-
-#, python-format
-#~ msgctxt "Payment details breadcrumb"
-#~ msgid "Order %(order)s"
-#~ msgstr "Đặt hàng %(order)s"
-
-#~ msgctxt "Product details link text"
-#~ msgid "Edit in dashboard"
-#~ msgstr "Thay đổi trong trang quản trị"
-
-#~ msgctxt "Product details primary action"
-#~ msgid "Add to cart"
-#~ msgstr "Thêm vào giỏ"
-
-#~ msgctxt "Product details title"
-#~ msgid "Description"
-#~ msgstr "Mô tả"
-
-#~ msgctxt "Product list filters"
-#~ msgid "Sort by"
-#~ msgstr "Sắp xếp theo"
-
-#~ msgctxt "Search without results text"
-#~ msgid "Sorry, no matches found for your request."
-#~ msgstr "Xin lỗi, không có kết quả nào tương ứng với tìm kiếm của bạn."
-
-#~ msgctxt "Search without results text"
-#~ msgid "Try again or shop new arrivals."
-#~ msgstr "Vui lòng thử lại."
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Subtotal"
-#~ msgstr "Tạm tính"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Shipping"
-#~ msgstr "Vận chuyển"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Taxes (included)"
-#~ msgstr "Thuế (đã tính)"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Taxes"
-#~ msgstr "Thuế"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Total"
-#~ msgstr "Tổng"

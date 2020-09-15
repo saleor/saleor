@@ -26,7 +26,6 @@ from ...meta.deprecated.types import MetaInput, MetaPath
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent
 from ...shipping.types import ShippingMethod
-from ...utils import get_user_or_app_from_context
 
 
 def clean_order_update_shipping(order, method):
@@ -323,8 +322,7 @@ class OrderCancel(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_cancel(order)
-        requester = get_user_or_app_from_context(info.context)
-        cancel_order(order=order, user=requester)
+        cancel_order(order=order, user=info.context.user)
         return OrderCancel(order=order)
 
 

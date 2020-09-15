@@ -291,6 +291,10 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def fetch_taxes_data(self, previous_value: Any) -> Any:
+        """Triggered when ShopFetchTaxRates mutation is called."""
+        return NotImplemented
+
     def authorize_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":

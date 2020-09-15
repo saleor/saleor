@@ -11,7 +11,12 @@ from tests.api.utils import get_graphql_content
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_retrieve_variant_list(
-    product_variant_list, api_client, count_queries, warehouse
+    product_variant_list,
+    api_client,
+    count_queries,
+    warehouse,
+    warehouse_no_shipping_zone,
+    shipping_zone_without_countries,
 ):
     query = """
         fragment BasicProductFields on Product {
@@ -81,6 +86,9 @@ def test_retrieve_variant_list(
               node {
                 ...ProductVariantFields
                 stockQuantity
+                quantityAvailable
+                quantityAvailablePl: quantityAvailable(countryCode: PL)
+                quantityAvailableUS: quantityAvailable(countryCode: US)
                 product {
                   ...BasicProductFields
                 }
@@ -89,12 +97,20 @@ def test_retrieve_variant_list(
           }
         }
     """
-    Stock.objects.bulk_create(
+    warehouse_2 = warehouse_no_shipping_zone
+    warehouse_2.shipping_zones.add(shipping_zone_without_countries)
+    stocks = [
+        Stock(product_variant=variant, warehouse=warehouse, quantity=1)
+        for variant in product_variant_list
+    ]
+    stocks.extend(
         [
-            Stock(product_variant=variant, warehouse=warehouse)
+            Stock(product_variant=variant, warehouse=warehouse_2, quantity=2)
             for variant in product_variant_list
         ]
     )
+    Stock.objects.bulk_create(stocks)
+
     variables = {
         "ids": [
             graphene.Node.to_global_id("ProductVariant", variant.pk)

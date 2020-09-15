@@ -4,29 +4,26 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# dr.web mike <cncaiker@gmail.com>, 2018
-# Slade Liu <laplaceliu@outlook.com>, 2019
-# iorj <2806198697@qq.com>, 2019
-# 小平 吴 <wu526515597@hotmail.com>, 2019
-# 刘 志锋 <752074518@qq.com>, 2019
-# Julian Hu <julianhy@gmail.com>, 2019
 # 陈 铭轩 <cmx18682659373@gmail.com>, 2019
-# Patryk Zawadzki <patrys@room-303.com>, 2019
+# 志刚 胡 <thatzhigang@outlook.com>, 2019
+# Tyrion Lau <lslabyrinth@163.com>, 2020
+# Patryk Zawadzki <patrys@room-303.com>, 2020
+# Slade Liu <laplaceliu@outlook.com>, 2020
+# 刘 志锋 <752074518@qq.com>, 2020
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-14 04:02-0500\n"
+"POT-Creation-Date: 2020-05-14 03:45-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Patryk Zawadzki <patrys@room-303.com>, 2019\n"
-"Language-Team: Chinese Simplified (https://www.transifex.com/mirumee/"
-"teams/34782/zh-Hans/)\n"
-"Language: zh-Hans\n"
+"Last-Translator: 刘 志锋 <752074518@qq.com>, 2020\n"
+"Language-Team: Chinese Simplified (https://www.transifex.com/mirumee/teams/34782/zh-Hans/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: zh-Hans\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
@@ -43,77 +40,304 @@ msgid ""
 "%(street_address_2)s"
 msgstr "%(street_address_1)s%(street_address_2)s"
 
-#: templates/read_only/read_only_splash.html:48
-msgid "Be aware pirate! <br> Saleor runs in <span>read only mode!</span>"
+#: templates/templated_email/account/account_delete.email:4
+msgctxt "Account delete reset e-mail subject"
+msgid "Delete your account"
 msgstr ""
 
-#: templates/read_only/read_only_splash.html:49
-#, fuzzy
-#| msgctxt "Close modal action button"
-#| msgid "Close"
-msgid "Close"
-msgstr "关闭"
-
-#: templates/templated_email/compiled/account_delete.html:174
-#: templates/templated_email/compiled/confirm.html:174
-#: templates/templated_email/compiled/confirm_fulfillment.html:174
-#: templates/templated_email/compiled/confirm_order.html:175
-#: templates/templated_email/compiled/confirm_payment.html:174
-#: templates/templated_email/compiled/email_changed_notification.html:174
-#: templates/templated_email/compiled/password_reset.html:174
-#: templates/templated_email/compiled/request_email_change.html:174
-#: templates/templated_email/compiled/set_customer_password.html:174
-#: templates/templated_email/compiled/set_password.html:174
-#: templates/templated_email/compiled/staff_confirm_order.html:175
-#: templates/templated_email/compiled/update_fulfillment.html:174
-msgctxt "Standard e-mail greeting"
-msgid "Hi!"
-msgstr ""
-
-#: templates/templated_email/compiled/account_delete.html:182
+#: templates/templated_email/account/account_delete.email:9
 #, python-format
-msgctxt "Account delete e-mail text"
+msgctxt "Account delete reset e-mail text"
 msgid ""
-"You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be "
-"reversed."
+"\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"Click the link below to delete your account.\n"
+"\n"
+"Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:255
-#: templates/templated_email/compiled/confirm.html:255
-#: templates/templated_email/compiled/confirm_fulfillment.html:362
-#: templates/templated_email/compiled/confirm_order.html:465
-#: templates/templated_email/compiled/confirm_payment.html:245
-#: templates/templated_email/compiled/email_changed_notification.html:245
-#: templates/templated_email/compiled/password_reset.html:255
-#: templates/templated_email/compiled/request_email_change.html:255
-#: templates/templated_email/compiled/set_customer_password.html:255
-#: templates/templated_email/compiled/set_password.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:465
-#: templates/templated_email/compiled/update_fulfillment.html:350
+#: templates/templated_email/account/confirm.email:4
+msgctxt "Account confirmation e-mail subject"
+msgid "Account confirmation e-mail"
+msgstr ""
+
+#: templates/templated_email/account/confirm.email:9
+#, python-format
+msgctxt "Account confirmation e-mail text"
+msgid ""
+"\n"
+"In order to log into %(domain)s, you have to confirm your email address first.\n"
+"Please click the link below to do so and log into your account.\n"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:4
+#: templates/templated_email/account/request_email_change.email:4
+msgctxt "Email change e-mail subject"
+msgid "Email change e-mail"
+msgstr ""
+
+#: templates/templated_email/account/email_changed_notification.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
+"If you didn't request this change, please contact the administrator.\n"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:4
+msgctxt "Password reset e-mail subject"
+msgid "Password reset e-mail"
+msgstr ""
+
+#: templates/templated_email/account/password_reset.email:9
+#, python-format
+msgctxt "Password reset e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/account/request_email_change.email:9
+#, python-format
+msgctxt "Email change e-mail text"
+msgid ""
+"\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:2
+#, python-format
+msgctxt "Set password for customer e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/customer/set_password.email:6
+#, python-format
+msgctxt "Set password for customer e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:2
+#, python-format
+msgctxt "Set password for staff member e-mail title"
+msgid "Hello from %(site_name)s!"
+msgstr ""
+
+#: templates/templated_email/dashboard/staff/set_password.email:6
+#, python-format
+msgctxt "Set password for staff member e-mail text"
+msgid ""
+"\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
+"Click the link below to reset your password.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment confirmation email subject"
+msgid "Your order %(order)s has been fulfilled"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:11
+msgctxt "Fulfillment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of fulfilled products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_fulfillment.email:15
+#: templates/templated_email/source/confirm_fulfillment.mjml:20
+#, python-format
+msgctxt "Fulfillment confirmation email text"
+msgid "You can track your shipment with %(tracking_number)s code."
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:6
+#: templates/templated_email/order/staff_confirm_order.email:6
+msgctxt "Order confirmation e-mail subject"
+msgid "Order details"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:11
+msgctxt "Order confirmation e-mail text"
+msgid ""
+"\n"
+"Thank you for your order. Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:15
+#: templates/templated_email/order/staff_confirm_order.email:15
+#, python-format
+msgctxt "Order confirmation e-mail payment details"
+msgid ""
+"\n"
+"To see your payment details please visit:\n"
+"%(order_details_url)s\n"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:23
+#: templates/templated_email/order/staff_confirm_order.email:23
+msgctxt "Order confirmation e-mail table header"
+msgid "Order summary"
+msgstr "订单摘要"
+
+#: templates/templated_email/order/confirm_order.email:24
+#: templates/templated_email/order/staff_confirm_order.email:24
+msgctxt "Order confirmation e-mail table header"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:25
+#: templates/templated_email/order/staff_confirm_order.email:25
+msgctxt "Order confirmation e-mail table header"
+msgid "Shipping"
+msgstr "配送"
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:26
+#: templates/templated_email/order/staff_confirm_order.email:26
+msgctxt "Order confirmation e-mail table header"
+msgid "Taxes"
+msgstr "税"
+
+#: templates/templated_email/order/confirm_order.email:27
+#: templates/templated_email/order/staff_confirm_order.email:27
+msgctxt "Order confirmation e-mail table header"
+msgid "Discount:"
+msgstr ""
+
+#: templates/templated_email/order/confirm_order.email:28
+#: templates/templated_email/order/staff_confirm_order.email:28
+msgctxt "Order confirmation e-mail table header"
+msgid "Total"
+msgstr "总数"
+
+#: templates/templated_email/order/confirm_order.email:30
+#: templates/templated_email/order/staff_confirm_order.email:30
+#: templates/templated_email/source/confirm_order.mjml:29
+#: templates/templated_email/source/staff_confirm_order.mjml:29
+msgctxt "Order confirmation e-mail billing address"
+msgid "Billing address"
+msgstr "账单地址"
+
+#: templates/templated_email/order/confirm_order.email:31
+#: templates/templated_email/order/staff_confirm_order.email:31
+#: templates/templated_email/source/confirm_order.mjml:39
+#: templates/templated_email/source/staff_confirm_order.mjml:39
+msgctxt "Order confirmation e-mail text"
+msgid "No billing address"
+msgstr "没有账单地址"
+
+#: templates/templated_email/order/confirm_order.email:33
+#: templates/templated_email/order/staff_confirm_order.email:33
+#: templates/templated_email/source/confirm_order.mjml:30
+#: templates/templated_email/source/staff_confirm_order.mjml:30
+msgctxt "Order confirmation e-mail shipping address"
+msgid "Shipping address"
+msgstr "配送地址"
+
+#: templates/templated_email/order/confirm_order.email:34
+#: templates/templated_email/order/staff_confirm_order.email:34
+#: templates/templated_email/source/confirm_order.mjml:46
+#: templates/templated_email/source/staff_confirm_order.mjml:46
+msgctxt "Order confirmation e-mail text"
+msgid "No shipping required"
+msgstr ""
+
+#: templates/templated_email/order/payment/confirm_payment.email:4
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr "支付详情"
+
+#: templates/templated_email/order/payment/confirm_payment.email:9
+msgctxt "Payment confirmation email text"
+msgid ""
+"\n"
+"Thank you for your payment.\n"
+"Your payment was successfully charged.\n"
+msgstr ""
+
+#: templates/templated_email/order/staff_confirm_order.email:11
+msgctxt "Order confirmation staff e-mail text"
+msgid ""
+"\n"
+"Below is the list of ordered products.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:4
+#, python-format
+msgctxt "Fulfillment update email subject"
+msgid "Shipping update for order %(order)s"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:11
+msgctxt "Fulfillment update email text"
+msgid ""
+"\n"
+"Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
+msgstr ""
+
+#: templates/templated_email/order/update_fulfillment.email:15
+#, python-format
+msgctxt "Fulfillment update email text"
+msgid ""
+"You can track your shipment with the following code: %(tracking_number)s."
+msgstr ""
+
+#: templates/templated_email/shared/_footer.email:2
+#: templates/templated_email/source/shared/footer.mjml:4
 msgctxt "Base email text"
 msgid "This is an automatically generated e-mail, please do not reply."
 msgstr ""
 
-#: templates/templated_email/compiled/account_delete.html:317
-#: templates/templated_email/compiled/confirm.html:317
-#: templates/templated_email/compiled/confirm_fulfillment.html:424
-#: templates/templated_email/compiled/confirm_order.html:527
-#: templates/templated_email/compiled/confirm_payment.html:307
-#: templates/templated_email/compiled/email_changed_notification.html:307
-#: templates/templated_email/compiled/password_reset.html:317
-#: templates/templated_email/compiled/request_email_change.html:317
-#: templates/templated_email/compiled/set_customer_password.html:317
-#: templates/templated_email/compiled/set_password.html:317
-#: templates/templated_email/compiled/staff_confirm_order.html:527
-#: templates/templated_email/compiled/update_fulfillment.html:412
+#: templates/templated_email/shared/_footer.email:5
+#: templates/templated_email/source/shared/footer.mjml:13
 #, python-format
 msgctxt "Base email footer"
 msgid "Sincerely, %(site_name)s"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm.html:182
+#: templates/templated_email/shared/_header.email:2
+#: templates/templated_email/source/account_delete.mjml:13
+#: templates/templated_email/source/confirm.mjml:13
+#: templates/templated_email/source/confirm_fulfillment.mjml:13
+#: templates/templated_email/source/confirm_order.mjml:14
+#: templates/templated_email/source/confirm_payment.mjml:13
+#: templates/templated_email/source/email_changed_notification.mjml:13
+#: templates/templated_email/source/password_reset.mjml:13
+#: templates/templated_email/source/request_email_change.mjml:13
+#: templates/templated_email/source/set_customer_password.mjml:13
+#: templates/templated_email/source/set_password.mjml:13
+#: templates/templated_email/source/staff_confirm_order.mjml:14
+#: templates/templated_email/source/update_fulfillment.mjml:13
+msgctxt "Standard e-mail greeting"
+msgid "Hi!"
+msgstr ""
+
+#: templates/templated_email/source/account_delete.mjml:16
+#, python-format
+msgctxt "Account delete e-mail text"
+msgid ""
+"You're receiving this e-mail because you or someone else has requested a "
+"deletion of your user account at %(domain)s.<br/> Click the link below to "
+"delete your account. Please note that this action is permanent and cannot be"
+" reversed."
+msgstr ""
+
+#: templates/templated_email/source/confirm.mjml:16
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
@@ -121,2901 +345,153 @@ msgid ""
 "first. Please click the link below to do so and log into your account."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:182
+#: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_fulfillment.html:186
-#, python-format
-msgctxt "Fulfillment confirmation email text"
-msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_fulfillment.html:198
+#: templates/templated_email/source/confirm_fulfillment.mjml:27
 msgctxt "Fulfillment digital products email text"
-msgid "You can download your digital products by clicking in download link(s)."
+msgid ""
+"You can download your digital products by clicking in download link(s)."
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:183
+#: templates/templated_email/source/confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation e-mail text"
 msgid ""
-"Thank you for your order. Below is the list of ordered products. To see your "
-"payment details please visit: <a href=\"%(order_details_url)s\">"
-"%(order_details_url)s</a>"
+"Thank you for your order. Below is the list of ordered products. To see your"
+" payment details please visit: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/confirm_order.html:255
-#: templates/templated_email/compiled/staff_confirm_order.html:255
-msgctxt "E-mail order lines summary table"
-msgid "Subtotal"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:263
-#: templates/templated_email/compiled/staff_confirm_order.html:263
-msgctxt "E-mail order lines summary table"
-msgid "Shipping"
-msgstr "运送"
-
-#: templates/templated_email/compiled/confirm_order.html:272
-#: templates/templated_email/compiled/staff_confirm_order.html:272
-msgctxt "E-mail order lines summary table"
-msgid "Taxes (included)"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:274
-#: templates/templated_email/compiled/staff_confirm_order.html:274
-msgctxt "E-mail order lines summary table"
-msgid "Taxes"
-msgstr "税"
-
-#: templates/templated_email/compiled/confirm_order.html:284
-#: templates/templated_email/compiled/staff_confirm_order.html:284
-msgctxt "E-mail order lines summary table"
-msgid "Discount"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:293
-#: templates/templated_email/compiled/staff_confirm_order.html:293
-msgctxt "E-mail order lines summary table"
-msgid "Total"
-msgstr "总数"
-
-#: templates/templated_email/compiled/confirm_order.html:302
-#: templates/templated_email/compiled/staff_confirm_order.html:302
-msgctxt "Ordered item name"
-msgid "Item"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:303
-#: templates/templated_email/compiled/staff_confirm_order.html:303
-msgctxt "Quantity ordered of a product"
-msgid "Quantity"
-msgstr "数量"
-
-#: templates/templated_email/compiled/confirm_order.html:304
-#: templates/templated_email/compiled/staff_confirm_order.html:304
-msgctxt "Unit price of a product"
-msgid "Per unit"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:305
-#: templates/templated_email/compiled/staff_confirm_order.html:305
-msgctxt "Ordered item subtotal (unit price * quantity)"
-msgid "Subtotal"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:383
-#: templates/templated_email/compiled/staff_confirm_order.html:383
-msgctxt "Order confirmation e-mail billing address"
-msgid "Billing address"
-msgstr "账单地址"
-
-#: templates/templated_email/compiled/confirm_order.html:384
-#: templates/templated_email/compiled/staff_confirm_order.html:384
-msgctxt "Order confirmation e-mail shipping address"
-msgid "Shipping address"
-msgstr "配送地址"
-
-#: templates/templated_email/compiled/confirm_order.html:393
-#: templates/templated_email/compiled/staff_confirm_order.html:393
-msgctxt "Order confirmation e-mail text"
-msgid "No billing address"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_order.html:400
-#: templates/templated_email/compiled/staff_confirm_order.html:400
-msgctxt "Order confirmation e-mail text"
-msgid "No shipping required"
-msgstr ""
-
-#: templates/templated_email/compiled/confirm_payment.html:182
+#: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
 msgid "Thank you for your payment. Your payment was successfully charged."
 msgstr ""
 
-#: templates/templated_email/compiled/email_changed_notification.html:182
+#: templates/templated_email/source/email_changed_notification.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
-"for your user account at %(domain)s.<br> If you didn't request this change, "
-"please contact the administrator."
+"for your user account at %(domain)s.<br /> If you didn't request this "
+"change, please contact the administrator."
 msgstr ""
 
-#: templates/templated_email/compiled/password_reset.html:182
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:29
+#: templates/templated_email/source/partials/_order_lines.mjml:59
+msgctxt "Ordered item name"
+msgid "Item"
+msgstr ""
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
+#: templates/templated_email/source/partials/_order_lines.mjml:60
+msgctxt "Quantity ordered of a product"
+msgid "Quantity"
+msgstr "数量"
+
+#: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
+msgctxt "Ordered item download links"
+msgid "Download Link"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:12
+msgctxt "E-mail order lines summary table"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:20
+msgctxt "E-mail order lines summary table"
+msgid "Shipping"
+msgstr "运送"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:29
+msgctxt "E-mail order lines summary table"
+msgid "Taxes (included)"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:31
+msgctxt "E-mail order lines summary table"
+msgid "Taxes"
+msgstr "税"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:41
+msgctxt "E-mail order lines summary table"
+msgid "Discount"
+msgstr "折扣"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:50
+msgctxt "E-mail order lines summary table"
+msgid "Total"
+msgstr "总数"
+
+#: templates/templated_email/source/partials/_order_lines.mjml:61
+msgctxt "Unit price of a product"
+msgid "Per unit"
+msgstr ""
+
+#: templates/templated_email/source/partials/_order_lines.mjml:62
+msgctxt "Ordered item subtotal (unit price * quantity)"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/templated_email/source/password_reset.mjml:16
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br> It can be safely ignored "
+"password for your user account at %(domain)s.<br/> It can be safely ignored "
 "if you did not request a password reset. Click the link below to reset your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/request_email_change.html:182
+#: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested an "
-"email change for your user account at %(domain)s.<br> It can be safely "
+"email change for your user account at %(domain)s.<br /> It can be safely "
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
 
-#: templates/templated_email/compiled/set_customer_password.html:182
+#: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your "
-"customer account at %(domain)s.<br> Click the link below to set up your "
+"customer account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/set_password.html:182
+#: templates/templated_email/source/set_password.mjml:16
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
-"You're receiving this e-mail because you have to set password for your staff "
-"member account at %(domain)s.<br> Click the link below to set up your "
+"You're receiving this e-mail because you have to set password for your staff"
+" member account at %(domain)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
 
-#: templates/templated_email/compiled/staff_confirm_order.html:183
+#: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
 msgctxt "Order confirmation staff e-mail text"
 msgid ""
-"Someone placed a new order in your store. To see order details please visit: "
-"<a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
+"Someone placed a new order in your store. To see order details please visit:"
+" <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:182
+#: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
 msgid ""
-"Your shipping status has been updated. Below is the list of ordered products "
-"that have been updated with new tracking number."
+"Your shipping status has been updated. Below is the list of ordered products"
+" that have been updated with new tracking number."
 msgstr ""
 
-#: templates/templated_email/compiled/update_fulfillment.html:186
+#: templates/templated_email/source/update_fulfillment.mjml:20
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid "You can track your shipment with %(tracking_number)s code."
 msgstr ""
-
-#~ msgctxt "Event from a customer that got their account created"
-#~ msgid "The account account was created"
-#~ msgstr "帐户已被创建"
-
-#~ msgctxt ""
-#~ "Event from a customer that got the password reset link sent by email"
-#~ msgid "Password reset link was sent to the customer"
-#~ msgstr "密码重置链接已发送至客户"
-
-#~ msgctxt "Event from a customer that reset their password"
-#~ msgid "The account password was reset"
-#~ msgstr "账户密码已重置"
-
-#~ msgctxt "Event from a customer that placed an order"
-#~ msgid "An order was placed"
-#~ msgstr "订单已下达"
-
-#~ msgctxt "Event from a customer that added a note to one of their orders"
-#~ msgid "A note was added"
-#~ msgstr "便签已添加"
-
-#~ msgctxt "Event from a customer that downloaded an ordered digital good"
-#~ msgid "A digital good was downloaded"
-#~ msgstr "已下载数字商品"
-
-#~ msgctxt "Event from a staff user that deleted a customer"
-#~ msgid "A customer was deleted"
-#~ msgstr "客户已删除"
-
-#~ msgctxt "Event from a staff user assigned a new name to a customer"
-#~ msgid "A customer's name was edited"
-#~ msgstr "客户名称已编辑"
-
-#~ msgctxt "Event from a staff user assigned a new email address to a customer"
-#~ msgid "A customer's email address was edited"
-#~ msgstr "客户Email地址已编辑"
-
-#~ msgctxt "Event from a staff user assigned a new email address to a customer"
-#~ msgid "A note was added to the customer"
-#~ msgstr "便签已添加至客户"
-
-#~ msgctxt "Form field"
-#~ msgid "Email"
-#~ msgstr "电子邮件"
-
-#~ msgctxt "Password"
-#~ msgid "Password"
-#~ msgstr "密码"
-
-#~ msgctxt "Email"
-#~ msgid "Email"
-#~ msgstr "电子邮件"
-
-#~ msgctxt "Registration error"
-#~ msgid "This email has already been registered."
-#~ msgstr "该邮件地址已注册."
-
-#~ msgctxt "Customer form: Given name field"
-#~ msgid "Given name"
-#~ msgstr "名"
-
-#~ msgctxt "Customer form: Family name field"
-#~ msgid "Family name"
-#~ msgstr "姓"
-
-#~ msgctxt "Address field"
-#~ msgid "Area"
-#~ msgstr "区域"
-
-#~ msgctxt "Address field"
-#~ msgid "County"
-#~ msgstr "国家"
-
-#~ msgctxt "Address field"
-#~ msgid "Department"
-#~ msgstr "部门"
-
-#~ msgctxt "Address field"
-#~ msgid "District"
-#~ msgstr "区/县"
-
-#~ msgctxt "Address field"
-#~ msgid "Emirate"
-#~ msgstr "酋长国"
-
-#~ msgctxt "Address field"
-#~ msgid "Island"
-#~ msgstr "岛"
-
-#~ msgctxt "Address field"
-#~ msgid "Neighborhood"
-#~ msgstr "邻居"
-
-#~ msgctxt "Address field"
-#~ msgid "Oblast"
-#~ msgstr "州"
-
-#~ msgctxt "Address field"
-#~ msgid "Parish"
-#~ msgstr "教区"
-
-#~ msgctxt "Address field"
-#~ msgid "PIN"
-#~ msgstr "PIN"
-
-#~ msgctxt "Address field"
-#~ msgid "Postal code"
-#~ msgstr "邮编"
-
-#~ msgctxt "Address field"
-#~ msgid "Prefecture"
-#~ msgstr "县"
-
-#~ msgctxt "Address field"
-#~ msgid "Province"
-#~ msgstr "省"
-
-#~ msgctxt "Address field"
-#~ msgid "State"
-#~ msgstr "州"
-
-#~ msgctxt "Address field"
-#~ msgid "Suburb"
-#~ msgstr "郊区"
-
-#~ msgctxt "Address field"
-#~ msgid "ZIP code"
-#~ msgstr "邮编"
-
-#~ msgctxt "Country"
-#~ msgid "Country"
-#~ msgstr "国家"
-
-#~ msgctxt "Personal name"
-#~ msgid "Given name"
-#~ msgstr "名"
-
-#~ msgctxt "Personal name"
-#~ msgid "Family name"
-#~ msgstr "姓"
-
-#~ msgctxt "Company or organization"
-#~ msgid "Company or organization"
-#~ msgstr "公司或组织"
-
-#~ msgctxt "Address"
-#~ msgid "Address"
-#~ msgstr "地址"
-
-#~ msgctxt "City"
-#~ msgid "City"
-#~ msgstr "城市"
-
-#~ msgctxt "City area"
-#~ msgid "District"
-#~ msgstr "区/县"
-
-#~ msgctxt "Postal code"
-#~ msgid "Postal code"
-#~ msgstr "邮编"
-
-#~ msgctxt "Country area"
-#~ msgid "State or province"
-#~ msgstr "州或省"
-
-#~ msgctxt "Phone number"
-#~ msgid "Phone number"
-#~ msgstr "手机号码"
-
-#~ msgctxt "Address"
-#~ msgid "Street address, P.O. box, company name"
-#~ msgstr "街道地址, 信箱地址, 公司名字"
-
-#~ msgctxt "Address"
-#~ msgid "Apartment, suite, unit, building, floor, etc"
-#~ msgstr "公寓, 套房, 单元, 栋, 楼层等"
-
-#~ msgctxt "Address form"
-#~ msgid "This value is invalid for selected country"
-#~ msgstr "该值不适用所选择的国家"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage customers."
-#~ msgstr "客户管理."
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage staff."
-#~ msgstr "员工管理."
-
-#~ msgctxt "Permission description"
-#~ msgid "Impersonate customers."
-#~ msgstr "顾客扮演."
-
-#~ msgid "The phone number entered is not valid."
-#~ msgstr "输入的手机号码不合法."
-
-#~ msgid "You have been successfully logged out."
-#~ msgstr "您已成功登出"
-
-#~ msgid "User has been created"
-#~ msgstr "用户已创建"
-
-#~ msgctxt "Storefront message"
-#~ msgid "Password successfully changed."
-#~ msgstr "成功修改密码."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Account successfully updated."
-#~ msgstr "成功更新帐户."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully updated."
-#~ msgstr "成功更新地址."
-
-#~ msgctxt "Storefront message"
-#~ msgid "Address successfully removed"
-#~ msgstr "成功删除地址."
-
-#~ msgctxt "Storefront message, when user requested his account removed"
-#~ msgid "Please check your inbox for a confirmation e-mail."
-#~ msgstr "请检查您的收件箱以获取确认电子邮件."
-
-#~ msgctxt "Account deleted"
-#~ msgid ""
-#~ "Your account was deleted successfully. In case of any trouble or "
-#~ "questions feel free to contact us."
-#~ msgstr "您的帐户被成功删除. 如果有任何麻烦或问题, 请随时与我们联系."
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Billing"
-#~ msgstr "账单"
-
-#~ msgctxt "Type of address used to fulfill order"
-#~ msgid "Shipping"
-#~ msgstr "配送"
-
-#~ msgctxt "Add to checkout form field label"
-#~ msgid "Quantity"
-#~ msgstr "数量"
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently not available."
-#~ msgstr "对不起 此产品目前不可用."
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. This product is currently out of stock."
-#~ msgstr "对不起 该产品当前无库存."
-
-#, python-format
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Sorry. You can't add more than %d times this item."
-#~ msgstr "抱歉 你不能添加这项物品超过%d次."
-
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Oops. We could not find that product."
-#~ msgstr "我们找不到该产品."
-
-#, python-format
-#~ msgctxt "Add to checkout form error"
-#~ msgid "Only %d remaining in stock."
-#~ msgid_plural "Only %d remaining in stock."
-#~ msgstr[0] "库存仅剩余%d."
-
-#~ msgctxt "Country form field label"
-#~ msgid "Country"
-#~ msgstr "国家"
-
-#~ msgctxt "Address form field label"
-#~ msgid "Email"
-#~ msgstr "电子邮件"
-
-#~ msgctxt "Shipping addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "请输入新地址"
-
-#~ msgctxt "Shipping addresses form field label"
-#~ msgid "Address"
-#~ msgstr "地址"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Enter a new address"
-#~ msgstr "请输入新地址"
-
-#~ msgctxt "Billing addresses form choice"
-#~ msgid "Same as shipping"
-#~ msgstr "同配送"
-
-#~ msgctxt "Billing addresses form field label"
-#~ msgid "Address"
-#~ msgstr "地址"
-
-#~ msgctxt "Shipping method form field label"
-#~ msgid "Shipping method"
-#~ msgstr "配送方式"
-
-#~ msgctxt "Voucher form error"
-#~ msgid "Discount code incorrect or expired"
-#~ msgstr "折扣码不正确或者已过期"
-
-#~ msgctxt "Checkout discount form label for voucher field"
-#~ msgid "Gift card or discount code"
-#~ msgstr "礼品卡或者折扣码"
-
-#~ msgctxt "Checkout warning message"
-#~ msgid ""
-#~ "Sorry. We don't have that many items in stock. Quantity was set to "
-#~ "maximum available for now."
-#~ msgstr "抱歉。我们的存货没有那么多。数量已被设置为目前可用的最大数量。"
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Your order does not require shipping."
-#~ msgstr "您的订单不需要配送."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Please select a shipping method first."
-#~ msgstr "请先选择一种配送方式."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is not valid in your country."
-#~ msgstr "这个优惠在你的国家不可用."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for selected items."
-#~ msgstr "此优惠只适用于选定项目."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Voucher expired in meantime. Order placement aborted."
-#~ msgstr "代金券已过期 订单处理中止."
-
-#~ msgctxt "Gift card not applicable"
-#~ msgid "Gift card has expired. Order placement cancelled."
-#~ msgstr "礼品卡已过期 订单已取消."
-
-#~ msgctxt "Checkout warning"
-#~ msgid "This voucher has expired. Please review your checkout."
-#~ msgstr "这张代金券过期了 请重新检查您的购物车."
-
-#~ msgctxt "Checkout warning"
-#~ msgid "Please review your checkout."
-#~ msgstr "请重新检查您的购物车."
-
-#, python-format
-#~ msgctxt "Number of matching records in the dashboard list"
-#~ msgid "Found %(counter)d matching record"
-#~ msgid_plural "Found %(counter)d matching records"
-#~ msgstr[0] "找到%(counter)d匹配记录"
-
-#~ msgctxt "Country choice"
-#~ msgid "Any Country"
-#~ msgstr "任何国家"
-
-#~ msgctxt "Impersonation message"
-#~ msgid "You are now logged as {}"
-#~ msgstr "你已登录 {}"
-
-#~ msgctxt "Kilogram weight unit symbol"
-#~ msgid "kg"
-#~ msgstr "千克"
-
-#~ msgctxt "Ounce weight unit symbol"
-#~ msgid "oz"
-#~ msgstr "盎司"
-
-#~ msgctxt "Gram weight unit symbol"
-#~ msgid "g"
-#~ msgstr "克"
-
-#~ msgctxt "Discount type"
-#~ msgid "%"
-#~ msgstr "%"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific products"
-#~ msgstr "特定商品"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific collections of products"
-#~ msgstr "特定产品系列"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Specific categories of products"
-#~ msgstr "特定分类产品"
-
-#~ msgctxt "Voucher: discount for"
-#~ msgid "Shipping"
-#~ msgstr "配送"
-
-#~ msgctxt "Voucher type"
-#~ msgid "Free shipping"
-#~ msgstr "免费配送"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off shipping"
-#~ msgstr "%(discount)s配送折扣"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off %(product_num)d products"
-#~ msgstr "%(product_num)d件商品享%(discount)s折扣"
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off %(collections_num)d collections"
-#~ msgstr "%(collections_num)d类商品享%(discount)s折扣 "
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off %(categories_num)d categories"
-#~ msgstr "%(categories_num)d标签商品享%(discount)s折扣 "
-
-#, python-format
-#~ msgctxt "Voucher type"
-#~ msgid "%(discount)s off"
-#~ msgstr "%(discount)s折扣"
-
-#, python-format
-#~ msgctxt "Voucher not applicable"
-#~ msgid "This offer is only valid for orders over %(amount)s."
-#~ msgstr "超过%(amount)s件才可享此优惠."
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage sales and vouchers."
-#~ msgstr "销售&凭证管理."
-
-#~ msgctxt "Voucher not applicable"
-#~ msgid "Discount not applicable for this product"
-#~ msgstr "该产品不适用折扣"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "accommodation"
-#~ msgstr "住处"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "admission to cultural events"
-#~ msgstr "文化活动入场"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "admission to entertainment events"
-#~ msgstr "娱乐活动入场"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "admission to sporting events"
-#~ msgstr "体育活动入场"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "advertising"
-#~ msgstr "广告"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "agricultural supplies"
-#~ msgstr "农用品"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "baby foodstuffs"
-#~ msgstr "婴儿食品"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "bikes"
-#~ msgstr "自行车"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "books"
-#~ msgstr "书籍"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "childrens clothing"
-#~ msgstr "儿童服装"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "domestic fuel"
-#~ msgstr "家用燃料"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "domestic services"
-#~ msgstr "家政"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "e-books"
-#~ msgstr "电子书"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "foodstuffs"
-#~ msgstr "食品"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "hotels"
-#~ msgstr "酒店"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "medical"
-#~ msgstr "药品"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "newspapers"
-#~ msgstr "报纸"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "passenger transport"
-#~ msgstr "客运"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "pharmaceuticals"
-#~ msgstr "药物"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "property renovations"
-#~ msgstr "物业装修"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "restaurants"
-#~ msgstr "餐厅"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "social housing"
-#~ msgstr "公租房"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "standard"
-#~ msgstr "标准"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "water"
-#~ msgstr "水"
-
-#~ msgctxt "VAT rate type"
-#~ msgid "wine"
-#~ msgstr "酒"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage gift cards."
-#~ msgstr "管理礼品卡."
-
-#~ msgctxt "Cancel fulfillment mutation error"
-#~ msgid "This fulfillment can't be canceled"
-#~ msgstr "该操作不能被取消"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage navigation."
-#~ msgstr "导航管理."
-
-#~ msgctxt "Link object type description"
-#~ msgid "Category: "
-#~ msgstr "分类"
-
-#~ msgctxt "Link object type description"
-#~ msgid "Collection: "
-#~ msgstr "集合"
-
-#~ msgctxt "Link object type description"
-#~ msgid "Page: "
-#~ msgstr "页:"
-
-#~ msgctxt ""
-#~ "Status for a fully editable, not confirmed order created by staff users"
-#~ msgid "Draft"
-#~ msgstr "草稿"
-
-#~ msgctxt "Status for an order with no items marked as fulfilled"
-#~ msgid "Unfulfilled"
-#~ msgstr "未完成"
-
-#~ msgctxt "Status for an order with some items marked as fulfilled"
-#~ msgid "Partially fulfilled"
-#~ msgstr "部分完成"
-
-#~ msgctxt "Status for an order with all items marked as fulfilled"
-#~ msgid "Fulfilled"
-#~ msgstr "已完成"
-
-#~ msgctxt "Status for a permanently canceled order"
-#~ msgid "Canceled"
-#~ msgstr "已取消"
-
-#~ msgctxt "Status for a group of products in an order marked as fulfilled"
-#~ msgid "Fulfilled"
-#~ msgstr "已完成"
-
-#~ msgctxt ""
-#~ "Status for a fulfilled group of products in an order marked as canceled"
-#~ msgid "Canceled"
-#~ msgstr "已取消"
-
-#~ msgctxt "Payment delete form error"
-#~ msgid "Payment does not exist"
-#~ msgstr "支付信息不存在"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage pages."
-#~ msgstr "页面管理."
-
-#~ msgctxt "transaction kind"
-#~ msgid "Refund"
-#~ msgstr "退款"
-
-#~ msgctxt "transaction kind"
-#~ msgid "Capture"
-#~ msgstr "抓取"
-
-#~ msgctxt "Payment status form field"
-#~ msgid "Payment status"
-#~ msgstr "支付状态"
-
-#~ msgctxt "Product status"
-#~ msgid "not published"
-#~ msgstr "未发布"
-
-#~ msgctxt "Product status"
-#~ msgid "out of stock"
-#~ msgstr "已售罄"
-
-#~ msgctxt "Product status"
-#~ msgid "stock running low"
-#~ msgstr "库存量低"
-
-#~ msgctxt "Variant status"
-#~ msgid "available"
-#~ msgstr "可用"
-
-#~ msgctxt "Variant status"
-#~ msgid "out of stock"
-#~ msgstr "缺货"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "name"
-#~ msgstr "名称"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "price"
-#~ msgstr "价格"
-
-#~ msgctxt "Product list sorting option"
-#~ msgid "last updated"
-#~ msgstr "最近更新"
-
-#~ msgctxt "Product list sorting form"
-#~ msgid "Sort by"
-#~ msgstr "排序"
-
-#~ msgctxt "Currency amount"
-#~ msgid "Price"
-#~ msgstr "价格"
-
-#~ msgctxt "Search form label"
-#~ msgid "Query"
-#~ msgstr "查询"
-
-#~ msgid "Spanish"
-#~ msgstr "西班牙语"
-
-#~ msgid "Persian"
-#~ msgstr "波斯语"
-
-#~ msgid "French"
-#~ msgstr "法语"
-
-#~ msgid "Hungarian"
-#~ msgstr "匈牙利语"
-
-#~ msgid "Italian"
-#~ msgstr "意大利语"
-
-#~ msgid "Japanese"
-#~ msgstr "日语"
-
-#~ msgid "Simplified Chinese"
-#~ msgstr "简体中文"
-
-#~ msgid "Traditional Chinese"
-#~ msgstr "繁体中文"
-
-#~ msgctxt "Name of political and economical union of european countries"
-#~ msgid "European Union"
-#~ msgstr "欧盟"
-
-#~ msgctxt "Payment method name"
-#~ msgid "Dummy gateway"
-#~ msgstr "虚拟网关"
-
-#~ msgctxt "Permission description"
-#~ msgid "Manage shipping."
-#~ msgstr "配送管理."
-
-#~ msgctxt "Account deletetion confirmation page title"
-#~ msgid "Are you sure?"
-#~ msgstr "您确定？"
-
-#~ msgctxt "Confirm account deletion button"
-#~ msgid "Delete account"
-#~ msgstr "删除账户"
-
-#~ msgctxt "Remove address form action"
-#~ msgid "Remove Address"
-#~ msgstr "删除地址"
-
-#~ msgctxt "Remove address form action"
-#~ msgid "Cancel"
-#~ msgstr "取消"
-
-#~ msgctxt "Edit address page title"
-#~ msgid "Edit address"
-#~ msgstr "编辑地址"
-
-#~ msgctxt "New address page title"
-#~ msgid "New address"
-#~ msgstr "新增地址"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Home"
-#~ msgstr "首页"
-
-#~ msgctxt "Edit/new address breadcrumb"
-#~ msgid "Your profile"
-#~ msgstr "您的简介"
-
-#~ msgctxt "Edit address breadcrumb"
-#~ msgid "Edit address"
-#~ msgstr "编辑地址"
-
-#~ msgctxt "New address breadcrumb"
-#~ msgid "New address"
-#~ msgstr "新增地址"
-
-#~ msgctxt "Edit address title"
-#~ msgid "Edit address"
-#~ msgstr "编辑地址"
-
-#~ msgctxt "New address title"
-#~ msgid "New address"
-#~ msgstr "新增地址"
-
-#~ msgctxt "Edit/new address primary action"
-#~ msgid "Save changes"
-#~ msgstr "保存变更"
-
-#~ msgctxt "User profile page title"
-#~ msgid "Your profile"
-#~ msgstr "您的简介"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your account"
-#~ msgstr "您的账号"
-
-#~ msgid "My account"
-#~ msgstr "我的账号"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Recent Orders"
-#~ msgstr "最近订单"
-
-#~ msgctxt "User profile tab"
-#~ msgid "Change password"
-#~ msgstr "修改密码"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order"
-#~ msgstr "订单"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Date"
-#~ msgstr "日期"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Summary"
-#~ msgstr "摘要"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Payment status"
-#~ msgstr "支付状态"
-
-#~ msgctxt "Recent orders column title"
-#~ msgid "Order status"
-#~ msgstr "订单状态"
-
-#~ msgctxt "Recent orders link text"
-#~ msgid "Details"
-#~ msgstr "详情"
-
-#~ msgctxt "No recent orders text"
-#~ msgid "There are not any completed orders yet."
-#~ msgstr "还没有完成的订单"
-
-#~ msgctxt "User profile action"
-#~ msgid "Change password"
-#~ msgstr "修改密码"
-
-#~ msgctxt "User profile action"
-#~ msgid "Update"
-#~ msgstr "更新"
-
-#~ msgctxt "User address action"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Login page title"
-#~ msgid "Log in"
-#~ msgstr "登录"
-
-#~ msgctxt "Login form secondary title"
-#~ msgid "Don't have an account yet?"
-#~ msgstr "还没拥有账号？"
-
-#~ msgctxt "Login form secondary action"
-#~ msgid "Register"
-#~ msgstr "注册"
-
-#~ msgctxt "Login form title"
-#~ msgid "Log in"
-#~ msgstr "登录"
-
-#, python-format
-#~ msgctxt "Already logged in warning message"
-#~ msgid "You are already logged in as %(user)s."
-#~ msgstr "您已登录，%(user)s。"
-
-#~ msgctxt "Login form primary action"
-#~ msgid "Log in"
-#~ msgstr "登录"
-
-#~ msgctxt "Login form secondary link"
-#~ msgid "Forgot password?"
-#~ msgstr "忘记密码？"
-
-#~ msgctxt "Password change breadcrumb"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Password change form legend"
-#~ msgid "Change Password"
-#~ msgstr "修改密码"
-
-#~ msgctxt "Password change form primary action"
-#~ msgid "Save new password"
-#~ msgstr "保存新密码"
-
-#~ msgctxt "Password reset page title"
-#~ msgid "Password reset"
-#~ msgstr "重置密码"
-
-#~ msgctxt "Password reset form title"
-#~ msgid "Forgot your password?"
-#~ msgstr "忘记密码？"
-
-#~ msgctxt "Password reset form help text"
-#~ msgid ""
-#~ "Please let us know the email you have used to register or purchase at our "
-#~ "store."
-#~ msgstr "请让我们知道您用于注册和购物的电子邮件。"
-
-#~ msgctxt "Password reset primary action"
-#~ msgid "Continue"
-#~ msgstr "继续"
-
-#~ msgctxt "Password reset done page title"
-#~ msgid "Password Reset"
-#~ msgstr "重置密码"
-
-#~ msgctxt "Password reset done title"
-#~ msgid "Password Reset"
-#~ msgstr "重置密码"
-
-#~ msgctxt "Password reset done text"
-#~ msgid ""
-#~ "We have sent you an e-mail. Please contact us if you do not receive it "
-#~ "within a few minutes."
-#~ msgstr "我们给您发送了一封电子邮件。如果几分钟内还没有收到，请联系我们。"
-
-#~ msgctxt "Password reset from key page title"
-#~ msgid "Change Password"
-#~ msgstr "修改密码"
-
-#, python-format
-#~ msgctxt "Password reset text if key is invalid"
-#~ msgid ""
-#~ "The password reset link was invalid, possibly because it has already been "
-#~ "used.<br> Please request a <a href=\"%(passwd_reset_url)s\">new password "
-#~ "reset</a>."
-#~ msgstr ""
-#~ "重置密码链接失效，可能它已经被使用过了。<br>您可以再次请求一次<a href="
-#~ "\"%(passwd_reset_url)s\">密码重置</a>。"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Password Reset"
-#~ msgstr "重置密码"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid "Now you can set new password for you account."
-#~ msgstr "现在您可以为您的账号设置新密码"
-
-#~ msgctxt "Password reset from key form primary action"
-#~ msgid "Continue"
-#~ msgstr "继续"
-
-#~ msgctxt "Password reset link expired from key form title"
-#~ msgid "Password Reset Link Expired"
-#~ msgstr "重置密码链接已过期"
-
-#~ msgctxt "Password reset from key form title"
-#~ msgid ""
-#~ "Sorry but this link is no longer valid. If you forget your password, "
-#~ "please use link below."
-#~ msgstr "这个链接已失效。如果您忘记了密码，请点击如下链接。"
-
-#~ msgctxt "Reset my password link"
-#~ msgid "Reset my password"
-#~ msgstr "重置密码"
-
-#~ msgctxt "Password reset from key done page title"
-#~ msgid "Password Changed"
-#~ msgstr "密码已更新"
-
-#~ msgctxt "Password reset from key done title"
-#~ msgid "Password Changed"
-#~ msgstr "密码已更新"
-
-#~ msgid "Your password is now changed."
-#~ msgstr "您的密码已更新"
-
-#, python-format
-#~ msgctxt "Password reset from key done text"
-#~ msgid ""
-#~ "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
-#~ msgstr "您现在可以用您的新密码<a href=\"%(login_url)s\"> 登录</a>"
-
-#~ msgctxt "Signup page title"
-#~ msgid "Sign Up"
-#~ msgstr "注册"
-
-#~ msgctxt "Signup form secondary title"
-#~ msgid "Already have an account?"
-#~ msgstr "已有账号？"
-
-#~ msgctxt "Signup form secondary action"
-#~ msgid "Log in"
-#~ msgstr "登录"
-
-#~ msgctxt "Signup form title"
-#~ msgid "Create an account"
-#~ msgstr "创建账号"
-
-#~ msgctxt "Signup form primary action"
-#~ msgid "Create an account"
-#~ msgstr "创建账号"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Dashboard"
-#~ msgstr "后台"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log out"
-#~ msgstr "登出"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Register"
-#~ msgstr "注册"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Log in"
-#~ msgstr "登录"
-
-#~ msgid "Search for product"
-#~ msgstr "搜索产品"
-
-#~ msgid "Search"
-#~ msgstr "搜索"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Your cart"
-#~ msgstr "您的购物车"
-
-#~ msgid "Account"
-#~ msgstr "帐户"
-
-#~ msgctxt "Main navigation item"
-#~ msgid "Style guide"
-#~ msgstr "样式指南"
-
-#~ msgctxt "Category breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "首页"
-
-#~ msgctxt "Order subtotal"
-#~ msgid "Total"
-#~ msgstr "总数"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Checkout"
-#~ msgstr "结账"
-
-#~ msgctxt "Checkout top message"
-#~ msgid "Easy and secure!"
-#~ msgstr "简便与安全！"
-
-#~ msgctxt "Checkout title"
-#~ msgid "Checkout"
-#~ msgstr "结账"
-
-#~ msgctxt "Order review title"
-#~ msgid "Order review"
-#~ msgstr "订单审核"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Taxes"
-#~ msgstr "税"
-
-#~ msgctxt "Order review section title"
-#~ msgid "Total"
-#~ msgstr "总数"
-
-#~ msgctxt "Checkout page title"
-#~ msgid "Your cart"
-#~ msgstr "您的购物车"
-
-#~ msgctxt "Checkout breadcrumb"
-#~ msgid "Cart"
-#~ msgstr "购物车"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Product"
-#~ msgstr "产品"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Quantity"
-#~ msgstr "数量"
-
-#~ msgctxt "Checkout table header"
-#~ msgid "Price"
-#~ msgstr "价格"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Checkout"
-#~ msgstr "结账"
-
-#~ msgctxt "Empty checkout message"
-#~ msgid "There are no products in your shopping cart."
-#~ msgstr "您的购物车是空的"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "Login"
-#~ msgstr "登录"
-
-#~ msgctxt "Checkout login page title"
-#~ msgid "New customer?"
-#~ msgstr "新客户？"
-
-#~ msgctxt "Checkout login page new users action"
-#~ msgid "Continue"
-#~ msgstr "继续"
-
-#~ msgctxt "Checkout login page new users message"
-#~ msgid "Registration is not required!"
-#~ msgstr "不需要注册！"
-
-#~ msgctxt "Checkout login form title"
-#~ msgid "Existing customer? Log in."
-#~ msgstr "已有账号？请登录。"
-
-#~ msgctxt "Checkout payment title"
-#~ msgid "Payment"
-#~ msgstr "支付"
-
-#~ msgctxt "Checkout shipping address title"
-#~ msgid "Shipping address"
-#~ msgstr "配送地址"
-
-#~ msgctxt "Checkout shipping address primary action"
-#~ msgid "Continue"
-#~ msgstr "继续"
-
-#~ msgid "Select other address"
-#~ msgstr "选择其他地址"
-
-#~ msgctxt "Checkout shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "配送方式"
-
-#~ msgctxt "Checkout shipping method primary action"
-#~ msgid "Continue"
-#~ msgstr "继续"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Same as shipping"
-#~ msgstr "同快运"
-
-#~ msgctxt "Checkout addresses form label"
-#~ msgid "Enter a new address"
-#~ msgstr "请输入新地址"
-
-#~ msgctxt "Checkout voucher form action"
-#~ msgid "Remove"
-#~ msgstr "删除"
-
-#~ msgctxt "Checkout summary title"
-#~ msgid "Billing address"
-#~ msgstr "账单地址"
-
-#~ msgctxt "Checkout summary primary action"
-#~ msgid "Order & Pay"
-#~ msgstr "订单 & 支付"
-
-#~ msgctxt "Checkout summary without shipping title"
-#~ msgid "Billing address"
-#~ msgstr "账单地址"
-
-#~ msgctxt "Checkout dropdown secondary action"
-#~ msgid "Go to cart"
-#~ msgstr "跳转到购物车"
-
-#~ msgctxt "Checkout dropdown primary action"
-#~ msgid "Checkout"
-#~ msgstr "结账"
-
-#~ msgctxt "Site breadcrumbs home"
-#~ msgid "Home"
-#~ msgstr "首页"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Visit storefront"
-#~ msgstr "访问商店前台"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Style guide"
-#~ msgstr "样式指南"
-
-#~ msgctxt "Dashboard top navigation action"
-#~ msgid "Log out"
-#~ msgstr "登出"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search"
-#~ msgstr "搜索"
-
-#~ msgctxt "Dashboard homepage"
-#~ msgid "Home"
-#~ msgstr "首页"
-
-#~ msgctxt "Dashboard catalogue"
-#~ msgid "Catalogue"
-#~ msgstr "分类"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Products"
-#~ msgstr "产品"
-
-#~ msgctxt "Dashboard categories list"
-#~ msgid "Categories"
-#~ msgstr "产品分类"
-
-#~ msgctxt "Dashboard side navigation link"
-#~ msgid "Collections"
-#~ msgstr "系列"
-
-#~ msgctxt "Dashboard discounts list"
-#~ msgid "Discounts"
-#~ msgstr "折扣"
-
-#~ msgctxt "Dashboard sales (discounts) list"
-#~ msgid "Sales"
-#~ msgstr "促销"
-
-#~ msgctxt "Dashboard vouchers list"
-#~ msgid "Vouchers"
-#~ msgstr "优惠券"
-
-#~ msgctxt "Dashboard sales. `Sales' is noun of to sell"
-#~ msgid "Sales"
-#~ msgstr "促销"
-
-#~ msgctxt "Dashboard orders list"
-#~ msgid "Orders"
-#~ msgstr "订单"
-
-#~ msgctxt "Dashboard customers list"
-#~ msgid "Customers"
-#~ msgstr "客户"
-
-#~ msgctxt "Management section"
-#~ msgid "Staff management"
-#~ msgstr "职员管理"
-
-#~ msgctxt "Dashboard staff members list"
-#~ msgid "Staff members"
-#~ msgstr "职员"
-
-#~ msgctxt "Dashboard configuration"
-#~ msgid "Configuration"
-#~ msgstr "配置"
-
-#~ msgctxt "Dashboard product types list"
-#~ msgid "Product types"
-#~ msgstr "产品类别"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Attributes"
-#~ msgstr "属性"
-
-#~ msgctxt "Dashboard shipping zones list"
-#~ msgid "Shipping"
-#~ msgstr "运送"
-
-#~ msgctxt "Dashboard site settings"
-#~ msgid "Site settings"
-#~ msgstr "站点设置"
-
-#~ msgctxt "Dashboard taxes"
-#~ msgid "Taxes"
-#~ msgstr "税"
-
-#~ msgctxt "Dashboard static pages"
-#~ msgid "Pages"
-#~ msgstr "页"
-
-#~ msgctxt "Dashboard software version"
-#~ msgid "Release:"
-#~ msgstr "释放："
-
-#~ msgctxt "Dashboard cancel action"
-#~ msgid "Cancel"
-#~ msgstr "取消"
-
-#~ msgctxt "Category list page title"
-#~ msgid "Categories"
-#~ msgstr "产品分类"
-
-#~ msgctxt "Category field"
-#~ msgid "Description"
-#~ msgstr "描述"
-
-#~ msgctxt "Category detail view action"
-#~ msgid "Edit category"
-#~ msgstr "编辑分类"
-
-#~ msgid "Add"
-#~ msgstr "添加"
-
-#~ msgctxt "Category list table header name"
-#~ msgid "Name"
-#~ msgstr "名字"
-
-#~ msgctxt "Category list table header description"
-#~ msgid "Description"
-#~ msgstr "描述"
-
-#~ msgctxt "Category edit action"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Category list action link"
-#~ msgid "Remove"
-#~ msgstr "删除"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Edit category"
-#~ msgstr "编辑分类"
-
-#~ msgctxt "Category detail page title"
-#~ msgid "Add new category"
-#~ msgstr "新增分类"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Add new category"
-#~ msgstr "新增分类"
-
-#~ msgctxt "Category form page title"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Category detail breadcrumbs"
-#~ msgid "Add new category"
-#~ msgstr "新增分类"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Update"
-#~ msgstr "更新"
-
-#~ msgctxt "Dashboard create action"
-#~ msgid "Create"
-#~ msgstr "创建"
-
-#~ msgctxt "Category list add button text"
-#~ msgid "Add category"
-#~ msgstr "新增分类"
-
-#~ msgctxt "Empty category list message"
-#~ msgid "No categories found."
-#~ msgstr "未找到分类"
-
-#, python-format
-#~ msgctxt "Remove category modal title"
-#~ msgid "Remove category %(category)s"
-#~ msgstr "删除分类%(category)s"
-
-#, python-format
-#~ msgctxt "Remove category modal title"
-#~ msgid ""
-#~ "Are you sure you want to remove category <strong>%(category)s</strong>?"
-#~ msgstr "您确认要删除分类<strong>%(category)s</strong>?"
-
-#~ msgctxt "Delete category form text about descendant categories"
-#~ msgid "The following child categories will be removed:"
-#~ msgstr "以下子分类将被删除："
-
-#, python-format
-#~ msgctxt "Remove category form text about products"
-#~ msgid "There is one product in this category that will be removed."
-#~ msgid_plural ""
-#~ "There are %(counter)s products in this category that will be removed."
-#~ msgstr[0] "该分类下的%(counter)s个产品将被删除。"
-
-#~ msgctxt "Dashboard delete action"
-#~ msgid "Remove"
-#~ msgstr "删除"
-
-#~ msgid "No categories found."
-#~ msgstr "未找到分类"
-
-#~ msgid "Collections"
-#~ msgstr "系列"
-
-#~ msgctxt "Collection action"
-#~ msgid "View on site"
-#~ msgstr "在网站中查看"
-
-#~ msgctxt "Collection secondary action"
-#~ msgid "Cancel"
-#~ msgstr "取消"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Update"
-#~ msgstr "更新"
-
-#~ msgctxt "Collection detail action"
-#~ msgid "Create"
-#~ msgstr "创建"
-
-#~ msgctxt "Collection field"
-#~ msgid "Published"
-#~ msgstr "已发布"
-
-#~ msgctxt "Collection field"
-#~ msgid "Draft"
-#~ msgstr "草稿"
-
-#~ msgctxt "Collections list page title "
-#~ msgid "Collections"
-#~ msgstr "系列"
-
-#~ msgctxt "Collections list table header name"
-#~ msgid "Name"
-#~ msgstr "名称"
-
-#~ msgctxt "Empty collection list message"
-#~ msgid "No collections found."
-#~ msgstr "没找到对应系列"
-
-#~ msgctxt "Homepage collection save"
-#~ msgid "Save"
-#~ msgstr "保存"
-
-#~ msgid "No collections found."
-#~ msgstr "没找到对应系列"
-
-#, python-format
-#~ msgid ""
-#~ "\n"
-#~ "    Collections are used to organize products into custom groups.<br>\n"
-#~ "    You can create collections by using the <span class=\"btn-fab-"
-#~ "presentation\"><svg data-src=\"%(img_path)s\" /></span> button.\n"
-#~ "  "
-#~ msgstr ""
-#~ "\n"
-#~ "系列是用于给产品归类于特定组。<br>\n"
-#~ "你可以使用<span class=\"btn-fab-presentation\"><svg data-src="
-#~ "\"%(img_path)s\" /></span>按键创建系列。\n"
-#~ " "
-
-#~ msgctxt "Customer field"
-#~ msgid "Note"
-#~ msgstr "备注"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Placed on"
-#~ msgstr "放置在"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Order status"
-#~ msgstr "订单状态"
-
-#~ msgctxt "Customer orders table header"
-#~ msgid "Total"
-#~ msgstr "总数"
-
-#~ msgctxt "Empty customer orders table message"
-#~ msgid "No orders found."
-#~ msgstr "无订单"
-
-#~ msgctxt "Customer notes card action"
-#~ msgid "Add note"
-#~ msgstr "添加备注"
-
-#~ msgctxt "Customer default shipping address card title"
-#~ msgid "Default shipping address"
-#~ msgstr "默认配送地址"
-
-#~ msgctxt "Customer without default shipping address message"
-#~ msgid "No default shipping address."
-#~ msgstr "没有默认配送地址"
-
-#~ msgctxt "Customer default billing address card title"
-#~ msgid "Default billing address"
-#~ msgstr "默认账单地址"
-
-#~ msgctxt "Customer without default billing address message"
-#~ msgid "No default billing address."
-#~ msgstr "没有默认账单地址"
-
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer"
-#~ msgstr "客户"
-
-#~ msgctxt "Dashboard add action"
-#~ msgid "Add"
-#~ msgstr "添加"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Name"
-#~ msgstr "名字"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Email"
-#~ msgstr "电子邮件"
-
-#~ msgctxt "Customers table header"
-#~ msgid "Location"
-#~ msgstr "地址"
-
-#~ msgctxt "Empty customers table message"
-#~ msgid "No customers found."
-#~ msgstr "没有客户"
-
-#~ msgctxt "Modal add note title"
-#~ msgid "Add note"
-#~ msgstr "添加备注"
-
-#~ msgctxt "Modal add note primary action"
-#~ msgid "Save note"
-#~ msgstr "保存备注"
-
-#~ msgctxt "Dashboard confirmation modal"
-#~ msgid "Promote to staff member"
-#~ msgstr "提升为职员"
-
-#~ msgid "No customers found."
-#~ msgstr "没有客户"
-
-#~ msgctxt "Dashboard sales (discounts) list."
-#~ msgid "Sales"
-#~ msgstr "促销"
-
-#~ msgid "Sales"
-#~ msgstr "促销"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Name"
-#~ msgstr "名字"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "Start date"
-#~ msgstr "开始日期"
-
-#~ msgctxt "Sale (discount) table header"
-#~ msgid "End date"
-#~ msgstr "结束日期"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Name"
-#~ msgstr "名字"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "Start date"
-#~ msgstr "开始日期"
-
-#~ msgctxt "Voucher table header"
-#~ msgid "End date"
-#~ msgstr "结束日期"
-
-#~ msgctxt "Collection availability status"
-#~ msgid "Published"
-#~ msgstr "已发布"
-
-#~ msgctxt "Dashboard card title"
-#~ msgid "Filters"
-#~ msgstr "过滤"
-
-#~ msgctxt "Category page filters"
-#~ msgid "Clear"
-#~ msgstr "清空"
-
-#~ msgctxt "Category price filter"
-#~ msgid "Filter"
-#~ msgstr "过滤"
-
-#~ msgctxt "Menu items list table header name"
-#~ msgid "Name"
-#~ msgstr "名称"
-
-#~ msgctxt "Menu items list table header points to"
-#~ msgid "Points to"
-#~ msgstr "指出"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Status"
-#~ msgstr "状态"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Published"
-#~ msgstr "已发布"
-
-#~ msgctxt "Menu items status"
-#~ msgid "Not published"
-#~ msgstr "未发布"
-
-#~ msgctxt "Menu item edit action"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Menu item list action link"
-#~ msgid "Remove"
-#~ msgstr "删除"
-
-#~ msgctxt "Page availability status"
-#~ msgid "Published"
-#~ msgstr "已发布"
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Orders ready for shipment"
-#~ msgstr "订单准备配送"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Placed on"
-#~ msgstr "放置在"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Customer"
-#~ msgstr "客户"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Payment status"
-#~ msgstr "支付状态"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Order status"
-#~ msgstr "订单状态"
-
-#~ msgctxt "Orders table header"
-#~ msgid "Total"
-#~ msgstr "总数"
-
-#~ msgctxt "Anonymous user account value"
-#~ msgid "Guest"
-#~ msgstr "访客"
-
-#~ msgctxt "Dashboard homepage table title"
-#~ msgid "Preauthorized payments"
-#~ msgstr "预授权支付"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Order"
-#~ msgstr "订单"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Date"
-#~ msgstr "日期"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Customer"
-#~ msgstr "客户"
-
-#~ msgctxt "Preauthorized payments table header"
-#~ msgid "Amount"
-#~ msgstr "金额"
-
-#~ msgid "Guest"
-#~ msgstr "访客"
-
-#~ msgctxt "Empty Preauthorized payments table message"
-#~ msgid "No preauthorized payments."
-#~ msgstr "没有预授权付款"
-
-#~ msgctxt "Low stock product list"
-#~ msgid "Product name"
-#~ msgstr "产品名称"
-
-#~ msgctxt "Low stock product list"
-#~ msgid "Stock left"
-#~ msgstr "库存剩余"
-
-#~ msgctxt "Menu item field"
-#~ msgid "Points to"
-#~ msgstr "指出"
-
-#~ msgctxt "Menu form page title"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Menu list table header Menu name"
-#~ msgid "Menu name"
-#~ msgstr "菜单名称"
-
-#~ msgctxt "Dashboard update action"
-#~ msgid "Save"
-#~ msgstr "保存"
-
-#~ msgctxt ""
-#~ msgid "Edit address"
-#~ msgstr "编辑地址"
-
-#~ msgctxt ""
-#~ msgid "Shipping address"
-#~ msgstr "配送地址"
-
-#~ msgctxt ""
-#~ msgid "Billing address"
-#~ msgstr "账单地址"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Cancel Order"
-#~ msgstr "取消订单"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Print"
-#~ msgstr "打印"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Details"
-#~ msgstr "详情"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "Payments"
-#~ msgstr "支付"
-
-#~ msgctxt "Order detail tab"
-#~ msgid "History"
-#~ msgstr "历史"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Payments"
-#~ msgstr "支付"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Outstanding balance"
-#~ msgstr "未付金额"
-
-#~ msgctxt "Order summary card header"
-#~ msgid "Preauthorized amount"
-#~ msgstr "预授权金额"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Capture"
-#~ msgstr "抓取"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Refund"
-#~ msgstr "退款"
-
-#~ msgctxt "Order details summary header"
-#~ msgid "Customer"
-#~ msgstr "客户"
-
-#~ msgctxt "Dashboard edit action"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Order placed on date"
-#~ msgid "Placed on"
-#~ msgstr "放置在"
-
-#~ msgctxt "Order table header"
-#~ msgid "Price"
-#~ msgstr "价格"
-
-#~ msgctxt "Order table header"
-#~ msgid "Quantity"
-#~ msgstr "数量"
-
-#~ msgctxt "Order table header"
-#~ msgid "Total"
-#~ msgstr "总数"
-
-#~ msgctxt "Order table row action"
-#~ msgid "Change quantity"
-#~ msgstr "修改数量"
-
-#~ msgctxt "Order totals header"
-#~ msgid "Shipping"
-#~ msgstr "运送"
-
-#~ msgctxt "Order total taxes"
-#~ msgid "Taxes"
-#~ msgstr "税"
-
-#~ msgctxt "Order summary card action"
-#~ msgid "Add product"
-#~ msgstr "添加产品"
-
-#~ msgctxt "Order detail action"
-#~ msgid "Invoice"
-#~ msgstr "发票"
-
-#~ msgctxt "Order detail action"
-#~ msgid "View on site"
-#~ msgstr "在网站中查看"
-
-#~ msgctxt "Fulfillment summary card action"
-#~ msgid "Cancel"
-#~ msgstr "取消"
-
-#~ msgctxt "Order notes card title"
-#~ msgid "Order notes"
-#~ msgstr "订单备注"
-
-#~ msgctxt "Empty order notes card message"
-#~ msgid "There are no notes associated with this order."
-#~ msgstr "订单无备注"
-
-#~ msgctxt "Order notes card action"
-#~ msgid "Add note"
-#~ msgstr "添加备注"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Transaction ID"
-#~ msgstr "交易 ID"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Date"
-#~ msgstr "日期"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Payment status"
-#~ msgstr "支付状态"
-
-#~ msgctxt "Payment history table header"
-#~ msgid "Amount"
-#~ msgstr "金额"
-
-#~ msgctxt "Empty payment history table message"
-#~ msgid "No payments made for this order."
-#~ msgstr "订单未支付"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Quantity"
-#~ msgstr "数量"
-
-#~ msgctxt "Empty order list message"
-#~ msgid "No orders found."
-#~ msgstr "无订单"
-
-#~ msgctxt "Modal order add variant primary action"
-#~ msgid "Add"
-#~ msgstr "添加"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "SKU"
-#~ msgstr "库存单位"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Price"
-#~ msgstr "价格"
-
-#~ msgctxt "Modal remove order line table header"
-#~ msgid "Total"
-#~ msgstr "总数"
-
-#~ msgctxt "Modal cancel order primary action"
-#~ msgid "Cancel Order"
-#~ msgstr "取消订单"
-
-#~ msgctxt "Modal capture payment list title"
-#~ msgid "Captured amount:"
-#~ msgstr "抓取数量："
-
-#~ msgctxt "Modal capture payment primary action"
-#~ msgid "Capture"
-#~ msgstr "抓取"
-
-#~ msgctxt "Modal change quantity title"
-#~ msgid "Change quantity"
-#~ msgstr "修改数量"
-
-#~ msgctxt "Modal create order primary action"
-#~ msgid "Create"
-#~ msgstr "创建"
-
-#~ msgctxt "Modal edit customer primary action"
-#~ msgid "Update"
-#~ msgstr "更新"
-
-#~ msgctxt "Modal edit discount primary action"
-#~ msgid "Update"
-#~ msgstr "更新"
-
-#~ msgctxt "Modal edit shipping primary action"
-#~ msgid "Update"
-#~ msgstr "更新"
-
-#~ msgctxt "Modal edit voucher primary action"
-#~ msgid "Update"
-#~ msgstr "更新"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Update"
-#~ msgstr "更新"
-
-#~ msgctxt "Modal change fulfillment tracking primary action"
-#~ msgid "Save"
-#~ msgstr "保存"
-
-#~ msgctxt "Modal refund payment list title"
-#~ msgid "Captured amount:"
-#~ msgstr "抓取数量："
-
-#~ msgctxt "Modal refund payment primary action"
-#~ msgid "Refund"
-#~ msgstr "退款"
-
-#~ msgctxt "Order invoice"
-#~ msgid "Invoice"
-#~ msgstr "发票"
-
-#~ msgctxt "Invoice shipping address"
-#~ msgid "Shipping address"
-#~ msgstr "配送地址"
-
-#~ msgctxt "Invoice billing address"
-#~ msgid "Billing address"
-#~ msgstr "账单地址"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "SKU"
-#~ msgstr "库存单位"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Quantity"
-#~ msgstr "数量"
-
-#~ msgctxt "Shipment order table header"
-#~ msgid "Total"
-#~ msgstr "总数"
-
-#~ msgctxt "Order total shipping price header"
-#~ msgid "Shipping"
-#~ msgstr "运送"
-
-#~ msgctxt "Packing slip shipping details"
-#~ msgid "Shipping Details"
-#~ msgstr "配送详情"
-
-#~ msgctxt "Packing slip shipping details"
-#~ msgid "Billing Details"
-#~ msgstr "账单详情"
-
-#~ msgctxt "Packing slip shipping address"
-#~ msgid "Shipping address"
-#~ msgstr "配送地址"
-
-#~ msgctxt "Packing slip billing address"
-#~ msgid "Billing address"
-#~ msgstr "账单地址"
-
-#~ msgctxt "Order table header"
-#~ msgid "SKU"
-#~ msgstr "库存单位"
-
-#~ msgid "No orders found."
-#~ msgstr "无订单"
-
-#~ msgctxt "Pages list page title"
-#~ msgid "Pages"
-#~ msgstr "页"
-
-#~ msgctxt "Pages form breadcrumbs"
-#~ msgid "Pages"
-#~ msgstr "页"
-
-#~ msgctxt "Page action"
-#~ msgid "View on site"
-#~ msgstr "在网站中查看"
-
-#~ msgctxt "Page form page title"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Dashboard pages list"
-#~ msgid "Pages"
-#~ msgstr "页"
-
-#~ msgctxt "Page form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgid "Cancel"
-#~ msgstr "取消"
-
-#~ msgid "Save"
-#~ msgstr "保存"
-
-#~ msgid "Create"
-#~ msgstr "创建"
-
-#~ msgid "Pages"
-#~ msgstr "页"
-
-#~ msgctxt "Static pages table header name"
-#~ msgid "Title"
-#~ msgstr "标题"
-
-#~ msgctxt "Static pages table header url"
-#~ msgid "URL"
-#~ msgstr "URL"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Attributes"
-#~ msgstr "属性"
-
-#~ msgid "Product types"
-#~ msgstr "产品类别"
-
-#~ msgctxt "Attribute detail action"
-#~ msgid "Edit attribute"
-#~ msgstr "编辑属性"
-
-#~ msgctxt "Attribute detail action"
-#~ msgid "Remove attribute"
-#~ msgstr "删除属性"
-
-#~ msgid "Attribute values"
-#~ msgstr "属性值"
-
-#~ msgid "Display name"
-#~ msgstr "显示名"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Attribute value edit action"
-#~ msgid "Remove"
-#~ msgstr "删除"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Attribute detail page title"
-#~ msgid "Add new attribute"
-#~ msgstr "添加属性"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Attribute detail breadcrumbs"
-#~ msgid "Add new attribute"
-#~ msgstr "添加属性"
-
-#~ msgctxt "Attribute list add button text"
-#~ msgid "Add attribute"
-#~ msgstr "添加属性"
-
-#~ msgctxt "Dashboard attributes list table header name"
-#~ msgid "Name"
-#~ msgstr "名字"
-
-#~ msgctxt "Name of product types related to the attribute"
-#~ msgid "Product types"
-#~ msgstr "产品类别"
-
-#~ msgctxt "Dashboard attributes list table header values"
-#~ msgid "Values"
-#~ msgstr "值"
-
-#~ msgctxt "Empty attribute list message"
-#~ msgid "No attributes found."
-#~ msgstr "没有属性"
-
-#, python-format
-#~ msgctxt "Modal remove attribute text"
-#~ msgid "Remove attribute %(attribute)s"
-#~ msgstr "删除属性%(attribute)s"
-
-#, python-format
-#~ msgctxt "Modal remove attribute text"
-#~ msgid ""
-#~ "Are you sure you want to remove attribute <strong>%(attribute)s</strong>?"
-#~ msgstr "您确定要删除属性<strong>%(attribute)s</strong>？"
-
-#~ msgctxt "Attribute values form title"
-#~ msgid "Attribute values"
-#~ msgstr "属性值"
-
-#~ msgid "No attributes found."
-#~ msgstr "没有属性"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Products"
-#~ msgstr "产品"
-
-#~ msgctxt "Product field"
-#~ msgid "Published"
-#~ msgstr "已发布"
-
-#~ msgctxt "Product field"
-#~ msgid "Draft"
-#~ msgstr "草稿"
-
-#~ msgctxt "Product action"
-#~ msgid "Edit product"
-#~ msgstr "编辑产品"
-
-#~ msgctxt "Product action"
-#~ msgid "Remove product"
-#~ msgstr "删除产品"
-
-#~ msgctxt "Product action"
-#~ msgid "View on site"
-#~ msgstr "在网站中查看"
-
-#~ msgid "Variant"
-#~ msgstr "变种"
-
-#~ msgid "SKU"
-#~ msgstr "库存单位"
-
-#~ msgid "Name"
-#~ msgstr "名称"
-
-#~ msgid "Status"
-#~ msgstr "状态"
-
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Dashboard product details page"
-#~ msgid "No variants found"
-#~ msgstr "没有变种"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "Allocated"
-#~ msgstr "已分配"
-
-#~ msgid "Images"
-#~ msgstr "图片"
-
-#~ msgid "Edit images"
-#~ msgstr "编辑图片"
-
-#~ msgctxt "Dashboard products list"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Product form page title"
-#~ msgid "Add new product"
-#~ msgstr "添加产品"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Add new product"
-#~ msgstr "添加产品"
-
-#~ msgctxt "Product form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgid "Shipping"
-#~ msgstr "运送"
-
-#~ msgid "Attributes"
-#~ msgstr "属性"
-
-#~ msgctxt "Product list add button text"
-#~ msgid "Add product"
-#~ msgstr "添加产品"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Name"
-#~ msgstr "名称"
-
-#~ msgctxt "Products list table header"
-#~ msgid "Price"
-#~ msgstr "价格"
-
-#~ msgctxt "Empty product list message"
-#~ msgid "No products found."
-#~ msgstr "没有产品"
-
-#, python-format
-#~ msgctxt "Modal remove product text"
-#~ msgid "Remove product %(product)s"
-#~ msgstr "删除产品%(product)s"
-
-#, python-format
-#~ msgctxt "Modal remove product text"
-#~ msgid ""
-#~ "Are you sure you want to remove product <strong>%(product)s</strong>?"
-#~ msgstr "您确定要删除产品<strong>%(product)s</strong>？"
-
-#~ msgctxt "Modal select product types title"
-#~ msgid "Product type"
-#~ msgstr "产品类别"
-
-#~ msgctxt "Dashboard add action"
-#~ msgid "Create"
-#~ msgstr "创建"
-
-#~ msgctxt "Image form text"
-#~ msgid "Edit - Image"
-#~ msgstr "编辑 - 图片"
-
-#~ msgctxt "Image form text"
-#~ msgid "Add image"
-#~ msgstr "添加图片"
-
-#~ msgctxt "Image form text"
-#~ msgid "Image"
-#~ msgstr "图片"
-
-#~ msgctxt "Image form text"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Image form breadcrumbs"
-#~ msgid "Add image"
-#~ msgstr "添加图片"
-
-#, python-format
-#~ msgctxt "Image form breadcrumbs"
-#~ msgid "Add image for %(product)s"
-#~ msgstr "为产品%(product)s添加图片"
-
-#~ msgctxt "Add image button text"
-#~ msgid "Add image"
-#~ msgstr "添加图片"
-
-#~ msgctxt "Image card text"
-#~ msgid "No description"
-#~ msgstr "无描述"
-
-#~ msgctxt "Dashboard remove action"
-#~ msgid "Remove"
-#~ msgstr "删除"
-
-#~ msgctxt "Image gallery upload box text"
-#~ msgid "Drop images here to upload"
-#~ msgstr "将图片拖动到这里进行上传"
-
-#~ msgctxt "Empty image gallery message"
-#~ msgid "No description"
-#~ msgstr "无描述"
-
-#~ msgctxt "Modal remove image text"
-#~ msgid "Remove product image"
-#~ msgstr "删除产品图片"
-
-#~ msgctxt "Modal remove image text"
-#~ msgid "Are you sure you want to remove product image?"
-#~ msgstr "您确认要删除产品图片？"
-
-#~ msgid "Taxes"
-#~ msgstr "税"
-
-#~ msgctxt "Product type list add button text"
-#~ msgid "Add product type"
-#~ msgstr "添加产品类别"
-
-#~ msgctxt "Dashboard product types list table header name"
-#~ msgid "Name"
-#~ msgstr "名字"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Product attributes"
-#~ msgstr "产品属性"
-
-#~ msgctxt "Product type item list text"
-#~ msgid "Variant attributes"
-#~ msgstr "变种属性"
-
-#~ msgctxt "Empty product type list message"
-#~ msgid "No product types found."
-#~ msgstr "无产品类别"
-
-#~ msgid "No product types found."
-#~ msgstr "无产品类别"
-
-#~ msgctxt "Dashboard variant details view"
-#~ msgid "SKU"
-#~ msgstr "库存单位"
-
-#~ msgctxt "Dashboard action"
-#~ msgid "Edit variant"
-#~ msgstr "编辑变种"
-
-#~ msgctxt "Dashboard action"
-#~ msgid "Remove variant"
-#~ msgstr "删除变种"
-
-#~ msgid "No images"
-#~ msgstr "没有图片"
-
-#~ msgctxt "Dashboard action"
-#~ msgid "Select images"
-#~ msgstr "选择图片"
-
-#~ msgctxt "Variant form page title"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Variant form page title"
-#~ msgid "Add variant"
-#~ msgstr "添加产品变种"
-
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Add variant"
-#~ msgstr "添加产品变种"
-
-#, python-format
-#~ msgctxt "Variant form breadcrumbs"
-#~ msgid "Add variant for %(product)s"
-#~ msgstr "添加产品变种%(product)s"
-
-#~ msgctxt "Dashboard confirmation modal"
-#~ msgid ""
-#~ "This is the only variant of this product. If you remove it, the product "
-#~ "will become unavailable."
-#~ msgstr "这是该产品的唯一变种。如果您删除了它，该产品将不可用。"
-
-#~ msgctxt "Dashboard variant images modal"
-#~ msgid "Select variant images"
-#~ msgstr "选择变种图片"
-
-#~ msgctxt "Dashboard modal action"
-#~ msgid "Save"
-#~ msgstr "保存"
-
-#~ msgid "No products found."
-#~ msgstr "没有产品"
-
-#~ msgctxt "Search page title"
-#~ msgid "Search results"
-#~ msgstr "搜索结果"
-
-#~ msgctxt "Dashboard search"
-#~ msgid "Search results"
-#~ msgstr "搜索结果"
-
-#~ msgctxt "Search results list products"
-#~ msgid "Products"
-#~ msgstr "产品"
-
-#~ msgctxt "Search results list orders"
-#~ msgid "Orders"
-#~ msgstr "订单"
-
-#, python-format
-#~ msgctxt "Dashboard order"
-#~ msgid "Order #%(order_number)s"
-#~ msgstr "订单 #%(order_number)s"
-
-#, python-format
-#~ msgctxt "Dashboard customer"
-#~ msgid "Customer: %(email)s"
-#~ msgstr "客户：%(email)s"
-
-#, python-format
-#~ msgctxt "Dashboard user"
-#~ msgid "User %(full_name)s"
-#~ msgstr "用户%(full_name)s"
-
-#, python-format
-#~ msgctxt "No Search result message"
-#~ msgid "No results for query \"%(query)s\"."
-#~ msgstr "以下查询无结果“%(query)s”"
-
-#~ msgctxt "Dashboard shipping zones"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Shipping zone form page title"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, price range of shipping methods within "
-#~ "shipping zone"
-#~ msgid "Price range"
-#~ msgstr "价格范围"
-
-#~ msgctxt ""
-#~ "Shipping zones table header, list of countries within of shipping zone"
-#~ msgid "Countries"
-#~ msgstr "国家"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Name"
-#~ msgstr "名称"
-
-#~ msgctxt "Header of the shipping methods list"
-#~ msgid "Price"
-#~ msgstr "价格"
-
-#~ msgctxt "Attribute value remove action"
-#~ msgid "Remove"
-#~ msgstr "删除"
-
-#~ msgctxt "Dashboard shipping method edit page"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Shipping method breadcrumbs"
-#~ msgid "Edit shipping method"
-#~ msgstr "编辑配送方式"
-
-#~ msgctxt "Shipping method form title"
-#~ msgid "Shipping method"
-#~ msgstr "配送方式"
-
-#~ msgctxt "Dashboard authorization key list"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Add new authorization key page title"
-#~ msgid "Add new authorization key"
-#~ msgstr "新增授权密钥"
-
-#~ msgctxt "Dashboard site setting detail"
-#~ msgid "Site settings"
-#~ msgstr "站点设置"
-
-#~ msgctxt "Authorization key breadcrumbs"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Authorization key breadcrumbs"
-#~ msgid "Add new authorization key"
-#~ msgstr "新增授权密钥"
-
-#~ msgctxt "Authorization key form title"
-#~ msgid "Authorization key"
-#~ msgstr "授权密钥"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Domain"
-#~ msgstr "域名"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Header text"
-#~ msgstr "头部文字"
-
-#~ msgctxt "Site settings field"
-#~ msgid "Description"
-#~ msgstr "描述"
-
-#~ msgctxt "Site settings action"
-#~ msgid "Edit site settings"
-#~ msgstr "编辑站点设置"
-
-#~ msgctxt "Title of the authorization keys list"
-#~ msgid "Authorization keys"
-#~ msgstr "授权密钥"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Name"
-#~ msgstr "名称"
-
-#~ msgctxt "Header of authorization keys list"
-#~ msgid "Key"
-#~ msgstr "密钥"
-
-#~ msgctxt "Authorization key edit action"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#~ msgctxt "Authorization key remove action"
-#~ msgid "Remove"
-#~ msgstr "删除"
-
-#~ msgctxt "Empty list of authorization keys"
-#~ msgid "No authorization keys"
-#~ msgstr "无授权码"
-
-#~ msgctxt "Site settings page title"
-#~ msgid "Add new site settings"
-#~ msgstr "新增站点设置"
-
-#~ msgctxt "Dashboard attributes list"
-#~ msgid "Site settings"
-#~ msgstr "站点设置"
-
-#~ msgctxt "Dashboard site settings"
-#~ msgid "Edit"
-#~ msgstr "编辑"
-
-#, python-format
-#~ msgctxt "Modal delete authorization key text"
-#~ msgid "Delete authorization key %(key)s"
-#~ msgstr "删除授权码%(key)s"
-
-#~ msgctxt "Dashboard staff"
-#~ msgid "Staff"
-#~ msgstr "职员"
-
-#~ msgctxt "Dashboard staff list"
-#~ msgid "Staff"
-#~ msgstr "职员"
-
-#~ msgctxt "Dashboard add staff member action"
-#~ msgid "Add staff member"
-#~ msgstr "添加职员"
-
-#~ msgctxt "Staff member form action"
-#~ msgid "Remove staff member"
-#~ msgstr "删除职员"
-
-#~ msgctxt "Staff member details header"
-#~ msgid "Staff member details"
-#~ msgstr "职员详情"
-
-#~ msgctxt "Dashboard staff members list"
-#~ msgid "Staff"
-#~ msgstr "职员"
-
-#~ msgctxt "Staff members list add button text"
-#~ msgid "Add staff member"
-#~ msgstr "添加职员"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Name"
-#~ msgstr "名称"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Email"
-#~ msgstr "电子邮件"
-
-#~ msgctxt "Staff members table header"
-#~ msgid "Location"
-#~ msgstr "地址"
-
-#~ msgctxt "Tax details breadcrumbs"
-#~ msgid "Taxes"
-#~ msgstr "税"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Name"
-#~ msgstr "名称"
-
-#~ msgctxt "Country tax rates list header"
-#~ msgid "Value"
-#~ msgstr "值"
-
-#~ msgctxt "Dashboard taxes list"
-#~ msgid "Taxes"
-#~ msgstr "税"
-
-#~ msgctxt "Dashboard site taxes settings form title"
-#~ msgid "Taxes"
-#~ msgstr "税"
-
-#~ msgid "Dashboard"
-#~ msgstr "后台"
-
-#~ msgctxt "Taxes site settings title"
-#~ msgid "Configuration"
-#~ msgstr "配置"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Promo & Sale"
-#~ msgstr "优惠 & 促销"
-
-#~ msgctxt "Homepage title"
-#~ msgid "from the Northpole"
-#~ msgstr "来自北极"
-
-#~ msgctxt "Homepage action"
-#~ msgid "Shop now"
-#~ msgstr "现在购买"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Size & Colours"
-#~ msgstr "尺寸 & 颜色"
-
-#~ msgctxt "Homepage title"
-#~ msgid "Featured products"
-#~ msgstr "主打产品"
-
-#~ msgctxt "Dashboard form labels"
-#~ msgid "(optional)"
-#~ msgstr "(可选)"
-
-#~ msgid "File"
-#~ msgstr "文件"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Shipping address"
-#~ msgstr "配送地址"
-
-#~ msgctxt "Order details address title"
-#~ msgid "Billing address"
-#~ msgstr "账单地址"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Product"
-#~ msgstr "产品"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Quantity"
-#~ msgstr "数量"
-
-#~ msgctxt "Order details column title"
-#~ msgid "Price"
-#~ msgstr "价格"
-
-#~ msgctxt "Order details shipment row text"
-#~ msgid "Shipping"
-#~ msgstr "运送"
-
-#~ msgctxt "Order details taxes text"
-#~ msgid "Taxes"
-#~ msgstr "税"
-
-#~ msgctxt "Order details total text"
-#~ msgid "Total"
-#~ msgstr "总数"
-
-#~ msgctxt "Fulfillment tracking number details"
-#~ msgid "Tracking number"
-#~ msgstr "追踪编号"
-
-#, python-format
-#~ msgctxt "Checkout title"
-#~ msgid "Thank you for your <a href=\"%(order_url)s\">order</a>!"
-#~ msgstr "感谢您的<a href=\"%(order_url)s\">订单 </a>！"
-
-#~ msgctxt "Checkout secondary action"
-#~ msgid "Continue shopping"
-#~ msgstr "继续购物"
-
-#~ msgctxt "Checkout text"
-#~ msgid ""
-#~ "It looks like you already are our customer! <br> Please log in to connect "
-#~ "order with your account."
-#~ msgstr "您已经注册！<br>请直接登录。"
-
-#~ msgctxt "Checkout title"
-#~ msgid "Why not to create an account"
-#~ msgstr "请创建账号"
-
-#~ msgid ""
-#~ "Make your shopping experience even better! Save your shipping and payment "
-#~ "details for faster checkout."
-#~ msgstr "为了提升您的购物体验，请保存您的配送地址和付款方式。"
-
-#~ msgctxt "Checkout primary action"
-#~ msgid "Create an account"
-#~ msgstr "创建账号"
-
-#, python-format
-#~ msgctxt "Order details page title"
-#~ msgid "Order %(order)s"
-#~ msgstr "订单%(order)s"
-
-#, python-format
-#~ msgctxt "Order details breadcrumb"
-#~ msgid "Order %(order)s"
-#~ msgstr "订单%(order)s"
-
-#~ msgctxt "Order details link text"
-#~ msgid "Payment details"
-#~ msgstr "支付详情"
-
-#~ msgctxt "Order details primary action"
-#~ msgid "Pay for order"
-#~ msgstr "支付订单"
-
-#, python-format
-#~ msgctxt "Payment details page title"
-#~ msgid "Pay for order %(order)s"
-#~ msgstr "支付订单%(order)s"
-
-#, python-format
-#~ msgctxt "Payment details breadcrumb"
-#~ msgid "Order %(order)s"
-#~ msgstr "订单%(order)s"
-
-#~ msgctxt "Payment details title"
-#~ msgid "Payment pending"
-#~ msgstr "等待支付"
-
-#~ msgctxt "Payment pending text"
-#~ msgid ""
-#~ "We are currently waiting for an external service to authorize your "
-#~ "payment for this order."
-#~ msgstr "正在等待外部服务授权您的订单支付"
-
-#~ msgctxt "Payment status text"
-#~ msgid "Current status:"
-#~ msgstr "当前状态："
-
-#~ msgctxt "Payment pending action"
-#~ msgid "I understand, allow me to pay again"
-#~ msgstr "我知道了，让我再次付款"
-
-#, python-format
-#~ msgctxt "Payment details title"
-#~ msgid "Pay for order %(order)s"
-#~ msgstr "支付订单%(order)s"
-
-#~ msgctxt "Payment details primary action"
-#~ msgid "Proceed to payment"
-#~ msgstr "进行支付"
-
-#~ msgctxt "Payment details text"
-#~ msgid "You've authorized transaction. Order is in processing"
-#~ msgstr "您已授权交易，订单处理中"
-
-#~ msgctxt "Payment form page title"
-#~ msgid "Payment"
-#~ msgstr "支付"
-
-#~ msgctxt "Payment form breadcrumb"
-#~ msgid "Payment"
-#~ msgstr "支付"
-
-#~ msgctxt "Payment form title"
-#~ msgid "Payment"
-#~ msgstr "支付"
-
-#~ msgctxt "Product price filter"
-#~ msgid "from"
-#~ msgstr "从"
-
-#~ msgctxt "Product price filter"
-#~ msgid "to"
-#~ msgstr "到"
-
-#~ msgctxt "Product list page filters"
-#~ msgid "Clear filters"
-#~ msgstr "清理筛选"
-
-#~ msgctxt "Sale (discount) label for item in product list"
-#~ msgid "Sale"
-#~ msgstr "销售"
-
-#~ msgctxt "product price range"
-#~ msgid "from"
-#~ msgstr "于"
-
-#~ msgctxt "Product details link text"
-#~ msgid "Edit in dashboard"
-#~ msgstr "在后台中编辑"
-
-#~ msgctxt "Product details primary action"
-#~ msgid "Add to cart"
-#~ msgstr "加入购物车"
-
-#~ msgctxt "Product details title"
-#~ msgid "Description"
-#~ msgstr "描述"
-
-#~ msgctxt "Filter heading title"
-#~ msgid "Filters"
-#~ msgstr "过滤"
-
-#~ msgctxt "Product list filters"
-#~ msgid "Sort by"
-#~ msgstr "排序"
-
-#~ msgctxt "sort by option"
-#~ msgid "ascending"
-#~ msgstr "升序"
-
-#~ msgctxt "sort by option"
-#~ msgid "descending"
-#~ msgstr "降序"
-
-#~ msgctxt "Search without results text"
-#~ msgid "Sorry, no matches found for your request."
-#~ msgstr "没有找到任何与相关的商品"
-
-#~ msgctxt "Search without results text"
-#~ msgid "Try again or shop new arrivals."
-#~ msgstr "再次尝试"
-
-#~ msgid "Search:"
-#~ msgstr "搜索："
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Order summary"
-#~ msgstr "订单摘要"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Shipping"
-#~ msgstr "运送"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Taxes"
-#~ msgstr "税"
-
-#~ msgctxt "Order confirmation e-mail table header"
-#~ msgid "Total"
-#~ msgstr "总数"
-
-#~ msgctxt "Payment confirmation subject"
-#~ msgid "Payment details"
-#~ msgstr "支付详情"

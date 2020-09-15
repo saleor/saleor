@@ -1,15 +1,14 @@
 from typing import Union
 
 import graphene
-from django.db.models import Q, Value
+from django.db.models import Value
 from django.db.models.functions import Concat
-from django.utils import timezone
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_jwt.utils import jwt_payload
 from graphql_relay import from_global_id
 
-from ..core.enums import PermissionEnum, ReportingPeriod
+from ..core.enums import PermissionEnum
 from ..core.types import Permission
 
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
@@ -104,42 +103,6 @@ def get_nodes(
     return nodes
 
 
-def filter_by_query_param(queryset, query, search_fields):
-    """Filter queryset according to given parameters.
-
-    Keyword Arguments:
-        queryset - queryset to be filtered
-        query - search string
-        search_fields - fields considered in filtering
-
-    """
-    if query:
-        query_by = {
-            "{0}__{1}".format(field, "icontains"): query for field in search_fields
-        }
-        query_objects = Q()
-        for q in query_by:
-            query_objects |= Q(**{q: query_by[q]})
-        return queryset.filter(query_objects).distinct()
-    return queryset
-
-
-def reporting_period_to_date(period):
-    now = timezone.now()
-    if period == ReportingPeriod.TODAY:
-        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif period == ReportingPeriod.THIS_MONTH:
-        start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    else:
-        raise ValueError("Unknown period: %s" % period)
-    return start_date
-
-
-def filter_by_period(queryset, period, field_name):
-    start_date = reporting_period_to_date(period)
-    return queryset.filter(**{"%s__gte" % field_name: start_date})
-
-
 def format_permissions_for_display(permissions):
     """Transform permissions queryset into Permission list.
 
@@ -172,17 +135,6 @@ def get_user_or_app_from_context(context):
     # order is important
     # app can be None but user if None then is passed as anonymous
     return context.app or context.user
-
-
-def filter_range_field(qs, field, value):
-    gte, lte = value.get("gte"), value.get("lte")
-    if gte:
-        lookup = {f"{field}__gte": gte}
-        qs = qs.filter(**lookup)
-    if lte:
-        lookup = {f"{field}__lte": lte}
-        qs = qs.filter(**lookup)
-    return qs
 
 
 def requestor_is_superuser(requestor):

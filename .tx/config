@@ -1,22 +1,6 @@
 [main]
 host = https://www.transifex.com
 
-[saleor-1.dashboardpo]
-file_filter = saleor/dashboard/locale/<lang>/LC_MESSAGES/django.po
-minimum_perc = 1
-source_file = saleor/dashboard/locale/en/LC_MESSAGES/django.po
-source_lang = en
-trans.zh-Hans = saleor/dashboard/locale/zh_Hans/LC_MESSAGES/django.po
-trans.zh-Hant = saleor/dashboard/locale/zh_Hant/LC_MESSAGES/django.po
-
-[saleor-1.javascriptpo]
-file_filter = locale/<lang>/LC_MESSAGES/djangojs.po
-minimum_perc = 1
-source_file = locale/en/LC_MESSAGES/djangojs.po
-source_lang = en
-trans.zh-Hans = locale/zh_Hans/LC_MESSAGES/djangojs.po
-trans.zh-Hant = locale/zh_Hant/LC_MESSAGES/djangojs.po
-
 [saleor-1.storefrontpo]
 file_filter = locale/<lang>/LC_MESSAGES/django.po
 minimum_perc = 1
@@ -24,4 +8,3 @@ source_file = locale/en/LC_MESSAGES/django.po
 source_lang = en
 trans.zh-Hans = locale/zh_Hans/LC_MESSAGES/django.po
 trans.zh-Hant = locale/zh_Hant/LC_MESSAGES/django.po
-

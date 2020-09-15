@@ -164,7 +164,7 @@ class ProductOrder(SortInputObjectType):
         ),
     )
     field = graphene.Argument(
-        ProductOrderField, description=f"Sort products by the selected field."
+        ProductOrderField, description="Sort products by the selected field."
     )
 
     class Meta:

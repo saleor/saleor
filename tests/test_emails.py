@@ -4,24 +4,20 @@ from urllib.parse import urlencode
 import pytest
 from django.core import mail
 from django.core.exceptions import ImproperlyConfigured
-from django.templatetags.static import static
 from templated_email import get_connection
 
 import saleor.account.emails as account_emails
 import saleor.order.emails as emails
 from saleor.core.emails import get_email_context, prepare_url
-from saleor.core.utils import build_absolute_uri
 from saleor.order.utils import add_variant_to_draft_order
 
 
 def test_get_email_context(site_settings):
     site = site_settings.site
-    logo_url = build_absolute_uri(static("images/logo-light.svg"))
 
     expected_send_kwargs = {"from_email": site_settings.default_from_email}
     proper_context = {
         "domain": site.domain,
-        "logo_url": logo_url,
         "site_name": site.name,
     }
 
@@ -309,7 +305,6 @@ def test_send_email_request_change(
     )
     ctx = {
         "domain": "mirumee.com",
-        "logo_url": "http://mirumee.com/static/images/logo-light.svg",
         "redirect_url": "localhost?token=token_example",
         "site_name": "mirumee.com",
     }
@@ -340,7 +335,6 @@ def test_send_email_changed_notification(
     account_emails.send_user_change_email_notification(old_email)
     ctx = {
         "domain": "mirumee.com",
-        "logo_url": "http://mirumee.com/static/images/logo-light.svg",
         "site_name": "mirumee.com",
     }
     recipients = [old_email]

@@ -8,7 +8,7 @@ from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher, VoucherQueryset
 from ..core.filters import ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types.common import DateTimeRangeInput, IntRangeInput
-from ..utils import filter_by_query_param, filter_range_field
+from ..utils.filters import filter_by_query_param, filter_range_field
 from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountType
 
 
