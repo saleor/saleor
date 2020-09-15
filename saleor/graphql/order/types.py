@@ -302,6 +302,7 @@ class OrderLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_variant(root: models.OrderLine, _info):
+        # TODO: Add dataloader for channel_slug
         channel_slug = root.order.channel.slug if root.order.channel else None
         return ChannelContext(node=root.variant, channel_slug=channel_slug)
 
@@ -570,3 +571,9 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_meta(root: models.Order, _info):
         return resolve_meta(root, _info)
+
+    @staticmethod
+    def resolve_voucher(root: models.Order, _info):
+        # TODO: Add dataloader for channel_slug
+        channel_slug = root.channel.slug if root.channel else None
+        return ChannelContext(node=root.voucher, channel_slug=channel_slug)

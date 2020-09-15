@@ -129,13 +129,25 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
     @classmethod
-    def clean_channel_id(cls, instance, channel):
-        if channel and hasattr(instance, "channel"):
+    def clean_channel_id(cls, instance, channel_id):
+        if channel_id and hasattr(instance, "channel"):
             raise ValidationError(
                 {
                     "channel": ValidationError(
                         "Can't update existing order channel id.",
-                        code=OrderErrorCode.NOT_EDITABLE,
+                        code=OrderErrorCode.NOT_EDITABLE.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def clean_voucher(cls, voucher, channel):
+        if not voucher.channel_listing.filter(channel=channel).exists():
+            raise ValidationError(
+                {
+                    "voucher": ValidationError(
+                        "Voucher not available for this order",
+                        code=OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value,
                     )
                 }
             )
@@ -146,16 +158,24 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         billing_address = data.pop("billing_address", None)
         cleaned_input = super().clean_input(info, instance, data)
         lines = data.pop("lines", None)
-        channel = data.get("channel", None)
-        if "channel" in cleaned_input and channel is None:
+        channel_id = data.get("channel", None)
+        if "channel" in cleaned_input and channel_id is None:
             del cleaned_input["channel"]
-        cls.clean_channel_id(instance, channel)
+        cls.clean_channel_id(instance, channel_id)
+        voucher = cleaned_input.get("voucher", None)
+        if voucher:
+            channel = (
+                cleaned_input["channel"]
+                if "channel" in cleaned_input
+                else instance.channel
+            )
+            cls.clean_voucher(voucher, channel)
 
         if lines:
             variant_ids = [line.get("variant_id") for line in lines]
             variants = cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
             cls.validate_product_is_published_in_channel(
-                info, instance, variants, channel
+                info, instance, variants, channel_id
             )
             quantities = [line.get("quantity") for line in lines]
             cleaned_input["variants"] = variants

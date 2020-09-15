@@ -3089,6 +3089,7 @@ enum OrderErrorCode {
   INSUFFICIENT_STOCK
   DUPLICATED_INPUT_ITEM
   MISSING_CHANNEL
+  NOT_AVAILABLE_IN_CHANNEL
 }
 
 type OrderEvent implements Node {
