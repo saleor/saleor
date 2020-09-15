@@ -7,7 +7,6 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
-from graphql_relay import to_global_id
 from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
@@ -3288,7 +3287,7 @@ def test_orders_query_with_filter_search_by_global_payment_id(
     )
     order_with_payment = orders[0]
     payment = Payment.objects.create(order=order_with_payment)
-    global_id = to_global_id("Payment", payment.pk)
+    global_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     variables = {"filter": {"search": global_id}}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
