@@ -51,6 +51,7 @@ class OrderEvents:
     PAYMENT_REFUNDED = "payment_refunded"
     PAYMENT_VOIDED = "payment_voided"
     PAYMENT_FAILED = "payment_failed"
+    EXTERNAL_SERVICE_NOTIFICATION = "external_service_notification"
 
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_GENERATED = "invoice_generated"
@@ -80,6 +81,7 @@ class OrderEvents:
         (EMAIL_SENT, "The email was sent"),
         (PAYMENT_AUTHORIZED, "The payment was authorized"),
         (PAYMENT_CAPTURED, "The payment was captured"),
+        (EXTERNAL_SERVICE_NOTIFICATION, "Notification from external service"),
         (PAYMENT_REFUNDED, "The payment was refunded"),
         (PAYMENT_VOIDED, "The payment was voided"),
         (PAYMENT_FAILED, "The payment was failed"),
@@ -102,7 +104,9 @@ class OrderEventsEmails:
     PAYMENT = "payment_confirmation"
     SHIPPING = "shipping_confirmation"
     TRACKING_UPDATED = "tracking_updated"
-    ORDER = "order_confirmation"
+    ORDER_CONFIRMATION = "order_confirmation"
+    ORDER_CANCEL = "order_cancel"
+    ORDER_REFUND = "order_refund"
     FULFILLMENT = "fulfillment_confirmation"
     DIGITAL_LINKS = "digital_links"
 
@@ -110,7 +114,9 @@ class OrderEventsEmails:
         (PAYMENT, "The payment confirmation email was sent"),
         (SHIPPING, "The shipping confirmation email was sent"),
         (TRACKING_UPDATED, "The fulfillment tracking code email was sent"),
-        (ORDER, "The order placement confirmation email was sent"),
+        (ORDER_CONFIRMATION, "The order placement confirmation email was sent"),
+        (ORDER_CANCEL, "The order cancel confirmation email was sent"),
+        (ORDER_REFUND, "The order refund confirmation email was sent"),
         (FULFILLMENT, "The fulfillment confirmation email was sent"),
         (DIGITAL_LINKS, "The email containing the digital links was sent"),
     ]

@@ -23,6 +23,7 @@ class WebhookEventType:
     CUSTOMER_CREATED = "customer_created"
 
     PRODUCT_CREATED = "product_created"
+    PRODUCT_UPDATED = "product_updated"
 
     # This event is deprecated. It will be removed in Saleor 3.0
     CHECKOUT_QUANTITY_CHANGED = "checkout_quantity_changed"
@@ -42,6 +43,7 @@ class WebhookEventType:
         INVOICE_SENT: "Invoice sent",
         CUSTOMER_CREATED: "Customer created",
         PRODUCT_CREATED: "Product created",
+        PRODUCT_UPDATED: "Product updated",
         # CHECKOUT_QUANTITY_CHANGED is deprecated. It will be removed in Saleor 3.0
         CHECKOUT_QUANTITY_CHANGED: "Checkout quantity changed",
         CHECKOUT_CREATED: "Checkout created",
@@ -61,6 +63,7 @@ class WebhookEventType:
         (INVOICE_SENT, DISPLAY_LABELS[INVOICE_SENT]),
         (CUSTOMER_CREATED, DISPLAY_LABELS[CUSTOMER_CREATED]),
         (PRODUCT_CREATED, DISPLAY_LABELS[PRODUCT_CREATED]),
+        (PRODUCT_UPDATED, DISPLAY_LABELS[PRODUCT_UPDATED]),
         # CHECKOUT_QUANTITY_CHANGED is deprecated. It will be removed in Saleor 3.0
         (CHECKOUT_QUANTITY_CHANGED, DISPLAY_LABELS[CHECKOUT_QUANTITY_CHANGED]),
         (CHECKOUT_CREATED, DISPLAY_LABELS[CHECKOUT_CREATED]),
@@ -79,6 +82,7 @@ class WebhookEventType:
         INVOICE_SENT: OrderPermissions.MANAGE_ORDERS,
         CUSTOMER_CREATED: AccountPermissions.MANAGE_USERS,
         PRODUCT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
+        PRODUCT_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         CHECKOUT_QUANTITY_CHANGED: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_CREATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_UPADTED: CheckoutPermissions.MANAGE_CHECKOUTS,

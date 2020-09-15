@@ -7,6 +7,7 @@ from io import BytesIO
 from typing import List, Optional
 from unittest.mock import MagicMock, Mock
 
+import graphene
 import pytest
 import pytz
 from django.conf import settings
@@ -246,6 +247,29 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_ready_to_complete(checkout_with_item, address, shipping_method, gift_card):
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout_with_item.gift_cards.add(gift_card)
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
+def checkout_with_digital_item(checkout, digital_content):
+    """Create a checkout with a digital line."""
+    variant = digital_content.product_variant
+    add_variant_to_checkout(checkout, variant, 1)
+    checkout.email = "customer@example.com"
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def checkout_with_shipping_required(checkout_with_item, product):
     checkout = checkout_with_item
     variant = product.variants.get()
@@ -284,10 +308,15 @@ def checkout_with_single_item(checkout, product):
 
 @pytest.fixture
 def checkout_with_variant_without_inventory_tracking(
-    checkout, variant_without_inventory_tracking
+    checkout, variant_without_inventory_tracking, address, shipping_method
 ):
     variant = variant_without_inventory_tracking
     add_variant_to_checkout(checkout, variant, 1)
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
     checkout.save()
     return checkout
 
@@ -379,7 +408,7 @@ def address_other_country():
         city="BENNETTMOUTH",
         postal_code="13377",
         country="IS",
-        phone="",
+        phone="+40123123123",
     )
 
 
@@ -454,7 +483,10 @@ def user_checkout_with_items(user_checkout, product_list):
 def order(customer_user):
     address = customer_user.default_billing_address.get_copy()
     return Order.objects.create(
-        billing_address=address, user_email=customer_user.email, user=customer_user
+        billing_address=address,
+        shipping_address=address,
+        user_email=customer_user.email,
+        user=customer_user,
     )
 
 
@@ -591,6 +623,16 @@ def size_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def weight_attribute(db):
+    attribute = Attribute.objects.create(slug="material", name="Material")
+    AttributeValue.objects.create(attribute=attribute, name="Cotton", slug="cotton")
+    AttributeValue.objects.create(
+        attribute=attribute, name="Poliester", slug="poliester"
+    )
+    return attribute
+
+
+@pytest.fixture
 def attribute_list() -> List[Attribute]:
     return list(
         Attribute.objects.bulk_create(
@@ -638,6 +680,7 @@ def categories_tree(db, product_type):  # pylint: disable=W0613
         product_type=product_type,
         category=child,
         is_published=True,
+        visible_in_listings=True,
     )
 
     associate_attribute_values_to_instance(product, product_attr, attr_value)
@@ -724,10 +767,12 @@ def product(product_type, category, warehouse):
     product = Product.objects.create(
         name="Test product",
         slug="test-product-11",
-        minimal_variant_price_amount="10.00",
+        minimal_variant_price_amount=Decimal(10),
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
 
     associate_attribute_values_to_instance(product, product_attr, product_attr_value)
@@ -755,6 +800,8 @@ def product_with_single_variant(product_type, category, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -774,6 +821,8 @@ def product_with_two_variants(product_type, category, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
 
     variants = [
@@ -815,6 +864,8 @@ def product_with_variant_with_two_attributes(
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
 
     variant = ProductVariant.objects.create(
@@ -863,6 +914,8 @@ def product_with_default_variant(product_type_without_variant, category, warehou
         product_type=product_type_without_variant,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(
         product=product, sku="1234", track_inventory=True, price_amount=Decimal(10)
@@ -881,6 +934,8 @@ def variant_without_inventory_tracking(
         product_type=product_type_without_variant,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date.today(),
+        visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -957,6 +1012,7 @@ def product_without_shipping(category, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_B", price_amount=Decimal(10)
@@ -988,6 +1044,7 @@ def product_list(product_type, category, warehouse):
                     category=category,
                     product_type=product_type,
                     is_published=True,
+                    visible_in_listings=True,
                 ),
                 Product(
                     pk=1487,
@@ -996,6 +1053,7 @@ def product_list(product_type, category, warehouse):
                     category=category,
                     product_type=product_type,
                     is_published=True,
+                    visible_in_listings=True,
                 ),
                 Product(
                     pk=1489,
@@ -1004,6 +1062,7 @@ def product_list(product_type, category, warehouse):
                     category=category,
                     product_type=product_type,
                     is_published=True,
+                    visible_in_listings=True,
                 ),
             ]
         )
@@ -1086,6 +1145,7 @@ def unavailable_product(product_type, category):
         product_type=product_type,
         is_published=False,
         category=category,
+        visible_in_listings=False,
     )
     return product
 
@@ -1097,6 +1157,7 @@ def unavailable_product_with_variant(product_type, category, warehouse):
         slug="test-product-6",
         product_type=product_type,
         is_published=False,
+        visible_in_listings=False,
         category=category,
     )
 
@@ -1120,6 +1181,7 @@ def product_with_images(product_type, category, media_root):
         product_type=product_type,
         category=category,
         is_published=True,
+        visible_in_listings=True,
     )
     file_mock_0 = MagicMock(spec=File, name="FileMock0")
     file_mock_0.name = "image0.jpg"
@@ -1294,6 +1356,8 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date.today(),
+        visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(
         product=product,
@@ -1326,6 +1390,8 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date.today(),
+        visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_B", cost_price=Money(2, "USD"), price_amount=20
@@ -1522,7 +1588,7 @@ def payment_txn_to_confirm(order_with_lines, payment_dummy):
 
     payment.transactions.create(
         amount=payment.total,
-        kind=TransactionKind.CAPTURE,
+        kind=TransactionKind.ACTION_TO_CONFIRM,
         gateway_response={},
         is_success=True,
         action_required=True,
@@ -1566,10 +1632,12 @@ def dummy_gateway_config():
 
 
 @pytest.fixture
-def dummy_payment_data():
+def dummy_payment_data(payment_dummy):
     return PaymentData(
-        amount=10,
+        amount=Decimal(10),
         currency="USD",
+        graphql_payment_id=graphene.Node.to_global_id("Payment", payment_dummy.pk),
+        payment_id=payment_dummy.pk,
         billing=None,
         shipping=None,
         order_id=None,
@@ -1915,7 +1983,7 @@ def payment_dummy(db, order_with_lines):
         is_active=True,
         cc_first_digits="4111",
         cc_last_digits="1111",
-        cc_brand="VISA",
+        cc_brand="visa",
         cc_exp_month=12,
         cc_exp_year=2027,
         total=order_with_lines.total.gross.amount,
@@ -1941,7 +2009,7 @@ def payment_dummy_credit_card(db, order_with_lines):
         is_active=True,
         cc_first_digits="4111",
         cc_last_digits="1111",
-        cc_brand="VISA",
+        cc_brand="visa",
         cc_exp_month=12,
         cc_exp_year=2027,
         total=order_with_lines.total.gross.amount,
@@ -1974,6 +2042,8 @@ def digital_content(category, media_root, warehouse) -> DigitalContent:
         product_type=product_type,
         category=category,
         is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
     )
     product_variant = ProductVariant.objects.create(
         product=product,

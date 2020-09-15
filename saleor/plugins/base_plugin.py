@@ -1,6 +1,6 @@
 from copy import copy
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
@@ -86,6 +86,9 @@ class BasePlugin:
         checkout: "Checkout",
         lines: List["CheckoutLineInfo"],
         address: Optional["Address"],
+        collections: Iterable[
+            "Collection"
+        ],  # FIXME: apply this change to all plugins; Iterable vs List
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -101,6 +104,9 @@ class BasePlugin:
         checkout: "Checkout",
         lines: List["CheckoutLineInfo"],
         address: Optional["Address"],
+        collections: Iterable[
+            "Collection"
+        ],  # FIXME: apply this change to all plugins; Iterable vs List
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -297,6 +303,14 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def product_updated(self, product: "Product", previous_value: Any) -> Any:
+        """Trigger when product is updated.
+
+        Overwrite this method if you need to trigger specific logic after a product is
+        updated.
+        """
+        return NotImplemented
+
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
         """Trigger when order is fully paid.
 
@@ -375,6 +389,11 @@ class BasePlugin:
     ) -> "GatewayResponse":
         return NotImplemented
 
+    def void_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return NotImplemented
+
     def refund_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
@@ -404,6 +423,9 @@ class BasePlugin:
     def get_supported_currencies(self, previous_value):
         return NotImplemented
 
+    def token_is_required_as_payment_input(self, previous_value):
+        return previous_value
+
     def get_payment_gateway(
         self, currency: Optional[str], previous_value
     ) -> Optional["PaymentGateway"]:
@@ -421,7 +443,7 @@ class BasePlugin:
         )
 
     def get_payment_gateway_for_checkout(
-        self, checkout: "Checkout", previous_value
+        self, checkout: "Checkout", previous_value,
     ) -> Optional["PaymentGateway"]:
         return self.get_payment_gateway(checkout.currency, previous_value)
 

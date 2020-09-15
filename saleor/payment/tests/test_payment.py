@@ -6,7 +6,7 @@ import pytest
 from ...checkout.calculations import checkout_total
 from .. import ChargeStatus, GatewayError, PaymentError, TransactionKind, gateway
 from ..error_codes import PaymentErrorCode
-from ..interface import CreditCardInfo, GatewayResponse
+from ..interface import GatewayResponse, PaymentMethodInfo
 from ..models import Payment
 from ..utils import (
     ALLOWED_GATEWAY_KINDS,
@@ -24,14 +24,14 @@ EXAMPLE_ERROR = "Example dummy error"
 
 
 @pytest.fixture
-def card_details():
-    return CreditCardInfo(
-        last_4="1234", exp_year=2020, exp_month=8, brand="visa", name_on_card="Joe Doe"
+def payment_method_details():
+    return PaymentMethodInfo(
+        last_4="1234", exp_year=2020, exp_month=8, brand="visa", name="Joe Doe"
     )
 
 
 @pytest.fixture
-def gateway_response(settings, card_details):
+def gateway_response(settings, payment_method_details):
     return GatewayResponse(
         is_success=True,
         action_required=False,
@@ -44,7 +44,7 @@ def gateway_response(settings, card_details):
             "credit_card_four": "1234",
             "transaction-id": "transaction-token",
         },
-        card_info=card_details,
+        payment_method_info=payment_method_details,
     )
 
 
@@ -66,7 +66,7 @@ def transaction_token():
 
 
 @pytest.fixture
-def dummy_response(payment_dummy, transaction_token, card_details):
+def dummy_response(payment_dummy, transaction_token, payment_method_details):
     return GatewayResponse(
         is_success=True,
         action_required=False,
@@ -76,7 +76,7 @@ def dummy_response(payment_dummy, transaction_token, card_details):
         currency=payment_dummy.currency,
         kind=TransactionKind.AUTH,
         raw_response=None,
-        card_info=card_details,
+        payment_method_info=payment_method_details,
     )
 
 
@@ -264,11 +264,13 @@ def test_gateway_charge_errors(payment_dummy, transaction_token, settings):
     assert exc.value.message == "Amount should be a positive number."
 
     payment.charge_status = ChargeStatus.FULLY_REFUNDED
+    payment.save()
     with pytest.raises(PaymentError) as exc:
         gateway.capture(payment, Decimal("10"))
     assert exc.value.message == "This payment cannot be captured."
 
     payment.charge_status = ChargeStatus.NOT_CHARGED
+    payment.save()
     with pytest.raises(PaymentError) as exc:
         gateway.capture(payment, Decimal("1000000"))
     assert exc.value.message == ("Unable to charge more than un-captured amount.")
@@ -285,6 +287,7 @@ def test_gateway_refund_errors(payment_txn_captured):
     assert exc.value.message == "Amount should be a positive number."
 
     payment.charge_status = ChargeStatus.NOT_CHARGED
+    payment.save()
     with pytest.raises(PaymentError) as exc:
         gateway.refund(payment, Decimal("1"))
     assert exc.value.message == "This payment cannot be refunded."

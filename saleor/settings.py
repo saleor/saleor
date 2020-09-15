@@ -12,7 +12,6 @@ import pkg_resources
 import sentry_sdk
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
-from django_prices.utils.formatting import get_currency_fraction
 from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -95,9 +94,11 @@ LANGUAGES = [
     ("is", "Icelandic"),
     ("it", "Italian"),
     ("ja", "Japanese"),
+    ("km", "Khmer"),
     ("ko", "Korean"),
     ("lt", "Lithuanian"),
     ("mn", "Mongolian"),
+    ("my", "Burmese"),
     ("nb", "Norwegian"),
     ("nl", "Dutch"),
     ("pl", "Polish"),
@@ -353,7 +354,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 DEFAULT_COUNTRY = os.environ.get("DEFAULT_COUNTRY", "US")
 DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "USD")
-DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
+DEFAULT_DECIMAL_PLACES = 3
 DEFAULT_MAX_DIGITS = 12
 DEFAULT_CURRENCY_CODE_LENGTH = 3
 
@@ -390,7 +391,7 @@ TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
 ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
-ALLOWED_GRAPHQL_ORIGINS = os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
+ALLOWED_GRAPHQL_ORIGINS = get_list(os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*"))
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
@@ -515,6 +516,7 @@ PLUGINS = [
     "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
     "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
     "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
+    "saleor.payment.gateways.adyen.plugin.AdyenGatewayPlugin",
     "saleor.plugins.invoicing.plugin.InvoicingPlugin",
 ]
 

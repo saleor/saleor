@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 import graphene
 import pytest
-from django_countries.fields import Country
 
 from ....checkout import calculations
 from ....payment.error_codes import PaymentErrorCode
@@ -11,7 +10,7 @@ from ....payment.gateways.dummy_credit_card import (
     TOKEN_EXPIRED,
     TOKEN_VALIDATION_MAPPING,
 )
-from ....payment.interface import CreditCardInfo, CustomerSource, TokenConfig
+from ....payment.interface import CustomerSource, PaymentMethodInfo, TokenConfig
 from ....payment.models import ChargeStatus, Payment, TransactionKind
 from ....payment.utils import fetch_customer_id, store_customer_id
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -205,12 +204,14 @@ def test_checkout_add_payment(
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    return_url = "https://www.example.com"
     variables = {
         "checkoutId": checkout_id,
         "input": {
             "gateway": DUMMY_GATEWAY,
             "token": "sample-token",
             "amount": total.gross.amount,
+            "returnUrl": return_url,
         },
     }
     response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
@@ -230,6 +231,7 @@ def test_checkout_add_payment(
     assert payment.billing_address_1 == checkout.billing_address.street_address_1
     assert payment.billing_first_name == checkout.billing_address.first_name
     assert payment.billing_last_name == checkout.billing_address.last_name
+    assert payment.return_url == return_url
 
 
 def test_checkout_add_payment_default_amount(
@@ -396,7 +398,7 @@ def test_create_payment_for_checkout_with_active_payments(
 
 
 CAPTURE_QUERY = """
-    mutation PaymentCapture($paymentId: ID!, $amount: Decimal!) {
+    mutation PaymentCapture($paymentId: ID!, $amount: PositiveDecimal!) {
         paymentCapture(paymentId: $paymentId, amount: $amount) {
             payment {
                 id,
@@ -545,7 +547,7 @@ def test_payment_capture_gateway_dummy_credit_card_error(
 
 
 REFUND_QUERY = """
-    mutation PaymentRefund($paymentId: ID!, $amount: Decimal!) {
+    mutation PaymentRefund($paymentId: ID!, $amount: PositiveDecimal!) {
         paymentRefund(paymentId: $paymentId, amount: $amount) {
             payment {
                 id,
@@ -627,40 +629,6 @@ def test_payment_refund_error(
     assert not txn.is_success
 
 
-CONFIRM_QUERY = """
-    mutation PaymentConfirm($paymentId: ID!) {
-        paymentSecureConfirm(paymentId: $paymentId) {
-            payment {
-                id,
-                chargeStatus
-            }
-            errors {
-                field
-                message
-            }
-        }
-    }
-"""
-
-
-def test_payment_confirmation_success(
-    user_api_client, payment_txn_to_confirm, graphql_address_data
-):
-    payment = payment_txn_to_confirm
-    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
-    variables = {"paymentId": payment_id}
-    response = user_api_client.post_graphql(CONFIRM_QUERY, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["paymentSecureConfirm"]
-    assert not data["errors"]
-
-    payment.refresh_from_db()
-    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
-    assert payment.transactions.count() == 2
-    txn = payment.transactions.last()
-    assert txn.kind == TransactionKind.CAPTURE
-
-
 def test_payments_query(
     payment_txn_captured, permission_manage_orders, staff_api_client
 ):
@@ -680,33 +648,11 @@ def test_payments_query(
                     }
                     actions
                     chargeStatus
-                    billingAddress {
-                        country {
-                            code
-                            country
-                        }
-                        firstName
-                        lastName
-                        cityArea
-                        countryArea
-                        city
-                        companyName
-                        streetAddress1
-                        streetAddress2
-                        postalCode
-                    }
                     transactions {
                         amount {
                             currency
                             amount
                         }
-                    }
-                    creditCard {
-                        expMonth
-                        expYear
-                        brand
-                        firstDigits
-                        lastDigits
                     }
                 }
             }
@@ -727,33 +673,11 @@ def test_payments_query(
     assert Decimal(total) == pay.total
     assert data["total"]["currency"] == pay.currency
     assert data["chargeStatus"] == PaymentChargeStatusEnum.FULLY_CHARGED.name
-    assert data["billingAddress"] == {
-        "firstName": pay.billing_first_name,
-        "lastName": pay.billing_last_name,
-        "city": pay.billing_city,
-        "cityArea": pay.billing_city_area,
-        "countryArea": pay.billing_country_area,
-        "companyName": pay.billing_company_name,
-        "streetAddress1": pay.billing_address_1,
-        "streetAddress2": pay.billing_address_2,
-        "postalCode": pay.billing_postal_code,
-        "country": {
-            "code": pay.billing_country_code,
-            "country": Country(pay.billing_country_code).name,
-        },
-    }
     assert data["actions"] == [OrderAction.REFUND.name]
     txn = pay.transactions.get()
     assert data["transactions"] == [
         {"amount": {"currency": pay.currency, "amount": float(str(txn.amount))}}
     ]
-    assert data["creditCard"] == {
-        "expMonth": pay.cc_exp_month,
-        "expYear": pay.cc_exp_year,
-        "brand": pay.cc_brand,
-        "firstDigits": pay.cc_first_digits,
-        "lastDigits": pay.cc_last_digits,
-    }
 
 
 def test_query_payment(payment_dummy, user_api_client, permission_manage_orders):
@@ -853,9 +777,7 @@ def test_list_payment_sources(
         }
     }
     """
-    card = CreditCardInfo(
-        last_4="5678", exp_year=2020, exp_month=12, name_on_card="JohnDoe"
-    )
+    card = PaymentMethodInfo(last_4="5678", exp_year=2020, exp_month=12, name="JohnDoe")
     source = CustomerSource(id="test1", gateway=gateway, credit_card_info=card)
     mock_get_source_list = mocker.patch(
         "saleor.graphql.account.resolvers.gateway.list_payment_sources",
@@ -874,9 +796,7 @@ def test_stored_payment_sources_restriction(
     mocker, staff_api_client, customer_user, permission_manage_users
 ):
     # Only owner of storedPaymentSources can fetch it.
-    card = CreditCardInfo(
-        last_4="5678", exp_year=2020, exp_month=12, name_on_card="JohnDoe"
-    )
+    card = PaymentMethodInfo(last_4="5678", exp_year=2020, exp_month=12, name="JohnDoe")
     source = CustomerSource(id="test1", gateway="dummy", credit_card_info=card)
     mocker.patch(
         "saleor.graphql.account.resolvers.gateway.list_payment_sources",

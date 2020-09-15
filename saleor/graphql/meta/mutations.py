@@ -6,6 +6,7 @@ from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
 from ..core.mutations import BaseMutation
 from ..core.types.common import MetadataError
+from .extra_methods import MODEL_EXTRA_METHODS
 from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from .types import ObjectWithMetadata
 
@@ -80,7 +81,18 @@ class BaseMetadataMutation(BaseMutation):
             return cls.handle_errors(e)
         if not cls.check_permissions(info.context, permissions):
             raise PermissionDenied()
-        return super().mutate(root, info, **data)
+        result = super().mutate(root, info, **data)
+        if not result.errors:
+            cls.perform_model_extra_actions(root, info, **data)
+        return result
+
+    @classmethod
+    def perform_model_extra_actions(cls, root, info, **data):
+        """Run extra metadata method based on mutating model."""
+        type_name, _ = graphene.Node.from_global_id(data["id"])
+        if MODEL_EXTRA_METHODS.get(type_name):
+            instance = cls.get_instance(info, **data)
+            MODEL_EXTRA_METHODS[type_name](instance, info, **data)
 
     @classmethod
     def success_response(cls, instance):

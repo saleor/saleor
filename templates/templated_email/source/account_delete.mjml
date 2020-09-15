@@ -14,7 +14,7 @@
         </mj-text>
         <mj-text>
           {% blocktrans trimmed context "Account delete e-mail text" %}
-            You're receiving this e-mail because you or someone else has requested a deletion of your user account at {{ domain }}.<br/>
+            You're receiving this e-mail because you or someone else has requested a deletion of your user account at {{ site_name }}.<br/>
             Click the link below to delete your account.
 
             Please note that this action is permanent and cannot be reversed.

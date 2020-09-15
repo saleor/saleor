@@ -1,22 +1,17 @@
 """Checkout-related utility functions."""
-from datetime import date
-from decimal import Decimal
-from typing import Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.models import Max, Min, Sum
 from django.utils import timezone
-from django.utils.encoding import smart_text
-from django.utils.translation import get_language
-from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+from prices import Money, MoneyRange, TaxedMoneyRange
 
-from ..account.models import Address, User
-from ..account.utils import store_user_address
+from ..account.models import User
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import ProductNotPublished
-from ..core.taxes import quantize_price, zero_taxed_money
+from ..core.prices import quantize_price
+from ..core.taxes import zero_taxed_money
 from ..core.utils.promo_code import (
     InvalidPromoCode,
     promo_code_is_gift_card,
@@ -25,27 +20,23 @@ from ..core.utils.promo_code import (
 from ..discount import DiscountInfo, VoucherType
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
-    add_voucher_usage_by_customer,
-    decrease_voucher_usage,
     get_discounted_lines,
     get_products_voucher_discount,
-    increase_voucher_usage,
-    remove_voucher_usage_by_customer,
     validate_voucher_for_checkout,
 )
 from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
 )
-from ..order.actions import order_created
-from ..order.emails import send_order_confirmation, send_staff_order_confirmation
-from ..order.models import Order, OrderLine
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity, check_stock_quantity_bulk
-from ..warehouse.management import allocate_stock
 from . import AddressType, CheckoutLineInfo
 from .models import Checkout, CheckoutLine
+
+if TYPE_CHECKING:
+    # flake8: noqa
+    from ..account.models import Address
 
 
 def get_user_checkout(
@@ -583,277 +574,6 @@ def get_shipping_price_estimate(
 def clear_shipping_method(checkout: Checkout):
     checkout.shipping_method = None
     checkout.save(update_fields=["shipping_method", "last_change"])
-
-
-def _get_voucher_data_for_order(checkout: Checkout) -> dict:
-    """Fetch, process and return voucher/discount data from checkout.
-
-    Careful! It should be called inside a transaction.
-
-    :raises NotApplicable: When the voucher is not applicable in the current checkout.
-    """
-    voucher = get_voucher_for_checkout(checkout, with_lock=True)
-
-    if checkout.voucher_code and not voucher:
-        msg = "Voucher expired in meantime. Order placement aborted."
-        raise NotApplicable(msg)
-
-    if not voucher:
-        return {}
-
-    increase_voucher_usage(voucher)
-    if voucher.apply_once_per_customer:
-        add_voucher_usage_by_customer(voucher, checkout.get_customer_email())
-    return {
-        "voucher": voucher,
-        "discount": checkout.discount,
-        "discount_name": checkout.discount_name,
-        "translated_discount_name": checkout.translated_discount_name,
-    }
-
-
-def _process_shipping_data_for_order(
-    checkout: Checkout, shipping_price: TaxedMoney
-) -> dict:
-    """Fetch, process and return shipping data from checkout."""
-    shipping_address = checkout.shipping_address
-
-    if checkout.user:
-        store_user_address(checkout.user, shipping_address, AddressType.SHIPPING)
-        if (
-            shipping_address
-            and checkout.user.addresses.filter(pk=shipping_address.pk).exists()
-        ):
-            shipping_address = shipping_address.get_copy()
-
-    return {
-        "shipping_address": shipping_address,
-        "shipping_method": checkout.shipping_method,
-        "shipping_method_name": smart_text(checkout.shipping_method),
-        "shipping_price": shipping_price,
-        "weight": checkout.get_total_weight(),
-    }
-
-
-def _process_user_data_for_order(checkout: Checkout):
-    """Fetch, process and return shipping data from checkout."""
-    billing_address = checkout.billing_address
-
-    if checkout.user:
-        store_user_address(checkout.user, billing_address, AddressType.BILLING)
-        if (
-            billing_address
-            and checkout.user.addresses.filter(pk=billing_address.pk).exists()
-        ):
-            billing_address = billing_address.get_copy()
-
-    return {
-        "user": checkout.user,
-        "user_email": checkout.get_customer_email(),
-        "billing_address": billing_address,
-        "customer_note": checkout.note,
-    }
-
-
-def validate_gift_cards(checkout: Checkout):
-    """Check if all gift cards assigned to checkout are available."""
-    if (
-        not checkout.gift_cards.count()
-        == checkout.gift_cards.active(date=date.today()).count()
-    ):
-        msg = "Gift card has expired. Order placement cancelled."
-        raise NotApplicable(msg)
-
-
-def create_order_line(checkout_line: "CheckoutLine", discounts) -> OrderLine:
-    """Create a line for the given order.
-
-    :raises InsufficientStock: when there is not enough items in stock for this variant.
-    """
-
-    quantity = checkout_line.quantity
-    variant = checkout_line.variant
-    product = variant.product
-    collections = product.collections.all()
-    checkout = checkout_line.checkout
-
-    country = checkout.get_country()
-    # FIXME: address is used for tax calculations, make sure the right one is used here
-    # and it makes sense with checkout country
-    address = checkout.shipping_address or checkout.billing_address
-
-    check_stock_quantity(variant, country, quantity)
-
-    product_name = str(product)
-    variant_name = str(variant)
-
-    translated_product_name = str(product.translated)
-    translated_variant_name = str(variant.translated)
-
-    if translated_product_name == product_name:
-        translated_product_name = ""
-
-    if translated_variant_name == variant_name:
-        translated_variant_name = ""
-
-    manager = get_plugins_manager()
-    total_line_price = manager.calculate_checkout_line_total(
-        checkout_line, variant, product, collections, address, discounts
-    )
-    unit_price = quantize_price(
-        total_line_price / checkout_line.quantity, total_line_price.currency
-    )
-    tax_rate = (
-        unit_price.tax / unit_price.net
-        if not isinstance(unit_price, Decimal)
-        else Decimal("0.0")
-    )
-    line = OrderLine(
-        product_name=product_name,
-        variant_name=variant_name,
-        translated_product_name=translated_product_name,
-        translated_variant_name=translated_variant_name,
-        product_sku=variant.sku,
-        is_shipping_required=variant.is_shipping_required(),
-        quantity=quantity,
-        variant=variant,
-        unit_price=unit_price,  # type: ignore
-        tax_rate=tax_rate,
-    )
-
-    return line
-
-
-def prepare_order_data(
-    *,
-    checkout: Checkout,
-    lines: Iterable["CheckoutLineInfo"],
-    tracking_code: str,
-    discounts
-) -> dict:
-    """Run checks and return all the data from a given checkout to create an order.
-
-    :raises NotApplicable InsufficientStock:
-    """
-    order_data = {}
-    manager = get_plugins_manager()
-
-    address = checkout.shipping_address or checkout.billing_address
-
-    taxed_total = calculations.checkout_total(
-        manager=manager,
-        checkout=checkout,
-        lines=lines,
-        address=address,
-        discounts=discounts,
-    )
-    cards_total = checkout.get_total_gift_cards_balance()
-    taxed_total.gross -= cards_total
-    taxed_total.net -= cards_total
-    taxed_total = max(taxed_total, zero_taxed_money(checkout.currency))
-
-    shipping_total = manager.calculate_checkout_shipping(
-        checkout, lines, address, discounts
-    )
-    if is_shipping_required(lines):
-        order_data.update(_process_shipping_data_for_order(checkout, shipping_total))
-
-    order_data.update(_process_user_data_for_order(checkout))
-    order_data.update(
-        {
-            "language_code": get_language(),
-            "tracking_client_id": tracking_code,
-            "total": taxed_total,
-        }
-    )
-
-    order_data["lines"] = [
-        create_order_line(checkout_line=line_info.line, discounts=discounts)
-        for line_info in lines
-    ]
-
-    # validate checkout gift cards
-    validate_gift_cards(checkout)
-
-    # Get voucher data (last) as they require a transaction
-    order_data.update(_get_voucher_data_for_order(checkout))
-
-    # assign gift cards to the order
-
-    order_data["total_price_left"] = (
-        manager.calculate_checkout_subtotal(checkout, lines, address, discounts)
-        + shipping_total
-        - checkout.discount
-    ).gross
-
-    manager.preprocess_order_creation(checkout, discounts)
-    return order_data
-
-
-def abort_order_data(order_data: dict):
-    if "voucher" in order_data:
-        voucher = order_data["voucher"]
-        decrease_voucher_usage(voucher)
-        if "user_email" in order_data:
-            remove_voucher_usage_by_customer(voucher, order_data["user_email"])
-
-
-@transaction.atomic
-def create_order(
-    *, checkout: Checkout, order_data: dict, user: User, redirect_url: str
-) -> Order:
-    """Create an order from the checkout.
-
-    Each order will get a private copy of both the billing and the shipping
-    address (if shipping).
-
-    If any of the addresses is new and the user is logged in the address
-    will also get saved to that user's address book.
-
-    Current user's language is saved in the order so we can later determine
-    which language to use when sending email.
-    """
-    from ..order.utils import add_gift_card_to_order
-
-    order = Order.objects.filter(checkout_token=checkout.token).first()
-    if order is not None:
-        return order
-
-    total_price_left = order_data.pop("total_price_left")
-    order_lines = order_data.pop("lines")
-
-    order = Order.objects.create(**order_data, checkout_token=checkout.token)
-    order.lines.set(order_lines, bulk=False)
-
-    # allocate stocks from the lines
-    for line in order_lines:  # type: OrderLine
-        variant = line.variant
-        if variant and variant.track_inventory:
-            allocate_stock(line, checkout.get_country(), line.quantity)
-
-    # Add gift cards to the order
-    for gift_card in checkout.gift_cards.select_for_update():
-        total_price_left = add_gift_card_to_order(order, gift_card, total_price_left)
-
-    # assign checkout payments to the order
-    checkout.payments.update(order=order)
-
-    # copy metadata from the checkout into the new order
-    order.metadata = checkout.metadata
-    order.private_metadata = checkout.private_metadata
-    order.save()
-
-    order_created(order=order, user=user)
-
-    # Send the order confirmation email
-    transaction.on_commit(
-        lambda: send_order_confirmation.delay(order.pk, redirect_url, user.pk)
-    )
-    transaction.on_commit(
-        lambda: send_staff_order_confirmation.delay(order.pk, redirect_url)
-    )
-
-    return order
 
 
 def is_fully_paid(

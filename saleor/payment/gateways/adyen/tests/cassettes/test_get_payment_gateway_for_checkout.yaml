@@ -1,0 +1,81 @@
+interactions:
+- request:
+    body: '{"merchantAccount": "SaleorECOM", "countryCode": "PL", "channel": "web",
+      "applicationInfo": {"adyenLibrary": {"name": "adyen-python-api-library", "version":
+      "3.0.0"}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '167'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - adyen-python-api-library/3.0.0
+      x-api-key:
+      - test_key
+    method: POST
+    uri: https://checkout-test.adyen.com/v49/paymentMethods
+  response:
+    body:
+      string: "{\"groups\":[{\"name\":\"Credit Card\",\"types\":[\"visa\",\"mc\",\"\
+        amex\"]}],\"paymentMethods\":[{\"details\":[{\"items\":[{\"id\":\"66\",\"\
+        name\":\"Bank Nowy BFG S.A.\"},{\"id\":\"92\",\"name\":\"Bank Sp\xF3\u0142\
+        dzielczy w Brodnicy\"},{\"id\":\"11\",\"name\":\"Bank transfer \\/ postal\"\
+        },{\"id\":\"74\",\"name\":\"Banki Sp\xF3\u0142dzielcze\"},{\"id\":\"73\",\"\
+        name\":\"BLIK\"},{\"id\":\"90\",\"name\":\"BNP Paribas - p\u0142ac\u0119 z\
+        \ Pl@net\"},{\"id\":\"59\",\"name\":\"CinkciarzPAY\"},{\"id\":\"87\",\"name\"\
+        :\"Credit Agricole PBL\"},{\"id\":\"83\",\"name\":\"EnveloBank\"},{\"id\"\
+        :\"76\",\"name\":\"Getin Bank PBL\"},{\"id\":\"81\",\"name\":\"Idea Cloud\"\
+        },{\"id\":\"7\",\"name\":\"ING Corporate customers\"},{\"id\":\"35\",\"name\"\
+        :\"Kantor Polski\"},{\"id\":\"93\",\"name\":\"Kasa Stefczyka\"},{\"id\":\"\
+        44\",\"name\":\"Millennium - P\u0142atno\u015Bci Internetowe\"},{\"id\":\"\
+        10\",\"name\":\"Millennium Corporate customers\"},{\"id\":\"68\",\"name\"\
+        :\"mRaty\"},{\"id\":\"1\",\"name\":\"mTransfer\"},{\"id\":\"91\",\"name\"\
+        :\"Nest Bank\"},{\"id\":\"80\",\"name\":\"Noble Pay\"},{\"id\":\"50\",\"name\"\
+        :\"Pay Way Toyota Bank\"},{\"id\":\"45\",\"name\":\"Pay with Alior Bank\"\
+        },{\"id\":\"65\",\"name\":\"Paylink Idea Bank\"},{\"id\":\"36\",\"name\":\"\
+        Pekao24Przelew\"},{\"id\":\"70\",\"name\":\"Pocztowy24\"},{\"id\":\"6\",\"\
+        name\":\"Przelew24\"},{\"id\":\"46\",\"name\":\"P\u0142ac\u0119 z Citi Handlowy\"\
+        },{\"id\":\"38\",\"name\":\"P\u0142ac\u0119 z ING\"},{\"id\":\"2\",\"name\"\
+        :\"P\u0142ac\u0119 z Inteligo\"},{\"id\":\"4\",\"name\":\"P\u0142ac\u0119\
+        \ z iPKO\"},{\"id\":\"75\",\"name\":\"P\u0142ac\u0119 z Plus Bank\"},{\"id\"\
+        :\"51\",\"name\":\"P\u0142a\u0107 z BO\u015A\"},{\"id\":\"55\",\"name\":\"\
+        Raty z Alior Bankiem PLN\"},{\"id\":\"89\",\"name\":\"Santander\"},{\"id\"\
+        :\"52\",\"name\":\"SkyCash\"},{\"id\":\"60\",\"name\":\"T-Mobile us\u0142\
+        ugi bankowe\"},{\"id\":\"21\",\"name\":\"VIA - Moje Rachunki\"},{\"id\":\"\
+        84\",\"name\":\"Volkswagen Bank direct\"}],\"key\":\"issuer\",\"type\":\"\
+        select\"}],\"name\":\"Local Polish Payment Methods\",\"supportsRecurring\"\
+        :true,\"type\":\"dotpay\"},{\"brands\":[\"visa\",\"mc\",\"amex\"],\"details\"\
+        :[{\"key\":\"encryptedCardNumber\",\"type\":\"cardToken\"},{\"key\":\"encryptedSecurityCode\"\
+        ,\"type\":\"cardToken\"},{\"key\":\"encryptedExpiryMonth\",\"type\":\"cardToken\"\
+        },{\"key\":\"encryptedExpiryYear\",\"type\":\"cardToken\"},{\"key\":\"holderName\"\
+        ,\"optional\":true,\"type\":\"text\"}],\"name\":\"Credit Card\",\"type\":\"\
+        scheme\"},{\"name\":\"Paysafecard\",\"supportsRecurring\":true,\"type\":\"\
+        paysafecard\"}]}"
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Thu, 23 Jul 2020 07:41:35 GMT
+      Keep-Alive:
+      - timeout=15, max=100
+      Server:
+      - Apache
+      Set-Cookie:
+      - JSESSIONID=D2EA19E2AAA3BDFBA2F4F587ECFD652D.test104e; Path=/checkout; Secure;
+        HttpOnly
+      Transfer-Encoding:
+      - chunked
+      pspReference:
+      - 881595490095995F
+    status:
+      code: 200
+      message: '200'
+version: 1

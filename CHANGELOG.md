@@ -10,6 +10,14 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add App support - #5767 by @korycins
 - Add webhook handler to BasePlugin and PluginManager - #5884 by @korycins
 - Invoices backend - #5732 by @tomaszszymanski129
+- Support pushing webhook events to message queues - #5940 by @patrys, @korycins
+- Adyen drop-in integration - #5914 by @korycins, @IKarbowiak
+- Add `change_currency` command - #6016 by @maarcingebala
+- Send a confirmation email when the order is canceled or refunded - #6017
+- Add `TotalPrice` to `OrderLine` - #6068 @fowczarek
+- No secure cookie in debug mode - #6082 by @patrys, @orzechdev
+- Add searchable and available for purchase flags to product - #6060 by @IKarbowiak
+- Add `PRODUCT_UPDATED` webhook event - #6100 by @tomaszszymanski129
 
 ### Breaking Changes
 
@@ -17,6 +25,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - New logging setup will now output JSON logs in production mode for ease of feeding them into log collection systems like Logstash or CloudWatch Logs - #5699 by @patrys
 - Deprecate `WebhookEventType.CHECKOUT_QUANTITY_CHANGED`. It will be removed in Saleor 3.0 - #5837 by @korycins
 - Add dummy credit card payment - #5822 by @IKarbowiak
+- Anonymize and update order and payment fields; drop PaymentSecureConfirm mutation, drop Payment type fields: extraData, billingAddress, billingEmail, drop gatewayResponse from Transaction type - #5926 by @IKarbowiak
+- Switch the HTTP stack from WSGI to ASGI based on Uvicorn - #5960 by @patrys
 
 ### Fixes
 
@@ -31,6 +41,18 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing OrderEvents during checkout flow - #5684 by @koradon
 - Update google merchant to get tax rate based by plugin manager - #5823 by @gabmartinez
 - Allow unicode in slug fields - #5877 by @IKarbowiak
+- Fix empty plugin object result after PluginUpdate mutation - #5968 by @gabmartinez
+- Allow to finish checkout when price amount is 0 - #6064 by @IKarbowiak
+- Fix incorrect tax calculation for Avatax - #6035 by @korycins
+- Fix incorrect calculation of subtotal with active Avatax - #6035 by @korycins
+- Fix incorrect assigment of tax_code for Avatax - #6035 by @korycins
+- Do not allow negative product price - #6091 by @IKarbowiak
+- Handle None as attribute value - #6092 by @IKarbowiak
+- Fix for calling order_created before the order was saved - #6095 by @korycins
+- Update default decimal places - #6098 by @IKarbowiak
+- Avoid assigning the same pictures twice to a variant - #6112 by @IKarbowiak
+- Fix crashing system when avalara is improperly configured - #6117 by @IKarbowiak
+- Remove corresponding draft order lines when variant is removing - #6119 by @IKarbowiak
 
 ## 2.10.2
 

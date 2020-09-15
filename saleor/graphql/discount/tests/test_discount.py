@@ -143,7 +143,8 @@ CREATE_VOUCHER_MUTATION = """
 mutation  voucherCreate(
     $type: VoucherTypeEnum, $name: String, $code: String,
     $discountValueType: DiscountValueTypeEnum, $usageLimit: Int,
-    $discountValue: Decimal, $minAmountSpent: Decimal, $minCheckoutItemsQuantity: Int,
+    $discountValue: PositiveDecimal,
+    $minAmountSpent: PositiveDecimal, $minCheckoutItemsQuantity: Int,
     $startDate: DateTime, $endDate: DateTime, $applyOncePerOrder: Boolean,
     $applyOncePerCustomer: Boolean) {
         voucherCreate(input: {
@@ -222,7 +223,7 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
         "code": "",
         "discountValueType": DiscountValueTypeEnum.FIXED.name,
         "discountValue": 10.12,
-        "minSpent": 1.12,
+        "minAmountSpent": 1.12,
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
         "usageLimit": None,
@@ -263,6 +264,33 @@ def test_create_voucher_with_existing_gift_card_code(
     assert len(errors) == 1
     assert errors[0]["field"] == "code"
     assert errors[0]["code"] == DiscountErrorCode.ALREADY_EXISTS.name
+
+
+def test_create_voucher_with_too_many_decimal_values_in_min_spent(
+    staff_api_client, permission_manage_discounts
+):
+    start_date = timezone.now() - timedelta(days=365)
+    end_date = timezone.now() + timedelta(days=365)
+    variables = {
+        "name": "test voucher",
+        "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+        "code": "test123",
+        "discountValueType": DiscountValueTypeEnum.FIXED.name,
+        "discountValue": 10.12,
+        "minAmountSpent": 1.1201,
+        "startDate": start_date.isoformat(),
+        "endDate": end_date.isoformat(),
+        "usageLimit": None,
+    }
+
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["voucherCreate"]["discountErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "minSpentAmount"
+    assert errors[0]["code"] == DiscountErrorCode.INVALID.name
 
 
 def test_create_voucher_with_existing_voucher_code(
@@ -532,7 +560,7 @@ def test_voucher_remove_no_catalogues(
 def test_create_sale(staff_api_client, permission_manage_discounts):
     query = """
     mutation  saleCreate(
-            $type: DiscountValueTypeEnum, $name: String, $value: Decimal,
+            $type: DiscountValueTypeEnum, $name: String, $value: PositiveDecimal,
             $startDate: DateTime, $endDate: DateTime) {
         saleCreate(input: {
                 name: $name, type: $type, value: $value,

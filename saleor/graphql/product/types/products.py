@@ -41,7 +41,7 @@ from ...translations.types import (
     ProductTranslation,
     ProductVariantTranslation,
 )
-from ...utils import get_database_id
+from ...utils import get_database_id, get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdAndCountryCodeLoader,
@@ -51,13 +51,15 @@ from ..dataloaders import (
     CategoryByIdLoader,
     CollectionsByProductIdLoader,
     ImagesByProductIdLoader,
+    ImagesByProductVariantIdLoader,
     ProductByIdLoader,
     ProductVariantsByProductIdLoader,
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
 )
-from ..filters import AttributeFilterInput
+from ..filters import AttributeFilterInput, ProductFilterInput
 from ..resolvers import resolve_attributes
+from ..sorters import ProductOrder
 from .attributes import Attribute, SelectedAttribute
 from .digital_contents import DigitalContent
 
@@ -399,8 +401,8 @@ class ProductVariant(CountableDjangoObjectType):
         return calculate_revenue_for_variant(root, start_date)
 
     @staticmethod
-    def resolve_images(root: models.ProductVariant, *_args):
-        return root.images.all()
+    def resolve_images(root: models.ProductVariant, info, *_args):
+        return ImagesByProductVariantIdLoader(info.context).load(root.id)
 
     @classmethod
     def get_node(cls, info, pk):
@@ -479,12 +481,16 @@ class Product(CountableDjangoObjectType):
         lambda: Collection, description="List of collections for the product."
     )
     translation = TranslationField(ProductTranslation, type_name="product")
+    is_available_for_purchase = graphene.Boolean(
+        description="Whether the product is available for purchase."
+    )
 
     class Meta:
         description = "Represents an individual item for sale in the storefront."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Product
         only_fields = [
+            "available_for_purchase",
             "category",
             "charge_taxes",
             "description",
@@ -499,6 +505,7 @@ class Product(CountableDjangoObjectType):
             "seo_title",
             "updated_at",
             "weight",
+            "visible_in_listings",
         ]
 
     @staticmethod
@@ -630,6 +637,10 @@ class Product(CountableDjangoObjectType):
     def resolve_weight(root: models.Product, _info, **_kwargs):
         return convert_weight_to_default_weight_unit(root.weight)
 
+    @staticmethod
+    def resolve_is_available_for_purchase(root: models.Product, _info):
+        return root.is_available_for_purchase()
+
 
 @key(fields="id")
 class ProductType(CountableDjangoObjectType):
@@ -719,7 +730,10 @@ class ProductType(CountableDjangoObjectType):
 @key(fields="id")
 class Collection(CountableDjangoObjectType):
     products = PrefetchingConnectionField(
-        Product, description="List of products in this collection."
+        Product,
+        filter=ProductFilterInput(description="Filtering options for products."),
+        sort_by=ProductOrder(description="Sort products."),
+        description="List of products in this collection.",
     )
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
@@ -844,8 +858,11 @@ class Category(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_products(root: models.Category, info, **_kwargs):
+        requestor = get_user_or_app_from_context(info.context)
         tree = root.get_descendants(include_self=True)
         qs = models.Product.objects.published()
+        if not qs.user_has_access_to_all(requestor):
+            qs = qs.exclude(visible_in_listings=False)
         return qs.filter(category__in=tree)
 
     @staticmethod
