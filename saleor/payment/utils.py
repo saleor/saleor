@@ -181,6 +181,7 @@ def create_transaction(
         customer_id=gateway_response.customer_id,
         gateway_response=gateway_response.raw_response or {},
         action_required_data=gateway_response.action_required_data or {},
+        searchable_key=gateway_response.searchable_key or "",
     )
     return txn
 

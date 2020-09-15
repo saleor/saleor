@@ -4,6 +4,7 @@ from django.db.models import Sum
 from ...order.models import Order
 from ..core.filters import ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
+from ..core.utils import from_global_id_strict_type
 from ..payment.enums import PaymentChargeStatusEnum
 from ..utils.filters import filter_by_query_param, filter_range_field
 from .enums import OrderStatusFilter
@@ -12,6 +13,19 @@ from .enums import OrderStatusFilter
 def filter_payment_status(qs, _, value):
     if value:
         qs = qs.filter(payments__is_active=True, payments__charge_status__in=value)
+    return qs
+
+
+def get_payment_id_from_query(value):
+    try:
+        return from_global_id_strict_type(value, only_type="Payment", field="pk")
+    except Exception:
+        return None
+
+
+def filter_order_by_payment(qs, payment_id):
+    if payment_id:
+        qs = qs.filter(payments__pk=payment_id)
     return qs
 
 
@@ -58,7 +72,12 @@ def filter_order_search(qs, _, value):
         "user_email",
         "user__first_name",
         "user__last_name",
+        "payments__transactions__searchable_key",
     ]
+    payment_id = get_payment_id_from_query(value)
+    if payment_id:
+        return filter_order_by_payment(qs, payment_id)
+
     qs = filter_by_query_param(qs, value, order_fields)
     return qs
 
