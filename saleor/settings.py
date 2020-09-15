@@ -39,7 +39,7 @@ ROOT_URLCONF = "saleor.urls"
 WSGI_APPLICATION = "saleor.wsgi.application"
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('jiawei', 'cuijiaweiyes@gmail.com'),
 )
 MANAGERS = ADMINS
 
@@ -65,7 +65,7 @@ DATABASES = {
 }
 
 
-TIME_ZONE = "America/Chicago"
+TIME_ZONE = "Europe/Berlin"
 LANGUAGE_CODE = "en"
 LANGUAGES = [
     ("ar", "Arabic"),
@@ -218,6 +218,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.auth",
     "django.contrib.postgres",
+    "dbbackup",
     # Local apps
     "saleor.plugins",
     "saleor.account",
@@ -341,8 +342,8 @@ AUTH_PASSWORD_VALIDATORS = [
     }
 ]
 
-DEFAULT_COUNTRY = os.environ.get("DEFAULT_COUNTRY", "US")
-DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "USD")
+DEFAULT_COUNTRY = os.environ.get("DEFAULT_COUNTRY", "DE")
+DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "EU")
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 DEFAULT_MAX_DIGITS = 12
 DEFAULT_CURRENCY_CODE_LENGTH = 3
@@ -411,6 +412,9 @@ AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", None)
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
 AWS_DEFAULT_ACL = os.environ.get("AWS_DEFAULT_ACL", None)
+AWS_DB_BACKUP_BUCKET_NAME = os.environ.get("AWS_DB_BACKUP_BUCKET_NAME")
+
+
 
 # Google Cloud Storage configuration
 GS_PROJECT_ID = os.environ.get("GS_PROJECT_ID")
@@ -558,3 +562,13 @@ if "JAEGER_AGENT_HOST" in os.environ:
         service_name="saleor",
         validate=True,
     ).initialize_tracer()
+
+# DB backup
+if AWS_DB_BACKUP_BUCKET_NAME:
+    DBBACKUP_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    DBBACKUP_STORAGE_OPTIONS = {
+        'access_key': AWS_ACCESS_KEY_ID,
+        'secret_key': AWS_SECRET_ACCESS_KEY,
+        'bucket_name': AWS_DB_BACKUP_BUCKET_NAME,
+        'default_acl': 'private'
+    }

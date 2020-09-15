@@ -29,6 +29,8 @@ RUN apt-get update \
     libpangocairo-1.0-0 \
     libgdk-pixbuf2.0-0 \
     shared-mime-info \
+    cron \
+    postgresql \
     mime-support \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
@@ -42,6 +44,14 @@ RUN SECRET_KEY=dummy STATIC_URL=${STATIC_URL} python3 manage.py collectstatic --
 
 RUN mkdir -p /app/media /app/static \
   && chown -R saleor:saleor /app/
+
+RUN cp /app/db_backup_cron /etc/cron.d/db_backup_cron
+RUN chmod 0644 /etc/cron.d/db_backup_cron
+RUN chmod 0744 /app/db_backup.sh
+
+RUN crontab /etc/cron.d/db_backup_cron
+
+RUN service cron start
 
 EXPOSE 8000
 ENV PORT 8000

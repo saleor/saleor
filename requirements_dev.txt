@@ -177,3 +177,4 @@ weasyprint==51
 webencodings==0.5.1
 wrapt==1.11.2
 yarl==1.4.2; python_version >= "3.6"
+django-dbbackup==3.3.0
