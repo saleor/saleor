@@ -71,7 +71,7 @@ uvicorn = "^0.11.8"
 gunicorn = "^20.0.4"
 
 [tool.poetry.dev-dependencies]
-black = "19.10b0"
+black = "20.8b1"
 codecov = "^2.1.9"
 coverage = "^5.2"
 django-debug-toolbar = "^2.0"
