@@ -219,6 +219,7 @@ class Transaction(models.Model):
     customer_id = models.CharField(max_length=256, null=True)
     gateway_response = JSONField(encoder=DjangoJSONEncoder)
     already_processed = models.BooleanField(default=False)
+    searchable_key = models.CharField(max_length=256, null=True, blank=True)
 
     class Meta:
         ordering = ("pk",)
