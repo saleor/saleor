@@ -211,6 +211,12 @@ class VoucherTranslate(BaseTranslateMutation):
         error_type_class = TranslationError
         error_type_field = "translation_errors"
 
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        response = super().perform_mutation(_root, info, **data)
+        instance = ChannelContext(node=response.voucher, channel_slug=None)
+        return cls(**{cls._meta.return_field_name: instance})
+
 
 class ShippingPriceTranslate(BaseTranslateMutation):
     class Arguments:

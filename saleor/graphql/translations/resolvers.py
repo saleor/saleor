@@ -26,3 +26,7 @@ def resolve_product_variants(_info):
 
 def resolve_sales(_info):
     return discount_models.Sale.objects.all()
+
+
+def resolve_vouchers(_info):
+    return discount_models.Voucher.objects.all()

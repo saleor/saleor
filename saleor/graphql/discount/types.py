@@ -115,7 +115,11 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         types.CountryDisplay,
         description="List of countries available for the shipping voucher.",
     )
-    translation = TranslationField(VoucherTranslation, type_name="voucher")
+    translation = TranslationField(
+        VoucherTranslation,
+        type_name="voucher",
+        resolver=ChannelContextType.resolve_translation,
+    )
     discount_value_type = DiscountValueTypeEnum(
         description="Determines a type of discount for voucher - value or percentage",
         required=True,
