@@ -6,9 +6,10 @@ VOUCHER_SEARCH_FIELDS = ("name", "code")
 SALE_SEARCH_FIELDS = ("name", "value", "type")
 
 
-def resolve_vouchers(info, query, **_kwargs):
+def resolve_vouchers(info, query, channel_slug, **_kwargs) -> ChannelQsContext:
     qs = models.Voucher.objects.all()
-    return filter_by_query_param(qs, query, VOUCHER_SEARCH_FIELDS)
+    qs = filter_by_query_param(qs, query, VOUCHER_SEARCH_FIELDS)
+    return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 
 def resolve_sales(info, query, channel_slug, **_kwargs) -> ChannelQsContext:
