@@ -7,6 +7,7 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
+from graphql_relay import to_global_id
 from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
@@ -3228,6 +3229,7 @@ def test_query_draft_orders_with_sort(
         ({"search": "Leslie"}, 1),
         ({"search": "Wade"}, 1),
         ({"search": ""}, 3),
+        ({"search": "ExternalID"}, 1),
     ],
 )
 def test_orders_query_with_filter_search(
@@ -3238,7 +3240,7 @@ def test_orders_query_with_filter_search(
     permission_manage_orders,
     customer_user,
 ):
-    Order.objects.bulk_create(
+    orders = Order.objects.bulk_create(
         [
             Order(
                 user=customer_user,
@@ -3256,11 +3258,43 @@ def test_orders_query_with_filter_search(
             ),
         ]
     )
+    order_with_payment = orders[1]
+    payment = Payment.objects.create(order=order_with_payment)
+    payment.transactions.create(
+        gateway_response={}, is_success=True, searchable_key="ExternalID"
+    )
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["orders"]["totalCount"] == count
+
+
+def test_orders_query_with_filter_search_by_global_payment_id(
+    orders_query_with_filter, staff_api_client, permission_manage_orders, customer_user,
+):
+
+    orders = Order.objects.bulk_create(
+        [
+            Order(
+                user=customer_user,
+                token=str(uuid.uuid4()),
+                discount_name="test_discount1",
+                user_email="test@example.com",
+                translated_discount_name="translated_discount1_name",
+            ),
+            Order(token=str(uuid.uuid4()), user_email="user1@example.com"),
+        ]
+    )
+    order_with_payment = orders[0]
+    payment = Payment.objects.create(order=order_with_payment)
+    global_id = to_global_id("Payment", payment.pk)
+
+    variables = {"filter": {"search": global_id}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 1
 
 
 def test_orders_query_with_filter_search_by_id(
