@@ -188,15 +188,20 @@ class VoucherCreate(ModelMutation):
             )
         cleaned_input = super().clean_input(info, instance, data)
 
-        min_spent_amount = cleaned_input.pop("min_amount_spent", None)
-        if min_spent_amount is not None:
-            try:
-                validate_price_precision(min_spent_amount, instance.currency)
-            except ValidationError as error:
-                error.code = DiscountErrorCode.INVALID.value
-                raise ValidationError({"min_spent_amount": error})
-            cleaned_input["min_spent_amount"] = min_spent_amount
+        # min_spent_amount = cleaned_input.pop("min_amount_spent", None)
+        # if min_spent_amount is not None:
+        #     try:
+        #         validate_price_precision(min_spent_amount, instance.currency)
+        #     except ValidationError as error:
+        #         error.code = DiscountErrorCode.INVALID.value
+        #         raise ValidationError({"min_spent_amount": error})
+        #     cleaned_input["min_spent_amount"] = min_spent_amount
         return cleaned_input
+
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        return super().success_response(instance)
 
 
 class VoucherUpdate(VoucherCreate):
@@ -225,6 +230,12 @@ class VoucherDelete(ModelDeleteMutation):
         error_type_class = DiscountError
         error_type_field = "discount_errors"
 
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        response = super().success_response(instance)
+        return response
+
 
 class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
     voucher = graphene.Field(
@@ -240,6 +251,13 @@ class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
 
     class Meta:
         abstract = True
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        response = super().mutate(root, info, **data)
+        if response.voucher:
+            response.voucher = ChannelContext(node=response.voucher, channel_slug=None)
+        return response
 
 
 class VoucherAddCatalogues(VoucherBaseCatalogueMutation):

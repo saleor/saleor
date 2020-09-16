@@ -1421,6 +1421,16 @@ def voucher(channel_USD):
 
 
 @pytest.fixture
+def voucher_with_many_channels(voucher, channel_PLN):
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_PLN,
+        discount=Money(80, channel_PLN.currency_code),
+    )
+    return voucher
+
+
+@pytest.fixture
 def voucher_percentage(channel_USD):
     voucher = Voucher.objects.create(
         code="mirumee", discount_value_type=DiscountValueType.PERCENTAGE,
