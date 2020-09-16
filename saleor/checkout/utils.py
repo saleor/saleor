@@ -239,6 +239,7 @@ def _get_shipping_voucher_discount_for_checkout(
 
 def _get_products_voucher_discount(
     manager: PluginsManager,
+    checkout: "Checkout",
     lines,
     voucher,
     discounts: Optional[Iterable[DiscountInfo]] = None,
@@ -247,7 +248,7 @@ def _get_products_voucher_discount(
     prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         prices = get_prices_of_discounted_specific_product(
-            manager, lines, voucher, discounts
+            manager, checkout, lines, voucher, discounts
         )
     if not prices:
         msg = "This offer is only valid for selected items."
@@ -257,6 +258,7 @@ def _get_products_voucher_discount(
 
 def get_prices_of_discounted_specific_product(
     manager: PluginsManager,
+    checkout: "Checkout",
     lines: List[CheckoutLine],
     voucher: Voucher,
     discounts: Optional[Iterable[DiscountInfo]] = None,
@@ -269,17 +271,12 @@ def get_prices_of_discounted_specific_product(
     """
     line_prices = []
     discounted_lines = get_discounted_lines(lines, voucher)
-
-    # FIXME: figure out a better way to get the checkout/address
-    checkout = lines[0].checkout if lines else None
-    if checkout:
-        address = checkout.shipping_address or checkout.billing_address
-    else:
-        address = None
+    address = checkout.shipping_address or checkout.billing_address
 
     for line in discounted_lines:
         line_total = calculations.checkout_line_total(
             manager=manager,
+            checkout=checkout,
             line=line,
             variant=line.variant,
             product=line.variant.product,
@@ -322,7 +319,9 @@ def get_voucher_discount_for_checkout(
             manager, voucher, checkout, lines, address, discounts
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        return _get_products_voucher_discount(manager, lines, voucher, discounts)
+        return _get_products_voucher_discount(
+            manager, checkout, lines, voucher, discounts
+        )
     raise NotImplementedError("Unknown discount type")
 
 

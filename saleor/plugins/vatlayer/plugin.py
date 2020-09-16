@@ -153,6 +153,7 @@ class VatlayerPlugin(BasePlugin):
 
     def calculate_checkout_line_total(
         self,
+        checkout: "Checkout",
         checkout_line: "CheckoutLine",
         variant: "ProductVariant",
         product: "Product",

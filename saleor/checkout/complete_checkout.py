@@ -124,7 +124,10 @@ def _validate_gift_cards(checkout: Checkout):
 
 
 def _create_line_for_order(
-    manager: "PluginsManager", checkout_line_info: "CheckoutLineInfo", discounts
+    manager: "PluginsManager",
+    checkout: "Checkout",
+    checkout_line_info: "CheckoutLineInfo",
+    discounts,
 ) -> OrderLine:
     """Create a line for the given order.
 
@@ -156,7 +159,7 @@ def _create_line_for_order(
         translated_variant_name = ""
 
     total_line_price = manager.calculate_checkout_line_total(
-        checkout_line, variant, product, collections, address, discounts
+        checkout, checkout_line, variant, product, collections, address, discounts
     )
     unit_price = quantize_price(
         total_line_price / checkout_line.quantity, total_line_price.currency
@@ -226,7 +229,7 @@ def _prepare_order_data(
     )
 
     order_data["lines"] = [
-        _create_line_for_order(manager, checkout_line_info, discounts)
+        _create_line_for_order(manager, checkout, checkout_line_info, discounts)
         for checkout_line_info in lines
     ]
 

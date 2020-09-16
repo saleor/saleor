@@ -137,6 +137,7 @@ class PluginsManager(PaymentInterface):
     ) -> TaxedMoney:
         line_totals = [
             self.calculate_checkout_line_total(
+                checkout,
                 line_info.line,
                 line_info.variant,
                 line_info.product,
@@ -198,6 +199,7 @@ class PluginsManager(PaymentInterface):
 
     def calculate_checkout_line_total(
         self,
+        checkout: "Checkout",
         checkout_line: "CheckoutLine",
         variant: "ProductVariant",
         product: "Product",
@@ -212,6 +214,7 @@ class PluginsManager(PaymentInterface):
             self.__run_method_on_plugins(
                 "calculate_checkout_line_total",
                 default_value,
+                checkout,
                 checkout_line,
                 variant,
                 product,
@@ -219,7 +222,7 @@ class PluginsManager(PaymentInterface):
                 address,
                 discounts,
             ),
-            checkout_line.checkout.currency,
+            checkout.currency,
         )
 
     def calculate_order_line_unit(self, order_line: "OrderLine") -> TaxedMoney:

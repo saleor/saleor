@@ -309,6 +309,7 @@ class AvataxPlugin(BasePlugin):
 
     def calculate_checkout_line_total(
         self,
+        checkout: "Checkout",
         checkout_line: "CheckoutLine",
         variant: "ProductVariant",
         product: "Product",
@@ -324,7 +325,6 @@ class AvataxPlugin(BasePlugin):
         if not checkout_line.variant.product.charge_taxes:
             return base_total
 
-        checkout = checkout_line.checkout
         if not _validate_checkout(checkout, [checkout_line]):
             return base_total
 

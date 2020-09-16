@@ -94,6 +94,7 @@ def checkout_total(
 def checkout_line_total(
     *,
     manager: "PluginsManager",
+    checkout: "Checkout",
     line: "CheckoutLine",  # FIXME: convert to CheckoutLineInfo
     variant: "ProductVariant",
     product: "Product",
@@ -106,6 +107,6 @@ def checkout_line_total(
     It takes in account all plugins.
     """
     calculated_line_total = manager.calculate_checkout_line_total(
-        line, variant, product, collections, address, discounts or []
+        checkout, line, variant, product, collections, address, discounts or []
     )
     return quantize_price(calculated_line_total, line.checkout.currency)

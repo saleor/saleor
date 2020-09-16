@@ -84,8 +84,9 @@ class CheckoutLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_total_price(root: models.CheckoutLine, info):
         def calculate_line_total_price(data):
-            address, variant, product, collections, discounts = data
+            checkout, address, variant, product, collections, discounts = data
             return info.context.plugins.calculate_checkout_line_total(
+                checkout=checkout,
                 checkout_line=root,
                 variant=variant,
                 product=product,
@@ -108,7 +109,7 @@ class CheckoutLine(CountableDjangoObjectType):
                 info.context.request_time
             )
             return Promise.all(
-                [address, variant, product, collections, discounts]
+                [checkout, address, variant, product, collections, discounts]
             ).then(calculate_line_total_price)
 
         return (

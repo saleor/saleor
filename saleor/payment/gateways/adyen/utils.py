@@ -133,6 +133,7 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     for line_info in lines:
         total = checkout_line_total(
             manager=manager,
+            checkout=checkout,
             line=line_info.line,
             variant=line_info.variant,
             product=line_info.product,
