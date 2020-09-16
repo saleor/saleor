@@ -10,7 +10,12 @@ def sales_list(channel_USD):
     values = [15, 5]
     SaleChannelListing.objects.bulk_create(
         [
-            SaleChannelListing(sale=sale, channel=channel_USD, discount_value=values[i])
+            SaleChannelListing(
+                sale=sale,
+                channel=channel_USD,
+                discount_value=values[i],
+                currency=channel_USD.currency_code,
+            )
             for i, sale in enumerate(sales)
         ]
     )

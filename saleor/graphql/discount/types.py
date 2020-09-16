@@ -19,11 +19,7 @@ class SaleChannelListing(CountableDjangoObjectType):
         description = "Represents sale channel listing."
         model = models.SaleChannelListing
         interfaces = [relay.Node]
-        only_fields = [
-            "id",
-            "channel",
-            "discount_value",
-        ]
+        only_fields = ["id", "channel", "discount_value", "currency"]
 
 
 class Sale(ChannelContextType, CountableDjangoObjectType):
@@ -65,11 +61,12 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_channel_listing(root: ChannelContext[models.Sale], *_args, **_kwargs):
+        # TODO: Add dataloader.
         return root.node.channel_listing.all()
 
     @staticmethod
-    def resolve_collections(root: models.Sale, info, **_kwargs):
-        return root.collections.visible_to_user(info.context.user)
+    def resolve_collections(root: ChannelContext[models.Sale], info, **_kwargs):
+        return root.node.collections.visible_to_user(info.context.user)
 
     @staticmethod
     def resolve_products(root: ChannelContext[models.Sale], info, **_kwargs):

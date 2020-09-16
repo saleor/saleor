@@ -60,7 +60,10 @@ def query_sales_with_filter():
 def sale(channel_USD):
     sale = Sale.objects.create(name="Sale")
     SaleChannelListing.objects.create(
-        channel=channel_USD, discount_value=123, sale=sale
+        currency=channel_USD.currency_code,
+        channel=channel_USD,
+        discount_value=123,
+        sale=sale,
     )
     return sale
 
@@ -117,13 +120,26 @@ def test_voucher_query(
     ]
 
 
-def test_sale_query(staff_api_client, sale, permission_manage_discounts, channel_USD):
+def test_sale_query(
+    staff_api_client,
+    sale_with_many_channels,
+    permission_manage_discounts,
+    channel_USD,
+    channel_PLN,
+):
     query = """
         query sales {
             sales(first: 1) {
                 edges {
                     node {
                         type
+                        collections(first: 1) {
+                            edges {
+                                node {
+                                    slug
+                                }
+                            }
+                        }
                         name
                         channelListing {
                             discountValue
@@ -137,13 +153,23 @@ def test_sale_query(staff_api_client, sale, permission_manage_discounts, channel
     response = staff_api_client.post_graphql(
         query, permissions=[permission_manage_discounts]
     )
-    channel_listing = sale.channel_listing.get()
+    channel_listing_usd = sale_with_many_channels.channel_listing.get(
+        channel=channel_USD
+    )
+    channel_listing_pln = sale_with_many_channels.channel_listing.get(
+        channel=channel_PLN
+    )
     content = get_graphql_content(response)
     data = content["data"]["sales"]["edges"][0]["node"]
-    assert data["type"] == sale.type.upper()
-    assert data["name"] == sale.name
-    assert data["channelListing"][0]["discountValue"] == channel_listing.discount_value
-    assert data["startDate"] == sale.start_date.isoformat()
+    assert data["type"] == sale_with_many_channels.type.upper()
+    assert data["name"] == sale_with_many_channels.name
+    assert (
+        data["channelListing"][0]["discountValue"] == channel_listing_usd.discount_value
+    )
+    assert (
+        data["channelListing"][1]["discountValue"] == channel_listing_pln.discount_value
+    )
+    assert data["startDate"] == sale_with_many_channels.start_date.isoformat()
 
 
 def test_sale_query_with_channel_slug(
@@ -1298,7 +1324,12 @@ def test_query_sales_with_filter_status(
     )
     SaleChannelListing.objects.bulk_create(
         [
-            SaleChannelListing(sale=sale, discount_value=123, channel=channel_USD)
+            SaleChannelListing(
+                sale=sale,
+                discount_value=123,
+                channel=channel_USD,
+                currency=channel_USD.currency_code,
+            )
             for sale in sales
         ]
     )
@@ -1378,7 +1409,12 @@ def test_query_sales_with_filter_started(
     )
     SaleChannelListing.objects.bulk_create(
         [
-            SaleChannelListing(sale=sale, discount_value=123, channel=channel_USD)
+            SaleChannelListing(
+                sale=sale,
+                discount_value=123,
+                channel=channel_USD,
+                currency=channel_USD.currency_code,
+            )
             for sale in sales
         ]
     )
@@ -1451,16 +1487,15 @@ QUERY_SALE_WITH_SORT = """
 """
 
 
-# TODO: Consider filtering and sorting by `discounted_value`
-# Should be resolved by https://app.clickup.com/t/6crxxb
-@pytest.mark.skip(reason="We should know how to handle `discounted_value` filter.")
 @pytest.mark.parametrize(
     "sale_sort, result_order",
     [
         ({"field": "NAME", "direction": "ASC"}, ["BigSale", "Sale2", "Sale3"]),
         ({"field": "NAME", "direction": "DESC"}, ["Sale3", "Sale2", "BigSale"]),
-        ({"field": "VALUE", "direction": "ASC"}, ["Sale3", "Sale2", "BigSale"]),
-        ({"field": "VALUE", "direction": "DESC"}, ["BigSale", "Sale2", "Sale3"]),
+        # TODO: Consider filtering and sorting by `discounted_value`
+        # Should be resolved by https://app.clickup.com/t/6crxxb
+        # ({"field": "VALUE", "direction": "ASC"}, ["Sale3", "Sale2", "BigSale"]),
+        # ({"field": "VALUE", "direction": "DESC"}, ["BigSale", "Sale2", "Sale3"]),
         ({"field": "TYPE", "direction": "ASC"}, ["Sale2", "Sale3", "BigSale"]),
         ({"field": "TYPE", "direction": "DESC"}, ["BigSale", "Sale3", "Sale2"]),
         ({"field": "START_DATE", "direction": "ASC"}, ["Sale3", "Sale2", "BigSale"]),
@@ -1492,7 +1527,12 @@ def test_query_sales_with_sort(
     values = [1234, 123, 69]
     SaleChannelListing.objects.bulk_create(
         [
-            SaleChannelListing(discount_value=values[i], sale=sale, channel=channel_USD)
+            SaleChannelListing(
+                discount_value=values[i],
+                sale=sale,
+                channel=channel_USD,
+                currency=channel_USD.currency_code,
+            )
             for i, sale in enumerate(sales)
         ]
     )

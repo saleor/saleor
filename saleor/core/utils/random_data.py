@@ -582,7 +582,10 @@ def create_fake_sale():
         name="Happy %s day!" % fake.word(), type=DiscountValueType.PERCENTAGE,
     )
     SaleChannelListing.objects.create(
-        channel=channel, sale=sale, discount_value=random.choice([10, 20, 30, 40, 50])
+        channel=channel,
+        currency=channel.currency_code,
+        sale=sale,
+        discount_value=random.choice([10, 20, 30, 40, 50]),
     )
     for product in Product.objects.all().order_by("?")[:4]:
         sale.products.add(product)

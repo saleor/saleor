@@ -9,11 +9,11 @@ from prices import Money
 from ..checkout import calculations
 from ..core.taxes import zero_money
 from . import DiscountInfo
-from .models import NotApplicable, Sale, VoucherCustomer
+from .models import NotApplicable, Sale, SaleChannelListing, VoucherCustomer
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from .models import Voucher
+    from .models import Voucher, Channel
     from ..product.models import Collection, Product
     from ..checkout.models import Checkout, CheckoutLine
     from ..order.models import Order
@@ -49,7 +49,10 @@ def remove_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) ->
 
 
 def get_product_discount_on_sale(
-    product: "Product", product_collections: Set[int], discount: DiscountInfo, channel
+    product: "Product",
+    product_collections: Set[int],
+    discount: DiscountInfo,
+    channel: "Channel",
 ):
     """Return discount value if product is on sale or raise NotApplicable."""
     is_product_on_sale = (
@@ -58,8 +61,11 @@ def get_product_discount_on_sale(
         or product_collections.intersection(discount.collection_ids)
     )
     if is_product_on_sale:
+        sale_channel_listing = discount.sale.channel_listing.filter(  # type: ignore
+            channel=channel
+        ).first()
         # Remove type ignore after merge #6120
-        return discount.sale.get_discount(channel)  # type: ignore
+        return discount.sale.get_discount(sale_channel_listing)  # type: ignore
     raise NotApplicable("Discount not applicable for this product")
 
 
@@ -68,7 +74,7 @@ def get_product_discounts(
     product: "Product",
     collections: Iterable["Collection"],
     discounts: Iterable[DiscountInfo],
-    channel
+    channel: "Channel"
 ) -> Money:
     """Return discount values for all discounts applicable to a product."""
     product_collections = set(pc.id for pc in collections)
@@ -87,7 +93,7 @@ def calculate_discounted_price(
     price: Money,
     collections: Iterable["Collection"],
     discounts: Optional[Iterable[DiscountInfo]],
-    channel
+    channel: "Channel"
 ) -> Money:
     """Return minimum product's price of all prices with discounts applied."""
     if discounts:

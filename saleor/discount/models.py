@@ -226,8 +226,7 @@ class Sale(models.Model):
     def __str__(self):
         return self.name
 
-    def get_discount(self, channel: Channel):
-        sale_channel_listing = self.channel_listing.filter(channel=channel).first()
+    def get_discount(self, sale_channel_listing):
         if not sale_channel_listing:
             raise NotApplicable("This sale is not assigned to this channel.")
         if self.type == DiscountValueType.FIXED:
@@ -263,6 +262,10 @@ class SaleChannelListing(models.Model):
         default=0,
     )
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
+
+    class Meta:
+        unique_together = [["sale", "channel"]]
+        ordering = ("pk",)
 
 
 class SaleTranslation(models.Model):

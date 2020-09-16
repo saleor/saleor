@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import graphene
 
+from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import SaleChannelListing
 from ...tests.utils import assert_negative_positive_decimal_value, get_graphql_content
 
@@ -15,6 +16,7 @@ mutation UpdateSaleChannelListing(
             field
             message
             code
+            channels
         }
         sale {
             name
@@ -44,7 +46,7 @@ def test_sale_channel_listing_create_as_staff_user(
     # given
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
-    discounted = 1
+    discounted = 1.12
 
     variables = {
         "id": sale_id,
@@ -91,7 +93,7 @@ def test_sale_channel_listing_update_as_staff_user(
     # given
     sale_id = graphene.Node.to_global_id("Sale", sale.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    discounted = 10
+    discounted = 10.11
 
     variables = {
         "id": sale_id,
@@ -152,3 +154,124 @@ def test_sale_channel_listing_update_with_negative_discounted_value(
         SALE_CHANNEL_LISTING_UPDATE_MUTATION, variables=variables,
     )
     assert_negative_positive_decimal_value(response)
+
+
+def test_sale_channel_listing_update_duplicated_ids_in_add_and_remove(
+    staff_api_client, sale, permission_manage_discounts, channel_USD
+):
+    # given
+    sale_id = graphene.Node.to_global_id("Sale", sale.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    discounted = 10.11
+    variables = {
+        "id": sale_id,
+        "input": {
+            "addChannels": [{"channelId": channel_id, "discountValue": discounted}],
+            "removeChannels": [channel_id],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        SALE_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_discounts,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["saleChannelListingUpdate"]["discountErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "input"
+    assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert errors[0]["channels"] == [channel_id]
+
+
+def test_sale_channel_listing_update_duplicated_channel_in_add(
+    staff_api_client, sale, permission_manage_discounts, channel_USD
+):
+    # given
+    sale_id = graphene.Node.to_global_id("Sale", sale.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    discounted = 10.11
+    variables = {
+        "id": sale_id,
+        "input": {
+            "addChannels": [
+                {"channelId": channel_id, "discountValue": discounted},
+                {"channelId": channel_id, "discountValue": discounted},
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        SALE_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_discounts,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["saleChannelListingUpdate"]["discountErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "addChannels"
+    assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert errors[0]["channels"] == [channel_id]
+
+
+def test_sale_channel_listing_update_duplicated_channel_in_remove(
+    staff_api_client, sale, permission_manage_discounts, channel_USD
+):
+    # given
+    sale_id = graphene.Node.to_global_id("Sale", sale.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": sale_id,
+        "input": {"removeChannels": [channel_id, channel_id]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        SALE_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_discounts,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["saleChannelListingUpdate"]["discountErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "removeChannels"
+    assert errors[0]["code"] == DiscountErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert errors[0]["channels"] == [channel_id]
+
+
+def test_sale_channel_listing_update_with_invalid_decimal_places(
+    staff_api_client, sale, permission_manage_discounts, channel_USD
+):
+    # given
+    sale_id = graphene.Node.to_global_id("Sale", sale.pk)
+    discounted = 1.123
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": sale_id,
+        "input": {
+            "addChannels": [{"channelId": channel_id, "discountValue": discounted}],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        SALE_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_discounts,),
+    )
+    content = get_graphql_content(response)
+    # then
+    errors = content["data"]["saleChannelListingUpdate"]["discountErrors"]
+
+    assert len(errors) == 1
+    assert errors[0]["code"] == DiscountErrorCode.INVALID.name
+    assert errors[0]["field"] == "input"
+    assert errors[0]["channels"] == [channel_id]

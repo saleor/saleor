@@ -7,10 +7,9 @@ from ...tests.utils import get_graphql_content
 
 @pytest.fixture
 def sale_list(channel_USD):
-    sale_1 = Sale.objects.create(name="Sale 1")
-    sale_2 = Sale.objects.create(name="Sale 2")
-    sale_3 = Sale.objects.create(name="Sale 3")
-    sales = [sale_1, sale_2, sale_3]
+    sales = Sale.objects.bulk_create(
+        [Sale(name="Sale 1"), Sale(name="Sale 2"), Sale(name="Sale 3")]
+    )
     SaleChannelListing.objects.bulk_create(
         [
             SaleChannelListing(sale=sale, discount_value=5, channel=channel_USD)

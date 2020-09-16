@@ -7,7 +7,7 @@ from django.db import transaction
 
 from ...core.permissions import DiscountPermissions
 from ...core.utils.promo_code import generate_promo_code, is_available_promo_code
-from ...discount import models
+from ...discount import DiscountValueType, models
 from ...discount.error_codes import DiscountErrorCode
 from ...discount.models import SaleChannelListing
 from ...product.tasks import (
@@ -299,25 +299,18 @@ class SaleInput(graphene.InputObjectType):
     )
 
 
-class SaleUpdateDiscountedPriceMixin(ModelMutation):
-    class Meta:
-        abstract = True
-
+class SaleUpdateDiscountedPriceMixin:
     @classmethod
     def success_response(cls, instance):
         # Update the "discounted_prices" of the associated, discounted
         # products (including collections and categories).
         update_products_discounted_prices_of_discount_task.delay(instance.pk)
-        return super().success_response(instance)
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        response = super().perform_mutation(_root, info, **data)
-        instance = ChannelContext(node=response.sale, channel_slug=None)
-        return cls(**{cls._meta.return_field_name: instance})
+        return super().success_response(
+            ChannelContext(node=instance, channel_slug=None)
+        )
 
 
-class SaleCreate(SaleUpdateDiscountedPriceMixin):
+class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     class Arguments:
         input = SaleInput(
             required=True, description="Fields required to create a sale."
@@ -331,7 +324,7 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin):
         error_type_field = "discount_errors"
 
 
-class SaleUpdate(SaleUpdateDiscountedPriceMixin):
+class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a sale to update.")
         input = SaleInput(
@@ -408,7 +401,9 @@ class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
 
 class SaleChannelListingAddInput(graphene.InputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
-    discount_value = PositiveDecimal(description="The value of the discount.")
+    discount_value = PositiveDecimal(
+        required=True, description="The value of the discount."
+    )
 
 
 class SaleChannelListingInput(graphene.InputObjectType):
@@ -445,15 +440,46 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         for add_channel in add_channels:
             defaults = {}
             discount_value = add_channel.get("discount_value")
+            channel = add_channel["channel"]
+            currency_code = channel.currency_code
             if discount_value:
                 defaults["discount_value"] = discount_value
-            channel = add_channel["channel"]
             SaleChannelListing.objects.update_or_create(
-                sale=sale,
-                channel=channel,
-                currency=channel.currency_code,
-                defaults=defaults,
+                sale=sale, channel=channel, currency=currency_code, defaults=defaults,
             )
+
+    @classmethod
+    def clean_prices(cls, cleaned_channels, sale_type, errors, error_code):
+        if sale_type != DiscountValueType.FIXED:
+            return cleaned_channels
+
+        invalid_channels_ids = []
+        error_message = None
+        for cleaned_channel in cleaned_channels.get("add_channels", []):
+            channel = cleaned_channel["channel"]
+            currency_code = channel.currency_code
+            discount_value = cleaned_channel.get("discount_value")
+            if discount_value:
+                try:
+                    validate_price_precision(discount_value, currency_code)
+                except ValidationError as error:
+                    error_message = error.message
+                    invalid_channels_ids.append(channel.id)
+
+        if invalid_channels_ids and error_message:
+            invalid_channels_ids = [
+                graphene.Node.to_global_id("Channel", channel_id)
+                for channel_id in invalid_channels_ids
+            ]
+            errors["input"].append(
+                ValidationError(
+                    error_message,
+                    code=error_code,
+                    params={"channels": list(invalid_channels_ids)},
+                )
+            )
+        else:
+            return cleaned_channels
 
     @classmethod
     def remove_channels(cls, sale: "SaleModel", remove_channels: List[int]):
@@ -470,16 +496,17 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
     def perform_mutation(cls, _root, info, id, input):
         sale = cls.get_node_or_error(info, id, only_type=Sale, field="id")
         errors = defaultdict(list)
-
-        clean_channels = cls.clean_channels(
+        cleaned_channels = cls.clean_channels(
             info, input, errors, DiscountErrorCode.DUPLICATED_INPUT_ITEM.value
+        )
+        cleaned_input = cls.clean_prices(
+            cleaned_channels, sale.type, errors, DiscountErrorCode.INVALID.value
         )
 
         if errors:
-
             raise ValidationError(errors)
 
-        cls.save(info, sale, clean_channels)
+        cls.save(info, sale, cleaned_input)
         return SaleChannelListingUpdate(
             sale=ChannelContext(node=sale, channel_slug=None)
         )

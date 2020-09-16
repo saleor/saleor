@@ -193,7 +193,12 @@ def test_sale_applies_to_correct_products(product_type, category, channel_USD):
         currency=channel_USD.currency_code,
     )
     sale = Sale.objects.create(name="Test sale", type=DiscountValueType.FIXED)
-    SaleChannelListing.objects.create(sale=sale, channel=channel_USD, discount_value=3)
+    SaleChannelListing.objects.create(
+        sale=sale,
+        currency=channel_USD.currency_code,
+        channel=channel_USD,
+        discount_value=3,
+    )
     discount = DiscountInfo(
         sale=sale, product_ids={product.id}, category_ids=set(), collection_ids=set()
     )
@@ -364,7 +369,12 @@ def test_sale_active(current_date, start_date, end_date, is_active, channel_USD)
     sale = Sale.objects.create(
         type=DiscountValueType.FIXED, start_date=start_date, end_date=end_date
     )
-    SaleChannelListing.objects.create(sale=sale, channel=channel_USD, discount_value=5)
+    SaleChannelListing.objects.create(
+        sale=sale,
+        currency=channel_USD.currency_code,
+        channel=channel_USD,
+        discount_value=5,
+    )
     sale_is_active = Sale.objects.active(date=current_date).exists()
     assert is_active == sale_is_active
 
@@ -393,7 +403,7 @@ def test_get_fixed_sale_discount(sale):
     channel_listing = sale.channel_listing.get()
 
     # when
-    result = sale.get_discount(channel_listing.channel).keywords
+    result = sale.get_discount(channel_listing).keywords
 
     # then
     assert result["discount"] == Money(
@@ -407,7 +417,7 @@ def test_get_percentage_sale_discount(sale):
     channel_listing = sale.channel_listing.get()
 
     # when
-    result = sale.get_discount(channel_listing.channel).keywords
+    result = sale.get_discount(channel_listing).keywords
 
     # then
     assert result["percentage"] == channel_listing.discount_value
@@ -418,11 +428,11 @@ def test_get_unknown_sale_discount(sale):
     channel_listing = sale.channel_listing.get()
 
     with pytest.raises(NotImplementedError):
-        sale.get_discount(channel_listing.channel)
+        sale.get_discount(channel_listing)
 
 
 def test_get_not_applicable_sale_discount(sale, channel_PLN):
     sale.type = DiscountValueType.PERCENTAGE
 
     with pytest.raises(NotApplicable):
-        sale.get_discount(channel_PLN.pk)
+        sale.get_discount(None)

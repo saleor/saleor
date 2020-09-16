@@ -104,6 +104,7 @@ class DiscountMutations(graphene.ObjectType):
     sale_catalogues_add = SaleAddCatalogues.Field()
     sale_catalogues_remove = SaleRemoveCatalogues.Field()
     sale_translate = SaleTranslate.Field()
+    sale_channel_listing_update = SaleChannelListingUpdate.Field()
 
     voucher_create = VoucherCreate.Field()
     voucher_delete = VoucherDelete.Field()
@@ -112,4 +113,3 @@ class DiscountMutations(graphene.ObjectType):
     voucher_catalogues_add = VoucherAddCatalogues.Field()
     voucher_catalogues_remove = VoucherRemoveCatalogues.Field()
     voucher_translate = VoucherTranslate.Field()
-    sale_channel_listing_update = SaleChannelListingUpdate.Field()

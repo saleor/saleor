@@ -1795,6 +1795,7 @@ type DiscountError {
   message: String
   products: [ID!]
   code: DiscountErrorCode!
+  channels: [ID!]
 }
 
 enum DiscountErrorCode {
@@ -2820,6 +2821,7 @@ type Mutation {
   saleCataloguesAdd(id: ID!, input: CatalogueInput!): SaleAddCatalogues
   saleCataloguesRemove(id: ID!, input: CatalogueInput!): SaleRemoveCatalogues
   saleTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): SaleTranslate
+  saleChannelListingUpdate(id: ID!, input: SaleChannelListingInput!): SaleChannelListingUpdate
   voucherCreate(input: VoucherInput!): VoucherCreate
   voucherDelete(id: ID!): VoucherDelete
   voucherBulkDelete(ids: [ID]!): VoucherBulkDelete
@@ -2827,7 +2829,6 @@ type Mutation {
   voucherCataloguesAdd(id: ID!, input: CatalogueInput!): VoucherAddCatalogues
   voucherCataloguesRemove(id: ID!, input: CatalogueInput!): VoucherRemoveCatalogues
   voucherTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): VoucherTranslate
-  saleChannelListingUpdate(id: ID!, input: SaleChannelListingInput!): SaleChannelListingUpdate
   exportProducts(input: ExportProductsInput!): ExportProducts
   checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
@@ -4491,11 +4492,12 @@ type SaleChannelListing implements Node {
   id: ID!
   channel: Channel!
   discountValue: Float!
+  currency: String!
 }
 
 input SaleChannelListingAddInput {
   channelId: ID!
-  discountValue: PositiveDecimal
+  discountValue: PositiveDecimal!
 }
 
 input SaleChannelListingInput {

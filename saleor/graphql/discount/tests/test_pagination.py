@@ -38,7 +38,12 @@ def sales_for_pagination(db, channel_USD):
     values = [Decimal("1"), Decimal("7"), Decimal("5"), Decimal("5"), Decimal("25")]
     SaleChannelListing.objects.bulk_create(
         [
-            SaleChannelListing(discount_value=values[i], sale=sale, channel=channel_USD)
+            SaleChannelListing(
+                discount_value=values[i],
+                sale=sale,
+                channel=channel_USD,
+                currency=channel_USD.currency_code,
+            )
             for i, sale in enumerate(sales)
         ]
     )
