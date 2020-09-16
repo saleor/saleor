@@ -290,8 +290,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                     f"Insufficient product stock: {exc.item}", code=exc.code
                 )
 
-            info.context.plugins.checkout_quantity_changed(instance)
-
         # Save addresses
         shipping_address = cleaned_input.get("shipping_address")
         if shipping_address and instance.is_shipping_required():
