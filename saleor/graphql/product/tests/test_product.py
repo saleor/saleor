@@ -1402,6 +1402,88 @@ def test_create_product(
     assert color_value_slug in values
 
 
+REORDER_PRODUCT_VARIANTS_MUTATION = """
+    mutation ProductVariantReorder($product:ID!, $variants: [ID]!) {
+        productVariantReorder(productId: $product, variants:$variants) {
+            productErrors {
+                code
+            }
+        }
+    }
+"""
+
+
+def test_reorder_variants(
+    staff_api_client, product_with_two_variants, permission_manage_products,
+):
+    default_variants = product_with_two_variants.variants.all()
+    new_variants = [default_variants[1], default_variants[0]]
+
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product_with_two_variants.pk),
+        "variants": [
+            graphene.Node.to_global_id("ProductVariant", variant.pk)
+            for variant in new_variants
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        REORDER_PRODUCT_VARIANTS_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantReorder"]
+    assert not data["productErrors"]
+    assert list(product_with_two_variants.variants.all()) == new_variants
+
+
+def test_reorder_variants_not_enough_variants(
+    staff_api_client, product_with_two_variants, permission_manage_products,
+):
+    first_variant = product_with_two_variants.variants.first()
+
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product_with_two_variants.pk),
+        "variants": [graphene.Node.to_global_id("ProductVariant", first_variant.pk)],
+    }
+
+    response = staff_api_client.post_graphql(
+        REORDER_PRODUCT_VARIANTS_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantReorder"]
+    assert data["productErrors"][0]["code"] == ProductErrorCode.INVALID.name
+
+
+def test_reorder_variants_invalid_variants(
+    staff_api_client, product, product_with_two_variants, permission_manage_products,
+):
+    default_variants = product_with_two_variants.variants.all()
+    new_variants = [product.variants.first(), default_variants[1]]
+
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product_with_two_variants.pk),
+        "variants": [
+            graphene.Node.to_global_id("ProductVariant", variant.pk)
+            for variant in new_variants
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        REORDER_PRODUCT_VARIANTS_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantReorder"]
+    assert (
+        data["productErrors"][0]["code"] == ProductErrorCode.NOT_PRODUCTS_VARIANT.name
+    )
+
+
 @pytest.mark.parametrize("input_slug", ["", None])
 def test_create_product_no_slug_in_input(
     staff_api_client,

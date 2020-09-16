@@ -1784,6 +1784,67 @@ class ProductImageReorder(BaseMutation):
         return ProductImageReorder(product=product, images=images)
 
 
+class ProductVariantReorder(BaseMutation):
+    product = graphene.Field(Product)
+    variants = graphene.List(ProductVariant)
+
+    class Arguments:
+        product_id = graphene.ID(
+            required=True,
+            description="Id of product that variants order will be altered.",
+        )
+        variants = graphene.List(
+            graphene.ID,
+            required=True,
+            description="IDs of a product variants in the desired order.",
+        )
+
+    class Meta:
+        description = "Changes ordering of the product variants."
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, product_id, variants):
+        product = cls.get_node_or_error(
+            info, product_id, field="product_id", only_type=Product
+        )
+
+        if len(variants) != product.variants.count():
+            raise ValidationError(
+                {
+                    "order": ValidationError(
+                        "Incorrect number of variant IDs provided.",
+                        code=ProductErrorCode.INVALID,
+                    )
+                }
+            )
+
+        ordered_variants = []
+        for variant_id in variants:
+            variant = cls.get_node_or_error(
+                info, variant_id, field="order", only_type=ProductVariant
+            )
+            if variant and variant.product != product:
+                raise ValidationError(
+                    {
+                        "order": ValidationError(
+                            "Variant %(variant_id) does not belong to this product.",
+                            code=ProductErrorCode.NOT_PRODUCTS_VARIANT,
+                            params={"variant_id": variant.id},
+                        )
+                    }
+                )
+            ordered_variants.append(variant)
+
+        for _order, variant in enumerate(ordered_variants):
+            variant.sort_order = _order
+            variant.save(update_fields=["sort_order"])
+
+        return ProductVariantReorder(product=product, variants=ordered_variants)
+
+
 class ProductImageDelete(BaseMutation):
     product = graphene.Field(Product)
     image = graphene.Field(ProductImage)
