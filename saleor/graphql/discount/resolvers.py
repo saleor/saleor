@@ -1,4 +1,5 @@
 from ...discount import models
+from ..channel import ChannelQsContext
 from ..utils.filters import filter_by_query_param
 
 VOUCHER_SEARCH_FIELDS = ("name", "code")
@@ -10,6 +11,7 @@ def resolve_vouchers(info, query, **_kwargs):
     return filter_by_query_param(qs, query, VOUCHER_SEARCH_FIELDS)
 
 
-def resolve_sales(info, query, **_kwargs):
+def resolve_sales(info, query, channel_slug, **_kwargs) -> ChannelQsContext:
     qs = models.Sale.objects.all()
-    return filter_by_query_param(qs, query, SALE_SEARCH_FIELDS)
+    qs = filter_by_query_param(qs, query, SALE_SEARCH_FIELDS)
+    return ChannelQsContext(qs=qs, channel_slug=channel_slug)

@@ -35,7 +35,7 @@ from ...core.permissions import (
 from ...core.utils import build_absolute_uri
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
-from ...discount.models import Sale, Voucher
+from ...discount.models import Sale, SaleChannelListing, Voucher
 from ...discount.utils import fetch_discounts
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
@@ -575,10 +575,14 @@ def create_fake_order(discounts, max_order_lines=5):
 
 
 def create_fake_sale():
+    channel, _ = Channel.objects.get_or_create(
+        currency_code=settings.DEFAULT_CURRENCY, slug=settings.DEFAULT_CHANNEL_SLUG
+    )
     sale = Sale.objects.create(
-        name="Happy %s day!" % fake.word(),
-        type=DiscountValueType.PERCENTAGE,
-        value=random.choice([10, 20, 30, 40, 50]),
+        name="Happy %s day!" % fake.word(), type=DiscountValueType.PERCENTAGE,
+    )
+    SaleChannelListing.objects.create(
+        channel=channel, sale=sale, discount_value=random.choice([10, 20, 30, 40, 50])
     )
     for product in Product.objects.all().order_by("?")[:4]:
         sale.products.add(product)

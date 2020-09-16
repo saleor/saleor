@@ -49,7 +49,7 @@ def remove_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) ->
 
 
 def get_product_discount_on_sale(
-    product: "Product", product_collections: Set[int], discount: DiscountInfo
+    product: "Product", product_collections: Set[int], discount: DiscountInfo, channel
 ):
     """Return discount value if product is on sale or raise NotApplicable."""
     is_product_on_sale = (
@@ -58,7 +58,8 @@ def get_product_discount_on_sale(
         or product_collections.intersection(discount.collection_ids)
     )
     if is_product_on_sale:
-        return discount.sale.get_discount()
+        # Remove type ignore after merge #6120
+        return discount.sale.get_discount(channel)  # type: ignore
     raise NotApplicable("Discount not applicable for this product")
 
 
@@ -66,13 +67,16 @@ def get_product_discounts(
     *,
     product: "Product",
     collections: Iterable["Collection"],
-    discounts: Iterable[DiscountInfo]
+    discounts: Iterable[DiscountInfo],
+    channel
 ) -> Money:
     """Return discount values for all discounts applicable to a product."""
     product_collections = set(pc.id for pc in collections)
     for discount in discounts or []:
         try:
-            yield get_product_discount_on_sale(product, product_collections, discount)
+            yield get_product_discount_on_sale(
+                product, product_collections, discount, channel
+            )
         except NotApplicable:
             pass
 
@@ -82,13 +86,17 @@ def calculate_discounted_price(
     product: "Product",
     price: Money,
     collections: Iterable["Collection"],
-    discounts: Optional[Iterable[DiscountInfo]]
+    discounts: Optional[Iterable[DiscountInfo]],
+    channel
 ) -> Money:
     """Return minimum product's price of all prices with discounts applied."""
     if discounts:
         discount_prices = list(
             get_product_discounts(
-                product=product, collections=collections, discounts=discounts
+                product=product,
+                collections=collections,
+                discounts=discounts,
+                channel=channel,
             )
         )
         if discount_prices:

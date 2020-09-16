@@ -303,7 +303,7 @@ class SaleTranslatableContent(CountableDjangoObjectType):
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_sale(root: discount_models.Sale, _info):
-        return root
+        return ChannelContext(node=root, channel_slug=None)
 
 
 class ShopTranslation(BaseTranslationType):

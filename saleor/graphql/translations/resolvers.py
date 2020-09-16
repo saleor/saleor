@@ -1,3 +1,4 @@
+from ...discount import models as discount_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 
@@ -21,3 +22,7 @@ def resolve_products(_info):
 
 def resolve_product_variants(_info):
     return product_models.ProductVariant.objects.all()
+
+
+def resolve_sales(_info):
+    return discount_models.Sale.objects.all()

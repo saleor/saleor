@@ -1805,6 +1805,7 @@ enum DiscountErrorCode {
   REQUIRED
   UNIQUE
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
+  DUPLICATED_INPUT_ITEM
 }
 
 enum DiscountStatusEnum {
@@ -2826,6 +2827,7 @@ type Mutation {
   voucherCataloguesAdd(id: ID!, input: CatalogueInput!): VoucherAddCatalogues
   voucherCataloguesRemove(id: ID!, input: CatalogueInput!): VoucherRemoveCatalogues
   voucherTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): VoucherTranslate
+  saleChannelListingUpdate(id: ID!, input: SaleChannelListingInput!): SaleChannelListingUpdate
   exportProducts(input: ExportProductsInput!): ExportProducts
   checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
@@ -4395,8 +4397,8 @@ type Query {
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   plugin(id: ID!): Plugin
   plugins(filter: PluginFilterInput, sortBy: PluginSortingInput, before: String, after: String, first: Int, last: Int): PluginCountableConnection
-  sale(id: ID!): Sale
-  sales(filter: SaleFilterInput, sortBy: SaleSortingInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
+  sale(id: ID!, channel: String): Sale
+  sales(filter: SaleFilterInput, sortBy: SaleSortingInput, query: String, channel: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
   vouchers(filter: VoucherFilterInput, sortBy: VoucherSortingInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
   exportFile(id: ID!): ExportFile
@@ -4462,13 +4464,15 @@ type Sale implements Node {
   id: ID!
   name: String!
   type: SaleType!
-  value: Float!
   startDate: DateTime!
   endDate: DateTime
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   translation(languageCode: LanguageCodeEnum!): SaleTranslation
+  channelListing: [SaleChannelListing!]
+  discountValue: Float
+  currency: String
 }
 
 type SaleAddCatalogues {
@@ -4480,6 +4484,28 @@ type SaleAddCatalogues {
 type SaleBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
+  discountErrors: [DiscountError!]!
+}
+
+type SaleChannelListing implements Node {
+  id: ID!
+  channel: Channel!
+  discountValue: Float!
+}
+
+input SaleChannelListingAddInput {
+  channelId: ID!
+  discountValue: PositiveDecimal
+}
+
+input SaleChannelListingInput {
+  addChannels: [SaleChannelListingAddInput!]
+  removeChannels: [ID!]
+}
+
+type SaleChannelListingUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  sale: Sale
   discountErrors: [DiscountError!]!
 }
 

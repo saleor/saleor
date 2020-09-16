@@ -36,6 +36,7 @@ from ..csv.models import ExportEvent, ExportFile
 from ..discount import DiscountInfo, DiscountValueType, VoucherType
 from ..discount.models import (
     Sale,
+    SaleChannelListing,
     SaleTranslation,
     Voucher,
     VoucherCustomer,
@@ -1892,8 +1893,9 @@ def dummy_payment_data(payment_dummy):
 
 
 @pytest.fixture
-def sale(product, category, collection):
-    sale = Sale.objects.create(name="Sale", value=5)
+def sale(product, category, collection, channel_USD):
+    sale = Sale.objects.create(name="Sale")
+    SaleChannelListing.objects.create(sale=sale, channel=channel_USD, discount_value=5)
     sale.products.add(product)
     sale.categories.add(category)
     sale.collections.add(collection)

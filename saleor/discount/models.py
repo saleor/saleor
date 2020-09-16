@@ -10,6 +10,7 @@ from django_prices.models import MoneyField
 from django_prices.templatetags.prices import amount
 from prices import Money, fixed_discount, percentage_discount
 
+from ..channel.models import Channel
 from ..core.permissions import DiscountPermissions
 from ..core.utils.translations import TranslationProxy
 from . import DiscountValueType, VoucherType
@@ -200,11 +201,6 @@ class Sale(models.Model):
         choices=DiscountValueType.CHOICES,
         default=DiscountValueType.FIXED,
     )
-    value = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
-    )
     products = models.ManyToManyField("product.Product", blank=True)
     categories = models.ManyToManyField("product.Category", blank=True)
     collections = models.ManyToManyField("product.Collection", blank=True)
@@ -225,22 +221,48 @@ class Sale(models.Model):
         )
 
     def __repr__(self):
-        return "Sale(name=%r, value=%r, type=%s)" % (
-            str(self.name),
-            self.value,
-            self.get_type_display(),
-        )
+        return "Sale(name=%r, type=%s)" % (str(self.name), self.get_type_display(),)
 
     def __str__(self):
         return self.name
 
-    def get_discount(self):
+    def get_discount(self, channel: Channel):
+        sale_channel_listing = self.channel_listing.filter(channel=channel).first()
+        if not sale_channel_listing:
+            raise NotApplicable("This sale is not assigned to this channel.")
         if self.type == DiscountValueType.FIXED:
-            discount_amount = Money(self.value, settings.DEFAULT_CURRENCY)
+            discount_amount = Money(
+                sale_channel_listing.discount_value, sale_channel_listing.currency
+            )
             return partial(fixed_discount, discount=discount_amount)
         if self.type == DiscountValueType.PERCENTAGE:
-            return partial(percentage_discount, percentage=self.value)
+            return partial(
+                percentage_discount, percentage=sale_channel_listing.discount_value,
+            )
         raise NotImplementedError("Unknown discount type")
+
+
+class SaleChannelListing(models.Model):
+    sale = models.ForeignKey(
+        Sale,
+        null=False,
+        blank=False,
+        related_name="channel_listing",
+        on_delete=models.CASCADE,
+    )
+    channel = models.ForeignKey(
+        Channel,
+        null=False,
+        blank=False,
+        related_name="sale_listing",
+        on_delete=models.CASCADE,
+    )
+    discount_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
 
 
 class SaleTranslation(models.Model):

@@ -8,7 +8,7 @@ from django_countries import countries
 
 from ....discount import DiscountValueType, VoucherType
 from ....discount.error_codes import DiscountErrorCode
-from ....discount.models import Sale, Voucher
+from ....discount.models import Sale, SaleChannelListing, Voucher
 from ...tests.utils import get_graphql_content
 from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
 
@@ -57,8 +57,12 @@ def query_sales_with_filter():
 
 
 @pytest.fixture
-def sale():
-    return Sale.objects.create(name="Sale", value=123)
+def sale(channel_USD):
+    sale = Sale.objects.create(name="Sale")
+    SaleChannelListing.objects.create(
+        channel=channel_USD, discount_value=123, sale=sale
+    )
+    return sale
 
 
 @pytest.fixture
@@ -113,7 +117,7 @@ def test_voucher_query(
     ]
 
 
-def test_sale_query(staff_api_client, sale, permission_manage_discounts):
+def test_sale_query(staff_api_client, sale, permission_manage_discounts, channel_USD):
     query = """
         query sales {
             sales(first: 1) {
@@ -121,7 +125,9 @@ def test_sale_query(staff_api_client, sale, permission_manage_discounts):
                     node {
                         type
                         name
-                        value
+                        channelListing {
+                            discountValue
+                        }
                         startDate
                     }
                 }
@@ -131,11 +137,46 @@ def test_sale_query(staff_api_client, sale, permission_manage_discounts):
     response = staff_api_client.post_graphql(
         query, permissions=[permission_manage_discounts]
     )
+    channel_listing = sale.channel_listing.get()
     content = get_graphql_content(response)
     data = content["data"]["sales"]["edges"][0]["node"]
     assert data["type"] == sale.type.upper()
     assert data["name"] == sale.name
-    assert data["value"] == sale.value
+    assert data["channelListing"][0]["discountValue"] == channel_listing.discount_value
+    assert data["startDate"] == sale.start_date.isoformat()
+
+
+def test_sale_query_with_channel_slug(
+    staff_api_client, sale, permission_manage_discounts, channel_USD
+):
+    query = """
+        query sales($channel: String) {
+            sales(first: 1,channel: $channel) {
+                edges {
+                    node {
+                        type
+                        discountValue
+                        name
+                        channelListing {
+                            discountValue
+                        }
+                        startDate
+                    }
+                }
+            }
+        }
+        """
+    variables = {"channel": channel_USD.slug}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+    channel_listing = sale.channel_listing.get()
+    content = get_graphql_content(response)
+    data = content["data"]["sales"]["edges"][0]["node"]
+    assert data["type"] == sale.type.upper()
+    assert data["name"] == sale.name
+    assert data["discountValue"] == channel_listing.discount_value
+    assert data["channelListing"][0]["discountValue"] == channel_listing.discount_value
     assert data["startDate"] == sale.start_date.isoformat()
 
 
@@ -612,7 +653,6 @@ def test_create_sale(staff_api_client, permission_manage_discounts):
             sale {
                 type
                 name
-                value
                 startDate
                 endDate
             }
@@ -629,7 +669,6 @@ def test_create_sale(staff_api_client, permission_manage_discounts):
     variables = {
         "name": "test sale",
         "type": DiscountValueTypeEnum.FIXED.name,
-        "value": "10.12",
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
     }
@@ -642,7 +681,6 @@ def test_create_sale(staff_api_client, permission_manage_discounts):
 
     assert data["type"] == DiscountValueType.FIXED.upper()
     assert data["name"] == "test sale"
-    assert data["value"] == 10.12
     assert data["startDate"] == start_date.isoformat()
     assert data["endDate"] == end_date.isoformat()
 
@@ -712,6 +750,9 @@ def test_sale_add_catalogues(
     query = """
         mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
             saleCataloguesAdd(id: $id, input: $input) {
+                sale {
+                    name
+                }
                 discountErrors {
                     field
                     code
@@ -750,6 +791,9 @@ def test_sale_add_catalogues_with_product_without_variants(
     query = """
         mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
             saleCataloguesAdd(id: $id, input: $input) {
+                sale {
+                    name
+                }
                 discountErrors {
                     field
                     code
@@ -793,6 +837,9 @@ def test_sale_remove_catalogues(
     query = """
         mutation saleCataloguesRemove($id: ID!, $input: CatalogueInput!) {
             saleCataloguesRemove(id: $id, input: $input) {
+                sale {
+                    name
+                }
                 discountErrors {
                     field
                     code
@@ -829,6 +876,9 @@ def test_sale_add_no_catalogues(staff_api_client, sale, permission_manage_discou
     query = """
         mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
             saleCataloguesAdd(id: $id, input: $input) {
+                sale {
+                    name
+                }
                 discountErrors {
                     field
                     code
@@ -863,6 +913,9 @@ def test_sale_remove_no_catalogues(
     query = """
         mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
             saleCataloguesAdd(id: $id, input: $input) {
+                sale {
+                    name
+                }
                 discountErrors {
                     field
                     code
@@ -1235,13 +1288,21 @@ def test_query_sales_with_filter_status(
     staff_api_client,
     query_sales_with_filter,
     permission_manage_discounts,
+    channel_USD,
 ):
-    Sale.objects.bulk_create(
+    sales = Sale.objects.bulk_create(
         [
-            Sale(name="Sale1", value=123, start_date=timezone.now()),
-            Sale(name="Sale2", value=123, start_date=start_date, end_date=end_date),
+            Sale(name="Sale1", start_date=timezone.now()),
+            Sale(name="Sale2", start_date=start_date, end_date=end_date),
         ]
     )
+    SaleChannelListing.objects.bulk_create(
+        [
+            SaleChannelListing(sale=sale, discount_value=123, channel=channel_USD)
+            for sale in sales
+        ]
+    )
+
     variables = {"filter": sale_filter}
     response = staff_api_client.post_graphql(
         query_sales_with_filter, variables, permissions=[permission_manage_discounts]
@@ -1268,8 +1329,8 @@ def test_query_sales_with_filter_discount_type(
 ):
     Sale.objects.bulk_create(
         [
-            Sale(name="Sale1", value=123, type=DiscountValueType.FIXED),
-            Sale(name="Sale2", value=123, type=sale_type),
+            Sale(name="Sale1", type=DiscountValueType.FIXED),
+            Sale(name="Sale2", type=sale_type),
         ]
     )
     variables = {"filter": sale_filter}
@@ -1304,17 +1365,24 @@ def test_query_sales_with_filter_started(
     staff_api_client,
     query_sales_with_filter,
     permission_manage_discounts,
+    channel_USD,
 ):
-    Sale.objects.bulk_create(
+    sales = Sale.objects.bulk_create(
         [
-            Sale(name="Sale1", value=123),
+            Sale(name="Sale1"),
             Sale(
                 name="Sale2",
-                value=123,
                 start_date=timezone.now().replace(year=2012, month=1, day=5),
             ),
         ]
     )
+    SaleChannelListing.objects.bulk_create(
+        [
+            SaleChannelListing(sale=sale, discount_value=123, channel=channel_USD)
+            for sale in sales
+        ]
+    )
+
     variables = {"filter": sale_filter}
     response = staff_api_client.post_graphql(
         query_sales_with_filter, variables, permissions=[permission_manage_discounts]
@@ -1324,6 +1392,9 @@ def test_query_sales_with_filter_started(
     assert len(data) == count
 
 
+# TODO: Consider filtering and sorting by `discount_value`
+# Should be resolved by https://app.clickup.com/t/6crxxb
+@pytest.mark.skip(reason="We should know how to handle `discount_value` filter.")
 @pytest.mark.parametrize(
     "sale_filter, count",
     [({"search": "Big"}, 1), ({"search": "69"}, 1), ({"search": "FIX"}, 2)],
@@ -1334,22 +1405,28 @@ def test_query_sales_with_filter_search(
     staff_api_client,
     query_sales_with_filter,
     permission_manage_discounts,
+    channel_USD,
 ):
-    Sale.objects.bulk_create(
+    sales = Sale.objects.bulk_create(
         [
-            Sale(name="BigSale", value=123, type="PERCENTAGE"),
+            Sale(name="BigSale", type="PERCENTAGE"),
             Sale(
                 name="Sale2",
-                value=123,
                 type="FIXED",
                 start_date=timezone.now().replace(year=2012, month=1, day=5),
             ),
             Sale(
                 name="Sale3",
-                value=69,
                 type="FIXED",
                 start_date=timezone.now().replace(year=2012, month=1, day=5),
             ),
+        ]
+    )
+    values = [123, 123, 69]
+    SaleChannelListing.objects.bulk_create(
+        [
+            SaleChannelListing(channel=channel_USD, discount_value=values[i], sale=sale)
+            for i, sale in enumerate(sales)
         ]
     )
     variables = {"filter": sale_filter}
@@ -1374,6 +1451,9 @@ QUERY_SALE_WITH_SORT = """
 """
 
 
+# TODO: Consider filtering and sorting by `discounted_value`
+# Should be resolved by https://app.clickup.com/t/6crxxb
+@pytest.mark.skip(reason="We should know how to handle `discounted_value` filter.")
 @pytest.mark.parametrize(
     "sale_sort, result_order",
     [
@@ -1390,25 +1470,30 @@ QUERY_SALE_WITH_SORT = """
     ],
 )
 def test_query_sales_with_sort(
-    sale_sort, result_order, staff_api_client, permission_manage_discounts
+    sale_sort, result_order, staff_api_client, permission_manage_discounts, channel_USD
 ):
-    Sale.objects.bulk_create(
+    sales = Sale.objects.bulk_create(
         [
-            Sale(name="BigSale", value=1234, type="PERCENTAGE"),
+            Sale(name="BigSale", type="PERCENTAGE"),
             Sale(
                 name="Sale2",
-                value=123,
                 type="FIXED",
                 start_date=timezone.now().replace(year=2012, month=1, day=5),
                 end_date=timezone.now().replace(year=2013, month=1, day=5),
             ),
             Sale(
                 name="Sale3",
-                value=69,
                 type="FIXED",
                 start_date=timezone.now().replace(year=2011, month=1, day=5),
                 end_date=timezone.now().replace(year=2015, month=12, day=31),
             ),
+        ]
+    )
+    values = [1234, 123, 69]
+    SaleChannelListing.objects.bulk_create(
+        [
+            SaleChannelListing(discount_value=values[i], sale=sale, channel=channel_USD)
+            for i, sale in enumerate(sales)
         ]
     )
     variables = {"sort_by": sale_sort}

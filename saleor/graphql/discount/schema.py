@@ -1,7 +1,12 @@
 import graphene
 
 from ...core.permissions import DiscountPermissions
-from ..core.fields import FilterInputConnectionField
+from ..channel import ChannelContext
+from ..channel.utils import get_default_channel_slug_or_graphql_error
+from ..core.fields import (
+    ChannelContextFilterConnectionField,
+    FilterInputConnectionField,
+)
 from ..core.types import FilterInputObjectType
 from ..decorators import permission_required
 from ..translations.mutations import SaleTranslate, VoucherTranslate
@@ -9,6 +14,7 @@ from .bulk_mutations import SaleBulkDelete, VoucherBulkDelete
 from .filters import SaleFilter, VoucherFilter
 from .mutations import (
     SaleAddCatalogues,
+    SaleChannelListingUpdate,
     SaleCreate,
     SaleDelete,
     SaleRemoveCatalogues,
@@ -38,13 +44,19 @@ class DiscountQueries(graphene.ObjectType):
     sale = graphene.Field(
         Sale,
         id=graphene.Argument(graphene.ID, description="ID of the sale.", required=True),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description="Look up a sale by ID.",
     )
-    sales = FilterInputConnectionField(
+    sales = ChannelContextFilterConnectionField(
         Sale,
         filter=SaleFilterInput(description="Filtering options for sales."),
         sort_by=SaleSortingInput(description="Sort sales."),
         query=graphene.String(description="Search sales by name, value or type."),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description="List of the shop's sales.",
     )
     voucher = graphene.Field(
@@ -63,12 +75,17 @@ class DiscountQueries(graphene.ObjectType):
     )
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_sale(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Sale)
+    def resolve_sale(self, info, id, channel=None):
+        if channel is None:
+            channel = get_default_channel_slug_or_graphql_error()
+        sale = graphene.Node.get_node_from_global_id(info, id, Sale)
+        return ChannelContext(node=sale, channel_slug=channel) if sale else None
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_sales(self, info, query=None, **kwargs):
-        return resolve_sales(info, query, **kwargs)
+    def resolve_sales(self, info, query=None, channel=None, **kwargs):
+        if channel is None:
+            channel = get_default_channel_slug_or_graphql_error()
+        return resolve_sales(info, query, channel_slug=channel, **kwargs)
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_voucher(self, info, id):
@@ -95,3 +112,4 @@ class DiscountMutations(graphene.ObjectType):
     voucher_catalogues_add = VoucherAddCatalogues.Field()
     voucher_catalogues_remove = VoucherRemoveCatalogues.Field()
     voucher_translate = VoucherTranslate.Field()
+    sale_channel_listing_update = SaleChannelListingUpdate.Field()
