@@ -86,9 +86,6 @@ class BasePlugin:
         checkout: "Checkout",
         lines: List["CheckoutLineInfo"],
         address: Optional["Address"],
-        collections: Iterable[
-            "Collection"
-        ],  # FIXME: apply this change to all plugins; Iterable vs List
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -104,9 +101,6 @@ class BasePlugin:
         checkout: "Checkout",
         lines: List["CheckoutLineInfo"],
         address: Optional["Address"],
-        collections: Iterable[
-            "Collection"
-        ],  # FIXME: apply this change to all plugins; Iterable vs List
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:

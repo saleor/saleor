@@ -75,7 +75,7 @@ class VatlayerPlugin(BasePlugin):
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
-        lines: List,
+        lines: List["CheckoutLineInfo"],
         address: Optional["Address"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,

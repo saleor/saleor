@@ -121,7 +121,6 @@ class AvataxPlugin(BasePlugin):
         self,
         price: TaxedMoney,
         lines: Iterable["CheckoutLineInfo"],
-        collections: Iterable["Collection"],
         discounts: Iterable[DiscountInfo],
     ):
         for line_info in lines:
@@ -131,7 +130,7 @@ class AvataxPlugin(BasePlugin):
                 line_info.line,
                 line_info.variant,
                 line_info.product,
-                collections,
+                line_info.collections,
                 discounts,
             )
             price.gross.amount += line_price.gross.amount
@@ -143,7 +142,6 @@ class AvataxPlugin(BasePlugin):
         checkout: "Checkout",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        collections: Iterable["Collection"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -163,9 +161,7 @@ class AvataxPlugin(BasePlugin):
         total_gross = Money(amount=total_net + tax, currency=currency)
         total_net = Money(amount=total_net, currency=currency)
         taxed_total = TaxedMoney(net=total_net, gross=total_gross)
-        total = self._append_prices_of_not_taxed_lines(
-            taxed_total, lines, collections, discounts
-        )
+        total = self._append_prices_of_not_taxed_lines(taxed_total, lines, discounts)
         voucher_value = checkout.discount
         if voucher_value:
             total -= voucher_value
@@ -175,7 +171,6 @@ class AvataxPlugin(BasePlugin):
         self,
         checkout,
         lines: Iterable["CheckoutLineInfo"],
-        collections: Iterable["Collection"],
         discounts: Iterable[DiscountInfo],
         base_subtotal: TaxedMoney,
     ) -> TaxedMoney:
@@ -194,16 +189,13 @@ class AvataxPlugin(BasePlugin):
         sub_total_gross = Money(sub_net + sub_tax, currency)
         sub_total_net = Money(sub_net, currency)
         taxed_subtotal = TaxedMoney(net=sub_total_net, gross=sub_total_gross)
-        return self._append_prices_of_not_taxed_lines(
-            taxed_subtotal, lines, collections, discounts
-        )
+        return self._append_prices_of_not_taxed_lines(taxed_subtotal, lines, discounts)
 
     def calculate_checkout_subtotal(
         self,
         checkout: "Checkout",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        collections: Iterable["Collection"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -218,7 +210,7 @@ class AvataxPlugin(BasePlugin):
             return base_subtotal
 
         return self._calculate_checkout_subtotal(
-            checkout, lines, collections, discounts, base_subtotal
+            checkout, lines, discounts, base_subtotal
         )
 
     def _calculate_checkout_shipping(
