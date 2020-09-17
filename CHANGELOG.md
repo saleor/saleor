@@ -20,6 +20,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `PRODUCT_UPDATED` webhook event - #6100 by @tomaszszymanski129
 - Search orders by graphql PaymentID - #6135 by @korycins
 - Search orders by custom key provided by payment gateway - #6135 by @korycins
+- Staff with only manage_orders should be able to query all stock related date. - #6139 by @fowczarek
 
 ### Breaking Changes
 
