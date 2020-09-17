@@ -1800,7 +1800,11 @@ class ProductVariantReorder(BaseMutation):
         )
 
     class Meta:
-        description = "Reorder the variants of a product."
+        description = (
+            "Reorder the variants of a product. "
+            "Mutation updates updated_at on product and "
+            "triggers PRODUCT_UPDATED webhook."
+        )
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1844,6 +1848,9 @@ class ProductVariantReorder(BaseMutation):
 
         with transaction.atomic():
             perform_reordering(variants_m2m, operations)
+
+        product.save(update_fields=["updated_at"])
+        info.context.plugins.product_updated(product)
         return ProductVariantReorder(product=product)
 
 
