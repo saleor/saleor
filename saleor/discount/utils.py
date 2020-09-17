@@ -9,7 +9,7 @@ from prices import Money
 from ..checkout import calculations
 from ..core.taxes import zero_money
 from . import DiscountInfo
-from .models import NotApplicable, Sale, SaleChannelListing, VoucherCustomer
+from .models import NotApplicable, Sale, VoucherCustomer
 
 if TYPE_CHECKING:
     # flake8: noqa
