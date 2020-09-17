@@ -1,9 +1,9 @@
 import graphene
 
-from ...core.permissions import ProductPermissions
+from ...core.permissions import OrderPermissions, ProductPermissions
 from ...warehouse import models
 from ..core.fields import FilterInputConnectionField
-from ..decorators import permission_required
+from ..decorators import one_of_permissions_required, permission_required
 from .filters import StockFilterInput, WarehouseFilterInput
 from .mutations import (
     WarehouseCreate,
@@ -31,13 +31,17 @@ class WarehouseQueries(graphene.ObjectType):
         sort_by=WarehouseSortingInput(),
     )
 
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
     def resolve_warehouse(self, info, **data):
         warehouse_pk = data.get("id")
         warehouse = graphene.Node.get_node_from_global_id(info, warehouse_pk, Warehouse)
         return warehouse
 
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
     def resolve_warehouses(self, info, **_kwargs):
         return models.Warehouse.objects.all()
 
