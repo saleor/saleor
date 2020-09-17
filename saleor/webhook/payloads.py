@@ -183,7 +183,9 @@ def generate_customer_payload(customer: "User"):
 
 
 def generate_product_payload(product: "Product"):
-    serializer = PayloadSerializer()
+    serializer = PayloadSerializer(
+        extra_model_fields={"ProductVariant": ("quantity", "quantity_allocated")}
+    )
 
     product_fields = (
         "name",
@@ -205,8 +207,6 @@ def generate_product_payload(product: "Product"):
         "currency",
         "price_amount",
         "track_inventory",
-        "quantity",
-        "quantity_allocated",
         "cost_price_amount",
         "private_metadata",
         "metadata",
@@ -217,7 +217,10 @@ def generate_product_payload(product: "Product"):
         additional_fields={
             "category": (lambda p: p.category, ("name", "slug")),
             "collections": (lambda p: p.collections.all(), ("name", "slug")),
-            "variants": (lambda p: p.variants.all(), product_variant_fields),
+            "variants": (
+                lambda p: p.variants.annotate_quantities().all(),
+                product_variant_fields,
+            ),
         },
     )
     return product_payload

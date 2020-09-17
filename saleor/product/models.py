@@ -6,7 +6,8 @@ from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.db.models import JSONField  # type: ignore
-from django.db.models import Case, Count, F, FilteredRelation, Q, Value, When
+from django.db.models import Case, Count, F, FilteredRelation, Q, Sum, Value, When
+from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django_measurement.models import MeasurementField
@@ -341,6 +342,14 @@ class ProductTranslation(SeoModelTranslation):
 
 
 class ProductVariantQueryset(models.QuerySet):
+    def annotate_quantities(self):
+        return self.annotate(
+            quantity=Coalesce(Sum("stocks__quantity"), 0),
+            quantity_allocated=Coalesce(
+                Sum("stocks__allocations__quantity_allocated"), 0
+            ),
+        )
+
     def create(self, **kwargs):
         """Create a product's variant.
 
