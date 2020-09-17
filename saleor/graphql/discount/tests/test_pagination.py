@@ -11,7 +11,7 @@ from ...tests.utils import get_graphql_content
 
 @pytest.fixture
 @freeze_time("2020-03-18 12:00:00")
-def sales_for_pagination(db, channel_USD):
+def sales_for_pagination(channel_USD):
     now = timezone.now()
     sales = Sale.objects.bulk_create(
         [

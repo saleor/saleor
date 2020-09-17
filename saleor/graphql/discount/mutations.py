@@ -478,8 +478,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
                     params={"channels": list(invalid_channels_ids)},
                 )
             )
-        else:
-            return cleaned_channels
+        return cleaned_channels
 
     @classmethod
     def remove_channels(cls, sale: "SaleModel", remove_channels: List[int]):

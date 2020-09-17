@@ -53,7 +53,7 @@ def test_valid_voucher_min_checkout_items_quantity(voucher):
 def test_variant_discounts(product, channel_USD):
     variant = product.variants.get()
     low_sale = Sale.objects.create(type=DiscountValueType.FIXED)
-    SaleChannelListing.objects.create(
+    low_sale_channel_listing = SaleChannelListing.objects.create(
         sale=low_sale,
         discount_value=5,
         currency=channel_USD.currency_code,
@@ -61,22 +61,27 @@ def test_variant_discounts(product, channel_USD):
     )
     low_discount = DiscountInfo(
         sale=low_sale,
+        channel_listings={channel_USD.slug: low_sale_channel_listing},
         product_ids={product.id},
         category_ids=set(),
         collection_ids=set(),
     )
     sale = Sale.objects.create(type=DiscountValueType.FIXED)
-    SaleChannelListing.objects.create(
+    sale_channel_listing = SaleChannelListing.objects.create(
         sale=sale,
         discount_value=8,
         currency=channel_USD.currency_code,
         channel=channel_USD,
     )
     discount = DiscountInfo(
-        sale=sale, product_ids={product.id}, category_ids=set(), collection_ids=set()
+        sale=sale,
+        channel_listings={channel_USD.slug: sale_channel_listing},
+        product_ids={product.id},
+        category_ids=set(),
+        collection_ids=set(),
     )
     high_sale = Sale.objects.create(type=DiscountValueType.FIXED)
-    SaleChannelListing.objects.create(
+    high_sale_channel_listing = SaleChannelListing.objects.create(
         sale=high_sale,
         discount_value=50,
         currency=channel_USD.currency_code,
@@ -84,6 +89,7 @@ def test_variant_discounts(product, channel_USD):
     )
     high_discount = DiscountInfo(
         sale=high_sale,
+        channel_listings={channel_USD.slug: high_sale_channel_listing},
         product_ids={product.id},
         category_ids=set(),
         collection_ids=set(),
@@ -99,14 +105,18 @@ def test_variant_discounts(product, channel_USD):
 def test_percentage_discounts(product, channel_USD):
     variant = product.variants.get()
     sale = Sale.objects.create(type=DiscountValueType.PERCENTAGE)
-    SaleChannelListing.objects.create(
+    sale_cahnnel_listing = SaleChannelListing.objects.create(
         sale=sale,
         discount_value=50,
         currency=channel_USD.currency_code,
         channel=channel_USD,
     )
     discount = DiscountInfo(
-        sale=sale, product_ids={product.id}, category_ids=set(), collection_ids={}
+        sale=sale,
+        channel_listings={channel_USD.slug: sale_cahnnel_listing},
+        product_ids={product.id},
+        category_ids=set(),
+        collection_ids=set(),
     )
     final_price = variant.get_price(channel_USD.slug, discounts=[discount])
     assert final_price == Money(5, "USD")
@@ -193,14 +203,18 @@ def test_sale_applies_to_correct_products(product_type, category, channel_USD):
         currency=channel_USD.currency_code,
     )
     sale = Sale.objects.create(name="Test sale", type=DiscountValueType.FIXED)
-    SaleChannelListing.objects.create(
+    sale_channel_listing = SaleChannelListing.objects.create(
         sale=sale,
         currency=channel_USD.currency_code,
         channel=channel_USD,
         discount_value=3,
     )
     discount = DiscountInfo(
-        sale=sale, product_ids={product.id}, category_ids=set(), collection_ids=set()
+        sale=sale,
+        channel_listings={channel_USD.slug: sale_channel_listing},
+        product_ids={product.id},
+        category_ids=set(),
+        collection_ids=set(),
     )
     product_discount = get_product_discount_on_sale(
         variant.product, set(), discount, channel_USD

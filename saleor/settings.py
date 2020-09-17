@@ -506,6 +506,7 @@ GRAPHENE = {
         "saleor.graphql.middleware.OpentracingGrapheneMiddleware",
         "saleor.graphql.middleware.JWTMiddleware",
         "saleor.graphql.middleware.app_middleware",
+        "graphene_django.debug.DjangoDebugMiddleware",
     ],
 }
 

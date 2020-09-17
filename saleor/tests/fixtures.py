@@ -1929,9 +1929,12 @@ def sale_with_many_channels(product, category, collection, channel_USD, channel_
 
 
 @pytest.fixture
-def discount_info(category, collection, sale):
+def discount_info(category, collection, sale, channel_USD):
+    sale_channel_listing = sale.channel_listing.get(channel=channel_USD)
+
     return DiscountInfo(
         sale=sale,
+        channel_listings={channel_USD.slug: sale_channel_listing},
         product_ids=set(),
         category_ids={category.id},  # assumes this category does not have children
         collection_ids={collection.id},
