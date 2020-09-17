@@ -60,6 +60,7 @@ from ..utils import (
     validate_attribute_input_for_product,
     validate_attribute_input_for_variant,
 )
+from .common import ReorderInput
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -1786,63 +1787,64 @@ class ProductImageReorder(BaseMutation):
 
 class ProductVariantReorder(BaseMutation):
     product = graphene.Field(Product)
-    variants = graphene.List(ProductVariant)
 
     class Arguments:
         product_id = graphene.ID(
             required=True,
             description="Id of product that variants order will be altered.",
         )
-        variants = graphene.List(
-            graphene.ID,
+        moves = graphene.List(
+            ReorderInput,
             required=True,
-            description="IDs of a product variants in the desired order.",
+            description="The list of variant reordering operations.",
         )
 
     class Meta:
-        description = "Changes ordering of the product variants."
+        description = "Reorder the variants of a product."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, product_id, variants):
-        product = cls.get_node_or_error(
-            info, product_id, field="product_id", only_type=Product
-        )
+    def perform_mutation(cls, _root, info, product_id, moves):
+        pk = from_global_id_strict_type(product_id, only_type=Product, field="id")
 
-        if len(variants) != product.variants.count():
+        try:
+            product = models.Product.objects.prefetch_related("variants").get(pk=pk)
+        except ObjectDoesNotExist:
             raise ValidationError(
                 {
-                    "order": ValidationError(
-                        "Incorrect number of variant IDs provided.",
-                        code=ProductErrorCode.INVALID,
+                    "product_id": ValidationError(
+                        (f"Couldn't resolve to a product type: {product_id}"),
+                        code=ProductErrorCode.NOT_FOUND,
                     )
                 }
             )
 
-        ordered_variants = []
-        for variant_id in variants:
-            variant = cls.get_node_or_error(
-                info, variant_id, field="order", only_type=ProductVariant
+        variants_m2m = product.variants
+        operations = {}
+
+        for move_info in moves:
+            variant_pk = from_global_id_strict_type(
+                move_info.id, only_type=ProductVariant, field="moves"
             )
-            if variant and variant.product != product:
+
+            try:
+                m2m_info = variants_m2m.get(id=int(variant_pk))
+            except ObjectDoesNotExist:
                 raise ValidationError(
                     {
-                        "order": ValidationError(
-                            "Variant %(variant_id) does not belong to this product.",
-                            code=ProductErrorCode.NOT_PRODUCTS_VARIANT,
-                            params={"variant_id": variant.id},
+                        "moves": ValidationError(
+                            f"Couldn't resolve to a variant: {move_info.id}",
+                            code=ProductErrorCode.NOT_FOUND,
                         )
                     }
                 )
-            ordered_variants.append(variant)
+            operations[m2m_info.pk] = move_info.sort_order
 
-        for _order, variant in enumerate(ordered_variants):
-            variant.sort_order = _order
-            variant.save(update_fields=["sort_order"])
-
-        return ProductVariantReorder(product=product, variants=ordered_variants)
+        with transaction.atomic():
+            perform_reordering(variants_m2m, operations)
+        return ProductVariantReorder(product=product)
 
 
 class ProductImageDelete(BaseMutation):
