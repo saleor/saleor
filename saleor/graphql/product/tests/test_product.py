@@ -1402,6 +1402,79 @@ def test_create_product(
     assert color_value_slug in values
 
 
+PRODUCT_VARIANT_SET_DEFAULT_MUTATION = """
+    mutation Prod($productId: ID!, $variantId: ID!) {
+        productVariantSetDefault(productId: $productId, variantId: $variantId) {
+            product {
+                defaultVariant {
+                    id
+                }
+            }
+            productErrors {
+                code
+                field
+            }
+        }
+    }
+"""
+
+
+def test_product_variant_set_default(
+    staff_api_client, permission_manage_products, product_with_two_variants
+):
+    assert not product_with_two_variants.variants.filter(default=True).exists()
+
+    first_variant = product_with_two_variants.variants.first()
+    first_variant_id = graphene.Node.to_global_id("ProductVariant", first_variant.pk)
+
+    variables = {
+        "productId": graphene.Node.to_global_id(
+            "Product", product_with_two_variants.pk
+        ),
+        "variantId": first_variant_id,
+    }
+
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_SET_DEFAULT_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    assert (
+        product_with_two_variants.variants.filter(default=True).first().pk
+        == first_variant.pk
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantSetDefault"]
+    assert not data["productErrors"]
+    assert data["product"]["defaultVariant"]["id"] == first_variant_id
+
+
+def test_product_variant_set_default_invalid_id(
+    staff_api_client, permission_manage_products, product_with_two_variants
+):
+    assert not product_with_two_variants.variants.filter(default=True).exists()
+
+    first_variant = product_with_two_variants.variants.first()
+
+    variables = {
+        "productId": graphene.Node.to_global_id(
+            "Product", product_with_two_variants.pk
+        ),
+        "variantId": graphene.Node.to_global_id("Product", first_variant.pk),
+    }
+
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_SET_DEFAULT_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    assert not product_with_two_variants.variants.filter(default=True).exists()
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantSetDefault"]
+    assert data["productErrors"][0]["code"] == ProductErrorCode.INVALID.name
+    assert data["productErrors"][0]["field"] == "variantId"
+
+
 @pytest.mark.parametrize("input_slug", ["", None])
 def test_create_product_no_slug_in_input(
     staff_api_client,
