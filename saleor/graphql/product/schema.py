@@ -99,6 +99,7 @@ from .mutations.products import (
     ProductVariantClearPrivateMeta,
     ProductVariantCreate,
     ProductVariantDelete,
+    ProductVariantSetDefault,
     ProductVariantUpdate,
     ProductVariantUpdateMeta,
     ProductVariantUpdatePrivateMeta,
@@ -493,6 +494,7 @@ class ProductMutations(graphene.ObjectType):
     product_variant_stocks_delete = ProductVariantStocksDelete.Field()
     product_variant_stocks_update = ProductVariantStocksUpdate.Field()
     product_variant_update = ProductVariantUpdate.Field()
+    product_variant_set_default = ProductVariantSetDefault.Field()
     product_variant_translate = ProductVariantTranslate.Field()
     product_variant_update_metadata = ProductVariantUpdateMeta.Field(
         deprecation_reason=(

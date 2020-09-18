@@ -313,6 +313,9 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
             and datetime.date.today() >= self.available_for_purchase
         )
 
+    def get_default_variant(self):
+        return self.variants.filter(default=True).first()
+
 
 class ProductTranslation(SeoModelTranslation):
     language_code = models.CharField(max_length=10)
@@ -402,6 +405,7 @@ class ProductVariant(ModelWithMetadata):
     )
     images = models.ManyToManyField("ProductImage", through="VariantImage")
     track_inventory = models.BooleanField(default=True)
+    default = models.BooleanField(default=False)
 
     cost_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -461,6 +465,11 @@ class ProductVariant(ModelWithMetadata):
     def get_first_image(self) -> "ProductImage":
         images = list(self.images.all())
         return images[0] if images else self.product.get_first_image()
+
+    def set_as_default(self):
+        self.product.variants.update(default=False)
+        self.default = True
+        self.save(update_fields=["default"])
 
 
 class ProductVariantTranslation(models.Model):

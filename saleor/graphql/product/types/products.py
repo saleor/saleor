@@ -273,7 +273,15 @@ class ProductVariant(CountableDjangoObjectType):
         description = (
             "Represents a version of a product such as different size or color."
         )
-        only_fields = ["id", "name", "product", "sku", "track_inventory", "weight"]
+        only_fields = [
+            "id",
+            "name",
+            "product",
+            "default",
+            "sku",
+            "track_inventory",
+            "weight",
+        ]
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.ProductVariant
 
@@ -474,6 +482,7 @@ class Product(CountableDjangoObjectType):
     variants = graphene.List(
         ProductVariant, description="List of variants for the product."
     )
+    default_variant = graphene.Field(ProductVariant)
     images = graphene.List(
         lambda: ProductImage, description="List of images for the product."
     )
@@ -515,6 +524,10 @@ class Product(CountableDjangoObjectType):
             return None
 
         return CategoryByIdLoader(info.context).load(category_id)
+
+    @staticmethod
+    def resolve_default_variant(root: models.Product, info):
+        return root.get_default_variant()
 
     @staticmethod
     def resolve_tax_type(root: models.Product, info):

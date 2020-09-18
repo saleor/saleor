@@ -1324,6 +1324,8 @@ class ProductVariantCreate(ModelMutation):
     @classmethod
     @transaction.atomic()
     def save(cls, info, instance, cleaned_input):
+        if not instance.product.get_default_variant():
+            instance.default = True
         instance.save()
         # Recalculate the "minimal variant price" for the parent product
         update_product_minimal_variant_price_task.delay(instance.product_id)
@@ -1782,6 +1784,47 @@ class ProductImageReorder(BaseMutation):
             image.save(update_fields=["sort_order"])
 
         return ProductImageReorder(product=product, images=images)
+
+
+class ProductVariantSetDefault(BaseMutation):
+    product = graphene.Field(Product)
+
+    class Arguments:
+        product_id = graphene.ID(
+            required=True,
+            description="Id of product that images order will be altered.",
+        )
+        variant_id = graphene.ID(
+            required=True,
+            description="Id of product that images order will be altered.",
+        )
+
+    class Meta:
+        description = (
+            "Set default variant for a product. "
+            "Mutation updates updated_at on product and "
+            "triggers PRODUCT_UPDATED webhook."
+        )
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, product_id, variant_id):
+        product = cls.get_node_or_error(
+            info, product_id, field="product_id", only_type=Product
+        )
+        variant = cls.get_node_or_error(
+            info,
+            variant_id,
+            field="variant_id",
+            only_type=ProductVariant,
+            qs=product.variants.all(),
+        )
+        variant.set_as_default()
+        product.save(update_fields=["updated_at"])
+        info.context.plugins.product_updated(product)
+        return ProductVariantSetDefault(product=product)
 
 
 class ProductImageDelete(BaseMutation):
