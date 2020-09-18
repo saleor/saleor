@@ -654,8 +654,11 @@ class BaseParametersMapper():
         key = self.get_allegro_key(mapped_parameter_key)
 
         if key.get('dictionary') is None:
-            value = self.set_allegro_typed_value(key, mapped_parameter_value)
-            return value
+            if mapped_parameter_value is not None and mapped_parameter_value.isnumeric():
+                value = self.set_allegro_typed_value(key, mapped_parameter_value)
+                return value
+            else:
+                return None
         else:
             value = self.set_allegro_value(key, mapped_parameter_value)
             return value
@@ -674,11 +677,12 @@ class BaseParametersMapper():
                     "rangeValue": None}
 
     def set_allegro_fuzzy_value(self, param, mapped_value):
-        value = next((value for value in param['dictionary'] if
-                      mapped_value.lower()[:-1] in value["value"].lower()), None)
-        if value is not None:
-            return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
-                "rangeValue": None}
+        if param.get('dictionary') is not None:
+            value = next((value for value in param['dictionary'] if
+                          mapped_value.lower()[:-1] in value["value"].lower()), None)
+            if value is not None:
+                return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
+                    "rangeValue": None}
 
     def set_allegro_typed_value(self, param, value):
         if param.get('dictionary') is None and value is not None:
@@ -1156,7 +1160,8 @@ class AllegroProductMapper:
         self.set_publication_duration(self.get_publication_duration())
         self.set_publication_ending_at('')
         if self.get_publication_starting_at() != None:
-            self.set_publication_starting_at(str((datetime.strptime(self.get_publication_starting_at(), '%Y-%m-%d %H:%M') - timedelta(
+            if datetime.strptime(self.get_publication_starting_at(), '%Y-%m-%d %H:%M') > (datetime.now() + timedelta(hours=2)):
+                self.set_publication_starting_at(str((datetime.strptime(self.get_publication_starting_at(), '%Y-%m-%d %H:%M') - timedelta(
                                   hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ")))
 
         self.set_publication_status('INACTIVE')
