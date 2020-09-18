@@ -126,6 +126,7 @@ class ProductsQueryset(models.QuerySet):
             Q(channel_listing__publication_date__lte=today)
             | Q(channel_listing__publication_date__isnull=True),
             channel_listing__channel__slug=str(channel_slug),
+            channel_listing__channel__is_active=True,
             channel_listing__is_published=True,
         )
 

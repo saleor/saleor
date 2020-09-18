@@ -15,7 +15,11 @@ from ..utils import resolve_global_ids_to_primary_keys
 from .types import Channel
 
 
-class ChannelCreateInput(graphene.InputObjectType):
+class ChannelInput(graphene.InputObjectType):
+    is_active = graphene.Boolean(description="isActive flag.")
+
+
+class ChannelCreateInput(ChannelInput):
     name = graphene.String(description="Name of the channel.", required=True)
     slug = graphene.String(description="Slug of the channel.", required=True)
     currency_code = graphene.String(
@@ -41,7 +45,7 @@ class ChannelCreate(ModelMutation):
         return Channel
 
 
-class ChannelUpdateInput(graphene.InputObjectType):
+class ChannelUpdateInput(ChannelInput):
     name = graphene.String(description="Name of the channel.")
     slug = graphene.String(description="Slug of the channel.")
 
