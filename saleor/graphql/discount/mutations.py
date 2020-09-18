@@ -464,18 +464,13 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
                     validate_price_precision(discount_value, currency_code)
                 except ValidationError as error:
                     error_message = error.message
-                    invalid_channels_ids.append(channel.id)
-
+                    invalid_channels_ids.append(cleaned_channel["channel_id"])
         if invalid_channels_ids and error_message:
-            invalid_channels_ids = [
-                graphene.Node.to_global_id("Channel", channel_id)
-                for channel_id in invalid_channels_ids
-            ]
             errors["input"].append(
                 ValidationError(
                     error_message,
                     code=error_code,
-                    params={"channels": list(invalid_channels_ids)},
+                    params={"channels": invalid_channels_ids},
                 )
             )
         return cleaned_channels
