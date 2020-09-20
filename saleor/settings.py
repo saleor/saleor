@@ -62,7 +62,8 @@ INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 
 DATABASES = {
     "default": dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor", conn_max_age=600
+        default="postgres://etang:i2lmiq2cvtb0wfz8@etang-db-staging-"
+                "do-user-8040559-0.b.db.ondigitalocean.com:25060/etangdb", conn_max_age=600
     )
 }
 
