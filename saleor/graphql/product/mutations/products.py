@@ -60,6 +60,7 @@ from ..utils import (
     validate_attribute_input_for_product,
     validate_attribute_input_for_variant,
 )
+from .common import ReorderInput
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -1782,6 +1783,75 @@ class ProductImageReorder(BaseMutation):
             image.save(update_fields=["sort_order"])
 
         return ProductImageReorder(product=product, images=images)
+
+
+class ProductVariantReorder(BaseMutation):
+    product = graphene.Field(Product)
+
+    class Arguments:
+        product_id = graphene.ID(
+            required=True,
+            description="Id of product that variants order will be altered.",
+        )
+        moves = graphene.List(
+            ReorderInput,
+            required=True,
+            description="The list of variant reordering operations.",
+        )
+
+    class Meta:
+        description = (
+            "Reorder the variants of a product. "
+            "Mutation updates updated_at on product and "
+            "triggers PRODUCT_UPDATED webhook."
+        )
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, product_id, moves):
+        pk = from_global_id_strict_type(product_id, only_type=Product, field="id")
+
+        try:
+            product = models.Product.objects.prefetch_related("variants").get(pk=pk)
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "product_id": ValidationError(
+                        (f"Couldn't resolve to a product type: {product_id}"),
+                        code=ProductErrorCode.NOT_FOUND,
+                    )
+                }
+            )
+
+        variants_m2m = product.variants
+        operations = {}
+
+        for move_info in moves:
+            variant_pk = from_global_id_strict_type(
+                move_info.id, only_type=ProductVariant, field="moves"
+            )
+
+            try:
+                m2m_info = variants_m2m.get(id=int(variant_pk))
+            except ObjectDoesNotExist:
+                raise ValidationError(
+                    {
+                        "moves": ValidationError(
+                            f"Couldn't resolve to a variant: {move_info.id}",
+                            code=ProductErrorCode.NOT_FOUND,
+                        )
+                    }
+                )
+            operations[m2m_info.pk] = move_info.sort_order
+
+        with transaction.atomic():
+            perform_reordering(variants_m2m, operations)
+
+        product.save(update_fields=["updated_at"])
+        info.context.plugins.product_updated(product)
+        return ProductVariantReorder(product=product)
 
 
 class ProductImageDelete(BaseMutation):
