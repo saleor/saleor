@@ -1792,18 +1792,16 @@ class ProductVariantSetDefault(BaseMutation):
     class Arguments:
         product_id = graphene.ID(
             required=True,
-            description="Id of product that images order will be altered.",
+            description="Id of a product that will have the default variant set.",
         )
         variant_id = graphene.ID(
-            required=True,
-            description="Id of product that images order will be altered.",
+            required=True, description="Id of a variant that will be set as default.",
         )
 
     class Meta:
         description = (
             "Set default variant for a product. "
-            "Mutation updates updated_at on product and "
-            "triggers PRODUCT_UPDATED webhook."
+            "Mutation triggers PRODUCT_UPDATED webhook."
         )
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
