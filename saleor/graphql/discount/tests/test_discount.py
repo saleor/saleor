@@ -97,6 +97,7 @@ def test_voucher_query(
                             slug
                         }
                         discountValue
+                        currency
                     }
                 }
             }
@@ -126,6 +127,7 @@ def test_voucher_query(
             "id": ANY,
             "channel": {"slug": channel_listing.channel.slug},
             "discountValue": channel_listing.discount_value,
+            "currency": channel_listing.channel.currency_code,
         } in data["channelListing"]
 
 

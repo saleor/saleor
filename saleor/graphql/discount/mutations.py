@@ -124,7 +124,6 @@ class VoucherInput(graphene.InputObjectType):
     discount_value_type = DiscountValueTypeEnum(
         description="Choices: fixed or percentage."
     )
-    discount_value = PositiveDecimal(description="Value of the voucher.")
     products = graphene.List(
         graphene.ID, description="Products discounted by the voucher.", name="products"
     )
@@ -137,9 +136,6 @@ class VoucherInput(graphene.InputObjectType):
         graphene.ID,
         description="Categories discounted by the voucher.",
         name="categories",
-    )
-    min_amount_spent = PositiveDecimal(
-        description="Min purchase amount required to apply the voucher."
     )
     min_checkout_items_quantity = graphene.Int(
         description="Minimal quantity of checkout items required to apply the voucher."
@@ -188,14 +184,6 @@ class VoucherCreate(ModelMutation):
             )
         cleaned_input = super().clean_input(info, instance, data)
 
-        # min_spent_amount = cleaned_input.pop("min_amount_spent", None)
-        # if min_spent_amount is not None:
-        #     try:
-        #         validate_price_precision(min_spent_amount, instance.currency)
-        #     except ValidationError as error:
-        #         error.code = DiscountErrorCode.INVALID.value
-        #         raise ValidationError({"min_spent_amount": error})
-        #     cleaned_input["min_spent_amount"] = min_spent_amount
         return cleaned_input
 
     @classmethod
@@ -290,6 +278,156 @@ class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
         )
         cls.remove_catalogues_from_node(voucher, data.get("input"))
         return VoucherRemoveCatalogues(voucher=voucher)
+
+
+class VoucherChannelListingAddInput(graphene.InputObjectType):
+    channel_id = graphene.ID(required=True, description="ID of a channel.")
+    discount_value = PositiveDecimal(description="Value of the voucher.")
+    min_amount_spent = PositiveDecimal(
+        description="Min purchase amount required to apply the voucher."
+    )
+
+
+class VoucherChannelListingInput(graphene.InputObjectType):
+    add_channels = graphene.List(
+        graphene.NonNull(VoucherChannelListingAddInput),
+        description="List of channels to which the voucher should be assigned.",
+        required=False,
+    )
+    remove_channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description=("List of channels from which the voucher should be unassigned."),
+        required=False,
+    )
+
+
+class VoucherChannelListingUpdate(BaseChannelListingMutation):
+    voucher = graphene.Field(Voucher, description="An updated voucher instance.")
+
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of a voucher to update.")
+        input = VoucherChannelListingInput(
+            required=True,
+            description="Fields required to update voucher channel listings.",
+        )
+
+    class Meta:
+        description = "Manage voucher's availability in channels."
+        permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
+        error_type_class = DiscountError
+        error_type_field = "discount_errors"
+
+    @classmethod
+    def clean_prices(cls, cleaned_input, voucher, errors):
+        channel_slugs_assigned_to_voucher = voucher.channel_listing.values_list(
+            "channel__slug", flat=True
+        )
+        is_fixed_value_type = voucher.discount_value_type == DiscountValueType.FIXED
+        channels_without_value = []
+        channels_with_invalid_value_precision = []
+        channels_with_invalid_min_amount_spent_precision = []
+        for cleaned_channel in cleaned_input.get("add_channels", []):
+            channel = cleaned_channel.get("channel", None)
+            if not channel:
+                continue
+            discount_value = cleaned_channel.get("discount_value", "")
+            # New channel listing requires discout value. It raises validation error for
+            # `discout_value` == `None`.
+            # Updating channel listing doesn't require to pass `discout_value`.
+            should_create = channel.slug not in channel_slugs_assigned_to_voucher
+            missing_required_value = not discount_value and should_create
+            if missing_required_value or discount_value is None:
+                channels_without_value.append(cleaned_channel["channel_id"])
+            # Validate value precision if it is fixed amount voucher
+            if discount_value and is_fixed_value_type:
+                try:
+                    validate_price_precision(discount_value, channel.currency_code)
+                except ValidationError:
+                    channels_with_invalid_value_precision.append(
+                        cleaned_channel["channel_id"]
+                    )
+            if discount_value:
+                cleaned_channel["discount_value"] = discount_value
+
+            min_amount_spent = cleaned_channel.get("min_amount_spent", None)
+            if min_amount_spent:
+                try:
+                    validate_price_precision(min_amount_spent, channel.currency_code)
+                except ValidationError:
+                    channels_with_invalid_min_amount_spent_precision.append(
+                        cleaned_channel["channel_id"]
+                    )
+
+        if channels_without_value:
+            errors["discount_value"].append(
+                ValidationError(
+                    "Value is required for voucher.",
+                    code=DiscountErrorCode.REQUIRED.value,
+                    params={"channels": channels_without_value},
+                )
+            )
+
+        if channels_with_invalid_value_precision:
+            errors["discount_value"].append(
+                ValidationError(
+                    "Invalid amount precision.",
+                    code=DiscountErrorCode.INVALID.value,
+                    params={"channels": channels_with_invalid_value_precision},
+                )
+            )
+        if channels_with_invalid_min_amount_spent_precision:
+            errors["min_amount_spent"].append(
+                ValidationError(
+                    "Invalid amount precision.",
+                    code=DiscountErrorCode.INVALID.value,
+                    params={
+                        "channels": channels_with_invalid_min_amount_spent_precision
+                    },
+                )
+            )
+        return cleaned_input
+
+    @classmethod
+    def add_channels(cls, voucher, add_channels):
+        for add_channel in add_channels:
+            channel = add_channel["channel"]
+            defaults = {"currency": channel.currency_code}
+            discount_value = add_channel.get("discount_value")
+            if discount_value:
+                defaults["discount_value"] = discount_value
+            min_amount_spent = add_channel.get("min_amount_spent", None)
+            if min_amount_spent:
+                defaults["min_spent_amount"] = min_amount_spent
+            models.VoucherChannelListing.objects.update_or_create(
+                voucher=voucher, channel=channel, defaults=defaults,
+            )
+
+    @classmethod
+    def remove_channels(cls, voucher, remove_channels):
+        voucher.channel_listing.filter(channel_id__in=remove_channels).delete()
+
+    @classmethod
+    @transaction.atomic()
+    def save(cls, voucher, cleaned_input):
+        cls.add_channels(voucher, cleaned_input.get("add_channels", []))
+        cls.remove_channels(voucher, cleaned_input.get("remove_channels", []))
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id, input):
+        voucher = cls.get_node_or_error(info, id, only_type=Voucher, field="id")
+        errors = defaultdict(list)
+        cleaned_input = cls.clean_channels(
+            info, input, errors, DiscountErrorCode.DUPLICATED_INPUT_ITEM.value
+        )
+        cleaned_input = cls.clean_prices(cleaned_input, voucher, errors)
+
+        if errors:
+            raise ValidationError(errors)
+
+        cls.save(voucher, cleaned_input)
+        return VoucherChannelListingUpdate(
+            voucher=ChannelContext(node=voucher, channel_slug=None)
+        )
 
 
 class SaleInput(graphene.InputObjectType):

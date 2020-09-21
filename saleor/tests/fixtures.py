@@ -1410,14 +1410,18 @@ def product_with_images(product_type, category, media_root, channel_USD):
 
 
 @pytest.fixture
-def voucher(channel_USD):
-    voucher = Voucher.objects.create(code="mirumee")
+def voucher_without_channel(db):
+    return Voucher.objects.create(code="mirumee")
+
+
+@pytest.fixture
+def voucher(voucher_without_channel, channel_USD):
     VoucherChannelListing.objects.create(
-        voucher=voucher,
+        voucher=voucher_without_channel,
         channel=channel_USD,
         discount=Money(20, channel_USD.currency_code),
     )
-    return voucher
+    return voucher_without_channel
 
 
 @pytest.fixture
