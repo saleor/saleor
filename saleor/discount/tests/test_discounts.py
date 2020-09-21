@@ -152,10 +152,26 @@ def test_percentage_discounts(product, channel_USD):
     assert final_price == Money(5, "USD")
 
 
-def test_voucher_queryset_active(voucher):
+def test_voucher_queryset_active(voucher, channel_USD):
     vouchers = Voucher.objects.all()
     assert vouchers.count() == 1
-    active_vouchers = Voucher.objects.active(date=timezone.now() - timedelta(days=1))
+    active_vouchers = Voucher.objects.active(
+        date=timezone.now() - timedelta(days=1), channel=channel_USD
+    )
+    assert active_vouchers.count() == 0
+
+
+def test_voucher_queryset_active_in_channel(voucher, channel_USD):
+    vouchers = Voucher.objects.all()
+    assert vouchers.count() == 1
+    active_vouchers = Voucher.objects.active(date=timezone.now(), channel=channel_USD)
+    assert active_vouchers.count() == 1
+
+
+def test_voucher_queryset_active_in_other_channel(voucher, channel_PLN):
+    vouchers = Voucher.objects.all()
+    assert vouchers.count() == 1
+    active_vouchers = Voucher.objects.active(date=timezone.now(), channel=channel_PLN)
     assert active_vouchers.count() == 0
 
 

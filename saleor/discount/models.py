@@ -32,12 +32,12 @@ class NotApplicable(ValueError):
 
 
 class VoucherQueryset(models.QuerySet):
-    # TODO: Add channel param
-    def active(self, date):
+    def active(self, date, channel: Channel):
         return self.filter(
             Q(usage_limit__isnull=True) | Q(used__lt=F("usage_limit")),
             Q(end_date__isnull=True) | Q(end_date__gte=date),
             start_date__lte=date,
+            channel_listing__channel__slug=channel.slug,
         )
 
     def expired(self, date):
