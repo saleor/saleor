@@ -170,6 +170,10 @@ class VoucherChannelListing(models.Model):
     )
     min_spent = MoneyField(amount_field="min_spent_amount", currency_field="currency")
 
+    class Meta:
+        unique_together = (("voucher", "channel"),)
+        ordering = ("pk",)
+
 
 class VoucherCustomer(models.Model):
     voucher = models.ForeignKey(
