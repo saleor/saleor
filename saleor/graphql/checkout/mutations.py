@@ -241,20 +241,34 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return None
 
     @classmethod
-    def clean_channel(cls, channel_slug):
-        channel = None
-        if channel_slug is not None:
-            try:
-                channel = Channel.objects.get(slug=channel_slug)
-            except Channel.DoesNotExist:
+    def validate_channel(cls, channel_slug):
+        try:
+            channel = Channel.objects.get(slug=channel_slug)
+        except Channel.DoesNotExist:
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        f"Channel with '{channel_slug}' slug does not exist.",
+                        code=CheckoutErrorCode.NOT_FOUND,
+                    )
+                }
+            )
+        else:
+            if not channel.is_active:
                 raise ValidationError(
                     {
                         "channel": ValidationError(
-                            f"Channel with '{channel_slug}' slug does not exist.",
-                            code=CheckoutErrorCode.NOT_FOUND,
+                            f"Channel with '{channel_slug}' is inactive.",
+                            code=CheckoutErrorCode.CHANNEL_INACTIVE,
                         )
                     }
                 )
+        return channel
+
+    @classmethod
+    def clean_channel(cls, channel_slug):
+        if channel_slug is not None:
+            channel = cls.validate_channel(channel_slug)
         else:
             try:
                 channel = get_default_channel()

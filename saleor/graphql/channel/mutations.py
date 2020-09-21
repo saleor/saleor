@@ -248,7 +248,7 @@ class ChannelActivate(BaseMutation):
         channel = cls.get_node_or_error(info, data["id"], only_type=Channel)
         cls.clean_channel_availability(channel)
         channel.is_active = True
-        channel.save(updated_fields=["is_active"])
+        channel.save(update_fields=["is_active"])
 
     class Meta:
         description = "Activate a channel."
@@ -277,7 +277,7 @@ class ChannelDeactivate(BaseMutation):
         channel = cls.get_node_or_error(info, data["id"], only_type=Channel)
         cls.clean_channel_availability(channel)
         channel.is_active = False
-        channel.save(updated_fields=["is_active"])
+        channel.save(update_fields=["is_active"])
 
     class Meta:
         description = "Deactivate a channel."

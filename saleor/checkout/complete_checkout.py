@@ -302,7 +302,15 @@ def _prepare_checkout(
     clean_checkout_payment(
         checkout, lines, discounts, CheckoutErrorCode, last_payment=payment
     )
-
+    if not checkout.channel.is_active:
+        raise ValidationError(
+            {
+                "channel": ValidationError(
+                    "Cannot complete checkout with inactive channel.",
+                    code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
+                )
+            }
+        )
     if redirect_url:
         try:
             validate_storefront_url(redirect_url)
