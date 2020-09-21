@@ -365,10 +365,11 @@ class AllegroAuth:
 class AllegroAPI:
 
     token = None
+    errors = []
 
     def __init__(self, token):
         self.token = token
-
+        self.errors = []
 
     def refresh_token(self, refresh_token, client_id, client_secret, saleor_redirect_url, url_env):
 
@@ -406,49 +407,91 @@ class AllegroAPI:
 
             product_mapper = ProductMapperFactory().getMapper()
 
-
-            product = product_mapper.set_saleor_product(saleor_product) \
+            try:
+                product = product_mapper.set_saleor_product(saleor_product) \
                 .set_saleor_images(self.upload_images(saleor_product)) \
                 .set_saleor_parameters(parameters).set_obj_publication_starting_at(starting_at).set_offer_type(offer_type).set_category(categoryId).run_mapper()
+            except IndexError as err:
+                self.errors.append(str(err))
+                self.update_errors_in_private_metadata(saleor_product,
+                                                       [error for error in self.errors])
+                return
 
             offer = self.publish_to_allegro(allegro_product=product)
 
-            if 'errors' in offer:
-                errors = offer['errors']
-                self.update_errors_in_private_metadata(saleor_product, [error.get('message') for error in errors])
+
+            if 'error' in offer:
+                self.errors.append(offer.get('error_description'))
+                self.update_errors_in_private_metadata(saleor_product, [error for error in self.errors])
+                return None
+            elif 'errors' in offer:
+                self.errors += offer['errors']
+                self.update_errors_in_private_metadata(saleor_product, [error.get('message') for error in self.errors])
                 return None
             else:
-                if offer['validation'].get('errors') is not None:
+                if offer is not None and offer.get('validation').get('errors') is not None:
                     if len(offer['validation'].get('errors')) > 0:
-                        errors = []
                         for error in offer['validation'].get('errors'):
                             logger.error((error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore'))
-                            errors.append((error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore'))
-                        self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, errors)
+                            self.errors.append((error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore'))
+                        self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, self.errors)
                     else:
-                        errors = []
                         offer_publication = self.offer_publication(offer['id'])
                         self.update_status_and_publish_data_in_private_metadata(
-                            saleor_product, offer['id'], ProductPublishState.PUBLISHED.value, True, errors)
+                            saleor_product, offer['id'], ProductPublishState.PUBLISHED.value, True, self.errors)
+                else:
+                    self.update_status_and_publish_data_in_private_metadata(
+                        saleor_product, offer['id'],
+                        ProductPublishState.MODERATED.value, False, self.errors)
 
                 return offer['id']
 
         if saleor_product.get_value_from_private_metadata('publish.allegro.status') == ProductPublishState.MODERATED.value and saleor_product.get_value_from_private_metadata('publish.allegro.date') is not None and saleor_product.is_published == False:
             offerId = saleor_product.private_metadata.get('publish.allegro.id')
             if offerId is not None:
+                offer_update = self.update_offer(saleor_product, starting_at, offer_type)
+                logger.info('Offer update: ' + str(offer_update))
+
                 offer = self.valid_offer(offerId)
-                if offer['validation'].get('errors') is not None:
+
+                if 'error' in offer:
+                    self.errors.append(offer.get('error_description'))
+                    self.update_errors_in_private_metadata(saleor_product,
+                                                           [error for error in
+                                                            self.errors])
+                elif 'errors' in offer:
+                    self.errors += offer['errors']
+                    self.update_errors_in_private_metadata(saleor_product,
+                                                           [error.get('message') for
+                                                            error in self.errors])
+                elif offer['validation'].get('errors') is not None:
                     if len(offer['validation'].get('errors')) > 0:
-                        errors = []
                         for error in offer['validation'].get('errors'):
                             logger.error((error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore'))
-                            errors.append((error['message'] + 'dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore'))
-                        self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, errors)
+                            self.errors.append((error['message'] + 'dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore'))
+                        self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, self.errors)
                     else:
-                        errors = []
                         self.offer_publication(saleor_product.private_metadata.get('publish.allegro.id'))
-                        self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.PUBLISHED.value, True, errors)
+                        self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.PUBLISHED.value, True, self.errors)
 
+
+    def update_offer(self, saleor_product, starting_at, offer_type):
+
+        offerId = saleor_product.private_metadata.get('publish.allegro.id')
+        categoryId = saleor_product.product_type.metadata.get(
+            'allegro.mapping.categoryId')
+        require_parameters = self.get_require_parameters(categoryId)
+        parameters_mapper = ParametersMapperFactory().getMapper()
+        parameters = parameters_mapper.set_product(
+            saleor_product).set_require_parameters(require_parameters).run_mapper()
+        product_mapper = ProductMapperFactory().getMapper()
+        product = product_mapper.set_saleor_product(saleor_product) \
+            .set_saleor_images(self.upload_images(saleor_product)) \
+            .set_saleor_parameters(parameters).set_obj_publication_starting_at(
+            starting_at).set_offer_type(offer_type).set_category(
+            categoryId).run_mapper()
+        offer = self.update_allegro_offer(allegro_product=product, id=offerId)
+        return offer
 
     def get_plugin_configuration(self):
         manager = get_plugins_manager()
@@ -460,6 +503,16 @@ class AllegroAPI:
 
         endpoint = 'sale/offers'
         response = self.post_request(endpoint=endpoint, data=allegro_product)
+        return json.loads(response.text)
+
+
+    def update_allegro_offer(self, allegro_product, id):
+
+        endpoint = 'sale/offers/' + id
+
+        allegro_product['id'] = id
+
+        response = self.put_request(endpoint=endpoint, data=allegro_product)
         return json.loads(response.text)
 
     def post_request(self, endpoint, data):
@@ -525,16 +578,22 @@ class AllegroAPI:
 
     def get_require_parameters(self, category_id):
 
+        requireParams = []
+
         endpoint = 'sale/categories/' + category_id + '/parameters'
         response = self.get_request(endpoint)
-        requireParams = [param for param in json.loads(response.text)['parameters'] if
+        try:
+            requireParams = [param for param in json.loads(response.text)['parameters'] if
                          param['required'] == True]
+        except KeyError as err:
+            self.errors.append('Key error ' + str(err))
+            logger.error(err)
 
         return requireParams
 
     def upload_images(self, saleor_product):
 
-        images_url = [pi.image.url.replace('/media', '') for pi in ProductImage.objects.filter(product=saleor_product)]
+        images_url = ['https://saleor-test-media.s3.amazonaws.com' + pi.image.url.replace('/media', '') for pi in ProductImage.objects.filter(product=saleor_product)]
 
         return [self.upload_image(image_url) for image_url in images_url]
 
@@ -550,8 +609,11 @@ class AllegroAPI:
 
         logger.info("Upload images response " +  str(json.loads(response.text)))
 
-
-        return json.loads(response.text)['location']
+        try:
+            return json.loads(response.text)['location']
+        except KeyError as err:
+            logger.error(err)
+            self.errors.append('Key error ' + str(err))
 
     def update_status_and_publish_data_in_private_metadata(self, product, allegro_offer_id, status, is_published, errors):
         product.store_value_in_private_metadata({'publish.allegro.status': status})
