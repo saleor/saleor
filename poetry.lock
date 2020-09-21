@@ -155,10 +155,10 @@ description = "The AWS SDK for Python"
 name = "boto3"
 optional = false
 python-versions = "*"
-version = "1.14.60"
+version = "1.15.1"
 
 [package.dependencies]
-botocore = ">=1.17.60,<1.18.0"
+botocore = ">=1.18.1,<1.19.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.3.0,<0.4.0"
 
@@ -168,10 +168,9 @@ description = "Low-level, data-driven core of boto 3."
 name = "botocore"
 optional = false
 python-versions = "*"
-version = "1.17.60"
+version = "1.18.1"
 
 [package.dependencies]
-docutils = ">=0.10,<0.16"
 jmespath = ">=0.7.1,<1.0.0"
 python-dateutil = ">=2.1,<3.0.0"
 
@@ -684,14 +683,6 @@ version = "2.0"
 [package.dependencies]
 Pillow = ">=2.4.0"
 python-magic = ">=0.4.15,<1.0.0"
-
-[[package]]
-category = "main"
-description = "Docutils -- Python Documentation Utilities"
-name = "docutils"
-optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
-version = "0.15.2"
 
 [[package]]
 category = "main"
@@ -2465,12 +2456,12 @@ black = [
     {file = "black-19.10b0.tar.gz", hash = "sha256:c2edb73a08e9e0e6f65a0e6af18b059b8b1cdd5bef997d7a0b181df93dc81539"},
 ]
 boto3 = [
-    {file = "boto3-1.14.60-py2.py3-none-any.whl", hash = "sha256:79e95f428c485ea817969a78e77a311d2ec4d82e0955639d6126189c990ddad3"},
-    {file = "boto3-1.14.60.tar.gz", hash = "sha256:d8ca27ee13deeb1a9e79f2fe5f923effa60947ed49bbdfbc2a9f5790aef64217"},
+    {file = "boto3-1.15.1-py2.py3-none-any.whl", hash = "sha256:888be45e289ba56c4e47cfae5d6b08f097bc981d077fbe6521a6d3dc7a4d757e"},
+    {file = "boto3-1.15.1.tar.gz", hash = "sha256:44073b1b1823ffc9edcf9027afbca908dad6bd5000f512ca73f929f6a604ae24"},
 ]
 botocore = [
-    {file = "botocore-1.17.60-py2.py3-none-any.whl", hash = "sha256:e55a4fc652537f5ccb2362133f3928ebeafb04ee9fe15ea11c2df80ba4ef8a12"},
-    {file = "botocore-1.17.60.tar.gz", hash = "sha256:193f193a66ac79106725e14dd73e28ed36bcec99b37156538a2202d061056a58"},
+    {file = "botocore-1.18.1-py2.py3-none-any.whl", hash = "sha256:d6bdf51c8880aa9974e6b61d2f7d9d1debe407287e2e9e60f36c789fe8ba6790"},
+    {file = "botocore-1.18.1.tar.gz", hash = "sha256:6bdf60281c2e80360fe904851a1a07df3dcfe066fe88dc7fba2b5e626ac05c8c"},
 ]
 braintree = [
     {file = "braintree-4.3.0-py2.py3-none-any.whl", hash = "sha256:3e876e7f49df3e2700b94b667ed69488230d17240b5af3e988de4b7234ac9e67"},
@@ -2686,11 +2677,6 @@ django-templated-email = [
 django-versatileimagefield = [
     {file = "django-versatileimagefield-2.0.tar.gz", hash = "sha256:b197e7066f23bb73b001a61525f2b1cae3dd654bf208a944a7ff5a3fe6107b51"},
     {file = "django_versatileimagefield-2.0-py2.py3-none-any.whl", hash = "sha256:090f89fd72379dd072d4e76dd708245cddc4ff601de27ea5a7d26f005019ef4c"},
-]
-docutils = [
-    {file = "docutils-0.15.2-py2-none-any.whl", hash = "sha256:9e4d7ecfc600058e07ba661411a2b7de2fd0fafa17d1a7f7361cd47b1175c827"},
-    {file = "docutils-0.15.2-py3-none-any.whl", hash = "sha256:6c4f696463b79f1fb8ba0c594b63840ebd41f059e92b31957c46b74a4599b6d0"},
-    {file = "docutils-0.15.2.tar.gz", hash = "sha256:a2aeea129088da402665e92e0b25b04b073c04b2dce4ab65caaa38b7ce2e1a99"},
 ]
 draftjs-sanitizer = [
     {file = "draftjs-sanitizer-1.0.0.tar.gz", hash = "sha256:4603a9296153cd06d5a1d76a45a1ff0295363516af983d8dde28cafc5cd67583"},
