@@ -1475,6 +1475,35 @@ def test_product_variant_set_default_invalid_id(
     assert data["productErrors"][0]["field"] == "variantId"
 
 
+def test_product_variant_set_default_not_products_variant(
+    staff_api_client,
+    permission_manage_products,
+    product_with_two_variants,
+    product_with_single_variant,
+):
+    assert not product_with_two_variants.variants.filter(default=True).exists()
+
+    foreign_variant = product_with_single_variant.variants.first()
+
+    variables = {
+        "productId": graphene.Node.to_global_id(
+            "Product", product_with_two_variants.pk
+        ),
+        "variantId": graphene.Node.to_global_id("ProductVariant", foreign_variant.pk),
+    }
+
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_SET_DEFAULT_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    assert not product_with_two_variants.variants.filter(default=True).exists()
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantSetDefault"]
+    assert data["productErrors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert data["productErrors"][0]["field"] == "variantId"
+
+
 @pytest.mark.parametrize("input_slug", ["", None])
 def test_create_product_no_slug_in_input(
     staff_api_client,
