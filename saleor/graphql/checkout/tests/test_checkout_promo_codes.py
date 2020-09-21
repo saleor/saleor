@@ -379,6 +379,20 @@ def test_checkout_add_voucher_code_not_applicable_voucher(
     assert data["errors"][0]["field"] == "promoCode"
 
 
+def test_checkout_add_voucher_code_not_assigned_to_channel(
+    api_client, checkout_with_item, voucher_without_channel
+):
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+    variables = {
+        "checkoutId": checkout_id,
+        "promoCode": voucher_without_channel.code,
+    }
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "promoCode"
+
+
 def test_checkout_add_gift_card_code(api_client, checkout_with_item, gift_card):
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)

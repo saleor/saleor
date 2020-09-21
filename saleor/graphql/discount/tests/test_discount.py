@@ -555,9 +555,7 @@ def test_voucher_add_catalogues_with_product_without_variant(
     content = get_graphql_content(response)
     error = content["data"]["voucherCataloguesAdd"]["discountErrors"][0]
 
-    assert (
-        error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.value
-    )
+    assert error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
     assert error["message"] == "Cannot manage products without variants."
 
 
@@ -865,9 +863,7 @@ def test_sale_add_catalogues_with_product_without_variants(
     content = get_graphql_content(response)
     error = content["data"]["saleCataloguesAdd"]["discountErrors"][0]
 
-    assert (
-        error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.value
-    )
+    assert error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
     assert error["message"] == "Cannot manage products without variants."
 
 
