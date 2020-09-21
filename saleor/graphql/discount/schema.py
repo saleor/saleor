@@ -3,10 +3,7 @@ import graphene
 from ...core.permissions import DiscountPermissions
 from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
-from ..core.fields import (
-    ChannelContextFilterConnectionField,
-    FilterInputConnectionField,
-)
+from ..core.fields import ChannelContextFilterConnectionField
 from ..core.types import FilterInputObjectType
 from ..decorators import permission_required
 from ..translations.mutations import SaleTranslate, VoucherTranslate

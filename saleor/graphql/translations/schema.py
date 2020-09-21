@@ -16,7 +16,6 @@ from ...shipping.models import ShippingMethod
 from ..core.connection import CountableConnection
 from ..core.fields import BaseConnectionField
 from ..decorators import permission_required
-from ..discount.resolvers import resolve_sales, resolve_vouchers
 from ..menu.resolvers import resolve_menu_items
 from ..page.resolvers import resolve_pages
 from ..product.resolvers import (
