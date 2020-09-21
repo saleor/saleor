@@ -4,19 +4,21 @@ services:
   etang_api:
     ports:
       - 8000:8000
+    container_name: etang_api
     build:
       context: ./
       dockerfile: ./Dockerfile
       args:
         STATIC_URL: '/static/'
-    image: etang_api
+
+    image: etangapi_etang_api
     restart: unless-stopped
     networks:
       - saleor-backend-tier
     depends_on:
 #      - db
       - redis
-#      - jaeger
+      - jaeger
     volumes:
       - ./saleor/:/app/saleor:Z
       - ./templates/:/app/templates:Z
@@ -31,10 +33,12 @@ services:
       - DASHBOARD_URL=http://localhost:9000/
 
   etang_front:
+    container_name: etang_front
+    image: etangapi_etang_front
     build:
       context: ../etang-front
       dockerfile: ./Dockerfile.dev
-    image: etang_front
+
     ports:
       - 3000:3000
     restart: unless-stopped
@@ -44,10 +48,11 @@ services:
     command: npm start -- --host 0.0.0.0
 
   etang_back:
+    container_name: etang_back
+    image: etangapi_etang_back
     build:
       context: ../etang-back
       dockerfile: ./Dockerfile.dev
-    image: etang_back
     ports:
       - 9000:9000
     restart: unless-stopped
@@ -58,7 +63,6 @@ services:
 
   redis:
     image: library/redis:5.0-alpine
-
     ports:
       - 6379:6379
     restart: unless-stopped
@@ -68,12 +72,13 @@ services:
       - saleor-redis:/data
 
   worker:
+    container_name: etang_worker
+    image: etangapi_worker
     build:
       context: ./
       dockerfile: ./Dockerfile
       args:
         STATIC_URL: '/static/'
-    image: etang_worker
     command: celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
     restart: unless-stopped
     networks:
@@ -83,27 +88,27 @@ services:
       - redis
       - mailhog
     volumes:
-        - ./saleor/:/app/saleor:Z
-        - ./templates/:/app/templates:Z
-        - ./tests/:/app/tests
+        - ./saleor/saleor/:/app/saleor:Z
+        - ./saleor/templates/:/app/templates:Z
+        - ./saleor/tests/:/app/tests
         # shared volume between worker and api for media
         - saleor-media:/app/media
     environment:
       - EMAIL_URL=smtp://mailhog:1025
 
-#  jaeger:
-#    image: jaegertracing/all-in-one
-#    ports:
-#      - "5775:5775/udp"
-#      - "6831:6831/udp"
-#      - "6832:6832/udp"
-#      - "5778:5778"
-#      - "16686:16686"
-#      - "14268:14268"
-#      - "9411:9411"
-#    restart: unless-stopped
-#    networks:
-#      - saleor-backend-tier
+  jaeger:
+    image: jaegertracing/all-in-one
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "9411:9411"
+    restart: unless-stopped
+    networks:
+      - saleor-backend-tier
 
   mailhog:
     image: mailhog/mailhog
