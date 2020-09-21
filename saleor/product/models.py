@@ -414,12 +414,13 @@ class ProductVariant(ModelWithMetadata):
     def get_price(
         self, channel_slug: str, discounts: Optional[Iterable[DiscountInfo]] = None
     ) -> "Money":
-        price = self.channel_listing.get(channel__slug=channel_slug).price
+        channel_listing = self.channel_listing.get(channel__slug=channel_slug)
         return calculate_discounted_price(
             product=self.product,
-            price=price,
+            price=channel_listing.price,
             collections=self.product.collections.all(),
             discounts=discounts,
+            channel=channel_listing.channel,
         )
 
     def get_weight(self):

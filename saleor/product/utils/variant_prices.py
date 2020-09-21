@@ -21,7 +21,7 @@ def _get_variant_prices_in_channels_dict(product):
 
 
 def _get_product_discounted_price(
-    variant_prices, product, collections, discounts
+    variant_prices, product, collections, discounts, channel
 ) -> Optional[Money]:
     discounted_variants_price = []
     for variant_price in variant_prices:
@@ -30,6 +30,7 @@ def _get_product_discounted_price(
             price=variant_price,
             collections=collections,
             discounts=discounts,
+            channel=channel,
         )
         discounted_variants_price.append(discounted_variant_price)
     return min(discounted_variants_price)
@@ -45,7 +46,11 @@ def update_product_discounted_price(product, discounts=None):
         channel_id = product_channel_listing.channel_id
         variant_prices_dict = variant_prices_in_channels_dict[channel_id]
         product_discounted_price = _get_product_discounted_price(
-            variant_prices_dict, product, collections, discounts
+            variant_prices_dict,
+            product,
+            collections,
+            discounts,
+            product_channel_listing.channel,
         )
         if product_channel_listing.discounted_price != product_discounted_price:
             product_channel_listing.discounted_price_amount = (

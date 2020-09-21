@@ -36,6 +36,7 @@ from ..csv.models import ExportEvent, ExportFile
 from ..discount import DiscountInfo, DiscountValueType, VoucherType
 from ..discount.models import (
     Sale,
+    SaleChannelListing,
     SaleTranslation,
     Voucher,
     VoucherCustomer,
@@ -1892,8 +1893,14 @@ def dummy_payment_data(payment_dummy):
 
 
 @pytest.fixture
-def sale(product, category, collection):
-    sale = Sale.objects.create(name="Sale", value=5)
+def sale(product, category, collection, channel_USD):
+    sale = Sale.objects.create(name="Sale")
+    SaleChannelListing.objects.create(
+        sale=sale,
+        channel=channel_USD,
+        discount_value=5,
+        currency=channel_USD.currency_code,
+    )
     sale.products.add(product)
     sale.categories.add(category)
     sale.collections.add(collection)
@@ -1901,9 +1908,33 @@ def sale(product, category, collection):
 
 
 @pytest.fixture
-def discount_info(category, collection, sale):
+def sale_with_many_channels(product, category, collection, channel_USD, channel_PLN):
+    sale = Sale.objects.create(name="Sale")
+    SaleChannelListing.objects.create(
+        sale=sale,
+        channel=channel_USD,
+        discount_value=5,
+        currency=channel_USD.currency_code,
+    )
+    SaleChannelListing.objects.create(
+        sale=sale,
+        channel=channel_PLN,
+        discount_value=5,
+        currency=channel_PLN.currency_code,
+    )
+    sale.products.add(product)
+    sale.categories.add(category)
+    sale.collections.add(collection)
+    return sale
+
+
+@pytest.fixture
+def discount_info(category, collection, sale, channel_USD):
+    sale_channel_listing = sale.channel_listing.get(channel=channel_USD)
+
     return DiscountInfo(
         sale=sale,
+        channel_listings={channel_USD.slug: sale_channel_listing},
         product_ids=set(),
         category_ids={category.id},  # assumes this category does not have children
         collection_ids={collection.id},

@@ -8,7 +8,7 @@ from prices import Money
 from ...checkout.utils import get_voucher_discount_for_checkout
 from ...product.models import Product, ProductVariant, ProductVariantChannelListing
 from .. import DiscountInfo, DiscountValueType, VoucherType
-from ..models import NotApplicable, Sale, Voucher, VoucherCustomer
+from ..models import NotApplicable, Sale, SaleChannelListing, Voucher, VoucherCustomer
 from ..templatetags.voucher import discount_as_negative
 from ..utils import (
     add_voucher_usage_by_customer,
@@ -52,20 +52,44 @@ def test_valid_voucher_min_checkout_items_quantity(voucher):
 @pytest.mark.django_db(transaction=True)
 def test_variant_discounts(product, channel_USD):
     variant = product.variants.get()
-    low_sale = Sale(type=DiscountValueType.FIXED, value=5)
+    low_sale = Sale.objects.create(type=DiscountValueType.FIXED)
+    low_sale_channel_listing = SaleChannelListing.objects.create(
+        sale=low_sale,
+        discount_value=5,
+        currency=channel_USD.currency_code,
+        channel=channel_USD,
+    )
     low_discount = DiscountInfo(
         sale=low_sale,
+        channel_listings={channel_USD.slug: low_sale_channel_listing},
         product_ids={product.id},
         category_ids=set(),
         collection_ids=set(),
     )
-    sale = Sale(type=DiscountValueType.FIXED, value=8)
-    discount = DiscountInfo(
-        sale=sale, product_ids={product.id}, category_ids=set(), collection_ids=set()
+    sale = Sale.objects.create(type=DiscountValueType.FIXED)
+    sale_channel_listing = SaleChannelListing.objects.create(
+        sale=sale,
+        discount_value=8,
+        currency=channel_USD.currency_code,
+        channel=channel_USD,
     )
-    high_sale = Sale(type=DiscountValueType.FIXED, value=50)
+    discount = DiscountInfo(
+        sale=sale,
+        channel_listings={channel_USD.slug: sale_channel_listing},
+        product_ids={product.id},
+        category_ids=set(),
+        collection_ids=set(),
+    )
+    high_sale = Sale.objects.create(type=DiscountValueType.FIXED)
+    high_sale_channel_listing = SaleChannelListing.objects.create(
+        sale=high_sale,
+        discount_value=50,
+        currency=channel_USD.currency_code,
+        channel=channel_USD,
+    )
     high_discount = DiscountInfo(
         sale=high_sale,
+        channel_listings={channel_USD.slug: high_sale_channel_listing},
         product_ids={product.id},
         category_ids=set(),
         collection_ids=set(),
@@ -80,9 +104,19 @@ def test_variant_discounts(product, channel_USD):
 @pytest.mark.django_db(transaction=True)
 def test_percentage_discounts(product, channel_USD):
     variant = product.variants.get()
-    sale = Sale(type=DiscountValueType.PERCENTAGE, value=50)
+    sale = Sale.objects.create(type=DiscountValueType.PERCENTAGE)
+    sale_cahnnel_listing = SaleChannelListing.objects.create(
+        sale=sale,
+        discount_value=50,
+        currency=channel_USD.currency_code,
+        channel=channel_USD,
+    )
     discount = DiscountInfo(
-        sale=sale, product_ids={product.id}, category_ids=set(), collection_ids={}
+        sale=sale,
+        channel_listings={channel_USD.slug: sale_cahnnel_listing},
+        product_ids={product.id},
+        category_ids=set(),
+        collection_ids=set(),
     )
     final_price = variant.get_price(channel_USD.slug, discounts=[discount])
     assert final_price == Money(5, "USD")
@@ -168,16 +202,28 @@ def test_sale_applies_to_correct_products(product_type, category, channel_USD):
         price_amount=Decimal(10),
         currency=channel_USD.currency_code,
     )
-    sale = Sale(name="Test sale", value=3, type=DiscountValueType.FIXED)
-    discount = DiscountInfo(
-        sale=sale, product_ids={product.id}, category_ids=set(), collection_ids=set()
+    sale = Sale.objects.create(name="Test sale", type=DiscountValueType.FIXED)
+    sale_channel_listing = SaleChannelListing.objects.create(
+        sale=sale,
+        currency=channel_USD.currency_code,
+        channel=channel_USD,
+        discount_value=3,
     )
-    product_discount = get_product_discount_on_sale(variant.product, set(), discount)
+    discount = DiscountInfo(
+        sale=sale,
+        channel_listings={channel_USD.slug: sale_channel_listing},
+        product_ids={product.id},
+        category_ids=set(),
+        collection_ids=set(),
+    )
+    product_discount = get_product_discount_on_sale(
+        variant.product, set(), discount, channel_USD
+    )
 
     discounted_price = product_discount(variant_channel_listing.price)
     assert discounted_price == Money(7, "USD")
     with pytest.raises(NotApplicable):
-        get_product_discount_on_sale(sec_variant.product, set(), discount)
+        get_product_discount_on_sale(sec_variant.product, set(), discount, channel_USD)
 
 
 def test_increase_voucher_usage():
@@ -333,9 +379,15 @@ date_time_now = timezone.now()
         (date_time_now + timedelta(weeks=10), date_time_now, None, True),
     ),
 )
-def test_sale_active(current_date, start_date, end_date, is_active):
-    Sale.objects.create(
-        type=DiscountValueType.FIXED, value=5, start_date=start_date, end_date=end_date
+def test_sale_active(current_date, start_date, end_date, is_active, channel_USD):
+    sale = Sale.objects.create(
+        type=DiscountValueType.FIXED, start_date=start_date, end_date=end_date
+    )
+    SaleChannelListing.objects.create(
+        sale=sale,
+        currency=channel_USD.currency_code,
+        channel=channel_USD,
+        discount_value=5,
     )
     sale_is_active = Sale.objects.active(date=current_date).exists()
     assert is_active == sale_is_active
@@ -357,3 +409,44 @@ def test_discount_as_negative_for_html():
     discount = Money(10, "USD")
     result = discount_as_negative(discount, True)
     assert result == '-<span class="currency">$</span>10.00'
+
+
+def test_get_fixed_sale_discount(sale):
+    # given
+    sale.type = DiscountValueType.FIXED
+    channel_listing = sale.channel_listing.get()
+
+    # when
+    result = sale.get_discount(channel_listing).keywords
+
+    # then
+    assert result["discount"] == Money(
+        channel_listing.discount_value, channel_listing.currency
+    )
+
+
+def test_get_percentage_sale_discount(sale):
+    # given
+    sale.type = DiscountValueType.PERCENTAGE
+    channel_listing = sale.channel_listing.get()
+
+    # when
+    result = sale.get_discount(channel_listing).keywords
+
+    # then
+    assert result["percentage"] == channel_listing.discount_value
+
+
+def test_get_unknown_sale_discount(sale):
+    sale.type = "unknown"
+    channel_listing = sale.channel_listing.get()
+
+    with pytest.raises(NotImplementedError):
+        sale.get_discount(channel_listing)
+
+
+def test_get_not_applicable_sale_discount(sale, channel_PLN):
+    sale.type = DiscountValueType.PERCENTAGE
+
+    with pytest.raises(NotApplicable):
+        sale.get_discount(None)

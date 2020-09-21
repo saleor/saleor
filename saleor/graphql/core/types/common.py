@@ -123,6 +123,11 @@ class ProductWithoutVariantError(Error):
 
 class DiscountError(ProductWithoutVariantError):
     code = DiscountErrorCode(description="The error code.", required=True)
+    channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channels IDs which causes the error.",
+        required=False,
+    )
 
 
 class ExportError(Error):

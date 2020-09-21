@@ -16,7 +16,7 @@ from ...shipping.models import ShippingMethod
 from ..core.connection import CountableConnection
 from ..core.fields import BaseConnectionField
 from ..decorators import permission_required
-from ..discount.resolvers import resolve_sales, resolve_vouchers
+from ..discount.resolvers import resolve_vouchers
 from ..menu.resolvers import resolve_menu_items
 from ..page.resolvers import resolve_pages
 from ..product.resolvers import (
@@ -29,6 +29,7 @@ from .resolvers import (
     resolve_attribute_values,
     resolve_product_variants,
     resolve_products,
+    resolve_sales,
     resolve_shipping_methods,
 )
 
@@ -112,7 +113,7 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.MENU_ITEM:
             return resolve_menu_items(info, query=None)
         elif kind == TranslatableKinds.SALE:
-            return resolve_sales(info, query=None)
+            return resolve_sales(info)
 
     @permission_required(SitePermissions.MANAGE_TRANSLATIONS)
     def resolve_translation(self, info, id, kind, **_kwargs):
