@@ -21,6 +21,7 @@ from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeInputTypeEnum, AttributeTypeEnum
 from ..types import Attribute, AttributeValue
+from .common import ReorderInput
 
 
 class AttributeValueCreateInput(graphene.InputObjectType):
@@ -93,17 +94,6 @@ class AttributeAssignInput(graphene.InputObjectType):
     id = graphene.ID(required=True, description="The ID of the attribute to assign.")
     type = AttributeTypeEnum(
         required=True, description="The attribute type to be assigned as."
-    )
-
-
-class ReorderInput(graphene.InputObjectType):
-    id = graphene.ID(required=True, description="The ID of the item to move.")
-    sort_order = graphene.Int(
-        description=(
-            "The new relative sorting position of the item (from -inf to +inf). "
-            "1 moves the item one position forward, -1 moves the item one position "
-            "backward, 0 leaves the item unchanged."
-        )
     )
 
 

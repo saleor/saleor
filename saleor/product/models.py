@@ -386,7 +386,7 @@ class ProductVariantQueryset(models.QuerySet):
         return variants
 
 
-class ProductVariant(ModelWithMetadata):
+class ProductVariant(SortableModel, ModelWithMetadata):
     sku = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255, blank=True)
     currency = models.CharField(
@@ -422,7 +422,7 @@ class ProductVariant(ModelWithMetadata):
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ("sku",)
+        ordering = ("sort_order", "sku")
         app_label = "product"
 
     def __str__(self) -> str:
@@ -465,6 +465,9 @@ class ProductVariant(ModelWithMetadata):
     def get_first_image(self) -> "ProductImage":
         images = list(self.images.all())
         return images[0] if images else self.product.get_first_image()
+
+    def get_ordering_queryset(self):
+        return self.product.variants.all()
 
     def set_as_default(self):
         self.product.variants.update(default=False)
