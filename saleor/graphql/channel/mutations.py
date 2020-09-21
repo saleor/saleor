@@ -225,3 +225,61 @@ class BaseChannelListingMutation(BaseMutation):
             cleaned_input["add_channels"].append(channel_listing)
 
         return cleaned_input
+
+
+class ChannelActivate(BaseMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of the channel to activate.")
+
+    @classmethod
+    def clean_channel_availability(cls, channel):
+        if channel.is_active:
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        "This channel is already activated.",
+                        code=ChannelErrorCode.INVALID,
+                    )
+                }
+            )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        channel = cls.get_node_or_error(info, data["id"], only_type=Channel)
+        cls.clean_channel_availability(channel)
+        channel.is_active = True
+        channel.save(updated_fields=["is_active"])
+
+    class Meta:
+        description = "Activate a channel."
+        error_type_class = ChannelError
+        error_type_field = "channel_errors"
+
+
+class ChannelDeactivate(BaseMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of the channel to deactivate.")
+
+    @classmethod
+    def clean_channel_availability(cls, channel):
+        if channel.is_active is False:
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        "This channel is already deactivated.",
+                        code=ChannelErrorCode.INVALID,
+                    )
+                }
+            )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        channel = cls.get_node_or_error(info, data["id"], only_type=Channel)
+        cls.clean_channel_availability(channel)
+        channel.is_active = False
+        channel.save(updated_fields=["is_active"])
+
+    class Meta:
+        description = "Deactivate a channel."
+        error_type_class = ChannelError
+        error_type_field = "channel_errors"

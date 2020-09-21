@@ -847,6 +847,11 @@ type Channel implements Node {
   currencyCode: String!
 }
 
+type ChannelActivate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  channelErrors: [ChannelError!]!
+}
+
 type ChannelCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   channelErrors: [ChannelError!]!
@@ -854,9 +859,15 @@ type ChannelCreate {
 }
 
 input ChannelCreateInput {
+  isActive: Boolean
   name: String!
   slug: String!
   currencyCode: String!
+}
+
+type ChannelDeactivate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  channelErrors: [ChannelError!]!
 }
 
 type ChannelDelete {
@@ -893,6 +904,7 @@ type ChannelUpdate {
 }
 
 input ChannelUpdateInput {
+  isActive: Boolean
   name: String
   slug: String
 }
@@ -2848,6 +2860,8 @@ type Mutation {
   channelCreate(input: ChannelCreateInput!): ChannelCreate
   channelUpdate(id: ID!, input: ChannelUpdateInput!): ChannelUpdate
   channelDelete(id: ID!, input: ChannelDeleteInput!): ChannelDelete
+  channelActivate(id: ID!): ChannelActivate
+  channelDeactivate(id: ID!): ChannelDeactivate
   appCreate(input: AppInput!): AppCreate
   appUpdate(id: ID!, input: AppInput!): AppUpdate
   appDelete(id: ID!): AppDelete
