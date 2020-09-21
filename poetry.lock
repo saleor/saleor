@@ -463,10 +463,10 @@ description = "A configurable set of panels that display various debug informati
 name = "django-debug-toolbar"
 optional = false
 python-versions = ">=3.5"
-version = "2.2"
+version = "3.0"
 
 [package.dependencies]
-Django = ">=1.11"
+Django = ">=2.2"
 sqlparse = ">=0.2.0"
 
 [[package]]
@@ -2439,7 +2439,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "46bced8312fb5e158b8e517507329a34b1738e548a3b7ded83198f99603ace59"
+content-hash = "8a9e8e9c3e2686aeb26b1ac2c373a34a8c1d4fdd094738b650775d2a3bc3dc16"
 lock-version = "1.0"
 python-versions = "~3.8"
 
@@ -2655,8 +2655,8 @@ django-countries = [
     {file = "django_countries-6.1.3-py3-none-any.whl", hash = "sha256:a0f77154ae08cb38a0d65530a399ead5f5837ebf6c74f7576e71bb7acdacca94"},
 ]
 django-debug-toolbar = [
-    {file = "django-debug-toolbar-2.2.tar.gz", hash = "sha256:eabbefe89881bbe4ca7c980ff102e3c35c8e8ad6eb725041f538988f2f39a943"},
-    {file = "django_debug_toolbar-2.2-py3-none-any.whl", hash = "sha256:ff94725e7aae74b133d0599b9bf89bd4eb8f5d2c964106e61d11750228c8774c"},
+    {file = "django-debug-toolbar-3.0.tar.gz", hash = "sha256:23129b4f771605c7ccf8733cc53558a68c5d463d60cdc83408d34b713acf4f5f"},
+    {file = "django_debug_toolbar-3.0-py3-none-any.whl", hash = "sha256:7c9bf93eabb1e745fe1fca830242d49f3c839d35163e5b53914009ed111209b1"},
 ]
 django-debug-toolbar-request-history = [
     {file = "django-debug-toolbar-request-history-0.1.3.tar.gz", hash = "sha256:05935afec547a90149965caad07e2893cabf6ce79db2131e24ffd8ce3361c879"},
