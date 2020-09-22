@@ -277,7 +277,6 @@ class ProductVariant(CountableDjangoObjectType):
             "id",
             "name",
             "product",
-            "default",
             "sku",
             "track_inventory",
             "weight",
