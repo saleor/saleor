@@ -287,6 +287,13 @@ def filter_quantity(qs, quantity_value, warehouses=None):
     )
     return qs.filter(variants__in=product_variants)
 
+def filter_allegro_status(qs, _, value):
+    if value:
+        json_dict = {
+            "publish.allegro.status": value
+        }
+        qs = Product.objects.filter(private_metadata__contains=json_dict)
+    return qs
 
 class ProductStockFilterInput(graphene.InputObjectType):
     warehouse_ids = graphene.List(graphene.NonNull(graphene.ID), required=False)
@@ -314,6 +321,7 @@ class ProductFilter(django_filters.FilterSet):
     product_types = GlobalIDMultipleChoiceFilter(field_name="product_type")
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
+    allegro_status = django_filters.CharFilter(method=filter_allegro_status)
 
     class Meta:
         model = Product
@@ -327,6 +335,7 @@ class ProductFilter(django_filters.FilterSet):
             "product_type",
             "stocks",
             "search",
+            "allegro_status",
         ]
 
 
