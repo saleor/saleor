@@ -58,3 +58,17 @@ def collect_categories_tree_products(category: "Category") -> "QuerySet[Product]
     for descendant in descendants:
         products = products | descendant.products.all()
     return products
+
+
+def set_variant_as_default(variant):
+    """Set the variant as default for its product."""
+    variant.product.variants.update(default=False)
+    variant.default = True
+    variant.save(update_fields=["default"])
+
+
+def get_default_variant(variants):
+    for variant in variants:
+        if variant.default:
+            return variant
+    return None

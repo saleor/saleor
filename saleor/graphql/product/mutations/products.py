@@ -25,7 +25,11 @@ from ....product.thumbnails import (
     create_collection_background_image_thumbnails,
     create_product_thumbnails,
 )
-from ....product.utils import delete_categories
+from ....product.utils import (
+    delete_categories,
+    get_default_variant,
+    set_variant_as_default,
+)
 from ....product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
@@ -1325,7 +1329,7 @@ class ProductVariantCreate(ModelMutation):
     @classmethod
     @transaction.atomic()
     def save(cls, info, instance, cleaned_input):
-        if not instance.product.get_default_variant():
+        if not get_default_variant(instance.product.variants.all()):
             instance.default = True
         instance.save()
         # Recalculate the "minimal variant price" for the parent product
@@ -1820,7 +1824,7 @@ class ProductVariantSetDefault(BaseMutation):
             only_type=ProductVariant,
             qs=product.variants.all(),
         )
-        variant.set_as_default()
+        set_variant_as_default(variant)
         product.save(update_fields=["updated_at"])
         info.context.plugins.product_updated(product)
         return ProductVariantSetDefault(product=product)
