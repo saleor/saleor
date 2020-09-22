@@ -1,7 +1,7 @@
 import graphene
 import pytest
 
-from ....discount.models import Sale, SaleChannelListing, Voucher
+from ....discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...tests.utils import get_graphql_content
 
 
@@ -20,10 +20,36 @@ def sale_list(channel_USD):
 
 
 @pytest.fixture
-def voucher_list():
-    voucher_1 = Voucher.objects.create(code="voucher-1", discount_value=1)
-    voucher_2 = Voucher.objects.create(code="voucher-2", discount_value=2)
-    voucher_3 = Voucher.objects.create(code="voucher-3", discount_value=3)
+def voucher_list(channel_USD):
+    [voucher_1, voucher_2, voucher_3] = Voucher.objects.bulk_create(
+        [
+            Voucher(code="voucher-1"),
+            Voucher(code="voucher-2"),
+            Voucher(code="voucher-3"),
+        ]
+    )
+    VoucherChannelListing.objects.bulk_create(
+        [
+            VoucherChannelListing(
+                voucher=voucher_1,
+                channel=channel_USD,
+                discount_value=1,
+                currency=channel_USD.currency_code,
+            ),
+            VoucherChannelListing(
+                voucher=voucher_2,
+                channel=channel_USD,
+                discount_value=2,
+                currency=channel_USD.currency_code,
+            ),
+            VoucherChannelListing(
+                voucher=voucher_3,
+                channel=channel_USD,
+                discount_value=3,
+                currency=channel_USD.currency_code,
+            ),
+        ]
+    )
     return voucher_1, voucher_2, voucher_3
 
 

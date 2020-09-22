@@ -1,5 +1,5 @@
 from datetime import timedelta
-from decimal import Decimal
+from unittest.mock import ANY
 
 import graphene
 import pytest
@@ -14,10 +14,10 @@ from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 
 @pytest.fixture
-def voucher_countries(voucher):
-    voucher.countries = countries
-    voucher.save(update_fields=["countries"])
-    return voucher
+def voucher_with_many_channels_and_countries(voucher_with_many_channels):
+    voucher_with_many_channels.countries = countries
+    voucher_with_many_channels.save(update_fields=["countries"])
+    return voucher_with_many_channels
 
 
 @pytest.fixture
@@ -68,14 +68,12 @@ def sale(channel_USD):
     return sale
 
 
-@pytest.fixture
-def voucher():
-    return Voucher.objects.create(name="Voucher", discount_value=123)
-
-
 def test_voucher_query(
-    staff_api_client, voucher_countries, permission_manage_discounts
+    staff_api_client,
+    voucher_with_many_channels_and_countries,
+    permission_manage_discounts,
 ):
+    voucher = voucher_with_many_channels_and_countries
     query = """
     query vouchers {
         vouchers(first: 1) {
@@ -88,11 +86,18 @@ def test_voucher_query(
                     used
                     startDate
                     discountValueType
-                    discountValue
                     applyOncePerCustomer
                     countries {
                         code
                         country
+                    }
+                    channelListing {
+                        id
+                        channel {
+                            slug
+                        }
+                        discountValue
+                        currency
                     }
                 }
             }
@@ -105,19 +110,25 @@ def test_voucher_query(
     content = get_graphql_content(response)
     data = content["data"]["vouchers"]["edges"][0]["node"]
 
-    assert data["type"] == voucher_countries.type.upper()
-    assert data["name"] == voucher_countries.name
-    assert data["code"] == voucher_countries.code
-    assert data["usageLimit"] == voucher_countries.usage_limit
-    assert data["applyOncePerCustomer"] == voucher_countries.apply_once_per_customer
-    assert data["used"] == voucher_countries.used
-    assert data["startDate"] == voucher_countries.start_date.isoformat()
-    assert data["discountValueType"] == voucher_countries.discount_value_type.upper()
-    assert data["discountValue"] == voucher_countries.discount_value
+    assert data["type"] == voucher.type.upper()
+    assert data["name"] == voucher.name
+    assert data["code"] == voucher.code
+    assert data["usageLimit"] == voucher.usage_limit
+    assert data["applyOncePerCustomer"] == voucher.apply_once_per_customer
+    assert data["used"] == voucher.used
+    assert data["startDate"] == voucher.start_date.isoformat()
+    assert data["discountValueType"] == voucher.discount_value_type.upper()
     assert data["countries"] == [
-        {"country": country.name, "code": country.code}
-        for country in voucher_countries.countries
+        {"country": country.name, "code": country.code} for country in voucher.countries
     ]
+    assert len(data["channelListing"]) == 2
+    for channel_listing in voucher.channel_listing.all():
+        assert {
+            "id": ANY,
+            "channel": {"slug": channel_listing.channel.slug},
+            "discountValue": channel_listing.discount_value,
+            "currency": channel_listing.channel.currency_code,
+        } in data["channelListing"]
 
 
 def test_sale_query(
@@ -210,14 +221,11 @@ CREATE_VOUCHER_MUTATION = """
 mutation  voucherCreate(
     $type: VoucherTypeEnum, $name: String, $code: String,
     $discountValueType: DiscountValueTypeEnum, $usageLimit: Int,
-    $discountValue: PositiveDecimal,
-    $minAmountSpent: PositiveDecimal, $minCheckoutItemsQuantity: Int,
-    $startDate: DateTime, $endDate: DateTime, $applyOncePerOrder: Boolean,
-    $applyOncePerCustomer: Boolean) {
+    $minCheckoutItemsQuantity: Int, $startDate: DateTime, $endDate: DateTime,
+    $applyOncePerOrder: Boolean, $applyOncePerCustomer: Boolean) {
         voucherCreate(input: {
                 name: $name, type: $type, code: $code,
                 discountValueType: $discountValueType,
-                discountValue: $discountValue, minAmountSpent: $minAmountSpent,
                 minCheckoutItemsQuantity: $minCheckoutItemsQuantity,
                 startDate: $startDate, endDate: $endDate, usageLimit: $usageLimit
                 applyOncePerOrder: $applyOncePerOrder,
@@ -229,9 +237,6 @@ mutation  voucherCreate(
             }
             voucher {
                 type
-                minSpent {
-                    amount
-                }
                 minCheckoutItemsQuantity
                 name
                 code
@@ -254,8 +259,6 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
         "type": VoucherTypeEnum.ENTIRE_ORDER.name,
         "code": "testcode123",
         "discountValueType": DiscountValueTypeEnum.FIXED.name,
-        "discountValue": 10.12,
-        "minAmountSpent": 1.12,
         "minCheckoutItemsQuantity": 10,
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
@@ -270,7 +273,6 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     get_graphql_content(response)
     voucher = Voucher.objects.get()
     assert voucher.type == VoucherType.ENTIRE_ORDER
-    assert voucher.min_spent_amount == Decimal("1.12")
     assert voucher.name == "test voucher"
     assert voucher.code == "testcode123"
     assert voucher.discount_value_type == DiscountValueType.FIXED
@@ -333,6 +335,7 @@ def test_create_voucher_with_existing_gift_card_code(
     assert errors[0]["code"] == DiscountErrorCode.ALREADY_EXISTS.name
 
 
+@pytest.mark.skip("Move to voucher channel listing update")
 def test_create_voucher_with_too_many_decimal_values_in_min_spent(
     staff_api_client, permission_manage_discounts
 ):
@@ -476,6 +479,9 @@ def test_voucher_add_catalogues(
     query = """
         mutation voucherCataloguesAdd($id: ID!, $input: CatalogueInput!) {
             voucherCataloguesAdd(id: $id, input: $input) {
+                voucher {
+                    name
+                }
                 discountErrors {
                     field
                     code
@@ -519,6 +525,9 @@ def test_voucher_add_catalogues_with_product_without_variant(
     query = """
         mutation voucherCataloguesAdd($id: ID!, $input: CatalogueInput!) {
             voucherCataloguesAdd(id: $id, input: $input) {
+                voucher {
+                    name
+                }
                 discountErrors {
                     field
                     code
@@ -546,9 +555,7 @@ def test_voucher_add_catalogues_with_product_without_variant(
     content = get_graphql_content(response)
     error = content["data"]["voucherCataloguesAdd"]["discountErrors"][0]
 
-    assert (
-        error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.value
-    )
+    assert error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
     assert error["message"] == "Cannot manage products without variants."
 
 
@@ -567,6 +574,9 @@ def test_voucher_remove_catalogues(
     query = """
         mutation voucherCataloguesRemove($id: ID!, $input: CatalogueInput!) {
             voucherCataloguesRemove(id: $id, input: $input) {
+                voucher {
+                    name
+                }
                 discountErrors {
                     field
                     code
@@ -605,6 +615,9 @@ def test_voucher_add_no_catalogues(
     query = """
         mutation voucherCataloguesAdd($id: ID!, $input: CatalogueInput!) {
             voucherCataloguesAdd(id: $id, input: $input) {
+                voucher {
+                    name
+                }
                 discountErrors {
                     field
                     code
@@ -642,16 +655,19 @@ def test_voucher_remove_no_catalogues(
     voucher.categories.add(category)
 
     query = """
-            mutation voucherCataloguesAdd($id: ID!, $input: CatalogueInput!) {
-                voucherCataloguesAdd(id: $id, input: $input) {
-                    discountErrors {
-                        field
-                        code
-                        message
-                    }
+        mutation voucherCataloguesAdd($id: ID!, $input: CatalogueInput!) {
+            voucherCataloguesAdd(id: $id, input: $input) {
+                voucher {
+                    name
+                }
+                discountErrors {
+                    field
+                    code
+                    message
                 }
             }
-        """
+        }
+    """
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.id),
         "input": {"products": [], "collections": [], "categories": []},
@@ -847,9 +863,7 @@ def test_sale_add_catalogues_with_product_without_variants(
     content = get_graphql_content(response)
     error = content["data"]["saleCataloguesAdd"]["discountErrors"][0]
 
-    assert (
-        error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.value
-    )
+    assert error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
     assert error["message"] == "Cannot manage products without variants."
 
 
@@ -1000,18 +1014,9 @@ def test_query_vouchers_with_filter_status(
 ):
     Voucher.objects.bulk_create(
         [
+            Voucher(name="Voucher1", code="abc", start_date=timezone.now(),),
             Voucher(
-                name="Voucher1",
-                discount_value=123,
-                code="abc",
-                start_date=timezone.now(),
-            ),
-            Voucher(
-                name="Voucher2",
-                discount_value=123,
-                code="123",
-                start_date=start_date,
-                end_date=end_date,
+                name="Voucher2", code="123", start_date=start_date, end_date=end_date,
             ),
         ]
     )
@@ -1041,8 +1046,8 @@ def test_query_vouchers_with_filter_times_used(
 ):
     Voucher.objects.bulk_create(
         [
-            Voucher(name="Voucher1", discount_value=123, code="abc"),
-            Voucher(name="Voucher2", discount_value=123, code="123", used=2),
+            Voucher(name="Voucher1", code="abc"),
+            Voucher(name="Voucher2", code="123", used=2),
         ]
     )
     variables = {"filter": voucher_filter}
@@ -1080,10 +1085,9 @@ def test_query_vouchers_with_filter_started(
 ):
     Voucher.objects.bulk_create(
         [
-            Voucher(name="Voucher1", discount_value=123, code="abc"),
+            Voucher(name="Voucher1", code="abc"),
             Voucher(
                 name="Voucher2",
-                discount_value=123,
                 code="123",
                 start_date=timezone.now().replace(year=2012, month=1, day=5),
             ),
@@ -1117,15 +1121,11 @@ def test_query_vouchers_with_filter_discount_type(
         [
             Voucher(
                 name="Voucher1",
-                discount_value=123,
                 code="abc",
                 discount_value_type=DiscountValueType.FIXED,
             ),
             Voucher(
-                name="Voucher2",
-                discount_value=123,
-                code="123",
-                discount_value_type=discount_value_type,
+                name="Voucher2", code="123", discount_value_type=discount_value_type,
             ),
         ]
     )
@@ -1150,8 +1150,8 @@ def test_query_vouchers_with_filter_search(
 ):
     Voucher.objects.bulk_create(
         [
-            Voucher(name="The Biggest Voucher", discount_value=123, code="GIFT"),
-            Voucher(name="Voucher2", discount_value=123, code="GIFT-COUPON"),
+            Voucher(name="The Biggest Voucher", code="GIFT"),
+            Voucher(name="Voucher2", code="GIFT-COUPON"),
         ]
     )
     variables = {"filter": voucher_filter}
@@ -1187,14 +1187,16 @@ QUERY_VOUCHER_WITH_SORT = """
             {"field": "CODE", "direction": "DESC"},
             ["FreeShipping", "Voucher1", "Voucher2"],
         ),
-        (
-            {"field": "VALUE", "direction": "ASC"},
-            ["Voucher2", "FreeShipping", "Voucher1"],
-        ),
-        (
-            {"field": "VALUE", "direction": "DESC"},
-            ["Voucher1", "FreeShipping", "Voucher2"],
-        ),
+        # TODO: Consider filtering and sorting by `isPublished`
+        # Should be resolved by https://app.clickup.com/t/6crxxb
+        # (
+        #     {"field": "VALUE", "direction": "ASC"},
+        #     ["Voucher2", "FreeShipping", "Voucher1"],
+        # ),
+        # (
+        #     {"field": "VALUE", "direction": "DESC"},
+        #     ["Voucher1", "FreeShipping", "Voucher2"],
+        # ),
         (
             {"field": "TYPE", "direction": "ASC"},
             ["Voucher1", "Voucher2", "FreeShipping"],
@@ -1227,14 +1229,16 @@ QUERY_VOUCHER_WITH_SORT = """
             {"field": "USAGE_LIMIT", "direction": "DESC"},
             ["Voucher2", "FreeShipping", "Voucher1"],
         ),
-        (
-            {"field": "MINIMUM_SPENT_AMOUNT", "direction": "ASC"},
-            ["Voucher2", "FreeShipping", "Voucher1"],
-        ),
-        (
-            {"field": "MINIMUM_SPENT_AMOUNT", "direction": "DESC"},
-            ["Voucher1", "FreeShipping", "Voucher2"],
-        ),
+        # TODO: Consider filtering and sorting by `isPublished`
+        # Should be resolved by https://app.clickup.com/t/6crxxb
+        # (
+        #     {"field": "MINIMUM_SPENT_AMOUNT", "direction": "ASC"},
+        #     ["Voucher2", "FreeShipping", "Voucher1"],
+        # ),
+        # (
+        #     {"field": "MINIMUM_SPENT_AMOUNT", "direction": "DESC"},
+        #     ["Voucher1", "FreeShipping", "Voucher2"],
+        # ),
     ],
 )
 def test_query_vouchers_with_sort(
@@ -1244,7 +1248,6 @@ def test_query_vouchers_with_sort(
         [
             Voucher(
                 name="Voucher1",
-                discount_value=123,
                 code="abc",
                 discount_value_type=DiscountValueType.FIXED,
                 type=VoucherType.ENTIRE_ORDER,
@@ -1252,24 +1255,20 @@ def test_query_vouchers_with_sort(
             ),
             Voucher(
                 name="Voucher2",
-                discount_value=23,
                 code="123",
                 discount_value_type=DiscountValueType.FIXED,
                 type=VoucherType.ENTIRE_ORDER,
                 start_date=timezone.now().replace(year=2012, month=1, day=5),
                 end_date=timezone.now().replace(year=2013, month=1, day=5),
-                min_spent_amount=50,
             ),
             Voucher(
                 name="FreeShipping",
-                discount_value=100,
                 code="xyz",
                 discount_value_type=DiscountValueType.PERCENTAGE,
                 type=VoucherType.SHIPPING,
                 start_date=timezone.now().replace(year=2011, month=1, day=5),
                 end_date=timezone.now().replace(year=2015, month=12, day=31),
                 usage_limit=1000,
-                min_spent_amount=500,
             ),
         ]
     )

@@ -39,6 +39,7 @@ from ..discount.models import (
     SaleChannelListing,
     SaleTranslation,
     Voucher,
+    VoucherChannelListing,
     VoucherCustomer,
     VoucherTranslation,
 )
@@ -1409,17 +1410,42 @@ def product_with_images(product_type, category, media_root, channel_USD):
 
 
 @pytest.fixture
-def voucher(db):  # pylint: disable=W0613
-    return Voucher.objects.create(code="mirumee", discount_value=20)
+def voucher_without_channel(db):
+    return Voucher.objects.create(code="mirumee")
 
 
 @pytest.fixture
-def voucher_percentage(db):
-    return Voucher.objects.create(
-        code="mirumee",
-        discount_value=10,
-        discount_value_type=DiscountValueType.PERCENTAGE,
+def voucher(voucher_without_channel, channel_USD):
+    VoucherChannelListing.objects.create(
+        voucher=voucher_without_channel,
+        channel=channel_USD,
+        discount=Money(20, channel_USD.currency_code),
     )
+    return voucher_without_channel
+
+
+@pytest.fixture
+def voucher_with_many_channels(voucher, channel_PLN):
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_PLN,
+        discount=Money(80, channel_PLN.currency_code),
+    )
+    return voucher
+
+
+@pytest.fixture
+def voucher_percentage(channel_USD):
+    voucher = Voucher.objects.create(
+        code="mirumee", discount_value_type=DiscountValueType.PERCENTAGE,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount_value=10,
+        currency=channel_USD.currency_code,
+    )
+    return voucher
 
 
 @pytest.fixture
@@ -1430,24 +1456,38 @@ def voucher_specific_product_type(voucher_percentage):
 
 
 @pytest.fixture
-def voucher_with_high_min_spent_amount():
-    return Voucher.objects.create(
-        code="mirumee", discount_value=10, min_spent=Money(1_000_000, "USD")
+def voucher_with_high_min_spent_amount(channel_USD):
+    voucher = Voucher.objects.create(code="mirumee")
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
+        min_spent_amount=1_000_000,
     )
+    return voucher
 
 
 @pytest.fixture
-def voucher_shipping_type():
-    return Voucher.objects.create(
-        code="mirumee", discount_value=10, type=VoucherType.SHIPPING, countries="IS"
+def voucher_shipping_type(channel_USD):
+    voucher = Voucher.objects.create(
+        code="mirumee", type=VoucherType.SHIPPING, countries="IS"
     )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
+    )
+    return voucher
 
 
 @pytest.fixture
-def voucher_free_shipping(voucher_percentage):
+def voucher_free_shipping(voucher_percentage, channel_USD):
     voucher_percentage.type = VoucherType.SHIPPING
-    voucher_percentage.discount_value = 100
+    voucher_percentage.name = "Free shipping"
     voucher_percentage.save()
+    voucher_percentage.channel_listing.filter(channel=channel_USD).update(
+        discount_value=100
+    )
     return voucher_percentage
 
 

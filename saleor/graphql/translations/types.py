@@ -275,7 +275,7 @@ class VoucherTranslatableContent(CountableDjangoObjectType):
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_voucher(root: discount_models.Voucher, _info):
-        return root
+        return ChannelContext(node=root, channel_slug=None)
 
 
 class SaleTranslation(BaseTranslationType):

@@ -16,7 +16,6 @@ from ...shipping.models import ShippingMethod
 from ..core.connection import CountableConnection
 from ..core.fields import BaseConnectionField
 from ..decorators import permission_required
-from ..discount.resolvers import resolve_vouchers
 from ..menu.resolvers import resolve_menu_items
 from ..page.resolvers import resolve_pages
 from ..product.resolvers import (
@@ -31,6 +30,7 @@ from .resolvers import (
     resolve_products,
     resolve_sales,
     resolve_shipping_methods,
+    resolve_vouchers,
 )
 
 
@@ -103,7 +103,7 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.SHIPPING_METHOD:
             return resolve_shipping_methods(info)
         elif kind == TranslatableKinds.VOUCHER:
-            return resolve_vouchers(info, query=None)
+            return resolve_vouchers(info)
         elif kind == TranslatableKinds.ATTRIBUTE:
             return resolve_attributes(info)
         elif kind == TranslatableKinds.ATTRIBUTE_VALUE:

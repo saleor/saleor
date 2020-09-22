@@ -15,13 +15,14 @@ from .test_checkout import (
 
 
 def test_checkout_lines_delete_with_not_applicable_voucher(
-    user_api_client, checkout_with_item, voucher
+    user_api_client, checkout_with_item, voucher, channel_USD
 ):
     subtotal = calculations.checkout_subtotal(
         checkout=checkout_with_item, lines=list(checkout_with_item)
     )
-    voucher.min_spent = subtotal.gross
-    voucher.save(update_fields=["min_spent_amount", "currency"])
+    voucher.channel_listing.filter(channel=channel_USD).update(
+        min_spent_amount=subtotal.gross.amount
+    )
 
     add_voucher_to_checkout(checkout_with_item, list(checkout_with_item), voucher)
     assert checkout_with_item.voucher_code == voucher.code
@@ -371,6 +372,20 @@ def test_checkout_add_voucher_code_not_applicable_voucher(
     variables = {
         "checkoutId": checkout_id,
         "promoCode": voucher_with_high_min_spent_amount.code,
+    }
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "promoCode"
+
+
+def test_checkout_add_voucher_code_not_assigned_to_channel(
+    api_client, checkout_with_item, voucher_without_channel
+):
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+    variables = {
+        "checkoutId": checkout_id,
+        "promoCode": voucher_without_channel.code,
     }
     data = _mutate_checkout_add_promo_code(api_client, variables)
 

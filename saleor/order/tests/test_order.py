@@ -5,7 +5,13 @@ import pytest
 from prices import Money, TaxedMoney
 
 from ...core.weight import zero_weight
-from ...discount.models import DiscountValueType, NotApplicable, Voucher, VoucherType
+from ...discount.models import (
+    DiscountValueType,
+    NotApplicable,
+    Voucher,
+    VoucherChannelListing,
+    VoucherType,
+)
 from ...discount.utils import validate_voucher_in_order
 from ...payment import ChargeStatus
 from ...payment.models import Payment
@@ -462,7 +468,7 @@ def test_get_voucher_discount_for_order_voucher_validation(
     validate_voucher_in_order(order_with_lines)
 
     mock_validate_voucher.assert_called_once_with(
-        voucher, subtotal.gross, quantity, customer_email
+        voucher, subtotal.gross, quantity, customer_email, order_with_lines.channel
     )
 
 
@@ -516,20 +522,27 @@ def test_display_translated_order_line_name(
     ],
 )
 def test_value_voucher_order_discount(
-    subtotal, discount_value, discount_type, min_spent_amount, expected_value
+    subtotal,
+    discount_value,
+    discount_type,
+    min_spent_amount,
+    expected_value,
+    channel_USD,
 ):
-    voucher = Voucher(
-        code="unique",
-        type=VoucherType.ENTIRE_ORDER,
-        discount_value_type=discount_type,
-        discount_value=discount_value,
-        min_spent=Money(min_spent_amount, "USD")
-        if min_spent_amount is not None
-        else None,
+    voucher = Voucher.objects.create(
+        code="unique", type=VoucherType.ENTIRE_ORDER, discount_value_type=discount_type,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(discount_value, channel_USD.currency_code),
+        min_spent_amount=(min_spent_amount if min_spent_amount is not None else None),
     )
     subtotal = Money(subtotal, "USD")
     subtotal = TaxedMoney(net=subtotal, gross=subtotal)
-    order = Mock(get_subtotal=Mock(return_value=subtotal), voucher=voucher)
+    order = Mock(
+        get_subtotal=Mock(return_value=subtotal), voucher=voucher, channel=channel_USD
+    )
     discount = get_voucher_discount_for_order(order)
     assert discount == Money(expected_value, "USD")
 
@@ -539,14 +552,15 @@ def test_value_voucher_order_discount(
     [(10, 50, DiscountValueType.PERCENTAGE, 5), (10, 20, DiscountValueType.FIXED, 10)],
 )
 def test_shipping_voucher_order_discount(
-    shipping_cost, discount_value, discount_type, expected_value
+    shipping_cost, discount_value, discount_type, expected_value, channel_USD
 ):
-    voucher = Voucher(
-        code="unique",
-        type=VoucherType.SHIPPING,
-        discount_value_type=discount_type,
-        discount_value=discount_value,
-        min_spent_amount=None,
+    voucher = Voucher.objects.create(
+        code="unique", type=VoucherType.SHIPPING, discount_value_type=discount_type,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(discount_value, channel_USD.currency_code),
     )
     subtotal = Money(100, "USD")
     subtotal = TaxedMoney(net=subtotal, gross=subtotal)
@@ -555,6 +569,7 @@ def test_shipping_voucher_order_discount(
         get_subtotal=Mock(return_value=subtotal),
         shipping_price=shipping_total,
         voucher=voucher,
+        channel=channel_USD,
     )
     discount = get_voucher_discount_for_order(order)
     assert discount == Money(expected_value, "USD")
@@ -576,17 +591,24 @@ def test_shipping_voucher_order_discount(
     ],
 )
 def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
-    total, total_quantity, min_spent_amount, min_checkout_items_quantity, voucher_type
+    total,
+    total_quantity,
+    min_spent_amount,
+    min_checkout_items_quantity,
+    voucher_type,
+    channel_USD,
 ):
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=voucher_type,
         discount_value_type=DiscountValueType.FIXED,
-        discount_value=10,
-        min_spent=(
-            Money(min_spent_amount, "USD") if min_spent_amount is not None else None
-        ),
         min_checkout_items_quantity=min_checkout_items_quantity,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
+        min_spent_amount=(min_spent_amount if min_spent_amount is not None else None),
     )
     price = Money(total, "USD")
     price = TaxedMoney(net=price, gross=price)
@@ -595,6 +617,7 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
         get_total_quantity=Mock(return_value=total_quantity),
         shipping_price=price,
         voucher=voucher,
+        channel=channel_USD,
     )
     with pytest.raises(NotApplicable):
         get_voucher_discount_for_order(order)
@@ -617,13 +640,18 @@ def test_get_discount_for_order_specific_products_voucher(
     discount_type,
     apply_once_per_order,
     discount_amount,
+    channel_USD,
 ):
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=discount_type,
-        discount_value=discount_value,
         apply_once_per_order=apply_once_per_order,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(discount_value, channel_USD.currency_code),
     )
     voucher.products.add(order_with_lines.lines.first().variant.product)
     voucher.products.add(order_with_lines.lines.last().variant.product)
@@ -634,14 +662,18 @@ def test_get_discount_for_order_specific_products_voucher(
 
 
 def test_product_voucher_checkout_discount_raises_not_applicable(
-    order_with_lines, product_with_images
+    order_with_lines, product_with_images, channel_USD
 ):
     discounted_product = product_with_images
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=DiscountValueType.FIXED,
-        discount_value=10,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
     )
     voucher.save()
     voucher.products.add(discounted_product)
@@ -652,15 +684,21 @@ def test_product_voucher_checkout_discount_raises_not_applicable(
         get_voucher_discount_for_order(order_with_lines)
 
 
-def test_category_voucher_checkout_discount_raises_not_applicable(order_with_lines):
+def test_category_voucher_checkout_discount_raises_not_applicable(
+    order_with_lines, channel_USD
+):
     discounted_collection = Collection.objects.create(
         name="Discounted", slug="discount"
     )
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=DiscountValueType.FIXED,
-        discount_value=10,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
     )
     voucher.save()
     voucher.collections.add(discounted_collection)
