@@ -70,12 +70,15 @@ def test_api_post_request_task_creates_order_event(
 def test_api_post_request_task_missing_response(
     order_with_lines, shipping_zone, monkeypatch
 ):
-    monkeypatch.setattr("saleor.plugins.avatax.tasks.api_post_request", lambda *_: {})
+    mock_api_post_request = {"error": {"message": "Wrong credentials"}}
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.tasks.api_post_request", lambda *_: mock_api_post_request
+    )
 
     config = AvataxConfiguration(
         username_or_account="test", password_or_license="test", use_sandbox=False,
     )
-    request_data = {}
+    request_data = get_order_request_data(order_with_lines, config)
 
     transaction_url = urljoin(
         get_api_url(config.use_sandbox), "transactions/createoradjust"
@@ -88,4 +91,33 @@ def test_api_post_request_task_missing_response(
     assert order_with_lines.events.count() == 1
     event = order_with_lines.events.get()
     assert event.type == OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
-    assert event.parameters["message"] == "Unable to send order to Avatax."
+    expected_msg = "Unable to send order to Avatax. Wrong credentials"
+    assert event.parameters["message"] == expected_msg
+
+
+def test_api_post_request_task_order_doesnt_have_any_lines_with_taxes_to_calculate(
+    order_with_lines, shipping_zone, monkeypatch
+):
+    mock_api_post_request = {"error": {"message": "Wrong credentials"}}
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.tasks.api_post_request", lambda *_: mock_api_post_request
+    )
+
+    config = AvataxConfiguration(
+        username_or_account="test", password_or_license="test", use_sandbox=False,
+    )
+    request_data = {}
+
+    transaction_url = urljoin(
+        get_api_url(config.use_sandbox), "transactions/createoradjust"
+    )
+
+    api_post_request_task(
+        transaction_url, request_data, asdict(config), order_with_lines.pk
+    )
+
+    assert order_with_lines.events.count() == 1
+    event = order_with_lines.events.get()
+    assert event.type == OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
+    expected_msg = "The order doesn't have any line which should be sent to Avatax."
+    assert event.parameters["message"] == expected_msg

@@ -1176,6 +1176,28 @@ def test_draft_order_complete_anonymous_user_no_email(
     assert data["status"] == OrderStatus.UNFULFILLED.upper()
 
 
+def test_draft_order_complete_drops_shipping_address(
+    staff_api_client, permission_manage_orders, staff_user, draft_order, address,
+):
+    order = draft_order
+    order.shipping_address = address.get_copy()
+    order.billing_address = address.get_copy()
+    order.save()
+    order.lines.update(is_shipping_required=False)
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+    order.refresh_from_db()
+
+    assert data["status"] == order.status.upper()
+    assert order.shipping_address is None
+
+
 def test_draft_order_complete_unavailable_for_purchase(
     staff_api_client, permission_manage_orders, staff_user, draft_order
 ):
@@ -3228,6 +3250,7 @@ def test_query_draft_orders_with_sort(
         ({"search": "Leslie"}, 1),
         ({"search": "Wade"}, 1),
         ({"search": ""}, 3),
+        ({"search": "ExternalID"}, 1),
     ],
 )
 def test_orders_query_with_filter_search(
@@ -3238,7 +3261,7 @@ def test_orders_query_with_filter_search(
     permission_manage_orders,
     customer_user,
 ):
-    Order.objects.bulk_create(
+    orders = Order.objects.bulk_create(
         [
             Order(
                 user=customer_user,
@@ -3256,11 +3279,43 @@ def test_orders_query_with_filter_search(
             ),
         ]
     )
+    order_with_payment = orders[1]
+    payment = Payment.objects.create(order=order_with_payment)
+    payment.transactions.create(
+        gateway_response={}, is_success=True, searchable_key="ExternalID"
+    )
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["orders"]["totalCount"] == count
+
+
+def test_orders_query_with_filter_search_by_global_payment_id(
+    orders_query_with_filter, staff_api_client, permission_manage_orders, customer_user,
+):
+
+    orders = Order.objects.bulk_create(
+        [
+            Order(
+                user=customer_user,
+                token=str(uuid.uuid4()),
+                discount_name="test_discount1",
+                user_email="test@example.com",
+                translated_discount_name="translated_discount1_name",
+            ),
+            Order(token=str(uuid.uuid4()), user_email="user1@example.com"),
+        ]
+    )
+    order_with_payment = orders[0]
+    payment = Payment.objects.create(order=order_with_payment)
+    global_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    variables = {"filter": {"search": global_id}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 1
 
 
 def test_orders_query_with_filter_search_by_id(

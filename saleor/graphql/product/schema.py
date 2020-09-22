@@ -99,6 +99,7 @@ from .mutations.products import (
     ProductVariantClearPrivateMeta,
     ProductVariantCreate,
     ProductVariantDelete,
+    ProductVariantReorder,
     ProductVariantUpdate,
     ProductVariantUpdateMeta,
     ProductVariantUpdatePrivateMeta,
@@ -443,6 +444,7 @@ class ProductMutations(graphene.ObjectType):
     product_set_availability_for_purchase = ProductSetAvailabilityForPurchase.Field()
 
     product_image_create = ProductImageCreate.Field()
+    product_variant_reorder = ProductVariantReorder.Field()
     product_image_delete = ProductImageDelete.Field()
     product_image_bulk_delete = ProductImageBulkDelete.Field()
     product_image_reorder = ProductImageReorder.Field()

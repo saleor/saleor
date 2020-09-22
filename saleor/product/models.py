@@ -6,7 +6,8 @@ from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.db.models import JSONField  # type: ignore
-from django.db.models import Case, Count, F, FilteredRelation, Q, Value, When
+from django.db.models import Case, Count, F, FilteredRelation, Q, Sum, Value, When
+from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django_measurement.models import MeasurementField
@@ -341,6 +342,14 @@ class ProductTranslation(SeoModelTranslation):
 
 
 class ProductVariantQueryset(models.QuerySet):
+    def annotate_quantities(self):
+        return self.annotate(
+            quantity=Coalesce(Sum("stocks__quantity"), 0),
+            quantity_allocated=Coalesce(
+                Sum("stocks__allocations__quantity_allocated"), 0
+            ),
+        )
+
     def create(self, **kwargs):
         """Create a product's variant.
 
@@ -374,7 +383,7 @@ class ProductVariantQueryset(models.QuerySet):
         return variants
 
 
-class ProductVariant(ModelWithMetadata):
+class ProductVariant(SortableModel, ModelWithMetadata):
     sku = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255, blank=True)
     currency = models.CharField(
@@ -409,7 +418,7 @@ class ProductVariant(ModelWithMetadata):
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ("sku",)
+        ordering = ("sort_order", "sku")
         app_label = "product"
 
     def __str__(self) -> str:
@@ -457,6 +466,9 @@ class ProductVariant(ModelWithMetadata):
     def get_first_image(self) -> "ProductImage":
         images = list(self.images.all())
         return images[0] if images else self.product.get_first_image()
+
+    def get_ordering_queryset(self):
+        return self.product.variants.all()
 
 
 class ProductVariantTranslation(models.Model):

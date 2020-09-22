@@ -307,6 +307,7 @@ class AdyenGatewayPlugin(BasePlugin):
             raw_response=result.message,
             action_required_data=action,
             payment_method_info=payment_method_info,
+            searchable_key=result.message.get("pspReference", ""),
         )
 
     @classmethod
@@ -351,9 +352,10 @@ class AdyenGatewayPlugin(BasePlugin):
             kind=kind,
             amount=payment_information.amount,
             currency=payment_information.currency,
-            transaction_id=result.get("pspReference", ""),
+            transaction_id=result.message.get("pspReference", ""),
             error=result.message.get("refusalReason"),
             raw_response=result.message,
+            searchable_key=result.message.get("pspReference", ""),
         )
 
     @require_active_plugin
@@ -475,6 +477,7 @@ class AdyenGatewayPlugin(BasePlugin):
             transaction_id=result.message.get("pspReference", ""),
             error="",
             raw_response=result.message,
+            searchable_key=result.message.get("pspReference", ""),
         )
 
     @require_active_plugin
@@ -504,6 +507,7 @@ class AdyenGatewayPlugin(BasePlugin):
             error="",
             raw_response=result.message,
             payment_method_info=payment_method_info,
+            searchable_key=result.message.get("pspReference", ""),
         )
 
     @require_active_plugin
@@ -526,4 +530,5 @@ class AdyenGatewayPlugin(BasePlugin):
             transaction_id=result.message.get("pspReference", ""),
             error="",
             raw_response=result.message,
+            searchable_key=result.message.get("pspReference", ""),
         )

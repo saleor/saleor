@@ -276,6 +276,8 @@ class AvataxPlugin(BasePlugin):
             transaction_type=TransactionType.ORDER,
             discounts=discounts,
         )
+        if not data.get("createTransactionModel", {}).get("lines"):
+            return previous_value
         transaction_url = urljoin(
             get_api_url(self.config.use_sandbox), "transactions/createoradjust"
         )

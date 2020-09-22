@@ -124,8 +124,8 @@ def api_get_request(
 def _validate_adddress_details(
     shipping_address, is_shipping_required, address, shipping_method
 ):
-    if not is_shipping_required and not address:
-        return False
+    if not is_shipping_required and address:
+        return True
     if not shipping_address:
         return False
     if not shipping_method:
@@ -151,7 +151,7 @@ def _validate_checkout(checkout: "Checkout", lines: Iterable["CheckoutLine"]) ->
         return False
 
     shipping_address = checkout.shipping_address
-    is_shipping_required = checkout.is_shipping_required
+    is_shipping_required = checkout.is_shipping_required()
     address = shipping_address or checkout.billing_address
     return _validate_adddress_details(
         shipping_address, is_shipping_required, address, checkout.shipping_method
