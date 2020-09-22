@@ -3469,6 +3469,7 @@ input ProductFilterInput {
   productType: ID
   stocks: ProductStockFilterInput
   search: String
+  allegroStatus: String
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   productTypes: [ID]
