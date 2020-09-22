@@ -146,7 +146,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             raise ValidationError(
                 {
                     "voucher": ValidationError(
-                        "Voucher not available for this order",
+                        "Voucher not available for this order.",
                         code=OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value,
                     )
                 }
@@ -164,11 +164,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         cls.clean_channel_id(instance, channel_id)
         voucher = cleaned_input.get("voucher", None)
         if voucher:
-            channel = (
-                cleaned_input["channel"]
-                if "channel" in cleaned_input
-                else instance.channel
-            )
+            channel = cleaned_input.get("channel") or instance.channel
             cls.clean_voucher(voucher, channel)
 
         if lines:

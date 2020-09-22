@@ -38,9 +38,12 @@ def test_voucher_channel_listing_create_as_staff(
     voucher = voucher_without_channel
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    discount_value = 5.5
     variables = {
         "id": voucher_id,
-        "input": {"addChannels": [{"channelId": channel_id, "discountValue": 5.5}]},
+        "input": {
+            "addChannels": [{"channelId": channel_id, "discountValue": discount_value}]
+        },
     }
 
     # when
@@ -56,7 +59,7 @@ def test_voucher_channel_listing_create_as_staff(
     assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
     channel_listing = data["channelListing"]
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
-    assert channel_listing[0]["discountValue"] == 5.5
+    assert channel_listing[0]["discountValue"] == discount_value
     assert channel_listing[0]["currency"] == channel_USD.currency_code
 
 
@@ -67,9 +70,12 @@ def test_product_channel_listing_update_as_app(
     voucher = voucher_without_channel
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    discount_value = 5.5
     variables = {
         "id": voucher_id,
-        "input": {"addChannels": [{"channelId": channel_id, "discountValue": 5.5}]},
+        "input": {
+            "addChannels": [{"channelId": channel_id, "discountValue": discount_value}]
+        },
     }
 
     # when
@@ -85,7 +91,7 @@ def test_product_channel_listing_update_as_app(
     assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
     channel_listing = data["channelListing"]
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
-    assert channel_listing[0]["discountValue"] == 5.5
+    assert channel_listing[0]["discountValue"] == discount_value
     assert channel_listing[0]["currency"] == channel_USD.currency_code
 
 
@@ -143,19 +149,23 @@ def test_voucher_channel_listing_create_many_channel(
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     channel_pln_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    discount_value = 5.5
+    discount_value_pln = 50.5
+    min_amount_spent = 10.1
+    min_amount_spent_pln = 100.2
     variables = {
         "id": voucher_id,
         "input": {
             "addChannels": [
                 {
                     "channelId": channel_id,
-                    "discountValue": 5.5,
-                    "minAmountSpent": 10.1,
+                    "discountValue": discount_value,
+                    "minAmountSpent": min_amount_spent,
                 },
                 {
                     "channelId": channel_pln_id,
-                    "discountValue": 50.5,
-                    "minAmountSpent": 100.2,
+                    "discountValue": discount_value_pln,
+                    "minAmountSpent": min_amount_spent_pln,
                 },
             ]
         },
@@ -174,12 +184,12 @@ def test_voucher_channel_listing_create_many_channel(
     assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
     channel_listing = data["channelListing"]
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
-    assert channel_listing[0]["discountValue"] == 5.5
-    assert channel_listing[0]["minSpent"]["amount"] == 10.1
+    assert channel_listing[0]["discountValue"] == discount_value
+    assert channel_listing[0]["minSpent"]["amount"] == min_amount_spent
     assert channel_listing[0]["currency"] == channel_USD.currency_code
     assert channel_listing[1]["channel"]["slug"] == channel_PLN.slug
-    assert channel_listing[1]["discountValue"] == 50.5
-    assert channel_listing[1]["minSpent"]["amount"] == 100.2
+    assert channel_listing[1]["discountValue"] == discount_value_pln
+    assert channel_listing[1]["minSpent"]["amount"] == min_amount_spent_pln
     assert channel_listing[1]["currency"] == channel_PLN.currency_code
 
 
@@ -190,14 +200,16 @@ def test_voucher_channel_listing_create_and_remove(
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     channel_pln_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    discount_value_pln = 50.5
+    min_amount_spent_pln = 100.2
     variables = {
         "id": voucher_id,
         "input": {
             "addChannels": [
                 {
                     "channelId": channel_pln_id,
-                    "discountValue": 50.5,
-                    "minAmountSpent": 100.2,
+                    "discountValue": discount_value_pln,
+                    "minAmountSpent": min_amount_spent_pln,
                 }
             ],
             "removeChannels": [channel_id],
@@ -218,8 +230,8 @@ def test_voucher_channel_listing_create_and_remove(
     channel_listing = data["channelListing"]
     assert len(channel_listing) == 1
     assert channel_listing[0]["channel"]["slug"] == channel_PLN.slug
-    assert channel_listing[0]["discountValue"] == 50.5
-    assert channel_listing[0]["minSpent"]["amount"] == 100.2
+    assert channel_listing[0]["discountValue"] == discount_value_pln
+    assert channel_listing[0]["minSpent"]["amount"] == min_amount_spent_pln
     assert channel_listing[0]["currency"] == channel_PLN.currency_code
 
 
@@ -230,6 +242,7 @@ def test_voucher_channel_listing_update(
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     discount_value = 5.5
+    min_amount_spent = 100.2
     assert not voucher.channel_listing.get().discount_value == discount_value
     variables = {
         "id": voucher_id,
@@ -238,7 +251,7 @@ def test_voucher_channel_listing_update(
                 {
                     "channelId": channel_id,
                     "discountValue": discount_value,
-                    "minAmountSpent": 100.2,
+                    "minAmountSpent": min_amount_spent,
                 }
             ]
         },
@@ -259,7 +272,7 @@ def test_voucher_channel_listing_update(
     assert len(channel_listing) == 1
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
     assert channel_listing[0]["discountValue"] == discount_value
-    assert channel_listing[0]["minSpent"]["amount"] == 100.2
+    assert channel_listing[0]["minSpent"]["amount"] == min_amount_spent
     assert channel_listing[0]["currency"] == channel_USD.currency_code
 
 
@@ -269,9 +282,14 @@ def test_voucher_channel_listing_update_without_discount_value(
     # given
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    min_amount_spent = 100.2
     variables = {
         "id": voucher_id,
-        "input": {"addChannels": [{"channelId": channel_id, "minAmountSpent": 100.2}]},
+        "input": {
+            "addChannels": [
+                {"channelId": channel_id, "minAmountSpent": min_amount_spent}
+            ]
+        },
     }
 
     # when
@@ -289,7 +307,7 @@ def test_voucher_channel_listing_update_without_discount_value(
     assert len(channel_listing) == 1
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
     assert channel_listing[0]["discountValue"] == 20
-    assert channel_listing[0]["minSpent"]["amount"] == 100.2
+    assert channel_listing[0]["minSpent"]["amount"] == min_amount_spent
     assert channel_listing[0]["currency"] == channel_USD.currency_code
 
 
