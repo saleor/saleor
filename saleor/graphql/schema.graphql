@@ -2717,6 +2717,7 @@ type Mutation {
   productChannelListingUpdate(id: ID!, input: ProductChannelListingUpdateInput!): ProductChannelListingUpdate
   productSetAvailabilityForPurchase(isAvailable: Boolean!, productId: ID!, startDate: Date): ProductSetAvailabilityForPurchase
   productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
+  productVariantReorder(moves: [ReorderInput]!, productId: ID!): ProductVariantReorder
   productImageDelete(id: ID!): ProductImageDelete
   productImageBulkDelete(ids: [ID]!): ProductImageBulkDelete
   productImageReorder(imagesIds: [ID]!, productId: ID!): ProductImageReorder
@@ -3084,6 +3085,7 @@ enum OrderErrorCode {
   REQUIRED
   SHIPPING_METHOD_NOT_APPLICABLE
   SHIPPING_METHOD_REQUIRED
+  TAX_ERROR
   UNIQUE
   VOID_INACTIVE_PAYMENT
   ZERO_QUANTITY
@@ -4296,6 +4298,12 @@ input ProductVariantInput {
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
+}
+
+type ProductVariantReorder {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  product: Product
+  productErrors: [ProductError!]!
 }
 
 type ProductVariantStocksCreate {

@@ -13,6 +13,7 @@ from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
 from ...checkout import base_calculations
+from ...core.taxes import TaxError
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -97,10 +98,12 @@ def api_post_request(
     return json_response  # type: ignore
 
 
-def api_get_request(url: str, config: AvataxConfiguration):
+def api_get_request(
+    url: str, username_or_account: str, password_or_license: str,
+):
     response = None
     try:
-        auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
+        auth = HTTPBasicAuth(username_or_account, password_or_license)
         response = requests.get(url, auth=auth, timeout=TIMEOUT)
         json_response = response.json()
         logger.debug("[GET] Hit to %s", url)
@@ -121,8 +124,8 @@ def api_get_request(url: str, config: AvataxConfiguration):
 def _validate_adddress_details(
     shipping_address, is_shipping_required, address, shipping_method
 ):
-    if not is_shipping_required and not address:
-        return False
+    if not is_shipping_required and address:
+        return True
     if not shipping_address:
         return False
     if not shipping_method:
@@ -148,7 +151,7 @@ def _validate_checkout(checkout: "Checkout", lines: Iterable["CheckoutLine"]) ->
         return False
 
     shipping_address = checkout.shipping_address
-    is_shipping_required = checkout.is_shipping_required
+    is_shipping_required = checkout.is_shipping_required()
     address = shipping_address or checkout.billing_address
     return _validate_adddress_details(
         shipping_address, is_shipping_required, address, checkout.shipping_method
@@ -440,6 +443,9 @@ def get_order_tax_data(
     response = get_cached_response_or_fetch(
         data, "order_%s" % order.token, config, force_refresh
     )
+    error = response.get("error")
+    if error:
+        raise TaxError(error)
     return response
 
 
@@ -461,7 +467,9 @@ def get_cached_tax_codes_or_fetch(
     tax_codes = cache.get(TAX_CODES_CACHE_KEY, {})
     if not tax_codes:
         tax_codes_url = urljoin(get_api_url(config.use_sandbox), "definitions/taxcodes")
-        response = api_get_request(tax_codes_url, config)
+        response = api_get_request(
+            tax_codes_url, config.username_or_account, config.password_or_license
+        )
         if response and "error" not in response:
             tax_codes = generate_tax_codes_dict(response)
             cache.set(TAX_CODES_CACHE_KEY, tax_codes, cache_time)

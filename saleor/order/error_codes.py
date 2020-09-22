@@ -21,6 +21,7 @@ class OrderErrorCode(Enum):
     REQUIRED = "required"
     SHIPPING_METHOD_NOT_APPLICABLE = "shipping_method_not_applicable"
     SHIPPING_METHOD_REQUIRED = "shipping_method_required"
+    TAX_ERROR = "tax_error"
     UNIQUE = "unique"
     VOID_INACTIVE_PAYMENT = "void_inactive_payment"
     ZERO_QUANTITY = "zero_quantity"

@@ -4,8 +4,11 @@ from uuid import uuid4
 import graphene
 import pytest
 from measurement.measures import Weight
+from prices import Money, TaxedMoney
 
 from ....core.weight import WeightUnits
+from ....order import OrderStatus
+from ....order.models import OrderLine
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Product, ProductChannelListing, ProductVariant
 from ....product.utils.attributes import associate_attribute_values_to_instance
@@ -1009,17 +1012,20 @@ def test_update_product_variant_withot_data_not_raise_price_validation_error(
     assert not content["data"]["productVariantUpdate"]["productErrors"]
 
 
-def test_delete_variant(staff_api_client, product, permission_manage_products):
-    query = """
-        mutation variantDelete($id: ID!) {
-            productVariantDelete(id: $id) {
-                productVariant {
-                    sku
-                    id
-                }
-              }
+DELETE_VARIANT_MUTATION = """
+    mutation variantDelete($id: ID!) {
+        productVariantDelete(id: $id) {
+            productVariant {
+                sku
+                id
             }
-    """
+            }
+        }
+"""
+
+
+def test_delete_variant(staff_api_client, product, permission_manage_products):
+    query = DELETE_VARIANT_MUTATION
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {"id": variant_id}
@@ -1031,6 +1037,47 @@ def test_delete_variant(staff_api_client, product, permission_manage_products):
     assert data["productVariant"]["sku"] == variant.sku
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
+
+
+def test_delete_variant_in_draft_order(
+    staff_api_client, order_line, permission_manage_products, order_list, channel_USD,
+):
+    query = DELETE_VARIANT_MUTATION
+
+    draft_order = order_line.order
+    draft_order.status = OrderStatus.DRAFT
+    draft_order.save(update_fields=["status"])
+
+    variant = order_line.variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id}
+
+    net = variant.get_price(channel_USD)
+    gross = Money(amount=net.amount, currency=net.currency)
+    order_not_draft = order_list[-1]
+    order_line_not_in_draft = OrderLine.objects.create(
+        variant=variant,
+        order=order_not_draft,
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        unit_price=TaxedMoney(net=net, gross=gross),
+        quantity=3,
+    )
+    order_line_not_in_draft_pk = order_line_not_in_draft.pk
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantDelete"]
+    assert data["productVariant"]["sku"] == variant.sku
+    with pytest.raises(order_line._meta.model.DoesNotExist):
+        order_line.refresh_from_db()
+
+    assert OrderLine.objects.filter(pk=order_line_not_in_draft_pk).exists()
 
 
 def _fetch_all_variants(client, variables={}, permissions=None):

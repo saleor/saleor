@@ -1,11 +1,12 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from graphene.types import InputObjectType
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
-from ....core.taxes import zero_taxed_money
+from ....core.taxes import TaxError, zero_taxed_money
 from ....order import OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
@@ -255,6 +256,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             update_order_prices(instance, info.context.discounts)
 
     @classmethod
+    @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         new_instance = not bool(instance.pk)
 
@@ -264,15 +266,21 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         # Save any changes create/update the draft
         cls._commit_changes(info, instance, cleaned_input)
 
-        # Process any lines to add
-        cls._save_lines(
-            info,
-            instance,
-            cleaned_input.get("quantities"),
-            cleaned_input.get("variants"),
-        )
+        try:
+            # Process any lines to add
+            cls._save_lines(
+                info,
+                instance,
+                cleaned_input.get("quantities"),
+                cleaned_input.get("variants"),
+            )
 
-        cls._refresh_lines_unit_price(info, instance, cleaned_input, new_instance)
+            cls._refresh_lines_unit_price(info, instance, cleaned_input, new_instance)
+        except TaxError as tax_error:
+            raise ValidationError(
+                "Unable to calculate taxes - %s" % str(tax_error),
+                code=OrderErrorCode.TAX_ERROR.value,
+            )
 
         # Post-process the results
         recalculate_order(instance)
@@ -342,6 +350,7 @@ class DraftOrderComplete(BaseMutation):
             order.shipping_price = zero_taxed_money()
             if order.shipping_address:
                 order.shipping_address.delete()
+                order.shipping_address = None
 
         order.save()
 
@@ -419,10 +428,16 @@ class DraftOrderLinesCreate(BaseMutation):
                 )
 
         # Add the lines
-        lines = [
-            add_variant_to_draft_order(order, variant, quantity)
-            for quantity, variant in lines_to_add
-        ]
+        try:
+            lines = [
+                add_variant_to_draft_order(order, variant, quantity)
+                for quantity, variant in lines_to_add
+            ]
+        except TaxError as tax_error:
+            raise ValidationError(
+                "Unable to calculate taxes - %s" % str(tax_error),
+                code=OrderErrorCode.TAX_ERROR.value,
+            )
 
         # Create the event
         events.draft_order_added_products_event(

@@ -12,6 +12,7 @@ from graphql_relay import from_global_id
 
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions
+from ....order import OrderStatus, models as order_models
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import (
@@ -45,7 +46,14 @@ from ...core.utils.reordering import perform_reordering
 from ...core.validators import validate_price_precision
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...warehouse.types import Warehouse
-from ..types import Category, Collection, Product, ProductImage, ProductVariant
+from ..types import (
+    Category,
+    Collection,
+    Product,
+    ProductImage,
+    ProductType,
+    ProductVariant,
+)
 from ..utils import (
     create_stocks,
     get_used_attribute_values_for_variant,
@@ -53,6 +61,7 @@ from ..utils import (
     validate_attribute_input_for_product,
     validate_attribute_input_for_variant,
 )
+from .common import ReorderInput
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -940,6 +949,25 @@ class ProductDelete(ModelDeleteMutation):
         instance = ChannelContext(node=instance, channel_slug=None)
         return super().success_response(instance)
 
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        instance = cls.get_node_or_error(info, node_id, only_type=Product)
+
+        # get draft order lines for variant
+        line_pks = list(
+            order_models.OrderLine.objects.filter(
+                variant__in=instance.variants.all(), order__status=OrderStatus.DRAFT
+            ).values_list("pk", flat=True)
+        )
+
+        response = super().perform_mutation(_root, info, **data)
+
+        # delete order lines for deleted variant
+        order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
+
+        return response
+
 
 class ProductUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
@@ -1232,6 +1260,25 @@ class ProductVariantDelete(ModelDeleteMutation):
         instance = ChannelContext(node=instance, channel_slug=None)
         return super().success_response(instance)
 
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        variant_pk = from_global_id_strict_type(node_id, ProductVariant, field="pk")
+
+        # get draft order lines for variant
+        line_pks = list(
+            order_models.OrderLine.objects.filter(
+                variant__pk=variant_pk, order__status=OrderStatus.DRAFT
+            ).values_list("pk", flat=True)
+        )
+
+        response = super().perform_mutation(_root, info, **data)
+
+        # delete order lines for deleted variant
+        order_models.OrderLine.objects.filter(pk__in=line_pks).delete()
+
+        return response
+
 
 class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
@@ -1401,6 +1448,27 @@ class ProductTypeDelete(ModelDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        product_type_pk = from_global_id_strict_type(node_id, ProductType, field="pk")
+        variants_pks = models.Product.objects.filter(
+            product_type__pk=product_type_pk
+        ).values_list("variants__pk", flat=True)
+        # get draft order lines for products
+        order_line_pks = list(
+            order_models.OrderLine.objects.filter(
+                variant__pk__in=variants_pks, order__status=OrderStatus.DRAFT
+            ).values_list("pk", flat=True)
+        )
+
+        response = super().perform_mutation(_root, info, **data)
+
+        # delete order lines for deleted variants
+        order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()
+
+        return response
 
 
 class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
@@ -1579,6 +1647,75 @@ class ProductImageReorder(BaseMutation):
 
         product = ChannelContext(node=product, channel_slug=None)
         return ProductImageReorder(product=product, images=images)
+
+
+class ProductVariantReorder(BaseMutation):
+    product = graphene.Field(Product)
+
+    class Arguments:
+        product_id = graphene.ID(
+            required=True,
+            description="Id of product that variants order will be altered.",
+        )
+        moves = graphene.List(
+            ReorderInput,
+            required=True,
+            description="The list of variant reordering operations.",
+        )
+
+    class Meta:
+        description = (
+            "Reorder the variants of a product. "
+            "Mutation updates updated_at on product and "
+            "triggers PRODUCT_UPDATED webhook."
+        )
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, product_id, moves):
+        pk = from_global_id_strict_type(product_id, only_type=Product, field="id")
+
+        try:
+            product = models.Product.objects.prefetch_related("variants").get(pk=pk)
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "product_id": ValidationError(
+                        (f"Couldn't resolve to a product type: {product_id}"),
+                        code=ProductErrorCode.NOT_FOUND,
+                    )
+                }
+            )
+
+        variants_m2m = product.variants
+        operations = {}
+
+        for move_info in moves:
+            variant_pk = from_global_id_strict_type(
+                move_info.id, only_type=ProductVariant, field="moves"
+            )
+
+            try:
+                m2m_info = variants_m2m.get(id=int(variant_pk))
+            except ObjectDoesNotExist:
+                raise ValidationError(
+                    {
+                        "moves": ValidationError(
+                            f"Couldn't resolve to a variant: {move_info.id}",
+                            code=ProductErrorCode.NOT_FOUND,
+                        )
+                    }
+                )
+            operations[m2m_info.pk] = move_info.sort_order
+
+        with transaction.atomic():
+            perform_reordering(variants_m2m, operations)
+
+        product.save(update_fields=["updated_at"])
+        info.context.plugins.product_updated(product)
+        return ProductVariantReorder(product=product)
 
 
 class ProductImageDelete(BaseMutation):

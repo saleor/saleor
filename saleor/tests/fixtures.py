@@ -2672,9 +2672,9 @@ def allocation(order_line, stock):
 
 
 @pytest.fixture
-def allocations(order_list, stock):
+def allocations(order_list, stock, channel_USD):
     variant = stock.product_variant
-    net = variant.get_price()
+    net = variant.get_price(channel_USD)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     lines = OrderLine.objects.bulk_create(
         [

@@ -8,16 +8,36 @@ from django.utils.functional import SimpleLazyObject
 
 
 class PythonSerializer(PythonBaseSerializer):
+    def __init__(self, extra_model_fields=None):
+        """Serialize a QuerySet to basic Python objects.
+
+        Param extra_model_fields can be provided to add fields to serialization process
+        which are normally ignored (fields that doesn't exist on model).
+        extra_model_fields parameter example:
+        {"ModelName": ["annotated_prop_1", "custom_property"]}
+        """
+        super().__init__()
+        self.extra_model_fields = extra_model_fields
+
     def get_dump_object(self, obj):
         obj_id = graphene.Node.to_global_id(obj._meta.object_name, obj.id)
         data = OrderedDict([("type", str(obj._meta.object_name)), ("id", obj_id)])
         data.update(self._current)
+
+        if obj._meta.object_name in self.extra_model_fields:
+            fields_to_add = self.extra_model_fields[obj._meta.object_name]
+            for field in fields_to_add:
+                value = getattr(obj, field, None)
+                if value is not None:
+                    data.update({field: str(value)})
+
         return data
 
 
 class PayloadSerializer(JSONSerializer):
-    def __init__(self):
+    def __init__(self, extra_model_fields=None):
         super().__init__()
+        self.extra_model_fields = extra_model_fields or {}
         self.additional_fields = {}
         self.extra_dict_data = {}
         self.obj_id_name = "id"
@@ -45,7 +65,7 @@ class PayloadSerializer(JSONSerializer):
             [("type", str(obj._meta.object_name)), (self.obj_id_name, obj_id)]
         )
         # Evaluate and add the "additional fields"
-        python_serializer = PythonSerializer()
+        python_serializer = PythonSerializer(extra_model_fields=self.extra_model_fields)
         for field_name, (qs, fields) in self.additional_fields.items():
             data_to_serialize = qs(obj)
             if not data_to_serialize:
