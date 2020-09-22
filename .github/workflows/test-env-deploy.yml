@@ -3,12 +3,13 @@ name: TEST-ENV-DEPLOYMENT
 
 on:
   pull_request:
-    # trigger on "edited" to update instance when configuration changes in PR description
-    types: [opened, reopened, synchronize]
+    types: [opened, reopened, synchronize, labeled]
     branches: ["*"]
 
 jobs:
   deploy:
+    name: Deploy test environment for labeled pull requests
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'test deployment') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
