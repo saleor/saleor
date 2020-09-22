@@ -21,16 +21,18 @@ JWT_REFRESH_TOKEN_COOKIE_NAME = "refreshToken"
 PERMISSIONS_FIELD = "permissions"
 
 
-def jwt_base_payload(exp_delta: timedelta) -> Dict[str, Any]:
+def jwt_base_payload(exp_delta: Optional[timedelta]) -> Dict[str, Any]:
     utc_now = datetime.utcnow()
-    payload = {"iat": utc_now, "exp": utc_now + exp_delta}
+    payload = {"iat": utc_now}
+    if exp_delta:
+        payload["exp"] = utc_now + exp_delta
     return payload
 
 
 def jwt_user_payload(
     user: User,
     token_type: str,
-    exp_delta: timedelta,
+    exp_delta: Optional[timedelta],
     additional_payload: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
 
