@@ -2,11 +2,11 @@ import graphene
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
-from ...core.permissions import ProductPermissions
+from ...core.permissions import OrderPermissions, ProductPermissions
 from ...warehouse import models
 from ..account.enums import CountryCodeEnum
 from ..core.connection import CountableDjangoObjectType
-from ..decorators import permission_required
+from ..decorators import one_of_permissions_required
 
 
 class WarehouseAddressInput(graphene.InputObjectType):
@@ -76,12 +76,16 @@ class Stock(CountableDjangoObjectType):
         only_fields = ["warehouse", "product_variant", "quantity", "quantity_allocated"]
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
     def resolve_quantity(root, *_args):
         return root.quantity
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
     def resolve_quantity_allocated(root, *_args):
         return root.allocations.aggregate(
             quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
