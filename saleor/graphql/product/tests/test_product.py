@@ -1434,7 +1434,7 @@ REORDER_PRODUCT_VARIANTS_MUTATION = """
 def test_product_variant_set_default(
     staff_api_client, permission_manage_products, product_with_two_variants
 ):
-    assert not product_with_two_variants.variants.filter(default=True).exists()
+    assert not product_with_two_variants.default_variant
 
     first_variant = product_with_two_variants.variants.first()
     first_variant_id = graphene.Node.to_global_id("ProductVariant", first_variant.pk)
@@ -1451,10 +1451,8 @@ def test_product_variant_set_default(
         variables,
         permissions=[permission_manage_products],
     )
-    assert (
-        product_with_two_variants.variants.filter(default=True).first().pk
-        == first_variant.pk
-    )
+    product_with_two_variants.refresh_from_db()
+    assert product_with_two_variants.default_variant == first_variant
     content = get_graphql_content(response)
     data = content["data"]["productVariantSetDefault"]
     assert not data["productErrors"]
@@ -1464,7 +1462,7 @@ def test_product_variant_set_default(
 def test_product_variant_set_default_invalid_id(
     staff_api_client, permission_manage_products, product_with_two_variants
 ):
-    assert not product_with_two_variants.variants.filter(default=True).exists()
+    assert not product_with_two_variants.default_variant
 
     first_variant = product_with_two_variants.variants.first()
 
@@ -1480,7 +1478,8 @@ def test_product_variant_set_default_invalid_id(
         variables,
         permissions=[permission_manage_products],
     )
-    assert not product_with_two_variants.variants.filter(default=True).exists()
+    product_with_two_variants.refresh_from_db()
+    assert not product_with_two_variants.default_variant
     content = get_graphql_content(response)
     data = content["data"]["productVariantSetDefault"]
     assert data["productErrors"][0]["code"] == ProductErrorCode.INVALID.name
@@ -1493,7 +1492,7 @@ def test_product_variant_set_default_not_products_variant(
     product_with_two_variants,
     product_with_single_variant,
 ):
-    assert not product_with_two_variants.variants.filter(default=True).exists()
+    assert not product_with_two_variants.default_variant
 
     foreign_variant = product_with_single_variant.variants.first()
 
@@ -1509,7 +1508,8 @@ def test_product_variant_set_default_not_products_variant(
         variables,
         permissions=[permission_manage_products],
     )
-    assert not product_with_two_variants.variants.filter(default=True).exists()
+    product_with_two_variants.refresh_from_db()
+    assert not product_with_two_variants.default_variant
     content = get_graphql_content(response)
     data = content["data"]["productVariantSetDefault"]
     assert data["productErrors"][0]["code"] == ProductErrorCode.NOT_FOUND.name

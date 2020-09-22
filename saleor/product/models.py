@@ -268,6 +268,13 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     )
     available_for_purchase = models.DateField(blank=True, null=True)
     visible_in_listings = models.BooleanField(default=False)
+    default_variant = models.OneToOneField(
+        "ProductVariant",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
     objects = ProductsQueryset.as_manager()
     translated = TranslationProxy()
 
@@ -402,7 +409,6 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     )
     images = models.ManyToManyField("ProductImage", through="VariantImage")
     track_inventory = models.BooleanField(default=True)
-    default = models.BooleanField(default=False)
 
     cost_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,

@@ -14,7 +14,7 @@ from ....product.templatetags.product_images import (
     get_product_image_thumbnail,
     get_thumbnail,
 )
-from ....product.utils import calculate_revenue_for_variant, get_default_variant
+from ....product.utils import calculate_revenue_for_variant
 from ....product.utils.availability import (
     get_product_availability,
     get_variant_availability,
@@ -482,7 +482,6 @@ class Product(CountableDjangoObjectType):
     variants = graphene.List(
         ProductVariant, description="List of variants for the product."
     )
-    default_variant = graphene.Field(ProductVariant)
     images = graphene.List(
         lambda: ProductImage, description="List of images for the product."
     )
@@ -515,6 +514,7 @@ class Product(CountableDjangoObjectType):
             "updated_at",
             "weight",
             "visible_in_listings",
+            "default_variant",
         ]
 
     @staticmethod
@@ -524,10 +524,6 @@ class Product(CountableDjangoObjectType):
             return None
 
         return CategoryByIdLoader(info.context).load(category_id)
-
-    @staticmethod
-    def resolve_default_variant(root: models.Product, info):
-        return get_default_variant(root.variants.all())
 
     @staticmethod
     def resolve_tax_type(root: models.Product, info):
