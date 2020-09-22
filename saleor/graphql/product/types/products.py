@@ -14,7 +14,7 @@ from ....product.templatetags.product_images import (
     get_product_image_thumbnail,
     get_thumbnail,
 )
-from ....product.utils import calculate_revenue_for_variant
+from ....product.utils import calculate_revenue_for_variant, get_default_variant
 from ....product.utils.availability import (
     get_product_availability,
     get_variant_availability,
@@ -527,7 +527,7 @@ class Product(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_default_variant(root: models.Product, info):
-        return root.get_default_variant()
+        return get_default_variant(root.variants.all())
 
     @staticmethod
     def resolve_tax_type(root: models.Product, info):

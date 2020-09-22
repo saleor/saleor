@@ -313,9 +313,6 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
             and datetime.date.today() >= self.available_for_purchase
         )
 
-    def get_default_variant(self):
-        return self.variants.filter(default=True).first()
-
 
 class ProductTranslation(SeoModelTranslation):
     language_code = models.CharField(max_length=10)
@@ -468,11 +465,6 @@ class ProductVariant(SortableModel, ModelWithMetadata):
 
     def get_ordering_queryset(self):
         return self.product.variants.all()
-
-    def set_as_default(self):
-        self.product.variants.update(default=False)
-        self.default = True
-        self.save(update_fields=["default"])
 
 
 class ProductVariantTranslation(models.Model):
