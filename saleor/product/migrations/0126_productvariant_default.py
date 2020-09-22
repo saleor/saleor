@@ -3,6 +3,15 @@
 from django.db import migrations, models
 
 
+def set_default_variants(apps, schema_editor):
+    Product = apps.get_model("product", "Product")
+
+    for product in Product.objects.prefetch_related("variants"):
+        first_variant = product.variants.first()
+        if first_variant:
+            first_variant.default = True
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -14,5 +23,8 @@ class Migration(migrations.Migration):
             model_name="productvariant",
             name="default",
             field=models.BooleanField(default=False),
+        ),
+        migrations.RunPython(
+            set_default_variants, reverse_code=migrations.RunPython.noop
         ),
     ]
