@@ -1017,3 +1017,49 @@ def test_fulfillment_query(
         "orderLine": {"id": order_line_2_id},
         "quantity": order_line_2.quantity,
     } in fulfillment_data["lines"]
+
+
+QUERY_ORDER_FULFILL_DATA = """
+query OrderFulfillData($id: ID!) {
+    order(id: $id) {
+        id
+        lines {
+            variant {
+                stocks {
+                    warehouse {
+                        id
+                    }
+                    quantity
+                    quantityAllocated
+                }
+            }
+        }
+    }
+}
+"""
+
+
+def test_staff_can_query_order_fulfill_data(
+    staff_api_client, order_with_lines, permission_manage_orders
+):
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.pk)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        QUERY_ORDER_FULFILL_DATA, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["order"]["lines"]
+    assert len(data) == 2
+    assert data[0]["variant"]["stocks"][0]["quantity"] == 5
+    assert data[0]["variant"]["stocks"][0]["quantityAllocated"] == 3
+    assert data[1]["variant"]["stocks"][0]["quantity"] == 2
+    assert data[1]["variant"]["stocks"][0]["quantityAllocated"] == 2
+
+
+def test_staff_can_query_order_fulfill_data_without_permission(
+    staff_api_client, order_with_lines
+):
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.pk)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(QUERY_ORDER_FULFILL_DATA, variables)
+    assert_no_permission(response)
