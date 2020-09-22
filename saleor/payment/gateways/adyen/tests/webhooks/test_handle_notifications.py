@@ -5,7 +5,9 @@ import graphene
 import pytest
 
 from ......checkout import calculations
+from ......checkout.utils import fetch_checkout_lines
 from ......order import OrderEvents, OrderStatus
+from ......plugins.manager import get_plugins_manager
 from ..... import ChargeStatus, TransactionKind
 from ...utils import to_adyen_price
 from ...webhooks import (
@@ -125,7 +127,11 @@ def test_handle_authorization_for_checkout(
     checkout_token = str(checkout.token)
 
     payment = payment_adyen_for_checkout
-    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout, lines, address
+    )
     payment.is_active = True
     payment.order = None
     payment.total = total.gross.amount
@@ -167,7 +173,11 @@ def test_handle_authorization_with_adyen_auto_capture(
     checkout.save()
 
     payment = payment_adyen_for_checkout
-    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout, lines, address
+    )
     payment.is_active = True
     payment.order = None
     payment.total = total.gross.amount
@@ -322,7 +332,11 @@ def test_handle_capture_for_checkout(
     checkout_token = str(checkout.token)
 
     payment = payment_adyen_for_checkout
-    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout, lines, address
+    )
     payment.is_active = True
     payment.order = None
     payment.total = total.gross.amount

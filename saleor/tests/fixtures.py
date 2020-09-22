@@ -1243,10 +1243,11 @@ def voucher_customer(voucher, customer_user):
 
 @pytest.fixture
 def order_line(order, variant):
-    net = variant.get_price()
+    product = variant.product
+    net = variant.get_price(product, [], None)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     return order.lines.create(
-        product_name=str(variant.product),
+        product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
@@ -1267,10 +1268,11 @@ def order_line_with_allocation_in_many_stocks(customer_user, variant_with_many_s
         billing_address=address, user_email=customer_user.email, user=customer_user
     )
 
-    net = variant.get_price()
+    product = variant.product
+    net = variant.get_price(product, [], None)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order_line = order.lines.create(
-        product_name=str(variant.product),
+        product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
@@ -1300,10 +1302,11 @@ def order_line_with_one_allocation(customer_user, variant_with_many_stocks):
         billing_address=address, user_email=customer_user.email, user=customer_user
     )
 
-    net = variant.get_price()
+    product = variant.product
+    net = variant.get_price(product, [], None)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order_line = order.lines.create(
-        product_name=str(variant.product),
+        product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
@@ -1368,7 +1371,7 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
-    net = variant.get_price()
+    net = variant.get_price(product, [], None)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     line = order.lines.create(
         product_name=str(variant.product),
@@ -1400,7 +1403,7 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         product_variant=variant, warehouse=warehouse, quantity=2
     )
 
-    net = variant.get_price()
+    net = variant.get_price(product, [], None)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     line = order.lines.create(
         product_name=str(variant.product),
@@ -1437,7 +1440,8 @@ def order_with_line_without_inventory_tracking(
     order, variant_without_inventory_tracking
 ):
     variant = variant_without_inventory_tracking
-    net = variant.get_price()
+    product = variant.product
+    net = variant.get_price(product, [], None)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     line = order.lines.create(
         product_name=str(variant.product),
@@ -2343,7 +2347,8 @@ def allocation(order_line, stock):
 @pytest.fixture
 def allocations(order_list, stock):
     variant = stock.product_variant
-    net = variant.get_price()
+    product = variant.product
+    net = variant.get_price(product, [], None)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     lines = OrderLine.objects.bulk_create(
         [

@@ -20,7 +20,6 @@ from ..core.utils.promo_code import (
 from ..discount import DiscountInfo, VoucherType
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
-    get_discounted_lines,
     get_products_voucher_discount,
     validate_voucher_for_checkout,
 )
@@ -124,6 +123,11 @@ def add_variants_to_checkout(checkout, variants, quantities):
     country_code = checkout.get_country()
     check_stock_quantity_bulk(variants, country_code, quantities)
 
+    # check if variants are published
+    for variant in variants:
+        if not variant.product.is_published:
+            raise ProductNotPublished()
+
     # create checkout lines
     lines = []
     for variant, quantity in zip(variants, quantities):
@@ -136,17 +140,14 @@ def add_variants_to_checkout(checkout, variants, quantities):
 
 
 def update_checkout_quantity(checkout):
-    """Update the total quantity in checkout.
-
-    Returns the checkout object with updated total quantity but doesn't save the
-    instance in the database. Runs `checkout_quantity_changed` plugins hook.
-    """
+    """Update the total quantity in checkout."""
     total_lines = checkout.lines.aggregate(total_quantity=Sum("quantity"))[
         "total_quantity"
     ]
     if not total_lines:
         total_lines = 0
     checkout.quantity = total_lines
+    checkout.save(update_fields=["quantity"])
     return checkout
 
 
@@ -240,7 +241,7 @@ def _get_shipping_voucher_discount_for_checkout(
 def _get_products_voucher_discount(
     manager: PluginsManager,
     checkout: "Checkout",
-    lines,
+    lines: Iterable["CheckoutLineInfo"],
     voucher,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
@@ -256,10 +257,34 @@ def _get_products_voucher_discount(
     return get_products_voucher_discount(voucher, prices)
 
 
+def get_discounted_lines(lines: Iterable["CheckoutLineInfo"], voucher):
+    discounted_products = voucher.products.all()
+    discounted_categories = set(voucher.categories.all())
+    discounted_collections = set(voucher.collections.all())
+
+    discounted_lines = []
+    if discounted_products or discounted_collections or discounted_categories:
+        for line_info in lines:
+            line_product = line_info.product
+            line_category = line_info.product.category
+            line_collections = set(line_info.collections)
+            if line_info.variant and (
+                line_product in discounted_products
+                or line_category in discounted_categories
+                or line_collections.intersection(discounted_collections)
+            ):
+                discounted_lines.append(line_info.line)
+    else:
+        # If there's no discounted products, collections or categories,
+        # it means that all products are discounted
+        discounted_lines.extend([line_info.line for line_info in lines])
+    return discounted_lines
+
+
 def get_prices_of_discounted_specific_product(
     manager: PluginsManager,
     checkout: "Checkout",
-    lines: List[CheckoutLine],
+    lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> List[Money]:

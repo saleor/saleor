@@ -5,12 +5,11 @@ import opentracing
 from django.conf import settings
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from saleor.product.models import Collection, Product, ProductVariant
-
 from ...core.utils import to_local_currency
 from ...discount import DiscountInfo
 from ...discount.utils import calculate_discounted_price
 from ...plugins.manager import get_plugins_manager
+from ...product.models import Collection, Product, ProductVariant
 from ...warehouse.availability import (
     are_all_product_variants_in_stock,
     is_product_in_stock,

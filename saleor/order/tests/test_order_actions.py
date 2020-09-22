@@ -38,10 +38,11 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
     product_type.save()
 
     quantity = 3
-    net = variant.get_price()
+    product = variant.product
+    net = variant.get_price(product, [], None)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     line = order.lines.create(
-        product_name=str(variant.product),
+        product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),

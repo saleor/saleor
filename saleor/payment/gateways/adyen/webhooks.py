@@ -23,11 +23,9 @@ from django.http.request import HttpHeaders
 from django.shortcuts import redirect
 from graphql_relay import from_global_id
 
-from saleor.checkout.utils import fetch_checkout_lines
-from saleor.plugins.manager import get_plugins_manager
-
 from ....checkout.complete_checkout import complete_checkout
 from ....checkout.models import Checkout
+from ....checkout.utils import fetch_checkout_lines
 from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
 from ....discount.utils import fetch_active_discounts
@@ -39,6 +37,7 @@ from ....order.actions import (
 )
 from ....order.events import external_notification_event
 from ....payment.models import Payment, Transaction
+from ....plugins.manager import get_plugins_manager
 from ... import ChargeStatus, PaymentError, TransactionKind
 from ...gateway import payment_refund_or_void
 from ...interface import GatewayConfig, GatewayResponse

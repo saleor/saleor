@@ -289,6 +289,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 raise ValidationError(
                     f"Insufficient product stock: {exc.item}", code=exc.code
                 )
+            except ProductNotPublished as exc:
+                raise ValidationError(
+                    "Can't create checkout with unpublished product.", code=exc.code,
+                )
 
         # Save addresses
         shipping_address = cleaned_input.get("shipping_address")
@@ -528,14 +532,16 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def process_checkout_lines(cls, lines, country) -> None:
-        variant_ids = [line.variant.id for line in lines]
+    def process_checkout_lines(
+        cls, lines: Iterable["CheckoutLineInfo"], country: str
+    ) -> None:
+        variant_ids = [line_info.variant.id for line_info in lines]
         variants = list(
             product_models.ProductVariant.objects.filter(
                 id__in=variant_ids
             ).prefetch_related("product__product_type")
-        )
-        quantities = [line.quantity for line in lines]
+        )  # FIXME: is this prefetch needed?
+        quantities = [line_info.line.quantity for line_info in lines]
         check_lines_quantity(variants, quantities, country)
 
     @classmethod

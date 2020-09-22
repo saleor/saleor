@@ -56,15 +56,21 @@ class PluginSample(BasePlugin):
             return JsonResponse(data={"received": True, "paid": False})
         return HttpResponseNotFound()
 
-    def calculate_checkout_total(self, checkout, lines, discounts, previous_value):
+    def calculate_checkout_total(
+        self, checkout, lines, address, discounts, previous_value
+    ):
         total = Money("1.0", currency=checkout.currency)
         return TaxedMoney(total, total)
 
-    def calculate_checkout_subtotal(self, checkout, lines, discounts, previous_value):
+    def calculate_checkout_subtotal(
+        self, checkout, lines, address, discounts, previous_value
+    ):
         subtotal = Money("1.0", currency=checkout.currency)
         return TaxedMoney(subtotal, subtotal)
 
-    def calculate_checkout_shipping(self, checkout, lines, discounts, previous_value):
+    def calculate_checkout_shipping(
+        self, checkout, lines, address, discounts, previous_value
+    ):
         price = Money("1.0", currency=checkout.currency)
         return TaxedMoney(price, price)
 
@@ -72,7 +78,17 @@ class PluginSample(BasePlugin):
         price = Money("1.0", currency=order.currency)
         return TaxedMoney(price, price)
 
-    def calculate_checkout_line_total(self, checkout_line, discounts, previous_value):
+    def calculate_checkout_line_total(
+        self,
+        checkout,
+        checkout_line,
+        variant,
+        product,
+        collections,
+        address,
+        discounts,
+        previous_value,
+    ):
         price = Money("1.0", currency=checkout_line.checkout.currency)
         return TaxedMoney(price, price)
 

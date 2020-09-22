@@ -1,9 +1,10 @@
 import pytest
 
 from .....checkout import calculations
-from .....checkout.utils import add_variant_to_checkout
+from .....checkout.utils import add_variant_to_checkout, fetch_checkout_lines
 from .....payment import ChargeStatus, TransactionKind
 from .....payment.models import Payment
+from .....plugins.manager import get_plugins_manager
 
 
 @pytest.fixture
@@ -64,8 +65,14 @@ def checkout_with_billing_address(checkout_with_shipping_method, address):
 @pytest.fixture()
 def checkout_with_charged_payment(checkout_with_billing_address):
     checkout = checkout_with_billing_address
-
-    taxed_total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+    lines = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
+    taxed_total = calculations.checkout_total(
+        manager=manager,
+        checkout=checkout,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
     payment = Payment.objects.create(
         gateway="mirumee.payments.dummy",
         is_active=True,

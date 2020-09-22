@@ -2870,7 +2870,7 @@ def test_delete_product_variant_in_draft_order(
     draft_order_lines_pks = []
     not_draft_order_lines_pks = []
     for variant in product.variants.all():
-        net = variant.get_price()
+        net = variant.get_price(product, [], None)
         gross = Money(amount=net.amount, currency=net.currency)
 
         order_line = OrderLine.objects.create(
@@ -3459,7 +3459,7 @@ def test_product_type_delete_mutation_variants_in_draft_order(
     draft_order.status = OrderStatus.DRAFT
     draft_order.save(update_fields=["status"])
 
-    net = variant.get_price()
+    net = variant.get_price(product, [], None)
     gross = Money(amount=net.amount, currency=net.currency)
 
     order_line_not_in_draft = OrderLine.objects.create(

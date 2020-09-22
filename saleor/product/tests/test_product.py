@@ -95,7 +95,8 @@ def test_get_price(
     )
     variant = product.variants.create(price_amount=15)
 
-    price = variant.get_price(discounts=[discount_info] if include_discounts else [])
+    discounts = [discount_info] if include_discounts else []
+    price = variant.get_price(product, [], discounts=discounts)
 
     assert price.amount == expected_price
 
@@ -106,7 +107,7 @@ def test_product_get_price_do_not_charge_taxes(product_type, category, discount_
     )
     variant = product.variants.create(price_amount=Decimal(10))
 
-    price = variant.get_price(discounts=[discount_info])
+    price = variant.get_price(product, [], discounts=[discount_info])
 
     assert price == Money("5.00", "USD")
 

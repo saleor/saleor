@@ -5,7 +5,8 @@ import pytest
 from django.utils import timezone
 from prices import Money
 
-from ...checkout.utils import get_voucher_discount_for_checkout
+from ...checkout.utils import fetch_checkout_lines, get_voucher_discount_for_checkout
+from ...plugins.manager import get_plugins_manager
 from ...product.models import Product, ProductVariant
 from .. import DiscountInfo, DiscountValueType, VoucherType
 from ..models import NotApplicable, Sale, Voucher, VoucherCustomer
@@ -70,7 +71,9 @@ def test_variant_discounts(product):
         category_ids=set(),
         collection_ids=set(),
     )
-    final_price = variant.get_price(discounts=[low_discount, discount, high_discount])
+    final_price = variant.get_price(
+        product, [], discounts=[low_discount, discount, high_discount]
+    )
     assert final_price == Money(0, "USD")
 
 
@@ -82,7 +85,7 @@ def test_percentage_discounts(product):
     discount = DiscountInfo(
         sale=sale, product_ids={product.id}, category_ids=set(), collection_ids={}
     )
-    final_price = variant.get_price(discounts=[discount])
+    final_price = variant.get_price(product, [], discounts=[discount])
     assert final_price == Money(5, "USD")
 
 
@@ -117,7 +120,7 @@ def test_specific_products_voucher_checkout_discount(
     discounts = []
     monkeypatch.setattr(
         "saleor.checkout.utils.get_prices_of_discounted_specific_product",
-        lambda lines, discounts, discounted_products: (
+        lambda manager, checkout, lines, voucher, discounts: (
             Money(price, "USD") for price in prices
         ),
     )
@@ -130,8 +133,10 @@ def test_specific_products_voucher_checkout_discount(
     )
     voucher.save()
     checkout = checkout_with_item
+    lines = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
     discount = get_voucher_discount_for_checkout(
-        voucher, checkout, list(checkout), discounts
+        manager, voucher, checkout, lines, checkout.shipping_address, discounts
     )
     assert discount == Money(expected_value, "USD")
 

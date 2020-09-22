@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 from requests import RequestException
 
-from ....checkout.utils import add_variant_to_checkout
+from ....checkout.utils import add_variant_to_checkout, fetch_checkout_lines
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType
 from ...manager import get_plugins_manager
@@ -92,7 +92,15 @@ def test_calculate_checkout_line_total(
     manager.assign_tax_code_to_object_meta(product, "PC040156")
     product.save()
     discounts = [discount_info] if with_discount else None
-    total = manager.calculate_checkout_line_total(line, discounts)
+    total = manager.calculate_checkout_line_total(
+        checkout_with_item,
+        line,
+        line.variant,
+        line.variant.product,
+        [],
+        checkout_with_item.shipping_address,
+        discounts,
+    )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -155,8 +163,9 @@ def test_calculate_checkout_total_uses_default_calculation(
     )
 
     discounts = [discount_info] if with_discount else None
+    lines = fetch_checkout_lines(checkout_with_item)
     total = manager.calculate_checkout_total(
-        checkout_with_item, list(checkout_with_item), discounts
+        checkout_with_item, lines, address, discounts
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -223,8 +232,9 @@ def test_calculate_checkout_total(
     )
 
     discounts = [discount_info] if with_discount else None
+    lines = fetch_checkout_lines(checkout_with_item)
     total = manager.calculate_checkout_total(
-        checkout_with_item, list(checkout_with_item), discounts
+        checkout_with_item, lines, address, discounts
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -255,8 +265,9 @@ def test_calculate_checkout_shipping(
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
+    lines = fetch_checkout_lines(checkout_with_item)
     shipping_price = manager.calculate_checkout_shipping(
-        checkout_with_item, list(checkout_with_item), [discount_info]
+        checkout_with_item, lines, address, [discount_info]
     )
     shipping_price = quantize_price(shipping_price, shipping_price.currency)
     assert shipping_price == TaxedMoney(
@@ -306,8 +317,9 @@ def test_calculate_checkout_subtotal(
 
     discounts = [discount_info] if with_discount else None
     add_variant_to_checkout(checkout_with_item, variant, 2)
+    lines = fetch_checkout_lines(checkout_with_item)
     total = manager.calculate_checkout_subtotal(
-        checkout_with_item, list(checkout_with_item), discounts
+        checkout_with_item, lines, address, discounts
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(

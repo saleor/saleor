@@ -98,30 +98,6 @@ def calculate_discounted_price(
     return price
 
 
-def get_discounted_lines(lines, voucher):
-    discounted_products = voucher.products.all()
-    discounted_categories = set(voucher.categories.all())
-    discounted_collections = set(voucher.collections.all())
-
-    discounted_lines = []
-    if discounted_products or discounted_collections or discounted_categories:
-        for line in lines:
-            line_product = line.variant.product
-            line_category = line.variant.product.category
-            line_collections = set(line.variant.product.collections.all())
-            if line.variant and (
-                line_product in discounted_products
-                or line_category in discounted_categories
-                or line_collections.intersection(discounted_collections)
-            ):
-                discounted_lines.append(line)
-    else:
-        # If there's no discounted products, collections or categories,
-        # it means that all products are discounted
-        discounted_lines.extend(list(lines))
-    return discounted_lines
-
-
 def validate_voucher_for_checkout(
     manager: "PluginsManager",
     voucher: "Voucher",

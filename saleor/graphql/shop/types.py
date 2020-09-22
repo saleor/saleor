@@ -226,7 +226,11 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_homepage_collection(_, info):
         collection_pk = info.context.site.settings.homepage_collection_id
-        return CollectionByIdLoader(info.context).load(collection_pk)
+        return (
+            CollectionByIdLoader(info.context).load(collection_pk)
+            if collection_pk
+            else None
+        )
 
     @staticmethod
     def resolve_languages(_, _info):

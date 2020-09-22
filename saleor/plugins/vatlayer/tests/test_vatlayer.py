@@ -8,7 +8,7 @@ from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ....checkout import calculations
-from ....checkout.utils import add_variant_to_checkout
+from ....checkout.utils import add_variant_to_checkout, fetch_checkout_lines
 from ....core.prices import quantize_price
 from ....core.taxes import zero_taxed_money
 from ...manager import get_plugins_manager
@@ -189,7 +189,7 @@ def test_vatlayer_plugin_caches_taxes(vatlayer, monkeypatch, product, address):
 
     manager = get_plugins_manager()
     plugin = manager.get_plugin(VatlayerPlugin.PLUGIN_ID)
-    price = product.variants.first().get_price()
+    price = product.variants.first().get_price(product, [], None)
     address.country = Country("de")
     plugin.apply_taxes_to_product(
         product, price, address.country, TaxedMoney(price, price)
@@ -238,8 +238,9 @@ def test_calculate_checkout_total(
     site_settings.save()
 
     discounts = [discount_info] if with_discount else None
+    lines = fetch_checkout_lines(checkout_with_item)
     total = manager.calculate_checkout_total(
-        checkout_with_item, list(checkout_with_item), discounts
+        checkout_with_item, lines, address, discounts
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -287,8 +288,9 @@ def test_calculate_checkout_subtotal(
 
     discounts = [discount_info] if with_discount else None
     add_variant_to_checkout(checkout_with_item, variant, 2)
+    lines = fetch_checkout_lines(checkout_with_item)
     total = manager.calculate_checkout_subtotal(
-        checkout_with_item, list(checkout_with_item), discounts
+        checkout_with_item, lines, address, discounts
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -431,7 +433,9 @@ def test_apply_taxes_to_product(vatlayer, settings, variant, discount_info):
         "vatlayer.description": "standard",
     }
     price = manager.apply_taxes_to_product(
-        variant.product, variant.get_price([discount_info]), country
+        variant.product,
+        variant.get_price(variant.product, [], [discount_info]),
+        country,
     )
     assert price == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))
 
@@ -440,8 +444,13 @@ def test_calculations_checkout_total_with_vatlayer(
     vatlayer, settings, checkout_with_item
 ):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
     checkout_subtotal = calculations.checkout_total(
-        checkout=checkout_with_item, lines=list(checkout_with_item)
+        manager=manager,
+        checkout=checkout_with_item,
+        lines=lines,
+        address=checkout_with_item.shipping_address,
     )
     assert checkout_subtotal == TaxedMoney(
         net=Money("30", "USD"), gross=Money("30", "USD")
@@ -452,8 +461,13 @@ def test_calculations_checkout_subtotal_with_vatlayer(
     vatlayer, settings, checkout_with_item
 ):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
     checkout_subtotal = calculations.checkout_subtotal(
-        checkout=checkout_with_item, lines=list(checkout_with_item)
+        manager=manager,
+        checkout=checkout_with_item,
+        lines=lines,
+        address=checkout_with_item.shipping_address,
     )
     assert checkout_subtotal == TaxedMoney(
         net=Money("30", "USD"), gross=Money("30", "USD")
@@ -464,8 +478,13 @@ def test_calculations_checkout_shipping_price_with_vatlayer(
     vatlayer, settings, checkout_with_item
 ):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = get_plugins_manager()
+    lines = fetch_checkout_lines(checkout_with_item)
     checkout_shipping_price = calculations.checkout_shipping_price(
-        checkout=checkout_with_item, lines=list(checkout_with_item)
+        manager=manager,
+        checkout=checkout_with_item,
+        lines=lines,
+        address=checkout_with_item.shipping_address,
     )
     assert checkout_shipping_price == TaxedMoney(
         net=Money("0", "USD"), gross=Money("0", "USD")
