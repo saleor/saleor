@@ -20,7 +20,10 @@ def filter_status(
     query_objects = qs.none()
     now = timezone.now()
     if DiscountStatusEnum.ACTIVE in value:
-        query_objects |= qs.active(now)
+        # TODO: Consider filtering and sorting by `isPublished`
+        # Should be resolved by https://app.clickup.com/t/6crxxb
+        # query_objects |= qs.active(now)
+        query_objects = qs
     if DiscountStatusEnum.EXPIRED in value:
         query_objects |= qs.expired(now)
     if DiscountStatusEnum.SCHEDULED in value:

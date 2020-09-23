@@ -185,7 +185,7 @@ def _get_shipping_voucher_discount_for_checkout(
     shipping_price = calculations.checkout_shipping_price(
         checkout=checkout, lines=lines, discounts=discounts
     ).gross
-    return voucher.get_discount_amount_for(shipping_price)
+    return voucher.get_discount_amount_for(shipping_price, checkout.channel)
 
 
 def _get_products_voucher_discount(
@@ -200,7 +200,7 @@ def _get_products_voucher_discount(
     if not prices:
         msg = "This offer is only valid for selected items."
         raise NotApplicable(msg)
-    return get_products_voucher_discount(voucher, prices)
+    return get_products_voucher_discount(voucher, prices, channel)
 
 
 def get_prices_of_discounted_specific_product(
@@ -244,7 +244,7 @@ def get_voucher_discount_for_checkout(
         subtotal = calculations.checkout_subtotal(
             checkout=checkout, lines=lines, discounts=discounts
         ).gross
-        return voucher.get_discount_amount_for(subtotal)
+        return voucher.get_discount_amount_for(subtotal, checkout.channel)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(
             voucher, checkout, lines, discounts
@@ -262,7 +262,9 @@ def get_voucher_for_checkout(
     """Return voucher with voucher code saved in checkout if active or None."""
     if checkout.voucher_code is not None:
         if vouchers is None:
-            vouchers = Voucher.objects.active(date=timezone.now())
+            vouchers = Voucher.objects.active(
+                date=timezone.now(), channel=checkout.channel
+            )
         try:
             qs = vouchers
             if with_lock:
@@ -298,7 +300,7 @@ def recalculate_checkout_discount(
                 if voucher.type != VoucherType.SHIPPING
                 else discount
             )
-            checkout.discount_name = str(voucher)
+            checkout.discount_name = voucher.name
             checkout.translated_discount_name = (
                 voucher.translated.name
                 if voucher.translated.name != voucher.name
@@ -345,7 +347,9 @@ def add_voucher_code_to_checkout(
     Raise InvalidPromoCode() if voucher of given type cannot be applied.
     """
     try:
-        voucher = Voucher.objects.active(date=timezone.now()).get(code=voucher_code)
+        voucher = Voucher.objects.active(
+            date=timezone.now(), channel=checkout.channel
+        ).get(code=voucher_code)
     except Voucher.DoesNotExist:
         raise InvalidPromoCode()
     try:

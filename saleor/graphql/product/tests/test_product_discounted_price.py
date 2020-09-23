@@ -355,7 +355,10 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
     query = """
         mutation SaleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
             saleCataloguesAdd(id: $id, input: $input) {
-                errors {
+                sale {
+                    name
+                }
+                discountErrors {
                     field
                     message
                 }
@@ -381,7 +384,7 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
     assert response.status_code == 200
 
     content = get_graphql_content(response)
-    assert content["data"]["saleCataloguesAdd"]["errors"] == []
+    assert not content["data"]["saleCataloguesAdd"]["discountErrors"]
 
     mock_update_products_discounted_prices_of_catalogues.delay.assert_called_once_with(
         product_ids=[product.pk],
@@ -409,7 +412,10 @@ def test_sale_remove_catalogues_updates_products_discounted_prices(
     query = """
         mutation SaleCataloguesRemove($id: ID!, $input: CatalogueInput!) {
             saleCataloguesRemove(id: $id, input: $input) {
-                errors {
+                sale {
+                    name
+                }
+                discountErrors {
                     field
                     message
                 }
@@ -435,7 +441,7 @@ def test_sale_remove_catalogues_updates_products_discounted_prices(
     assert response.status_code == 200
 
     content = get_graphql_content(response)
-    assert content["data"]["saleCataloguesRemove"]["errors"] == []
+    assert not content["data"]["saleCataloguesRemove"]["discountErrors"]
 
     mock_update_products_discounted_prices_of_catalogues.delay.assert_called_once_with(
         product_ids=[product.pk],

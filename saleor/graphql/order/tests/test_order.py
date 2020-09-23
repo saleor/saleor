@@ -11,7 +11,7 @@ from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
 from ....core.permissions import OrderPermissions
-from ....core.taxes import zero_taxed_money
+from ....core.taxes import TaxError, zero_taxed_money
 from ....order import OrderStatus, events as order_events
 from ....order.error_codes import OrderErrorCode
 from ....order.models import Order, OrderEvent
@@ -701,6 +701,164 @@ def test_draft_order_create(
     assert created_draft_event.parameters == {}
 
 
+@patch("saleor.graphql.order.mutations.draft_orders.add_variant_to_draft_order")
+def test_draft_order_create_tax_error(
+    add_variant_to_draft_order_mock,
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    variant,
+    voucher,
+    graphql_address_data,
+    channel_USD,
+):
+    variant_0 = variant
+    err_msg = "Test error"
+    add_variant_to_draft_order_mock.side_effect = TaxError(err_msg)
+    query = DRAFT_ORDER_CREATE_MUTATION
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_1 = product_without_shipping.variants.first()
+    variant_1.quantity = 2
+    variant_1.save()
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    discount = "10"
+    customer_note = "Test note"
+    variant_list = [
+        {"variantId": variant_0_id, "quantity": 2},
+        {"variantId": variant_1_id, "quantity": 1},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    variables = {
+        "user": user_id,
+        "discount": discount,
+        "lines": variant_list,
+        "shippingAddress": shipping_address,
+        "shippingMethod": shipping_id,
+        "voucher": voucher_id,
+        "customerNote": customer_note,
+        "channel": channel_id,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderCreate"]
+    errors = data["orderErrors"]
+    assert not data["order"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.TAX_ERROR.name
+    assert errors[0]["message"] == f"Unable to calculate taxes - {err_msg}"
+
+    order_count = Order.objects.all().count()
+    assert order_count == 0
+
+
+def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    discount = "10"
+    customer_note = "Test note"
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    voucher.channel_listing.all().delete()
+    variables = {
+        "user": user_id,
+        "discount": discount,
+        "lines": variant_list,
+        "shippingAddress": shipping_address,
+        "shippingMethod": shipping_id,
+        "voucher": voucher_id,
+        "customerNote": customer_note,
+        "channel": channel_id,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+    assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
+    assert error["field"] == "voucher"
+
+
+@pytest.mark.skip(
+    "We should fix it before merge to master. We should add similar test "
+    "in other draft order mutations"
+)
+def test_draft_order_create_with_product_and_variant_not_assigned_to_order_channel(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    discount = "10"
+    customer_note = "Test note"
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variant.product.channel_listing.all().delete()
+    variant.channel_listing.all().delete()
+    variables = {
+        "user": user_id,
+        "discount": discount,
+        "lines": variant_list,
+        "shippingAddress": shipping_address,
+        "shippingMethod": shipping_id,
+        "voucher": voucher_id,
+        "customerNote": customer_note,
+        "channel": channel_id,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+    assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
+    assert error["field"] == "lines"
+    assert error["variants"] == [variant_id]
+
+
 def test_draft_order_create_without_channel(
     staff_api_client,
     permission_manage_orders,
@@ -985,13 +1143,60 @@ def test_draft_order_update_existing_channel_id(
     assert error["field"] == "channel"
 
 
+def test_draft_order_update_voucher_not_available(
+    staff_api_client, permission_manage_orders, order_with_lines, voucher
+):
+    order = order_with_lines
+    assert order.voucher is None
+    query = DRAFT_UPDATE_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    voucher.channel_listing.all().delete()
+    variables = {
+        "id": order_id,
+        "voucher": voucher_id,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderUpdate"]["orderErrors"][0]
+
+    assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
+    assert error["field"] == "voucher"
+
+
+DRAFT_ORDER_UPDATE_MUTATION = """
+    mutation draftUpdate(
+        $id: ID!, $voucher: ID!, $customerNote: String, $shippingAddress: AddressInput
+    ) {
+        draftOrderUpdate(id: $id,
+                            input: {
+                                voucher: $voucher,
+                                customerNote: $customerNote,
+                                shippingAddress: $shippingAddress,
+                            }) {
+            orderErrors {
+                field
+                message
+                code
+            }
+            order {
+                userEmail
+            }
+        }
+    }
+"""
+
+
 def test_draft_order_update(
-    staff_api_client, permission_manage_orders, order_with_lines, voucher, channel_PLN
+    staff_api_client, permission_manage_orders, order_with_lines, voucher
 ):
     order = order_with_lines
     assert not order.voucher
     assert not order.customer_note
-    query = DRAFT_UPDATE_QUERY
+    query = DRAFT_ORDER_UPDATE_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     customer_note = "Test customer note"
@@ -1010,6 +1215,45 @@ def test_draft_order_update(
     order.refresh_from_db()
     assert order.voucher
     assert order.customer_note == customer_note
+
+
+@patch("saleor.graphql.order.mutations.draft_orders.update_order_prices")
+def test_draft_order_update_tax_error(
+    update_order_prices_mock,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    voucher,
+    graphql_address_data,
+):
+    err_msg = "Test error"
+    update_order_prices_mock.side_effect = TaxError(err_msg)
+    order = order_with_lines
+    assert not order.voucher
+    assert not order.customer_note
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    customer_note = "Test customer note"
+    variables = {
+        "id": order_id,
+        "voucher": voucher_id,
+        "customerNote": customer_note,
+        "shippingAddress": graphql_address_data,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    errors = data["orderErrors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.TAX_ERROR.name
+    assert errors[0]["message"] == f"Unable to calculate taxes - {err_msg}"
+
+    order.refresh_from_db()
+    assert not order.voucher
+    assert not order.customer_note
 
 
 def test_draft_order_update_doing_nothing_generates_no_events(
@@ -1381,6 +1625,28 @@ def test_draft_order_complete_anonymous_user_no_email(
     content = get_graphql_content(response)
     data = content["data"]["draftOrderComplete"]["order"]
     assert data["status"] == OrderStatus.UNFULFILLED.upper()
+
+
+def test_draft_order_complete_drops_shipping_address(
+    staff_api_client, permission_manage_orders, staff_user, draft_order, address,
+):
+    order = draft_order
+    order.shipping_address = address.get_copy()
+    order.billing_address = address.get_copy()
+    order.save()
+    order.lines.update(is_shipping_required=False)
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+    order.refresh_from_db()
+
+    assert data["status"] == order.status.upper()
+    assert order.shipping_address is None
 
 
 def test_draft_order_complete_unavailable_for_purchase(
@@ -3474,6 +3740,7 @@ def test_query_draft_orders_with_sort(
         ({"search": "Leslie"}, 1),
         ({"search": "Wade"}, 1),
         ({"search": ""}, 3),
+        ({"search": "ExternalID"}, 1),
     ],
 )
 def test_orders_query_with_filter_search(
@@ -3485,7 +3752,7 @@ def test_orders_query_with_filter_search(
     customer_user,
     channel_USD,
 ):
-    Order.objects.bulk_create(
+    orders = Order.objects.bulk_create(
         [
             Order(
                 user=customer_user,
@@ -3509,11 +3776,52 @@ def test_orders_query_with_filter_search(
             ),
         ]
     )
+    order_with_payment = orders[1]
+    payment = Payment.objects.create(order=order_with_payment)
+    payment.transactions.create(
+        gateway_response={}, is_success=True, searchable_key="ExternalID"
+    )
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["orders"]["totalCount"] == count
+
+
+def test_orders_query_with_filter_search_by_global_payment_id(
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    customer_user,
+    channel_USD,
+):
+
+    orders = Order.objects.bulk_create(
+        [
+            Order(
+                user=customer_user,
+                token=str(uuid.uuid4()),
+                channel=channel_USD,
+                discount_name="test_discount1",
+                user_email="test@example.com",
+                translated_discount_name="translated_discount1_name",
+            ),
+            Order(
+                token=str(uuid.uuid4()),
+                channel=channel_USD,
+                user_email="user1@example.com",
+            ),
+        ]
+    )
+    order_with_payment = orders[0]
+    payment = Payment.objects.create(order=order_with_payment)
+    global_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    variables = {"filter": {"search": global_id}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 1
 
 
 def test_orders_query_with_filter_search_by_id(

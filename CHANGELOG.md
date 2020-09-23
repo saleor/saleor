@@ -18,6 +18,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - No secure cookie in debug mode - #6082 by @patrys, @orzechdev
 - Add searchable and available for purchase flags to product - #6060 by @IKarbowiak
 - Add `PRODUCT_UPDATED` webhook event - #6100 by @tomaszszymanski129
+- Search orders by graphql PaymentID - #6135 by @korycins
+- Search orders by custom key provided by payment gateway - #6135 by @korycins
+- Allow product variants to be sortable - #6138 by @tomaszszymanski129
 
 ### Breaking Changes
 
@@ -51,6 +54,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix for calling order_created before the order was saved - #6095 by @korycins
 - Update default decimal places - #6098 by @IKarbowiak
 - Avoid assigning the same pictures twice to a variant - #6112 by @IKarbowiak
+- Fix crashing system when avalara is improperly configured - #6117 by @IKarbowiak
+- Fix for failing finalising draft order - #6133 by @korycins
+- Remove corresponding draft order lines when variant is removing - #6119 by @IKarbowiak
 
 ## 2.10.2
 

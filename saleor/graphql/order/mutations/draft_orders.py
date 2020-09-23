@@ -1,11 +1,12 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from graphene.types import InputObjectType
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
-from ....core.taxes import zero_taxed_money
+from ....core.taxes import TaxError, zero_taxed_money
 from ....order import OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
@@ -129,13 +130,25 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
     @classmethod
-    def clean_channel_id(cls, instance, channel):
-        if channel and hasattr(instance, "channel"):
+    def clean_channel_id(cls, instance, channel_id):
+        if channel_id and hasattr(instance, "channel"):
             raise ValidationError(
                 {
                     "channel": ValidationError(
                         "Can't update existing order channel id.",
-                        code=OrderErrorCode.NOT_EDITABLE,
+                        code=OrderErrorCode.NOT_EDITABLE.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def clean_voucher(cls, voucher, channel):
+        if not voucher.channel_listing.filter(channel=channel).exists():
+            raise ValidationError(
+                {
+                    "voucher": ValidationError(
+                        "Voucher not available for this order.",
+                        code=OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value,
                     )
                 }
             )
@@ -146,16 +159,20 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         billing_address = data.pop("billing_address", None)
         cleaned_input = super().clean_input(info, instance, data)
         lines = data.pop("lines", None)
-        channel = data.get("channel", None)
-        if "channel" in cleaned_input and channel is None:
+        channel_id = data.get("channel", None)
+        if "channel" in cleaned_input and channel_id is None:
             del cleaned_input["channel"]
-        cls.clean_channel_id(instance, channel)
+        cls.clean_channel_id(instance, channel_id)
+        voucher = cleaned_input.get("voucher", None)
+        if voucher:
+            channel = cleaned_input.get("channel") or instance.channel
+            cls.clean_voucher(voucher, channel)
 
         if lines:
             variant_ids = [line.get("variant_id") for line in lines]
             variants = cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
             cls.validate_product_is_published_in_channel(
-                info, instance, variants, channel
+                info, instance, variants, channel_id
             )
             quantities = [line.get("quantity") for line in lines]
             cleaned_input["variants"] = variants
@@ -239,6 +256,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             update_order_prices(instance, info.context.discounts)
 
     @classmethod
+    @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         new_instance = not bool(instance.pk)
 
@@ -248,15 +266,21 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         # Save any changes create/update the draft
         cls._commit_changes(info, instance, cleaned_input)
 
-        # Process any lines to add
-        cls._save_lines(
-            info,
-            instance,
-            cleaned_input.get("quantities"),
-            cleaned_input.get("variants"),
-        )
+        try:
+            # Process any lines to add
+            cls._save_lines(
+                info,
+                instance,
+                cleaned_input.get("quantities"),
+                cleaned_input.get("variants"),
+            )
 
-        cls._refresh_lines_unit_price(info, instance, cleaned_input, new_instance)
+            cls._refresh_lines_unit_price(info, instance, cleaned_input, new_instance)
+        except TaxError as tax_error:
+            raise ValidationError(
+                "Unable to calculate taxes - %s" % str(tax_error),
+                code=OrderErrorCode.TAX_ERROR.value,
+            )
 
         # Post-process the results
         recalculate_order(instance)
@@ -326,6 +350,7 @@ class DraftOrderComplete(BaseMutation):
             order.shipping_price = zero_taxed_money()
             if order.shipping_address:
                 order.shipping_address.delete()
+                order.shipping_address = None
 
         order.save()
 
@@ -403,10 +428,16 @@ class DraftOrderLinesCreate(BaseMutation):
                 )
 
         # Add the lines
-        lines = [
-            add_variant_to_draft_order(order, variant, quantity)
-            for quantity, variant in lines_to_add
-        ]
+        try:
+            lines = [
+                add_variant_to_draft_order(order, variant, quantity)
+                for quantity, variant in lines_to_add
+            ]
+        except TaxError as tax_error:
+            raise ValidationError(
+                "Unable to calculate taxes - %s" % str(tax_error),
+                code=OrderErrorCode.TAX_ERROR.value,
+            )
 
         # Create the event
         events.draft_order_added_products_event(

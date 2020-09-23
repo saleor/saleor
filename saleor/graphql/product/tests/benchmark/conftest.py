@@ -1,16 +1,25 @@
 import pytest
 
-from .....discount.models import Sale
+from .....discount.models import Sale, SaleChannelListing
 from .....product.models import Category
 
 
 @pytest.fixture
-def sales_list():
-    return list(
-        Sale.objects.bulk_create(
-            [Sale(name="Sale1", value=15), Sale(name="Sale2", value=5)]
-        )
+def sales_list(channel_USD):
+    sales = Sale.objects.bulk_create([Sale(name="Sale1"), Sale(name="Sale2")])
+    values = [15, 5]
+    SaleChannelListing.objects.bulk_create(
+        [
+            SaleChannelListing(
+                sale=sale,
+                channel=channel_USD,
+                discount_value=values[i],
+                currency=channel_USD.currency_code,
+            )
+            for i, sale in enumerate(sales)
+        ]
     )
+    return list(sales)
 
 
 @pytest.fixture

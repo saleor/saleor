@@ -10,10 +10,12 @@ from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from measurement.measures import Weight
-from prices import Money
+from prices import Money, TaxedMoney
 
 from ....core.taxes import TaxType
 from ....core.weight import WeightUnits
+from ....order import OrderStatus
+from ....order.models import OrderLine
 from ....plugins.manager import PluginsManager
 from ....product import AttributeInputType
 from ....product.error_codes import ProductErrorCode
@@ -1933,6 +1935,74 @@ def test_create_product(
     assert color_value_slug in values
 
 
+REORDER_PRODUCT_VARIANTS_MUTATION = """
+    mutation ProductVariantReorder($product: ID!, $moves: [ReorderInput]!) {
+        productVariantReorder(productId: $product, moves: $moves) {
+            productErrors {
+                code
+                field
+            }
+        }
+    }
+"""
+
+
+def test_reorder_variants(
+    staff_api_client, product_with_two_variants, permission_manage_products,
+):
+    default_variants = product_with_two_variants.variants.all()
+    new_variants = [default_variants[1], default_variants[0]]
+
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product_with_two_variants.pk),
+        "moves": [
+            {
+                "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+                "sortOrder": _order + 1,
+            }
+            for _order, variant in enumerate(new_variants)
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        REORDER_PRODUCT_VARIANTS_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantReorder"]
+    assert not data["productErrors"]
+    assert list(product_with_two_variants.variants.all()) == new_variants
+
+
+def test_reorder_variants_invalid_variants(
+    staff_api_client, product, product_with_two_variants, permission_manage_products,
+):
+    default_variants = product_with_two_variants.variants.all()
+    new_variants = [product.variants.first(), default_variants[1]]
+
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product_with_two_variants.pk),
+        "moves": [
+            {
+                "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+                "sortOrder": _order + 1,
+            }
+            for _order, variant in enumerate(new_variants)
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        REORDER_PRODUCT_VARIANTS_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantReorder"]
+    assert data["productErrors"][0]["field"] == "moves"
+    assert data["productErrors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
+
+
 @pytest.mark.parametrize("input_slug", ["", None])
 def test_create_product_no_slug_in_input(
     staff_api_client,
@@ -2873,21 +2943,24 @@ def test_update_product_slug_with_existing_value(
     assert errors[0]["message"] == "Product with this Slug already exists."
 
 
-def test_delete_product(staff_api_client, product, permission_manage_products):
-    query = """
-        mutation DeleteProduct($id: ID!) {
-            productDelete(id: $id) {
-                product {
-                    name
-                    id
-                }
-                errors {
-                    field
-                    message
-                }
-              }
+DELETE_PRODUCT_MUTATION = """
+    mutation DeleteProduct($id: ID!) {
+        productDelete(id: $id) {
+            product {
+                name
+                id
             }
-    """
+            errors {
+                field
+                message
+            }
+            }
+        }
+"""
+
+
+def test_delete_product(staff_api_client, product, permission_manage_products):
+    query = DELETE_PRODUCT_MUTATION
     node_id = graphene.Node.to_global_id("Product", product.id)
     variables = {"id": node_id}
     response = staff_api_client.post_graphql(
@@ -2899,6 +2972,68 @@ def test_delete_product(staff_api_client, product, permission_manage_products):
     with pytest.raises(product._meta.model.DoesNotExist):
         product.refresh_from_db()
     assert node_id == data["product"]["id"]
+
+
+def test_delete_product_variant_in_draft_order(
+    staff_api_client,
+    product_with_two_variants,
+    permission_manage_products,
+    order_list,
+    channel_USD,
+):
+    query = DELETE_PRODUCT_MUTATION
+    product = product_with_two_variants
+
+    not_draft_order = order_list[1]
+    draft_order = order_list[0]
+    draft_order.status = OrderStatus.DRAFT
+    draft_order.save(update_fields=["status"])
+
+    draft_order_lines_pks = []
+    not_draft_order_lines_pks = []
+    for variant in product.variants.all():
+        net = variant.get_price(channel_USD.slug)
+        gross = Money(amount=net.amount, currency=net.currency)
+
+        order_line = OrderLine.objects.create(
+            variant=variant,
+            order=draft_order,
+            product_name=str(variant.product),
+            variant_name=str(variant),
+            product_sku=variant.sku,
+            is_shipping_required=variant.is_shipping_required(),
+            unit_price=TaxedMoney(net=net, gross=gross),
+            quantity=3,
+        )
+        draft_order_lines_pks.append(order_line.pk)
+
+        order_line_not_draft = OrderLine.objects.create(
+            variant=variant,
+            order=not_draft_order,
+            product_name=str(variant.product),
+            variant_name=str(variant),
+            product_sku=variant.sku,
+            is_shipping_required=variant.is_shipping_required(),
+            unit_price=TaxedMoney(net=net, gross=gross),
+            quantity=3,
+        )
+        not_draft_order_lines_pks.append(order_line_not_draft.pk)
+
+    node_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {"id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+    assert data["product"]["name"] == product.name
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
+    assert node_id == data["product"]["id"]
+
+    assert not OrderLine.objects.filter(pk__in=draft_order_lines_pks).exists()
+
+    assert OrderLine.objects.filter(pk__in=not_draft_order_lines_pks).exists()
 
 
 def test_product_type(user_api_client, product_type, channel_USD):
@@ -3413,18 +3548,21 @@ def test_update_product_type_with_negative_weight(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
+PRODUCT_TYPE_DELETE_MUTATION = """
+    mutation deleteProductType($id: ID!) {
+        productTypeDelete(id: $id) {
+            productType {
+                name
+            }
+        }
+    }
+"""
+
+
 def test_product_type_delete_mutation(
     staff_api_client, product_type, permission_manage_products
 ):
-    query = """
-        mutation deleteProductType($id: ID!) {
-            productTypeDelete(id: $id) {
-                productType {
-                    name
-                }
-            }
-        }
-    """
+    query = PRODUCT_TYPE_DELETE_MUTATION
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.id)}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -3434,6 +3572,60 @@ def test_product_type_delete_mutation(
     assert data["productType"]["name"] == product_type.name
     with pytest.raises(product_type._meta.model.DoesNotExist):
         product_type.refresh_from_db()
+
+
+def test_product_type_delete_mutation_variants_in_draft_order(
+    staff_api_client, permission_manage_products, product, order_list, channel_USD,
+):
+    query = PRODUCT_TYPE_DELETE_MUTATION
+    product_type = product.product_type
+
+    variant = product.variants.first()
+
+    order_not_draft = order_list[-1]
+    draft_order = order_list[1]
+    draft_order.status = OrderStatus.DRAFT
+    draft_order.save(update_fields=["status"])
+
+    net = variant.get_price(channel_USD.slug)
+    gross = Money(amount=net.amount, currency=net.currency)
+
+    order_line_not_in_draft = OrderLine.objects.create(
+        variant=variant,
+        order=order_not_draft,
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        unit_price=TaxedMoney(net=net, gross=gross),
+        quantity=3,
+    )
+
+    order_line_in_draft = OrderLine.objects.create(
+        variant=variant,
+        order=draft_order,
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        unit_price=TaxedMoney(net=net, gross=gross),
+        quantity=3,
+    )
+
+    variables = {"id": graphene.Node.to_global_id("ProductType", product_type.id)}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeDelete"]
+    assert data["productType"]["name"] == product_type.name
+    with pytest.raises(product_type._meta.model.DoesNotExist):
+        product_type.refresh_from_db()
+
+    with pytest.raises(order_line_in_draft._meta.model.DoesNotExist):
+        order_line_in_draft.refresh_from_db()
+
+    assert OrderLine.objects.filter(pk=order_line_not_in_draft.pk).exists()
 
 
 def test_product_image_create_mutation(
