@@ -1,7 +1,7 @@
 import logging
 from dataclasses import asdict
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 from urllib.parse import urljoin
 
 from django.core.exceptions import ValidationError
@@ -390,27 +390,29 @@ class AvataxPlugin(BasePlugin):
         ]
 
     def assign_tax_code_to_object_meta(
-        self, obj: Union["Product", "ProductType"], tax_code: str, previous_value: Any
+        self,
+        obj: Union["Product", "ProductType"],
+        tax_code: Optional[str],
+        previous_value: Any,
     ):
         if not self.active:
             return previous_value
 
         codes = get_cached_tax_codes_or_fetch(self.config)
-        if tax_code not in codes:
+        if tax_code and tax_code not in codes:
             return
 
-        tax_description = codes[tax_code]
+        tax_description = codes.get(tax_code)
         tax_item = {META_CODE_KEY: tax_code, META_DESCRIPTION_KEY: tax_description}
         obj.store_value_in_metadata(items=tax_item)
-        obj.save()
 
     def get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"], previous_value: Any
     ) -> TaxType:
         if not self.active:
             return previous_value
-        tax_code = obj.get_value_from_metadata(META_CODE_KEY, "")
-        tax_description = obj.get_value_from_metadata(META_DESCRIPTION_KEY, "")
+        tax_code = obj.get_value_from_metadata(META_CODE_KEY, None)
+        tax_description = obj.get_value_from_metadata(META_DESCRIPTION_KEY, None)
         return TaxType(code=tax_code, description=tax_description,)
 
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
