@@ -1329,6 +1329,7 @@ class ProductVariantCreate(ModelMutation):
         if not instance.product.default_variant:
             instance.product.default_variant = instance
             instance.product.save(update_fields=["default_variant", "updated_at"])
+            info.context.plugins.product_updated(instance.product)
         # Recalculate the "minimal variant price" for the parent product
         update_product_minimal_variant_price_task.delay(instance.product_id)
         stocks = cleaned_input.get("stocks")
@@ -1819,10 +1820,19 @@ class ProductVariantSetDefault(BaseMutation):
             variant_id,
             field="variant_id",
             only_type=ProductVariant,
-            qs=product.variants.all(),
+            qs=models.ProductVariant.objects.select_related("product"),
         )
+        if variant.product != product:
+            raise ValidationError(
+                {
+                    "variant_id": ValidationError(
+                        "Provided variant doesn't belong to provided product.",
+                        code=ProductErrorCode.NOT_PRODUCTS_VARIANT,
+                    )
+                }
+            )
         product.default_variant = variant
-        product.save(update_fields=["default_variant"])
+        product.save(update_fields=["default_variant", "updated_at"])
         info.context.plugins.product_updated(product)
         return ProductVariantSetDefault(product=product)
 
