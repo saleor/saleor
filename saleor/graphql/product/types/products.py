@@ -512,6 +512,10 @@ class Product(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_default_variant(root: models.Product, info):
+        default_variant_id = root.default_variant_id
+        if default_variant_id is None:
+            return None
+
         return ProductVariantByIdLoader(info.context).load(root.default_variant_id)
 
     @staticmethod
