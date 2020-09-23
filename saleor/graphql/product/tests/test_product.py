@@ -1512,7 +1512,9 @@ def test_product_variant_set_default_not_products_variant(
     assert not product_with_two_variants.default_variant
     content = get_graphql_content(response)
     data = content["data"]["productVariantSetDefault"]
-    assert data["productErrors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert (
+        data["productErrors"][0]["code"] == ProductErrorCode.NOT_PRODUCTS_VARIANT.name
+    )
     assert data["productErrors"][0]["field"] == "variantId"
 
 
