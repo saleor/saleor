@@ -1329,7 +1329,6 @@ class ProductVariantCreate(ModelMutation):
         if not instance.product.default_variant:
             instance.product.default_variant = instance
             instance.product.save(update_fields=["default_variant", "updated_at"])
-            info.context.plugins.product_updated(instance.product)
         # Recalculate the "minimal variant price" for the parent product
         update_product_minimal_variant_price_task.delay(instance.product_id)
         stocks = cleaned_input.get("stocks")
