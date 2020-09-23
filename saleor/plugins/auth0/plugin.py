@@ -5,32 +5,27 @@ from urllib.parse import urlencode
 
 from authlib.common.errors import AuthlibBaseError
 from authlib.integrations.requests_client import OAuth2Session
-from authlib.jose import jwt
-from authlib.oidc.core import CodeIDToken
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import redirect
 
 from ...account.models import User
-from ...core.jwt import (
-    JWT_ACCESS_TYPE,
-    get_token_from_request,
-    get_user_from_access_token,
-    jwt_encode,
-    jwt_user_payload,
-)
+from ...core.jwt import get_token_from_request, get_user_from_access_token
 from ...core.utils.url import prepare_url
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
 from .dataclasses import Auth0Config
-from .utils import get_jwks_keys_from_cache_or_fetch, prepare_redirect_url
+from .utils import (
+    get_auth_service_url,
+    get_valid_auth_tokens_from_auth0_payload,
+    prepare_redirect_url,
+)
 
 logger = logging.getLogger(__name__)
 
 AUTHORIZE_PATH = "/authorize"
 OAUTH_TOKEN_PATH = "/oauth/token"
-JWKS_PATH = "/.well-known/jwks.json"
 
 
 class Auth0Plugin(BasePlugin):
@@ -107,7 +102,7 @@ class Auth0Plugin(BasePlugin):
         )
 
     def _get_auth0_service_url(self, service):
-        return f"https://{self.config.domain}{service}"
+        return get_auth_service_url(self.config.domain, service)
 
     # TODO request will be change to graphql mutation input
     def external_authentication(self, request: WSGIRequest, previous_value) -> dict:
@@ -147,44 +142,9 @@ class Auth0Plugin(BasePlugin):
                 }
             )
 
-        return self._get_auth_tokens_from_auth0_payload(token_data, get_or_create=False)
-
-    def _create_jwt_token(
-        self, id_payload: CodeIDToken, user: User, access_token: str
-    ) -> str:
-        additional_payload = {
-            "exp": id_payload["exp"],
-            "auth0_access_key": access_token,
-        }
-        jwt_payload = jwt_user_payload(
-            user,
-            JWT_ACCESS_TYPE,
-            exp_delta=None,  # we pass exp from auth0 in additional_payload
-            additional_payload=additional_payload,
+        return get_valid_auth_tokens_from_auth0_payload(
+            token_data, self.config.domain, get_or_create=False
         )
-        return jwt_encode(jwt_payload)
-
-    def _get_auth_tokens_from_auth0_payload(self, token_data: dict, get_or_create=True):
-        id_token = token_data["id_token"]
-        keys = get_jwks_keys_from_cache_or_fetch(self._get_auth0_service_url(JWKS_PATH))
-
-        claims = jwt.decode(id_token, keys, claims_cls=CodeIDToken)
-        claims.validate()
-        if get_or_create:
-            user, created = User.objects.get_or_create(
-                email=claims["email"],
-                defaults={"is_active": True, "email": claims["email"]},
-            )
-        else:
-            user = User.objects.get(email=claims["email"], is_active=True)
-
-        tokens = {
-            "token": self._create_jwt_token(claims, user, token_data["access_token"]),
-        }
-        refresh_token = token_data.get("refresh_token")
-        if refresh_token:
-            tokens["refreshToken"] = refresh_token
-        return tokens
 
     def authenticate_user(self, request: WSGIRequest, previous_value) -> Optional[User]:
         token = get_token_from_request(request)
@@ -202,9 +162,11 @@ class Auth0Plugin(BasePlugin):
         token_data = self.auth0.fetch_token(
             token_endpoint,
             authorization_response=request.build_absolute_uri(),
-            redirect_uri=prepare_redirect_url(self.PLUGIN_ID,),
+            redirect_uri=prepare_redirect_url(self.PLUGIN_ID),
         )
-        params = self._get_auth_tokens_from_auth0_payload(token_data)
+        params = get_valid_auth_tokens_from_auth0_payload(
+            token_data, self.config.domain
+        )
 
         redirect_url = prepare_url(urlencode(params), storefront_redirect_url)
         return redirect(redirect_url)
