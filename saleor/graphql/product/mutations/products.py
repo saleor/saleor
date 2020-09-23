@@ -870,9 +870,10 @@ class ProductCreate(ModelMutation):
         if tax_rate:
             info.context.plugins.assign_tax_code_to_object_meta(instance, tax_rate)
 
-        tax_code = cleaned_input.pop("tax_code", "")
-        if tax_code:
-            info.context.plugins.assign_tax_code_to_object_meta(instance, tax_code)
+        if "tax_code" in cleaned_input:
+            info.context.plugins.assign_tax_code_to_object_meta(
+                instance, cleaned_input["tax_code"]
+            )
 
         if attributes and product_type:
             try:

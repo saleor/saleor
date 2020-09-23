@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -236,17 +236,19 @@ class VatlayerPlugin(BasePlugin):
         return apply_tax_to_price(taxes, tax_rate, price)
 
     def assign_tax_code_to_object_meta(
-        self, obj: Union["Product", "ProductType"], tax_code: str, previous_value: Any
+        self,
+        obj: Union["Product", "ProductType"],
+        tax_code: Optional[str],
+        previous_value: Any,
     ):
         if not self.active:
             return previous_value
 
-        if tax_code not in dict(TaxRateType.CHOICES):
+        if tax_code and tax_code not in dict(TaxRateType.CHOICES):
             return previous_value
 
         tax_item = {self.META_CODE_KEY: tax_code, self.META_DESCRIPTION_KEY: tax_code}
         obj.store_value_in_metadata(items=tax_item)
-        obj.save()
         return previous_value
 
     def get_tax_code_from_object_meta(
@@ -259,9 +261,9 @@ class VatlayerPlugin(BasePlugin):
     def __get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"]
     ) -> "TaxType":
-        tax_code = obj.get_value_from_metadata(self.META_CODE_KEY, "")
-        tax_description = obj.get_value_from_metadata(self.META_DESCRIPTION_KEY, "")
-        return TaxType(code=tax_code, description=tax_description,)
+        tax_code = obj.get_value_from_metadata(self.META_CODE_KEY, None)
+        tax_description = obj.get_value_from_metadata(self.META_DESCRIPTION_KEY, None)
+        return TaxType(code=tax_code, description=tax_description)
 
     def get_tax_rate_percentage_value(
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
