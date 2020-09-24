@@ -455,7 +455,7 @@
         "taxes": {
           "vatlayer": {
             "code": "standard",
-            "description": ""
+            "description": "standard"
           }
         }
       },
