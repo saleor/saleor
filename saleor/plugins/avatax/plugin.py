@@ -398,8 +398,13 @@ class AvataxPlugin(BasePlugin):
         if not self.active:
             return previous_value
 
+        if tax_code is None and obj.pk:
+            obj.delete_value_from_metadata(META_CODE_KEY)
+            obj.delete_value_from_metadata(META_DESCRIPTION_KEY)
+            return
+
         codes = get_cached_tax_codes_or_fetch(self.config)
-        if tax_code and tax_code not in codes:
+        if tax_code not in codes:
             return
 
         tax_description = codes.get(tax_code)

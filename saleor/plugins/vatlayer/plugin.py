@@ -244,7 +244,12 @@ class VatlayerPlugin(BasePlugin):
         if not self.active:
             return previous_value
 
-        if tax_code and tax_code not in dict(TaxRateType.CHOICES):
+        if tax_code is None and obj.pk:
+            obj.delete_value_from_metadata(self.META_CODE_KEY)
+            obj.delete_value_from_metadata(self.META_DESCRIPTION_KEY)
+            return
+
+        if tax_code not in dict(TaxRateType.CHOICES):
             return previous_value
 
         tax_item = {self.META_CODE_KEY: tax_code, self.META_DESCRIPTION_KEY: tax_code}
