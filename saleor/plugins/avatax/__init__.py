@@ -39,6 +39,7 @@ COMMON_DISCOUNT_VOUCHER_CODE = "OD010000"
 
 # Temporary Unmapped Other SKU - taxable default
 DEFAULT_TAX_CODE = "O9999999"
+DEFAULT_TAX_DESCRIPTION = "Unmapped Other SKU - taxable default"
 
 
 @dataclass

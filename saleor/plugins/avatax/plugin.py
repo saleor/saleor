@@ -1,7 +1,7 @@
 import logging
 from dataclasses import asdict
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 from urllib.parse import urljoin
 
 from django.core.exceptions import ValidationError
@@ -10,9 +10,12 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 from ...checkout import base_calculations
 from ...core.taxes import TaxError, TaxType, charge_taxes_on_shipping, zero_taxed_money
 from ...discount import DiscountInfo
+from ...product.models import Product, ProductType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
 from . import (
+    DEFAULT_TAX_CODE,
+    DEFAULT_TAX_DESCRIPTION,
     META_CODE_KEY,
     META_DESCRIPTION_KEY,
     AvataxConfiguration,
@@ -35,7 +38,6 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ...checkout.models import Checkout, CheckoutLine
     from ...order.models import Order, OrderLine
-    from ...product.models import Product, ProductType
     from ..models import PluginConfiguration
 
 
@@ -390,27 +392,45 @@ class AvataxPlugin(BasePlugin):
         ]
 
     def assign_tax_code_to_object_meta(
-        self, obj: Union["Product", "ProductType"], tax_code: str, previous_value: Any
+        self,
+        obj: Union["Product", "ProductType"],
+        tax_code: Optional[str],
+        previous_value: Any,
     ):
         if not self.active:
             return previous_value
 
+        if tax_code is None and obj.pk:
+            obj.delete_value_from_metadata(META_CODE_KEY)
+            obj.delete_value_from_metadata(META_DESCRIPTION_KEY)
+            return previous_value
+
         codes = get_cached_tax_codes_or_fetch(self.config)
         if tax_code not in codes:
-            return
+            return previous_value
 
-        tax_description = codes[tax_code]
+        tax_description = codes.get(tax_code)
         tax_item = {META_CODE_KEY: tax_code, META_DESCRIPTION_KEY: tax_description}
         obj.store_value_in_metadata(items=tax_item)
-        obj.save()
+        return previous_value
 
     def get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"], previous_value: Any
     ) -> TaxType:
         if not self.active:
             return previous_value
-        tax_code = obj.get_value_from_metadata(META_CODE_KEY, "")
-        tax_description = obj.get_value_from_metadata(META_DESCRIPTION_KEY, "")
+
+        # Product has None as it determines if we overwrite taxes for the product
+        default_tax_code = None
+        default_tax_description = None
+        if isinstance(obj, ProductType):
+            default_tax_code = DEFAULT_TAX_CODE
+            default_tax_description = DEFAULT_TAX_DESCRIPTION
+
+        tax_code = obj.get_value_from_metadata(META_CODE_KEY, default_tax_code)
+        tax_description = obj.get_value_from_metadata(
+            META_DESCRIPTION_KEY, default_tax_description
+        )
         return TaxType(code=tax_code, description=tax_description,)
 
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
