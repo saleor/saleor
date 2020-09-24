@@ -1,31 +1,49 @@
 import json
 import logging
-from typing import Optional
+from typing import Callable, Optional
 from urllib.parse import urlencode
 
 from authlib.common.errors import AuthlibBaseError
 from authlib.integrations.requests_client import OAuth2Session
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
+from django.middleware.csrf import _compare_masked_tokens  # type: ignore
 from django.shortcuts import redirect
 
 from ...account.models import User
-from ...core.jwt import get_token_from_request, get_user_from_access_token
+from ...core.jwt import (
+    JWT_REFRESH_TOKEN_COOKIE_NAME,
+    get_token_from_request,
+    get_user_from_access_token,
+    jwt_decode,
+)
 from ...core.utils.url import prepare_url
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
 from .dataclasses import Auth0Config
+from .exceptions import AuthenticationError
 from .utils import (
     get_auth_service_url,
     get_valid_auth_tokens_from_auth0_payload,
     prepare_redirect_url,
+    validate_storefront_redirect_url,
 )
 
 logger = logging.getLogger(__name__)
 
 AUTHORIZE_PATH = "/authorize"
 OAUTH_TOKEN_PATH = "/oauth/token"
+
+
+def convert_error_to_http_response(fn: Callable) -> Callable:
+    def wrapped(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except AuthenticationError as e:
+            return HttpResponseBadRequest(str(e))
+
+    return wrapped
 
 
 class Auth0Plugin(BasePlugin):
@@ -69,13 +87,13 @@ class Auth0Plugin(BasePlugin):
             "label": "Enable refreshing token",
         },
         "domain": {
-            "type": ConfigurationTypeField.SECRET,
+            "type": ConfigurationTypeField.STRING,
             "help_text": (
                 "The domain which is assigned to your app by Auth0. All requests will "
                 "be sent to the provided domain. The domain can be found on "
                 "https://manage.auth0.com/dashboard in the Applications section."
             ),
-            "Label": "Domain",
+            "label": "Domain",
         },
     }
 
@@ -104,32 +122,54 @@ class Auth0Plugin(BasePlugin):
     def _get_auth0_service_url(self, service):
         return get_auth_service_url(self.config.domain, service)
 
-    # TODO request will be change to graphql mutation input
-    def external_authentication(self, request: WSGIRequest, previous_value) -> dict:
-        storefront_redirect_url = request.GET.get("redirectUrl")
+    def external_authentication(self, data: dict, previous_value) -> dict:
+        storefront_redirect_url = data.get("redirectUrl")
+        validate_storefront_redirect_url(storefront_redirect_url)
         uri, state = self.auth0.create_authorization_url(
             self._get_auth0_service_url(AUTHORIZE_PATH),
             redirect_uri=prepare_redirect_url(self.PLUGIN_ID, storefront_redirect_url),
         )
         return {"authorizationUrl": uri}
 
-    def external_refresh(self, request: WSGIRequest, previous_value) -> dict:
-        # TODO refresh token will be passed as cookie or mutation input
-        # this solution is only temporary for testing purpouses
-        refresh_token = request.GET.get("refreshToken")
+    def validate_refresh_token(self, refresh_token, data):
+        csrf_token = data.get("csrfToken")
         if not refresh_token:
             raise ValidationError(
                 {
-                    "refresh_token": ValidationError(
+                    "refreshToken": ValidationError(
                         "Missing token.", code=PluginErrorCode.NOT_FOUND.value
                     )
                 }
             )
 
+        refresh_payload = jwt_decode(refresh_token)
+
+        if not data.get("refreshToken"):
+            is_valid = _compare_masked_tokens(csrf_token, refresh_payload["csrf_token"])
+            if not is_valid:
+                raise ValidationError(
+                    {
+                        "csrfToken": ValidationError(
+                            "CSRF token doesn't match",
+                            code=PluginErrorCode.INVALID.value,
+                        )
+                    }
+                )
+
+    def external_refresh(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> dict:
+        # Todo validate if plugin is active
+        refresh_token = request.COOKIES.get(JWT_REFRESH_TOKEN_COOKIE_NAME, None)
+        refresh_token = data.get("refreshToken") or refresh_token
+
+        self.validate_refresh_token(refresh_token, data)
+        saleor_refresh_token = jwt_decode(refresh_token)
         token_endpoint = self._get_auth0_service_url(OAUTH_TOKEN_PATH)
         try:
             token_data = self.auth0.refresh_token(
-                token_endpoint, refresh_token=refresh_token
+                token_endpoint,
+                refresh_token=saleor_refresh_token["oauth_refresh_token"],
             )
         except AuthlibBaseError:
             logger.warning("Unable to refresh the token.", exc_info=True)
@@ -141,31 +181,36 @@ class Auth0Plugin(BasePlugin):
                     )
                 }
             )
-
-        return get_valid_auth_tokens_from_auth0_payload(
-            token_data, self.config.domain, get_or_create=False
-        )
+        try:
+            return get_valid_auth_tokens_from_auth0_payload(
+                token_data, self.config.domain, get_or_create=False
+            )
+        except AuthenticationError as e:
+            raise ValidationError(
+                {"refreshToken": ValidationError(str(e), code=PluginErrorCode.INVALID)}
+            )
 
     def authenticate_user(self, request: WSGIRequest, previous_value) -> Optional[User]:
+        # TODO this will be covered by tests and modified after we add Auth backend for
+        #  plugins
         token = get_token_from_request(request)
         if not token:
             return None
         return get_user_from_access_token(token)
 
+    @convert_error_to_http_response
     def handle_auth0_callback(self, request: WSGIRequest) -> HttpResponse:
         token_endpoint = self._get_auth0_service_url(OAUTH_TOKEN_PATH)
         storefront_redirect_url = request.GET.get("redirectUrl")
         if not storefront_redirect_url:
-            raise ValidationError(
-                "Missing get param - redirectUrl", code=PluginErrorCode.REQUIRED.value
-            )
+            raise AuthenticationError("Missing get param - redirectUrl")
         token_data = self.auth0.fetch_token(
             token_endpoint,
             authorization_response=request.build_absolute_uri(),
             redirect_uri=prepare_redirect_url(self.PLUGIN_ID),
         )
         params = get_valid_auth_tokens_from_auth0_payload(
-            token_data, self.config.domain
+            token_data, self.config.domain,
         )
 
         redirect_url = prepare_url(urlencode(params), storefront_redirect_url)
@@ -177,7 +222,9 @@ class Auth0Plugin(BasePlugin):
             return HttpResponse(self.external_refresh(request, None))
         if path.startswith("/login"):
             # TODO this will be moved to external auth mutation
-            return HttpResponse(json.dumps(self.external_authentication(request, None)))
+            return HttpResponse(
+                json.dumps(self.external_authentication(request.GET, None))
+            )
         if path.startswith("/callback"):
             return self.handle_auth0_callback(request)
         return HttpResponseNotFound()

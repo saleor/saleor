@@ -1,0 +1,88 @@
+import jwt
+import pytest
+
+from ...manager import get_plugins_manager
+from ..plugin import Auth0Plugin
+
+
+@pytest.fixture
+def auth0_plugin(settings):
+    def fun(
+        client_id="client_id",
+        client_secret="client_secret",
+        enable_refresh_token=True,
+        domain="saleor-test.eu.auth0.com",
+    ):
+        settings.PLUGINS = ["saleor.plugins.auth0.plugin.Auth0Plugin"]
+        manager = get_plugins_manager()
+        manager.save_plugin_configuration(
+            Auth0Plugin.PLUGIN_ID,
+            {
+                "active": True,
+                "configuration": [
+                    {"name": "client_id", "value": client_id},
+                    {"name": "client_secret", "value": client_secret},
+                    {"name": "enable_refresh_token", "value": enable_refresh_token},
+                    {"name": "domain", "value": domain},
+                ],
+            },
+        )
+
+        manager = get_plugins_manager()
+        return manager.plugins[0]
+
+    return fun
+
+
+@pytest.fixture()
+def id_payload():
+    return {
+        "given_name": "Saleor",
+        "family_name": "Admin",
+        "nickname": "saloer",
+        "name": "Saleor Admin",
+        "picture": "",
+        "locale": "pl",
+        "updated_at": "2020-09-22T08:50:50.110Z",
+        "email": "admin@example.com",
+        "email_verified": True,
+        "iss": "https://saleor-test.eu.auth0.com/",
+        "sub": "google-oauth2|",
+        "aud": "",
+        "iat": 1600764712,
+        "exp": 1600800712,
+    }
+
+
+@pytest.fixture()
+def id_token(id_payload):
+    private_key = """-----BEGIN RSA PRIVATE KEY-----
+MIIEogIBAAKCAQEAnzyis1ZjfNB0bBgKFMSvvkTtwlvBsaJq7S5wA+kzeVOVpVWw
+kWdVha4s38XM/pa/yr47av7+z3VTmvDRyAHcaT92whREFpLv9cj5lTeJSibyr/Mr
+m/YtjCZVWgaOYIhwrXwKLqPr/11inWsAkfIytvHWTxZYEcXLgAXFuUuaS3uF9gEi
+NQwzGTU1v0FqkqTBr4B8nW3HCN47XUu0t8Y0e+lf4s4OxQawWD79J9/5d3Ry0vbV
+3Am1FtGJiJvOwRsIfVChDpYStTcHTCMqtvWbV6L11BWkpzGXSW4Hv43qa+GSYOD2
+QU68Mb59oSk2OB+BtOLpJofmbGEGgvmwyCI9MwIDAQABAoIBACiARq2wkltjtcjs
+kFvZ7w1JAORHbEufEO1Eu27zOIlqbgyAcAl7q+/1bip4Z/x1IVES84/yTaM8p0go
+amMhvgry/mS8vNi1BN2SAZEnb/7xSxbflb70bX9RHLJqKnp5GZe2jexw+wyXlwaM
++bclUCrh9e1ltH7IvUrRrQnFJfh+is1fRon9Co9Li0GwoN0x0byrrngU8Ak3Y6D9
+D8GjQA4Elm94ST3izJv8iCOLSDBmzsPsXfcCUZfmTfZ5DbUDMbMxRnSo3nQeoKGC
+0Lj9FkWcfmLcpGlSXTO+Ww1L7EGq+PT3NtRae1FZPwjddQ1/4V905kyQFLamAA5Y
+lSpE2wkCgYEAy1OPLQcZt4NQnQzPz2SBJqQN2P5u3vXl+zNVKP8w4eBv0vWuJJF+
+hkGNnSxXQrTkvDOIUddSKOzHHgSg4nY6K02ecyT0PPm/UZvtRpWrnBjcEVtHEJNp
+bU9pLD5iZ0J9sbzPU/LxPmuAP2Bs8JmTn6aFRspFrP7W0s1Nmk2jsm0CgYEAyH0X
++jpoqxj4efZfkUrg5GbSEhf+dZglf0tTOA5bVg8IYwtmNk/pniLG/zI7c+GlTc9B
+BwfMr59EzBq/eFMI7+LgXaVUsM/sS4Ry+yeK6SJx/otIMWtDfqxsLD8CPMCRvecC
+2Pip4uSgrl0MOebl9XKp57GoaUWRWRHqwV4Y6h8CgYAZhI4mh4qZtnhKjY4TKDjx
+QYufXSdLAi9v3FxmvchDwOgn4L+PRVdMwDNms2bsL0m5uPn104EzM6w1vzz1zwKz
+5pTpPI0OjgWN13Tq8+PKvm/4Ga2MjgOgPWQkslulO/oMcXbPwWC3hcRdr9tcQtn9
+Imf9n2spL/6EDFId+Hp/7QKBgAqlWdiXsWckdE1Fn91/NGHsc8syKvjjk1onDcw0
+NvVi5vcba9oGdElJX3e9mxqUKMrw7msJJv1MX8LWyMQC5L6YNYHDfbPF1q5L4i8j
+8mRex97UVokJQRRA452V2vCO6S5ETgpnad36de3MUxHgCOX3qL382Qx9/THVmbma
+3YfRAoGAUxL/Eu5yvMK8SAt/dJK6FedngcM3JEFNplmtLYVLWhkIlNRGDwkg3I5K
+y18Ae9n7dHVueyslrb6weq7dTkYDi3iOYRW8HRkIQh06wEdbxt0shTzAJvvCQfrB
+jg/3747WSsf/zBTcHihTRBdAv6OmdhV4/dD5YBfLAkLrd+mX7iE=
+-----END RSA PRIVATE KEY-----"""
+    return jwt.encode(
+        id_payload, private_key, "RS256",  # type: ignore
+    )
