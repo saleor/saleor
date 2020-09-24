@@ -5,17 +5,18 @@
 #
 # Translators:
 # Ramdhan Hidayat <ramdhan.h@gmail.com>, 2020
-# Kholis Respati Agum Gumelar <gumelaragum@protonmail.com>, 2020
 # Chetabahana <admin@chetabahana.com>, 2020
+# Kholis Respati Agum Gumelar <gumelaragum@protonmail.com>, 2020
+# Fazza Fakhri <new.fazzafakhri@gmail.com>, 2020
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-17 16:44+0000\n"
+"POT-Creation-Date: 2020-09-11 12:15+0000\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Chetabahana <admin@chetabahana.com>, 2020\n"
+"Last-Translator: Fazza Fakhri <new.fazzafakhri@gmail.com>, 2020\n"
 "Language-Team: Indonesian (https://www.transifex.com/mirumee/teams/34782/id/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -39,6 +40,96 @@ msgstr ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 
+#: templates/invoices/invoice.html:218
+msgctxt "Invoice PDF header"
+msgid "INVOICE INFORMATION"
+msgstr "INFORMASI FAKTUR"
+
+#: templates/invoices/invoice.html:221
+msgctxt "Invoice PDF header: Invoice number"
+msgid "Invoice number:"
+msgstr "Nomor faktur"
+
+#: templates/invoices/invoice.html:227
+msgctxt "Invoice PDF header: order number"
+msgid "Order:"
+msgstr "Pesanan:"
+
+#: templates/invoices/invoice.html:233
+msgctxt "Invoice PDF header"
+msgid "Date:"
+msgstr "Tanggal:"
+
+#: templates/invoices/invoice.html:239
+msgctxt "Invoice PDF amount (price)"
+msgid "Amount:"
+msgstr "Jumlah:"
+
+#: templates/invoices/invoice.html:248
+msgctxt "Invoice PDF"
+msgid "BILLING ADDRESS"
+msgstr "ALAMAT PENAGIHAN"
+
+#: templates/invoices/invoice.html:277
+msgctxt "Invoice PDF"
+msgid "SHIPMENT ADDRESS"
+msgstr "ALAMAT PENGIRIMAN"
+
+#: templates/invoices/invoice.html:308
+msgctxt "Invoice PDF"
+msgid "PAYMENT METHOD"
+msgstr "METODE PEMBAYARAN"
+
+#: templates/invoices/invoice.html:316
+msgctxt "Invoice PDF"
+msgid "SHIPMENT METHOD"
+msgstr "METODE PENGIRIMAN"
+
+#: templates/invoices/invoice.html:326
+msgctxt "Invoice PDF table header"
+msgid "ITEMS ORDERED"
+msgstr "ITEM YANG DIPESAN"
+
+#: templates/invoices/invoice_products_table.html:7
+msgctxt "Invoice PDF table"
+msgid "Products"
+msgstr "Daftar produk"
+
+#: templates/invoices/invoice_products_table.html:10
+msgctxt "Invoice PDF table"
+msgid "Price"
+msgstr "Harga"
+
+#: templates/invoices/invoice_products_table.html:13
+msgctxt "Invoice PDF table"
+msgid "Quantity"
+msgstr "Jumlah"
+
+#: templates/invoices/invoice_products_table.html:16
+msgctxt "Invoice PDF table"
+msgid "Total Price"
+msgstr "Total Harga:"
+
+#: templates/invoices/invoice_summary_table.html:8
+msgctxt "Invoice PDF summary"
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: templates/invoices/invoice_summary_table.html:21
+msgctxt "Invoice PDF summary"
+msgid "Delivery Cost"
+msgstr "Biaya Pengiriman"
+
+#: templates/invoices/invoice_summary_table.html:34
+msgctxt "Invoice PDF summary"
+msgid "Tax"
+msgstr "Pajak"
+
+#: templates/invoices/invoice_summary_table.html:47
+msgctxt "Invoice PDF summary"
+msgid "Grand Total"
+msgstr "Total Keseluruhan"
+
 #: templates/templated_email/account/account_delete.email:4
 msgctxt "Account delete reset e-mail subject"
 msgid "Delete your account"
@@ -49,28 +140,23 @@ msgstr "Hapus akun anda"
 msgctxt "Account delete reset e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(site_name)s.\n"
 "Click the link below to delete your account.\n"
 "\n"
 "Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
-"\n"
-"Anda menerima email ini karena Anda atau orang lain telah meminta penghapusan akun pengguna Anda di %(domain)s.\n"
-"Klik tautan di bawah untuk menghapus akun Anda.\n"
-"\n"
-"Harap perhatikan bahwa tindakan ini permanen dan tidak dapat dibatalkan.\n"
 
 #: templates/templated_email/account/confirm.email:4
 msgctxt "Account confirmation e-mail subject"
 msgid "Account confirmation e-mail"
-msgstr ""
+msgstr "Email konfirmasi akun"
 
 #: templates/templated_email/account/confirm.email:9
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
 "\n"
-"In order to log into %(domain)s, you have to confirm your email address first.\n"
+"In order to log into %(site_name)s, you have to confirm your email address first.\n"
 "Please click the link below to do so and log into your account.\n"
 msgstr ""
 
@@ -78,7 +164,7 @@ msgstr ""
 #: templates/templated_email/account/request_email_change.email:4
 msgctxt "Email change e-mail subject"
 msgid "Email change e-mail"
-msgstr ""
+msgstr "Email ganti e-mail"
 
 #: templates/templated_email/account/email_changed_notification.email:9
 #, python-format
@@ -86,7 +172,7 @@ msgctxt "Email change e-mail text"
 msgid ""
 "\n"
 "\n"
-"You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has changed email for your user account at %(site_name)s.\n"
 "If you didn't request this change, please contact the administrator.\n"
 msgstr ""
 
@@ -100,12 +186,9 @@ msgstr "Atur ulang kata sandi email "
 msgctxt "Password reset e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(site_name)s.\n"
 "It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
-"\n"
-"Anda menerima email ini karena Anda atau orang lain telah meminta kata sandi untuk akun pengguna Anda di %(domain)s.\n"
-"Hal ini dapat diabaikan dengan aman jika Anda tidak atur ulang kata sandi. Klik tautan di bawah untuk ubah kata sandi Anda.\n"
 
 #: templates/templated_email/account/request_email_change.email:9
 #, python-format
@@ -113,9 +196,30 @@ msgctxt "Email change e-mail text"
 msgid ""
 "\n"
 "\n"
-"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(site_name)s.\n"
 "It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
 msgstr ""
+
+#: templates/templated_email/csv/export_failed.email:4
+#: templates/templated_email/csv/export_products_file.email:4
+msgctxt "Export products e-mail subject"
+msgid "Export products data"
+msgstr "Ekspor data produk"
+
+#: templates/templated_email/csv/export_failed.email:10
+msgctxt "Export products e-mail text"
+msgid ""
+"Sorry, we cannot finish product export, some unexpected errors occurred. "
+"Please try again."
+msgstr ""
+"Maaf, kami tidak dapat menyelesaikan ekspor produk, beberapa kesalahan tak "
+"terduga terjadi. Silakan coba lagi."
+
+#: templates/templated_email/csv/export_products_file.email:10
+#, python-format
+msgctxt "Export products e-mail text"
+msgid "Your file with products data is ready to download: %(csv_link)s"
+msgstr "File Anda dengan data produk siap diunduh:%(csv_link)s"
 
 #: templates/templated_email/dashboard/customer/set_password.email:2
 #, python-format
@@ -128,12 +232,9 @@ msgstr "Hello dari %(site_name)s!"
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(site_name)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
-"\n"
-"Anda menerima email ini karena Anda harus menetapkan kata sandi untuk akun pelanggan Anda di %(domain)s.\n"
-"Klik tautan di bawah untuk mengatur ulang kata sandi Anda.\n"
 
 #: templates/templated_email/dashboard/staff/set_password.email:2
 #, python-format
@@ -146,18 +247,15 @@ msgstr "Hello dari %(site_name)s!"
 msgctxt "Set password for staff member e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(site_name)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
-"\n"
-"Anda menerima email ini karena Anda harus menetapkan kata sandi untuk akun anggota staf Anda di %(domain)s.\n"
-"Klik tautan di bawah untuk mengatur ulang kata sandi Anda.\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment confirmation email subject"
 msgid "Your order %(order)s has been fulfilled"
-msgstr ""
+msgstr "Pesanan Anda %(order)s telah terpenuhi"
 
 #: templates/templated_email/order/confirm_fulfillment.email:11
 msgctxt "Fulfillment confirmation email text"
@@ -165,6 +263,8 @@ msgid ""
 "\n"
 "Thank you for your order. Below is the list of fulfilled products.\n"
 msgstr ""
+"\n"
+"Terima kasih atas pesanan anda Di bawah ini adalah daftar produk yang terpenuhi.\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:15
 #: templates/templated_email/source/confirm_fulfillment.mjml:25
@@ -179,7 +279,7 @@ msgstr "Anda dapat melacak dengan resi berikut : %(tracking_number)s"
 #, python-format
 msgctxt "Order confirmation e-mail subject"
 msgid "Order %(order)s details"
-msgstr ""
+msgstr "Detail %(order)s pesanan"
 
 #: templates/templated_email/order/confirm_order.email:13
 msgctxt "Order confirmation e-mail text"
@@ -187,6 +287,8 @@ msgid ""
 "\n"
 "Thank you for your order. Below is the list of ordered products.\n"
 msgstr ""
+"\n"
+"Terima kasih atas pesanan anda Di bawah ini adalah daftar produk yang dipesan.\n"
 
 #: templates/templated_email/order/confirm_order.email:17
 #: templates/templated_email/order/staff_confirm_order.email:17
@@ -197,6 +299,9 @@ msgid ""
 "To see your payment details please visit:\n"
 "%(order_details_url)s\n"
 msgstr ""
+"\n"
+"Untuk melihat detail pembayaran Anda, silakan kunjungi:\n"
+"%(order_details_url)s\n"
 
 #: templates/templated_email/order/confirm_order.email:25
 #: templates/templated_email/order/staff_confirm_order.email:25
@@ -272,19 +377,65 @@ msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
 msgstr "Tidak perlu biaya pengiriman"
 
+#: templates/templated_email/order/order_cancel.email:4
+#, python-format
+msgctxt "Order cancel e-mail subject"
+msgid "Order %(order)s canceled"
+msgstr "Pesanan %(order)s dibatalkan"
+
+#: templates/templated_email/order/order_cancel.email:11
+msgctxt "Order cancel e-mail text"
+msgid ""
+"\n"
+"Your order has been canceled.\n"
+msgstr ""
+"\n"
+"Pesanan Anda telah dibatalkan.\n"
+
+#: templates/templated_email/order/order_refund.email:4
+#, python-format
+msgctxt "Order refund e-mail subject"
+msgid "Order %(order)s refunded"
+msgstr "Pesanan %(order)s dikembalikan"
+
+#: templates/templated_email/order/order_refund.email:11
+#, python-format
+msgctxt "Order refund e-mail text"
+msgid ""
+"\n"
+"A payment of %(amount)s %(currency)s has been refunded for your order.\n"
+msgstr ""
+"\n"
+"Pembayaran sebesar %(amount)s %(currency)s telah dikembalikan untuk pesanan Anda.\n"
+
 #: templates/templated_email/order/payment/confirm_payment.email:4
 #, python-format
 msgctxt "Payment confirmation subject"
 msgid "Order %(order)s payment details"
-msgstr ""
+msgstr "Pesanan %(order)s detail pembayaran"
 
 #: templates/templated_email/order/payment/confirm_payment.email:11
 msgctxt "Payment confirmation email text"
 msgid ""
 "\n"
 "Thank you for your payment.\n"
-"Your payment was successfully charged.\n"
+"Your payment was successfully processed.\n"
 msgstr ""
+
+#: templates/templated_email/order/send_invoice.email:4
+msgctxt "Invoice email subject"
+msgid "Invoice"
+msgstr "Faktur"
+
+#: templates/templated_email/order/send_invoice.email:9
+#, python-format
+msgctxt "Send invoice e-mail text"
+msgid ""
+"\n"
+"In order to download invoice %(number)s, click the link below.\n"
+msgstr ""
+"\n"
+"Untuk mengunduh faktur %(number)s, klik tautan di bawah ini.\n"
 
 #: templates/templated_email/order/staff_confirm_order.email:13
 msgctxt "Order confirmation staff e-mail text"
@@ -292,6 +443,8 @@ msgid ""
 "\n"
 "Below is the list of ordered products.\n"
 msgstr ""
+"\n"
+"Di bawah ini adalah daftar produk yang dipesan.\n"
 
 #: templates/templated_email/order/update_fulfillment.email:4
 #, python-format
@@ -336,8 +489,13 @@ msgstr "Hormat kami, %(site_name)s"
 #: templates/templated_email/source/confirm_order.mjml:14
 #: templates/templated_email/source/confirm_payment.mjml:13
 #: templates/templated_email/source/email_changed_notification.mjml:13
+#: templates/templated_email/source/export_failed.mjml:13
+#: templates/templated_email/source/export_products_file.mjml:13
+#: templates/templated_email/source/order_cancel.mjml:13
+#: templates/templated_email/source/order_refund.mjml:13
 #: templates/templated_email/source/password_reset.mjml:13
 #: templates/templated_email/source/request_email_change.mjml:13
+#: templates/templated_email/source/send_invoice.mjml:13
 #: templates/templated_email/source/set_customer_password.mjml:13
 #: templates/templated_email/source/set_password.mjml:13
 #: templates/templated_email/source/staff_confirm_order.mjml:14
@@ -351,20 +509,16 @@ msgstr "Hai!"
 msgctxt "Account delete e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br/> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be"
-" reversed."
+"deletion of your user account at %(site_name)s.<br/> Click the link below to"
+" delete your account. Please note that this action is permanent and cannot "
+"be reversed."
 msgstr ""
-"Anda menerima email ini karena Anda atau orang lain telah meminta "
-"penghapusan akun pengguna Anda di %(domain)s.<br/> Klik tautan di bawah "
-"untuk menghapus akun Anda. Harap perhatikan bahwa tindakan ini permanen dan "
-"tidak dapat dibatalkan."
 
 #: templates/templated_email/source/confirm.mjml:16
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
-"In order to log into %(domain)s, you have to confirm your email address "
+"In order to log into %(site_name)s, you have to confirm your email address "
 "first. Please click the link below to do so and log into your account."
 msgstr ""
 
@@ -372,6 +526,8 @@ msgstr ""
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
 msgstr ""
+"Terima kasih atas pesanan anda Di bawah ini adalah daftar produk yang "
+"terpenuhi."
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:21
 #: templates/templated_email/source/update_fulfillment.mjml:21
@@ -381,12 +537,15 @@ msgid ""
 "You can track your shipment with <a "
 "href=\"%(tracking_number)s\">%(tracking_number)s</a> link."
 msgstr ""
+"Anda dapat melacak kiriman Anda dengan <a "
+"href=\"%(tracking_number)s\">%(tracking_number)s</a> link."
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:33
 msgctxt "Fulfillment digital products email text"
 msgid ""
 "You can download your digital products by clicking in download link(s)."
 msgstr ""
+"Anda dapat mendownload produk digital Anda dengan mengklik link download."
 
 #: templates/templated_email/source/confirm_order.mjml:18
 #, python-format
@@ -404,10 +563,12 @@ msgstr ""
 msgctxt "Order confirmation e-mail text"
 msgid "Thank you for your order. Below is the list of ordered products."
 msgstr ""
+"Terima kasih atas pesanan anda Di bawah ini adalah daftar produk yang "
+"dipesan."
 
 #: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
-msgid "Thank you for your payment. Your payment was successfully charged."
+msgid "Thank you for your payment. Your payment was successfully processed."
 msgstr ""
 
 #: templates/templated_email/source/email_changed_notification.mjml:16
@@ -415,9 +576,41 @@ msgstr ""
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
-"for your user account at %(domain)s.<br /> If you didn't request this "
+"for your user account at %(site_name)s.<br /> If you didn't request this "
 "change, please contact the administrator."
 msgstr ""
+
+#: templates/templated_email/source/export_failed.mjml:16
+msgctxt "Export products e-mail text"
+msgid ""
+"Sorry, we couldn't finish exporting products, some unexpected errors "
+"occurred. Please try again."
+msgstr ""
+"Maaf, kami tidak dapat menyelesaikan ekspor produk, beberapa kesalahan tak "
+"terduga terjadi. Silakan coba lagi."
+
+#: templates/templated_email/source/export_products_file.mjml:16
+#, python-format
+msgctxt "Export products e-mail text"
+msgid ""
+"Your file with products data is ready to download: <a "
+"href=\"%(csv_link)s\">%(csv_link)s</a>"
+msgstr ""
+"File Anda dengan data produk siap diunduh: <a "
+"href=\"%(csv_link)s\">%(csv_link)s</a>"
+
+#: templates/templated_email/source/order_cancel.mjml:16
+msgctxt "Order cancel e-mail text"
+msgid "Your order has been canceled."
+msgstr "Pesanan Anda telah dibatalkan."
+
+#: templates/templated_email/source/order_refund.mjml:16
+#, python-format
+msgctxt "Order refund e-mail text"
+msgid "A payment of %(amount)s %(currency)s has been refunded for your order."
+msgstr ""
+"Pembayaran sebesar %(amount)s %(currency)s telah dikembalikan untuk pesanan "
+"Anda."
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:29
@@ -435,7 +628,7 @@ msgstr "Jumlah"
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
 msgctxt "Ordered item download links"
 msgid "Download Link"
-msgstr ""
+msgstr "Tautan Unduhan"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:12
 msgctxt "E-mail order lines summary table"
@@ -482,48 +675,44 @@ msgstr "Subtotal"
 msgctxt "Password reset e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br/> It can be safely ignored "
-"if you did not request a password reset. Click the link below to reset your "
-"password."
+"password for your user account at %(site_name)s.<br/> It can be safely "
+"ignored if you did not request a password reset. Click the link below to "
+"reset your password."
 msgstr ""
-"Anda menerima email ini karena Anda atau orang lain telah meminta kata sandi"
-" untuk akun pengguna Anda di %(domain)s.<br/> Itu dapat diabaikan dengan "
-"aman jika Anda tidak meminta pengaturan ulang kata sandi. Klik tautan di "
-"bawah untuk mengatur ulang kata sandi Anda."
 
 #: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested an "
-"email change for your user account at %(domain)s.<br /> It can be safely "
+"email change for your user account at %(site_name)s.<br /> It can be safely "
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
+
+#: templates/templated_email/source/send_invoice.mjml:16
+#, python-format
+msgctxt "Send invoice e-mail text"
+msgid "In order to download invoice %(number)s, click the link below."
+msgstr "Untuk mengunduh faktur %(number)s, klik tautan di bawah ini."
 
 #: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your "
-"customer account at %(domain)s.<br/> Click the link below to set up your "
+"customer account at %(site_name)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
-"Anda menerima e-mail ini karena ada harus menetapkan kata sandi untuk "
-"pelanggan anda di %(domain)s. <br/>Silahkan klik link dibawah ini untuk "
-"menetapkan password."
 
 #: templates/templated_email/source/set_password.mjml:16
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your staff"
-" member account at %(domain)s.<br/> Click the link below to set up your "
+" member account at %(site_name)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
-"Anda menerima e-mail ini karena ada harus menetapkan kata sandi untuk "
-"pegawai anda di %(domain)s. <br/> Silahkan klik link dibawah ini untuk "
-"menetapkan password."
 
 #: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
@@ -532,6 +721,9 @@ msgid ""
 "Someone placed a new order in your store. To see order details please visit:"
 " <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
+"Seseorang membuat pesanan baru di toko Anda. Untuk melihat detail pesanan, "
+"silakan kunjungi: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 
 #: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
