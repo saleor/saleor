@@ -1326,6 +1326,9 @@ class ProductVariantCreate(ModelMutation):
     @transaction.atomic()
     def save(cls, info, instance, cleaned_input):
         instance.save()
+        if not instance.product.default_variant:
+            instance.product.default_variant = instance
+            instance.product.save(update_fields=["default_variant", "updated_at"])
         # Recalculate the "minimal variant price" for the parent product
         update_product_minimal_variant_price_task.delay(instance.product_id)
         stocks = cleaned_input.get("stocks")
@@ -1783,6 +1786,54 @@ class ProductImageReorder(BaseMutation):
             image.save(update_fields=["sort_order"])
 
         return ProductImageReorder(product=product, images=images)
+
+
+class ProductVariantSetDefault(BaseMutation):
+    product = graphene.Field(Product)
+
+    class Arguments:
+        product_id = graphene.ID(
+            required=True,
+            description="Id of a product that will have the default variant set.",
+        )
+        variant_id = graphene.ID(
+            required=True, description="Id of a variant that will be set as default.",
+        )
+
+    class Meta:
+        description = (
+            "Set default variant for a product. "
+            "Mutation triggers PRODUCT_UPDATED webhook."
+        )
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, product_id, variant_id):
+        product = cls.get_node_or_error(
+            info, product_id, field="product_id", only_type=Product
+        )
+        variant = cls.get_node_or_error(
+            info,
+            variant_id,
+            field="variant_id",
+            only_type=ProductVariant,
+            qs=models.ProductVariant.objects.select_related("product"),
+        )
+        if variant.product != product:
+            raise ValidationError(
+                {
+                    "variant_id": ValidationError(
+                        "Provided variant doesn't belong to provided product.",
+                        code=ProductErrorCode.NOT_PRODUCTS_VARIANT,
+                    )
+                }
+            )
+        product.default_variant = variant
+        product.save(update_fields=["default_variant", "updated_at"])
+        info.context.plugins.product_updated(product)
+        return ProductVariantSetDefault(product=product)
 
 
 class ProductVariantReorder(BaseMutation):

@@ -10,6 +10,7 @@ class ProductErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_PRODUCTS_IMAGE = "not_products_image"
+    NOT_PRODUCTS_VARIANT = "not_products_variant"
     NOT_FOUND = "not_found"
     REQUIRED = "required"
     UNIQUE = "unique"

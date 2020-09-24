@@ -268,6 +268,13 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     )
     available_for_purchase = models.DateField(blank=True, null=True)
     visible_in_listings = models.BooleanField(default=False)
+    default_variant = models.OneToOneField(
+        "ProductVariant",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
     objects = ProductsQueryset.as_manager()
     translated = TranslationProxy()
 
