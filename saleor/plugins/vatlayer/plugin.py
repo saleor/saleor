@@ -14,6 +14,7 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from ...checkout import calculations
 from ...core.taxes import TaxType
 from ...graphql.core.utils.error_codes import PluginErrorCode
+from ...product.models import Product, ProductType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from . import (
     DEFAULT_TAX_RATE_NAME,
@@ -28,7 +29,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ...checkout.models import Checkout, CheckoutLine
     from ...discount import DiscountInfo
-    from ...product.models import Product, ProductType
+
     from ...account.models import Address
     from ...order.models import OrderLine, Order
     from ..models import PluginConfiguration
@@ -266,8 +267,18 @@ class VatlayerPlugin(BasePlugin):
     def __get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"]
     ) -> "TaxType":
-        tax_code = obj.get_value_from_metadata(self.META_CODE_KEY, None)
-        tax_description = obj.get_value_from_metadata(self.META_DESCRIPTION_KEY, None)
+
+        # Product has None as it determines if we overwrite taxes for the product
+        default_tax_code = None
+        default_tax_description = None
+        if isinstance(obj, ProductType):
+            default_tax_code = DEFAULT_TAX_RATE_NAME
+            default_tax_description = DEFAULT_TAX_RATE_NAME
+
+        tax_code = obj.get_value_from_metadata(self.META_CODE_KEY, default_tax_code)
+        tax_description = obj.get_value_from_metadata(
+            self.META_DESCRIPTION_KEY, default_tax_description
+        )
         return TaxType(code=tax_code, description=tax_description)
 
     def get_tax_rate_percentage_value(

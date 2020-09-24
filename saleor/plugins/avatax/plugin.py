@@ -10,9 +10,12 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 from ...checkout import base_calculations
 from ...core.taxes import TaxError, TaxType, charge_taxes_on_shipping, zero_taxed_money
 from ...discount import DiscountInfo
+from ...product.models import Product, ProductType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
 from . import (
+    DEFAULT_TAX_CODE,
+    DEFAULT_TAX_DESCRIPTION,
     META_CODE_KEY,
     META_DESCRIPTION_KEY,
     AvataxConfiguration,
@@ -35,7 +38,6 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ...checkout.models import Checkout, CheckoutLine
     from ...order.models import Order, OrderLine
-    from ...product.models import Product, ProductType
     from ..models import PluginConfiguration
 
 
@@ -417,8 +419,18 @@ class AvataxPlugin(BasePlugin):
     ) -> TaxType:
         if not self.active:
             return previous_value
-        tax_code = obj.get_value_from_metadata(META_CODE_KEY, None)
-        tax_description = obj.get_value_from_metadata(META_DESCRIPTION_KEY, None)
+
+        # Product has None as it determines if we overwrite taxes for the product
+        default_tax_code = None
+        default_tax_description = None
+        if isinstance(obj, ProductType):
+            default_tax_code = DEFAULT_TAX_CODE
+            default_tax_description = DEFAULT_TAX_DESCRIPTION
+
+        tax_code = obj.get_value_from_metadata(META_CODE_KEY, default_tax_code)
+        tax_description = obj.get_value_from_metadata(
+            META_DESCRIPTION_KEY, default_tax_description
+        )
         return TaxType(code=tax_code, description=tax_description,)
 
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
