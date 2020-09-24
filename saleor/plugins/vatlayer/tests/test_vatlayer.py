@@ -442,10 +442,7 @@ def test_apply_taxes_to_product_uses_taxes_from_product_type(
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     country = Country("PL")
     manager = get_plugins_manager()
-    variant.product.metadata = {
-        "vatlayer.code": None,
-        "vatlayer.description": None,
-    }
+    variant.product.metadata = {}
     variant.product.product_type.metadata = {
         "vatlayer.code": "standard",
         "vatlayer.description": "standard",

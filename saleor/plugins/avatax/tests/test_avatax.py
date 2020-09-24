@@ -90,7 +90,7 @@ def test_calculate_checkout_line_total(
     site_settings.save()
     line = checkout_with_item.lines.first()
     product = line.variant.product
-    manager.assign_tax_code_to_object_meta(product, None)
+    product.metadata = {}
     manager.assign_tax_code_to_object_meta(product.product_type, "PC040156")
     product.save()
     product.product_type.save()
@@ -147,7 +147,7 @@ def test_calculate_checkout_total_uses_default_calculation(
     checkout_with_item.save()
     line = checkout_with_item.lines.first()
     product = line.variant.product
-    manager.assign_tax_code_to_object_meta(product, None)
+    product.metadata = {}
     manager.assign_tax_code_to_object_meta(product.product_type, "PC040156")
     product.save()
     product.product_type.save()
@@ -216,7 +216,7 @@ def test_calculate_checkout_total(
     checkout_with_item.save()
     line = checkout_with_item.lines.first()
     product = line.variant.product
-    manager.assign_tax_code_to_object_meta(product, None)
+    product.metadata = {}
     manager.assign_tax_code_to_object_meta(product.product_type, "PC040156")
     product.save()
     product.product_type.save()
