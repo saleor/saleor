@@ -608,6 +608,20 @@ def test_me_query_checkout(user_api_client, checkout):
     assert data["checkout"]["token"] == str(checkout.token)
 
 
+def test_me_query_checkout_with_inactive_channel(user_api_client, checkout):
+    user = user_api_client.user
+    channel = checkout.channel
+    channel.is_active = False
+    channel.save()
+    checkout.user = user
+    checkout.save()
+
+    response = user_api_client.post_graphql(ME_QUERY)
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert not data["checkout"]
+
+
 def test_me_with_cancelled_fulfillments(
     user_api_client, fulfilled_order_with_cancelled_fulfillment
 ):

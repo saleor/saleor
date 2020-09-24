@@ -249,7 +249,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 {
                     "channel": ValidationError(
                         f"Channel with '{channel_slug}' slug does not exist.",
-                        code=CheckoutErrorCode.NOT_FOUND,
+                        code=CheckoutErrorCode.NOT_FOUND.value,
                     )
                 }
             )
@@ -259,7 +259,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                     {
                         "channel": ValidationError(
                             f"Channel with '{channel_slug}' is inactive.",
-                            code=CheckoutErrorCode.CHANNEL_INACTIVE,
+                            code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
                         )
                     }
                 )
@@ -867,6 +867,15 @@ class CheckoutComplete(BaseMutation):
 
                 order = order_models.Order.objects.get_by_checkout_token(checkout_token)
                 if order:
+                    if not order.channel.is_active:
+                        raise ValidationError(
+                            {
+                                "channel": ValidationError(
+                                    "Cannot complete checkout with inactive channel.",
+                                    code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
+                                )
+                            }
+                        )
                     # The order is already created. We return it as a success
                     # checkoutComplete response. Order is anonymized for not logged in
                     # user

@@ -345,16 +345,6 @@ class DraftOrderComplete(BaseMutation):
         cls.update_user_fields(order)
         order.status = OrderStatus.UNFULFILLED
 
-        if not order.channel.is_active:
-            raise ValidationError(
-                {
-                    "channel": ValidationError(
-                        "Cannot complete draft order with inactive channel.",
-                        code=OrderErrorCode.CHANNEL_INACTIVE.value,
-                    )
-                }
-            )
-
         if not order.is_shipping_required():
             order.shipping_method_name = None
             order.shipping_price = zero_taxed_money()
