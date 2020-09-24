@@ -5,15 +5,17 @@
 #
 # Translators:
 # Bogdan Đukić <bogdan.djukic@yahoo.com>, 2020
+# Nikola Gacic <empnik@gmail.com>, 2020
+# Mirjana Skobic <mlpwebshop@asw.eu>, 2020
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-17 16:44+0000\n"
+"POT-Creation-Date: 2020-09-11 12:15+0000\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Bogdan Đukić <bogdan.djukic@yahoo.com>, 2020\n"
+"Last-Translator: Mirjana Skobic <mlpwebshop@asw.eu>, 2020\n"
 "Language-Team: Serbian (https://www.transifex.com/mirumee/teams/34782/sr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -37,41 +39,139 @@ msgstr ""
 "%(street_address_1)s\n"
 "%(street_address_2)s"
 
+#: templates/invoices/invoice.html:218
+msgctxt "Invoice PDF header"
+msgid "INVOICE INFORMATION"
+msgstr "INFORMACIJE O FAKTURI"
+
+#: templates/invoices/invoice.html:221
+msgctxt "Invoice PDF header: Invoice number"
+msgid "Invoice number:"
+msgstr "Broj fakture:"
+
+#: templates/invoices/invoice.html:227
+msgctxt "Invoice PDF header: order number"
+msgid "Order:"
+msgstr "Narudžbina:"
+
+#: templates/invoices/invoice.html:233
+msgctxt "Invoice PDF header"
+msgid "Date:"
+msgstr "Datum:"
+
+#: templates/invoices/invoice.html:239
+msgctxt "Invoice PDF amount (price)"
+msgid "Amount:"
+msgstr "Količina:"
+
+#: templates/invoices/invoice.html:248
+msgctxt "Invoice PDF"
+msgid "BILLING ADDRESS"
+msgstr "ADRESA ZA NAPLATU"
+
+#: templates/invoices/invoice.html:277
+msgctxt "Invoice PDF"
+msgid "SHIPMENT ADDRESS"
+msgstr "ADRESA ZA DOSTAVU"
+
+#: templates/invoices/invoice.html:308
+msgctxt "Invoice PDF"
+msgid "PAYMENT METHOD"
+msgstr "NAČIN PLAĆANJA"
+
+#: templates/invoices/invoice.html:316
+msgctxt "Invoice PDF"
+msgid "SHIPMENT METHOD"
+msgstr "NAČIN DOSTAVE"
+
+#: templates/invoices/invoice.html:326
+msgctxt "Invoice PDF table header"
+msgid "ITEMS ORDERED"
+msgstr "PORUČENI PROIZVODI"
+
+#: templates/invoices/invoice_products_table.html:7
+msgctxt "Invoice PDF table"
+msgid "Products"
+msgstr "Proizvodi"
+
+#: templates/invoices/invoice_products_table.html:10
+msgctxt "Invoice PDF table"
+msgid "Price"
+msgstr "Cena"
+
+#: templates/invoices/invoice_products_table.html:13
+msgctxt "Invoice PDF table"
+msgid "Quantity"
+msgstr "Količina"
+
+#: templates/invoices/invoice_products_table.html:16
+msgctxt "Invoice PDF table"
+msgid "Total Price"
+msgstr "Konačna cena"
+
+#: templates/invoices/invoice_summary_table.html:8
+msgctxt "Invoice PDF summary"
+msgid "Subtotal"
+msgstr "Iznos"
+
+#: templates/invoices/invoice_summary_table.html:21
+msgctxt "Invoice PDF summary"
+msgid "Delivery Cost"
+msgstr "Cena isporuke"
+
+#: templates/invoices/invoice_summary_table.html:34
+msgctxt "Invoice PDF summary"
+msgid "Tax"
+msgstr "Porez"
+
+#: templates/invoices/invoice_summary_table.html:47
+msgctxt "Invoice PDF summary"
+msgid "Grand Total"
+msgstr "Konačni iznos"
+
 #: templates/templated_email/account/account_delete.email:4
 msgctxt "Account delete reset e-mail subject"
 msgid "Delete your account"
-msgstr ""
+msgstr "Obrišite svoj nalog"
 
 #: templates/templated_email/account/account_delete.email:9
 #, python-format
 msgctxt "Account delete reset e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has requested a deletion of your user account at %(site_name)s.\n"
 "Click the link below to delete your account.\n"
 "\n"
 "Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
+"\n"
+"Primate ovaj email zato što ste Vi ili neko drugi zatražili brisanje Vašeg korisničkog naloga %(site_name)s\n"
+"Kliknute na link ispod kako biste obrisali Vaš nalog.\n"
+"\n"
+"Upozoravamo Vas da je ova akcija trajna i da se ne može poništiti.\n"
 
 #: templates/templated_email/account/confirm.email:4
 msgctxt "Account confirmation e-mail subject"
 msgid "Account confirmation e-mail"
-msgstr ""
+msgstr "E-mail za potvrdu naloga"
 
 #: templates/templated_email/account/confirm.email:9
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
 "\n"
-"In order to log into %(domain)s, you have to confirm your email address first.\n"
+"In order to log into %(site_name)s, you have to confirm your email address first.\n"
 "Please click the link below to do so and log into your account.\n"
 msgstr ""
+"\n"
+"Da biste se ulogovali u %(site_name)s, najpre treba da potvrdite Vašu email adresu.\n"
+"Molimo Vas da kliknete na link ispod da biste to učinili i da biste se se ulogovali u svoj nalog.\n"
 
 #: templates/templated_email/account/email_changed_notification.email:4
 #: templates/templated_email/account/request_email_change.email:4
 msgctxt "Email change e-mail subject"
 msgid "Email change e-mail"
-msgstr ""
+msgstr "E-mail za promenu email-a"
 
 #: templates/templated_email/account/email_changed_notification.email:9
 #, python-format
@@ -79,23 +179,29 @@ msgctxt "Email change e-mail text"
 msgid ""
 "\n"
 "\n"
-"You're receiving this e-mail because you or someone else has changed email for your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has changed email for your user account at %(site_name)s.\n"
 "If you didn't request this change, please contact the administrator.\n"
 msgstr ""
+"\n"
+"Primili ste ovaj e-mail zato što ste Vi ili neko drugi promenili email za Vaš korisnički nalog na %(site_name)s.\n"
+"Ako Vi niste zahtevali ovu promenu, molimo Vas da kontaktirate administratora.\n"
 
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
 msgid "Password reset e-mail"
-msgstr ""
+msgstr "E-mail za reset lozinke"
 
 #: templates/templated_email/account/password_reset.email:9
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(site_name)s.\n"
 "It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"Primili ste ovaj email zato što ste Vi ili neko drugi zatražio lozinku za Vaš korisnički nalog na %(site_name)s\n"
+"Možete ga zanemariti ukoliko niste zatražili reset lozinke. Kliknite na link ispod kako biste resetovali lozinku.\n"
 
 #: templates/templated_email/account/request_email_change.email:9
 #, python-format
@@ -103,45 +209,78 @@ msgctxt "Email change e-mail text"
 msgid ""
 "\n"
 "\n"
-"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(domain)s.\n"
+"You're receiving this e-mail because you or someone else has requested an email change for your user account at %(site_name)s.\n"
 "It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
 msgstr ""
+"\n"
+"\n"
+"Primili ste ovaj e-mail zato što ste Vi ili neko drugi zahtevali promenu email adrese za Vaš korisnički nalog na %(site_name)s\n"
+"možete ga zanemariti ako niste zatražili promenu email-a. Kliknite na link ispod kako biste potvrdili novu email adresu.\n"
+
+#: templates/templated_email/csv/export_failed.email:4
+#: templates/templated_email/csv/export_products_file.email:4
+msgctxt "Export products e-mail subject"
+msgid "Export products data"
+msgstr "Izvezite podatke o proizvodima"
+
+#: templates/templated_email/csv/export_failed.email:10
+msgctxt "Export products e-mail text"
+msgid ""
+"Sorry, we cannot finish product export, some unexpected errors occurred. "
+"Please try again."
+msgstr ""
+"Izvinjavamo se, ne možemo da završimo izvoz proizvoda, došlo je do "
+"neočekivanih grešaka. Molimo Vas da pokušate ponovo."
+
+#: templates/templated_email/csv/export_products_file.email:10
+#, python-format
+msgctxt "Export products e-mail text"
+msgid "Your file with products data is ready to download: %(csv_link)s"
+msgstr ""
+"Vaša datoteka pa podacima o proizvodima je spremna za preuzimanje: "
+"%(csv_link)s"
 
 #: templates/templated_email/dashboard/customer/set_password.email:2
 #, python-format
 msgctxt "Set password for customer e-mail title"
 msgid "Hello from %(site_name)s!"
-msgstr ""
+msgstr "Pozdrav od %(site_name)s!"
 
 #: templates/templated_email/dashboard/customer/set_password.email:6
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you have to set a password for your customer account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your customer account at %(site_name)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"Primili ste ovaj e-mail zato što treba da odredite lozinku za Vaš korisnički nalog na %(site_name)s.\n"
+"Kliknite na link ispod da biste resetovali Vašu lozinku.\n"
 
 #: templates/templated_email/dashboard/staff/set_password.email:2
 #, python-format
 msgctxt "Set password for staff member e-mail title"
 msgid "Hello from %(site_name)s!"
-msgstr ""
+msgstr "Pozdrav od %(site_name)s!"
 
 #: templates/templated_email/dashboard/staff/set_password.email:6
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
 "\n"
-"You're receiving this e-mail because you have to set a password for your staff member account at %(domain)s.\n"
+"You're receiving this e-mail because you have to set a password for your staff member account at %(site_name)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
+"\n"
+"Primili ste ovaj e-mail zato što treba da odredite lozinku za nalog člana Vašeg tima na %(site_name)s.\n"
+"Kliknite na link ispod da resetujete lozinku.\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment confirmation email subject"
 msgid "Your order %(order)s has been fulfilled"
-msgstr ""
+msgstr "Vaša narudžba %(order)s je završena"
 
 #: templates/templated_email/order/confirm_fulfillment.email:11
 msgctxt "Fulfillment confirmation email text"
@@ -149,6 +288,8 @@ msgid ""
 "\n"
 "Thank you for your order. Below is the list of fulfilled products.\n"
 msgstr ""
+"\n"
+"Hvala vam za Vašu narudžbu. Ispod je lista završenih proizvoda.\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:15
 #: templates/templated_email/source/confirm_fulfillment.mjml:25
@@ -156,14 +297,14 @@ msgstr ""
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid "You can track your shipment with %(tracking_number)s code."
-msgstr ""
+msgstr "Možete da pratite pošiljku pomoću %(tracking_number)s koda."
 
 #: templates/templated_email/order/confirm_order.email:6
 #: templates/templated_email/order/staff_confirm_order.email:6
 #, python-format
 msgctxt "Order confirmation e-mail subject"
 msgid "Order %(order)s details"
-msgstr ""
+msgstr "Detalji narudžbe %(order)s"
 
 #: templates/templated_email/order/confirm_order.email:13
 msgctxt "Order confirmation e-mail text"
@@ -171,6 +312,8 @@ msgid ""
 "\n"
 "Thank you for your order. Below is the list of ordered products.\n"
 msgstr ""
+"\n"
+"Hvala vam na Vašoj porudžbini. Ispod je lista poručenih proizvoda.\n"
 
 #: templates/templated_email/order/confirm_order.email:17
 #: templates/templated_email/order/staff_confirm_order.email:17
@@ -181,48 +324,51 @@ msgid ""
 "To see your payment details please visit:\n"
 "%(order_details_url)s\n"
 msgstr ""
+"\n"
+"Da biste videli detalje Vašeg plaćanja molimo Vas da posetite:\n"
+"%(order_details_url)s\n"
 
 #: templates/templated_email/order/confirm_order.email:25
 #: templates/templated_email/order/staff_confirm_order.email:25
 msgctxt "Order confirmation e-mail table header"
 msgid "Order summary"
-msgstr ""
+msgstr "Pregled porudžbine"
 
 #: templates/templated_email/order/confirm_order.email:26
 #: templates/templated_email/order/staff_confirm_order.email:26
 msgctxt "Order confirmation e-mail table header"
 msgid "Subtotal"
-msgstr ""
+msgstr "Iznos"
 
 #: templates/templated_email/order/confirm_order.email:27
 #: templates/templated_email/order/staff_confirm_order.email:27
 msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
-msgstr "Poštarina"
+msgstr "Dostava"
 
 #: templates/templated_email/order/confirm_order.email:28
 #: templates/templated_email/order/staff_confirm_order.email:28
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes (included)"
-msgstr ""
+msgstr "Porez (uključen)"
 
 #: templates/templated_email/order/confirm_order.email:28
 #: templates/templated_email/order/staff_confirm_order.email:28
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes"
-msgstr ""
+msgstr "Porez"
 
 #: templates/templated_email/order/confirm_order.email:29
 #: templates/templated_email/order/staff_confirm_order.email:29
 msgctxt "Order confirmation e-mail table header"
 msgid "Discount:"
-msgstr ""
+msgstr "Popust:"
 
 #: templates/templated_email/order/confirm_order.email:30
 #: templates/templated_email/order/staff_confirm_order.email:30
 msgctxt "Order confirmation e-mail table header"
 msgid "Total"
-msgstr ""
+msgstr "Konačan iznos"
 
 #: templates/templated_email/order/confirm_order.email:32
 #: templates/templated_email/order/staff_confirm_order.email:32
@@ -230,7 +376,7 @@ msgstr ""
 #: templates/templated_email/source/staff_confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
-msgstr ""
+msgstr "Adresa za naplatu"
 
 #: templates/templated_email/order/confirm_order.email:33
 #: templates/templated_email/order/staff_confirm_order.email:33
@@ -238,7 +384,7 @@ msgstr ""
 #: templates/templated_email/source/staff_confirm_order.mjml:39
 msgctxt "Order confirmation e-mail text"
 msgid "No billing address"
-msgstr ""
+msgstr "Nedostaje adresa za naplatu"
 
 #: templates/templated_email/order/confirm_order.email:35
 #: templates/templated_email/order/staff_confirm_order.email:35
@@ -246,7 +392,7 @@ msgstr ""
 #: templates/templated_email/source/staff_confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
-msgstr ""
+msgstr "Adresa za dostavu"
 
 #: templates/templated_email/order/confirm_order.email:36
 #: templates/templated_email/order/staff_confirm_order.email:36
@@ -254,21 +400,67 @@ msgstr ""
 #: templates/templated_email/source/staff_confirm_order.mjml:46
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
+msgstr "Nije potrebna dostava"
+
+#: templates/templated_email/order/order_cancel.email:4
+#, python-format
+msgctxt "Order cancel e-mail subject"
+msgid "Order %(order)s canceled"
+msgstr "Otkazana porudžbina %(order)s "
+
+#: templates/templated_email/order/order_cancel.email:11
+msgctxt "Order cancel e-mail text"
+msgid ""
+"\n"
+"Your order has been canceled.\n"
 msgstr ""
+"\n"
+"Vaša porudžbina je otkazana.\n"
+
+#: templates/templated_email/order/order_refund.email:4
+#, python-format
+msgctxt "Order refund e-mail subject"
+msgid "Order %(order)s refunded"
+msgstr "Narudžba %(order)s vraćena"
+
+#: templates/templated_email/order/order_refund.email:11
+#, python-format
+msgctxt "Order refund e-mail text"
+msgid ""
+"\n"
+"A payment of %(amount)s %(currency)s has been refunded for your order.\n"
+msgstr ""
+"\n"
+"Uplata %(amount)s%(currency)s za narudžbu je vraćena za Vašu narudžbu.\n"
 
 #: templates/templated_email/order/payment/confirm_payment.email:4
 #, python-format
 msgctxt "Payment confirmation subject"
 msgid "Order %(order)s payment details"
-msgstr ""
+msgstr "Detalji o plaćanju za narudžbu %(order)s"
 
 #: templates/templated_email/order/payment/confirm_payment.email:11
 msgctxt "Payment confirmation email text"
 msgid ""
 "\n"
 "Thank you for your payment.\n"
-"Your payment was successfully charged.\n"
+"Your payment was successfully processed.\n"
 msgstr ""
+
+#: templates/templated_email/order/send_invoice.email:4
+msgctxt "Invoice email subject"
+msgid "Invoice"
+msgstr "Faktura"
+
+#: templates/templated_email/order/send_invoice.email:9
+#, python-format
+msgctxt "Send invoice e-mail text"
+msgid ""
+"\n"
+"In order to download invoice %(number)s, click the link below.\n"
+msgstr ""
+"\n"
+"Kliknite na link ispod kako biste preuzeli fakturu %(number)s.\n"
 
 #: templates/templated_email/order/staff_confirm_order.email:13
 msgctxt "Order confirmation staff e-mail text"
@@ -276,12 +468,14 @@ msgid ""
 "\n"
 "Below is the list of ordered products.\n"
 msgstr ""
+"\n"
+"Ispod je spisak poručenih proizvoda.\n"
 
 #: templates/templated_email/order/update_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment update email subject"
 msgid "Shipping update for order %(order)s"
-msgstr ""
+msgstr "Ažuriranje dostave za porudžbinu %(order)s"
 
 #: templates/templated_email/order/update_fulfillment.email:11
 msgctxt "Fulfillment update email text"
@@ -289,6 +483,8 @@ msgid ""
 "\n"
 "Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
 msgstr ""
+"\n"
+"Status Vape pošiljke je ažuriran. Ispod je spisak poručenih proizvoda koji je ažuriran novim brojem za praćenje pošiljke.\n"
 
 #: templates/templated_email/order/update_fulfillment.email:15
 #, python-format
@@ -296,19 +492,20 @@ msgctxt "Fulfillment update email text"
 msgid ""
 "You can track your shipment with the following code: %(tracking_number)s."
 msgstr ""
+"Možete da pratite svoju pošiljku putem sledećeg koda: %(tracking_number)s."
 
 #: templates/templated_email/shared/_footer.email:2
 #: templates/templated_email/source/shared/footer.mjml:4
 msgctxt "Base email text"
 msgid "This is an automatically generated e-mail, please do not reply."
-msgstr ""
+msgstr "Ovo je automatski e-mail, molimo Vas da ne odgovarate."
 
 #: templates/templated_email/shared/_footer.email:5
 #: templates/templated_email/source/shared/footer.mjml:13
 #, python-format
 msgctxt "Base email footer"
 msgid "Sincerely, %(site_name)s"
-msgstr ""
+msgstr "Srdačno, %(site_name)s"
 
 #: templates/templated_email/shared/_header.email:2
 #: templates/templated_email/source/account_delete.mjml:13
@@ -317,38 +514,50 @@ msgstr ""
 #: templates/templated_email/source/confirm_order.mjml:14
 #: templates/templated_email/source/confirm_payment.mjml:13
 #: templates/templated_email/source/email_changed_notification.mjml:13
+#: templates/templated_email/source/export_failed.mjml:13
+#: templates/templated_email/source/export_products_file.mjml:13
+#: templates/templated_email/source/order_cancel.mjml:13
+#: templates/templated_email/source/order_refund.mjml:13
 #: templates/templated_email/source/password_reset.mjml:13
 #: templates/templated_email/source/request_email_change.mjml:13
+#: templates/templated_email/source/send_invoice.mjml:13
 #: templates/templated_email/source/set_customer_password.mjml:13
 #: templates/templated_email/source/set_password.mjml:13
 #: templates/templated_email/source/staff_confirm_order.mjml:14
 #: templates/templated_email/source/update_fulfillment.mjml:13
 msgctxt "Standard e-mail greeting"
 msgid "Hi!"
-msgstr ""
+msgstr "Zdravo!"
 
 #: templates/templated_email/source/account_delete.mjml:16
 #, python-format
 msgctxt "Account delete e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"deletion of your user account at %(domain)s.<br/> Click the link below to "
-"delete your account. Please note that this action is permanent and cannot be"
-" reversed."
+"deletion of your user account at %(site_name)s.<br/> Click the link below to"
+" delete your account. Please note that this action is permanent and cannot "
+"be reversed."
 msgstr ""
+"Primili ste ovaj e-mail zato što ste Vi ili neko drugi zatražili brisanje "
+"Vašeg korisničkog naloga na %(site_name)s. <br/> Kliknite na link ispod da "
+"biste obrisali Vaš nalog. Znajte da je ova akcija trajna i da ne može biti "
+"poništena."
 
 #: templates/templated_email/source/confirm.mjml:16
 #, python-format
 msgctxt "Account confirmation e-mail text"
 msgid ""
-"In order to log into %(domain)s, you have to confirm your email address "
+"In order to log into %(site_name)s, you have to confirm your email address "
 "first. Please click the link below to do so and log into your account."
 msgstr ""
+"Kako biste se ulogovali na %(site_name)s, prvo treba da potvrdite Vašu email"
+" adresu. Molimo Vas da kliknete na link ispod da biste to učinili i "
+"ulogovali se na Vaš nalog."
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
-msgstr ""
+msgstr "Zahvaljujemo na porudžbini. Ispod je spisak spremnih proizvoda."
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:21
 #: templates/templated_email/source/update_fulfillment.mjml:21
@@ -358,12 +567,16 @@ msgid ""
 "You can track your shipment with <a "
 "href=\"%(tracking_number)s\">%(tracking_number)s</a> link."
 msgstr ""
+"Možete da pratite svoju pošiljku pomoću linka<a "
+"href=\"%(tracking_number)s\">%(tracking_number)s</a>."
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:33
 msgctxt "Fulfillment digital products email text"
 msgid ""
 "You can download your digital products by clicking in download link(s)."
 msgstr ""
+"Možete preuzeti svoje digitalne proizvode tako što ćete kliknuti na "
+"link(ove) ispod."
 
 #: templates/templated_email/source/confirm_order.mjml:18
 #, python-format
@@ -373,15 +586,18 @@ msgid ""
 " payment details please visit: <a "
 "href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
+"Zahvaljujemo na Vašoj narudžbi. Ispod je spisak poručenih proizvoda. Da "
+"biste videli detalje Vašeg plaćanja molimo Vas da posetite: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 
 #: templates/templated_email/source/confirm_order.mjml:22
 msgctxt "Order confirmation e-mail text"
 msgid "Thank you for your order. Below is the list of ordered products."
-msgstr ""
+msgstr "Zahvaljujemo na Vašoj narudžbi. Ispod je spisak poručenih proizvoda."
 
 #: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
-msgid "Thank you for your payment. Your payment was successfully charged."
+msgid "Thank you for your payment. Your payment was successfully processed."
 msgstr ""
 
 #: templates/templated_email/source/email_changed_notification.mjml:16
@@ -389,16 +605,49 @@ msgstr ""
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has changed email "
-"for your user account at %(domain)s.<br /> If you didn't request this "
+"for your user account at %(site_name)s.<br /> If you didn't request this "
 "change, please contact the administrator."
 msgstr ""
+"Primili ste ovaj email zato što ste Vi ili neko drugi promenili email za Vaš"
+" korisnički nalog na %(site_name)s. <br />Ako niste Vi zatražili ovu "
+"promenu, Molimo Vas da kontaktirate administratora."
+
+#: templates/templated_email/source/export_failed.mjml:16
+msgctxt "Export products e-mail text"
+msgid ""
+"Sorry, we couldn't finish exporting products, some unexpected errors "
+"occurred. Please try again."
+msgstr ""
+"Izvinjavamo se, nismo mogli da završimo isporuku proizvoda, došlo je do "
+"neočekivanih grešaka. Molimo Vas da pokušate ponovo."
+
+#: templates/templated_email/source/export_products_file.mjml:16
+#, python-format
+msgctxt "Export products e-mail text"
+msgid ""
+"Your file with products data is ready to download: <a "
+"href=\"%(csv_link)s\">%(csv_link)s</a>"
+msgstr ""
+"Vaša datoteka sa podacima o proizvodima je spremna za preuzimanje: <a "
+"href=\"%(csv_link)s\">%(csv_link)s</a>"
+
+#: templates/templated_email/source/order_cancel.mjml:16
+msgctxt "Order cancel e-mail text"
+msgid "Your order has been canceled."
+msgstr "Vaša narudžba je otkazana."
+
+#: templates/templated_email/source/order_refund.mjml:16
+#, python-format
+msgctxt "Order refund e-mail text"
+msgid "A payment of %(amount)s %(currency)s has been refunded for your order."
+msgstr "Uplata %(amount)s%(currency)s za Vašu narudžbu je vraćena."
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:29
 #: templates/templated_email/source/partials/_order_lines.mjml:59
 msgctxt "Ordered item name"
 msgid "Item"
-msgstr ""
+msgstr "Proizvod"
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
 #: templates/templated_email/source/partials/_order_lines.mjml:60
@@ -409,85 +658,105 @@ msgstr "Količina"
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
 msgctxt "Ordered item download links"
 msgid "Download Link"
-msgstr ""
+msgstr "Link za preuzimanje"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:12
 msgctxt "E-mail order lines summary table"
 msgid "Subtotal"
-msgstr ""
+msgstr "Iznos"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:20
 msgctxt "E-mail order lines summary table"
 msgid "Shipping"
-msgstr "Poštarina"
+msgstr "Dostava"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:29
 msgctxt "E-mail order lines summary table"
 msgid "Taxes (included)"
-msgstr ""
+msgstr "Porez (uključen)"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:31
 msgctxt "E-mail order lines summary table"
 msgid "Taxes"
-msgstr ""
+msgstr "Porez"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:41
 msgctxt "E-mail order lines summary table"
 msgid "Discount"
-msgstr ""
+msgstr "Popust"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:50
 msgctxt "E-mail order lines summary table"
 msgid "Total"
-msgstr ""
+msgstr "Konačan iznos"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:61
 msgctxt "Unit price of a product"
 msgid "Per unit"
-msgstr ""
+msgstr "Po jedinici"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:62
 msgctxt "Ordered item subtotal (unit price * quantity)"
 msgid "Subtotal"
-msgstr ""
+msgstr "Iznos"
 
 #: templates/templated_email/source/password_reset.mjml:16
 #, python-format
 msgctxt "Password reset e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.<br/> It can be safely ignored "
-"if you did not request a password reset. Click the link below to reset your "
-"password."
+"password for your user account at %(site_name)s.<br/> It can be safely "
+"ignored if you did not request a password reset. Click the link below to "
+"reset your password."
 msgstr ""
+"Primili ste ovaj email zato što ste Vi ili neko drugi zatražio lozinku za "
+"Vaš korisnički nalog na %(site_name)s. <br/> MOžete ga zanemariti ukoliko "
+"niste zatražili reset lozinke. Kliknite na link ispod kako biste resetovali "
+"Vašu lozinku."
 
 #: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
 msgctxt "Email change e-mail text"
 msgid ""
 "You're receiving this e-mail because you or someone else has requested an "
-"email change for your user account at %(domain)s.<br /> It can be safely "
+"email change for your user account at %(site_name)s.<br /> It can be safely "
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
+"Primili ste ovaj e-mail zato što ste Vi ili neko drugi zatražili promenu "
+"email-a za Vaš korisnički nalog na %(site_name)s. <br /> Možete ga "
+"zanemariti ukoliko niste zatražili promenu email-a. Kliknite na link ispod "
+"kako biste potvrdili novu email adresu."
+
+#: templates/templated_email/source/send_invoice.mjml:16
+#, python-format
+msgctxt "Send invoice e-mail text"
+msgid "In order to download invoice %(number)s, click the link below."
+msgstr "Kliknite na link ispod da biste preuzeli fakturu %(number)s."
 
 #: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
 msgctxt "Set password for customer e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your "
-"customer account at %(domain)s.<br/> Click the link below to set up your "
+"customer account at %(site_name)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
+"Primili ste ovaj e-mail zato što treba da odredite lozinku za Vaš korisnički"
+" nalog na %(site_name)s. <br/> Kliknite na link ispod da biste odredili novu"
+" lozinku."
 
 #: templates/templated_email/source/set_password.mjml:16
 #, python-format
 msgctxt "Set password for staff member e-mail text"
 msgid ""
 "You're receiving this e-mail because you have to set password for your staff"
-" member account at %(domain)s.<br/> Click the link below to set up your "
+" member account at %(site_name)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
+"Primili ste ovaj email zato što treba da odredite lozinku za nalog člana "
+"Vašeg tima na %(site_name)s. <br/> Kliknite na link ispod kako biste "
+"odredili Vašu lozinku."
 
 #: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
@@ -496,6 +765,9 @@ msgid ""
 "Someone placed a new order in your store. To see order details please visit:"
 " <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
+"Neko je naručio nešto u Vašoj prodavnici. Da biste videli detalje narudžbe "
+"molimo Vas da posetite: <a "
+"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 
 #: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
@@ -503,3 +775,5 @@ msgid ""
 "Your shipping status has been updated. Below is the list of ordered products"
 " that have been updated with new tracking number."
 msgstr ""
+"Status Vaše pošiljke je ažuriran. Ispod je spisak poručenih proizvoda koji "
+"je ažuriran novim brojem za praćenje pošiljke."
