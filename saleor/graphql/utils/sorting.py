@@ -4,6 +4,7 @@ from django.db.models import QuerySet
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
 
+from ...channel.models import Channel
 from ..core.enums import OrderDirection
 from ..core.types import SortInputObjectType
 
@@ -71,9 +72,16 @@ def sort_queryset(
     sorting_fields = sort_enum.get(sorting_field)
     sorting_field_name = sorting_fields.name.lower()
 
+    channel_slug = getattr(sort_by, "channel", None)
+    channel = None
+    if channel_slug:
+        channel = Channel.objects.filter(slug=channel_slug).first()
+        if not channel:
+            raise GraphQLError("Invalid channel in sorting parameter.")
+
     custom_sort_by = getattr(sort_enum, f"qs_with_{sorting_field_name}", None)
     if custom_sort_by:
-        queryset = custom_sort_by(queryset)
+        queryset = custom_sort_by(queryset, channel=channel)
 
     sorting_field_value = sorting_fields.value
     sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]

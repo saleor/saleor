@@ -1642,57 +1642,53 @@ def test_sort_products(user_api_client, product, channel_USD):
     variables = {"channel": channel_USD.slug}
     query = SORT_PRODUCTS_QUERY
 
-    # TODO: Consider filtering and sorting by `price`
-    # # Test sorting by PRICE, ascending
-    # asc_price_query =
-    # query % {"sort_by_product_order": "{field: PRICE, direction:ASC}"}
-    # response = user_api_client.post_graphql(asc_price_query, variables)
-    # content = get_graphql_content(response)
-    # edges = content["data"]["products"]["edges"]
-    # price1 = edges[0]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
-    #     "amount"
-    # ]
-    # price2 = edges[1]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
-    #     "amount"
-    # ]
-    # assert price1 < price2
+    # Test sorting by PRICE, ascending
+    sort_by = f'{{field: PRICE, direction: ASC, channel: "{channel_USD.slug}"}}'
+    asc_price_query = query % {"sort_by_product_order": sort_by}
+    response = user_api_client.post_graphql(asc_price_query, variables)
+    content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    price1 = edges[0]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    price2 = edges[1]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    assert price1 < price2
 
-    # # Test sorting by PRICE, descending
-    # desc_price_query = query % {
-    #     "sort_by_product_order": "{field: PRICE, direction:DESC}"
-    # }
-    # response = user_api_client.post_graphql(desc_price_query, variables)
-    # content = get_graphql_content(response)
-    # edges = content["data"]["products"]["edges"]
-    # price1 = edges[0]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
-    #     "amount"
-    # ]
-    # price2 = edges[1]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
-    #     "amount"
-    # ]
-    # assert price1 > price2
+    # Test sorting by PRICE, descending
+    sort_by = f'{{field: PRICE, direction:DESC, channel: "{channel_USD.slug}"}}'
+    desc_price_query = query % {"sort_by_product_order": sort_by}
+    response = user_api_client.post_graphql(desc_price_query, variables)
+    content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    price1 = edges[0]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    price2 = edges[1]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    assert price1 > price2
 
-    # # Test sorting by MINIMAL_PRICE, ascending
-    # asc_price_query = query % {
-    #     "sort_by_product_order": "{field: MINIMAL_PRICE, direction:ASC}"
-    # }
-    # response = user_api_client.post_graphql(asc_price_query, variables)
-    # content = get_graphql_content(response)
-    # edges = content["data"]["products"]["edges"]
-    # price1 = edges[0]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
-    # price2 = edges[1]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
-    # assert price1 < price2
+    # Test sorting by MINIMAL_PRICE, ascending
+    sort_by = f'{{field: MINIMAL_PRICE, direction:ASC, channel: "{channel_USD.slug}"}}'
+    asc_price_query = query % {"sort_by_product_order": sort_by}
+    response = user_api_client.post_graphql(asc_price_query, variables)
+    content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    price1 = edges[0]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
+    price2 = edges[1]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
+    assert price1 < price2
 
-    # # Test sorting by MINIMAL_PRICE, descending
-    # desc_price_query = query % {
-    #     "sort_by_product_order": "{field: MINIMAL_PRICE, direction:DESC}"
-    # }
-    # response = user_api_client.post_graphql(desc_price_query, variables)
-    # content = get_graphql_content(response)
-    # edges = content["data"]["products"]["edges"]
-    # price1 = edges[0]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
-    # price2 = edges[1]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
-    # assert price1 > price2
+    # Test sorting by MINIMAL_PRICE, descending
+    sort_by = f'{{field: MINIMAL_PRICE, direction:DESC, channel: "{channel_USD.slug}"}}'
+    desc_price_query = query % {"sort_by_product_order": sort_by}
+    response = user_api_client.post_graphql(desc_price_query, variables)
+    content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    price1 = edges[0]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
+    price2 = edges[1]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
+    assert price1 > price2
 
     # Test sorting by DATE, ascending
     asc_date_query = query % {"sort_by_product_order": "{field: DATE, direction:ASC}"}
@@ -1709,40 +1705,6 @@ def test_sort_products(user_api_client, product, channel_USD):
     date_0 = content["data"]["products"]["edges"][0]["node"]["updatedAt"]
     date_1 = content["data"]["products"]["edges"][1]["node"]["updatedAt"]
     assert parse_datetime(date_0) > parse_datetime(date_1)
-
-
-# TODO: Consider filtering and sorting by `isPublished`
-@pytest.mark.skip(reason="Consider filtering and sorting by `isPublished`")
-def test_sort_products_published(staff_api_client, product, permission_manage_products):
-    # Create the second not published product
-    product.slug = "second-product"
-    product.pk = None
-    product.is_published = False
-    product.save()
-
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-
-    # Test sorting by PUBLISHED, ascending
-    asc_published_query = SORT_PRODUCTS_QUERY % {
-        "sort_by_product_order": "{field: PUBLISHED, direction:ASC}"
-    }
-    response = staff_api_client.post_graphql(asc_published_query)
-    content = get_graphql_content(response)
-    is_published_0 = content["data"]["products"]["edges"][0]["node"]["isPublished"]
-    is_published_1 = content["data"]["products"]["edges"][1]["node"]["isPublished"]
-    assert is_published_0 is False
-    assert is_published_1 is True
-
-    # Test sorting by PUBLISHED, descending
-    desc_published_query = SORT_PRODUCTS_QUERY % {
-        "sort_by_product_order": "{field: PUBLISHED, direction:DESC}"
-    }
-    response = staff_api_client.post_graphql(desc_published_query)
-    content = get_graphql_content(response)
-    is_published_0 = content["data"]["products"]["edges"][0]["node"]["isPublished"]
-    is_published_1 = content["data"]["products"]["edges"][1]["node"]["isPublished"]
-    assert is_published_0 is True
-    assert is_published_1 is False
 
 
 def test_sort_products_product_type_name(

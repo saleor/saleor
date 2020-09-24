@@ -21,7 +21,7 @@ class OrderSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def qs_with_payment(queryset: QuerySet) -> QuerySet:
+    def qs_with_payment(queryset: QuerySet, **_kwargs) -> QuerySet:
         subquery = Subquery(
             Payment.objects.filter(order_id=OuterRef("pk"))
             .order_by("-pk")

@@ -8,6 +8,7 @@ from ....product.models import (
     Category,
     Collection,
     Product,
+    ProductChannelListing,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
@@ -313,6 +314,34 @@ def products_for_pagination(
             ),
         ]
     )
+    ProductChannelListing.objects.bulk_create(
+        [
+            ProductChannelListing(
+                product=products[0],
+                channel=channel_USD,
+                is_published=True,
+                discounted_price_amount=Decimal(5),
+            ),
+            ProductChannelListing(
+                product=products[1],
+                channel=channel_USD,
+                is_published=True,
+                discounted_price_amount=Decimal(15),
+            ),
+            ProductChannelListing(
+                product=products[2],
+                channel=channel_USD,
+                is_published=False,
+                discounted_price_amount=Decimal(4),
+            ),
+            ProductChannelListing(
+                product=products[3],
+                channel=channel_USD,
+                is_published=True,
+                discounted_price_amount=Decimal(7),
+            ),
+        ]
+    )
 
     product_attrib_values = color_attribute.values.all()
     associate_attribute_values_to_instance(
@@ -377,12 +406,6 @@ def products_for_pagination(
                 price_amount=Decimal(7),
                 currency=channel_USD.currency_code,
             ),
-            ProductVariantChannelListing(
-                variant=variants[4],
-                channel=channel_USD,
-                price_amount=Decimal(15),
-                currency=channel_USD.currency_code,
-            ),
         ]
     )
     Stock.objects.bulk_create(
@@ -430,23 +453,54 @@ QUERY_PRODUCTS_PAGINATION = """
             {"field": "NAME", "direction": "DESC"},
             ["ProductProduct2", "ProductProduct1", "Product3"],
         ),
-        # TODO: Consider filtering and sorting by `price`
-        # (
-        #     {"field": "PRICE", "direction": "ASC"},
-        #     ["Product2", "ProductProduct2", "Product1"],
-        # ),
         (
             {"field": "TYPE", "direction": "ASC"},
             ["Product1", "Product3", "ProductProduct2"],
         ),
-        # TODO: Consider filtering and sorting by `isPublished`
-        # (
-        #     {"field": "PUBLISHED", "direction": "ASC"},
-        #     ["Product2", "ProductProduct1", "Product1"],
-        # ),
     ],
 )
 def test_products_pagination_with_sorting(
+    sort_by,
+    products_order,
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
+):
+    page_size = 3
+
+    variables = {"first": page_size, "after": None, "sortBy": sort_by}
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert products_order[0] == products_nodes[0]["node"]["name"]
+    assert products_order[1] == products_nodes[1]["node"]["name"]
+    assert products_order[2] == products_nodes[2]["node"]["name"]
+    assert len(products_nodes) == page_size
+
+
+@pytest.mark.parametrize(
+    "sort_by, products_order",
+    [
+        (
+            {"field": "PUBLISHED", "direction": "ASC"},
+            ["ProductProduct2", "Product1", "Product2"],
+        ),
+        (
+            {"field": "PRICE", "direction": "ASC"},
+            ["Product2", "ProductProduct2", "Product1"],
+        ),
+        (
+            {"field": "MINIMAL_PRICE", "direction": "ASC"},
+            ["ProductProduct2", "Product1", "Product2"],
+        ),
+    ],
+)
+def test_products_pagination_with_sorting_and_channel(
     sort_by,
     products_order,
     staff_api_client,
@@ -456,6 +510,7 @@ def test_products_pagination_with_sorting(
 ):
     page_size = 3
 
+    sort_by["channel"] = channel_USD.slug
     variables = {"first": page_size, "after": None, "sortBy": sort_by}
     response = staff_api_client.post_graphql(
         QUERY_PRODUCTS_PAGINATION,

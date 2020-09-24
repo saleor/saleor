@@ -1,7 +1,20 @@
 import graphene
-from django.db.models import Count, IntegerField, Min, OuterRef, QuerySet, Subquery
+from django.db.models import (
+    BooleanField,
+    Case,
+    Count,
+    IntegerField,
+    Min,
+    OuterRef,
+    Q,
+    QuerySet,
+    Subquery,
+    Value,
+    When,
+)
 from django.db.models.functions import Coalesce
 
+from ...channel.models import Channel
 from ...product.models import Category, Product
 from ..core.types import SortInputObjectType
 
@@ -75,7 +88,7 @@ class CategorySortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def qs_with_product_count(queryset: QuerySet) -> QuerySet:
+    def qs_with_product_count(queryset: QuerySet, **_kwargs) -> QuerySet:
         return queryset.annotate(
             product_count=Coalesce(
                 Subquery(
@@ -91,7 +104,7 @@ class CategorySortField(graphene.Enum):
         )
 
     @staticmethod
-    def qs_with_subcategory_count(queryset: QuerySet) -> QuerySet:
+    def qs_with_subcategory_count(queryset: QuerySet, **_kwargs) -> QuerySet:
         return queryset.annotate(subcategory_count=Count("children__id"))
 
 
@@ -119,7 +132,7 @@ class CollectionSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def qs_with_product_count(queryset: QuerySet) -> QuerySet:
+    def qs_with_product_count(queryset: QuerySet, **_kwargs) -> QuerySet:
         return queryset.annotate(product_count=Count("collectionproduct__id"))
 
 
@@ -132,7 +145,7 @@ class CollectionSortingInput(SortInputObjectType):
 class ProductOrderField(graphene.Enum):
     NAME = ["name", "slug"]
     PRICE = ["min_variants_price_amount", "name", "slug"]
-    MINIMAL_PRICE = ["minimal_variant_price_amount", "name", "slug"]
+    MINIMAL_PRICE = ["discounted_price_amount", "name", "slug"]
     DATE = ["updated_at", "name", "slug"]
     TYPE = ["product_type__name", "name", "slug"]
     PUBLISHED = ["is_published", "name", "slug"]
@@ -155,9 +168,40 @@ class ProductOrderField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def qs_with_price(queryset: QuerySet) -> QuerySet:
+    def qs_with_price(queryset: QuerySet, channel: Channel) -> QuerySet:
         return queryset.annotate(
-            min_variants_price_amount=Min("variants__price_amount")
+            min_variants_price_amount=Min(
+                "variants__channel_listing__price_amount",
+                filter=Q(variants__channel_listing__channel=channel),
+            )
+        )
+
+    @staticmethod
+    def qs_with_minimal_price(queryset: QuerySet, channel: Channel) -> QuerySet:
+        return queryset.annotate(
+            discounted_price_amount=Min(
+                "channel_listing__discounted_price_amount",
+                filter=Q(channel_listing__channel=channel),
+            )
+        )
+
+    @staticmethod
+    def qs_with_published(queryset: QuerySet, channel: Channel) -> QuerySet:
+        return queryset.annotate(
+            is_published=Case(
+                When(
+                    channel_listing__channel=channel,
+                    channel_listing__is_published=True,
+                    then=Value(True),
+                ),
+                When(
+                    channel_listing__channel=channel,
+                    channel_listing__is_published=False,
+                    then=Value(False),
+                ),
+                default=Value(None),
+                output_field=BooleanField(),
+            )
         )
 
 
@@ -172,6 +216,9 @@ class ProductOrder(SortInputObjectType):
     field = graphene.Argument(
         ProductOrderField, description="Sort products by the selected field."
     )
+    # TODO: Add description
+    # TODO: Maybe move to SortInputObjectType
+    channel = graphene.Argument(graphene.String)
 
     class Meta:
         sort_enum = ProductOrderField
