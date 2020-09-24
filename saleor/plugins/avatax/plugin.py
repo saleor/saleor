@@ -401,15 +401,16 @@ class AvataxPlugin(BasePlugin):
         if tax_code is None and obj.pk:
             obj.delete_value_from_metadata(META_CODE_KEY)
             obj.delete_value_from_metadata(META_DESCRIPTION_KEY)
-            return
+            return previous_value
 
         codes = get_cached_tax_codes_or_fetch(self.config)
         if tax_code not in codes:
-            return
+            return previous_value
 
         tax_description = codes.get(tax_code)
         tax_item = {META_CODE_KEY: tax_code, META_DESCRIPTION_KEY: tax_description}
         obj.store_value_in_metadata(items=tax_item)
+        return previous_value
 
     def get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"], previous_value: Any
