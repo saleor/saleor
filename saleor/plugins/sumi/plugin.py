@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import datetime
 
 from django.http import HttpResponse
@@ -10,6 +11,7 @@ from saleor.plugins.manager import get_plugins_manager
 from saleor.product.models import ProductVariant
 from saleor.warehouse.models import Stock
 
+logger = logging.getLogger(__name__)
 
 class SumiConfiguration:
     token: str
@@ -50,6 +52,7 @@ class SumiPlugin(BasePlugin):
 
     @staticmethod
     def create_reservation(request):
+        logger.info('Request for create reservation')
         results = {"status": "ok", "data": [], "errors": []}
         # TODO: wynieś to do dekoratora
         if SumiPlugin.is_auth(request.headers.get('X-API-KEY')) and request.method == 'POST':
@@ -143,6 +146,7 @@ class SumiPlugin(BasePlugin):
 
     @staticmethod
     def cancel_reservation(request):
+        logger.info('Request for cancel reservation')
         results = {"status": "ok", "data": [], "errors": []}
         # TODO: wynieś to do dekoratora
         if SumiPlugin.is_auth(
@@ -178,6 +182,7 @@ class SumiPlugin(BasePlugin):
 
     @staticmethod
     def sell_products(request):
+        logger.info('Request for sell product')
         results = {"status": "ok", "data": [], "errors": []}
         # TODO: wynieś to do dekoratora
         if SumiPlugin.is_auth(
