@@ -9,10 +9,17 @@ from authlib.jose.errors import DecodeError, JoseError
 from authlib.oidc.core import CodeIDToken
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.middleware.csrf import _compare_masked_tokens  # type: ignore
 from django.middleware.csrf import _get_new_csrf_token
 
 from ...account.models import User
-from ...core.jwt import JWT_ACCESS_TYPE, jwt_encode, jwt_user_payload
+from ...core.jwt import (
+    JWT_ACCESS_TYPE,
+    JWT_REFRESH_TYPE,
+    jwt_decode,
+    jwt_encode,
+    jwt_user_payload,
+)
 from ...core.utils import build_absolute_uri
 from ...core.utils.url import prepare_url, validate_storefront_url
 from ..error_codes import PluginErrorCode
@@ -102,7 +109,7 @@ def create_jwt_refresh_token(user: User, refresh_token: str, csrf: str):
     additional_payload = {"oauth_refresh_token": refresh_token, "csrf_token": csrf}
     jwt_payload = jwt_user_payload(
         user,
-        JWT_ACCESS_TYPE,
+        JWT_REFRESH_TYPE,
         # oauth_refresh_token has own expiration time. No need to duplicate it here
         exp_delta=None,
         additional_payload=additional_payload,
@@ -122,7 +129,6 @@ def get_valid_auth_tokens_from_auth0_payload(
         raise AuthenticationError("Unable to decode provided token")
     except JoseError:
         raise AuthenticationError("Token validation failed")
-    # raises JoseError
 
     refresh_token = token_data.get("refresh_token")
 
@@ -146,3 +152,45 @@ def get_valid_auth_tokens_from_auth0_payload(
         )
         tokens["csrfToken"] = csrf_token
     return tokens
+
+
+def validate_refresh_token(refresh_token, data):
+    csrf_token = data.get("csrfToken")
+    if not refresh_token:
+        raise ValidationError(
+            {
+                "refreshToken": ValidationError(
+                    "Missing token.", code=PluginErrorCode.NOT_FOUND.value
+                )
+            }
+        )
+
+    refresh_payload = jwt_decode(refresh_token)
+
+    if not data.get("refreshToken"):
+        if not refresh_payload.get("csrf_token"):
+            raise ValidationError(
+                {
+                    "csrfToken": ValidationError(
+                        "Missing CSRF token.", code=PluginErrorCode.INVALID.value,
+                    )
+                }
+            )
+        if not csrf_token:
+            raise ValidationError(
+                {
+                    "csrfToken": ValidationError(
+                        "CSRF token needs to be provided.",
+                        code=PluginErrorCode.INVALID.value,
+                    )
+                }
+            )
+        is_valid = _compare_masked_tokens(csrf_token, refresh_payload["csrf_token"])
+        if not is_valid:
+            raise ValidationError(
+                {
+                    "csrfToken": ValidationError(
+                        "CSRF token doesn't match.", code=PluginErrorCode.INVALID.value,
+                    )
+                }
+            )

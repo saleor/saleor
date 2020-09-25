@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, Mock
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from authlib.jose.errors import JoseError
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseRedirect
 from django.middleware.csrf import _get_new_csrf_token
@@ -108,6 +109,97 @@ def test_external_refresh_from_cookie(
         "https://saleor-test.eu.auth0.com/oauth/token",
         refresh_token=oauth_refresh_token,
     )
+
+
+@freeze_time("2019-03-18 12:00:00")
+@pytest.mark.vcr
+def test_external_refresh_from_input(
+    auth0_plugin, admin_user, monkeypatch, rf, id_token, id_payload
+):
+    mocked_jwt_validator = MagicMock()
+    mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
+
+    monkeypatch.setattr(
+        "saleor.plugins.auth0.utils.jwt.decode", Mock(return_value=mocked_jwt_validator)
+    )
+    oauth_payload = {
+        "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
+        "refresh_token": "new_refresh",
+        "id_token": id_token,
+        "scope": "openid profile email offline_access",
+        "expires_in": 86400,
+        "token_type": "Bearer",
+        "expires_at": 1600851112,
+    }
+    mocked_refresh_token = Mock(return_value=oauth_payload)
+    monkeypatch.setattr(
+        "saleor.plugins.auth0.plugin.OAuth2Session.refresh_token", mocked_refresh_token
+    )
+
+    oauth_refresh_token = "refresh"
+    plugin = auth0_plugin()
+    csrf_token = _get_new_csrf_token()
+    saleor_refresh_token = create_jwt_refresh_token(
+        admin_user, oauth_refresh_token, csrf_token
+    )
+
+    request = rf.request()
+    data = {"refreshToken": saleor_refresh_token}
+    response = plugin.external_refresh(data, request, None)
+
+    assert "token" in response
+    assert "refreshToken" in response
+    assert "csrfToken" in response
+
+    decoded_token = jwt_decode(response.get("token"))
+    assert decoded_token["exp"] == id_payload["exp"]
+    assert decoded_token["oauth_access_key"] == oauth_payload["access_token"]
+
+    decoded_refresh_token = jwt_decode(response.get("refreshToken"))
+    assert decoded_refresh_token["oauth_refresh_token"] == "new_refresh"
+    assert decoded_refresh_token["csrf_token"] == response["csrfToken"]
+    mocked_refresh_token.assert_called_once_with(
+        "https://saleor-test.eu.auth0.com/oauth/token",
+        refresh_token=oauth_refresh_token,
+    )
+
+
+@freeze_time("2019-03-18 12:00:00")
+@pytest.mark.vcr
+def test_external_refresh_raises_error_when_token_is_invalid(
+    auth0_plugin, admin_user, monkeypatch, rf, id_token, id_payload
+):
+    mocked_jwt_validator = MagicMock()
+    mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
+
+    monkeypatch.setattr(
+        "saleor.plugins.auth0.utils.jwt.decode", Mock(side_effect=JoseError())
+    )
+    oauth_payload = {
+        "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
+        "refresh_token": "new_refresh",
+        "id_token": id_token,
+        "scope": "openid profile email offline_access",
+        "expires_in": 86400,
+        "token_type": "Bearer",
+        "expires_at": 1600851112,
+    }
+    mocked_refresh_token = Mock(return_value=oauth_payload)
+    monkeypatch.setattr(
+        "saleor.plugins.auth0.plugin.OAuth2Session.refresh_token", mocked_refresh_token
+    )
+
+    oauth_refresh_token = "refresh"
+    plugin = auth0_plugin()
+    csrf_token = _get_new_csrf_token()
+    saleor_refresh_token = create_jwt_refresh_token(
+        admin_user, oauth_refresh_token, csrf_token
+    )
+
+    request = rf.request()
+    data = {"refreshToken": saleor_refresh_token}
+    with pytest.raises(ValidationError):
+        plugin.external_refresh(data, request, None)
 
 
 @freeze_time("2019-03-18 12:00:00")

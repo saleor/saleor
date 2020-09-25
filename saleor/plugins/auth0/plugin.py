@@ -8,7 +8,6 @@ from authlib.integrations.requests_client import OAuth2Session
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
-from django.middleware.csrf import _compare_masked_tokens  # type: ignore
 from django.shortcuts import redirect
 
 from ...account.models import User
@@ -27,6 +26,7 @@ from .utils import (
     get_auth_service_url,
     get_valid_auth_tokens_from_auth0_payload,
     prepare_redirect_url,
+    validate_refresh_token,
     validate_storefront_redirect_url,
 )
 
@@ -131,32 +131,6 @@ class Auth0Plugin(BasePlugin):
         )
         return {"authorizationUrl": uri}
 
-    def validate_refresh_token(self, refresh_token, data):
-        # TODO move to utils
-        csrf_token = data.get("csrfToken")
-        if not refresh_token:
-            raise ValidationError(
-                {
-                    "refreshToken": ValidationError(
-                        "Missing token.", code=PluginErrorCode.NOT_FOUND.value
-                    )
-                }
-            )
-
-        refresh_payload = jwt_decode(refresh_token)
-
-        if not data.get("refreshToken"):
-            is_valid = _compare_masked_tokens(csrf_token, refresh_payload["csrf_token"])
-            if not is_valid:
-                raise ValidationError(
-                    {
-                        "csrfToken": ValidationError(
-                            "CSRF token doesn't match",
-                            code=PluginErrorCode.INVALID.value,
-                        )
-                    }
-                )
-
     def external_refresh(
         self, data: dict, request: WSGIRequest, previous_value
     ) -> dict:
@@ -164,7 +138,7 @@ class Auth0Plugin(BasePlugin):
         refresh_token = request.COOKIES.get(JWT_REFRESH_TOKEN_COOKIE_NAME, None)
         refresh_token = data.get("refreshToken") or refresh_token
 
-        self.validate_refresh_token(refresh_token, data)
+        validate_refresh_token(refresh_token, data)
         saleor_refresh_token = jwt_decode(refresh_token)  # type: ignore
         token_endpoint = self._get_auth0_service_url(OAUTH_TOKEN_PATH)
         try:

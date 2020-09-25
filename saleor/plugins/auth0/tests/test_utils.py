@@ -3,17 +3,20 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 import requests
+from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
 from saleor.account.models import User
-from saleor.core.jwt import jwt_decode
+from saleor.core.jwt import JWT_REFRESH_TYPE, jwt_decode, jwt_encode, jwt_user_payload
 
 from ..exceptions import AuthenticationError
 from ..utils import (
+    create_jwt_refresh_token,
     create_jwt_token,
     fetch_jwks,
     get_valid_auth_tokens_from_auth0_payload,
     prepare_redirect_url,
+    validate_refresh_token,
 )
 
 
@@ -100,7 +103,6 @@ def test_get_valid_auth_tokens_from_auth0_payload_missing_user(
     monkeypatch.setattr(
         "saleor.plugins.auth0.utils.jwt.decode", Mock(return_value=mocked_jwt_validator)
     )
-    # user_from_token = User.objects.create(email="admin@example.com", is_active=True)
     auth_payload = {
         "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
         "refresh_token": "refresh",
@@ -117,24 +119,28 @@ def test_get_valid_auth_tokens_from_auth0_payload_missing_user(
         )
 
 
-# def get_auth_tokens_from_auth0_payload(self, token_data: dict, get_or_create=True):
-#     id_token = token_data["id_token"]
-#     keys = get_jwks_keys_from_cache_or_fetch(self._get_auth0_service_url(JWKS_PATH))
-#
-#     claims = jwt.decode(id_token, keys, claims_cls=CodeIDToken)
-#     claims.validate()
-#     if get_or_create:
-#         user, created = User.objects.get_or_create(
-#             email=claims["email"],
-#             defaults={"is_active": True, "email": claims["email"]},
-#         )
-#     else:
-#         user = User.objects.get(email=claims["email"], is_active=True)
-#
-#     tokens = {
-#         "token": self._create_jwt_token(claims, user, token_data["access_token"]),
-#     }
-#     refresh_token = token_data.get("refresh_token")
-#     if refresh_token:
-#         tokens["refreshToken"] = refresh_token
-#     return tokens
+@freeze_time("2019-03-18 12:00:00")
+def test_validate_refresh_token_missing_csrf_token(id_payload, admin_user):
+    token = create_jwt_refresh_token(admin_user, "refresh_token", "csrf")
+    with pytest.raises(ValidationError):
+        validate_refresh_token(token, {})
+
+
+def test_validate_refresh_token_missing_csrf_token_in_token_payload(admin_user):
+    additional_payload = {"oauth_refresh_token": "refresh_token"}
+    jwt_payload = jwt_user_payload(
+        admin_user,
+        JWT_REFRESH_TYPE,
+        # oauth_refresh_token has own expiration time. No need to duplicate it here
+        exp_delta=None,
+        additional_payload=additional_payload,
+    )
+    token = jwt_encode(jwt_payload)
+    with pytest.raises(ValidationError):
+        validate_refresh_token(token, {})
+
+
+def test_validate_refresh_token_missing_token():
+    refresh_token = ""
+    with pytest.raises(ValidationError):
+        validate_refresh_token(refresh_token, {})
