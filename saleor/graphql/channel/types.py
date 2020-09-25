@@ -62,4 +62,4 @@ class Channel(CountableDjangoObjectType):
         description = "Represents channel."
         model = models.Channel
         interfaces = [relay.Node]
-        only_fields = ["id", "name", "slug", "currency_code"]
+        only_fields = ["id", "name", "slug", "currency_code", "is_active"]

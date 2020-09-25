@@ -253,16 +253,15 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                     )
                 }
             )
-        else:
-            if not channel.is_active:
-                raise ValidationError(
-                    {
-                        "channel": ValidationError(
-                            f"Channel with '{channel_slug}' is inactive.",
-                            code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
-                        )
-                    }
-                )
+        if not channel.is_active:
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        f"Channel with '{channel_slug}' is inactive.",
+                        code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
+                    )
+                }
+            )
         return channel
 
     @classmethod

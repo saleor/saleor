@@ -228,6 +228,8 @@ class BaseChannelListingMutation(BaseMutation):
 
 
 class ChannelActivate(BaseMutation):
+    channel = graphene.Field(Channel, description="Activated channel.")
+
     class Arguments:
         id = graphene.ID(required=True, description="ID of the channel to activate.")
 
@@ -250,13 +252,18 @@ class ChannelActivate(BaseMutation):
         channel.is_active = True
         channel.save(update_fields=["is_active"])
 
+        return ChannelActivate(channel=channel)
+
     class Meta:
         description = "Activate a channel."
+        permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"
 
 
 class ChannelDeactivate(BaseMutation):
+    channel = graphene.Field(Channel, description="Deactivated channel.")
+
     class Arguments:
         id = graphene.ID(required=True, description="ID of the channel to deactivate.")
 
@@ -279,7 +286,10 @@ class ChannelDeactivate(BaseMutation):
         channel.is_active = False
         channel.save(update_fields=["is_active"])
 
+        return ChannelDeactivate(channel=channel)
+
     class Meta:
         description = "Deactivate a channel."
+        permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"

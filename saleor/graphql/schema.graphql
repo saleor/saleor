@@ -843,12 +843,14 @@ type CategoryUpdatePrivateMeta {
 type Channel implements Node {
   id: ID!
   name: String!
+  isActive: Boolean!
   slug: String!
   currencyCode: String!
 }
 
 type ChannelActivate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  channel: Channel
   channelErrors: [ChannelError!]!
 }
 
@@ -867,6 +869,7 @@ input ChannelCreateInput {
 
 type ChannelDeactivate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  channel: Channel
   channelErrors: [ChannelError!]!
 }
 

@@ -4,11 +4,9 @@ from django.db import migrations, models
 
 
 def set_default_flag(apps, schema):
+    # TODO: delete it before merge to master
     Channel = apps.get_model("channel", "Channel")
-    for channel in Channel.objects.iterator():
-        if not channel.is_active:
-            channel.is_active = True
-        channel.save(update_fields=["is_active"])
+    Channel.objects.filter(is_active=False).update(is_active=True)
 
 
 class Migration(migrations.Migration):
