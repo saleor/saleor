@@ -15,7 +15,7 @@ documentation = "https://docs.getsaleor.com/en/latest/"
 python = "~3.8"
 babel = "~2.8"
 boto3 = "^1.14"
-braintree = ">=4.2,<4.4"
+braintree = ">=4.2,<4.5"
 celery = { version = "^4.4.5", extras = ["redis"] }
 dj-database-url = "^0"
 dj-email-url = "^1"
