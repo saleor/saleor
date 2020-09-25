@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 import requests
-from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
 from saleor.account.models import User
@@ -56,7 +55,7 @@ def test_fetch_jwks():
 @freeze_time("2019-03-18 12:00:00")
 @pytest.mark.vcr
 def test_get_valid_auth_tokens_from_auth0_payload_creates_user(
-    monkeypatch, id_token, id_payload
+    monkeypatch, id_token, id_payload, admin_user
 ):
     mocked_jwt_validator = MagicMock()
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
@@ -79,17 +78,15 @@ def test_get_valid_auth_tokens_from_auth0_payload_creates_user(
 
     created_user = User.objects.get()
 
-    expected_tokens = {
-        "token": create_jwt_token(
-            id_payload, created_user, auth_payload["access_token"]
-        ),
-        "refreshToken": "refresh",
-    }
+    token = create_jwt_token(id_payload, created_user, auth_payload["access_token"])
 
     assert created_user.email == id_payload["email"]
-    assert tokens == expected_tokens
+    assert tokens["token"] == token
     # confirm that we have jwt token
     jwt_decode(tokens["token"])
+
+    decoded_refresh_token = jwt_decode(tokens["refreshToken"])
+    assert decoded_refresh_token["oauth_refresh_token"] == "refresh"
 
 
 @freeze_time("2019-03-18 12:00:00")
@@ -114,7 +111,7 @@ def test_get_valid_auth_tokens_from_auth0_payload_missing_user(
         "expires_at": 1600851112,
     }
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(AuthenticationError):
         get_valid_auth_tokens_from_auth0_payload(
             auth_payload, "saleor-test.eu.auth0.com", get_or_create=False
         )

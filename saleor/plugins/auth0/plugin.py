@@ -132,6 +132,7 @@ class Auth0Plugin(BasePlugin):
         return {"authorizationUrl": uri}
 
     def validate_refresh_token(self, refresh_token, data):
+        # TODO move to utils
         csrf_token = data.get("csrfToken")
         if not refresh_token:
             raise ValidationError(
@@ -164,7 +165,7 @@ class Auth0Plugin(BasePlugin):
         refresh_token = data.get("refreshToken") or refresh_token
 
         self.validate_refresh_token(refresh_token, data)
-        saleor_refresh_token = jwt_decode(refresh_token)
+        saleor_refresh_token = jwt_decode(refresh_token)  # type: ignore
         token_endpoint = self._get_auth0_service_url(OAUTH_TOKEN_PATH)
         try:
             token_data = self.auth0.refresh_token(
@@ -187,7 +188,11 @@ class Auth0Plugin(BasePlugin):
             )
         except AuthenticationError as e:
             raise ValidationError(
-                {"refreshToken": ValidationError(str(e), code=PluginErrorCode.INVALID)}
+                {
+                    "refreshToken": ValidationError(
+                        str(e), code=PluginErrorCode.INVALID.value
+                    )
+                }
             )
 
     def authenticate_user(self, request: WSGIRequest, previous_value) -> Optional[User]:
@@ -219,11 +224,13 @@ class Auth0Plugin(BasePlugin):
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         if path.startswith("/refresh"):
             # TODO this call will be moved to external refresh mutation
-            return HttpResponse(self.external_refresh(request, None))
+            return HttpResponse(self.external_refresh({}, request, None))
         if path.startswith("/login"):
             # TODO this will be moved to external auth mutation
             return HttpResponse(
-                json.dumps(self.external_authentication(request.GET, None))
+                json.dumps(
+                    self.external_authentication(request.GET, None)  # type: ignore
+                )
             )
         if path.startswith("/callback"):
             return self.handle_auth0_callback(request)

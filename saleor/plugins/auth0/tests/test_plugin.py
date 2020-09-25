@@ -161,7 +161,7 @@ def test_handle_oauth_callback(auth0_plugin, monkeypatch, rf, id_token, id_paylo
     )
     oauth_payload = {
         "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
-        "refresh_token": "new_refresh",
+        "refresh_token": "refresh",
         "id_token": id_token,
         "scope": "openid profile email offline_access",
         "expires_in": 86400,
