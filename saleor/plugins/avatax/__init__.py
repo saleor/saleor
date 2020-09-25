@@ -88,7 +88,7 @@ def api_post_request(
             logger.exception("Avatax response contains errors %s", json_response)
             return json_response
     except requests.exceptions.RequestException:
-        logger.error("Fetching taxes failed %s", url)
+        logger.exception("Fetching taxes failed %s", url)
         return {}
     except json.JSONDecodeError:
         content = response.content if response else "Unable to find the response"
@@ -112,7 +112,7 @@ def api_get_request(
             logger.error("Avatax response contains errors %s", json_response)
         return json_response
     except requests.exceptions.RequestException:
-        logger.error("Failed to fetch data from %s", url)
+        logger.exception("Failed to fetch data from %s", url)
         return {}
     except json.JSONDecodeError:
         content = response.content if response else "Unable to find the response"
