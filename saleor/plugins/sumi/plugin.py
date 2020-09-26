@@ -13,8 +13,10 @@ from saleor.warehouse.models import Stock
 
 logger = logging.getLogger(__name__)
 
+
 class SumiConfiguration:
     token: str
+
 
 class SumiPlugin(BasePlugin):
     PLUGIN_ID = "sumi"
@@ -32,7 +34,6 @@ class SumiPlugin(BasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        configuration = {item["name"]: item["value"] for item in self.configuration}
 
     @staticmethod
     def get_configuration():
@@ -41,26 +42,22 @@ class SumiPlugin(BasePlugin):
         configuration = {item["name"]: item["value"] for item in plugin.configuration}
         return configuration
 
-
-
     @staticmethod
     def is_auth(token):
         configuration = SumiPlugin.get_configuration()
         return configuration.get('token') == token
 
-
-
     @staticmethod
     def create_reservation(request):
-        logger.info('Request for create reservation')
+        products = json.loads(request.body.decode('utf-8'))['skus']
+        logger.info('create_reservation request: ' + str(products))
         results = {"status": "ok", "data": [], "errors": []}
         # TODO: wynieś to do dekoratora
         if SumiPlugin.is_auth(request.headers.get('X-API-KEY')) and request.method == 'POST':
-            products = json.loads(request.body.decode('utf-8'))['skus']
             for product in products:
                 if ProductVariant.objects.filter(sku=product).exists():
                     product_variant = ProductVariant.objects.filter(sku=product).first()
-                    if SumiPlugin.is_product_reserved(product_variant) == False:
+                    if not SumiPlugin.is_product_reserved(product_variant):
                         if Stock.objects.filter(product_variant=product_variant).exists():
                             product_variant_stock = Stock.objects.filter(product_variant=product_variant).first()
                             result = SumiPlugin.reserve_product(product_variant_stock)
@@ -78,10 +75,13 @@ class SumiPlugin(BasePlugin):
                 else:
                     results.get('errors').append('001: nie znaleziono produktu o kodzie ' + str(product))
                     results['status'] = 'error'
+
+            logger.debug('create_reservation response: ' + str(results))
             return JsonResponse(results)
         else:
             http_response = HttpResponse()
             http_response.status_code = 403
+            logger.debug('create_reservation response: ' + str(http_response))
             return http_response
 
     @staticmethod
@@ -128,7 +128,7 @@ class SumiPlugin(BasePlugin):
     @staticmethod
     def is_product_reserved(product_variant):
         if product_variant.metadata.get('reserved') is not None:
-            if product_variant.metadata.get('reserved') == True:
+            if product_variant.metadata.get('reserved'):
                 return True
             else:
                 return False
@@ -146,16 +146,16 @@ class SumiPlugin(BasePlugin):
 
     @staticmethod
     def cancel_reservation(request):
-        logger.info('Request for cancel reservation')
+        products = json.loads(request.body.decode('utf-8'))['skus']
+        logger.info('cancel_reservation request: ' + str(products))
         results = {"status": "ok", "data": [], "errors": []}
         # TODO: wynieś to do dekoratora
         if SumiPlugin.is_auth(
                 request.headers.get('X-API-KEY')) and request.method == 'POST':
-            products = json.loads(request.body.decode('utf-8'))['skus']
             for product in products:
                 if ProductVariant.objects.filter(sku=product).exists():
                     product_variant = ProductVariant.objects.filter(sku=product).first()
-                    if SumiPlugin.is_product_reserved(product_variant) == True:
+                    if SumiPlugin.is_product_reserved(product_variant):
                         if Stock.objects.filter(product_variant=product_variant).exists():
                             product_variant_stock = Stock.objects.filter(
                                 product_variant=product_variant).first()
@@ -174,20 +174,22 @@ class SumiPlugin(BasePlugin):
                         '001: nie znaleziono produktu o kodzie ' + str(product))
                     results['status'] = 'error'
 
+            logger.debug('cancel_reservation response: ' + str(results))
             return JsonResponse(results)
         else:
             http_response = HttpResponse()
             http_response.status_code = 403
+            logger.debug('cancel_reservation response: ' + str(http_response))
             return http_response
 
     @staticmethod
     def sell_products(request):
-        logger.info('Request for sell product')
+        products = json.loads(request.body.decode('utf-8'))['skus']
+        logger.info('sell_products request: ' + str(products))
         results = {"status": "ok", "data": [], "errors": []}
         # TODO: wynieś to do dekoratora
         if SumiPlugin.is_auth(
                 request.headers.get('X-API-KEY')) and request.method == 'POST':
-            products = json.loads(request.body.decode('utf-8'))['skus']
             for product in products:
                 if ProductVariant.objects.filter(sku=product).exists():
                     product_variant = ProductVariant.objects.filter(sku=product).first()
@@ -213,12 +215,13 @@ class SumiPlugin(BasePlugin):
                         '001: nie znaleziono produktu o kodzie ' + str(product))
                     results['status'] = 'error'
 
+            logger.debug('sell_products response: ' + str(results))
             return JsonResponse(results)
         else:
             http_response = HttpResponse()
             http_response.status_code = 403
+            logger.debug('sell_products response: ' + str(http_response))
             return http_response
-
 
     @classmethod
     def save_plugin_configuration(cls, plugin_configuration: "PluginConfiguration",
