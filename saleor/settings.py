@@ -319,8 +319,8 @@ LOGGING = {
             "level": "INFO",
             "propagate": True,
         },
-        "django.server": {"handlers": ["console"], "level": "INFO", "propagate": True},
-        "saleor": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
+        "django.server": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "saleor": {"handlers": ["console"], "level": "DEBUG", "propagate": False},
         "saleor.graphql.errors.handled": {
             "handlers": ["console"],
             "level": "ERROR",
