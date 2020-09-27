@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 import uuid
 import webbrowser
@@ -6,7 +7,6 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
-import logging
 
 import requests
 from django.core.mail import EmailMultiAlternatives
@@ -16,7 +16,7 @@ from slugify import slugify
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from saleor.plugins.manager import get_plugins_manager
 from saleor.plugins.models import PluginConfiguration
-from saleor.product.models import Product, AssignedProductAttribute, \
+from saleor.product.models import AssignedProductAttribute, \
     AttributeValue, ProductImage, ProductVariant
 from . import ProductPublishState
 
@@ -253,8 +253,11 @@ class AllegroPlugin(BasePlugin):
         if self.active == True and product.is_published == False:
             product.store_value_in_private_metadata({'publish.allegro.status': ProductPublishState.MODERATED.value})
             allegro_api = AllegroAPI(self.config.token_value)
-            allegro_api.product_publish(saleor_product=product, starting_at=product_with_params.get('starting_at'), offer_type=product_with_params.get('offer_type'))
-
+            if product.variants.first().stocks.first().quantity > 0:
+                allegro_api.product_publish(saleor_product=product, starting_at=product_with_params.get('starting_at'), offer_type=product_with_params.get('offer_type'))
+            else:
+                allegro_api.errors.append('002: stan magazynowy produktu wynosi 0')
+                allegro_api.update_errors_in_private_metadata(product, allegro_api.errors)
 
     def calculate_hours_to_token_expire(self):
         token_expire = datetime.strptime(self.config.token_access, '%d/%m/%Y %H:%M:%S')
@@ -429,7 +432,7 @@ class AllegroAPI:
                 return None
             elif 'errors' in offer:
                 self.errors += offer['errors']
-                self.update_errors_in_private_metadata(saleor_product, [error.get('message') for error in self.errors])
+                self.update_errors_in_private_metadata(saleor_product, [error.get('message') if type(error) is not str else error for error in self.errors])
                 return None
             else:
                 if offer is not None and offer.get('validation').get('errors') is not None:
