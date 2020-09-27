@@ -425,7 +425,6 @@ class AllegroAPI:
 
             offer = self.publish_to_allegro(allegro_product=product)
 
-
             if 'error' in offer:
                 self.errors.append(offer.get('error_description'))
                 self.update_errors_in_private_metadata(saleor_product, [error for error in self.errors])
@@ -480,7 +479,6 @@ class AllegroAPI:
                         self.offer_publication(saleor_product.private_metadata.get('publish.allegro.id'))
                         self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.PUBLISHED.value, True, self.errors)
 
-
     def update_offer(self, saleor_product, starting_at, offer_type):
 
         offer_id = saleor_product.private_metadata.get('publish.allegro.id')
@@ -512,7 +510,6 @@ class AllegroAPI:
         response = self.post_request(endpoint=endpoint, data=allegro_product)
         return json.loads(response.text)
 
-
     def update_allegro_offer(self, allegro_product, id):
 
         endpoint = 'sale/offers/' + id
@@ -534,7 +531,6 @@ class AllegroAPI:
 
         logger.info("Post request url: " + str(url))
         logger.info("Post request headers: " + str(headers))
-
 
         response = requests.post(url, data=json.dumps(data), headers=headers)
 
@@ -592,7 +588,7 @@ class AllegroAPI:
         response = self.get_request(endpoint)
         try:
             require_params = [param for param in json.loads(response.text)['parameters'] if
-                         param['required'] == True]
+                              param['required'] == True]
         except KeyError as err:
             self.errors.append('Key error ' + str(err))
             logger.error(err)
