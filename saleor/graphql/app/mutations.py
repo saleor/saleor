@@ -328,15 +328,6 @@ class AppRetryInstall(ModelMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        requestor = get_user_or_app_from_context(info.context)
-        permissions = instance.permissions.all()
-        if not requestor_is_superuser(requestor) and not requestor.has_perms(
-            permissions
-        ):
-            msg = "You don't have enough permission to perform this action."
-            code = AppErrorCode.OUT_OF_SCOPE_APP.value
-            raise ValidationError({"id": ValidationError(msg, code=code)})
-
         if instance.status != JobStatus.FAILED:
             msg = "Cannot retry installation with different status than failed."
             code = AppErrorCode.INVALID_STATUS.value
