@@ -588,7 +588,7 @@ class AllegroAPI:
         response = self.get_request(endpoint)
         try:
             require_params = [param for param in json.loads(response.text)['parameters'] if
-                              param['required'] == True]
+                              param['required'] is True]
         except KeyError as err:
             self.errors.append('Key error ' + str(err))
             logger.error(err)
@@ -710,7 +710,6 @@ class BaseParametersMapper:
             except AttributeValue.DoesNotExist:
                 pass
 
-
         attributes_name = attributes.keys()
 
         return attributes, attributes_name
@@ -766,6 +765,7 @@ class BaseParametersMapper:
             value = self.set_allegro_fuzzy_value(key, mapped_parameter_value)
 
         return value
+
 
 class AllegroParametersMapper(BaseParametersMapper):
 
