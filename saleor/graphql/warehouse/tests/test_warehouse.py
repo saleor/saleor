@@ -4,7 +4,7 @@ import pytest
 from ....account.models import Address
 from ....warehouse.error_codes import WarehouseErrorCode
 from ....warehouse.models import Warehouse
-from ...tests.utils import get_graphql_content
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 QUERY_WAREHOUSES = """
 query {
@@ -211,6 +211,94 @@ def test_warehouse_query(staff_api_client, warehouse, permission_manage_products
     queried_address = queried_warehouse["address"]
     assert queried_address["streetAddress1"] == address.street_address_1
     assert queried_address["postalCode"] == address.postal_code
+
+
+def test_warehouse_query_as_staff_with_manage_orders(
+    staff_api_client, warehouse, permission_manage_orders
+):
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSE,
+        variables={"id": warehouse_id},
+        permissions=[permission_manage_orders],
+    )
+    content = get_graphql_content(response)
+
+    queried_warehouse = content["data"]["warehouse"]
+    assert queried_warehouse["name"] == warehouse.name
+    assert queried_warehouse["email"] == warehouse.email
+
+    shipping_zones = queried_warehouse["shippingZones"]["edges"]
+    assert len(shipping_zones) == warehouse.shipping_zones.count()
+    queried_shipping_zone = shipping_zones[0]["node"]
+    shipipng_zone = warehouse.shipping_zones.first()
+    assert queried_shipping_zone["name"] == shipipng_zone.name
+    assert len(queried_shipping_zone["countries"]) == len(shipipng_zone.countries)
+
+    address = warehouse.address
+    queried_address = queried_warehouse["address"]
+    assert queried_address["streetAddress1"] == address.street_address_1
+    assert queried_address["postalCode"] == address.postal_code
+
+
+def test_warehouse_query_as_staff_with_manage_apps(
+    staff_api_client, warehouse, permission_manage_apps
+):
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSE,
+        variables={"id": warehouse_id},
+        permissions=[permission_manage_apps],
+    )
+
+    assert_no_permission(response)
+
+
+def test_warehouse_query_as_customer(user_api_client, warehouse):
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    response = user_api_client.post_graphql(
+        QUERY_WAREHOUSE, variables={"id": warehouse_id},
+    )
+
+    assert_no_permission(response)
+
+
+def test_query_warehouses_as_staff_with_manage_orders(
+    staff_api_client, warehouse, permission_manage_orders
+):
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)["data"]
+    assert content["warehouses"]["totalCount"] == Warehouse.objects.count()
+    warehouses = content["warehouses"]["edges"]
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    warehouse_first = warehouses[0]["node"]
+    assert warehouse_first["id"] == warehouse_id
+    assert warehouse_first["name"] == warehouse.name
+    assert (
+        len(warehouse_first["shippingZones"]["edges"])
+        == warehouse.shipping_zones.count()
+    )
+
+
+def test_query_warehouses_as_staff_with_manage_apps(
+    staff_api_client, warehouse, permission_manage_apps
+):
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES, permissions=[permission_manage_apps]
+    )
+    assert_no_permission(response)
+
+
+def test_query_warehouses_as_customer(
+    user_api_client, warehouse, permission_manage_apps
+):
+    response = user_api_client.post_graphql(QUERY_WAREHOUSES)
+    assert_no_permission(response)
 
 
 def test_query_warehouses(staff_api_client, warehouse, permission_manage_products):

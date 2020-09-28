@@ -99,6 +99,8 @@ from .mutations.products import (
     ProductVariantClearPrivateMeta,
     ProductVariantCreate,
     ProductVariantDelete,
+    ProductVariantReorder,
+    ProductVariantSetDefault,
     ProductVariantUpdate,
     ProductVariantUpdateMeta,
     ProductVariantUpdatePrivateMeta,
@@ -443,6 +445,7 @@ class ProductMutations(graphene.ObjectType):
     product_set_availability_for_purchase = ProductSetAvailabilityForPurchase.Field()
 
     product_image_create = ProductImageCreate.Field()
+    product_variant_reorder = ProductVariantReorder.Field()
     product_image_delete = ProductImageDelete.Field()
     product_image_bulk_delete = ProductImageBulkDelete.Field()
     product_image_reorder = ProductImageReorder.Field()
@@ -493,6 +496,7 @@ class ProductMutations(graphene.ObjectType):
     product_variant_stocks_delete = ProductVariantStocksDelete.Field()
     product_variant_stocks_update = ProductVariantStocksUpdate.Field()
     product_variant_update = ProductVariantUpdate.Field()
+    product_variant_set_default = ProductVariantSetDefault.Field()
     product_variant_translate = ProductVariantTranslate.Field()
     product_variant_update_metadata = ProductVariantUpdateMeta.Field(
         deprecation_reason=(
