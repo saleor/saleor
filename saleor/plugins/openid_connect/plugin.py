@@ -153,7 +153,9 @@ class OpenIDConnectPlugin(BasePlugin):
             scope=scope,
         )
 
-    def external_authentication(self, data: dict, previous_value) -> dict:
+    def external_authentication(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> dict:
         storefront_redirect_url = data.get("redirectUrl")
         validate_storefront_redirect_url(storefront_redirect_url)
         uri, state = self.oauth.create_authorization_url(
@@ -165,7 +167,6 @@ class OpenIDConnectPlugin(BasePlugin):
     def external_refresh(
         self, data: dict, request: WSGIRequest, previous_value
     ) -> dict:
-        # Todo validate if plugin is active
         refresh_token = request.COOKIES.get(JWT_REFRESH_TOKEN_COOKIE_NAME, None)
         refresh_token = data.get("refreshToken") or refresh_token
 
