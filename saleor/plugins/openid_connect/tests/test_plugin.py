@@ -27,15 +27,16 @@ def test_get_oauth_session_dont_add_refresh_scope_when_disabled(openid_plugin):
     assert "offline_access" not in session.scope
 
 
-def test_external_authentication_returns_redirect_url(openid_plugin, settings):
+def test_external_authentication_returns_redirect_url(openid_plugin, settings, rf):
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
     authorize_path = "/authorize"
     domain = "saleor-test.eu.auth0.com"
     authorize_url = f"https://{domain}{authorize_path}"
     client_id = "test_client"
     plugin = openid_plugin(oauth_authorization_url=authorize_url, client_id=client_id)
+
     input = {"redirectUrl": "http://localhost:3000/authorization/"}
-    response = plugin.external_authentication(input, None)
+    response = plugin.external_authentication(input, rf.request(), None)
     assert isinstance(response, dict)
     auth_url = response.get("authorizationUrl")
     parsed_url = urlparse(auth_url)
@@ -50,12 +51,12 @@ def test_external_authentication_returns_redirect_url(openid_plugin, settings):
     assert parsed_qs["client_id"][0] == client_id
 
 
-def test_external_authentication_raises_error_when_missing_redirect(openid_plugin):
+def test_external_authentication_raises_error_when_missing_redirect(openid_plugin, rf):
     client_id = "test_client"
     plugin = openid_plugin(client_id=client_id)
     input = {}
     with pytest.raises(ValidationError):
-        plugin.external_authentication(input, None)
+        plugin.external_authentication(input, rf.request(), None)
 
 
 @freeze_time("2019-03-18 12:00:00")
