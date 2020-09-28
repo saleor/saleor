@@ -4,7 +4,6 @@ services:
   etang_api:
     ports:
       - 8000:8000
-    container_name: etang_api
     build:
       context: ./
       dockerfile: ./Dockerfile
@@ -25,7 +24,7 @@ services:
       - ./tests/:/app/tests
       # shared volume between worker and api for media
       - saleor-media:/app/media
-    command: python manage.py runserver 0.0.0.0:8000
+#    command: python manage.py runserver 0.0.0.0:8000
     env_file: ../.env
     environment:
 #      - JAEGER_AGENT_HOST=jaeger
@@ -33,7 +32,6 @@ services:
       - DASHBOARD_URL=http://localhost:9000/
 
   etang_front:
-    container_name: etang_front
     image: etangapi_etang_front
     build:
       context: ../etang-front
@@ -71,15 +69,14 @@ services:
     volumes:
       - saleor-redis:/data
 
-  worker:
-    container_name: etang_worker
-    image: etangapi_worker
+  etang_worker:
+    image: etangapi_etang_worker
     build:
       context: ./
       dockerfile: ./Dockerfile
       args:
         STATIC_URL: '/static/'
-    command: celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
+    command: "celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info"
     restart: unless-stopped
     networks:
       - saleor-backend-tier
@@ -88,13 +85,16 @@ services:
       - redis
       - mailhog
     volumes:
-        - ./saleor/saleor/:/app/saleor:Z
-        - ./saleor/templates/:/app/templates:Z
-        - ./saleor/tests/:/app/tests
+        - ./saleor/:/app/saleor:Z
+        - ./templates/:/app/templates:Z
+        - ./tests/:/app/tests
         # shared volume between worker and api for media
         - saleor-media:/app/media
     environment:
-      - EMAIL_URL=smtp://mailhog:1025
+      - EMAIL_URL=smtp://a5016bd396f83ce16a923c191a015af0:a0acbc2aff6387d5afd332116d8d1acb@in-v3.mailjet.com:587/?tls=True
+#      - - JAEGER_AGENT_HOST=jaeger
+      - STOREFRONT_URL=http://localhost:3000/
+      - DASHBOARD_URL=http://localhost:9000/
 
   jaeger:
     image: jaegertracing/all-in-one
@@ -119,10 +119,26 @@ services:
     networks:
       - saleor-backend-tier
 
+#  db:
+#    image: library/postgres:11.1-alpine
+#    ports:
+#      - 5432:5432
+#    restart: unless-stopped
+#    networks:
+#      - saleor-backend-tier
+#    volumes:
+#      - saleor-db:/var/lib/postgresql
+#    environment:
+#      - POSTGRES_USER=saleor
+#      - POSTGRES_PASSWORD=saleor
+
 volumes:
   saleor-redis:
     driver: local
   saleor-media:
+#  saleor-db:
+#    driver: local
+
 
 networks:
   saleor-backend-tier:
