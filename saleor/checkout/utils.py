@@ -39,7 +39,7 @@ from .models import Checkout, CheckoutLine
 def get_user_checkout(
     user: User, checkout_queryset=Checkout.objects.all()
 ) -> Tuple[Optional[Checkout], bool]:
-    return checkout_queryset.filter(user=user).first()
+    return checkout_queryset.filter(user=user, channel__is_active=True).first()
 
 
 def update_checkout_quantity(checkout):

@@ -645,8 +645,82 @@ def test_draft_order_create(
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
 
-    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_1 = product_without_shipping.variants.first()
+    variant_1.quantity = 2
+    variant_1.save()
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    discount = "10"
+    customer_note = "Test note"
+    variant_list = [
+        {"variantId": variant_0_id, "quantity": 2},
+        {"variantId": variant_1_id, "quantity": 1},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "user": user_id,
+        "discount": discount,
+        "lines": variant_list,
+        "shippingAddress": shipping_address,
+        "shippingMethod": shipping_id,
+        "voucher": voucher_id,
+        "customerNote": customer_note,
+        "channel": channel_id,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["orderErrors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+    assert data["voucher"]["code"] == voucher.code
+    assert data["customerNote"] == customer_note
+
+    order = Order.objects.first()
+    assert order.user == customer_user
+    # billing address should be copied
+    assert order.billing_address.pk != customer_user.default_billing_address.pk
+    assert (
+        order.billing_address.as_data()
+        == customer_user.default_billing_address.as_data()
+    )
+    assert order.shipping_method == shipping_method
+    assert order.shipping_address.first_name == graphql_address_data["firstName"]
+
+    # Ensure the correct event was created
+    created_draft_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.DRAFT_CREATED
+    )
+    assert created_draft_event.user == staff_user
+    assert created_draft_event.parameters == {}
+
+
+def test_draft_order_create_with_inactive_channel(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    channel_USD.is_active = False
+    channel_USD.save()
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
     variant_1 = product_without_shipping.variants.first()
     variant_1.quantity = 2
@@ -1510,6 +1584,25 @@ def test_draft_order_complete(
     assert draft_placed_event.user == staff_user
     assert draft_placed_event.type == order_events.OrderEvents.PLACED_FROM_DRAFT
     assert draft_placed_event.parameters == {}
+
+
+def test_draft_order_complete_with_inactive_channel(
+    staff_api_client, permission_manage_orders, staff_user, draft_order,
+):
+    order = draft_order
+    channel = order.channel
+    channel.is_active = False
+    channel.save()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]
+    assert data["orderErrors"][0]["code"] == OrderErrorCode.CHANNEL_INACTIVE.name
+    assert data["orderErrors"][0]["field"] == "channel"
 
 
 def test_draft_order_complete_product_without_inventory_tracking(

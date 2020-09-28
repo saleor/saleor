@@ -15,7 +15,11 @@ from ..utils import resolve_global_ids_to_primary_keys
 from .types import Channel
 
 
-class ChannelCreateInput(graphene.InputObjectType):
+class ChannelInput(graphene.InputObjectType):
+    is_active = graphene.Boolean(description="isActive flag.")
+
+
+class ChannelCreateInput(ChannelInput):
     name = graphene.String(description="Name of the channel.", required=True)
     slug = graphene.String(description="Slug of the channel.", required=True)
     currency_code = graphene.String(
@@ -41,7 +45,7 @@ class ChannelCreate(ModelMutation):
         return Channel
 
 
-class ChannelUpdateInput(graphene.InputObjectType):
+class ChannelUpdateInput(ChannelInput):
     name = graphene.String(description="Name of the channel.")
     slug = graphene.String(description="Slug of the channel.")
 
@@ -221,3 +225,71 @@ class BaseChannelListingMutation(BaseMutation):
             cleaned_input["add_channels"].append(channel_listing)
 
         return cleaned_input
+
+
+class ChannelActivate(BaseMutation):
+    channel = graphene.Field(Channel, description="Activated channel.")
+
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of the channel to activate.")
+
+    class Meta:
+        description = "Activate a channel."
+        permissions = (ChannelPermissions.MANAGE_CHANNELS,)
+        error_type_class = ChannelError
+        error_type_field = "channel_errors"
+
+    @classmethod
+    def clean_channel_availability(cls, channel):
+        if channel.is_active:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "This channel is already activated.",
+                        code=ChannelErrorCode.INVALID,
+                    )
+                }
+            )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        channel = cls.get_node_or_error(info, data["id"], only_type=Channel)
+        cls.clean_channel_availability(channel)
+        channel.is_active = True
+        channel.save(update_fields=["is_active"])
+
+        return ChannelActivate(channel=channel)
+
+
+class ChannelDeactivate(BaseMutation):
+    channel = graphene.Field(Channel, description="Deactivated channel.")
+
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of the channel to deactivate.")
+
+    class Meta:
+        description = "Deactivate a channel."
+        permissions = (ChannelPermissions.MANAGE_CHANNELS,)
+        error_type_class = ChannelError
+        error_type_field = "channel_errors"
+
+    @classmethod
+    def clean_channel_availability(cls, channel):
+        if channel.is_active is False:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "This channel is already deactivated.",
+                        code=ChannelErrorCode.INVALID,
+                    )
+                }
+            )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        channel = cls.get_node_or_error(info, data["id"], only_type=Channel)
+        cls.clean_channel_availability(channel)
+        channel.is_active = False
+        channel.save(update_fields=["is_active"])
+
+        return ChannelDeactivate(channel=channel)

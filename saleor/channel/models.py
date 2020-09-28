@@ -6,6 +6,7 @@ from ..core.permissions import ChannelPermissions
 
 class Channel(models.Model):
     name = models.CharField(max_length=250)
+    is_active = models.BooleanField(default=False)
     slug = models.SlugField(max_length=255, unique=True)
     currency_code = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
 

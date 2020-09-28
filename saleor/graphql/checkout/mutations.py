@@ -241,20 +241,33 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return None
 
     @classmethod
+    def validate_channel(cls, channel_slug):
+        try:
+            channel = Channel.objects.get(slug=channel_slug)
+        except Channel.DoesNotExist:
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        f"Channel with '{channel_slug}' slug does not exist.",
+                        code=CheckoutErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
+        if not channel.is_active:
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        f"Channel with '{channel_slug}' is inactive.",
+                        code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
+                    )
+                }
+            )
+        return channel
+
+    @classmethod
     def clean_channel(cls, channel_slug):
-        channel = None
         if channel_slug is not None:
-            try:
-                channel = Channel.objects.get(slug=channel_slug)
-            except Channel.DoesNotExist:
-                raise ValidationError(
-                    {
-                        "channel": ValidationError(
-                            f"Channel with '{channel_slug}' slug does not exist.",
-                            code=CheckoutErrorCode.NOT_FOUND,
-                        )
-                    }
-                )
+            channel = cls.validate_channel(channel_slug)
         else:
             try:
                 channel = get_default_channel()
@@ -853,6 +866,15 @@ class CheckoutComplete(BaseMutation):
 
                 order = order_models.Order.objects.get_by_checkout_token(checkout_token)
                 if order:
+                    if not order.channel.is_active:
+                        raise ValidationError(
+                            {
+                                "channel": ValidationError(
+                                    "Cannot complete checkout with inactive channel.",
+                                    code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
+                                )
+                            }
+                        )
                     # The order is already created. We return it as a success
                     # checkoutComplete response. Order is anonymized for not logged in
                     # user

@@ -2,7 +2,13 @@ import graphene
 
 from ...core.permissions import ChannelPermissions
 from ..decorators import permission_required
-from .mutations import ChannelCreate, ChannelDelete, ChannelUpdate
+from .mutations import (
+    ChannelActivate,
+    ChannelCreate,
+    ChannelDeactivate,
+    ChannelDelete,
+    ChannelUpdate,
+)
 from .resolvers import resolve_channel, resolve_channels
 from .types import Channel
 
@@ -30,3 +36,5 @@ class ChannelMutations(graphene.ObjectType):
     channel_create = ChannelCreate.Field()
     channel_update = ChannelUpdate.Field()
     channel_delete = ChannelDelete.Field()
+    channel_activate = ChannelActivate.Field()
+    channel_deactivate = ChannelDeactivate.Field()

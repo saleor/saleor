@@ -38,6 +38,7 @@ class VoucherQueryset(models.QuerySet):
             Q(end_date__isnull=True) | Q(end_date__gte=date),
             start_date__lte=date,
             channel_listing__channel__slug=channel.slug,
+            channel_listing__channel__is_active=True,
         )
 
     def expired(self, date):

@@ -583,6 +583,27 @@ def test_checkout_remove_voucher_code(api_client, checkout_with_voucher):
     assert checkout_with_voucher.voucher_code is None
 
 
+def test_checkout_remove_voucher_code_with_inactive_channel(
+    api_client, checkout_with_voucher
+):
+    channel = checkout_with_voucher.channel
+    channel.is_active = False
+    channel.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_voucher.pk)
+    variables = {
+        "checkoutId": checkout_id,
+        "promoCode": checkout_with_voucher.voucher_code,
+    }
+
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    checkout_with_voucher.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["voucherCode"] == checkout_with_voucher.voucher_code
+
+
 def test_checkout_remove_gift_card_code(api_client, checkout_with_gift_card):
     assert checkout_with_gift_card.gift_cards.count() == 1
 

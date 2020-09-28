@@ -26,6 +26,10 @@ def get_default_channel() -> Channel:
     try:
         channel = Channel.objects.get()
     except Channel.MultipleObjectsReturned:
+        channels = list(Channel.objects.filter(is_active=True))
+        if len(channels) == 1:
+            warnings.warn(DEPRECATION_WARNING_MESSAGE)
+            return channels[0]
         raise ChannelNotDefined()
     except Channel.DoesNotExist:
         raise NoDefaultChannel()
