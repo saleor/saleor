@@ -26,8 +26,8 @@ def get_default_channel() -> Channel:
     try:
         channel = Channel.objects.get()
     except Channel.MultipleObjectsReturned:
-        channels = Channel.objects.filter(is_active=True)
-        if channels.count() == 1:
+        channels = list(Channel.objects.filter(is_active=True))
+        if len(channels) == 1:
             warnings.warn(DEPRECATION_WARNING_MESSAGE)
             return channels[0]
         raise ChannelNotDefined()

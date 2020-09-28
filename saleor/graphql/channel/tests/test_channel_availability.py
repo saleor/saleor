@@ -62,7 +62,7 @@ def test_channel_activate_mutation_on_activated_channel(
 
     # then
     data = content["data"]["channelActivate"]
-    assert data["channelErrors"][0]["field"] == "channel"
+    assert data["channelErrors"][0]["field"] == "id"
     assert data["channelErrors"][0]["code"] == ChannelErrorCode.INVALID.name
 
 
@@ -125,5 +125,5 @@ def test_channel_deactivate_mutation_on_deactivated_channel(
 
     # then
     data = content["data"]["channelDeactivate"]
-    assert data["channelErrors"][0]["field"] == "channel"
+    assert data["channelErrors"][0]["field"] == "id"
     assert data["channelErrors"][0]["code"] == ChannelErrorCode.INVALID.name

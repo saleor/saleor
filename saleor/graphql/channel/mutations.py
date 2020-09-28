@@ -233,12 +233,18 @@ class ChannelActivate(BaseMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of the channel to activate.")
 
+    class Meta:
+        description = "Activate a channel."
+        permissions = (ChannelPermissions.MANAGE_CHANNELS,)
+        error_type_class = ChannelError
+        error_type_field = "channel_errors"
+
     @classmethod
     def clean_channel_availability(cls, channel):
         if channel.is_active:
             raise ValidationError(
                 {
-                    "channel": ValidationError(
+                    "id": ValidationError(
                         "This channel is already activated.",
                         code=ChannelErrorCode.INVALID,
                     )
@@ -254,12 +260,6 @@ class ChannelActivate(BaseMutation):
 
         return ChannelActivate(channel=channel)
 
-    class Meta:
-        description = "Activate a channel."
-        permissions = (ChannelPermissions.MANAGE_CHANNELS,)
-        error_type_class = ChannelError
-        error_type_field = "channel_errors"
-
 
 class ChannelDeactivate(BaseMutation):
     channel = graphene.Field(Channel, description="Deactivated channel.")
@@ -267,12 +267,18 @@ class ChannelDeactivate(BaseMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of the channel to deactivate.")
 
+    class Meta:
+        description = "Deactivate a channel."
+        permissions = (ChannelPermissions.MANAGE_CHANNELS,)
+        error_type_class = ChannelError
+        error_type_field = "channel_errors"
+
     @classmethod
     def clean_channel_availability(cls, channel):
         if channel.is_active is False:
             raise ValidationError(
                 {
-                    "channel": ValidationError(
+                    "id": ValidationError(
                         "This channel is already deactivated.",
                         code=ChannelErrorCode.INVALID,
                     )
@@ -287,9 +293,3 @@ class ChannelDeactivate(BaseMutation):
         channel.save(update_fields=["is_active"])
 
         return ChannelDeactivate(channel=channel)
-
-    class Meta:
-        description = "Deactivate a channel."
-        permissions = (ChannelPermissions.MANAGE_CHANNELS,)
-        error_type_class = ChannelError
-        error_type_field = "channel_errors"
