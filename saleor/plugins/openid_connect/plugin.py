@@ -20,9 +20,11 @@ from ...core.jwt import (
 from ...core.utils.url import prepare_url
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
+from ..models import PluginConfiguration
 from .dataclasses import OpenIDConnectConfig
 from .exceptions import AuthenticationError
 from .utils import (
+    get_incorrect_or_missing_urls,
     get_valid_auth_tokens_from_auth_payload,
     prepare_redirect_url,
     validate_refresh_token,
@@ -113,6 +115,33 @@ class OpenIDConnectPlugin(BasePlugin):
             token_url=configuration["oauth_token_url"],
         )
         self.oauth = self._get_oauth_session()
+
+    @classmethod
+    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+        """Validate if provided configuration is correct."""
+        configuration = plugin_configuration.configuration
+        configuration = {item["name"]: item["value"] for item in configuration}
+        if plugin_configuration.active:
+            incorrect_fields = []
+            urls_to_validate = {
+                "json_web_key_set_url": configuration["json_web_key_set_url"],
+                "oauth_authorization_url": configuration["oauth_authorization_url"],
+                "oauth_token_url": configuration["oauth_token_url"],
+            }
+            incorrect_fields.extend(get_incorrect_or_missing_urls(urls_to_validate))
+            if not configuration["client_id"]:
+                incorrect_fields.append("client_id")
+            if not configuration["client_secret"]:
+                incorrect_fields.append("client_secret")
+            if incorrect_fields:
+                error_msg = (
+                    "To enable a plugin, you need to provide values for the "
+                    "following fields: "
+                )
+                raise ValidationError(
+                    error_msg + ", ".join(incorrect_fields),
+                    code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                )
 
     def _get_oauth_session(self):
         scope = "openid profile email"

@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Optional
+from typing import List, Optional
 from urllib.parse import urlencode
 
 import requests
@@ -9,6 +9,7 @@ from authlib.jose.errors import DecodeError, JoseError
 from authlib.oidc.core import CodeIDToken
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.middleware.csrf import _compare_masked_tokens  # type: ignore
 from django.middleware.csrf import _get_new_csrf_token
 
@@ -26,7 +27,7 @@ from ..error_codes import PluginErrorCode
 from .exceptions import AuthenticationError
 
 JWKS_KEY = "oauth_jwks"
-JWKS_CACHE_TIME = 60 * 60 * 24  # 1 day
+JWKS_CACHE_TIME = 60 * 60  # 1 hour
 
 logger = logging.getLogger(__name__)
 
@@ -191,3 +192,14 @@ def validate_refresh_token(refresh_token, data):
                     )
                 }
             )
+
+
+def get_incorrect_or_missing_urls(urls: dict) -> List[str]:
+    validator = URLValidator()
+    incorrect_urls = []
+    for field, url in urls.items():
+        try:
+            validator(url)
+        except ValidationError:
+            incorrect_urls.append(field)
+    return incorrect_urls

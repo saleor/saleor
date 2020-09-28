@@ -11,6 +11,7 @@ from freezegun import freeze_time
 from saleor.account.models import User
 from saleor.core.jwt import JWT_REFRESH_TOKEN_COOKIE_NAME, jwt_decode
 
+from ...models import PluginConfiguration
 from ..utils import create_jwt_refresh_token, get_valid_auth_tokens_from_auth_payload
 
 
@@ -321,3 +322,58 @@ def test_handle_oauth_callback_missing_redirect_url(
 
     # new user created
     assert not User.objects.filter(email=id_payload["email"]).first()
+
+
+test_url = "http://saleor.auth.com/"
+
+
+@pytest.mark.parametrize(
+    "c_id,c_secret,authorization_url,token_url,jwks_url,",
+    (
+        ["", "ss", f"{test_url}auth", f"{test_url}token", f"{test_url}jwks"],
+        ["cc", "", f"{test_url}auth", f"{test_url}token", f"{test_url}jwks"],
+        ["cc", "123", "", f"{test_url}token", f"{test_url}jwks"],
+        ["cc", "123", f"{test_url}auth", "", f"{test_url}jwks"],
+        ["cc", "123", f"{test_url}auth", f"{test_url}token", ""],
+        ["cc", "123", "saleor.auth.com/auth", f"{test_url}token", f"{test_url}token"],
+        ["cc", "123", f"{test_url}auth", "http://", f"{test_url}token"],
+        ["cc", "123", f"{test_url}auth", "http://", f"{test_url}token"],
+        ["cc", "123", "not_url", f"{test_url}token", f"{test_url}token"],
+        ["cc", "123", "", "", ""],
+    ),
+)
+def test_validate_plugin_configuration_raises_error(
+    c_id,
+    c_secret,
+    authorization_url,
+    token_url,
+    jwks_url,
+    plugin_configuration,
+    openid_plugin,
+):
+    configuration = plugin_configuration(
+        client_id=c_id,
+        client_secret=c_secret,
+        enable_refresh_token=True,
+        oauth_authorization_url=authorization_url,
+        oauth_token_url=token_url,
+        json_web_key_set_url=jwks_url,
+    )
+    conf = PluginConfiguration(active=True, configuration=configuration)
+    plugin = openid_plugin()
+    with pytest.raises(ValidationError):
+        plugin.validate_plugin_configuration(conf)
+
+
+def test_validate_plugin_configuration(plugin_configuration, openid_plugin):
+    configuration = plugin_configuration(
+        client_id="c_id",
+        client_secret="c_secret",
+        enable_refresh_token=True,
+        oauth_authorization_url="http://saleor.auth.com/auth",
+        oauth_token_url="http://saleor.auth.com/token",
+        json_web_key_set_url="http://saleor.auth.com/jwks",
+    )
+    conf = PluginConfiguration(active=True, configuration=configuration)
+    plugin = openid_plugin()
+    plugin.validate_plugin_configuration(conf)

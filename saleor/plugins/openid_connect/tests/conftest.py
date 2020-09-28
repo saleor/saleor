@@ -5,8 +5,30 @@ from ...manager import get_plugins_manager
 from ..plugin import OpenIDConnectPlugin
 
 
+@pytest.fixture()
+def plugin_configuration():
+    def fun(
+        client_id=None,
+        client_secret=None,
+        enable_refresh_token=True,
+        oauth_authorization_url=None,
+        oauth_token_url=None,
+        json_web_key_set_url=None,
+    ):
+        return [
+            {"name": "client_id", "value": client_id},
+            {"name": "client_secret", "value": client_secret},
+            {"name": "enable_refresh_token", "value": enable_refresh_token},
+            {"name": "oauth_authorization_url", "value": oauth_authorization_url},
+            {"name": "oauth_token_url", "value": oauth_token_url},
+            {"name": "json_web_key_set_url", "value": json_web_key_set_url},
+        ]
+
+    return fun
+
+
 @pytest.fixture
-def openid_plugin(settings):
+def openid_plugin(settings, plugin_configuration):
     def fun(
         client_id="client_id",
         client_secret="client_secret",
@@ -21,17 +43,14 @@ def openid_plugin(settings):
             OpenIDConnectPlugin.PLUGIN_ID,
             {
                 "active": True,
-                "configuration": [
-                    {"name": "client_id", "value": client_id},
-                    {"name": "client_secret", "value": client_secret},
-                    {"name": "enable_refresh_token", "value": enable_refresh_token},
-                    {
-                        "name": "oauth_authorization_url",
-                        "value": oauth_authorization_url,
-                    },
-                    {"name": "oauth_token_url", "value": oauth_token_url},
-                    {"name": "json_web_key_set_url", "value": json_web_key_set_url},
-                ],
+                "configuration": plugin_configuration(
+                    client_id=client_id,
+                    client_secret=client_secret,
+                    enable_refresh_token=enable_refresh_token,
+                    oauth_authorization_url=oauth_authorization_url,
+                    oauth_token_url=oauth_token_url,
+                    json_web_key_set_url=json_web_key_set_url,
+                ),
             },
         )
 
