@@ -12,7 +12,12 @@ from saleor.account.models import User
 from saleor.core.jwt import JWT_REFRESH_TOKEN_COOKIE_NAME, jwt_decode
 
 from ...models import PluginConfiguration
-from ..utils import create_jwt_refresh_token, get_valid_auth_tokens_from_auth_payload
+from ..utils import (
+    create_jwt_refresh_token,
+    get_or_create_user_from_token,
+    get_parsed_id_token,
+    get_valid_auth_tokens_from_auth_payload,
+)
 
 
 def test_get_oauth_session_adds_refresh_scope_when_enabled(openid_plugin):
@@ -254,6 +259,7 @@ def test_handle_oauth_callback(openid_plugin, monkeypatch, rf, id_token, id_payl
 
     mocked_jwt_validator = MagicMock()
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
+    mocked_jwt_validator.get.side_effect = id_payload.get
 
     monkeypatch.setattr(
         "saleor.plugins.openid_connect.utils.jwt.decode",
@@ -298,8 +304,10 @@ def test_handle_oauth_callback(openid_plugin, monkeypatch, rf, id_token, id_payl
     redirect_url = redirect_response.url
     parsed_url = urlparse(redirect_url)
     parsed_qs = parse_qs(parsed_url.query)
+    claims = get_parsed_id_token(oauth_payload, plugin.config.json_web_key_set_url,)
+    user = get_or_create_user_from_token(claims)
     expected_tokens = get_valid_auth_tokens_from_auth_payload(
-        oauth_payload, plugin.config.json_web_key_set_url,
+        oauth_payload, user, claims
     )
     assert parsed_url.netloc == "localhost:3000"
     assert parsed_url.path == "/used-logged-in"

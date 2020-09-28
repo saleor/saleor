@@ -115,9 +115,7 @@ def create_jwt_refresh_token(user: User, refresh_token: str, csrf: str):
     return jwt_encode(jwt_payload)
 
 
-def get_valid_auth_tokens_from_auth_payload(
-    token_data: dict, jwks_url: str, get_or_create=True
-):
+def get_parsed_id_token(token_data, jwks_url) -> CodeIDToken:
     id_token = token_data["id_token"]
     keys = get_jwks_keys_from_cache_or_fetch(jwks_url)
     try:
@@ -127,18 +125,34 @@ def get_valid_auth_tokens_from_auth_payload(
         raise AuthenticationError("Unable to decode provided token")
     except JoseError:
         raise AuthenticationError("Token validation failed")
+    return claims
 
-    refresh_token = token_data.get("refresh_token")
 
-    if get_or_create:
-        user, created = User.objects.get_or_create(
+def get_or_create_user_from_token(claims: CodeIDToken) -> User:
+    user = User.objects.filter(email=claims["email"]).first()
+    if not user:
+        user = User.objects.create(
+            is_active=True,
             email=claims["email"],
-            defaults={"is_active": True, "email": claims["email"]},
+            first_name=claims.get("given_name", ""),
+            last_name=claims.get("family_name", ""),
         )
-    else:
-        user = User.objects.filter(email=claims["email"], is_active=True).first()
-        if not user:
-            raise AuthenticationError("User does not exist.",)
+    if not user.is_active:  # it is true only if we fetch disabled user.
+        raise AuthenticationError("Unable to log in.",)
+    return user
+
+
+def get_user_from_token(claims: CodeIDToken) -> User:
+    user = User.objects.filter(email=claims["email"], is_active=True).first()
+    if not user:
+        raise AuthenticationError("User does not exist.",)
+    return user
+
+
+def get_valid_auth_tokens_from_auth_payload(
+    token_data: dict, user: User, claims: CodeIDToken
+):
+    refresh_token = token_data.get("refresh_token")
 
     tokens = {
         "token": create_jwt_token(claims, user, token_data["access_token"]),

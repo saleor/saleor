@@ -25,6 +25,9 @@ from .dataclasses import OpenIDConnectConfig
 from .exceptions import AuthenticationError
 from .utils import (
     get_incorrect_or_missing_urls,
+    get_or_create_user_from_token,
+    get_parsed_id_token,
+    get_user_from_token,
     get_valid_auth_tokens_from_auth_payload,
     prepare_redirect_url,
     validate_refresh_token,
@@ -189,8 +192,12 @@ class OpenIDConnectPlugin(BasePlugin):
                 }
             )
         try:
+            parsed_id_token = get_parsed_id_token(
+                token_data, self.config.json_web_key_set_url
+            )
+            user = get_user_from_token(parsed_id_token)
             return get_valid_auth_tokens_from_auth_payload(
-                token_data, self.config.json_web_key_set_url, get_or_create=False
+                token_data, user, parsed_id_token
             )
         except AuthenticationError as e:
             raise ValidationError(
@@ -219,10 +226,13 @@ class OpenIDConnectPlugin(BasePlugin):
             authorization_response=request.build_absolute_uri(),
             redirect_uri=prepare_redirect_url(self.PLUGIN_ID),
         )
-        params = get_valid_auth_tokens_from_auth_payload(
-            token_data, self.config.json_web_key_set_url,
+        parsed_id_token = get_parsed_id_token(
+            token_data, self.config.json_web_key_set_url
         )
-
+        user = get_or_create_user_from_token(parsed_id_token)
+        params = get_valid_auth_tokens_from_auth_payload(
+            token_data, user, parsed_id_token
+        )
         redirect_url = prepare_url(urlencode(params), storefront_redirect_url)
         return redirect(redirect_url)
 
@@ -234,7 +244,9 @@ class OpenIDConnectPlugin(BasePlugin):
             # TODO this will be moved to external auth mutation
             return HttpResponse(
                 json.dumps(
-                    self.external_authentication(request.GET, None)  # type: ignore
+                    self.external_authentication(
+                        request.GET, request, None  # type: ignore
+                    )
                 )
             )
         if path.startswith("/callback"):

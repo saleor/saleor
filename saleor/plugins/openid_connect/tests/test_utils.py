@@ -14,6 +14,7 @@ from ..utils import (
     create_jwt_refresh_token,
     create_jwt_token,
     fetch_jwks,
+    get_or_create_user_from_token,
     get_valid_auth_tokens_from_auth_payload,
     prepare_redirect_url,
     validate_refresh_token,
@@ -56,8 +57,7 @@ def test_fetch_jwks():
 
 
 @freeze_time("2019-03-18 12:00:00")
-@pytest.mark.vcr
-def test_get_valid_auth_tokens_from_auth_payload_creates_user(
+def test_get_valid_auth_tokens_from_auth_payload(
     monkeypatch, id_token, id_payload, admin_user
 ):
     mocked_jwt_validator = MagicMock()
@@ -76,10 +76,9 @@ def test_get_valid_auth_tokens_from_auth_payload_creates_user(
         "token_type": "Bearer",
         "expires_at": 1600851112,
     }
-    jwks_url = "https://saleor-test.eu.auth0.com/.well-known/jwks.json"
-    tokens = get_valid_auth_tokens_from_auth_payload(
-        auth_payload, jwks_url, get_or_create=True
-    )
+    user = get_or_create_user_from_token(id_payload)
+
+    tokens = get_valid_auth_tokens_from_auth_payload(auth_payload, user, id_payload)
 
     created_user = User.objects.get()
 
@@ -92,34 +91,6 @@ def test_get_valid_auth_tokens_from_auth_payload_creates_user(
 
     decoded_refresh_token = jwt_decode(tokens["refreshToken"])
     assert decoded_refresh_token["oauth_refresh_token"] == "refresh"
-
-
-@freeze_time("2019-03-18 12:00:00")
-@pytest.mark.vcr
-def test_get_valid_auth_tokens_from_auth_payload_missing_user(
-    monkeypatch, id_token, id_payload
-):
-    mocked_jwt_validator = MagicMock()
-    mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
-
-    monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.jwt.decode",
-        Mock(return_value=mocked_jwt_validator),
-    )
-    auth_payload = {
-        "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
-        "refresh_token": "refresh",
-        "id_token": id_token,
-        "scope": "openid profile email offline_access",
-        "expires_in": 86400,
-        "token_type": "Bearer",
-        "expires_at": 1600851112,
-    }
-    jwks_url = "https://saleor-test.eu.auth0.com/.well-known/jwks.json"
-    with pytest.raises(AuthenticationError):
-        get_valid_auth_tokens_from_auth_payload(
-            auth_payload, jwks_url, get_or_create=False
-        )
 
 
 @freeze_time("2019-03-18 12:00:00")
