@@ -2,28 +2,35 @@ import jwt
 import pytest
 
 from ...manager import get_plugins_manager
-from ..plugin import Auth0Plugin
+from ..plugin import OpenIDConnectPlugin
 
 
 @pytest.fixture
-def auth0_plugin(settings):
+def openid_plugin(settings):
     def fun(
         client_id="client_id",
         client_secret="client_secret",
         enable_refresh_token=True,
-        domain="saleor-test.eu.auth0.com",
+        oauth_authorization_url="https://saleor-test.eu.auth0.com/authorize",
+        oauth_token_url="https://saleor-test.eu.auth0.com/oauth/token",
+        json_web_key_set_url="https://saleor-test.eu.auth0.com/.well-known/jwks.json",
     ):
-        settings.PLUGINS = ["saleor.plugins.auth0.plugin.Auth0Plugin"]
+        settings.PLUGINS = ["saleor.plugins.openid_connect.plugin.OpenIDConnectPlugin"]
         manager = get_plugins_manager()
         manager.save_plugin_configuration(
-            Auth0Plugin.PLUGIN_ID,
+            OpenIDConnectPlugin.PLUGIN_ID,
             {
                 "active": True,
                 "configuration": [
                     {"name": "client_id", "value": client_id},
                     {"name": "client_secret", "value": client_secret},
                     {"name": "enable_refresh_token", "value": enable_refresh_token},
-                    {"name": "domain", "value": domain},
+                    {
+                        "name": "oauth_authorization_url",
+                        "value": oauth_authorization_url,
+                    },
+                    {"name": "oauth_token_url", "value": oauth_token_url},
+                    {"name": "json_web_key_set_url", "value": json_web_key_set_url},
                 ],
             },
         )

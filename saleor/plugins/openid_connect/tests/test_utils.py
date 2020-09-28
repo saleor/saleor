@@ -14,18 +14,18 @@ from ..utils import (
     create_jwt_refresh_token,
     create_jwt_token,
     fetch_jwks,
-    get_valid_auth_tokens_from_auth0_payload,
+    get_valid_auth_tokens_from_auth_payload,
     prepare_redirect_url,
     validate_refresh_token,
 )
 
 
 def test_prepare_redirect_url():
-    plugin_id = "test.auth.auth0"
+    plugin_id = "test.auth.openidconnect"
     storefront_url = "http://localhost:3000/"
     url = prepare_redirect_url(plugin_id, storefront_url)
     expected_redirect = (
-        "http://mirumee.com/plugins/test.auth.auth0/callback?"
+        "http://mirumee.com/plugins/test.auth.openidconnect/callback?"
         "redirectUrl=http%3A%2F%2Flocalhost%3A3000%2F"
     )
     assert url == expected_redirect
@@ -42,7 +42,7 @@ def test_fetch_jwks_raises_error(monkeypatch, error):
     mocked_get = Mock()
     mocked_get.side_effect = error
     jwks_url = "http://localhost:3000/"
-    monkeypatch.setattr("saleor.plugins.auth0.utils.requests.get", mocked_get)
+    monkeypatch.setattr("saleor.plugins.openid_connect.utils.requests.get", mocked_get)
 
     with pytest.raises(AuthenticationError):
         fetch_jwks(jwks_url)
@@ -57,14 +57,15 @@ def test_fetch_jwks():
 
 @freeze_time("2019-03-18 12:00:00")
 @pytest.mark.vcr
-def test_get_valid_auth_tokens_from_auth0_payload_creates_user(
+def test_get_valid_auth_tokens_from_auth_payload_creates_user(
     monkeypatch, id_token, id_payload, admin_user
 ):
     mocked_jwt_validator = MagicMock()
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
 
     monkeypatch.setattr(
-        "saleor.plugins.auth0.utils.jwt.decode", Mock(return_value=mocked_jwt_validator)
+        "saleor.plugins.openid_connect.utils.jwt.decode",
+        Mock(return_value=mocked_jwt_validator),
     )
     auth_payload = {
         "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
@@ -75,8 +76,9 @@ def test_get_valid_auth_tokens_from_auth0_payload_creates_user(
         "token_type": "Bearer",
         "expires_at": 1600851112,
     }
-    tokens = get_valid_auth_tokens_from_auth0_payload(
-        auth_payload, "saleor-test.eu.auth0.com", get_or_create=True
+    jwks_url = "https://saleor-test.eu.auth0.com/.well-known/jwks.json"
+    tokens = get_valid_auth_tokens_from_auth_payload(
+        auth_payload, jwks_url, get_or_create=True
     )
 
     created_user = User.objects.get()
@@ -94,14 +96,15 @@ def test_get_valid_auth_tokens_from_auth0_payload_creates_user(
 
 @freeze_time("2019-03-18 12:00:00")
 @pytest.mark.vcr
-def test_get_valid_auth_tokens_from_auth0_payload_missing_user(
+def test_get_valid_auth_tokens_from_auth_payload_missing_user(
     monkeypatch, id_token, id_payload
 ):
     mocked_jwt_validator = MagicMock()
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
 
     monkeypatch.setattr(
-        "saleor.plugins.auth0.utils.jwt.decode", Mock(return_value=mocked_jwt_validator)
+        "saleor.plugins.openid_connect.utils.jwt.decode",
+        Mock(return_value=mocked_jwt_validator),
     )
     auth_payload = {
         "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
@@ -112,10 +115,10 @@ def test_get_valid_auth_tokens_from_auth0_payload_missing_user(
         "token_type": "Bearer",
         "expires_at": 1600851112,
     }
-
+    jwks_url = "https://saleor-test.eu.auth0.com/.well-known/jwks.json"
     with pytest.raises(AuthenticationError):
-        get_valid_auth_tokens_from_auth0_payload(
-            auth_payload, "saleor-test.eu.auth0.com", get_or_create=False
+        get_valid_auth_tokens_from_auth_payload(
+            auth_payload, jwks_url, get_or_create=False
         )
 
 

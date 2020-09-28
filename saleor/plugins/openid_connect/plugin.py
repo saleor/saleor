@@ -20,20 +20,16 @@ from ...core.jwt import (
 from ...core.utils.url import prepare_url
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
-from .dataclasses import Auth0Config
+from .dataclasses import OpenIDConnectConfig
 from .exceptions import AuthenticationError
 from .utils import (
-    get_auth_service_url,
-    get_valid_auth_tokens_from_auth0_payload,
+    get_valid_auth_tokens_from_auth_payload,
     prepare_redirect_url,
     validate_refresh_token,
     validate_storefront_redirect_url,
 )
 
 logger = logging.getLogger(__name__)
-
-AUTHORIZE_PATH = "/authorize"
-OAUTH_TOKEN_PATH = "/oauth/token"
 
 
 def convert_error_to_http_response(fn: Callable) -> Callable:
@@ -46,54 +42,61 @@ def convert_error_to_http_response(fn: Callable) -> Callable:
     return wrapped
 
 
-class Auth0Plugin(BasePlugin):
-    PLUGIN_ID = "mirumee.authentication.auth0"
-    PLUGIN_NAME = "Auth0"
+class OpenIDConnectPlugin(BasePlugin):
+    PLUGIN_ID = "mirumee.authentication.openidconnect"
+    PLUGIN_NAME = "OpenID Connect"
     DEFAULT_CONFIGURATION = [
         {"name": "client_id", "value": None},
         {"name": "client_secret", "value": None},
         {"name": "enable_refresh_token", "value": True},
-        {"name": "domain", "value": None},
+        {"name": "oauth_authorization_url", "value": None},
+        {"name": "oauth_token_url", "value": None},
+        {"name": "json_web_key_set_url", "value": None},
     ]
 
     CONFIG_STRUCTURE = {
         "client_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": (
-                "Your client id required to authenticate on Auth0 side. The client id "
-                "for your app can be found on https://manage.auth0.com/dashboard in "
-                "Applications section."
-            ),
+            "help_text": ("Your client id required to authenticate on provider side."),
             "label": "Client ID",
         },
         "client_secret": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": (
-                "Your client secret required to authenticate on Auth0 side. The client "
-                "secret for your app can be found on https://manage.auth0.com/dashboard"
-                " in Applications section."
+                "Your client secret required to authenticate on provider side."
             ),
             "label": "Client Secret",
         },
         "enable_refresh_token": {
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": (
-                "Determine if the refresh token should be also fetched from Auth0. "
+                "Determine if the refresh token should be also fetched from provider. "
                 "By disabling it, users will need to re-login after the access token "
                 "expired. By enabling it, frontend apps will be able to refresh the "
-                "access token. More details: "
-                "https://auth0.com/docs/tokens/refresh-tokens"
+                "access token."
             ),
             "label": "Enable refreshing token",
         },
-        "domain": {
+        "oauth_authorization_url": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": ("The endpoint used to redirect user to authorization page"),
+            "label": "OAuth Authorization URL",
+        },
+        "oauth_token_url": {
             "type": ConfigurationTypeField.STRING,
             "help_text": (
-                "The domain which is assigned to your app by Auth0. All requests will "
-                "be sent to the provided domain. The domain can be found on "
-                "https://manage.auth0.com/dashboard in the Applications section."
+                "The endpoint to exchange an Authorization Code for a Token."
             ),
-            "label": "Domain",
+            "label": "OAuth Token URL",
+        },
+        "json_web_key_set_url": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": (
+                "The JSON Web Key Set (JWKS) is a set of keys containing the public "
+                "keys used to verify any JSON Web Token (JWT) issued by the "
+                "authorization server and signed using the RS256 signing algorithm."
+            ),
+            "label": "JSON Web Key Set URL",
         },
     }
 
@@ -101,13 +104,15 @@ class Auth0Plugin(BasePlugin):
         super().__init__(*args, **kwargs)
         # Convert to dict to easier take config elements
         configuration = {item["name"]: item["value"] for item in self.configuration}
-        self.config = Auth0Config(
+        self.config = OpenIDConnectConfig(
             client_id=configuration["client_id"],
             client_secret=configuration["client_secret"],
             enable_refresh_token=configuration["enable_refresh_token"],
-            domain=configuration["domain"],
+            json_web_key_set_url=configuration["json_web_key_set_url"],
+            authorization_url=configuration["oauth_authorization_url"],
+            token_url=configuration["oauth_token_url"],
         )
-        self.auth0 = self._get_oauth_session()
+        self.oauth = self._get_oauth_session()
 
     def _get_oauth_session(self):
         scope = "openid profile email"
@@ -119,14 +124,11 @@ class Auth0Plugin(BasePlugin):
             scope=scope,
         )
 
-    def _get_auth0_service_url(self, service):
-        return get_auth_service_url(self.config.domain, service)
-
     def external_authentication(self, data: dict, previous_value) -> dict:
         storefront_redirect_url = data.get("redirectUrl")
         validate_storefront_redirect_url(storefront_redirect_url)
-        uri, state = self.auth0.create_authorization_url(
-            self._get_auth0_service_url(AUTHORIZE_PATH),
+        uri, state = self.oauth.create_authorization_url(
+            self.config.authorization_url,
             redirect_uri=prepare_redirect_url(self.PLUGIN_ID, storefront_redirect_url),
         )
         return {"authorizationUrl": uri}
@@ -140,9 +142,9 @@ class Auth0Plugin(BasePlugin):
 
         validate_refresh_token(refresh_token, data)
         saleor_refresh_token = jwt_decode(refresh_token)  # type: ignore
-        token_endpoint = self._get_auth0_service_url(OAUTH_TOKEN_PATH)
+        token_endpoint = self.config.token_url
         try:
-            token_data = self.auth0.refresh_token(
+            token_data = self.oauth.refresh_token(
                 token_endpoint,
                 refresh_token=saleor_refresh_token["oauth_refresh_token"],
             )
@@ -157,8 +159,8 @@ class Auth0Plugin(BasePlugin):
                 }
             )
         try:
-            return get_valid_auth_tokens_from_auth0_payload(
-                token_data, self.config.domain, get_or_create=False
+            return get_valid_auth_tokens_from_auth_payload(
+                token_data, self.config.json_web_key_set_url, get_or_create=False
             )
         except AuthenticationError as e:
             raise ValidationError(
@@ -178,18 +180,17 @@ class Auth0Plugin(BasePlugin):
         return get_user_from_access_token(token)
 
     @convert_error_to_http_response
-    def handle_auth0_callback(self, request: WSGIRequest) -> HttpResponse:
-        token_endpoint = self._get_auth0_service_url(OAUTH_TOKEN_PATH)
+    def handle_auth_callback(self, request: WSGIRequest) -> HttpResponse:
         storefront_redirect_url = request.GET.get("redirectUrl")
         if not storefront_redirect_url:
             raise AuthenticationError("Missing get param - redirectUrl")
-        token_data = self.auth0.fetch_token(
-            token_endpoint,
+        token_data = self.oauth.fetch_token(
+            self.config.token_url,
             authorization_response=request.build_absolute_uri(),
             redirect_uri=prepare_redirect_url(self.PLUGIN_ID),
         )
-        params = get_valid_auth_tokens_from_auth0_payload(
-            token_data, self.config.domain,
+        params = get_valid_auth_tokens_from_auth_payload(
+            token_data, self.config.json_web_key_set_url,
         )
 
         redirect_url = prepare_url(urlencode(params), storefront_redirect_url)
@@ -207,5 +208,5 @@ class Auth0Plugin(BasePlugin):
                 )
             )
         if path.startswith("/callback"):
-            return self.handle_auth0_callback(request)
+            return self.handle_auth_callback(request)
         return HttpResponseNotFound()
