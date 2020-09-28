@@ -34,6 +34,15 @@ def assert_negative_positive_decimal_value(response):
     ]
 
 
+def assert_filter_without_channel(response):
+    content = get_graphql_content_from_response(response)
+    assert "errors" in content, content
+    assert (
+        "You must provide a `channel` as one of filter to properly filter data."
+        in content["errors"][0]["message"]
+    ), content["errors"]
+
+
 def get_multipart_request_body(query, variables, file, file_name):
     """Create request body for multipart GraphQL requests.
 

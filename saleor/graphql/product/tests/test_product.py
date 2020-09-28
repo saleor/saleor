@@ -1305,19 +1305,7 @@ def test_products_query_with_filter_category_and_search(
     assert products[0]["node"]["name"] == product.name
 
 
-@pytest.mark.parametrize(
-    "products_filter",
-    [
-        # TODO: Consider filtering and sorting by `price`
-        # {"price": {"gte": 1.0, "lte": 2.0}},
-        # {"minimalPrice": {"gte": 1.0, "lte": 2.0}},
-        # TODO: Consider filtering and sorting by `isPublished`
-        # {"isPublished": False},
-        {"search": "Juice1"},
-    ],
-)
-def test_products_query_with_filter(
-    products_filter,
+def test_products_query_with_search_filter(
     query_products_with_filter,
     staff_api_client,
     product,
@@ -1343,11 +1331,9 @@ def test_products_query_with_filter(
         currency=channel_USD.currency_code,
     )
     ProductChannelListing.objects.create(
-        product=second_product,
-        channel=channel_USD,
-        is_published=products_filter.get("isPublished", True),
+        product=second_product, channel=channel_USD, is_published=True,
     )
-    variables = {"filter": products_filter, "channel": channel_USD.slug}
+    variables = {"filter": {"search": "Juice1"}, "channel": channel_USD.slug}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
     content = get_graphql_content(response)
@@ -4609,7 +4595,9 @@ MUTATION_BULK_PUBLISH_PRODUCTS = """
     """
 
 
-@pytest.mark.skip(reason="How to handle bulk publish")
+@pytest.mark.skip(
+    reason="We should drop bulk publish https://app.clickup.com/t/2549495/SALEOR-913"
+)
 def test_bulk_publish_products(
     staff_api_client, product_list_unpublished, permission_manage_products
 ):
@@ -4637,7 +4625,9 @@ def test_bulk_publish_products(
     assert all(product.is_published for product in product_list)
 
 
-@pytest.mark.skip(reason="How to handle bulk publish")
+@pytest.mark.skip(
+    reason="We should drop bulk publish https://app.clickup.com/t/2549495/SALEOR-913"
+)
 def test_bulk_unpublish_products(
     staff_api_client, product_list_published, permission_manage_products
 ):

@@ -664,10 +664,7 @@ def test_products_pagination_for_products_with_the_same_names_one_page(
 @pytest.mark.parametrize(
     "filter_by, products_order",
     [
-        # TODO: Consider filtering and sorting by `isPublished`
-        # ({"isPublished": False}, ["Product2", "ProductProduct1"]),
-        # TODO: Consider filtering and sorting by `price`
-        # ({"price": {"gte": 8, "lte": 12}}, ["Product1", "ProductProduct2"]),
+        ({"hasCategory": True}, ["Product1", "Product2"]),
         ({"stockAvailability": "OUT_OF_STOCK"}, ["ProductProduct1", "ProductProduct2"]),
     ],
 )
@@ -677,10 +674,41 @@ def test_products_pagination_with_filtering(
     staff_api_client,
     permission_manage_products,
     products_for_pagination,
+):
+    page_size = 2
+
+    variables = {"first": page_size, "after": None, "filter": filter_by}
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert products_order[0] == products_nodes[0]["node"]["name"]
+    assert products_order[1] == products_nodes[1]["node"]["name"]
+    assert len(products_nodes) == page_size
+
+
+@pytest.mark.parametrize(
+    "filter_by, products_order",
+    [
+        ({"isPublished": True}, ["Product1", "Product2"]),
+        ({"price": {"gte": 8, "lte": 12}}, ["Product1", "ProductProduct2"]),
+    ],
+)
+def test_products_pagination_with_filtering_and_channel(
+    filter_by,
+    products_order,
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
     channel_USD,
 ):
     page_size = 2
 
+    filter_by["channel"] = channel_USD.slug
     variables = {"first": page_size, "after": None, "filter": filter_by}
     response = staff_api_client.post_graphql(
         QUERY_PRODUCTS_PAGINATION,

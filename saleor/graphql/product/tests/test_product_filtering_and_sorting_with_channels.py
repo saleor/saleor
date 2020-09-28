@@ -10,7 +10,7 @@ from ....product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
-from ...tests.utils import get_graphql_content
+from ...tests.utils import assert_filter_without_channel, get_graphql_content
 
 
 @pytest.fixture
@@ -186,7 +186,7 @@ QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING = """
         ),
     ],
 )
-def test_products_pagination_with_sorting_and_channel(
+def test_products_with_sorting_and_channel(
     sort_by,
     products_order,
     staff_api_client,
@@ -207,3 +207,52 @@ def test_products_pagination_with_sorting_and_channel(
     products_nodes = content["data"]["products"]["edges"]
     for index, product_name in enumerate(products_order):
         assert product_name == products_nodes[index]["node"]["name"]
+
+
+@pytest.mark.parametrize(
+    "filter_by",
+    [{"isPublished": True}, {"price": {"lte": 5}}, {"minimalPrice": {"lte": 5}}],
+)
+def test_products_with_filtering_without_channel(
+    filter_by, staff_api_client, permission_manage_products
+):
+    variables = {"filter": filter_by}
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    assert_filter_without_channel(response)
+
+
+@pytest.mark.parametrize(
+    "filter_by, products_count",
+    [
+        ({"isPublished": True}, 3),
+        ({"isPublished": False}, 1),
+        ({"price": {"lte": 8}}, 2),
+        ({"price": {"gte": 11}}, 1),
+        ({"minimalPrice": {"lte": 4}}, 1),
+        ({"minimalPrice": {"gte": 5}}, 3),
+    ],
+)
+def test_products_with_filtering_with_channel(
+    filter_by,
+    products_count,
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
+    channel_USD,
+):
+    filter_by["channel"] = channel_USD.slug
+    variables = {"filter": filter_by}
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert len(products_nodes) == products_count

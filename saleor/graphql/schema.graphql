@@ -3924,6 +3924,7 @@ input ProductFilterInput {
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   productTypes: [ID]
+  channel: String
 }
 
 type ProductImage implements Node {
