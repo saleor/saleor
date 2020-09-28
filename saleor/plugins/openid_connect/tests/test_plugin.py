@@ -323,7 +323,7 @@ def test_handle_oauth_callback(openid_plugin, monkeypatch, rf, id_token, id_payl
 def test_handle_oauth_callback_missing_redirect_url(
     openid_plugin, monkeypatch, rf, id_token, id_payload
 ):
-    request = rf.get(f"/callback")
+    request = rf.get("/callback")
     plugin = openid_plugin()
 
     redirect_response = plugin.handle_auth_callback(request)
