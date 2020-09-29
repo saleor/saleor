@@ -1,23 +1,26 @@
 adyen==3.0.0
+aiohttp==3.6.2; python_version >= "3.6"
 amqp==2.6.1
 aniso8601==7.0.0
 asgiref==3.2.10
+async-timeout==3.0.1; python_version >= "3.6"
+attrs==20.2.0
 authlib==0.14.3
 babel==2.8.0
 beautifulsoup4==4.7.1
 billiard==3.6.3.0
-boto3==1.15.1
-botocore==1.18.1
-braintree==4.3.0
+boto3==1.15.7
+botocore==1.18.7
+braintree==4.4.0
 cachetools==4.1.1
 cairocffi==1.1.0
 cairosvg==2.4.2
 celery==4.4.7
 certifi==2020.6.20
-cffi==1.14.2
+cffi==1.14.3
 chardet==3.0.4
 click==7.1.2
-cryptography==3.1
+cryptography==3.1.1
 cssselect2==0.3.0
 defusedxml==0.6.0
 dj-database-url==0.5.0
@@ -26,7 +29,7 @@ django==3.1.1
 django-appconf==1.0.4
 django-cache-url==3.1.2
 django-countries==6.1.3
-django-filter==2.3.0
+django-filter==2.4.0
 django-js-asset==1.2.2
 django-measurement==3.2.3
 django-mptt==0.11.0
@@ -44,11 +47,11 @@ enmerkar==0.7.1
 et-xmlfile==1.0.1
 faker==4.1.3
 freezegun==0.3.15
-google-api-core==1.22.1
-google-auth==1.21.0
+google-api-core==1.22.2
+google-auth==1.22.0
 google-cloud-core==1.4.1
-google-cloud-pubsub==2.0.0
-google-cloud-storage==1.31.0
+google-cloud-pubsub==2.1.0
+google-cloud-storage==1.31.2
 google-crc32c==1.0.0; python_version >= "3.5"
 google-i18n-address==2.4.0
 google-measurement-protocol==1.1.0
@@ -60,7 +63,7 @@ graphene-federation==0.1.0
 graphql-core==2.3.2
 graphql-relay==2.0.1
 grpc-google-iam-v1==0.12.3
-grpcio==1.31.0
+grpcio==1.32.0
 gunicorn==20.0.4
 h11==0.9.0
 html-to-draftjs==1.0.1
@@ -72,23 +75,24 @@ jdcal==1.4.1
 jmespath==0.10.0
 jsonfield==3.1.0
 kombu==4.6.11
-libcst==0.3.10
+libcst==0.3.11
 lxml==4.5.2
 markdown==3.2.2
 maxminddb==2.0.2
 maxminddb-geolite2==2018.703
 measurement==3.2.0
 mpmath==1.1.0
+multidict==4.7.6; python_version >= "3.6"
 mypy-extensions==0.4.3
 oauthlib==3.1.0
 openpyxl==3.0.5
 opentracing==2.3.0
 petl==1.6.5
-phonenumberslite==8.12.9
+phonenumberslite==8.12.10
 pillow==7.2.0
 prices==1.1.0
 promise==2.3
-proto-plus==1.9.1
+proto-plus==1.10.0
 protobuf==3.13.0
 psycopg2-binary==2.8.6
 purl==1.5
@@ -110,19 +114,19 @@ requests==2.24.0
 rsa==4.6; python_version >= "3.5"
 rx==1.6.1
 s3transfer==0.3.3
-sentry-sdk==0.17.3
+sentry-sdk==0.17.8
 singledispatch==3.4.0.3
 six==1.15.0
 soupsieve==2.0.1
 sqlparse==0.3.1
-stripe==2.51.0
+stripe==2.53.0
 sympy==1.6.2
 text-unidecode==1.3
 threadloop==1.0.2
 thrift==0.13.0
 tinycss2==1.0.2
 tornado==6.0.4
-tqdm==4.49.0
+tqdm==4.50.0
 typing-extensions==3.7.4.3
 typing-inspect==0.6.0
 unidecode==1.1.1
@@ -133,3 +137,4 @@ vine==1.3.0
 weasyprint==51
 webencodings==0.5.1
 websockets==8.1
+yarl==1.6.0; python_version >= "3.6"
