@@ -83,6 +83,13 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def external_logout(self, data: dict, request: WSGIRequest, previous_value):
+        """Handle logout request.
+
+        Overwrite this method if the plugin handles logout flow.
+        """
+        return NotImplemented
+
     def authenticate_user(
         self, request: WSGIRequest, previous_value
     ) -> Optional["User"]:

@@ -8,4 +8,5 @@ class OpenIDConnectConfig:
     enable_refresh_token: bool
     json_web_key_set_url: str
     authorization_url: str
+    logout_url: str
     token_url: str
