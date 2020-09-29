@@ -1471,7 +1471,7 @@ description = "A Python package for extracting, transforming and loading tables 
 name = "petl"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "1.6.5"
+version = "1.6.7"
 
 [package.extras]
 avro = ["fastavro (>=0.24.0)"]
@@ -2431,7 +2431,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "31c6c64f838d627a749998329718eb066afabd1bd5b5dd6d5179cd8ff78be70d"
+content-hash = "d6378891cc5c24ecde0f3f9c11f3d6ac8522f8ce85b1ce5e069b4132b22a0e10"
 lock-version = "1.0"
 python-versions = "~3.8"
 
@@ -3118,7 +3118,7 @@ pathspec = [
     {file = "pathspec-0.8.0.tar.gz", hash = "sha256:da45173eb3a6f2a5a487efba21f050af2b41948be6ab52b6a1e3ff22bb8b7061"},
 ]
 petl = [
-    {file = "petl-1.6.5.tar.gz", hash = "sha256:b27ad9e290ec6a2b919551dc0cec850f46933fdf5b6f895299baeb137788299b"},
+    {file = "petl-1.6.7.tar.gz", hash = "sha256:5185712705f7be4757276a98757cc8d749045c4576ca80c1da2a27d3fba33863"},
 ]
 phonenumberslite = [
     {file = "phonenumberslite-8.12.9-py2.py3-none-any.whl", hash = "sha256:33d6e0683d5e4ca5d86b64f06cb0445756155c2e96dbd4a1246234d69317a6d2"},
