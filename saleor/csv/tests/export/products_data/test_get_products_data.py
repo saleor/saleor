@@ -93,8 +93,6 @@ def test_get_products_data(product, product_with_image, collection, image):
         for variant in product.variants.all():
             data = {
                 "variants__sku": variant.sku,
-                "variants__currency": variant.currency,
-                "variants__cost_price_amount": variant.cost_price_amount,
                 "variants__images__image": (
                     ""
                     if not variant.images.all()

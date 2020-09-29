@@ -2,6 +2,7 @@ from django.db.models import Sum
 
 from ...order import OrderStatus
 from ...product import models
+from ...product.utils.costs import get_margin_for_variant
 from ..channel import ChannelQsContext
 from ..utils import get_database_id, get_user_or_app_from_context
 from ..utils.filters import filter_by_period
@@ -12,6 +13,28 @@ def resolve_attributes(info, qs=None, **_kwargs):
     requestor = get_user_or_app_from_context(info.context)
     qs = qs or models.Attribute.objects.get_visible_to_user(requestor)
     return qs.distinct()
+
+
+def resolve_product_variant_channel_listing(product_variant, channel_slug):
+    variant_channel_listing = product_variant.channel_listing.filter(
+        channel__slug=channel_slug
+    ).first()
+    return variant_channel_listing if variant_channel_listing else None
+
+
+def resolve_margin(product_variant, channel_slug):
+    variant_channel_listing = resolve_product_variant_channel_listing(
+        product_variant, channel_slug
+    )
+    return get_margin_for_variant(variant_channel_listing)
+
+
+def resolve_cost_price(product_variant, channel_slug):
+    variant_channel_listing = resolve_product_variant_channel_listing(
+        product_variant, channel_slug
+    )
+
+    return variant_channel_listing.cost_price if variant_channel_listing else None
 
 
 def resolve_category_by_slug(slug):

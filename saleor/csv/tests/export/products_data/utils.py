@@ -42,14 +42,14 @@ def add_channel_to_expected_product_data(data, product, channel_ids, pk=None):
         if str(channel_listing.channel.pk) in channel_ids:
             channel_slug = channel_listing.channel.slug
             for lookup, field in [
-                ("currency_code", "currency code"),
+                ("currency_code", "product currency code"),
                 ("is_published", "published"),
                 ("publication_date", "publication date"),
             ]:
                 header = f"{channel_slug} (channel {field})"
-                # TODO: We should use currency from channel_listing after merge #6090
+                # TODO: Change currency into currency_code in ProductChannelListing
                 if lookup == "currency_code":
-                    value = getattr(channel_listing.channel, lookup)
+                    value = getattr(channel_listing, "currency")
                 else:
                     value = getattr(channel_listing, lookup)
                 if pk:
@@ -65,13 +65,20 @@ def add_channel_to_expected_variant_data(data, variant, channel_ids, pk=None):
         if str(channel_listing.channel.pk) in channel_ids:
             channel_slug = channel_listing.channel.slug
             price_header = f"{channel_slug} (channel price amount)"
-            currency_header = f"{channel_slug} (channel currency)"
+            cost_price_header = f"{channel_slug} (channel cost price amount)"
+            currency_header = f"{channel_slug} (channel variant currency code)"
 
             if pk:
                 data[pk][price_header] = channel_listing.price_amount
+                # TODO: Change currency into currency_code in
+                #  ProductVariantChannelListing
+                data[pk][cost_price_header] = channel_listing.cost_price_amount
                 data[pk][currency_header] = channel_listing.currency
             else:
                 data[price_header] = channel_listing.price_amount
+                data[cost_price_header] = channel_listing.cost_price_amount
+                # TODO: Change currency into currency_code in
+                #  ProductVariantChannelListing
                 data[currency_header] = channel_listing.currency
 
     return data

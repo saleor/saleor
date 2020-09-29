@@ -4,43 +4,7 @@ from freezegun import freeze_time
 from graphql_relay import from_global_id, to_global_id
 
 from ...discount.enums import DiscountValueTypeEnum
-from ...tests.utils import assert_negative_positive_decimal_value, get_graphql_content
-
-
-def test_product_variant_update_updates_invalid_cost_price(
-    staff_api_client, product, permission_manage_products,
-):
-    query = """
-        mutation ProductVariantUpdate(
-            $id: ID!,
-            $costPrice: PositiveDecimal,
-        ) {
-            productVariantUpdate(
-                id: $id,
-                input: {
-                    costPrice: $costPrice,
-                }
-            ) {
-                productVariant {
-                    name
-                }
-                productErrors {
-                    field
-                    message
-                    code
-                }
-            }
-        }
-    """
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-    variant = product.variants.first()
-    variant_id = to_global_id("ProductVariant", variant.pk)
-    cost_price = "-1.99"
-    variables = {"id": variant_id, "costPrice": cost_price}
-
-    response = staff_api_client.post_graphql(query, variables)
-
-    assert_negative_positive_decimal_value(response)
+from ...tests.utils import get_graphql_content
 
 
 @patch(

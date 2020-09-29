@@ -118,6 +118,7 @@ def products_structures(category, channel_USD):
             variant=variant,
             channel=channel_USD,
             price_amount=Decimal(10),
+            cost_price_amount=Decimal(1),
             currency=channel_USD.currency_code,
         )
     oranges = list(
@@ -144,6 +145,7 @@ def products_structures(category, channel_USD):
         product_models.ProductVariantChannelListing.objects.create(
             variant=variant,
             channel=channel_USD,
+            cost_price_amount=Decimal(1),
             price_amount=Decimal(10),
             currency=channel_USD.currency_code,
         )
@@ -163,6 +165,7 @@ def products_structures(category, channel_USD):
     product_models.ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
+        cost_price_amount=Decimal(1),
         price_amount=Decimal(10),
         currency=channel_USD.currency_code,
     )
@@ -182,6 +185,7 @@ def products_structures(category, channel_USD):
     product_models.ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
+        cost_price_amount=Decimal(1),
         price_amount=Decimal(10),
         currency=channel_USD.currency_code,
     )

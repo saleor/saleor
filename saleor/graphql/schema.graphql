@@ -3906,7 +3906,6 @@ enum ProductFieldEnum {
   CHARGE_TAXES
   PRODUCT_IMAGES
   VARIANT_SKU
-  COST_PRICE
   VARIANT_WEIGHT
   VARIANT_IMAGES
 }
@@ -4252,6 +4251,7 @@ type ProductVariantChannelListing implements Node {
   id: ID!
   channel: Channel!
   price: Money
+  costPrice: Money
 }
 
 input ProductVariantChannelListingAddInput {

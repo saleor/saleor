@@ -34,6 +34,10 @@ mutation UpdateProductVariantChannelListing(
                     amount
                     currency
                 }
+                costPrice {
+                    amount
+                    currency
+                }
             }
         }
     }
@@ -191,11 +195,17 @@ def test_variant_channel_listing_update_as_staff_user(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     channel_pln_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    price = 1
+    second_price = 20
     variables = {
         "id": variant_id,
         "input": [
-            {"channelId": channel_usd_id, "price": 1},
-            {"channelId": channel_pln_id, "price": 20},
+            {"channelId": channel_usd_id, "price": price, "costPrice": price},
+            {
+                "channelId": channel_pln_id,
+                "price": second_price,
+                "costPrice": second_price,
+            },
         ],
     }
 
@@ -212,11 +222,14 @@ def test_variant_channel_listing_update_as_staff_user(
     variant_data = data["variant"]
     assert not data["productChannelListingErrors"]
     assert variant_data["id"] == variant_id
+    breakpoint()
     assert variant_data["channelListing"][0]["price"]["currency"] == "USD"
-    assert variant_data["channelListing"][0]["price"]["amount"] == 1
+    assert variant_data["channelListing"][0]["price"]["amount"] == price
+    assert variant_data["channelListing"][0]["costPrice"]["amount"] == price
     assert variant_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
     assert variant_data["channelListing"][1]["price"]["currency"] == "PLN"
-    assert variant_data["channelListing"][1]["price"]["amount"] == 20
+    assert variant_data["channelListing"][1]["price"]["amount"] == second_price
+    assert variant_data["channelListing"][1]["costPrice"]["amount"] == second_price
     assert variant_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
 
 
@@ -343,3 +356,53 @@ def test_product_variant_channel_listing_update_updates_discounted_price(
     assert data["productChannelListingErrors"] == []
 
     mock_update_product_discounted_price_task.delay.assert_called_once_with(product.pk)
+
+
+def test_product_channel_listing_update_too_many_decimal_places_in_cost_price(
+    app_api_client, product, permission_manage_products, channel_USD
+):
+    # given
+    variant = product.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": variant_id,
+        "input": [{"channelId": channel_usd_id, "costPrice": 1.03321, "price": 1}],
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productVariantChannelListingUpdate"]
+    assert data["productChannelListingErrors"][0]["field"] == "costPrice"
+    assert (
+        data["productChannelListingErrors"][0]["code"] == ProductErrorCode.INVALID.name
+    )
+
+
+def test_product_channel_listing_update_invalid_cost_price(
+    staff_api_client, product, permission_manage_products, channel_USD
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    variant = product.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": variant_id,
+        "input": [{"channelId": channel_id, "costPrice": -1, "price": 1}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION, variables=variables
+    )
+
+    # then
+    assert_negative_positive_decimal_value(response)

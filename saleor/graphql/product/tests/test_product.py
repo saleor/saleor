@@ -1331,15 +1331,14 @@ def test_products_query_with_filter(
     second_product.name = "Apple Juice1"
     second_product.slug = "apple-juice1"
     second_product.save()
-    varaint_second_product = second_product.variants.create(
-        product=second_product,
-        sku=second_product.slug,
-        cost_price=Money("1.00", "USD"),
+    variant_second_product = second_product.variants.create(
+        product=second_product, sku=second_product.slug,
     )
     ProductVariantChannelListing.objects.create(
-        variant=varaint_second_product,
+        variant=variant_second_product,
         channel=channel_USD,
         price_amount=Decimal(1.99),
+        cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
     ProductChannelListing.objects.create(
@@ -1629,13 +1628,12 @@ def test_sort_products(user_api_client, product, channel_USD):
     ProductChannelListing.objects.create(
         product=product, channel=channel_USD, is_published=True
     )
-    variant = ProductVariant.objects.create(
-        product=product, sku="1234", cost_price=Money("1.00", "USD"),
-    )
+    variant = ProductVariant.objects.create(product=product, sku="1234")
     ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(20),
+        cost_price_amount=Decimal(2),
         currency=channel_USD.currency_code,
     )
 

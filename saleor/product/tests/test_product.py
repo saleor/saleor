@@ -35,6 +35,7 @@ def test_filtering_by_attribute(db, color_attribute, category, channel_USD, sett
     models.ProductVariantChannelListing.objects.create(
         variant=variant_a,
         channel=channel_USD,
+        cost_price_amount=Decimal(1),
         price_amount=Decimal(10),
         currency=channel_USD.currency_code,
     )
@@ -48,6 +49,7 @@ def test_filtering_by_attribute(db, color_attribute, category, channel_USD, sett
     models.ProductVariantChannelListing.objects.create(
         variant=variant_b,
         channel=channel_USD,
+        cost_price_amount=Decimal(1),
         price_amount=Decimal(10),
         currency=channel_USD.currency_code,
     )

@@ -370,6 +370,7 @@ class ProductChannelListing(PublishableModel):
         related_name="product_listing",
         on_delete=models.CASCADE,
     )
+    # TODO: Change currency into currency_code in ProductChannelListing
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     discounted_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -491,6 +492,8 @@ class ProductVariantChannelListing(models.Model):
         related_name="variant_listing",
         on_delete=models.CASCADE,
     )
+    # TODO: Change currency into currency_code in
+    #  ProductVariantChannelListing
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,

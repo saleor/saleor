@@ -18,6 +18,7 @@ from ....product.utils.availability import (
     get_product_availability,
     get_variant_availability,
 )
+from ....product.utils.costs import get_product_costs_data
 from ....warehouse.availability import (
     get_available_quantity,
     get_quantity_allocated,
@@ -68,7 +69,7 @@ from ..dataloaders import (
     VariantsChannelListingByProductIdAndChanneSlugLoader,
 )
 from ..filters import AttributeFilterInput, ProductFilterInput
-from ..resolvers import resolve_attributes
+from ..resolvers import resolve_attributes, resolve_cost_price, resolve_margin
 from ..sorters import ProductOrder
 from .attributes import Attribute, SelectedAttribute
 from .channels import ProductChannelListing, ProductVariantChannelListing
@@ -273,17 +274,12 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: ChannelContext[models.ProductVariant], *_args):
-        # TODO: consider how this resolver should work until don't have requirements
-        # for cost_price bahavior.
-        return None
+        return resolve_margin(root.node, root.channel_slug)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_cost_price(root: ChannelContext[models.ProductVariant], *_args):
-        # TODO: consider how this resolver should work until don't have requirements
-        # for cost_price bahavior.
-        # return root.node.cost_price
-        return None
+        return resolve_cost_price(root.node, root.channel_slug)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -604,16 +600,14 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_purchase_cost(root: ChannelContext[models.Product], *_args):
-        # TODO: consider how this resolver should work until don't have requirements
-        # for cost_price bahavior.
-        return None
+        purchase_cost, _ = get_product_costs_data(root.node, root.channel_slug)
+        return purchase_cost
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: ChannelContext[models.Product], *_args):
-        # TODO: consider how this resolver should work until don't have requirements
-        # for cost_price bahavior.
-        return None
+        _, margin = get_product_costs_data(root.node, root.channel_slug)
+        return Margin(margin[0], margin[1])
 
     @staticmethod
     def resolve_image_by_id(root: ChannelContext[models.Product], info, id):

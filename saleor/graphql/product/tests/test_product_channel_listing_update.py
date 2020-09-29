@@ -349,7 +349,7 @@ def test_product_channel_listing_update_add_channel(
     assert product_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
 
 
-def test_product_channel_listing_update_unpublish(
+def test_product_channel_listing_update_unpublished(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
     # given

@@ -253,6 +253,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
             channel = channel_listing_data["channel"]
             defaults = {
                 "price_amount": channel_listing_data.get("price"),
+                "cost_price_amount": channel_listing_data.get("cost_price"),
                 "currency": channel.currency_code,
             }
             ProductVariantChannelListing.objects.update_or_create(
