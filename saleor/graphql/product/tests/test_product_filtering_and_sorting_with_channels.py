@@ -10,11 +10,9 @@ from ....product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
-from ...tests.utils import (
-    assert_filter_without_channel,
-    assert_sort_with_invalid_channel,
-    get_graphql_content,
-)
+from ...channel.filters import LACK_OF_CHANNEL_IN_FILTERING_MSG
+from ...channel.sorters import LACK_OF_CHANNEL_IN_SORTING_MSG
+from ...tests.utils import assert_graphql_error_with_message, get_graphql_content
 
 
 @pytest.fixture
@@ -169,11 +167,10 @@ QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING = """
         {"field": "MINIMAL_PRICE", "direction": "DESC"},
     ],
 )
-def test_products_with_sorting_and_not_existing_channel(
+def test_products_with_sorting_and_without_channel(
     sort_by, staff_api_client, permission_manage_products,
 ):
     # given
-    sort_by["channel"] = "Not-existing-channel"
     variables = {"sortBy": sort_by}
 
     # when
@@ -185,7 +182,7 @@ def test_products_with_sorting_and_not_existing_channel(
     )
 
     # then
-    assert_sort_with_invalid_channel(response)
+    assert_graphql_error_with_message(response, LACK_OF_CHANNEL_IN_SORTING_MSG)
 
 
 @pytest.mark.parametrize(
@@ -245,6 +242,88 @@ def test_products_with_sorting_and_channel(
 
 
 @pytest.mark.parametrize(
+    "sort_by",
+    [
+        {"field": "PUBLISHED", "direction": "ASC"},
+        {"field": "PRICE", "direction": "ASC"},
+        {"field": "MINIMAL_PRICE", "direction": "ASC"},
+    ],
+)
+def test_products_with_sorting_and_not_existing_channel_asc(
+    sort_by,
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
+    channel_USD,
+):
+    products_order = [
+        "Product1",
+        "Product2",
+        "Product3",
+        "ProductProduct1",
+        "ProductProduct2",
+    ]
+    # given
+    sort_by["channel"] = "Not-existing"
+    variables = {"sortBy": sort_by}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    for index, product_name in enumerate(products_order):
+        assert product_name == products_nodes[index]["node"]["name"]
+
+
+@pytest.mark.parametrize(
+    "sort_by",
+    [
+        {"field": "PUBLISHED", "direction": "DESC"},
+        {"field": "PRICE", "direction": "DESC"},
+        {"field": "MINIMAL_PRICE", "direction": "DESC"},
+    ],
+)
+def test_products_with_sorting_and_not_existing_channel_desc(
+    sort_by,
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
+    channel_USD,
+):
+    products_order = [
+        "ProductProduct2",
+        "ProductProduct1",
+        "Product3",
+        "Product2",
+        "Product1",
+    ]
+    # given
+    sort_by["channel"] = "Not-existing"
+    variables = {"sortBy": sort_by}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    for index, product_name in enumerate(products_order):
+        assert product_name == products_nodes[index]["node"]["name"]
+
+
+@pytest.mark.parametrize(
     "filter_by",
     [{"isPublished": True}, {"price": {"lte": 5}}, {"minimalPrice": {"lte": 5}}],
 )
@@ -263,7 +342,7 @@ def test_products_with_filtering_without_channel(
     )
 
     # then
-    assert_filter_without_channel(response)
+    assert_graphql_error_with_message(response, LACK_OF_CHANNEL_IN_FILTERING_MSG)
 
 
 @pytest.mark.parametrize(
@@ -301,3 +380,39 @@ def test_products_with_filtering_with_channel(
     content = get_graphql_content(response)
     products_nodes = content["data"]["products"]["edges"]
     assert len(products_nodes) == products_count
+
+
+@pytest.mark.parametrize(
+    "filter_by",
+    [
+        {"isPublished": True},
+        {"isPublished": False},
+        {"price": {"lte": 8}},
+        {"price": {"gte": 11}},
+        {"minimalPrice": {"lte": 4}},
+        {"minimalPrice": {"gte": 5}},
+    ],
+)
+def test_products_with_filtering_and_not_existing_channel(
+    filter_by,
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
+    channel_USD,
+):
+    # given
+    filter_by["channel"] = "Not-existing"
+    variables = {"filter": filter_by}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert len(products_nodes) == 0

@@ -14,8 +14,8 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce
 
-from ...channel.models import Channel
 from ...product.models import Category, Product
+from ..channel.sorters import validate_channel_slug
 from ..core.types import SortInputObjectType
 
 
@@ -168,34 +168,37 @@ class ProductOrderField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def qs_with_price(queryset: QuerySet, channel: Channel) -> QuerySet:
+    def qs_with_price(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
         return queryset.annotate(
             min_variants_price_amount=Min(
                 "variants__channel_listing__price_amount",
-                filter=Q(variants__channel_listing__channel=channel),
+                filter=Q(variants__channel_listing__channel__slug=channel_slug),
             )
         )
 
     @staticmethod
-    def qs_with_minimal_price(queryset: QuerySet, channel: Channel) -> QuerySet:
+    def qs_with_minimal_price(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
         return queryset.annotate(
             discounted_price_amount=Min(
                 "channel_listing__discounted_price_amount",
-                filter=Q(channel_listing__channel=channel),
+                filter=Q(channel_listing__channel__slug=channel_slug),
             )
         )
 
     @staticmethod
-    def qs_with_published(queryset: QuerySet, channel: Channel) -> QuerySet:
+    def qs_with_published(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
         return queryset.annotate(
             is_published=Case(
                 When(
-                    channel_listing__channel=channel,
+                    channel_listing__channel__slug=channel_slug,
                     channel_listing__is_published=True,
                     then=Value(True),
                 ),
                 When(
-                    channel_listing__channel=channel,
+                    channel_listing__channel__slug=channel_slug,
                     channel_listing__is_published=False,
                     then=Value(False),
                 ),
