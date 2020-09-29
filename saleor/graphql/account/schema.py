@@ -36,6 +36,7 @@ from .mutations.authentication import (
     CreateToken,
     DeactivateAllUserTokens,
     ExternalAuthentication,
+    ExternalLogout,
     ExternalRefresh,
     RefreshToken,
     VerifyToken,
@@ -234,6 +235,7 @@ class AccountMutations(graphene.ObjectType):
 
     external_authentication = ExternalAuthentication.Field()
     external_refresh = ExternalRefresh.Field()
+    external_logout = ExternalLogout.Field()
 
     request_password_reset = RequestPasswordReset.Field()
     confirm_account = ConfirmAccount.Field()
