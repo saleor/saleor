@@ -1937,6 +1937,18 @@ enum ExportScope {
   FILTER
 }
 
+type ExternalAuthentication {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  authenticationData: JSONString!
+  accountErrors: [AccountError!]!
+}
+
+type ExternalRefresh {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  refreshedData: JSONString!
+  accountErrors: [AccountError!]!
+}
+
 enum FileTypesEnum {
   CSV
   XLSX
@@ -2787,6 +2799,8 @@ type Mutation {
   tokenRefresh(csrfToken: String, refreshToken: String): RefreshToken
   tokenVerify(token: String!): VerifyToken
   tokensDeactivateAll: DeactivateAllUserTokens
+  externalAuthentication(input: JSONString!): ExternalAuthentication
+  externalRefresh(input: JSONString!): ExternalRefresh
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(email: String!, password: String!, token: String!): SetPassword

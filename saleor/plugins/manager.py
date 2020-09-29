@@ -513,6 +513,25 @@ class PluginsManager(PaymentInterface):
             plugin, "webhook", default_value, request, path
         )
 
+    def external_authentication(self, data: dict, request: WSGIRequest) -> dict:
+        """Handle authentication request."""
+        default_value = {}  # type: ignore
+        return self.__run_method_on_plugins(
+            "external_authentication", default_value, data, request
+        )
+
+    def external_refresh(self, data: dict, request: WSGIRequest) -> dict:
+        """Handle authentication refresh request."""
+        default_value = {}  # type: ignore
+        return self.__run_method_on_plugins(
+            "external_refresh", default_value, data, request
+        )
+
+    def authenticate_user(self, request: WSGIRequest) -> Optional["User"]:
+        """Authenticate user which should be assigned to the request."""
+        default_value = None
+        return self.__run_method_on_plugins("authenticate_user", default_value, request)
+
 
 def get_plugins_manager(
     manager_path: str = None, plugins: List[str] = None

@@ -24,7 +24,7 @@ from ...core.mutations import (
 )
 from ...core.types.common import AccountError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
-from .jwt import CreateToken
+from .authentication import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
