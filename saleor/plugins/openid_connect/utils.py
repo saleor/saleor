@@ -11,7 +11,8 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.middleware.csrf import _compare_masked_tokens  # type: ignore
-from django.middleware.csrf import _get_new_csrf_token
+from django.middleware.csrf import _get_new_csrf_token  # type: ignore
+from jwt import PyJWTError
 
 from ...account.models import User
 from ...core.jwt import (
@@ -181,15 +182,25 @@ def validate_refresh_token(refresh_token, data):
                 )
             }
         )
-
-    refresh_payload = jwt_decode(refresh_token)
+    try:
+        refresh_payload = jwt_decode(refresh_token)
+    except PyJWTError:
+        raise ValidationError(
+            {
+                "refreshToken": ValidationError(
+                    "Unable to decode provided token.",
+                    code=PluginErrorCode.INVALID.value,
+                )
+            }
+        )
 
     if not data.get("refreshToken"):
         if not refresh_payload.get("csrf_token"):
             raise ValidationError(
                 {
-                    "csrfToken": ValidationError(
-                        "Missing CSRF token.", code=PluginErrorCode.INVALID.value,
+                    "csrf_token": ValidationError(
+                        "Missing CSRF token in refresh payload.",
+                        code=PluginErrorCode.INVALID.value,
                     )
                 }
             )

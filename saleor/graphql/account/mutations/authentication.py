@@ -282,7 +282,7 @@ class ExternalAuthentication(BaseMutation):
     """Authenticate a user by a custom plugin."""
 
     authentication_data = graphene.JSONString(
-        required=True, description="The data returned by authentication plugin."
+        description="The data returned by authentication plugin."
     )
 
     class Arguments:
@@ -310,7 +310,7 @@ class ExternalRefresh(BaseMutation):
     """Refresh user's access by a custom plugin."""
 
     refreshed_data = graphene.JSONString(
-        required=True, description="The data returned by authentication plugin."
+        description="The data returned by authentication plugin."
     )
 
     class Arguments:
