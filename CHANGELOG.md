@@ -59,6 +59,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix crashing system when avalara is improperly configured - #6117 by @IKarbowiak
 - Fix for failing finalising draft order - #6133 by @korycins
 - Remove corresponding draft order lines when variant is removing - #6119 by @IKarbowiak
+- Update required perms for apps management - #6173 by @IKarbowiak
 
 ## 2.10.2
 
