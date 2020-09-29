@@ -222,7 +222,6 @@ def test_variant_channel_listing_update_as_staff_user(
     variant_data = data["variant"]
     assert not data["productChannelListingErrors"]
     assert variant_data["id"] == variant_id
-    breakpoint()
     assert variant_data["channelListing"][0]["price"]["currency"] == "USD"
     assert variant_data["channelListing"][0]["price"]["amount"] == price
     assert variant_data["channelListing"][0]["costPrice"]["amount"] == price
