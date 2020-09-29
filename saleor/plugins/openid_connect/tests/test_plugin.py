@@ -64,6 +64,14 @@ def test_external_authentication_raises_error_when_missing_redirect(openid_plugi
         plugin.external_authentication(input, rf.request(), None)
 
 
+def test_external_authentication_raises_error_when_redirect_is_wrong(openid_plugin, rf):
+    client_id = "test_client"
+    plugin = openid_plugin(client_id=client_id)
+    input = {"redirectUrl": "localhost:3000/authorization/"}
+    with pytest.raises(ValidationError):
+        plugin.external_authentication(input, rf.request(), None)
+
+
 @freeze_time("2019-03-18 12:00:00")
 @pytest.mark.vcr
 def test_external_refresh_from_cookie(

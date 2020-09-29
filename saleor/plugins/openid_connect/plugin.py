@@ -125,13 +125,12 @@ class OpenIDConnectPlugin(BasePlugin):
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
         if plugin_configuration.active:
-            incorrect_fields = []
             urls_to_validate = {
                 "json_web_key_set_url": configuration["json_web_key_set_url"],
                 "oauth_authorization_url": configuration["oauth_authorization_url"],
                 "oauth_token_url": configuration["oauth_token_url"],
             }
-            incorrect_fields.extend(get_incorrect_or_missing_urls(urls_to_validate))
+            incorrect_fields = get_incorrect_or_missing_urls(urls_to_validate)
             if not configuration["client_id"]:
                 incorrect_fields.append("client_id")
             if not configuration["client_secret"]:

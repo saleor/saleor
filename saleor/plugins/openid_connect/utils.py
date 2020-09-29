@@ -41,7 +41,12 @@ def validate_storefront_redirect_url(storefront_redirect_url: Optional[str]):
                 )
             }
         )
-    validate_storefront_url(storefront_redirect_url)
+    try:
+        validate_storefront_url(storefront_redirect_url)
+    except ValidationError as error:
+        raise ValidationError(
+            {"redirectUrl": error}, code=PluginErrorCode.INVALID.value
+        )
 
 
 def prepare_redirect_url(
