@@ -4235,7 +4235,6 @@ type ProductVariantBulkCreate {
 
 input ProductVariantBulkCreateInput {
   attributes: [AttributeValueInput]!
-  costPrice: PositiveDecimal
   sku: String!
   trackInventory: Boolean
   weight: WeightScalar
@@ -4258,6 +4257,7 @@ type ProductVariantChannelListing implements Node {
 input ProductVariantChannelListingAddInput {
   channelId: ID!
   price: PositiveDecimal!
+  costPrice: PositiveDecimal
 }
 
 type ProductVariantChannelListingUpdate {
@@ -4297,7 +4297,6 @@ type ProductVariantCreate {
 
 input ProductVariantCreateInput {
   attributes: [AttributeValueInput]!
-  costPrice: PositiveDecimal
   sku: String
   trackInventory: Boolean
   weight: WeightScalar
@@ -4313,7 +4312,6 @@ type ProductVariantDelete {
 
 input ProductVariantInput {
   attributes: [AttributeValueInput]
-  costPrice: PositiveDecimal
   sku: String
   trackInventory: Boolean
   weight: WeightScalar

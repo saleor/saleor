@@ -137,6 +137,7 @@ class ProductVariantChannelListingAddInput(graphene.InputObjectType):
     price = PositiveDecimal(
         required=True, description="Price of the particular variant in channel."
     )
+    cost_price = PositiveDecimal(description="Cost price of the variant in channel.")
 
 
 class ProductVariantChannelListingUpdate(BaseMutation):
@@ -222,19 +223,27 @@ class ProductVariantChannelListingUpdate(BaseMutation):
             )
 
     @classmethod
+    def clean_price(cls, price, field_name, currency, channel_id, errors: ErrorType):
+        try:
+            validate_price_precision(price, currency)
+        except ValidationError as error:
+            error.code = ProductErrorCode.INVALID.value
+            error.params = {
+                "channels": [channel_id],
+            }
+            errors[field_name].append(error)
+
+    @classmethod
     def clean_prices(cls, info, cleaned_input, errors: ErrorType) -> List:
         for channel_listing_data in cleaned_input:
             price = channel_listing_data.get("price")
-            try:
-                validate_price_precision(
-                    price, channel_listing_data["channel"].currency_code
-                )
-            except ValidationError as error:
-                error.code = ProductErrorCode.INVALID.value
-                error.params = {
-                    "channels": [channel_listing_data["channel_id"]],
-                }
-                errors["price"].append(error)
+            cost_price = channel_listing_data.get("cost_price")
+            channel_id = channel_listing_data["channel_id"]
+            currency_code = channel_listing_data["channel"].currency_code
+
+            cls.clean_price(price, "price", currency_code, channel_id, errors)
+            cls.clean_price(cost_price, "cost_price", currency_code, channel_id, errors)
+
         return cleaned_input
 
     @classmethod

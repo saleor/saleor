@@ -280,7 +280,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_cost_price(root: ChannelContext[models.ProductVariant], *_args):
-        return root.node.cost_price
+        # TODO: consider how this resolver should work until don't have requirements
+        # for cost_price bahavior.
+        # return root.node.cost_price
+        return None
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
