@@ -1,3 +1,5 @@
+from typing import List
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -121,10 +123,24 @@ class UpdateMetadata(BaseMetadataMutation):
         )
 
     @classmethod
+    def clean_input(cls, metadata_list: List[dict]):
+        # raise an error when any of the key is empty
+        if not all([data["key"].strip() for data in metadata_list]):
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        "Metadata key cannot be empty.",
+                        code=MetadataErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+
+    @classmethod
     def perform_mutation(cls, root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_list = data.pop("input")
+            cls.clean_input(metadata_list)
             items = {data.key: data.value for data in metadata_list}
             instance.store_value_in_metadata(items=items)
             instance.save(update_fields=["metadata"])

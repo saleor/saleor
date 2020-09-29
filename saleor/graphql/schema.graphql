@@ -2532,6 +2532,7 @@ enum MetadataErrorCode {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
+  REQUIRED
 }
 
 input MetadataInput {
