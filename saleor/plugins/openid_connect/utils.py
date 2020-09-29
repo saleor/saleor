@@ -134,14 +134,15 @@ def get_parsed_id_token(token_data, jwks_url) -> CodeIDToken:
 
 
 def get_or_create_user_from_token(claims: CodeIDToken) -> User:
-    user = User.objects.filter(email=claims["email"]).first()
-    if not user:
-        user = User.objects.create(
-            is_active=True,
-            email=claims["email"],
-            first_name=claims.get("given_name", ""),
-            last_name=claims.get("family_name", ""),
-        )
+    user, _ = User.objects.get_or_create(
+        email=claims["email"],
+        defaults={
+            "is_active": True,
+            "email": claims["email"],
+            "first_name": claims.get("given_name", ""),
+            "last_name": claims.get("family_name", ""),
+        },
+    )
     if not user.is_active:  # it is true only if we fetch disabled user.
         raise AuthenticationError("Unable to log in.",)
     return user
