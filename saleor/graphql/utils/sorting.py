@@ -73,6 +73,8 @@ def sort_queryset(
     sorting_field_name = sorting_fields.name.lower()
 
     channel_slug = getattr(sort_by, "channel", None)
+    # TODO: Maybe we should remove that validation form here and add it to `qs_with`
+    # functions
     channel = None
     if channel_slug:
         channel = Channel.objects.filter(slug=channel_slug).first()
