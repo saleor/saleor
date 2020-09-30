@@ -158,6 +158,8 @@ class OpenIDConnectPlugin(BasePlugin):
     def external_authentication(
         self, data: dict, request: WSGIRequest, previous_value
     ) -> dict:
+        if not self.active:
+            return previous_value
         storefront_redirect_url = data.get("redirectUrl")
         validate_storefront_redirect_url(storefront_redirect_url)
         uri, state = self.oauth.create_authorization_url(
@@ -169,6 +171,8 @@ class OpenIDConnectPlugin(BasePlugin):
     def external_refresh(
         self, data: dict, request: WSGIRequest, previous_value
     ) -> dict:
+        if not self.active:
+            return previous_value
         refresh_token = request.COOKIES.get(JWT_REFRESH_TOKEN_COOKIE_NAME, None)
         refresh_token = data.get("refreshToken") or refresh_token
 
@@ -208,6 +212,8 @@ class OpenIDConnectPlugin(BasePlugin):
             )
 
     def authenticate_user(self, request: WSGIRequest, previous_value) -> Optional[User]:
+        if not self.active:
+            return previous_value
         # TODO this will be covered by tests and modified after we add Auth backend for
         #  plugins
         token = get_token_from_request(request)
@@ -236,6 +242,8 @@ class OpenIDConnectPlugin(BasePlugin):
         return redirect(redirect_url)
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
+        if not self.active:
+            return HttpResponseNotFound()
         if path.startswith("/refresh"):
             # TODO this call will be moved to external refresh mutation
             return HttpResponse(self.external_refresh({}, request, None))
