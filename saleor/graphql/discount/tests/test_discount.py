@@ -1,4 +1,3 @@
-import warnings
 from datetime import timedelta
 from unittest.mock import ANY
 
@@ -7,7 +6,6 @@ import pytest
 from django.utils import timezone
 from django_countries import countries
 
-from ....channel.utils import DEPRECATION_WARNING_MESSAGE
 from ....discount import DiscountValueType, VoucherType
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import Sale, SaleChannelListing, Voucher
@@ -59,7 +57,11 @@ def query_sales_with_filter():
 
 
 def test_voucher_query(
-    staff_api_client, voucher, product, permission_manage_discounts,
+    staff_api_client,
+    voucher,
+    product,
+    permission_manage_discounts,
+    permission_manage_products,
 ):
     query = """
     query vouchers {
@@ -100,10 +102,9 @@ def test_voucher_query(
     """
     voucher.products.add(product)
 
-    with warnings.catch_warnings(record=True) as warns:
-        response = staff_api_client.post_graphql(
-            query, permissions=[permission_manage_discounts]
-        )
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_discounts, permission_manage_products]
+    )
 
     content = get_graphql_content(response)
     data = content["data"]["vouchers"]["edges"][0]["node"]
@@ -128,9 +129,6 @@ def test_voucher_query(
         "discountValue": channel_listing.discount_value,
         "currency": channel_listing.channel.currency_code,
     } in data["channelListing"]
-    assert any(
-        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
-    )
 
 
 def test_voucher_query_with_channel_slug(
@@ -211,7 +209,11 @@ def test_voucher_query_with_channel_slug(
 
 
 def test_sale_query(
-    staff_api_client, sale, permission_manage_discounts, channel_USD,
+    staff_api_client,
+    sale,
+    permission_manage_discounts,
+    channel_USD,
+    permission_manage_products,
 ):
     query = """
         query sales {
@@ -243,10 +245,9 @@ def test_sale_query(
             }
         }
         """
-    with warnings.catch_warnings(record=True) as warns:
-        response = staff_api_client.post_graphql(
-            query, permissions=[permission_manage_discounts]
-        )
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_discounts, permission_manage_products]
+    )
     channel_listing_usd = sale.channel_listing.get(channel=channel_USD)
     content = get_graphql_content(response)
     data = content["data"]["sales"]["edges"][0]["node"]
@@ -258,9 +259,6 @@ def test_sale_query(
         data["channelListing"][0]["discountValue"] == channel_listing_usd.discount_value
     )
     assert data["startDate"] == sale.start_date.isoformat()
-    assert any(
-        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
-    )
 
 
 def test_sale_query_with_channel_slug(
@@ -1002,7 +1000,9 @@ def test_sale_remove_catalogues(
     assert collection not in sale.collections.all()
 
 
-def test_sale_add_no_catalogues(staff_api_client, sale, permission_manage_discounts):
+def test_sale_add_no_catalogues(
+    staff_api_client, new_sale, permission_manage_discounts
+):
     query = """
         mutation saleCataloguesAdd($id: ID!, $input: CatalogueInput!) {
             saleCataloguesAdd(id: $id, input: $input) {
@@ -1018,7 +1018,7 @@ def test_sale_add_no_catalogues(staff_api_client, sale, permission_manage_discou
         }
     """
     variables = {
-        "id": graphene.Node.to_global_id("Sale", sale.id),
+        "id": graphene.Node.to_global_id("Sale", new_sale.id),
         "input": {"products": [], "collections": [], "categories": []},
     }
     response = staff_api_client.post_graphql(
@@ -1028,9 +1028,9 @@ def test_sale_add_no_catalogues(staff_api_client, sale, permission_manage_discou
     data = content["data"]["saleCataloguesAdd"]
 
     assert not data["discountErrors"]
-    assert not sale.products.exists()
-    assert not sale.categories.exists()
-    assert not sale.collections.exists()
+    assert not new_sale.products.exists()
+    assert not new_sale.categories.exists()
+    assert not new_sale.collections.exists()
 
 
 def test_sale_remove_no_catalogues(

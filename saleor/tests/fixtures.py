@@ -1933,6 +1933,18 @@ def dummy_payment_data(payment_dummy):
 
 
 @pytest.fixture
+def new_sale(product, category, collection, channel_USD):
+    sale = Sale.objects.create(name="Sale")
+    SaleChannelListing.objects.create(
+        sale=sale,
+        channel=channel_USD,
+        discount_value=5,
+        currency=channel_USD.currency_code,
+    )
+    return sale
+
+
+@pytest.fixture
 def sale(product, category, collection, channel_USD):
     sale = Sale.objects.create(name="Sale")
     SaleChannelListing.objects.create(

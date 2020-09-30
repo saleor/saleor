@@ -71,11 +71,11 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_collections(root: ChannelContext[models.Sale], info, **_kwargs):
-        return root.node.collections.visible_to_user(info.context.user)
+        return root.node.collections.all()
 
     @staticmethod
     def resolve_products(root: ChannelContext[models.Sale], info, **_kwargs):
-        qs = root.node.products.visible_to_user(info.context.user, root.channel_slug)
+        qs = root.node.products.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
@@ -170,11 +170,11 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_collections(root: ChannelContext[models.Voucher], info, **_kwargs):
-        return root.node.collections.visible_to_user(info.context.user)
+        return root.node.collections.all()
 
     @staticmethod
     def resolve_products(root: ChannelContext[models.Voucher], info, **_kwargs):
-        qs = root.node.products.visible_to_user(info.context.user, root.channel_slug)
+        qs = root.node.products.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
