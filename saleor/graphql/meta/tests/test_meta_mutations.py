@@ -1282,6 +1282,35 @@ def test_add_private_metadata_for_myself_as_customer_no_permission(user_api_clie
     assert_no_permission(response)
 
 
+@pytest.mark.parametrize(
+    "input", [{"key": " ", "value": "test"}, {"key": "   ", "value": ""}],
+)
+def test_staff_update_private_metadata_empty_key(
+    input, staff_api_client, permission_manage_staff, admin_user
+):
+    # given
+    admin_id = graphene.Node.to_global_id("User", admin_user.pk)
+
+    # when
+    response = response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_staff,
+        admin_id,
+        "User",
+        input["key"],
+        input["value"],
+    )
+
+    # then
+    data = response["data"]["updatePrivateMetadata"]
+    errors = data["metadataErrors"]
+
+    assert not data["item"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MetadataErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "input"
+
+
 def test_add_private_metadata_for_myself_as_staff(staff_api_client):
     # given
     staff = staff_api_client.user
