@@ -27,7 +27,7 @@ from ..models import PluginConfiguration
 from .dataclasses import OpenIDConnectConfig
 from .exceptions import AuthenticationError
 from .utils import (
-    get_incorrect_or_missing_urls,
+    get_incorrect_fields,
     get_or_create_user_from_token,
     get_parsed_id_token,
     get_user_from_token,
@@ -66,7 +66,9 @@ class OpenIDConnectPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         "client_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": ("Your client id required to authenticate on provider side."),
+            "help_text": (
+                "Your Client ID required to authenticate on the provider side."
+            ),
             "label": "Client ID",
         },
         "client_secret": {
@@ -143,28 +145,17 @@ class OpenIDConnectPlugin(BasePlugin):
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct."""
-        configuration = plugin_configuration.configuration
-        configuration = {item["name"]: item["value"] for item in configuration}
-        if plugin_configuration.active:
-            urls_to_validate = {
-                "json_web_key_set_url": configuration["json_web_key_set_url"],
-                "oauth_authorization_url": configuration["oauth_authorization_url"],
-                "oauth_token_url": configuration["oauth_token_url"],
-            }
-            incorrect_fields = get_incorrect_or_missing_urls(urls_to_validate)
-            if not configuration["client_id"]:
-                incorrect_fields.append("client_id")
-            if not configuration["client_secret"]:
-                incorrect_fields.append("client_secret")
-            if incorrect_fields:
-                error_msg = (
-                    "To enable a plugin, you need to provide values for the "
-                    "following fields: "
-                )
-                raise ValidationError(
-                    error_msg + ", ".join(incorrect_fields),
-                    code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
-                )
+        incorrect_fields = get_incorrect_fields(plugin_configuration)
+        if incorrect_fields:
+            error_msg = "To enable a plugin, you need to provide values for this field."
+            raise ValidationError(
+                {
+                    field: ValidationError(
+                        error_msg, code=PluginErrorCode.PLUGIN_MISCONFIGURED.value
+                    )
+                    for field in incorrect_fields
+                }
+            )
 
     def _get_oauth_session(self):
         scope = "openid profile email"
@@ -179,6 +170,8 @@ class OpenIDConnectPlugin(BasePlugin):
     def external_authentication(
         self, data: dict, request: WSGIRequest, previous_value
     ) -> dict:
+        if not self.active:
+            return previous_value
         storefront_redirect_url = data.get("redirectUrl")
         validate_storefront_redirect_url(storefront_redirect_url)
         kwargs = {
@@ -195,6 +188,15 @@ class OpenIDConnectPlugin(BasePlugin):
     def external_refresh(
         self, data: dict, request: WSGIRequest, previous_value
     ) -> dict:
+        if not self.active:
+            return previous_value
+
+        error_code = PluginErrorCode.INVALID.value
+        if not self.config.enable_refresh_token:
+            msg = "Unable to refresh the token. Support for refresh tokens is disabled"
+            raise ValidationError(
+                {"refresh_token": ValidationError(msg, code=error_code)}
+            )
         refresh_token = request.COOKIES.get(JWT_REFRESH_TOKEN_COOKIE_NAME, None)
         refresh_token = data.get("refreshToken") or refresh_token
 
@@ -211,8 +213,7 @@ class OpenIDConnectPlugin(BasePlugin):
             raise ValidationError(
                 {
                     "refresh_token": ValidationError(
-                        "Unable to refresh the token.",
-                        code=PluginErrorCode.INVALID.value,
+                        "Unable to refresh the token.", code=error_code,
                     )
                 }
             )
@@ -226,11 +227,7 @@ class OpenIDConnectPlugin(BasePlugin):
             )
         except AuthenticationError as e:
             raise ValidationError(
-                {
-                    "refreshToken": ValidationError(
-                        str(e), code=PluginErrorCode.INVALID.value
-                    )
-                }
+                {"refreshToken": ValidationError(str(e), code=error_code)}
             )
 
     def external_logout(self, data: dict, request: WSGIRequest, previous_value):
@@ -243,6 +240,8 @@ class OpenIDConnectPlugin(BasePlugin):
         return {"logoutUrl": req.url}
 
     def authenticate_user(self, request: WSGIRequest, previous_value) -> Optional[User]:
+        if not self.active:
+            return previous_value
         # TODO this will be covered by tests and modified after we add Auth backend for
         #  plugins
         token = get_token_from_request(request)
@@ -259,7 +258,7 @@ class OpenIDConnectPlugin(BasePlugin):
 
         storefront_redirect_url = state_data.get("redirectUrl")
         if not storefront_redirect_url:
-            raise AuthenticationError("Missing get param - redirectUrl")
+            raise AuthenticationError("Missing GET parameter - redirectUrl.")
         token_data = self.oauth.fetch_token(
             self.config.token_url,
             authorization_response=request.build_absolute_uri(),
@@ -276,6 +275,8 @@ class OpenIDConnectPlugin(BasePlugin):
         return redirect(redirect_url)
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
+        if not self.active:
+            return HttpResponseNotFound()
         if path.startswith("/refresh"):
             # TODO this call will be moved to external refresh mutation
             return HttpResponse(self.external_refresh({}, request, None))
