@@ -61,6 +61,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove corresponding draft order lines when variant is removing - #6119 by @IKarbowiak
 - Update required perms for apps management - #6173 by @IKarbowiak
 - Raise an error for an empty key in metadata - #6176 by @IKarbowiak
+- Add attributes to product error - #6181 by @IKarbowiak
 
 ## 2.10.2
 
