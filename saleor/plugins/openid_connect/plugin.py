@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 
 from authlib.common.errors import AuthlibBaseError
 from authlib.integrations.requests_client import OAuth2Session
+from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
@@ -18,6 +19,7 @@ from ...core.jwt import (
     get_user_from_access_token,
     jwt_decode,
 )
+from ...core.utils import build_absolute_uri
 from ...core.utils.url import prepare_url
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
@@ -30,7 +32,6 @@ from .utils import (
     get_parsed_id_token,
     get_user_from_token,
     get_valid_auth_tokens_from_auth_payload,
-    prepare_redirect_url,
     validate_refresh_token,
     validate_storefront_redirect_url,
 )
@@ -59,6 +60,7 @@ class OpenIDConnectPlugin(BasePlugin):
         {"name": "oauth_token_url", "value": None},
         {"name": "json_web_key_set_url", "value": None},
         {"name": "oauth_logout_url", "value": None},
+        {"name": "audience", "value": None},
     ]
 
     CONFIG_STRUCTURE = {
@@ -112,6 +114,14 @@ class OpenIDConnectPlugin(BasePlugin):
             ),
             "label": "OAuth logout URL",
         },
+        "audience": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": (
+                "The Oauth resource identifier. If provided, Saleor will define "
+                "audience for each authorization request."
+            ),
+            "label": "Audience",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -126,6 +136,7 @@ class OpenIDConnectPlugin(BasePlugin):
             authorization_url=configuration["oauth_authorization_url"],
             token_url=configuration["oauth_token_url"],
             logout_url=configuration["oauth_logout_url"],
+            audience=configuration["audience"],
         )
         self.oauth = self._get_oauth_session()
 
@@ -170,9 +181,14 @@ class OpenIDConnectPlugin(BasePlugin):
     ) -> dict:
         storefront_redirect_url = data.get("redirectUrl")
         validate_storefront_redirect_url(storefront_redirect_url)
+        kwargs = {
+            "redirect_uri": build_absolute_uri(f"/plugins/{self.PLUGIN_ID}/callback"),
+            "state": signing.dumps({"redirectUrl": storefront_redirect_url}),
+        }
+        if self.config.audience:
+            kwargs["audience"] = self.config.audience
         uri, state = self.oauth.create_authorization_url(
-            self.config.authorization_url,
-            redirect_uri=prepare_redirect_url(self.PLUGIN_ID, storefront_redirect_url),
+            self.config.authorization_url, **kwargs
         )
         return {"authorizationUrl": uri}
 
@@ -236,13 +252,18 @@ class OpenIDConnectPlugin(BasePlugin):
 
     @convert_error_to_http_response
     def handle_auth_callback(self, request: WSGIRequest) -> HttpResponse:
-        storefront_redirect_url = request.GET.get("redirectUrl")
+        state = request.GET.get("state")
+        if not state:
+            raise AuthenticationError("Missing GET parameter - state.")
+        state_data = signing.loads(state)
+
+        storefront_redirect_url = state_data.get("redirectUrl")
         if not storefront_redirect_url:
             raise AuthenticationError("Missing get param - redirectUrl")
         token_data = self.oauth.fetch_token(
             self.config.token_url,
             authorization_response=request.build_absolute_uri(),
-            redirect_uri=prepare_redirect_url(self.PLUGIN_ID),
+            redirect_uri=build_absolute_uri(f"/plugins/{self.PLUGIN_ID}/callback"),
         )
         parsed_id_token = get_parsed_id_token(
             token_data, self.config.json_web_key_set_url
