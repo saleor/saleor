@@ -164,6 +164,13 @@ class OpenIDConnectPlugin(BasePlugin):
     ) -> dict:
         if not self.active:
             return previous_value
+
+        error_code = PluginErrorCode.INVALID.value
+        if not self.config.enable_refresh_token:
+            msg = "Unable to refresh the token. Support for refresh tokens is disabled"
+            raise ValidationError(
+                {"refresh_token": ValidationError(msg, code=error_code)}
+            )
         refresh_token = request.COOKIES.get(JWT_REFRESH_TOKEN_COOKIE_NAME, None)
         refresh_token = data.get("refreshToken") or refresh_token
 
@@ -180,8 +187,7 @@ class OpenIDConnectPlugin(BasePlugin):
             raise ValidationError(
                 {
                     "refresh_token": ValidationError(
-                        "Unable to refresh the token.",
-                        code=PluginErrorCode.INVALID.value,
+                        "Unable to refresh the token.", code=error_code,
                     )
                 }
             )
@@ -195,11 +201,7 @@ class OpenIDConnectPlugin(BasePlugin):
             )
         except AuthenticationError as e:
             raise ValidationError(
-                {
-                    "refreshToken": ValidationError(
-                        str(e), code=PluginErrorCode.INVALID.value
-                    )
-                }
+                {"refreshToken": ValidationError(str(e), code=error_code)}
             )
 
     def authenticate_user(self, request: WSGIRequest, previous_value) -> Optional[User]:
