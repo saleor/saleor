@@ -16,7 +16,7 @@ from ...tests.utils import assert_graphql_error_with_message, get_graphql_conten
 
 
 @pytest.fixture
-def products_for_pagination(category, channel_USD):
+def products_for_sorting_with_channels(category, channel_USD):
     product_type = ProductType.objects.create(name="Apple")
     products = Product.objects.bulk_create(
         [
@@ -185,6 +185,7 @@ def test_products_with_sorting_and_without_channel(
     assert_graphql_error_with_message(response, LACK_OF_CHANNEL_IN_SORTING_MSG)
 
 
+# TODO: Add test for second channel
 @pytest.mark.parametrize(
     "sort_by, products_order",
     [
@@ -219,7 +220,7 @@ def test_products_with_sorting_and_channel(
     products_order,
     staff_api_client,
     permission_manage_products,
-    products_for_pagination,
+    products_for_sorting_with_channels,
     channel_USD,
 ):
     # given
@@ -253,9 +254,10 @@ def test_products_with_sorting_and_not_existing_channel_asc(
     sort_by,
     staff_api_client,
     permission_manage_products,
-    products_for_pagination,
+    products_for_sorting_with_channels,
     channel_USD,
 ):
+    # given
     products_order = [
         "Product1",
         "Product2",
@@ -263,7 +265,6 @@ def test_products_with_sorting_and_not_existing_channel_asc(
         "ProductProduct1",
         "ProductProduct2",
     ]
-    # given
     sort_by["channel"] = "Not-existing"
     variables = {"sortBy": sort_by}
 
@@ -294,7 +295,7 @@ def test_products_with_sorting_and_not_existing_channel_desc(
     sort_by,
     staff_api_client,
     permission_manage_products,
-    products_for_pagination,
+    products_for_sorting_with_channels,
     channel_USD,
 ):
     products_order = [
@@ -345,6 +346,7 @@ def test_products_with_filtering_without_channel(
     assert_graphql_error_with_message(response, LACK_OF_CHANNEL_IN_FILTERING_MSG)
 
 
+# TODO: Add test for second channel
 @pytest.mark.parametrize(
     "filter_by, products_count",
     [
@@ -361,7 +363,7 @@ def test_products_with_filtering_with_channel(
     products_count,
     staff_api_client,
     permission_manage_products,
-    products_for_pagination,
+    products_for_sorting_with_channels,
     channel_USD,
 ):
     # given

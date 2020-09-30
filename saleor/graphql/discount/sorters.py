@@ -1,7 +1,7 @@
 import graphene
 from django.db.models import Min, Q, QuerySet
 
-from ...channel.models import Channel
+from ..channel.sorters import validate_channel_slug
 from ..core.types import SortInputObjectType
 
 
@@ -43,20 +43,22 @@ class VoucherSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def qs_with_minimum_spent_amount(queryset: QuerySet, channel: Channel) -> QuerySet:
+    def qs_with_minimum_spent_amount(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
         return queryset.annotate(
             min_spent_amount=Min(
                 "channel_listing__min_spent_amount",
-                filter=Q(channel_listing__channel=channel),
+                filter=Q(channel_listing__channel__slug=channel_slug),
             )
         )
 
     @staticmethod
-    def qs_with_value(queryset: QuerySet, channel: Channel) -> QuerySet:
+    def qs_with_value(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
         return queryset.annotate(
             discount_value=Min(
                 "channel_listing__discount_value",
-                filter=Q(channel_listing__channel=channel),
+                filter=Q(channel_listing__channel__slug=channel_slug),
             )
         )
 
