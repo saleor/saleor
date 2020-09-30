@@ -14,6 +14,7 @@ mutation UpdateShippingMethodChannelListing(
             field
             message
             code
+            channels
         }
         shippingMethod {
             name
@@ -300,6 +301,7 @@ def test_shipping_method_channel_listing_update_with_max_less_than_min(
     # then
     assert data["shippingErrors"][0]["field"] == "maximumOrderPrice"
     assert data["shippingErrors"][0]["code"] == ShippingErrorCode.MAX_LESS_THAN_MIN.name
+    assert data["shippingErrors"][0]["channels"] == [channel_id]
 
 
 def test_shipping_method_channel_listing_create_without_price(
@@ -338,6 +340,7 @@ def test_shipping_method_channel_listing_create_without_price(
     # then
     assert data["shippingErrors"][0]["field"] == "price"
     assert data["shippingErrors"][0]["code"] == ShippingErrorCode.REQUIRED.name
+    assert data["shippingErrors"][0]["channels"] == [channel_id]
 
 
 def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_price(
@@ -378,6 +381,7 @@ def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_p
     # then
     assert data["shippingErrors"][0]["field"] == "price"
     assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
+    assert data["shippingErrors"][0]["channels"] == [channel_id]
 
 
 def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_min_val(
@@ -418,6 +422,7 @@ def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_m
     # then
     assert data["shippingErrors"][0]["field"] == "minimumOrderPrice"
     assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
+    assert data["shippingErrors"][0]["channels"] == [channel_id]
 
 
 def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_max_val(
@@ -458,3 +463,4 @@ def test_shipping_method_channel_listing_update_with_to_many_decimal_places_in_m
     # then
     assert data["shippingErrors"][0]["field"] == "maximumOrderPrice"
     assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
+    assert data["shippingErrors"][0]["channels"] == [channel_id]

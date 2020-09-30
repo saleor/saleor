@@ -137,7 +137,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                 except ValidationError as error:
                     error.code = ShippingErrorCode.INVALID.value
                     error.params = {
-                        "channel": channel_id,
+                        "channels": [channel_id],
                     }
                     errors["price"].append(error)
             else:
@@ -146,7 +146,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                         ValidationError(
                             "This field is required.",
                             code=ShippingErrorCode.REQUIRED,
-                            params={"channel": channel_id},
+                            params={"channels": [channel_id]},
                         )
                     )
 
@@ -162,7 +162,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                 except ValidationError as error:
                     error.code = ShippingErrorCode.INVALID.value
                     error.params = {
-                        "channel": channel_id,
+                        "channels": [channel_id],
                     }
                     errors["minimum_order_price"].append(error)
 
@@ -175,7 +175,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                 except ValidationError as error:
                     error.code = ShippingErrorCode.INVALID.value
                     error.params = {
-                        "channel": channel_id,
+                        "channels": [channel_id],
                     }
                     errors["maximum_order_price"].append(error)
 
@@ -191,7 +191,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                             "the minimum order price."
                         ),
                         code=ShippingErrorCode.MAX_LESS_THAN_MIN,
-                        params={"channel": channel_id},
+                        params={"channels": [channel_id]},
                     )
                 )
 
@@ -209,7 +209,6 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
         cleaned_input = cls.clean_input(clean_channels, shipping_method.id, errors)
 
         if errors:
-
             raise ValidationError(errors)
 
         cls.save(info, shipping_method, cleaned_input)
