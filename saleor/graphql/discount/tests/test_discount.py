@@ -1,3 +1,4 @@
+import warnings
 from datetime import timedelta
 from unittest.mock import ANY
 
@@ -6,6 +7,7 @@ import pytest
 from django.utils import timezone
 from django_countries import countries
 
+from ....channel.utils import DEPRECATION_WARNING_MESSAGE
 from ....discount import DiscountValueType, VoucherType
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import Sale, SaleChannelListing, Voucher
@@ -56,24 +58,9 @@ def query_sales_with_filter():
     return query
 
 
-@pytest.fixture
-def sale(channel_USD):
-    sale = Sale.objects.create(name="Sale")
-    SaleChannelListing.objects.create(
-        currency=channel_USD.currency_code,
-        channel=channel_USD,
-        discount_value=123,
-        sale=sale,
-    )
-    return sale
-
-
 def test_voucher_query(
-    staff_api_client,
-    voucher_with_many_channels_and_countries,
-    permission_manage_discounts,
+    staff_api_client, voucher, product, permission_manage_discounts,
 ):
-    voucher = voucher_with_many_channels_and_countries
     query = """
     query vouchers {
         vouchers(first: 1) {
@@ -87,6 +74,13 @@ def test_voucher_query(
                     startDate
                     discountValueType
                     applyOncePerCustomer
+                    products(first: 1) {
+                        edges {
+                            node {
+                                name
+                            }
+                        }
+                    }
                     countries {
                         code
                         country
@@ -104,8 +98,92 @@ def test_voucher_query(
         }
     }
     """
+    voucher.products.add(product)
+
+    with warnings.catch_warnings(record=True) as warns:
+        response = staff_api_client.post_graphql(
+            query, permissions=[permission_manage_discounts]
+        )
+
+    content = get_graphql_content(response)
+    data = content["data"]["vouchers"]["edges"][0]["node"]
+
+    assert data["type"] == voucher.type.upper()
+    assert data["name"] == voucher.name
+    assert data["code"] == voucher.code
+    assert data["usageLimit"] == voucher.usage_limit
+    assert data["products"]["edges"][0]["node"]["name"] == product.name
+
+    assert data["applyOncePerCustomer"] == voucher.apply_once_per_customer
+    assert data["used"] == voucher.used
+    assert data["startDate"] == voucher.start_date.isoformat()
+    assert data["discountValueType"] == voucher.discount_value_type.upper()
+    assert data["countries"] == [
+        {"country": country.name, "code": country.code} for country in voucher.countries
+    ]
+    channel_listing = voucher.channel_listing.first()
+    assert {
+        "id": ANY,
+        "channel": {"slug": channel_listing.channel.slug},
+        "discountValue": channel_listing.discount_value,
+        "currency": channel_listing.channel.currency_code,
+    } in data["channelListing"]
+    assert any(
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
+    )
+
+
+def test_voucher_query_with_channel_slug(
+    staff_api_client,
+    voucher_with_many_channels_and_countries,
+    permission_manage_discounts,
+    channel_USD,
+    product,
+):
+    voucher = voucher_with_many_channels_and_countries
+    voucher.products.add(product)
+
+    query = """
+    query vouchers($channel: String) {
+        vouchers(first: 1, channel: $channel) {
+            edges {
+                node {
+                    type
+                    name
+                    code
+                    usageLimit
+                    used
+                    startDate
+                    discountValueType
+                    applyOncePerCustomer
+                    products(first: 1) {
+                        edges {
+                            node {
+                                name
+                            }
+                        }
+                    }
+                    countries {
+                        code
+                        country
+                    }
+                    channelListing {
+                        id
+                        channel {
+                            slug
+                        }
+                        discountValue
+                        currency
+                    }
+                }
+            }
+        }
+    }
+    """
+    variables = {"channel": channel_USD.slug}
+
     response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_discounts]
+        query, variables, permissions=[permission_manage_discounts]
     )
     content = get_graphql_content(response)
     data = content["data"]["vouchers"]["edges"][0]["node"]
@@ -113,6 +191,7 @@ def test_voucher_query(
     assert data["type"] == voucher.type.upper()
     assert data["name"] == voucher.name
     assert data["code"] == voucher.code
+    assert data["products"]["edges"][0]["node"]["name"] == product.name
     assert data["usageLimit"] == voucher.usage_limit
     assert data["applyOncePerCustomer"] == voucher.apply_once_per_customer
     assert data["used"] == voucher.used
@@ -132,11 +211,7 @@ def test_voucher_query(
 
 
 def test_sale_query(
-    staff_api_client,
-    sale_with_many_channels,
-    permission_manage_discounts,
-    channel_USD,
-    channel_PLN,
+    staff_api_client, sale, permission_manage_discounts, channel_USD,
 ):
     query = """
         query sales {
@@ -144,6 +219,13 @@ def test_sale_query(
                 edges {
                     node {
                         type
+                        products(first: 1) {
+                            edges {
+                                node {
+                                    name
+                                }
+                            }
+                        }
                         collections(first: 1) {
                             edges {
                                 node {
@@ -161,26 +243,24 @@ def test_sale_query(
             }
         }
         """
-    response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_discounts]
-    )
-    channel_listing_usd = sale_with_many_channels.channel_listing.get(
-        channel=channel_USD
-    )
-    channel_listing_pln = sale_with_many_channels.channel_listing.get(
-        channel=channel_PLN
-    )
+    with warnings.catch_warnings(record=True) as warns:
+        response = staff_api_client.post_graphql(
+            query, permissions=[permission_manage_discounts]
+        )
+    channel_listing_usd = sale.channel_listing.get(channel=channel_USD)
     content = get_graphql_content(response)
     data = content["data"]["sales"]["edges"][0]["node"]
-    assert data["type"] == sale_with_many_channels.type.upper()
-    assert data["name"] == sale_with_many_channels.name
+    assert data["products"]["edges"][0]["node"]["name"] == sale.products.first().name
+
+    assert data["type"] == sale.type.upper()
+    assert data["name"] == sale.name
     assert (
         data["channelListing"][0]["discountValue"] == channel_listing_usd.discount_value
     )
-    assert (
-        data["channelListing"][1]["discountValue"] == channel_listing_pln.discount_value
+    assert data["startDate"] == sale.start_date.isoformat()
+    assert any(
+        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )
-    assert data["startDate"] == sale_with_many_channels.start_date.isoformat()
 
 
 def test_sale_query_with_channel_slug(
@@ -188,10 +268,17 @@ def test_sale_query_with_channel_slug(
 ):
     query = """
         query sales($channel: String) {
-            sales(first: 1,channel: $channel) {
+            sales(first: 1, channel: $channel) {
                 edges {
                     node {
                         type
+                        products(first: 1) {
+                            edges {
+                                node {
+                                    name
+                                }
+                            }
+                        }
                         discountValue
                         name
                         channelListing {
@@ -209,9 +296,12 @@ def test_sale_query_with_channel_slug(
     )
     channel_listing = sale.channel_listing.get()
     content = get_graphql_content(response)
+
     data = content["data"]["sales"]["edges"][0]["node"]
+
     assert data["type"] == sale.type.upper()
     assert data["name"] == sale.name
+    assert data["products"]["edges"][0]["node"]["name"] == sale.products.first().name
     assert data["discountValue"] == channel_listing.discount_value
     assert data["channelListing"][0]["discountValue"] == channel_listing.discount_value
     assert data["startDate"] == sale.start_date.isoformat()
