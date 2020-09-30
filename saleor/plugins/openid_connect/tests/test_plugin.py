@@ -4,7 +4,7 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from authlib.jose.errors import JoseError
 from django.core.exceptions import ValidationError
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseNotFound, HttpResponseRedirect
 from django.middleware.csrf import _get_new_csrf_token
 from freezegun import freeze_time
 
@@ -54,6 +54,14 @@ def test_external_authentication_returns_redirect_url(openid_plugin, settings, r
     assert parsed_url.path == authorize_path
     assert parsed_qs["redirect_uri"][0] == expected_redirect_url
     assert parsed_qs["client_id"][0] == client_id
+
+
+def test_external_authentication_plugin_disabled(openid_plugin, rf):
+    plugin = openid_plugin(active=False)
+    input = {"redirectUrl": "http://localhost:3000/authorization/"}
+    previous_value = "previous"
+    response = plugin.external_authentication(input, rf.request(), previous_value)
+    assert response == previous_value
 
 
 def test_external_authentication_raises_error_when_missing_redirect(openid_plugin, rf):
@@ -220,6 +228,14 @@ def test_external_refresh_raises_error_when_token_is_invalid(
     data = {"refreshToken": saleor_refresh_token}
     with pytest.raises(ValidationError):
         plugin.external_refresh(data, request, None)
+
+
+def test_external_refresh_when_plugin_is_disabled(openid_plugin, rf):
+    request = rf.request()
+    data = {"refreshToken": "token"}
+    plugin = openid_plugin(active=False)
+    previous_value = "previous"
+    plugin.external_refresh(data, request, previous_value)
 
 
 @freeze_time("2019-03-18 12:00:00")
@@ -394,3 +410,27 @@ def test_validate_plugin_configuration(plugin_configuration, openid_plugin):
     conf = PluginConfiguration(active=True, configuration=configuration)
     plugin = openid_plugin()
     plugin.validate_plugin_configuration(conf)
+
+
+def test_webhook_when_plugin_is_disabled(openid_plugin, rf):
+    plugin = openid_plugin(active=False)
+    response = plugin.webhook(rf.request(), "/callback?some=value", None)
+    assert isinstance(response, HttpResponseNotFound)
+
+
+def test_webhook_wrong_path(openid_plugin, rf):
+    plugin = openid_plugin(active=True)
+    response = plugin.webhook(rf.request(), "/wrong?some=value", None)
+    assert isinstance(response, HttpResponseNotFound)
+
+
+def test_webhook_calls_callback(openid_plugin, rf, monkeypatch):
+    mocked_callback = Mock()
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.OpenIDConnectPlugin.handle_auth_callback",
+        mocked_callback,
+    )
+    plugin = openid_plugin(active=True)
+    request = rf.request()
+    plugin.webhook(request, "/callback?some=value", None)
+    mocked_callback.assert_called_once_with(request)
