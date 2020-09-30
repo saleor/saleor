@@ -1277,16 +1277,6 @@ QUERY_VOUCHER_WITH_SORT = """
             {"field": "CODE", "direction": "DESC"},
             ["FreeShipping", "Voucher1", "Voucher2"],
         ),
-        # TODO: Consider filtering and sorting by `isPublished`
-        # Should be resolved by https://app.clickup.com/t/6crxxb
-        # (
-        #     {"field": "VALUE", "direction": "ASC"},
-        #     ["Voucher2", "FreeShipping", "Voucher1"],
-        # ),
-        # (
-        #     {"field": "VALUE", "direction": "DESC"},
-        #     ["Voucher1", "FreeShipping", "Voucher2"],
-        # ),
         (
             {"field": "TYPE", "direction": "ASC"},
             ["Voucher1", "Voucher2", "FreeShipping"],
@@ -1319,16 +1309,6 @@ QUERY_VOUCHER_WITH_SORT = """
             {"field": "USAGE_LIMIT", "direction": "DESC"},
             ["Voucher2", "FreeShipping", "Voucher1"],
         ),
-        # TODO: Consider filtering and sorting by `isPublished`
-        # Should be resolved by https://app.clickup.com/t/6crxxb
-        # (
-        #     {"field": "MINIMUM_SPENT_AMOUNT", "direction": "ASC"},
-        #     ["Voucher2", "FreeShipping", "Voucher1"],
-        # ),
-        # (
-        #     {"field": "MINIMUM_SPENT_AMOUNT", "direction": "DESC"},
-        #     ["Voucher1", "FreeShipping", "Voucher2"],
-        # ),
     ],
 )
 def test_query_vouchers_with_sort(
@@ -1517,9 +1497,6 @@ def test_query_sales_with_filter_started(
     assert len(data) == count
 
 
-# TODO: Consider filtering and sorting by `discount_value`
-# Should be resolved by https://app.clickup.com/t/6crxxb
-@pytest.mark.skip(reason="We should know how to handle `discount_value` filter.")
 @pytest.mark.parametrize(
     "sale_filter, count",
     [({"search": "Big"}, 1), ({"search": "69"}, 1), ({"search": "FIX"}, 2)],
@@ -1581,10 +1558,6 @@ QUERY_SALE_WITH_SORT = """
     [
         ({"field": "NAME", "direction": "ASC"}, ["BigSale", "Sale2", "Sale3"]),
         ({"field": "NAME", "direction": "DESC"}, ["Sale3", "Sale2", "BigSale"]),
-        # TODO: Consider filtering and sorting by `discounted_value`
-        # Should be resolved by https://app.clickup.com/t/6crxxb
-        # ({"field": "VALUE", "direction": "ASC"}, ["Sale3", "Sale2", "BigSale"]),
-        # ({"field": "VALUE", "direction": "DESC"}, ["BigSale", "Sale2", "Sale3"]),
         ({"field": "TYPE", "direction": "ASC"}, ["Sale2", "Sale3", "BigSale"]),
         ({"field": "TYPE", "direction": "DESC"}, ["BigSale", "Sale3", "Sale2"]),
         ({"field": "START_DATE", "direction": "ASC"}, ["Sale3", "Sale2", "BigSale"]),
@@ -1611,18 +1584,6 @@ def test_query_sales_with_sort(
                 start_date=timezone.now().replace(year=2011, month=1, day=5),
                 end_date=timezone.now().replace(year=2015, month=12, day=31),
             ),
-        ]
-    )
-    values = [1234, 123, 69]
-    SaleChannelListing.objects.bulk_create(
-        [
-            SaleChannelListing(
-                discount_value=values[i],
-                sale=sale,
-                channel=channel_USD,
-                currency=channel_USD.currency_code,
-            )
-            for i, sale in enumerate(sales)
         ]
     )
     variables = {"sort_by": sale_sort}
