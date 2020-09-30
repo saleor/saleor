@@ -155,8 +155,8 @@ def test_percentage_discounts(product, channel_USD):
 def test_voucher_queryset_active(voucher, channel_USD):
     vouchers = Voucher.objects.all()
     assert vouchers.count() == 1
-    active_vouchers = Voucher.objects.active(
-        date=timezone.now() - timedelta(days=1), channel=channel_USD
+    active_vouchers = Voucher.objects.active_in_channel(
+        date=timezone.now() - timedelta(days=1), channel_slug=channel_USD.slug
     )
     assert active_vouchers.count() == 0
 
@@ -164,14 +164,18 @@ def test_voucher_queryset_active(voucher, channel_USD):
 def test_voucher_queryset_active_in_channel(voucher, channel_USD):
     vouchers = Voucher.objects.all()
     assert vouchers.count() == 1
-    active_vouchers = Voucher.objects.active(date=timezone.now(), channel=channel_USD)
+    active_vouchers = Voucher.objects.active_in_channel(
+        date=timezone.now(), channel_slug=channel_USD.slug
+    )
     assert active_vouchers.count() == 1
 
 
 def test_voucher_queryset_active_in_other_channel(voucher, channel_PLN):
     vouchers = Voucher.objects.all()
     assert vouchers.count() == 1
-    active_vouchers = Voucher.objects.active(date=timezone.now(), channel=channel_PLN)
+    active_vouchers = Voucher.objects.active_in_channel(
+        date=timezone.now(), channel_slug=channel_PLN.slug
+    )
     assert active_vouchers.count() == 0
 
 

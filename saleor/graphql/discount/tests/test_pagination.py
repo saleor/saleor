@@ -113,10 +113,8 @@ def test_sales_pagination_with_sorting(
 @pytest.mark.parametrize(
     "filter_by, sales_order",
     [
-        # TODO: Consider filtering and sorting by `isPublished`
-        # Should be resolved by https://app.clickup.com/t/6crxxb
-        # ({"status": "SCHEDULED"}, ["Sale1", "Sale15"]),
-        # ({"status": "ACTIVE"}, ["Sale2", "Sale3"]),
+        ({"status": "SCHEDULED"}, ["Sale1", "Sale15"]),
+        ({"status": "ACTIVE"}, ["Sale2", "Sale3"]),
         ({"saleType": "FIXED"}, ["Sale15", "Sale2"]),
         ({"saleType": "PERCENTAGE"}, ["Sale1", "Sale3"]),
         ({"started": {"gte": "2020-03-18T13:00:00+00:00"}}, ["Sale1", "Sale15"]),
@@ -318,10 +316,8 @@ def test_vouchers_pagination_with_sorting(
 @pytest.mark.parametrize(
     "filter_by, vouchers_order",
     [
-        # TODO: Consider filtering and sorting by `isPublished`
-        # Should be resolved by https://app.clickup.com/t/6crxxb
-        # ({"status": "SCHEDULED"}, ["Voucher1", "Voucher15"]),
-        # ({"status": "ACTIVE"}, ["Voucher2", "Voucher3"]),
+        ({"status": "SCHEDULED"}, ["Voucher1", "Voucher15"]),
+        ({"status": "ACTIVE"}, ["Voucher2", "Voucher3"]),
         ({"timesUsed": {"gte": 1}}, ["Voucher2", "Voucher3"]),
         ({"timesUsed": {"lte": 1}}, ["Voucher1", "Voucher15"]),
         ({"discountType": "FIXED"}, ["Voucher2", "Voucher4"]),

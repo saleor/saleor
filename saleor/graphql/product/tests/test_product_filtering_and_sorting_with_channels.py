@@ -399,7 +399,7 @@ def test_products_with_filtering_and_not_existing_channel(
     filter_by,
     staff_api_client,
     permission_manage_products,
-    products_for_pagination,
+    products_for_sorting_with_channels,
     channel_USD,
 ):
     # given

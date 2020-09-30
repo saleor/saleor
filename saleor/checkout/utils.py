@@ -262,8 +262,8 @@ def get_voucher_for_checkout(
     """Return voucher with voucher code saved in checkout if active or None."""
     if checkout.voucher_code is not None:
         if vouchers is None:
-            vouchers = Voucher.objects.active(
-                date=timezone.now(), channel=checkout.channel
+            vouchers = Voucher.objects.active_in_channel(
+                date=timezone.now(), channel_slug=checkout.channel.slug
             )
         try:
             qs = vouchers
@@ -347,8 +347,8 @@ def add_voucher_code_to_checkout(
     Raise InvalidPromoCode() if voucher of given type cannot be applied.
     """
     try:
-        voucher = Voucher.objects.active(
-            date=timezone.now(), channel=checkout.channel
+        voucher = Voucher.objects.active_in_channel(
+            date=timezone.now(), channel_slug=checkout.channel.slug
         ).get(code=voucher_code)
     except Voucher.DoesNotExist:
         raise InvalidPromoCode()
