@@ -71,7 +71,7 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_products(root: ChannelContext[models.Sale], info, **_kwargs):
-        return root.node.products.visible_to_user(info.context.user)
+        return root.node.products.visible_to_user(info.context.user, root.channel_slug)
 
     @staticmethod
     def resolve_discount_value(root: ChannelContext[models.Sale], *_args, **_kwargs):

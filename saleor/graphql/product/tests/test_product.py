@@ -1056,6 +1056,9 @@ def test_fetch_product_from_category_query(
                         }
                         variants {
                             name
+                            costPrice {
+                                amount
+                            }
                         }
                         isAvailable
                         pricing {
@@ -1106,17 +1109,15 @@ def test_fetch_product_from_category_query(
     assert product_data["name"] == product.name
     assert product_data["url"] == ""
     assert product_data["slug"] == product.slug
-    # TODO: consider how this should work until don't have requirements
-    # for cost_price bahavior.
-    # from ....product.utils.costs import get_product_costs_data
+    from ....product.utils.costs import get_product_costs_data
 
-    # purchase_cost, margin = get_product_costs_data(product)
-    # assert purchase_cost.start.amount ==
-    # product_data["purchaseCost"]["start"]["amount"]
-    # assert purchase_cost.stop.amount == product_data["purchaseCost"]["stop"]["amount"]
+    purchase_cost, margin = get_product_costs_data(product, channel_USD.slug)
+    assert purchase_cost.start.amount == product_data["purchaseCost"]["start"]["amount"]
+
+    assert purchase_cost.stop.amount == product_data["purchaseCost"]["stop"]["amount"]
     assert product_data["isAvailable"] is True
-    # assert margin[0] == product_data["margin"]["start"]
-    # assert margin[1] == product_data["margin"]["stop"]
+    assert margin[0] == product_data["margin"]["start"]
+    assert margin[1] == product_data["margin"]["stop"]
 
 
 def test_products_query_with_filter_attributes(

@@ -33,7 +33,6 @@ def resolve_cost_price(product_variant, channel_slug):
     variant_channel_listing = resolve_product_variant_channel_listing(
         product_variant, channel_slug
     )
-
     return variant_channel_listing.cost_price if variant_channel_listing else None
 
 

@@ -554,6 +554,11 @@ def test_update_product_variant(
                     productVariant {
                         name
                         sku
+                        channelListing {
+                            channel {
+                                slug
+                            }
+                        }
                         costPrice {
                             currency
                             amount
