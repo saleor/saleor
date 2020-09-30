@@ -688,6 +688,7 @@ type BulkProductError {
   field: String
   message: String
   code: ProductErrorCode!
+  attributes: [ID!]
   index: Int
   warehouses: [ID!]
 }
@@ -696,6 +697,7 @@ type BulkStockError {
   field: String
   message: String
   code: ProductErrorCode!
+  attributes: [ID!]
   index: Int
 }
 
@@ -3745,6 +3747,7 @@ type ProductError {
   field: String
   message: String
   code: ProductErrorCode!
+  attributes: [ID!]
 }
 
 enum ProductErrorCode {
