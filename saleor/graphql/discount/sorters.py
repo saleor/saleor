@@ -19,6 +19,16 @@ class SaleSortField(graphene.Enum):
             return f"Sort sales by {sort_name}."
         raise ValueError("Unsupported enum value: %s" % self.value)
 
+    @staticmethod
+    def qs_with_value(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
+        return queryset.annotate(
+            value=Min(
+                "channel_listing__discount_value",
+                filter=Q(channel_listing__channel__slug=channel_slug),
+            )
+        )
+
 
 class SaleSortingInput(SortInputWitchChannelObjectType):
     class Meta:
