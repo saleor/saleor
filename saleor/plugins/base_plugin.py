@@ -64,6 +64,34 @@ class BasePlugin:
     def __str__(self):
         return self.PLUGIN_NAME
 
+    def external_authentication(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> dict:
+        """Handle authentication request.
+
+        Overwrite this method if the plugin handles authentication flow.
+        """
+        return NotImplemented
+
+    def external_refresh(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> dict:
+        """Handle authentication refresh request.
+
+        Overwrite this method if the plugin handles authentication flow and supports
+        refreshing the access.
+        """
+        return NotImplemented
+
+    def authenticate_user(
+        self, request: WSGIRequest, previous_value
+    ) -> Optional["User"]:
+        """Authenticate user which should be assigned to the request.
+
+        Overwrite this method if the plugin handles authentication flow.
+        """
+        return NotImplemented
+
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         """Handle received http request.
 
