@@ -32,6 +32,7 @@ def plugin_configuration():
 @pytest.fixture
 def openid_plugin(settings, plugin_configuration):
     def fun(
+        active=True,
         client_id="client_id",
         client_secret="client_secret",
         enable_refresh_token=True,
@@ -45,7 +46,7 @@ def openid_plugin(settings, plugin_configuration):
         manager.save_plugin_configuration(
             OpenIDConnectPlugin.PLUGIN_ID,
             {
-                "active": True,
+                "active": active,
                 "configuration": plugin_configuration(
                     client_id=client_id,
                     client_secret=client_secret,

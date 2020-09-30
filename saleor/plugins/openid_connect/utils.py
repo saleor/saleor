@@ -11,7 +11,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.middleware.csrf import _compare_masked_tokens  # type: ignore
-from django.middleware.csrf import _get_new_csrf_token  # type: ignore
+from django.middleware.csrf import _get_new_csrf_token
 from jwt import PyJWTError
 
 from ...account.models import User
@@ -25,6 +25,7 @@ from ...core.jwt import (
 from ...core.utils import build_absolute_uri
 from ...core.utils.url import prepare_url, validate_storefront_url
 from ..error_codes import PluginErrorCode
+from ..models import PluginConfiguration
 from .exceptions import AuthenticationError
 
 JWKS_KEY = "oauth_jwks"
@@ -135,14 +136,15 @@ def get_parsed_id_token(token_data, jwks_url) -> CodeIDToken:
 
 
 def get_or_create_user_from_token(claims: CodeIDToken) -> User:
-    user = User.objects.filter(email=claims["email"]).first()
-    if not user:
-        user = User.objects.create(
-            is_active=True,
-            email=claims["email"],
-            first_name=claims.get("given_name", ""),
-            last_name=claims.get("family_name", ""),
-        )
+    user, _ = User.objects.get_or_create(
+        email=claims["email"],
+        defaults={
+            "is_active": True,
+            "email": claims["email"],
+            "first_name": claims.get("given_name", ""),
+            "last_name": claims.get("family_name", ""),
+        },
+    )
     if not user.is_active:  # it is true only if we fetch disabled user.
         raise AuthenticationError("Unable to log in.",)
     return user
@@ -182,13 +184,14 @@ def validate_refresh_token(refresh_token, data):
                 )
             }
         )
+
     try:
         refresh_payload = jwt_decode(refresh_token)
     except PyJWTError:
         raise ValidationError(
             {
                 "refreshToken": ValidationError(
-                    "Unable to decode provided token.",
+                    "Unable to decode the refresh token.",
                     code=PluginErrorCode.INVALID.value,
                 )
             }
@@ -233,3 +236,21 @@ def get_incorrect_or_missing_urls(urls: dict) -> List[str]:
         except ValidationError:
             incorrect_urls.append(field)
     return incorrect_urls
+
+
+def get_incorrect_fields(plugin_configuration: "PluginConfiguration"):
+    """Return missing or incorrect configuration fields for OpenIDConnectPlugin."""
+    configuration = plugin_configuration.configuration
+    configuration = {item["name"]: item["value"] for item in configuration}
+    if plugin_configuration.active:
+        urls_to_validate = {
+            "json_web_key_set_url": configuration["json_web_key_set_url"],
+            "oauth_authorization_url": configuration["oauth_authorization_url"],
+            "oauth_token_url": configuration["oauth_token_url"],
+        }
+        incorrect_fields = get_incorrect_or_missing_urls(urls_to_validate)
+        if not configuration["client_id"]:
+            incorrect_fields.append("client_id")
+        if not configuration["client_secret"]:
+            incorrect_fields.append("client_secret")
+        return incorrect_fields
