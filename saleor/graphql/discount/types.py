@@ -70,10 +70,12 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         return root.node.channel_listing.all()
 
     @staticmethod
+    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_collections(root: ChannelContext[models.Sale], info, **_kwargs):
         return root.node.collections.all()
 
     @staticmethod
+    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_products(root: ChannelContext[models.Sale], info, **_kwargs):
         qs = root.node.products.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
@@ -169,10 +171,12 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         return root.node.categories.all()
 
     @staticmethod
+    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_collections(root: ChannelContext[models.Voucher], info, **_kwargs):
         return root.node.collections.all()
 
     @staticmethod
+    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_products(root: ChannelContext[models.Voucher], info, **_kwargs):
         qs = root.node.products.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
