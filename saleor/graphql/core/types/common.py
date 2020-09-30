@@ -162,14 +162,6 @@ class ProductError(Error):
     )
 
 
-class ProductAttributeError(ProductError):
-    attributes = graphene.List(
-        graphene.NonNull(graphene.ID),
-        description="List of attributes IDs which causes the error.",
-        required=False,
-    )
-
-
 class BulkProductError(ProductError):
     index = graphene.Int(
         description="Index of an input list item that caused the error."
