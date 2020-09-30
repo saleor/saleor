@@ -35,3 +35,11 @@ class SortInputObjectType(graphene.InputObjectType):
                 description=f"Sort {type_name} by the selected field.",
             )
             cls._meta.fields.update({"field": field})
+
+
+class SortInputWitchChannelObjectType(SortInputObjectType):
+    # TODO: Add description
+    channel = graphene.Argument(graphene.String)
+
+    class Meta:
+        abstract = True

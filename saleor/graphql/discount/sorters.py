@@ -2,7 +2,7 @@ import graphene
 from django.db.models import Min, Q, QuerySet
 
 from ..channel.sorters import validate_channel_slug
-from ..core.types import SortInputObjectType
+from ..core.types import SortInputWitchChannelObjectType
 
 
 class SaleSortField(graphene.Enum):
@@ -20,7 +20,7 @@ class SaleSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
 
-class SaleSortingInput(SortInputObjectType):
+class SaleSortingInput(SortInputWitchChannelObjectType):
     class Meta:
         sort_enum = SaleSortField
         type_name = "sales"
@@ -63,11 +63,7 @@ class VoucherSortField(graphene.Enum):
         )
 
 
-class VoucherSortingInput(SortInputObjectType):
-    # TODO: Add description
-    # TODO: Maybe move to SortInputObjectType
-    channel = graphene.Argument(graphene.String)
-
+class VoucherSortingInput(SortInputWitchChannelObjectType):
     class Meta:
         sort_enum = VoucherSortField
         type_name = "vouchers"

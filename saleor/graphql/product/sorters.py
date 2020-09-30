@@ -16,7 +16,7 @@ from django.db.models.functions import Coalesce
 
 from ...product.models import Category, Product
 from ..channel.sorters import validate_channel_slug
-from ..core.types import SortInputObjectType
+from ..core.types import SortInputObjectType, SortInputWitchChannelObjectType
 
 
 class AttributeSortField(graphene.Enum):
@@ -208,7 +208,7 @@ class ProductOrderField(graphene.Enum):
         )
 
 
-class ProductOrder(SortInputObjectType):
+class ProductOrder(SortInputWitchChannelObjectType):
     attribute_id = graphene.Argument(
         graphene.ID,
         description=(
@@ -219,9 +219,6 @@ class ProductOrder(SortInputObjectType):
     field = graphene.Argument(
         ProductOrderField, description="Sort products by the selected field."
     )
-    # TODO: Add description
-    # TODO: Maybe move to SortInputObjectType
-    channel = graphene.Argument(graphene.String)
 
     class Meta:
         sort_enum = ProductOrderField

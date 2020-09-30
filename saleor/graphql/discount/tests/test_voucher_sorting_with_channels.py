@@ -2,7 +2,6 @@ import pytest
 
 from ....discount import DiscountValueType, VoucherType
 from ....discount.models import Voucher, VoucherChannelListing
-from ...channel.filters import LACK_OF_CHANNEL_IN_FILTERING_MSG
 from ...channel.sorters import LACK_OF_CHANNEL_IN_SORTING_MSG
 from ...tests.utils import assert_graphql_error_with_message, get_graphql_content
 

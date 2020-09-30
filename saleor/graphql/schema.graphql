@@ -3995,9 +3995,9 @@ input ProductInput {
 
 input ProductOrder {
   direction: OrderDirection!
+  channel: String
   attributeId: ID
   field: ProductOrderField
-  channel: String
 }
 
 enum ProductOrderField {
@@ -4599,6 +4599,7 @@ enum SaleSortField {
 
 input SaleSortingInput {
   direction: OrderDirection!
+  channel: String
   field: SaleSortField!
 }
 
