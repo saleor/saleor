@@ -10,6 +10,7 @@ from .products import (
     ImagesByProductIdLoader,
     ImagesByProductVariantIdLoader,
     ProductByIdLoader,
+    ProductTypeByIdLoader,
     ProductVariantByIdLoader,
     ProductVariantsByProductIdLoader,
 )
@@ -21,6 +22,7 @@ __all__ = [
     "CollectionsByProductIdLoader",
     "ImagesByProductIdLoader",
     "ProductByIdLoader",
+    "ProductTypeByIdLoader",
     "ProductVariantByIdLoader",
     "ProductVariantsByProductIdLoader",
     "ImagesByProductVariantIdLoader",

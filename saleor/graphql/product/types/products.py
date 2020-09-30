@@ -53,6 +53,7 @@ from ..dataloaders import (
     ImagesByProductIdLoader,
     ImagesByProductVariantIdLoader,
     ProductByIdLoader,
+    ProductTypeByIdLoader,
     ProductVariantByIdLoader,
     ProductVariantsByProductIdLoader,
     SelectedAttributesByProductIdLoader,
@@ -652,6 +653,10 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     def resolve_is_available_for_purchase(root: models.Product, _info):
         return root.is_available_for_purchase()
+
+    @staticmethod
+    def resolve_product_type(root: models.Product, info):
+        return ProductTypeByIdLoader(info.context).load(root.product_type_id)
 
 
 @key(fields="id")
