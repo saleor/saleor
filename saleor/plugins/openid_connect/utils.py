@@ -24,6 +24,7 @@ from ...core.jwt import (
 from ...core.utils import build_absolute_uri
 from ...core.utils.url import prepare_url, validate_storefront_url
 from ..error_codes import PluginErrorCode
+from ..models import PluginConfiguration
 from .exceptions import AuthenticationError
 
 JWKS_KEY = "oauth_jwks"
@@ -223,3 +224,21 @@ def get_incorrect_or_missing_urls(urls: dict) -> List[str]:
         except ValidationError:
             incorrect_urls.append(field)
     return incorrect_urls
+
+
+def get_incorrect_fields(plugin_configuration: "PluginConfiguration"):
+    """Return missing or incorrect configuration fields for OpenIDConnectPlugin."""
+    configuration = plugin_configuration.configuration
+    configuration = {item["name"]: item["value"] for item in configuration}
+    if plugin_configuration.active:
+        urls_to_validate = {
+            "json_web_key_set_url": configuration["json_web_key_set_url"],
+            "oauth_authorization_url": configuration["oauth_authorization_url"],
+            "oauth_token_url": configuration["oauth_token_url"],
+        }
+        incorrect_fields = get_incorrect_or_missing_urls(urls_to_validate)
+        if not configuration["client_id"]:
+            incorrect_fields.append("client_id")
+        if not configuration["client_secret"]:
+            incorrect_fields.append("client_secret")
+        return incorrect_fields

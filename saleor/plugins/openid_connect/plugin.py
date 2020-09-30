@@ -24,7 +24,7 @@ from ..models import PluginConfiguration
 from .dataclasses import OpenIDConnectConfig
 from .exceptions import AuthenticationError
 from .utils import (
-    get_incorrect_or_missing_urls,
+    get_incorrect_fields,
     get_or_create_user_from_token,
     get_parsed_id_token,
     get_user_from_token,
@@ -62,7 +62,9 @@ class OpenIDConnectPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         "client_id": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": ("Your client id required to authenticate on provider side."),
+            "help_text": (
+                "Your Client ID required to authenticate on the provider side."
+            ),
             "label": "Client ID",
         },
         "client_secret": {
@@ -122,28 +124,17 @@ class OpenIDConnectPlugin(BasePlugin):
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct."""
-        configuration = plugin_configuration.configuration
-        configuration = {item["name"]: item["value"] for item in configuration}
-        if plugin_configuration.active:
-            urls_to_validate = {
-                "json_web_key_set_url": configuration["json_web_key_set_url"],
-                "oauth_authorization_url": configuration["oauth_authorization_url"],
-                "oauth_token_url": configuration["oauth_token_url"],
-            }
-            incorrect_fields = get_incorrect_or_missing_urls(urls_to_validate)
-            if not configuration["client_id"]:
-                incorrect_fields.append("client_id")
-            if not configuration["client_secret"]:
-                incorrect_fields.append("client_secret")
-            if incorrect_fields:
-                error_msg = (
-                    "To enable a plugin, you need to provide values for the "
-                    "following fields: "
-                )
-                raise ValidationError(
-                    error_msg + ", ".join(incorrect_fields),
-                    code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
-                )
+        incorrect_fields = get_incorrect_fields(plugin_configuration)
+        if incorrect_fields:
+            error_msg = "To enable a plugin, you need to provide values for this field."
+            raise ValidationError(
+                {
+                    field: ValidationError(
+                        error_msg, code=PluginErrorCode.PLUGIN_MISCONFIGURED.value
+                    )
+                    for field in incorrect_fields
+                }
+            )
 
     def _get_oauth_session(self):
         scope = "openid profile email"
@@ -225,7 +216,7 @@ class OpenIDConnectPlugin(BasePlugin):
     def handle_auth_callback(self, request: WSGIRequest) -> HttpResponse:
         storefront_redirect_url = request.GET.get("redirectUrl")
         if not storefront_redirect_url:
-            raise AuthenticationError("Missing get param - redirectUrl")
+            raise AuthenticationError("Missing GET parameter - redirectUrl.")
         token_data = self.oauth.fetch_token(
             self.config.token_url,
             authorization_response=request.build_absolute_uri(),
