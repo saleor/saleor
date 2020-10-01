@@ -51,22 +51,6 @@ def validate_storefront_redirect_url(storefront_redirect_url: Optional[str]):
         )
 
 
-#
-# def prepare_redirect_url(
-#     plugin_id, storefront_redirect_url: Optional[str] = None
-# ) -> str:
-#     """Prepare redirect url used by auth service to return to Saleor.
-#
-#     /plugins/mirumee.authentication.openidconnect/callback?redirectUrl=https://localhost:3000/
-#     """
-#     params = {}
-#     if storefront_redirect_url:
-#         params["redirectUrl"] = storefront_redirect_url
-#     redirect_url = build_absolute_uri(f"/plugins/{plugin_id}/callback")
-#     return
-#     return prepare_url(urlencode(params), redirect_url)  # type: ignore
-
-
 def fetch_jwks(jwks_url) -> Optional[dict]:
     response = None
     try:
