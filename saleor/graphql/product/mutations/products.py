@@ -684,7 +684,7 @@ class AttributeAssignmentMixin:
         - ensure all required attributes are passed
         - ensure the values are correct for a product
         """
-        errors = validate_attributes_input_for_product(cleaned_input,)
+        errors = validate_attributes_input_for_product(cleaned_input)
 
         supplied_attribute_pk = [attribute.pk for attribute, _ in cleaned_input]
 
