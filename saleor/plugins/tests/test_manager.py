@@ -427,5 +427,5 @@ def test_manager_external_logout(rf, admin_user):
         "saleor.plugins.tests.sample_plugins.PluginSample",
     ]
     manager = PluginsManager(plugins=plugins)
-    response = manager.external_refresh({}, rf.request())
+    response = manager.external_logout({}, rf.request())
     assert response == {"logoutUrl": "http://www.auth.provider.com/logout/"}

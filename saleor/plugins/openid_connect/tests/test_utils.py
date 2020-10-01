@@ -7,29 +7,24 @@ from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
 from saleor.account.models import User
-from saleor.core.jwt import JWT_REFRESH_TYPE, jwt_decode, jwt_encode, jwt_user_payload
+from saleor.core.jwt import (
+    JWT_REFRESH_TYPE,
+    PERMISSIONS_FIELD,
+    jwt_decode,
+    jwt_encode,
+    jwt_user_payload,
+)
 
 from ..exceptions import AuthenticationError
 from ..utils import (
     create_jwt_refresh_token,
     create_jwt_token,
+    create_tokens_from_oauth_payload,
     fetch_jwks,
     get_or_create_user_from_token,
-    get_valid_auth_tokens_from_auth_payload,
-    prepare_redirect_url,
+    get_saleor_permissions_from_scope,
     validate_refresh_token,
 )
-
-
-def test_prepare_redirect_url():
-    plugin_id = "test.auth.openidconnect"
-    storefront_url = "http://localhost:3000/"
-    url = prepare_redirect_url(plugin_id, storefront_url)
-    expected_redirect = (
-        "http://mirumee.com/plugins/test.auth.openidconnect/callback?"
-        "redirectUrl=http%3A%2F%2Flocalhost%3A3000%2F"
-    )
-    assert url == expected_redirect
 
 
 @pytest.mark.parametrize(
@@ -57,7 +52,7 @@ def test_fetch_jwks():
 
 
 @freeze_time("2019-03-18 12:00:00")
-def test_get_valid_auth_tokens_from_auth_payload(
+def test_create_tokens_from_oauth_payload(
     monkeypatch, id_token, id_payload, admin_user
 ):
     mocked_jwt_validator = MagicMock()
@@ -67,27 +62,33 @@ def test_get_valid_auth_tokens_from_auth_payload(
         "saleor.plugins.openid_connect.utils.jwt.decode",
         Mock(return_value=mocked_jwt_validator),
     )
+    permissions_from_scope = [
+        "MANAGE_ORDERS",
+    ]
     auth_payload = {
         "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
         "refresh_token": "refresh",
         "id_token": id_token,
-        "scope": "openid profile email offline_access",
+        "scope": ("openid profile email offline_access saleor:manage_orders"),
         "expires_in": 86400,
         "token_type": "Bearer",
         "expires_at": 1600851112,
     }
     user = get_or_create_user_from_token(id_payload)
-
-    tokens = get_valid_auth_tokens_from_auth_payload(auth_payload, user, id_payload)
+    perms = get_saleor_permissions_from_scope(auth_payload.get("scope"))
+    tokens = create_tokens_from_oauth_payload(auth_payload, user, id_payload, perms)
 
     created_user = User.objects.get()
 
-    token = create_jwt_token(id_payload, created_user, auth_payload["access_token"])
+    token = create_jwt_token(
+        id_payload, created_user, auth_payload["access_token"], permissions_from_scope
+    )
 
     assert created_user.email == id_payload["email"]
     assert tokens["token"] == token
     # confirm that we have jwt token
-    jwt_decode(tokens["token"])
+    decoded_token = jwt_decode(tokens["token"])
+    assert decoded_token.get(PERMISSIONS_FIELD) == permissions_from_scope
 
     decoded_refresh_token = jwt_decode(tokens["refreshToken"])
     assert decoded_refresh_token["oauth_refresh_token"] == "refresh"
@@ -118,3 +119,17 @@ def test_validate_refresh_token_missing_token():
     refresh_token = ""
     with pytest.raises(ValidationError):
         validate_refresh_token(refresh_token, {})
+
+
+def test_get_saleor_permissions_from_scope():
+    auth_payload = {
+        "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
+        "refresh_token": "refresh",
+        "scope": (
+            "openid profile email offline_access saleor:manage_orders "
+            "saleor:non_existing saleor saleor: saleor:manage_users"
+        ),
+    }
+    expected_permissions = {"MANAGE_USERS", "MANAGE_ORDERS"}
+    permissions = get_saleor_permissions_from_scope(auth_payload.get("scope"))
+    assert set(permissions) == expected_permissions

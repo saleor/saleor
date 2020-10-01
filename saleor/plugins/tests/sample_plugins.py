@@ -118,9 +118,7 @@ class PluginSample(BasePlugin):
     ) -> Optional["User"]:
         return User.objects.filter().first()
 
-    def external_authentication(
-        self, data: dict, request: WSGIRequest, previous_value
-    ) -> dict:
+    def external_logout(self, data: dict, request: WSGIRequest, previous_value) -> dict:
         return {"logoutUrl": "http://www.auth.provider.com/logout/"}
 
 

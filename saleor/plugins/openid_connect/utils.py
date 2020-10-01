@@ -1,7 +1,6 @@
 import json
 import logging
 from typing import List, Optional
-from urllib.parse import urlencode
 
 import requests
 from authlib.jose import jwt
@@ -18,12 +17,13 @@ from ...account.models import User
 from ...core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_REFRESH_TYPE,
+    PERMISSIONS_FIELD,
     jwt_decode,
     jwt_encode,
     jwt_user_payload,
 )
-from ...core.utils import build_absolute_uri
-from ...core.utils.url import prepare_url, validate_storefront_url
+from ...core.permissions import get_permission_names, get_permissions_from_codenames
+from ...core.utils.url import validate_storefront_url
 from ..error_codes import PluginErrorCode
 from ..models import PluginConfiguration
 from .exceptions import AuthenticationError
@@ -97,10 +97,13 @@ def get_jwks_keys_from_cache_or_fetch(jwks_url: str) -> dict:
     return jwks_keys
 
 
-def create_jwt_token(id_payload: CodeIDToken, user: User, access_token: str,) -> str:
+def create_jwt_token(
+    id_payload: CodeIDToken, user: User, access_token: str, permissions: List[str]
+) -> str:
     additional_payload = {
-        "exp": id_payload["exp"],
+        "exp": id_payload["exp"],  # TODO Should we take this from id of oauth exp?
         "oauth_access_key": access_token,
+        PERMISSIONS_FIELD: permissions,
     }
     jwt_payload = jwt_user_payload(
         user,
@@ -158,13 +161,15 @@ def get_user_from_token(claims: CodeIDToken) -> User:
     return user
 
 
-def get_valid_auth_tokens_from_auth_payload(
-    token_data: dict, user: User, claims: CodeIDToken
+def create_tokens_from_oauth_payload(
+    token_data: dict, user: User, claims: CodeIDToken, permissions: List[str]
 ):
     refresh_token = token_data.get("refresh_token")
 
     tokens = {
-        "token": create_jwt_token(claims, user, token_data["access_token"]),
+        "token": create_jwt_token(
+            claims, user, token_data["access_token"], permissions
+        ),
     }
     if refresh_token:
         csrf_token = _get_new_csrf_token()
@@ -255,3 +260,16 @@ def get_incorrect_fields(plugin_configuration: "PluginConfiguration"):
         if not configuration["client_secret"]:
             incorrect_fields.append("client_secret")
         return incorrect_fields
+
+
+def get_saleor_permissions_from_scope(scope: str) -> List[str]:
+    if not scope:
+        return []
+    scope_list = scope.lower().split()
+    saleor_permissions_str = [s for s in scope_list if s.startswith("saleor:")]
+    permission_codenames = list(
+        map(lambda perm: perm.replace("saleor:", ""), saleor_permissions_str)
+    )
+    permissions = get_permissions_from_codenames(permission_codenames)
+    permission_names = get_permission_names(permissions)
+    return list(permission_names)

@@ -1,7 +1,6 @@
 import json
 import logging
 from typing import Callable, Optional
-from urllib.parse import urlencode
 
 from authlib.common.errors import AuthlibBaseError
 from authlib.integrations.requests_client import OAuth2Session
@@ -19,19 +18,20 @@ from ...core.jwt import (
     get_user_from_access_token,
     jwt_decode,
 )
+from ...core.permissions import get_permissions_codename
 from ...core.utils import build_absolute_uri
-from ...core.utils.url import prepare_url
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
 from ..models import PluginConfiguration
 from .dataclasses import OpenIDConnectConfig
 from .exceptions import AuthenticationError
 from .utils import (
+    create_tokens_from_oauth_payload,
     get_incorrect_fields,
     get_or_create_user_from_token,
     get_parsed_id_token,
+    get_saleor_permissions_from_scope,
     get_user_from_token,
-    get_valid_auth_tokens_from_auth_payload,
     validate_refresh_token,
     validate_storefront_redirect_url,
 )
@@ -158,7 +158,8 @@ class OpenIDConnectPlugin(BasePlugin):
             )
 
     def _get_oauth_session(self):
-        scope = "openid profile email"
+        scope = "openid profile email "
+        scope += " ".join([f"saleor:{perm}" for perm in get_permissions_codename()])
         if self.config.enable_refresh_token:
             scope += " offline_access"
         return OAuth2Session(
@@ -218,12 +219,15 @@ class OpenIDConnectPlugin(BasePlugin):
                 }
             )
         try:
+            user_permissions = get_saleor_permissions_from_scope(
+                token_data.get("scope")
+            )
             parsed_id_token = get_parsed_id_token(
                 token_data, self.config.json_web_key_set_url
             )
             user = get_user_from_token(parsed_id_token)
-            return get_valid_auth_tokens_from_auth_payload(
-                token_data, user, parsed_id_token
+            return create_tokens_from_oauth_payload(
+                token_data, user, parsed_id_token, user_permissions
             )
         except AuthenticationError as e:
             raise ValidationError(
@@ -264,15 +268,17 @@ class OpenIDConnectPlugin(BasePlugin):
             authorization_response=request.build_absolute_uri(),
             redirect_uri=build_absolute_uri(f"/plugins/{self.PLUGIN_ID}/callback"),
         )
+        user_permissions = get_saleor_permissions_from_scope(token_data.get("scope"))
         parsed_id_token = get_parsed_id_token(
             token_data, self.config.json_web_key_set_url
         )
         user = get_or_create_user_from_token(parsed_id_token)
-        params = get_valid_auth_tokens_from_auth_payload(
-            token_data, user, parsed_id_token
+        params = create_tokens_from_oauth_payload(
+            token_data, user, parsed_id_token, user_permissions
         )
-        redirect_url = prepare_url(urlencode(params), storefront_redirect_url)
-        return redirect(redirect_url)
+        req = PreparedRequest()
+        req.prepare_url(storefront_redirect_url, params)
+        return redirect(req.url)
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         if not self.active:
