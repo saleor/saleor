@@ -26,6 +26,18 @@ mutation UpdateProductChannelListing(
                 channel {
                     slug
                 }
+                purchaseCost {
+                    start {
+                        amount
+                    }
+                    stop {
+                        amount
+                    }
+                }
+                margin {
+                    start
+                    stop
+                }
             }
         }
     }
@@ -209,11 +221,24 @@ def test_product_channel_listing_update_as_staff_user(
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
+    from ....product.utils.costs import get_product_costs_data
+
+    product_channel_listing = product.channel_listing.get(channel_id=channel_USD.id)
+    purchase_cost, margin = get_product_costs_data(
+        product_channel_listing, channel_USD.slug
+    )
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListing"][0]["isPublished"] is True
     assert product_data["channelListing"][0]["publicationDate"] is None
     assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+    cost_start = product_data["channelListing"][0]["purchaseCost"]["start"]["amount"]
+    cost_stop = product_data["channelListing"][0]["purchaseCost"]["stop"]["amount"]
+
+    assert purchase_cost.start.amount == cost_start
+    assert purchase_cost.stop.amount == cost_stop
+    assert margin[0] == product_data["channelListing"][0]["margin"]["start"]
+    assert margin[1] == product_data["channelListing"][0]["margin"]["stop"]
     assert product_data["channelListing"][1]["isPublished"] is False
     assert (
         product_data["channelListing"][1]["publicationDate"]

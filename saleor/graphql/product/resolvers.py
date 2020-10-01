@@ -15,25 +15,11 @@ def resolve_attributes(info, qs=None, **_kwargs):
     return qs.distinct()
 
 
-def resolve_product_variant_channel_listing(product_variant, channel_slug):
+def resolve_margin(product_variant, channel_slug):
     variant_channel_listing = product_variant.channel_listing.filter(
         channel__slug=channel_slug
     ).first()
-    return variant_channel_listing if variant_channel_listing else None
-
-
-def resolve_margin(product_variant, channel_slug):
-    variant_channel_listing = resolve_product_variant_channel_listing(
-        product_variant, channel_slug
-    )
     return get_margin_for_variant(variant_channel_listing)
-
-
-def resolve_cost_price(product_variant, channel_slug):
-    variant_channel_listing = resolve_product_variant_channel_listing(
-        product_variant, channel_slug
-    )
-    return variant_channel_listing.cost_price if variant_channel_listing else None
 
 
 def resolve_category_by_slug(slug):

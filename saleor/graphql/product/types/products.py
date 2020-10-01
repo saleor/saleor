@@ -18,7 +18,6 @@ from ....product.utils.availability import (
     get_product_availability,
     get_variant_availability,
 )
-from ....product.utils.costs import get_product_costs_data
 from ....warehouse.availability import (
     get_available_quantity,
     get_quantity_allocated,
@@ -35,7 +34,7 @@ from ...core.fields import (
     FilterInputConnectionField,
     PrefetchingConnectionField,
 )
-from ...core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange, TaxType
+from ...core.types import Image, Money, TaxedMoney, TaxedMoneyRange, TaxType
 from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
@@ -69,7 +68,7 @@ from ..dataloaders import (
     VariantsChannelListingByProductIdAndChanneSlugLoader,
 )
 from ..filters import AttributeFilterInput, ProductFilterInput
-from ..resolvers import resolve_attributes, resolve_cost_price, resolve_margin
+from ..resolvers import resolve_attributes
 from ..sorters import ProductOrder
 from .attributes import Attribute, SelectedAttribute
 from .channels import ProductChannelListing, ProductVariantChannelListing
@@ -273,16 +272,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_margin(root: ChannelContext[models.ProductVariant], *_args):
-        return resolve_margin(root.node, root.channel_slug)
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_cost_price(root: ChannelContext[models.ProductVariant], *_args):
-        return resolve_cost_price(root.node, root.channel_slug)
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_channel_listing(
         root: ChannelContext[models.ProductVariant], info, **_kwargs
     ):
@@ -446,8 +435,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         graphene.NonNull(ProductChannelListing),
         description="List of availability in channels for the product.",
     )
-    purchase_cost = graphene.Field(MoneyRange)
-    margin = graphene.Field(Margin)
     image_by_id = graphene.Field(
         lambda: ProductImage,
         id=graphene.Argument(graphene.ID, description="ID of a product image."),
@@ -596,18 +583,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     def resolve_attributes(root: ChannelContext[models.Product], info):
         return SelectedAttributesByProductIdLoader(info.context).load(root.node.id)
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_purchase_cost(root: ChannelContext[models.Product], *_args):
-        purchase_cost, _ = get_product_costs_data(root.node, root.channel_slug)
-        return purchase_cost
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_margin(root: ChannelContext[models.Product], *_args):
-        _, margin = get_product_costs_data(root.node, root.channel_slug)
-        return Margin(margin[0], margin[1])
 
     @staticmethod
     def resolve_image_by_id(root: ChannelContext[models.Product], info, id):

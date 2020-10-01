@@ -1056,8 +1056,24 @@ def test_fetch_product_from_category_query(
                         }
                         variants {
                             name
-                            costPrice {
-                                amount
+                            channelListing {
+                                costPrice {
+                                    amount
+                                }
+                            }
+                        }
+                        channelListing {
+                            purchaseCost {
+                                start {
+                                    amount
+                                }
+                                stop {
+                                    amount
+                                }
+                            }
+                            margin {
+                                start
+                                stop
                             }
                         }
                         isAvailable
@@ -1077,18 +1093,6 @@ def test_fetch_product_from_category_query(
                                     currency
                                 }
                             }
-                        }
-                        purchaseCost {
-                            start {
-                                amount
-                            }
-                            stop {
-                                amount
-                            }
-                        }
-                        margin {
-                            start
-                            stop
                         }
                     }
                 }
@@ -1111,13 +1115,25 @@ def test_fetch_product_from_category_query(
     assert product_data["slug"] == product.slug
     from ....product.utils.costs import get_product_costs_data
 
-    purchase_cost, margin = get_product_costs_data(product, channel_USD.slug)
-    assert purchase_cost.start.amount == product_data["purchaseCost"]["start"]["amount"]
+    product_channel_listing = product.channel_listing.get(channel_id=channel_USD.id)
+    purchase_cost, margin = get_product_costs_data(
+        product_channel_listing, channel_USD.slug
+    )
+    cost_start = product_data["channelListing"][0]["purchaseCost"]["start"]["amount"]
+    cost_stop = product_data["channelListing"][0]["purchaseCost"]["stop"]["amount"]
 
-    assert purchase_cost.stop.amount == product_data["purchaseCost"]["stop"]["amount"]
+    assert purchase_cost.start.amount == cost_start
+    assert purchase_cost.stop.amount == cost_stop
     assert product_data["isAvailable"] is True
-    assert margin[0] == product_data["margin"]["start"]
-    assert margin[1] == product_data["margin"]["stop"]
+    assert margin[0] == product_data["channelListing"][0]["margin"]["start"]
+    assert margin[1] == product_data["channelListing"][0]["margin"]["stop"]
+
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listing.get(channel_id=channel_USD.id)
+    variant_channel_data = product_data["variants"][0]["channelListing"][0]
+    variant_cost = variant_channel_data["costPrice"]["amount"]
+
+    assert variant_channel_listing.cost_price.amount == variant_cost
 
 
 def test_products_query_with_filter_attributes(
@@ -4158,13 +4174,11 @@ def test_report_product_sales(
     assert Decimal(amount) == line_b.quantity * line_b.unit_price_gross_amount
 
 
-@pytest.mark.parametrize("field", ("purchaseCost", "margin", "privateMeta"))
 def test_product_restricted_fields_permissions(
     staff_api_client,
     permission_manage_products,
     permission_manage_orders,
     product,
-    field,
     channel_USD,
 ):
     """Ensure non-public (restricted) fields are correctly requiring
@@ -4173,12 +4187,10 @@ def test_product_restricted_fields_permissions(
     query = """
     query Product($id: ID!, $channel: String) {
         product(id: $id, channel: $channel) {
-            %(field)s
+            privateMeta { __typename}
         }
     }
-    """ % {
-        "field": "%s { __typename }" % field
-    }
+    """
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
         "channel": channel_USD.slug,
@@ -4186,18 +4198,12 @@ def test_product_restricted_fields_permissions(
     permissions = [permission_manage_orders, permission_manage_products]
     response = staff_api_client.post_graphql(query, variables, permissions)
     content = get_graphql_content(response)
-    assert field in content["data"]["product"]
+    assert "privateMeta" in content["data"]["product"]
 
 
 @pytest.mark.parametrize(
     "field, is_nested",
-    (
-        ("digitalContent", True),
-        ("margin", False),
-        ("costPrice", True),
-        ("quantityOrdered", False),
-        ("privateMeta", True),
-    ),
+    (("digitalContent", True), ("quantityOrdered", False), ("privateMeta", True),),
 )
 def test_variant_restricted_fields_permissions(
     staff_api_client,
