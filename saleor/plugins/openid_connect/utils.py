@@ -85,7 +85,7 @@ def create_jwt_token(
     id_payload: CodeIDToken, user: User, access_token: str, permissions: List[str]
 ) -> str:
     additional_payload = {
-        "exp": id_payload["exp"],  # TODO Should we take this from id of oauth exp?
+        "exp": id_payload["exp"],
         "oauth_access_key": access_token,
         PERMISSIONS_FIELD: permissions,
     }
