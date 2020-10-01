@@ -57,8 +57,8 @@ from ..utils import (
     create_stocks,
     get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
-    validate_attribute_input_for_product,
-    validate_attribute_input_for_variant,
+    validate_attributes_input_for_product,
+    validate_attributes_input_for_variant,
 )
 from .common import ReorderInput
 
@@ -684,21 +684,29 @@ class AttributeAssignmentMixin:
         - ensure all required attributes are passed
         - ensure the values are correct for a product
         """
-        supplied_attribute_pk = []
-        for attribute, values in cleaned_input:
-            validate_attribute_input_for_product(attribute, values)
-            supplied_attribute_pk.append(attribute.pk)
+        errors = validate_attributes_input_for_product(cleaned_input)
+
+        supplied_attribute_pk = [attribute.pk for attribute, _ in cleaned_input]
 
         # Asserts all required attributes are supplied
-        missing_required_filter = Q(value_required=True) & ~Q(
-            pk__in=supplied_attribute_pk
+        missing_required_attributes = qs.filter(
+            Q(value_required=True) & ~Q(pk__in=supplied_attribute_pk)
         )
 
-        if qs.filter(missing_required_filter).exists():
-            raise ValidationError(
+        if missing_required_attributes:
+            ids = [
+                graphene.Node.to_global_id("Attribute", attr.pk)
+                for attr in missing_required_attributes
+            ]
+            error = ValidationError(
                 "All attributes flagged as having a value required must be supplied.",
                 code=ProductErrorCode.REQUIRED.value,
+                params={"attributes": ids},
             )
+            errors.append(error)
+
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
     def _check_input_for_variant(cls, cleaned_input: T_INPUT_MAP, qs: QuerySet):
@@ -714,8 +722,9 @@ class AttributeAssignmentMixin:
                 "All attributes must take a value", code=ProductErrorCode.REQUIRED.value
             )
 
-        for attribute, values in cleaned_input:
-            validate_attribute_input_for_variant(attribute, values)
+        errors = validate_attributes_input_for_variant(cleaned_input)
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
     def _validate_input(
