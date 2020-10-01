@@ -371,10 +371,24 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             ).values_list("pk", flat=True)
         )
 
+        product_pks = list(
+            models.Product.objects.filter(variants__in=pks)
+            .distinct()
+            .values_list("pk", flat=True)
+        )
+
         response = super().perform_mutation(_root, info, ids, **data)
 
         # delete order lines for deleted variants
         order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()
+
+        # set new product default varaint if any has been removed
+        products = models.Product.objects.filter(
+            pk__in=product_pks, default_variant__isnull=True
+        )
+        for product in products:
+            product.default_variant = product.variants.first()
+            product.save(update_fields=["default_variant"])
 
         return response
 
