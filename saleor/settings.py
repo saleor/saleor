@@ -464,6 +464,7 @@ DEFAULT_PLACEHOLDER = "images/placeholder255x255.png"
 SEARCH_BACKEND = "saleor.search.backends.postgresql"
 
 AUTHENTICATION_BACKENDS = [
+    "saleor.core.auth_backend.PluginBackend",
     "saleor.core.auth_backend.JSONWebTokenBackend",
 ]
 
