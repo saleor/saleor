@@ -16,7 +16,7 @@ from ...tests.utils import assert_graphql_error_with_message, get_graphql_conten
 
 
 @pytest.fixture
-def products_for_sorting_with_channels(category, channel_USD):
+def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
     product_type = ProductType.objects.create(name="Apple")
     products = Product.objects.bulk_create(
         [
@@ -81,6 +81,31 @@ def products_for_sorting_with_channels(category, channel_USD):
                 is_published=True,
                 discounted_price_amount=Decimal(7),
             ),
+            # Second channel
+            ProductChannelListing(
+                product=products[0],
+                channel=channel_PLN,
+                is_published=False,
+                discounted_price_amount=Decimal(15),
+            ),
+            ProductChannelListing(
+                product=products[1],
+                channel=channel_PLN,
+                is_published=True,
+                discounted_price_amount=Decimal(4),
+            ),
+            ProductChannelListing(
+                product=products[2],
+                channel=channel_PLN,
+                is_published=True,
+                discounted_price_amount=Decimal(5),
+            ),
+            ProductChannelListing(
+                product=products[4],
+                channel=channel_PLN,
+                is_published=True,
+                discounted_price_amount=Decimal(7),
+            ),
         ]
     )
     variants = ProductVariant.objects.bulk_create(
@@ -138,6 +163,31 @@ def products_for_sorting_with_channels(category, channel_USD):
                 price_amount=Decimal(7),
                 currency=channel_USD.currency_code,
             ),
+            # Second channel
+            ProductVariantChannelListing(
+                variant=variants[0],
+                channel=channel_PLN,
+                price_amount=Decimal(15),
+                currency=channel_PLN.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[1],
+                channel=channel_PLN,
+                price_amount=Decimal(8),
+                currency=channel_PLN.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[2],
+                channel=channel_PLN,
+                price_amount=Decimal(10),
+                currency=channel_PLN.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[4],
+                channel=channel_PLN,
+                price_amount=Decimal(7),
+                currency=channel_PLN.currency_code,
+            ),
         ]
     )
     return products
@@ -185,7 +235,6 @@ def test_products_with_sorting_and_without_channel(
     assert_graphql_error_with_message(response, LACK_OF_CHANNEL_IN_SORTING_MSG)
 
 
-# TODO: Add test for second channel
 @pytest.mark.parametrize(
     "sort_by, products_order",
     [
@@ -215,7 +264,7 @@ def test_products_with_sorting_and_without_channel(
         ),
     ],
 )
-def test_products_with_sorting_and_channel(
+def test_products_with_sorting_and_channel_USD(
     sort_by,
     products_order,
     staff_api_client,
@@ -225,6 +274,62 @@ def test_products_with_sorting_and_channel(
 ):
     # given
     sort_by["channel"] = channel_USD.slug
+    variables = {"sortBy": sort_by}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    for index, product_name in enumerate(products_order):
+        assert product_name == products_nodes[index]["node"]["name"]
+
+
+@pytest.mark.parametrize(
+    "sort_by, products_order",
+    [
+        (
+            {"field": "PUBLISHED", "direction": "ASC"},
+            ["Product1", "Product3", "ProductProduct1", "ProductProduct2", "Product2"],
+        ),
+        (
+            {"field": "PUBLISHED", "direction": "DESC"},
+            ["Product2", "ProductProduct2", "ProductProduct1", "Product3", "Product1"],
+        ),
+        (
+            {"field": "PRICE", "direction": "ASC"},
+            ["Product3", "ProductProduct1", "ProductProduct2", "Product1", "Product2"],
+        ),
+        (
+            {"field": "PRICE", "direction": "DESC"},
+            ["Product2", "Product1", "ProductProduct2", "ProductProduct1", "Product3"],
+        ),
+        (
+            {"field": "MINIMAL_PRICE", "direction": "ASC"},
+            ["ProductProduct1", "ProductProduct2", "Product3", "Product1", "Product2"],
+        ),
+        (
+            {"field": "MINIMAL_PRICE", "direction": "DESC"},
+            ["Product2", "Product1", "Product3", "ProductProduct2", "ProductProduct1"],
+        ),
+    ],
+)
+def test_products_with_sorting_and_channel_PLN(
+    sort_by,
+    products_order,
+    staff_api_client,
+    permission_manage_products,
+    products_for_sorting_with_channels,
+    channel_PLN,
+):
+    # given
+    sort_by["channel"] = channel_PLN.slug
     variables = {"sortBy": sort_by}
 
     # when
@@ -346,7 +451,6 @@ def test_products_with_filtering_without_channel(
     assert_graphql_error_with_message(response, LACK_OF_CHANNEL_IN_FILTERING_MSG)
 
 
-# TODO: Add test for second channel
 @pytest.mark.parametrize(
     "filter_by, products_count",
     [
@@ -358,7 +462,7 @@ def test_products_with_filtering_without_channel(
         ({"minimalPrice": {"gte": 5}}, 3),
     ],
 )
-def test_products_with_filtering_with_channel(
+def test_products_with_filtering_with_channel_USD(
     filter_by,
     products_count,
     staff_api_client,
@@ -368,6 +472,43 @@ def test_products_with_filtering_with_channel(
 ):
     # given
     filter_by["channel"] = channel_USD.slug
+    variables = {"filter": filter_by}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert len(products_nodes) == products_count
+
+
+@pytest.mark.parametrize(
+    "filter_by, products_count",
+    [
+        ({"isPublished": True}, 3),
+        ({"isPublished": False}, 1),
+        ({"price": {"lte": 8}}, 2),
+        ({"price": {"gte": 11}}, 1),
+        ({"minimalPrice": {"lte": 4}}, 1),
+        ({"minimalPrice": {"gte": 5}}, 3),
+    ],
+)
+def test_products_with_filtering_with_channel_PLN(
+    filter_by,
+    products_count,
+    staff_api_client,
+    permission_manage_products,
+    products_for_sorting_with_channels,
+    channel_PLN,
+):
+    # given
+    filter_by["channel"] = channel_PLN.slug
     variables = {"filter": filter_by}
 
     # when

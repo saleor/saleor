@@ -1,20 +1,18 @@
 import graphene
 from django.db.models import (
     BooleanField,
-    Case,
     Count,
+    ExpressionWrapper,
     IntegerField,
     Min,
     OuterRef,
     Q,
     QuerySet,
     Subquery,
-    Value,
-    When,
 )
 from django.db.models.functions import Coalesce
 
-from ...product.models import Category, Product
+from ...product.models import Category, Product, ProductChannelListing
 from ..channel.sorters import validate_channel_slug
 from ..core.types import SortInputObjectType, SortInputWitchChannelObjectType
 
@@ -190,21 +188,13 @@ class ProductOrderField(graphene.Enum):
     @staticmethod
     def qs_with_published(queryset: QuerySet, channel_slug: str) -> QuerySet:
         validate_channel_slug(channel_slug)
+        subquery = Subquery(
+            ProductChannelListing.objects.filter(
+                product_id=OuterRef("pk"), channel__slug=channel_slug
+            ).values_list("is_published")[:1]
+        )
         return queryset.annotate(
-            is_published=Case(
-                When(
-                    channel_listing__channel__slug=channel_slug,
-                    channel_listing__is_published=True,
-                    then=Value(True),
-                ),
-                When(
-                    channel_listing__channel__slug=channel_slug,
-                    channel_listing__is_published=False,
-                    then=Value(False),
-                ),
-                default=Value(None),
-                output_field=BooleanField(),
-            )
+            is_published=ExpressionWrapper(subquery, output_field=BooleanField())
         )
 
 
