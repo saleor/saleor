@@ -32,6 +32,14 @@ from .mutations.account import (
     ConfirmEmailChange,
     RequestEmailChange,
 )
+from .mutations.authentication import (
+    CreateToken,
+    DeactivateAllUserTokens,
+    ExternalAuthentication,
+    ExternalRefresh,
+    RefreshToken,
+    VerifyToken,
+)
 from .mutations.base import (
     ConfirmAccount,
     PasswordChange,
@@ -39,12 +47,6 @@ from .mutations.base import (
     SetPassword,
     UserClearMeta,
     UserUpdateMeta,
-)
-from .mutations.jwt import (
-    CreateToken,
-    DeactivateAllUserTokens,
-    RefreshToken,
-    VerifyToken,
 )
 from .mutations.permission_group import (
     PermissionGroupCreate,
@@ -229,6 +231,9 @@ class AccountMutations(graphene.ObjectType):
     token_refresh = RefreshToken.Field()
     token_verify = VerifyToken.Field()
     tokens_deactivate_all = DeactivateAllUserTokens.Field()
+
+    external_authentication = ExternalAuthentication.Field()
+    external_refresh = ExternalRefresh.Field()
 
     request_password_reset = RequestPasswordReset.Field()
     confirm_account = ConfirmAccount.Field()

@@ -384,3 +384,38 @@ def test_manager_inncorrect_plugin(rf):
     response = manager.webhook(request, "incorrect.plugin.id")
     assert isinstance(response, HttpResponseNotFound)
     assert response.status_code == 404
+
+
+def test_manager_external_authentication(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    response = manager.external_authentication({"redirectUrl": "ABC"}, rf.request())
+    assert response == {"authorizeUrl": "http://www.auth.provider.com/authorize/"}
+
+
+def test_manager_external_refresh(rf):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    response = manager.external_refresh({"refreshToken": "ABC11"}, rf.request())
+    expected_plugin_response = {
+        "token": "ABC",
+        "refreshToken": "refreshABC",
+        "csrfToken": "csrf",
+    }
+    assert response == expected_plugin_response
+
+
+def test_manager_authenticate_user(rf, admin_user):
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    user = manager.authenticate_user(rf.request())
+    assert user == admin_user

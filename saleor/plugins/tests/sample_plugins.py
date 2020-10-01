@@ -1,11 +1,12 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from ...account.models import User
 from ...core.taxes import TaxType
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 
@@ -101,6 +102,21 @@ class PluginSample(BasePlugin):
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:
         return Decimal("15.0").quantize(Decimal("1."))
+
+    def external_authentication(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> dict:
+        return {"authorizeUrl": "http://www.auth.provider.com/authorize/"}
+
+    def external_refresh(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> dict:
+        return {"token": "ABC", "refreshToken": "refreshABC", "csrfToken": "csrf"}
+
+    def authenticate_user(
+        self, request: WSGIRequest, previous_value
+    ) -> Optional["User"]:
+        return User.objects.filter().first()
 
 
 class PluginInactive(BasePlugin):

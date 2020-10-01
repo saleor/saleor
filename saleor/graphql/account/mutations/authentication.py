@@ -276,3 +276,57 @@ class DeactivateAllUserTokens(BaseMutation):
         user.jwt_token_key = get_random_string()
         user.save(update_fields=["jwt_token_key"])
         return cls()
+
+
+class ExternalAuthentication(BaseMutation):
+    """Authenticate a user by a custom plugin."""
+
+    authentication_data = graphene.JSONString(
+        description="The data returned by authentication plugin."
+    )
+
+    class Arguments:
+        input = graphene.JSONString(
+            required=True,
+            description="The data required by plugin to proceed the authentication.",
+        )
+
+    class Meta:
+        description = "Authenticate user by custom plugin."
+        error_type_class = AccountError
+        error_type_field = "account_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        request = info.context
+        input_data = data["input"]
+        manager = info.context.plugins
+        return cls(
+            authentication_data=manager.external_authentication(input_data, request)
+        )
+
+
+class ExternalRefresh(BaseMutation):
+    """Refresh user's access by a custom plugin."""
+
+    refreshed_data = graphene.JSONString(
+        description="The data returned by authentication plugin."
+    )
+
+    class Arguments:
+        input = graphene.JSONString(
+            required=True,
+            description="The data required by plugin to proceed the refresh process.",
+        )
+
+    class Meta:
+        description = "Authenticate user by custom plugin."
+        error_type_class = AccountError
+        error_type_field = "account_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        request = info.context
+        input_data = data["input"]
+        manager = info.context.plugins
+        return cls(refreshed_data=manager.external_refresh(input_data, request))

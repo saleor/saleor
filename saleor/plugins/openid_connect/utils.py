@@ -201,8 +201,9 @@ def validate_refresh_token(refresh_token, data):
         if not refresh_payload.get("csrf_token"):
             raise ValidationError(
                 {
-                    "csrfToken": ValidationError(
-                        "Missing CSRF token.", code=PluginErrorCode.INVALID.value,
+                    "csrf_token": ValidationError(
+                        "Missing CSRF token in refresh payload.",
+                        code=PluginErrorCode.INVALID.value,
                     )
                 }
             )
