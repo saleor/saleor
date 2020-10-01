@@ -10,7 +10,7 @@ from ....core.permissions import ProductPermissions
 from ....product import AttributeInputType, models
 from ....product.error_codes import ProductErrorCode
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types.common import ProductAttributeError, ProductError
+from ...core.types.common import ProductError
 from ...core.utils import (
     from_global_id_strict_type,
     validate_slug_and_generate_if_needed,
@@ -295,7 +295,7 @@ class AttributeAssign(BaseMutation):
 
     class Meta:
         description = "Assign attributes to a given product type."
-        error_type_class = ProductAttributeError
+        error_type_class = ProductError
         error_type_field = "product_errors"
 
     @classmethod
