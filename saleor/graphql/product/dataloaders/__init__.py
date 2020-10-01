@@ -1,7 +1,9 @@
 from .attributes import (
     AttributeValuesByAttributeIdLoader,
+    ProductAttributesByProductTypeIdLoader,
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
+    VariantAttributesByProductTypeIdLoader,
 )
 from .products import (
     CategoryByIdLoader,
@@ -21,6 +23,7 @@ __all__ = [
     "CollectionByIdLoader",
     "CollectionsByProductIdLoader",
     "ImagesByProductIdLoader",
+    "ProductAttributesByProductTypeIdLoader",
     "ProductByIdLoader",
     "ProductTypeByIdLoader",
     "ProductVariantByIdLoader",
@@ -28,4 +31,5 @@ __all__ = [
     "ImagesByProductVariantIdLoader",
     "SelectedAttributesByProductIdLoader",
     "SelectedAttributesByProductVariantIdLoader",
+    "VariantAttributesByProductTypeIdLoader",
 ]
