@@ -38,8 +38,10 @@ class SortInputObjectType(graphene.InputObjectType):
 
 
 class SortInputWitchChannelObjectType(SortInputObjectType):
-    # TODO: Add description
-    channel = graphene.Argument(graphene.String)
+    channel = graphene.Argument(
+        graphene.String,
+        description="Specifies the channel from which want to use the data in sorting.",
+    )
 
     class Meta:
         abstract = True
