@@ -1064,6 +1064,106 @@ def test_delete_variant_in_draft_order(
     assert OrderLine.objects.filter(pk=order_line_not_in_draft_pk).exists()
 
 
+def test_delete_default_variant(
+    staff_api_client, product_with_two_variants, permission_manage_products
+):
+    # given
+    query = DELETE_VARIANT_MUTATION
+    product = product_with_two_variants
+
+    default_variant = product.variants.first()
+    second_variant = product.variants.last()
+
+    product.default_variant = default_variant
+    product.save(update_fields=["default_variant"])
+
+    assert second_variant.pk != default_variant.pk
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", default_variant.pk)
+    variables = {"id": variant_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantDelete"]
+    assert data["productVariant"]["sku"] == default_variant.sku
+    with pytest.raises(default_variant._meta.model.DoesNotExist):
+        default_variant.refresh_from_db()
+
+    product.refresh_from_db()
+    assert product.default_variant.pk == second_variant.pk
+
+
+def test_delete_not_default_variant_left_default_variant_unchanged(
+    staff_api_client, product_with_two_variants, permission_manage_products
+):
+    # given
+    query = DELETE_VARIANT_MUTATION
+    product = product_with_two_variants
+
+    default_variant = product.variants.first()
+    second_variant = product.variants.last()
+
+    product.default_variant = default_variant
+    product.save(update_fields=["default_variant"])
+
+    assert second_variant.pk != default_variant.pk
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", second_variant.pk)
+    variables = {"id": variant_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantDelete"]
+    assert data["productVariant"]["sku"] == second_variant.sku
+    with pytest.raises(second_variant._meta.model.DoesNotExist):
+        second_variant.refresh_from_db()
+
+    product.refresh_from_db()
+    assert product.default_variant.pk == default_variant.pk
+
+
+def test_delete_default_all_product_variant_left_product_default_variant_unset(
+    staff_api_client, product, permission_manage_products
+):
+    # given
+    query = DELETE_VARIANT_MUTATION
+
+    default_variant = product.variants.first()
+
+    product.default_variant = default_variant
+    product.save(update_fields=["default_variant"])
+
+    assert product.variants.count() == 1
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", default_variant.pk)
+    variables = {"id": variant_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantDelete"]
+    assert data["productVariant"]["sku"] == default_variant.sku
+    with pytest.raises(default_variant._meta.model.DoesNotExist):
+        default_variant.refresh_from_db()
+
+    product.refresh_from_db()
+    assert not product.default_variant
+
+
 def _fetch_all_variants(client, permissions=None):
     query = """
         query fetchAllVariants {
