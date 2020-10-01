@@ -6,6 +6,7 @@ from ....product.models import (
     CollectionProduct,
     Product,
     ProductImage,
+    ProductType,
     ProductVariant,
     VariantImage,
 )
@@ -26,6 +27,14 @@ class ProductByIdLoader(DataLoader):
     def batch_load(self, keys):
         products = Product.objects.visible_to_user(self.user).in_bulk(keys)
         return [products.get(product_id) for product_id in keys]
+
+
+class ProductTypeByIdLoader(DataLoader):
+    context_key = "product_type_by_id"
+
+    def batch_load(self, keys):
+        product_types = ProductType.objects.in_bulk(keys)
+        return [product_types.get(product_type_id) for product_type_id in keys]
 
 
 class ImagesByProductIdLoader(DataLoader):
