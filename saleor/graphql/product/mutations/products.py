@@ -1411,6 +1411,11 @@ class ProductVariantDelete(ModelDeleteMutation):
     def success_response(cls, instance):
         # Update the "minimal_variant_prices" of the parent product
         update_product_minimal_variant_price_task.delay(instance.product_id)
+        product = models.Product.objects.get(id=instance.product_id)
+        # if the product default variant has been removed set the new one
+        if not product.default_variant:
+            product.default_variant = product.variants.first()
+            product.save(update_fields=["default_variant"])
         return super().success_response(instance)
 
     @classmethod
