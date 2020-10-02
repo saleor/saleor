@@ -32,7 +32,7 @@ class ProductExportFields:
     PRODUCT_CHANNEL_LISTING_FIELDS = {
         "channel_pk": "channel_listing__channel__pk",
         "slug": "channel_listing__channel__slug",
-        "product_currency_code": "channel_listing__channel__currency_code",
+        "product_currency_code": "channel_listing__currency",
         "published": "channel_listing__is_published",
         "publication_date": "channel_listing__publication_date",
     }
@@ -53,6 +53,6 @@ class ProductExportFields:
         "channel_pk": "variants__channel_listing__channel__pk",
         "slug": "variants__channel_listing__channel__slug",
         "price_amount": "variants__channel_listing__price_amount",
-        "variant_currency_code": "channel_listing__channel__currency_code",
+        "variant_currency_code": "variants__channel_listing__currency",
         "variant_cost_price": "variants__channel_listing__cost_price_amount",
     }

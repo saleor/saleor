@@ -529,7 +529,7 @@ def test_prepare_variants_relations_data_warehouse_ids(
 
 
 def test_prepare_variants_relations_data_channel_ids(
-    product_with_single_variant, image, media_root, channel_PLN, channel_USD
+    product_with_single_variant, channel_PLN, channel_USD
 ):
     # given
     qs = Product.objects.all()
