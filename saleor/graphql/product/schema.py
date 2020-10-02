@@ -35,6 +35,7 @@ from .filters import (
     CollectionFilterInput,
     ProductFilterInput,
     ProductTypeFilterInput,
+    ProductVariantFilterInput,
 )
 from .mutations.attributes import (
     AttributeAssign,
@@ -231,10 +232,13 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="Look up a product variant by ID.",
     )
-    product_variants = PrefetchingConnectionField(
+    product_variants = FilterInputConnectionField(
         ProductVariant,
         ids=graphene.List(
             graphene.ID, description="Filter product variants by given IDs."
+        ),
+        filter=ProductVariantFilterInput(
+            description="Filtering options for product variant."
         ),
         description="List of product variants.",
     )

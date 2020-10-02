@@ -336,6 +336,16 @@ class ProductFilter(django_filters.FilterSet):
         ]
 
 
+class ProductVariantFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(
+        method=filter_fields_containing_value("name", "product__name", "sku")
+    )
+
+    class Meta:
+        model = ProductVariant
+        fields = ["search"]
+
+
 class CollectionFilter(django_filters.FilterSet):
     published = EnumFilter(
         input_class=CollectionPublished, method=filter_collection_publish
@@ -411,6 +421,11 @@ class AttributeFilter(django_filters.FilterSet):
 class ProductFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = ProductFilter
+
+
+class ProductVariantFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = ProductVariantFilter
 
 
 class CollectionFilterInput(FilterInputObjectType):
