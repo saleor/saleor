@@ -1,0 +1,2 @@
+#restore db esch 20 mins upload db to s3
+*/20 * * * * /app/deploy.sh

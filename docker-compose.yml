@@ -1,0 +1,145 @@
+version: '2'
+
+services:
+  etang_api:
+    ports:
+      - 8000:8000
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+      args:
+        STATIC_URL: '/static/'
+
+    image: etangapi_etang_api
+    restart: unless-stopped
+    networks:
+      - saleor-backend-tier
+    depends_on:
+#      - db
+      - redis
+      - jaeger
+    volumes:
+      - ./saleor/:/app/saleor:Z
+      - ./templates/:/app/templates:Z
+      - ./tests/:/app/tests
+      # shared volume between worker and api for media
+      - saleor-media:/app/media
+#    command: python manage.py runserver 0.0.0.0:8000
+    env_file: ../.env
+    environment:
+#      - JAEGER_AGENT_HOST=jaeger
+      - STOREFRONT_URL=http://localhost:3000/
+      - DASHBOARD_URL=http://localhost:9000/
+
+  etang_front:
+    image: etangapi_etang_front
+    build:
+      context: ../etang-front
+      dockerfile: ./Dockerfile.dev
+
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    volumes:
+      - ../etang-front/:/app:cached
+      - /app/node_modules/
+    command: npm start -- --host 0.0.0.0
+
+  etang_back:
+    container_name: etang_back
+    image: etangapi_etang_back
+    build:
+      context: ../etang-back
+      dockerfile: ./Dockerfile.dev
+    ports:
+      - 9000:9000
+    restart: unless-stopped
+    volumes:
+      - ../etang-back/:/app:cached
+      - /app/node_modules/
+    command: npm start -- --host 0.0.0.0
+
+  redis:
+    image: library/redis:5.0-alpine
+    ports:
+      - 6379:6379
+    restart: unless-stopped
+    networks:
+      - saleor-backend-tier
+    volumes:
+      - saleor-redis:/data
+
+  etang_worker:
+    image: etangapi_etang_worker
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+      args:
+        STATIC_URL: '/static/'
+    command: "celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info"
+    restart: unless-stopped
+    networks:
+      - saleor-backend-tier
+    env_file: ../.env
+    depends_on:
+      - redis
+      - mailhog
+    volumes:
+        - ./saleor/:/app/saleor:Z
+        - ./templates/:/app/templates:Z
+        - ./tests/:/app/tests
+        # shared volume between worker and api for media
+        - saleor-media:/app/media
+    environment:
+      - EMAIL_URL=smtp://a5016bd396f83ce16a923c191a015af0:a0acbc2aff6387d5afd332116d8d1acb@in-v3.mailjet.com:587/?tls=True
+#      - - JAEGER_AGENT_HOST=jaeger
+      - STOREFRONT_URL=http://localhost:3000/
+      - DASHBOARD_URL=http://localhost:9000/
+
+  jaeger:
+    image: jaegertracing/all-in-one
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "9411:9411"
+    restart: unless-stopped
+    networks:
+      - saleor-backend-tier
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - 1025:1025 # smtp server
+      - 8025:8025 # web ui. Visit http://localhost:8025/ to check emails
+    restart: unless-stopped
+    networks:
+      - saleor-backend-tier
+
+#  db:
+#    image: library/postgres:11.1-alpine
+#    ports:
+#      - 5432:5432
+#    restart: unless-stopped
+#    networks:
+#      - saleor-backend-tier
+#    volumes:
+#      - saleor-db:/var/lib/postgresql
+#    environment:
+#      - POSTGRES_USER=saleor
+#      - POSTGRES_PASSWORD=saleor
+
+volumes:
+  saleor-redis:
+    driver: local
+  saleor-media:
+#  saleor-db:
+#    driver: local
+
+
+networks:
+  saleor-backend-tier:
+    driver: bridge
