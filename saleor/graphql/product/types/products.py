@@ -412,10 +412,10 @@ class ProductVariant(CountableDjangoObjectType):
 
     @classmethod
     def get_node(cls, info, pk):
-        user = info.context.user
-        visible_products = models.Product.objects.visible_to_user(user).values_list(
-            "pk", flat=True
-        )
+        requestor = get_user_or_app_from_context(info.context)
+        visible_products = models.Product.objects.visible_to_user(
+            requestor
+        ).values_list("pk", flat=True)
         qs = cls._meta.model.objects.filter(product__id__in=visible_products)
         return qs.filter(pk=pk).first()
 
@@ -631,7 +631,8 @@ class Product(CountableDjangoObjectType):
     @classmethod
     def get_node(cls, info, pk):
         if info.context:
-            qs = cls._meta.model.objects.visible_to_user(info.context.user)
+            requestor = get_user_or_app_from_context(info.context)
+            qs = cls._meta.model.objects.visible_to_user(requestor)
             return qs.filter(pk=pk).first()
         return None
 
@@ -793,8 +794,8 @@ class Collection(CountableDjangoObjectType):
     @classmethod
     def get_node(cls, info, id):
         if info.context:
-            user = info.context.user
-            qs = cls._meta.model.objects.visible_to_user(user)
+            requestor = get_user_or_app_from_context(info.context)
+            qs = cls._meta.model.objects.visible_to_user(requestor)
             return qs.filter(id=id).first()
         return None
 
