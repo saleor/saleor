@@ -232,7 +232,7 @@ def test_digital_product_view_url_expired(client, digital_content):
 )
 def test_costs_get_margin_for_variant(variant, price, cost, channel_USD):
     variant_channel_listing = variant.channel_listing.filter(
-        channle_id=channel_USD.id
+        channel_id=channel_USD.id
     ).first()
     variant_channel_listing.cost_price = cost
     variant_channel_listing.price = price
