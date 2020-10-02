@@ -620,6 +620,26 @@ def test_authenticate_user_missing_token_in_request(openid_plugin, id_payload, r
 
 
 @freeze_time("2019-03-18 12:00:00")
+def test_authenticate_user_plugin_is_disabled(
+    openid_plugin, customer_user, monkeypatch, id_payload, rf
+):
+    plugin = openid_plugin(active=False)
+    token = create_jwt_token(
+        id_payload,
+        customer_user,
+        access_token="access",
+        permissions=[],
+        owner=plugin.PLUGIN_ID,
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_token_from_request", lambda _: token
+    )
+
+    user = plugin.authenticate_user(rf.request(), None)
+    assert user is None
+
+
+@freeze_time("2019-03-18 12:00:00")
 def test_authenticate_user_unable_to_decode_token(
     openid_plugin, id_payload, customer_user, monkeypatch, rf
 ):
