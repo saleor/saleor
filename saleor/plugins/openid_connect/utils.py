@@ -31,6 +31,12 @@ from .exceptions import AuthenticationError
 JWKS_KEY = "oauth_jwks"
 JWKS_CACHE_TIME = 60 * 60  # 1 hour
 
+
+OAUTH_TOKEN_REFRESH_FIELD = "oauth_refresh_token"
+CSRF_FIELD = "csrf_token"
+
+JWT_OWNER_FIELD = "owner"
+
 logger = logging.getLogger(__name__)
 
 
@@ -82,12 +88,17 @@ def get_jwks_keys_from_cache_or_fetch(jwks_url: str) -> dict:
 
 
 def create_jwt_token(
-    id_payload: CodeIDToken, user: User, access_token: str, permissions: List[str]
+    id_payload: CodeIDToken,
+    user: User,
+    access_token: str,
+    permissions: List[str],
+    owner: str,
 ) -> str:
     additional_payload = {
         "exp": id_payload["exp"],
         "oauth_access_key": access_token,
         PERMISSIONS_FIELD: permissions,
+        JWT_OWNER_FIELD: owner,
     }
     jwt_payload = jwt_user_payload(
         user,
@@ -98,8 +109,12 @@ def create_jwt_token(
     return jwt_encode(jwt_payload)
 
 
-def create_jwt_refresh_token(user: User, refresh_token: str, csrf: str):
-    additional_payload = {"oauth_refresh_token": refresh_token, "csrf_token": csrf}
+def create_jwt_refresh_token(user: User, refresh_token: str, csrf: str, owner: str):
+    additional_payload = {
+        OAUTH_TOKEN_REFRESH_FIELD: refresh_token,
+        CSRF_FIELD: csrf,
+        JWT_OWNER_FIELD: owner,
+    }
     jwt_payload = jwt_user_payload(
         user,
         JWT_REFRESH_TYPE,
@@ -145,20 +160,32 @@ def get_user_from_token(claims: CodeIDToken) -> User:
     return user
 
 
+def is_owner_of_token_valid(token: str, owner: str) -> bool:
+    try:
+        payload = jwt_decode(token, verify_expiration=False)
+        return payload.get(JWT_OWNER_FIELD, "") == owner
+    except Exception:
+        return False
+
+
 def create_tokens_from_oauth_payload(
-    token_data: dict, user: User, claims: CodeIDToken, permissions: List[str]
+    token_data: dict,
+    user: User,
+    claims: CodeIDToken,
+    permissions: List[str],
+    owner: str,
 ):
     refresh_token = token_data.get("refresh_token")
 
     tokens = {
         "token": create_jwt_token(
-            claims, user, token_data["access_token"], permissions
+            claims, user, token_data["access_token"], permissions, owner
         ),
     }
     if refresh_token:
         csrf_token = _get_new_csrf_token()
         tokens["refreshToken"] = create_jwt_refresh_token(
-            user, refresh_token, csrf_token
+            user, refresh_token, csrf_token, owner
         )
         tokens["csrfToken"] = csrf_token
     return tokens
@@ -176,7 +203,7 @@ def validate_refresh_token(refresh_token, data):
         )
 
     try:
-        refresh_payload = jwt_decode(refresh_token)
+        refresh_payload = jwt_decode(refresh_token, verify_expiration=True)
     except PyJWTError:
         raise ValidationError(
             {
@@ -188,10 +215,10 @@ def validate_refresh_token(refresh_token, data):
         )
 
     if not data.get("refreshToken"):
-        if not refresh_payload.get("csrf_token"):
+        if not refresh_payload.get(CSRF_FIELD):
             raise ValidationError(
                 {
-                    "csrf_token": ValidationError(
+                    CSRF_FIELD: ValidationError(
                         "Missing CSRF token in refresh payload.",
                         code=PluginErrorCode.INVALID.value,
                     )
@@ -206,7 +233,7 @@ def validate_refresh_token(refresh_token, data):
                     )
                 }
             )
-        is_valid = _compare_masked_tokens(csrf_token, refresh_payload["csrf_token"])
+        is_valid = _compare_masked_tokens(csrf_token, refresh_payload[CSRF_FIELD])
         if not is_valid:
             raise ValidationError(
                 {

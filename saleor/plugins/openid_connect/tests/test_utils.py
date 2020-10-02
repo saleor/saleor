@@ -76,12 +76,18 @@ def test_create_tokens_from_oauth_payload(
     }
     user = get_or_create_user_from_token(id_payload)
     perms = get_saleor_permissions_from_scope(auth_payload.get("scope"))
-    tokens = create_tokens_from_oauth_payload(auth_payload, user, id_payload, perms)
+    tokens = create_tokens_from_oauth_payload(
+        auth_payload, user, id_payload, perms, "PluginID"
+    )
 
     created_user = User.objects.get()
 
     token = create_jwt_token(
-        id_payload, created_user, auth_payload["access_token"], permissions_from_scope
+        id_payload,
+        created_user,
+        auth_payload["access_token"],
+        permissions_from_scope,
+        "PluginID",
     )
 
     assert created_user.email == id_payload["email"]
@@ -96,7 +102,7 @@ def test_create_tokens_from_oauth_payload(
 
 @freeze_time("2019-03-18 12:00:00")
 def test_validate_refresh_token_missing_csrf_token(id_payload, admin_user):
-    token = create_jwt_refresh_token(admin_user, "refresh_token", "csrf")
+    token = create_jwt_refresh_token(admin_user, "refresh_token", "csrf", "pluginID")
     with pytest.raises(ValidationError):
         validate_refresh_token(token, {})
 

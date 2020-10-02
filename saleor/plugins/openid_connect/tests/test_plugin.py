@@ -10,11 +10,19 @@ from django.middleware.csrf import _get_new_csrf_token
 from freezegun import freeze_time
 
 from saleor.account.models import User
-from saleor.core.jwt import JWT_REFRESH_TOKEN_COOKIE_NAME, jwt_decode
+from saleor.core.jwt import (
+    JWT_ACCESS_TYPE,
+    JWT_REFRESH_TOKEN_COOKIE_NAME,
+    PERMISSIONS_FIELD,
+    jwt_decode,
+    jwt_encode,
+    jwt_user_payload,
+)
 
 from ...models import PluginConfiguration
 from ..utils import (
     create_jwt_refresh_token,
+    create_jwt_token,
     create_tokens_from_oauth_payload,
     get_or_create_user_from_token,
     get_parsed_id_token,
@@ -114,7 +122,7 @@ def test_external_refresh_from_cookie(
     plugin = openid_plugin()
     csrf_token = _get_new_csrf_token()
     saleor_refresh_token = create_jwt_refresh_token(
-        admin_user, oauth_refresh_token, csrf_token
+        admin_user, oauth_refresh_token, csrf_token, plugin.PLUGIN_ID
     )
     request = rf.request()
     request.COOKIES[JWT_REFRESH_TOKEN_COOKIE_NAME] = saleor_refresh_token
@@ -170,7 +178,7 @@ def test_external_refresh_from_input(
     plugin = openid_plugin()
     csrf_token = _get_new_csrf_token()
     saleor_refresh_token = create_jwt_refresh_token(
-        admin_user, oauth_refresh_token, csrf_token
+        admin_user, oauth_refresh_token, csrf_token, plugin.PLUGIN_ID
     )
 
     request = rf.request()
@@ -224,11 +232,23 @@ def test_external_refresh_raises_error_when_token_is_invalid(
     plugin = openid_plugin()
     csrf_token = _get_new_csrf_token()
     saleor_refresh_token = create_jwt_refresh_token(
-        admin_user, oauth_refresh_token, csrf_token
+        admin_user, oauth_refresh_token, csrf_token, plugin.PLUGIN_ID
     )
 
     request = rf.request()
     data = {"refreshToken": saleor_refresh_token}
+    with pytest.raises(ValidationError):
+        plugin.external_refresh(data, request, None)
+
+
+@freeze_time("2019-03-18 12:00:00")
+def test_external_refresh_disabled_refreshing(
+    openid_plugin, admin_user, monkeypatch, rf, id_token, id_payload
+):
+    plugin = openid_plugin(enable_refresh_token=False)
+
+    request = rf.request()
+    data = {"refreshToken": "ABC"}
     with pytest.raises(ValidationError):
         plugin.external_refresh(data, request, None)
 
@@ -251,7 +271,7 @@ def test_external_refresh_raises_error(
     csrf_token = _get_new_csrf_token()
     oauth_refresh_token = "refresh"
     saleor_refresh_token = create_jwt_refresh_token(
-        admin_user, oauth_refresh_token, csrf_token
+        admin_user, oauth_refresh_token, csrf_token, plugin.PLUGIN_ID
     )
     request = rf.request()
     request.COOKIES[JWT_REFRESH_TOKEN_COOKIE_NAME] = saleor_refresh_token
@@ -270,7 +290,7 @@ def test_external_refresh_incorrect_csrf(
     csrf_token = _get_new_csrf_token()
     oauth_refresh_token = "refresh"
     saleor_refresh_token = create_jwt_refresh_token(
-        admin_user, oauth_refresh_token, csrf_token
+        admin_user, oauth_refresh_token, csrf_token, plugin.PLUGIN_ID
     )
     request = rf.request()
     request.COOKIES[JWT_REFRESH_TOKEN_COOKIE_NAME] = saleor_refresh_token
@@ -333,7 +353,7 @@ def test_handle_oauth_callback(openid_plugin, monkeypatch, rf, id_token, id_payl
     claims = get_parsed_id_token(oauth_payload, plugin.config.json_web_key_set_url,)
     user = get_or_create_user_from_token(claims)
     expected_tokens = create_tokens_from_oauth_payload(
-        oauth_payload, user, claims, permissions=[]
+        oauth_payload, user, claims, permissions=[], owner=plugin.PLUGIN_ID
     )
     assert parsed_url.netloc == "localhost:3000"
     assert parsed_url.path == "/used-logged-in"
@@ -460,3 +480,117 @@ def test_webhook_calls_callback(openid_plugin, rf, monkeypatch):
     request = rf.request()
     plugin.webhook(request, "/callback?some=value", None)
     mocked_callback.assert_called_once_with(request)
+
+
+@freeze_time("2019-03-18 12:00:00")
+def test_authenticate_user(openid_plugin, id_payload, customer_user, monkeypatch, rf):
+    plugin = openid_plugin()
+    token = create_jwt_token(
+        id_payload,
+        customer_user,
+        access_token="access",
+        permissions=[],
+        owner=plugin.PLUGIN_ID,
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_token_from_request", lambda _: token
+    )
+    user = plugin.authenticate_user(rf.request(), None)
+    assert user == customer_user
+
+
+@freeze_time("2019-03-18 12:00:00")
+def test_authenticate_user_wrong_owner(
+    openid_plugin, id_payload, customer_user, staff_user, monkeypatch, rf
+):
+    plugin = openid_plugin()
+    token = create_jwt_token(
+        id_payload,
+        customer_user,
+        access_token="access",
+        permissions=[],
+        owner="DifferentPlugin",
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_token_from_request", lambda _: token
+    )
+    user = plugin.authenticate_user(rf.request(), previous_value=staff_user)
+    assert user == staff_user
+
+
+@freeze_time("2019-03-18 12:00:00")
+def test_authenticate_user_missing_owner(
+    openid_plugin, id_payload, customer_user, monkeypatch, rf
+):
+    plugin = openid_plugin()
+    additional_payload = {
+        "exp": id_payload["exp"],
+        "oauth_access_key": "access",
+        PERMISSIONS_FIELD: [],
+    }
+    jwt_payload = jwt_user_payload(
+        customer_user,
+        JWT_ACCESS_TYPE,
+        exp_delta=None,
+        additional_payload=additional_payload,
+    )
+    token = jwt_encode(jwt_payload)
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_token_from_request", lambda _: token
+    )
+    user = plugin.authenticate_user(rf.request(), None)
+    assert user is None
+
+
+@freeze_time("2019-03-18 12:00:00")
+def test_authenticate_user_missing_token_in_request(openid_plugin, id_payload, rf):
+    plugin = openid_plugin()
+    user = plugin.authenticate_user(rf.request(), None)
+    assert user is None
+
+
+@freeze_time("2019-03-18 12:00:00")
+def test_authenticate_user_unable_to_decode_token(
+    openid_plugin, id_payload, customer_user, monkeypatch, rf
+):
+    plugin = openid_plugin()
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_token_from_request", lambda _: "ABC"
+    )
+    user = plugin.authenticate_user(rf.request(), None)
+    assert user is None
+
+
+@freeze_time("2019-03-18 12:00:00")
+def test_authenticate_user_staff_user_with_effective_permissions(
+    openid_plugin,
+    id_payload,
+    staff_user,
+    permission_manage_orders,
+    permission_manage_users,
+    permission_manage_checkouts,
+    permission_manage_gift_card,
+    monkeypatch,
+    rf,
+):
+    plugin = openid_plugin()
+    staff_user.user_permissions.add(
+        permission_manage_gift_card, permission_manage_checkouts
+    )
+    permissions = ["MANAGE_USERS", "MANAGE_ORDERS"]
+    token = create_jwt_token(
+        id_payload,
+        staff_user,
+        access_token="access",
+        permissions=permissions,
+        owner=plugin.PLUGIN_ID,
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_token_from_request", lambda _: token
+    )
+    user = plugin.authenticate_user(rf.request(), None)
+    assert user == staff_user
+    assert set(user.effective_permissions) == {
+        permission_manage_orders,
+        permission_manage_users,
+    }

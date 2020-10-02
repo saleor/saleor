@@ -1,4 +1,3 @@
-import json
 import logging
 from typing import Callable, Optional
 
@@ -16,7 +15,7 @@ from ...account.models import User
 from ...core.jwt import (
     JWT_REFRESH_TOKEN_COOKIE_NAME,
     get_token_from_request,
-    get_user_from_access_token,
+    get_user_from_access_payload,
     jwt_decode,
 )
 from ...core.permissions import get_permissions_codename
@@ -27,12 +26,14 @@ from ..models import PluginConfiguration
 from .dataclasses import OpenIDConnectConfig
 from .exceptions import AuthenticationError
 from .utils import (
+    OAUTH_TOKEN_REFRESH_FIELD,
     create_tokens_from_oauth_payload,
     get_incorrect_fields,
     get_or_create_user_from_token,
     get_parsed_id_token,
     get_saleor_permissions_from_scope,
     get_user_from_token,
+    is_owner_of_token_valid,
     validate_refresh_token,
     validate_storefront_redirect_url,
 )
@@ -209,7 +210,7 @@ class OpenIDConnectPlugin(BasePlugin):
         try:
             token_data = self.oauth.refresh_token(
                 token_endpoint,
-                refresh_token=saleor_refresh_token["oauth_refresh_token"],
+                refresh_token=saleor_refresh_token[OAUTH_TOKEN_REFRESH_FIELD],
             )
         except AuthlibBaseError:
             logger.warning("Unable to refresh the token.", exc_info=True)
@@ -229,7 +230,11 @@ class OpenIDConnectPlugin(BasePlugin):
             )
             user = get_user_from_token(parsed_id_token)
             return create_tokens_from_oauth_payload(
-                token_data, user, parsed_id_token, user_permissions
+                token_data,
+                user,
+                parsed_id_token,
+                user_permissions,
+                owner=self.PLUGIN_ID,
             )
         except AuthenticationError as e:
             raise ValidationError(
@@ -248,12 +253,15 @@ class OpenIDConnectPlugin(BasePlugin):
     def authenticate_user(self, request: WSGIRequest, previous_value) -> Optional[User]:
         if not self.active:
             return previous_value
-        # TODO this will be covered by tests and modified after we add Auth backend for
-        #  plugins
         token = get_token_from_request(request)
         if not token:
-            return None
-        return get_user_from_access_token(token)
+            return previous_value
+        valid = is_owner_of_token_valid(token, owner=self.PLUGIN_ID)
+        if not valid:
+            return previous_value
+        payload = jwt_decode(token)
+        user = get_user_from_access_payload(payload)
+        return user
 
     @convert_error_to_http_response
     def handle_auth_callback(self, request: WSGIRequest) -> HttpResponse:
@@ -264,7 +272,7 @@ class OpenIDConnectPlugin(BasePlugin):
 
         storefront_redirect_url = state_data.get("redirectUrl")
         if not storefront_redirect_url:
-            raise AuthenticationError("Missing GET parameter - redirectUrl.")
+            raise AuthenticationError("Missing redirectUrl in state.")
         token_data = self.oauth.fetch_token(
             self.config.token_url,
             authorization_response=request.build_absolute_uri(),
@@ -276,7 +284,7 @@ class OpenIDConnectPlugin(BasePlugin):
         )
         user = get_or_create_user_from_token(parsed_id_token)
         params = create_tokens_from_oauth_payload(
-            token_data, user, parsed_id_token, user_permissions
+            token_data, user, parsed_id_token, user_permissions, owner=self.PLUGIN_ID
         )
         req = PreparedRequest()
         req.prepare_url(storefront_redirect_url, params)
@@ -285,18 +293,6 @@ class OpenIDConnectPlugin(BasePlugin):
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         if not self.active:
             return HttpResponseNotFound()
-        if path.startswith("/refresh"):
-            # TODO this call will be moved to external refresh mutation
-            return HttpResponse(self.external_refresh({}, request, None))
-        if path.startswith("/login"):
-            # TODO this will be moved to external auth mutation
-            return HttpResponse(
-                json.dumps(
-                    self.external_authentication(
-                        request.GET, request, None  # type: ignore
-                    )
-                )
-            )
         if path.startswith("/callback"):
             return self.handle_auth_callback(request)
         return HttpResponseNotFound()

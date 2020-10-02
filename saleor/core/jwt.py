@@ -61,12 +61,12 @@ def jwt_encode(payload: Dict[str, Any]) -> str:
     ).decode("utf-8")
 
 
-def jwt_decode(token: str) -> Dict[str, Any]:
+def jwt_decode(token: str, verify_expiration=settings.JWT_EXPIRE) -> Dict[str, Any]:
     return jwt.decode(
         token,
         settings.SECRET_KEY,  # type: ignore
         algorithms=JWT_ALGORITHM,
-        verify_expiration=settings.JWT_EXPIRE,
+        verify_expiration=verify_expiration,
     )
 
 
@@ -118,6 +118,10 @@ def get_user_from_payload(payload: Dict[str, Any]) -> Optional[User]:
 
 def get_user_from_access_token(token: str) -> Optional[User]:
     payload = jwt_decode(token)
+    return get_user_from_access_payload(payload)
+
+
+def get_user_from_access_payload(payload: dict) -> Optional[User]:
     jwt_type = payload.get("type")
     if jwt_type not in [JWT_ACCESS_TYPE, JWT_THIRDPARTY_ACCESS_TYPE]:
         raise jwt.InvalidTokenError(
