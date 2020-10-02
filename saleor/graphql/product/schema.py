@@ -117,7 +117,7 @@ from .resolvers import (
     resolve_digital_contents,
     resolve_product_by_slug,
     resolve_product_types,
-    resolve_product_varaint_by_sku,
+    resolve_product_variant_by_sku,
     resolve_product_variants,
     resolve_products,
     resolve_report_product_sales,
@@ -232,7 +232,7 @@ class ProductQueries(graphene.ObjectType):
         sku=graphene.Argument(
             graphene.String, description="Sku of the product variant."
         ),
-        description="Look up a product variant by ID or sku.",
+        description="Look up a product variant by ID or SKU.",
     )
     product_variants = FilterInputConnectionField(
         ProductVariant,
@@ -306,8 +306,7 @@ class ProductQueries(graphene.ObjectType):
         validate_one_of_args_is_in_query("id", id, "sku", sku)
         if id:
             return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
-        if sku:
-            return resolve_product_varaint_by_sku(info, sku=sku)
+        return resolve_product_variant_by_sku(info, sku=sku)
 
     def resolve_product_variants(self, info, ids=None, **_kwargs):
         return resolve_product_variants(info, ids)
