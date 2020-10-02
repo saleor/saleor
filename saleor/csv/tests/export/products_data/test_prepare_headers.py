@@ -10,76 +10,6 @@ from ....utils.product_headers import (
 )
 
 
-def test_get_export_fields_and_headers_fields_with_price():
-    # given
-    export_info = {
-        "fields": [
-            ProductFieldEnum.COST_PRICE.value,
-            ProductFieldEnum.COLLECTIONS.value,
-            ProductFieldEnum.DESCRIPTION.value,
-        ],
-        "warehoses": [],
-    }
-
-    # when
-    export_fields, file_headers = get_product_export_fields_and_headers(export_info)
-
-    # then
-    expected_headers = [
-        "id",
-        "cost price",
-        "variant currency",
-        "collections",
-        "description",
-    ]
-
-    expected_fields = [
-        "id",
-        "variants__channel_listing__cost_price_amount",
-        "variants__channel_listing__currency",
-        "collections__slug",
-        "description",
-    ]
-
-    assert export_fields == expected_fields
-    assert file_headers == expected_headers
-
-
-def test_get_export_fields_and_headers_fields_with_cost_price():
-    # given
-    export_info = {
-        "fields": [
-            ProductFieldEnum.NAME.value,
-            ProductFieldEnum.COST_PRICE.value,
-            ProductFieldEnum.COLLECTIONS.value,
-        ],
-        "warehoses": [],
-    }
-
-    # when
-    export_fields, file_headers = get_product_export_fields_and_headers(export_info)
-
-    # then
-    expected_headers = [
-        "id",
-        "name",
-        "cost price",
-        "variant currency",
-        "collections",
-    ]
-
-    expected_fields = [
-        "id",
-        "name",
-        "variants__channel_listing__cost_price_amount",
-        "variants__channel_listing__currency",
-        "collections__slug",
-    ]
-
-    assert export_fields == expected_fields
-    assert file_headers == expected_headers
-
-
 def test_get_export_fields_and_headers_fields_without_price():
     # given
     export_info = {
@@ -188,6 +118,7 @@ def test_get_channels_headers(channel_USD, channel_PLN):
             "publication date",
             "price amount",
             "variant currency code",
+            "variant cost price",
         ]:
             expected_headers.append(f"{channel_slug} (channel {field})")
     assert channel_headers == expected_headers
@@ -213,7 +144,6 @@ def test_get_export_fields_and_headers_info(
     channel_ids = [channel_PLN.pk, channel_USD.pk]
     export_info = {
         "fields": [
-            ProductFieldEnum.COST_PRICE.value,
             ProductFieldEnum.COLLECTIONS.value,
             ProductFieldEnum.DESCRIPTION.value,
         ],
@@ -224,8 +154,6 @@ def test_get_export_fields_and_headers_info(
 
     expected_file_headers = [
         "id",
-        "cost price",
-        "variant currency",
         "collections",
         "description",
     ]
@@ -238,8 +166,6 @@ def test_get_export_fields_and_headers_info(
     # then
     expected_fields = [
         "id",
-        "variants__channel_listing__cost_price_amount",
-        "variants__channel_listing__currency",
         "collections__slug",
         "description",
     ]
@@ -263,6 +189,7 @@ def test_get_export_fields_and_headers_info(
             "publication date",
             "price amount",
             "variant currency code",
+            "variant cost price",
         ]:
             channel_headers.append(f"{slug} (channel {field})")
 

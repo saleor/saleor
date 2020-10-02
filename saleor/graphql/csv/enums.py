@@ -31,6 +31,7 @@ class ProductFieldEnum(graphene.Enum):
     PRODUCT_TYPE = "product type"
     CATEGORY = "category"
     VISIBLE = "visible"
+    # TODO: remove this field in SALEOR-902
     AVAILABLE_FOR_PURCHASE = "available for purchase"
     SEARCHABLE = "searchable"
     PRODUCT_WEIGHT = "product weight"
@@ -38,6 +39,5 @@ class ProductFieldEnum(graphene.Enum):
     CHARGE_TAXES = "charge taxes"
     PRODUCT_IMAGES = "product images"
     VARIANT_SKU = "variant sku"
-    COST_PRICE = "cost price"
     VARIANT_WEIGHT = "variant weight"
     VARIANT_IMAGES = "variant images"

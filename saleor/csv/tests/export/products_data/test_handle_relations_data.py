@@ -552,7 +552,6 @@ def test_prepare_variants_relations_data_channel_ids(
     expected_result = add_channel_to_expected_variant_data(
         expected_result, variant, channel_ids, pk
     )
-
     assert result == expected_result
 
 

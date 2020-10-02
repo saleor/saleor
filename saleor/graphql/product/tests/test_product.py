@@ -34,6 +34,7 @@ from ....product.models import (
 from ....product.tasks import update_variants_names
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ....product.utils.attributes import associate_attribute_values_to_instance
+from ....product.utils.costs import get_product_costs_data
 from ....warehouse.models import Allocation, Stock, Warehouse
 from ...core.enums import ReportingPeriod
 from ...tests.utils import (
@@ -1113,7 +1114,6 @@ def test_fetch_product_from_category_query(
     assert product_data["name"] == product.name
     assert product_data["url"] == ""
     assert product_data["slug"] == product.slug
-    from ....product.utils.costs import get_product_costs_data
 
     product_channel_listing = product.channel_listing.get(channel_id=channel_USD.id)
     variant = product.variants.first()

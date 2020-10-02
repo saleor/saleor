@@ -218,13 +218,7 @@ def prepare_variants_relations_data(
     for data in relations_data.iterator():
         pk = data.get("variants__pk")
         image = data.pop("variants__images__image", None)
-        cost_price = data.pop("variants__channel_listing__cost_price_amount", None)
-        if cost_price:
-            result_data[pk]["variants__channel_listing__cost_price"] = cost_price
 
-        currency_code = data.pop("variants__channel_listing__currency", None)
-        if currency_code:
-            result_data[pk]["variants__channel_listing__currency"] = currency_code
         result_data = add_image_uris_to_data(
             pk, image, "variants__images__image", result_data
         )

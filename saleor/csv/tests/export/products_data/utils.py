@@ -65,11 +65,13 @@ def add_channel_to_expected_variant_data(data, variant, channel_ids, pk=None):
             channel_slug = channel_listing.channel.slug
             price_header = f"{channel_slug} (channel price amount)"
             currency_header = f"{channel_slug} (channel variant currency code)"
+            cost_price = f"{channel_slug} (channel variant cost price)"
             if pk:
                 data[pk][price_header] = channel_listing.price_amount
                 data[pk][currency_header] = channel_listing.currency
+                data[pk][cost_price] = channel_listing.cost_price_amount
             else:
                 data[price_header] = channel_listing.price_amount
                 data[currency_header] = channel_listing.currency
-
+                data[cost_price] = channel_listing.cost_price_amount
     return data

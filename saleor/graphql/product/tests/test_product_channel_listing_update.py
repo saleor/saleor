@@ -4,6 +4,7 @@ import graphene
 import pytest
 
 from ....product.error_codes import ProductErrorCode
+from ....product.utils.costs import get_product_costs_data
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION = """
@@ -221,7 +222,6 @@ def test_product_channel_listing_update_as_staff_user(
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
-    from ....product.utils.costs import get_product_costs_data
 
     product_channel_listing = product.channel_listing.get(channel_id=channel_USD.id)
     variant = product.variants.first()

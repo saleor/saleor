@@ -22,7 +22,7 @@ class ProductChannelListing(CountableDjangoObjectType):
         Money, description="The price of the cheapest variant (including discounts)."
     )
     purchase_cost = graphene.Field(MoneyRange, description="Purchase cost of product.")
-    margin = graphene.Field(Margin, description="Gross margin percentage value.")
+    margin = graphene.Field(Margin, description="Range of margin percentage value.")
 
     class Meta:
         description = "Represents product channel listing."

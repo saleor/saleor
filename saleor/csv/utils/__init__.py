@@ -6,6 +6,7 @@ class ProductExportFields:
             "id": "id",
             "name": "name",
             "description": "description",
+            # TODO: remove this field in SALEOR-902
             "available for purchase": "available_for_purchase",
             "searchable": "visible_in_listings",
             "category": "category__slug",
@@ -19,11 +20,7 @@ class ProductExportFields:
             "collections": "collections__slug",
             "product images": "images__image",
         },
-        "variant_many_to_many": {
-            "variant images": "variants__images__image",
-            "cost price": "variants__channel_listing__cost_price_amount",
-            "variant currency": "variants__channel_listing__currency",
-        },
+        "variant_many_to_many": {"variant images": "variants__images__image"},
     }
 
     PRODUCT_ATTRIBUTE_FIELDS = {
@@ -57,4 +54,5 @@ class ProductExportFields:
         "slug": "variants__channel_listing__channel__slug",
         "price_amount": "variants__channel_listing__price_amount",
         "variant_currency_code": "channel_listing__channel__currency_code",
+        "variant_cost_price": "variants__channel_listing__cost_price_amount",
     }

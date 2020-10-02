@@ -91,14 +91,8 @@ def test_get_products_data(product, product_with_image, collection, image, chann
         )
 
         for variant in product.variants.all():
-            variant_channel_listing = variant.channel_listing.filter(
-                channel_id=channel_USD.id
-            ).first()
-            cost_price_amount = variant_channel_listing.cost_price_amount
             data = {
                 "variants__sku": variant.sku,
-                "variants__channel_listing__currency": variant_channel_listing.currency,
-                "variants__channel_listing__cost_price": cost_price_amount,
                 "variants__images__image": (
                     ""
                     if not variant.images.all()
