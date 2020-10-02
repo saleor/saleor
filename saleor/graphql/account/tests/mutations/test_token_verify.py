@@ -1,5 +1,9 @@
 from .....account.error_codes import AccountErrorCode
-from .....core.jwt import create_access_token, create_access_token_for_app
+from .....core.jwt import (
+    PERMISSIONS_FIELD,
+    create_access_token,
+    create_access_token_for_app,
+)
 from ....tests.utils import get_graphql_content
 
 MUTATION_TOKEN_VERIFY = """
@@ -8,6 +12,9 @@ MUTATION_TOKEN_VERIFY = """
             isValid
             user{
               email
+              userPermissions{
+                code
+              }
             }
             accountErrors{
               code
@@ -25,6 +32,25 @@ def test_verify_access_token(api_client, customer_user):
     assert data["isValid"] is True
     user_email = content["data"]["tokenVerify"]["user"]["email"]
     assert customer_user.email == user_email
+
+
+def test_verify_access_token_with_permissions(
+    api_client, staff_user, permission_manage_users, permission_manage_gift_card
+):
+    staff_user.user_permissions.add(permission_manage_gift_card)
+    staff_user.user_permissions.add(permission_manage_users)
+    assigned_permissions = ["MANAGE_ORDERS"]
+    additional_payload = {PERMISSIONS_FIELD: assigned_permissions}
+    variables = {"token": create_access_token(staff_user, additional_payload)}
+    response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["tokenVerify"]
+    assert data["isValid"] is True
+    user_email = content["data"]["tokenVerify"]["user"]["email"]
+    user_permissions = content["data"]["tokenVerify"]["user"]["userPermissions"]
+    assert len(user_permissions) == 1
+    assert user_permissions[0]["code"] == assigned_permissions[0]
+    assert staff_user.email == user_email
 
 
 def test_verify_access_app_token(api_client, staff_user, app):
