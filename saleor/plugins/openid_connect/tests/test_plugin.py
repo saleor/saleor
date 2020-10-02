@@ -412,6 +412,30 @@ def test_validate_plugin_configuration(plugin_configuration, openid_plugin):
     plugin.validate_plugin_configuration(conf)
 
 
+def test_external_logout_missing_logouat_url(openid_plugin, rf):
+    plugin = openid_plugin(oauth_logout_url="")
+    response = plugin.external_logout({}, rf.request(), None)
+    assert response == {}
+
+
+def test_external_logout(openid_plugin, rf):
+    client_id = "AVC"
+    domain = "saleor.auth.com"
+    path = "/logout"
+    plugin = openid_plugin(oauth_logout_url=f"http://{domain}{path}?client_id=AVC")
+    input_data = {"redirectUrl": "http://localhost:3000/logout", "field1": "value1"}
+    response = plugin.external_logout(input_data, rf.request(), None)
+    logout_url = response["logoutUrl"]
+
+    parsed_url = urlparse(logout_url)
+    parsed_qs = parse_qs(parsed_url.query)
+    assert parsed_url.netloc == domain
+    assert parsed_url.path == path
+    assert parsed_qs["redirectUrl"][0] == "http://localhost:3000/logout"
+    assert parsed_qs["field1"][0] == "value1"
+    assert parsed_qs["client_id"][0] == client_id
+
+
 def test_webhook_when_plugin_is_disabled(openid_plugin, rf):
     plugin = openid_plugin(active=False)
     response = plugin.webhook(rf.request(), "/callback?some=value", None)

@@ -320,7 +320,7 @@ class ExternalRefresh(BaseMutation):
         )
 
     class Meta:
-        description = "Authenticate user by custom plugin."
+        description = "Refresh user's access by custom plugin."
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -330,3 +330,29 @@ class ExternalRefresh(BaseMutation):
         input_data = data["input"]
         manager = info.context.plugins
         return cls(refreshed_data=manager.external_refresh(input_data, request))
+
+
+class ExternalLogout(BaseMutation):
+    """Logout user by a custom plugin."""
+
+    logout_data = graphene.JSONString(
+        description="The data returned by authentication plugin."
+    )
+
+    class Arguments:
+        input = graphene.JSONString(
+            required=True,
+            description="The data required by plugin to proceed the logout process.",
+        )
+
+    class Meta:
+        description = "Logout user by custom plugin."
+        error_type_class = AccountError
+        error_type_field = "account_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        request = info.context
+        input_data = data["input"]
+        manager = info.context.plugins
+        return cls(logout_data=manager.external_logout(input_data, request))

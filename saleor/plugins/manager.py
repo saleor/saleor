@@ -532,6 +532,13 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("authenticate_user", default_value, request)
 
+    def external_logout(self, data: dict, request: WSGIRequest) -> dict:
+        """Logout the user."""
+        default_value = {}  # type: ignore
+        return self.__run_method_on_plugins(
+            "external_logout", default_value, data, request
+        )
+
 
 def get_plugins_manager(
     manager_path: str = None, plugins: List[str] = None

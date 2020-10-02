@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.shortcuts import redirect
+from requests import PreparedRequest
 
 from ...account.models import User
 from ...core.jwt import (
@@ -57,6 +58,7 @@ class OpenIDConnectPlugin(BasePlugin):
         {"name": "oauth_authorization_url", "value": None},
         {"name": "oauth_token_url", "value": None},
         {"name": "json_web_key_set_url", "value": None},
+        {"name": "oauth_logout_url", "value": None},
     ]
 
     CONFIG_STRUCTURE = {
@@ -105,6 +107,13 @@ class OpenIDConnectPlugin(BasePlugin):
             ),
             "label": "JSON Web Key Set URL",
         },
+        "oauth_logout_url": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": (
+                "The URL for logging out the user from the OAuth provider side."
+            ),
+            "label": "OAuth logout URL",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -118,6 +127,7 @@ class OpenIDConnectPlugin(BasePlugin):
             json_web_key_set_url=configuration["json_web_key_set_url"],
             authorization_url=configuration["oauth_authorization_url"],
             token_url=configuration["oauth_token_url"],
+            logout_url=configuration["oauth_logout_url"],
         )
         self.oauth = self._get_oauth_session()
 
@@ -203,6 +213,15 @@ class OpenIDConnectPlugin(BasePlugin):
             raise ValidationError(
                 {"refreshToken": ValidationError(str(e), code=error_code)}
             )
+
+    def external_logout(self, data: dict, request: WSGIRequest, previous_value):
+        if not self.config.logout_url:
+            # Logout url doesn't exist
+            return {}
+        req = PreparedRequest()
+        req.prepare_url(self.config.logout_url, data)
+
+        return {"logoutUrl": req.url}
 
     def authenticate_user(self, request: WSGIRequest, previous_value) -> Optional[User]:
         if not self.active:
