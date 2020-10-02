@@ -4169,6 +4169,7 @@ type ProductVariantDelete {
 
 input ProductVariantFilterInput {
   search: String
+  sku: [String]
 }
 
 input ProductVariantInput {
