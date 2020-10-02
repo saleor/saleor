@@ -663,6 +663,68 @@ def test_draft_order_create(
     assert created_draft_event.parameters == {}
 
 
+def test_draft_order_create_variant_with_0_price(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    variant,
+    voucher,
+    graphql_address_data,
+):
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+    # Ensure no events were created yet
+    assert not OrderEvent.objects.exists()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_1 = product_without_shipping.variants.first()
+    variant_1.quantity = 2
+    variant.price = Money(0, "USD")
+    variant_1.save()
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    variant_list = [
+        {"variantId": variant_0_id, "quantity": 2},
+        {"variantId": variant_1_id, "quantity": 1},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {
+        "user": user_id,
+        "lines": variant_list,
+        "shippingAddress": shipping_address,
+        "shippingMethod": shipping_id,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["orderErrors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+
+    order = Order.objects.first()
+    assert order.user == customer_user
+    # billing address should be copied
+    assert order.billing_address.pk != customer_user.default_billing_address.pk
+    assert (
+        order.billing_address.as_data()
+        == customer_user.default_billing_address.as_data()
+    )
+    assert order.shipping_method == shipping_method
+    assert order.shipping_address.first_name == graphql_address_data["firstName"]
+
+    # Ensure the correct event was created
+    created_draft_event = OrderEvent.objects.get(
+        type=order_events.OrderEvents.DRAFT_CREATED
+    )
+    assert created_draft_event.user == staff_user
+    assert created_draft_event.parameters == {}
+
+
 @patch("saleor.graphql.order.mutations.draft_orders.add_variant_to_draft_order")
 def test_draft_order_create_tax_error(
     add_variant_to_draft_order_mock,
