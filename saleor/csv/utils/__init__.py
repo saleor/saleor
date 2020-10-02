@@ -6,6 +6,7 @@ class ProductExportFields:
             "id": "id",
             "name": "name",
             "description": "description",
+            # TODO: remove this field in SALEOR-902
             "available for purchase": "available_for_purchase",
             "searchable": "visible_in_listings",
             "category": "category__slug",
@@ -14,8 +15,6 @@ class ProductExportFields:
             "product weight": "product_weight",
             "variant sku": "variants__sku",
             "variant weight": "variant_weight",
-            "cost price": "variants__cost_price_amount",
-            "variant currency": "variants__currency",
         },
         "product_many_to_many": {
             "collections": "collections__slug",
@@ -33,7 +32,7 @@ class ProductExportFields:
     PRODUCT_CHANNEL_LISTING_FIELDS = {
         "channel_pk": "channel_listing__channel__pk",
         "slug": "channel_listing__channel__slug",
-        "currency_code": "channel_listing__channel__currency_code",
+        "product_currency_code": "channel_listing__currency",
         "published": "channel_listing__is_published",
         "publication_date": "channel_listing__publication_date",
     }
@@ -54,5 +53,6 @@ class ProductExportFields:
         "channel_pk": "variants__channel_listing__channel__pk",
         "slug": "variants__channel_listing__channel__slug",
         "price_amount": "variants__channel_listing__price_amount",
-        "currency": "variants__channel_listing__currency",
+        "variant_currency_code": "variants__channel_listing__currency",
+        "variant_cost_price": "variants__channel_listing__cost_price_amount",
     }

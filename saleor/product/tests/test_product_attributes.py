@@ -31,6 +31,7 @@ def variant_with_no_attributes(category, channel_USD):
     ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
+        cost_price_amount=Decimal(1),
         price_amount=Decimal(10),
         currency=channel_USD.currency_code,
     )

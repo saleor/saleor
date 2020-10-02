@@ -32,7 +32,7 @@ from ....product.utils.attributes import (
 )
 from ...channel import ChannelContext
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.scalars import PositiveDecimal, WeightScalar
+from ...core.scalars import WeightScalar
 from ...core.types import SeoInput, Upload
 from ...core.types.common import CollectionProductError, ProductError
 from ...core.utils import (
@@ -43,7 +43,6 @@ from ...core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
-from ...core.validators import validate_price_precision
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...warehouse.types import Warehouse
 from ..types import (
@@ -1015,7 +1014,6 @@ class ProductVariantInput(graphene.InputObjectType):
         required=False,
         description="List of attributes specific to this variant.",
     )
-    cost_price = PositiveDecimal(description="Cost price of the variant.")
     sku = graphene.String(description="Stock keeping unit.")
     track_inventory = graphene.Boolean(
         description=(
@@ -1099,15 +1097,6 @@ class ProductVariantCreate(ModelMutation):
                 }
             )
 
-        if "cost_price" in cleaned_input:
-            cost_price = cleaned_input.pop("cost_price")
-            try:
-                validate_price_precision(cost_price, instance.currency)
-            except ValidationError as error:
-                error.code = ProductErrorCode.INVALID.value
-                raise ValidationError({"cost_price": error})
-            cleaned_input["cost_price_amount"] = cost_price
-
         stocks = cleaned_input.get("stocks")
         if stocks:
             cls.check_for_duplicates_in_stocks(stocks)
@@ -1151,7 +1140,11 @@ class ProductVariantCreate(ModelMutation):
         if duplicates:
             error_msg = "Duplicated warehouse ID: {}".format(", ".join(duplicates))
             raise ValidationError(
-                {"stocks": ValidationError(error_msg, code=ProductErrorCode.UNIQUE)}
+                {
+                    "stocks": ValidationError(
+                        error_msg, code=ProductErrorCode.UNIQUE.value
+                    )
+                }
             )
 
     @classmethod

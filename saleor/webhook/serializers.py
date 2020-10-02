@@ -16,7 +16,7 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
                 "sku": variant.sku,
                 "quantity": line.quantity,
                 "base_price": str(variant.get_price(channel.slug).amount),
-                "currency": variant.currency,
+                "currency": channel.currency_code,
                 "full_name": variant.display_product(),
                 "product_name": product.name,
                 "variant_name": variant.name,

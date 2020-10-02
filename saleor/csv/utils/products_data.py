@@ -222,7 +222,6 @@ def prepare_variants_relations_data(
         result_data = add_image_uris_to_data(
             pk, image, "variants__images__image", result_data
         )
-
         result_data, data = handle_attribute_data(
             pk, data, attribute_ids, result_data, attribute_fields, "variant attribute"
         )

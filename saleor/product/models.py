@@ -370,6 +370,7 @@ class ProductChannelListing(PublishableModel):
         related_name="product_listing",
         on_delete=models.CASCADE,
     )
+    # TODO: Change currency into currency_code in ProductChannelListing
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     discounted_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -389,27 +390,12 @@ class ProductChannelListing(PublishableModel):
 class ProductVariant(SortableModel, ModelWithMetadata):
     sku = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255, blank=True)
-    # TODO: Consider this field is required for `cost_price`. In multichannel MVP we
-    # don't want to update this field because we don't have requirements.
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        default=settings.DEFAULT_CURRENCY,
-        blank=True,
-        null=True,
-    )
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
     )
     images = models.ManyToManyField("ProductImage", through="VariantImage")
     track_inventory = models.BooleanField(default=True)
 
-    cost_price_amount = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        blank=True,
-        null=True,
-    )
-    cost_price = MoneyField(amount_field="cost_price_amount", currency_field="currency")
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
@@ -506,12 +492,22 @@ class ProductVariantChannelListing(models.Model):
         related_name="variant_listing",
         on_delete=models.CASCADE,
     )
+    # TODO: Change currency into currency_code in
+    #  ProductVariantChannelListing
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
     )
     price = MoneyField(amount_field="price_amount", currency_field="currency")
+
+    cost_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
+    cost_price = MoneyField(amount_field="cost_price_amount", currency_field="currency")
 
     class Meta:
         unique_together = [["variant", "channel"]]

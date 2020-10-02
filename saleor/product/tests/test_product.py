@@ -35,6 +35,7 @@ def test_filtering_by_attribute(db, color_attribute, category, channel_USD, sett
     models.ProductVariantChannelListing.objects.create(
         variant=variant_a,
         channel=channel_USD,
+        cost_price_amount=Decimal(1),
         price_amount=Decimal(10),
         currency=channel_USD.currency_code,
     )
@@ -48,6 +49,7 @@ def test_filtering_by_attribute(db, color_attribute, category, channel_USD, sett
     models.ProductVariantChannelListing.objects.create(
         variant=variant_b,
         channel=channel_USD,
+        cost_price_amount=Decimal(1),
         price_amount=Decimal(10),
         currency=channel_USD.currency_code,
     )
@@ -228,10 +230,13 @@ def test_digital_product_view_url_expired(client, digital_content):
 @pytest.mark.parametrize(
     "price, cost", [(Money("0", "USD"), Money("1", "USD")), (Money("2", "USD"), None)]
 )
-def test_costs_get_margin_for_variant(variant, price, cost):
-    variant.cost_price = cost
-    variant.price = price
-    assert not get_margin_for_variant(variant)
+def test_costs_get_margin_for_variant(variant, price, cost, channel_USD):
+    variant_channel_listing = variant.channel_listing.filter(
+        channel_id=channel_USD.id
+    ).first()
+    variant_channel_listing.cost_price = cost
+    variant_channel_listing.price = price
+    assert not get_margin_for_variant(variant_channel_listing)
 
 
 @patch("saleor.product.thumbnails.create_thumbnails")

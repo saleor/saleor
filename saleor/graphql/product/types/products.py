@@ -34,7 +34,7 @@ from ...core.fields import (
     FilterInputConnectionField,
     PrefetchingConnectionField,
 )
-from ...core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange, TaxType
+from ...core.types import Image, Money, TaxedMoney, TaxedMoneyRange, TaxType
 from ...decorators import permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
@@ -272,18 +272,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_margin(root: ChannelContext[models.ProductVariant], *_args):
-        # TODO: consider how this resolver should work until don't have requirements
-        # for cost_price bahavior.
-        return None
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_cost_price(root: ChannelContext[models.ProductVariant], *_args):
-        return root.node.cost_price
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_channel_listing(
         root: ChannelContext[models.ProductVariant], info, **_kwargs
     ):
@@ -447,8 +435,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         graphene.NonNull(ProductChannelListing),
         description="List of availability in channels for the product.",
     )
-    purchase_cost = graphene.Field(MoneyRange)
-    margin = graphene.Field(Margin)
     image_by_id = graphene.Field(
         lambda: ProductImage,
         id=graphene.Argument(graphene.ID, description="ID of a product image."),
@@ -597,20 +583,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     def resolve_attributes(root: ChannelContext[models.Product], info):
         return SelectedAttributesByProductIdLoader(info.context).load(root.node.id)
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_purchase_cost(root: ChannelContext[models.Product], *_args):
-        # TODO: consider how this resolver should work until don't have requirements
-        # for cost_price bahavior.
-        return None
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_margin(root: ChannelContext[models.Product], *_args):
-        # TODO: consider how this resolver should work until don't have requirements
-        # for cost_price bahavior.
-        return None
 
     @staticmethod
     def resolve_image_by_id(root: ChannelContext[models.Product], info, id):
