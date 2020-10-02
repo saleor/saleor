@@ -16,11 +16,13 @@ from ....account.error_codes import AccountErrorCode
 from ....core.jwt import (
     JWT_REFRESH_TOKEN_COOKIE_NAME,
     JWT_REFRESH_TYPE,
+    PERMISSIONS_FIELD,
     create_access_token,
     create_refresh_token,
     get_user_from_payload,
     jwt_decode,
 )
+from ....core.permissions import get_permissions_from_names
 from ...core.mutations import BaseMutation
 from ...core.types.common import AccountError
 from ..types import User
@@ -53,6 +55,9 @@ def get_user(payload):
         raise ValidationError(
             "Invalid token", code=AccountErrorCode.JWT_INVALID_TOKEN.value
         )
+    permissions = payload.get(PERMISSIONS_FIELD)
+    if permissions is not None:
+        user.effective_permissions = get_permissions_from_names(permissions)
     return user
 
 
