@@ -35,6 +35,7 @@ from .filters import (
     CollectionFilterInput,
     ProductFilterInput,
     ProductTypeFilterInput,
+    ProductVariantFilterInput,
 )
 from .mutations.attributes import (
     AttributeAssign,
@@ -116,6 +117,7 @@ from .resolvers import (
     resolve_digital_contents,
     resolve_product_by_slug,
     resolve_product_types,
+    resolve_product_variant_by_sku,
     resolve_product_variants,
     resolve_products,
     resolve_report_product_sales,
@@ -226,15 +228,19 @@ class ProductQueries(graphene.ObjectType):
     )
     product_variant = graphene.Field(
         ProductVariant,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the product variant.", required=True
+        id=graphene.Argument(graphene.ID, description="ID of the product variant.",),
+        sku=graphene.Argument(
+            graphene.String, description="Sku of the product variant."
         ),
-        description="Look up a product variant by ID.",
+        description="Look up a product variant by ID or SKU.",
     )
-    product_variants = PrefetchingConnectionField(
+    product_variants = FilterInputConnectionField(
         ProductVariant,
         ids=graphene.List(
             graphene.ID, description="Filter product variants by given IDs."
+        ),
+        filter=ProductVariantFilterInput(
+            description="Filtering options for product variant."
         ),
         description="List of product variants.",
     )
@@ -296,8 +302,11 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_types(self, info, **kwargs):
         return resolve_product_types(info, **kwargs)
 
-    def resolve_product_variant(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
+    def resolve_product_variant(self, info, id=None, sku=None):
+        validate_one_of_args_is_in_query("id", id, "sku", sku)
+        if id:
+            return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
+        return resolve_product_variant_by_sku(info, sku=sku)
 
     def resolve_product_variants(self, info, ids=None, **_kwargs):
         return resolve_product_variants(info, ids)
