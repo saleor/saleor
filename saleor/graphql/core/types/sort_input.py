@@ -37,10 +37,9 @@ class SortInputObjectType(graphene.InputObjectType):
             cls._meta.fields.update({"field": field})
 
 
-class SortInputWitchChannelObjectType(SortInputObjectType):
+class ChannelSortInputObjectType(SortInputObjectType):
     channel = graphene.Argument(
-        graphene.String,
-        description="Specifies the channel from which want to use the data in sorting.",
+        graphene.String, description="Specifies the channel in which to sort the data.",
     )
 
     class Meta:

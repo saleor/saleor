@@ -2,7 +2,7 @@ import graphene
 from django.db.models import Min, Q, QuerySet
 
 from ..channel.sorters import validate_channel_slug
-from ..core.types import SortInputWitchChannelObjectType
+from ..core.types import ChannelSortInputObjectType
 
 
 class SaleSortField(graphene.Enum):
@@ -30,7 +30,7 @@ class SaleSortField(graphene.Enum):
         )
 
 
-class SaleSortingInput(SortInputWitchChannelObjectType):
+class SaleSortingInput(ChannelSortInputObjectType):
     class Meta:
         sort_enum = SaleSortField
         type_name = "sales"
@@ -73,7 +73,7 @@ class VoucherSortField(graphene.Enum):
         )
 
 
-class VoucherSortingInput(SortInputWitchChannelObjectType):
+class VoucherSortingInput(ChannelSortInputObjectType):
     class Meta:
         sort_enum = VoucherSortField
         type_name = "vouchers"
