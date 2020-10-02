@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 from authlib.common.errors import AuthlibBaseError
 from authlib.integrations.requests_client import OAuth2Session
@@ -8,16 +8,19 @@ from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.shortcuts import redirect
+from jwt import ExpiredSignature, InvalidTokenError
 from requests import PreparedRequest
 
 from ...account.models import User
 from ...core.jwt import (
     JWT_REFRESH_TOKEN_COOKIE_NAME,
+    PERMISSIONS_FIELD,
     get_token_from_request,
     get_user_from_access_payload,
+    get_user_from_payload,
     jwt_decode,
 )
-from ...core.permissions import get_permissions_codename
+from ...core.permissions import get_permissions_codename, get_permissions_from_names
 from ...core.utils import build_absolute_uri
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
@@ -240,6 +243,9 @@ class OpenIDConnectPlugin(BasePlugin):
             )
 
     def external_logout(self, data: dict, request: WSGIRequest, previous_value):
+        if not self.active:
+            return previous_value
+
         if not self.config.logout_url:
             # Logout url doesn't exist
             return {}
@@ -247,6 +253,29 @@ class OpenIDConnectPlugin(BasePlugin):
         req.prepare_url(self.config.logout_url, data)
 
         return {"logoutUrl": req.url}
+
+    def external_verify(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> Tuple[Optional[User], dict]:
+        if not self.active:
+            return previous_value
+        token = data.get("token")
+        if not token:
+            return previous_value
+        valid = is_owner_of_token_valid(token, owner=self.PLUGIN_ID)
+        if not valid:
+            return previous_value
+        try:
+            payload = jwt_decode(token)
+            user = get_user_from_payload(payload)
+        except (ExpiredSignature, InvalidTokenError) as e:
+            raise ValidationError({"token": e})
+        permissions = payload.get(PERMISSIONS_FIELD)
+        if permissions is not None:
+            user.effective_permissions = get_permissions_from_names(  # type: ignore
+                permissions
+            )
+        return user, payload
 
     def authenticate_user(self, request: WSGIRequest, previous_value) -> Optional[User]:
         if not self.active:

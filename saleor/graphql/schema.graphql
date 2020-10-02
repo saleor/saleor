@@ -1955,6 +1955,14 @@ type ExternalRefresh {
   accountErrors: [AccountError!]!
 }
 
+type ExternalVerify {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  user: User
+  isValid: Boolean!
+  verifyData: JSONString
+  accountErrors: [AccountError!]!
+}
+
 enum FileTypesEnum {
   CSV
   XLSX
@@ -2808,6 +2816,7 @@ type Mutation {
   externalAuthentication(input: JSONString!): ExternalAuthentication
   externalRefresh(input: JSONString!): ExternalRefresh
   externalLogout(input: JSONString!): ExternalLogout
+  externalVerify(input: JSONString!): ExternalVerify
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(email: String!, password: String!, token: String!): SetPassword

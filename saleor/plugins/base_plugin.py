@@ -1,6 +1,6 @@
 from copy import copy
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
@@ -87,6 +87,15 @@ class BasePlugin:
         """Handle logout request.
 
         Overwrite this method if the plugin handles logout flow.
+        """
+        return NotImplemented
+
+    def external_verify(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> Tuple[Optional["User"], dict]:
+        """Verify the provided authentication data.
+
+        Overwrite this method if the plugin should validate the authentication data.
         """
         return NotImplemented
 
