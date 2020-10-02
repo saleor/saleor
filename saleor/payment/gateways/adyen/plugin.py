@@ -277,7 +277,7 @@ class AdyenGatewayPlugin(BasePlugin):
             kind = TransactionKind.PENDING
         elif adyen_auto_capture:
             kind = TransactionKind.CAPTURE
-
+        searchable_key = result.message.get("pspReference", "")
         action = result.message.get("action")
         error_message = result.message.get("refusalReason")
         if action:
@@ -307,7 +307,7 @@ class AdyenGatewayPlugin(BasePlugin):
             raw_response=result.message,
             action_required_data=action,
             payment_method_info=payment_method_info,
-            searchable_key=result.message.get("pspReference", ""),
+            searchable_key=searchable_key,
         )
 
     @classmethod
