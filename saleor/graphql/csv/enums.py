@@ -40,3 +40,4 @@ class ProductFieldEnum(graphene.Enum):
     VARIANT_SKU = "variant sku"
     VARIANT_WEIGHT = "variant weight"
     VARIANT_IMAGES = "variant images"
+    COST_PRICE = "cost price"

@@ -21,7 +21,8 @@ class CostsData:
 
 
 def get_product_costs_data(
-    product_channel_listing: "ProductChannelListing", channel_slug,
+    product_channel_listing: "ProductChannelListing",
+    variant_channel_listings: Iterable[ProductVariantChannelListing],
 ) -> Tuple[MoneyRange, Tuple[float, float]]:
 
     purchase_costs_range = MoneyRange(start=zero_money(), stop=zero_money())
@@ -31,11 +32,7 @@ def get_product_costs_data(
     if not product.variants.exists():
         return purchase_costs_range, margin
 
-    variants = product.variants.all().values_list("id", flat=True)
-    channel_listing = ProductVariantChannelListing.objects.filter(
-        variant_id__in=variants, channel__slug=channel_slug
-    )
-    costs_data = get_cost_data_from_variant_channel_listing(channel_listing)
+    costs_data = get_cost_data_from_variant_channel_listing(variant_channel_listings)
     if costs_data.costs:
         purchase_costs_range = MoneyRange(min(costs_data.costs), max(costs_data.costs))
     if costs_data.margins:
@@ -67,18 +64,20 @@ def get_variant_costs_data(
     return CostsData(costs, margins)
 
 
-def get_cost_price(variant: "ProductVariantChannelListing") -> "Money":
-    if not variant.cost_price:
+def get_cost_price(variant_channel_listing: "ProductVariantChannelListing") -> "Money":
+    if not variant_channel_listing.cost_price:
         return zero_money()
-    return variant.cost_price
+    return variant_channel_listing.cost_price
 
 
-def get_margin_for_variant(variant: "ProductVariantChannelListing") -> Optional[float]:
-    if variant.cost_price is None:
+def get_margin_for_variant(
+    variant_channel_listing: "ProductVariantChannelListing",
+) -> Optional[float]:
+    if variant_channel_listing.cost_price is None:
         return None
-    base_price = variant.price  # type: ignore
+    base_price = variant_channel_listing.price  # type: ignore
     if not base_price:
         return None
-    margin = base_price - variant.cost_price
+    margin = base_price - variant_channel_listing.cost_price
     percent = round((margin / base_price) * 100, 0)
     return percent

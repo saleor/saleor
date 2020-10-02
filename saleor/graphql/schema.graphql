@@ -3908,6 +3908,7 @@ enum ProductFieldEnum {
   VARIANT_SKU
   VARIANT_WEIGHT
   VARIANT_IMAGES
+  COST_PRICE
 }
 
 input ProductFilterInput {

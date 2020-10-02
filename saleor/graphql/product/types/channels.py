@@ -3,14 +3,13 @@ import graphene
 from ....core.permissions import ProductPermissions
 from ....graphql.core.types import Money, MoneyRange
 from ....product import models
-from ....product.utils.costs import get_product_costs_data
+from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
 from ...channel.dataloaders import (
     ChannelByProductChannelListingIDLoader,
     ChannelByProductVariantChannelListingIDLoader,
 )
 from ...core.connection import CountableDjangoObjectType
 from ...decorators import permission_required
-from ..resolvers import resolve_margin
 
 
 class Margin(graphene.ObjectType):
@@ -38,13 +37,23 @@ class ProductChannelListing(CountableDjangoObjectType):
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_purchase_cost(root: models.ProductChannelListing, *_args):
-        purchase_cost, _ = get_product_costs_data(root, root.channel.slug)
+        # TODO: Add dataloader.
+        variants = root.product.variants.all().values_list("id", flat=True)
+        channel_listings = models.ProductVariantChannelListing.objects.filter(
+            variant_id__in=variants, channel_id=root.channel_id
+        )
+        purchase_cost, _ = get_product_costs_data(root, channel_listings)
         return purchase_cost
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.ProductChannelListing, *_args):
-        _, margin = get_product_costs_data(root, root.channel.slug)
+        # TODO: Add dataloader.
+        variants = root.product.variants.all().values_list("id", flat=True)
+        channel_listings = models.ProductVariantChannelListing.objects.filter(
+            variant_id__in=variants, channel_id=root.channel_id
+        )
+        _, margin = get_product_costs_data(root, channel_listings)
         return Margin(margin[0], margin[1])
 
 
@@ -65,4 +74,9 @@ class ProductVariantChannelListing(CountableDjangoObjectType):
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.ProductVariantChannelListing, *_args):
-        return resolve_margin(root, root.channel.slug)
+        variant_channel_listing = root.objects.filter(
+            channel_id=root.channel_id
+        ).first()
+        if not variant_channel_listing:
+            return None
+        return get_margin_for_variant(variant_channel_listing)

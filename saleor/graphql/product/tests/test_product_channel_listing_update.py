@@ -224,8 +224,10 @@ def test_product_channel_listing_update_as_staff_user(
     from ....product.utils.costs import get_product_costs_data
 
     product_channel_listing = product.channel_listing.get(channel_id=channel_USD.id)
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listing.filter(channel_id=channel_USD.id)
     purchase_cost, margin = get_product_costs_data(
-        product_channel_listing, channel_USD.slug
+        product_channel_listing, variant_channel_listing
     )
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
