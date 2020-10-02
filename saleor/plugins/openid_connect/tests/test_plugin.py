@@ -3,6 +3,7 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 from authlib.jose.errors import JoseError
+from django.core import signing
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseNotFound, HttpResponseRedirect
 from django.middleware.csrf import _get_new_csrf_token
@@ -14,9 +15,9 @@ from saleor.core.jwt import JWT_REFRESH_TOKEN_COOKIE_NAME, jwt_decode
 from ...models import PluginConfiguration
 from ..utils import (
     create_jwt_refresh_token,
+    create_tokens_from_oauth_payload,
     get_or_create_user_from_token,
     get_parsed_id_token,
-    get_valid_auth_tokens_from_auth_payload,
 )
 
 
@@ -40,20 +41,22 @@ def test_external_authentication_returns_redirect_url(openid_plugin, settings, r
     client_id = "test_client"
     plugin = openid_plugin(oauth_authorization_url=authorize_url, client_id=client_id)
 
-    input = {"redirectUrl": "http://localhost:3000/authorization/"}
+    storefront_redirect_url = "http://localhost:3000/authorization/"
+    input = {"redirectUrl": storefront_redirect_url}
     response = plugin.external_authentication(input, rf.request(), None)
     assert isinstance(response, dict)
     auth_url = response.get("authorizationUrl")
     parsed_url = urlparse(auth_url)
     parsed_qs = parse_qs(parsed_url.query)
     expected_redirect_url = (
-        "http://mirumee.com/plugins/mirumee.authentication.openidconnect/callback?"
-        "redirectUrl=http%3A%2F%2Flocalhost%3A3000%2Fauthorization%2F"
+        "http://mirumee.com/plugins/mirumee.authentication.openidconnect/callback"
     )
+    state = signing.loads(parsed_qs["state"][0])
     assert parsed_url.netloc == domain
     assert parsed_url.path == authorize_path
     assert parsed_qs["redirect_uri"][0] == expected_redirect_url
     assert parsed_qs["client_id"][0] == client_id
+    assert state["redirectUrl"] == storefront_redirect_url
 
 
 def test_external_authentication_plugin_disabled(openid_plugin, rf):
@@ -304,7 +307,8 @@ def test_handle_oauth_callback(openid_plugin, monkeypatch, rf, id_token, id_payl
         mocked_fetch_token,
     )
     storefront_redirect_url = "http://localhost:3000/used-logged-in"
-    request = rf.get(f"/callback?redirectUrl={storefront_redirect_url}")
+    state = signing.dumps({"redirectUrl": storefront_redirect_url})
+    request = rf.get(f"/callback?state={state}")
     plugin = openid_plugin()
 
     redirect_response = plugin.handle_auth_callback(request)
@@ -312,9 +316,7 @@ def test_handle_oauth_callback(openid_plugin, monkeypatch, rf, id_token, id_payl
     # new user created
     User.objects.get(email=id_payload["email"])
 
-    expected_auth_response = (
-        "http://testserver/callback?redirectUrl=http://localhost:3000/used-logged-in"
-    )
+    expected_auth_response = f"http://testserver/callback?state={state}"
     expected_redirect_uri = (
         "http://mirumee.com/plugins/mirumee.authentication.openidconnect/callback"
     )
@@ -330,8 +332,8 @@ def test_handle_oauth_callback(openid_plugin, monkeypatch, rf, id_token, id_payl
     parsed_qs = parse_qs(parsed_url.query)
     claims = get_parsed_id_token(oauth_payload, plugin.config.json_web_key_set_url,)
     user = get_or_create_user_from_token(claims)
-    expected_tokens = get_valid_auth_tokens_from_auth_payload(
-        oauth_payload, user, claims
+    expected_tokens = create_tokens_from_oauth_payload(
+        oauth_payload, user, claims, permissions=[]
     )
     assert parsed_url.netloc == "localhost:3000"
     assert parsed_url.path == "/used-logged-in"

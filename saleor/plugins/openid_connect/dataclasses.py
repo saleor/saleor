@@ -10,3 +10,4 @@ class OpenIDConnectConfig:
     authorization_url: str
     logout_url: str
     token_url: str
+    audience: str

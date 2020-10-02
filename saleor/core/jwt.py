@@ -8,7 +8,11 @@ from django.core.handlers.wsgi import WSGIRequest
 
 from ..account.models import User
 from ..app.models import App
-from .permissions import get_permission_names, get_permissions_from_names
+from .permissions import (
+    get_permission_names,
+    get_permissions_from_codenames,
+    get_permissions_from_names,
+)
 
 JWT_ALGORITHM = "HS256"
 JWT_AUTH_HEADER = "HTTP_AUTHORIZATION"
@@ -124,9 +128,7 @@ def get_user_from_access_token(token: str) -> Optional[User]:
     if user and permissions is not None:
         token_permissions = get_permissions_from_names(permissions)
         token_codenames = [perm.codename for perm in token_permissions]
-        user.effective_permissions = user.effective_permissions.filter(
-            codename__in=token_codenames
-        )
+        user.effective_permissions = get_permissions_from_codenames(token_codenames)
     return user
 
 

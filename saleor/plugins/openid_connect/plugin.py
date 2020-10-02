@@ -1,14 +1,15 @@
 import json
 import logging
 from typing import Callable, Optional
-from urllib.parse import urlencode
 
 from authlib.common.errors import AuthlibBaseError
 from authlib.integrations.requests_client import OAuth2Session
+from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.shortcuts import redirect
+from django.urls import reverse
 from requests import PreparedRequest
 
 from ...account.models import User
@@ -18,19 +19,20 @@ from ...core.jwt import (
     get_user_from_access_token,
     jwt_decode,
 )
-from ...core.utils.url import prepare_url
+from ...core.permissions import get_permissions_codename
+from ...core.utils import build_absolute_uri
 from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..error_codes import PluginErrorCode
 from ..models import PluginConfiguration
 from .dataclasses import OpenIDConnectConfig
 from .exceptions import AuthenticationError
 from .utils import (
+    create_tokens_from_oauth_payload,
     get_incorrect_fields,
     get_or_create_user_from_token,
     get_parsed_id_token,
+    get_saleor_permissions_from_scope,
     get_user_from_token,
-    get_valid_auth_tokens_from_auth_payload,
-    prepare_redirect_url,
     validate_refresh_token,
     validate_storefront_redirect_url,
 )
@@ -59,6 +61,7 @@ class OpenIDConnectPlugin(BasePlugin):
         {"name": "oauth_token_url", "value": None},
         {"name": "json_web_key_set_url", "value": None},
         {"name": "oauth_logout_url", "value": None},
+        {"name": "audience", "value": None},
     ]
 
     CONFIG_STRUCTURE = {
@@ -114,6 +117,14 @@ class OpenIDConnectPlugin(BasePlugin):
             ),
             "label": "OAuth logout URL",
         },
+        "audience": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": (
+                "The OAuth resource identifier. If provided, Saleor will define "
+                "audience for each authorization request."
+            ),
+            "label": "Audience",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -128,6 +139,7 @@ class OpenIDConnectPlugin(BasePlugin):
             authorization_url=configuration["oauth_authorization_url"],
             token_url=configuration["oauth_token_url"],
             logout_url=configuration["oauth_logout_url"],
+            audience=configuration["audience"],
         )
         self.oauth = self._get_oauth_session()
 
@@ -147,7 +159,8 @@ class OpenIDConnectPlugin(BasePlugin):
             )
 
     def _get_oauth_session(self):
-        scope = "openid profile email"
+        scope = "openid profile email "
+        scope += " ".join([f"saleor:{perm}" for perm in get_permissions_codename()])
         if self.config.enable_refresh_token:
             scope += " offline_access"
         return OAuth2Session(
@@ -163,9 +176,15 @@ class OpenIDConnectPlugin(BasePlugin):
             return previous_value
         storefront_redirect_url = data.get("redirectUrl")
         validate_storefront_redirect_url(storefront_redirect_url)
+        plugin_path = reverse("plugins", kwargs={"plugin_id": self.PLUGIN_ID})
+        kwargs = {
+            "redirect_uri": build_absolute_uri(f"{plugin_path}callback"),
+            "state": signing.dumps({"redirectUrl": storefront_redirect_url}),
+        }
+        if self.config.audience:
+            kwargs["audience"] = self.config.audience
         uri, state = self.oauth.create_authorization_url(
-            self.config.authorization_url,
-            redirect_uri=prepare_redirect_url(self.PLUGIN_ID, storefront_redirect_url),
+            self.config.authorization_url, **kwargs
         )
         return {"authorizationUrl": uri}
 
@@ -202,12 +221,15 @@ class OpenIDConnectPlugin(BasePlugin):
                 }
             )
         try:
+            user_permissions = get_saleor_permissions_from_scope(
+                token_data.get("scope")
+            )
             parsed_id_token = get_parsed_id_token(
                 token_data, self.config.json_web_key_set_url
             )
             user = get_user_from_token(parsed_id_token)
-            return get_valid_auth_tokens_from_auth_payload(
-                token_data, user, parsed_id_token
+            return create_tokens_from_oauth_payload(
+                token_data, user, parsed_id_token, user_permissions
             )
         except AuthenticationError as e:
             raise ValidationError(
@@ -235,23 +257,30 @@ class OpenIDConnectPlugin(BasePlugin):
 
     @convert_error_to_http_response
     def handle_auth_callback(self, request: WSGIRequest) -> HttpResponse:
-        storefront_redirect_url = request.GET.get("redirectUrl")
+        state = request.GET.get("state")
+        if not state:
+            raise AuthenticationError("Missing GET parameter - state.")
+        state_data = signing.loads(state)
+
+        storefront_redirect_url = state_data.get("redirectUrl")
         if not storefront_redirect_url:
             raise AuthenticationError("Missing GET parameter - redirectUrl.")
         token_data = self.oauth.fetch_token(
             self.config.token_url,
             authorization_response=request.build_absolute_uri(),
-            redirect_uri=prepare_redirect_url(self.PLUGIN_ID),
+            redirect_uri=build_absolute_uri(f"/plugins/{self.PLUGIN_ID}/callback"),
         )
+        user_permissions = get_saleor_permissions_from_scope(token_data.get("scope"))
         parsed_id_token = get_parsed_id_token(
             token_data, self.config.json_web_key_set_url
         )
         user = get_or_create_user_from_token(parsed_id_token)
-        params = get_valid_auth_tokens_from_auth_payload(
-            token_data, user, parsed_id_token
+        params = create_tokens_from_oauth_payload(
+            token_data, user, parsed_id_token, user_permissions
         )
-        redirect_url = prepare_url(urlencode(params), storefront_redirect_url)
-        return redirect(redirect_url)
+        req = PreparedRequest()
+        req.prepare_url(storefront_redirect_url, params)
+        return redirect(req.url)
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         if not self.active:
