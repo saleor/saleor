@@ -488,6 +488,7 @@ class AllegroAPI:
                             saleor_product, offer['id'],
                             ProductPublishState.MODERATED.value, False, self.errors)
                     else:
+                        offer_publication = self.offer_publication(offer['id'])
                         self.update_status_and_publish_data_in_private_metadata(
                             saleor_product, offer['id'],
                             ProductPublishState.PUBLISHED.value, True, self.errors)
