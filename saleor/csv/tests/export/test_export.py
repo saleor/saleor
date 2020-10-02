@@ -121,9 +121,6 @@ def test_export_products_ids(
 @patch("saleor.csv.utils.export.create_file_with_headers")
 @patch("saleor.csv.utils.export.export_products_in_batches")
 @patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
-# TODO: Consider filtering and sorting by `isPublished`
-# Should be resolved by https://app.clickup.com/t/6crxxb
-@pytest.mark.skip(reason="We should know how to handle `isPublished` filter.")
 @patch("saleor.csv.utils.export.save_csv_file_in_export_file")
 def test_export_products_filter_is_published(
     save_file_mock,
@@ -150,16 +147,21 @@ def test_export_products_filter_is_published(
 
     # when
     export_products(
-        user_export_file, {"filter": {"is_published": True}}, export_info, file_type
+        user_export_file,
+        {"filter": {"is_published": True, "channel": channel_USD.slug}},
+        export_info,
+        file_type,
     )
 
     # then
     create_file_with_headers_mock.assert_called_once_with(["id"], ";", file_type)
 
     assert export_products_in_batches_mock.call_count == 1
-    args, kwargs = export_products_in_batches_mock.call_args
+    args, _ = export_products_in_batches_mock.call_args
     assert set(args[0].values_list("pk", flat=True)) == set(
-        Product.objects.filter(is_published=True).values_list("pk", flat=True)
+        Product.objects.filter(
+            channel_listing__is_published=True, channel_listing__channel=channel_USD
+        ).values_list("pk", flat=True)
     )
     assert args[1:] == (export_info, {"id"}, ["id"], ";", mock_file, file_type,)
     send_email_mock.assert_called_once_with(

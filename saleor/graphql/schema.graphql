@@ -3924,6 +3924,7 @@ input ProductFilterInput {
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   productTypes: [ID]
+  channel: String
 }
 
 type ProductImage implements Node {
@@ -3994,6 +3995,7 @@ input ProductInput {
 
 input ProductOrder {
   direction: OrderDirection!
+  channel: String
   attributeId: ID
   field: ProductOrderField
 }
@@ -4597,6 +4599,7 @@ enum SaleSortField {
 
 input SaleSortingInput {
   direction: OrderDirection!
+  channel: String
   field: SaleSortField!
 }
 
@@ -5611,6 +5614,7 @@ enum VoucherSortField {
 
 input VoucherSortingInput {
   direction: OrderDirection!
+  channel: String
   field: VoucherSortField!
 }
 

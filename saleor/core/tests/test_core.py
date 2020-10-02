@@ -136,7 +136,7 @@ def test_create_address(db):
 @pytest.mark.skip(
     reason=(
         "We should use channel from order when getting product. "
-        "We should fix it in  https://app.clickup.com/2549495/v/g/2dtqq-1079"
+        "We should fix it in  https://app.clickup.com/t/2549495/SALEOR-649"
     )
 )
 def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):

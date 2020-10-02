@@ -20,10 +20,7 @@ def filter_status(
     query_objects = qs.none()
     now = timezone.now()
     if DiscountStatusEnum.ACTIVE in value:
-        # TODO: Consider filtering and sorting by `isPublished`
-        # Should be resolved by https://app.clickup.com/t/6crxxb
-        # query_objects |= qs.active(now)
-        query_objects = qs
+        query_objects |= qs.active(now)
     if DiscountStatusEnum.EXPIRED in value:
         query_objects |= qs.expired(now)
     if DiscountStatusEnum.SCHEDULED in value:
@@ -65,7 +62,7 @@ def filter_sale_type(qs, _, value):
 
 
 def filter_sale_search(qs, _, value):
-    search_fields = ("name", "value", "type")
+    search_fields = ("name", "channel_listing__discount_value", "type")
     if value:
         qs = filter_by_query_param(qs, value, search_fields)
     return qs
