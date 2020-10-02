@@ -81,6 +81,11 @@ def products_for_variant_filtering(product_type, category):
         ({"search": "XXL"}, ["PP2-V1"]),
         ({"search": "PP2-V1"}, ["PP2-V1"]),
         ({"search": "P1"}, ["P1-V1", "P1-V2", "PP1-V1"]),
+        ({"search": ["invalid"]}, []),
+        ({"sku": ["P1"]}, []),
+        ({"sku": ["P1-V1", "P1-V2", "PP1-V1"]}, ["P1-V1", "P1-V2", "PP1-V1"]),
+        ({"sku": ["PP1-V1", "PP2-V1"]}, ["PP1-V1", "PP2-V1"]),
+        ({"sku": ["invalid"]}, []),
     ],
 )
 def test_products_pagination_with_filtering(
