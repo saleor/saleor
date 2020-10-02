@@ -98,6 +98,7 @@ def test_external_refresh_from_cookie(
 ):
     mocked_jwt_validator = MagicMock()
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
+    mocked_jwt_validator.get.side_effect = id_payload.get
 
     monkeypatch.setattr(
         "saleor.plugins.openid_connect.utils.jwt.decode",
@@ -154,6 +155,7 @@ def test_external_refresh_from_input(
 ):
     mocked_jwt_validator = MagicMock()
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
+    mocked_jwt_validator.get.side_effect = id_payload.get
 
     monkeypatch.setattr(
         "saleor.plugins.openid_connect.utils.jwt.decode",

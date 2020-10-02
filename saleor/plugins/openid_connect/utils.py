@@ -186,11 +186,10 @@ def create_tokens_from_oauth_payload(
     owner: str,
 ):
     refresh_token = token_data.get("refresh_token")
+    access_token = token_data.get("access_token", "")
 
     tokens = {
-        "token": create_jwt_token(
-            claims, user, token_data["access_token"], permissions, owner
-        ),
+        "token": create_jwt_token(claims, user, access_token, permissions, owner),
     }
     if refresh_token:
         csrf_token = _get_new_csrf_token()
@@ -286,7 +285,7 @@ def get_incorrect_fields(plugin_configuration: "PluginConfiguration"):
 def get_saleor_permissions_from_scope(scope: str) -> List[str]:
     if not scope:
         return []
-    scope_list = scope.lower().split()
+    scope_list = scope.lower().strip().split()
     saleor_permissions_str = [s for s in scope_list if s.startswith("saleor:")]
     permission_codenames = list(
         map(lambda perm: perm.replace("saleor:", ""), saleor_permissions_str)
