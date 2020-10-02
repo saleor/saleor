@@ -95,13 +95,18 @@ def test_products_pagination_with_filtering(
     permission_manage_products,
     products_for_variant_filtering,
 ):
+    # given
     variables = {"filter": filter_by}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_VARIANTS_FILTER,
         variables,
         permissions=[permission_manage_products],
         check_no_permissions=False,
     )
+
+    # then
     content = get_graphql_content(response)
     products_nodes = content["data"]["productVariants"]["edges"]
     for index, variant_sku in enumerate(variants):

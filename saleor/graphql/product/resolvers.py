@@ -62,6 +62,18 @@ def resolve_product_types(info, **_kwargs):
     return models.ProductType.objects.all()
 
 
+def resolve_product_varaint_by_sku(info, sku):
+    requestor = get_user_or_app_from_context(info.context)
+    visible_products = models.Product.objects.visible_to_user(requestor).values_list(
+        "pk", flat=True
+    )
+    return (
+        models.ProductVariant.objects.filter(product__id__in=visible_products)
+        .filter(sku=sku)
+        .first()
+    )
+
+
 def resolve_product_variants(info, ids=None):
     user = get_user_or_app_from_context(info.context)
 
