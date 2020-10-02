@@ -266,9 +266,7 @@ def filter_warehouses(qs, _, value):
 
 
 def filter_sku_list(qs, _, value):
-    if value:
-        return qs.filter(sku__in=value)
-    return qs
+    return qs.filter(sku__in=value)
 
 
 def filter_quantity(qs, quantity_value, warehouses=None):
@@ -350,7 +348,7 @@ class ProductVariantFilter(django_filters.FilterSet):
 
     class Meta:
         model = ProductVariant
-        fields = ["search"]
+        fields = ["search", "sku"]
 
 
 class CollectionFilter(django_filters.FilterSet):
