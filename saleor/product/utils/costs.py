@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 from prices import MoneyRange
 
 from ...core.taxes import zero_money
-from ..models import ProductChannelListing, ProductVariantChannelListing
+from ..models import ProductVariantChannelListing
 
 if TYPE_CHECKING:
     from prices import Money
@@ -21,15 +21,13 @@ class CostsData:
 
 
 def get_product_costs_data(
-    product_channel_listing: "ProductChannelListing",
-    variant_channel_listings: Iterable[ProductVariantChannelListing],
+    variant_channel_listings: Iterable[ProductVariantChannelListing], has_variants: bool
 ) -> Tuple[MoneyRange, Tuple[float, float]]:
 
     purchase_costs_range = MoneyRange(start=zero_money(), stop=zero_money())
     margin = (0.0, 0.0)
 
-    product = product_channel_listing.product
-    if not product.variants.exists():
+    if not has_variants:
         return purchase_costs_range, margin
 
     costs_data = get_cost_data_from_variant_channel_listing(variant_channel_listings)

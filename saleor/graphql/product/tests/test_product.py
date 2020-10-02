@@ -1115,12 +1115,9 @@ def test_fetch_product_from_category_query(
     assert product_data["url"] == ""
     assert product_data["slug"] == product.slug
 
-    product_channel_listing = product.channel_listing.get(channel_id=channel_USD.id)
     variant = product.variants.first()
     variant_channel_listing = variant.channel_listing.filter(channel_id=channel_USD.id)
-    purchase_cost, margin = get_product_costs_data(
-        product_channel_listing, variant_channel_listing
-    )
+    purchase_cost, margin = get_product_costs_data(variant_channel_listing, True)
     cost_start = product_data["channelListing"][0]["purchaseCost"]["start"]["amount"]
     cost_stop = product_data["channelListing"][0]["purchaseCost"]["stop"]["amount"]
 
