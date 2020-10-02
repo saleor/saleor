@@ -4754,6 +4754,7 @@ type ShippingError {
   message: String
   code: ShippingErrorCode!
   warehouses: [ID!]
+  channels: [ID!]
 }
 
 enum ShippingErrorCode {

@@ -226,6 +226,11 @@ class ShippingError(Error):
         description="List of warehouse IDs which causes the error.",
         required=False,
     )
+    channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channels IDs which causes the error.",
+        required=False,
+    )
 
 
 class PageError(Error):
