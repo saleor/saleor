@@ -265,6 +265,10 @@ def filter_warehouses(qs, _, value):
     return qs
 
 
+def filter_sku_list(qs, _, value):
+    return qs.filter(sku__in=value)
+
+
 def filter_quantity(qs, quantity_value, warehouses=None):
     """Filter products queryset by product variants quantity.
 
@@ -334,6 +338,17 @@ class ProductFilter(django_filters.FilterSet):
             "stocks",
             "search",
         ]
+
+
+class ProductVariantFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(
+        method=filter_fields_containing_value("name", "product__name", "sku")
+    )
+    sku = ListObjectTypeFilter(input_class=graphene.String, method=filter_sku_list)
+
+    class Meta:
+        model = ProductVariant
+        fields = ["search", "sku"]
 
 
 class CollectionFilter(django_filters.FilterSet):
@@ -411,6 +426,11 @@ class AttributeFilter(django_filters.FilterSet):
 class ProductFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = ProductFilter
+
+
+class ProductVariantFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = ProductVariantFilter
 
 
 class CollectionFilterInput(FilterInputObjectType):
