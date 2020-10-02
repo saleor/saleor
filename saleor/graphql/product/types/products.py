@@ -52,11 +52,14 @@ from ..dataloaders import (
     CollectionsByProductIdLoader,
     ImagesByProductIdLoader,
     ImagesByProductVariantIdLoader,
+    ProductAttributesByProductTypeIdLoader,
     ProductByIdLoader,
+    ProductTypeByIdLoader,
     ProductVariantByIdLoader,
     ProductVariantsByProductIdLoader,
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
+    VariantAttributesByProductTypeIdLoader,
 )
 from ..filters import AttributeFilterInput, ProductFilterInput
 from ..resolvers import resolve_attributes
@@ -653,6 +656,10 @@ class Product(CountableDjangoObjectType):
     def resolve_is_available_for_purchase(root: models.Product, _info):
         return root.is_available_for_purchase()
 
+    @staticmethod
+    def resolve_product_type(root: models.Product, info):
+        return ProductTypeByIdLoader(info.context).load(root.product_type_id)
+
 
 @key(fields="id")
 class ProductType(CountableDjangoObjectType):
@@ -704,12 +711,12 @@ class ProductType(CountableDjangoObjectType):
         return root.get_value_from_metadata("vatlayer.code")
 
     @staticmethod
-    def resolve_product_attributes(root: models.ProductType, *_args, **_kwargs):
-        return root.product_attributes.product_attributes_sorted().all()
+    def resolve_product_attributes(root: models.ProductType, info):
+        return ProductAttributesByProductTypeIdLoader(info.context).load(root.pk)
 
     @staticmethod
-    def resolve_variant_attributes(root: models.ProductType, *_args, **_kwargs):
-        return root.variant_attributes.variant_attributes_sorted().all()
+    def resolve_variant_attributes(root: models.ProductType, info):
+        return VariantAttributesByProductTypeIdLoader(info.context).load(root.pk)
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, **_kwargs):
