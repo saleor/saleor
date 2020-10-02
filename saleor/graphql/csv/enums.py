@@ -38,6 +38,6 @@ class ProductFieldEnum(graphene.Enum):
     CHARGE_TAXES = "charge taxes"
     PRODUCT_IMAGES = "product images"
     VARIANT_SKU = "variant sku"
+    COST_PRICE = "cost price"
     VARIANT_WEIGHT = "variant weight"
     VARIANT_IMAGES = "variant images"
-    COST_PRICE = "cost price"

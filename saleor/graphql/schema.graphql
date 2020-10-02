@@ -3906,9 +3906,9 @@ enum ProductFieldEnum {
   CHARGE_TAXES
   PRODUCT_IMAGES
   VARIANT_SKU
+  COST_PRICE
   VARIANT_WEIGHT
   VARIANT_IMAGES
-  COST_PRICE
 }
 
 input ProductFilterInput {
