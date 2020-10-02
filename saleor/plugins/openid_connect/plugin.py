@@ -255,11 +255,10 @@ class OpenIDConnectPlugin(BasePlugin):
             return previous_value
         token = get_token_from_request(request)
         if not token:
-            return None
-        user = previous_value
+            return previous_value
         valid = is_owner_of_token_valid(token, owner=self.PLUGIN_ID)
         if not valid:
-            return user
+            return previous_value
         payload = jwt_decode(token)
         user = get_user_from_access_payload(payload)
         return user
