@@ -383,7 +383,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         # delete order lines for deleted variants
         order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()
 
-        # set new product default varaint if any has been removed
+        # set new product default variant if any has been removed
         products = models.Product.objects.filter(
             pk__in=product_pks, default_variant__isnull=True
         )
