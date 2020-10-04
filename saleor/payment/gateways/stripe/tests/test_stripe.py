@@ -21,7 +21,7 @@ from .. import (
 
 TRANSACTION_AMOUNT = Decimal(42.42)
 TRANSACTION_REFUND_AMOUNT = Decimal(24.24)
-TRANSACTION_CURRENCY = "USD"
+TRANSACTION_CURRENCY = "EUR"
 PAYMENT_METHOD_CARD_SIMPLE = "pm_card_pl"
 CARD_SIMPLE_DETAILS = PaymentMethodInfo(
     last_4="0005", exp_year=2020, exp_month=8, brand="visa", type="card"
@@ -37,7 +37,7 @@ def gateway_config():
     return GatewayConfig(
         gateway_name="stripe",
         auto_capture=True,
-        supported_currencies="USD",
+        supported_currencies="EUR",
         connection_params={
             "public_key": "public",
             "private_key": "secret",

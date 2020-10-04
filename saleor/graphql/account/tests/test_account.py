@@ -3549,12 +3549,12 @@ def test_query_customers_with_filter_placed_orders__(
             Order(
                 user=customer_user,
                 token=str(uuid.uuid4()),
-                total_gross=Money(15, "USD"),
+                total_gross=Money(15, "EUR"),
             ),
             Order(
                 user=second_customer,
                 token=str(uuid.uuid4()),
-                total_gross=Money(25, "USD"),
+                total_gross=Money(25, "EUR"),
             ),
         ]
     )

@@ -31,14 +31,14 @@ from ..utils import (
 
 
 def test_total_setter():
-    price = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
+    price = TaxedMoney(net=Money(10, "EUR"), gross=Money(15, "EUR"))
     order = models.Order()
     order.total = price
     assert order.total_net_amount == Decimal(10)
-    assert order.total.net == Money(10, "USD")
+    assert order.total.net == Money(10, "EUR")
     assert order.total_gross_amount == Decimal(15)
-    assert order.total.gross == Money(15, "USD")
-    assert order.total.tax == Money(5, "USD")
+    assert order.total.gross == Money(15, "EUR")
+    assert order.total.tax == Money(5, "EUR")
 
 
 def test_order_get_subtotal(order_with_lines):
@@ -64,7 +64,7 @@ def test_add_variant_to_draft_order_adds_line_for_new_variant(
     assert order.lines.count() == lines_before + 1
     assert line.product_sku == variant.sku
     assert line.quantity == 1
-    assert line.unit_price == TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
+    assert line.unit_price == TaxedMoney(net=Money(10, "EUR"), gross=Money(10, "EUR"))
     assert line.translated_product_name == str(variant.product.translated)
     assert line.variant_name == str(variant)
     assert line.product_name == str(variant.product)
@@ -75,7 +75,7 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
 ):
     order = order_with_lines
     variant = product.variants.get()
-    variant.price = Money(0, "USD")
+    variant.price = Money(0, "EUR")
     variant.save(update_fields=["price"])
 
     lines_before = order.lines.count()
@@ -86,7 +86,7 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
     assert order.lines.count() == lines_before + 1
     assert line.product_sku == variant.sku
     assert line.quantity == 1
-    assert line.unit_price == TaxedMoney(net=Money(0, "USD"), gross=Money(0, "USD"))
+    assert line.unit_price == TaxedMoney(net=Money(0, "EUR"), gross=Money(0, "EUR"))
     assert line.translated_product_name == str(variant.product.translated)
     assert line.variant_name == str(variant)
     assert line.product_name == str(variant.product)
@@ -309,7 +309,7 @@ def test_order_queryset_drafts(draft_order):
 
 
 def test_order_queryset_to_ship(settings):
-    total = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
+    total = TaxedMoney(net=Money(10, "EUR"), gross=Money(15, "EUR"))
     orders_to_ship = [
         Order.objects.create(status=OrderStatus.UNFULFILLED, total=total),
         Order.objects.create(status=OrderStatus.PARTIALLY_FULFILLED, total=total),
@@ -338,7 +338,7 @@ def test_order_queryset_to_ship(settings):
 
 
 def test_queryset_ready_to_capture():
-    total = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
+    total = TaxedMoney(net=Money(10, "EUR"), gross=Money(15, "EUR"))
 
     preauth_order = Order.objects.create(status=OrderStatus.UNFULFILLED, total=total)
     Payment.objects.create(
@@ -519,15 +519,15 @@ def test_value_voucher_order_discount(
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_type,
         discount_value=discount_value,
-        min_spent=Money(min_spent_amount, "USD")
+        min_spent=Money(min_spent_amount, "EUR")
         if min_spent_amount is not None
         else None,
     )
-    subtotal = Money(subtotal, "USD")
+    subtotal = Money(subtotal, "EUR")
     subtotal = TaxedMoney(net=subtotal, gross=subtotal)
     order = Mock(get_subtotal=Mock(return_value=subtotal), voucher=voucher)
     discount = get_voucher_discount_for_order(order)
-    assert discount == Money(expected_value, "USD")
+    assert discount == Money(expected_value, "EUR")
 
 
 @pytest.mark.parametrize(
@@ -544,16 +544,16 @@ def test_shipping_voucher_order_discount(
         discount_value=discount_value,
         min_spent_amount=None,
     )
-    subtotal = Money(100, "USD")
+    subtotal = Money(100, "EUR")
     subtotal = TaxedMoney(net=subtotal, gross=subtotal)
-    shipping_total = Money(shipping_cost, "USD")
+    shipping_total = Money(shipping_cost, "EUR")
     order = Mock(
         get_subtotal=Mock(return_value=subtotal),
         shipping_price=shipping_total,
         voucher=voucher,
     )
     discount = get_voucher_discount_for_order(order)
-    assert discount == Money(expected_value, "USD")
+    assert discount == Money(expected_value, "EUR")
 
 
 @pytest.mark.parametrize(
@@ -580,11 +580,11 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10,
         min_spent=(
-            Money(min_spent_amount, "USD") if min_spent_amount is not None else None
+            Money(min_spent_amount, "EUR") if min_spent_amount is not None else None
         ),
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
-    price = Money(total, "USD")
+    price = Money(total, "EUR")
     price = TaxedMoney(net=price, gross=price)
     order = Mock(
         get_subtotal=Mock(return_value=price),
@@ -626,7 +626,7 @@ def test_get_discount_for_order_specific_products_voucher(
     order_with_lines.voucher = voucher
     order_with_lines.save()
     discount = get_voucher_discount_for_order(order_with_lines)
-    assert discount == Money(discount_amount, "USD")
+    assert discount == Money(discount_amount, "EUR")
 
 
 def test_product_voucher_checkout_discount_raises_not_applicable(

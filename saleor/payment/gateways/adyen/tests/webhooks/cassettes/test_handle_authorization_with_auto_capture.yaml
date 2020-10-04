@@ -1,7 +1,7 @@
 interactions:
 - request:
     body: '{"merchantAccount": "SaleorECOM", "modificationAmount": {"value": "123400",
-      "currency": "USD"}, "originalReference": "853596537720508F", "reference": "UGF5bWVudDoxMA==",
+      "currency": "EUR"}, "originalReference": "853596537720508F", "reference": "UGF5bWVudDoxMA==",
       "applicationInfo": {"adyenLibrary": {"name": "adyen-python-api-library", "version":
       "3.0.0"}}}'
     headers:

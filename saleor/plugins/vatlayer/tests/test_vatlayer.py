@@ -71,14 +71,14 @@ def test_get_tax_rate_by_name_empty_taxes(product):
     "price, charge_taxes, expected_price",
     [
         (
-            Money(10, "USD"),
+            Money(10, "EUR"),
             False,
-            TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD")),
+            TaxedMoney(net=Money(10, "EUR"), gross=Money(10, "EUR")),
         ),
         (
-            Money(10, "USD"),
+            Money(10, "EUR"),
             True,
-            TaxedMoney(net=Money("8.13", "USD"), gross=Money(10, "USD")),
+            TaxedMoney(net=Money("8.13", "EUR"), gross=Money(10, "EUR")),
         ),
     ],
 )
@@ -102,20 +102,20 @@ def test_apply_tax_to_price_do_not_include_tax(site_settings, taxes):
     site_settings.include_taxes_in_prices = False
     site_settings.save()
 
-    money = Money(100, "USD")
+    money = Money(100, "EUR")
     assert apply_tax_to_price(taxes, "standard", money) == TaxedMoney(
-        net=Money(100, "USD"), gross=Money(123, "USD")
+        net=Money(100, "EUR"), gross=Money(123, "EUR")
     )
     assert apply_tax_to_price(taxes, "medical", money) == TaxedMoney(
-        net=Money(100, "USD"), gross=Money(108, "USD")
+        net=Money(100, "EUR"), gross=Money(108, "EUR")
     )
 
-    taxed_money = TaxedMoney(net=Money(100, "USD"), gross=Money(100, "USD"))
+    taxed_money = TaxedMoney(net=Money(100, "EUR"), gross=Money(100, "EUR"))
     assert apply_tax_to_price(taxes, "standard", taxed_money) == TaxedMoney(
-        net=Money(100, "USD"), gross=Money(123, "USD")
+        net=Money(100, "EUR"), gross=Money(123, "EUR")
     )
     assert apply_tax_to_price(taxes, "medical", taxed_money) == TaxedMoney(
-        net=Money(100, "USD"), gross=Money(108, "USD")
+        net=Money(100, "EUR"), gross=Money(108, "EUR")
     )
 
 
@@ -125,30 +125,30 @@ def test_apply_tax_to_price_do_not_include_tax_fallback_to_standard_rate(
     site_settings.include_taxes_in_prices = False
     site_settings.save()
 
-    money = Money(100, "USD")
-    taxed_money = TaxedMoney(net=Money(100, "USD"), gross=Money(123, "USD"))
+    money = Money(100, "EUR")
+    taxed_money = TaxedMoney(net=Money(100, "EUR"), gross=Money(123, "EUR"))
     assert apply_tax_to_price(taxes, "space suits", money) == taxed_money
 
 
 def test_apply_tax_to_price_include_tax(taxes):
-    money = Money(100, "USD")
+    money = Money(100, "EUR")
     assert apply_tax_to_price(taxes, "standard", money) == TaxedMoney(
-        net=Money("81.30", "USD"), gross=Money(100, "USD")
+        net=Money("81.30", "EUR"), gross=Money(100, "EUR")
     )
     assert apply_tax_to_price(taxes, "medical", money) == TaxedMoney(
-        net=Money("92.59", "USD"), gross=Money(100, "USD")
+        net=Money("92.59", "EUR"), gross=Money(100, "EUR")
     )
 
 
 def test_apply_tax_to_price_include_fallback_to_standard_rate(taxes):
-    money = Money(100, "USD")
+    money = Money(100, "EUR")
     assert apply_tax_to_price(taxes, "space suits", money) == TaxedMoney(
-        net=Money("81.30", "USD"), gross=Money(100, "USD")
+        net=Money("81.30", "EUR"), gross=Money(100, "EUR")
     )
 
-    taxed_money = TaxedMoney(net=Money(100, "USD"), gross=Money(100, "USD"))
+    taxed_money = TaxedMoney(net=Money(100, "EUR"), gross=Money(100, "EUR"))
     assert apply_tax_to_price(taxes, "space suits", taxed_money) == TaxedMoney(
-        net=Money("81.30", "USD"), gross=Money(100, "USD")
+        net=Money("81.30", "EUR"), gross=Money(100, "EUR")
     )
 
 
@@ -158,18 +158,18 @@ def test_apply_tax_to_price_raise_typeerror_for_invalid_type(taxes):
 
 
 def test_apply_tax_to_price_no_taxes_return_taxed_money():
-    money = Money(100, "USD")
-    taxed_money = TaxedMoney(net=Money(100, "USD"), gross=Money(100, "USD"))
+    money = Money(100, "EUR")
+    taxed_money = TaxedMoney(net=Money(100, "EUR"), gross=Money(100, "EUR"))
 
     assert apply_tax_to_price(None, "standard", money) == taxed_money
     assert apply_tax_to_price(None, "medical", taxed_money) == taxed_money
 
 
 def test_apply_tax_to_price_no_taxes_return_taxed_money_range():
-    money_range = MoneyRange(Money(100, "USD"), Money(200, "USD"))
+    money_range = MoneyRange(Money(100, "EUR"), Money(200, "EUR"))
     taxed_money_range = TaxedMoneyRange(
-        TaxedMoney(net=Money(100, "USD"), gross=Money(100, "USD")),
-        TaxedMoney(net=Money(200, "USD"), gross=Money(200, "USD")),
+        TaxedMoney(net=Money(100, "EUR"), gross=Money(100, "EUR")),
+        TaxedMoney(net=Money(200, "EUR"), gross=Money(200, "EUR")),
     )
 
     assert apply_tax_to_price(None, "standard", money_range) == taxed_money_range
@@ -225,7 +225,7 @@ def test_calculate_checkout_total(
     )
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
-    voucher_amount = Money(voucher_amount, "USD")
+    voucher_amount = Money(voucher_amount, "EUR")
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.discount = voucher_amount
     checkout_with_item.save()
@@ -243,7 +243,7 @@ def test_calculate_checkout_total(
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
-        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+        net=Money(expected_net, "EUR"), gross=Money(expected_gross, "EUR")
     )
 
 
@@ -292,7 +292,7 @@ def test_calculate_checkout_subtotal(
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
-        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+        net=Money(expected_net, "EUR"), gross=Money(expected_gross, "EUR")
     )
 
 
@@ -308,7 +308,7 @@ def test_calculate_order_shipping(vatlayer, order_line, shipping_zone, site_sett
     order.save()
     price = manager.calculate_order_shipping(order)
     price = quantize_price(price, price.currency)
-    assert price == TaxedMoney(net=Money("8.13", "USD"), gross=Money("10.00", "USD"))
+    assert price == TaxedMoney(net=Money("8.13", "EUR"), gross=Money("10.00", "EUR"))
 
 
 def test_calculate_order_shipping_for_order_without_shipping(
@@ -329,7 +329,7 @@ def test_calculate_order_line_unit(vatlayer, order_line, shipping_zone, site_set
         plugins=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     )
     order_line.unit_price = TaxedMoney(
-        net=Money("10.00", "USD"), gross=Money("10.00", "USD")
+        net=Money("10.00", "EUR"), gross=Money("10.00", "EUR")
     )
     order_line.save()
 
@@ -347,7 +347,7 @@ def test_calculate_order_line_unit(vatlayer, order_line, shipping_zone, site_set
     line_price = manager.calculate_order_line_unit(order_line)
     line_price = quantize_price(line_price, line_price.currency)
     assert line_price == TaxedMoney(
-        net=Money("8.13", "USD"), gross=Money("10.00", "USD")
+        net=Money("8.13", "EUR"), gross=Money("10.00", "EUR")
     )
 
 
@@ -409,12 +409,12 @@ def test_get_tax_rate_type_choices(vatlayer, settings, monkeypatch):
 
 def test_apply_taxes_to_shipping_price_range(vatlayer, settings):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
-    money_range = MoneyRange(Money(100, "USD"), Money(200, "USD"))
+    money_range = MoneyRange(Money(100, "EUR"), Money(200, "EUR"))
     country = Country("PL")
     manager = get_plugins_manager()
 
-    expected_start = TaxedMoney(net=Money("81.30", "USD"), gross=Money("100", "USD"))
-    expected_stop = TaxedMoney(net=Money("162.60", "USD"), gross=Money("200", "USD"))
+    expected_start = TaxedMoney(net=Money("81.30", "EUR"), gross=Money("100", "EUR"))
+    expected_stop = TaxedMoney(net=Money("162.60", "EUR"), gross=Money("200", "EUR"))
 
     price_range = manager.apply_taxes_to_shipping_price_range(money_range, country)
 
@@ -433,7 +433,7 @@ def test_apply_taxes_to_product(vatlayer, settings, variant, discount_info):
     price = manager.apply_taxes_to_product(
         variant.product, variant.get_price([discount_info]), country
     )
-    assert price == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))
+    assert price == TaxedMoney(net=Money("4.07", "EUR"), gross=Money("5.00", "EUR"))
 
 
 def test_apply_taxes_to_product_uses_taxes_from_product_type(
@@ -450,7 +450,7 @@ def test_apply_taxes_to_product_uses_taxes_from_product_type(
     price = manager.apply_taxes_to_product(
         variant.product, variant.get_price([discount_info]), country
     )
-    assert price == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))
+    assert price == TaxedMoney(net=Money("4.07", "EUR"), gross=Money("5.00", "EUR"))
 
 
 def test_calculations_checkout_total_with_vatlayer(
@@ -461,7 +461,7 @@ def test_calculations_checkout_total_with_vatlayer(
         checkout=checkout_with_item, lines=list(checkout_with_item)
     )
     assert checkout_subtotal == TaxedMoney(
-        net=Money("30", "USD"), gross=Money("30", "USD")
+        net=Money("30", "EUR"), gross=Money("30", "EUR")
     )
 
 
@@ -473,7 +473,7 @@ def test_calculations_checkout_subtotal_with_vatlayer(
         checkout=checkout_with_item, lines=list(checkout_with_item)
     )
     assert checkout_subtotal == TaxedMoney(
-        net=Money("30", "USD"), gross=Money("30", "USD")
+        net=Money("30", "EUR"), gross=Money("30", "EUR")
     )
 
 
@@ -485,7 +485,7 @@ def test_calculations_checkout_shipping_price_with_vatlayer(
         checkout=checkout_with_item, lines=list(checkout_with_item)
     )
     assert checkout_shipping_price == TaxedMoney(
-        net=Money("0", "USD"), gross=Money("0", "USD")
+        net=Money("0", "EUR"), gross=Money("0", "EUR")
     )
 
 
@@ -496,7 +496,7 @@ def test_skip_diabled_plugin(settings):
 
     assert (
         plugin._skip_plugin(
-            previous_value=TaxedMoney(net=Money(0, "USD"), gross=Money(0, "USD"))
+            previous_value=TaxedMoney(net=Money(0, "EUR"), gross=Money(0, "EUR"))
         )
         is True
     )

@@ -123,7 +123,7 @@ class ActivePaymentGateway(BasePlugin):
     ]
     PLUGIN_NAME = "braintree"
     DEFAULT_ACTIVE = True
-    SUPPORTED_CURRENCIES = ["USD"]
+    SUPPORTED_CURRENCIES = ["EUR"]
 
     def process_payment(self, payment_information, previous_value):
         pass
@@ -142,7 +142,7 @@ class ActiveDummyPaymentGateway(BasePlugin):
     ]
     PLUGIN_NAME = "SampleDummy"
     DEFAULT_ACTIVE = True
-    SUPPORTED_CURRENCIES = ["PLN", "USD"]
+    SUPPORTED_CURRENCIES = ["PLN", "EUR"]
 
     def process_payment(self, payment_information, previous_value):
         pass

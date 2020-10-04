@@ -27,7 +27,7 @@ def gateway_config():
     return GatewayConfig(
         gateway_name="razorpay",
         auto_capture=False,
-        supported_currencies="USD",
+        supported_currencies="EUR",
         connection_params={
             "public_key": "public",
             "private_key": "secret",
@@ -75,7 +75,7 @@ def test_check_payment_supported(razorpay_payment):
 
 
 def test_check_payment_supported_non_supported(razorpay_payment):
-    razorpay_payment.currency = "USD"
+    razorpay_payment.currency = "EUR"
     payment_info = create_payment_information(razorpay_payment)
     found_error = check_payment_supported(payment_info)
     assert found_error
@@ -134,7 +134,7 @@ def test_charge(
 @pytest.mark.integration
 def test_charge_unsupported_currency(razorpay_payment, gateway_config):
     # Set the payment currency to an unsupported currency
-    razorpay_payment.currency = "USD"
+    razorpay_payment.currency = "EUR"
 
     # Data to be passed
     payment_token = "123"
@@ -147,7 +147,7 @@ def test_charge_unsupported_currency(razorpay_payment, gateway_config):
     response = capture(payment_info, gateway_config)
 
     # Ensure a error was returned
-    assert response.error == (errors.UNSUPPORTED_CURRENCY % {"currency": "USD"})
+    assert response.error == (errors.UNSUPPORTED_CURRENCY % {"currency": "EUR"})
     assert not response.is_success
 
     # Ensure the response is correctly set
@@ -217,7 +217,7 @@ def test_refund(
 @pytest.mark.integration
 def test_refund_unsupported_currency(razorpay_payment, charged_payment, gateway_config):
     # Set the payment currency to an unsupported currency
-    razorpay_payment.currency = "USD"
+    razorpay_payment.currency = "EUR"
 
     payment_info = create_payment_information(
         razorpay_payment, amount=TRANSACTION_AMOUNT
@@ -227,7 +227,7 @@ def test_refund_unsupported_currency(razorpay_payment, charged_payment, gateway_
     response = refund(payment_info, gateway_config)
 
     # Ensure a error was returned
-    assert response.error == (errors.UNSUPPORTED_CURRENCY % {"currency": "USD"})
+    assert response.error == (errors.UNSUPPORTED_CURRENCY % {"currency": "EUR"})
     assert not response.is_success
 
     # Ensure the kind is correctly set

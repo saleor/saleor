@@ -108,7 +108,7 @@ def test_product_get_price_do_not_charge_taxes(product_type, category, discount_
 
     price = variant.get_price(discounts=[discount_info])
 
-    assert price == Money("5.00", "USD")
+    assert price == Money("5.00", "EUR")
 
 
 def test_digital_product_view(client, digital_content_url):
@@ -202,7 +202,7 @@ def test_digital_product_view_url_expired(client, digital_content):
 
 
 @pytest.mark.parametrize(
-    "price, cost", [(Money("0", "USD"), Money("1", "USD")), (Money("2", "USD"), None)]
+    "price, cost", [(Money("0", "EUR"), Money("1", "EUR")), (Money("2", "EUR"), None)]
 )
 def test_costs_get_margin_for_variant(variant, price, cost):
     variant.cost_price = cost

@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"amount": {"value": "123400", "currency": "USD"}, "reference": "UGF5bWVudDo3",
+    body: '{"amount": {"value": "123400", "currency": "EUR"}, "reference": "UGF5bWVudDo3",
                 "paymentMethod": {"paymentdata": ""}, "returnUrl": "http://127.0.0.1:3000/",
                 "merchantAccount": "SaleorECOM", "applicationInfo": {"adyenLibrary": {"name":
                 "adyen-python-api-library", "version": "3.0.0"}}}'

@@ -70,7 +70,7 @@ def checkout_with_charged_payment(checkout_with_billing_address):
         gateway="mirumee.payments.dummy",
         is_active=True,
         total=taxed_total.gross.amount,
-        currency="USD",
+        currency="EUR",
     )
 
     payment.charge_status = ChargeStatus.FULLY_CHARGED

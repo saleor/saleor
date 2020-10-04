@@ -53,7 +53,7 @@ ACTION_REQUIRED_GATEWAY_RESPONSE = GatewayResponse(
     },
     kind=TransactionKind.CAPTURE,
     amount=Decimal(3.0),
-    currency="usd",
+    currency="EUR",
     transaction_id="1234",
     error=None,
 )
@@ -336,7 +336,7 @@ ERROR_GATEWAY_RESPONSE = GatewayResponse(
     action_required=False,
     kind=TransactionKind.CAPTURE,
     amount=Decimal(0),
-    currency="usd",
+    currency="EUR",
     transaction_id="1234",
     error="ERROR",
 )

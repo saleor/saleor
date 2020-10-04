@@ -71,11 +71,11 @@ def test_append_klarna_data_tax_included(
     mocked_checkout_line_total, dummy_payment_data, payment_dummy, checkout_with_item
 ):
     # given
-    net = Money(100, "USD")
-    gross = Money(123, "USD")
+    net = Money(100, "EUR")
+    gross = Money(123, "EUR")
     # tax 23 %
     mocked_checkout_line_total.return_value = quantize_price(
-        TaxedMoney(net=net, gross=gross), "USD"
+        TaxedMoney(net=net, gross=gross), "EUR"
     )
 
     checkout_with_item.payments.add(payment_dummy)
@@ -99,10 +99,10 @@ def test_append_klarna_data_tax_included(
                 "description": f"{line.variant.product.name}, {line.variant.name}",
                 "quantity": line.quantity,
                 "id": line.variant.sku,
-                "taxAmount": to_adyen_price((gross - net).amount, "USD"),
+                "taxAmount": to_adyen_price((gross - net).amount, "EUR"),
                 "taxPercentage": 2300,
-                "amountExcludingTax": to_adyen_price(net.amount, "USD"),
-                "amountIncludingTax": to_adyen_price(gross.amount, "USD"),
+                "amountExcludingTax": to_adyen_price(net.amount, "EUR"),
+                "amountIncludingTax": to_adyen_price(gross.amount, "EUR"),
             }
         ],
     }
@@ -257,7 +257,7 @@ def test_request_data_for_gateway_config(checkout_with_item, address):
         "merchantAccount": merchant_account,
         "countryCode": checkout_with_item.billing_address.country,
         "channel": "web",
-        "amount": {"currency": "USD", "value": "3000"},
+        "amount": {"currency": "EUR", "value": "3000"},
     }
 
 
@@ -273,7 +273,7 @@ def test_request_data_for_gateway_config_no_country(checkout, address, settings)
         "merchantAccount": merchant_account,
         "countryCode": settings.DEFAULT_COUNTRY,
         "channel": "web",
-        "amount": {"currency": "USD", "value": "0"},
+        "amount": {"currency": "EUR", "value": "0"},
     }
 
 

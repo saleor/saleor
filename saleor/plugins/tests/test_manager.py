@@ -164,7 +164,7 @@ def test_manager_apply_taxes_to_product(product, plugins, price):
 def test_manager_apply_taxes_to_shipping(
     shipping_method, address, plugins, price_amount
 ):
-    expected_price = Money(price_amount, "USD")
+    expected_price = Money(price_amount, "EUR")
     taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_shipping(
         shipping_method.price, address
     )
@@ -340,7 +340,7 @@ def test_manager_serve_list_all_payment_gateways_specified_currency_two_gateways
     ]
     manager = PluginsManager(plugins=plugins)
     assert (
-        manager.list_payment_gateways(currency="USD", active_only=False)
+        manager.list_payment_gateways(currency="EUR", active_only=False)
         == expected_gateways
     )
 

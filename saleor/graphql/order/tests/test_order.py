@@ -133,13 +133,13 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
     assert order_data["lines"][0]["unitPrice"]["currency"] == line.unit_price.currency
     expected_unit_price = Money(
         amount=str(order_data["lines"][0]["unitPrice"]["gross"]["amount"]),
-        currency="USD",
+        currency="EUR",
     )
     assert order_data["lines"][0]["totalPrice"]["currency"] == line.unit_price.currency
     assert expected_unit_price == line.unit_price.gross
     expected_total_price = Money(
         amount=str(order_data["lines"][0]["totalPrice"]["gross"]["amount"]),
-        currency="USD",
+        currency="EUR",
     )
     assert expected_total_price == line.unit_price.gross * line.quantity
 
@@ -216,7 +216,7 @@ def test_order_query(
     assert order_data["isPaid"] == order.is_fully_paid()
     assert order_data["userEmail"] == order.user_email
     expected_price = Money(
-        amount=str(order_data["shippingPrice"]["gross"]["amount"]), currency="USD"
+        amount=str(order_data["shippingPrice"]["gross"]["amount"]), currency="EUR"
     )
     assert expected_price == order.shipping_price.gross
     assert len(order_data["lines"]) == order.lines.count()
@@ -274,7 +274,7 @@ def test_order_available_shipping_methods_query(
     }
     """
     shipping_method = shipping_zone.shipping_methods.first()
-    taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
+    taxed_price = TaxedMoney(net=Money(10, "EUR"), gross=Money(13, "EUR"))
     apply_taxes_to_shipping_mock = Mock(return_value=taxed_price)
     monkeypatch.setattr(
         PluginsManager, "apply_taxes_to_shipping", apply_taxes_to_shipping_mock
@@ -514,7 +514,7 @@ def test_payment_information_order_events_query(
     data = content["data"]["orders"]["edges"][0]["node"]["events"][0]
 
     assert data["message"] is None
-    assert Money(str(data["amount"]), "USD") == order.total.gross
+    assert Money(str(data["amount"]), "EUR") == order.total.gross
     assert data["emailType"] is None
     assert data["quantity"] is None
     assert data["composedId"] is None
@@ -683,7 +683,7 @@ def test_draft_order_create_variant_with_0_price(
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
     variant_1 = product_without_shipping.variants.first()
     variant_1.quantity = 2
-    variant.price = Money(0, "USD")
+    variant.price = Money(0, "EUR")
     variant_1.save()
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
     variant_list = [
@@ -2411,7 +2411,7 @@ def test_orders_total(staff_api_client, permission_manage_orders, order_with_lin
     )
     content = get_graphql_content(response)
     amount = str(content["data"]["ordersTotal"]["gross"]["amount"])
-    assert Money(amount, "USD") == order_with_lines.total.gross
+    assert Money(amount, "EUR") == order_with_lines.total.gross
 
 
 ORDER_BY_TOKEN_QUERY = """
@@ -3190,7 +3190,7 @@ def test_query_orders_with_sort(
                 token=str(uuid.uuid4()),
                 billing_address=address,
                 status=OrderStatus.PARTIALLY_FULFILLED,
-                total=TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD")),
+                total=TaxedMoney(net=Money(10, "EUR"), gross=Money(13, "EUR")),
             )
         )
     with freeze_time("2012-01-14"):
@@ -3202,7 +3202,7 @@ def test_query_orders_with_sort(
                 token=str(uuid.uuid4()),
                 billing_address=address2,
                 status=OrderStatus.FULFILLED,
-                total=TaxedMoney(net=Money(100, "USD"), gross=Money(130, "USD")),
+                total=TaxedMoney(net=Money(100, "EUR"), gross=Money(130, "EUR")),
             )
         )
     address3 = address.get_copy()
@@ -3213,7 +3213,7 @@ def test_query_orders_with_sort(
             token=str(uuid.uuid4()),
             billing_address=address3,
             status=OrderStatus.CANCELED,
-            total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
+            total=TaxedMoney(net=Money(20, "EUR"), gross=Money(26, "EUR")),
         )
     )
     variables = {"sort_by": order_sort}
@@ -3262,7 +3262,7 @@ def test_query_draft_orders_with_sort(
                 token=str(uuid.uuid4()),
                 billing_address=address,
                 status=OrderStatus.DRAFT,
-                total=TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD")),
+                total=TaxedMoney(net=Money(10, "EUR"), gross=Money(13, "EUR")),
             )
         )
     with freeze_time("2012-01-14"):
@@ -3274,7 +3274,7 @@ def test_query_draft_orders_with_sort(
                 token=str(uuid.uuid4()),
                 billing_address=address2,
                 status=OrderStatus.DRAFT,
-                total=TaxedMoney(net=Money(100, "USD"), gross=Money(130, "USD")),
+                total=TaxedMoney(net=Money(100, "EUR"), gross=Money(130, "EUR")),
             )
         )
     address3 = address.get_copy()
@@ -3285,7 +3285,7 @@ def test_query_draft_orders_with_sort(
             token=str(uuid.uuid4()),
             billing_address=address3,
             status=OrderStatus.DRAFT,
-            total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
+            total=TaxedMoney(net=Money(20, "EUR"), gross=Money(26, "EUR")),
         )
     )
     variables = {"sort_by": draft_order_sort}

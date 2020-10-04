@@ -778,7 +778,7 @@ def test_products_query_with_filter(
     second_product.variants.create(
         product=second_product,
         sku=second_product.slug,
-        cost_price=Money("1.00", "USD"),
+        cost_price=Money("1.00", "EUR"),
         price_amount=Decimal(1.99),
     )
     variables = {"filter": products_filter}
@@ -1102,7 +1102,7 @@ def test_sort_products(user_api_client, product):
     ProductVariant.objects.create(
         product=product,
         sku="1234",
-        cost_price=Money("1.00", "USD"),
+        cost_price=Money("1.00", "EUR"),
         price_amount=Decimal(20),
     )
 
@@ -4206,7 +4206,7 @@ def test_product_variant_price(
 ):
     # Set price override on variant that is different than product price
     product = variant.product
-    product.variants.update(price_amount=variant_price_amount, currency="USD")
+    product.variants.update(price_amount=variant_price_amount, currency="EUR")
     # Drop other variants
     # product.variants.exclude(id=variant.pk).delete()
 

@@ -9,9 +9,9 @@ from ..validators import validate_price_precision
 @pytest.mark.parametrize(
     "value, currency",
     [
-        (Decimal("1.1200"), "USD"),
-        (Decimal("1.12"), "USD"),
-        (Decimal("1"), "USD"),
+        (Decimal("1.1200"), "EUR"),
+        (Decimal("1.12"), "EUR"),
+        (Decimal("1"), "EUR"),
         (Decimal("1"), "ISK"),
         (Decimal("1.00"), "ISK"),
         (Decimal("5.12"), None),
@@ -28,8 +28,8 @@ def test_validate_price_precision(value, currency):
 @pytest.mark.parametrize(
     "value, currency",
     [
-        (Decimal("1.1212"), "USD"),
-        (Decimal("1.128"), "USD"),
+        (Decimal("1.1212"), "EUR"),
+        (Decimal("1.128"), "EUR"),
         (Decimal("1.1"), "ISK"),
         (Decimal("1.11"), "ISK"),
         (Decimal("5.123"), None),

@@ -233,7 +233,7 @@ def site_settings(db, settings) -> SiteSettings:
 
 @pytest.fixture
 def checkout(db):
-    checkout = Checkout.objects.create(currency="USD")
+    checkout = Checkout.objects.create(currency="EUR")
     checkout.set_country("US", commit=True)
     return checkout
 
@@ -282,9 +282,9 @@ def checkout_with_shipping_required(checkout_with_item, product):
 def other_shipping_method(shipping_zone):
     return ShippingMethod.objects.create(
         name="DPD",
-        minimum_order_price=Money(0, "USD"),
+        minimum_order_price=Money(0, "EUR"),
         type=ShippingMethodType.PRICE_BASED,
-        price=Money(9, "USD"),
+        price=Money(9, "EUR"),
         shipping_zone=shipping_zone,
     )
 
@@ -337,7 +337,7 @@ def checkout_with_voucher(checkout, product, voucher):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, 3)
     checkout.voucher_code = voucher.code
-    checkout.discount = Money("20.00", "USD")
+    checkout.discount = Money("20.00", "EUR")
     checkout.save()
     return checkout
 
@@ -347,7 +347,7 @@ def checkout_with_voucher_percentage(checkout, product, voucher_percentage):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, 3)
     checkout.voucher_code = voucher_percentage.code
-    checkout.discount = Money("3.00", "USD")
+    checkout.discount = Money("3.00", "EUR")
     checkout.save()
     return checkout
 
@@ -465,7 +465,7 @@ def user_checkout(customer_user):
         billing_address=customer_user.default_billing_address,
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
-        currency="USD",
+        currency="EUR",
     )
     return checkout
 
@@ -536,9 +536,9 @@ def shipping_zone(db):  # pylint: disable=W0613
     )
     shipping_zone.shipping_methods.create(
         name="DHL",
-        minimum_order_price=Money(0, "USD"),
+        minimum_order_price=Money(0, "EUR"),
         type=ShippingMethodType.PRICE_BASED,
-        price=Money(10, "USD"),
+        price=Money(10, "EUR"),
         shipping_zone=shipping_zone,
     )
     return shipping_zone
@@ -554,16 +554,16 @@ def shipping_zones(db):
     )
     shipping_zone_poland.shipping_methods.create(
         name="DHL",
-        minimum_order_price=Money(0, "USD"),
+        minimum_order_price=Money(0, "EUR"),
         type=ShippingMethodType.PRICE_BASED,
-        price=Money(10, "USD"),
+        price=Money(10, "EUR"),
         shipping_zone=shipping_zone,
     )
     shipping_zone_usa.shipping_methods.create(
         name="DHL",
-        minimum_order_price=Money(0, "USD"),
+        minimum_order_price=Money(0, "EUR"),
         type=ShippingMethodType.PRICE_BASED,
-        price=Money(10, "USD"),
+        price=Money(10, "EUR"),
         shipping_zone=shipping_zone,
     )
     return [shipping_zone_poland, shipping_zone_usa]
@@ -574,9 +574,9 @@ def shipping_zone_without_countries(db):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(name="Europe", countries=[])
     shipping_zone.shipping_methods.create(
         name="DHL",
-        minimum_order_price=Money(0, "USD"),
+        minimum_order_price=Money(0, "EUR"),
         type=ShippingMethodType.PRICE_BASED,
-        price=Money(10, "USD"),
+        price=Money(10, "EUR"),
         shipping_zone=shipping_zone,
     )
     return shipping_zone
@@ -586,9 +586,9 @@ def shipping_zone_without_countries(db):  # pylint: disable=W0613
 def shipping_method(shipping_zone):
     return ShippingMethod.objects.create(
         name="DHL",
-        minimum_order_price=Money(0, "USD"),
+        minimum_order_price=Money(0, "EUR"),
         type=ShippingMethodType.PRICE_BASED,
-        price=Money(10, "USD"),
+        price=Money(10, "EUR"),
         shipping_zone=shipping_zone,
     )
 
@@ -783,7 +783,7 @@ def product(product_type, category, warehouse):
     variant = ProductVariant.objects.create(
         product=product,
         sku="123",
-        cost_price=Money("1.00", "USD"),
+        cost_price=Money("1.00", "EUR"),
         price_amount=Decimal(10),
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
@@ -806,7 +806,7 @@ def product_with_single_variant(product_type, category, warehouse):
     variant = ProductVariant.objects.create(
         product=product,
         sku="SKU_SINGLE_VARIANT",
-        cost_price=Money("1.00", "USD"),
+        cost_price=Money("1.00", "EUR"),
         price_amount=1.99,
     )
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=101)
@@ -829,7 +829,7 @@ def product_with_two_variants(product_type, category, warehouse):
         ProductVariant(
             product=product,
             sku=f"Product variant #{i}",
-            cost_price=Money("1.00", "USD"),
+            cost_price=Money("1.00", "EUR"),
             price_amount=Decimal(10),
         )
         for i in (1, 2)
@@ -871,7 +871,7 @@ def product_with_variant_with_two_attributes(
     variant = ProductVariant.objects.create(
         product=product,
         sku="prodVar1",
-        cost_price=Money("1.00", "USD"),
+        cost_price=Money("1.00", "EUR"),
         price_amount=Decimal(10),
     )
 
@@ -952,9 +952,9 @@ def variant(product) -> ProductVariant:
     product_variant = ProductVariant.objects.create(
         product=product,
         sku="SKU_A",
-        cost_price=Money(1, "USD"),
+        cost_price=Money(1, "EUR"),
         price_amount=Decimal(10),
-        price=Money(10, "USD"),
+        price=Money(10, "EUR"),
     )
     return product_variant
 
@@ -1165,7 +1165,7 @@ def unavailable_product_with_variant(product_type, category, warehouse):
     variant_attr_value = variant_attr.values.first()
 
     variant = ProductVariant.objects.create(
-        product=product, sku="123", cost_price=Money(1, "USD"), price_amount=Decimal(10)
+        product=product, sku="123", cost_price=Money(1, "EUR"), price_amount=Decimal(10)
     )
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
 
@@ -1216,7 +1216,7 @@ def voucher_specific_product_type(voucher_percentage):
 @pytest.fixture
 def voucher_with_high_min_spent_amount():
     return Voucher.objects.create(
-        code="mirumee", discount_value=10, min_spent=Money(1_000_000, "USD")
+        code="mirumee", discount_value=10, min_spent=Money(1_000_000, "EUR")
     )
 
 
@@ -1325,8 +1325,8 @@ def gift_card(customer_user, staff_user):
     return GiftCard.objects.create(
         code="mirumee_giftcard",
         user=customer_user,
-        initial_balance=Money(10, "USD"),
-        current_balance=Money(10, "USD"),
+        initial_balance=Money(10, "EUR"),
+        current_balance=Money(10, "EUR"),
     )
 
 
@@ -1334,8 +1334,8 @@ def gift_card(customer_user, staff_user):
 def gift_card_used(staff_user):
     return GiftCard.objects.create(
         code="gift_card_used",
-        initial_balance=Money(150, "USD"),
-        current_balance=Money(100, "USD"),
+        initial_balance=Money(150, "EUR"),
+        current_balance=Money(100, "EUR"),
     )
 
 
@@ -1343,8 +1343,8 @@ def gift_card_used(staff_user):
 def gift_card_created_by_staff(staff_user):
     return GiftCard.objects.create(
         code="mirumee_staff",
-        initial_balance=Money(5, "USD"),
-        current_balance=Money(5, "USD"),
+        initial_balance=Money(5, "EUR"),
+        current_balance=Money(5, "EUR"),
     )
 
 
@@ -1362,7 +1362,7 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
     variant = ProductVariant.objects.create(
         product=product,
         sku="SKU_A",
-        cost_price=Money(1, "USD"),
+        cost_price=Money(1, "EUR"),
         price_amount=Decimal(10),
     )
     stock = Stock.objects.create(
@@ -1394,7 +1394,7 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="SKU_B", cost_price=Money(2, "USD"), price_amount=20
+        product=product, sku="SKU_B", cost_price=Money(2, "EUR"), price_amount=20
     )
     stock = Stock.objects.create(
         product_variant=variant, warehouse=warehouse, quantity=2
@@ -1626,7 +1626,7 @@ def dummy_gateway_config():
     return GatewayConfig(
         gateway_name="Dummy",
         auto_capture=True,
-        supported_currencies="USD",
+        supported_currencies="EUR",
         connection_params={"secret-key": "nobodylikesspanishinqusition"},
     )
 
@@ -1635,7 +1635,7 @@ def dummy_gateway_config():
 def dummy_payment_data(payment_dummy):
     return PaymentData(
         amount=Decimal(10),
-        currency="USD",
+        currency="EUR",
         graphql_payment_id=graphene.Node.to_global_id("Payment", payment_dummy.pk),
         payment_id=payment_dummy.pk,
         billing=None,
@@ -2048,7 +2048,7 @@ def digital_content(category, media_root, warehouse) -> DigitalContent:
     product_variant = ProductVariant.objects.create(
         product=product,
         sku="SKU_554",
-        cost_price=Money(1, "USD"),
+        cost_price=Money(1, "EUR"),
         price_amount=Decimal(10),
     )
     Stock.objects.create(

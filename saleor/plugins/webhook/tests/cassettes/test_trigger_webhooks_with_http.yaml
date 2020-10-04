@@ -4,7 +4,7 @@ interactions:
       "metadata": {}, "created": "2020-08-07T09:05:59.192Z", "status": "unfulfilled",
       "user": 202, "language_code": "en", "tracking_client_id": "", "billing_address":
       825, "shipping_address": 826, "user_email": "test@example.com", "currency":
-      "USD", "shipping_method": 235, "shipping_method_name": "DHL", "shipping_price_net_amount":
+      "EUR", "shipping_method": 235, "shipping_method_name": "DHL", "shipping_price_net_amount":
       "10.00", "shipping_price_gross_amount": "12.30", "token": "aad0c768-c6d8-41ee-a25f-73b7538941a8",
       "checkout_token": "", "total_net_amount": "80.00", "total_gross_amount": "98.40",
       "voucher": null, "discount_amount": "0.00", "discount_name": null, "translated_discount_name":

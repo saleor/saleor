@@ -713,7 +713,7 @@ def test_query_available_payment_gateways_specified_currency_USD(
     user_api_client, sample_gateway
 ):
     query = AVAILABLE_PAYMENT_GATEWAYS_QUERY
-    response = user_api_client.post_graphql(query, {"currency": "USD"})
+    response = user_api_client.post_graphql(query, {"currency": "EUR"})
     content = get_graphql_content(response)
     data = content["data"]["shop"]["availablePaymentGateways"]
     assert {gateway["id"] for gateway in data} == {

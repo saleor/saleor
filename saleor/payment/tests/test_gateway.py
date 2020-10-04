@@ -15,7 +15,7 @@ PROCESS_PAYMENT_RESPONSE = GatewayResponse(
     action_required=False,
     kind=TransactionKind.CAPTURE,
     amount=Decimal(10.0),
-    currency="usd",
+    currency="EUR",
     transaction_id="1234",
     error=None,
     raw_response=RAW_RESPONSE,
@@ -26,7 +26,7 @@ AUTHORIZE_RESPONSE = GatewayResponse(
     action_required=False,
     kind=TransactionKind.AUTH,
     amount=Decimal(10.0),
-    currency="usd",
+    currency="EUR",
     transaction_id="1234",
     error=None,
     raw_response=RAW_RESPONSE,
@@ -38,7 +38,7 @@ VOID_RESPONSE = GatewayResponse(
     action_required=False,
     kind=TransactionKind.VOID,
     amount=VOID_AMOUNT,
-    currency="usd",
+    currency="EUR",
     transaction_id="1234",
     error=None,
     raw_response=RAW_RESPONSE,
@@ -50,7 +50,7 @@ PARTIAL_REFUND_RESPONSE = GatewayResponse(
     action_required=False,
     kind=TransactionKind.REFUND,
     amount=PARTIAL_REFUND_AMOUNT,
-    currency="usd",
+    currency="EUR",
     transaction_id="1234",
     error=None,
     raw_response=RAW_RESPONSE,
@@ -62,7 +62,7 @@ FULL_REFUND_RESPONSE = GatewayResponse(
     action_required=False,
     kind=TransactionKind.REFUND,
     amount=FULL_REFUND_AMOUNT,
-    currency="usd",
+    currency="EUR",
     transaction_id="1234",
     error=None,
     raw_response=RAW_RESPONSE,
@@ -74,7 +74,7 @@ CONFIRM_RESPONSE = GatewayResponse(
     action_required=False,
     kind=TransactionKind.CONFIRM,
     amount=CONFIRM_AMOUNT,
-    currency="usd",
+    currency="EUR",
     transaction_id="1234",
     error=None,
     raw_response=RAW_RESPONSE,
@@ -107,7 +107,7 @@ def test_process_payment(mock_payment_interface, payment_txn_preauth):
     )
     assert transaction.amount == PROCESS_PAYMENT_RESPONSE.amount
     assert transaction.kind == TransactionKind.CAPTURE
-    assert transaction.currency == "usd"
+    assert transaction.currency == "EUR"
     assert transaction.gateway_response == RAW_RESPONSE
 
 
@@ -142,7 +142,7 @@ def test_authorize_payment(mock_payment_interface, payment_dummy):
     )
     assert transaction.amount == AUTHORIZE_RESPONSE.amount
     assert transaction.kind == TransactionKind.AUTH
-    assert transaction.currency == "usd"
+    assert transaction.currency == "EUR"
     assert transaction.gateway_response == RAW_RESPONSE
 
 
@@ -160,7 +160,7 @@ def test_capture_payment(mock_payment_interface, payment_txn_preauth):
     )
     assert transaction.amount == PROCESS_PAYMENT_RESPONSE.amount
     assert transaction.kind == TransactionKind.CAPTURE
-    assert transaction.currency == "usd"
+    assert transaction.currency == "EUR"
     assert transaction.gateway_response == RAW_RESPONSE
 
 
@@ -183,7 +183,7 @@ def test_partial_refund_payment(mock_payment_interface, payment_txn_captured):
     assert payment_txn_captured.charge_status == ChargeStatus.PARTIALLY_REFUNDED
     assert transaction.amount == PARTIAL_REFUND_AMOUNT
     assert transaction.kind == TransactionKind.REFUND
-    assert transaction.currency == "usd"
+    assert transaction.currency == "EUR"
     assert transaction.gateway_response == RAW_RESPONSE
 
 
@@ -204,7 +204,7 @@ def test_full_refund_payment(mock_payment_interface, payment_txn_captured):
     assert payment_txn_captured.charge_status == ChargeStatus.FULLY_REFUNDED
     assert transaction.amount == FULL_REFUND_AMOUNT
     assert transaction.kind == TransactionKind.REFUND
-    assert transaction.currency == "usd"
+    assert transaction.currency == "EUR"
     assert transaction.gateway_response == RAW_RESPONSE
 
 
@@ -226,7 +226,7 @@ def test_void_payment(mock_payment_interface, payment_txn_preauth):
     assert not payment_txn_preauth.is_active
     assert transaction.amount == VOID_RESPONSE.amount
     assert transaction.kind == TransactionKind.VOID
-    assert transaction.currency == "usd"
+    assert transaction.currency == "EUR"
     assert transaction.gateway_response == RAW_RESPONSE
 
 
@@ -246,7 +246,7 @@ def test_confirm_payment(mock_payment_interface, payment_txn_to_confirm):
     )
     assert transaction.amount == CONFIRM_RESPONSE.amount
     assert transaction.kind == TransactionKind.CONFIRM
-    assert transaction.currency == "usd"
+    assert transaction.currency == "EUR"
     assert transaction.gateway_response == RAW_RESPONSE
 
 

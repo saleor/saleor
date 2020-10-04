@@ -98,7 +98,7 @@ def test_calculate_checkout_line_total(
     total = manager.calculate_checkout_line_total(line, discounts)
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
-        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+        net=Money(expected_net, "EUR"), gross=Money(expected_gross, "EUR")
     )
 
 
@@ -141,7 +141,7 @@ def test_calculate_checkout_total_uses_default_calculation(
     site_settings.include_taxes_in_prices = taxes_in_prices
     site_settings.save()
 
-    voucher_amount = Money(voucher_amount, "USD")
+    voucher_amount = Money(voucher_amount, "EUR")
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.discount = voucher_amount
     checkout_with_item.save()
@@ -164,7 +164,7 @@ def test_calculate_checkout_total_uses_default_calculation(
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
-        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+        net=Money(expected_net, "EUR"), gross=Money(expected_gross, "EUR")
     )
 
 
@@ -210,7 +210,7 @@ def test_calculate_checkout_total(
     site_settings.include_taxes_in_prices = taxes_in_prices
     site_settings.save()
 
-    voucher_amount = Money(voucher_amount, "USD")
+    voucher_amount = Money(voucher_amount, "EUR")
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.discount = voucher_amount
     checkout_with_item.save()
@@ -233,7 +233,7 @@ def test_calculate_checkout_total(
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
-        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+        net=Money(expected_net, "EUR"), gross=Money(expected_gross, "EUR")
     )
 
 
@@ -265,7 +265,7 @@ def test_calculate_checkout_shipping(
     )
     shipping_price = quantize_price(shipping_price, shipping_price.currency)
     assert shipping_price == TaxedMoney(
-        net=Money("8.13", "USD"), gross=Money("10.00", "USD")
+        net=Money("8.13", "EUR"), gross=Money("10.00", "EUR")
     )
 
 
@@ -316,7 +316,7 @@ def test_calculate_checkout_subtotal(
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
-        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+        net=Money(expected_net, "EUR"), gross=Money(expected_gross, "EUR")
     )
 
 
@@ -338,7 +338,7 @@ def test_calculate_order_shipping(
 
     price = manager.calculate_order_shipping(order)
     price = quantize_price(price, price.currency)
-    assert price == TaxedMoney(net=Money("8.13", "USD"), gross=Money("10.00", "USD"))
+    assert price == TaxedMoney(net=Money("8.13", "EUR"), gross=Money("10.00", "EUR"))
 
 
 @pytest.mark.vcr
@@ -348,7 +348,7 @@ def test_calculate_order_line_unit(
     plugin_configuration()
     manager = get_plugins_manager(plugins=["saleor.plugins.avatax.plugin.AvataxPlugin"])
     order_line.unit_price = TaxedMoney(
-        net=Money("10.00", "USD"), gross=Money("10.00", "USD")
+        net=Money("10.00", "EUR"), gross=Money("10.00", "EUR")
     )
     order_line.save()
 
@@ -366,7 +366,7 @@ def test_calculate_order_line_unit(
     line_price = quantize_price(line_price, line_price.currency)
 
     assert line_price == TaxedMoney(
-        net=Money("8.13", "USD"), gross=Money("10.00", "USD")
+        net=Money("8.13", "EUR"), gross=Money("10.00", "EUR")
     )
 
 
@@ -662,7 +662,7 @@ def test_skip_disabled_plugin(settings, plugin_configuration):
 
     assert (
         plugin._skip_plugin(
-            previous_value=TaxedMoney(net=Money(0, "USD"), gross=Money(0, "USD"))
+            previous_value=TaxedMoney(net=Money(0, "EUR"), gross=Money(0, "EUR"))
         )
         is True
     )

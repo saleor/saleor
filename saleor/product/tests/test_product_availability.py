@@ -62,7 +62,7 @@ def test_product_availability_status(unavailable_product, warehouse):
 
 def test_availability(stock, monkeypatch, settings):
     product = stock.product_variant.product
-    taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
+    taxed_price = TaxedMoney(Money("10.0", "EUR"), Money("12.30", "EUR"))
     monkeypatch.setattr(
         PluginsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
     )

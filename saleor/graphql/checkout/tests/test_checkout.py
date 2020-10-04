@@ -672,7 +672,7 @@ def expected_dummy_gateway():
         "id": "mirumee.payments.dummy",
         "name": "Dummy",
         "config": [{"field": "store_customer_card", "value": "false"}],
-        "currencies": ["USD"],
+        "currencies": ["EUR"],
     }
 
 
@@ -710,7 +710,7 @@ def test_checkout_available_payment_gateways(
 def test_checkout_available_payment_gateways_currency_specified_USD(
     api_client, checkout_with_item, expected_dummy_gateway, sample_gateway,
 ):
-    checkout_with_item.currency = "USD"
+    checkout_with_item.currency = "EUR"
     checkout_with_item.save(update_fields=["currency"])
 
     query = GET_CHECKOUT_PAYMENTS_QUERY
@@ -784,7 +784,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     site_settings,
 ):
     shipping_method = shipping_zone.shipping_methods.first()
-    taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
+    taxed_price = TaxedMoney(net=Money(10, "EUR"), gross=Money(13, "EUR"))
     apply_taxes_to_shipping_mock = mock.Mock(return_value=taxed_price)
     monkeypatch.setattr(
         PluginsManager, "apply_taxes_to_shipping", apply_taxes_to_shipping_mock
@@ -1745,7 +1745,7 @@ TRANSACTION_CONFIRM_GATEWAY_RESPONSE = GatewayResponse(
     action_required=False,
     kind=TransactionKind.CONFIRM,
     amount=Decimal(3.0),
-    currency="usd",
+    currency="EUR",
     transaction_id="1234",
     error=None,
 )

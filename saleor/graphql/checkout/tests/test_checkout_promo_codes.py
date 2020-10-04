@@ -271,7 +271,7 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
     assert not data["errors"]
     assert checkout.voucher_code == voucher.code
     assert checkout.discount_amount == expected_discount
-    assert checkout.discount == Money(expected_discount, "USD")
+    assert checkout.discount == Money(expected_discount, "EUR")
 
 
 def test_checkout_add_products_voucher_code_checkout_with_sale(

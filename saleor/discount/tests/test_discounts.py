@@ -22,14 +22,14 @@ from ..utils import (
 
 @pytest.mark.parametrize(
     "min_spent_amount, value",
-    [(Money(5, "USD"), Money(10, "USD")), (Money(10, "USD"), Money(10, "USD"))],
+    [(Money(5, "EUR"), Money(10, "EUR")), (Money(10, "EUR"), Money(10, "EUR"))],
 )
 def test_valid_voucher_min_spent_amount(min_spent_amount, value):
     voucher = Voucher(
         code="unique",
         type=VoucherType.SHIPPING,
         discount_value_type=DiscountValueType.FIXED,
-        discount=Money(10, "USD"),
+        discount=Money(10, "EUR"),
         min_spent=min_spent_amount,
     )
     voucher.validate_min_spent(value)
@@ -71,7 +71,7 @@ def test_variant_discounts(product):
         collection_ids=set(),
     )
     final_price = variant.get_price(discounts=[low_discount, discount, high_discount])
-    assert final_price == Money(0, "USD")
+    assert final_price == Money(0, "EUR")
 
 
 @pytest.mark.integration
@@ -83,7 +83,7 @@ def test_percentage_discounts(product):
         sale=sale, product_ids={product.id}, category_ids=set(), collection_ids={}
     )
     final_price = variant.get_price(discounts=[discount])
-    assert final_price == Money(5, "USD")
+    assert final_price == Money(5, "EUR")
 
 
 def test_voucher_queryset_active(voucher):
@@ -118,7 +118,7 @@ def test_specific_products_voucher_checkout_discount(
     monkeypatch.setattr(
         "saleor.checkout.utils.get_prices_of_discounted_specific_product",
         lambda lines, discounts, discounted_products: (
-            Money(price, "USD") for price in prices
+            Money(price, "EUR") for price in prices
         ),
     )
     voucher = Voucher(
@@ -133,7 +133,7 @@ def test_specific_products_voucher_checkout_discount(
     discount = get_voucher_discount_for_checkout(
         voucher, checkout, list(checkout), discounts
     )
-    assert discount == Money(expected_value, "USD")
+    assert discount == Money(expected_value, "EUR")
 
 
 def test_sale_applies_to_correct_products(product_type, category):
@@ -164,7 +164,7 @@ def test_sale_applies_to_correct_products(product_type, category):
     )
     product_discount = get_product_discount_on_sale(variant.product, set(), discount)
     discounted_price = product_discount(variant.price)
-    assert discounted_price == Money(7, "USD")
+    assert discounted_price == Money(7, "EUR")
     with pytest.raises(NotApplicable):
         get_product_discount_on_sale(sec_variant.product, set(), discount)
 
@@ -243,14 +243,14 @@ def test_validate_voucher(
 ):
     voucher = Voucher.objects.create(
         code="unique",
-        currency="USD",
+        currency="EUR",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
         discount_value=50,
         min_spent_amount=min_spent_amount,
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
-    total_price = Money(total, "USD")
+    total_price = Money(total, "EUR")
     validate_voucher(voucher, total_price, total_quantity, "test@example.com")
 
 
@@ -273,14 +273,14 @@ def test_validate_voucher_not_applicable(
 ):
     voucher = Voucher.objects.create(
         code="unique",
-        currency="USD",
+        currency="EUR",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
         discount_value=discount_value,
         min_spent_amount=min_spent_amount,
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
-    total_price = Money(total, "USD")
+    total_price = Money(total, "EUR")
     with pytest.raises(NotApplicable):
         validate_voucher(voucher, total_price, total_quantity, "test@example.com")
 
@@ -331,18 +331,18 @@ def test_sale_active(current_date, start_date, end_date, is_active):
 
 
 def test_discount_as_negative():
-    discount = Money(10, "USD")
+    discount = Money(10, "EUR")
     result = discount_as_negative(discount)
     assert result == "-$10.00"
 
 
 def test_discount_as_negative_for_zero_value():
-    discount = Money(0, "USD")
+    discount = Money(0, "EUR")
     result = discount_as_negative(discount)
     assert result == "$0.00"
 
 
 def test_discount_as_negative_for_html():
-    discount = Money(10, "USD")
+    discount = Money(10, "EUR")
     result = discount_as_negative(discount, True)
     assert result == '-<span class="currency">$</span>10.00'

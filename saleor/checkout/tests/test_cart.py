@@ -51,7 +51,7 @@ def test_adding_same_variant(checkout, product):
     add_variant_to_checkout(checkout, variant, 2)
     assert checkout.lines.count() == 1
     assert checkout.quantity == 3
-    subtotal = TaxedMoney(Money("30.00", "USD"), Money("30.00", "USD"))
+    subtotal = TaxedMoney(Money("30.00", "EUR"), Money("30.00", "EUR"))
     assert (
         calculations.checkout_subtotal(checkout=checkout, lines=list(checkout))
         == subtotal

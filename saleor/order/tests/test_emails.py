@@ -339,10 +339,10 @@ def test_send_email_order_refunded(mocked_templated_email, order, site_settings)
 @mock.patch("saleor.order.emails.send_order_refunded.delay")
 def test_send_order_refunded_confirmation(send_order_refunded_mock, order):
     # when
-    emails.send_order_refunded_confirmation(order, order.user, Decimal(5), "USD")
+    emails.send_order_refunded_confirmation(order, order.user, Decimal(5), "EUR")
 
     # then
-    send_order_refunded_mock.assert_called_once_with(order.pk, Decimal(5), "USD")
+    send_order_refunded_mock.assert_called_once_with(order.pk, Decimal(5), "EUR")
 
     order_event = order.events.last()
     assert order_event.type == OrderEvents.EMAIL_SENT

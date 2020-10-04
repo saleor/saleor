@@ -40,7 +40,7 @@ def adyen_plugin(settings):
                     {"name": "origin-url", "value": origin_url},
                     {"name": "adyen-auto-capture", "value": adyen_auto_capture},
                     {"name": "auto-capture", "value": auto_capture},
-                    {"name": "supported-currencies", "value": "USD"},
+                    {"name": "supported-currencies", "value": "EUR"},
                 ],
             },
         )
@@ -117,7 +117,7 @@ def notification():
             "merchantAccountCode": "SaleorECOM",
             "pspReference": psp_reference,
             "merchantReference": merchant_reference,
-            "amount": {"value": value, "currency": "USD"},
+            "amount": {"value": value, "currency": "EUR"},
         }
 
     return fun

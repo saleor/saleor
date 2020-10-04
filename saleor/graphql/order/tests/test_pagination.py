@@ -17,15 +17,15 @@ def orders_for_pagination(db):
         [
             Order(
                 token=str(uuid.uuid4()),
-                total=TaxedMoney(net=Money(1, "USD"), gross=Money(1, "USD")),
+                total=TaxedMoney(net=Money(1, "EUR"), gross=Money(1, "EUR")),
             ),
             Order(
                 token=str(uuid.uuid4()),
-                total=TaxedMoney(net=Money(2, "USD"), gross=Money(2, "USD")),
+                total=TaxedMoney(net=Money(2, "EUR"), gross=Money(2, "EUR")),
             ),
             Order(
                 token=str(uuid.uuid4()),
-                total=TaxedMoney(net=Money(3, "USD"), gross=Money(3, "USD")),
+                total=TaxedMoney(net=Money(3, "EUR"), gross=Money(3, "EUR")),
             ),
         ]
     )
@@ -38,17 +38,17 @@ def draft_orders_for_pagination(db):
         [
             Order(
                 token=str(uuid.uuid4()),
-                total=TaxedMoney(net=Money(1, "USD"), gross=Money(1, "USD")),
+                total=TaxedMoney(net=Money(1, "EUR"), gross=Money(1, "EUR")),
                 status=OrderStatus.DRAFT,
             ),
             Order(
                 token=str(uuid.uuid4()),
-                total=TaxedMoney(net=Money(2, "USD"), gross=Money(2, "USD")),
+                total=TaxedMoney(net=Money(2, "EUR"), gross=Money(2, "EUR")),
                 status=OrderStatus.DRAFT,
             ),
             Order(
                 token=str(uuid.uuid4()),
-                total=TaxedMoney(net=Money(3, "USD"), gross=Money(3, "USD")),
+                total=TaxedMoney(net=Money(3, "EUR"), gross=Money(3, "EUR")),
                 status=OrderStatus.DRAFT,
             ),
         ]
@@ -547,7 +547,7 @@ def test_query_orders_pagination_with_sort(
                 token=str(uuid.uuid4()),
                 billing_address=address,
                 status=OrderStatus.PARTIALLY_FULFILLED,
-                total=TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD")),
+                total=TaxedMoney(net=Money(10, "EUR"), gross=Money(13, "EUR")),
             )
         )
     with freeze_time("2012-01-14"):
@@ -559,7 +559,7 @@ def test_query_orders_pagination_with_sort(
                 token=str(uuid.uuid4()),
                 billing_address=address2,
                 status=OrderStatus.FULFILLED,
-                total=TaxedMoney(net=Money(100, "USD"), gross=Money(130, "USD")),
+                total=TaxedMoney(net=Money(100, "EUR"), gross=Money(130, "EUR")),
             )
         )
     address3 = address.get_copy()
@@ -570,7 +570,7 @@ def test_query_orders_pagination_with_sort(
             token=str(uuid.uuid4()),
             billing_address=address3,
             status=OrderStatus.CANCELED,
-            total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
+            total=TaxedMoney(net=Money(20, "EUR"), gross=Money(26, "EUR")),
         )
     )
     page_size = 2

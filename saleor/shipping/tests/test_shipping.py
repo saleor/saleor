@@ -9,7 +9,7 @@ from ..utils import default_shipping_zone_exists, get_countries_without_shipping
 
 def test_shipping_get_total(monkeypatch, shipping_zone):
     method = shipping_zone.shipping_methods.get()
-    price = Money("10.0", "USD")
+    price = Money("10.0", "EUR")
 
     assert method.get_total() == price
 
@@ -31,12 +31,12 @@ def test_applicable_shipping_methods_price(
     method = shipping_zone.shipping_methods.create(
         minimum_order_price_amount=min_price,
         maximum_order_price_amount=max_price,
-        currency="USD",
+        currency="EUR",
         type=ShippingMethodType.PRICE_BASED,
     )
     assert "PL" in shipping_zone.countries
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money(price, "USD"), weight=Weight(kg=0), country_code="PL"
+        price=Money(price, "EUR"), weight=Weight(kg=0), country_code="PL"
     )
     assert (method in result) == shipping_included
 
@@ -62,21 +62,21 @@ def test_applicable_shipping_methods_weight(
     )
     assert "PL" in shipping_zone.countries
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money("0", "USD"), weight=weight, country_code="PL"
+        price=Money("0", "EUR"), weight=weight, country_code="PL"
     )
     assert (method in result) == shipping_included
 
 
 def test_applicable_shipping_methods_country_code_outside_shipping_zone(shipping_zone):
     method = shipping_zone.shipping_methods.create(
-        minimum_order_price=Money("1.0", "USD"),
-        maximum_order_price=Money("10.0", "USD"),
+        minimum_order_price=Money("1.0", "EUR"),
+        maximum_order_price=Money("10.0", "EUR"),
         type=ShippingMethodType.PRICE_BASED,
     )
     shipping_zone.countries = ["DE"]
     shipping_zone.save()
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money("5.0", "USD"), weight=Weight(kg=0), country_code="PL"
+        price=Money("5.0", "EUR"), weight=Weight(kg=0), country_code="PL"
     )
     assert method not in result
 
@@ -86,19 +86,19 @@ def test_applicable_shipping_methods_inproper_shipping_method_type(shipping_zone
     shipping method and the other way around.
     """
     price_method = shipping_zone.shipping_methods.create(
-        minimum_order_price=Money("1.0", "USD"),
-        maximum_order_price=Money("10.0", "USD"),
+        minimum_order_price=Money("1.0", "EUR"),
+        maximum_order_price=Money("10.0", "EUR"),
         minimum_order_weight=Weight(kg=100),
         type=ShippingMethodType.WEIGHT_BASED,
     )
     weight_method = shipping_zone.shipping_methods.create(
         minimum_order_weight=Weight(kg=1),
         maximum_order_weight=Weight(kg=10),
-        minimum_order_price=Money("1000.0", "USD"),
+        minimum_order_price=Money("1000.0", "EUR"),
         type=ShippingMethodType.PRICE_BASED,
     )
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money("5.0", "USD"), weight=Weight(kg=5), country_code="PL"
+        price=Money("5.0", "EUR"), weight=Weight(kg=5), country_code="PL"
     )
     assert price_method not in result
     assert weight_method not in result
@@ -106,8 +106,8 @@ def test_applicable_shipping_methods_inproper_shipping_method_type(shipping_zone
 
 def test_applicable_shipping_methods(shipping_zone):
     price_method = shipping_zone.shipping_methods.create(
-        minimum_order_price=Money("1.0", "USD"),
-        maximum_order_price=Money("10.0", "USD"),
+        minimum_order_price=Money("1.0", "EUR"),
+        maximum_order_price=Money("10.0", "EUR"),
         type=ShippingMethodType.PRICE_BASED,
     )
     weight_method = shipping_zone.shipping_methods.create(
@@ -116,7 +116,7 @@ def test_applicable_shipping_methods(shipping_zone):
         type=ShippingMethodType.WEIGHT_BASED,
     )
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money("5.0", "USD"), weight=Weight(kg=5), country_code="PL"
+        price=Money("5.0", "EUR"), weight=Weight(kg=5), country_code="PL"
     )
     assert price_method in result
     assert weight_method in result
@@ -136,7 +136,7 @@ def test_use_default_shipping_zone(shipping_zone):
         type=ShippingMethodType.WEIGHT_BASED,
     )
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money("5.0", "USD"), weight=Weight(kg=5), country_code="DE"
+        price=Money("5.0", "EUR"), weight=Weight(kg=5), country_code="DE"
     )
     assert result[0] == weight_method
 

@@ -116,7 +116,7 @@ openpyxl==3.0.5
 opentracing==2.3.0
 packaging==20.4
 pathspec==0.8.0
-petl==1.6.5
+petl==1.6.7
 phonenumberslite==8.12.9
 pillow==7.2.0
 pluggy==0.13.1

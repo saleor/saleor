@@ -9,7 +9,7 @@ interactions:
       "city": null, "region": null, "country": null, "postalCode": null}, "shipTo":
       {"line1": "T\u0119czowa 7", "line2": "", "city": "WROC\u0141AW", "region": "",
       "country": "PL", "postalCode": "53-601"}}, "commit": false, "currencyCode":
-      "USD", "email": ""}}'
+      "EUR", "email": ""}}'
     headers:
       Accept:
       - '*/*'
