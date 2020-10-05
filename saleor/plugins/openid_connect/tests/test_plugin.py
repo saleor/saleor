@@ -205,6 +205,62 @@ def test_external_refresh_from_input(
 
 
 @freeze_time("2019-03-18 12:00:00")
+def test_external_refresh_with_scope_permissions(
+    openid_plugin, admin_user, monkeypatch, rf, id_token, id_payload
+):
+    mocked_jwt_validator = MagicMock()
+    mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
+    mocked_jwt_validator.get.side_effect = id_payload.get
+
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_parsed_id_token",
+        Mock(return_value=mocked_jwt_validator),
+    )
+    oauth_payload = {
+        "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
+        "refresh_token": "new_refresh",
+        "id_token": id_token,
+        "scope": "openid profile email offline_access saleor:manage_orders",
+        "expires_in": 86400,
+        "token_type": "Bearer",
+        "expires_at": 1600851112,
+    }
+    mocked_refresh_token = Mock(return_value=oauth_payload)
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.OAuth2Session.refresh_token",
+        mocked_refresh_token,
+    )
+
+    oauth_refresh_token = "refresh"
+    plugin = openid_plugin(use_oauth_scope_permissions=True)
+    csrf_token = _get_new_csrf_token()
+    saleor_refresh_token = create_jwt_refresh_token(
+        admin_user, oauth_refresh_token, csrf_token, plugin.PLUGIN_ID
+    )
+
+    request = rf.request()
+    data = {"refreshToken": saleor_refresh_token}
+    response = plugin.external_refresh(data, request, None)
+
+    assert "token" in response
+    assert "refreshToken" in response
+    assert "csrfToken" in response
+
+    decoded_token = jwt_decode(response.get("token"))
+    assert decoded_token["exp"] == id_payload["exp"]
+    assert decoded_token["oauth_access_key"] == oauth_payload["access_token"]
+    assert decoded_token["permissions"] == ["MANAGE_ORDERS"]
+
+    decoded_refresh_token = jwt_decode(response.get("refreshToken"))
+    assert decoded_refresh_token["oauth_refresh_token"] == "new_refresh"
+    assert decoded_refresh_token["csrf_token"] == response["csrfToken"]
+    mocked_refresh_token.assert_called_once_with(
+        "https://saleor-test.eu.auth0.com/oauth/token",
+        refresh_token=oauth_refresh_token,
+    )
+
+
+@freeze_time("2019-03-18 12:00:00")
 @pytest.mark.vcr
 def test_external_refresh_raises_error_when_token_is_invalid(
     openid_plugin, admin_user, monkeypatch, rf, id_token, id_payload
@@ -355,7 +411,71 @@ def test_handle_oauth_callback(openid_plugin, monkeypatch, rf, id_token, id_payl
     claims = get_parsed_id_token(oauth_payload, plugin.config.json_web_key_set_url,)
     user = get_or_create_user_from_token(claims)
     expected_tokens = create_tokens_from_oauth_payload(
-        oauth_payload, user, claims, permissions=[], owner=plugin.PLUGIN_ID
+        oauth_payload, user, claims, permissions=None, owner=plugin.PLUGIN_ID
+    )
+    assert parsed_url.netloc == "localhost:3000"
+    assert parsed_url.path == "/used-logged-in"
+    assert set(parsed_qs.keys()) == set(["token", "refreshToken", "csrfToken"])
+    assert parsed_qs["token"][0] == expected_tokens["token"]
+    decoded_refresh_token = jwt_decode(parsed_qs["refreshToken"][0])
+    assert parsed_qs["csrfToken"][0] == decoded_refresh_token["csrf_token"]
+    assert decoded_refresh_token["oauth_refresh_token"] == "refresh"
+
+
+@freeze_time("2019-03-18 12:00:00")
+def test_handle_oauth_callback_with_scope_permissions(
+    openid_plugin, monkeypatch, rf, id_token, id_payload
+):
+    mocked_jwt_validator = MagicMock()
+    mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
+    mocked_jwt_validator.get.side_effect = id_payload.get
+
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_parsed_id_token",
+        Mock(return_value=mocked_jwt_validator),
+    )
+    oauth_payload = {
+        "access_token": "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3",
+        "refresh_token": "refresh",
+        "id_token": id_token,
+        "scope": "openid profile email offline_access saleor:manage_orders",
+        "expires_in": 86400,
+        "token_type": "Bearer",
+        "expires_at": 1600851112,
+    }
+    mocked_fetch_token = Mock(return_value=oauth_payload)
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.OAuth2Session.fetch_token",
+        mocked_fetch_token,
+    )
+    storefront_redirect_url = "http://localhost:3000/used-logged-in"
+    state = signing.dumps({"redirectUrl": storefront_redirect_url})
+    request = rf.get(f"/callback?state={state}")
+    plugin = openid_plugin(use_oauth_scope_permissions=True)
+
+    redirect_response = plugin.handle_auth_callback(request)
+
+    expected_auth_response = f"http://testserver/callback?state={state}"
+    expected_redirect_uri = (
+        "http://mirumee.com/plugins/mirumee.authentication.openidconnect/callback"
+    )
+    mocked_fetch_token.assert_called_once_with(
+        "https://saleor-test.eu.auth0.com/oauth/token",
+        authorization_response=expected_auth_response,
+        redirect_uri=expected_redirect_uri,
+    )
+
+    assert isinstance(redirect_response, HttpResponseRedirect)
+    redirect_url = redirect_response.url
+    parsed_url = urlparse(redirect_url)
+    parsed_qs = parse_qs(parsed_url.query)
+    user = get_or_create_user_from_token(id_payload)
+    expected_tokens = create_tokens_from_oauth_payload(
+        oauth_payload,
+        user,
+        id_payload,
+        permissions=["MANAGE_ORDERS"],
+        owner=plugin.PLUGIN_ID,
     )
     assert parsed_url.netloc == "localhost:3000"
     assert parsed_url.path == "/used-logged-in"

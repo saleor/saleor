@@ -91,15 +91,16 @@ def create_jwt_token(
     id_payload: CodeIDToken,
     user: User,
     access_token: str,
-    permissions: List[str],
+    permissions: Optional[List[str]],
     owner: str,
 ) -> str:
     additional_payload = {
         "exp": id_payload["exp"],
         "oauth_access_key": access_token,
-        PERMISSIONS_FIELD: permissions,
         JWT_OWNER_FIELD: owner,
     }
+    if permissions is not None:
+        additional_payload[PERMISSIONS_FIELD] = permissions
     if permissions:
         user.is_staff = True
     jwt_payload = jwt_user_payload(
@@ -182,7 +183,7 @@ def create_tokens_from_oauth_payload(
     token_data: dict,
     user: User,
     claims: CodeIDToken,
-    permissions: List[str],
+    permissions: Optional[List[str]],
     owner: str,
 ):
     refresh_token = token_data.get("refresh_token")

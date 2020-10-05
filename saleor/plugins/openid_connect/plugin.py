@@ -65,6 +65,7 @@ class OpenIDConnectPlugin(BasePlugin):
         {"name": "json_web_key_set_url", "value": None},
         {"name": "oauth_logout_url", "value": None},
         {"name": "audience", "value": None},
+        {"name": "use_oauth_scope_permissions", "value": False},
     ]
 
     CONFIG_STRUCTURE = {
@@ -88,7 +89,8 @@ class OpenIDConnectPlugin(BasePlugin):
                 "Determine if the refresh token should be also fetched from provider. "
                 "By disabling it, users will need to re-login after the access token "
                 "expired. By enabling it, frontend apps will be able to refresh the "
-                "access token."
+                "access token. OAuth provider needs to have included scope "
+                "`offline_access`"
             ),
             "label": "Enable refreshing token",
         },
@@ -128,6 +130,16 @@ class OpenIDConnectPlugin(BasePlugin):
             ),
             "label": "Audience",
         },
+        "use_oauth_scope_permissions": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": (
+                "Use OAuth scope permissions to grant a logged-in user access to "
+                "protected resources. Your OAuth provider needs to have defined "
+                "Saleor's permission scopes in format saleor:<saleor-perm>. Check"
+                " Saleor docs for more details."
+            ),
+            "label": "Use OAuth scope permissions",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -143,6 +155,7 @@ class OpenIDConnectPlugin(BasePlugin):
             token_url=configuration["oauth_token_url"],
             logout_url=configuration["oauth_logout_url"],
             audience=configuration["audience"],
+            use_scope_permissions=configuration["use_oauth_scope_permissions"],
         )
         self.oauth = self._get_oauth_session()
 
@@ -162,8 +175,11 @@ class OpenIDConnectPlugin(BasePlugin):
             )
 
     def _get_oauth_session(self):
-        scope = "openid profile email "
-        scope += " ".join([f"saleor:{perm}" for perm in get_permissions_codename()])
+        scope = "openid profile email"
+        if self.config.use_scope_permissions:
+            permissions = [f"saleor:{perm}" for perm in get_permissions_codename()]
+            scope_permissions = " ".join(permissions)
+            scope += f" {scope_permissions}"
         if self.config.enable_refresh_token:
             scope += " offline_access"
         return OAuth2Session(
@@ -223,9 +239,11 @@ class OpenIDConnectPlugin(BasePlugin):
                 }
             )
         try:
-            user_permissions = get_saleor_permissions_from_scope(
-                token_data.get("scope")
-            )
+            user_permissions = None
+            if self.config.use_scope_permissions:
+                user_permissions = get_saleor_permissions_from_scope(
+                    token_data.get("scope")
+                )
             parsed_id_token = get_parsed_id_token(
                 token_data, self.config.json_web_key_set_url
             )
@@ -306,7 +324,11 @@ class OpenIDConnectPlugin(BasePlugin):
             authorization_response=request.build_absolute_uri(),
             redirect_uri=build_absolute_uri(f"/plugins/{self.PLUGIN_ID}/callback"),
         )
-        user_permissions = get_saleor_permissions_from_scope(token_data.get("scope"))
+        user_permissions = None
+        if self.config.use_scope_permissions:
+            user_permissions = get_saleor_permissions_from_scope(
+                token_data.get("scope")
+            )
         parsed_id_token = get_parsed_id_token(
             token_data, self.config.json_web_key_set_url
         )
