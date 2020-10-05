@@ -66,6 +66,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add attributes to product error - #6181 by @IKarbowiak
 - Allow to add product variant with 0 price to draft order - #6189 by @IKarbowiak
 - Fix deleting product when default variant is deleted - #6186 by @IKarbowiak
+- Fix get unpublished products, product variants and collection as app - #6194 by @fowczarek
 
 ## 2.10.2
 

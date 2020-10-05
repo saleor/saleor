@@ -153,6 +153,27 @@ def test_product_query_by_id(
     assert product_data["visibleInListings"] is True
 
 
+def test_product_unpublished_query_by_id_as_app(
+    app_api_client, unavailable_product, permission_manage_products
+):
+    # given
+    variables = {"id": graphene.Node.to_global_id("Product", unavailable_product.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_PRODUCT,
+        variables=variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is not None
+    assert product_data["name"] == unavailable_product.name
+
+
 def test_product_query_by_id_weight_returned_in_default_unit(
     user_api_client, product, site_settings
 ):
