@@ -68,8 +68,8 @@ DATABASES = {
 }
 
 
-TIME_ZONE = "UTC"
-LANGUAGE_CODE = "en"
+TIME_ZONE = os.environ.get("TIME_ZONE", "UTC")
+LANGUAGE_CODE = os.environ.get("LANGUAGE_CODE", "en")
 LANGUAGES = [
     ("ar", "Arabic"),
     ("az", "Azerbaijani"),
