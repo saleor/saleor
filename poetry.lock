@@ -520,7 +520,7 @@ description = "Django-filter is a reusable Django application for allowing users
 name = "django-filter"
 optional = false
 python-versions = ">=3.5"
-version = "2.3.0"
+version = "2.4.0"
 
 [package.dependencies]
 Django = ">=2.2"
@@ -2711,8 +2711,8 @@ django-extensions = [
     {file = "django_extensions-3.0.9-py3-none-any.whl", hash = "sha256:dc663652ac9460fd06580a973576820430c6d428720e874ae46b041fa63e0efa"},
 ]
 django-filter = [
-    {file = "django-filter-2.3.0.tar.gz", hash = "sha256:11e63dd759835d9ba7a763926ffb2662cf8a6dcb4c7971a95064de34dbc7e5af"},
-    {file = "django_filter-2.3.0-py3-none-any.whl", hash = "sha256:616848eab6fc50193a1b3730140c49b60c57a3eda1f7fc57fa8505ac156c6c75"},
+    {file = "django-filter-2.4.0.tar.gz", hash = "sha256:84e9d5bb93f237e451db814ed422a3a625751cbc9968b484ecc74964a8696b06"},
+    {file = "django_filter-2.4.0-py3-none-any.whl", hash = "sha256:e00d32cebdb3d54273c48f4f878f898dced8d5dfaad009438fe61ebdf535ace1"},
 ]
 django-graphiql-debug-toolbar = [
     {file = "django-graphiql-debug-toolbar-0.1.4.tar.gz", hash = "sha256:946fba21418b3fd57e7e357d4cd110fb7881e08d3b7a0a8a00400fa2e75965f5"},
