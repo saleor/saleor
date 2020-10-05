@@ -256,7 +256,10 @@ class BasePlugin:
         return NotImplemented
 
     def assign_tax_code_to_object_meta(
-        self, obj: Union["Product", "ProductType"], tax_code: str, previous_value: Any
+        self,
+        obj: Union["Product", "ProductType"],
+        tax_code: Optional[str],
+        previous_value: Any,
     ):
         """Assign tax code dedicated to plugin."""
         return NotImplemented

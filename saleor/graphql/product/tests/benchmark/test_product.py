@@ -221,3 +221,32 @@ def test_retrieve_channel_listings(
             check_no_permissions=False,
         )
     )
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_retrive_products_with_product_types_and_attributes(
+    product_list, api_client, count_queries, channel_USD,
+):
+    query = """
+        query($channel: String) {
+          products(first: 10, channel: $channel) {
+            edges {
+              node {
+                id
+                  productType {
+                    name
+                  productAttributes {
+                    name
+                  }
+                  variantAttributes {
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+    """
+    variables = {"channel": channel_USD.slug}
+    get_graphql_content(api_client.post_graphql(query, variables))

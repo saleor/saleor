@@ -10,6 +10,7 @@ from ....product.models import (
     Product,
     ProductChannelListing,
     ProductImage,
+    ProductType,
     ProductVariant,
     ProductVariantChannelListing,
     VariantImage,
@@ -111,6 +112,14 @@ class ProductChannelListingByProductIdAndChanneSlugLoader(
             (products_id, product_channel_listings_map.get(products_id))
             for products_id in products_ids
         ]
+
+
+class ProductTypeByIdLoader(DataLoader):
+    context_key = "product_type_by_id"
+
+    def batch_load(self, keys):
+        product_types = ProductType.objects.in_bulk(keys)
+        return [product_types.get(product_type_id) for product_type_id in keys]
 
 
 class ImagesByProductIdLoader(DataLoader):

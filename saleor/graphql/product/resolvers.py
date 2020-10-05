@@ -42,18 +42,18 @@ def resolve_digital_contents(_info):
 
 
 def resolve_product_by_id(info, id, channel_slug):
-    user = info.context.user
+    requestor = get_user_or_app_from_context(info.context)
     return (
-        models.Product.objects.visible_to_user(user, channel_slug=channel_slug)
+        models.Product.objects.visible_to_user(requestor, channel_slug=channel_slug)
         .filter(id=id)
         .first()
     )
 
 
 def resolve_product_by_slug(info, product_slug, channel_slug):
-    user = info.context.user
+    requestor = get_user_or_app_from_context(info.context)
     return (
-        models.Product.objects.visible_to_user(user, channel_slug=channel_slug)
+        models.Product.objects.visible_to_user(requestor, channel_slug=channel_slug)
         .filter(slug=product_slug)
         .first()
     )
@@ -72,9 +72,9 @@ def resolve_products(
 
 
 def resolve_variant_by_id(info, id, channel_slug):
-    user = info.context.user
+    requestor = get_user_or_app_from_context(info.context)
     visible_products = models.Product.objects.visible_to_user(
-        user, channel_slug
+        requestor, channel_slug
     ).values_list("pk", flat=True)
     qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
     return qs.filter(pk=id).first()
@@ -82,6 +82,18 @@ def resolve_variant_by_id(info, id, channel_slug):
 
 def resolve_product_types(info, **_kwargs):
     return models.ProductType.objects.all()
+
+
+def resolve_product_variant_by_sku(info, sku, channel_slug):
+    requestor = get_user_or_app_from_context(info.context)
+    visible_products = models.Product.objects.visible_to_user(
+        requestor, channel_slug
+    ).values_list("pk", flat=True)
+    return (
+        models.ProductVariant.objects.filter(product__id__in=visible_products)
+        .filter(sku=sku)
+        .first()
+    )
 
 
 def resolve_product_variants(info, ids=None, channel_slug=None) -> ChannelQsContext:

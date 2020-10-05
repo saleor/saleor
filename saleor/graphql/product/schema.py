@@ -41,6 +41,7 @@ from .filters import (
     CollectionFilterInput,
     ProductFilterInput,
     ProductTypeFilterInput,
+    ProductVariantFilterInput,
 )
 from .mutations.attributes import (
     AttributeAssign,
@@ -110,6 +111,7 @@ from .mutations.products import (
     ProductVariantCreate,
     ProductVariantDelete,
     ProductVariantReorder,
+    ProductVariantSetDefault,
     ProductVariantUpdate,
     ProductVariantUpdateMeta,
     ProductVariantUpdatePrivateMeta,
@@ -126,6 +128,7 @@ from .resolvers import (
     resolve_product_by_id,
     resolve_product_by_slug,
     resolve_product_types,
+    resolve_product_variant_by_sku,
     resolve_product_variants,
     resolve_products,
     resolve_report_product_sales,
@@ -243,13 +246,14 @@ class ProductQueries(graphene.ObjectType):
     )
     product_variant = graphene.Field(
         ProductVariant,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the product variant.", required=True
+        id=graphene.Argument(graphene.ID, description="ID of the product variant.",),
+        sku=graphene.Argument(
+            graphene.String, description="Sku of the product variant."
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="Look up a product variant by ID.",
+        description="Look up a product variant by ID or SKU.",
     )
     product_variants = ChannelContextFilterConnectionField(
         ProductVariant,
@@ -258,6 +262,9 @@ class ProductQueries(graphene.ObjectType):
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
+        ),
+        filter=ProductVariantFilterInput(
+            description="Filtering options for product variant."
         ),
         description="List of product variants.",
     )
@@ -330,11 +337,20 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_types(self, info, **kwargs):
         return resolve_product_types(info, **kwargs)
 
-    def resolve_product_variant(self, info, id, channel=None, **_kwargs):
+    def resolve_product_variant(
+        self, info, id=None, sku=None, channel=None,
+    ):
+        validate_one_of_args_is_in_query("id", id, "sku", sku)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        _, id = graphene.Node.from_global_id(id)
-        variant = resolve_variant_by_id(info, id, channel_slug=channel)
+        variant = None
+        if id:
+            _, id = graphene.Node.from_global_id(id)
+            variant = resolve_variant_by_id(info, id, channel_slug=channel)
+        else:
+            variant = resolve_product_variant_by_sku(
+                info, sku=sku, channel_slug=channel
+            )
         return ChannelContext(node=variant, channel_slug=channel) if variant else None
 
     def resolve_product_variants(self, info, ids=None, channel=None, **_kwargs):
@@ -539,6 +555,7 @@ class ProductMutations(graphene.ObjectType):
     product_variant_stocks_delete = ProductVariantStocksDelete.Field()
     product_variant_stocks_update = ProductVariantStocksUpdate.Field()
     product_variant_update = ProductVariantUpdate.Field()
+    product_variant_set_default = ProductVariantSetDefault.Field()
     product_variant_translate = ProductVariantTranslate.Field()
     product_variant_update_metadata = ProductVariantUpdateMeta.Field(
         deprecation_reason=(

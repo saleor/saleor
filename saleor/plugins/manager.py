@@ -466,7 +466,7 @@ class PluginsManager(PaymentInterface):
     # FIXME these methods should be more generic
 
     def assign_tax_code_to_object_meta(
-        self, obj: Union["Product", "ProductType"], tax_code: str
+        self, obj: Union["Product", "ProductType"], tax_code: Optional[str]
     ):
         default_value = None
         return self.__run_method_on_plugins(

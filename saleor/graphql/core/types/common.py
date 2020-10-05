@@ -177,6 +177,11 @@ class PermissionGroupError(Error):
 
 class ProductError(Error):
     code = ProductErrorCode(description="The error code.", required=True)
+    attributes = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of attributes IDs which causes the error.",
+        required=False,
+    )
 
 
 class CollectionProductError(ProductWithoutVariantError, ProductError):
@@ -187,14 +192,6 @@ class ProductChannelListingError(ProductError):
     channels = graphene.List(
         graphene.NonNull(graphene.ID),
         description="List of channels IDs which causes the error.",
-        required=False,
-    )
-
-
-class ProductAttributeError(ProductError):
-    attributes = graphene.List(
-        graphene.NonNull(graphene.ID),
-        description="List of attributes IDs which causes the error.",
         required=False,
     )
 

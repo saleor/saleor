@@ -36,6 +36,29 @@ def test_collection_query_by_id(
     assert collection_data["name"] == collection.name
 
 
+def test_collection_query_unpublished_collection_by_id_as_app(
+    app_api_client, collection, permission_manage_products
+):
+    # given
+    collection.is_published = False
+    collection.save(update_fields=["is_published"])
+    variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_COLLECTION,
+        variables=variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    collection_data = content["data"]["collection"]
+    assert collection_data is not None
+    assert collection_data["name"] == collection.name
+
+
 def test_collection_query_by_slug(
     user_api_client, collection,
 ):
@@ -47,11 +70,11 @@ def test_collection_query_by_slug(
     assert collection_data["name"] == collection.name
 
 
-def test_collection_query_unpublished_collection_by_slug(
-    user_api_client, collection, permission_manage_products
+def test_collection_query_unpublished_collection_by_slug_as_staff(
+    staff_api_client, collection, permission_manage_products
 ):
     # given
-    user = user_api_client.user
+    user = staff_api_client.user
     user.user_permissions.add(permission_manage_products)
 
     collection.is_published = False
@@ -59,7 +82,7 @@ def test_collection_query_unpublished_collection_by_slug(
     variables = {"slug": collection.slug}
 
     # when
-    response = user_api_client.post_graphql(QUERY_COLLECTION, variables=variables)
+    response = staff_api_client.post_graphql(QUERY_COLLECTION, variables=variables)
 
     # then
     content = get_graphql_content(response)

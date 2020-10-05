@@ -1,3 +1,5 @@
+from typing import List
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -49,6 +51,19 @@ class BaseMetadataMutation(BaseMutation):
                     "id": ValidationError(
                         f"Couldn't resolve to a item with meta: {object_id}",
                         code=MetadataErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def validate_metadata_keys(cls, metadata_list: List[dict]):
+        # raise an error when any of the key is empty
+        if not all([data["key"].strip() for data in metadata_list]):
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        "Metadata key cannot be empty.",
+                        code=MetadataErrorCode.REQUIRED.value,
                     )
                 }
             )
@@ -136,6 +151,7 @@ class UpdateMetadata(BaseMetadataMutation):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_list = data.pop("input")
+            cls.validate_metadata_keys(metadata_list)
             items = {data.key: data.value for data in metadata_list}
             instance.store_value_in_metadata(items=items)
             instance.save(update_fields=["metadata"])
@@ -188,6 +204,7 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_list = data.pop("input")
+            cls.validate_metadata_keys(metadata_list)
             items = {data.key: data.value for data in metadata_list}
             instance.store_value_in_private_metadata(items=items)
             instance.save(update_fields=["private_metadata"])

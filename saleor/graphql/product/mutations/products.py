@@ -57,8 +57,8 @@ from ..utils import (
     create_stocks,
     get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
-    validate_attribute_input_for_product,
-    validate_attribute_input_for_variant,
+    validate_attributes_input_for_product,
+    validate_attributes_input_for_variant,
 )
 from .common import ReorderInput
 
@@ -666,21 +666,29 @@ class AttributeAssignmentMixin:
         - ensure all required attributes are passed
         - ensure the values are correct for a product
         """
-        supplied_attribute_pk = []
-        for attribute, values in cleaned_input:
-            validate_attribute_input_for_product(attribute, values)
-            supplied_attribute_pk.append(attribute.pk)
+        errors = validate_attributes_input_for_product(cleaned_input)
+
+        supplied_attribute_pk = [attribute.pk for attribute, _ in cleaned_input]
 
         # Asserts all required attributes are supplied
-        missing_required_filter = Q(value_required=True) & ~Q(
-            pk__in=supplied_attribute_pk
+        missing_required_attributes = qs.filter(
+            Q(value_required=True) & ~Q(pk__in=supplied_attribute_pk)
         )
 
-        if qs.filter(missing_required_filter).exists():
-            raise ValidationError(
+        if missing_required_attributes:
+            ids = [
+                graphene.Node.to_global_id("Attribute", attr.pk)
+                for attr in missing_required_attributes
+            ]
+            error = ValidationError(
                 "All attributes flagged as having a value required must be supplied.",
                 code=ProductErrorCode.REQUIRED.value,
+                params={"attributes": ids},
             )
+            errors.append(error)
+
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
     def _check_input_for_variant(cls, cleaned_input: T_INPUT_MAP, qs: QuerySet):
@@ -696,8 +704,9 @@ class AttributeAssignmentMixin:
                 "All attributes must take a value", code=ProductErrorCode.REQUIRED.value
             )
 
-        for attribute, values in cleaned_input:
-            validate_attribute_input_for_variant(attribute, values)
+        errors = validate_attributes_input_for_variant(cleaned_input)
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
     def _validate_input(
@@ -845,9 +854,10 @@ class ProductCreate(ModelMutation):
         if tax_rate:
             info.context.plugins.assign_tax_code_to_object_meta(instance, tax_rate)
 
-        tax_code = cleaned_input.pop("tax_code", "")
-        if tax_code:
-            info.context.plugins.assign_tax_code_to_object_meta(instance, tax_code)
+        if "tax_code" in cleaned_input:
+            info.context.plugins.assign_tax_code_to_object_meta(
+                instance, cleaned_input["tax_code"]
+            )
 
         if attributes and product_type:
             try:
@@ -1173,6 +1183,9 @@ class ProductVariantCreate(ModelMutation):
     @transaction.atomic()
     def save(cls, info, instance, cleaned_input):
         instance.save()
+        if not instance.product.default_variant:
+            instance.product.default_variant = instance
+            instance.product.save(update_fields=["default_variant", "updated_at"])
         # Recalculate the "discounted price" for the parent product
         update_product_discounted_price_task.delay(instance.product_id)
         stocks = cleaned_input.get("stocks")
@@ -1250,6 +1263,11 @@ class ProductVariantDelete(ModelDeleteMutation):
     def success_response(cls, instance):
         # Update the "discounted_prices" of the parent product
         update_product_discounted_price_task.delay(instance.product_id)
+        product = models.Product.objects.get(id=instance.product_id)
+        # if the product default variant has been removed set the new one
+        if not product.default_variant:
+            product.default_variant = product.variants.first()
+            product.save(update_fields=["default_variant"])
         instance = ChannelContext(node=instance, channel_slug=None)
         return super().success_response(instance)
 
@@ -1640,6 +1658,55 @@ class ProductImageReorder(BaseMutation):
 
         product = ChannelContext(node=product, channel_slug=None)
         return ProductImageReorder(product=product, images=images)
+
+
+class ProductVariantSetDefault(BaseMutation):
+    product = graphene.Field(Product)
+
+    class Arguments:
+        product_id = graphene.ID(
+            required=True,
+            description="Id of a product that will have the default variant set.",
+        )
+        variant_id = graphene.ID(
+            required=True, description="Id of a variant that will be set as default.",
+        )
+
+    class Meta:
+        description = (
+            "Set default variant for a product. "
+            "Mutation triggers PRODUCT_UPDATED webhook."
+        )
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, product_id, variant_id):
+        product = cls.get_node_or_error(
+            info, product_id, field="product_id", only_type=Product
+        )
+        variant = cls.get_node_or_error(
+            info,
+            variant_id,
+            field="variant_id",
+            only_type=ProductVariant,
+            qs=models.ProductVariant.objects.select_related("product"),
+        )
+        if variant.product != product:
+            raise ValidationError(
+                {
+                    "variant_id": ValidationError(
+                        "Provided variant doesn't belong to provided product.",
+                        code=ProductErrorCode.NOT_PRODUCTS_VARIANT,
+                    )
+                }
+            )
+        product.default_variant = variant
+        product.save(update_fields=["default_variant", "updated_at"])
+        info.context.plugins.product_updated(product)
+        product = ChannelContext(node=product, channel_slug=None)
+        return ProductVariantSetDefault(product=product)
 
 
 class ProductVariantReorder(BaseMutation):

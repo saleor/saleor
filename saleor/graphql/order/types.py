@@ -575,5 +575,7 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_voucher(root: models.Order, _info):
         # TODO: Add dataloader for channel_slug
+        if not root.voucher:
+            return None
         channel_slug = root.channel.slug if root.channel else None
         return ChannelContext(node=root.voucher, channel_slug=channel_slug)

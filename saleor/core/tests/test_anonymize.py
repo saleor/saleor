@@ -9,7 +9,7 @@ def test_obfuscate_email():
     result = obfuscate_email(email)
 
     # then
-    assert result == "a...@example.com"
+    assert result == "a...@gmail.com"
 
 
 def test_obfuscate_email_example_email():
@@ -20,7 +20,7 @@ def test_obfuscate_email_example_email():
     result = obfuscate_email(email)
 
     # then
-    assert result == "abc@example.com"
+    assert result == "a...@example.com"
 
 
 def test_obfuscate_email_no_at_in_email():

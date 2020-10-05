@@ -6,7 +6,7 @@ from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
 
-from ....core.permissions import ProductPermissions
+from ....core.permissions import OrderPermissions, ProductPermissions
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
 from ....product.templatetags.product_images import (
@@ -35,7 +35,7 @@ from ...core.fields import (
     PrefetchingConnectionField,
 )
 from ...core.types import Image, Money, TaxedMoney, TaxedMoneyRange, TaxType
-from ...decorators import permission_required
+from ...decorators import one_of_permissions_required, permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
@@ -57,12 +57,16 @@ from ..dataloaders import (
     CollectionsByProductIdLoader,
     ImagesByProductIdLoader,
     ImagesByProductVariantIdLoader,
+    ProductAttributesByProductTypeIdLoader,
     ProductByIdLoader,
     ProductChannelListingByProductIdAndChanneSlugLoader,
     ProductChannelListingByProductIdLoader,
+    ProductTypeByIdLoader,
+    ProductVariantByIdLoader,
     ProductVariantsByProductIdLoader,
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
+    VariantAttributesByProductTypeIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
     VariantChannelListingByVariantIdLoader,
     VariantsChannelListingByProductIdAndChanneSlugLoader,
@@ -231,9 +235,11 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         model = models.ProductVariant
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
     def resolve_stocks(
-        root: ChannelContext[models.ProductVariant], _info, country_code=None
+        root: ChannelContext[models.ProductVariant], info, country_code=None
     ):
         if not country_code:
             return root.node.stocks.annotate_available_quantity()
@@ -378,7 +384,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return calculate_revenue_for_variant(root.node, start_date)
 
     @staticmethod
-    def resolve_images(root: ChannelContext[models.ProductVariant], info):
+    def resolve_images(root: ChannelContext[models.ProductVariant], info, *_args):
         return ImagesByProductVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
@@ -478,7 +484,23 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "updated_at",
             "weight",
             "visible_in_listings",
+            "default_variant",
         ]
+
+    @staticmethod
+    def resolve_default_variant(root: ChannelContext[models.Product], info):
+        default_variant_id = root.node.default_variant_id
+        if default_variant_id is None:
+            return None
+
+        def return_default_variant_with_channel_context(variant):
+            return ChannelContext(node=variant, channel_slug=root.channel_slug)
+
+        return (
+            ProductVariantByIdLoader(info.context)
+            .load(default_variant_id)
+            .then(return_default_variant_with_channel_context)
+        )
 
     @staticmethod
     def resolve_category(root: ChannelContext[models.Product], info):
@@ -639,6 +661,10 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     def resolve_is_available_for_purchase(root: ChannelContext[models.Product], _info):
         return root.node.is_available_for_purchase()
 
+    @staticmethod
+    def resolve_product_type(root: ChannelContext[models.Product], info):
+        return ProductTypeByIdLoader(info.context).load(root.node.product_type_id)
+
 
 @key(fields="id")
 class ProductType(CountableDjangoObjectType):
@@ -697,12 +723,12 @@ class ProductType(CountableDjangoObjectType):
         return root.get_value_from_metadata("vatlayer.code")
 
     @staticmethod
-    def resolve_product_attributes(root: models.ProductType, *_args, **_kwargs):
-        return root.product_attributes.product_attributes_sorted().all()
+    def resolve_product_attributes(root: models.ProductType, info):
+        return ProductAttributesByProductTypeIdLoader(info.context).load(root.pk)
 
     @staticmethod
-    def resolve_variant_attributes(root: models.ProductType, *_args, **_kwargs):
-        return root.variant_attributes.variant_attributes_sorted().all()
+    def resolve_variant_attributes(root: models.ProductType, info):
+        return VariantAttributesByProductTypeIdLoader(info.context).load(root.pk)
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, channel=None, **_kwargs):
@@ -790,8 +816,8 @@ class Collection(CountableDjangoObjectType):
     @classmethod
     def get_node(cls, info, id):
         if info.context:
-            user = info.context.user
-            qs = cls._meta.model.objects.visible_to_user(user)
+            requestor = get_user_or_app_from_context(info.context)
+            qs = cls._meta.model.objects.visible_to_user(requestor)
             return qs.filter(id=id).first()
         return None
 

@@ -17,7 +17,7 @@ def migrate_cost_price(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("product", "0129_auto_20200910_1000"),
+        ("product", "0131_auto_20200910_1000"),
     ]
 
     operations = [

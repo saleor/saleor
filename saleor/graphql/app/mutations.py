@@ -258,20 +258,8 @@ class AppActivate(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def clean_instance(cls, info, app: App):
-        requestor = get_user_or_app_from_context(info.context)
-        permissions = app.permissions.all()
-        if not requestor_is_superuser(requestor) and not requestor.has_perms(
-            permissions
-        ):
-            msg = "You don't have enough permission to perform this action."
-            code = AppErrorCode.OUT_OF_SCOPE_APP.value
-            raise ValidationError({"id": ValidationError(msg, code=code)})
-
-    @classmethod
     def perform_mutation(cls, root, info, **data):
         app = cls.get_instance(info, **data)
-        cls.clean_instance(info, app)
         app.is_active = True
         cls.save(info, app, cleaned_input=None)
         return cls.success_response(app)
@@ -289,17 +277,8 @@ class AppDeactivate(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def clean_instance(cls, info, app: App):
-        requestor = get_user_or_app_from_context(info.context)
-        if not requestor_is_superuser(requestor) and not can_manage_app(requestor, app):
-            msg = "You don't have enough permission to perform this action."
-            code = AppErrorCode.OUT_OF_SCOPE_APP.value
-            raise ValidationError({"id": ValidationError(msg, code=code)})
-
-    @classmethod
     def perform_mutation(cls, root, info, **data):
         app = cls.get_instance(info, **data)
-        cls.clean_instance(info, app)
         app.is_active = False
         cls.save(info, app, cleaned_input=None)
         return cls.success_response(app)
@@ -320,15 +299,6 @@ class AppDeleteFailedInstallation(ModelDeleteMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        requestor = get_user_or_app_from_context(info.context)
-        permissions = instance.permissions.all()
-        if not requestor_is_superuser(requestor) and not requestor.has_perms(
-            permissions
-        ):
-            msg = "You don't have enough permission to perform this action."
-            code = AppErrorCode.OUT_OF_SCOPE_APP.value
-            raise ValidationError({"id": ValidationError(msg, code=code)})
-
         if instance.status != JobStatus.FAILED:
             msg = "Cannot delete installation with different status than failed."
             code = AppErrorCode.INVALID_STATUS.value
@@ -358,15 +328,6 @@ class AppRetryInstall(ModelMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        requestor = get_user_or_app_from_context(info.context)
-        permissions = instance.permissions.all()
-        if not requestor_is_superuser(requestor) and not requestor.has_perms(
-            permissions
-        ):
-            msg = "You don't have enough permission to perform this action."
-            code = AppErrorCode.OUT_OF_SCOPE_APP.value
-            raise ValidationError({"id": ValidationError(msg, code=code)})
-
         if instance.status != JobStatus.FAILED:
             msg = "Cannot retry installation with different status than failed."
             code = AppErrorCode.INVALID_STATUS.value

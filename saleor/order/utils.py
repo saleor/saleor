@@ -204,7 +204,9 @@ def add_variant_to_draft_order(order, variant, quantity, discounts=None):
         manager = get_plugins_manager()
         unit_price = manager.calculate_order_line_unit(line)
         line.unit_price = unit_price
-        line.tax_rate = unit_price.tax / unit_price.net
+        line.tax_rate = (
+            unit_price.tax / unit_price.net if unit_price.net.amount != 0 else 0
+        )
         line.save(
             update_fields=[
                 "currency",

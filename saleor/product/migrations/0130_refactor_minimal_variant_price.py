@@ -34,7 +34,7 @@ def migrate_minimal_variant_price_data(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("product", "0127_productchannellisting"),
+        ("product", "0129_productchannellisting"),
     ]
 
     operations = [

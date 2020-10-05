@@ -1170,8 +1170,8 @@ def product_without_shipping(category, warehouse, channel_USD):
 @pytest.fixture
 def product_without_category(product):
     product.category = None
-    product.is_published = False
     product.save()
+    product.channel_listing.all().update(is_published=False)
     return product
 
 
