@@ -1,5 +1,4 @@
 import graphene
-import pytest
 
 from ...tests.utils import assert_graphql_error_with_message, get_graphql_content
 
@@ -68,7 +67,6 @@ def test_get_unpublished_variant_by_id_as_staff(
     assert data["sku"] == variant.sku
 
 
-@pytest.mark.skip(reason="Issue #5845")
 def test_get_unpublished_variant_by_id_as_app(
     app_api_client, permission_manage_products, unavailable_product_with_variant
 ):
@@ -220,7 +218,6 @@ def test_get_unpublished_variant_by_sku_as_staff(
     assert data["sku"] == variant.sku
 
 
-@pytest.mark.skip(reason="Issue #5845")
 def test_get_unpublished_variant_by_sku_as_app(
     app_api_client, permission_manage_products, unavailable_product_with_variant
 ):
