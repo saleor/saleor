@@ -69,7 +69,7 @@ from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
 from ...warehouse.management import increase_stock
 from ...warehouse.models import Stock, Warehouse
 
-fake = Factory.create()
+fake = Factory.create(settings.LANGUAGE_CODE)
 PRODUCTS_LIST_DIR = "products-list/"
 
 IMAGES_MAPPING = {
