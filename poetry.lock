@@ -1927,8 +1927,8 @@ category = "main"
 description = "A python library adding a json log formatter"
 name = "python-json-logger"
 optional = false
-python-versions = ">=2.7"
-version = "0.1.11"
+python-versions = ">=3.4"
+version = "2.0.0"
 
 [[package]]
 category = "main"
@@ -2476,7 +2476,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "821a830affb443eb7ee6ff3bb717ed7c4afb9992d3ada568c17a7e9a08d7477f"
+content-hash = "952c482f82b53773d2d476cdd19797f1a8e6391d404b3e62ba9a78c0a6831cc5"
 lock-version = "1.0"
 python-versions = "~3.8"
 
@@ -3399,7 +3399,7 @@ python-dateutil = [
     {file = "python_dateutil-2.8.1-py2.py3-none-any.whl", hash = "sha256:75bb3f31ea686f1197762692a9ee6a7550b59fc6ca3a1f4b5d7e32fb98e2da2a"},
 ]
 python-json-logger = [
-    {file = "python-json-logger-0.1.11.tar.gz", hash = "sha256:b7a31162f2a01965a5efb94453ce69230ed208468b0bbc7fdfc56e6d8df2e281"},
+    {file = "python-json-logger-2.0.0.tar.gz", hash = "sha256:6c15023a8571200228472d4c9de7cb891cd45f670061f7729b8209bf643d5bbf"},
 ]
 python-magic = [
     {file = "python-magic-0.4.18.tar.gz", hash = "sha256:b757db2a5289ea3f1ced9e60f072965243ea43a2221430048fd8cacab17be0ce"},
