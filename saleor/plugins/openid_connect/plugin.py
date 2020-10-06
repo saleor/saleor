@@ -274,10 +274,11 @@ class OpenIDConnectPlugin(BasePlugin):
         storefront_redirect_url = state_data.get("redirectUrl")
         if not storefront_redirect_url:
             raise AuthenticationError("Missing redirectUrl in state.")
+        plugin_path = reverse("plugins", kwargs={"plugin_id": self.PLUGIN_ID})
         token_data = self.oauth.fetch_token(
             self.config.token_url,
             authorization_response=request.build_absolute_uri(),
-            redirect_uri=build_absolute_uri(f"/plugins/{self.PLUGIN_ID}/callback"),
+            redirect_uri=build_absolute_uri(f"{plugin_path}callback"),
         )
         user_permissions = get_saleor_permissions_from_scope(token_data.get("scope"))
         parsed_id_token = get_parsed_id_token(
