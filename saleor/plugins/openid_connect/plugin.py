@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.shortcuts import redirect
+from django.urls import reverse
 from jwt import ExpiredSignature, InvalidTokenError
 from requests import PreparedRequest
 
@@ -123,7 +124,7 @@ class OpenIDConnectPlugin(BasePlugin):
         "audience": {
             "type": ConfigurationTypeField.STRING,
             "help_text": (
-                "The Oauth resource identifier. If provided, Saleor will define "
+                "The OAuth resource identifier. If provided, Saleor will define "
                 "audience for each authorization request."
             ),
             "label": "Audience",
@@ -179,8 +180,9 @@ class OpenIDConnectPlugin(BasePlugin):
             return previous_value
         storefront_redirect_url = data.get("redirectUrl")
         validate_storefront_redirect_url(storefront_redirect_url)
+        plugin_path = reverse("plugins", kwargs={"plugin_id": self.PLUGIN_ID})
         kwargs = {
-            "redirect_uri": build_absolute_uri(f"/plugins/{self.PLUGIN_ID}/callback"),
+            "redirect_uri": build_absolute_uri(f"{plugin_path}callback"),
             "state": signing.dumps({"redirectUrl": storefront_redirect_url}),
         }
         if self.config.audience:
@@ -282,11 +284,10 @@ class OpenIDConnectPlugin(BasePlugin):
             return previous_value
         token = get_token_from_request(request)
         if not token:
-            return None
-        user = previous_value
+            return previous_value
         valid = is_owner_of_token_valid(token, owner=self.PLUGIN_ID)
         if not valid:
-            return user
+            return previous_value
         payload = jwt_decode(token)
         user = get_user_from_access_payload(payload)
         return user
@@ -301,10 +302,11 @@ class OpenIDConnectPlugin(BasePlugin):
         storefront_redirect_url = state_data.get("redirectUrl")
         if not storefront_redirect_url:
             raise AuthenticationError("Missing redirectUrl in state.")
+        plugin_path = reverse("plugins", kwargs={"plugin_id": self.PLUGIN_ID})
         token_data = self.oauth.fetch_token(
             self.config.token_url,
             authorization_response=request.build_absolute_uri(),
-            redirect_uri=build_absolute_uri(f"/plugins/{self.PLUGIN_ID}/callback"),
+            redirect_uri=build_absolute_uri(f"{plugin_path}callback"),
         )
         user_permissions = get_saleor_permissions_from_scope(token_data.get("scope"))
         parsed_id_token = get_parsed_id_token(
