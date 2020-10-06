@@ -1394,7 +1394,7 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="SKU_B", cost_price=Money(2, "USD"), price_amount=20
+        product=product, sku="SKU_C", cost_price=Money(2, "USD"), price_amount=20
     )
     stock = Stock.objects.create(
         product_variant=variant, warehouse=warehouse, quantity=2

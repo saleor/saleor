@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-from typing import Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -25,7 +25,7 @@ from ..discount.utils import (
     increase_voucher_usage,
     remove_voucher_usage_by_customer,
 )
-from ..order.actions import order_created
+from ..order.actions import mark_order_as_paid, order_created
 from ..order.emails import send_order_confirmation, send_staff_order_confirmation
 from ..order.models import Order, OrderLine
 from ..payment import PaymentError, gateway
@@ -402,18 +402,22 @@ def complete_checkout(
         gateway.payment_refund_or_void(payment)
         raise error
 
-    txn = _process_payment(
-        payment=payment,  # type: ignore
-        store_source=store_source,
-        payment_data=payment_data,
-        order_data=order_data,
-    )
+    action_required = False
+    action_data: Dict[str, str] = {}
+    if payment:
+        txn = _process_payment(
+            payment=payment,  # type: ignore
+            store_source=store_source,
+            payment_data=payment_data,
+            order_data=order_data,
+        )
 
-    if txn.customer_id and user.is_authenticated:
-        store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
+        if txn.customer_id and user.is_authenticated:
+            store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
 
-    action_required = txn.action_required
-    action_data = txn.action_required_data if action_required else {}
+        action_required = txn.action_required
+        if action_required:
+            action_data = txn.action_required_data
 
     order = None
     if not action_required:
@@ -427,5 +431,10 @@ def complete_checkout(
             release_voucher_usage(order_data)
             gateway.payment_refund_or_void(payment)
             raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
+
+        # if there is no payment and no errors occurred it means that total value is 0
+        # and is paid from definition
+        if not payment:
+            mark_order_as_paid(order, user)
 
     return order, action_required, action_data
