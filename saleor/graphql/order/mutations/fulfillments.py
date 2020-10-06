@@ -25,10 +25,12 @@ from ..types import OrderLine
 
 class OrderFulfillStockInput(graphene.InputObjectType):
     quantity = graphene.Int(
-        description="The number of line items to be fulfilled from given warehouse."
+        description="The number of line items to be fulfilled from given warehouse.",
+        required=True,
     )
     warehouse = graphene.ID(
-        description="ID of the warehouse from which the item will be fulfilled."
+        description="ID of the warehouse from which the item will be fulfilled.",
+        required=True,
     )
 
 

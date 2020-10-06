@@ -3117,8 +3117,8 @@ input OrderFulfillLineInput {
 }
 
 input OrderFulfillStockInput {
-  quantity: Int
-  warehouse: ID
+  quantity: Int!
+  warehouse: ID!
 }
 
 type OrderLine implements Node {
