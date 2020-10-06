@@ -31,7 +31,7 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
     categories = PrefetchingConnectionField(
         Category, description="List of categories this sale applies to."
     )
-    collections = PrefetchingConnectionField(
+    collections = ChannelContextFilterConnectionField(
         Collection, description="List of collections this sale applies to."
     )
     products = ChannelContextFilterConnectionField(
@@ -72,7 +72,8 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_collections(root: ChannelContext[models.Sale], info, **_kwargs):
-        return root.node.collections.all()
+        qs = root.node.collections.all()
+        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
@@ -112,7 +113,7 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
     categories = PrefetchingConnectionField(
         Category, description="List of categories this voucher applies to."
     )
-    collections = PrefetchingConnectionField(
+    collections = ChannelContextFilterConnectionField(
         Collection, description="List of collections this voucher applies to."
     )
     products = ChannelContextFilterConnectionField(
@@ -173,7 +174,8 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_collections(root: ChannelContext[models.Voucher], info, **_kwargs):
-        return root.node.collections.all()
+        qs = root.node.collections.all()
+        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)

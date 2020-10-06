@@ -377,7 +377,6 @@ class ProductChannelListing(PublishableModel):
         related_name="product_listing",
         on_delete=models.CASCADE,
     )
-    # TODO: Change currency into currency_code in ProductChannelListing
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     discounted_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -499,8 +498,6 @@ class ProductVariantChannelListing(models.Model):
         related_name="variant_listing",
         on_delete=models.CASCADE,
     )
-    # TODO: Change currency into currency_code in
-    #  ProductVariantChannelListing
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -875,7 +872,26 @@ class CollectionProduct(SortableModel):
         return self.product.collectionproduct.all()
 
 
-class Collection(SeoModel, ModelWithMetadata, PublishableModel):
+class CollectionsQueryset(models.QuerySet):
+    @staticmethod
+    def user_has_access_to_all(user):
+        return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+
+    def published(self, channel_slug: str):
+        today = datetime.date.today()
+        return self.filter(
+            Q(channel_listing__publication_date__lte=today)
+            | Q(channel_listing__publication_date__isnull=True),
+            channel_listing__channel__slug=str(channel_slug),
+        )
+
+    def visible_to_user(self, user: "User", channel_slug: str):
+        if self.user_has_access_to_all(user):
+            return self.all()
+        return self.published(channel_slug)
+
+
+class Collection(SeoModel, ModelWithMetadata):
     name = models.CharField(max_length=250, unique=True)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     products = models.ManyToManyField(
@@ -892,6 +908,8 @@ class Collection(SeoModel, ModelWithMetadata, PublishableModel):
     description = models.TextField(blank=True)
     description_json = JSONField(blank=True, default=dict)
 
+    objects = CollectionsQueryset.as_manager()
+
     translated = TranslationProxy()
 
     class Meta:
@@ -899,6 +917,27 @@ class Collection(SeoModel, ModelWithMetadata, PublishableModel):
 
     def __str__(self) -> str:
         return self.name
+
+
+class CollectionChannelListing(PublishableModel):
+    collection = models.ForeignKey(
+        Collection,
+        null=False,
+        blank=False,
+        related_name="channel_listing",
+        on_delete=models.CASCADE,
+    )
+    channel = models.ForeignKey(
+        Channel,
+        null=False,
+        blank=False,
+        related_name="collection_listing",
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        unique_together = [["collection", "channel"]]
+        ordering = ("pk",)
 
 
 class CollectionTranslation(SeoModelTranslation):

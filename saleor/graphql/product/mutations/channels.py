@@ -17,7 +17,7 @@ from ...core.scalars import PositiveDecimal
 from ...core.types.common import ProductChannelListingError
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
-from ..types.products import Product, ProductVariant
+from ..types.products import Collection, Product, ProductVariant
 
 if TYPE_CHECKING:
     from ....product.models import (
@@ -29,10 +29,10 @@ if TYPE_CHECKING:
 ErrorType = DefaultDict[str, List[ValidationError]]
 
 
-class ProductChannelListingAddInput(graphene.InputObjectType):
+class PublishableChannelListingInput(graphene.InputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     is_published = graphene.Boolean(
-        description="Determines if product is visible to customers.", required=True
+        description="Determines if object is visible to customers.", required=True
     )
     publication_date = graphene.types.datetime.Date(
         description="Publication date. ISO 8601 standard."
@@ -41,7 +41,7 @@ class ProductChannelListingAddInput(graphene.InputObjectType):
 
 class ProductChannelListingUpdateInput(graphene.InputObjectType):
     add_channels = graphene.List(
-        graphene.NonNull(ProductChannelListingAddInput),
+        graphene.NonNull(PublishableChannelListingInput),
         description="List of channels to which the product should be assigned.",
         required=False,
     )
@@ -279,4 +279,80 @@ class ProductVariantChannelListingUpdate(BaseMutation):
 
         return ProductVariantChannelListingUpdate(
             variant=ChannelContext(node=variant, channel_slug=None)
+        )
+
+
+class CollectionChannelListingUpdateInput(graphene.InputObjectType):
+    add_channels = graphene.List(
+        graphene.NonNull(PublishableChannelListingInput),
+        description="List of channels to which the collection should be assigned.",
+        required=False,
+    )
+    remove_channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channels from which the collection should be unassigned.",
+        required=False,
+    )
+
+
+class CollectionChannelListingUpdate(BaseChannelListingMutation):
+    collection = graphene.Field(
+        Collection, description="An updated collection instance."
+    )
+
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of a collection to update.")
+        input = CollectionChannelListingUpdateInput(
+            required=True,
+            description=(
+                "Fields required to create or update collection channel listings."
+            ),
+        )
+
+    class Meta:
+        description = "Manage collection's availability in channels."
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = ProductChannelListingError
+        error_type_field = "collection_channel_listing_errors"
+
+    @classmethod
+    def add_channels(cls, product: "ProductModel", add_channels: List[Dict]):
+        for add_channel in add_channels:
+            defaults = {
+                "is_published": add_channel.get("is_published"),
+                "publication_date": add_channel.get("publication_date", None),
+            }
+            ProductChannelListing.objects.update_or_create(
+                product=product, channel=add_channel["channel"], defaults=defaults
+            )
+
+    @classmethod
+    def remove_channels(cls, product: "ProductModel", remove_channels: List[int]):
+        ProductChannelListing.objects.filter(
+            product=product, channel_id__in=remove_channels
+        ).delete()
+        ProductVariantChannelListing.objects.filter(
+            variant__product_id=product.pk, channel_id__in=remove_channels
+        ).delete()
+
+    @classmethod
+    @transaction.atomic()
+    def save(cls, info, product: "ProductModel", cleaned_input: Dict):
+        cls.add_channels(product, cleaned_input.get("add_channels", []))
+        cls.remove_channels(product, cleaned_input.get("remove_channels", []))
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id, input):
+        collection = cls.get_node_or_error(info, id, only_type=Collection, field="id")
+        errors = defaultdict(list)
+
+        cleaned_input = cls.clean_channels(
+            info, input, errors, ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+        )
+        if errors:
+            raise ValidationError(errors)
+
+        cls.save(info, collection, cleaned_input)
+        return CollectionChannelListingUpdate(
+            product=ChannelContext(node=collection, channel_slug=None)
         )

@@ -104,6 +104,7 @@ PermissionGroupErrorCode = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode
 )
 ProductErrorCode = graphene.Enum.from_enum(product_error_codes.ProductErrorCode)
+CollectionErrorCode = graphene.Enum.from_enum(product_error_codes.CollectionErrorCode)
 ShopErrorCode = graphene.Enum.from_enum(core_error_codes.ShopErrorCode)
 ShippingErrorCode = graphene.Enum.from_enum(shipping_error_codes.ShippingErrorCode)
 StockErrorCode = graphene.Enum.from_enum(warehouse_error_codes.StockErrorCode)

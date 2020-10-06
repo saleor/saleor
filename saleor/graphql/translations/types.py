@@ -173,11 +173,12 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_collection(root: product_models.Collection, info):
-        return (
+        collection = (
             product_models.Collection.objects.visible_to_user(info.context.user)
             .filter(pk=root.id)
             .first()
         )
+        return ChannelContext(node=collection, channel_slug=None)
 
 
 class CategoryTranslation(BaseTranslationType):

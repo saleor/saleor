@@ -51,6 +51,24 @@ class ChannelByProductVariantChannelListingIDLoader(DataLoader):
         )
 
 
+class ChannelByCollectionChannelListingIDLoader(DataLoader):
+    context_key = "channel_by_collection_channel_listing"
+
+    def batch_load(self, keys):
+        def channel_by_collection_channel_listing(collection_channel_listings):
+            channel_ids = [
+                collection_channel_listing.channel_id
+                for collection_channel_listing in collection_channel_listings
+            ]
+            return ChannelByIdLoader(self.context).load_many(channel_ids)
+
+        return (
+            ChannelByCollectionChannelListingIDLoader(self.context)
+            .load_many(keys)
+            .then(channel_by_collection_channel_listing)
+        )
+
+
 class ChannelByCheckoutLineIDLoader(DataLoader):
     context_key = "channel_by_checkout_line"
 
