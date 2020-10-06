@@ -486,6 +486,7 @@ input AttributeFilterInput {
   ids: [ID]
   inCollection: ID
   inCategory: ID
+  channel: String
 }
 
 input AttributeInput {
@@ -3750,7 +3751,6 @@ type Product implements Node & ObjectWithMetadata {
   chargeTaxes: Boolean!
   weight: Weight
   availableForPurchase: Date
-  visibleInListings: Boolean!
   defaultVariant: ProductVariant
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
@@ -3788,6 +3788,7 @@ type ProductChannelListing implements Node {
   publicationDate: Date
   isPublished: Boolean!
   channel: Channel!
+  visibleInListings: Boolean!
   discountedPrice: Money
   purchaseCost: MoneyRange
   margin: Margin

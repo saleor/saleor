@@ -67,7 +67,10 @@ def resolve_products(
     if stock_availability:
         qs = filter_products_by_stock_availability(qs, stock_availability)
     if not qs.user_has_access_to_all(user):
-        qs = qs.exclude(visible_in_listings=False)
+        qs = qs.exclude(
+            channel_listing__visible_in_listings=False,
+            channel_listing__channel__slug=str(channel_slug),
+        )
     return ChannelQsContext(qs=qs.distinct(), channel_slug=channel_slug)
 
 

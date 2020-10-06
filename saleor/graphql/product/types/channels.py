@@ -28,7 +28,13 @@ class ProductChannelListing(CountableDjangoObjectType):
         description = "Represents product channel listing."
         model = models.ProductChannelListing
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "channel", "is_published", "publication_date"]
+        only_fields = [
+            "id",
+            "channel",
+            "is_published",
+            "publication_date",
+            "visible_in_listings",
+        ]
 
     @staticmethod
     def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):

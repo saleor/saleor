@@ -3,7 +3,15 @@ from typing import Dict, List, Optional
 
 import django_filters
 import graphene
-from django.db.models import F, Q, Subquery, Sum
+from django.db.models import (
+    BooleanField,
+    ExpressionWrapper,
+    F,
+    OuterRef,
+    Q,
+    Subquery,
+    Sum,
+)
 from django.db.models.functions import Coalesce
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
@@ -13,6 +21,7 @@ from ...product.models import (
     Category,
     Collection,
     Product,
+    ProductChannelListing,
     ProductType,
     ProductVariant,
 )
@@ -20,7 +29,7 @@ from ...search.backends import picker
 from ...warehouse.models import Stock
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
-from ..core.types import FilterInputObjectType
+from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
 from ..core.utils import from_global_id_strict_type
 from ..utils import (
@@ -233,9 +242,11 @@ def filter_product_type(qs, _, value):
     return qs
 
 
-def filter_attributes_by_product_types(qs, field, value, requestor):
+def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug):
     if not value:
         return qs
+
+    product_qs = Product.objects.visible_to_user(requestor, channel_slug)
 
     if field == "in_category":
         category_id = from_global_id_strict_type(
@@ -247,16 +258,25 @@ def filter_attributes_by_product_types(qs, field, value, requestor):
             return qs.none()
 
         tree = category.get_descendants(include_self=True)
-        product_qs = Product.objects.filter(category__in=tree)
+        product_qs = product_qs.filter(category__in=tree)
 
         if not product_qs.user_has_access_to_all(requestor):
-            product_qs = product_qs.exclude(visible_in_listings=False)
+            subquery = Subquery(
+                ProductChannelListing.objects.filter(
+                    product_id=OuterRef("pk"), channel__slug=channel_slug
+                ).values_list("visible_in_listings")[:1]
+            )
+            product_qs = product_qs.annotate(
+                visible_in_listings=ExpressionWrapper(
+                    subquery, output_field=BooleanField()
+                )
+            ).exclude(visible_in_listings=False)
 
     elif field == "in_collection":
         collection_id = from_global_id_strict_type(
             value, only_type="Collection", field=field
         )
-        product_qs = Product.objects.filter(collections__id=collection_id)
+        product_qs = product_qs.filter(collections__id=collection_id)
 
     else:
         raise NotImplementedError(f"Filtering by {field} is unsupported")
@@ -451,18 +471,20 @@ class AttributeFilter(django_filters.FilterSet):
 
     def filter_in_collection(self, queryset, name, value):
         requestor = get_user_or_app_from_context(self.request)
-        return filter_attributes_by_product_types(queryset, name, value, requestor)
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return filter_attributes_by_product_types(
+            queryset, name, value, requestor, channel_slug
+        )
 
     def filter_in_category(self, queryset, name, value):
         requestor = get_user_or_app_from_context(self.request)
-        return filter_attributes_by_product_types(queryset, name, value, requestor)
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return filter_attributes_by_product_types(
+            queryset, name, value, requestor, channel_slug
+        )
 
 
-class ProductFilterInput(FilterInputObjectType):
-    channel = graphene.Argument(
-        graphene.String, description="Channel in which to filter the data."
-    )
-
+class ProductFilterInput(ChannelFilterInputObjectType):
     class Meta:
         filterset_class = ProductFilter
 
@@ -487,6 +509,6 @@ class ProductTypeFilterInput(FilterInputObjectType):
         filterset_class = ProductTypeFilter
 
 
-class AttributeFilterInput(FilterInputObjectType):
+class AttributeFilterInput(ChannelFilterInputObjectType):
     class Meta:
         filterset_class = AttributeFilter
