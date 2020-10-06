@@ -23,6 +23,7 @@ from ..utils import (
     fetch_jwks,
     get_or_create_user_from_token,
     get_saleor_permissions_from_scope,
+    get_user_from_token,
     validate_refresh_token,
 )
 
@@ -49,6 +50,38 @@ def test_fetch_jwks():
     jwks_url = "https://saleor-test.eu.auth0.com/.well-known/jwks.json"
     keys = fetch_jwks(jwks_url)
     assert len(keys) == 2
+
+
+def test_get_or_create_user_from_token_missing_email(id_payload):
+    del id_payload["email"]
+    with pytest.raises(AuthenticationError):
+        get_or_create_user_from_token(id_payload)
+
+
+def test_get_or_create_user_from_token_user_not_active(id_payload, admin_user):
+    admin_user.is_active = False
+    admin_user.save()
+    with pytest.raises(AuthenticationError):
+        get_or_create_user_from_token(id_payload)
+
+
+def test_get_user_from_token_missing_email(id_payload):
+    del id_payload["email"]
+    with pytest.raises(AuthenticationError):
+        get_user_from_token(id_payload)
+
+
+def test_get_user_from_token_missing_user(id_payload):
+    User.objects.all().delete()
+    with pytest.raises(AuthenticationError):
+        get_user_from_token(id_payload)
+
+
+def test_get_user_from_token_user_not_active(id_payload, admin_user):
+    admin_user.is_active = False
+    admin_user.save()
+    with pytest.raises(AuthenticationError):
+        get_user_from_token(id_payload)
 
 
 @freeze_time("2019-03-18 12:00:00")

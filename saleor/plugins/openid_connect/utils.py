@@ -100,6 +100,8 @@ def create_jwt_token(
         PERMISSIONS_FIELD: permissions,
         JWT_OWNER_FIELD: owner,
     }
+    if permissions:
+        user.is_staff = True
     jwt_payload = jwt_user_payload(
         user,
         JWT_ACCESS_TYPE,
@@ -126,7 +128,9 @@ def create_jwt_refresh_token(user: User, refresh_token: str, csrf: str, owner: s
 
 
 def get_parsed_id_token(token_data, jwks_url) -> CodeIDToken:
-    id_token = token_data["id_token"]
+    id_token = token_data.get("id_token")
+    if not id_token:
+        raise AuthenticationError("Missing ID Token.")
     keys = get_jwks_keys_from_cache_or_fetch(jwks_url)
     try:
         claims = jwt.decode(id_token, keys, claims_cls=CodeIDToken)
@@ -139,24 +143,30 @@ def get_parsed_id_token(token_data, jwks_url) -> CodeIDToken:
 
 
 def get_or_create_user_from_token(claims: CodeIDToken) -> User:
+    user_email = claims.get("email")
+    if not user_email:
+        raise AuthenticationError("Missing user's email.")
     user, _ = User.objects.get_or_create(
-        email=claims["email"],
+        email=user_email,
         defaults={
             "is_active": True,
-            "email": claims["email"],
+            "email": user_email,
             "first_name": claims.get("given_name", ""),
             "last_name": claims.get("family_name", ""),
         },
     )
     if not user.is_active:  # it is true only if we fetch disabled user.
-        raise AuthenticationError("Unable to log in.",)
+        raise AuthenticationError("Unable to log in.")
     return user
 
 
 def get_user_from_token(claims: CodeIDToken) -> User:
-    user = User.objects.filter(email=claims["email"], is_active=True).first()
+    user_email = claims.get("email")
+    if not user_email:
+        raise AuthenticationError("Missing user's email.")
+    user = User.objects.filter(email=user_email, is_active=True).first()
     if not user:
-        raise AuthenticationError("User does not exist.",)
+        raise AuthenticationError("User does not exist.")
     return user
 
 
@@ -176,11 +186,10 @@ def create_tokens_from_oauth_payload(
     owner: str,
 ):
     refresh_token = token_data.get("refresh_token")
+    access_token = token_data.get("access_token", "")
 
     tokens = {
-        "token": create_jwt_token(
-            claims, user, token_data["access_token"], permissions, owner
-        ),
+        "token": create_jwt_token(claims, user, access_token, permissions, owner),
     }
     if refresh_token:
         csrf_token = _get_new_csrf_token()
@@ -276,7 +285,7 @@ def get_incorrect_fields(plugin_configuration: "PluginConfiguration"):
 def get_saleor_permissions_from_scope(scope: str) -> List[str]:
     if not scope:
         return []
-    scope_list = scope.lower().split()
+    scope_list = scope.lower().strip().split()
     saleor_permissions_str = [s for s in scope_list if s.startswith("saleor:")]
     permission_codenames = list(
         map(lambda perm: perm.replace("saleor:", ""), saleor_permissions_str)
