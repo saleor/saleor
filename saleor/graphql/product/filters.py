@@ -3,15 +3,7 @@ from typing import Dict, List, Optional
 
 import django_filters
 import graphene
-from django.db.models import (
-    BooleanField,
-    ExpressionWrapper,
-    F,
-    OuterRef,
-    Q,
-    Subquery,
-    Sum,
-)
+from django.db.models import F, Q, Subquery, Sum
 from django.db.models.functions import Coalesce
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
@@ -21,7 +13,6 @@ from ...product.models import (
     Category,
     Collection,
     Product,
-    ProductChannelListing,
     ProductType,
     ProductVariant,
 )
@@ -261,16 +252,9 @@ def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug
         product_qs = product_qs.filter(category__in=tree)
 
         if not product_qs.user_has_access_to_all(requestor):
-            subquery = Subquery(
-                ProductChannelListing.objects.filter(
-                    product_id=OuterRef("pk"), channel__slug=channel_slug
-                ).values_list("visible_in_listings")[:1]
+            product_qs = product_qs.annotate_visible_in_listings(channel_slug).exclude(
+                visible_in_listings=False
             )
-            product_qs = product_qs.annotate(
-                visible_in_listings=ExpressionWrapper(
-                    subquery, output_field=BooleanField()
-                )
-            ).exclude(visible_in_listings=False)
 
     elif field == "in_collection":
         collection_id = from_global_id_strict_type(

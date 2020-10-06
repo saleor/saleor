@@ -6,7 +6,20 @@ from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.db.models import JSONField  # type: ignore
-from django.db.models import Case, Count, F, FilteredRelation, Q, Sum, Value, When
+from django.db.models import (
+    BooleanField,
+    Case,
+    Count,
+    ExpressionWrapper,
+    F,
+    FilteredRelation,
+    OuterRef,
+    Q,
+    Subquery,
+    Sum,
+    Value,
+    When,
+)
 from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.utils.encoding import smart_text
@@ -152,6 +165,16 @@ class ProductsQueryset(models.QuerySet):
     @staticmethod
     def user_has_access_to_all(user):
         return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+
+    def annotate_visible_in_listings(self, channel_slug):
+        query = Subquery(
+            ProductChannelListing.objects.filter(
+                product_id=OuterRef("pk"), channel__slug=str(channel_slug)
+            ).values_list("visible_in_listings")[:1]
+        )
+        return self.annotate(
+            visible_in_listings=ExpressionWrapper(query, output_field=BooleanField())
+        )
 
     def sort_by_attribute(
         self, attribute_pk: Union[int, str], descending: bool = False
