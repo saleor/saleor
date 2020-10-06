@@ -129,7 +129,6 @@ QUERY_PRODUCT = """
             }
             availableForPurchase
             isAvailableForPurchase
-            visibleInListings
         }
     }
     """
@@ -281,7 +280,6 @@ def test_product_query_by_id_available_as_customer(
     product_data = content["data"]["product"]
     assert product_data is not None
     assert product_data["name"] == product.name
-    assert product_data["visibleInListings"] is True
 
 
 def test_product_query_by_id_not_available_as_customer(
@@ -947,8 +945,7 @@ def test_fetch_all_products_visible_in_listings(
     user_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].visible_in_listings = False
-    product_list[0].save(update_fields=["visible_in_listings"])
+    product_list[0].channel_listing.update(visible_in_listings=False)
 
     product_count = Product.objects.count()
     variables = {"channel": channel_USD.slug}
@@ -968,8 +965,7 @@ def test_fetch_all_products_visible_in_listings_by_staff_with_perm(
     staff_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].visible_in_listings = False
-    product_list[0].save(update_fields=["visible_in_listings"])
+    product_list[0].channel_listing.update(visible_in_listings=False)
 
     product_count = Product.objects.count()
     variables = {"channel": channel_USD.slug}
@@ -992,8 +988,7 @@ def test_fetch_all_products_visible_in_listings_by_staff_without_perm(
     staff_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].visible_in_listings = False
-    product_list[0].save(update_fields=["visible_in_listings"])
+    product_list[0].channel_listing.update(visible_in_listings=False)
 
     product_count = Product.objects.count()
     variables = {"channel": channel_USD.slug}
@@ -1013,8 +1008,7 @@ def test_fetch_all_products_visible_in_listings_by_app_with_perm(
     app_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].visible_in_listings = False
-    product_list[0].save(update_fields=["visible_in_listings"])
+    product_list[0].channel_listing.update(visible_in_listings=False)
 
     product_count = Product.objects.count()
     variables = {"channel": channel_USD.slug}
@@ -1037,8 +1031,7 @@ def test_fetch_all_products_visible_in_listings_by_app_without_perm(
     app_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].visible_in_listings = False
-    product_list[0].save(update_fields=["visible_in_listings"])
+    product_list[0].channel_listing.update(visible_in_listings=False)
 
     product_count = Product.objects.count()
     variables = {"channel": channel_USD.slug}
@@ -1649,7 +1642,10 @@ def test_sort_products(user_api_client, product, channel_USD):
     product.updated_at = datetime.utcnow()
     product.save()
     ProductChannelListing.objects.create(
-        product=product, channel=channel_USD, is_published=True
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(product=product, sku="1234")
     ProductVariantChannelListing.objects.create(
@@ -1824,7 +1820,6 @@ CREATE_PRODUCT_MUTATION = """
                                     slug
                                 }
                             }
-                            visibleInListings
                           }
                           productErrors {
                             field
@@ -1855,7 +1850,6 @@ def test_create_product(
     product_name = "test name"
     product_slug = "product-test-slug"
     product_charge_taxes = True
-    visible_in_listings = True
     product_tax_rate = "STANDARD"
 
     # Mock tax interface with fake response from tax gateway
@@ -1889,7 +1883,6 @@ def test_create_product(
                 {"id": color_attr_id, "values": [color_value_slug]},
                 {"id": size_attr_id, "values": [non_existent_attr_value]},
             ],
-            "visibleInListings": visible_in_listings,
         }
     }
 
@@ -1906,7 +1899,6 @@ def test_create_product(
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
-    assert data["product"]["visibleInListings"] == visible_in_listings
     values = (
         data["product"]["attributes"][0]["values"][0]["slug"],
         data["product"]["attributes"][1]["values"][0]["slug"],
@@ -2273,7 +2265,6 @@ def test_create_product_invalid_product_attributes(
     product_name = "test name"
     product_slug = "product-test-slug"
     product_charge_taxes = True
-    visible_in_listings = True
     product_tax_rate = "STANDARD"
 
     # Mock tax interface with fake response from tax gateway
@@ -2315,7 +2306,6 @@ def test_create_product_invalid_product_attributes(
                     "values": [non_existent_attr_value, color_value_slug],
                 },
             ],
-            "visibleInListings": visible_in_listings,
         }
     }
 
@@ -2506,7 +2496,6 @@ MUTATION_UPDATE_PRODUCT = """
             $name: String!,
             $slug: String!,
             $descriptionJson: JSONString!,
-            $visibleInListings: Boolean!,
             $chargeTaxes: Boolean!,
             $taxCode: String!,
             $attributes: [AttributeValueInput!]) {
@@ -2517,7 +2506,6 @@ MUTATION_UPDATE_PRODUCT = """
                         name: $name,
                         slug: $slug,
                         descriptionJson: $descriptionJson,
-                        visibleInListings: $visibleInListings,
                         chargeTaxes: $chargeTaxes,
                         taxCode: $taxCode,
                         attributes: $attributes
@@ -2550,7 +2538,6 @@ MUTATION_UPDATE_PRODUCT = """
                                     slug
                                 }
                             }
-                            visibleInListings
                           }
                           errors {
                             message
@@ -2580,7 +2567,6 @@ def test_update_product(
     category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
     product_name = "updated name"
     product_slug = "updated-product"
-    product_visible_in_listings = False
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
 
@@ -2599,7 +2585,6 @@ def test_update_product(
         "name": product_name,
         "slug": product_slug,
         "descriptionJson": other_description_json,
-        "visibleInListings": product_visible_in_listings,
         "chargeTaxes": product_charge_taxes,
         "taxCode": product_tax_rate,
         "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
@@ -2614,7 +2599,6 @@ def test_update_product(
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["descriptionJson"] == other_description_json
-    assert data["product"]["visibleInListings"] == product_visible_in_listings
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
@@ -2656,7 +2640,6 @@ def test_update_product_when_default_currency_changeed(
     category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
     product_name = "updated name"
     product_slug = "updated-product"
-    product_visible_in_listings = False
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
 
@@ -2675,7 +2658,6 @@ def test_update_product_when_default_currency_changeed(
         "name": product_name,
         "slug": product_slug,
         "descriptionJson": other_description_json,
-        "visibleInListings": product_visible_in_listings,
         "chargeTaxes": product_charge_taxes,
         "taxCode": product_tax_rate,
         "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
@@ -2690,7 +2672,6 @@ def test_update_product_when_default_currency_changeed(
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["descriptionJson"] == other_description_json
-    assert data["product"]["visibleInListings"] == product_visible_in_listings
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name

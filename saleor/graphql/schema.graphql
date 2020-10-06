@@ -3860,7 +3860,6 @@ input ProductCreateInput {
   taxCode: String
   seo: SeoInput
   weight: WeightScalar
-  visibleInListings: Boolean
   productType: ID!
 }
 
@@ -3992,7 +3991,6 @@ input ProductInput {
   taxCode: String
   seo: SeoInput
   weight: WeightScalar
-  visibleInListings: Boolean
 }
 
 input ProductOrder {

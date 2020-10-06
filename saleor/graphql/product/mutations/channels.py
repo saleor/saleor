@@ -37,6 +37,12 @@ class ProductChannelListingAddInput(graphene.InputObjectType):
     publication_date = graphene.types.datetime.Date(
         description="Publication date. ISO 8601 standard."
     )
+    # visible_in_listings = graphene.Boolean(
+    #     description=(
+    #         "Determines if product is visible in product listings "
+    #         "(doesn't apply to product collections)."
+    #     )
+    # )
 
 
 class ProductChannelListingUpdateInput(graphene.InputObjectType):

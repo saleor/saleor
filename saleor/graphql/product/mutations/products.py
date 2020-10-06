@@ -541,12 +541,6 @@ class ProductInput(graphene.InputObjectType):
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
-    visible_in_listings = graphene.Boolean(
-        description=(
-            "Determines if product is visible in product listings "
-            "(doesn't apply to product collections)."
-        )
-    )
 
 
 class StockInput(graphene.InputObjectType):

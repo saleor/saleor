@@ -909,9 +909,8 @@ class Category(CountableDjangoObjectType):
             channel = get_default_channel_slug_or_graphql_error()
         qs = models.Product.objects.published(channel)
         if not qs.user_has_access_to_all(requestor):
-            qs = qs.exclude(
-                channel_listing__visible_in_listings=False,
-                channel_listing__channel__slug=str(channel),
+            qs = qs.annotate_visible_in_listings(channel).exclude(
+                visible_in_listings=False,
             )
         qs = qs.filter(category__in=tree)
         return ChannelQsContext(qs=qs, channel_slug=channel)
