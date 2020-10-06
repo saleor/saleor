@@ -1984,7 +1984,7 @@ def test_filter_attributes_by_global_id_list(api_client, attribute_list):
     assert received_slugs == expected_slugs
 
 
-def test_filter_attributes_in_category_by_customer(
+def test_filter_attributes_in_category_not_visible_in_listings_by_customer(
     user_api_client, product_list, weight_attribute
 ):
     # given
@@ -2024,7 +2024,7 @@ def test_filter_attributes_in_category_by_customer(
     }
 
 
-def test_filter_attributes_in_category_by_staff_with_perm(
+def test_filter_attributes_in_category_not_visible_in_listings_by_staff_with_perm(
     staff_api_client, product_list, weight_attribute, permission_manage_products
 ):
     # given
@@ -2063,7 +2063,7 @@ def test_filter_attributes_in_category_by_staff_with_perm(
     assert len(attributes) == attribute_count
 
 
-def test_filter_attributes_in_category_by_staff_without_perm(
+def test_filter_attributes_in_category_not_visible_in_listings_by_staff_without_perm(
     staff_api_client, product_list, weight_attribute, permission_manage_products
 ):
     # given
@@ -2103,7 +2103,7 @@ def test_filter_attributes_in_category_by_staff_without_perm(
     }
 
 
-def test_filter_attributes_in_category_by_app_with_perm(
+def test_filter_attributes_in_category_not_visible_in_listings_by_app_with_perm(
     app_api_client, product_list, weight_attribute, permission_manage_products
 ):
     # given
@@ -2142,7 +2142,7 @@ def test_filter_attributes_in_category_by_app_with_perm(
     assert len(attributes) == attribute_count
 
 
-def test_filter_attributes_in_category_by_app_without_perm(
+def test_filter_attributes_in_category_not_visible_in_listings_by_app_without_perm(
     app_api_client, product_list, weight_attribute, permission_manage_products
 ):
     # given
@@ -2182,7 +2182,205 @@ def test_filter_attributes_in_category_by_app_without_perm(
     }
 
 
-def test_filter_attributes_in_collection_by_customer(
+def test_filter_attributes_in_category_not_published_by_customer(
+    user_api_client, product_list, weight_attribute
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.is_published = False
+    last_product.save(update_fields=["is_published", "product_type"])
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "filters": {"inCategory": graphene.Node.to_global_id("Category", category.pk)}
+    }
+
+    # when
+    attributes = get_graphql_content(
+        user_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    # then
+    assert len(attributes) == attribute_count - 1
+    assert weight_attribute.slug not in {
+        attribute["node"]["slug"] for attribute in attributes
+    }
+
+
+def test_filter_attributes_in_category_not_published_by_staff_with_perm(
+    staff_api_client, product_list, weight_attribute, permission_manage_products
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.is_published = False
+    last_product.save(update_fields=["is_published", "product_type"])
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "filters": {"inCategory": graphene.Node.to_global_id("Category", category.pk)}
+    }
+
+    # when
+    attributes = get_graphql_content(
+        staff_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    # then
+    assert len(attributes) == attribute_count
+
+
+def test_filter_attributes_in_category_not_published_by_staff_without_perm(
+    staff_api_client, product_list, weight_attribute, permission_manage_products
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.is_published = False
+    last_product.save(update_fields=["is_published", "product_type"])
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "filters": {"inCategory": graphene.Node.to_global_id("Category", category.pk)}
+    }
+
+    # when
+    attributes = get_graphql_content(
+        staff_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    # then
+    assert len(attributes) == attribute_count - 1
+    assert weight_attribute.slug not in {
+        attribute["node"]["slug"] for attribute in attributes
+    }
+
+
+def test_filter_attributes_in_category_not_published_by_app_with_perm(
+    app_api_client, product_list, weight_attribute, permission_manage_products
+):
+    # given
+    app_api_client.app.permissions.add(permission_manage_products)
+
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.is_published = False
+    last_product.save(update_fields=["is_published", "product_type"])
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "filters": {"inCategory": graphene.Node.to_global_id("Category", category.pk)}
+    }
+
+    # when
+    attributes = get_graphql_content(
+        app_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    # then
+    assert len(attributes) == attribute_count
+
+
+def test_filter_attributes_in_category_not_published_by_app_without_perm(
+    app_api_client, product_list, weight_attribute, permission_manage_products
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.is_published = False
+    last_product.save(update_fields=["is_published", "product_type"])
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    category = last_product.category
+    variables = {
+        "filters": {"inCategory": graphene.Node.to_global_id("Category", category.pk)}
+    }
+
+    # when
+    attributes = get_graphql_content(
+        app_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    # then
+    assert len(attributes) == attribute_count - 1
+    assert weight_attribute.slug not in {
+        attribute["node"]["slug"] for attribute in attributes
+    }
+
+
+def test_filter_attributes_in_collection_not_visible_in_listings_by_customer(
     user_api_client, product_list, weight_attribute, collection
 ):
     # given
@@ -2221,6 +2419,240 @@ def test_filter_attributes_in_collection_by_customer(
 
     # then
     assert len(attributes) == attribute_count
+
+
+def test_filter_in_collection_not_published_by_customer(
+    user_api_client, product_list, weight_attribute, collection
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.is_published = False
+    last_product.save(update_fields=["is_published", "product_type"])
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    variables = {
+        "filters": {
+            "inCollection": graphene.Node.to_global_id("Collection", collection.pk)
+        }
+    }
+
+    # when
+    attributes = get_graphql_content(
+        user_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    # then
+    assert len(attributes) == attribute_count - 1
+    assert weight_attribute.slug not in {
+        attribute["node"]["slug"] for attribute in attributes
+    }
+
+
+def test_filter_in_collection_not_published_by_staff_with_perm(
+    staff_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    collection,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.is_published = False
+    last_product.save(update_fields=["is_published", "product_type"])
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    variables = {
+        "filters": {
+            "inCollection": graphene.Node.to_global_id("Collection", collection.pk)
+        }
+    }
+
+    # when
+    attributes = get_graphql_content(
+        staff_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    # then
+    assert len(attributes) == attribute_count
+
+
+def test_filter_in_collection_not_published_by_staff_without_perm(
+    staff_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    collection,
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.is_published = False
+    last_product.save(update_fields=["is_published", "product_type"])
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    variables = {
+        "filters": {
+            "inCollection": graphene.Node.to_global_id("Collection", collection.pk)
+        }
+    }
+
+    # when
+    attributes = get_graphql_content(
+        staff_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    # then
+    assert len(attributes) == attribute_count - 1
+    assert weight_attribute.slug not in {
+        attribute["node"]["slug"] for attribute in attributes
+    }
+
+
+def test_filter_in_collection_not_published_by_app_with_perm(
+    app_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    collection,
+):
+    # given
+    app_api_client.app.permissions.add(permission_manage_products)
+
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.is_published = False
+    last_product.save(update_fields=["is_published", "product_type"])
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    variables = {
+        "filters": {
+            "inCollection": graphene.Node.to_global_id("Collection", collection.pk)
+        }
+    }
+
+    # when
+    attributes = get_graphql_content(
+        app_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    # then
+    assert len(attributes) == attribute_count
+
+
+def test_filter_in_collection_not_published_by_app_without_perm(
+    app_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    collection,
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Default Type 2",
+        slug="default-type-2",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.product_attributes.add(weight_attribute)
+
+    last_product = product_list[-1]
+    last_product.product_type = product_type
+    last_product.is_published = False
+    last_product.save(update_fields=["is_published", "product_type"])
+
+    for product in product_list:
+        collection.products.add(product)
+
+    associate_attribute_values_to_instance(
+        product_list[-1], weight_attribute, weight_attribute.values.first()
+    )
+
+    attribute_count = Attribute.objects.count()
+
+    variables = {
+        "filters": {
+            "inCollection": graphene.Node.to_global_id("Collection", collection.pk)
+        }
+    }
+
+    # when
+    attributes = get_graphql_content(
+        app_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    # then
+    assert len(attributes) == attribute_count - 1
+    assert weight_attribute.slug not in {
+        attribute["node"]["slug"] for attribute in attributes
+    }
 
 
 ATTRIBUTES_SORT_QUERY = """
