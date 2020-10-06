@@ -71,6 +71,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Set OrderFulfillStockInput fields as required - #6196 by @IKarbowiak
 - Fix attribute filtering by categories and collections - #6214 by @fowczarek
 - Fix is_visible when publication_date==today - #6225 by @korycins
+- Don't create and process payment when checkout total is 0 - #6211 by @IKarbowiak
+
 ## 2.10.2
 
 - Add command to change currencies in the database - #5906 by @d-wysocki
