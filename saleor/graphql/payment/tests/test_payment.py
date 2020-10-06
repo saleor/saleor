@@ -4,6 +4,7 @@ from unittest.mock import ANY, Mock, patch
 
 import graphene
 import pytest
+from prices import Money
 
 from ....checkout import calculations
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -378,10 +379,11 @@ def test_use_checkout_billing_address_as_payment_billing(
 
 
 def test_create_payment_for_checkout_with_active_payments(
-    checkout_with_payments, user_api_client, address
+    checkout_without_shipping_required, user_api_client, address
 ):
     # given
-    checkout = checkout_with_payments
+    # checkout = checkout_with_payments
+    checkout = checkout_without_shipping_required
     address.street_address_1 = "spanish-inqusition"
     address.save()
     checkout.billing_address = address
@@ -422,6 +424,191 @@ def test_create_payment_for_checkout_with_active_payments(
     active_payments = checkout.payments.all().filter(is_active=True)
     assert active_payments.count() == 1
     assert active_payments.first().pk not in previous_active_payments_ids
+
+
+def test_create_payment_for_checkout_with_0_total_payment_not_created(
+    checkout, user_api_client, address
+):
+    # given
+    address.street_address_1 = "spanish-inqusition"
+    address.save()
+    checkout.billing_address = address
+    checkout.save()
+
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+
+    assert total.gross.amount == 0
+    assert total.net.amount == 0
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {
+        "checkoutId": checkout_id,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+        },
+    }
+
+    payments_count = checkout.payments.count()
+
+    # when
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutPaymentCreate"]
+
+    assert not data["paymentErrors"]
+    checkout.refresh_from_db()
+    assert checkout.payments.all().count() == payments_count
+
+
+def test_create_payment_for_checkout_with_digital_product_with_0_price(
+    checkout_with_digital_item, user_api_client, address
+):
+    # given
+    checkout = checkout_with_digital_item
+    address.street_address_1 = "spanish-inqusition"
+    address.save()
+    checkout.billing_address = address
+    checkout.save()
+
+    variant = checkout.lines.first().variant
+    variant.price = Money(0, "USD")
+    variant.save(update_fields=["price_amount"])
+
+    Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+    )
+
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+
+    assert total.gross.amount == 0
+    assert total.net.amount == 0
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {
+        "checkoutId": checkout_id,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+        },
+    }
+
+    payments_count = checkout.payments.count()
+
+    # when
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutPaymentCreate"]
+
+    assert not data["paymentErrors"]
+    checkout.refresh_from_db()
+    assert checkout.payments.all().count() == payments_count
+
+
+def test_create_payment_for_checkout_with_product_with_0_price_and_required_shipping(
+    checkout_with_shipping_required, user_api_client, address, other_shipping_method
+):
+    # given
+    checkout = checkout_with_shipping_required
+    address.street_address_1 = "spanish-inqusition"
+    address.save(update_fields=["street_address_1"])
+
+    checkout.billing_address = address
+    checkout.shipping_address = address
+    checkout.shipping_method = other_shipping_method
+    checkout.save(
+        update_fields=["shipping_method", "billing_address", "shipping_address"]
+    )
+
+    variant = checkout.lines.first().variant
+    variant.price = Money(0, "USD")
+    variant.save(update_fields=["price_amount"])
+
+    Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+    )
+
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {
+        "checkoutId": checkout_id,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+        },
+    }
+
+    payments_count = checkout.payments.count()
+
+    # when
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutPaymentCreate"]
+
+    assert not data["paymentErrors"]
+    checkout.refresh_from_db()
+    assert checkout.payments.all().count() == payments_count + 1
+
+
+def test_create_payment_for_checkout_with_digital_product_with_discount_equal_to_price(
+    checkout_with_digital_item, user_api_client, address, gift_card
+):
+    # given
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_digital_item
+    checkout.gift_cards.add(gift_card)
+
+    address.street_address_1 = "spanish-inqusition"
+    address.save()
+    checkout.billing_address = address
+    checkout.save()
+
+    variant = checkout.lines.first().variant
+    variant.price = gift_card.current_balance
+    variant.save(update_fields=["price_amount"])
+
+    Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+    )
+
+    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+
+    assert total.gross.amount == 0
+    assert total.net.amount == 0
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {
+        "checkoutId": checkout_id,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+        },
+    }
+
+    payments_count = checkout.payments.count()
+
+    # when
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutPaymentCreate"]
+
+    assert not data["paymentErrors"]
+    checkout.refresh_from_db()
+    assert checkout.payments.all().count() == payments_count
 
 
 CAPTURE_QUERY = """
