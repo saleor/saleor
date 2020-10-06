@@ -1,5 +1,3 @@
-import functools
-import operator
 from collections import OrderedDict, defaultdict
 from itertools import chain
 from typing import Dict, Iterable
@@ -24,15 +22,11 @@ T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
 
 
 def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
-    # Combine filters of the same attribute with OR operator
-    # and then combine full query with AND operator.
-    combine_and = [
-        Q(**{"attributes__values__pk__in": values_pk})
-        | Q(**{"variants__attributes__values__pk__in": values_pk})
-        for _, values_pk in queries.items()
-    ]
-    query = functools.reduce(operator.and_, combine_and)
-    qs = qs.filter(query).distinct()
+    for _, values in queries.items():
+        qs = qs.filter(
+            Q(**{"attributes__values__pk__in": values})
+            | Q(**{"variants__attributes__values__pk__in": values})
+        )
     return qs
 
 
