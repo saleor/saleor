@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import opentracing
 from django.conf import settings
@@ -537,6 +537,17 @@ class PluginsManager(PaymentInterface):
         default_value: Dict[str, str] = {}
         return self.__run_method_on_plugins(
             "external_logout", default_value, data, request
+        )
+
+    def external_verify(
+        self, data: dict, request: WSGIRequest
+    ) -> Tuple[Optional["User"], dict]:
+        """Verify the provided authentication data."""
+        default_data: Dict[str, str] = dict()
+        default_user: Optional["User"] = None
+        default_value = default_user, default_data
+        return self.__run_method_on_plugins(
+            "external_verify", default_value, data, request
         )
 
 

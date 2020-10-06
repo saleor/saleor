@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional, Tuple, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
@@ -112,6 +112,12 @@ class PluginSample(BasePlugin):
         self, data: dict, request: WSGIRequest, previous_value
     ) -> dict:
         return {"token": "ABC", "refreshToken": "refreshABC", "csrfToken": "csrf"}
+
+    def external_verify(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> Tuple[Optional[User], dict]:
+        user = User.objects.get()
+        return user, {"some_data": "data"}
 
     def authenticate_user(
         self, request: WSGIRequest, previous_value

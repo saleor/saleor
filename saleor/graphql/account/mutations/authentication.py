@@ -356,3 +356,32 @@ class ExternalLogout(BaseMutation):
         input_data = data["input"]
         manager = info.context.plugins
         return cls(logout_data=manager.external_logout(input_data, request))
+
+
+class ExternalVerify(BaseMutation):
+    user = graphene.Field(User, description="User assigned to data.")
+    is_valid = graphene.Boolean(
+        required=True,
+        default_value=False,
+        description="Determine if authentication data is valid or not.",
+    )
+    verify_data = graphene.JSONString(description="External data.")
+
+    class Arguments:
+        input = graphene.JSONString(
+            required=True,
+            description=("The data required by plugin to proceed the verification."),
+        )
+
+    class Meta:
+        description = "Verify external authentication data by plugin."
+        error_type_class = AccountError
+        error_type_field = "account_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        request = info.context
+        input_data = data["input"]
+        manager = info.context.plugins
+        user, data = manager.external_verify(input_data, request)
+        return cls(user=user, is_valid=bool(user), verify_data=data)

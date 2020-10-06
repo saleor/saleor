@@ -436,10 +436,16 @@ def test_validate_plugin_configuration(plugin_configuration, openid_plugin):
     plugin.validate_plugin_configuration(conf)
 
 
-def test_external_logout_missing_logouat_url(openid_plugin, rf):
+def test_external_logout_missing_logout_url(openid_plugin, rf):
     plugin = openid_plugin(oauth_logout_url="")
     response = plugin.external_logout({}, rf.request(), None)
     assert response == {}
+
+
+def test_external_logout_plugin_inactive(openid_plugin, rf):
+    plugin = openid_plugin(oauth_logout_url="", active=False)
+    response = plugin.external_logout({}, rf.request(), None)
+    assert response is None
 
 
 def test_external_logout(openid_plugin, rf):
@@ -458,6 +464,68 @@ def test_external_logout(openid_plugin, rf):
     assert parsed_qs["redirectUrl"][0] == "http://localhost:3000/logout"
     assert parsed_qs["field1"][0] == "value1"
     assert parsed_qs["client_id"][0] == client_id
+
+
+def test_external_verify_plugin_disabled(openid_plugin, rf):
+    plugin = openid_plugin(active=False)
+    input = {"token": "token"}
+    previous_value = "previous"
+    response = plugin.external_verify(input, rf.request(), previous_value)
+    assert response == previous_value
+
+
+def test_external_verify_missing_token(openid_plugin, rf):
+    plugin = openid_plugin(active=True)
+    input = {}
+    previous_value = "previous"
+    response = plugin.external_verify(input, rf.request(), previous_value)
+    assert response == previous_value
+
+
+def test_external_verify_wrong_token_owner(openid_plugin, rf):
+    plugin = openid_plugin(active=True)
+    input = {"token": "wrong_format"}
+    previous_value = "previous"
+    response = plugin.external_verify(input, rf.request(), previous_value)
+    assert response == previous_value
+
+
+@freeze_time("2019-03-18 12:00:00")
+def test_external_verify(id_payload, customer_user, openid_plugin, rf):
+    plugin = openid_plugin()
+    token = create_jwt_token(
+        id_payload,
+        customer_user,
+        access_token="access",
+        permissions=[],
+        owner=plugin.PLUGIN_ID,
+    )
+    input = {"token": token}
+    previous_value = "previous"
+    response = plugin.external_verify(input, rf.request(), previous_value)
+    user, data = response
+    assert user == customer_user
+    assert list(user.effective_permissions) == []
+
+
+@freeze_time("2019-03-18 12:00:00")
+def test_external_verify_user_with_effective_permissions(
+    permission_manage_orders, id_payload, customer_user, openid_plugin, rf
+):
+    plugin = openid_plugin()
+    token = create_jwt_token(
+        id_payload,
+        customer_user,
+        access_token="access",
+        permissions=["MANAGE_ORDERS"],
+        owner=plugin.PLUGIN_ID,
+    )
+    input = {"token": token}
+    previous_value = "previous"
+    response = plugin.external_verify(input, rf.request(), previous_value)
+    user, data = response
+    assert user == customer_user
+    assert list(user.effective_permissions) == [permission_manage_orders]
 
 
 def test_webhook_when_plugin_is_disabled(openid_plugin, rf):
@@ -547,6 +615,26 @@ def test_authenticate_user_missing_owner(
 @freeze_time("2019-03-18 12:00:00")
 def test_authenticate_user_missing_token_in_request(openid_plugin, id_payload, rf):
     plugin = openid_plugin()
+    user = plugin.authenticate_user(rf.request(), None)
+    assert user is None
+
+
+@freeze_time("2019-03-18 12:00:00")
+def test_authenticate_user_plugin_is_disabled(
+    openid_plugin, customer_user, monkeypatch, id_payload, rf
+):
+    plugin = openid_plugin(active=False)
+    token = create_jwt_token(
+        id_payload,
+        customer_user,
+        access_token="access",
+        permissions=[],
+        owner=plugin.PLUGIN_ID,
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_token_from_request", lambda _: token
+    )
+
     user = plugin.authenticate_user(rf.request(), None)
     assert user is None
 
