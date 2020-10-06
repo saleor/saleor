@@ -533,8 +533,8 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_plugins("authenticate_user", default_value, request)
 
     def external_logout(self, data: dict, request: WSGIRequest) -> dict:
-        """Authenticate user which should be assigned to the request."""
-        default_value = {}  # type: ignore
+        """Logout the user."""
+        default_value: Dict[str, str] = {}
         return self.__run_method_on_plugins(
             "external_logout", default_value, data, request
         )
