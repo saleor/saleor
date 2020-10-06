@@ -155,6 +155,12 @@ class Voucher(models.Model):
             msg = "This offer is valid only once per customer."
             raise NotApplicable(msg)
 
+    def save(self, *args, **kwargs):
+        if self.end_date is not None:
+            error_message = "End date for the discount cannot be before the start date"
+            assert self.start_date < self.end_date, error_message
+        super().save(*args, **kwargs)
+
 
 class VoucherCustomer(models.Model):
     voucher = models.ForeignKey(
