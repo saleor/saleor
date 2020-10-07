@@ -15,6 +15,7 @@ def plugin_configuration():
         oauth_token_url=None,
         json_web_key_set_url=None,
         oauth_logout_url=None,
+        use_oauth_scope_permissions=False,
     ):
         return [
             {"name": "client_id", "value": client_id},
@@ -24,6 +25,10 @@ def plugin_configuration():
             {"name": "oauth_token_url", "value": oauth_token_url},
             {"name": "json_web_key_set_url", "value": json_web_key_set_url},
             {"name": "oauth_logout_url", "value": oauth_logout_url},
+            {
+                "name": "use_oauth_scope_permissions",
+                "value": use_oauth_scope_permissions,
+            },
         ]
 
     return fun
@@ -40,6 +45,7 @@ def openid_plugin(settings, plugin_configuration):
         oauth_token_url="https://saleor-test.eu.auth0.com/oauth/token",
         json_web_key_set_url="https://saleor-test.eu.auth0.com/.well-known/jwks.json",
         oauth_logout_url="",
+        use_oauth_scope_permissions=False,
     ):
         settings.PLUGINS = ["saleor.plugins.openid_connect.plugin.OpenIDConnectPlugin"]
         manager = get_plugins_manager()
@@ -55,6 +61,7 @@ def openid_plugin(settings, plugin_configuration):
                     oauth_token_url=oauth_token_url,
                     json_web_key_set_url=json_web_key_set_url,
                     oauth_logout_url=oauth_logout_url,
+                    use_oauth_scope_permissions=use_oauth_scope_permissions,
                 ),
             },
         )
