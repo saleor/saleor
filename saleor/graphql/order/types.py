@@ -302,7 +302,7 @@ class OrderLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_variant(root: models.OrderLine, _info):
-        # TODO: Add dataloader for channel_slug
+        # TODO: Add dataloader for variant and channel_slug
         channel_slug = root.order.channel.slug if root.order.channel else None
         return ChannelContext(node=root.variant, channel_slug=channel_slug)
 
@@ -517,6 +517,11 @@ class Order(CountableDjangoObjectType):
         if requestor_has_access(requester, root.user, AccountPermissions.MANAGE_USERS):
             return root.user
         raise PermissionDenied()
+
+    @staticmethod
+    def resolve_shipping_method(root: models.Order, info):
+        # TODO: Add dataloader for shipping_method and channelslug
+        return ChannelContext(node=root.shipping_method, channel_slug=root.channel.slug)
 
     @staticmethod
     def resolve_available_shipping_methods(root: models.Order, _info):
