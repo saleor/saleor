@@ -218,6 +218,9 @@ def test_order_query(
                         }
                         type
                     }
+                    shippingMethod{
+                        id
+                    }
                 }
             }
         }
