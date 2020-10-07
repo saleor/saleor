@@ -218,7 +218,6 @@ def test_product_query_by_id_available_as_app(
     assert product_data["name"] == product.name
 
 
-@pytest.mark.skip(reason="Issue #5845")
 def test_product_query_by_id_not_available_as_app(
     app_api_client, permission_manage_products, product, channel_USD
 ):
@@ -242,7 +241,6 @@ def test_product_query_by_id_not_available_as_app(
     assert product_data["name"] == product.name
 
 
-@pytest.mark.skip(reason="Issue #5845")
 def test_product_query_by_id_not_existing_in_channel_as_app(
     app_api_client, permission_manage_products, product, channel_USD
 ):
@@ -488,7 +486,6 @@ def test_product_query_by_slug_available_as_app(
     assert product_data["name"] == product.name
 
 
-@pytest.mark.skip(reason="Issue #5845")
 def test_product_query_by_slug_not_available_as_app(
     app_api_client, permission_manage_products, product, channel_USD
 ):
@@ -512,7 +509,6 @@ def test_product_query_by_slug_not_available_as_app(
     assert product_data["name"] == product.name
 
 
-@pytest.mark.skip(reason="Issue #5845")
 def test_product_query_by_slug_not_existing_in_channel_as_app(
     app_api_client, permission_manage_products, product, channel_USD
 ):

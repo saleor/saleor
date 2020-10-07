@@ -1056,17 +1056,13 @@ def test_query_public_meta_for_product_as_staff(
     assert metadata["value"] == PUBLIC_VALUE
 
 
-# TODO: remove channel from variables after fix #5845
 def test_query_public_meta_for_product_as_app(
-    app_api_client, product, permission_manage_products, channel_USD
+    app_api_client, product, permission_manage_products
 ):
     # given
     product.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     product.save(update_fields=["metadata"])
-    variables = {
-        "id": graphene.Node.to_global_id("Product", product.pk),
-        "channel": channel_USD.slug,
-    }
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
 
     # when
     response = app_api_client.post_graphql(
@@ -1252,16 +1248,14 @@ def test_query_public_meta_for_product_variant_as_staff(
     assert metadata["value"] == PUBLIC_VALUE
 
 
-# TODO: remove channel from variables after fix #5845
 def test_query_public_meta_for_product_variant_as_app(
-    app_api_client, variant, permission_manage_products, channel_USD
+    app_api_client, variant, permission_manage_products
 ):
     # given
     variant.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     variant.save(update_fields=["metadata"])
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
-        "channel": channel_USD.slug,
     }
 
     # when
@@ -2348,16 +2342,14 @@ def test_query_private_meta_for_product_as_staff(
     assert metadata["value"] == PRIVATE_VALUE
 
 
-# TODO: remove channel from variables after fix #5845
 def test_query_private_meta_for_product_as_app(
-    app_api_client, product, permission_manage_products, channel_USD
+    app_api_client, product, permission_manage_products
 ):
     # given
     product.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     product.save(update_fields=["private_metadata"])
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
-        "channel": channel_USD.slug,
     }
 
     # when
@@ -2530,16 +2522,14 @@ def test_query_private_meta_for_product_variant_as_staff(
     assert metadata["value"] == PRIVATE_VALUE
 
 
-# TODO: remove channel from variables after fix #5845
 def test_query_private_meta_for_product_variant_as_app(
-    app_api_client, variant, permission_manage_products, channel_USD
+    app_api_client, variant, permission_manage_products
 ):
     # given
     variant.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     variant.save(update_fields=["private_metadata"])
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
-        "channel": channel_USD.slug,
     }
 
     # when
