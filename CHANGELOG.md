@@ -34,6 +34,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add dummy credit card payment - #5822 by @IKarbowiak
 - Anonymize and update order and payment fields; drop PaymentSecureConfirm mutation, drop Payment type fields: extraData, billingAddress, billingEmail, drop gatewayResponse from Transaction type - #5926 by @IKarbowiak
 - Switch the HTTP stack from WSGI to ASGI based on Uvicorn - #5960 by @patrys
+- Add manage product types and attributes permission - #6219 by @IKarbowiak
 
 ### Fixes
 
