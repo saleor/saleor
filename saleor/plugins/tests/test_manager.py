@@ -440,3 +440,26 @@ def test_manager_external_verify(rf, admin_user):
     user, response_data = manager.external_verify({}, rf.request())
     assert user == admin_user
     assert response_data == {"some_data": "data"}
+
+
+def test_list_external_authentications():
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.ActivePaymentGateway",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+    manager = PluginsManager(plugins=plugins)
+    external_auths = manager.list_external_authentications(active_only=False)
+    assert {PluginInactive.PLUGIN_ID, PluginSample.PLUGIN_ID} == set(external_auths)
+
+
+def test_list_external_authentications_active_only():
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+        "saleor.plugins.tests.sample_plugins.ActivePaymentGateway",
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+    ]
+
+    manager = PluginsManager(plugins=plugins)
+    external_auths = manager.list_external_authentications(active_only=True)
+    assert {PluginSample.PLUGIN_ID} == set(external_auths)

@@ -133,6 +133,11 @@ class PluginInactive(BasePlugin):
     PLUGIN_NAME = "PluginInactive"
     PLUGIN_DESCRIPTION = "Test plugin description_2"
 
+    def external_authentication(
+        self, data: dict, request: WSGIRequest, previous_value
+    ) -> dict:
+        return {"authorizeUrl": "http://www.auth.provider.com/authorize/"}
+
 
 class ActivePlugin(BasePlugin):
     PLUGIN_ID = "plugin.active"

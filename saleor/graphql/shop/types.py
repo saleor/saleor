@@ -76,6 +76,11 @@ class Shop(graphene.ObjectType):
         description="List of available payment gateways.",
         required=True,
     )
+    available_external_authentications = graphene.List(
+        graphene.NonNull(graphene.String),
+        description="List of available external authentications.",
+        required=True,
+    )
     geolocalization = graphene.Field(
         Geolocalization, description="Customer's geolocalization data."
     )
@@ -175,6 +180,10 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_available_payment_gateways(_, _info, currency: Optional[str] = None):
         return get_plugins_manager().list_payment_gateways(currency=currency)
+
+    @staticmethod
+    def resolve_available_external_authentications(_, info):
+        return info.context.plugins.list_external_authentications(active_only=True)
 
     @staticmethod
     @permission_required(SitePermissions.MANAGE_SETTINGS)

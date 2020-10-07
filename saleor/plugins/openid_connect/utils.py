@@ -137,8 +137,10 @@ def get_parsed_id_token(token_data, jwks_url) -> CodeIDToken:
         claims = jwt.decode(id_token, keys, claims_cls=CodeIDToken)
         claims.validate()
     except DecodeError:
+        logger.warning("Unable to decode provided token", exc_info=True)
         raise AuthenticationError("Unable to decode provided token")
-    except JoseError:
+    except (JoseError, ValueError):
+        logger.warning("Token validation failed", exc_info=True)
         raise AuthenticationError("Token validation failed")
     return claims
 
