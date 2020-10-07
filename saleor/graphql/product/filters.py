@@ -214,6 +214,8 @@ def filter_attributes_by_product_types(qs, field, value, requestor):
     if not value:
         return qs
 
+    product_qs = Product.objects.visible_to_user(requestor)
+
     if field == "in_category":
         category_id = from_global_id_strict_type(
             value, only_type="Category", field=field
@@ -224,7 +226,7 @@ def filter_attributes_by_product_types(qs, field, value, requestor):
             return qs.none()
 
         tree = category.get_descendants(include_self=True)
-        product_qs = Product.objects.filter(category__in=tree)
+        product_qs = product_qs.filter(category__in=tree)
 
         if not product_qs.user_has_access_to_all(requestor):
             product_qs = product_qs.exclude(visible_in_listings=False)
@@ -233,7 +235,7 @@ def filter_attributes_by_product_types(qs, field, value, requestor):
         collection_id = from_global_id_strict_type(
             value, only_type="Collection", field=field
         )
-        product_qs = Product.objects.filter(collections__id=collection_id)
+        product_qs = product_qs.filter(collections__id=collection_id)
 
     else:
         raise NotImplementedError(f"Filtering by {field} is unsupported")
