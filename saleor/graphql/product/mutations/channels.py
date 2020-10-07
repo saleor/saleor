@@ -32,17 +32,17 @@ ErrorType = DefaultDict[str, List[ValidationError]]
 class ProductChannelListingAddInput(graphene.InputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     is_published = graphene.Boolean(
-        description="Determines if product is visible to customers.", required=True
+        description="Determines if product is visible to customers."
     )
     publication_date = graphene.types.datetime.Date(
         description="Publication date. ISO 8601 standard."
     )
-    # visible_in_listings = graphene.Boolean(
-    #     description=(
-    #         "Determines if product is visible in product listings "
-    #         "(doesn't apply to product collections)."
-    #     )
-    # )
+    visible_in_listings = graphene.Boolean(
+        description=(
+            "Determines if product is visible in product listings "
+            "(doesn't apply to product collections)."
+        )
+    )
 
 
 class ProductChannelListingUpdateInput(graphene.InputObjectType):
@@ -96,10 +96,16 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
     @classmethod
     def add_channels(cls, product: "ProductModel", add_channels: List[Dict]):
         for add_channel in add_channels:
-            defaults = {
-                "is_published": add_channel.get("is_published"),
-                "publication_date": add_channel.get("publication_date", None),
-            }
+            defaults = {}
+            is_published = add_channel.get("is_published", None)
+            if is_published is not None:
+                defaults["is_published"] = is_published
+            publication_date = add_channel.get("publication_date", None)
+            if publication_date:
+                defaults["publication_date"] = publication_date
+            visible_in_listings = add_channel.get("visible_in_listings", None)
+            if visible_in_listings is not None:
+                defaults["visible_in_listings"] = visible_in_listings
             ProductChannelListing.objects.update_or_create(
                 product=product, channel=add_channel["channel"], defaults=defaults
             )

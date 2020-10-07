@@ -1,7 +1,6 @@
 from datetime import date
 
 import graphene
-import pytest
 
 from ....product.error_codes import ProductErrorCode
 from ....product.utils.costs import get_product_costs_data
@@ -24,6 +23,7 @@ mutation UpdateProductChannelListing(
             channelListing {
                 isPublished
                 publicationDate
+                visibleInListings
                 channel {
                     slug
                 }
@@ -206,6 +206,7 @@ def test_product_channel_listing_update_as_staff_user(
                     "channelId": channel_id,
                     "isPublished": False,
                     "publicationDate": publication_date,
+                    "visibleInListings": True,
                 }
             ]
         },
@@ -231,6 +232,7 @@ def test_product_channel_listing_update_as_staff_user(
     assert product_data["channelListing"][0]["isPublished"] is True
     assert product_data["channelListing"][0]["publicationDate"] is None
     assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListing"][0]["visibleInListings"] is True
     cost_start = product_data["channelListing"][0]["purchaseCost"]["start"]["amount"]
     cost_stop = product_data["channelListing"][0]["purchaseCost"]["stop"]["amount"]
 
@@ -243,10 +245,10 @@ def test_product_channel_listing_update_as_staff_user(
         product_data["channelListing"][1]["publicationDate"]
         == publication_date.isoformat()
     )
+    assert product_data["channelListing"][0]["visibleInListings"] is True
     assert product_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
 
 
-@pytest.mark.skip(reason="Issue #5845")
 def test_product_channel_listing_update_as_app(
     app_api_client, product, permission_manage_products, channel_USD, channel_PLN
 ):
@@ -262,6 +264,7 @@ def test_product_channel_listing_update_as_app(
                     "channelId": channel_id,
                     "isPublished": False,
                     "publicationDate": publication_date,
+                    "visibleInListings": True,
                 }
             ]
         },
@@ -283,11 +286,13 @@ def test_product_channel_listing_update_as_app(
     assert product_data["channelListing"][0]["isPublished"] is True
     assert product_data["channelListing"][0]["publicationDate"] is None
     assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListing"][0]["visibleInListings"] is True
     assert product_data["channelListing"][1]["isPublished"] is False
     assert (
         product_data["channelListing"][1]["publicationDate"]
         == publication_date.isoformat()
     )
+    assert product_data["channelListing"][1]["visibleInListings"] is True
     assert product_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
 
 
@@ -344,6 +349,7 @@ def test_product_channel_listing_update_add_channel(
                     "channelId": channel_id,
                     "isPublished": False,
                     "publicationDate": publication_date,
+                    "visibleInListings": True,
                 }
             ]
         },
@@ -371,6 +377,7 @@ def test_product_channel_listing_update_add_channel(
         == publication_date.isoformat()
     )
     assert product_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
+    assert product_data["channelListing"][1]["visibleInListings"] is True
 
 
 def test_product_channel_listing_update_unpublished(
@@ -400,6 +407,39 @@ def test_product_channel_listing_update_unpublished(
     assert product_data["channelListing"][0]["isPublished"] is False
     assert product_data["channelListing"][0]["publicationDate"] is None
     assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListing"][0]["visibleInListings"] is True
+
+
+def test_product_channel_listing_update_visible_in_listings(
+    staff_api_client, product, permission_manage_products, channel_USD
+):
+    # given
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": product_id,
+        "input": {
+            "addChannels": [{"channelId": channel_id, "visibleInListings": False}]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productChannelListingUpdate"]
+    product_data = data["product"]
+    assert not data["productChannelListingErrors"]
+    assert product_data["slug"] == product.slug
+    assert product_data["channelListing"][0]["isPublished"] is True
+    assert product_data["channelListing"][0]["publicationDate"] is None
+    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListing"][0]["visibleInListings"] is False
 
 
 def test_product_channel_listing_update_update_publication_data(
@@ -441,6 +481,7 @@ def test_product_channel_listing_update_update_publication_data(
         == publication_date.isoformat()
     )
     assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListing"][0]["visibleInListings"] is True
 
 
 def test_product_channel_listing_update_remove_channel(

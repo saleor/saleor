@@ -3796,8 +3796,9 @@ type ProductChannelListing implements Node {
 
 input ProductChannelListingAddInput {
   channelId: ID!
-  isPublished: Boolean!
+  isPublished: Boolean
   publicationDate: Date
+  visibleInListings: Boolean
 }
 
 type ProductChannelListingError {
