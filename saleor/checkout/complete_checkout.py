@@ -698,9 +698,8 @@ def complete_checkout(
             gateway.payment_refund_or_void(payment)
             raise ValidationError(f"Insufficient product stock: {e.item}", code=e.code)
 
-        # if there is no payment and no errors occurred it means that total value is 0
-        # and is paid from definition
-        if not payment:
+        # if the order total value is 0 it is paid from the definition
+        if order.total.net.amount == 0:
             mark_order_as_paid(order, user, app, manager)
 
     return order, action_required, action_data
