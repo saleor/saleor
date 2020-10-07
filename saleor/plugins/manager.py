@@ -407,6 +407,17 @@ class PluginsManager(PaymentInterface):
                 gateways.append(gateway)
         return gateways
 
+    def list_external_authentications(self, active_only: bool = True) -> List[str]:
+        plugins = self.plugins
+        auth_basic_method = "external_authentication"
+        if active_only:
+            plugins = self.get_active_plugins()
+        return [
+            plugin.PLUGIN_ID
+            for plugin in plugins
+            if auth_basic_method in type(plugin).__dict__
+        ]
+
     def checkout_available_payment_gateways(
         self, checkout: "Checkout",
     ) -> List["PaymentGateway"]:

@@ -682,6 +682,31 @@ def test_query_geolocalization(user_api_client):
     assert data["country"] is None
 
 
+AVAILABLE_EXTERNAL_AUTHENTICATIONS_QUERY = """
+    query{
+        shop {
+            availableExternalAuthentications
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize("external_auths", [["auth1"], ["auth1", "auth2"], []])
+def test_query_available_external_authentications(
+    external_auths, user_api_client, monkeypatch
+):
+    monkeypatch.setattr(
+        "saleor.plugins.manager.PluginsManager.list_external_authentications",
+        lambda self, active_only: external_auths,
+    )
+    query = AVAILABLE_EXTERNAL_AUTHENTICATIONS_QUERY
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]["availableExternalAuthentications"]
+
+    assert set(data) == set(external_auths)
+
+
 AVAILABLE_PAYMENT_GATEWAYS_QUERY = """
     query Shop($currency: String){
         shop {
