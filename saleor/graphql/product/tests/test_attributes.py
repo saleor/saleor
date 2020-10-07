@@ -470,7 +470,7 @@ CREATE_ATTRIBUTES_QUERY = """
 
 
 def test_create_attribute_and_attribute_values(
-    staff_api_client, permission_manage_products
+    staff_api_client, permission_manage_product_types_and_attributes
 ):
     query = CREATE_ATTRIBUTES_QUERY
 
@@ -478,7 +478,7 @@ def test_create_attribute_and_attribute_values(
     name = "Value name"
     variables = {"name": attribute_name, "values": [{"name": name}]}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     assert not content["data"]["attributeCreate"]["errors"]
@@ -509,9 +509,14 @@ def test_create_attribute_and_attribute_values(
     ),
 )
 def test_create_attribute_with_given_slug(
-    staff_api_client, permission_manage_products, input_slug, expected_slug,
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    input_slug,
+    expected_slug,
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_products)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
     query = """
         mutation createAttribute(
             $name: String!, $slug: String) {
@@ -537,14 +542,14 @@ def test_create_attribute_with_given_slug(
 
 
 def test_create_attribute_value_name_and_slug_with_unicode(
-    staff_api_client, permission_manage_products
+    staff_api_client, permission_manage_product_types_and_attributes
 ):
     query = CREATE_ATTRIBUTES_QUERY
     name = "わたし わ にっぽん です"
     slug = "わたし-わ-にっぽん-で"
     variables = {"name": name, "slug": slug}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     data = content["data"]["attributeCreate"]
@@ -576,13 +581,13 @@ def test_create_attribute_and_attribute_values_errors(
     name_2,
     error_msg,
     error_code,
-    permission_manage_products,
+    permission_manage_product_types_and_attributes,
     product_type,
 ):
     query = CREATE_ATTRIBUTES_QUERY
     variables = {"name": "Example name", "values": [{"name": name_1}, {"name": name_2}]}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     errors = content["data"]["attributeCreate"]["errors"]
@@ -633,7 +638,7 @@ UPDATE_ATTRIBUTE_MUTATION = """
 
 
 def test_update_attribute_name(
-    staff_api_client, color_attribute, permission_manage_products
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
 ):
     query = UPDATE_ATTRIBUTE_MUTATION
     attribute = color_attribute
@@ -642,7 +647,7 @@ def test_update_attribute_name(
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
     variables = {"name": name, "id": node_id, "addValues": [], "removeValues": []}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     attribute.refresh_from_db()
@@ -653,7 +658,7 @@ def test_update_attribute_name(
 
 
 def test_update_attribute_remove_and_add_values(
-    staff_api_client, color_attribute, permission_manage_products
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
 ):
     query = UPDATE_ATTRIBUTE_MUTATION
     attribute = color_attribute
@@ -669,7 +674,7 @@ def test_update_attribute_remove_and_add_values(
         "removeValues": [value_id],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     attribute.refresh_from_db()
@@ -681,7 +686,9 @@ def test_update_attribute_remove_and_add_values(
 
 
 def test_update_empty_attribute_and_add_values(
-    staff_api_client, color_attribute_without_values, permission_manage_products
+    staff_api_client,
+    color_attribute_without_values,
+    permission_manage_product_types_and_attributes,
 ):
     query = UPDATE_ATTRIBUTE_MUTATION
     attribute = color_attribute_without_values
@@ -695,7 +702,7 @@ def test_update_empty_attribute_and_add_values(
         "removeValues": [],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     get_graphql_content(response)
     attribute.refresh_from_db()
@@ -739,7 +746,7 @@ UPDATE_ATTRIBUTE_SLUG_MUTATION = """
 def test_update_attribute_slug(
     staff_api_client,
     color_attribute,
-    permission_manage_products,
+    permission_manage_product_types_and_attributes,
     input_slug,
     expected_slug,
     error_message,
@@ -755,7 +762,7 @@ def test_update_attribute_slug(
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
     variables = {"slug": input_slug, "id": node_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     attribute.refresh_from_db()
@@ -772,7 +779,7 @@ def test_update_attribute_slug(
 
 
 def test_update_attribute_slug_exists(
-    staff_api_client, color_attribute, permission_manage_products,
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes,
 ):
     query = UPDATE_ATTRIBUTE_SLUG_MUTATION
 
@@ -790,7 +797,7 @@ def test_update_attribute_slug_exists(
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
     variables = {"slug": new_slug, "id": node_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     attribute.refresh_from_db()
@@ -817,7 +824,7 @@ def test_update_attribute_slug_exists(
 def test_update_attribute_slug_and_name(
     staff_api_client,
     color_attribute,
-    permission_manage_products,
+    permission_manage_product_types_and_attributes,
     input_slug,
     expected_slug,
     input_name,
@@ -858,7 +865,7 @@ def test_update_attribute_slug_and_name(
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
     variables = {"slug": input_slug, "name": input_name, "id": node_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     attribute.refresh_from_db()
@@ -897,7 +904,7 @@ def test_update_attribute_and_add_attribute_values_errors(
     error_msg,
     error_code,
     color_attribute,
-    permission_manage_products,
+    permission_manage_product_types_and_attributes,
 ):
     query = UPDATE_ATTRIBUTE_MUTATION
     attribute = color_attribute
@@ -909,7 +916,7 @@ def test_update_attribute_and_add_attribute_values_errors(
         "addValues": [{"name": name_1}, {"name": name_2}],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     errors = content["data"]["attributeUpdate"]["errors"]
@@ -922,7 +929,10 @@ def test_update_attribute_and_add_attribute_values_errors(
 
 
 def test_update_attribute_and_remove_others_attribute_value(
-    staff_api_client, color_attribute, size_attribute, permission_manage_products
+    staff_api_client,
+    color_attribute,
+    size_attribute,
+    permission_manage_product_types_and_attributes,
 ):
     query = UPDATE_ATTRIBUTE_MUTATION
     attribute = color_attribute
@@ -936,7 +946,7 @@ def test_update_attribute_and_remove_others_attribute_value(
         "removeValues": [attr_id],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     errors = content["data"]["attributeUpdate"]["errors"]
@@ -950,7 +960,10 @@ def test_update_attribute_and_remove_others_attribute_value(
 
 
 def test_delete_attribute(
-    staff_api_client, color_attribute, permission_manage_products, product_type
+    staff_api_client,
+    color_attribute,
+    permission_manage_product_types_and_attributes,
+    product_type,
 ):
     attribute = color_attribute
     query = """
@@ -969,7 +982,7 @@ def test_delete_attribute(
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
     variables = {"id": node_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     data = content["data"]["attributeDelete"]
@@ -1085,7 +1098,9 @@ mutation updateChoice(
 
 
 def test_update_attribute_value(
-    staff_api_client, pink_attribute_value, permission_manage_products
+    staff_api_client,
+    pink_attribute_value,
+    permission_manage_product_types_and_attributes,
 ):
     query = UPDATE_ATTRIBUTE_VALUE_QUERY
     value = pink_attribute_value
@@ -1093,7 +1108,7 @@ def test_update_attribute_value(
     name = "Crimson name"
     variables = {"name": name, "id": node_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     data = content["data"]["attributeValueUpdate"]
@@ -1104,7 +1119,9 @@ def test_update_attribute_value(
 
 
 def test_update_attribute_value_name_not_unique(
-    staff_api_client, pink_attribute_value, permission_manage_products
+    staff_api_client,
+    pink_attribute_value,
+    permission_manage_product_types_and_attributes,
 ):
     query = UPDATE_ATTRIBUTE_VALUE_QUERY
     value = pink_attribute_value.attribute.values.create(
@@ -1113,7 +1130,7 @@ def test_update_attribute_value_name_not_unique(
     node_id = graphene.Node.to_global_id("AttributeValue", value.id)
     variables = {"name": pink_attribute_value.name, "id": node_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     data = content["data"]["attributeValueUpdate"]
@@ -1123,7 +1140,10 @@ def test_update_attribute_value_name_not_unique(
 
 
 def test_delete_attribute_value(
-    staff_api_client, color_attribute, pink_attribute_value, permission_manage_products
+    staff_api_client,
+    color_attribute,
+    pink_attribute_value,
+    permission_manage_product_types_and_attributes,
 ):
     value = color_attribute.values.get(name="Red")
     query = """
@@ -1139,7 +1159,7 @@ def test_delete_attribute_value(
     node_id = graphene.Node.to_global_id("AttributeValue", value.id)
     variables = {"id": node_id}
     staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     with pytest.raises(value._meta.model.DoesNotExist):
         value.refresh_from_db()
@@ -1254,7 +1274,7 @@ ASSIGN_ATTR_QUERY = """
 
 
 def test_assign_attributes_to_product_type(
-    staff_api_client, permission_manage_products, attribute_list
+    staff_api_client, permission_manage_product_types_and_attributes, attribute_list
 ):
     product_type = ProductType.objects.create(name="Default Type", has_variants=True)
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -1278,7 +1298,9 @@ def test_assign_attributes_to_product_type(
 
     content = get_graphql_content(
         staff_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_products]
+            query,
+            variables,
+            permissions=[permission_manage_product_types_and_attributes],
         )
     )["data"]["attributeAssign"]
     assert not content["productErrors"], "Should have succeeded"
@@ -1305,7 +1327,7 @@ def test_assign_attributes_to_product_type(
 
 
 def test_assign_non_existing_attributes_to_product_type(
-    staff_api_client, permission_manage_products, attribute_list
+    staff_api_client, permission_manage_product_types_and_attributes, attribute_list
 ):
     product_type = ProductType.objects.create(name="Default Type", has_variants=True)
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -1316,7 +1338,7 @@ def test_assign_non_existing_attributes_to_product_type(
     variables = {"productTypeId": product_type_global_id, "operations": operations}
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     content = content["data"]["attributeAssign"]
@@ -1327,7 +1349,7 @@ def test_assign_non_existing_attributes_to_product_type(
 
 def test_assign_variant_attribute_to_product_type_with_disabled_variants(
     staff_api_client,
-    permission_manage_products,
+    permission_manage_product_types_and_attributes,
     product_type_without_variant,
     color_attribute_without_values,
 ):
@@ -1337,7 +1359,9 @@ def test_assign_variant_attribute_to_product_type_with_disabled_variants(
 
     product_type = product_type_without_variant
     attribute = color_attribute_without_values
-    staff_api_client.user.user_permissions.add(permission_manage_products)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
 
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
@@ -1362,7 +1386,10 @@ def test_assign_variant_attribute_to_product_type_with_disabled_variants(
 
 
 def test_assign_variant_attribute_having_unsupported_input_type(
-    staff_api_client, permission_manage_products, product_type, size_attribute
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    product_type,
+    size_attribute,
 ):
     """The assignAttribute mutation should raise an error when trying
     to use an attribute as a variant attribute when
@@ -1373,7 +1400,9 @@ def test_assign_variant_attribute_having_unsupported_input_type(
     attribute.save(update_fields=["input_type"])
     product_type.variant_attributes.clear()
 
-    staff_api_client.user.user_permissions.add(permission_manage_products)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
 
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
@@ -1409,7 +1438,7 @@ def test_assign_variant_attribute_having_unsupported_input_type(
 )
 def test_assign_attribute_to_product_type_having_already_that_attribute(
     staff_api_client,
-    permission_manage_products,
+    permission_manage_product_types_and_attributes,
     color_attribute_without_values,
     product_type_attribute_type,
     gql_attribute_type,
@@ -1419,7 +1448,9 @@ def test_assign_attribute_to_product_type_having_already_that_attribute(
 
     product_type = ProductType.objects.create(name="Type")
     attribute = color_attribute_without_values
-    staff_api_client.user.user_permissions.add(permission_manage_products)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
 
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
@@ -1477,7 +1508,7 @@ UNASSIGN_ATTR_QUERY = """
 
 
 def test_unassign_attributes_from_product_type(
-    staff_api_client, permission_manage_products, attribute_list
+    staff_api_client, permission_manage_product_types_and_attributes, attribute_list
 ):
     product_type = ProductType.objects.create(name="Type")
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -1500,7 +1531,9 @@ def test_unassign_attributes_from_product_type(
 
     content = get_graphql_content(
         staff_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_products]
+            query,
+            variables,
+            permissions=[permission_manage_product_types_and_attributes],
         )
     )["data"]["attributeUnassign"]
     assert not content["errors"]
@@ -1516,12 +1549,16 @@ def test_unassign_attributes_from_product_type(
 
 
 def test_unassign_attributes_not_in_product_type(
-    staff_api_client, permission_manage_products, color_attribute_without_values
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    color_attribute_without_values,
 ):
     """The unAssignAttribute mutation should not raise any error when trying
     to remove an attribute that is not/no longer in the product type."""
 
-    staff_api_client.user.user_permissions.add(permission_manage_products)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
 
     product_type = ProductType.objects.create(name="Type")
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -1652,7 +1689,7 @@ ATTRIBUTES_RESORT_QUERY = """
 
 
 def test_sort_attributes_within_product_type_invalid_product_type(
-    staff_api_client, permission_manage_products
+    staff_api_client, permission_manage_product_types_and_attributes
 ):
     """Try to reorder an invalid product type (invalid ID)."""
 
@@ -1667,7 +1704,9 @@ def test_sort_attributes_within_product_type_invalid_product_type(
 
     content = get_graphql_content(
         staff_api_client.post_graphql(
-            ATTRIBUTES_RESORT_QUERY, variables, permissions=[permission_manage_products]
+            ATTRIBUTES_RESORT_QUERY,
+            variables,
+            permissions=[permission_manage_product_types_and_attributes],
         )
     )["data"]["productTypeReorderAttributes"]
 
@@ -1680,7 +1719,7 @@ def test_sort_attributes_within_product_type_invalid_product_type(
 
 
 def test_sort_attributes_within_product_type_invalid_id(
-    staff_api_client, permission_manage_products, color_attribute
+    staff_api_client, permission_manage_product_types_and_attributes, color_attribute
 ):
     """Try to reorder an attribute not associated to the given product type."""
 
@@ -1697,7 +1736,9 @@ def test_sort_attributes_within_product_type_invalid_id(
 
     content = get_graphql_content(
         staff_api_client.post_graphql(
-            ATTRIBUTES_RESORT_QUERY, variables, permissions=[permission_manage_products]
+            ATTRIBUTES_RESORT_QUERY,
+            variables,
+            permissions=[permission_manage_product_types_and_attributes],
         )
     )["data"]["productTypeReorderAttributes"]
 
@@ -1719,7 +1760,7 @@ def test_sort_attributes_within_product_type_invalid_id(
 def test_sort_attributes_within_product_type(
     staff_api_client,
     attribute_list,
-    permission_manage_products,
+    permission_manage_product_types_and_attributes,
     attribute_type,
     relation_field,
     backref_field,
@@ -1727,7 +1768,9 @@ def test_sort_attributes_within_product_type(
     attributes = attribute_list
     assert len(attributes) == 3
 
-    staff_api_client.user.user_permissions.add(permission_manage_products)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
 
     product_type = ProductType.objects.create(name="Dummy Type")
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
@@ -1794,7 +1837,7 @@ ATTRIBUTE_VALUES_RESORT_QUERY = """
 
 
 def test_sort_values_within_attribute_invalid_product_type(
-    staff_api_client, permission_manage_products
+    staff_api_client, permission_manage_product_types_and_attributes
 ):
     """Try to reorder an invalid attribute (invalid ID)."""
 
@@ -1810,7 +1853,7 @@ def test_sort_values_within_attribute_invalid_product_type(
         staff_api_client.post_graphql(
             ATTRIBUTE_VALUES_RESORT_QUERY,
             variables,
-            permissions=[permission_manage_products],
+            permissions=[permission_manage_product_types_and_attributes],
         )
     )["data"]["attributeReorderValues"]
 
@@ -1823,7 +1866,7 @@ def test_sort_values_within_attribute_invalid_product_type(
 
 
 def test_sort_values_within_attribute_invalid_id(
-    staff_api_client, permission_manage_products, color_attribute
+    staff_api_client, permission_manage_product_types_and_attributes, color_attribute
 ):
     """Try to reorder a value not associated to the given attribute."""
 
@@ -1840,7 +1883,7 @@ def test_sort_values_within_attribute_invalid_id(
         staff_api_client.post_graphql(
             ATTRIBUTE_VALUES_RESORT_QUERY,
             variables,
-            permissions=[permission_manage_products],
+            permissions=[permission_manage_product_types_and_attributes],
         )
     )["data"]["attributeReorderValues"]
 
@@ -1853,14 +1896,16 @@ def test_sort_values_within_attribute_invalid_id(
 
 
 def test_sort_values_within_attribute(
-    staff_api_client, color_attribute, permission_manage_products
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
 ):
     attribute = color_attribute
     AttributeValue.objects.create(attribute=attribute, name="Green", slug="green")
     values = list(attribute.values.all())
     assert len(values) == 3
 
-    staff_api_client.user.user_permissions.add(permission_manage_products)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
 
     attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
     m2m_values = attribute.values
