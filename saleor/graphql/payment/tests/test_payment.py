@@ -464,6 +464,50 @@ def test_create_payment_for_checkout_with_0_total_payment_not_created(
     assert checkout.payments.all().count() == payments_count
 
 
+def test_create_payment_for_checkout_with_0_total_shipping_not_set(
+    checkout_with_shipping_required, user_api_client, address
+):
+    # given
+    checkout = checkout_with_shipping_required
+    address.street_address_1 = "spanish-inqusition"
+    address.save()
+    checkout.billing_address = address
+    checkout.save()
+
+    variant = checkout.lines.first().variant
+    variant.price = Money(0, "USD")
+    variant.save(update_fields=["price_amount"])
+
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
+
+    assert total.gross.amount == 0
+    assert total.net.amount == 0
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {
+        "checkoutId": checkout_id,
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutPaymentCreate"]
+    errors = data["paymentErrors"]
+
+    assert not data["payment"]
+    assert len(errors) == 1
+    assert errors[0]["code"]
+    assert errors[0]["code"] == "SHIPPING_METHOD_NOT_SET"
+    assert errors[0]["field"] == "shippingMethod"
+
+
 def test_create_payment_for_checkout_with_digital_product_with_0_price(
     checkout_with_digital_item, user_api_client, address
 ):

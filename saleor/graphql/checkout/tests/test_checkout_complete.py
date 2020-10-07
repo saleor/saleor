@@ -625,6 +625,44 @@ def test_checkout_complete_checkout_total_not_0_no_payment(
 
 
 @pytest.mark.integration
+def test_checkout_complete_checkout_total_0_no_payment_shipping_not_added(
+    user_api_client,
+    checkout_with_shipping_required,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    checkout = checkout_with_shipping_required
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line_variant = checkout_line.variant
+
+    checkout_line_variant.price = Money(0, "USD")
+    checkout_line_variant.save(update_fields=["price_amount"])
+
+    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    assert not checkout.payments.all()
+    assert total.gross.amount == 0
+    assert total.net.amount == 0
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    errors = data["checkoutErrors"]
+    assert not data["order"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_SET.name
+    assert errors[0]["field"] == "shippingMethod"
+
+
+@pytest.mark.integration
 def test_checkout_with_voucher_complete(
     user_api_client,
     checkout_with_voucher_percentage,
