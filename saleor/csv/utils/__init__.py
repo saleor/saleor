@@ -6,8 +6,6 @@ class ProductExportFields:
             "id": "id",
             "name": "name",
             "description": "description",
-            # TODO: remove this field in SALEOR-902
-            "available for purchase": "available_for_purchase",
             "category": "category__slug",
             "product type": "product_type__name",
             "charge taxes": "charge_taxes",
@@ -35,6 +33,7 @@ class ProductExportFields:
         "published": "channel_listing__is_published",
         "publication_date": "channel_listing__publication_date",
         "searchable": "channel_listing__visible_in_listings",
+        "available for purchase": "channel_listing__available_for_purchase",
     }
 
     WAREHOUSE_FIELDS = {
