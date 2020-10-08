@@ -176,6 +176,16 @@ class ProductsQueryset(models.QuerySet):
             visible_in_listings=ExpressionWrapper(query, output_field=BooleanField())
         )
 
+    # def annotate_available_for_purchase(self, channel_slug):
+    #     query = Subquery(
+    #         ProductChannelListing.objects.filter(
+    #             product_id=OuterRef("pk"), channel__slug=str(channel_slug)
+    #         ).values_list("available_for_purchase")[:1]
+    #     )
+    #     return self.annotate(
+    #         available_for_purchase=ExpressionWrapper(query, output_field=BooleanField())
+    #     )
+
     def sort_by_attribute(
         self, attribute_pk: Union[int, str], descending: bool = False
     ):
@@ -339,12 +349,6 @@ class Product(SeoModel, ModelWithMetadata):
     def sort_by_attribute_fields() -> list:
         return ["concatenated_values_order", "concatenated_values", "name"]
 
-    def is_available_for_purchase(self):
-        return (
-            self.available_for_purchase is not None
-            and datetime.date.today() >= self.available_for_purchase
-        )
-
 
 class ProductTranslation(SeoModelTranslation):
     language_code = models.CharField(max_length=10)
@@ -415,6 +419,12 @@ class ProductChannelListing(PublishableModel):
     class Meta:
         unique_together = [["product", "channel"]]
         ordering = ("pk",)
+
+    def is_available_for_purchase(self):
+        return (
+            self.available_for_purchase is not None
+            and datetime.date.today() >= self.available_for_purchase
+        )
 
 
 class ProductVariant(SortableModel, ModelWithMetadata):

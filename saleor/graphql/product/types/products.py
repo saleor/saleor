@@ -658,7 +658,15 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_is_available_for_purchase(root: ChannelContext[models.Product], _info):
-        return root.node.is_available_for_purchase()
+        if not root.channel_slug:
+            return None
+        # TODO: Add data loader for loading product_channel_listing
+        product_channel_listing = root.node.channel_listing.filter(
+            channel__slug=str(root.channel_slug)
+        )
+        if not product_channel_listing:
+            return None
+        return product_channel_listing.is_available_for_purchase()
 
     @staticmethod
     def resolve_product_type(root: ChannelContext[models.Product], info):
