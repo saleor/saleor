@@ -293,7 +293,6 @@ class Product(SeoModel, ModelWithMetadata):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
-    available_for_purchase = models.DateField(blank=True, null=True)
     default_variant = models.OneToOneField(
         "ProductVariant",
         blank=True,
@@ -400,6 +399,7 @@ class ProductChannelListing(PublishableModel):
         on_delete=models.CASCADE,
     )
     visible_in_listings = models.BooleanField(default=False)
+    available_for_purchase = models.DateField(blank=True, null=True)
     # TODO: Change currency into currency_code in ProductChannelListing
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     discounted_price_amount = models.DecimalField(
