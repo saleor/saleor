@@ -24,6 +24,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow product variants to be sortable - #6138 by @tomaszszymanski129
 - Staff with only manage_orders should be able to query all stock related date. - #6139 by @fowczarek
 - Add filtering to `ProductVariants` query and option to fetch variant by sku in `ProductVariant` query - #6190 by @fowczarek
+- Add filtering by Product IDs to `products` query - #6224 by @GrzegorzDerdak
 
 
 ### Breaking Changes
