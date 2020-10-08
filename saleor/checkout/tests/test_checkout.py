@@ -511,7 +511,9 @@ def test_get_voucher_for_checkout(checkout_with_voucher, voucher):
 
 
 def test_get_voucher_for_checkout_expired_voucher(checkout_with_voucher, voucher):
+    date_day_before_yesterday = timezone.now() - datetime.timedelta(days=2)
     date_yesterday = timezone.now() - datetime.timedelta(days=1)
+    voucher.start_date = date_day_before_yesterday
     voucher.end_date = date_yesterday
     voucher.save()
     checkout_voucher = get_voucher_for_checkout(checkout_with_voucher)
@@ -578,7 +580,9 @@ def test_recalculate_checkout_discount_voucher_not_applicable(
 
 def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, voucher):
     checkout = checkout_with_voucher
+    date_day_before_yesterday = timezone.now() - datetime.timedelta(days=2)
     date_yesterday = timezone.now() - datetime.timedelta(days=1)
+    voucher.start_date = date_day_before_yesterday
     voucher.end_date = date_yesterday
     voucher.save()
 
