@@ -10,7 +10,9 @@ def migrate_visible_in_listings_and_available_for_purchase(apps, schema_editor):
         product = channel_listing.product
         channel_listing.visible_in_listings = product.visible_in_listings
         channel_listing.available_for_purchase = product.available_for_purchase
-        channel_listing.save(update_fields=["visible_in_listings"])
+        channel_listing.save(
+            update_fields=["visible_in_listings", "available_for_purchase"]
+        )
 
 
 class Migration(migrations.Migration):

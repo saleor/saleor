@@ -1,3 +1,4 @@
+import datetime
 from collections import defaultdict
 from typing import TYPE_CHECKING, DefaultDict, Dict, List
 
@@ -43,6 +44,16 @@ class ProductChannelListingAddInput(graphene.InputObjectType):
             "(doesn't apply to product collections)."
         )
     )
+    is_available_for_purchase = graphene.Boolean(
+        description="Determine if product should be available for purchase.",
+    )
+    available_for_purchase_date = graphene.Date(
+        description=(
+            "A start date from which a product will be available for purchase. "
+            "When not set and isAvailable is set to True, "
+            "the current day is assumed."
+        )
+    )
 
 
 class ProductChannelListingUpdateInput(graphene.InputObjectType):
@@ -73,6 +84,29 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductChannelListingError
         error_type_field = "product_channel_listing_errors"
+
+    @classmethod
+    def clean_available_for_purchase(cls, cleaned_input, errors: ErrorType):
+        channels_wit_invalid_available_for_purchase = []
+        for add_channel in cleaned_input.get("add_channels", []):
+            is_available_for_purchase = add_channel.get("is_available_for_purchase")
+            available_for_purchase_date = add_channel.get("available_for_purchase_date")
+            if not is_available_for_purchase and available_for_purchase_date:
+                channels_wit_invalid_available_for_purchase.append(
+                    add_channel["channel_id"]
+                )
+        if channels_wit_invalid_available_for_purchase:
+            error_msg = (
+                "Cannot set available for purchase date when"
+                " isAvailableForPurchase is false."
+            )
+            errors["available_for_purchase_date"].append(
+                ValidationError(
+                    error_msg,
+                    code=ProductErrorCode.INVALID.value,
+                    params={"channels": channels_wit_invalid_available_for_purchase},
+                )
+            )
 
     @classmethod
     def validate_product_without_category(cls, cleaned_input, errors: ErrorType):
@@ -106,6 +140,18 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             visible_in_listings = add_channel.get("visible_in_listings", None)
             if visible_in_listings is not None:
                 defaults["visible_in_listings"] = visible_in_listings
+            is_available_for_purchase = add_channel.get("is_available_for_purchase")
+            available_for_purchase_date = add_channel.get("available_for_purchase_date")
+            if is_available_for_purchase is not None:
+                if is_available_for_purchase is False:
+                    defaults["available_for_purchase"] = None
+                elif (
+                    is_available_for_purchase is True
+                    and not available_for_purchase_date
+                ):
+                    defaults["available_for_purchase"] = datetime.date.today()
+                else:
+                    defaults["available_for_purchase"] = available_for_purchase_date
             ProductChannelListing.objects.update_or_create(
                 product=product, channel=add_channel["channel"], defaults=defaults
             )
@@ -124,6 +170,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
     def save(cls, info, product: "ProductModel", cleaned_input: Dict):
         cls.add_channels(product, cleaned_input.get("add_channels", []))
         cls.remove_channels(product, cleaned_input.get("remove_channels", []))
+        info.context.plugins.product_updated(product)
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
@@ -133,6 +180,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         cleaned_input = cls.clean_channels(
             info, input, errors, ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
         )
+        cls.clean_available_for_purchase(cleaned_input, errors)
         if not product.category:
             cls.validate_product_without_category(cleaned_input, errors)
         if errors:

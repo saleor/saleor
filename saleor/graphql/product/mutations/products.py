@@ -1,4 +1,3 @@
-import datetime
 from collections import defaultdict
 from typing import Iterable, List, Tuple, Union
 
@@ -1883,61 +1882,3 @@ class VariantImageUnassign(BaseMutation):
 
         variant = ChannelContext(node=variant, channel_slug=None)
         return VariantImageUnassign(product_variant=variant, image=image)
-
-
-class ProductSetAvailabilityForPurchase(BaseMutation):
-    product = graphene.Field(Product)
-
-    class Arguments:
-        product_id = graphene.ID(
-            required=True,
-            description=(
-                "Id of product that availability for purchase should be changed."
-            ),
-        )
-        is_available = graphene.Boolean(
-            description="Determine if product should be available for purchase.",
-            required=True,
-        )
-        start_date = graphene.Date(
-            description=(
-                "A start date from which a product will be available for purchase. "
-                "When not set and isAvailable is set to True, "
-                "the current day is assumed."
-            ),
-            required=False,
-        )
-
-    class Meta:
-        description = "Set product availability for purchase date."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        product = cls.get_node_or_error(info, data.get("product_id"), only_type=Product)
-        is_available = data.get("is_available")
-        start_date = data.get("start_date")
-
-        if start_date and not is_available:
-            raise ValidationError(
-                {
-                    "start_date": ValidationError(
-                        "Cannot set start date when isAvailable is false.",
-                        code=ProductErrorCode.INVALID,
-                    )
-                }
-            )
-
-        if not is_available:
-            product.available_for_purchase = None
-        elif is_available and not start_date:
-            product.available_for_purchase = datetime.date.today()
-        else:
-            product.available_for_purchase = start_date
-
-        product.save(update_fields=["available_for_purchase", "updated_at"])
-        product = ChannelContext(node=product, channel_slug=None)
-        info.context.plugins.product_updated(product)
-        return ProductSetAvailabilityForPurchase(product=product)

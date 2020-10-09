@@ -226,6 +226,8 @@ def test_retrieve_channel_listings(
                     start
                     stop
                   }
+                  isAvailableForPurchase
+                  availableForPurchase
                 }
               }
             }
