@@ -109,7 +109,6 @@ class MenuCreate(ModelMutation):
                     }
                 )
             items.append(item)
-
         cleaned_input["items"] = items
         return cleaned_input
 

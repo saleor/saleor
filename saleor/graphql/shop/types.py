@@ -14,6 +14,7 @@ from ...plugins.manager import get_plugins_manager
 from ...product import models as product_models
 from ...site import models as site_models
 from ..account.types import Address, StaffNotificationRecipient
+from ..channel import ChannelContext
 from ..checkout.types import PaymentGateway
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
@@ -227,7 +228,10 @@ class Shop(graphene.ObjectType):
     def resolve_homepage_collection(_, info):
         collection_pk = info.context.site.settings.homepage_collection_id
         qs = product_models.Collection.objects.all()
-        return qs.filter(pk=collection_pk).first()
+        collection = qs.filter(pk=collection_pk).first()
+        return (
+            ChannelContext(node=collection, channel_slug=None) if collection else None
+        )
 
     @staticmethod
     def resolve_languages(_, _info):

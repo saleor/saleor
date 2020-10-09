@@ -118,7 +118,11 @@ class BaseMetadataMutation(BaseMutation):
         use_channel_context = any(
             [
                 isinstance(instance, Model)
-                for Model in [product_models.Product, product_models.ProductVariant]
+                for Model in [
+                    product_models.Product,
+                    product_models.ProductVariant,
+                    product_models.Collection,
+                ]
             ]
         )
         if use_channel_context:

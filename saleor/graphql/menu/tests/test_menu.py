@@ -180,7 +180,7 @@ def test_query_menus_with_sort(
         assert menus[order]["node"]["name"] == menu_name
 
 
-def test_menu_items_query(user_api_client, menu_item, collection):
+def test_menu_items_query(user_api_client, menu_item, published_collection):
     query = """
     query menuitem($id: ID!) {
         menuItem(id: $id) {
@@ -201,7 +201,7 @@ def test_menu_items_query(user_api_client, menu_item, collection):
         }
     }
     """
-    menu_item.collection = collection
+    menu_item.collection = published_collection
     menu_item.url = None
     menu_item.save()
     child_menu = MenuItem.objects.create(
@@ -214,7 +214,7 @@ def test_menu_items_query(user_api_client, menu_item, collection):
     assert data["name"] == menu_item.name
     assert len(data["children"]) == 1
     assert data["children"][0]["name"] == child_menu.name
-    assert data["collection"]["name"] == collection.name
+    assert data["collection"]["name"] == published_collection.name
     assert not data["category"]
     assert not data["page"]
     assert data["url"] is None
@@ -314,7 +314,7 @@ def test_menu_item_query_static_url(user_api_client, menu_item):
 
 
 def test_create_menu(
-    staff_api_client, collection, category, page, permission_manage_menus
+    staff_api_client, published_collection, category, page, permission_manage_menus
 ):
     query = """
     mutation mc($name: String!, $collection: ID,
@@ -339,7 +339,7 @@ def test_create_menu(
     """
 
     category_id = graphene.Node.to_global_id("Category", category.pk)
-    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
     page_id = graphene.Node.to_global_id("Page", page.pk)
     url = "http://www.example.com"
 

@@ -67,6 +67,7 @@ from ..product.models import (
     Category,
     CategoryTranslation,
     Collection,
+    CollectionChannelListing,
     CollectionTranslation,
     DigitalContent,
     DigitalContentUrl,
@@ -1935,7 +1936,7 @@ def dummy_payment_data(payment_dummy):
 
 
 @pytest.fixture
-def new_sale(product, category, collection, channel_USD):
+def new_sale(category, channel_USD):
     sale = Sale.objects.create(name="Sale")
     SaleChannelListing.objects.create(
         sale=sale,
@@ -2072,39 +2073,92 @@ def permission_group_manage_users(permission_manage_users, staff_users):
 @pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
-        name="Collection",
-        slug="collection",
-        is_published=True,
-        description="Test description",
+        name="Collection", slug="collection", description="Test description",
     )
     return collection
 
 
 @pytest.fixture
-def collection_with_products(db, collection, product_list_published):
-    collection.products.set(list(product_list_published))
+def published_collection(db, channel_USD):
+    collection = Collection.objects.create(
+        name="Collection USD", slug="collection-usd", description="Test description",
+    )
+    CollectionChannelListing.objects.create(
+        channel=channel_USD, collection=collection, is_published=True
+    )
+    return collection
+
+
+@pytest.fixture
+def published_collection_PLN(db, channel_PLN):
+    collection = Collection.objects.create(
+        name="Collection PLN", slug="collection-pln", description="Test description",
+    )
+    CollectionChannelListing.objects.create(
+        channel=channel_PLN, collection=collection, is_published=True
+    )
+    return collection
+
+
+@pytest.fixture
+def unpublished_collection(db, channel_USD):
+    collection = Collection.objects.create(
+        name="Unpublished Collection",
+        slug="unpublished-collection",
+        description="Test description",
+    )
+    CollectionChannelListing.objects.create(
+        channel=channel_USD, collection=collection, is_published=False
+    )
+    return collection
+
+
+@pytest.fixture
+def unpublished_collection_PLN(db, channel_PLN):
+    collection = Collection.objects.create(
+        name="Collection", slug="collection", description="Test description",
+    )
+    CollectionChannelListing.objects.create(
+        channel=channel_PLN, collection=collection, is_published=False
+    )
+    return collection
+
+
+@pytest.fixture
+def collection_with_products(db, published_collection, product_list_published):
+    published_collection.products.set(list(product_list_published))
     return product_list_published
 
 
 @pytest.fixture
-def collection_with_image(db, image, media_root):
+def collection_with_image(db, image, media_root, channel_USD):
     collection = Collection.objects.create(
         name="Collection",
         slug="collection",
         description="Test description",
         background_image=image,
-        is_published=True,
+    )
+    CollectionChannelListing.objects.create(
+        channel=channel_USD, collection=collection, is_published=False
     )
     return collection
 
 
 @pytest.fixture
-def collection_list(db):
+def collection_list(db, channel_USD):
     collections = Collection.objects.bulk_create(
         [
-            Collection(name="Collection 1", slug="collection-1", is_published="True"),
-            Collection(name="Collection 2", slug="collection-2", is_published="True"),
-            Collection(name="Collection 3", slug="collection-3", is_published="True"),
+            Collection(name="Collection 1", slug="collection-1"),
+            Collection(name="Collection 2", slug="collection-2"),
+            Collection(name="Collection 3", slug="collection-3"),
+        ]
+    )
+    CollectionChannelListing.objects.bulk_create(
+        [
+            CollectionChannelListing(
+                channel=channel_USD, collection=collection, is_published=True
+            )
+            for collection in collections
         ]
     )
     return collections
@@ -2123,14 +2177,6 @@ def collection_list_unpublished(collection_list):
 def draft_collection(db):
     collection = Collection.objects.create(
         name="Draft collection", slug="draft-collection", is_published=False
-    )
-    return collection
-
-
-@pytest.fixture
-def unpublished_collection():
-    collection = Collection.objects.create(
-        name="Unpublished collection", slug="unpublished-collection", is_published=False
     )
     return collection
 
@@ -2263,10 +2309,10 @@ def variant_translation_fr(variant):
 
 
 @pytest.fixture
-def collection_translation_fr(collection):
+def collection_translation_fr(published_collection):
     return CollectionTranslation.objects.create(
         language_code="fr",
-        collection=collection,
+        collection=published_collection,
         name="French collection name",
         description="French description",
     )

@@ -24,6 +24,7 @@ from ....product.models import (
     AttributeValue,
     Category,
     Collection,
+    CollectionChannelListing,
     Product,
     ProductChannelListing,
     ProductImage,
@@ -67,8 +68,8 @@ def query_products_with_filter():
 @pytest.fixture
 def query_collections_with_filter():
     query = """
-    query ($filter: CollectionFilterInput!, ) {
-          collections(first:5, filter: $filter) {
+    query ($filter: CollectionFilterInput!, $channel: String) {
+          collections(first:5, filter: $filter, channel: $channel) {
             edges{
               node{
                 id
@@ -1545,7 +1546,7 @@ def test_query_product_image_by_id(user_api_client, product_with_image, channel_
 
 
 def test_product_with_collections(
-    staff_api_client, product, collection, permission_manage_products
+    staff_api_client, product, published_collection, permission_manage_products
 ):
     query = """
         query getProduct($productID: ID!) {
@@ -1556,7 +1557,7 @@ def test_product_with_collections(
             }
         }
         """
-    product.collections.add(collection)
+    product.collections.add(published_collection)
     product.save()
     product_id = graphene.Node.to_global_id("Product", product.id)
 
@@ -1565,7 +1566,7 @@ def test_product_with_collections(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["product"]
-    assert data["collections"][0]["name"] == collection.name
+    assert data["collections"][0]["name"] == published_collection.name
     assert len(data["collections"]) == 1
 
 
@@ -2442,7 +2443,7 @@ def test_product_create_without_product_type(
 def test_product_create_with_collections_webhook(
     staff_api_client,
     permission_manage_products,
-    collection,
+    published_collection,
     product_type,
     category,
     monkeypatch,
@@ -2475,7 +2476,7 @@ def test_product_create_with_collections_webhook(
 
     def assert_product_has_collections(product):
         assert product.collections.count() > 0
-        assert product.collections.first() == collection
+        assert product.collections.first() == published_collection
 
     monkeypatch.setattr(
         "saleor.plugins.manager.PluginsManager.product_created",
@@ -2484,7 +2485,7 @@ def test_product_create_with_collections_webhook(
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
-    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
 
     response = staff_api_client.post_graphql(
         query,
@@ -4451,8 +4452,8 @@ def test_variant_digital_content(
 @pytest.mark.parametrize(
     "collection_filter, count",
     [
-        ({"published": "PUBLISHED"}, 2),
-        ({"published": "HIDDEN"}, 1),
+        ({"isPublished": True}, 2),
+        ({"isPublished": False}, 1),
         ({"search": "-published1"}, 1),
         ({"search": "Collection3"}, 1),
         ({"ids": [to_global_id("Collection", 2), to_global_id("Collection", 3)]}, 2),
@@ -4462,36 +4463,45 @@ def test_collections_query_with_filter(
     collection_filter,
     count,
     query_collections_with_filter,
+    channel_USD,
     staff_api_client,
     permission_manage_products,
 ):
-    Collection.objects.bulk_create(
+    collections = Collection.objects.bulk_create(
         [
             Collection(
                 id=1,
                 name="Collection1",
                 slug="collection-published1",
-                is_published=True,
                 description="Test description",
             ),
             Collection(
                 id=2,
                 name="Collection2",
                 slug="collection-published2",
-                is_published=True,
                 description="Test description",
             ),
             Collection(
                 id=3,
                 name="Collection3",
                 slug="collection-unpublished",
-                is_published=False,
                 description="Test description",
             ),
         ]
     )
-
-    variables = {"filter": collection_filter}
+    published = (True, True, False)
+    CollectionChannelListing.objects.bulk_create(
+        [
+            CollectionChannelListing(
+                channel=channel_USD, collection=collection, is_published=published[num]
+            )
+            for num, collection in enumerate(collections)
+        ]
+    )
+    collection_filter["channel"] = channel_USD.slug
+    variables = {
+        "filter": collection_filter,
+    }
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_collections_with_filter, variables)
     content = get_graphql_content(response)
@@ -4525,27 +4535,38 @@ QUERY_COLLECTIONS_WITH_SORT = """
     ],
 )
 def test_collections_query_with_sort(
-    collection_sort, result_order, staff_api_client, permission_manage_products, product
+    collection_sort,
+    result_order,
+    staff_api_client,
+    permission_manage_products,
+    product,
+    channel_USD,
 ):
-    Collection.objects.bulk_create(
+    collections = Collection.objects.bulk_create(
         [
-            Collection(name="Coll1", slug="collection-published1", is_published=True),
-            Collection(
-                name="Coll2", slug="collection-unpublished2", is_published=False
-            ),
-            Collection(name="Coll3", slug="collection-published", is_published=True),
+            Collection(name="Coll1", slug="collection-published1"),
+            Collection(name="Coll2", slug="collection-unpublished2"),
+            Collection(name="Coll3", slug="collection-published"),
+        ]
+    )
+    published = (True, False, True)
+    CollectionChannelListing.objects.bulk_create(
+        [
+            CollectionChannelListing(
+                channel=channel_USD, collection=collection, is_published=published[num]
+            )
+            for num, collection in enumerate(collections)
         ]
     )
     product.collections.add(Collection.objects.get(name="Coll2"))
-
+    collection_sort["channel"] = channel_USD.slug
     variables = {"sort_by": collection_sort}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(QUERY_COLLECTIONS_WITH_SORT, variables)
     content = get_graphql_content(response)
     collections = content["data"]["collections"]["edges"]
-
-    for order, colllection_name in enumerate(result_order):
-        assert collections[order]["node"]["name"] == colllection_name
+    for order, collection_name in enumerate(result_order):
+        assert collections[order]["node"]["name"] == collection_name
 
 
 @pytest.mark.parametrize(

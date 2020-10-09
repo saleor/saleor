@@ -7,6 +7,7 @@ import pytest
 from ....product.models import (
     Category,
     Collection,
+    CollectionChannelListing,
     Product,
     ProductChannelListing,
     ProductType,
@@ -145,22 +146,27 @@ def test_categories_pagination_with_filtering(
 
 
 @pytest.fixture
-def collections_for_pagination(product, product_with_single_variant):
+def collections_for_pagination(product, product_with_single_variant, channel_USD):
     collections = Collection.objects.bulk_create(
         [
-            Collection(name="Collection1", slug="col1", is_published=True),
-            Collection(
-                name="CollectionCollection1", slug="col_col1", is_published=True
-            ),
-            Collection(
-                name="CollectionCollection2", slug="col_col2", is_published=False
-            ),
-            Collection(name="Collection2", slug="col2", is_published=False),
-            Collection(name="Collection3", slug="col3", is_published=True),
+            Collection(name="Collection1", slug="col1"),
+            Collection(name="CollectionCollection1", slug="col_col1"),
+            Collection(name="CollectionCollection2", slug="col_col2"),
+            Collection(name="Collection2", slug="col2"),
+            Collection(name="Collection3", slug="col3"),
         ]
     )
     collections[2].products.add(product)
     collections[4].products.add(product_with_single_variant)
+    published = (True, True, False, False, True)
+    CollectionChannelListing.objects.bulk_create(
+        [
+            CollectionChannelListing(
+                channel=channel_USD, is_published=published[num], collection=collection
+            )
+            for num, collection in enumerate(collections)
+        ]
+    )
     return collections
 
 
@@ -219,9 +225,10 @@ def test_collections_pagination_with_sorting(
     staff_api_client,
     permission_manage_products,
     collections_for_pagination,
+    channel_USD,
 ):
     page_size = 3
-
+    sort_by["channel"] = channel_USD.slug
     variables = {"first": page_size, "after": None, "sortBy": sort_by}
     response = staff_api_client.post_graphql(
         QUERY_COLLECTIONS_PAGINATION,
@@ -246,7 +253,7 @@ def test_collections_pagination_with_sorting(
         ),
         ({"search": "col_col"}, ["CollectionCollection1", "CollectionCollection2"]),
         ({"search": "Collection1"}, ["Collection1", "CollectionCollection1"]),
-        ({"published": "HIDDEN"}, ["Collection2", "CollectionCollection2"]),
+        ({"isPublished": False}, ["Collection2", "CollectionCollection2"]),
     ],
 )
 def test_collections_pagination_with_filtering(
@@ -255,9 +262,10 @@ def test_collections_pagination_with_filtering(
     staff_api_client,
     permission_manage_products,
     collections_for_pagination,
+    channel_USD,
 ):
     page_size = 2
-
+    filter_by["channel"] = channel_USD.slug
     variables = {"first": page_size, "after": None, "filter": filter_by}
     response = staff_api_client.post_graphql(
         QUERY_COLLECTIONS_PAGINATION,

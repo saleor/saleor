@@ -178,7 +178,9 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
             .filter(pk=root.id)
             .first()
         )
-        return ChannelContext(node=collection, channel_slug=None)
+        return (
+            ChannelContext(node=collection, channel_slug=None) if collection else None
+        )
 
 
 class CategoryTranslation(BaseTranslationType):

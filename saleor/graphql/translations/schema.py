@@ -18,14 +18,11 @@ from ..core.fields import BaseConnectionField
 from ..decorators import permission_required
 from ..menu.resolvers import resolve_menu_items
 from ..page.resolvers import resolve_pages
-from ..product.resolvers import (
-    resolve_attributes,
-    resolve_categories,
-    resolve_collections,
-)
+from ..product.resolvers import resolve_attributes, resolve_categories
 from ..translations import types as translation_types
 from .resolvers import (
     resolve_attribute_values,
+    resolve_collections,
     resolve_product_variants,
     resolve_products,
     resolve_sales,
@@ -95,7 +92,7 @@ class TranslationQueries(graphene.ObjectType):
         if kind == TranslatableKinds.PRODUCT:
             return resolve_products(info)
         elif kind == TranslatableKinds.COLLECTION:
-            return resolve_collections(info, query=None)
+            return resolve_collections(info)
         elif kind == TranslatableKinds.CATEGORY:
             return resolve_categories(info, query=None)
         elif kind == TranslatableKinds.PAGE:

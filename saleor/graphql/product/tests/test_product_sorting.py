@@ -76,20 +76,22 @@ def test_sort_products_within_collection_invalid_product_id(
 def test_sort_products_within_collection(
     staff_api_client,
     staff_user,
-    collection,
+    published_collection,
     collection_with_products,
     permission_manage_products,
     channel_USD,
 ):
 
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
 
     products = collection_with_products
     assert len(products) == 3
 
     # Sort the products per sort_order
-    products = list(collection.products.collection_sorted(staff_user, channel_USD.slug))
+    products = list(
+        published_collection.products.collection_sorted(staff_user, channel_USD.slug)
+    )
     assert len(products) == 3
 
     variables = {

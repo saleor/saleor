@@ -2,6 +2,7 @@ import graphene
 from graphene import relay
 
 from ...menu import models
+from ..channel.types import ChannelContext
 from ..core.connection import CountableDjangoObjectType
 from ..page.dataloaders import PageByIdLoader
 from ..product.dataloaders import CategoryByIdLoader, CollectionByIdLoader
@@ -68,7 +69,10 @@ class MenuItem(CountableDjangoObjectType):
     @staticmethod
     def resolve_collection(root: models.MenuItem, info, **_kwargs):
         if root.collection_id:
-            return CollectionByIdLoader(info.context).load(root.collection_id)
+            collection = CollectionByIdLoader(info.context).load(root.collection_id)
+            return collection.then(
+                lambda collection: ChannelContext(node=collection, channel_slug=None)
+            )
         return None
 
     @staticmethod

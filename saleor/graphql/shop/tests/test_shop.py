@@ -585,7 +585,7 @@ def test_shop_customer_set_password_url_update_invalid_url(
 
 
 def test_homepage_collection_update(
-    staff_api_client, collection, permission_manage_settings
+    staff_api_client, published_collection, permission_manage_settings
 ):
     query = """
         mutation homepageCollectionUpdate($collection: ID!) {
@@ -599,7 +599,7 @@ def test_homepage_collection_update(
             }
         }
     """
-    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.id)
     variables = {"collection": collection_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_settings]
@@ -607,13 +607,13 @@ def test_homepage_collection_update(
     content = get_graphql_content(response)
     data = content["data"]["homepageCollectionUpdate"]["shop"]
     assert data["homepageCollection"]["id"] == collection_id
-    assert data["homepageCollection"]["name"] == collection.name
+    assert data["homepageCollection"]["name"] == published_collection.name
     site = Site.objects.get_current()
-    assert site.settings.homepage_collection == collection
+    assert site.settings.homepage_collection == published_collection
 
 
 def test_homepage_collection_update_set_null(
-    staff_api_client, collection, site_settings, permission_manage_settings
+    staff_api_client, published_collection, site_settings, permission_manage_settings
 ):
     query = """
         mutation homepageCollectionUpdate($collection: ID) {
@@ -626,7 +626,7 @@ def test_homepage_collection_update_set_null(
             }
         }
     """
-    site_settings.homepage_collection = collection
+    site_settings.homepage_collection = published_collection
     site_settings.save()
     variables = {"collection": None}
     response = staff_api_client.post_graphql(

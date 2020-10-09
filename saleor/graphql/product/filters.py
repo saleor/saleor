@@ -387,9 +387,8 @@ class ProductVariantFilter(django_filters.FilterSet):
 
 
 class CollectionFilter(django_filters.FilterSet):
-    published = EnumFilter(
-        input_class=CollectionPublished, method=filter_collection_publish
-    )
+    is_published = django_filters.BooleanFilter(method="filter_is_published")
+
     search = django_filters.CharFilter(
         method=filter_fields_containing_value("slug", "name")
     )
@@ -397,7 +396,11 @@ class CollectionFilter(django_filters.FilterSet):
 
     class Meta:
         model = Collection
-        fields = ["published", "search"]
+        fields = ["is_published", "search"]
+
+    def filter_is_published(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_is_published(queryset, name, value, channel_slug)
 
 
 class CategoryFilter(django_filters.FilterSet):
@@ -473,6 +476,10 @@ class ProductVariantFilterInput(FilterInputObjectType):
 
 
 class CollectionFilterInput(FilterInputObjectType):
+    channel = graphene.Argument(
+        graphene.String, description="Channel in which to filter the data."
+    )
+
     class Meta:
         filterset_class = CollectionFilter
 

@@ -230,6 +230,13 @@ class CollectionCreate(ModelMutation):
         if cleaned_input.get("background_image"):
             create_collection_background_image_thumbnails.delay(instance.pk)
 
+    @classmethod
+    def perform_mutation(cls, _root, info, **kwargs):
+        result = super().perform_mutation(_root, info, **kwargs)
+        return CollectionCreate(
+            collection=ChannelContext(node=result.collection, channel_slug=None)
+        )
+
 
 class CollectionUpdate(CollectionCreate):
     class Arguments:
@@ -262,6 +269,13 @@ class CollectionDelete(ModelDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **kwargs):
+        result = super().perform_mutation(_root, info, **kwargs)
+        return CollectionDelete(
+            collection=ChannelContext(node=result.collection, channel_slug=None)
+        )
 
 
 class MoveProductInput(graphene.InputObjectType):
@@ -344,6 +358,7 @@ class CollectionReorderProducts(BaseMutation):
 
         with transaction.atomic():
             perform_reordering(m2m_related_field, operations)
+        collection = ChannelContext(node=collection, channel_slug=None)
         return CollectionReorderProducts(collection=collection)
 
 
@@ -380,7 +395,9 @@ class CollectionAddProducts(BaseMutation):
             update_products_discounted_prices_of_catalogues_task.delay(
                 product_ids=[pq.pk for pq in products]
             )
-        return CollectionAddProducts(collection=collection)
+        return CollectionAddProducts(
+            collection=ChannelContext(node=collection, channel_slug=None)
+        )
 
     @classmethod
     def clean_products(cls, products):
@@ -429,7 +446,9 @@ class CollectionRemoveProducts(BaseMutation):
             update_products_discounted_prices_of_catalogues_task.delay(
                 product_ids=[p.pk for p in products]
             )
-        return CollectionRemoveProducts(collection=collection)
+        return CollectionRemoveProducts(
+            collection=ChannelContext(node=collection, channel_slug=None)
+        )
 
 
 class CollectionUpdateMeta(UpdateMetaBaseMutation):

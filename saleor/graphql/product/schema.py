@@ -123,7 +123,6 @@ from .resolvers import (
     resolve_attributes,
     resolve_categories,
     resolve_category_by_slug,
-    resolve_collection_by_id,
     resolve_collection_by_slug,
     resolve_collections,
     resolve_digital_contents,
@@ -208,6 +207,9 @@ class ProductQueries(graphene.ObjectType):
         filter=CollectionFilterInput(description="Filtering options for collections."),
         sort_by=CollectionSortingInput(description="Sort collections."),
         description="List of the shop's collections.",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
     )
     product = graphene.Field(
         Product,
@@ -300,17 +302,23 @@ class ProductQueries(graphene.ObjectType):
         if slug:
             return resolve_category_by_slug(slug=slug)
 
-    def resolve_collection(self, info, id=None, slug=None, channel=None):
+    def resolve_collection(self, info, id=None, slug=None, channel=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
-            _, id = graphene.Node.from_global_id(id)
-            return resolve_collection_by_id(info, id, channel)
+            collection = graphene.Node.get_node_from_global_id(info, id, Collection)
         else:
-            return resolve_collection_by_slug(info, slug=slug, channel_slug=channel)
+            collection = resolve_collection_by_slug(
+                info, slug=slug, channel_slug=channel
+            )
+        return (
+            ChannelContext(node=collection, channel_slug=channel)
+            if collection
+            else None
+        )
 
-    def resolve_collections(self, info, channel=None):
+    def resolve_collections(self, info, channel=None, *_args, **_kwargs):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         return resolve_collections(info, channel)
