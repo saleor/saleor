@@ -460,6 +460,9 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         type_name="product",
         resolver=ChannelContextType.resolve_translation,
     )
+    available_for_purchase = graphene.Date(
+        description="Date when product is available for purchase. "
+    )
     is_available_for_purchase = graphene.Boolean(
         description="Whether the product is available for purchase."
     )
@@ -470,7 +473,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Product
         only_fields = [
-            "available_for_purchase",
             "category",
             "charge_taxes",
             "description",
@@ -663,10 +665,22 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         # TODO: Add data loader for loading product_channel_listing
         product_channel_listing = root.node.channel_listing.filter(
             channel__slug=str(root.channel_slug)
-        )
+        ).first()
         if not product_channel_listing:
             return None
         return product_channel_listing.is_available_for_purchase()
+
+    @staticmethod
+    def resolve_available_for_purchase(root: ChannelContext[models.Product], _info):
+        if not root.channel_slug:
+            return None
+        # TODO: Add data loader for loading product_channel_listing
+        product_channel_listing = root.node.channel_listing.filter(
+            channel__slug=str(root.channel_slug)
+        ).first()
+        if not product_channel_listing:
+            return None
+        return product_channel_listing.available_for_purchase
 
     @staticmethod
     def resolve_product_type(root: ChannelContext[models.Product], info):

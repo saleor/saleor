@@ -298,10 +298,13 @@ def test_product_query_by_id_not_available_as_customer(
 
 
 def test_product_unpublished_query_by_id_as_app(
-    app_api_client, unavailable_product, permission_manage_products
+    app_api_client, unavailable_product, permission_manage_products, channel_USD
 ):
     # given
-    variables = {"id": graphene.Node.to_global_id("Product", unavailable_product.pk)}
+    variables = {
+        "id": graphene.Node.to_global_id("Product", unavailable_product.pk),
+        "channel": channel_USD.slug,
+    }
 
     # when
     response = app_api_client.post_graphql(
@@ -567,8 +570,7 @@ def test_product_query_is_available_for_purchase_true(
 ):
     # given
     available_for_purchase = datetime.today() - timedelta(days=1)
-    product.available_for_purchase = available_for_purchase
-    product.save(update_fields=["available_for_purchase"])
+    product.channel_listing.update(available_for_purchase=available_for_purchase)
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -593,8 +595,7 @@ def test_product_query_is_available_for_purchase_false(
 ):
     # given
     available_for_purchase = datetime.today() + timedelta(days=1)
-    product.available_for_purchase = available_for_purchase
-    product.save(update_fields=["available_for_purchase"])
+    product.channel_listing.update(available_for_purchase=available_for_purchase)
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -618,8 +619,7 @@ def test_product_query_is_available_for_purchase_false_no_available_for_purchase
     user_api_client, product, channel_USD
 ):
     # given
-    product.available_for_purchase = None
-    product.save(update_fields=["available_for_purchase"])
+    product.channel_listing.update(available_for_purchase=None)
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),

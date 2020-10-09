@@ -3750,7 +3750,6 @@ type Product implements Node & ObjectWithMetadata {
   updatedAt: DateTime
   chargeTaxes: Boolean!
   weight: Weight
-  availableForPurchase: Date
   defaultVariant: ProductVariant
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
@@ -3768,6 +3767,7 @@ type Product implements Node & ObjectWithMetadata {
   images: [ProductImage]
   collections: [Collection]
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
+  availableForPurchase: Date
   isAvailableForPurchase: Boolean
 }
 
@@ -3789,9 +3789,11 @@ type ProductChannelListing implements Node {
   isPublished: Boolean!
   channel: Channel!
   visibleInListings: Boolean!
+  availableForPurchase: Date
   discountedPrice: Money
   purchaseCost: MoneyRange
   margin: Margin
+  isAvailableForPurchase: Boolean
 }
 
 input ProductChannelListingAddInput {
@@ -3902,8 +3904,6 @@ enum ProductFieldEnum {
   PRODUCT_TYPE
   CATEGORY
   VISIBLE
-  AVAILABLE_FOR_PURCHASE
-  SEARCHABLE
   PRODUCT_WEIGHT
   COLLECTIONS
   CHARGE_TAXES

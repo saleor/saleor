@@ -82,7 +82,13 @@ def validate_product_is_published(order):
 
 def validate_product_is_available_for_purchase(order):
     for line in order:
-        if not line.variant.product.is_available_for_purchase():
+        product_channel_listing = line.variant.product.channel_listing.filter(
+            channel_id=order.channel_id
+        ).first()
+        if not (
+            product_channel_listing
+            and product_channel_listing.is_available_for_purchase()
+        ):
             raise ValidationError(
                 {
                     "lines": ValidationError(

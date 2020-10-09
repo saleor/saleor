@@ -23,6 +23,9 @@ class ProductChannelListing(CountableDjangoObjectType):
     )
     purchase_cost = graphene.Field(MoneyRange, description="Purchase cost of product.")
     margin = graphene.Field(Margin, description="Range of margin percentage value.")
+    is_available_for_purchase = graphene.Boolean(
+        description="Whether the product is available for purchase."
+    )
 
     class Meta:
         description = "Represents product channel listing."
@@ -34,6 +37,7 @@ class ProductChannelListing(CountableDjangoObjectType):
             "is_published",
             "publication_date",
             "visible_in_listings",
+            "available_for_purchase",
         ]
 
     @staticmethod
@@ -63,6 +67,10 @@ class ProductChannelListing(CountableDjangoObjectType):
         has_variants = True if len(variants) > 0 else False
         _, margin = get_product_costs_data(channel_listings, has_variants)
         return Margin(margin[0], margin[1])
+
+    @staticmethod
+    def resolve_is_available_for_purchase(root: models.ProductChannelListing, _info):
+        return root.is_available_for_purchase()
 
 
 class ProductVariantChannelListing(CountableDjangoObjectType):

@@ -176,16 +176,6 @@ class ProductsQueryset(models.QuerySet):
             visible_in_listings=ExpressionWrapper(query, output_field=BooleanField())
         )
 
-    # def annotate_available_for_purchase(self, channel_slug):
-    #     query = Subquery(
-    #         ProductChannelListing.objects.filter(
-    #             product_id=OuterRef("pk"), channel__slug=str(channel_slug)
-    #         ).values_list("available_for_purchase")[:1]
-    #     )
-    #     return self.annotate(
-    #         available_for_purchase=ExpressionWrapper(query, output_field=BooleanField())
-    #     )
-
     def sort_by_attribute(
         self, attribute_pk: Union[int, str], descending: bool = False
     ):

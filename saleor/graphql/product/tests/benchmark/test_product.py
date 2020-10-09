@@ -200,10 +200,31 @@ def test_retrieve_channel_listings(
             edges {
               node {
                 id
-                channelListing {
+                channelListing{
+                  publicationDate
                   isPublished
-                  channel {
+                  channel{
+                    slug
+                    currencyCode
                     name
+                    isActive
+                  }
+                  visibleInListings
+                  discountedPrice{
+                    amount
+                    currency
+                  }
+                  purchaseCost{
+                    start{
+                      amount
+                    }
+                    stop{
+                      amount
+                    }
+                  }
+                  margin{
+                    start
+                    stop
                   }
                 }
               }
