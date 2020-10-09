@@ -2,6 +2,7 @@ import datetime
 from decimal import Decimal
 from unittest.mock import Mock
 
+from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...plugins.manager import PluginsManager
@@ -124,6 +125,13 @@ def test_available_products_only_available(product_list):
     available_products = models.Product.objects.published()
     assert available_products.count() == 2
     assert all([product.is_visible for product in available_products])
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_product_is_visible_from_today(product):
+    product.publication_date = datetime.date.today()
+    product.save()
+    assert product.is_visible
 
 
 def test_available_products_with_variants(product_list):
