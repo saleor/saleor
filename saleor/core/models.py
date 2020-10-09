@@ -71,7 +71,7 @@ class PublishableModel(models.Model):
     def is_visible(self):
         return self.is_published and (
             self.publication_date is None
-            or self.publication_date < datetime.date.today()
+            or self.publication_date <= datetime.date.today()
         )
 
 
