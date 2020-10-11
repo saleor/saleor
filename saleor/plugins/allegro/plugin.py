@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 import uuid
 import webbrowser
@@ -6,7 +7,6 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
-import logging
 
 import requests
 from django.core.mail import EmailMultiAlternatives
@@ -16,11 +16,12 @@ from slugify import slugify
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from saleor.plugins.manager import get_plugins_manager
 from saleor.plugins.models import PluginConfiguration
-from saleor.product.models import Product, AssignedProductAttribute, \
+from saleor.product.models import AssignedProductAttribute, \
     AttributeValue, ProductImage, ProductVariant
 from . import ProductPublishState
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class AllegroConfiguration:
@@ -52,26 +53,31 @@ class AllegroPlugin(BasePlugin):
     PLUGIN_NAME_2 = "Allegro"
     META_CODE_KEY = "AllegroPlugin.code"
     META_DESCRIPTION_KEY = "AllegroPlugin.description"
-    DEFAULT_CONFIGURATION = [{"name": "redirect_url", "value": "https://allegro.pl.allegrosandbox.pl/auth/oauth"},
-                             {"name": "callback_url", "value": "http://localhost:8000/allegro"},
-                             {"name": "saleor_redirect_url", "value": "http://localhost:9000"},
+    DEFAULT_CONFIGURATION = [{"name": "redirect_url",
+                              "value": "https://allegro.pl.allegrosandbox.pl/auth/oauth"},
+                             {"name": "callback_url",
+                              "value": "http://localhost:8000/allegro"},
+                             {"name": "saleor_redirect_url",
+                              "value": "http://localhost:9000"},
                              {"name": "token_value", "value": None},
                              {"name": "client_id", "value": None},
                              {"name": "client_secret", "value": None},
                              {"name": "refresh_token", "value": None},
                              {"name": "token_access", "value": None},
-                             {"name": "auth_env", "value":  "https://allegro.pl.allegrosandbox.pl"},
-                             {"name": "env", "value":  "https://api.allegro.pl.allegrosandbox.pl"},
-                             {"name": "implied_warranty", "value":  None},
-                             {"name": "return_policy", "value":  None},
-                             {"name": "warranty", "value":  None},
-                             {"name": "delivery_shipping_rates", "value":  None},
-                             {"name": "delivery_handling_time", "value":  None},
-                             {"name": "publication_duration", "value":  None},
+                             {"name": "auth_env",
+                              "value": "https://allegro.pl.allegrosandbox.pl"},
+                             {"name": "env",
+                              "value": "https://api.allegro.pl.allegrosandbox.pl"},
+                             {"name": "implied_warranty", "value": None},
+                             {"name": "return_policy", "value": None},
+                             {"name": "warranty", "value": None},
+                             {"name": "delivery_shipping_rates", "value": None},
+                             {"name": "delivery_handling_time", "value": None},
+                             {"name": "publication_duration", "value": None},
                              {"name": "publication_starting_at", "value": ''},
                              {"name": "auction_format", "value": 'AUCTION'},
                              {"name": "interval_for_offer_publication", "value": '5'},
-                             {"name": "offer_publication_chunks", "value": '13'},]
+                             {"name": "offer_publication_chunks", "value": '13'}, ]
     CONFIG_STRUCTURE = {
         "redirect_url": {
             "type": ConfigurationTypeField.STRING,
@@ -181,7 +187,8 @@ class AllegroPlugin(BasePlugin):
 
         self.config = AllegroConfiguration(redirect_url=configuration["redirect_url"],
                                            callback_url=configuration["callback_url"],
-                                           saleor_redirect_url=configuration["saleor_redirect_url"],
+                                           saleor_redirect_url=configuration[
+                                               "saleor_redirect_url"],
                                            token_access=configuration["token_access"],
                                            token_value=configuration["token_value"],
                                            client_id=configuration["client_id"],
@@ -189,24 +196,40 @@ class AllegroPlugin(BasePlugin):
                                            refresh_token=configuration["refresh_token"],
                                            auth_env=configuration["auth_env"],
                                            env=configuration["env"],
-                                           implied_warranty=configuration["implied_warranty"],
+                                           implied_warranty=configuration[
+                                               "implied_warranty"],
                                            return_policy=configuration["return_policy"],
                                            warranty=configuration["warranty"],
-                                           delivery_shipping_rates=configuration["delivery_shipping_rates"],
-                                           delivery_handling_time=configuration["delivery_handling_time"],
-                                           publication_duration=configuration["publication_duration"],
-                                           publication_starting_at=configuration["publication_starting_at"],
-                                           auction_format=configuration["auction_format"],
-                                           interval_for_offer_publication=configuration["interval_for_offer_publication"],
-                                           offer_publication_chunks=configuration["offer_publication_chunks"])
+                                           delivery_shipping_rates=configuration[
+                                               "delivery_shipping_rates"],
+                                           delivery_handling_time=configuration[
+                                               "delivery_handling_time"],
+                                           publication_duration=configuration[
+                                               "publication_duration"],
+                                           publication_starting_at=configuration[
+                                               "publication_starting_at"],
+                                           auction_format=configuration[
+                                               "auction_format"],
+                                           interval_for_offer_publication=configuration[
+                                               "interval_for_offer_publication"],
+                                           offer_publication_chunks=configuration[
+                                               "offer_publication_chunks"])
 
         HOURS_BEFORE_WE_REFRESH_TOKEN = 6
 
-        if self.config.token_access and self.calculate_hours_to_token_expire() < HOURS_BEFORE_WE_REFRESH_TOKEN:
-            access_token, refresh_token, expires_in = AllegroAPI(self.config.token_access).refresh_token(self.config.refresh_token, self.config.client_id, self.config.client_secret, self.config.saleor_redirect_url, self.config.auth_env) or (None, None, None)
-            if access_token and refresh_token and expires_in is not None:
-                AllegroAuth.save_token_in_plugin_configuration(access_token, refresh_token, expires_in)
-
+        if self.config.token_access:
+            if self.calculate_hours_to_token_expire() < HOURS_BEFORE_WE_REFRESH_TOKEN:
+                access_token, refresh_token, expires_in = AllegroAPI(
+                    self.config.token_access).refresh_token(self.config.refresh_token,
+                                                            self.config.client_id,
+                                                            self.config.client_secret,
+                                                            self.config.saleor_redirect_url,
+                                                            self.config.auth_env) or (
+                                                              None, None, None)
+                if access_token and refresh_token and expires_in is not None:
+                    AllegroAuth.save_token_in_plugin_configuration(access_token,
+                                                                   refresh_token,
+                                                                   expires_in)
 
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
@@ -251,21 +274,31 @@ class AllegroPlugin(BasePlugin):
     def product_published(self, product_with_params: Any, previous_value: Any) -> Any:
         product = product_with_params.get('product')
         if self.active == True and product.is_published == False:
-            product.store_value_in_private_metadata({'publish.allegro.status': ProductPublishState.MODERATED.value})
+            product.store_value_in_private_metadata(
+                {'publish.allegro.status': ProductPublishState.MODERATED.value})
             allegro_api = AllegroAPI(self.config.token_value)
-            allegro_api.product_publish(saleor_product=product, starting_at=product_with_params.get('starting_at'), offer_type=product_with_params.get('offer_type'))
-
+            if product.variants.first().stocks.first().quantity > 0:
+                allegro_api.product_publish(saleor_product=product,
+                                            starting_at=product_with_params.get(
+                                                'starting_at'),
+                                            offer_type=product_with_params.get(
+                                                'offer_type'))
+            else:
+                allegro_api.errors.append('002: stan magazynowy produktu wynosi 0')
+                allegro_api.update_errors_in_private_metadata(product,
+                                                              allegro_api.errors)
 
     def calculate_hours_to_token_expire(self):
         token_expire = datetime.strptime(self.config.token_access, '%d/%m/%Y %H:%M:%S')
         duration = token_expire - datetime.now()
         return divmod(duration.total_seconds(), 3600)[0]
 
-
     def get_intervals_and_chunks(self, previous_value: Any):
-        return [int(self.config.interval_for_offer_publication), int(self.config.offer_publication_chunks)]
+        return [int(self.config.interval_for_offer_publication),
+                int(self.config.offer_publication_chunks)]
 
-    def send_mail_with_publish_errors(self, publish_errors: Any, previous_value: Any) -> Any:
+    def send_mail_with_publish_errors(self, publish_errors: Any,
+                                      previous_value: Any) -> Any:
         if publish_errors is not None:
             return self.send_mail(publish_errors)
 
@@ -304,15 +337,14 @@ class AllegroAuth:
                    '&client_id={}' \
                    '&api-key={}' \
                    '&redirect_uri={}&prompt=confirm'.format(oauth_url, client_id,
-                                                           api_key,
-                                                           redirect_uri)
+                                                            api_key,
+                                                            redirect_uri)
 
         webbrowser.open(auth_url)
 
         return True
 
     def sign_in(self, client_id, client_secret, access_code, redirect_uri, oauth_url):
-
         token_url = oauth_url + '/token'
 
         access_token_data = {'grant_type': 'authorization_code',
@@ -330,16 +362,15 @@ class AllegroAuth:
 
         self.save_token_in_plugin_configuration(access_token, refresh_token, expires_in)
 
-
         return response.json()
-
 
     @staticmethod
     def save_token_in_plugin_configuration(access_token, refresh_token, expires_in):
         cleaned_data = {
             "configuration": [{"name": "token_value", "value": access_token},
-                              {"name": "token_access", "value": (datetime.now() + timedelta(
-                                  seconds=expires_in)).strftime("%d/%m/%Y %H:%M:%S")},
+                              {"name": "token_access",
+                               "value": (datetime.now() + timedelta(
+                                   seconds=expires_in)).strftime("%d/%m/%Y %H:%M:%S")},
                               {"name": "refresh_token", "value": refresh_token}]
         }
 
@@ -354,19 +385,18 @@ class AllegroAuth:
 
         access_code = request.GET["code"]
 
-        CLIENT_ID = plugin.config.client_id
-        CLIENT_SECRET = plugin.config.client_secret
-        CALLBACK_URL = plugin.config.callback_url
-        DEFAULT_REDIRECT_URI = plugin.config.redirect_url
+        client_id = plugin.config.client_id
+        client_secret = plugin.config.client_secret
+        callback_url = plugin.config.callback_url
+        default_redirect_uri = plugin.config.redirect_url
 
-        allegro_auth.sign_in(CLIENT_ID, CLIENT_SECRET, access_code,
-                             CALLBACK_URL, DEFAULT_REDIRECT_URI)
+        allegro_auth.sign_in(client_id, client_secret, access_code,
+                             callback_url, default_redirect_uri)
 
         return redirect(plugin.config.saleor_redirect_url)
 
 
 class AllegroAPI:
-
     token = None
     errors = []
 
@@ -374,9 +404,11 @@ class AllegroAPI:
         self.token = token
         self.errors = []
 
-    def refresh_token(self, refresh_token, client_id, client_secret, saleor_redirect_url, url_env):
+    def refresh_token(self, refresh_token, client_id, client_secret,
+                      saleor_redirect_url, url_env):
 
-        endpoint = 'auth/oauth/token?grant_type=refresh_token&refresh_token=' + refresh_token + '&redirect_uri=' + str(saleor_redirect_url)
+        endpoint = 'auth/oauth/token?grant_type=refresh_token&refresh_token=' + \
+                   refresh_token + '&redirect_uri=' + str(saleor_redirect_url)
 
         data = {
             'grant_type': 'refresh_token',
@@ -388,7 +420,8 @@ class AllegroAPI:
                                      client_secret=client_secret, url_env=url_env)
 
         if response.status_code == 200:
-            return json.loads(response.text)['access_token'], json.loads(response.text)['refresh_token'], json.loads(response.text)['expires_in']
+            return json.loads(response.text)['access_token'], json.loads(response.text)[
+                'refresh_token'], json.loads(response.text)['expires_in']
         else:
             return None
 
@@ -397,9 +430,14 @@ class AllegroAPI:
         config = self.get_plugin_configuration()
         env = config.get('auth_env')
 
-        if saleor_product.get_value_from_private_metadata('publish.allegro.status') == ProductPublishState.MODERATED.value and saleor_product.get_value_from_private_metadata('publish.allegro.date') is None and saleor_product.is_published == False:
+        if saleor_product.get_value_from_private_metadata(
+                'publish.allegro.status') == ProductPublishState.MODERATED.value and \
+                saleor_product.get_value_from_private_metadata(
+                    "publish.allegro.date") is None and \
+                saleor_product.is_published is False:
 
-            category_id = saleor_product.product_type.metadata.get('allegro.mapping.categoryId')
+            category_id = saleor_product.product_type.metadata.get(
+                'allegro.mapping.categoryId')
 
             require_parameters = self.get_require_parameters(category_id)
 
@@ -412,8 +450,10 @@ class AllegroAPI:
 
             try:
                 product = product_mapper.set_saleor_product(saleor_product) \
-                .set_saleor_images(self.upload_images(saleor_product)) \
-                .set_saleor_parameters(parameters).set_obj_publication_starting_at(starting_at).set_offer_type(offer_type).set_category(category_id).run_mapper()
+                    .set_saleor_images(self.upload_images(saleor_product)) \
+                    .set_saleor_parameters(parameters).set_obj_publication_starting_at(
+                    starting_at).set_offer_type(offer_type).set_category(
+                    category_id).run_mapper()
             except IndexError as err:
                 self.errors.append(str(err))
                 self.update_errors_in_private_metadata(saleor_product,
@@ -422,37 +462,48 @@ class AllegroAPI:
 
             offer = self.publish_to_allegro(allegro_product=product)
 
-
             if 'error' in offer:
                 self.errors.append(offer.get('error_description'))
-                self.update_errors_in_private_metadata(saleor_product, [error for error in self.errors])
+                self.update_errors_in_private_metadata(saleor_product,
+                                                       [error for error in self.errors])
                 return None
             elif 'errors' in offer:
                 self.errors += offer['errors']
-                self.update_errors_in_private_metadata(saleor_product, [error.get('message') for error in self.errors])
+                self.update_errors_in_private_metadata(saleor_product, [
+                    error.get('message') if type(error) is not str else error for error
+                    in self.errors])
                 return None
             else:
-                if offer is not None and offer.get('validation').get('errors') is not None:
+                if offer is not None and offer.get('validation').get(
+                        'errors') is not None:
                     if len(offer['validation'].get('errors')) > 0:
                         for error in offer['validation'].get('errors'):
-                            logger.error((error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore'))
-                            self.errors.append((error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore'))
-                        self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, self.errors)
+                            logger.error((error[
+                                  'message'] + ' dla ogłoszenia: ' + env + '/offer/' +
+                                          offer['id'] + '/restore'))
+                            self.errors.append((error[
+                                    'message'] + ' dla ogłoszenia: ' + env + '/offer/' +
+                                                offer['id'] + '/restore'))
+                        self.update_status_and_publish_data_in_private_metadata(
+                            saleor_product, offer['id'],
+                            ProductPublishState.MODERATED.value, False, self.errors)
                     else:
                         offer_publication = self.offer_publication(offer['id'])
                         self.update_status_and_publish_data_in_private_metadata(
-                            saleor_product, offer['id'], ProductPublishState.PUBLISHED.value, True, self.errors)
-                else:
-                    self.update_status_and_publish_data_in_private_metadata(
-                        saleor_product, offer['id'],
-                        ProductPublishState.MODERATED.value, False, self.errors)
+                            saleor_product, offer['id'],
+                            ProductPublishState.PUBLISHED.value, True, self.errors)
 
                 return offer['id']
 
-        if saleor_product.get_value_from_private_metadata('publish.allegro.status') == ProductPublishState.MODERATED.value and saleor_product.get_value_from_private_metadata('publish.allegro.date') is not None and saleor_product.is_published == False:
+        if saleor_product.get_value_from_private_metadata('publish.allegro.status') == \
+                ProductPublishState.MODERATED.value and \
+                saleor_product.get_value_from_private_metadata(
+                    'publish.allegro.date') is not None and \
+                saleor_product.is_published is False:
             offer_id = saleor_product.private_metadata.get('publish.allegro.id')
             if offer_id is not None:
-                offer_update = self.update_offer(saleor_product, starting_at, offer_type)
+                offer_update = self.update_offer(saleor_product, starting_at,
+                                                 offer_type)
                 logger.info('Offer update: ' + str(offer_update))
 
                 offer = self.valid_offer(offer_id)
@@ -470,13 +521,21 @@ class AllegroAPI:
                 elif offer['validation'].get('errors') is not None:
                     if len(offer['validation'].get('errors')) > 0:
                         for error in offer['validation'].get('errors'):
-                            logger.error((error['message'] + ' dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore'))
-                            self.errors.append((error['message'] + 'dla ogłoszenia: ' + env + '/offer/' + offer['id'] + '/restore'))
-                        self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.MODERATED.value, False, self.errors)
+                            logger.error((error[
+                                  'message'] + ' dla ogłoszenia: ' + env + '/offer/' +
+                                          offer['id'] + '/restore'))
+                            self.errors.append((error[
+                                    'message'] + 'dla ogłoszenia: ' + env + '/offer/' +
+                                                offer['id'] + '/restore'))
+                        self.update_status_and_publish_data_in_private_metadata(
+                            saleor_product, offer['id'],
+                            ProductPublishState.MODERATED.value, False, self.errors)
                     else:
-                        self.offer_publication(saleor_product.private_metadata.get('publish.allegro.id'))
-                        self.update_status_and_publish_data_in_private_metadata(saleor_product, offer['id'], ProductPublishState.PUBLISHED.value, True, self.errors)
-
+                        self.offer_publication(
+                            saleor_product.private_metadata.get('publish.allegro.id'))
+                        self.update_status_and_publish_data_in_private_metadata(
+                            saleor_product, offer['id'],
+                            ProductPublishState.PUBLISHED.value, True, self.errors)
 
     def update_offer(self, saleor_product, starting_at, offer_type):
 
@@ -493,7 +552,7 @@ class AllegroAPI:
             .set_saleor_parameters(parameters).set_obj_publication_starting_at(
             starting_at).set_offer_type(offer_type).set_category(
             category_id).run_mapper()
-        offer = self.update_allegro_offer(allegro_product=product, id=offer_id)
+        offer = self.update_allegro_offer(allegro_product=product, allegro_id=offer_id)
         return offer
 
     @staticmethod
@@ -509,12 +568,11 @@ class AllegroAPI:
         response = self.post_request(endpoint=endpoint, data=allegro_product)
         return json.loads(response.text)
 
+    def update_allegro_offer(self, allegro_product, allegro_id):
 
-    def update_allegro_offer(self, allegro_product, id):
+        endpoint = 'sale/offers/' + allegro_id
 
-        endpoint = 'sale/offers/' + id
-
-        allegro_product['id'] = id
+        allegro_product['id'] = allegro_id
 
         response = self.put_request(endpoint=endpoint, data=allegro_product)
         return json.loads(response.text)
@@ -531,7 +589,6 @@ class AllegroAPI:
 
         logger.info("Post request url: " + str(url))
         logger.info("Post request headers: " + str(headers))
-
 
         response = requests.post(url, data=json.dumps(data), headers=headers)
 
@@ -588,8 +645,9 @@ class AllegroAPI:
         endpoint = 'sale/categories/' + category_id + '/parameters'
         response = self.get_request(endpoint)
         try:
-            require_params = [param for param in json.loads(response.text)['parameters'] if
-                         param['required'] == True]
+            require_params = [param for param in json.loads(response.text)['parameters']
+                              if
+                              param['required'] is True]
         except KeyError as err:
             self.errors.append('Key error ' + str(err))
             logger.error(err)
@@ -598,7 +656,8 @@ class AllegroAPI:
 
     def upload_images(self, saleor_product):
 
-        images_url = [pi.image.url.replace('/media', '') for pi in ProductImage.objects.filter(product=saleor_product)]
+        images_url = [pi.image.url.replace('/media', '') for pi in
+                      ProductImage.objects.filter(product=saleor_product)]
 
         return [self.upload_image(image_url) for image_url in images_url]
 
@@ -612,7 +671,7 @@ class AllegroAPI:
 
         response = self.post_request(endpoint=endpoint, data=data)
 
-        logger.info("Upload images response " +  str(json.loads(response.text)))
+        logger.info("Upload images response " + str(json.loads(response.text)))
 
         try:
             return json.loads(response.text)['location']
@@ -620,11 +679,14 @@ class AllegroAPI:
             logger.error(err)
             self.errors.append('Key error ' + str(err))
 
-    def update_status_and_publish_data_in_private_metadata(self, product, allegro_offer_id, status, is_published, errors):
+    def update_status_and_publish_data_in_private_metadata(self, product,
+                                                           allegro_offer_id, status,
+                                                           is_published, errors):
         product.store_value_in_private_metadata({'publish.allegro.status': status})
         product.store_value_in_private_metadata(
             {'publish.allegro.date': datetime.today().strftime('%Y-%m-%d %H:%M:%S')})
-        product.store_value_in_private_metadata({'publish.allegro.id': str(allegro_offer_id)})
+        product.store_value_in_private_metadata(
+            {'publish.allegro.id': str(allegro_offer_id)})
         self.update_errors_in_private_metadata(product, errors)
         product.is_published = is_published
         product.save(update_fields=["private_metadata", "is_published"])
@@ -705,27 +767,31 @@ class BaseParametersMapper:
 
         for assigned_product_attribute in assigned_product_attributes:
             try:
-                attributes[slugify(str(assigned_product_attribute.assignment.attribute.slug))] = \
-                    str(AttributeValue.objects.get(assignedproductattribute=assigned_product_attribute))
+                attributes[slugify(
+                    str(assigned_product_attribute.assignment.attribute.slug))] = \
+                    str(AttributeValue.objects.get(
+                        assignedproductattribute=assigned_product_attribute))
 
             except AttributeValue.DoesNotExist:
                 pass
-
 
         attributes_name = attributes.keys()
 
         return attributes, attributes_name
 
-    # TODO: rebuild, too much if conditionals, and add case when dictionary is empty like for bluzki dzieciece
+    # TODO: rebuild, too much if conditionals, and add case when dictionary is empty
+    #  like for bluzki dzieciece
     def create_allegro_parameter(self, mapped_parameter_key, mapped_parameter_value):
-
 
         key = self.get_allegro_key(mapped_parameter_key)
 
         if key.get('dictionary') is None:
-            if mapped_parameter_value is not None and mapped_parameter_value.isnumeric():
-                value = self.set_allegro_typed_value(key, mapped_parameter_value)
-                return value
+            if mapped_parameter_value is not None:
+                if mapped_parameter_value.isnumeric():
+                    value = self.set_allegro_typed_value(key, mapped_parameter_value)
+                    return value
+                else:
+                    return None
             else:
                 return None
         else:
@@ -741,10 +807,10 @@ class BaseParametersMapper:
     def set_allegro_value(param, mapped_value):
         if mapped_value is not None:
             value = next((value for value in param['dictionary'] if
-                      value["value"].lower() == mapped_value.lower()), None)
+                          value["value"].lower() == mapped_value.lower()), None)
             if value is not None:
                 return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
-                    "rangeValue": None}
+                        "rangeValue": None}
 
     @staticmethod
     def set_allegro_fuzzy_value(param, mapped_value):
@@ -753,7 +819,7 @@ class BaseParametersMapper:
                           mapped_value.lower()[:-1] in value["value"].lower()), None)
             if value is not None:
                 return {'id': param['id'], 'valuesIds': [value['id']], "values": [],
-                    "rangeValue": None}
+                        "rangeValue": None}
 
     @staticmethod
     def set_allegro_typed_value(param, value):
@@ -761,12 +827,13 @@ class BaseParametersMapper:
             return {'id': param['id'], 'valuesIds': [],
                     "values": [value], "rangeValue": None}
 
-    def create_allegro_fuzzy_parameter(self, mapped_parameter_key, mapped_parameter_value):
+    def create_allegro_fuzzy_parameter(self, mapped_parameter_key,
+                                       mapped_parameter_value):
         key = self.get_allegro_key(mapped_parameter_key)
         if key is not None:
             value = self.set_allegro_fuzzy_value(key, mapped_parameter_value)
+            return value
 
-        return value
 
 class AllegroParametersMapper(BaseParametersMapper):
 
@@ -780,7 +847,8 @@ class AllegroParametersMapper(BaseParametersMapper):
         self.set_product_attributes(attributes)
 
         for require_parameter in self.require_parameters:
-            self.mapped_parameters.append(self.get_allegro_parameter(require_parameter['name']))
+            self.mapped_parameters.append(
+                self.get_allegro_parameter(require_parameter['name']))
 
         return self.mapped_parameters
 
@@ -789,34 +857,39 @@ class AllegroParametersMapper(BaseParametersMapper):
         if parameter == 'Materiał dominujący':
             return 'Materiał'
 
-        map = self.product.product_type.metadata.get('allegro.mapping.attributes')
-        if map is not None:
-            map = [m for m in map if '*' not in m]
-            if bool(map):
-                return self.parse_list_to_map(map).get(parameter)
-
+        custom_map = self.product.product_type.metadata.get(
+            'allegro.mapping.attributes')
+        if custom_map is not None:
+            custom_map = [m for m in custom_map if '*' not in m]
+            if bool(custom_map):
+                return self.parse_list_to_map(custom_map).get(parameter)
 
     def get_global_parameter_key(self, parameter):
         config = self.get_plugin_configuration()
-        map = config.get('allegro.mapping.' + self.parse_parameters_name(parameter))
-        if map is not None:
-            if bool(map):
-                if isinstance(map, str):
-                    return self.parse_list_to_map(json.loads(map.replace('\'', '\"'))).get(parameter)
+        custom_map = config.get(
+            'allegro.mapping.' + self.parse_parameters_name(parameter))
+        if custom_map is not None:
+            if bool(custom_map):
+                if isinstance(custom_map, str):
+                    return self.parse_list_to_map(
+                        json.loads(custom_map.replace('\'', '\"'))).get(parameter)
                 else:
-                    if isinstance(map, list):
-                        return self.parse_list_to_map((map)).get(parameter)
+                    if isinstance(custom_map, list):
+                        return self.parse_list_to_map(custom_map).get(parameter)
                     else:
-                        return self.parse_list_to_map(json.loads(map)).get(parameter)
+                        return self.parse_list_to_map(json.loads(custom_map)).get(
+                            parameter)
 
     def get_global_parameter_map(self, parameter):
         config = self.get_plugin_configuration()
-        map = config.get('allegro.mapping.' + parameter)
-        if map is not None:
-            if isinstance(map, str):
-                return self.parse_list_to_map(json.loads(map.replace('\'', '\"')))
+        custom_map = config.get('allegro.mapping.' + parameter)
+        if custom_map is not None:
+            if isinstance(custom_map, str):
+                return self.parse_list_to_map(
+                    json.loads(custom_map.replace('\'', '\"')))
             else:
-                return self.parse_list_to_map((map))
+                pass
+                # return self.parse_list_to_map((custom_map))
 
     @staticmethod
     def parse_list_to_map(list_in):
@@ -834,28 +907,33 @@ class AllegroParametersMapper(BaseParametersMapper):
 
     def get_mapped_parameter_value(self, parameter):
         mapped_parameter_map = self.get_global_parameter_map(parameter)
-        if mapped_parameter_map is not None and mapped_parameter_map.get(self.product_attributes.get(parameter)) is not None:
+        if mapped_parameter_map is not None and mapped_parameter_map.get(
+                self.product_attributes.get(parameter)) is not None:
             return mapped_parameter_map.get(self.product_attributes.get(parameter))
 
         return self.product_attributes.get(parameter)
 
     def get_mapped_parameter_key_and_value(self, parameter):
 
-        mapped_parameter_key = self.get_specific_parameter_key(parameter) or self.get_global_parameter_key(parameter) or parameter
-        mapped_parameter_value = self.get_parameter_out_of_saleor_specyfic(str(mapped_parameter_key)) # or self.get_parameter_out_of_saleor_global(str(mapped_parameter_key))
+        mapped_parameter_key = self.get_specific_parameter_key(
+            parameter) or self.get_global_parameter_key(parameter) or parameter
+        mapped_parameter_value = self.get_parameter_out_of_saleor_specyfic(str(
+            mapped_parameter_key))
 
         if mapped_parameter_value is not None:
             return mapped_parameter_key, mapped_parameter_value
-        mapped_parameter_value = self.product_attributes.get(slugify(str(mapped_parameter_key)))
+        mapped_parameter_value = self.product_attributes.get(
+            slugify(str(mapped_parameter_key)))
 
         return mapped_parameter_key, mapped_parameter_value
 
     def get_parameter_out_of_saleor_specyfic(self, parameter):
-        map = self.product.product_type.metadata.get('allegro.mapping.attributes')
-        if map is not None:
-            map = [m for m in map if '*' in m]
-            if bool(map):
-                return self.parse_list_to_map(map).get(parameter)
+        custom_map = self.product.product_type.metadata.get(
+            'allegro.mapping.attributes')
+        if custom_map is not None:
+            custom_map = [m for m in custom_map if '*' in m]
+            if bool(custom_map):
+                return self.parse_list_to_map(custom_map).get(parameter)
 
     def get_parameter_out_of_saleor_global(self, parameter):
         mapped_parameter_map = self.get_global_parameter_map(slugify(parameter))
@@ -873,25 +951,37 @@ class AllegroParametersMapper(BaseParametersMapper):
             return mapped_parameter_map.get("!")
 
     def get_allegro_parameter(self, parameter):
-        mapped_parameter_key, mapped_parameter_value = self.get_mapped_parameter_key_and_value(parameter)
-        allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
+        mapped_parameter_key, mapped_parameter_value = \
+            self.get_mapped_parameter_key_and_value(parameter)
+        allegro_parameter = self.create_allegro_parameter(slugify(parameter),
+                                                          mapped_parameter_value)
 
         if allegro_parameter is None:
-            mapped_parameter_value = self.get_value_one_to_one_global(mapped_parameter_key, mapped_parameter_value)
-            allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
+            mapped_parameter_value = self.get_value_one_to_one_global(
+                mapped_parameter_key, mapped_parameter_value)
+            allegro_parameter = self.create_allegro_parameter(slugify(parameter),
+                                                              mapped_parameter_value)
 
         if allegro_parameter is None:
-            mapped_parameter_value = self.get_parameter_out_of_saleor_global(mapped_parameter_key)
-            allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
+            mapped_parameter_value = self.get_parameter_out_of_saleor_global(
+                mapped_parameter_key)
+            allegro_parameter = self.create_allegro_parameter(slugify(parameter),
+                                                              mapped_parameter_value)
 
         if allegro_parameter is None:
-            mapped_parameter_value = self.get_universal_value_parameter(slugify(mapped_parameter_key))
-            allegro_parameter = self.create_allegro_parameter(slugify(parameter), mapped_parameter_value)
+            mapped_parameter_value = self.get_universal_value_parameter(
+                slugify(mapped_parameter_key))
+            allegro_parameter = self.create_allegro_parameter(slugify(parameter),
+                                                              mapped_parameter_value)
 
         if allegro_parameter is None:
             if mapped_parameter_value is None:
-                mapped_parameter_value = self.get_parameter_out_of_saleor_global(mapped_parameter_key) or self.product_attributes.get(slugify(str(mapped_parameter_key)))
-            allegro_parameter = self.create_allegro_fuzzy_parameter(slugify(parameter), str(mapped_parameter_value))
+                mapped_parameter_value = self.get_parameter_out_of_saleor_global(
+                    mapped_parameter_key) or self.product_attributes.get(
+                    slugify(str(mapped_parameter_key)))
+            allegro_parameter = self.create_allegro_fuzzy_parameter(slugify(parameter),
+                                                                    str(
+                                                                        mapped_parameter_value))
 
         return allegro_parameter
 
@@ -1004,7 +1094,8 @@ class AllegroProductMapper:
         return self
 
     def set_starting_price_currency(self, starting_price_currency):
-        self.product['sellingMode']['startingPrice']['currency'] = starting_price_currency
+        self.product['sellingMode']['startingPrice'][
+            'currency'] = starting_price_currency
         return self
 
     def set_name(self, name):
@@ -1022,7 +1113,8 @@ class AllegroProductMapper:
 
     @staticmethod
     def parse_list_to_map(list_in):
-        return {item['text'].split(":")[0]: item['text'].split(":")[1].strip() for item in list_in if len(item['text'].split(':')) > 1}
+        return {item['text'].split(":")[0]: item['text'].split(":")[1].strip() for item
+                in list_in if len(item['text'].split(':')) > 1}
 
     def set_description(self, product):
         product_sections = []
@@ -1035,11 +1127,24 @@ class AllegroProductMapper:
 
         product_items.append({
             'type': 'TEXT',
-            'content': '<h1>Charakterystyka produktu</h1><p></p>' + ''.join(['<p>' + '<b>' + element[0] + ': ' + '</b>' + element[1].replace('&', '&amp;') + '</p>' for element in product_description.items() if element[0] != 'Jakość'])
+            'content': '<h1>Charakterystyka produktu</h1><p></p>' + ''.join([
+                '<p>' + '<b>' +
+                element[
+                    0] + ': ' + '</b>' +
+                element[
+                    1].replace(
+                    '&',
+                    '&amp;') + '</p>'
+                for
+                element
+                in
+                product_description.items()
+                if
+                element[
+                    0] != 'Jakość'])
         })
 
         product_sections.append({'items': product_items})
-
 
         product_items = [{
             'type': 'TEXT',
@@ -1056,15 +1161,12 @@ class AllegroProductMapper:
 
         product_sections.append({'items': product_items})
 
-
         product_items = [{
             'type': 'IMAGE',
             'url': self.saleor_images[0]
         }]
 
         product_sections.append({'items': product_items})
-
-
 
         self.product['description']['sections'] = product_sections
 
@@ -1153,7 +1255,6 @@ class AllegroProductMapper:
         config = self.get_plugin_configuration()
         return config.get('implied_warranty')
 
-
     def get_return_policy(self):
         config = self.get_plugin_configuration()
         return config.get('return_policy')
@@ -1188,8 +1289,6 @@ class AllegroProductMapper:
     def get_offer_type(self):
         return self.offer_type
 
-
-
     def run_mapper(self):
         self.set_implied_warranty(self.get_implied_warranty())
         self.set_return_policy(self.get_return_policy())
@@ -1214,7 +1313,8 @@ class AllegroProductMapper:
                 str(product_variant.price_amount))
             self.set_price_currency(product_variant.currency)
         else:
-            product_variant = ProductVariant.objects.filter(product=self.saleor_product).first()
+            product_variant = ProductVariant.objects.filter(
+                product=self.saleor_product).first()
             self.set_starting_price_amount(
                 str(product_variant.price_amount))
             self.set_starting_price_currency(product_variant.currency)
@@ -1231,14 +1331,18 @@ class AllegroProductMapper:
         self.set_publication_duration(self.get_publication_duration())
         self.set_publication_ending_at('')
         if self.get_publication_starting_at() is not None:
-            if datetime.strptime(self.get_publication_starting_at(), '%Y-%m-%d %H:%M') > (datetime.now() + timedelta(hours=2)):
-                self.set_publication_starting_at(str((datetime.strptime(self.get_publication_starting_at(), '%Y-%m-%d %H:%M') - timedelta(
-                                  hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ")))
+            if datetime.strptime(self.get_publication_starting_at(),
+                                 '%Y-%m-%d %H:%M') > (
+                    datetime.now() + timedelta(hours=2)):
+                self.set_publication_starting_at(str((datetime.strptime(
+                    self.get_publication_starting_at(), '%Y-%m-%d %H:%M') - timedelta(
+                    hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ")))
 
         self.set_publication_status('INACTIVE')
         self.set_publication_ended_by('USER')
         self.set_publication_republish('False')
 
         self.set_parameters(self.saleor_parameters)
-        self.set_external(str(ProductVariant.objects.filter(product=self.saleor_product).first()))
+        self.set_external(
+            str(ProductVariant.objects.filter(product=self.saleor_product).first()))
         return self.product
