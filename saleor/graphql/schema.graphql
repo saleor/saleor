@@ -3791,6 +3791,7 @@ input ProductFilterInput {
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   productTypes: [ID]
+  ids: [ID]
 }
 
 type ProductImage implements Node {
