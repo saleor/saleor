@@ -80,6 +80,18 @@ class GiftCardCreate(ModelMutation):
                         )
                     }
                 )
+
+        start_date = cleaned_input.get("start_date", None)
+        end_date = cleaned_input.get("end_date", None)
+        if start_date and end_date and start_date > end_date:
+            raise ValidationError(
+                {
+                    "end_date": ValidationError(
+                        "End date for the gift card cannot be before the start date",
+                        code=GiftCardErrorCode.INVALID
+                    )
+                }
+            )
         return cleaned_input
 
 

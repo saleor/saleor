@@ -168,6 +168,18 @@ class VoucherCreate(ModelMutation):
                 error.code = DiscountErrorCode.INVALID.value
                 raise ValidationError({"min_spent_amount": error})
             cleaned_input["min_spent_amount"] = min_spent_amount
+
+        start_date = cleaned_input.get("start_date", None)
+        end_date = cleaned_input.get("end_date", None)
+        if start_date and end_date and start_date > end_date:
+            raise ValidationError(
+                {
+                    "end_date": ValidationError(
+                        "End date for discount cannot be before the start date",
+                        code=DiscountErrorCode.INVALID
+                    )
+                }
+            )
         return cleaned_input
 
 

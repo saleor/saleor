@@ -64,9 +64,3 @@ class GiftCard(models.Model):
     @property
     def display_code(self):
         return "****%s" % self.code[-4:]
-
-    def save(self, *args, **kwargs):
-        if self.end_date is not None:
-            error_message = "End date for the gift card cannot be before the start date"
-            assert self.start_date < self.end_date, error_message
-        super().save(*args, **kwargs)
