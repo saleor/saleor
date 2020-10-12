@@ -4,8 +4,7 @@ import graphene
 import pytest
 from freezegun import freeze_time
 
-from saleor.product.models import Product
-
+from ....product.models import Product
 from ...tests.utils import get_graphql_content
 
 COLLECTION_RESORT_QUERY = """
