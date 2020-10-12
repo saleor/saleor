@@ -23,9 +23,7 @@ from .bulk_mutations.attributes import AttributeBulkDelete, AttributeValueBulkDe
 from .bulk_mutations.products import (
     CategoryBulkDelete,
     CollectionBulkDelete,
-    CollectionBulkPublish,
     ProductBulkDelete,
-    ProductBulkPublish,
     ProductImageBulkDelete,
     ProductTypeBulkDelete,
     ProductVariantBulkCreate,
@@ -439,7 +437,6 @@ class ProductMutations(graphene.ObjectType):
     collection_delete = CollectionDelete.Field()
     collection_reorder_products = CollectionReorderProducts.Field()
     collection_bulk_delete = CollectionBulkDelete.Field()
-    collection_bulk_publish = CollectionBulkPublish.Field()
     collection_remove_products = CollectionRemoveProducts.Field()
     collection_update = CollectionUpdate.Field()
     collection_translate = CollectionTranslate.Field()
@@ -471,7 +468,6 @@ class ProductMutations(graphene.ObjectType):
     product_create = ProductCreate.Field()
     product_delete = ProductDelete.Field()
     product_bulk_delete = ProductBulkDelete.Field()
-    product_bulk_publish = ProductBulkPublish.Field()
     product_update = ProductUpdate.Field()
     product_translate = ProductTranslate.Field()
     product_update_metadata = ProductUpdateMeta.Field(

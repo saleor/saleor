@@ -15,12 +15,7 @@ from ....warehouse import models as warehouse_models
 from ....warehouse.error_codes import StockErrorCode
 from ...channel import ChannelContext
 from ...channel.types import Channel
-from ...core.mutations import (
-    BaseBulkMutation,
-    BaseMutation,
-    ModelBulkDeleteMutation,
-    ModelMutation,
-)
+from ...core.mutations import BaseMutation, ModelBulkDeleteMutation, ModelMutation
 from ...core.types.common import (
     BulkProductError,
     BulkStockError,
@@ -73,30 +68,6 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
-
-
-class CollectionBulkPublish(BaseBulkMutation):
-    class Arguments:
-        ids = graphene.List(
-            graphene.ID,
-            required=True,
-            description="List of collections IDs to (un)publish.",
-        )
-        is_published = graphene.Boolean(
-            required=True,
-            description="Determine if collections will be published or not.",
-        )
-
-    class Meta:
-        description = "Publish collections."
-        model = models.Collection
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-    @classmethod
-    def bulk_action(cls, queryset, is_published):
-        queryset.update(is_published=is_published)
 
 
 class ProductBulkDelete(ModelBulkDeleteMutation):
@@ -667,24 +638,3 @@ class ProductImageBulkDelete(ModelBulkDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
-
-
-class ProductBulkPublish(BaseBulkMutation):
-    class Arguments:
-        ids = graphene.List(
-            graphene.ID, required=True, description="List of products IDs to publish."
-        )
-        is_published = graphene.Boolean(
-            required=True, description="Determine if products will be published or not."
-        )
-
-    class Meta:
-        description = "Publish products."
-        model = models.Product
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-    @classmethod
-    def bulk_action(cls, queryset, is_published):
-        queryset.update(is_published=is_published)
