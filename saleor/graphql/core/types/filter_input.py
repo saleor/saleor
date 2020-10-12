@@ -66,7 +66,7 @@ class FilterInputObjectType(InputObjectType):
 
 class ChannelFilterInputObjectType(FilterInputObjectType):
     channel = Argument(
-        String, description="Specifies the channel in which to sort the data.",
+        String, description="Specifies the channel by which the data should be sorted.",
     )
 
     class Meta:

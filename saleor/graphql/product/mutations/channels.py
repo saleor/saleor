@@ -87,15 +87,15 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def clean_available_for_purchase(cls, cleaned_input, errors: ErrorType):
-        channels_wit_invalid_available_for_purchase = []
+        channels_with_invalid_available_for_purchase = []
         for add_channel in cleaned_input.get("add_channels", []):
             is_available_for_purchase = add_channel.get("is_available_for_purchase")
             available_for_purchase_date = add_channel.get("available_for_purchase_date")
             if not is_available_for_purchase and available_for_purchase_date:
-                channels_wit_invalid_available_for_purchase.append(
+                channels_with_invalid_available_for_purchase.append(
                     add_channel["channel_id"]
                 )
-        if channels_wit_invalid_available_for_purchase:
+        if channels_with_invalid_available_for_purchase:
             error_msg = (
                 "Cannot set available for purchase date when"
                 " isAvailableForPurchase is false."
@@ -104,7 +104,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
                 ValidationError(
                     error_msg,
                     code=ProductErrorCode.INVALID.value,
-                    params={"channels": channels_wit_invalid_available_for_purchase},
+                    params={"channels": channels_with_invalid_available_for_purchase},
                 )
             )
 
@@ -131,15 +131,10 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
     def add_channels(cls, product: "ProductModel", add_channels: List[Dict]):
         for add_channel in add_channels:
             defaults = {}
-            is_published = add_channel.get("is_published", None)
-            if is_published is not None:
-                defaults["is_published"] = is_published
-            publication_date = add_channel.get("publication_date", None)
-            if publication_date:
-                defaults["publication_date"] = publication_date
-            visible_in_listings = add_channel.get("visible_in_listings", None)
-            if visible_in_listings is not None:
-                defaults["visible_in_listings"] = visible_in_listings
+            for field in ["is_published", "publication_date", "visible_in_listings"]:
+                field_value = add_channel.get(field, None)
+                if field_value is not None:
+                    defaults[field] = field_value
             is_available_for_purchase = add_channel.get("is_available_for_purchase")
             available_for_purchase_date = add_channel.get("available_for_purchase_date")
             if is_available_for_purchase is not None:
