@@ -5,10 +5,10 @@ from django.db import migrations
 
 def set_missing_page_publication_date(apps, schema_editor):
     Page = apps.get_model("page", "Page")
-    published_product = Page.objects.filter(
+    published_page = Page.objects.filter(
         publication_date__isnull=True, is_published=True
     )
-    published_product.update(publication_date=date.today())
+    published_page.update(publication_date=date.today())
 
 
 class Migration(migrations.Migration):
