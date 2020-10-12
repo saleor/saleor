@@ -70,7 +70,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix get unpublished products, product variants and collection as app - #6194 by @fowczarek
 - Set OrderFulfillStockInput fields as required - #6196 by @IKarbowiak
 - Fix attribute filtering by categories and collections - #6214 by @fowczarek
-
+- Fix is_visible when publication_date==today - #6225 by @korycins
 ## 2.10.2
 
 - Add command to change currencies in the database - #5906 by @d-wysocki
