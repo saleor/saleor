@@ -340,7 +340,7 @@ class MenuItemTranslatableContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_menu_item(root: menu_models.MenuItem, _info):
-        return root
+        return ChannelContext(node=root, channel_slug=None)
 
 
 class ShippingMethodTranslation(BaseTranslationType):

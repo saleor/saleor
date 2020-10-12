@@ -249,16 +249,21 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_navigation(_, info):
         site_settings = info.context.site.settings
-        main = (
-            MenuByIdLoader(info.context).load(site_settings.top_menu_id)
-            if site_settings.top_menu_id
-            else None
-        )
-        secondary = (
-            MenuByIdLoader(info.context).load(site_settings.bottom_menu_id)
-            if site_settings.bottom_menu_id
-            else None
-        )
+        main = None
+        if site_settings.top_menu_id:
+            main = (
+                MenuByIdLoader(info.context)
+                .load(site_settings.top_menu_id)
+                .then(lambda menu: ChannelContext(node=menu, channel_slug=None))
+            )
+        secondary = None
+        if site_settings.bottom_menu_id:
+            secondary = (
+                MenuByIdLoader(info.context)
+                .load(site_settings.bottom_menu_id)
+                .then(lambda menu: ChannelContext(node=menu, channel_slug=None))
+            )
+
         return Navigation(main=main, secondary=secondary)
 
     @staticmethod

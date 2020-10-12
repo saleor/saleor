@@ -2,6 +2,7 @@ from ...channel.models import Channel
 from ..checkout.dataloaders import CheckoutByIdLoader, CheckoutLineByIdLoader
 from ..core.dataloaders import DataLoader
 from ..product.dataloaders import (
+    CollectionChannelListingByIdLoader,
     ProductChannelListingByIdLoader,
     ProductVariantChannelListingByIdLoader,
 )
@@ -63,7 +64,7 @@ class ChannelByCollectionChannelListingIDLoader(DataLoader):
             return ChannelByIdLoader(self.context).load_many(channel_ids)
 
         return (
-            ChannelByCollectionChannelListingIDLoader(self.context)
+            CollectionChannelListingByIdLoader(self.context)
             .load_many(keys)
             .then(channel_by_collection_channel_listing)
         )

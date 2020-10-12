@@ -6,15 +6,22 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from ....core.permissions import ProductPermissions
-from ....product.error_codes import ProductErrorCode
-from ....product.models import ProductChannelListing, ProductVariantChannelListing
+from ....product.error_codes import CollectionErrorCode, ProductErrorCode
+from ....product.models import (
+    CollectionChannelListing,
+    ProductChannelListing,
+    ProductVariantChannelListing,
+)
 from ....product.tasks import update_product_discounted_price_task
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types.common import ProductChannelListingError
+from ...core.types.common import (
+    CollectionChannelListingError,
+    ProductChannelListingError,
+)
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
 from ..types.products import Collection, Product, ProductVariant
@@ -22,6 +29,7 @@ from ..types.products import Collection, Product, ProductVariant
 if TYPE_CHECKING:
     from ....product.models import (
         Product as ProductModel,
+        Collection as CollectionModel,
         ProductVariant as ProductVariantModel,
     )
     from ....channel.models import Channel as ChannelModel
@@ -312,34 +320,31 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
     class Meta:
         description = "Manage collection's availability in channels."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductChannelListingError
+        error_type_class = CollectionChannelListingError
         error_type_field = "collection_channel_listing_errors"
 
     @classmethod
-    def add_channels(cls, product: "ProductModel", add_channels: List[Dict]):
+    def add_channels(cls, collection: "CollectionModel", add_channels: List[Dict]):
         for add_channel in add_channels:
             defaults = {
                 "is_published": add_channel.get("is_published"),
                 "publication_date": add_channel.get("publication_date", None),
             }
-            ProductChannelListing.objects.update_or_create(
-                product=product, channel=add_channel["channel"], defaults=defaults
+            CollectionChannelListing.objects.update_or_create(
+                collection=collection, channel=add_channel["channel"], defaults=defaults
             )
 
     @classmethod
-    def remove_channels(cls, product: "ProductModel", remove_channels: List[int]):
-        ProductChannelListing.objects.filter(
-            product=product, channel_id__in=remove_channels
-        ).delete()
-        ProductVariantChannelListing.objects.filter(
-            variant__product_id=product.pk, channel_id__in=remove_channels
+    def remove_channels(cls, collection: "CollectionModel", remove_channels: List[int]):
+        CollectionChannelListing.objects.filter(
+            collection=collection, channel_id__in=remove_channels
         ).delete()
 
     @classmethod
     @transaction.atomic()
-    def save(cls, info, product: "ProductModel", cleaned_input: Dict):
-        cls.add_channels(product, cleaned_input.get("add_channels", []))
-        cls.remove_channels(product, cleaned_input.get("remove_channels", []))
+    def save(cls, info, collection: "CollectionModel", cleaned_input: Dict):
+        cls.add_channels(collection, cleaned_input.get("add_channels", []))
+        cls.remove_channels(collection, cleaned_input.get("remove_channels", []))
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):
@@ -347,12 +352,12 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
         errors = defaultdict(list)
 
         cleaned_input = cls.clean_channels(
-            info, input, errors, ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+            info, input, errors, CollectionErrorCode.DUPLICATED_INPUT_ITEM.value,
         )
         if errors:
             raise ValidationError(errors)
 
         cls.save(info, collection, cleaned_input)
         return CollectionChannelListingUpdate(
-            product=ChannelContext(node=collection, channel_slug=None)
+            collection=ChannelContext(node=collection, channel_slug=None)
         )

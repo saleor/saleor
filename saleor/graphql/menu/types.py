@@ -2,10 +2,11 @@ import graphene
 from graphene import relay
 
 from ...menu import models
-from ..channel.types import ChannelContext
+from ...product.models import Collection
+from ..channel.types import ChannelContext, ChannelContextType
 from ..core.connection import CountableDjangoObjectType
 from ..page.dataloaders import PageByIdLoader
-from ..product.dataloaders import CategoryByIdLoader, CollectionByIdLoader
+from ..product.dataloaders import CategoryByIdLoader
 from ..translations.fields import TranslationField
 from ..translations.types import MenuItemTranslation
 from .dataloaders import (
@@ -16,10 +17,11 @@ from .dataloaders import (
 )
 
 
-class Menu(CountableDjangoObjectType):
+class Menu(ChannelContextType, CountableDjangoObjectType):
     items = graphene.List(lambda: MenuItem)
 
     class Meta:
+        default_resolver = ChannelContextType.resolver_with_context
         description = (
             "Represents a single menu - an object that is used to help navigate "
             "through the store."
@@ -29,16 +31,28 @@ class Menu(CountableDjangoObjectType):
         model = models.Menu
 
     @staticmethod
-    def resolve_items(root: models.Menu, info, **_kwargs):
-        return MenuItemsByParentMenuLoader(info.context).load(root.id)
+    def resolve_items(root: ChannelContext[models.Menu], info, **_kwargs):
+        menu_items = MenuItemsByParentMenuLoader(info.context).load(root.node.id)
+        return menu_items.then(
+            lambda menu_items: [
+                ChannelContext(node=menu_item, channel_slug=root.channel_slug)
+                for menu_item in menu_items
+            ]
+        )
 
 
-class MenuItem(CountableDjangoObjectType):
+class MenuItem(ChannelContextType, CountableDjangoObjectType):
     children = graphene.List(lambda: MenuItem)
     url = graphene.String(description="URL to the menu item.")
-    translation = TranslationField(MenuItemTranslation, type_name="menu item")
+    translation = TranslationField(
+        MenuItemTranslation,
+        type_name="menu item",
+        resolver=ChannelContextType.resolve_translation,
+    )
 
     class Meta:
+        default_resolver = ChannelContextType.resolver_with_context
+
         description = (
             "Represents a single item of the related menu. Can store categories, "
             "collection or pages."
@@ -57,40 +71,53 @@ class MenuItem(CountableDjangoObjectType):
         model = models.MenuItem
 
     @staticmethod
-    def resolve_category(root: models.MenuItem, info, **_kwargs):
-        if root.category_id:
-            return CategoryByIdLoader(info.context).load(root.category_id)
+    def resolve_category(root: ChannelContext[models.MenuItem], info, **_kwargs):
+        if root.node.category_id:
+            return CategoryByIdLoader(info.context).load(root.node.category_id)
         return None
 
     @staticmethod
-    def resolve_children(root: models.MenuItem, info, **_kwargs):
-        return MenuItemChildrenLoader(info.context).load(root.id)
+    def resolve_children(root: ChannelContext[models.MenuItem], info, **_kwargs):
+        menus = MenuItemChildrenLoader(info.context).load(root.node.id)
+        return menus.then(
+            lambda menus: [
+                ChannelContext(node=menu, channel_slug=None) for menu in menus
+            ]
+        )
 
     @staticmethod
-    def resolve_collection(root: models.MenuItem, info, **_kwargs):
-        if root.collection_id:
-            collection = CollectionByIdLoader(info.context).load(root.collection_id)
-            return collection.then(
-                lambda collection: ChannelContext(node=collection, channel_slug=None)
+    def resolve_collection(root: ChannelContext[models.MenuItem], info, **_kwargs):
+        # TODO: Add dataloader
+        if root.node.collection_id and root.channel_slug:
+            collection = Collection.objects.filter(
+                id=root.node.collection_id,
+                channel_listing__channel__slug=str(root.channel_slug),
+            ).first()
+            return (
+                ChannelContext(node=collection, channel_slug=None)
+                if collection
+                else None
             )
         return None
 
     @staticmethod
-    def resolve_menu(root: models.MenuItem, info, **_kwargs):
-        if root.menu_id:
-            return MenuByIdLoader(info.context).load(root.menu_id)
+    def resolve_menu(root: ChannelContext[models.MenuItem], info, **_kwargs):
+        if root.node.menu_id:
+            menu = MenuByIdLoader(info.context).load(root.node.menu_id)
+            return menu.then(lambda menu: ChannelContext(node=menu, channel_slug=None))
         return None
 
     @staticmethod
-    def resolve_parent(root: models.MenuItem, info, **_kwargs):
-        if root.parent_id:
-            return MenuItemByIdLoader(info.context).load(root.parent_id)
+    def resolve_parent(root: ChannelContext[models.MenuItem], info, **_kwargs):
+        if root.node.parent_id:
+            menu = MenuItemByIdLoader(info.context).load(root.node.parent_id)
+            return menu.then(lambda menu: ChannelContext(node=menu, channel_slug=None))
         return None
 
     @staticmethod
-    def resolve_page(root: models.MenuItem, info, **kwargs):
-        if root.page_id:
-            return PageByIdLoader(info.context).load(root.page_id)
+    def resolve_page(root: ChannelContext[models.MenuItem], info, **kwargs):
+        if root.node.page_id:
+            return PageByIdLoader(info.context).load(root.node.page_id)
         return None
 
 

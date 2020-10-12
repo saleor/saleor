@@ -197,6 +197,14 @@ class ProductChannelListingError(ProductError):
     )
 
 
+class CollectionChannelListingError(ProductError):
+    channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channels IDs which causes the error.",
+        required=False,
+    )
+
+
 class BulkProductError(ProductError):
     index = graphene.Int(
         description="Index of an input list item that caused the error."

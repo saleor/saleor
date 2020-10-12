@@ -1180,10 +1180,18 @@ type CollectionChannelListing implements Node {
   channel: Channel!
 }
 
+type CollectionChannelListingError {
+  field: String
+  message: String
+  code: ProductErrorCode!
+  attributes: [ID!]
+  channels: [ID!]
+}
+
 type CollectionChannelListingUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   collection: Collection
-  collectionChannelListingErrors: [ProductChannelListingError!]!
+  collectionChannelListingErrors: [CollectionChannelListingError!]!
 }
 
 input CollectionChannelListingUpdateInput {
@@ -4466,10 +4474,10 @@ type Query {
   draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   ordersTotal(period: ReportingPeriod): TaxedMoney
   orderByToken(token: UUID!): Order
-  menu(id: ID, name: String): Menu
-  menus(sortBy: MenuSortingInput, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
-  menuItem(id: ID!): MenuItem
-  menuItems(sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
+  menu(channel: String, id: ID, name: String): Menu
+  menus(channel: String, sortBy: MenuSortingInput, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
+  menuItem(id: ID!, channel: String): MenuItem
+  menuItems(channel: String, sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   plugin(id: ID!): Plugin
