@@ -490,6 +490,9 @@ class Product(CountableDjangoObjectType):
     is_available_for_purchase = graphene.Boolean(
         description="Whether the product is available for purchase."
     )
+    is_published = graphene.Boolean(
+        required=True, description="Whether the product is published."
+    )
 
     class Meta:
         description = "Represents an individual item for sale in the storefront."
@@ -502,7 +505,6 @@ class Product(CountableDjangoObjectType):
             "description",
             "description_json",
             "id",
-            "is_published",
             "name",
             "slug",
             "product_type",
@@ -661,6 +663,10 @@ class Product(CountableDjangoObjectType):
     def resolve_product_type(root: models.Product, info):
         return ProductTypeByIdLoader(info.context).load(root.product_type_id)
 
+    @staticmethod
+    def resolve_is_published(root: models.Product, _info):
+        return root.is_visible
+
 
 @key(fields="id")
 class ProductType(CountableDjangoObjectType):
@@ -759,6 +765,9 @@ class Collection(CountableDjangoObjectType):
         Image, size=graphene.Int(description="Size of the image.")
     )
     translation = TranslationField(CollectionTranslation, type_name="collection")
+    is_published = graphene.Boolean(
+        required=True, description="Whether the collection is published."
+    )
 
     class Meta:
         description = "Represents a collection of products."
@@ -766,7 +775,6 @@ class Collection(CountableDjangoObjectType):
             "description",
             "description_json",
             "id",
-            "is_published",
             "name",
             "publication_date",
             "seo_description",
@@ -811,6 +819,10 @@ class Collection(CountableDjangoObjectType):
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
+
+    @staticmethod
+    def resolve_is_published(root: models.Collection, _info):
+        return root.is_visible
 
 
 @key(fields="id")
