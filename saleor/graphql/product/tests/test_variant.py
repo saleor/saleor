@@ -1126,13 +1126,9 @@ def _fetch_all_variants(client, variables={}, permissions=None):
 def test_fetch_all_variants_staff_user(
     staff_api_client, unavailable_product_with_variant, permission_manage_products
 ):
-    # TODO: This test shouldn't use channel_slug but currently it
-    # channel are not loading in lazy way.
     variant = unavailable_product_with_variant.variants.first()
-    channel_slug = variant.channel_listing.get().channel.slug
-    variables = {"channel": channel_slug}
     data = _fetch_all_variants(
-        staff_api_client, variables, permissions=[permission_manage_products]
+        staff_api_client, permissions=[permission_manage_products]
     )
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     assert data["totalCount"] == 1
@@ -1179,8 +1175,7 @@ def test_product_variants_visible_in_listings_by_customer(
     user_api_client, product_list, channel_USD
 ):
     # given
-    product_list[0].visible_in_listings = False
-    product_list[0].save(update_fields=["visible_in_listings"])
+    product_list[0].channel_listing.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -1194,8 +1189,7 @@ def test_product_variants_visible_in_listings_by_staff_without_perm(
     staff_api_client, product_list, channel_USD
 ):
     # given
-    product_list[0].visible_in_listings = False
-    product_list[0].save(update_fields=["visible_in_listings"])
+    product_list[0].channel_listing.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -1211,8 +1205,7 @@ def test_product_variants_visible_in_listings_by_staff_with_perm(
     staff_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].visible_in_listings = False
-    product_list[0].save(update_fields=["visible_in_listings"])
+    product_list[0].channel_listing.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -1230,8 +1223,7 @@ def test_product_variants_visible_in_listings_by_app_without_perm(
     app_api_client, product_list, channel_USD
 ):
     # given
-    product_list[0].visible_in_listings = False
-    product_list[0].save(update_fields=["visible_in_listings"])
+    product_list[0].channel_listing.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -1245,8 +1237,7 @@ def test_product_variants_visible_in_listings_by_app_with_perm(
     app_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].visible_in_listings = False
-    product_list[0].save(update_fields=["visible_in_listings"])
+    product_list[0].channel_listing.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 

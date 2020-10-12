@@ -20,7 +20,7 @@ from ...search.backends import picker
 from ...warehouse.models import Stock
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
-from ..core.types import FilterInputObjectType
+from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
 from ..core.utils import from_global_id_strict_type
 from ..utils import (
@@ -233,9 +233,11 @@ def filter_product_type(qs, _, value):
     return qs
 
 
-def filter_attributes_by_product_types(qs, field, value, requestor):
+def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug):
     if not value:
         return qs
+
+    product_qs = Product.objects.visible_to_user(requestor, channel_slug)
 
     if field == "in_category":
         category_id = from_global_id_strict_type(
@@ -247,16 +249,18 @@ def filter_attributes_by_product_types(qs, field, value, requestor):
             return qs.none()
 
         tree = category.get_descendants(include_self=True)
-        product_qs = Product.objects.filter(category__in=tree)
+        product_qs = product_qs.filter(category__in=tree)
 
         if not product_qs.user_has_access_to_all(requestor):
-            product_qs = product_qs.exclude(visible_in_listings=False)
+            product_qs = product_qs.annotate_visible_in_listings(channel_slug).exclude(
+                visible_in_listings=False
+            )
 
     elif field == "in_collection":
         collection_id = from_global_id_strict_type(
             value, only_type="Collection", field=field
         )
-        product_qs = Product.objects.filter(collections__id=collection_id)
+        product_qs = product_qs.filter(collections__id=collection_id)
 
     else:
         raise NotImplementedError(f"Filtering by {field} is unsupported")
@@ -451,18 +455,20 @@ class AttributeFilter(django_filters.FilterSet):
 
     def filter_in_collection(self, queryset, name, value):
         requestor = get_user_or_app_from_context(self.request)
-        return filter_attributes_by_product_types(queryset, name, value, requestor)
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return filter_attributes_by_product_types(
+            queryset, name, value, requestor, channel_slug
+        )
 
     def filter_in_category(self, queryset, name, value):
         requestor = get_user_or_app_from_context(self.request)
-        return filter_attributes_by_product_types(queryset, name, value, requestor)
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return filter_attributes_by_product_types(
+            queryset, name, value, requestor, channel_slug
+        )
 
 
-class ProductFilterInput(FilterInputObjectType):
-    channel = graphene.Argument(
-        graphene.String, description="Channel in which to filter the data."
-    )
-
+class ProductFilterInput(ChannelFilterInputObjectType):
     class Meta:
         filterset_class = ProductFilter
 
@@ -487,6 +493,6 @@ class ProductTypeFilterInput(FilterInputObjectType):
         filterset_class = ProductTypeFilter
 
 
-class AttributeFilterInput(FilterInputObjectType):
+class AttributeFilterInput(ChannelFilterInputObjectType):
     class Meta:
         filterset_class = AttributeFilter

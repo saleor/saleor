@@ -67,7 +67,9 @@ def resolve_products(
     if stock_availability:
         qs = filter_products_by_stock_availability(qs, stock_availability)
     if not qs.user_has_access_to_all(user):
-        qs = qs.exclude(visible_in_listings=False)
+        qs = qs.annotate_visible_in_listings(channel_slug).exclude(
+            visible_in_listings=False
+        )
     return ChannelQsContext(qs=qs.distinct(), channel_slug=channel_slug)
 
 
@@ -86,9 +88,12 @@ def resolve_product_types(info, **_kwargs):
 
 def resolve_product_variant_by_sku(info, sku, channel_slug):
     requestor = get_user_or_app_from_context(info.context)
-    visible_products = models.Product.objects.visible_to_user(
-        requestor, channel_slug
-    ).values_list("pk", flat=True)
+    visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
+    if not visible_products.user_has_access_to_all(requestor):
+        visible_products = visible_products.annotate_visible_in_listings(
+            channel_slug
+        ).exclude(visible_in_listings=False)
+
     return (
         models.ProductVariant.objects.filter(product__id__in=visible_products)
         .filter(sku=sku)
@@ -97,13 +102,12 @@ def resolve_product_variant_by_sku(info, sku, channel_slug):
 
 
 def resolve_product_variants(info, ids=None, channel_slug=None) -> ChannelQsContext:
-    user = get_user_or_app_from_context(info.context)
-
-    visible_products = models.Product.objects.visible_to_user(
-        user, channel_slug
-    ).values_list("pk", flat=True)
-    if not visible_products.user_has_access_to_all(user):
-        visible_products = visible_products.exclude(visible_in_listings=False)
+    requestor = get_user_or_app_from_context(info.context)
+    visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
+    if not visible_products.user_has_access_to_all(requestor):
+        visible_products = visible_products.annotate_visible_in_listings(
+            channel_slug
+        ).exclude(visible_in_listings=False)
 
     qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
     if ids:

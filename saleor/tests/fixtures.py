@@ -708,10 +708,12 @@ def categories_tree(db, product_type, channel_USD):  # pylint: disable=W0613
         slug="test-product-10",
         product_type=product_type,
         category=child,
-        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
-        product=product, channel=channel_USD, is_published=True
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
     )
 
     associate_attribute_values_to_instance(product, product_attr, attr_value)
@@ -821,8 +823,6 @@ def product(product_type, category, warehouse, channel_USD):
         slug="test-product-11",
         product_type=product_type,
         category=category,
-        available_for_purchase=datetime.date(1999, 1, 1),
-        visible_in_listings=True,
     )
 
     ProductChannelListing.objects.create(
@@ -831,6 +831,8 @@ def product(product_type, category, warehouse, channel_USD):
         is_published=True,
         discounted_price_amount="10.00",
         currency=channel_USD.currency_code,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
 
     associate_attribute_values_to_instance(product, product_attr, product_attr_value)
@@ -875,11 +877,13 @@ def product_with_single_variant(product_type, category, warehouse, channel_USD):
         slug="test-product-with-single-variant",
         product_type=product_type,
         category=category,
-        available_for_purchase=datetime.date(1999, 1, 1),
-        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
-        product=product, channel=channel_USD, is_published=True,
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_SINGLE_VARIANT")
     ProductVariantChannelListing.objects.create(
@@ -900,12 +904,14 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
         slug="test-product-with-two-variant",
         product_type=product_type,
         category=category,
-        available_for_purchase=datetime.date(1999, 1, 1),
-        visible_in_listings=True,
     )
 
     ProductChannelListing.objects.create(
-        product=product, channel=channel_USD, is_published=True,
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
 
     variants = [
@@ -951,14 +957,14 @@ def product_with_variant_with_two_attributes(
         slug="test-product-with-two-variant",
         product_type=product_type,
         category=category,
-        available_for_purchase=datetime.date(1999, 1, 1),
-        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
         product=product,
         channel=channel_USD,
         is_published=True,
         currency=channel_USD.currency_code,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
 
     variant = ProductVariant.objects.create(product=product, sku="prodVar1")
@@ -1010,11 +1016,13 @@ def product_with_default_variant(
         slug="test-product-3",
         product_type=product_type_without_variant,
         category=category,
-        available_for_purchase=datetime.date(1999, 1, 1),
-        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
-        product=product, channel=channel_USD, is_published=True,
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
     variant = ProductVariant.objects.create(
         product=product, sku="1234", track_inventory=True
@@ -1039,11 +1047,13 @@ def variant_without_inventory_tracking(
         slug="test-product-without-tracking",
         product_type=product_type_without_variant,
         category=category,
-        available_for_purchase=datetime.date.today(),
-        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
-        product=product, channel=channel_USD, is_published=True,
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date.today(),
     )
     variant = ProductVariant.objects.create(
         product=product, sku="tracking123", track_inventory=False,
@@ -1150,10 +1160,12 @@ def product_without_shipping(category, warehouse, channel_USD):
         slug="test-product-4",
         product_type=product_type,
         category=category,
-        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
-        product=product, channel=channel_USD, is_published=True
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_B")
     ProductVariantChannelListing.objects.create(
@@ -1189,7 +1201,6 @@ def product_list(product_type, category, warehouse, channel_USD):
                     slug="test-product-a",
                     category=category,
                     product_type=product_type,
-                    visible_in_listings=True,
                 ),
                 Product(
                     pk=1487,
@@ -1197,7 +1208,6 @@ def product_list(product_type, category, warehouse, channel_USD):
                     slug="test-product-b",
                     category=category,
                     product_type=product_type,
-                    visible_in_listings=True,
                 ),
                 Product(
                     pk=1489,
@@ -1205,7 +1215,6 @@ def product_list(product_type, category, warehouse, channel_USD):
                     slug="test-product-c",
                     category=category,
                     product_type=product_type,
-                    visible_in_listings=True,
                 ),
             ]
         )
@@ -1217,18 +1226,21 @@ def product_list(product_type, category, warehouse, channel_USD):
                 channel=channel_USD,
                 is_published=True,
                 currency=channel_USD.currency_code,
+                visible_in_listings=True,
             ),
             ProductChannelListing(
                 product=products[1],
                 channel=channel_USD,
                 is_published=True,
                 currency=channel_USD.currency_code,
+                visible_in_listings=True,
             ),
             ProductChannelListing(
                 product=products[2],
                 channel=channel_USD,
                 is_published=True,
                 currency=channel_USD.currency_code,
+                visible_in_listings=True,
             ),
         ]
     )
@@ -1354,10 +1366,12 @@ def unavailable_product(product_type, category, channel_USD):
         slug="test-product-5",
         product_type=product_type,
         category=category,
-        visible_in_listings=False,
     )
     ProductChannelListing.objects.create(
-        product=product, channel=channel_USD, is_published=False
+        product=product,
+        channel=channel_USD,
+        is_published=False,
+        visible_in_listings=False,
     )
     return product
 
@@ -1368,11 +1382,13 @@ def unavailable_product_with_variant(product_type, category, warehouse, channel_
         name="Test product",
         slug="test-product-6",
         product_type=product_type,
-        visible_in_listings=False,
         category=category,
     )
     ProductChannelListing.objects.create(
-        product=product, channel=channel_USD, is_published=False
+        product=product,
+        channel=channel_USD,
+        is_published=False,
+        visible_in_listings=False,
     )
 
     variant_attr = product_type.variant_attributes.first()
@@ -1399,10 +1415,12 @@ def product_with_images(product_type, category, media_root, channel_USD):
         slug="test-product-7",
         product_type=product_type,
         category=category,
-        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
-        product=product, channel=channel_USD, is_published=True
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
     )
     file_mock_0 = MagicMock(spec=File, name="FileMock0")
     file_mock_0.name = "image0.jpg"
@@ -1630,11 +1648,13 @@ def order_with_lines(
         slug="test-product-8",
         product_type=product_type,
         category=category,
-        available_for_purchase=datetime.date.today(),
-        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
-        product=product, channel=channel_USD, is_published=True
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date.today(),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_A")
     ProductVariantChannelListing.objects.create(
@@ -1668,11 +1688,13 @@ def order_with_lines(
         slug="test-product-9",
         product_type=product_type,
         category=category,
-        available_for_purchase=datetime.date.today(),
-        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
-        product=product, channel=channel_USD, is_published=True
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date.today(),
     )
     variant = ProductVariant.objects.create(product=product, sku="SKU_B")
     ProductVariantChannelListing.objects.create(
@@ -2381,11 +2403,13 @@ def digital_content(category, media_root, warehouse, channel_USD) -> DigitalCont
         slug="test-digital-product",
         product_type=product_type,
         category=category,
-        available_for_purchase=datetime.date(1999, 1, 1),
-        visible_in_listings=True,
     )
     ProductChannelListing.objects.create(
-        product=product, channel=channel_USD, is_published=True
+        product=product,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
     )
     product_variant = ProductVariant.objects.create(product=product, sku="SKU_554")
     ProductVariantChannelListing.objects.create(

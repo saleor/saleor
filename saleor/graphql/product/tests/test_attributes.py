@@ -341,11 +341,13 @@ def test_attributes_filter_by_product_type_with_empty_value():
 
     qs = Attribute.objects.all()
 
-    assert filter_attributes_by_product_types(qs, "...", "", None) is qs
-    assert filter_attributes_by_product_types(qs, "...", None, None) is qs
+    assert filter_attributes_by_product_types(qs, "...", "", None, None) is qs
+    assert filter_attributes_by_product_types(qs, "...", None, None, None) is qs
 
 
-def test_attributes_filter_by_product_type_with_unsupported_field(customer_user):
+def test_attributes_filter_by_product_type_with_unsupported_field(
+    customer_user, channel_USD
+):
     """Ensure using an unknown field to filter attributes by raises a NotImplemented
     exception.
     """
@@ -353,18 +355,20 @@ def test_attributes_filter_by_product_type_with_unsupported_field(customer_user)
     qs = Attribute.objects.all()
 
     with pytest.raises(NotImplementedError) as exc:
-        filter_attributes_by_product_types(qs, "in_space", "a-value", customer_user)
+        filter_attributes_by_product_types(
+            qs, "in_space", "a-value", customer_user, channel_USD.slug
+        )
 
     assert exc.value.args == ("Filtering by in_space is unsupported",)
 
 
-def test_attributes_filter_by_non_existing_category_id(customer_user):
+def test_attributes_filter_by_non_existing_category_id(customer_user, channel_USD):
     """Ensure using a non-existing category ID returns an empty query set."""
 
     category_id = graphene.Node.to_global_id("Category", -1)
     mocked_qs = mock.MagicMock()
     qs = filter_attributes_by_product_types(
-        mocked_qs, "in_category", category_id, customer_user
+        mocked_qs, "in_category", category_id, customer_user, channel_USD.slug
     )
     assert qs == mocked_qs.none.return_value
 
@@ -377,6 +381,7 @@ def test_attributes_in_collection_query(
     collection,
     collection_with_products,
     tested_field,
+    channel_USD,
 ):
     if "Collection" in tested_field:
         filtered_by_node_id = graphene.Node.to_global_id("Collection", collection.pk)
@@ -411,7 +416,7 @@ def test_attributes_in_collection_query(
     other_collection.products.add(other_product)
 
     query = """
-    query($nodeID: ID!) {
+    query($nodeID: ID!, $channel: String) {
         attributes(first: 20, %(filter_input)s) {
             edges {
                 node {
@@ -424,9 +429,11 @@ def test_attributes_in_collection_query(
     }
     """
 
-    query = query % {"filter_input": "filter: { %s: $nodeID }" % tested_field}
+    query = query % {
+        "filter_input": "filter: { %s: $nodeID, channel: $channel }" % tested_field
+    }
 
-    variables = {"nodeID": filtered_by_node_id}
+    variables = {"nodeID": filtered_by_node_id, "channel": channel_USD.slug}
     content = get_graphql_content(user_api_client.post_graphql(query, variables))
     attributes_data = content["data"]["attributes"]["edges"]
 
@@ -1992,7 +1999,7 @@ def test_filter_attributes_by_global_id_list(api_client, attribute_list):
 
 
 def test_filter_attributes_in_category_by_customer(
-    user_api_client, product_list, weight_attribute
+    user_api_client, product_list, weight_attribute, channel_USD
 ):
     # given
     product_type = ProductType.objects.create(
@@ -2005,8 +2012,8 @@ def test_filter_attributes_in_category_by_customer(
 
     last_product = product_list[-1]
     last_product.product_type = product_type
-    last_product.visible_in_listings = False
-    last_product.save(update_fields=["visible_in_listings", "product_type"])
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listing.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2016,7 +2023,10 @@ def test_filter_attributes_in_category_by_customer(
 
     category = last_product.category
     variables = {
-        "filters": {"inCategory": graphene.Node.to_global_id("Category", category.pk)}
+        "filters": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+            "channel": channel_USD.slug,
+        }
     }
 
     # when
@@ -2032,7 +2042,11 @@ def test_filter_attributes_in_category_by_customer(
 
 
 def test_filter_attributes_in_category_by_staff_with_perm(
-    staff_api_client, product_list, weight_attribute, permission_manage_products
+    staff_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    channel_USD,
 ):
     # given
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -2047,8 +2061,8 @@ def test_filter_attributes_in_category_by_staff_with_perm(
 
     last_product = product_list[-1]
     last_product.product_type = product_type
-    last_product.visible_in_listings = False
-    last_product.save(update_fields=["visible_in_listings", "product_type"])
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listing.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2058,7 +2072,10 @@ def test_filter_attributes_in_category_by_staff_with_perm(
 
     category = last_product.category
     variables = {
-        "filters": {"inCategory": graphene.Node.to_global_id("Category", category.pk)}
+        "filters": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+            "channel": channel_USD.slug,
+        }
     }
 
     # when
@@ -2071,7 +2088,11 @@ def test_filter_attributes_in_category_by_staff_with_perm(
 
 
 def test_filter_attributes_in_category_by_staff_without_perm(
-    staff_api_client, product_list, weight_attribute, permission_manage_products
+    staff_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    channel_USD,
 ):
     # given
     product_type = ProductType.objects.create(
@@ -2084,8 +2105,8 @@ def test_filter_attributes_in_category_by_staff_without_perm(
 
     last_product = product_list[-1]
     last_product.product_type = product_type
-    last_product.visible_in_listings = False
-    last_product.save(update_fields=["visible_in_listings", "product_type"])
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listing.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2095,7 +2116,10 @@ def test_filter_attributes_in_category_by_staff_without_perm(
 
     category = last_product.category
     variables = {
-        "filters": {"inCategory": graphene.Node.to_global_id("Category", category.pk)}
+        "filters": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+            "channel": channel_USD.slug,
+        }
     }
 
     # when
@@ -2111,7 +2135,11 @@ def test_filter_attributes_in_category_by_staff_without_perm(
 
 
 def test_filter_attributes_in_category_by_app_with_perm(
-    app_api_client, product_list, weight_attribute, permission_manage_products
+    app_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    channel_USD,
 ):
     # given
     app_api_client.app.permissions.add(permission_manage_products)
@@ -2126,8 +2154,8 @@ def test_filter_attributes_in_category_by_app_with_perm(
 
     last_product = product_list[-1]
     last_product.product_type = product_type
-    last_product.visible_in_listings = False
-    last_product.save(update_fields=["visible_in_listings", "product_type"])
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listing.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2137,7 +2165,10 @@ def test_filter_attributes_in_category_by_app_with_perm(
 
     category = last_product.category
     variables = {
-        "filters": {"inCategory": graphene.Node.to_global_id("Category", category.pk)}
+        "filters": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+            "channel": channel_USD.slug,
+        }
     }
 
     # when
@@ -2150,7 +2181,11 @@ def test_filter_attributes_in_category_by_app_with_perm(
 
 
 def test_filter_attributes_in_category_by_app_without_perm(
-    app_api_client, product_list, weight_attribute, permission_manage_products
+    app_api_client,
+    product_list,
+    weight_attribute,
+    permission_manage_products,
+    channel_USD,
 ):
     # given
     product_type = ProductType.objects.create(
@@ -2163,8 +2198,8 @@ def test_filter_attributes_in_category_by_app_without_perm(
 
     last_product = product_list[-1]
     last_product.product_type = product_type
-    last_product.visible_in_listings = False
-    last_product.save(update_fields=["visible_in_listings", "product_type"])
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listing.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2174,7 +2209,10 @@ def test_filter_attributes_in_category_by_app_without_perm(
 
     category = last_product.category
     variables = {
-        "filters": {"inCategory": graphene.Node.to_global_id("Category", category.pk)}
+        "filters": {
+            "inCategory": graphene.Node.to_global_id("Category", category.pk),
+            "channel": channel_USD.slug,
+        }
     }
 
     # when
@@ -2190,7 +2228,7 @@ def test_filter_attributes_in_category_by_app_without_perm(
 
 
 def test_filter_attributes_in_collection_by_customer(
-    user_api_client, product_list, weight_attribute, collection
+    user_api_client, product_list, weight_attribute, collection, channel_USD
 ):
     # given
     product_type = ProductType.objects.create(
@@ -2203,8 +2241,8 @@ def test_filter_attributes_in_collection_by_customer(
 
     last_product = product_list[-1]
     last_product.product_type = product_type
-    last_product.visible_in_listings = False
-    last_product.save(update_fields=["visible_in_listings", "product_type"])
+    last_product.save(update_fields=["product_type"])
+    last_product.channel_listing.all().update(visible_in_listings=False)
 
     for product in product_list:
         collection.products.add(product)
@@ -2217,7 +2255,8 @@ def test_filter_attributes_in_collection_by_customer(
 
     variables = {
         "filters": {
-            "inCollection": graphene.Node.to_global_id("Collection", collection.pk)
+            "inCollection": graphene.Node.to_global_id("Collection", collection.pk),
+            "channel": channel_USD.slug,
         }
     }
 

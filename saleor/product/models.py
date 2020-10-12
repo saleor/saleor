@@ -6,7 +6,20 @@ from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.db.models import JSONField  # type: ignore
-from django.db.models import Case, Count, F, FilteredRelation, Q, Sum, Value, When
+from django.db.models import (
+    BooleanField,
+    Case,
+    Count,
+    ExpressionWrapper,
+    F,
+    FilteredRelation,
+    OuterRef,
+    Q,
+    Subquery,
+    Sum,
+    Value,
+    When,
+)
 from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.utils.encoding import smart_text
@@ -153,6 +166,16 @@ class ProductsQueryset(models.QuerySet):
     def user_has_access_to_all(user):
         return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
 
+    def annotate_visible_in_listings(self, channel_slug):
+        query = Subquery(
+            ProductChannelListing.objects.filter(
+                product_id=OuterRef("pk"), channel__slug=str(channel_slug)
+            ).values_list("visible_in_listings")[:1]
+        )
+        return self.annotate(
+            visible_in_listings=ExpressionWrapper(query, output_field=BooleanField())
+        )
+
     def sort_by_attribute(
         self, attribute_pk: Union[int, str], descending: bool = False
     ):
@@ -270,8 +293,6 @@ class Product(SeoModel, ModelWithMetadata):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
-    available_for_purchase = models.DateField(blank=True, null=True)
-    visible_in_listings = models.BooleanField(default=False)
     default_variant = models.OneToOneField(
         "ProductVariant",
         blank=True,
@@ -317,12 +338,6 @@ class Product(SeoModel, ModelWithMetadata):
     @staticmethod
     def sort_by_attribute_fields() -> list:
         return ["concatenated_values_order", "concatenated_values", "name"]
-
-    def is_available_for_purchase(self):
-        return (
-            self.available_for_purchase is not None
-            and datetime.date.today() >= self.available_for_purchase
-        )
 
 
 class ProductTranslation(SeoModelTranslation):
@@ -377,6 +392,8 @@ class ProductChannelListing(PublishableModel):
         related_name="product_listing",
         on_delete=models.CASCADE,
     )
+    visible_in_listings = models.BooleanField(default=False)
+    available_for_purchase = models.DateField(blank=True, null=True)
     # TODO: Change currency into currency_code in ProductChannelListing
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     discounted_price_amount = models.DecimalField(
@@ -392,6 +409,12 @@ class ProductChannelListing(PublishableModel):
     class Meta:
         unique_together = [["product", "channel"]]
         ordering = ("pk",)
+
+    def is_available_for_purchase(self):
+        return (
+            self.available_for_purchase is not None
+            and datetime.date.today() >= self.available_for_purchase
+        )
 
 
 class ProductVariant(SortableModel, ModelWithMetadata):

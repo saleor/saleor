@@ -1486,8 +1486,33 @@ def test_can_finalize_order_product_unavailable_for_purchase(
     order.save(update_fields=["status"])
 
     product = order.lines.first().variant.product
-    product.available_for_purchase = date.today() + timedelta(days=1)
-    product.save(update_fields=["available_for_purchase"])
+    product.channel_listing.update(available_for_purchase=None)
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_CAN_FINALIZE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["order"]["canFinalize"] is False
+
+
+def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
+    staff_api_client, permission_manage_orders, draft_order
+):
+    # given
+    order = draft_order
+
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+
+    product = order.lines.first().variant.product
+    product.channel_listing.update(
+        available_for_purchase=date.today() + timedelta(days=1)
+    )
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -1561,8 +1586,7 @@ def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order)
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    variant.product.available_for_purchase = None
-    variant.product.save(update_fields=["available_for_purchase"])
+    variant.product.channel_listing.update(available_for_purchase=None)
     line.refresh_from_db()
 
     with pytest.raises(ValidationError) as e:
@@ -1580,8 +1604,9 @@ def test_validate_draft_order_with_product_available_for_purchase_in_future(
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    variant.product.available_for_purchase = date.today() + timedelta(days=2)
-    variant.product.save(update_fields=["available_for_purchase"])
+    variant.product.channel_listing.update(
+        available_for_purchase=date.today() + timedelta(days=2)
+    )
     line.refresh_from_db()
 
     with pytest.raises(ValidationError) as e:
@@ -1820,8 +1845,9 @@ def test_draft_order_complete_unavailable_for_purchase(
     assert not OrderEvent.objects.exists()
 
     product = order.lines.first().variant.product
-    product.available_for_purchase = date.today() + timedelta(days=5)
-    product.save(update_fields=["available_for_purchase"])
+    product.channel_listing.update(
+        available_for_purchase=date.today() + timedelta(days=5)
+    )
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
