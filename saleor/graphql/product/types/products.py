@@ -9,7 +9,7 @@ from graphql.error import GraphQLError
 
 from ....core.permissions import OrderPermissions, ProductPermissions
 from ....core.weight import convert_weight_to_default_weight_unit
-from ....product import models
+from ....product import AttributeType, models
 from ....product.templatetags.product_images import (
     get_product_image_thumbnail,
     get_thumbnail,
