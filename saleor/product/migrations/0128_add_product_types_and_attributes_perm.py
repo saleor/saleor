@@ -5,7 +5,10 @@ from django.db import migrations
 
 
 def update_groups_with_manage_products_with_new_permission(apps, schema_editor):
+    # force post signal as permissions are created in post migrate signals
+    # related Django issue https://code.djangoproject.com/ticket/23422
     emit_post_migrate_signal(2, False, "default")
+
     Group = apps.get_model("auth", "Group")
     Permission = apps.get_model("auth", "Permission")
 
