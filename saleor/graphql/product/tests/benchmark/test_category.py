@@ -94,7 +94,7 @@ def test_category_view(api_client, category_with_products, count_queries, channe
               }
             }
           }
-          attributes(filter: {inCategory: $id}, first: 100) {
+          attributes(filter: {inCategory: $id, channel: $channel}, first: 100) {
             edges {
               node {
                 id

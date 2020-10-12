@@ -132,12 +132,18 @@ def check_lines_quantity(variants, quantities, country):
             raise ValidationError({"quantity": ValidationError(message, code=e.code)})
 
 
-def validate_variants_available_for_purchase(variants):
-    not_available_variants = [
-        variant.pk
-        for variant in variants
-        if not variant.product.is_available_for_purchase()
-    ]
+def validate_variants_available_for_purchase(variants, channel_id):
+    not_available_variants = []
+    for variant in variants:
+        product_channel_listing = variant.product.channel_listing.filter(
+            channel_id=channel_id
+        ).first()
+        if not (
+            product_channel_listing
+            and product_channel_listing.is_available_for_purchase()
+        ):
+            not_available_variants.append(variant.pk)
+
     if not_available_variants:
         variant_ids = [
             graphene.Node.to_global_id("ProductVariant", pk)
@@ -206,7 +212,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def process_checkout_lines(
-        cls, lines, country
+        cls, lines, country, channel_id
     ) -> Tuple[List[product_models.ProductVariant], List[int]]:
         variant_ids = [line.get("variant_id") for line in lines]
         variants = cls.get_nodes_or_error(
@@ -219,7 +225,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         )
         quantities = [line.get("quantity") for line in lines]
 
-        validate_variants_available_for_purchase(variants)
+        validate_variants_available_for_purchase(variants, channel_id)
         check_lines_quantity(variants, quantities, country)
 
         return variants, quantities
@@ -302,7 +308,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             (
                 cleaned_input["variants"],
                 cleaned_input["quantities"],
-            ) = cls.process_checkout_lines(lines, country)
+            ) = cls.process_checkout_lines(lines, country, cleaned_input["channel"].id)
 
         cleaned_input["shipping_address"] = cls.retrieve_shipping_address(user, data)
         cleaned_input["billing_address"] = cls.retrieve_billing_address(user, data)
@@ -419,7 +425,7 @@ class CheckoutLinesAdd(BaseMutation):
         quantities = [line.get("quantity") for line in lines]
 
         check_lines_quantity(variants, quantities, checkout.get_country())
-        validate_variants_available_for_purchase(variants)
+        validate_variants_available_for_purchase(variants, checkout.channel_id)
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):

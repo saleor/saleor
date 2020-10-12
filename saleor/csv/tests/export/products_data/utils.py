@@ -45,6 +45,8 @@ def add_channel_to_expected_product_data(data, product, channel_ids, pk=None):
                 ("currency_code", "product currency code"),
                 ("is_published", "published"),
                 ("publication_date", "publication date"),
+                ("visible_in_listings", "searchable"),
+                ("available_for_purchase", "available for purchase"),
             ]:
                 header = f"{channel_slug} (channel {field})"
                 if lookup == "currency_code":

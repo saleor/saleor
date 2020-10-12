@@ -6,13 +6,15 @@ from ....product.models import (
     AttributeProduct,
     AttributeVariant,
     Product,
+    ProductChannelListing,
     ProductType,
+    ProductVariant,
 )
 from ...tests.utils import get_graphql_content
 
 
 @pytest.fixture
-def attributes_for_pagination(collection, category):
+def attributes_for_pagination(collection, category, channel_USD):
     attributes = Attribute.objects.bulk_create(
         [
             Attribute(
@@ -50,11 +52,15 @@ def attributes_for_pagination(collection, category):
 
     product_type = ProductType.objects.create(name="My Product Type")
     product = Product.objects.create(
-        name="Test product",
-        product_type=product_type,
-        category=category,
+        name="Test product", product_type=product_type, category=category,
+    )
+    ProductChannelListing.objects.create(
+        channel=channel_USD,
+        product=product,
+        is_published=True,
         visible_in_listings=True,
     )
+    ProductVariant.objects.create(product=product)
     collection.products.add(product)
     AttributeVariant.objects.bulk_create(
         [
@@ -163,12 +169,12 @@ def test_attributes_pagination_with_filtering(
 
 
 def test_attributes_pagination_with_filtering_in_collection(
-    staff_api_client, attributes_for_pagination, collection
+    staff_api_client, attributes_for_pagination, collection, channel_USD
 ):
     page_size = 2
     attributes_order = ["Attr3", "AttrAttr2"]
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
-    filter_by = {"inCollection": collection_id}
+    filter_by = {"inCollection": collection_id, "channel": channel_USD.slug}
 
     variables = {"first": page_size, "after": None, "filter": filter_by}
     response = staff_api_client.post_graphql(QUERY_ATTRIBUTES_PAGINATION, variables)
@@ -180,12 +186,12 @@ def test_attributes_pagination_with_filtering_in_collection(
 
 
 def test_attributes_pagination_with_filtering_in_category(
-    staff_api_client, attributes_for_pagination, category
+    staff_api_client, attributes_for_pagination, category, channel_USD
 ):
     page_size = 2
     attributes_order = ["Attr3", "AttrAttr2"]
     category_id = graphene.Node.to_global_id("Category", category.id)
-    filter_by = {"inCategory": category_id}
+    filter_by = {"inCategory": category_id, "channel": channel_USD.slug}
 
     variables = {"first": page_size, "after": None, "filter": filter_by}
     response = staff_api_client.post_graphql(QUERY_ATTRIBUTES_PAGINATION, variables)

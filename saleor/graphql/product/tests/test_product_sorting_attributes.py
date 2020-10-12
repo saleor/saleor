@@ -101,7 +101,6 @@ def products_structures(category, channel_USD):
                     slug=f"{attrs[0]}-apple-{attrs[1]}-({i})",
                     product_type=pt_apples,
                     category=category,
-                    visible_in_listings=True,
                 )
                 for i, attrs in enumerate(zip(COLORS, TRADEMARKS))
             ]
@@ -109,7 +108,10 @@ def products_structures(category, channel_USD):
     )
     for product_apple in apples:
         product_models.ProductChannelListing.objects.create(
-            product=product_apple, channel=channel_USD, is_published=True
+            product=product_apple,
+            channel=channel_USD,
+            is_published=True,
+            visible_in_listings=True,
         )
         variant = product_models.ProductVariant.objects.create(
             product=product_apple, sku=product_apple.slug
@@ -129,7 +131,6 @@ def products_structures(category, channel_USD):
                     slug=f"{attrs[0]}-orange-{attrs[1]}-({i})",
                     product_type=pt_oranges,
                     category=category,
-                    visible_in_listings=True,
                 )
                 for i, attrs in enumerate(zip(COLORS, TRADEMARKS))
             ]
@@ -137,7 +138,10 @@ def products_structures(category, channel_USD):
     )
     for product_orange in oranges:
         product_models.ProductChannelListing.objects.create(
-            product=product_orange, channel=channel_USD, is_published=True
+            product=product_orange,
+            channel=channel_USD,
+            is_published=True,
+            visible_in_listings=True,
         )
         variant = product_models.ProductVariant.objects.create(
             product=product_orange, sku=product_orange.slug
@@ -154,10 +158,9 @@ def products_structures(category, channel_USD):
         slug="oopsie-dummy",
         product_type=pt_other,
         category=category,
-        visible_in_listings=True,
     )
     product_models.ProductChannelListing.objects.create(
-        product=dummy, channel=channel_USD, is_published=True
+        product=dummy, channel=channel_USD, is_published=True, visible_in_listings=True,
     )
     variant = product_models.ProductVariant.objects.create(
         product=dummy, sku=dummy.slug
@@ -174,10 +177,12 @@ def products_structures(category, channel_USD):
         slug="another-dummy",
         product_type=pt_other,
         category=category,
-        visible_in_listings=True,
     )
     product_models.ProductChannelListing.objects.create(
-        product=other_dummy, channel=channel_USD, is_published=True
+        product=other_dummy,
+        channel=channel_USD,
+        is_published=True,
+        visible_in_listings=True,
     )
     variant = product_models.ProductVariant.objects.create(
         product=other_dummy, sku=other_dummy.slug

@@ -1,3 +1,4 @@
+import datetime
 import uuid
 import warnings
 from decimal import Decimal
@@ -234,8 +235,8 @@ def test_checkout_create_with_inactive_default_channel(
 def test_checkout_create_with_inactive_and_active_default_channel(
     api_client, stock, graphql_address_data, channel_USD, channel_PLN
 ):
-    channel_USD.is_active = False
-    channel_USD.save()
+    channel_PLN.is_active = False
+    channel_PLN.save()
 
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -258,7 +259,7 @@ def test_checkout_create_with_inactive_and_active_default_channel(
 
     new_checkout = Checkout.objects.first()
 
-    assert new_checkout.channel == channel_PLN
+    assert new_checkout.channel == channel_USD
 
     assert any(
         [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
@@ -985,8 +986,45 @@ def test_checkout_create_unavailable_for_purchase_product(
     variant = stock.product_variant
     product = variant.product
 
-    product.available_for_purchase = None
-    product.save(update_fields=["available_for_purchase"])
+    product.channel_listing.update(available_for_purchase=None)
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 10, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+
+    errors = data["checkoutErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["code"] == CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name
+    assert errors[0]["variants"] == [variant_id]
+
+
+def test_checkout_create_available_for_purchase_from_tomorrow_product(
+    user_api_client, stock, graphql_address_data, channel_USD
+):
+    # given
+    variant = stock.product_variant
+    product = variant.product
+
+    product.channel_listing.update(
+        available_for_purchase=datetime.date.today() + datetime.timedelta(days=1)
+    )
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
@@ -1294,8 +1332,36 @@ def test_checkout_lines_add_with_unavailable_for_purchase_product(
     # given
     variant = stock.product_variant
     product = stock.product_variant.product
-    product.available_for_purchase = None
-    product.save(update_fields=["available_for_purchase"])
+    product.channel_listing.update(available_for_purchase=None)
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    content = get_graphql_content(response)
+    error = content["data"]["checkoutLinesAdd"]["checkoutErrors"][0]
+    assert error["field"] == "lines"
+    assert error["code"] == CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name
+    assert error["variants"] == [variant_id]
+
+
+def test_checkout_lines_add_with_available_for_purchase_from_tomorrow_product(
+    user_api_client, checkout_with_item, stock
+):
+    # given
+    variant = stock.product_variant
+    product = stock.product_variant.product
+    product.channel_listing.update(
+        available_for_purchase=datetime.date.today() + datetime.timedelta(days=1)
+    )
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
