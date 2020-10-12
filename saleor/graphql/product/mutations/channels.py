@@ -41,7 +41,7 @@ ErrorType = DefaultDict[str, List[ValidationError]]
 class PublishableChannelListingInput(graphene.InputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     is_published = graphene.Boolean(
-        description="Determines if object is visible to customers.", required=True
+        description="Determines if object is visible to customers."
     )
     publication_date = graphene.types.datetime.Date(
         description="Publication date. ISO 8601 standard."

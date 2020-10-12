@@ -3846,7 +3846,7 @@ type ProductChannelListingError {
 
 input ProductChannelListingInput {
   channelId: ID!
-  isPublished: Boolean!
+  isPublished: Boolean
   publicationDate: Date
   visibleInListings: Boolean
   isAvailableForPurchase: Boolean
@@ -4432,7 +4432,7 @@ type ProductVariantUpdatePrivateMeta {
 
 input PublishableChannelListingInput {
   channelId: ID!
-  isPublished: Boolean!
+  isPublished: Boolean
   publicationDate: Date
 }
 
