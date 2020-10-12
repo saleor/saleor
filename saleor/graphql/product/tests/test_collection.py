@@ -1,9 +1,10 @@
 import json
-from datetime import date
+from datetime import date, timedelta
 from unittest.mock import Mock
 
 import graphene
 import pytest
+from freezegun import freeze_time
 from graphql_relay import to_global_id
 
 from ....product.error_codes import ProductErrorCode
@@ -250,6 +251,7 @@ CREATE_COLLECTION_MUTATION = """
                         totalCount
                     }
                     publicationDate
+                    isPublished
                     backgroundImage{
                         alt
                     }
@@ -313,6 +315,34 @@ def test_create_collection(
     assert collection.background_image.file
     mock_create_thumbnails.assert_called_once_with(collection.pk)
     assert data["backgroundImage"]["alt"] == image_alt
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_create_collection_updates_publication_Date(
+    monkeypatch, staff_api_client, permission_manage_products
+):
+    query = CREATE_COLLECTION_MUTATION
+
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        (
+            "saleor.product.thumbnails."
+            "create_collection_background_image_thumbnails.delay"
+        ),
+        mock_create_thumbnails,
+    )
+    variables = {
+        "name": "test-name",
+        "slug": "test-slug",
+        "isPublished": True,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["collectionCreate"]["collection"]
+    assert data["publicationDate"] == "2020-03-18"
+    assert data["isPublished"] is True
 
 
 def test_create_collection_without_background_image(
@@ -411,7 +441,7 @@ def test_update_collection(
     name = "new-name"
     slug = "new-slug"
     description = "new-description"
-    publication_date = date.today()
+    publication_date = date.today() + timedelta(days=5)
     variables = {
         "name": name,
         "slug": slug,
@@ -429,6 +459,37 @@ def test_update_collection(
     assert data["slug"] == slug
     assert data["publicationDate"] == publication_date.isoformat()
     assert mock_create_thumbnails.call_count == 0
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_update_collection_sets_publication_date(
+    collection, staff_api_client, permission_manage_products
+):
+    query = """
+        mutation updateCollection(
+            $name: String!, $slug: String!,  $id: ID!,$isPublished: Boolean!) {
+            collectionUpdate(
+                id: $id, input: {name: $name, slug: $slug, isPublished: $isPublished}) {
+                collection {
+                    publicationDate
+                    isPublished
+                }
+            }
+        }
+    """
+    variables = {
+        "name": "name",
+        "slug": "slug",
+        "id": to_global_id("Collection", collection.id),
+        "isPublished": True,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["collectionUpdate"]["collection"]
+    assert data["publicationDate"] == "2020-03-18"
+    assert data["isPublished"] is True
 
 
 MUTATION_UPDATE_COLLECTION_WITH_BACKGROUND_IMAGE = """
