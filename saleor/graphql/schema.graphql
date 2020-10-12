@@ -486,6 +486,7 @@ input AttributeFilterInput {
   availableInGrid: Boolean
   search: String
   ids: [ID]
+  type: AttributeTypeEnum
   inCollection: ID
   inCategory: ID
 }
