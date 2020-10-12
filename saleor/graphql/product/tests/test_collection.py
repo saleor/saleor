@@ -1065,3 +1065,47 @@ def test_sort_collection_products_by_name(staff_api_client, collection, product_
         graphene.Node.to_global_id("Product", product.pk)
         for product in Product.objects.order_by("-name")
     ]
+
+
+GET_SORTED_COLLECTION_QUERY = """
+query Collections($sortBy: CollectionSortingInput) {
+  collections(first: 10, sortBy: $sortBy) {
+      edges {
+        node {
+          id
+          publicationDate
+        }
+      }
+  }
+}
+"""
+
+
+@freeze_time("2020-03-18 12:00:00")
+@pytest.mark.parametrize(
+    "direction, order_direction",
+    (("ASC", "publication_date"), ("DESC", "-publication_date")),
+)
+def test_sort_collections_by_publication_date(
+    direction, order_direction, staff_api_client, collection_list
+):
+
+    for iter_value, product in enumerate(collection_list):
+        product.publication_date = date.today() - timedelta(days=iter_value)
+    Collection.objects.bulk_update(collection_list, ["publication_date"])
+
+    variables = {
+        "sortBy": {"direction": direction, "field": "PUBLICATION_DATE"},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(GET_SORTED_COLLECTION_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["collections"]["edges"]
+
+    assert [node["node"]["id"] for node in data] == [
+        graphene.Node.to_global_id("Collection", collection.pk)
+        for collection in Collection.objects.order_by(order_direction)
+    ]
