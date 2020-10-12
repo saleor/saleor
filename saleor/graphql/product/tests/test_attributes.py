@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
 
-from ....product import AttributeInputType
+from ....product import AttributeInputType, AttributeType
 from ....product.error_codes import ProductErrorCode
 from ....product.models import (
     Attribute,
@@ -24,7 +24,7 @@ from ....product.models import (
 from ....product.utils.attributes import associate_attribute_values_to_instance
 from ...core.utils import snake_to_camel_case
 from ...tests.utils import get_graphql_content
-from ..enums import AttributeTypeEnum, AttributeValueType
+from ..enums import AttributeTypeEnum, AttributeValueType, ProductAttributeType
 from ..filters import filter_attributes_by_product_types
 from ..mutations.attributes import validate_value_is_unique
 from ..types.attributes import resolve_attribute_value_type
@@ -173,6 +173,7 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
             attributes {
               attribute {
                 slug
+                type
               }
               values {
                 slug
@@ -182,6 +183,7 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
               attributes {
                 attribute {
                   slug
+                  type
                 }
                 values {
                   slug
@@ -269,9 +271,15 @@ def test_resolve_attribute_values(user_api_client, product, staff_user):
     assert len(variant_attributes) == len(variant_attribute_values)
 
     assert product_attributes[0]["attribute"]["slug"] == "color"
+    assert (
+        product_attributes[0]["attribute"]["type"] == ProductAttributeType.PRODUCT.value
+    )
     assert product_attributes[0]["values"][0]["slug"] == product_attribute_values[0]
 
     assert variant_attributes[0]["attribute"]["slug"] == "size"
+    assert (
+        variant_attributes[0]["attribute"]["type"] == ProductAttributeType.PRODUCT.value
+    )
     assert variant_attributes[0]["values"][0]["slug"] == variant_attribute_values[0]
 
 
@@ -289,8 +297,12 @@ def test_resolve_attribute_values_non_assigned_to_node(
     product_type = product.product_type
 
     # Create dummy attributes
-    unassigned_product_attribute = Attribute.objects.create(name="P", slug="product")
-    unassigned_variant_attribute = Attribute.objects.create(name="V", slug="variant")
+    unassigned_product_attribute = Attribute.objects.create(
+        name="P", slug="product", type=AttributeType.PRODUCT
+    )
+    unassigned_variant_attribute = Attribute.objects.create(
+        name="V", slug="variant", type=AttributeType.PRODUCT
+    )
 
     # Create a value for each dummy attribute to ensure they are not returned
     # by the product or variant as they are not associated to them
@@ -437,9 +449,12 @@ def test_attributes_in_collection_query(
 
 CREATE_ATTRIBUTES_QUERY = """
     mutation createAttribute(
-        $name: String!, $slug: String, $values: [AttributeValueCreateInput]
+        $name: String!, $slug: String, $type: AttributeTypeEnum!,
+        $values: [AttributeValueCreateInput]
     ){
-        attributeCreate(input: {name: $name, values: $values, slug: $slug}) {
+        attributeCreate(input: {
+            name: $name, values: $values, slug: $slug, type: $type,
+        }) {
             errors {
                 field
                 message
@@ -452,6 +467,7 @@ CREATE_ATTRIBUTES_QUERY = """
             attribute {
                 name
                 slug
+                type
                 values {
                     name
                     slug
@@ -476,7 +492,11 @@ def test_create_attribute_and_attribute_values(
 
     attribute_name = "Example name"
     name = "Value name"
-    variables = {"name": attribute_name, "values": [{"name": name}]}
+    variables = {
+        "name": attribute_name,
+        "values": [{"name": name}],
+        "type": AttributeTypeEnum.PRODUCT.name,
+    }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -514,8 +534,8 @@ def test_create_attribute_with_given_slug(
     staff_api_client.user.user_permissions.add(permission_manage_products)
     query = """
         mutation createAttribute(
-            $name: String!, $slug: String) {
-        attributeCreate(input: {name: $name, slug: $slug}) {
+            $name: String!, $slug: String, $type: AttributeTypeEnum!) {
+        attributeCreate(input: {name: $name, slug: $slug, type: $type}) {
             productErrors {
                 field
                 message
@@ -529,7 +549,11 @@ def test_create_attribute_with_given_slug(
     """
 
     attribute_name = "My Name"
-    variables = {"name": attribute_name, "slug": input_slug}
+    variables = {
+        "name": attribute_name,
+        "slug": input_slug,
+        "type": AttributeTypeEnum.PRODUCT.name,
+    }
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))
 
     assert not content["data"]["attributeCreate"]["productErrors"]
@@ -542,7 +566,7 @@ def test_create_attribute_value_name_and_slug_with_unicode(
     query = CREATE_ATTRIBUTES_QUERY
     name = "わたし わ にっぽん です"
     slug = "わたし-わ-にっぽん-で"
-    variables = {"name": name, "slug": slug}
+    variables = {"name": name, "slug": slug, "type": AttributeTypeEnum.PRODUCT.name}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -580,7 +604,11 @@ def test_create_attribute_and_attribute_values_errors(
     product_type,
 ):
     query = CREATE_ATTRIBUTES_QUERY
-    variables = {"name": "Example name", "values": [{"name": name_1}, {"name": name_2}]}
+    variables = {
+        "name": "Example name",
+        "type": AttributeTypeEnum.PRODUCT.name,
+        "values": [{"name": name_1}, {"name": name_2}],
+    }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -1401,10 +1429,10 @@ def test_assign_variant_attribute_having_unsupported_input_type(
 @pytest.mark.parametrize(
     "product_type_attribute_type, gql_attribute_type",
     (
-        (AttributeTypeEnum.PRODUCT, AttributeTypeEnum.VARIANT),
-        (AttributeTypeEnum.VARIANT, AttributeTypeEnum.PRODUCT),
-        (AttributeTypeEnum.PRODUCT, AttributeTypeEnum.PRODUCT),
-        (AttributeTypeEnum.VARIANT, AttributeTypeEnum.VARIANT),
+        (ProductAttributeType.PRODUCT, ProductAttributeType.VARIANT),
+        (ProductAttributeType.VARIANT, ProductAttributeType.PRODUCT),
+        (ProductAttributeType.PRODUCT, ProductAttributeType.PRODUCT),
+        (ProductAttributeType.VARIANT, ProductAttributeType.VARIANT),
     ),
 )
 def test_assign_attribute_to_product_type_having_already_that_attribute(
@@ -1423,9 +1451,9 @@ def test_assign_attribute_to_product_type_having_already_that_attribute(
 
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
-    if product_type_attribute_type == AttributeTypeEnum.PRODUCT:
+    if product_type_attribute_type == ProductAttributeType.PRODUCT:
         product_type.product_attributes.add(attribute)
-    elif product_type_attribute_type == AttributeTypeEnum.VARIANT:
+    elif product_type_attribute_type == ProductAttributeType.VARIANT:
         product_type.variant_attributes.add(attribute)
     else:
         raise ValueError(f"Unknown: {product_type}")
@@ -1624,7 +1652,7 @@ ATTRIBUTES_RESORT_QUERY = """
     mutation ProductTypeReorderAttributes(
       $productTypeId: ID!
       $moves: [ReorderInput]!
-      $type: AttributeTypeEnum!
+      $type: ProductAttributeType!
     ) {
       productTypeReorderAttributes(
         productTypeId: $productTypeId
