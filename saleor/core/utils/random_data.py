@@ -603,18 +603,16 @@ def create_fake_order(discounts, max_order_lines=5):
 
 
 def create_fake_sale():
-    channel, _ = Channel.objects.get_or_create(
-        currency_code=settings.DEFAULT_CURRENCY, slug=settings.DEFAULT_CHANNEL_SLUG
-    )
     sale = Sale.objects.create(
         name="Happy %s day!" % fake.word(), type=DiscountValueType.PERCENTAGE,
     )
-    SaleChannelListing.objects.create(
-        channel=channel,
-        currency=channel.currency_code,
-        sale=sale,
-        discount_value=random.choice([10, 20, 30, 40, 50]),
-    )
+    for channel in Channel.objects.all():
+        SaleChannelListing.objects.create(
+            channel=channel,
+            currency=channel.currency_code,
+            sale=sale,
+            discount_value=random.choice([10, 20, 30, 40, 50]),
+        )
     for product in Product.objects.all().order_by("?")[:4]:
         sale.products.add(product)
     return sale
@@ -717,7 +715,6 @@ def create_channels():
 
 
 def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
-    channels = Channel.objects.all()
     shipping_zone = ShippingZone.objects.get_or_create(
         name=shipping_zone_name, defaults={"countries": countries}
     )[0]
@@ -737,7 +734,7 @@ def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
             for name in shipping_methods_names
         ]
     )
-    for channel in channels:
+    for channel in Channel.objects.all():
         ShippingMethodChannelListing.objects.bulk_create(
             [
                 ShippingMethodChannelListing(

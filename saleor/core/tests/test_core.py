@@ -12,7 +12,7 @@ from django.test import RequestFactory, override_settings
 from ...account.models import Address, User
 from ...account.utils import create_superuser
 from ...channel.models import Channel
-from ...discount.models import Sale, Voucher
+from ...discount.models import Sale, SaleChannelListing, Voucher
 from ...giftcard.models import GiftCard
 from ...order.models import Order
 from ...product.models import ProductImage, ProductType
@@ -151,12 +151,6 @@ def test_create_address(db):
     assert Address.objects.all().count() == 1
 
 
-@pytest.mark.skip(
-    reason=(
-        "We should use channel from order when getting product. "
-        "We should fix it in  https://app.clickup.com/t/2549495/SALEOR-649"
-    )
-)
 def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
     # Tests shouldn't depend on images present in placeholder folder
     monkeypatch.setattr(
@@ -175,9 +169,13 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
 
 def test_create_product_sales(db):
     how_many = 5
+    channel_count = 0
+    for _ in random_data.create_channels():
+        channel_count += 1
     for _ in random_data.create_product_sales(how_many):
         pass
-    assert Sale.objects.all().count() == 5
+    assert Sale.objects.all().count() == how_many
+    assert SaleChannelListing.objects.all().count() == how_many * channel_count
 
 
 @pytest.mark.skip("We should fix it in https://app.clickup.com/t/2549495/SALEOR-649")
