@@ -448,7 +448,7 @@
     "model": "product.product",
     "pk": 61,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -491,7 +491,7 @@
     "model": "product.product",
     "pk": 62,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -530,7 +530,7 @@
     "model": "product.product",
     "pk": 63,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -569,7 +569,7 @@
     "model": "product.product",
     "pk": 64,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -608,7 +608,7 @@
     "model": "product.product",
     "pk": 65,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -647,7 +647,7 @@
     "model": "product.product",
     "pk": 71,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -686,7 +686,7 @@
     "model": "product.product",
     "pk": 72,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -725,7 +725,7 @@
     "model": "product.product",
     "pk": 73,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -764,7 +764,7 @@
     "model": "product.product",
     "pk": 74,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -803,7 +803,7 @@
     "model": "product.product",
     "pk": 75,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -842,7 +842,7 @@
     "model": "product.product",
     "pk": 76,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -881,7 +881,7 @@
     "model": "product.product",
     "pk": 77,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -920,7 +920,7 @@
     "model": "product.product",
     "pk": 78,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -959,7 +959,7 @@
     "model": "product.product",
     "pk": 79,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -998,7 +998,7 @@
     "model": "product.product",
     "pk": 81,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1037,7 +1037,7 @@
     "model": "product.product",
     "pk": 82,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1076,7 +1076,7 @@
     "model": "product.product",
     "pk": 83,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1115,7 +1115,7 @@
     "model": "product.product",
     "pk": 84,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1154,7 +1154,7 @@
     "model": "product.product",
     "pk": 85,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1193,7 +1193,7 @@
     "model": "product.product",
     "pk": 86,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1232,7 +1232,7 @@
     "model": "product.product",
     "pk": 87,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1271,7 +1271,7 @@
     "model": "product.product",
     "pk": 88,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1310,7 +1310,7 @@
     "model": "product.product",
     "pk": 89,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1349,7 +1349,7 @@
     "model": "product.product",
     "pk": 107,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1388,7 +1388,7 @@
     "model": "product.product",
     "pk": 108,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1427,7 +1427,7 @@
     "model": "product.product",
     "pk": 109,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1466,7 +1466,7 @@
     "model": "product.product",
     "pk": 110,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1505,7 +1505,7 @@
     "model": "product.product",
     "pk": 111,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1544,7 +1544,7 @@
     "model": "product.product",
     "pk": 112,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1583,7 +1583,7 @@
     "model": "product.product",
     "pk": 113,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1622,7 +1622,7 @@
     "model": "product.product",
     "pk": 114,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1661,7 +1661,7 @@
     "model": "product.product",
     "pk": 115,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1700,7 +1700,7 @@
     "model": "product.product",
     "pk": 116,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1739,7 +1739,7 @@
     "model": "product.product",
     "pk": 117,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1778,7 +1778,7 @@
     "model": "product.product",
     "pk": 118,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
@@ -1817,7 +1817,7 @@
     "model": "product.product",
     "pk": 119,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -1853,7 +1853,7 @@
     "model": "product.product",
     "pk": 120,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -1889,7 +1889,7 @@
     "model": "product.product",
     "pk": 121,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -1925,7 +1925,7 @@
     "model": "product.product",
     "pk": 122,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -1961,7 +1961,7 @@
     "model": "product.product",
     "pk": 123,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -1997,7 +1997,7 @@
     "model": "product.product",
     "pk": 124,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -7451,7 +7451,7 @@
     "model": "product.collection",
     "pk": 1,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -7480,7 +7480,7 @@
     "model": "product.collection",
     "pk": 2,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
