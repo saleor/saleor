@@ -282,6 +282,8 @@ def test_resolve_attribute_values(user_api_client, product, staff_user):
         variant_attributes[0]["attribute"]["type"]
         == AttributeTypeEnum.PRODUCT_TYPE.name
     )
+
+
 def test_resolve_attribute_values_non_assigned_to_node(
     user_api_client, product, staff_user
 ):
