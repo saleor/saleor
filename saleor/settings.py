@@ -271,10 +271,7 @@ if ENABLE_DEBUG_TOOLBAR:
     try:
         __import__("graphiql_debug_toolbar")
     except ImportError as exc:
-        msg = (
-            f"{exc} -- Install the missing dependencies by "
-            f"running `pip install -r requirements_dev.txt`"
-        )
+        msg = f"{exc} -- Install the missing dependencies by running `poetry install`"
         warnings.warn(msg)
     else:
         INSTALLED_APPS += ["django.forms", "debug_toolbar", "graphiql_debug_toolbar"]

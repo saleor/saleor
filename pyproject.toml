@@ -126,3 +126,7 @@ exclude = '''
   |locale
 )/
 '''
+
+[build-system]
+requires = ["poetry >= 0.12, <1"]
+build-backend = "poetry.masonry.api"

@@ -8,9 +8,12 @@ RUN apt-get -y update \
   && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY requirements_dev.txt /app/
+COPY poetry.lock /app/
+COPY pyproject.toml /app/
 WORKDIR /app
-RUN pip install -r requirements_dev.txt
+RUN pip install poetry
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-root --no-dev
 
 ### Final image
 FROM python:3.8-slim
