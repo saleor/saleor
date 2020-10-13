@@ -109,6 +109,7 @@ CREATE_PAGE_MUTATION = """
                 contentJson
                 slug
                 isPublished
+                publicationDate
             }
             pageErrors {
                 field
@@ -120,6 +121,7 @@ CREATE_PAGE_MUTATION = """
 """
 
 
+@freeze_time("2020-03-18 12:00:00")
 def test_page_create_mutation(staff_api_client, permission_manage_pages):
     page_slug = "test-slug"
     page_content = "test content"
@@ -146,6 +148,7 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages):
     assert data["page"]["contentJson"] == page_content_json
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
+    assert data["page"]["publicationDate"] == "2020-03-18"
 
 
 def test_page_create_required_fields(staff_api_client, permission_manage_pages):
@@ -201,12 +204,14 @@ def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
 
 
 UPDATE_PAGE_MUTATION = """
-    mutation updatePage($id: ID!, $slug: String) {
-        pageUpdate(id: $id, input: {slug: $slug}) {
+    mutation updatePage($id: ID!, $slug: String,  $is_published: Boolean!) {
+        pageUpdate(id: $id, input: {slug: $slug, isPublished: $is_published}) {
             page {
                 id
                 title
                 slug
+                isPublished
+                publicationDate
             }
             pageErrors {
                 field
@@ -225,7 +230,7 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
     assert new_slug != page.slug
 
     page_id = graphene.Node.to_global_id("Page", page.id)
-    variables = {"id": page_id, "slug": new_slug}
+    variables = {"id": page_id, "slug": new_slug, "is_published": True}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_pages]
     )
@@ -237,6 +242,28 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
     assert data["page"]["slug"] == new_slug
 
 
+@freeze_time("2020-03-18 12:00:00")
+def test_public_page_sets_publication_date(staff_api_client, permission_manage_pages):
+    data = {
+        "slug": "test-url",
+        "title": "Test page",
+        "content": "test content",
+        "is_published": False,
+    }
+    page = Page.objects.create(**data)
+    page_id = graphene.Node.to_global_id("Page", page.id)
+    variables = {"id": page_id, "is_published": True, "slug": page.slug}
+    response = staff_api_client.post_graphql(
+        UPDATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+
+    assert not data["pageErrors"]
+    assert data["page"]["isPublished"] is True
+    assert data["page"]["publicationDate"] == "2020-03-18"
+
+
 @pytest.mark.parametrize("slug_value", [None, ""])
 def test_update_page_blank_slug_value(
     staff_api_client, permission_manage_pages, page, slug_value
@@ -245,7 +272,7 @@ def test_update_page_blank_slug_value(
     assert slug_value != page.slug
 
     page_id = graphene.Node.to_global_id("Page", page.id)
-    variables = {"id": page_id, "slug": slug_value}
+    variables = {"id": page_id, "slug": slug_value, "is_published": True}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_pages]
     )
