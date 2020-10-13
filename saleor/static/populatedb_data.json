@@ -448,8 +448,6 @@
     "model": "product.product",
     "pk": 61,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "taxes": {
@@ -478,21 +476,15 @@
         "entityMap": {}
       },
       "category": 20,
-      "currency": "USD",
-      "minimal_variant_price_amount": "15.00",
       "updated_at": "2020-08-31T06:53:16.102Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-10-08",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 62,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -517,21 +509,15 @@
         "entityMap": {}
       },
       "category": 20,
-      "currency": "USD",
-      "minimal_variant_price_amount": "15.00",
       "updated_at": "2020-08-31T06:53:16.307Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2021-02-26",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 63,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -556,21 +542,15 @@
         "entityMap": {}
       },
       "category": 20,
-      "currency": "USD",
-      "minimal_variant_price_amount": "15.00",
       "updated_at": "2020-08-31T06:53:29.317Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2021-08-06",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 64,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -595,21 +575,15 @@
         "entityMap": {}
       },
       "category": 20,
-      "currency": "USD",
-      "minimal_variant_price_amount": "12.00",
       "updated_at": "2020-08-31T06:53:29.548Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2021-01-26",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 65,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -634,21 +608,15 @@
         "entityMap": {}
       },
       "category": 20,
-      "currency": "USD",
-      "minimal_variant_price_amount": "7.50",
       "updated_at": "2020-08-31T06:53:29.787Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2021-01-26",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 71,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -673,21 +641,15 @@
         "entityMap": {}
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:17.155Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 72,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -712,21 +674,15 @@
         "entityMap": {}
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:17.312Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 73,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -751,21 +707,15 @@
         "entityMap": {}
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:17.473Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 74,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -790,21 +740,15 @@
         "entityMap": {}
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:17.630Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 75,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -829,21 +773,15 @@
         "entityMap": {}
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:17.782Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 76,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -868,21 +806,15 @@
         "entityMap": {}
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:31.827Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 77,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -907,21 +839,15 @@
         "entityMap": {}
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:18.105Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 78,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -946,21 +872,15 @@
         "entityMap": {}
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:32.287Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 79,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -985,21 +905,15 @@
         "entityMap": {}
       },
       "category": 14,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:18.411Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 81,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1024,21 +938,15 @@
         "entityMap": {}
       },
       "category": 15,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:18.558Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 82,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1063,21 +971,15 @@
         "entityMap": {}
       },
       "category": 15,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:30.364Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 83,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1102,21 +1004,15 @@
         "entityMap": {}
       },
       "category": 15,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:18.900Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 84,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1141,21 +1037,15 @@
         "entityMap": {}
       },
       "category": 15,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:30.527Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 85,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1180,21 +1070,15 @@
         "entityMap": {}
       },
       "category": 22,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:30.677Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 86,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1219,21 +1103,15 @@
         "entityMap": {}
       },
       "category": 22,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:20.430Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 87,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1258,21 +1136,15 @@
         "entityMap": {}
       },
       "category": 13,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:32.761Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 88,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1297,21 +1169,15 @@
         "entityMap": {}
       },
       "category": 13,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:33.172Z",
       "charge_taxes": true,
-      "weight": "1.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "1.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 89,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1336,21 +1202,15 @@
         "entityMap": {}
       },
       "category": 10,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:33.473Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 107,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1375,21 +1235,15 @@
         "entityMap": {}
       },
       "category": 11,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:22.365Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 108,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1414,21 +1268,15 @@
         "entityMap": {}
       },
       "category": 11,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:34.274Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 109,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1453,21 +1301,15 @@
         "entityMap": {}
       },
       "category": 11,
-      "currency": "USD",
-      "minimal_variant_price_amount": "2.50",
       "updated_at": "2020-08-31T06:53:22.900Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 110,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1492,21 +1334,15 @@
         "entityMap": {}
       },
       "category": 11,
-      "currency": "USD",
-      "minimal_variant_price_amount": "4.00",
       "updated_at": "2020-08-31T06:53:35.075Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 111,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1531,21 +1367,15 @@
         "entityMap": {}
       },
       "category": 10,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:35.478Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 112,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1570,21 +1400,15 @@
         "entityMap": {}
       },
       "category": 10,
-      "currency": "USD",
-      "minimal_variant_price_amount": "2.50",
       "updated_at": "2020-08-31T06:53:24.137Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 113,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1609,21 +1433,15 @@
         "entityMap": {}
       },
       "category": 10,
-      "currency": "USD",
-      "minimal_variant_price_amount": "4.50",
       "updated_at": "2020-08-31T06:53:36.267Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 114,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1648,21 +1466,15 @@
         "entityMap": {}
       },
       "category": 10,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:36.707Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 115,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1687,21 +1499,15 @@
         "entityMap": {}
       },
       "category": 12,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:25.468Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 116,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1726,21 +1532,15 @@
         "entityMap": {}
       },
       "category": 12,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:25.725Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 117,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1765,21 +1565,15 @@
         "entityMap": {}
       },
       "category": 12,
-      "currency": "USD",
-      "minimal_variant_price_amount": "3.00",
       "updated_at": "2020-08-31T06:53:37.920Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 118,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
@@ -1804,21 +1598,15 @@
         "entityMap": {}
       },
       "category": 12,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:26.266Z",
       "charge_taxes": true,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 119,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": "",
@@ -1840,21 +1628,15 @@
         "entityMap": {}
       },
       "category": 23,
-      "currency": "USD",
-      "minimal_variant_price_amount": "5.00",
       "updated_at": "2020-08-31T06:53:27.068Z",
       "charge_taxes": false,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 120,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": "",
@@ -1876,21 +1658,15 @@
         "entityMap": {}
       },
       "category": 23,
-      "currency": "USD",
-      "minimal_variant_price_amount": "9.99",
       "updated_at": "2020-08-31T06:53:27.344Z",
       "charge_taxes": false,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": true
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 121,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": "",
@@ -1912,21 +1688,15 @@
         "entityMap": {}
       },
       "category": 23,
-      "currency": "USD",
-      "minimal_variant_price_amount": "9.99",
       "updated_at": "2020-08-31T06:53:27.611Z",
       "charge_taxes": false,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": false
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 122,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": "",
@@ -1948,21 +1718,15 @@
         "entityMap": {}
       },
       "category": 23,
-      "currency": "USD",
-      "minimal_variant_price_amount": "9.00",
       "updated_at": "2020-08-31T06:53:27.873Z",
       "charge_taxes": false,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": false
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 123,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": "",
@@ -1984,21 +1748,15 @@
         "entityMap": {}
       },
       "category": 23,
-      "currency": "USD",
-      "minimal_variant_price_amount": "9.99",
       "updated_at": "2020-08-31T06:53:28.105Z",
       "charge_taxes": false,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2020-08-31",
-      "visible_in_listings": false
+      "weight": "0.0:kg"
     }
   },
   {
     "model": "product.product",
     "pk": 124,
     "fields": {
-      "publication_date": null,
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": "",
@@ -2020,13 +1778,932 @@
         "entityMap": {}
       },
       "category": 23,
-      "currency": "USD",
-      "minimal_variant_price_amount": "9.00",
       "updated_at": "2020-08-31T06:53:28.398Z",
       "charge_taxes": false,
-      "weight": "0.0:kg",
-      "available_for_purchase": "2021-08-31",
-      "visible_in_listings": false
+      "weight": "0.0:kg"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 1,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 72,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 2,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 74,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 3,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 122,
+      "channel": 1,
+      "visible_in_listings": false,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 4,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 79,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 5,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 115,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 6,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 116,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 7,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 73,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 8,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 76,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 9,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 89,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 10,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 85,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 11,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 78,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 12,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 65,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 13,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 123,
+      "channel": 1,
+      "visible_in_listings": false,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 14,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 120,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 15,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 64,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 16,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 117,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 17,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 61,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 18,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 121,
+      "channel": 1,
+      "visible_in_listings": false,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 19,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 71,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 20,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 75,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 21,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 107,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 22,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 108,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 23,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 109,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 24,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 110,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 25,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 77,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 26,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 63,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 27,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 81,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 28,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 119,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 29,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 84,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 30,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 83,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 31,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 62,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 32,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 112,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 33,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 111,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 34,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 114,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 35,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 113,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 36,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 124,
+      "channel": 1,
+      "visible_in_listings": false,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 37,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 118,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 38,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 86,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 39,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 88,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 40,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 82,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 41,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 87,
+      "channel": 1,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "USD"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 42,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 72,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 43,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 74,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 44,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 122,
+      "channel": 2,
+      "visible_in_listings": false,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 45,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 79,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 46,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 115,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 47,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 116,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 48,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 73,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 49,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 76,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 50,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 89,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 51,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 85,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 52,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 78,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 53,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 65,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 54,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 123,
+      "channel": 2,
+      "visible_in_listings": false,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 55,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 120,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 56,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 64,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 57,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 117,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 58,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 61,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 59,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 121,
+      "channel": 2,
+      "visible_in_listings": false,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 60,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 71,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 61,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 75,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 62,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 107,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 63,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 108,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 64,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 109,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 65,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 110,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 66,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 77,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 67,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 63,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 68,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 81,
+      "channel": 2,
+      "visible_in_listings": false,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 69,
+    "fields": {
+      "publication_date": null,
+      "is_published": true,
+      "product": 119,
+      "channel": 2,
+      "visible_in_listings": false,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 70,
+    "fields": {
+      "publication_date": null,
+      "is_published": false,
+      "product": 84,
+      "channel": 2,
+      "visible_in_listings": true,
+      "available_for_purchase": null,
+      "currency": "PLN"
+    }
+  },
+  {
+    "model": "product.productchannellisting",
+    "pk": 71,
+    "fields": {
+      "publication_date": null,
+      "is_published": false,
+      "product": 83,
+      "channel": 2,
+      "visible_in_listings": false,
+      "available_for_purchase": null,
+      "currency": "PLN"
     }
   },
   {

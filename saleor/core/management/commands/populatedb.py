@@ -102,8 +102,8 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         create_warehouses()
         self.stdout.write("Created warehouses")
-        # create_products_by_schema(self.placeholders_dir, create_images)
-        # self.stdout.write("Created products")
+        create_products_by_schema(self.placeholders_dir, create_images)
+        self.stdout.write("Created products")
         # for msg in create_product_sales(5):
         #     self.stdout.write(msg)
         # for msg in create_vouchers():

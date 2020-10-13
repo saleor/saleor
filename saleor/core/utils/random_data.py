@@ -56,6 +56,7 @@ from ...product.models import (
     Collection,
     CollectionProduct,
     Product,
+    ProductChannelListing,
     ProductImage,
     ProductType,
     ProductVariant,
@@ -233,6 +234,16 @@ def create_products(products_data, placeholder_dir, create_images):
                 create_product_image(product, placeholder_dir, image_name)
 
 
+def create_product_channel_listings(product_channel_listings_data):
+    for product_channel_listing in product_channel_listings_data:
+        pk = product_channel_listing["pk"]
+        defaults = product_channel_listing["fields"]
+        defaults["channel_id"] = defaults.pop("channel")
+        defaults["product_id"] = defaults.pop("product")
+
+        ProductChannelListing.objects.update_or_create(pk=pk, defaults=defaults)
+
+
 def create_stocks(variant, warehouse_qs=None, **defaults):
     if warehouse_qs is None:
         warehouse_qs = Warehouse.objects.all()
@@ -329,23 +340,26 @@ def create_products_by_schema(placeholder_dir, create_images):
         placeholder_dir=placeholder_dir,
         create_images=create_images,
     )
-    create_product_variants(variants_data=types["product.productvariant"])
-    assign_attributes_to_product_types(
-        AttributeProduct, attributes=types["product.attributeproduct"]
+    create_product_channel_listings(
+        product_channel_listings_data=types["product.productchannellisting"],
     )
-    assign_attributes_to_product_types(
-        AttributeVariant, attributes=types["product.attributevariant"]
-    )
-    assign_attributes_to_products(
-        product_attributes=types["product.assignedproductattribute"]
-    )
-    assign_attributes_to_variants(
-        variant_attributes=types["product.assignedvariantattribute"]
-    )
-    create_collections(
-        data=types["product.collection"], placeholder_dir=placeholder_dir
-    )
-    assign_products_to_collections(associations=types["product.collectionproduct"])
+    # create_product_variants(variants_data=types["product.productvariant"])
+    # assign_attributes_to_product_types(
+    #     AttributeProduct, attributes=types["product.attributeproduct"]
+    # )
+    # assign_attributes_to_product_types(
+    #     AttributeVariant, attributes=types["product.attributevariant"]
+    # )
+    # assign_attributes_to_products(
+    #     product_attributes=types["product.assignedproductattribute"]
+    # )
+    # assign_attributes_to_variants(
+    #     variant_attributes=types["product.assignedvariantattribute"]
+    # )
+    # create_collections(
+    #     data=types["product.collection"], placeholder_dir=placeholder_dir
+    # )
+    # assign_products_to_collections(associations=types["product.collectionproduct"])
 
 
 class SaleorProvider(BaseProvider):
