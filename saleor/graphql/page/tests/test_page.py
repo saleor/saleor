@@ -1,4 +1,5 @@
 import json
+from datetime import date
 
 import graphene
 import pytest
@@ -8,7 +9,7 @@ from freezegun import freeze_time
 
 from ....page.error_codes import PageErrorCode
 from ....page.models import Page
-from ...tests.utils import get_graphql_content
+from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 
 PAGE_QUERY = """
     query PageQuery($id: ID, $slug: String) {
@@ -468,3 +469,64 @@ def test_query_pages_with_sort(
 
     for order, page_name in enumerate(result_order):
         assert pages[order]["node"]["title"] == page_name
+
+
+QUERY_PAGE_IS_PUBLISHED = """
+    query Page($id: ID!) {
+        page(id: $id) {
+            isPublished
+        }
+    }
+    """
+
+
+def test_page_publication_date_sets_is_publish_staff_user(
+    staff_api_client, api_client, permission_manage_pages, page
+):
+    publication_date = date(year=2020, month=3, day=18)
+
+    with freeze_time(publication_date):
+        page.publication_date = date.today()
+        page.save(update_fields=["publication_date"])
+
+    variables = {"id": graphene.Node.to_global_id("Page", page.pk)}
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+
+    with freeze_time(publication_date.replace(day=publication_date.day - 1)):
+        response = staff_api_client.post_graphql(QUERY_PAGE_IS_PUBLISHED, variables)
+        content = get_graphql_content(response, ignore_errors=True)
+        data = content["data"]["page"]
+        is_published = data["isPublished"]
+        assert is_published is False
+
+
+def test_page_publication_date_sets_is_publish_customer_user(
+    staff_api_client, api_client, permission_manage_pages, page
+):
+    query = QUERY_PAGE_IS_PUBLISHED
+    publication_date = date(year=2020, month=3, day=18)
+
+    with freeze_time(publication_date):
+        page.publication_date = date.today()
+        page.save(update_fields=["publication_date"])
+
+    variables = {"id": graphene.Node.to_global_id("Page", page.pk)}
+
+    with freeze_time(publication_date.replace(day=publication_date.day - 1)):
+        response = api_client.post_graphql(query, variables,)
+        content = get_graphql_content_from_response(response)
+        assert content["data"]["page"] is None
+
+    with freeze_time(publication_date):
+        response = api_client.post_graphql(query, variables,)
+        content = get_graphql_content(response, ignore_errors=True)
+        data = content["data"]["page"]
+        is_published = data["isPublished"]
+        assert is_published is True
+
+    with freeze_time(publication_date.replace(day=publication_date.day + 1)):
+        response = api_client.post_graphql(query, variables,)
+        content = get_graphql_content(response, ignore_errors=True)
+        data = content["data"]["page"]
+        is_published = data["isPublished"]
+        assert is_published is True

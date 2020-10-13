@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from unittest.mock import ANY, Mock, patch
 
@@ -8,6 +8,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
+from freezegun import freeze_time
 from graphql_relay import to_global_id
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
@@ -1375,6 +1376,7 @@ def test_create_product(
     product_name = "test name"
     product_slug = "product-test-slug"
     product_is_published = True
+    product_publication_date = date.today() + timedelta(days=1)
     product_charge_taxes = True
     visible_in_listings = True
     product_tax_rate = "STANDARD"
@@ -1406,6 +1408,7 @@ def test_create_product(
             "slug": product_slug,
             "descriptionJson": description_json,
             "isPublished": product_is_published,
+            "publicationDate": product_publication_date,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "basePrice": product_price,
@@ -1426,7 +1429,7 @@ def test_create_product(
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["descriptionJson"] == description_json
-    assert data["product"]["isPublished"] == product_is_published
+    assert data["product"]["isPublished"] is not product_is_published
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
@@ -1438,6 +1441,67 @@ def test_create_product(
     )
     assert slugify(non_existent_attr_value) in values
     assert color_value_slug in values
+
+
+QUERY_PRODUCT_IS_PUBLISHED = """
+    query Product($id: ID!) {
+        product(id: $id) {
+            isPublished
+        }
+    }
+    """
+
+
+def test_product_publication_date_sets_is_publish_staff_user(
+    staff_api_client, api_client, permission_manage_products, product
+):
+    publication_date = date(year=2020, month=3, day=18)
+
+    with freeze_time(publication_date):
+        product.publication_date = date.today()
+        product.save(update_fields=["publication_date"])
+
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    with freeze_time(publication_date.replace(day=publication_date.day - 1)):
+        response = staff_api_client.post_graphql(QUERY_PRODUCT_IS_PUBLISHED, variables)
+        content = get_graphql_content(response, ignore_errors=True)
+        data = content["data"]["product"]
+        is_published = data["isPublished"]
+        assert is_published is False
+
+
+def test_product_publication_date_sets_is_publish_customer_user(
+    staff_api_client, api_client, product
+):
+    query = QUERY_PRODUCT_IS_PUBLISHED
+    publication_date = date(year=2020, month=3, day=18)
+
+    with freeze_time(publication_date):
+        product.publication_date = date.today()
+        product.save(update_fields=["publication_date"])
+
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+
+    with freeze_time(publication_date.replace(day=publication_date.day - 1)):
+        response = api_client.post_graphql(query, variables,)
+        content = get_graphql_content_from_response(response)
+        assert content["data"]["product"] is None
+
+    with freeze_time(publication_date):
+        response = api_client.post_graphql(query, variables,)
+        content = get_graphql_content(response, ignore_errors=True)
+        data = content["data"]["product"]
+        is_published = data["isPublished"]
+        assert is_published is True
+
+    with freeze_time(publication_date.replace(day=publication_date.day + 1)):
+        response = api_client.post_graphql(query, variables,)
+        content = get_graphql_content(response, ignore_errors=True)
+        data = content["data"]["product"]
+        is_published = data["isPublished"]
+        assert is_published is True
 
 
 PRODUCT_VARIANT_SET_DEFAULT_MUTATION = """
