@@ -689,9 +689,7 @@ def create_channels():
 
 
 def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
-    channel, _ = Channel.objects.get_or_create(
-        currency_code=settings.DEFAULT_CURRENCY, slug=settings.DEFAULT_CHANNEL_SLUG
-    )
+    channels = Channel.objects.all()
     shipping_zone = ShippingZone.objects.get_or_create(
         name=shipping_zone_name, defaults={"countries": countries}
     )[0]
@@ -711,18 +709,19 @@ def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
             for name in shipping_methods_names
         ]
     )
-    ShippingMethodChannelListing.objects.bulk_create(
-        [
-            ShippingMethodChannelListing(
-                shipping_method=shipping_method,
-                price=fake.money(),
-                minimum_order_price=Money(0, settings.DEFAULT_CURRENCY),
-                maximum_order_price_amount=None,
-                channel=channel,
-            )
-            for shipping_method in shipping_methods
-        ]
-    )
+    for channel in channels:
+        ShippingMethodChannelListing.objects.bulk_create(
+            [
+                ShippingMethodChannelListing(
+                    shipping_method=shipping_method,
+                    price=fake.money(),
+                    minimum_order_price=Money(0, channel.currency_code),
+                    maximum_order_price_amount=None,
+                    channel=channel,
+                )
+                for shipping_method in shipping_methods
+            ]
+        )
     return "Shipping Zone: %s" % shipping_zone
 
 
