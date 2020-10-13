@@ -272,13 +272,15 @@ def test_resolve_attribute_values(user_api_client, product, staff_user):
 
     assert product_attributes[0]["attribute"]["slug"] == "color"
     assert (
-        product_attributes[0]["attribute"]["type"] == ProductAttributeType.PRODUCT.value
+        product_attributes[0]["attribute"]["type"]
+        == AttributeTypeEnum.PRODUCT_TYPE.name
     )
     assert product_attributes[0]["values"][0]["slug"] == product_attribute_values[0]
 
     assert variant_attributes[0]["attribute"]["slug"] == "size"
     assert (
-        variant_attributes[0]["attribute"]["type"] == ProductAttributeType.PRODUCT.value
+        variant_attributes[0]["attribute"]["type"]
+        == AttributeTypeEnum.PRODUCT_TYPE.name
     )
     assert variant_attributes[0]["values"][0]["slug"] == variant_attribute_values[0]
 
@@ -298,10 +300,10 @@ def test_resolve_attribute_values_non_assigned_to_node(
 
     # Create dummy attributes
     unassigned_product_attribute = Attribute.objects.create(
-        name="P", slug="product", type=AttributeType.PRODUCT
+        name="P", slug="product", type=AttributeType.PRODUCT_TYPE
     )
     unassigned_variant_attribute = Attribute.objects.create(
-        name="V", slug="variant", type=AttributeType.PRODUCT
+        name="V", slug="variant", type=AttributeType.PRODUCT_TYPE
     )
 
     # Create a value for each dummy attribute to ensure they are not returned
@@ -400,7 +402,7 @@ def test_attributes_in_collection_query(
     # Create another product type and attribute that shouldn't get matched
     other_category = Category.objects.create(name="Other Category", slug="other-cat")
     other_attribute = Attribute.objects.create(
-        name="Other", slug="other", type=AttributeType.PRODUCT
+        name="Other", slug="other", type=AttributeType.PRODUCT_TYPE
     )
     other_product_type = ProductType.objects.create(
         name="Other type", has_variants=True, is_shipping_required=True
@@ -497,7 +499,7 @@ def test_create_attribute_and_attribute_values(
     variables = {
         "name": attribute_name,
         "values": [{"name": name}],
-        "type": AttributeTypeEnum.PRODUCT.name,
+        "type": AttributeTypeEnum.PRODUCT_TYPE.name,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -554,7 +556,7 @@ def test_create_attribute_with_given_slug(
     variables = {
         "name": attribute_name,
         "slug": input_slug,
-        "type": AttributeTypeEnum.PRODUCT.name,
+        "type": AttributeTypeEnum.PRODUCT_TYPE.name,
     }
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))
 
@@ -568,7 +570,11 @@ def test_create_attribute_value_name_and_slug_with_unicode(
     query = CREATE_ATTRIBUTES_QUERY
     name = "わたし わ にっぽん です"
     slug = "わたし-わ-にっぽん-で"
-    variables = {"name": name, "slug": slug, "type": AttributeTypeEnum.PRODUCT.name}
+    variables = {
+        "name": name,
+        "slug": slug,
+        "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+    }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -608,7 +614,7 @@ def test_create_attribute_and_attribute_values_errors(
     query = CREATE_ATTRIBUTES_QUERY
     variables = {
         "name": "Example name",
-        "type": AttributeTypeEnum.PRODUCT.name,
+        "type": AttributeTypeEnum.PRODUCT_TYPE.name,
         "values": [{"name": name_1}, {"name": name_2}],
     }
     response = staff_api_client.post_graphql(
@@ -2701,8 +2707,8 @@ ATTRIBUTES_SORT_QUERY = """
 def test_sort_attributes_by_slug(api_client):
     Attribute.objects.bulk_create(
         [
-            Attribute(name="MyAttribute", slug="b", type=AttributeType.PRODUCT),
-            Attribute(name="MyAttribute", slug="a", type=AttributeType.PRODUCT),
+            Attribute(name="MyAttribute", slug="b", type=AttributeType.PRODUCT_TYPE),
+            Attribute(name="MyAttribute", slug="a", type=AttributeType.PRODUCT_TYPE),
         ]
     )
 
@@ -2721,8 +2727,8 @@ def test_sort_attributes_by_default_sorting(api_client):
     """Don't provide any sorting, this should sort by slug by default."""
     Attribute.objects.bulk_create(
         [
-            Attribute(name="A", slug="b", type=AttributeType.PRODUCT),
-            Attribute(name="B", slug="a", type=AttributeType.PRODUCT),
+            Attribute(name="A", slug="b", type=AttributeType.PRODUCT_TYPE),
+            Attribute(name="B", slug="a", type=AttributeType.PRODUCT_TYPE),
         ]
     )
 
@@ -2772,7 +2778,7 @@ def test_attributes_of_products_are_sorted(
     # This will allow us to make sure it is always the last attribute
     # when sorted by ID. Thus, we are sure the query is actually passing the test.
     other_attribute = Attribute.objects.create(
-        name="Other", slug="other", type=AttributeType.PRODUCT
+        name="Other", slug="other", type=AttributeType.PRODUCT_TYPE
     )
 
     # Add the attribute to the product type

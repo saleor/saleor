@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 def set_product_type_to_all_existing_attributes(apps, schema_editor):
     Attribute = apps.get_model("product", "Attribute")
-    Attribute.objects.all().update(type="product")
+    Attribute.objects.all().update(type="product-type")
 
 
 class Migration(migrations.Migration):
@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             model_name="attribute",
             name="type",
             field=models.CharField(
-                choices=[("product", "Product"), ("page", "Page")],
+                choices=[("product-type", "Product type"), ("page-type", "Page type")],
                 max_length=50,
                 null=True,
             ),
@@ -31,7 +31,8 @@ class Migration(migrations.Migration):
             model_name="attribute",
             name="type",
             field=models.CharField(
-                choices=[("product", "Product"), ("page", "Page")], max_length=50
+                choices=[("product-type", "Product type"), ("page-type", "Page type")],
+                max_length=50,
             ),
         ),
     ]

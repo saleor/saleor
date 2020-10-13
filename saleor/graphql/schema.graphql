@@ -544,8 +544,8 @@ type AttributeTranslation implements Node {
 }
 
 enum AttributeTypeEnum {
-  PRODUCT
-  PAGE
+  PRODUCT_TYPE
+  PAGE_TYPE
 }
 
 type AttributeUnassign {

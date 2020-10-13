@@ -58,7 +58,7 @@ class AttributeInputType:
 
 
 class AttributeType:
-    PRODUCT = "product"
-    PAGE = "page"
+    PRODUCT_TYPE = "product-type"
+    PAGE_TYPE = "page-type"
 
-    CHOICES = [(PRODUCT, "Product"), (PAGE, "Page")]
+    CHOICES = [(PRODUCT_TYPE, "Product type"), (PAGE_TYPE, "Page type")]

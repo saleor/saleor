@@ -9,7 +9,7 @@ from graphql.error import GraphQLError
 
 from ....core.permissions import OrderPermissions, ProductPermissions
 from ....core.weight import convert_weight_to_default_weight_unit
-from ....product import AttributeType, models
+from ....product import models
 from ....product.templatetags.product_images import (
     get_product_image_thumbnail,
     get_thumbnail,
@@ -726,9 +726,9 @@ class ProductType(CountableDjangoObjectType):
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_available_attributes(root: models.ProductType, info, **kwargs):
-        qs = models.Attribute.objects.get_unassigned_attributes(root.pk).filter(
-            type=AttributeType.PRODUCT
-        )
+        qs = models.Attribute.objects.get_unassigned_attributes(
+            root.pk
+        ).product_type_attributes()
         return resolve_attributes(info, qs=qs, **kwargs)
 
     @staticmethod

@@ -596,7 +596,7 @@ def shipping_method(shipping_zone):
 @pytest.fixture
 def color_attribute(db):  # pylint: disable=W0613
     attribute = Attribute.objects.create(
-        slug="color", name="Color", type=AttributeType.PRODUCT
+        slug="color", name="Color", type=AttributeType.PRODUCT_TYPE
     )
     AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
     AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
@@ -606,7 +606,7 @@ def color_attribute(db):  # pylint: disable=W0613
 @pytest.fixture
 def color_attribute_without_values(db):  # pylint: disable=W0613
     return Attribute.objects.create(
-        slug="color", name="Color", type=AttributeType.PRODUCT
+        slug="color", name="Color", type=AttributeType.PRODUCT_TYPE
     )
 
 
@@ -621,7 +621,7 @@ def pink_attribute_value(color_attribute):  # pylint: disable=W0613
 @pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
     attribute = Attribute.objects.create(
-        slug="size", name="Size", type=AttributeType.PRODUCT
+        slug="size", name="Size", type=AttributeType.PRODUCT_TYPE
     )
     AttributeValue.objects.create(attribute=attribute, name="Small", slug="small")
     AttributeValue.objects.create(attribute=attribute, name="Big", slug="big")
@@ -631,7 +631,7 @@ def size_attribute(db):  # pylint: disable=W0613
 @pytest.fixture
 def weight_attribute(db):
     attribute = Attribute.objects.create(
-        slug="material", name="Material", type=AttributeType.PRODUCT
+        slug="material", name="Material", type=AttributeType.PRODUCT_TYPE
     )
     AttributeValue.objects.create(attribute=attribute, name="Cotton", slug="cotton")
     AttributeValue.objects.create(
@@ -645,10 +645,12 @@ def attribute_list() -> List[Attribute]:
     return list(
         Attribute.objects.bulk_create(
             [
-                Attribute(slug="size", name="Size", type=AttributeType.PRODUCT),
-                Attribute(slug="weight", name="Weight", type=AttributeType.PRODUCT),
+                Attribute(slug="size", name="Size", type=AttributeType.PRODUCT_TYPE),
                 Attribute(
-                    slug="thickness", name="Thickness", type=AttributeType.PRODUCT
+                    slug="weight", name="Weight", type=AttributeType.PRODUCT_TYPE
+                ),
+                Attribute(
+                    slug="thickness", name="Thickness", type=AttributeType.PRODUCT_TYPE
                 ),
             ]
         )
@@ -902,7 +904,7 @@ def product_with_multiple_values_attributes(product, product_type, category) -> 
         slug="modes",
         name="Available Modes",
         input_type=AttributeInputType.MULTISELECT,
-        type=AttributeType.PRODUCT,
+        type=AttributeType.PRODUCT_TYPE,
     )
 
     attr_val_1 = AttributeValue.objects.create(

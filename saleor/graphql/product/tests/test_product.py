@@ -4867,10 +4867,12 @@ def test_product_type_get_unassigned_attributes(
     unassigned_attributes = list(
         Attribute.objects.bulk_create(
             [
-                Attribute(slug="size", name="Size", type=AttributeType.PRODUCT),
-                Attribute(slug="weight", name="Weight", type=AttributeType.PRODUCT),
+                Attribute(slug="size", name="Size", type=AttributeType.PRODUCT_TYPE),
                 Attribute(
-                    slug="thickness", name="Thickness", type=AttributeType.PRODUCT
+                    slug="weight", name="Weight", type=AttributeType.PRODUCT_TYPE
+                ),
+                Attribute(
+                    slug="thickness", name="Thickness", type=AttributeType.PRODUCT_TYPE
                 ),
             ]
         )
@@ -4879,8 +4881,8 @@ def test_product_type_get_unassigned_attributes(
     unassigned_page_attributes = list(
         Attribute.objects.bulk_create(
             [
-                Attribute(slug="length", name="Length", type=AttributeType.PAGE),
-                Attribute(slug="width", name="Width", type=AttributeType.PAGE),
+                Attribute(slug="length", name="Length", type=AttributeType.PAGE_TYPE),
+                Attribute(slug="width", name="Width", type=AttributeType.PAGE_TYPE),
             ]
         )
     )
@@ -4888,8 +4890,8 @@ def test_product_type_get_unassigned_attributes(
     assigned_attributes = list(
         Attribute.objects.bulk_create(
             [
-                Attribute(slug="color", name="Color", type=AttributeType.PRODUCT),
-                Attribute(slug="type", name="Type", type=AttributeType.PRODUCT),
+                Attribute(slug="color", name="Color", type=AttributeType.PRODUCT_TYPE),
+                Attribute(slug="type", name="Type", type=AttributeType.PRODUCT_TYPE),
             ]
         )
     )
