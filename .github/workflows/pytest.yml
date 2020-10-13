@@ -28,7 +28,7 @@ jobs:
         python-version: "3.8"
 
     - name: Install system dependencies
-      run: apt-get install libpq-dev
+      run: apt-get install -y libpq-dev
 
     - uses: actions/cache@v2
       with:
