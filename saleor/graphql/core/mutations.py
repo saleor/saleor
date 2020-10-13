@@ -354,6 +354,20 @@ class ModelMutation(BaseMutation):
 
         cls._update_mutation_arguments_and_fields(arguments=arguments, fields=fields)
 
+    @staticmethod
+    def remap_error_fields(validation_error, field_map):
+        """Rename validation_error fields accoring to provided field_map.
+
+        Skips renaming fields from field_map that are not on validation_error.
+        """
+        for old_field, new_field in field_map.items():
+            try:
+                validation_error.error_dict[
+                    new_field
+                ] = validation_error.error_dict.pop(old_field)
+            except KeyError:
+                pass
+
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         """Clean input data received from mutation arguments.

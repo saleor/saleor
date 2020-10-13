@@ -1227,6 +1227,15 @@ class ProductVariantCreate(ModelMutation):
             used_attribute_values.append(attribute_values)
 
     @classmethod
+    def clean_instance(cls, info, instance):
+        try:
+            cleaned_instance = super().clean_instance(info, instance)
+        except ValidationError as validation_error:
+            cls.remap_error_fields(validation_error, {"price_amount": "price"})
+            raise validation_error
+        return cleaned_instance
+
+    @classmethod
     def clean_input(
         cls, info, instance: models.ProductVariant, data: dict, input_cls=None
     ):

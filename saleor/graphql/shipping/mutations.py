@@ -165,6 +165,15 @@ class ShippingZoneDelete(ModelDeleteMutation):
 
 class ShippingPriceMixin:
     @classmethod
+    def clean_instance(cls, info, instance):
+        try:
+            cleaned_instance = super().clean_instance(info, instance)
+        except ValidationError as validation_error:
+            cls.remap_error_fields(validation_error, {"price_amount": "price"})
+            raise validation_error
+        return cleaned_instance
+
+    @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
 
