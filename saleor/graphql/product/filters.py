@@ -30,6 +30,7 @@ from ..utils import (
 from ..utils.filters import filter_by_query_param, filter_range_field
 from ..warehouse import types as warehouse_types
 from .enums import (
+    AttributeTypeEnum,
     CollectionPublished,
     ProductTypeConfigurable,
     ProductTypeEnum,
@@ -299,6 +300,12 @@ def filter_quantity(qs, quantity_value, warehouses=None):
     return qs.filter(variants__in=product_variants)
 
 
+def filter_attribute_type(qs, _, value):
+    if not value:
+        return qs
+    return qs.filter(type=value)
+
+
 class ProductStockFilterInput(graphene.InputObjectType):
     warehouse_ids = graphene.List(graphene.NonNull(graphene.ID), required=False)
     quantity = graphene.Field(IntRangeInput, required=False)
@@ -402,6 +409,7 @@ class AttributeFilter(django_filters.FilterSet):
         method=filter_fields_containing_value("slug", "name")
     )
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
+    type = EnumFilter(input_class=AttributeTypeEnum, method=filter_attribute_type)
 
     in_collection = GlobalIDFilter(method="filter_in_collection")
     in_category = GlobalIDFilter(method="filter_in_category")

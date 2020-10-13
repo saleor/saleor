@@ -13,7 +13,7 @@ from graphql_relay import from_global_id
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....order import OrderStatus, models as order_models
-from ....product import models
+from ....product import AttributeType, models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import (
     update_product_minimal_variant_price_task,
@@ -1569,7 +1569,30 @@ class ProductTypeCreate(ModelMutation):
         if tax_code:
             info.context.plugins.assign_tax_code_to_object_meta(instance, tax_code)
 
+        cls.validate_attributes(cleaned_input)
+
         return cleaned_input
+
+    @classmethod
+    def validate_attributes(cls, cleaned_data):
+        errors = {}
+        for field in ["product_attributes", "variant_attributes"]:
+            attributes = cleaned_data.get(field)
+            if not attributes:
+                continue
+            not_valid_attributes = [
+                graphene.Node.to_global_id("Attribute", attr.pk)
+                for attr in attributes
+                if attr.type != AttributeType.PRODUCT_TYPE
+            ]
+            if not_valid_attributes:
+                errors[field] = ValidationError(
+                    "Only Product type attributes are allowed.",
+                    code=ProductErrorCode.INVALID.value,
+                    params={"attributes": not_valid_attributes},
+                )
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):

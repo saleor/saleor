@@ -3376,6 +3376,7 @@ PRODUCT_TYPE_CREATE_MUTATION = """
                 field
                 message
                 code
+                attributes
             }
         }
 
@@ -3505,40 +3506,125 @@ def test_create_product_type_create_with_negative_weight(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
+def test_product_type_create_mutation_not_valid_attributes(
+    staff_api_client,
+    product_type,
+    permission_manage_product_types_and_attributes,
+    monkeypatch,
+    setup_vatlayer,
+):
+    # given
+    query = PRODUCT_TYPE_CREATE_MUTATION
+    product_type_name = "test type"
+    slug = "test-type"
+    has_variants = True
+    require_shipping = True
+
+    product_attributes = product_type.product_attributes.all()
+    product_page_attribute = product_attributes.last()
+    product_page_attribute.type = AttributeType.PAGE_TYPE
+    product_page_attribute.save(update_fields=["type"])
+
+    variant_attributes = product_type.variant_attributes.all()
+    variant_page_attribute = variant_attributes.last()
+    variant_page_attribute.type = AttributeType.PAGE_TYPE
+    variant_page_attribute.save(update_fields=["type"])
+
+    product_attributes_ids = [
+        graphene.Node.to_global_id("Attribute", att.id) for att in product_attributes
+    ]
+    variant_attributes_ids = [
+        graphene.Node.to_global_id("Attribute", att.id) for att in variant_attributes
+    ]
+
+    variables = {
+        "name": product_type_name,
+        "slug": slug,
+        "hasVariants": has_variants,
+        "taxCode": "wine",
+        "isShippingRequired": require_shipping,
+        "productAttributes": product_attributes_ids,
+        "variantAttributes": variant_attributes_ids,
+    }
+    initial_count = ProductType.objects.count()
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeCreate"]
+    errors = data["productErrors"]
+
+    assert len(errors) == 2
+    expected_errors = [
+        {
+            "code": ProductErrorCode.INVALID.name,
+            "field": "productAttributes",
+            "message": ANY,
+            "attributes": [
+                graphene.Node.to_global_id("Attribute", product_page_attribute.pk)
+            ],
+        },
+        {
+            "code": ProductErrorCode.INVALID.name,
+            "field": "variantAttributes",
+            "message": ANY,
+            "attributes": [
+                graphene.Node.to_global_id("Attribute", variant_page_attribute.pk)
+            ],
+        },
+    ]
+    for error in errors:
+        assert error in expected_errors
+
+    assert initial_count == ProductType.objects.count()
+
+
+PRODUCT_TYPE_UPDATE_MUTATION = """
+mutation updateProductType(
+    $id: ID!,
+    $name: String!,
+    $hasVariants: Boolean!,
+    $isShippingRequired: Boolean!,
+    $productAttributes: [ID],
+    ) {
+        productTypeUpdate(
+        id: $id,
+        input: {
+            name: $name,
+            hasVariants: $hasVariants,
+            isShippingRequired: $isShippingRequired,
+            productAttributes: $productAttributes
+        }) {
+            productType {
+                name
+                slug
+                isShippingRequired
+                hasVariants
+                variantAttributes {
+                    id
+                }
+                productAttributes {
+                    id
+                }
+            }
+            productErrors {
+                code
+                field
+                attributes
+            }
+            }
+        }
+"""
+
+
 def test_product_type_update_mutation(
     staff_api_client, product_type, permission_manage_product_types_and_attributes
 ):
-    query = """
-    mutation updateProductType(
-        $id: ID!,
-        $name: String!,
-        $hasVariants: Boolean!,
-        $isShippingRequired: Boolean!,
-        $productAttributes: [ID],
-        ) {
-            productTypeUpdate(
-            id: $id,
-            input: {
-                name: $name,
-                hasVariants: $hasVariants,
-                isShippingRequired: $isShippingRequired,
-                productAttributes: $productAttributes
-            }) {
-                productType {
-                    name
-                    slug
-                    isShippingRequired
-                    hasVariants
-                    variantAttributes {
-                        id
-                    }
-                    productAttributes {
-                        id
-                    }
-                }
-              }
-            }
-    """
+    query = PRODUCT_TYPE_UPDATE_MUTATION
     product_type_name = "test type updated"
     slug = product_type.slug
     has_variants = True
@@ -3571,6 +3657,53 @@ def test_product_type_update_mutation(
     assert data["isShippingRequired"] == require_shipping
     assert not data["productAttributes"]
     assert len(data["variantAttributes"]) == (variant_attributes.count())
+
+
+def test_product_type_update_mutation_not_valid_attributes(
+    staff_api_client,
+    product_type,
+    permission_manage_product_types_and_attributes,
+    size_page_attribute,
+):
+    # given
+    query = PRODUCT_TYPE_UPDATE_MUTATION
+    product_type_name = "test type updated"
+    has_variants = True
+    require_shipping = False
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
+
+    # Test scenario: adding page attribute raise error
+
+    page_attribute_id = graphene.Node.to_global_id("Attribute", size_page_attribute.id)
+    product_attributes_ids = [
+        page_attribute_id,
+        graphene.Node.to_global_id(
+            "Attribute", product_type.product_attributes.first().pk
+        ),
+    ]
+
+    variables = {
+        "id": product_type_id,
+        "name": product_type_name,
+        "hasVariants": has_variants,
+        "isShippingRequired": require_shipping,
+        "productAttributes": product_attributes_ids,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeUpdate"]
+    errors = data["productErrors"]
+
+    assert len(errors) == 1
+    assert errors[0]["field"] == "productAttributes"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["attributes"] == [page_attribute_id]
 
 
 UPDATE_PRODUCT_TYPE_SLUG_MUTATION = """

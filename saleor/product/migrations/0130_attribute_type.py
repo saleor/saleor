@@ -11,7 +11,7 @@ def set_product_type_to_all_existing_attributes(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("product", "0127_auto_20201001_0933"),
+        ("product", "0129_add_product_types_and_attributes_perm"),
     ]
 
     operations = [

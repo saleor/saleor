@@ -643,6 +643,16 @@ def weight_attribute(db):
 
 
 @pytest.fixture
+def size_page_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="page-size", name="Page size", type=AttributeType.PAGE_TYPE
+    )
+    AttributeValue.objects.create(attribute=attribute, name="10", slug="10")
+    AttributeValue.objects.create(attribute=attribute, name="15", slug="15")
+    return attribute
+
+
+@pytest.fixture
 def attribute_list() -> List[Attribute]:
     return list(
         Attribute.objects.bulk_create(
