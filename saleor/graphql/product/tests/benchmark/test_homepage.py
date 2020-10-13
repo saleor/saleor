@@ -6,14 +6,19 @@ from ....tests.utils import get_graphql_content
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_retrieve_product_list(
-    api_client, homepage_collection, category, categories_tree, count_queries,
+    api_client,
+    homepage_collection,
+    category,
+    categories_tree,
+    count_queries,
+    channel_USD,
 ):
     query = """
-        query ProductsList {
+        query ProductsList($channel: String) {
           shop {
             description
             name
-            homepageCollection {
+            homepageCollection(channel: $channel) {
               id
               backgroundImage {
                 url
@@ -34,7 +39,8 @@ def test_retrieve_product_list(
           }
         }
     """
-    get_graphql_content(api_client.post_graphql(query))
+    variables = {"channel": channel_USD.slug}
+    get_graphql_content(api_client.post_graphql(query, variables))
 
 
 @pytest.mark.django_db
@@ -90,9 +96,9 @@ def test_featured_products_list(
 
         query FeaturedProducts($channel: String) {
           shop {
-            homepageCollection {
+            homepageCollection(channel: $channel) {
               id
-              products(first: 20, channel: $channel) {
+              products(first: 20) {
                 edges {
                   node {
                     ...BasicProductFields

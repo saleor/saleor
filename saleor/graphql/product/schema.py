@@ -120,6 +120,7 @@ from .resolvers import (
     resolve_attributes,
     resolve_categories,
     resolve_category_by_slug,
+    resolve_collection_by_id,
     resolve_collection_by_slug,
     resolve_collections,
     resolve_digital_contents,
@@ -304,7 +305,8 @@ class ProductQueries(graphene.ObjectType):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
-            collection = graphene.Node.get_node_from_global_id(info, id, Collection)
+            _, id = graphene.Node.from_global_id(id)
+            collection = resolve_collection_by_id(info, id, channel)
         else:
             collection = resolve_collection_by_slug(
                 info, slug=slug, channel_slug=channel

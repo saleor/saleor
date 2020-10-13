@@ -115,7 +115,7 @@ class Shop(graphene.ObjectType):
     description = graphene.String(description="Shop's description.")
     domain = graphene.Field(Domain, required=True, description="Shop's domain data.")
     homepage_collection = graphene.Field(
-        Collection, description="Collection displayed on homepage."
+        Collection, description="Collection displayed on homepage.",
     )
     languages = graphene.List(
         LanguageDisplay,
@@ -225,12 +225,15 @@ class Shop(graphene.ObjectType):
         return info.context.site.settings.description
 
     @staticmethod
-    def resolve_homepage_collection(_, info):
+    def resolve_homepage_collection(root, info):
         collection_pk = info.context.site.settings.homepage_collection_id
-        qs = product_models.Collection.objects.all()
-        collection = qs.filter(pk=collection_pk).first()
+        collection = product_models.Collection.objects.filter(
+            pk=collection_pk, channel_listing__channel__slug=str(root.channel_slug),
+        ).first()
         return (
-            ChannelContext(node=collection, channel_slug=None) if collection else None
+            ChannelContext(node=collection, channel_slug=str(root.channel_slug))
+            if collection
+            else None
         )
 
     @staticmethod

@@ -54,7 +54,7 @@ def test_collection_view(api_client, homepage_collection, count_queries, channel
         }
 
         query Collection($id: ID!, $pageSize: Int, $channel: String) {
-          collection(id: $id) {
+          collection(id: $id, channel: $channel) {
             id
             slug
             name

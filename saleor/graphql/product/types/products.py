@@ -800,9 +800,6 @@ class ProductType(CountableDjangoObjectType):
 class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     products = ChannelContextFilterConnectionField(
         Product,
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
         filter=ProductFilterInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
@@ -851,22 +848,10 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             )
 
     @staticmethod
-    def resolve_products(
-        root: ChannelContext[models.Collection], info, channel=None, **kwargs
-    ):
+    def resolve_products(root: ChannelContext[models.Collection], info, **kwargs):
         user = info.context.user
-        if channel is None:
-            channel = get_default_channel_slug_or_graphql_error()
-        qs = root.node.products.collection_sorted(user, channel)
-        return ChannelQsContext(qs=qs, channel_slug=channel)
-
-    @classmethod
-    def get_node(cls, info, id):
-        if info.context:
-            requestor = get_user_or_app_from_context(info.context)
-            qs = cls._meta.model.objects.visible_to_user(requestor)
-            return qs.filter(id=id).first()
-        return None
+        qs = root.node.products.collection_sorted(user, root.channel_slug)
+        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
     def resolve_channel_listing(root: ChannelContext[models.Collection], _info):

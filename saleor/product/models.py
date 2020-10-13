@@ -900,28 +900,20 @@ class CollectionsQueryset(models.QuerySet):
     def user_has_access_to_all(user):
         return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
 
-    @staticmethod
-    def published_with_channel_slug(qs, channel_slug: str):
-        return qs.filter(channel_listing__channel__slug=str(channel_slug))
-
-    def published(self):
+    def published(self, channel_slug: str):
         today = datetime.date.today()
         return self.filter(
             Q(channel_listing__publication_date__lte=today)
             | Q(channel_listing__publication_date__isnull=True),
+            channel_listing__channel__slug=str(channel_slug),
             channel_listing__channel__is_active=True,
             channel_listing__is_published=True,
         )
 
-    def visible_to_user_with_channel_slug(self, user: "User", channel_slug: str):
+    def visible_to_user(self, user: "User", channel_slug: str):
         if self.user_has_access_to_all(user):
             return self.all()
-        return self.published_with_channel_slug(self.published(), channel_slug)
-
-    def visible_to_user(self, user: "User"):
-        if self.user_has_access_to_all(user):
-            return self.all()
-        return self.published()
+        return self.published(channel_slug)
 
 
 class Collection(SeoModel, ModelWithMetadata):

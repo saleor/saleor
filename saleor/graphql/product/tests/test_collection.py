@@ -5,7 +5,7 @@ import graphene
 import pytest
 from graphql_relay import to_global_id
 
-from ....product.error_codes import ProductErrorCode
+from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import Collection, Product
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
 from ...tests.utils import get_graphql_content, get_multipart_request_body
@@ -149,7 +149,7 @@ def test_collections_query(
                         name
                         slug
                         description
-                        products(channel: $channel) {
+                        products {
                             totalCount
                         }
                     }
@@ -183,13 +183,13 @@ def test_collections_query_as_staff(
 ):
     query = """
         query Collections($channel: String) {
-            collections(first: 2) {
+            collections(first: 2, channel: $channel) {
                 edges {
                     node {
                         name
                         slug
                         description
-                        products(channel: $channel) {
+                        products {
                             totalCount
                         }
                     }
@@ -208,8 +208,8 @@ def test_collections_query_as_staff(
 
 GET_FILTERED_PRODUCTS_COLLECTION_QUERY = """
 query CollectionProducts($id: ID!,$channel: String, $filters: ProductFilterInput) {
-  collection(id: $id) {
-    products(first: 10, filter: $filters, channel: $channel) {
+  collection(id: $id, channel: $channel) {
+    products(first: 10, filter: $filters) {
       edges {
         node {
           id
@@ -765,7 +765,9 @@ def test_add_products_to_collection_with_product_without_variants(
     content = get_graphql_content(response)
     error = content["data"]["collectionAddProducts"]["collectionErrors"][0]
 
-    assert error["code"] == ProductErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
+    assert (
+        error["code"] == CollectionErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
+    )
     assert error["message"] == "Cannot manage products without variants."
 
 
@@ -829,8 +831,8 @@ def test_collections_query_ids_not_exists(
 
 
 FETCH_COLLECTION_QUERY = """
-    query fetchCollection($id: ID!){
-        collection(id: $id) {
+    query fetchCollection($id: ID!, $channel: String){
+        collection(id: $id, channel: $channel) {
             name
             backgroundImage(size: 120) {
                url
@@ -852,6 +854,7 @@ def test_collection_image_query(
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
     variables = {
         "id": collection_id,
+        "channel": channel_USD.slug,
     }
     response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
     content = get_graphql_content(response)
@@ -862,10 +865,13 @@ def test_collection_image_query(
 
 
 def test_collection_image_query_without_associated_file(
-    user_api_client, published_collection
+    user_api_client, published_collection, channel_USD
 ):
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
-    variables = {"id": collection_id}
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+    }
     response = user_api_client.post_graphql(FETCH_COLLECTION_QUERY, variables)
     content = get_graphql_content(response)
     data = content["data"]["collection"]
@@ -965,8 +971,8 @@ def test_fetch_unpublished_collection_anonymous_user(
 
 GET_SORTED_PRODUCTS_COLLECTION_QUERY = """
 query CollectionProducts($id: ID!, $channel: String, $sortBy: ProductOrder) {
-  collection(id: $id) {
-    products(first: 10, sortBy: $sortBy, channel: $channel) {
+  collection(id: $id, channel: $channel) {
+    products(first: 10, sortBy: $sortBy) {
       edges {
         node {
           id

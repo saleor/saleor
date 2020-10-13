@@ -25,7 +25,7 @@ def sales_list(channel_USD):
 @pytest.fixture
 def homepage_collection(
     site_settings,
-    collection,
+    published_collection,
     product_list_published,
     product_with_image,
     product_with_variant_with_two_attributes,
@@ -37,16 +37,16 @@ def homepage_collection(
     product_with_image.category = non_default_category
     product_with_image.save()
 
-    collection.products.set(product_list_published)
+    published_collection.products.set(product_list_published)
 
-    collection.products.add(product_with_image)
-    collection.products.add(product_with_variant_with_two_attributes)
-    collection.products.add(product_with_multiple_values_attributes)
-    collection.products.add(product_without_shipping)
+    published_collection.products.add(product_with_image)
+    published_collection.products.add(product_with_variant_with_two_attributes)
+    published_collection.products.add(product_with_multiple_values_attributes)
+    published_collection.products.add(product_without_shipping)
 
-    site_settings.homepage_collection = collection
+    site_settings.homepage_collection = published_collection
     site_settings.save(update_fields=["homepage_collection"])
-    return collection
+    return published_collection
 
 
 @pytest.fixture

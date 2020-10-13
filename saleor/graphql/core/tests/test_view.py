@@ -1,11 +1,8 @@
-from unittest import mock
-
 import graphene
 import pytest
 from django.test import override_settings
 
 from ....demo.views import EXAMPLE_QUERY
-from ...product.types import Collection
 from ...tests.fixtures import (
     ACCESS_CONTROL_ALLOW_CREDENTIALS,
     ACCESS_CONTROL_ALLOW_HEADERS,
@@ -269,32 +266,6 @@ def test_validation_errors_query_do_not_get_logged(
     )
     assert response.status_code == 200
     assert graphql_log_handler.messages == []
-
-
-@mock.patch.object(Collection, "get_node")
-def test_unexpected_exceptions_are_logged_in_their_own_logger(
-    mocked_get_node,
-    staff_api_client,
-    graphql_log_handler,
-    permission_manage_products,
-    collection,
-    channel_USD,
-):
-    def bad_get_node(info, pk):
-        raise NotImplementedError(info, pk)
-
-    mocked_get_node.side_effect = bad_get_node
-
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-    variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
-    response = staff_api_client.post_graphql(
-        "query($id: ID!) { collection(id: $id) { name } }", variables=variables,
-    )
-
-    assert response.status_code == 200
-    assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.unhandled[ERROR].NotImplementedError"
-    ]
 
 
 def test_example_query(api_client, product):
