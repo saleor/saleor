@@ -11,7 +11,6 @@ class OrderSortField(graphene.Enum):
     CUSTOMER = ["billing_address__last_name", "billing_address__first_name", "pk"]
     PAYMENT = ["last_charge_status", "status", "pk"]
     FULFILLMENT_STATUS = ["status", "user_email", "pk"]
-    TOTAL = ["total_gross_amount", "status", "pk"]
 
     @property
     def description(self):
