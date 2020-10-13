@@ -1184,6 +1184,7 @@ enum CollectionSortField {
   NAME
   AVAILABILITY
   PRODUCT_COUNT
+  PUBLICATION_DATE
 }
 
 input CollectionSortingInput {
@@ -3878,6 +3879,7 @@ enum ProductOrderField {
   DATE
   TYPE
   PUBLISHED
+  PUBLICATION_DATE
 }
 
 type ProductPricingInfo {

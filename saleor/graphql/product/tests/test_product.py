@@ -1326,6 +1326,7 @@ CREATE_PRODUCT_MUTATION = """
                             }
                             descriptionJson
                             isPublished
+                            publicationDate
                             chargeTaxes
                             taxType {
                                 taxCode
@@ -1357,6 +1358,7 @@ CREATE_PRODUCT_MUTATION = """
 """
 
 
+@freeze_time("2020-03-18 12:00:00")
 def test_create_product(
     staff_api_client,
     product_type,
@@ -1435,6 +1437,7 @@ def test_create_product(
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
     assert data["product"]["visibleInListings"] == visible_in_listings
+    assert data["product"]["publicationDate"] == "2020-03-18"
     values = (
         data["product"]["attributes"][0]["values"][0]["slug"],
         data["product"]["attributes"][1]["values"][0]["slug"],
@@ -2332,6 +2335,7 @@ MUTATION_UPDATE_PRODUCT = """
                         }
                         descriptionJson
                         isPublished
+                        publicationDate
                         chargeTaxes
                         variants {
                             price {
@@ -2368,6 +2372,7 @@ MUTATION_UPDATE_PRODUCT = """
 """
 
 
+@freeze_time("2020-03-18 12:00:00")
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product(
     updated_webhook_mock,
@@ -2431,6 +2436,7 @@ def test_update_product(
     assert data["product"]["variants"][0]["price"]["amount"] == basePrice
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
+    assert data["product"]["publicationDate"] == "2020-03-18"
 
     attributes = data["product"]["attributes"]
 
