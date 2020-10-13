@@ -71,6 +71,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Set OrderFulfillStockInput fields as required - #6196 by @IKarbowiak
 - Fix attribute filtering by categories and collections - #6214 by @fowczarek
 - Fix is_visible when publication_date==today - #6225 by @korycins
+- Fix filtering products by multiple attributes - #6215 by @GrzegorzDerdak
+
 ## 2.10.2
 
 - Add command to change currencies in the database - #5906 by @d-wysocki
