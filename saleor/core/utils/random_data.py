@@ -35,7 +35,7 @@ from ...core.permissions import (
 from ...core.utils import build_absolute_uri
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
-from ...discount.models import Sale, SaleChannelListing, Voucher
+from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...discount.utils import fetch_discounts
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
@@ -1053,15 +1053,21 @@ def create_warehouses():
 
 
 def create_vouchers():
+    channels = list(Channel.objects.all())
     voucher, created = Voucher.objects.get_or_create(
         code="FREESHIPPING",
         defaults={
             "type": VoucherType.SHIPPING,
             "name": "Free shipping",
             "discount_value_type": DiscountValueType.PERCENTAGE,
-            "discount_value": 100,
         },
     )
+    for channel in channels:
+        VoucherChannelListing.objects.get_or_create(
+            voucher=voucher,
+            channel=channel,
+            defaults={"discount_value": 100, "currency": channel.currency_code},
+        )
     if created:
         yield "Voucher #%d" % voucher.id
     else:
@@ -1073,10 +1079,23 @@ def create_vouchers():
             "type": VoucherType.ENTIRE_ORDER,
             "name": "Big order discount",
             "discount_value_type": DiscountValueType.FIXED,
-            "discount_value": 25,
-            "min_spent": Money(200, settings.DEFAULT_CURRENCY),
         },
     )
+    for channel in channels:
+        discount_value = 25
+        min_spent_amount = 200
+        if channel.currency_code == "PLN":
+            min_spent_amount *= 4
+            discount_value *= 4
+        VoucherChannelListing.objects.get_or_create(
+            voucher=voucher,
+            channel=channel,
+            defaults={
+                "discount_value": discount_value,
+                "currency": channel.currency_code,
+                "min_spent_amount": 200,
+            },
+        )
     if created:
         yield "Voucher #%d" % voucher.id
     else:
@@ -1087,9 +1106,14 @@ def create_vouchers():
         defaults={
             "type": VoucherType.ENTIRE_ORDER,
             "discount_value_type": DiscountValueType.PERCENTAGE,
-            "discount_value": 5,
         },
     )
+    for channel in channels:
+        VoucherChannelListing.objects.get_or_create(
+            voucher=voucher,
+            channel=channel,
+            defaults={"discount_value": 5, "currency": channel.currency_code},
+        )
     if created:
         yield "Voucher #%d" % voucher.id
     else:

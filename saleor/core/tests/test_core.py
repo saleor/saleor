@@ -12,7 +12,7 @@ from django.test import RequestFactory, override_settings
 from ...account.models import Address, User
 from ...account.utils import create_superuser
 from ...channel.models import Channel
-from ...discount.models import Sale, SaleChannelListing, Voucher
+from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...giftcard.models import GiftCard
 from ...order.models import Order
 from ...product.models import ProductImage, ProductType
@@ -178,12 +178,16 @@ def test_create_product_sales(db):
     assert SaleChannelListing.objects.all().count() == how_many * channel_count
 
 
-@pytest.mark.skip("We should fix it in https://app.clickup.com/t/2549495/SALEOR-649")
 def test_create_vouchers(db):
+    voucher_count = 3
+    channel_count = 0
+    for _ in random_data.create_channels():
+        channel_count += 1
     assert Voucher.objects.all().count() == 0
     for _ in random_data.create_vouchers():
         pass
-    assert Voucher.objects.all().count() == 3
+    assert Voucher.objects.all().count() == voucher_count
+    assert VoucherChannelListing.objects.all().count() == voucher_count * channel_count
 
 
 def test_create_gift_card(db):

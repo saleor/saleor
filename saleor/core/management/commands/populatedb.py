@@ -106,8 +106,8 @@ class Command(BaseCommand):
         self.stdout.write("Created products")
         for msg in create_product_sales(5):
             self.stdout.write(msg)
-        # for msg in create_vouchers():
-        #     self.stdout.write(msg)
+        for msg in create_vouchers():
+            self.stdout.write(msg)
         # for msg in create_gift_card():
         #     self.stdout.write(msg)
         # for msg in create_users(20):
