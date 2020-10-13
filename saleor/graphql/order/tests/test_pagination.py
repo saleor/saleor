@@ -557,8 +557,6 @@ def test_draft_orders_query_pagination_with_filter_search_by_id(
         ({"field": "CUSTOMER", "direction": "DESC"}, [1, 0]),
         ({"field": "FULFILLMENT_STATUS", "direction": "ASC"}, [2, 1]),
         ({"field": "FULFILLMENT_STATUS", "direction": "DESC"}, [0, 1]),
-        ({"field": "TOTAL", "direction": "ASC"}, [0, 2]),
-        ({"field": "TOTAL", "direction": "DESC"}, [1, 2]),
     ],
 )
 def test_query_orders_pagination_with_sort(

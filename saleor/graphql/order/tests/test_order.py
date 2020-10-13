@@ -3775,8 +3775,6 @@ QUERY_ORDER_WITH_SORT = """
         ({"field": "CUSTOMER", "direction": "DESC"}, [1, 0, 2]),
         ({"field": "FULFILLMENT_STATUS", "direction": "ASC"}, [2, 1, 0]),
         ({"field": "FULFILLMENT_STATUS", "direction": "DESC"}, [0, 1, 2]),
-        ({"field": "TOTAL", "direction": "ASC"}, [0, 2, 1]),
-        ({"field": "TOTAL", "direction": "DESC"}, [1, 2, 0]),
     ],
 )
 def test_query_orders_with_sort(
@@ -3855,8 +3853,6 @@ QUERY_DRAFT_ORDER_WITH_SORT = """
         ({"field": "CREATION_DATE", "direction": "DESC"}, [2, 0, 1]),
         ({"field": "CUSTOMER", "direction": "ASC"}, [2, 0, 1]),
         ({"field": "CUSTOMER", "direction": "DESC"}, [1, 0, 2]),
-        ({"field": "TOTAL", "direction": "ASC"}, [0, 2, 1]),
-        ({"field": "TOTAL", "direction": "DESC"}, [1, 2, 0]),
     ],
 )
 def test_query_draft_orders_with_sort(
