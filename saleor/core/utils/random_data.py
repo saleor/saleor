@@ -60,6 +60,7 @@ from ...product.models import (
     ProductImage,
     ProductType,
     ProductVariant,
+    ProductVariantChannelListing,
 )
 from ...product.tasks import update_products_discounted_prices_of_discount_task
 from ...product.thumbnails import (
@@ -240,7 +241,6 @@ def create_product_channel_listings(product_channel_listings_data):
         defaults = product_channel_listing["fields"]
         defaults["channel_id"] = defaults.pop("channel")
         defaults["product_id"] = defaults.pop("product")
-
         ProductChannelListing.objects.update_or_create(pk=pk, defaults=defaults)
 
 
@@ -269,6 +269,15 @@ def create_product_variants(variants_data):
         variant, _ = ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
         quantity = random.randint(100, 500)
         create_stocks(variant, quantity=quantity)
+
+
+def create_product_variant_channel_listings(product_variant_channel_listings_data):
+    for variant_channel_listing in product_variant_channel_listings_data:
+        pk = variant_channel_listing["pk"]
+        defaults = variant_channel_listing["fields"]
+        defaults["channel_id"] = defaults.pop("channel")
+        defaults["variant_id"] = defaults.pop("variant")
+        ProductVariantChannelListing.objects.update_or_create(pk=pk, defaults=defaults)
 
 
 def assign_attributes_to_product_types(
@@ -343,23 +352,28 @@ def create_products_by_schema(placeholder_dir, create_images):
     create_product_channel_listings(
         product_channel_listings_data=types["product.productchannellisting"],
     )
-    # create_product_variants(variants_data=types["product.productvariant"])
-    # assign_attributes_to_product_types(
-    #     AttributeProduct, attributes=types["product.attributeproduct"]
-    # )
-    # assign_attributes_to_product_types(
-    #     AttributeVariant, attributes=types["product.attributevariant"]
-    # )
-    # assign_attributes_to_products(
-    #     product_attributes=types["product.assignedproductattribute"]
-    # )
-    # assign_attributes_to_variants(
-    #     variant_attributes=types["product.assignedvariantattribute"]
-    # )
-    # create_collections(
-    #     data=types["product.collection"], placeholder_dir=placeholder_dir
-    # )
-    # assign_products_to_collections(associations=types["product.collectionproduct"])
+    create_product_variants(variants_data=types["product.productvariant"])
+    create_product_variant_channel_listings(
+        product_variant_channel_listings_data=types[
+            "product.productvariantchannellisting"
+        ],
+    )
+    assign_attributes_to_product_types(
+        AttributeProduct, attributes=types["product.attributeproduct"]
+    )
+    assign_attributes_to_product_types(
+        AttributeVariant, attributes=types["product.attributevariant"]
+    )
+    assign_attributes_to_products(
+        product_attributes=types["product.assignedproductattribute"]
+    )
+    assign_attributes_to_variants(
+        variant_attributes=types["product.assignedvariantattribute"]
+    )
+    create_collections(
+        data=types["product.collection"], placeholder_dir=placeholder_dir
+    )
+    assign_products_to_collections(associations=types["product.collectionproduct"])
 
 
 class SaleorProvider(BaseProvider):
