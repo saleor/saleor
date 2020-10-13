@@ -19,7 +19,7 @@ from ...core.utils.reordering import perform_reordering
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
-from ..enums import AttributeInputTypeEnum, AttributeTypeEnum
+from ..enums import AttributeInputTypeEnum, AttributeTypeEnum, ProductAttributeType
 from ..types import Attribute, AttributeValue
 from .common import ReorderInput
 
@@ -32,6 +32,7 @@ class AttributeCreateInput(graphene.InputObjectType):
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     name = graphene.String(required=True, description=AttributeDescriptions.NAME)
     slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
+    type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
     values = graphene.List(
         AttributeValueCreateInput, description=AttributeDescriptions.VALUES
     )
@@ -92,7 +93,7 @@ class AttributeUpdateInput(graphene.InputObjectType):
 
 class AttributeAssignInput(graphene.InputObjectType):
     id = graphene.ID(required=True, description="The ID of the attribute to assign.")
-    type = AttributeTypeEnum(
+    type = ProductAttributeType(
         required=True, description="The attribute type to be assigned as."
     )
 
@@ -312,7 +313,7 @@ class AttributeAssign(BaseMutation):
             pk = from_global_id_strict_type(
                 operation.id, only_type=Attribute, field="operations"
             )
-            if operation.type == AttributeTypeEnum.PRODUCT:
+            if operation.type == ProductAttributeType.PRODUCT:
                 product_attrs_pks.append(pk)
             else:
                 variant_attrs_pks.append(pk)
@@ -677,7 +678,7 @@ class ProductTypeReorderAttributes(BaseMutation):
         product_type_id = graphene.Argument(
             graphene.ID, required=True, description="ID of a product type."
         )
-        type = AttributeTypeEnum(
+        type = ProductAttributeType(
             required=True, description="The attribute type to reorder."
         )
         moves = graphene.List(
@@ -692,7 +693,7 @@ class ProductTypeReorderAttributes(BaseMutation):
             product_type_id, only_type=ProductType, field="product_type_id"
         )
 
-        if type == AttributeTypeEnum.PRODUCT:
+        if type == ProductAttributeType.PRODUCT:
             m2m_field = "attributeproduct"
         else:
             m2m_field = "attributevariant"

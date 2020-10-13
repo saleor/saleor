@@ -17,7 +17,7 @@ from ....core.weight import WeightUnits
 from ....order import OrderStatus
 from ....order.models import OrderLine
 from ....plugins.manager import PluginsManager
-from ....product import AttributeInputType
+from ....product import AttributeInputType, AttributeType
 from ....product.error_codes import ProductErrorCode
 from ....product.models import (
     Attribute,
@@ -4887,22 +4887,39 @@ def test_product_type_get_unassigned_attributes(
     unassigned_attributes = list(
         Attribute.objects.bulk_create(
             [
-                Attribute(slug="size", name="Size"),
-                Attribute(slug="weight", name="Weight"),
-                Attribute(slug="thickness", name="Thickness"),
+                Attribute(slug="size", name="Size", type=AttributeType.PRODUCT_TYPE),
+                Attribute(
+                    slug="weight", name="Weight", type=AttributeType.PRODUCT_TYPE
+                ),
+                Attribute(
+                    slug="thickness", name="Thickness", type=AttributeType.PRODUCT_TYPE
+                ),
+            ]
+        )
+    )
+
+    unassigned_page_attributes = list(
+        Attribute.objects.bulk_create(
+            [
+                Attribute(slug="length", name="Length", type=AttributeType.PAGE_TYPE),
+                Attribute(slug="width", name="Width", type=AttributeType.PAGE_TYPE),
             ]
         )
     )
 
     assigned_attributes = list(
         Attribute.objects.bulk_create(
-            [Attribute(slug="color", name="Color"), Attribute(slug="type", name="Type")]
+            [
+                Attribute(slug="color", name="Color", type=AttributeType.PRODUCT_TYPE),
+                Attribute(slug="type", name="Type", type=AttributeType.PRODUCT_TYPE),
+            ]
         )
     )
 
     # Ensure that assigning them to another product type
     # doesn't return an invalid response
     ignored_product_type.product_attributes.add(*unassigned_attributes)
+    ignored_product_type.product_attributes.add(*unassigned_page_attributes)
 
     # Assign the other attributes to the target product type
     target_product_type.product_attributes.add(*assigned_attributes)

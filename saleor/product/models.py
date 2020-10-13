@@ -33,7 +33,7 @@ from ..core.weight import WeightUnits, zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
-from . import AttributeInputType
+from . import AttributeInputType, AttributeType
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -689,10 +689,17 @@ class AttributeQuerySet(BaseAttributeQuerySet):
     def variant_attributes_sorted(self, asc=True):
         return self._get_sorted_m2m_field("attributevariant", asc)
 
+    def product_type_attributes(self):
+        return self.filter(type=AttributeType.PRODUCT_TYPE)
+
+    def page_type_attributes(self):
+        return self.filter(type=AttributeType.PAGE_TYPE)
+
 
 class Attribute(ModelWithMetadata):
     slug = models.SlugField(max_length=250, unique=True, allow_unicode=True)
     name = models.CharField(max_length=255)
+    type = models.CharField(max_length=50, choices=AttributeType.CHOICES)
 
     input_type = models.CharField(
         max_length=50,
