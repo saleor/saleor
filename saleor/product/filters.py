@@ -2,12 +2,17 @@ from collections import OrderedDict, defaultdict
 from itertools import chain
 from typing import Dict, Iterable
 
-from django.db.models import Q, QuerySet
+from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.forms import CheckboxSelectMultiple
 from django_filters import MultipleChoiceFilter, OrderingFilter, RangeFilter
 
 from ..core.filters import SortedFilterSet
-from .models import Attribute, Product
+from .models import (
+    AssignedProductAttribute,
+    AssignedVariantAttribute,
+    Attribute,
+    Product,
+)
 
 SORT_BY_FIELDS = OrderedDict(
     [
@@ -22,12 +27,25 @@ T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
 
 
 def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
-    for _, values in queries.items():
-        qs = qs.filter(
-            Q(**{"attributes__values__pk__in": values})
-            | Q(**{"variants__attributes__values__pk__in": values})
+    filters = [
+        Q(
+            Exists(
+                AssignedProductAttribute.objects.filter(
+                    product__id=OuterRef("pk"), values__pk__in=values
+                )
+            )
         )
-    return qs
+        | Q(
+            Exists(
+                AssignedVariantAttribute.objects.filter(
+                    variant__product__id=OuterRef("pk"), values__pk__in=values,
+                )
+            )
+        )
+        for values in queries.values()
+    ]
+
+    return qs.filter(*filters)
 
 
 class AttributeValuesFilter(MultipleChoiceFilter):
