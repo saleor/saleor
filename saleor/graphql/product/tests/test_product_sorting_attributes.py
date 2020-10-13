@@ -4,7 +4,7 @@ from decimal import Decimal
 import graphene
 import pytest
 
-from ....product import models as product_models
+from ....product import AttributeType, models as product_models
 from ....product.utils.attributes import associate_attribute_values_to_instance
 from ...tests.utils import get_graphql_content
 
@@ -71,10 +71,17 @@ def products_structures(category):
         product_models.Attribute.objects.bulk_create(
             [
                 product_models.Attribute(
-                    name="Colors", slug="colors", input_type=in_multivals
+                    name="Colors",
+                    slug="colors",
+                    input_type=in_multivals,
+                    type=AttributeType.PRODUCT_TYPE,
                 ),
-                product_models.Attribute(name="Trademark", slug="trademark"),
-                product_models.Attribute(name="Dummy", slug="dummy"),
+                product_models.Attribute(
+                    name="Trademark", slug="trademark", type=AttributeType.PRODUCT_TYPE
+                ),
+                product_models.Attribute(
+                    name="Dummy", slug="dummy", type=AttributeType.PRODUCT_TYPE
+                ),
             ]
         )
     )
@@ -497,7 +504,9 @@ def test_sort_product_not_having_attribute_data(api_client, category, count_quer
     )
 
     # Assign an attribute to the product type
-    attribute = product_models.Attribute.objects.create(name="Kind", slug="kind")
+    attribute = product_models.Attribute.objects.create(
+        name="Kind", slug="kind", type=AttributeType.PRODUCT_TYPE
+    )
     value = product_models.AttributeValue.objects.create(
         name="Value", slug="value", attribute=attribute
     )
@@ -563,7 +572,7 @@ def test_sort_product_by_attribute_using_attribute_having_no_products(
 
     query = QUERY_SORT_PRODUCTS_BY_ATTRIBUTE
     attribute_without_products = product_models.Attribute.objects.create(
-        name="Colors 2", slug="colors-2"
+        name="Colors 2", slug="colors-2", type=AttributeType.PRODUCT_TYPE
     )
 
     attribute_id: str = graphene.Node.to_global_id(
