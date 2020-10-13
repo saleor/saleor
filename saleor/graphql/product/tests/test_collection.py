@@ -4,12 +4,17 @@ from unittest.mock import Mock
 
 import graphene
 import pytest
+from freezegun import freeze_time
 from graphql_relay import to_global_id
 
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Collection, Product
 from ....product.tests.utils import create_image, create_pdf_file_with_image_ext
-from ...tests.utils import get_graphql_content, get_multipart_request_body
+from ...tests.utils import (
+    get_graphql_content,
+    get_graphql_content_from_response,
+    get_multipart_request_body,
+)
 
 QUERY_COLLECTION = """
     query ($id: ID, $slug: String){
@@ -1004,3 +1009,66 @@ def test_sort_collection_products_by_name(staff_api_client, collection, product_
         graphene.Node.to_global_id("Product", product.pk)
         for product in Product.objects.order_by("-name")
     ]
+
+
+QUERY_COLLECTION_IS_PUBLISHED = """
+    query Collection($id: ID!) {
+        collection(id: $id) {
+            isPublished
+        }
+    }
+    """
+
+
+def test_collection_publication_date_sets_is_publish_staff_user(
+    staff_api_client, api_client, permission_manage_products, collection
+):
+    publication_date = date(year=2020, month=3, day=18)
+
+    with freeze_time(publication_date):
+        collection.publication_date = date.today()
+        collection.save(update_fields=["publication_date"])
+
+    variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    with freeze_time(publication_date.replace(day=publication_date.day - 1)):
+        response = staff_api_client.post_graphql(
+            QUERY_COLLECTION_IS_PUBLISHED, variables
+        )
+        content = get_graphql_content(response, ignore_errors=True)
+        data = content["data"]["collection"]
+        is_published = data["isPublished"]
+        assert is_published is False
+
+
+def test_collection_publication_date_sets_is_publish_customer_user(
+    staff_api_client, api_client, collection
+):
+    query = QUERY_COLLECTION_IS_PUBLISHED
+    publication_date = date(year=2020, month=3, day=18)
+
+    with freeze_time(publication_date):
+        collection.publication_date = date.today()
+        collection.save(update_fields=["publication_date"])
+
+    variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
+
+    with freeze_time(publication_date.replace(day=publication_date.day - 1)):
+        response = api_client.post_graphql(query, variables,)
+        content = get_graphql_content_from_response(response)
+        assert content["data"]["collection"] is None
+
+    with freeze_time(publication_date):
+        response = api_client.post_graphql(query, variables,)
+        content = get_graphql_content(response, ignore_errors=True)
+        data = content["data"]["collection"]
+        is_published = data["isPublished"]
+        assert is_published is True
+
+    with freeze_time(publication_date.replace(day=publication_date.day + 1)):
+        response = api_client.post_graphql(query, variables,)
+        content = get_graphql_content(response, ignore_errors=True)
+        data = content["data"]["collection"]
+        is_published = data["isPublished"]
+        assert is_published is True
