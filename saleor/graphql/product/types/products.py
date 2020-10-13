@@ -161,6 +161,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "This field will be removed after 2020-07-31."
         ),
     )
+    # TODO: change to channel_listings
     channel_listing = graphene.List(
         graphene.NonNull(ProductVariantChannelListing),
         description="List of price information in channels for the product.",
@@ -441,6 +442,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         required=True,
         description="List of attributes assigned to this product.",
     )
+    # TODO: change to channel_listings
     channel_listing = graphene.List(
         graphene.NonNull(ProductChannelListing),
         description="List of availability in channels for the product.",
@@ -813,6 +815,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         type_name="collection",
         resolver=ChannelContextType.resolve_translation,
     )
+    # TODO: change to channel_listings
     channel_listing = graphene.List(
         graphene.NonNull(CollectionChannelListing),
         description="List of channels in which the collection is available.",

@@ -42,6 +42,7 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         type_name="sale",
         resolver=ChannelContextType.resolve_translation,
     )
+    # TODO: change to channel_listings
     channel_listing = graphene.List(
         graphene.NonNull(SaleChannelListing),
         description="List of channels available for the sale.",
@@ -138,6 +139,7 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         Money, description="Minimum order value to apply voucher."
     )
     type = VoucherTypeEnum(description="Determines a type of voucher.", required=True)
+    # TODO: change to channel_listings
     channel_listing = graphene.List(
         graphene.NonNull(VoucherChannelListing),
         description="List of availability in channels for the voucher.",
