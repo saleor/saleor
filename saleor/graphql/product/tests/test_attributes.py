@@ -2691,6 +2691,44 @@ def test_filter_in_collection_not_published_by_app_without_perm(
     }
 
 
+def test_filter_attributes_by_page_type(
+    staff_api_client, size_page_attribute, attribute_list, permission_manage_products
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    variables = {"filters": {"type": "PAGE_TYPE"}}
+
+    # when
+    attributes = get_graphql_content(
+        staff_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    # then
+    assert len(attributes) == 1
+    assert attributes[0]["node"]["slug"] == size_page_attribute.slug
+
+
+def test_filter_attributes_by_product_type(
+    staff_api_client, size_page_attribute, attribute_list, permission_manage_products
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    variables = {"filters": {"type": "PRODUCT_TYPE"}}
+
+    # when
+    attributes = get_graphql_content(
+        staff_api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    # then
+    assert len(attributes) == len(attribute_list)
+    assert size_page_attribute.slug not in {
+        attribute["node"]["slug"] for attribute in attributes
+    }
+
+
 ATTRIBUTES_SORT_QUERY = """
     query($sortBy: AttributeSortingInput) {
       attributes(first: 10, sortBy: $sortBy) {
