@@ -815,7 +815,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     channel_listing = graphene.List(
         graphene.NonNull(CollectionChannelListing),
-        description="List of price information in channels for the product.",
+        description="List of channels in which the collection is available.",
     )
 
     class Meta:

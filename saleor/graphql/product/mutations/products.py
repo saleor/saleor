@@ -215,7 +215,7 @@ class CollectionCreate(ModelMutation):
                 instance, "name", cleaned_input
             )
         except ValidationError as error:
-            error.code = ProductErrorCode.REQUIRED.value
+            error.code = CollectionErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
@@ -299,8 +299,8 @@ class CollectionReorderProducts(BaseMutation):
     class Meta:
         description = "Reorder the products of a collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
     class Arguments:
         collection_id = graphene.Argument(
@@ -456,8 +456,8 @@ class CollectionUpdateMeta(UpdateMetaBaseMutation):
         description = "Update public metadata for collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
 
 class CollectionClearMeta(ClearMetaBaseMutation):
@@ -466,8 +466,8 @@ class CollectionClearMeta(ClearMetaBaseMutation):
         description = "Clears public metadata for collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
 
 class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -476,8 +476,8 @@ class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
         description = "Update private metadata for collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
 
 class CollectionClearPrivateMeta(ClearMetaBaseMutation):
@@ -486,8 +486,8 @@ class CollectionClearPrivateMeta(ClearMetaBaseMutation):
         description = "Clears private metadata item for collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
 
 class CategoryUpdateMeta(UpdateMetaBaseMutation):
@@ -496,8 +496,8 @@ class CategoryUpdateMeta(UpdateMetaBaseMutation):
         description = "Update public metadata for category."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
 
 class CategoryClearMeta(ClearMetaBaseMutation):
@@ -506,8 +506,8 @@ class CategoryClearMeta(ClearMetaBaseMutation):
         description = "Clears public metadata for category."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
 
 class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -516,8 +516,8 @@ class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
         description = "Update private metadata for category."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
 
 class CategoryClearPrivateMeta(ClearMetaBaseMutation):
@@ -526,8 +526,8 @@ class CategoryClearPrivateMeta(ClearMetaBaseMutation):
         description = "Clears private metadata for category."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
 
 class AttributeValueInput(InputObjectType):

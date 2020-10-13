@@ -739,13 +739,13 @@ type CategoryBulkDelete {
 
 type CategoryClearMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   category: Category
 }
 
 type CategoryClearPrivateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   category: Category
 }
 
@@ -833,13 +833,13 @@ type CategoryUpdate {
 
 type CategoryUpdateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   category: Category
 }
 
 type CategoryUpdatePrivateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   category: Category
 }
 
@@ -1202,13 +1202,13 @@ input CollectionChannelListingUpdateInput {
 
 type CollectionClearMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   collection: Collection
 }
 
 type CollectionClearPrivateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   collection: Collection
 }
 
@@ -1256,22 +1256,13 @@ type CollectionError {
 }
 
 enum CollectionErrorCode {
-  ALREADY_EXISTS
-  ATTRIBUTE_ALREADY_ASSIGNED
-  ATTRIBUTE_CANNOT_BE_ASSIGNED
-  ATTRIBUTE_VARIANTS_DISABLED
   DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
   INVALID
-  PRODUCT_WITHOUT_CATEGORY
-  NOT_PRODUCTS_IMAGE
-  NOT_PRODUCTS_VARIANT
   NOT_FOUND
   REQUIRED
   UNIQUE
-  VARIANT_NO_DIGITAL_CONTENT
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
-  PRODUCT_NOT_ASSIGNED_TO_CHANNEL
 }
 
 input CollectionFilterInput {
@@ -1302,7 +1293,7 @@ type CollectionRemoveProducts {
 type CollectionReorderProducts {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   collection: Collection
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
 }
 
 enum CollectionSortField {
@@ -1352,13 +1343,13 @@ type CollectionUpdate {
 
 type CollectionUpdateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   collection: Collection
 }
 
 type CollectionUpdatePrivateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   collection: Collection
 }
 
