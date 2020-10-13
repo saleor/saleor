@@ -11,6 +11,7 @@ from django.test import RequestFactory, override_settings
 
 from ...account.models import Address, User
 from ...account.utils import create_superuser
+from ...channel.models import Channel
 from ...discount.models import Sale, Voucher
 from ...giftcard.models import GiftCard
 from ...order.models import Order
@@ -110,6 +111,23 @@ def test_create_shipping_zones(db):
     for _ in random_data.create_shipping_zones():
         pass
     assert ShippingZone.objects.all().count() == 5
+
+
+def test_create_channels(db):
+    assert Channel.objects.all().count() == 0
+    for _ in random_data.create_channels():
+        pass
+    assert Channel.objects.all().count() == 2
+    assert Channel.objects.get(slug="channel-pln")
+
+
+@override_settings(DEFAULT_CHANNEL_SLUG="test-slug")
+def test_create_channels_with_default_channel_slug(db):
+    assert Channel.objects.all().count() == 0
+    for _ in random_data.create_channels():
+        pass
+    assert Channel.objects.all().count() == 2
+    assert Channel.objects.get(slug="test-slug")
 
 
 def test_create_fake_user(db):
