@@ -1378,7 +1378,6 @@ def test_create_product(
     product_name = "test name"
     product_slug = "product-test-slug"
     product_is_published = True
-    product_publication_date = date.today() + timedelta(days=1)
     product_charge_taxes = True
     visible_in_listings = True
     product_tax_rate = "STANDARD"
@@ -1410,7 +1409,6 @@ def test_create_product(
             "slug": product_slug,
             "descriptionJson": description_json,
             "isPublished": product_is_published,
-            "publicationDate": product_publication_date,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
             "basePrice": product_price,
@@ -1431,7 +1429,7 @@ def test_create_product(
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["descriptionJson"] == description_json
-    assert data["product"]["isPublished"] is not product_is_published
+    assert data["product"]["isPublished"] == product_is_published
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
