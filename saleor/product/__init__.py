@@ -55,3 +55,10 @@ class AttributeInputType:
     ]
     # list the input types that cannot be assigned to a variant
     NON_ASSIGNABLE_TO_VARIANTS = [MULTISELECT]
+
+
+class AttributeType:
+    PRODUCT_TYPE = "product-type"
+    PAGE_TYPE = "page-type"
+
+    CHOICES = [(PRODUCT_TYPE, "Product type"), (PAGE_TYPE, "Page type")]

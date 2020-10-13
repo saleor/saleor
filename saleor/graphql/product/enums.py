@@ -1,12 +1,13 @@
 import graphene
 
-from ...product import AttributeInputType
+from ...product import AttributeInputType, AttributeType
 from ..core.enums import to_enum
 
 AttributeInputTypeEnum = to_enum(AttributeInputType)
+AttributeTypeEnum = to_enum(AttributeType)
 
 
-class AttributeTypeEnum(graphene.Enum):
+class ProductAttributeType(graphene.Enum):
     PRODUCT = "PRODUCT"
     VARIANT = "VARIANT"
 
