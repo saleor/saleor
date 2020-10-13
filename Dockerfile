@@ -14,7 +14,6 @@ RUN pip install -r requirements_dev.txt
 
 ### Final image
 FROM python:3.8-slim
-saleor/graphql/product/types/products.py
 RUN groupadd -r saleor && useradd -r -g saleor saleor
 
 RUN apt-get update \
