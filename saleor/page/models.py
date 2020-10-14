@@ -60,3 +60,14 @@ class PageTranslation(SeoModelTranslation):
 
     def __str__(self):
         return self.title
+
+
+class PageType(ModelWithMetadata):
+    name = models.CharField(max_length=250)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
+
+    class Meta:
+        ordering = ("slug",)
+
+    def __str__(self):
+        return self.name

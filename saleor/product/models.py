@@ -32,6 +32,7 @@ from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
+from ..page.models import PageType
 from ..seo.models import SeoModel, SeoModelTranslation
 from . import AttributeInputType, AttributeType
 
@@ -726,6 +727,9 @@ class Attribute(ModelWithMetadata):
         related_name="variant_attributes",
         through=AttributeVariant,
         through_fields=("attribute", "product_type"),
+    )
+    page_types = models.ManyToManyField(
+        PageType, blank=True, related_name="attributes",
     )
 
     value_required = models.BooleanField(default=False, blank=True)
