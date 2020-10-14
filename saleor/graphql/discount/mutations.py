@@ -392,12 +392,10 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
         for add_channel in add_channels:
             channel = add_channel["channel"]
             defaults = {"currency": channel.currency_code}
-            discount_value = add_channel.get("discount_value")
-            if discount_value:
-                defaults["discount_value"] = discount_value
-            min_amount_spent = add_channel.get("min_amount_spent", None)
-            if min_amount_spent:
-                defaults["min_spent_amount"] = min_amount_spent
+            if "discount_value" in add_channel.keys():
+                defaults["discount_value"] = add_channel.get("discount_value")
+            if "min_amount_spent" in add_channel.keys():
+                defaults["min_spent_amount"] = add_channel.get("min_amount_spent", None)
             models.VoucherChannelListing.objects.update_or_create(
                 voucher=voucher, channel=channel, defaults=defaults,
             )
@@ -594,14 +592,13 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
     @classmethod
     def add_channels(cls, sale: "SaleModel", add_channels: List[Dict]):
         for add_channel in add_channels:
-            defaults = {}
-            discount_value = add_channel.get("discount_value")
             channel = add_channel["channel"]
-            currency_code = channel.currency_code
-            if discount_value:
-                defaults["discount_value"] = discount_value
+            defaults = {"currency": channel.currency_code}
+            channel = add_channel["channel"]
+            if "discount_value" in add_channel.keys():
+                defaults["discount_value"] = add_channel.get("discount_value")
             SaleChannelListing.objects.update_or_create(
-                sale=sale, channel=channel, currency=currency_code, defaults=defaults,
+                sale=sale, channel=channel, defaults=defaults,
             )
 
     @classmethod
