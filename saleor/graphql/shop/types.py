@@ -121,7 +121,6 @@ class Shop(graphene.ObjectType):
             "This field will be removed in SALEOR 3.0"
         ),
     )
-
     languages = graphene.List(
         LanguageDisplay,
         description="List of the shops's supported languages.",
