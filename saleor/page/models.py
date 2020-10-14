@@ -3,7 +3,7 @@ from draftjs_sanitizer import clean_draft_js
 
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, PublishableModel, PublishedQuerySet
-from ..core.permissions import PagePermissions
+from ..core.permissions import PagePermissions, PageTypePermissions
 from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
 
@@ -68,6 +68,12 @@ class PageType(ModelWithMetadata):
 
     class Meta:
         ordering = ("slug",)
+        permissions = (
+            (
+                PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.codename,
+                "Manage page types and attributes.",
+            ),
+        )
 
     def __str__(self):
         return self.name
