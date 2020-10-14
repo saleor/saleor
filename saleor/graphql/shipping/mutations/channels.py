@@ -74,20 +74,18 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
         cls, shipping_method: "ShippingMethodModel", add_channels: List[Dict]
     ):
         for add_channel in add_channels:
-            defaults = {}
-            minimum_order_price_amount = add_channel.get(
-                "minimum_order_price_amount", None
-            )
-            if minimum_order_price_amount:
-                defaults["minimum_order_price_amount"] = minimum_order_price_amount
-            maximum_order_price_amount = add_channel.get(
-                "maximum_order_price_amount", None
-            )
-            if maximum_order_price_amount:
-                defaults["maximum_order_price_amount"] = maximum_order_price_amount
-            price_amount = add_channel.get("price_amount")
-            if price_amount:
-                defaults["price_amount"] = price_amount
+            channel = add_channel["channel"]
+            defaults = {"currency": channel.currency_code}
+            if "minimum_order_price_amount" in add_channel.keys():
+                defaults["minimum_order_price_amount"] = add_channel.get(
+                    "minimum_order_price_amount", None
+                )
+            if "maximum_order_price_amount" in add_channel.keys():
+                defaults["maximum_order_price_amount"] = add_channel.get(
+                    "maximum_order_price_amount", None
+                )
+            if "price_amount" in add_channel.keys():
+                defaults["price_amount"] = add_channel.get("price_amount")
             ShippingMethodChannelListing.objects.update_or_create(
                 shipping_method=shipping_method,
                 channel=add_channel["channel"],

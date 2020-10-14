@@ -400,6 +400,36 @@ def test_product_variant_channel_listing_update_updates_discounted_price(
     mock_update_product_discounted_price_task.delay.assert_called_once_with(product.pk)
 
 
+def test_product_variant_channel_listing_update_remove_cost_price(
+    staff_api_client, product, permission_manage_products, channel_USD,
+):
+    # given
+    query = PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION
+    variant = product.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": variant_id,
+        "input": [{"channelId": channel_id, "price": 1, "costPrice": None}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productVariantChannelListingUpdate"]
+    variant_data = data["variant"]
+    assert not data["productChannelListingErrors"]
+    assert variant_data["id"] == variant_id
+    assert variant_data["channelListing"][0]["price"]["currency"] == "USD"
+    assert variant_data["channelListing"][0]["price"]["amount"] == 1
+    assert not variant_data["channelListing"][0]["costPrice"]
+    assert variant_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+
+
 def test_product_channel_listing_update_too_many_decimal_places_in_cost_price(
     app_api_client, product, permission_manage_products, channel_USD
 ):

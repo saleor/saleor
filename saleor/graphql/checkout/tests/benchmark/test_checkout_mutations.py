@@ -92,10 +92,8 @@ FRAGMENT_SHIPPING_METHOD = """
     fragment ShippingMethod on ShippingMethod {
         id
         name
-        channelListing {
-            price {
-                amount
-            }
+        price {
+            amount
         }
     }
 """

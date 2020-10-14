@@ -1,11 +1,13 @@
 import graphene
 from graphene import relay
 
+from ...core.permissions import ShippingPermissions
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
 from ..channel.types import ChannelContext, ChannelContextType
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import CountryDisplay, Money, MoneyRange
+from ..decorators import permission_required
 from ..shipping.resolvers import resolve_price_range
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
@@ -64,6 +66,7 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
             "name",
         ]
 
+    @staticmethod
     def resolve_price(root: ChannelContext[models.ShippingMethod], *_args):
         # Price field are dynamically generated in available_shipping_methods resolver
         price = getattr(root.node, "price", None)
@@ -72,6 +75,7 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
         # TODO: Add dataloader.
         return root.node.channel_listing.get(channel__slug=root.channel_slug).price
 
+    @staticmethod
     def resolve_maximum_order_price(
         root: ChannelContext[models.ShippingMethod], *_args
     ):
@@ -80,6 +84,7 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
             channel__slug=root.channel_slug
         ).maximum_order_price
 
+    @staticmethod
     def resolve_minimum_order_price(
         root: ChannelContext[models.ShippingMethod], *_args
     ):
@@ -88,15 +93,19 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
             channel__slug=root.channel_slug
         ).minimum_order_price
 
+    @staticmethod
+    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_channel_listing(root: ChannelContext[models.ShippingMethod], *_args):
         # TODO: Add dataloader.
         return root.node.channel_listing.all()
 
+    @staticmethod
     def resolve_maximum_order_weight(
         root: ChannelContext[models.ShippingMethod], *_args
     ):
         return convert_weight_to_default_weight_unit(root.node.maximum_order_weight)
 
+    @staticmethod
     def resolve_minimum_order_weight(
         root: ChannelContext[models.ShippingMethod], *_args
     ):
