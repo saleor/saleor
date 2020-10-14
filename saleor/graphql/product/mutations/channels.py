@@ -326,6 +326,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                 variant=variant, channel=channel, defaults=defaults,
             )
         update_product_discounted_price_task.delay(variant.product_id)
+        info.context.plugins.product_updated(variant.product)
 
     @classmethod
     def perform_mutation(cls, _root, info, id, input):

@@ -1,4 +1,5 @@
 import datetime
+from unittest.mock import patch
 
 import graphene
 
@@ -260,6 +261,48 @@ def test_product_channel_listing_update_as_staff_user(
     assert product_data["channelListing"][1][
         "availableForPurchase"
     ] == available_for_purchase_date.strftime("%Y-%m-%d")
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_product_channel_listing_update_trigger_webhook_product_updated(
+    mock_product_updated,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    channel_USD,
+    channel_PLN,
+):
+    # given
+    publication_date = datetime.date.today()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    available_for_purchase_date = datetime.date(2007, 1, 1)
+    variables = {
+        "id": product_id,
+        "input": {
+            "addChannels": [
+                {
+                    "channelId": channel_id,
+                    "isPublished": False,
+                    "publicationDate": publication_date,
+                    "visibleInListings": True,
+                    "isAvailableForPurchase": True,
+                    "availableForPurchaseDate": available_for_purchase_date,
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    get_graphql_content(response)
+
+    # then
+    mock_product_updated.assert_called_once_with(product)
 
 
 def test_product_channel_listing_update_as_app(

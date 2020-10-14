@@ -232,6 +232,49 @@ def test_variant_channel_listing_update_as_staff_user(
     assert variant_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_variant_channel_listing_update_trigger_webhook_product_updated(
+    mock_product_updated,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    channel_USD,
+    channel_PLN,
+):
+    # given
+    ProductChannelListing.objects.create(
+        product=product, channel=channel_PLN, is_published=True,
+    )
+    variant = product.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_pln_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    price = 1
+    second_price = 20
+    variables = {
+        "id": variant_id,
+        "input": [
+            {"channelId": channel_usd_id, "price": price, "costPrice": price},
+            {
+                "channelId": channel_pln_id,
+                "price": second_price,
+                "costPrice": second_price,
+            },
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    get_graphql_content(response)
+
+    # then
+    mock_product_updated.assert_called_once_with(product)
+
+
 def test_variant_channel_listing_update_as_app(
     app_api_client, product, permission_manage_products, channel_USD, channel_PLN
 ):
