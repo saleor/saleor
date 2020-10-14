@@ -5994,6 +5994,7 @@
       "metadata": {},
       "slug": "size",
       "name": "Size",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6012,6 +6013,7 @@
       "metadata": {},
       "slug": "color",
       "name": "Color",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6030,6 +6032,7 @@
       "metadata": {},
       "slug": "bottle-size",
       "name": "Bottle Size",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6048,6 +6051,7 @@
       "metadata": {},
       "slug": "flavor",
       "name": "Flavor",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6066,6 +6070,7 @@
       "metadata": {},
       "slug": "bucket-size",
       "name": "Bucket Size",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6084,6 +6089,7 @@
       "metadata": {},
       "slug": "medium",
       "name": "Medium",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6102,6 +6108,7 @@
       "metadata": {},
       "slug": "volume",
       "name": "Volume",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6120,6 +6127,7 @@
       "metadata": {},
       "slug": "abv",
       "name": "ABV",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6138,6 +6146,7 @@
       "metadata": {},
       "slug": "cushion-size",
       "name": "Cushion Size",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6156,6 +6165,7 @@
       "metadata": {},
       "slug": "material",
       "name": "Material",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6174,6 +6184,7 @@
       "metadata": {},
       "slug": "shoe-size",
       "name": "Shoe size",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": false,
       "is_variant_only": false,
@@ -6192,6 +6203,7 @@
       "metadata": {},
       "slug": "ebook-format",
       "name": "Format",
+      "type": "product-type",
       "input_type": "dropdown",
       "value_required": true,
       "is_variant_only": false,
@@ -6210,7 +6222,46 @@
       "metadata": {},
       "slug": "publisher",
       "name": "Publisher",
+      "type": "product-type",
       "input_type": "dropdown",
+      "value_required": false,
+      "is_variant_only": false,
+      "visible_in_storefront": true,
+      "filterable_in_storefront": true,
+      "filterable_in_dashboard": true,
+      "storefront_search_position": 0,
+      "available_in_grid": true
+    }
+  },
+  {
+    "model": "product.attribute",
+    "pk": 27,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "slug": "author",
+      "name": "Author",
+      "type": "page-type",
+      "input_type": "dropdown",
+      "value_required": false,
+      "is_variant_only": false,
+      "visible_in_storefront": true,
+      "filterable_in_storefront": true,
+      "filterable_in_dashboard": true,
+      "storefront_search_position": 0,
+      "available_in_grid": true
+    }
+  },
+  {
+    "model": "product.attribute",
+    "pk": 29,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "slug": "tag",
+      "name": "Tag",
+      "type": "page-type",
+      "input_type": "multiselect",
       "value_required": false,
       "is_variant_only": false,
       "visible_in_storefront": true,
@@ -6757,6 +6808,83 @@
       "value": "",
       "slug": "digital-audio",
       "attribute": 26
+    }
+  },
+  {
+    "model": "product.attributevalue",
+    "pk": 87,
+    "fields": {
+      "sort_order": 0,
+      "name": "Suzanne Ellison",
+      "value": "",
+      "slug": "suzanne-ellison",
+      "attribute": 27
+    }
+  },
+  {
+    "model": "product.attributevalue",
+    "pk": 88,
+    "fields": {
+      "sort_order": 1,
+      "name": "Dennis Perkins",
+      "value": "",
+      "slug": "dennis-perkins",
+      "attribute": 27
+    }
+  },
+  {
+    "model": "product.attributevalue",
+    "pk": 89,
+    "fields": {
+      "sort_order": 2,
+      "name": "Dylan Lamb",
+      "value": "",
+      "slug": "dylan-lamb",
+      "attribute": 27
+    }
+  },
+  {
+    "model": "product.attributevalue",
+    "pk": 90,
+    "fields": {
+      "sort_order": 0,
+      "name": "Security",
+      "value": "",
+      "slug": "security",
+      "attribute": 29
+    }
+  },
+  {
+    "model": "product.attributevalue",
+    "pk": 91,
+    "fields": {
+      "sort_order": 1,
+      "name": "Support",
+      "value": "",
+      "slug": "support",
+      "attribute": 29
+    }
+  },
+  {
+    "model": "product.attributevalue",
+    "pk": 92,
+    "fields": {
+      "sort_order": 2,
+      "name": "Medical",
+      "value": "",
+      "slug": "medical",
+      "attribute": 29
+    }
+  },
+  {
+    "model": "product.attributevalue",
+    "pk": 93,
+    "fields": {
+      "sort_order": 3,
+      "name": "General",
+      "value": "",
+      "slug": "general",
+      "attribute": 29
     }
   },
   {
