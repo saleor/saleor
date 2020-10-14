@@ -32,7 +32,7 @@ from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
-from ..page.models import PageType
+from ..page.models import Page, PageType
 from ..seo.models import SeoModel, SeoModelTranslation
 from . import AttributeInputType, AttributeType
 
@@ -607,6 +607,15 @@ class AssignedVariantAttribute(BaseAssignedAttribute):
         unique_together = (("variant", "assignment"),)
 
 
+class AssignedPageAttribute(BaseAssignedAttribute):
+    """Associate a page type attribute and selected values to a given page."""
+
+    page = models.ForeignKey(Page, related_name="attributes", on_delete=models.CASCADE)
+    assignment = models.ForeignKey(
+        "AttributePage", on_delete=models.CASCADE, related_name="pageassignments"
+    )
+
+
 class AssociatedAttributeQuerySet(BaseAttributeQuerySet):
     def get_public_attributes(self):
         return self.filter(attribute__visible_in_storefront=True)
@@ -660,6 +669,31 @@ class AttributeVariant(SortableModel):
 
     def get_ordering_queryset(self):
         return self.product_type.attributevariant.all()
+
+
+class AttributePage(SortableModel):
+    attribute = models.ForeignKey(
+        "Attribute", related_name="attributepage", on_delete=models.CASCADE
+    )
+    page_type = models.ForeignKey(
+        PageType, related_name="attributepage", on_delete=models.CASCADE
+    )
+    assigned_pages = models.ManyToManyField(
+        Page,
+        blank=True,
+        through=AssignedPageAttribute,
+        through_fields=("assignment", "page"),
+        related_name="attributesrelated",
+    )
+
+    objects = AssociatedAttributeQuerySet.as_manager()
+
+    class Meta:
+        unique_together = (("attribute", "page_type"),)
+        ordering = ("sort_order", "pk")
+
+    def get_ordering_queryset(self):
+        return self.page_type.attributepage.all()
 
 
 class AttributeQuerySet(BaseAttributeQuerySet):
@@ -729,7 +763,11 @@ class Attribute(ModelWithMetadata):
         through_fields=("attribute", "product_type"),
     )
     page_types = models.ManyToManyField(
-        PageType, blank=True, related_name="attributes",
+        PageType,
+        blank=True,
+        related_name="page_attributes",
+        through=AttributePage,
+        through_fields=("attribute", "page_type"),
     )
 
     value_required = models.BooleanField(default=False, blank=True)
