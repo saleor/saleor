@@ -2,7 +2,7 @@ from django.db import models
 from draftjs_sanitizer import clean_draft_js
 
 from ..core.db.fields import SanitizedJSONField
-from ..core.models import PublishableModel, PublishedQuerySet
+from ..core.models import ModelWithMetadata, PublishableModel, PublishedQuerySet
 from ..core.permissions import PagePermissions
 from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
@@ -60,3 +60,14 @@ class PageTranslation(SeoModelTranslation):
 
     def __str__(self):
         return self.title
+
+
+class PageType(ModelWithMetadata):
+    name = models.CharField(max_length=250)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
+
+    class Meta:
+        ordering = ("slug",)
+
+    def __str__(self):
+        return self.name
