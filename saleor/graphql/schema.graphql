@@ -4421,7 +4421,7 @@ type Query {
   translation(id: ID!, kind: TranslatableKinds!): TranslatableItem
   stock(id: ID!): Stock
   stocks(filter: StockFilterInput, before: String, after: String, first: Int, last: Int): StockCountableConnection
-  shop(channel: String): Shop!
+  shop: Shop!
   shippingZone(id: ID!, channel: String): ShippingZone
   shippingZones(channel: String, before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent

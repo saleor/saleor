@@ -17,12 +17,7 @@ from .types import Shop
 
 class ShopQueries(graphene.ObjectType):
     shop = graphene.Field(
-        Shop,
-        description="Return information about the shop.",
-        required=True,
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
+        Shop, description="Return information about the shop.", required=True,
     )
 
     def resolve_shop(self, _info):
