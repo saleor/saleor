@@ -4429,8 +4429,8 @@ def test_variant_digital_content(
 @pytest.mark.parametrize(
     "collection_filter, count",
     [
-        ({"isPublished": True}, 2),
-        ({"isPublished": False}, 1),
+        ({"published": "PUBLISHED"}, 2),
+        ({"published": "HIDDEN"}, 1),
         ({"search": "-published1"}, 1),
         ({"search": "Collection3"}, 1),
         ({"ids": [to_global_id("Collection", 2), to_global_id("Collection", 3)]}, 2),

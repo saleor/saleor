@@ -459,6 +459,11 @@ class CollectionUpdateMeta(UpdateMetaBaseMutation):
         error_type_class = CollectionError
         error_type_field = "collection_errors"
 
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        return super().success_response(instance)
+
 
 class CollectionClearMeta(ClearMetaBaseMutation):
     class Meta:
@@ -468,6 +473,11 @@ class CollectionClearMeta(ClearMetaBaseMutation):
         public = True
         error_type_class = CollectionError
         error_type_field = "collection_errors"
+
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        return super().success_response(instance)
 
 
 class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -479,6 +489,11 @@ class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
         error_type_class = CollectionError
         error_type_field = "collection_errors"
 
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        return super().success_response(instance)
+
 
 class CollectionClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
@@ -488,6 +503,11 @@ class CollectionClearPrivateMeta(ClearMetaBaseMutation):
         public = False
         error_type_class = CollectionError
         error_type_field = "collection_errors"
+
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        return super().success_response(instance)
 
 
 class CategoryUpdateMeta(UpdateMetaBaseMutation):

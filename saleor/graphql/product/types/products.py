@@ -644,6 +644,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ProductChannelListingByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_collections(root: ChannelContext[models.Product], *_args, **_kwargs):
         instances = root.node.collections.all()
         channel_slug = root.channel_slug

@@ -584,61 +584,6 @@ def test_shop_customer_set_password_url_update_invalid_url(
     assert not site_settings.customer_set_password_url
 
 
-def test_homepage_collection_update(
-    staff_api_client, published_collection, permission_manage_settings
-):
-    query = """
-        mutation homepageCollectionUpdate($collection: ID!) {
-            homepageCollectionUpdate(collection: $collection) {
-                shop {
-                    homepageCollection {
-                        id,
-                        name
-                    }
-                }
-            }
-        }
-    """
-    collection_id = graphene.Node.to_global_id("Collection", published_collection.id)
-    variables = {"collection": collection_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["homepageCollectionUpdate"]["shop"]
-    assert data["homepageCollection"]["id"] == collection_id
-    assert data["homepageCollection"]["name"] == published_collection.name
-    site = Site.objects.get_current()
-    assert site.settings.homepage_collection == published_collection
-
-
-def test_homepage_collection_update_set_null(
-    staff_api_client, published_collection, site_settings, permission_manage_settings
-):
-    query = """
-        mutation homepageCollectionUpdate($collection: ID) {
-            homepageCollectionUpdate(collection: $collection) {
-                shop {
-                    homepageCollection {
-                        id
-                    }
-                }
-            }
-        }
-    """
-    site_settings.homepage_collection = published_collection
-    site_settings.save()
-    variables = {"collection": None}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["homepageCollectionUpdate"]["shop"]
-    assert data["homepageCollection"] is None
-    site_settings.refresh_from_db()
-    assert site_settings.homepage_collection is None
-
-
 def test_query_default_country(user_api_client, settings):
     settings.DEFAULT_COUNTRY = "US"
     query = """

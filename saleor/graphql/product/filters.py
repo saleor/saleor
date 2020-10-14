@@ -209,14 +209,6 @@ def filter_search(qs, _, value):
     return qs
 
 
-def filter_collection_publish(qs, _, value):
-    if value == CollectionPublished.PUBLISHED:
-        qs = qs.filter(is_published=True)
-    elif value == CollectionPublished.HIDDEN:
-        qs = qs.filter(is_published=False)
-    return qs
-
-
 def filter_product_type_configurable(qs, _, value):
     if value == ProductTypeConfigurable.CONFIGURABLE:
         qs = qs.filter(has_variants=True)
@@ -391,8 +383,9 @@ class ProductVariantFilter(django_filters.FilterSet):
 
 
 class CollectionFilter(django_filters.FilterSet):
-    is_published = django_filters.BooleanFilter(method="filter_is_published")
-
+    published = EnumFilter(
+        input_class=CollectionPublished, method="filter_is_published"
+    )
     search = django_filters.CharFilter(
         method=filter_fields_containing_value("slug", "name")
     )
@@ -400,11 +393,15 @@ class CollectionFilter(django_filters.FilterSet):
 
     class Meta:
         model = Collection
-        fields = ["is_published", "search"]
+        fields = ["published", "search"]
 
     def filter_is_published(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
-        return _filter_is_published(queryset, name, value, channel_slug)
+        if value == CollectionPublished.PUBLISHED:
+            return _filter_is_published(queryset, name, True, channel_slug)
+        elif value == CollectionPublished.HIDDEN:
+            return _filter_is_published(queryset, name, False, channel_slug)
+        return queryset
 
 
 class CategoryFilter(django_filters.FilterSet):
@@ -481,11 +478,7 @@ class ProductVariantFilterInput(FilterInputObjectType):
         filterset_class = ProductVariantFilter
 
 
-class CollectionFilterInput(FilterInputObjectType):
-    channel = graphene.Argument(
-        graphene.String, description="Channel in which to filter the data."
-    )
-
+class CollectionFilterInput(ChannelFilterInputObjectType):
     class Meta:
         filterset_class = CollectionFilter
 

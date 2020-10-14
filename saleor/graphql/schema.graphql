@@ -1260,7 +1260,7 @@ enum CollectionErrorCode {
 }
 
 input CollectionFilterInput {
-  isPublished: Boolean
+  published: CollectionPublished
   search: String
   ids: [ID]
   channel: String
@@ -1276,6 +1276,11 @@ input CollectionInput {
   backgroundImageAlt: String
   seo: SeoInput
   publicationDate: Date
+}
+
+enum CollectionPublished {
+  PUBLISHED
+  HIDDEN
 }
 
 type CollectionRemoveProducts {
@@ -3812,21 +3817,21 @@ type ProductChannelListing implements Node {
   isAvailableForPurchase: Boolean
 }
 
-type ProductChannelListingError {
-  field: String
-  message: String
-  code: ProductErrorCode!
-  attributes: [ID!]
-  channels: [ID!]
-}
-
-input ProductChannelListingInput {
+input ProductChannelListingAddInput {
   channelId: ID!
   isPublished: Boolean
   publicationDate: Date
   visibleInListings: Boolean
   isAvailableForPurchase: Boolean
   availableForPurchaseDate: Date
+}
+
+type ProductChannelListingError {
+  field: String
+  message: String
+  code: ProductErrorCode!
+  attributes: [ID!]
+  channels: [ID!]
 }
 
 type ProductChannelListingUpdate {
@@ -3836,7 +3841,7 @@ type ProductChannelListingUpdate {
 }
 
 input ProductChannelListingUpdateInput {
-  addChannels: [ProductChannelListingInput!]
+  addChannels: [ProductChannelListingAddInput!]
   removeChannels: [ID!]
 }
 

@@ -48,7 +48,7 @@ class PublishableChannelListingInput(graphene.InputObjectType):
     )
 
 
-class ProductChannelListingInput(PublishableChannelListingInput):
+class ProductChannelListingAddInput(PublishableChannelListingInput):
     visible_in_listings = graphene.Boolean(
         description=(
             "Determines if product is visible in product listings "
@@ -69,7 +69,7 @@ class ProductChannelListingInput(PublishableChannelListingInput):
 
 class ProductChannelListingUpdateInput(graphene.InputObjectType):
     add_channels = graphene.List(
-        graphene.NonNull(ProductChannelListingInput),
+        graphene.NonNull(ProductChannelListingAddInput),
         description="List of channels to which the product should be assigned.",
         required=False,
     )
@@ -384,10 +384,10 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
     @classmethod
     def add_channels(cls, collection: "CollectionModel", add_channels: List[Dict]):
         for add_channel in add_channels:
-            defaults = {
-                "is_published": add_channel.get("is_published"),
-                "publication_date": add_channel.get("publication_date", None),
-            }
+            defaults = {}
+            for field in ["is_published", "publication_date"]:
+                if field in add_channel.keys():
+                    defaults[field] = add_channel.get(field, None)
             CollectionChannelListing.objects.update_or_create(
                 collection=collection, channel=add_channel["channel"], defaults=defaults
             )

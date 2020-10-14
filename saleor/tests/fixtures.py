@@ -2106,7 +2106,10 @@ def published_collection(db, channel_USD):
         name="Collection USD", slug="collection-usd", description="Test description",
     )
     CollectionChannelListing.objects.create(
-        channel=channel_USD, collection=collection, is_published=True
+        channel=channel_USD,
+        collection=collection,
+        is_published=True,
+        publication_date=datetime.date.today(),
     )
     return collection
 
@@ -2117,7 +2120,10 @@ def published_collection_PLN(db, channel_PLN):
         name="Collection PLN", slug="collection-pln", description="Test description",
     )
     CollectionChannelListing.objects.create(
-        channel=channel_PLN, collection=collection, is_published=True
+        channel=channel_PLN,
+        collection=collection,
+        is_published=True,
+        publication_date=datetime.date.today(),
     )
     return collection
 

@@ -212,11 +212,16 @@ def test_collection_channel_listing_update_as_staff_user(
     # then
     data = content["data"]["collectionChannelListingUpdate"]
     collection_data = data["collection"]
-
+    collection_channel_listing = published_collection.channel_listing.get(
+        channel=channel_USD
+    )
+    publication_date_usd = collection_channel_listing.publication_date.isoformat()
     assert not data["collectionChannelListingErrors"]
     assert collection_data["slug"] == published_collection.slug
     assert collection_data["channelListing"][0]["isPublished"] is True
-    assert collection_data["channelListing"][0]["publicationDate"] is None
+    assert (
+        collection_data["channelListing"][0]["publicationDate"] == publication_date_usd
+    )
     assert collection_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
 
     assert collection_data["channelListing"][1]["isPublished"] is False
@@ -260,12 +265,18 @@ def test_collection_channel_listing_update_as_app(
     content = get_graphql_content(response)
 
     # then
+    collection_channel_listing = published_collection.channel_listing.get(
+        channel=channel_USD
+    )
+    publication_date_usd = collection_channel_listing.publication_date.isoformat()
     data = content["data"]["collectionChannelListingUpdate"]
     collection_data = data["collection"]
     assert not data["collectionChannelListingErrors"]
     assert collection_data["slug"] == published_collection.slug
     assert collection_data["channelListing"][0]["isPublished"] is True
-    assert collection_data["channelListing"][0]["publicationDate"] is None
+    assert (
+        collection_data["channelListing"][0]["publicationDate"] == publication_date_usd
+    )
     assert collection_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
     assert collection_data["channelListing"][1]["isPublished"] is False
     assert (
@@ -348,12 +359,18 @@ def test_collection_channel_listing_update_add_channel(
     content = get_graphql_content(response)
 
     # then
+    collection_channel_listing = published_collection.channel_listing.get(
+        channel=channel_USD
+    )
+    publication_date_usd = collection_channel_listing.publication_date.isoformat()
     data = content["data"]["collectionChannelListingUpdate"]
     collection_data = data["collection"]
     assert not data["collectionChannelListingErrors"]
     assert collection_data["slug"] == published_collection.slug
     assert collection_data["channelListing"][0]["isPublished"] is True
-    assert collection_data["channelListing"][0]["publicationDate"] is None
+    assert (
+        collection_data["channelListing"][0]["publicationDate"] == publication_date_usd
+    )
     assert collection_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
     assert collection_data["channelListing"][1]["isPublished"] is False
     assert (
@@ -381,6 +398,8 @@ def test_collection_channel_listing_update_unpublished(
         permissions=(permission_manage_products,),
     )
     content = get_graphql_content(response)
+    collection_channel_listing = published_collection.channel_listing.get()
+    publication_date_usd = collection_channel_listing.publication_date.isoformat()
 
     # then
     data = content["data"]["collectionChannelListingUpdate"]
@@ -388,11 +407,13 @@ def test_collection_channel_listing_update_unpublished(
     assert not data["collectionChannelListingErrors"]
     assert collection_data["slug"] == published_collection.slug
     assert collection_data["channelListing"][0]["isPublished"] is False
-    assert collection_data["channelListing"][0]["publicationDate"] is None
+    assert (
+        collection_data["channelListing"][0]["publicationDate"] == publication_date_usd
+    )
     assert collection_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
 
 
-def test_collection_channel_listing_update_update_publication_data(
+def test_collection_channel_listing_update_update_publication_date(
     staff_api_client, collection, permission_manage_products, channel_USD
 ):
     # given
@@ -403,11 +424,7 @@ def test_collection_channel_listing_update_update_publication_data(
         "id": collection_id,
         "input": {
             "addChannels": [
-                {
-                    "channelId": channel_id,
-                    "isPublished": True,
-                    "publicationDate": publication_date,
-                }
+                {"channelId": channel_id, "publicationDate": publication_date}
             ]
         },
     }
@@ -425,7 +442,6 @@ def test_collection_channel_listing_update_update_publication_data(
     collection_data = data["collection"]
     assert not data["collectionChannelListingErrors"]
     assert collection_data["slug"] == collection.slug
-    assert collection_data["channelListing"][0]["isPublished"] is True
     assert (
         collection_data["channelListing"][0]["publicationDate"]
         == publication_date.isoformat()
@@ -457,10 +473,14 @@ def test_collection_channel_listing_update_remove_not_assigned_channel(
     content = get_graphql_content(response)
 
     # then
+    collection_channel_listing = published_collection.channel_listing.get(
+        channel=channel_USD
+    )
+    publication_date = collection_channel_listing.publication_date.isoformat()
     data = content["data"]["collectionChannelListingUpdate"]
     collection_data = data["collection"]
     assert not data["collectionChannelListingErrors"]
     assert collection_data["slug"] == published_collection.slug
     assert collection_data["channelListing"][0]["isPublished"] is True
-    assert collection_data["channelListing"][0]["publicationDate"] is None
+    assert collection_data["channelListing"][0]["publicationDate"] == publication_date
     assert collection_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug

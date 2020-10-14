@@ -73,6 +73,7 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_collections(root: ChannelContext[models.Sale], info, *_args, **_kwargs):
+        # TODO: Add dataloader.
         qs = root.node.collections.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
@@ -178,6 +179,7 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
     def resolve_collections(
         root: ChannelContext[models.Voucher], info, *_args, **_kwargs
     ):
+        # TODO: Add dataloader.
         qs = root.node.collections.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
