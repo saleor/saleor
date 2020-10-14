@@ -670,26 +670,23 @@ def test_update_product_variant_invalid_price(
     staff_api_client, product, permission_manage_products
 ):
     query = """
-        mutation updateVariant (
-            $id: ID!,
-            $sku: String!,
-            $price: PositiveDecimal,
-            $costPrice: PositiveDecimal) {
-                productVariantUpdate(
-                    id: $id,
-                    input: {
-                        sku: $sku,
-                        price: $price,
-                        costPrice: $costPrice,
-                    }) {
-                    productErrors {
-                        field
-                        message
-                        code
-                    }
+        mutation updateVariant(
+            $id: ID!
+            $sku: String!
+            $price: PositiveDecimal
+            $costPrice: PositiveDecimal
+        ) {
+            productVariantUpdate(
+                id: $id
+                input: { sku: $sku, price: $price, costPrice: $costPrice }
+            ) {
+                productErrors {
+                    field
+                    message
+                    code
                 }
             }
-
+        }
     """
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
