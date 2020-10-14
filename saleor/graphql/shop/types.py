@@ -117,8 +117,8 @@ class Shop(graphene.ObjectType):
         Collection,
         description="Collection displayed on homepage.",
         deprecation_reason=(
-            "Use the collection query with slug. "
-            "This field will be removed in SALEOR 3.0"
+            "Use the `collection` query with the `slug` parameter. "
+            "This field will be removed in Saleor 3.0"
         ),
     )
     languages = graphene.List(

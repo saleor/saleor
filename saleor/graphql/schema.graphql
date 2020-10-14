@@ -4757,7 +4757,7 @@ type Shop {
   defaultMailSenderAddress: String
   description: String
   domain: Domain!
-  homepageCollection: Collection @deprecated(reason: "Use the collection query with slug. This field will be removed in SALEOR 3.0")
+  homepageCollection: Collection @deprecated(reason: "Use the `collection` query with the `slug` parameter. This field will be removed in Saleor 3.0")
   languages: [LanguageDisplay]!
   name: String!
   navigation: Navigation
