@@ -130,11 +130,11 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
     @classmethod
     def add_channels(cls, product: "ProductModel", add_channels: List[Dict]):
         for add_channel in add_channels:
-            defaults = {}
+            channel = add_channel["channel"]
+            defaults = {"currency": channel.currency_code}
             for field in ["is_published", "publication_date", "visible_in_listings"]:
-                field_value = add_channel.get(field, None)
-                if field_value is not None:
-                    defaults[field] = field_value
+                if field in add_channel.keys():
+                    defaults[field] = add_channel.get(field, None)
             is_available_for_purchase = add_channel.get("is_available_for_purchase")
             available_for_purchase_date = add_channel.get("available_for_purchase_date")
             if is_available_for_purchase is not None:
@@ -148,7 +148,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
                 else:
                     defaults["available_for_purchase"] = available_for_purchase_date
             ProductChannelListing.objects.update_or_create(
-                product=product, channel=add_channel["channel"], defaults=defaults
+                product=product, channel=channel, defaults=defaults
             )
 
     @classmethod
@@ -306,11 +306,13 @@ class ProductVariantChannelListingUpdate(BaseMutation):
     def save(cls, info, variant: "ProductVariantModel", cleaned_input: List):
         for channel_listing_data in cleaned_input:
             channel = channel_listing_data["channel"]
-            defaults = {
-                "price_amount": channel_listing_data.get("price"),
-                "cost_price_amount": channel_listing_data.get("cost_price"),
-                "currency": channel.currency_code,
-            }
+            defaults = {"currency": channel.currency_code}
+            if "price" in channel_listing_data.keys():
+                defaults["price_amount"] = channel_listing_data.get("price", None)
+            if "cost_price" in channel_listing_data.keys():
+                defaults["cost_price_amount"] = channel_listing_data.get(
+                    "cost_price", None
+                )
             ProductVariantChannelListing.objects.update_or_create(
                 variant=variant, channel=channel, defaults=defaults,
             )

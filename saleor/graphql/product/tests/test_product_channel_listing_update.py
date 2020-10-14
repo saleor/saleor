@@ -458,6 +458,7 @@ def test_product_channel_listing_update_unpublished(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
     # given
+    product.channel_listing.update(publication_date=datetime.date.today())
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -479,6 +480,43 @@ def test_product_channel_listing_update_unpublished(
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListing"][0]["isPublished"] is False
+    assert product_data["channelListing"][0][
+        "publicationDate"
+    ] == datetime.date.today().strftime("%Y-%m-%d")
+    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListing"][0]["visibleInListings"] is True
+    assert product_data["channelListing"][0]["isAvailableForPurchase"] is True
+    assert product_data["channelListing"][0]["availableForPurchase"] == datetime.date(
+        1999, 1, 1
+    ).strftime("%Y-%m-%d")
+
+
+def test_product_channel_listing_update_remove_publication_date(
+    staff_api_client, product, permission_manage_products, channel_USD
+):
+    # given
+    product.channel_listing.update(publication_date=datetime.date.today())
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": product_id,
+        "input": {"addChannels": [{"channelId": channel_id, "publicationDate": None}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productChannelListingUpdate"]
+    product_data = data["product"]
+    assert not data["productChannelListingErrors"]
+    assert product_data["slug"] == product.slug
+    assert product_data["channelListing"][0]["isPublished"] is True
     assert product_data["channelListing"][0]["publicationDate"] is None
     assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
     assert product_data["channelListing"][0]["visibleInListings"] is True
