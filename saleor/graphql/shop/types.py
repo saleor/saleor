@@ -114,7 +114,12 @@ class Shop(graphene.ObjectType):
     description = graphene.String(description="Shop's description.")
     domain = graphene.Field(Domain, required=True, description="Shop's domain data.")
     homepage_collection = graphene.Field(
-        Collection, description="Collection displayed on homepage."
+        Collection,
+        description="Collection displayed on homepage.",
+        deprecation_reason=(
+            "Use the `collection` query with the `slug` parameter. "
+            "This field will be removed in Saleor 3.0"
+        ),
     )
     languages = graphene.List(
         LanguageDisplay,
