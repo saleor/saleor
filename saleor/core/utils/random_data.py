@@ -395,7 +395,7 @@ def create_products_by_schema(placeholder_dir, create_images):
         data=types["product.collection"], placeholder_dir=placeholder_dir
     )
     create_collection_channel_listings(
-        collection_channel_listings_data=types["collection.collectionchannellisting"],
+        collection_channel_listings_data=types["product.collectionchannellisting"],
     )
     assign_products_to_collections(associations=types["product.collectionproduct"])
 
