@@ -1200,6 +1200,7 @@ class ProductVariantCreate(ModelMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        errors_mapping = {"price_amount": "price"}
 
     @classmethod
     def clean_attributes(
@@ -1225,15 +1226,6 @@ class ProductVariantCreate(ModelMutation):
             )
         else:
             used_attribute_values.append(attribute_values)
-
-    @classmethod
-    def clean_instance(cls, info, instance):
-        try:
-            cleaned_instance = super().clean_instance(info, instance)
-        except ValidationError as validation_error:
-            cls.remap_error_fields(validation_error, {"price_amount": "price"})
-            raise validation_error
-        return cleaned_instance
 
     @classmethod
     def clean_input(
@@ -1392,6 +1384,7 @@ class ProductVariantUpdate(ProductVariantCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        errors_mapping = {"price_amount": "price"}
 
     @classmethod
     def validate_duplicated_attribute_values(
