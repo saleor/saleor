@@ -2307,6 +2307,7 @@ type Margin {
 type Menu implements Node {
   id: ID!
   name: String!
+  slug: String!
   items: [MenuItem]
 }
 
@@ -2335,6 +2336,7 @@ type MenuCreate {
 
 input MenuCreateInput {
   name: String!
+  slug: String
   items: [MenuItemInput]
 }
 
@@ -2368,6 +2370,7 @@ input MenuFilterInput {
 
 input MenuInput {
   name: String
+  slug: String
 }
 
 type MenuItem implements Node {
@@ -4290,7 +4293,7 @@ type Query {
   draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   ordersTotal(period: ReportingPeriod): TaxedMoney
   orderByToken(token: UUID!): Order
-  menu(id: ID, name: String): Menu
+  menu(id: ID, name: String, slug: String): Menu
   menus(sortBy: MenuSortingInput, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
   menuItem(id: ID!): MenuItem
   menuItems(sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
@@ -4760,7 +4763,7 @@ type Shop {
   homepageCollection: Collection
   languages: [LanguageDisplay]!
   name: String!
-  navigation: Navigation
+  navigation: Navigation @deprecated(reason: "Fetch menus using the `menu` query with `slug` parameter.")
   permissions: [Permission]!
   phonePrefixes: [String]!
   headerText: String

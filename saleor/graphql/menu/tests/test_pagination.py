@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 
 from ....menu.models import Menu, MenuItem
@@ -9,11 +11,11 @@ def menus_for_pagination(db):
     # We have "footer" and "navbar" from default saleor configuration
     return Menu.objects.bulk_create(
         [
-            Menu(name="menu1",),
-            Menu(name="menuMenu1",),
-            Menu(name="menuMenu2",),
-            Menu(name="menu2",),
-            Menu(name="menu3",),
+            Menu(name="menu1", slug=uuid.uuid4()),
+            Menu(name="menuMenu1", slug=uuid.uuid4()),
+            Menu(name="menuMenu2", slug=uuid.uuid4()),
+            Menu(name="menu2", slug=uuid.uuid4()),
+            Menu(name="menu3", slug=uuid.uuid4()),
         ]
     )
 

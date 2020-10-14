@@ -122,7 +122,11 @@ class Shop(graphene.ObjectType):
         required=True,
     )
     name = graphene.String(description="Shop's name.", required=True)
-    navigation = graphene.Field(Navigation, description="Shop's navigation.")
+    navigation = graphene.Field(
+        Navigation,
+        description="Shop's navigation.",
+        deprecation_reason="Fetch menus using the `menu` query with `slug` parameter.",
+    )
     permissions = graphene.List(
         Permission, description="List of available permissions.", required=True
     )
