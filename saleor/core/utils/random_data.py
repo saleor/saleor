@@ -5,6 +5,7 @@ import random
 import unicodedata
 import uuid
 from collections import defaultdict
+from decimal import Decimal
 from typing import Type, Union
 from unittest.mock import patch
 
@@ -236,11 +237,14 @@ def create_products(products_data, placeholder_dir, create_images):
 
 
 def create_product_channel_listings(product_channel_listings_data):
+    channel_USD = Channel.objects.get(currency_code="USD")
+    channel_PLN = Channel.objects.get(currency_code="PLN")
     for product_channel_listing in product_channel_listings_data:
         pk = product_channel_listing["pk"]
         defaults = product_channel_listing["fields"]
-        defaults["channel_id"] = defaults.pop("channel")
         defaults["product_id"] = defaults.pop("product")
+        channel = defaults.pop("channel")
+        defaults["channel_id"] = channel_USD.pk if channel == 1 else channel_PLN.pk
         ProductChannelListing.objects.update_or_create(pk=pk, defaults=defaults)
 
 
@@ -272,11 +276,15 @@ def create_product_variants(variants_data):
 
 
 def create_product_variant_channel_listings(product_variant_channel_listings_data):
+    channel_USD = Channel.objects.get(currency_code="USD")
+    channel_PLN = Channel.objects.get(currency_code="PLN")
     for variant_channel_listing in product_variant_channel_listings_data:
         pk = variant_channel_listing["pk"]
         defaults = variant_channel_listing["fields"]
-        defaults["channel_id"] = defaults.pop("channel")
+
         defaults["variant_id"] = defaults.pop("variant")
+        channel = defaults.pop("channel")
+        defaults["channel_id"] = channel_USD.pk if channel == 1 else channel_PLN.pk
         ProductVariantChannelListing.objects.update_or_create(pk=pk, defaults=defaults)
 
 
@@ -488,18 +496,20 @@ def create_fake_payment(mock_email_confirmation, order):
 
 
 def create_order_lines(order, discounts, how_many=10):
+    channel = order.channel
+    available_variant_ids = channel.variant_listing.values_list("variant_id", flat=True)
     variants = (
-        ProductVariant.objects.filter()
+        ProductVariant.objects.filter(pk__in=available_variant_ids)
         .order_by("?")
         .prefetch_related("product__product_type")[:how_many]
     )
     variants_iter = itertools.cycle(variants)
     lines = []
-    for dummy in range(how_many):
+    for _ in range(how_many):
         variant = next(variants_iter)
         product = variant.product
         quantity = random.randrange(1, 5)
-        unit_price = variant.get_price(discounts)
+        unit_price = variant.get_price(channel.slug, discounts)
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         lines.append(
             OrderLine(
@@ -553,6 +563,7 @@ def create_fulfillments(order):
 
 
 def create_fake_order(discounts, max_order_lines=5):
+    channel = Channel.objects.all().order_by("?").first()
     customers = (
         User.objects.filter(is_superuser=False)
         .exclude(default_billing_address=None)
@@ -576,11 +587,17 @@ def create_fake_order(discounts, max_order_lines=5):
         }
 
     manager = get_plugins_manager()
-    shipping_method = ShippingMethod.objects.order_by("?").first()
-    shipping_price = shipping_method.price
+    shipping_method_chanel_listing = (
+        ShippingMethodChannelListing.objects.filter(channel=channel)
+        .order_by("?")
+        .first()
+    )
+    shipping_method = shipping_method_chanel_listing.shipping_method
+    shipping_price = shipping_method_chanel_listing.price
     shipping_price = manager.apply_taxes_to_shipping(shipping_price, address)
     order_data.update(
         {
+            "channel": channel,
             "shipping_method": shipping_method,
             "shipping_method_name": shipping_method.name,
             "shipping_price": shipping_price,
@@ -588,7 +605,6 @@ def create_fake_order(discounts, max_order_lines=5):
     )
 
     order = Order.objects.create(**order_data)
-
     lines = create_order_lines(order, discounts, random.randrange(1, max_order_lines))
     order.total = sum([line.get_total() for line in lines], shipping_price)
     weight = Weight(kg=0)
@@ -739,10 +755,11 @@ def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
             [
                 ShippingMethodChannelListing(
                     shipping_method=shipping_method,
-                    price=fake.money(),
-                    minimum_order_price=Money(0, channel.currency_code),
+                    price_amount=fake.money().amount,
+                    minimum_order_price_amount=Decimal(0),
                     maximum_order_price_amount=None,
                     channel=channel,
+                    currency=channel.currency_code,
                 )
                 for shipping_method in shipping_methods
             ]

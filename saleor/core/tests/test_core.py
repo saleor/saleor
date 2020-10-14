@@ -156,6 +156,8 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
     monkeypatch.setattr(
         "saleor.core.utils.random_data.get_image", Mock(return_value=image)
     )
+    for _ in random_data.create_channels():
+        pass
     for _ in random_data.create_shipping_zones():
         pass
     for _ in random_data.create_users(3):
