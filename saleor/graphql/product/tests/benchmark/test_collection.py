@@ -6,7 +6,7 @@ from ....tests.utils import get_graphql_content
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_collection_view(api_client, homepage_collection, count_queries, channel_USD):
+def test_collection_view(api_client, published_collection, count_queries, channel_USD):
     query = """
         fragment BasicProductFields on Product {
           id
@@ -105,7 +105,7 @@ def test_collection_view(api_client, homepage_collection, count_queries, channel
     """
     variables = {
         "pageSize": 100,
-        "id": graphene.Node.to_global_id("Collection", homepage_collection.pk),
+        "id": graphene.Node.to_global_id("Collection", published_collection.pk),
         "channel": channel_USD.slug,
     }
     get_graphql_content(api_client.post_graphql(query, variables))

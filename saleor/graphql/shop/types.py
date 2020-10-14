@@ -11,7 +11,6 @@ from ...account import models as account_models
 from ...core.permissions import SitePermissions, get_permissions
 from ...core.utils import get_client_ip, get_country_by_ip
 from ...plugins.manager import get_plugins_manager
-from ...product import models as product_models
 from ...site import models as site_models
 from ..account.types import Address, StaffNotificationRecipient
 from ..channel import ChannelContext
@@ -22,7 +21,6 @@ from ..core.utils import str_to_enum
 from ..decorators import permission_required
 from ..menu.dataloaders import MenuByIdLoader
 from ..menu.types import Menu
-from ..product.types import Collection
 from ..translations.enums import LanguageCodeEnum
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
@@ -114,9 +112,6 @@ class Shop(graphene.ObjectType):
     )
     description = graphene.String(description="Shop's description.")
     domain = graphene.Field(Domain, required=True, description="Shop's domain data.")
-    homepage_collection = graphene.Field(
-        Collection, description="Collection displayed on homepage.",
-    )
     languages = graphene.List(
         LanguageDisplay,
         description="List of the shops's supported languages.",
@@ -223,18 +218,6 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_description(_, info):
         return info.context.site.settings.description
-
-    @staticmethod
-    def resolve_homepage_collection(root, info):
-        collection_pk = info.context.site.settings.homepage_collection_id
-        collection = product_models.Collection.objects.filter(
-            pk=collection_pk, channel_listing__channel__slug=str(root.channel_slug),
-        ).first()
-        return (
-            ChannelContext(node=collection, channel_slug=str(root.channel_slug))
-            if collection
-            else None
-        )
 
     @staticmethod
     def resolve_languages(_, _info):

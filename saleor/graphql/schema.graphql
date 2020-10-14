@@ -2245,12 +2245,6 @@ type GroupCountableEdge {
   cursor: String!
 }
 
-type HomepageCollectionUpdate {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  shop: Shop
-  shopErrors: [ShopError!]!
-}
-
 type Image {
   url: String!
   alt: String
@@ -2700,7 +2694,6 @@ type Mutation {
   staffNotificationRecipientCreate(input: StaffNotificationRecipientInput!): StaffNotificationRecipientCreate
   staffNotificationRecipientUpdate(id: ID!, input: StaffNotificationRecipientInput!): StaffNotificationRecipientUpdate
   staffNotificationRecipientDelete(id: ID!): StaffNotificationRecipientDelete
-  homepageCollectionUpdate(collection: ID): HomepageCollectionUpdate
   shopDomainUpdate(input: SiteDomainInput): ShopDomainUpdate
   shopSettingsUpdate(input: ShopSettingsInput!): ShopSettingsUpdate
   shopFetchTaxRates: ShopFetchTaxRates
@@ -4976,7 +4969,6 @@ type Shop {
   defaultMailSenderAddress: String
   description: String
   domain: Domain!
-  homepageCollection: Collection
   languages: [LanguageDisplay]!
   name: String!
   navigation: Navigation
