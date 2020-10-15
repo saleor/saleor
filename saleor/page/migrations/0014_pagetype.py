@@ -29,7 +29,7 @@ def update_groups_with_manage_pages_with_new_permission(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("page", "0012_auto_20200709_1102"),
+        ("page", "0013_update_publication_date"),
     ]
 
     operations = [

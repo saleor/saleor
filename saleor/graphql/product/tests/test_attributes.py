@@ -1309,7 +1309,9 @@ ASSIGN_ATTR_QUERY = """
 
 
 def test_assign_attributes_to_product_type(
-    staff_api_client, permission_manage_product_types_and_attributes, attribute_list
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    product_type_attribute_list,
 ):
     product_type = ProductType.objects.create(name="Default Type", has_variants=True)
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -1318,8 +1320,8 @@ def test_assign_attributes_to_product_type(
     operations = []
     variables = {"productTypeId": product_type_global_id, "operations": operations}
 
-    product_attributes_ids = {attr.pk for attr in attribute_list[:2]}
-    variant_attributes_ids = {attr.pk for attr in attribute_list[2:]}
+    product_attributes_ids = {attr.pk for attr in product_type_attribute_list[:2]}
+    variant_attributes_ids = {attr.pk for attr in product_type_attribute_list[2:]}
 
     for attr_id in product_attributes_ids:
         operations.append(
@@ -1362,7 +1364,9 @@ def test_assign_attributes_to_product_type(
 
 
 def test_assign_non_existing_attributes_to_product_type(
-    staff_api_client, permission_manage_product_types_and_attributes, attribute_list
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    product_type_attribute_list,
 ):
     product_type = ProductType.objects.create(name="Default Type", has_variants=True)
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -1543,12 +1547,14 @@ UNASSIGN_ATTR_QUERY = """
 
 
 def test_unassign_attributes_from_product_type(
-    staff_api_client, permission_manage_product_types_and_attributes, attribute_list
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    product_type_attribute_list,
 ):
     product_type = ProductType.objects.create(name="Type")
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
-    variant_attribute, *product_attributes = attribute_list
+    variant_attribute, *product_attributes = product_type_attribute_list
     product_type.product_attributes.add(*product_attributes)
     product_type.variant_attributes.add(variant_attribute)
 
@@ -1794,13 +1800,13 @@ def test_sort_attributes_within_product_type_invalid_id(
 )
 def test_sort_attributes_within_product_type(
     staff_api_client,
-    attribute_list,
+    product_type_attribute_list,
     permission_manage_product_types_and_attributes,
     attribute_type,
     relation_field,
     backref_field,
 ):
-    attributes = attribute_list
+    attributes = product_type_attribute_list
     assert len(attributes) == 3
 
     staff_api_client.user.user_permissions.add(
@@ -2043,14 +2049,16 @@ def test_filter_attributes_if_available_in_grid(
     assert attributes[0]["node"]["slug"] == "size"
 
 
-def test_filter_attributes_by_global_id_list(api_client, attribute_list):
+def test_filter_attributes_by_global_id_list(api_client, product_type_attribute_list):
     global_ids = [
         graphene.Node.to_global_id("Attribute", attribute.pk)
-        for attribute in attribute_list[:2]
+        for attribute in product_type_attribute_list[:2]
     ]
     variables = {"filters": {"ids": global_ids}}
 
-    expected_slugs = sorted([attribute_list[0].slug, attribute_list[1].slug])
+    expected_slugs = sorted(
+        [product_type_attribute_list[0].slug, product_type_attribute_list[1].slug]
+    )
 
     attributes = get_graphql_content(
         api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
@@ -2736,7 +2744,10 @@ def test_filter_in_collection_not_published_by_app_without_perm(
 
 
 def test_filter_attributes_by_page_type(
-    staff_api_client, size_page_attribute, attribute_list, permission_manage_products
+    staff_api_client,
+    size_page_attribute,
+    product_type_attribute_list,
+    permission_manage_products,
 ):
     # given
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -2754,7 +2765,10 @@ def test_filter_attributes_by_page_type(
 
 
 def test_filter_attributes_by_product_type(
-    staff_api_client, size_page_attribute, attribute_list, permission_manage_products
+    staff_api_client,
+    size_page_attribute,
+    product_type_attribute_list,
+    permission_manage_products,
 ):
     # given
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -2767,7 +2781,7 @@ def test_filter_attributes_by_product_type(
     )["data"]["attributes"]["edges"]
 
     # then
-    assert len(attributes) == len(attribute_list)
+    assert len(attributes) == len(product_type_attribute_list)
     assert size_page_attribute.slug not in {
         attribute["node"]["slug"] for attribute in attributes
     }
