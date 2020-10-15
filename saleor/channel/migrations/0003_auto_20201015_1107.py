@@ -8,12 +8,13 @@ def create_temporary_channel(apps, schema_editor):
     # This migration is needed for test deployments
     Channel = apps.get_model("channel", "Channel")
 
-    Channel.objects.create(
-        name="Other Channel USD",
-        slug="other-usd-channel",
-        currency_code="USD",
-        is_active=True,
-    )
+    if Channel.objects.all().count() > 0:
+        Channel.objects.create(
+            name="Other Channel USD",
+            slug="other-usd-channel",
+            currency_code="USD",
+            is_active=True,
+        )
 
 
 class Migration(migrations.Migration):
