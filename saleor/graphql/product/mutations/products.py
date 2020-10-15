@@ -1200,6 +1200,7 @@ class ProductVariantCreate(ModelMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        errors_mapping = {"price_amount": "price"}
 
     @classmethod
     def clean_attributes(
@@ -1383,6 +1384,7 @@ class ProductVariantUpdate(ProductVariantCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        errors_mapping = {"price_amount": "price"}
 
     @classmethod
     def validate_duplicated_attribute_values(
