@@ -390,7 +390,7 @@ def test_create_menu_slug_already_exists(
         }
     """
 
-    existing_menu = Menu.objects.create(name="test-menu", slug=uuid.uuid4())
+    existing_menu = Menu.objects.create(name="test-menu", slug="test-menu")
     variables = {
         "name": "test-menu",
     }
@@ -398,8 +398,8 @@ def test_create_menu_slug_already_exists(
         query, variables, permissions=[permission_manage_menus]
     )
     content = get_graphql_content(response)
-    assert content["data"]["menuCreate"]["menu"]["name"] == "test-menu"
-    assert content["data"]["menuCreate"]["menu"]["slug"] == str(existing_menu.slug)
+    assert content["data"]["menuCreate"]["menu"]["name"] == existing_menu.name
+    assert content["data"]["menuCreate"]["menu"]["slug"] == f"{existing_menu.slug}-2"
 
 
 def test_create_menu_provided_slug(

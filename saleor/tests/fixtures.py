@@ -220,10 +220,12 @@ def site_settings(db, settings) -> SiteSettings:
     settings.SITE_ID = site.pk
 
     main_menu = Menu.objects.get_or_create(
-        name=settings.DEFAULT_MENUS["top_menu_name"], slug=uuid.uuid4()
+        name=settings.DEFAULT_MENUS["top_menu_name"],
+        slug=settings.DEFAULT_MENUS["top_menu_name"],
     )[0]
     secondary_menu = Menu.objects.get_or_create(
-        name=settings.DEFAULT_MENUS["bottom_menu_name"], slug=uuid.uuid4()
+        name=settings.DEFAULT_MENUS["bottom_menu_name"],
+        slug=settings.DEFAULT_MENUS["bottom_menu_name"],
     )[0]
     obj.top_menu = main_menu
     obj.bottom_menu = secondary_menu

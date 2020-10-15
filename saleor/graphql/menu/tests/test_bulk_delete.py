@@ -9,9 +9,9 @@ from ...tests.utils import get_graphql_content
 
 @pytest.fixture
 def menu_list():
-    menu_1 = Menu.objects.create(name="test-navbar-1", slug=uuid.uuid4())
-    menu_2 = Menu.objects.create(name="test-navbar-2", slug=uuid.uuid4())
-    menu_3 = Menu.objects.create(name="test-navbar-3", slug=uuid.uuid4())
+    menu_1 = Menu.objects.create(name="test-navbar-1", slug=str(uuid.uuid4()))
+    menu_2 = Menu.objects.create(name="test-navbar-2", slug=str(uuid.uuid4()))
+    menu_3 = Menu.objects.create(name="test-navbar-3", slug=str(uuid.uuid4()))
     return menu_1, menu_2, menu_3
 
 

@@ -1180,24 +1180,18 @@ def generate_menu_tree(menu):
 
 def create_menus():
     # Create navbar menu with category links
-    top_menu, top_menu_created = Menu.objects.get_or_create(
+    top_menu, _ = Menu.objects.get_or_create(
         name=settings.DEFAULT_MENUS["top_menu_name"]
     )
-    if top_menu_created:
-        top_menu.slug = settings.DEFAULT_MENUS["top_menu_name"]
-        top_menu.save(update_fields=["slug"])
     top_menu.items.all().delete()
     yield "Created navbar menu"
     for msg in generate_menu_tree(top_menu):
         yield msg
 
     # Create footer menu with collections and pages
-    bottom_menu, bottom_menu_created = Menu.objects.get_or_create(
+    bottom_menu, _ = Menu.objects.get_or_create(
         name=settings.DEFAULT_MENUS["bottom_menu_name"]
     )
-    if bottom_menu_created:
-        bottom_menu.slug = settings.DEFAULT_MENUS["bottom_menu_name"]
-        bottom_menu.save(update_fields=["slug"])
     bottom_menu.items.all().delete()
     collection = Collection.objects.filter(products__isnull=False).order_by("?")[0]
     item, _ = bottom_menu.items.get_or_create(name="Collections", collection=collection)
