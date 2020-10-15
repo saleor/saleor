@@ -55,6 +55,7 @@ from ...product.models import (
     AttributeVariant,
     Category,
     Collection,
+    CollectionChannelListing,
     CollectionProduct,
     Product,
     ProductChannelListing,
@@ -178,6 +179,18 @@ def create_categories(categories_data, placeholder_dir):
             defaults["parent"] = Category.objects.get(pk=parent)
         Category.objects.update_or_create(pk=pk, defaults=defaults)
         create_category_background_image_thumbnails.delay(pk)
+
+
+def create_collection_channel_listings(collection_channel_listings_data):
+    channel_USD = Channel.objects.get(currency_code="USD")
+    channel_PLN = Channel.objects.get(currency_code="PLN")
+    for collection_channel_listing in collection_channel_listings_data:
+        pk = collection_channel_listing["pk"]
+        defaults = collection_channel_listing["fields"]
+        defaults["collection_id"] = defaults.pop("collection")
+        channel = defaults.pop("channel")
+        defaults["channel_id"] = channel_USD.pk if channel == 1 else channel_PLN.pk
+        CollectionChannelListing.objects.update_or_create(pk=pk, defaults=defaults)
 
 
 def create_collections(data, placeholder_dir):
@@ -380,6 +393,9 @@ def create_products_by_schema(placeholder_dir, create_images):
     )
     create_collections(
         data=types["product.collection"], placeholder_dir=placeholder_dir
+    )
+    create_collection_channel_listings(
+        collection_channel_listings_data=types["product.collectionchannellisting"],
     )
     assign_products_to_collections(associations=types["product.collectionproduct"])
 
@@ -1153,15 +1169,6 @@ def create_gift_card():
         yield "Gift card #%d" % gift_card.id
     else:
         yield "Gift card already exists"
-
-
-def set_homepage_collection():
-    homepage_collection = Collection.objects.order_by("?").first()
-    site = Site.objects.get_current()
-    site_settings = site.settings
-    site_settings.homepage_collection = homepage_collection
-    site_settings.save()
-    yield "Homepage collection assigned"
 
 
 def add_address_to_admin(email):
