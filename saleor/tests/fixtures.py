@@ -49,7 +49,7 @@ from ..order.actions import cancel_fulfillment, fulfill_order_line
 from ..order.events import OrderEvents
 from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
 from ..order.utils import recalculate_order
-from ..page.models import Page, PageTranslation
+from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import GatewayConfig, PaymentData
 from ..payment.models import Payment
@@ -653,7 +653,31 @@ def size_page_attribute(db):
 
 
 @pytest.fixture
-def attribute_list() -> List[Attribute]:
+def tag_page_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="tag", name="tag", type=AttributeType.PAGE_TYPE
+    )
+    AttributeValue.objects.create(attribute=attribute, name="About", slug="about")
+    AttributeValue.objects.create(attribute=attribute, name="Help", slug="help")
+    return attribute
+
+
+@pytest.fixture
+def author_page_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="author", name="author", type=AttributeType.PAGE_TYPE
+    )
+    AttributeValue.objects.create(
+        attribute=attribute, name="Test author 1", slug="test-author-1"
+    )
+    AttributeValue.objects.create(
+        attribute=attribute, name="Test author 2", slug="test-author-2"
+    )
+    return attribute
+
+
+@pytest.fixture
+def product_type_attribute_list() -> List[Attribute]:
     return list(
         Attribute.objects.bulk_create(
             [
@@ -663,6 +687,21 @@ def attribute_list() -> List[Attribute]:
                 ),
                 Attribute(
                     slug="thickness", name="Thickness", type=AttributeType.PRODUCT_TYPE
+                ),
+            ]
+        )
+    )
+
+
+@pytest.fixture
+def page_type_attribute_list() -> List[Attribute]:
+    return list(
+        Attribute.objects.bulk_create(
+            [
+                Attribute(slug="size", name="Size", type=AttributeType.PAGE_TYPE),
+                Attribute(slug="font", name="Weight", type=AttributeType.PAGE_TYPE),
+                Attribute(
+                    slug="margin", name="Thickness", type=AttributeType.PAGE_TYPE
                 ),
             ]
         )
@@ -1748,6 +1787,11 @@ def permission_manage_pages():
 
 
 @pytest.fixture
+def permission_manage_page_types_and_attributes():
+    return Permission.objects.get(codename="manage_page_types_and_attributes")
+
+
+@pytest.fixture
 def permission_manage_translations():
     return Permission.objects.get(codename="manage_translations")
 
@@ -1867,6 +1911,14 @@ def page_list_unpublished(db):
         ]
     )
     return pages
+
+
+@pytest.fixture
+def page_type(db, size_page_attribute, tag_page_attribute):
+    page_type = PageType.objects.create(name="Test page type", slug="test-page-type")
+    page_type.page_attributes.add(size_page_attribute)
+    page_type.page_attributes.add(tag_page_attribute)
+    return page_type
 
 
 @pytest.fixture
