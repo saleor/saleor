@@ -1299,6 +1299,7 @@ enum CollectionSortField {
   NAME
   AVAILABILITY
   PRODUCT_COUNT
+  PUBLICATION_DATE
 }
 
 input CollectionSortingInput {
@@ -3246,8 +3247,8 @@ input OrderFulfillLineInput {
 }
 
 input OrderFulfillStockInput {
-  quantity: Int
-  warehouse: ID
+  quantity: Int!
+  warehouse: ID!
 }
 
 type OrderLine implements Node {
@@ -3942,6 +3943,7 @@ input ProductFilterInput {
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   productTypes: [ID]
+  ids: [ID]
   channel: String
 }
 
@@ -4024,6 +4026,7 @@ enum ProductOrderField {
   DATE
   TYPE
   PUBLISHED
+  PUBLICATION_DATE
 }
 
 type ProductPricingInfo {

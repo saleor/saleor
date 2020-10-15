@@ -343,6 +343,7 @@ class ProductFilter(django_filters.FilterSet):
     product_types = GlobalIDMultipleChoiceFilter(field_name="product_type")
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
+    ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
         model = Product

@@ -61,6 +61,8 @@ def attributes_for_pagination(collection, category, channel_USD):
         visible_in_listings=True,
     )
     ProductVariant.objects.create(product=product)
+    ProductVariant.objects.create(product=product, sku="testVariant")
+
     collection.products.add(product)
     AttributeVariant.objects.bulk_create(
         [
