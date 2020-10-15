@@ -10212,7 +10212,7 @@
     "pk": 2,
     "fields": {
       "publication_date": null,
-      "is_published": false,
+      "is_published": true,
       "collection": 2,
       "channel": 1
     }
@@ -10222,7 +10222,7 @@
     "pk": 3,
     "fields": {
       "publication_date": null,
-      "is_published": true,
+      "is_published": false,
       "collection": 1,
       "channel": 2
     }
