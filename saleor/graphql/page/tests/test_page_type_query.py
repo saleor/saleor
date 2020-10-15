@@ -24,7 +24,11 @@ PAGE_TYPE_QUERY = """
 
 
 def test_page_type_query_by_staff(
-    staff_api_client, page_type, author_page_attribute, permission_manage_pages,
+    staff_api_client,
+    page_type,
+    author_page_attribute,
+    permission_manage_pages,
+    color_attribute,
 ):
     # given
     staff_user = staff_api_client.user
@@ -63,7 +67,11 @@ def test_page_type_query_by_staff_no_perm(
 
 
 def test_page_type_query_by_app(
-    app_api_client, page_type, author_page_attribute, permission_manage_pages,
+    app_api_client,
+    page_type,
+    author_page_attribute,
+    permission_manage_pages,
+    color_attribute,
 ):
     # given
     staff_user = app_api_client.app
@@ -105,7 +113,11 @@ def test_page_type_query_by_app_no_perm(
 
 
 def test_page_type_query_filter_unassigned_attributes(
-    staff_api_client, page_type, permission_manage_pages, page_type_attribute_list,
+    staff_api_client,
+    page_type,
+    permission_manage_pages,
+    page_type_attribute_list,
+    color_attribute,
 ):
     # given
     staff_user = staff_api_client.user
