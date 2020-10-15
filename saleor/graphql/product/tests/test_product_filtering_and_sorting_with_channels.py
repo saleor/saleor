@@ -1,3 +1,4 @@
+import datetime
 import uuid
 from decimal import Decimal
 
@@ -62,24 +63,28 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 channel=channel_USD,
                 is_published=True,
                 discounted_price_amount=Decimal(5),
+                publication_date=datetime.date(2002, 1, 1),
             ),
             ProductChannelListing(
                 product=products[1],
                 channel=channel_USD,
                 is_published=True,
                 discounted_price_amount=Decimal(15),
+                publication_date=datetime.date(2000, 1, 1),
             ),
             ProductChannelListing(
                 product=products[2],
                 channel=channel_USD,
                 is_published=False,
                 discounted_price_amount=Decimal(4),
+                publication_date=datetime.date(1999, 1, 1),
             ),
             ProductChannelListing(
                 product=products[3],
                 channel=channel_USD,
                 is_published=True,
                 discounted_price_amount=Decimal(7),
+                publication_date=datetime.date(2001, 1, 1),
             ),
             # Second channel
             ProductChannelListing(
@@ -87,24 +92,28 @@ def products_for_sorting_with_channels(category, channel_USD, channel_PLN):
                 channel=channel_PLN,
                 is_published=False,
                 discounted_price_amount=Decimal(15),
+                publication_date=datetime.date(2003, 1, 1),
             ),
             ProductChannelListing(
                 product=products[1],
                 channel=channel_PLN,
                 is_published=True,
                 discounted_price_amount=Decimal(4),
+                publication_date=datetime.date(1999, 1, 1),
             ),
             ProductChannelListing(
                 product=products[2],
                 channel=channel_PLN,
                 is_published=True,
                 discounted_price_amount=Decimal(5),
+                publication_date=datetime.date(2000, 1, 1),
             ),
             ProductChannelListing(
                 product=products[4],
                 channel=channel_PLN,
                 is_published=True,
                 discounted_price_amount=Decimal(7),
+                publication_date=datetime.date(1998, 1, 1),
             ),
         ]
     )
@@ -215,6 +224,7 @@ QUERY_PRODUCTS_WITH_SORTING_AND_FILTERING = """
         {"field": "PUBLISHED", "direction": "ASC"},
         {"field": "PRICE", "direction": "DESC"},
         {"field": "MINIMAL_PRICE", "direction": "DESC"},
+        {"field": "PUBLICATION_DATE", "direction": "DESC"},
     ],
 )
 def test_products_with_sorting_and_without_channel(
@@ -261,6 +271,14 @@ def test_products_with_sorting_and_without_channel(
         (
             {"field": "MINIMAL_PRICE", "direction": "DESC"},
             ["Product3", "ProductProduct1", "Product2", "Product1", "ProductProduct2"],
+        ),
+        (
+            {"field": "PUBLICATION_DATE", "direction": "ASC"},
+            ["ProductProduct2", "ProductProduct1", "Product2", "Product1", "Product3"],
+        ),
+        (
+            {"field": "PUBLICATION_DATE", "direction": "DESC"},
+            ["Product3", "Product1", "Product2", "ProductProduct1", "ProductProduct2"],
         ),
     ],
 )

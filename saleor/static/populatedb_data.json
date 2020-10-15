@@ -1787,7 +1787,7 @@
     "model": "product.productchannellisting",
     "pk": 1,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 72,
       "channel": 1,
@@ -1800,7 +1800,7 @@
     "model": "product.productchannellisting",
     "pk": 2,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 74,
       "channel": 1,
@@ -1813,7 +1813,7 @@
     "model": "product.productchannellisting",
     "pk": 3,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 122,
       "channel": 1,
@@ -1826,7 +1826,7 @@
     "model": "product.productchannellisting",
     "pk": 4,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 79,
       "channel": 1,
@@ -1839,7 +1839,7 @@
     "model": "product.productchannellisting",
     "pk": 5,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 115,
       "channel": 1,
@@ -1852,7 +1852,7 @@
     "model": "product.productchannellisting",
     "pk": 6,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 116,
       "channel": 1,
@@ -1865,7 +1865,7 @@
     "model": "product.productchannellisting",
     "pk": 7,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 73,
       "channel": 1,
@@ -1878,7 +1878,7 @@
     "model": "product.productchannellisting",
     "pk": 8,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 76,
       "channel": 1,
@@ -1891,7 +1891,7 @@
     "model": "product.productchannellisting",
     "pk": 9,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 89,
       "channel": 1,
@@ -1904,7 +1904,7 @@
     "model": "product.productchannellisting",
     "pk": 10,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 85,
       "channel": 1,
@@ -1917,7 +1917,7 @@
     "model": "product.productchannellisting",
     "pk": 11,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 78,
       "channel": 1,
@@ -1930,7 +1930,7 @@
     "model": "product.productchannellisting",
     "pk": 12,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 65,
       "channel": 1,
@@ -1943,7 +1943,7 @@
     "model": "product.productchannellisting",
     "pk": 13,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 123,
       "channel": 1,
@@ -1956,7 +1956,7 @@
     "model": "product.productchannellisting",
     "pk": 14,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 120,
       "channel": 1,
@@ -1969,7 +1969,7 @@
     "model": "product.productchannellisting",
     "pk": 15,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 64,
       "channel": 1,
@@ -1982,7 +1982,7 @@
     "model": "product.productchannellisting",
     "pk": 16,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 117,
       "channel": 1,
@@ -1995,7 +1995,7 @@
     "model": "product.productchannellisting",
     "pk": 17,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 61,
       "channel": 1,
@@ -2008,7 +2008,7 @@
     "model": "product.productchannellisting",
     "pk": 18,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 121,
       "channel": 1,
@@ -2021,7 +2021,7 @@
     "model": "product.productchannellisting",
     "pk": 19,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 71,
       "channel": 1,
@@ -2034,7 +2034,7 @@
     "model": "product.productchannellisting",
     "pk": 20,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 75,
       "channel": 1,
@@ -2047,7 +2047,7 @@
     "model": "product.productchannellisting",
     "pk": 21,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 107,
       "channel": 1,
@@ -2060,7 +2060,7 @@
     "model": "product.productchannellisting",
     "pk": 22,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 108,
       "channel": 1,
@@ -2073,7 +2073,7 @@
     "model": "product.productchannellisting",
     "pk": 23,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 109,
       "channel": 1,
@@ -2086,7 +2086,7 @@
     "model": "product.productchannellisting",
     "pk": 24,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 110,
       "channel": 1,
@@ -2099,7 +2099,7 @@
     "model": "product.productchannellisting",
     "pk": 25,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 77,
       "channel": 1,
@@ -2112,7 +2112,7 @@
     "model": "product.productchannellisting",
     "pk": 26,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 63,
       "channel": 1,
@@ -2125,7 +2125,7 @@
     "model": "product.productchannellisting",
     "pk": 27,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 81,
       "channel": 1,
@@ -2138,7 +2138,7 @@
     "model": "product.productchannellisting",
     "pk": 28,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 119,
       "channel": 1,
@@ -2151,7 +2151,7 @@
     "model": "product.productchannellisting",
     "pk": 29,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 84,
       "channel": 1,
@@ -2164,7 +2164,7 @@
     "model": "product.productchannellisting",
     "pk": 30,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 83,
       "channel": 1,
@@ -2177,7 +2177,7 @@
     "model": "product.productchannellisting",
     "pk": 31,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 62,
       "channel": 1,
@@ -2190,7 +2190,7 @@
     "model": "product.productchannellisting",
     "pk": 32,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 112,
       "channel": 1,
@@ -2203,7 +2203,7 @@
     "model": "product.productchannellisting",
     "pk": 33,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 111,
       "channel": 1,
@@ -2216,7 +2216,7 @@
     "model": "product.productchannellisting",
     "pk": 34,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 114,
       "channel": 1,
@@ -2229,7 +2229,7 @@
     "model": "product.productchannellisting",
     "pk": 35,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 113,
       "channel": 1,
@@ -2242,7 +2242,7 @@
     "model": "product.productchannellisting",
     "pk": 36,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 124,
       "channel": 1,
@@ -2255,7 +2255,7 @@
     "model": "product.productchannellisting",
     "pk": 37,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 118,
       "channel": 1,
@@ -2268,7 +2268,7 @@
     "model": "product.productchannellisting",
     "pk": 38,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 86,
       "channel": 1,
@@ -2281,7 +2281,7 @@
     "model": "product.productchannellisting",
     "pk": 39,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 88,
       "channel": 1,
@@ -2294,7 +2294,7 @@
     "model": "product.productchannellisting",
     "pk": 40,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 82,
       "channel": 1,
@@ -2307,7 +2307,7 @@
     "model": "product.productchannellisting",
     "pk": 41,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 87,
       "channel": 1,
@@ -2320,7 +2320,7 @@
     "model": "product.productchannellisting",
     "pk": 42,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 72,
       "channel": 2,
@@ -2333,7 +2333,7 @@
     "model": "product.productchannellisting",
     "pk": 43,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 74,
       "channel": 2,
@@ -2346,7 +2346,7 @@
     "model": "product.productchannellisting",
     "pk": 44,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 122,
       "channel": 2,
@@ -2359,7 +2359,7 @@
     "model": "product.productchannellisting",
     "pk": 45,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 79,
       "channel": 2,
@@ -2372,7 +2372,7 @@
     "model": "product.productchannellisting",
     "pk": 46,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 115,
       "channel": 2,
@@ -2385,7 +2385,7 @@
     "model": "product.productchannellisting",
     "pk": 47,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 116,
       "channel": 2,
@@ -2398,7 +2398,7 @@
     "model": "product.productchannellisting",
     "pk": 48,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 73,
       "channel": 2,
@@ -2411,7 +2411,7 @@
     "model": "product.productchannellisting",
     "pk": 49,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 76,
       "channel": 2,
@@ -2424,7 +2424,7 @@
     "model": "product.productchannellisting",
     "pk": 50,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 89,
       "channel": 2,
@@ -2437,7 +2437,7 @@
     "model": "product.productchannellisting",
     "pk": 51,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 85,
       "channel": 2,
@@ -2450,7 +2450,7 @@
     "model": "product.productchannellisting",
     "pk": 52,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 78,
       "channel": 2,
@@ -2463,7 +2463,7 @@
     "model": "product.productchannellisting",
     "pk": 53,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 65,
       "channel": 2,
@@ -2476,7 +2476,7 @@
     "model": "product.productchannellisting",
     "pk": 54,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 123,
       "channel": 2,
@@ -2489,7 +2489,7 @@
     "model": "product.productchannellisting",
     "pk": 55,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 120,
       "channel": 2,
@@ -2502,7 +2502,7 @@
     "model": "product.productchannellisting",
     "pk": 56,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 64,
       "channel": 2,
@@ -2515,7 +2515,7 @@
     "model": "product.productchannellisting",
     "pk": 57,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 117,
       "channel": 2,
@@ -2528,7 +2528,7 @@
     "model": "product.productchannellisting",
     "pk": 58,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 61,
       "channel": 2,
@@ -2541,7 +2541,7 @@
     "model": "product.productchannellisting",
     "pk": 59,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 121,
       "channel": 2,
@@ -2554,7 +2554,7 @@
     "model": "product.productchannellisting",
     "pk": 60,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 71,
       "channel": 2,
@@ -2567,7 +2567,7 @@
     "model": "product.productchannellisting",
     "pk": 61,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 75,
       "channel": 2,
@@ -2580,7 +2580,7 @@
     "model": "product.productchannellisting",
     "pk": 62,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 107,
       "channel": 2,
@@ -2593,7 +2593,7 @@
     "model": "product.productchannellisting",
     "pk": 63,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 108,
       "channel": 2,
@@ -2606,7 +2606,7 @@
     "model": "product.productchannellisting",
     "pk": 64,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 109,
       "channel": 2,
@@ -2619,7 +2619,7 @@
     "model": "product.productchannellisting",
     "pk": 65,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 110,
       "channel": 2,
@@ -2632,7 +2632,7 @@
     "model": "product.productchannellisting",
     "pk": 66,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 77,
       "channel": 2,
@@ -2645,7 +2645,7 @@
     "model": "product.productchannellisting",
     "pk": 67,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 63,
       "channel": 2,
@@ -2658,7 +2658,7 @@
     "model": "product.productchannellisting",
     "pk": 68,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 81,
       "channel": 2,
@@ -2671,7 +2671,7 @@
     "model": "product.productchannellisting",
     "pk": 69,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "product": 119,
       "channel": 2,
@@ -2684,7 +2684,7 @@
     "model": "product.productchannellisting",
     "pk": 70,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": false,
       "product": 84,
       "channel": 2,
@@ -2697,7 +2697,7 @@
     "model": "product.productchannellisting",
     "pk": 71,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": false,
       "product": 83,
       "channel": 2,
@@ -10147,7 +10147,7 @@
     "model": "product.collection",
     "pk": 1,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -10176,7 +10176,7 @@
     "model": "product.collection",
     "pk": 2,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},

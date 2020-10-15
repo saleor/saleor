@@ -112,19 +112,19 @@ The easiest way to run all components of Saleor (API, storefront and dashboard) 
 
 For PWA, single-page storefront go to the [saleor-storefront](https://github.com/mirumee/saleor-storefront) repository.
 
-[View storefront demo](https://pwa.saleor.io/)
+[View storefront demo](https://demo.saleor.io/)
 
 ## Dashboard
 
 For dashboard go to the [saleor-dashboard](https://github.com/mirumee/saleor-dashboard) repository.
 
-[View dashboard demo](https://pwa.saleor.io/dashboard/)
+[View dashboard demo](https://demo.saleor.io/dashboard/)
 
 ## Demo
 
 Want to see Saleor in action?
 
-[View Storefront](https://pwa.saleor.io/) | [View Dashboard (admin area)](https://pwa.saleor.io/dashboard/)
+[View Storefront](https://demo.saleor.io/) | [View Dashboard (admin area)](https://demo.saleor.io/dashboard/)
 
 Or launch the demo on a free Heroku instance.
 

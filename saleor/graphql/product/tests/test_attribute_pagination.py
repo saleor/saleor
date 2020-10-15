@@ -63,13 +63,29 @@ def attributes_for_pagination(collection, category, channel_USD):
         is_published=True,
         visible_in_listings=True,
     )
-    variant = ProductVariant.objects.create(product=product)
-    ProductVariantChannelListing.objects.create(
-        variant=variant,
-        channel=channel_USD,
-        cost_price_amount=Decimal(1),
-        price_amount=Decimal(10),
-        currency=channel_USD.currency_code,
+    variants = ProductVariant.objects.bulk_create(
+        [
+            ProductVariant(product=product),
+            ProductVariant(product=product, sku="testVariant"),
+        ]
+    )
+    ProductVariantChannelListing.objects.bulk_create(
+        [
+            ProductVariantChannelListing(
+                variant=variants[0],
+                channel=channel_USD,
+                cost_price_amount=Decimal(1),
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[1],
+                channel=channel_USD,
+                cost_price_amount=Decimal(1),
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+            ),
+        ]
     )
 
     collection.products.add(product)

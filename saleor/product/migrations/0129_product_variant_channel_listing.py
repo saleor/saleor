@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("channel", "0001_initial"),
         ("checkout", "0030_checkout_channel"),
-        ("product", "0127_auto_20201001_0933"),
+        ("product", "0128_update_publication_date"),
     ]
 
     operations = [

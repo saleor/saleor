@@ -24,6 +24,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow product variants to be sortable - #6138 by @tomaszszymanski129
 - Staff with only manage_orders should be able to query all stock related date. - #6139 by @fowczarek
 - Add filtering to `ProductVariants` query and option to fetch variant by sku in `ProductVariant` query - #6190 by @fowczarek
+- Add filtering by Product IDs to `products` query - #6224 by @GrzegorzDerdak
 
 
 ### Breaking Changes
@@ -67,6 +68,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow to add product variant with 0 price to draft order - #6189 by @IKarbowiak
 - Fix deleting product when default variant is deleted - #6186 by @IKarbowiak
 - Fix get unpublished products, product variants and collection as app - #6194 by @fowczarek
+- Set OrderFulfillStockInput fields as required - #6196 by @IKarbowiak
+- Fix attribute filtering by categories and collections - #6214 by @fowczarek
+- Fix is_visible when publication_date==today - #6225 by @korycins
+- Fix filtering products by multiple attributes - #6215 by @GrzegorzDerdak
 
 ## 2.10.2
 

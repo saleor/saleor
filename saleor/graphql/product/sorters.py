@@ -2,6 +2,7 @@ import graphene
 from django.db.models import (
     BooleanField,
     Count,
+    DateField,
     ExpressionWrapper,
     IntegerField,
     Min,
@@ -116,6 +117,7 @@ class CollectionSortField(graphene.Enum):
     NAME = ["name"]
     AVAILABILITY = ["is_published", "name"]
     PRODUCT_COUNT = ["product_count", "name"]
+    PUBLICATION_DATE = ["publication_date", "name"]
 
     @property
     def description(self):
@@ -124,6 +126,7 @@ class CollectionSortField(graphene.Enum):
             CollectionSortField.NAME,
             CollectionSortField.AVAILABILITY,
             CollectionSortField.PRODUCT_COUNT,
+            CollectionSortField.PUBLICATION_DATE,
         ]:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort collections by {sort_name}."
@@ -147,6 +150,7 @@ class ProductOrderField(graphene.Enum):
     DATE = ["updated_at", "name", "slug"]
     TYPE = ["product_type__name", "name", "slug"]
     PUBLISHED = ["is_published", "name", "slug"]
+    PUBLICATION_DATE = ["publication_date", "name", "slug"]
 
     @property
     def description(self):
@@ -160,6 +164,7 @@ class ProductOrderField(graphene.Enum):
             ),
             ProductOrderField.DATE.name: "update date",
             ProductOrderField.PUBLISHED.name: "publication status",
+            ProductOrderField.PUBLICATION_DATE.name: "publication date",
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}."
@@ -195,6 +200,18 @@ class ProductOrderField(graphene.Enum):
         )
         return queryset.annotate(
             is_published=ExpressionWrapper(subquery, output_field=BooleanField())
+        )
+
+    @staticmethod
+    def qs_with_publication_date(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
+        subquery = Subquery(
+            ProductChannelListing.objects.filter(
+                product_id=OuterRef("pk"), channel__slug=channel_slug
+            ).values_list("publication_date")[:1]
+        )
+        return queryset.annotate(
+            publication_date=ExpressionWrapper(subquery, output_field=DateField())
         )
 
 
