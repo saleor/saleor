@@ -343,7 +343,7 @@ def test_add_public_metadata_for_draft_order(api_client, draft_order):
     )
 
 
-def test_add_public_metadata_for_attribute(
+def test_add_public_metadata_for_product_attribute(
     staff_api_client, permission_manage_product_types_and_attributes, color_attribute
 ):
     # given
@@ -360,6 +360,26 @@ def test_add_public_metadata_for_attribute(
     # then
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], color_attribute, attribute_id
+    )
+
+
+def test_add_public_metadata_for_page_attribute(
+    staff_api_client, permission_manage_page_types_and_attributes, size_page_attribute
+):
+    # given
+    attribute_id = graphene.Node.to_global_id("Attribute", size_page_attribute.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_page_types_and_attributes,
+        attribute_id,
+        "Attribute",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], size_page_attribute, attribute_id
     )
 
 
@@ -837,7 +857,7 @@ def test_delete_public_metadata_for_draft_order(api_client, draft_order):
     )
 
 
-def test_delete_public_metadata_for_attribute(
+def test_delete_public_metadata_for_product_attribute(
     staff_api_client, permission_manage_product_types_and_attributes, color_attribute
 ):
     # given
@@ -856,6 +876,28 @@ def test_delete_public_metadata_for_attribute(
     # then
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], color_attribute, attribute_id
+    )
+
+
+def test_delete_public_metadata_for_page_attribute(
+    staff_api_client, permission_manage_page_types_and_attributes, size_page_attribute
+):
+    # given
+    size_page_attribute.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    size_page_attribute.save(update_fields=["metadata"])
+    attribute_id = graphene.Node.to_global_id("Attribute", size_page_attribute.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_page_types_and_attributes,
+        attribute_id,
+        "Attribute",
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], size_page_attribute, attribute_id
     )
 
 
@@ -1391,7 +1433,7 @@ def test_add_private_metadata_for_draft_order(
     )
 
 
-def test_add_private_metadata_for_attribute(
+def test_add_private_metadata_for_product_attribute(
     staff_api_client, permission_manage_product_types_and_attributes, color_attribute
 ):
     # given
@@ -1408,6 +1450,28 @@ def test_add_private_metadata_for_attribute(
     # then
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], color_attribute, attribute_id
+    )
+
+
+def test_add_private_metadata_for_page_attribute(
+    staff_api_client, permission_manage_page_types_and_attributes, size_page_attribute
+):
+    # given
+    attribute_id = graphene.Node.to_global_id("Attribute", size_page_attribute.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_page_types_and_attributes,
+        attribute_id,
+        "Attribute",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        size_page_attribute,
+        attribute_id,
     )
 
 
@@ -1907,7 +1971,7 @@ def test_delete_private_metadata_for_draft_order(
     )
 
 
-def test_delete_private_metadata_for_attribute(
+def test_delete_private_metadata_for_product_attribute(
     staff_api_client, permission_manage_product_types_and_attributes, color_attribute
 ):
     # given
@@ -1926,6 +1990,30 @@ def test_delete_private_metadata_for_attribute(
     # then
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], color_attribute, attribute_id
+    )
+
+
+def test_delete_private_metadata_for_page_attribute(
+    staff_api_client, permission_manage_page_types_and_attributes, size_page_attribute
+):
+    # given
+    size_page_attribute.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    size_page_attribute.save(update_fields=["private_metadata"])
+    attribute_id = graphene.Node.to_global_id("Attribute", size_page_attribute.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_page_types_and_attributes,
+        attribute_id,
+        "Attribute",
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"],
+        size_page_attribute,
+        attribute_id,
     )
 
 
