@@ -1,6 +1,7 @@
 import datetime
 from unittest.mock import Mock
 
+from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...plugins.manager import PluginsManager
@@ -130,6 +131,14 @@ def test_available_products_available_with_many_channels(
     assert available_products.count() == 0
     available_products = models.Product.objects.published(channel_USD.slug)
     assert available_products.count() == 3
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_product_is_visible_from_today(product):
+    product_channel_listing = product.channel_listing.get()
+    product_channel_listing.publication_date = datetime.date.today()
+    product_channel_listing.save()
+    assert product_channel_listing.is_visible
 
 
 def test_available_products_with_variants(product_list, channel_USD):

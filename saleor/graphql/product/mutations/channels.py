@@ -86,6 +86,14 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         error_type_field = "product_channel_listing_errors"
 
     @classmethod
+    def clean_publication_date(cls, cleaned_input):
+        for add_channel in cleaned_input.get("add_channels", []):
+            is_published = add_channel.get("is_published")
+            publication_date = add_channel.get("publication_date")
+            if is_published and not publication_date:
+                add_channel["publication_date"] = datetime.date.today()
+
+    @classmethod
     def clean_available_for_purchase(cls, cleaned_input, errors: ErrorType):
         channels_with_invalid_available_for_purchase = []
         for add_channel in cleaned_input.get("add_channels", []):
@@ -175,6 +183,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         cleaned_input = cls.clean_channels(
             info, input, errors, ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
         )
+        cls.clean_publication_date(cleaned_input)
         cls.clean_available_for_purchase(cleaned_input, errors)
         if not product.category:
             cls.validate_product_without_category(cleaned_input, errors)

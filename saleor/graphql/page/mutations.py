@@ -1,3 +1,5 @@
+from datetime import date
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -48,6 +50,10 @@ class PageCreate(ModelMutation):
         except ValidationError as error:
             error.code = PageErrorCode.REQUIRED
             raise ValidationError({"slug": error})
+        is_published = cleaned_input.get("is_published")
+        publication_date = cleaned_input.get("publication_date")
+        if is_published and not publication_date:
+            cleaned_input["publication_date"] = date.today()
         clean_seo_fields(cleaned_input)
         return cleaned_input
 

@@ -1,3 +1,4 @@
+import datetime
 from collections import defaultdict
 from typing import Iterable, List, Tuple, Union
 
@@ -220,6 +221,10 @@ class CollectionCreate(ModelMutation):
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
             validate_image_file(image_data, "background_image")
+        is_published = cleaned_input.get("is_published")
+        publication_date = cleaned_input.get("publication_date")
+        if is_published and not publication_date:
+            cleaned_input["publication_date"] = datetime.date.today()
         clean_seo_fields(cleaned_input)
         return cleaned_input
 

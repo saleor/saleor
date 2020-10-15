@@ -1510,6 +1510,29 @@ def test_products_query_with_filter_stocks(
     assert {node["node"]["id"] for node in products_data} == product_ids
 
 
+def test_query_products_with_filter_ids(
+    api_client, product_list, query_products_with_filter, channel_USD
+):
+    # given
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.id) for product in product_list
+    ][:2]
+    variables = {
+        "filter": {"ids": product_ids},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(query_products_with_filter, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products_data = content["data"]["products"]["edges"]
+
+    assert len(products_data) == 2
+    assert [node["node"]["id"] for node in products_data] == product_ids
+
+
 def test_query_product_image_by_id(user_api_client, product_with_image, channel_USD):
     image = product_with_image.images.first()
     query = """
