@@ -1188,7 +1188,7 @@ def product_without_category(product):
 
 
 @pytest.fixture
-def product_list(product_type, category, warehouse, channel_USD):
+def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
 
@@ -1299,6 +1299,110 @@ def product_list(product_type, category, warehouse, channel_USD):
         associate_attribute_values_to_instance(product, product_attr, attr_value)
 
     return products
+
+
+@pytest.fixture
+def product_list_with_variants_many_channel(
+    product_type, category, channel_USD, channel_PLN
+):
+    products = list(
+        Product.objects.bulk_create(
+            [
+                Product(
+                    pk=1486,
+                    name="Test product 1",
+                    slug="test-product-a",
+                    category=category,
+                    product_type=product_type,
+                ),
+                Product(
+                    pk=1487,
+                    name="Test product 2",
+                    slug="test-product-b",
+                    category=category,
+                    product_type=product_type,
+                ),
+                Product(
+                    pk=1489,
+                    name="Test product 3",
+                    slug="test-product-c",
+                    category=category,
+                    product_type=product_type,
+                ),
+            ]
+        )
+    )
+    ProductChannelListing.objects.bulk_create(
+        [
+            ProductChannelListing(
+                product=products[0],
+                channel=channel_USD,
+                is_published=True,
+                currency=channel_USD.currency_code,
+                visible_in_listings=True,
+            ),
+            ProductChannelListing(
+                product=products[1],
+                channel=channel_PLN,
+                is_published=True,
+                currency=channel_PLN.currency_code,
+                visible_in_listings=True,
+            ),
+            ProductChannelListing(
+                product=products[2],
+                channel=channel_PLN,
+                is_published=True,
+                currency=channel_PLN.currency_code,
+                visible_in_listings=True,
+            ),
+        ]
+    )
+    variants = list(
+        ProductVariant.objects.bulk_create(
+            [
+                ProductVariant(
+                    product=products[0],
+                    sku=str(uuid.uuid4()).replace("-", ""),
+                    track_inventory=True,
+                ),
+                ProductVariant(
+                    product=products[1],
+                    sku=str(uuid.uuid4()).replace("-", ""),
+                    track_inventory=True,
+                ),
+                ProductVariant(
+                    product=products[2],
+                    sku=str(uuid.uuid4()).replace("-", ""),
+                    track_inventory=True,
+                ),
+            ]
+        )
+    )
+    ProductVariantChannelListing.objects.bulk_create(
+        [
+            ProductVariantChannelListing(
+                variant=variants[0],
+                channel=channel_USD,
+                cost_price_amount=Decimal(1),
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[1],
+                channel=channel_PLN,
+                cost_price_amount=Decimal(1),
+                price_amount=Decimal(20),
+                currency=channel_PLN.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[2],
+                channel=channel_PLN,
+                cost_price_amount=Decimal(1),
+                price_amount=Decimal(30),
+                currency=channel_PLN.currency_code,
+            ),
+        ]
+    )
 
 
 @pytest.fixture

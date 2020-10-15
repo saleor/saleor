@@ -155,7 +155,10 @@ class ProductsQueryset(models.QuerySet):
 
     def published_with_variants(self, channel_slug: str):
         published = self.published(channel_slug)
-        return published.filter(variants__isnull=False).distinct()
+        query = ProductVariantChannelListing.objects.filter(
+            variant_id=OuterRef("variants__id"), channel__slug=str(channel_slug)
+        ).values_list("variant", flat=True)
+        return published.filter(variants__in=query)
 
     def visible_to_user(self, user: "User", channel_slug: str):
         if self.user_has_access_to_all(user):
