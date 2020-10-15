@@ -112,7 +112,7 @@ class CategorySortField(graphene.Enum):
         return queryset.annotate(subcategory_count=Count("children__id"))
 
 
-class CategorySortingInput(SortInputObjectType):
+class CategorySortingInput(ChannelSortInputObjectType):
     class Meta:
         sort_enum = CategorySortField
         type_name = "categories"
@@ -151,6 +151,18 @@ class CollectionSortField(graphene.Enum):
         )
         return queryset.annotate(
             is_published=ExpressionWrapper(subquery, output_field=BooleanField())
+        )
+
+    @staticmethod
+    def qs_with_publication_date(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
+        subquery = Subquery(
+            CollectionChannelListing.objects.filter(
+                collection_id=OuterRef("pk"), channel__slug=channel_slug
+            ).values_list("publication_date")[:1]
+        )
+        return queryset.annotate(
+            publication_date=ExpressionWrapper(subquery, output_field=DateField())
         )
 
 

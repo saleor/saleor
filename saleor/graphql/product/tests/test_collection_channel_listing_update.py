@@ -1,6 +1,7 @@
-from datetime import date
+import datetime
 
 import graphene
+from freezegun import freeze_time
 
 from ....product.error_codes import CollectionErrorCode
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -185,7 +186,7 @@ def test_collection_channel_listing_update_as_staff_user(
     channel_PLN,
 ):
     # given
-    publication_date = date.today()
+    publication_date = datetime.date.today()
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     variables = {
@@ -240,7 +241,7 @@ def test_collection_channel_listing_update_as_app(
     channel_PLN,
 ):
     # given
-    publication_date = date.today()
+    publication_date = datetime.date.today()
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     variables = {
@@ -334,7 +335,7 @@ def test_collection_channel_listing_update_add_channel(
     channel_PLN,
 ):
     # given
-    publication_date = date.today()
+    publication_date = datetime.date.today()
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     variables = {
@@ -417,7 +418,7 @@ def test_collection_channel_listing_update_update_publication_date(
     staff_api_client, collection, permission_manage_products, channel_USD
 ):
     # given
-    publication_date = date.today()
+    publication_date = datetime.date.today()
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -483,4 +484,77 @@ def test_collection_channel_listing_update_remove_not_assigned_channel(
     assert collection_data["slug"] == published_collection.slug
     assert collection_data["channelListing"][0]["isPublished"] is True
     assert collection_data["channelListing"][0]["publicationDate"] == publication_date
+    assert collection_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_collection_channel_listing_update_add_channel_without_publication_date(
+    staff_api_client,
+    published_collection,
+    permission_manage_products,
+    channel_USD,
+    channel_PLN,
+):
+    # given
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    variables = {
+        "id": collection_id,
+        "input": {"addChannels": [{"channelId": channel_id, "isPublished": True}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        COLLECTION_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["collectionChannelListingUpdate"]
+    collection_data = data["collection"]
+    assert not data["collectionChannelListingErrors"]
+    assert collection_data["slug"] == published_collection.slug
+    assert collection_data["channelListing"][0]["isPublished"] is True
+    assert collection_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+    assert collection_data["channelListing"][1]["isPublished"] is True
+    assert (
+        collection_data["channelListing"][1]["publicationDate"]
+        == datetime.date(2020, 3, 18).isoformat()
+    )
+    assert collection_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_collection_channel_listing_update_publish_without_publication_date(
+    staff_api_client, published_collection, permission_manage_products, channel_USD
+):
+    # given
+    published_collection.channel_listing.update(is_published=False)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": collection_id,
+        "input": {"addChannels": [{"channelId": channel_id, "isPublished": True}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        COLLECTION_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["collectionChannelListingUpdate"]
+    collection_data = data["collection"]
+    assert not data["collectionChannelListingErrors"]
+    assert collection_data["slug"] == published_collection.slug
+    assert collection_data["channelListing"][0]["isPublished"] is True
+    assert (
+        collection_data["channelListing"][0]["publicationDate"]
+        == datetime.date(2020, 3, 18).isoformat()
+    )
     assert collection_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug

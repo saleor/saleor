@@ -795,6 +795,7 @@ enum CategorySortField {
 
 input CategorySortingInput {
   direction: OrderDirection!
+  channel: String
   field: CategorySortField!
 }
 

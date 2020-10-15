@@ -1,10 +1,8 @@
 import json
-from datetime import date, timedelta
 from unittest.mock import Mock
 
 import graphene
 import pytest
-from freezegun import freeze_time
 from graphql_relay import to_global_id
 
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
@@ -272,11 +270,6 @@ CREATE_COLLECTION_MUTATION = """
                     products {
                         totalCount
                     }
-<<<<<<< HEAD
-=======
-                    publicationDate
-                    isPublished
->>>>>>> dcb7c2d5d25c287e2ae43df3461e2eed6df912f2
                     backgroundImage{
                         alt
                     }
@@ -336,34 +329,6 @@ def test_create_collection(
     assert collection.background_image.file
     mock_create_thumbnails.assert_called_once_with(collection.pk)
     assert data["backgroundImage"]["alt"] == image_alt
-
-
-@freeze_time("2020-03-18 12:00:00")
-def test_create_collection_updates_publication_Date(
-    monkeypatch, staff_api_client, permission_manage_products
-):
-    query = CREATE_COLLECTION_MUTATION
-
-    mock_create_thumbnails = Mock(return_value=None)
-    monkeypatch.setattr(
-        (
-            "saleor.product.thumbnails."
-            "create_collection_background_image_thumbnails.delay"
-        ),
-        mock_create_thumbnails,
-    )
-    variables = {
-        "name": "test-name",
-        "slug": "test-slug",
-        "isPublished": True,
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["collectionCreate"]["collection"]
-    assert data["publicationDate"] == "2020-03-18"
-    assert data["isPublished"] is True
 
 
 def test_create_collection_without_background_image(
@@ -473,37 +438,6 @@ def test_update_collection(
     assert data["name"] == name
     assert data["slug"] == slug
     assert mock_create_thumbnails.call_count == 0
-
-
-@freeze_time("2020-03-18 12:00:00")
-def test_update_collection_sets_publication_date(
-    collection, staff_api_client, permission_manage_products
-):
-    query = """
-        mutation updateCollection(
-            $name: String!, $slug: String!,  $id: ID!,$isPublished: Boolean!) {
-            collectionUpdate(
-                id: $id, input: {name: $name, slug: $slug, isPublished: $isPublished}) {
-                collection {
-                    publicationDate
-                    isPublished
-                }
-            }
-        }
-    """
-    variables = {
-        "name": "name",
-        "slug": "slug",
-        "id": to_global_id("Collection", collection.id),
-        "isPublished": True,
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["collectionUpdate"]["collection"]
-    assert data["publicationDate"] == "2020-03-18"
-    assert data["isPublished"] is True
 
 
 MUTATION_UPDATE_COLLECTION_WITH_BACKGROUND_IMAGE = """
@@ -1090,33 +1024,3 @@ query Collections($sortBy: CollectionSortingInput) {
   }
 }
 """
-
-
-@freeze_time("2020-03-18 12:00:00")
-@pytest.mark.parametrize(
-    "direction, order_direction",
-    (("ASC", "publication_date"), ("DESC", "-publication_date")),
-)
-def test_sort_collections_by_publication_date(
-    direction, order_direction, staff_api_client, collection_list
-):
-
-    for iter_value, product in enumerate(collection_list):
-        product.publication_date = date.today() - timedelta(days=iter_value)
-    Collection.objects.bulk_update(collection_list, ["publication_date"])
-
-    variables = {
-        "sortBy": {"direction": direction, "field": "PUBLICATION_DATE"},
-    }
-
-    # when
-    response = staff_api_client.post_graphql(GET_SORTED_COLLECTION_QUERY, variables)
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["collections"]["edges"]
-
-    assert [node["node"]["id"] for node in data] == [
-        graphene.Node.to_global_id("Collection", collection.pk)
-        for collection in Collection.objects.order_by(order_direction)
-    ]

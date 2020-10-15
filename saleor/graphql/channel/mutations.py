@@ -1,3 +1,4 @@
+import datetime
 from typing import DefaultDict, Dict, Iterable, List
 
 import graphene
@@ -225,6 +226,14 @@ class BaseChannelListingMutation(BaseMutation):
             cleaned_input["add_channels"].append(channel_listing)
 
         return cleaned_input
+
+    @classmethod
+    def clean_publication_date(cls, cleaned_input):
+        for add_channel in cleaned_input.get("add_channels", []):
+            is_published = add_channel.get("is_published")
+            publication_date = add_channel.get("publication_date")
+            if is_published and not publication_date:
+                add_channel["publication_date"] = datetime.date.today()
 
 
 class ChannelActivate(BaseMutation):
