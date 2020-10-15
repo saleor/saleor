@@ -13,6 +13,7 @@ from ...core.permissions import (
     ProductPermissions,
     ProductTypePermissions,
 )
+from ...product import AttributeType, models as product_models
 
 
 def no_permissions(_info, _object_pk: Any) -> List[None]:
@@ -77,8 +78,16 @@ def page_type_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES]
 
 
+def attribute_permissions(_info, attribute_pk: int):
+    attribute = product_models.Attribute.objects.get(pk=attribute_pk)
+    if attribute.type == AttributeType.PAGE_TYPE:
+        return page_type_permissions(_info, attribute_pk)
+    else:
+        return product_type_permissions(_info, attribute_pk)
+
+
 PUBLIC_META_PERMISSION_MAP = {
-    "Attribute": product_type_permissions,
+    "Attribute": attribute_permissions,
     "Category": product_permissions,
     "Checkout": no_permissions,
     "Collection": product_permissions,
@@ -97,7 +106,7 @@ PUBLIC_META_PERMISSION_MAP = {
 
 
 PRIVATE_META_PERMISSION_MAP = {
-    "Attribute": product_type_permissions,
+    "Attribute": attribute_permissions,
     "Category": product_permissions,
     "Checkout": checkout_permissions,
     "Collection": product_permissions,
