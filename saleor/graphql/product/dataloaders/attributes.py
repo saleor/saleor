@@ -2,11 +2,12 @@ from collections import defaultdict
 
 from promise import Promise
 
-from ....core.permissions import ProductPermissions
+from ....core.permissions import PagePermissions, ProductPermissions
 from ....product.models import (
     AssignedProductAttribute,
     AssignedVariantAttribute,
     Attribute,
+    AttributePage,
     AttributeProduct,
     AttributeValue,
     AttributeVariant,
@@ -92,6 +93,43 @@ class VariantAttributesByProductTypeIdLoader(
 
     context_key = "variant_attributes_by_producttype"
     model_name = AttributeVariant
+
+
+class PageAttributesByPageTypeIdLoader(DataLoader):
+    """Loads page attributes by page type ID."""
+
+    context_key = "page_attributes_by_pagetype"
+
+    def batch_load(self, keys):
+        user = self.user
+        if user.is_active and user.has_perm(PagePermissions.MANAGE_PAGES):
+            qs = AttributePage.objects.all()
+        else:
+            qs = AttributePage.objects.filter(attribute__visible_in_storefront=True)
+
+        page_type_attribute_pairs = qs.filter(page_type_id__in=keys).values_list(
+            "page_type_id", "attribute_id"
+        )
+
+        page_type_to_attributes_map = defaultdict(list)
+        for page_type_id, attr_id in page_type_attribute_pairs:
+            page_type_to_attributes_map[page_type_id].append(attr_id)
+
+        def map_attributes(attributes):
+            attributes_map = {attr.id: attr for attr in attributes}
+            return [
+                [
+                    attributes_map[attr_id]
+                    for attr_id in page_type_to_attributes_map[page_type_id]
+                ]
+                for page_type_id in keys
+            ]
+
+        return (
+            AttributesByAttributeId(self.context)
+            .load_many(set(attr_id for _, attr_id in page_type_attribute_pairs))
+            .then(map_attributes)
+        )
 
 
 class AttributeProductsByProductTypeIdLoader(DataLoader):

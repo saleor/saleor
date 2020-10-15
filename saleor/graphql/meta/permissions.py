@@ -8,6 +8,7 @@ from ...core.permissions import (
     BasePermissionEnum,
     CheckoutPermissions,
     OrderPermissions,
+    PageTypePermissions,
     ProductPermissions,
 )
 
@@ -62,6 +63,10 @@ def checkout_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [CheckoutPermissions.MANAGE_CHECKOUTS]
 
 
+def page_type_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+    return [PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES]
+
+
 PUBLIC_META_PERMISSION_MAP = {
     "Attribute": product_permissions,
     "Category": product_permissions,
@@ -71,6 +76,7 @@ PUBLIC_META_PERMISSION_MAP = {
     "Fulfillment": order_permissions,
     "Order": no_permissions,
     "Invoice": invoice_permissions,
+    "PageType": page_type_permissions,
     "Product": product_permissions,
     "ProductType": product_permissions,
     "ProductVariant": product_permissions,
@@ -88,6 +94,7 @@ PRIVATE_META_PERMISSION_MAP = {
     "Fulfillment": order_permissions,
     "Order": order_permissions,
     "Invoice": invoice_permissions,
+    "PageType": page_type_permissions,
     "Product": product_permissions,
     "ProductType": product_permissions,
     "ProductVariant": product_permissions,

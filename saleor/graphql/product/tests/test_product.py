@@ -5003,7 +5003,7 @@ QUERY_AVAILABLE_ATTRIBUTES = """
 """
 
 
-def test_product_type_get_unassigned_attributes(
+def test_product_type_get_unassigned_product_type_attributes(
     staff_api_client, permission_manage_products
 ):
     query = QUERY_AVAILABLE_ATTRIBUTES
@@ -5082,9 +5082,9 @@ def test_product_type_get_unassigned_attributes(
 
 
 def test_product_type_filter_unassigned_attributes(
-    staff_api_client, permission_manage_products, attribute_list
+    staff_api_client, permission_manage_products, product_type_attribute_list
 ):
-    expected_attribute = attribute_list[0]
+    expected_attribute = product_type_attribute_list[0]
     query = QUERY_AVAILABLE_ATTRIBUTES
     product_type = ProductType.objects.create(name="Empty Type")
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)

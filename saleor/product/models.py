@@ -691,16 +691,26 @@ class AttributePage(SortableModel):
 
 
 class AttributeQuerySet(BaseAttributeQuerySet):
-    def get_unassigned_attributes(self, product_type_pk: int):
-        return self.exclude(
+    def get_unassigned_product_type_attributes(self, product_type_pk: int):
+        return self.product_type_attributes().exclude(
             Q(attributeproduct__product_type_id=product_type_pk)
             | Q(attributevariant__product_type_id=product_type_pk)
         )
 
-    def get_assigned_attributes(self, product_type_pk: int):
-        return self.filter(
+    def get_unassigned_page_type_attributes(self, page_type_pk: int):
+        return self.page_type_attributes().exclude(
+            attributepage__page_type_id=page_type_pk
+        )
+
+    def get_assigned_product_type_attributes(self, product_type_pk: int):
+        return self.product_type_attributes().filter(
             Q(attributeproduct__product_type_id=product_type_pk)
             | Q(attributevariant__product_type_id=product_type_pk)
+        )
+
+    def get_assigned_page_type_attributes(self, product_type_pk: int):
+        return self.page_type_attributes().filter(
+            Q(attributepage__page_type_id=product_type_pk)
         )
 
     def get_public_attributes(self):

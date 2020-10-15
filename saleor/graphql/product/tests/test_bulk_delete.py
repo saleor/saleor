@@ -51,7 +51,7 @@ def attribute_value_list(color_attribute):
 
 
 def test_delete_attributes(
-    staff_api_client, attribute_list, permission_manage_products
+    staff_api_client, product_type_attribute_list, permission_manage_products
 ):
     query = """
     mutation attributeBulkDelete($ids: [ID]!) {
@@ -63,7 +63,8 @@ def test_delete_attributes(
 
     variables = {
         "ids": [
-            graphene.Node.to_global_id("Attribute", attr.id) for attr in attribute_list
+            graphene.Node.to_global_id("Attribute", attr.id)
+            for attr in product_type_attribute_list
         ]
     }
     response = staff_api_client.post_graphql(
@@ -73,7 +74,7 @@ def test_delete_attributes(
 
     assert content["data"]["attributeBulkDelete"]["count"] == 3
     assert not Attribute.objects.filter(
-        id__in=[attr.id for attr in attribute_list]
+        id__in=[attr.id for attr in product_type_attribute_list]
     ).exists()
 
 
