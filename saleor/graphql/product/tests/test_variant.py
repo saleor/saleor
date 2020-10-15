@@ -666,6 +666,48 @@ def test_update_product_variant_unset_cost_price(
     assert data["costPrice"] is None
 
 
+def test_update_product_variant_invalid_price(
+    staff_api_client, product, permission_manage_products
+):
+    query = """
+        mutation updateVariant(
+            $id: ID!
+            $sku: String!
+            $price: PositiveDecimal
+            $costPrice: PositiveDecimal
+        ) {
+            productVariantUpdate(
+                id: $id
+                input: { sku: $sku, price: $price, costPrice: $costPrice }
+            ) {
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": variant_id,
+        "sku": variant.sku,
+        "costPrice": 15,
+        "price": 1234567891234,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    errors = content["data"]["productVariantUpdate"]["productErrors"]
+    assert errors[0]["field"] == "price"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+
+
 QUERY_UPDATE_VARIANT_ATTRIBUTES = """
     mutation updateVariant (
         $id: ID!,
