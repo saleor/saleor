@@ -33,6 +33,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
         order_models.Order: order_types.Order,
         invoice_models.Invoice: invoice_types.Invoice,
         page_models.Page: page_types.Page,
+        product_models.PageType: page_types.PageType,
         product_models.Product: product_types.Product,
         product_models.ProductType: product_types.ProductType,
         product_models.ProductVariant: product_types.ProductVariant,

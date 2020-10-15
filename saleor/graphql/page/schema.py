@@ -5,9 +5,9 @@ from ..translations.mutations import PageTranslate
 from .bulk_mutations import PageBulkDelete, PageBulkPublish
 from .filters import PageFilterInput
 from .mutations import PageCreate, PageDelete, PageUpdate
-from .resolvers import resolve_page, resolve_pages
+from .resolvers import resolve_page, resolve_page_type, resolve_pages
 from .sorters import PageSortingInput
-from .types import Page
+from .types import Page, PageType
 
 
 class PageQueries(graphene.ObjectType):
@@ -23,12 +23,20 @@ class PageQueries(graphene.ObjectType):
         filter=PageFilterInput(description="Filtering options for pages."),
         description="List of the shop's pages.",
     )
+    page_type = graphene.Field(
+        PageType,
+        id=graphene.Argument(graphene.ID, description="ID of the page type."),
+        description="Look up a page type by ID.",
+    )
 
     def resolve_page(self, info, id=None, slug=None):
         return resolve_page(info, id, slug)
 
     def resolve_pages(self, info, **kwargs):
         return resolve_pages(info, **kwargs)
+
+    def resolve_page_type(self, info, id):
+        return resolve_page_type(info, id)
 
 
 class PageMutations(graphene.ObjectType):

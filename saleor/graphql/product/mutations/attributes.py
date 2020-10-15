@@ -327,7 +327,9 @@ class AttributeAssign(BaseMutation):
         cls, product_type, product_attrs_pks, variant_attrs_pks
     ):
         qs = (
-            models.Attribute.objects.get_assigned_attributes(product_type.pk)
+            models.Attribute.objects.get_assigned_product_type_attributes(
+                product_type.pk
+            )
             .values_list("name", "slug")
             .filter(Q(pk__in=product_attrs_pks) | Q(pk__in=variant_attrs_pks))
         )
