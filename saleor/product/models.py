@@ -154,7 +154,6 @@ class ProductsQueryset(models.QuerySet):
         )
 
     def published_with_variants(self, channel_slug: str):
-        breakpoint()
         published = self.published(channel_slug)
         query = ProductVariantChannelListing.objects.filter(
             variant_id=OuterRef("variants__id"), channel__slug=str(channel_slug)
