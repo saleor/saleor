@@ -276,6 +276,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
+        errors_mapping = {"price_amount": "price"}
 
     @classmethod
     def success_response(cls, instance):
@@ -302,6 +303,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
+        errors_mapping = {"price_amount": "price"}
 
     @classmethod
     def success_response(cls, instance):

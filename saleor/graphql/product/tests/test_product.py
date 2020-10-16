@@ -8,6 +8,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
+from freezegun import freeze_time
 from graphql_relay import to_global_id
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
@@ -1325,6 +1326,7 @@ CREATE_PRODUCT_MUTATION = """
                             }
                             descriptionJson
                             isPublished
+                            publicationDate
                             chargeTaxes
                             taxType {
                                 taxCode
@@ -1356,6 +1358,7 @@ CREATE_PRODUCT_MUTATION = """
 """
 
 
+@freeze_time("2020-03-18 12:00:00")
 def test_create_product(
     staff_api_client,
     product_type,
@@ -1432,6 +1435,7 @@ def test_create_product(
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
     assert data["product"]["visibleInListings"] == visible_in_listings
+    assert data["product"]["publicationDate"] == "2020-03-18"
     values = (
         data["product"]["attributes"][0]["values"][0]["slug"],
         data["product"]["attributes"][1]["values"][0]["slug"],
@@ -2268,6 +2272,7 @@ MUTATION_UPDATE_PRODUCT = """
                         }
                         descriptionJson
                         isPublished
+                        publicationDate
                         chargeTaxes
                         variants {
                             price {
@@ -2304,6 +2309,7 @@ MUTATION_UPDATE_PRODUCT = """
 """
 
 
+@freeze_time("2020-03-18 12:00:00")
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product(
     updated_webhook_mock,
@@ -2367,6 +2373,7 @@ def test_update_product(
     assert data["product"]["variants"][0]["price"]["amount"] == basePrice
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name
+    assert data["product"]["publicationDate"] == "2020-03-18"
 
     attributes = data["product"]["attributes"]
 
@@ -3379,7 +3386,7 @@ PRODUCT_TYPE_CREATE_MUTATION = """
 def test_product_type_create_mutation(
     staff_api_client,
     product_type,
-    permission_manage_products,
+    permission_manage_product_types_and_attributes,
     monkeypatch,
     setup_vatlayer,
 ):
@@ -3410,7 +3417,7 @@ def test_product_type_create_mutation(
     }
     initial_count = ProductType.objects.count()
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     assert ProductType.objects.count() == initial_count + 1
@@ -3449,13 +3456,16 @@ def test_product_type_create_mutation(
     ),
 )
 def test_create_product_type_with_given_slug(
-    staff_api_client, permission_manage_products, input_slug, expected_slug
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    input_slug,
+    expected_slug,
 ):
     query = PRODUCT_TYPE_CREATE_MUTATION
     name = "Test product type"
     variables = {"name": name, "slug": input_slug}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeCreate"]
@@ -3464,13 +3474,13 @@ def test_create_product_type_with_given_slug(
 
 
 def test_create_product_type_with_unicode_in_name(
-    staff_api_client, permission_manage_products
+    staff_api_client, permission_manage_product_types_and_attributes
 ):
     query = PRODUCT_TYPE_CREATE_MUTATION
     name = "わたし わ にっぽん です"
     variables = {"name": name}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeCreate"]
@@ -3480,13 +3490,13 @@ def test_create_product_type_with_unicode_in_name(
 
 
 def test_create_product_type_create_with_negative_weight(
-    staff_api_client, permission_manage_products
+    staff_api_client, permission_manage_product_types_and_attributes
 ):
     query = PRODUCT_TYPE_CREATE_MUTATION
     name = "Test product type"
     variables = {"name": name, "weight": -1.1}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeCreate"]
@@ -3496,7 +3506,7 @@ def test_create_product_type_create_with_negative_weight(
 
 
 def test_product_type_update_mutation(
-    staff_api_client, product_type, permission_manage_products
+    staff_api_client, product_type, permission_manage_product_types_and_attributes
 ):
     query = """
     mutation updateProductType(
@@ -3551,7 +3561,7 @@ def test_product_type_update_mutation(
         "productAttributes": product_attributes_ids,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeUpdate"]["productType"]
@@ -3596,7 +3606,7 @@ UPDATE_PRODUCT_TYPE_SLUG_MUTATION = """
 def test_update_product_type_slug(
     staff_api_client,
     product_type,
-    permission_manage_products,
+    permission_manage_product_types_and_attributes,
     input_slug,
     expected_slug,
     error_message,
@@ -3609,7 +3619,7 @@ def test_update_product_type_slug(
     node_id = graphene.Node.to_global_id("ProductType", product_type.id)
     variables = {"slug": input_slug, "id": node_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeUpdate"]
@@ -3624,7 +3634,7 @@ def test_update_product_type_slug(
 
 
 def test_update_product_type_slug_exists(
-    staff_api_client, product_type, permission_manage_products
+    staff_api_client, product_type, permission_manage_product_types_and_attributes
 ):
     query = UPDATE_PRODUCT_TYPE_SLUG_MUTATION
     input_slug = "test-slug"
@@ -3639,7 +3649,7 @@ def test_update_product_type_slug_exists(
     node_id = graphene.Node.to_global_id("ProductType", product_type.id)
     variables = {"slug": input_slug, "id": node_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeUpdate"]
@@ -3663,7 +3673,7 @@ def test_update_product_type_slug_exists(
 def test_update_product_type_slug_and_name(
     staff_api_client,
     product_type,
-    permission_manage_products,
+    permission_manage_product_types_and_attributes,
     input_slug,
     expected_slug,
     input_name,
@@ -3701,7 +3711,7 @@ def test_update_product_type_slug_and_name(
     node_id = graphene.Node.to_global_id("ProductType", product_type.id)
     variables = {"slug": input_slug, "name": input_name, "id": node_id}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     product_type.refresh_from_db()
@@ -3717,7 +3727,7 @@ def test_update_product_type_slug_and_name(
 
 
 def test_update_product_type_with_negative_weight(
-    staff_api_client, product_type, permission_manage_products,
+    staff_api_client, product_type, permission_manage_product_types_and_attributes,
 ):
     query = """
         mutation($id: ID!, $weight: WeightScalar) {
@@ -3742,7 +3752,7 @@ def test_update_product_type_with_negative_weight(
     node_id = graphene.Node.to_global_id("ProductType", product_type.id)
     variables = {"id": node_id, "weight": "-1"}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     product_type.refresh_from_db()
@@ -3764,12 +3774,12 @@ PRODUCT_TYPE_DELETE_MUTATION = """
 
 
 def test_product_type_delete_mutation(
-    staff_api_client, product_type, permission_manage_products
+    staff_api_client, product_type, permission_manage_product_types_and_attributes
 ):
     query = PRODUCT_TYPE_DELETE_MUTATION
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.id)}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeDelete"]
@@ -3779,7 +3789,10 @@ def test_product_type_delete_mutation(
 
 
 def test_product_type_delete_mutation_variants_in_draft_order(
-    staff_api_client, permission_manage_products, product, order_list
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    product,
+    order_list,
 ):
     query = PRODUCT_TYPE_DELETE_MUTATION
     product_type = product.product_type
@@ -3818,7 +3831,7 @@ def test_product_type_delete_mutation_variants_in_draft_order(
 
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.id)}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeDelete"]
@@ -4182,7 +4195,7 @@ def test_product_type_update_changes_variant_name(
     staff_api_client,
     product_type,
     product,
-    permission_manage_products,
+    permission_manage_product_types_and_attributes,
 ):
     query = """
     mutation updateProductType(
@@ -4221,7 +4234,7 @@ def test_product_type_update_changes_variant_name(
         "variantAttributes": variant_attributes_ids,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     get_graphql_content(response)
     variant_attributes = set(variant_attributes)
