@@ -1960,7 +1960,7 @@ def test_query_private_meta_for_attribute_as_customer(user_api_client, color_att
 
 
 def test_query_private_meta_for_attribute_as_staff(
-    staff_api_client, color_attribute, permission_manage_products
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
 ):
     # given
     color_attribute.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
@@ -1971,7 +1971,7 @@ def test_query_private_meta_for_attribute_as_staff(
     response = staff_api_client.post_graphql(
         QUERY_ATTRIBUTE_PRIVATE_META,
         variables,
-        [permission_manage_products],
+        [permission_manage_product_types_and_attributes],
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
@@ -1983,7 +1983,7 @@ def test_query_private_meta_for_attribute_as_staff(
 
 
 def test_query_private_meta_for_attribute_as_app(
-    app_api_client, color_attribute, permission_manage_products
+    app_api_client, color_attribute, permission_manage_product_types_and_attributes
 ):
     # given
     color_attribute.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
@@ -1994,7 +1994,7 @@ def test_query_private_meta_for_attribute_as_app(
     response = app_api_client.post_graphql(
         QUERY_ATTRIBUTE_PRIVATE_META,
         variables,
-        [permission_manage_products],
+        [permission_manage_product_types_and_attributes],
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
@@ -2370,7 +2370,7 @@ def test_query_private_meta_for_product_type_as_customer(user_api_client, produc
 
 
 def test_query_private_meta_for_product_type_as_staff(
-    staff_api_client, product_type, permission_manage_products
+    staff_api_client, product_type, permission_manage_product_types_and_attributes
 ):
     # given
     product_type.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
@@ -2381,7 +2381,7 @@ def test_query_private_meta_for_product_type_as_staff(
     response = staff_api_client.post_graphql(
         QUERY_PRODUCT_TYPE_PRIVATE_META,
         variables,
-        [permission_manage_products],
+        [permission_manage_product_types_and_attributes],
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
@@ -2393,7 +2393,7 @@ def test_query_private_meta_for_product_type_as_staff(
 
 
 def test_query_private_meta_for_product_type_as_app(
-    app_api_client, product_type, permission_manage_products
+    app_api_client, product_type, permission_manage_product_types_and_attributes
 ):
     # given
     product_type.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
@@ -2404,7 +2404,7 @@ def test_query_private_meta_for_product_type_as_app(
     response = app_api_client.post_graphql(
         QUERY_PRODUCT_TYPE_PRIVATE_META,
         variables,
-        [permission_manage_products],
+        [permission_manage_product_types_and_attributes],
         check_no_permissions=False,
     )
     content = get_graphql_content(response)

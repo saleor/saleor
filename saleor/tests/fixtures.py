@@ -1691,6 +1691,11 @@ def permission_manage_products():
 
 
 @pytest.fixture
+def permission_manage_product_types_and_attributes():
+    return Permission.objects.get(codename="manage_product_types_and_attributes")
+
+
+@pytest.fixture
 def permission_manage_shipping():
     return Permission.objects.get(codename="manage_shipping")
 
