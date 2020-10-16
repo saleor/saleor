@@ -1334,6 +1334,7 @@ def product_list_with_variants_many_channel(
     )
     ProductChannelListing.objects.bulk_create(
         [
+            # Channel: USD
             ProductChannelListing(
                 product=products[0],
                 channel=channel_USD,
@@ -1341,6 +1342,7 @@ def product_list_with_variants_many_channel(
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
             ),
+            # Channel: PLN
             ProductChannelListing(
                 product=products[1],
                 channel=channel_PLN,
@@ -1380,6 +1382,7 @@ def product_list_with_variants_many_channel(
     )
     ProductVariantChannelListing.objects.bulk_create(
         [
+            # Channel: USD
             ProductVariantChannelListing(
                 variant=variants[0],
                 channel=channel_USD,
@@ -1387,6 +1390,7 @@ def product_list_with_variants_many_channel(
                 price_amount=Decimal(10),
                 currency=channel_USD.currency_code,
             ),
+            # Channel: PLN
             ProductVariantChannelListing(
                 variant=variants[1],
                 channel=channel_PLN,
