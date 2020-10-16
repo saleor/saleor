@@ -130,30 +130,47 @@ def test_total_count_query(api_client, product):
 
 
 def test_mutation_positive_decimal_input(
-    staff_api_client, variant, stock, permission_manage_products
+    staff_api_client, variant, size_attribute, stock, permission_manage_products
 ):
     query = """
     mutation PositiveDecimalInput(
-        $id: ID!, $cost: PositiveDecimal, $price: PositiveDecimal
+        $id: ID!,
+        $cost: PositiveDecimal,
+        $price: PositiveDecimal,
+        $attributes: [AttributeValueInput],
     ) {
-        productVariantUpdate(id: $id, input: {costPrice: $cost, price: $price}) {
+        productVariantUpdate(
+            id: $id,
+            input: {
+                costPrice: $cost,
+                price: $price,
+                attributes: $attributes
+            }
+        ) {
             errors {
                 field
                 message
             }
             productVariant {
-                costPrice{
+                costPrice {
                     amount
                 }
             }
         }
     }
     """
+
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.id),
         "price": 15,
         "cost": 12.12,
         "quantity": 17,
+        "attributes": [
+            {
+                "id": graphene.Node.to_global_id("Attribute", size_attribute.pk),
+                "values": ["S"],
+            }
+        ],
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -164,13 +181,23 @@ def test_mutation_positive_decimal_input(
 
 
 def test_mutation_positive_decimal_input_without_arguments(
-    staff_api_client, variant, permission_manage_products
+    staff_api_client, variant, size_attribute, permission_manage_products
 ):
     query = """
     mutation ProductVariantUpdate(
-        $id: ID!, $price: PositiveDecimal, $costPrice: PositiveDecimal
+        $id: ID!,
+        $price: PositiveDecimal,
+        $costPrice: PositiveDecimal,
+        $attributes: [AttributeValueInput],
     ) {
-        productVariantUpdate(id: $id, input: {costPrice: $costPrice, price: $price}) {
+        productVariantUpdate(
+            id: $id,
+            input: {
+                costPrice: $costPrice,
+                price: $price,
+                attributes: $attributes,
+            }
+        ) {
             errors {
                 field
                 message
@@ -187,6 +214,12 @@ def test_mutation_positive_decimal_input_without_arguments(
         "id": graphene.Node.to_global_id("ProductVariant", variant.id),
         "cost": 12.12,
         "price": 15,
+        "attributes": [
+            {
+                "id": graphene.Node.to_global_id("Attribute", size_attribute.pk),
+                "values": ["S"],
+            }
+        ],
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]

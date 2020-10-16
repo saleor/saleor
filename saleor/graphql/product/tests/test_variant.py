@@ -514,7 +514,11 @@ def test_create_product_variant_update_with_new_attributes(
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product_variant(
-    updated_webhook_mock, staff_api_client, product, permission_manage_products
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
 ):
     query = """
         mutation updateVariant (
@@ -522,14 +526,17 @@ def test_update_product_variant(
             $sku: String!,
             $price: PositiveDecimal,
             $costPrice: PositiveDecimal,
-            $trackInventory: Boolean!) {
+            $trackInventory: Boolean!,
+            $attributes: [AttributeValueInput],
+        ) {
                 productVariantUpdate(
                     id: $id,
                     input: {
                         sku: $sku,
                         price: $price,
                         costPrice: $costPrice,
-                        trackInventory: $trackInventory
+                        trackInventory: $trackInventory,
+                        attributes: $attributes,
                     }) {
                     productVariant {
                         name
@@ -549,6 +556,7 @@ def test_update_product_variant(
     """
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
     sku = "test sku"
     cost_price = 3.3
     price = 15
@@ -559,6 +567,7 @@ def test_update_product_variant(
         "price": price,
         "costPrice": cost_price,
         "trackInventory": True,
+        "attributes": [{"id": attribute_id, "values": ["S"]}],
     }
 
     response = staff_api_client.post_graphql(
@@ -616,7 +625,7 @@ def test_update_product_variant_with_negative_weight(
 
 
 def test_update_product_variant_unset_cost_price(
-    staff_api_client, product, permission_manage_products
+    staff_api_client, product, size_attribute, permission_manage_products
 ):
     """Ensure setting nullable amounts to null is properly handled
     (setting the amount to none) and doesn't override the currency.
@@ -626,13 +635,16 @@ def test_update_product_variant_unset_cost_price(
             $id: ID!,
             $sku: String!,
             $price: PositiveDecimal,
-            $costPrice: PositiveDecimal) {
+            $costPrice: PositiveDecimal,
+            $attributes: [AttributeValueInput],
+        ) {
                 productVariantUpdate(
                     id: $id,
                     input: {
                         sku: $sku,
                         price: $price,
                         costPrice: $costPrice,
+                        attributes: $attributes,
                     }) {
                     productVariant {
                         name
@@ -649,9 +661,16 @@ def test_update_product_variant_unset_cost_price(
     """
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
     sku = variant.sku
 
-    variables = {"id": variant_id, "sku": sku, "costPrice": None, "price": 15}
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "costPrice": None,
+        "price": 15,
+        "attributes": [{"id": attribute_id, "values": ["S"]}],
+    }
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -1002,11 +1021,15 @@ def test_update_product_variant_requires_values(
 
 
 def test_update_product_variant_with_price_does_not_raise_price_validation_error(
-    staff_api_client, variant, permission_manage_products
+    staff_api_client, variant, size_attribute, permission_manage_products
 ):
     mutation = """
-    mutation updateVariant ($id: ID!) {
-        productVariantUpdate(id: $id, input: {}) {
+    mutation updateVariant ($id: ID!, $attributes: [AttributeValueInput]) {
+        productVariantUpdate(
+            id: $id,
+            input: {
+            attributes: $attributes,
+        }) {
             productVariant {
                 id
                 price {
@@ -1020,11 +1043,15 @@ def test_update_product_variant_with_price_does_not_raise_price_validation_error
         }
     }
     """
-    # given a product variant
+    # given a product variant and an attribute
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
 
     # when running the updateVariant mutation without price input field
-    variables = {"id": variant_id}
+    variables = {
+        "id": variant_id,
+        "attributes": [{"id": attribute_id, "values": ["S"]}],
+    }
     response = staff_api_client.post_graphql(
         mutation, variables, permissions=[permission_manage_products]
     )
