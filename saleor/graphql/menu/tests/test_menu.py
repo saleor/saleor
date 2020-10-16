@@ -1,5 +1,4 @@
 import json
-import uuid
 
 import graphene
 import pytest
@@ -61,14 +60,14 @@ def test_menu_query_by_name(
 
 
 def test_menu_query_by_slug(user_api_client):
-    menu = Menu.objects.create(name="test_menu_name", slug=uuid.uuid4())
+    menu = Menu.objects.create(name="test_menu_name", slug="test_menu_name")
     variables = {"slug": menu.slug}
     response = user_api_client.post_graphql(QUERY_MENU, variables=variables)
     content = get_graphql_content(response)
     menu_data = content["data"]["menu"]
     assert menu_data is not None
     assert menu_data["name"] == menu.name
-    assert menu_data["slug"] == str(menu.slug)
+    assert menu_data["slug"] == menu.slug
 
 
 def test_menu_query_error_when_id_and_name_provided(
@@ -145,8 +144,8 @@ def test_menus_query_with_filter(
             }
         }
     """
-    Menu.objects.create(name="Menu1", slug=uuid.uuid4())
-    Menu.objects.create(name="Menu2", slug=uuid.uuid4())
+    Menu.objects.create(name="Menu1", slug="Menu1")
+    Menu.objects.create(name="Menu2", slug="Menu2")
     variables = {"filter": menu_filter}
     staff_api_client.user.user_permissions.add(permission_manage_menus)
     response = staff_api_client.post_graphql(query, variables)
@@ -180,7 +179,7 @@ QUERY_MENU_WITH_SORT = """
 def test_query_menus_with_sort(
     menu_sort, result_order, staff_api_client, permission_manage_menus
 ):
-    menu = Menu.objects.create(name="menu1", slug=uuid.uuid4())
+    menu = Menu.objects.create(name="menu1", slug="menu1")
     MenuItem.objects.create(name="MenuItem1", menu=menu)
     MenuItem.objects.create(name="MenuItem2", menu=menu)
     navbar = Menu.objects.get(name="navbar")
@@ -255,7 +254,7 @@ def test_menu_items_query_with_filter(
             }
         }
     """
-    menu = Menu.objects.create(name="Menu1", slug=uuid.uuid4())
+    menu = Menu.objects.create(name="Menu1", slug="Menu1")
     MenuItem.objects.create(name="MenuItem1", menu=menu)
     MenuItem.objects.create(name="MenuItem2", menu=menu)
     variables = {"filter": menu_item_filter}
@@ -288,7 +287,7 @@ QUERY_MENU_ITEMS_WITH_SORT = """
 def test_query_menu_items_with_sort(
     menu_item_sort, result_order, staff_api_client, permission_manage_menus
 ):
-    menu = Menu.objects.create(name="Menu1", slug=uuid.uuid4())
+    menu = Menu.objects.create(name="Menu1", slug="Menu1")
     MenuItem.objects.create(name="MenuItem1", menu=menu)
     MenuItem.objects.create(name="MenuItem2", menu=menu)
     variables = {"sort_by": menu_item_sort}
@@ -459,7 +458,6 @@ def test_update_menu(staff_api_client, menu, permission_manage_menus):
             }
         }
     """
-    slug = menu.slug
     name = "Blue oyster menu"
     variables = {"id": graphene.Node.to_global_id("Menu", menu.pk), "name": name}
     response = staff_api_client.post_graphql(
@@ -467,7 +465,7 @@ def test_update_menu(staff_api_client, menu, permission_manage_menus):
     )
     content = get_graphql_content(response)
     assert content["data"]["menuUpdate"]["menu"]["name"] == name
-    assert content["data"]["menuUpdate"]["menu"]["slug"] == slug
+    assert content["data"]["menuUpdate"]["menu"]["slug"] == menu.slug
 
 
 def test_update_menu_with_slug(staff_api_client, menu, permission_manage_menus):
@@ -488,7 +486,7 @@ def test_update_menu_with_slug(staff_api_client, menu, permission_manage_menus):
 def test_update_menu_with_slug_already_exists(
     staff_api_client, menu, permission_manage_menus
 ):
-    existing_menu = Menu.objects.create(name="test", slug=uuid.uuid4())
+    existing_menu = Menu.objects.create(name="test-slug-menu", slug="test-slug-menu")
     variables = {
         "id": graphene.Node.to_global_id("Menu", menu.pk),
         "name": "Blue oyster menu",
@@ -498,11 +496,9 @@ def test_update_menu_with_slug_already_exists(
         UPDATE_MENU_WITH_SLUG_MUTATION, variables, permissions=[permission_manage_menus]
     )
     content = get_graphql_content(response)
-    assert content["data"]["menuUpdate"]["menuErrors"][0]["field"] == "slug"
-    assert (
-        content["data"]["menuUpdate"]["menuErrors"][0]["code"]
-        == MenuErrorCode.UNIQUE.name
-    )
+    error = content["data"]["menuUpdate"]["menuErrors"][0]
+    assert error["field"] == "slug"
+    assert error["code"] == MenuErrorCode.UNIQUE.name
 
 
 def test_delete_menu(staff_api_client, menu, permission_manage_menus):
@@ -961,7 +957,7 @@ def test_menu_cannot_get_menu_item_not_from_same_menu(
     you are actually editing"""
 
     menu_without_items = Menu.objects.create(
-        name="this menu has no items", slug=uuid.uuid4()
+        name="this menu has no items", slug="menu-no-items"
     )
 
     menu_id = graphene.Node.to_global_id("Menu", menu_without_items.id)
@@ -994,7 +990,7 @@ def test_menu_cannot_pass_an_invalid_menu_item_node_type(
     that is not an actual MenuType."""
 
     menu_without_items = Menu.objects.create(
-        name="this menu has no items", slug=uuid.uuid4()
+        name="this menu has no items", slug="menu-without-items"
     )
 
     menu_id = graphene.Node.to_global_id("Menu", menu_without_items.id)
