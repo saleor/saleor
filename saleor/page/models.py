@@ -74,6 +74,3 @@ class PageType(ModelWithMetadata):
                 "Manage page types and attributes.",
             ),
         )
-
-    def __str__(self):
-        return self.name
