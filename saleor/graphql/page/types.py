@@ -1,5 +1,4 @@
 import graphene
-from graphene import relay
 from graphene_federation import key
 
 from ...core.permissions import PagePermissions
@@ -36,7 +35,7 @@ class Page(CountableDjangoObjectType):
             "slug",
             "title",
         ]
-        interfaces = [relay.Node]
+        interfaces = [graphene.relay.Node]
         model = models.Page
 
 
@@ -56,7 +55,7 @@ class PageType(CountableDjangoObjectType):
             "Represents a type of page. It defines what attributes are available to "
             "pages of this type."
         )
-        interfaces = [relay.Node, ObjectWithMetadata]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.PageType
         only_fields = ["id", "name", "slug"]
 
