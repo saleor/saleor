@@ -54,7 +54,9 @@ class PageType(CountableDjangoObjectType):
         Attribute, description="Page type attribute of that page type."
     )
     available_attributes = FilterInputConnectionField(
-        Attribute, filter=AttributeFilterInput()
+        Attribute,
+        filter=AttributeFilterInput(),
+        description="Attributes that can be assigned to the page type.",
     )
 
     class Meta:
