@@ -933,10 +933,12 @@ class Category(CountableDjangoObjectType):
         tree = root.get_descendants(include_self=True)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        qs = models.Product.objects.published(channel)
+        qs = models.Product.objects.all()
         if not qs.user_has_access_to_all(requestor):
-            qs = qs.annotate_visible_in_listings(channel).exclude(
-                visible_in_listings=False,
+            qs = (
+                qs.published(channel)
+                .annotate_visible_in_listings(channel)
+                .exclude(visible_in_listings=False,)
             )
         qs = qs.filter(category__in=tree)
         return ChannelQsContext(qs=qs, channel_slug=channel)
