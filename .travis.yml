@@ -12,7 +12,9 @@ cache:
     - $HOME/.cache/pip
 
 install:
-  - pip install -U pip setuptools wheel
+  - pip install -U pip setuptools wheel poetry
+  - poetry config virtualenvs.create false
+  - poetry install -v
   - pip install tox-travis pytest-django-queries
   - git clone https://github.com/NyanKiyoshi/pytest-django-queries-ci-tools.git --depth 1 ../queries-ci-tools
   - >
