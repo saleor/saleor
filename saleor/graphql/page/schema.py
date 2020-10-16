@@ -4,7 +4,7 @@ from ..core.fields import FilterInputConnectionField
 from ..translations.mutations import PageTranslate
 from .bulk_mutations import PageBulkDelete, PageBulkPublish
 from .filters import PageFilterInput
-from .mutations import PageCreate, PageDelete, PageUpdate
+from .mutations import PageCreate, PageDelete, PageTypeCreate, PageUpdate
 from .resolvers import resolve_page, resolve_page_type, resolve_pages
 from .sorters import PageSortingInput
 from .types import Page, PageType
@@ -40,9 +40,13 @@ class PageQueries(graphene.ObjectType):
 
 
 class PageMutations(graphene.ObjectType):
+    # page mutations
     page_create = PageCreate.Field()
     page_delete = PageDelete.Field()
     page_bulk_delete = PageBulkDelete.Field()
     page_bulk_publish = PageBulkPublish.Field()
     page_update = PageUpdate.Field()
     page_translate = PageTranslate.Field()
+
+    # page type mutations
+    page_type_Create = PageTypeCreate.Field()
