@@ -344,7 +344,7 @@ def test_delete_product_images(
 
 
 def test_delete_product_types(
-    staff_api_client, product_type_list, permission_manage_products
+    staff_api_client, product_type_list, permission_manage_product_types_and_attributes
 ):
     query = """
     mutation productTypeBulkDelete($ids: [ID]!) {
@@ -361,7 +361,7 @@ def test_delete_product_types(
         ]
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
 
