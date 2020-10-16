@@ -10221,8 +10221,8 @@
     "model": "product.collectionchannellisting",
     "pk": 3,
     "fields": {
-      "publication_date": null,
-      "is_published": false,
+      "publication_date": "2020-01-01",
+      "is_published": true,
       "collection": 1,
       "channel": 2
     }

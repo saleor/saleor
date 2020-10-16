@@ -133,7 +133,7 @@ def test_sales_with_sorting_and_channel_USD(
     sort_by["channel"] = channel_USD.slug
     variables = {"sortBy": sort_by}
 
-    # whsaleor/graphql/shop/types.pyen
+    # when
     response = staff_api_client.post_graphql(
         QUERY_SALES_WITH_SORTING_AND_FILTERING,
         variables,

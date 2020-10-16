@@ -859,6 +859,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_channel_listing(root: ChannelContext[models.Collection], _info):
         # TODO : Add dataloader
         return root.node.channel_listing.all()

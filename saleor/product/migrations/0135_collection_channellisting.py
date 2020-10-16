@@ -10,26 +10,23 @@ def create_collection_channel_listing(apps, schema_editor):
     Collection = apps.get_model("product", "Collection")
     Channel = apps.get_model("channel", "Channel")
 
-    channels_dict = {}
-    currency = settings.DEFAULT_CURRENCY
-
-    for collection in Collection.objects.iterator():
-        channel = channels_dict.get(currency)
-        if not channel:
-            channel, _ = Channel.objects.get_or_create(
-                currency_code=currency,
-                defaults={
-                    "name": f"Channel {currency}",
-                    "slug": f"channel-{currency.lower()}",
-                },
-            )
-            channels_dict[currency] = channel
-        CollectionChannelListing.objects.create(
-            collection=collection,
-            channel=channel,
-            is_published=collection.is_published,
-            publication_date=collection.publication_date,
+    if Collection.objects.exists():
+        currency = settings.DEFAULT_CURRENCY
+        channel, _ = Channel.objects.get_or_create(
+            currency_code=currency,
+            defaults={
+                "name": f"Channel {currency}",
+                "slug": f"channel-{currency.lower()}",
+            },
         )
+        for collection in Collection.objects.iterator():
+
+            CollectionChannelListing.objects.create(
+                collection=collection,
+                channel=channel,
+                is_published=collection.is_published,
+                publication_date=collection.publication_date,
+            )
 
 
 class Migration(migrations.Migration):

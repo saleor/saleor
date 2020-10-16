@@ -739,13 +739,13 @@ type CategoryBulkDelete {
 
 type CategoryClearMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  collectionErrors: [CollectionError!]!
+  productErrors: [ProductError!]!
   category: Category
 }
 
 type CategoryClearPrivateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  collectionErrors: [CollectionError!]!
+  productErrors: [ProductError!]!
   category: Category
 }
 
@@ -834,13 +834,13 @@ type CategoryUpdate {
 
 type CategoryUpdateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  collectionErrors: [CollectionError!]!
+  productErrors: [ProductError!]!
   category: Category
 }
 
 type CategoryUpdatePrivateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  collectionErrors: [CollectionError!]!
+  productErrors: [ProductError!]!
   category: Category
 }
 

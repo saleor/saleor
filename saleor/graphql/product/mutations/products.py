@@ -521,8 +521,8 @@ class CategoryUpdateMeta(UpdateMetaBaseMutation):
         description = "Update public metadata for category."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
-        error_type_class = CollectionError
-        error_type_field = "collection_errors"
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class CategoryClearMeta(ClearMetaBaseMutation):
@@ -531,8 +531,8 @@ class CategoryClearMeta(ClearMetaBaseMutation):
         description = "Clears public metadata for category."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
-        error_type_class = CollectionError
-        error_type_field = "collection_errors"
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -541,8 +541,8 @@ class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
         description = "Update private metadata for category."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
-        error_type_class = CollectionError
-        error_type_field = "collection_errors"
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class CategoryClearPrivateMeta(ClearMetaBaseMutation):
@@ -551,8 +551,8 @@ class CategoryClearPrivateMeta(ClearMetaBaseMutation):
         description = "Clears private metadata for category."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
-        error_type_class = CollectionError
-        error_type_field = "collection_errors"
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class AttributeValueInput(InputObjectType):
