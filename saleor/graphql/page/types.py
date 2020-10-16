@@ -8,9 +8,7 @@ from ..translations.types import PageTranslation
 
 class Page(CountableDjangoObjectType):
     translation = TranslationField(PageTranslation, type_name="page")
-    is_published = Boolean(
-        required=True, description="Whether the collection is published."
-    )
+    is_published = Boolean(required=True, description="Whether the page is published.")
 
     class Meta:
         description = (
