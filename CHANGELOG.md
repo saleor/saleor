@@ -73,6 +73,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix attribute filtering by categories and collections - #6214 by @fowczarek
 - Fix is_visible when publication_date==today - #6225 by @korycins
 - Fix filtering products by multiple attributes - #6215 by @GrzegorzDerdak
+- Add attributes validation while creating/updating a product's variant - #6269 by @GrzegorzDerdak
 
 ## 2.10.2
 
