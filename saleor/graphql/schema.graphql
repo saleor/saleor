@@ -3729,6 +3729,7 @@ input ProductCreateInput {
   trackInventory: Boolean
   basePrice: PositiveDecimal
   visibleInListings: Boolean
+  rating: Float
   productType: ID!
   stocks: [StockInput!]
 }
@@ -3866,6 +3867,7 @@ input ProductInput {
   trackInventory: Boolean
   basePrice: PositiveDecimal
   visibleInListings: Boolean
+  rating: Float
 }
 
 input ProductOrder {
