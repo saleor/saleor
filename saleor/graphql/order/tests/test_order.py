@@ -164,7 +164,11 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
 
 
 def test_order_query(
-    staff_api_client, permission_manage_orders, fulfilled_order, shipping_zone
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    shipping_zone,
+    shipping_zone_pln,
 ):
     order = fulfilled_order
     query = """
