@@ -1184,6 +1184,7 @@ enum CollectionSortField {
   NAME
   AVAILABILITY
   PRODUCT_COUNT
+  PUBLICATION_DATE
 }
 
 input CollectionSortingInput {
@@ -3491,6 +3492,7 @@ enum PermissionEnum {
   MANAGE_ORDERS
   MANAGE_PAGES
   MANAGE_PRODUCTS
+  MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES
   MANAGE_SHIPPING
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
@@ -3878,6 +3880,7 @@ enum ProductOrderField {
   DATE
   TYPE
   PUBLISHED
+  PUBLICATION_DATE
 }
 
 type ProductPricingInfo {
@@ -4755,7 +4758,7 @@ type Shop {
   defaultMailSenderAddress: String
   description: String
   domain: Domain!
-  homepageCollection: Collection
+  homepageCollection: Collection @deprecated(reason: "Use the `collection` query with the `slug` parameter. This field will be removed in Saleor 3.0")
   languages: [LanguageDisplay]!
   name: String!
   navigation: Navigation
