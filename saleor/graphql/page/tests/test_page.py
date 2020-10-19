@@ -477,7 +477,7 @@ QUERY_PAGE_IS_PUBLISHED = """
             isPublished
         }
     }
-    """
+"""
 
 
 def test_page_publication_date_sets_is_publish_staff_user(
@@ -496,8 +496,7 @@ def test_page_publication_date_sets_is_publish_staff_user(
         response = staff_api_client.post_graphql(QUERY_PAGE_IS_PUBLISHED, variables)
         content = get_graphql_content(response, ignore_errors=True)
         data = content["data"]["page"]
-        is_published = data["isPublished"]
-        assert is_published is False
+        assert data["isPublished"] is False
 
 
 def test_page_publication_date_sets_is_publish_customer_user(
@@ -521,12 +520,10 @@ def test_page_publication_date_sets_is_publish_customer_user(
         response = api_client.post_graphql(query, variables,)
         content = get_graphql_content(response, ignore_errors=True)
         data = content["data"]["page"]
-        is_published = data["isPublished"]
-        assert is_published is True
+        assert data["isPublished"] is True
 
     with freeze_time(publication_date.replace(day=publication_date.day + 1)):
         response = api_client.post_graphql(query, variables,)
         content = get_graphql_content(response, ignore_errors=True)
         data = content["data"]["page"]
-        is_published = data["isPublished"]
-        assert is_published is True
+        assert data["isPublished"] is True
