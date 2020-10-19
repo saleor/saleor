@@ -1206,6 +1206,11 @@ class ProductVariantCreate(ModelMutation):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
+        if not attributes:
+            raise ValidationError(
+                "All attributes must take a value.", ProductErrorCode.REQUIRED.value
+            )
+
         attributes_qs = product_type.variant_attributes
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, is_variant=True

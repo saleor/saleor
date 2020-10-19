@@ -262,6 +262,33 @@ def test_create_product_variant_with_negative_weight(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
+def test_create_product_variant_without_attributes(
+    staff_api_client, product, permission_manage_products
+):
+    # given
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {
+        "productId": product_id,
+        "sku": "test-sku",
+        "price": 0,
+        "attributes": [],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantCreate"]
+    error = data["productErrors"][0]
+
+    assert error["field"] == "attributes"
+    assert error["code"] == ProductErrorCode.REQUIRED.name
+
+
 def test_create_product_variant_not_all_attributes(
     staff_api_client, product, product_type, color_attribute, permission_manage_products
 ):
