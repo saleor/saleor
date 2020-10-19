@@ -1886,7 +1886,7 @@ six = ">=1.5"
 
 [[package]]
 name = "python-json-logger"
-version = "2.0.0"
+version = "2.0.1"
 description = "A python library adding a json log formatter"
 category = "main"
 optional = false
@@ -3324,7 +3324,7 @@ python-dateutil = [
     {file = "python_dateutil-2.8.1-py2.py3-none-any.whl", hash = "sha256:75bb3f31ea686f1197762692a9ee6a7550b59fc6ca3a1f4b5d7e32fb98e2da2a"},
 ]
 python-json-logger = [
-    {file = "python-json-logger-2.0.0.tar.gz", hash = "sha256:6c15023a8571200228472d4c9de7cb891cd45f670061f7729b8209bf643d5bbf"},
+    {file = "python-json-logger-2.0.1.tar.gz", hash = "sha256:f26eea7898db40609563bed0a7ca11af12e2a79858632706d835a0f961b7d398"},
 ]
 python-magic = [
     {file = "python-magic-0.4.18.tar.gz", hash = "sha256:b757db2a5289ea3f1ced9e60f072965243ea43a2221430048fd8cacab17be0ce"},
