@@ -10,7 +10,8 @@ if TYPE_CHECKING:
 
 
 def validate_one_of_args_is_in_query(*args):
-    # split args into 2-element tuples
+    # split args into a list with 2-element tuples:
+    # [(arg1_name, arg1_value), (arg2_name, arg2_value), ...]
     splitted_args = [args[i : i + 2] for i in range(0, len(args), 2)]  # noqa: E203
     # filter trueish values from each tuple
     filter_args = list(filter(lambda item: bool(item[1]) is True, splitted_args))
