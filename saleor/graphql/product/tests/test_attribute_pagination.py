@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import graphene
 import pytest
 
@@ -9,6 +11,7 @@ from ....product.models import (
     ProductChannelListing,
     ProductType,
     ProductVariant,
+    ProductVariantChannelListing,
 )
 from ...tests.utils import get_graphql_content
 
@@ -60,8 +63,30 @@ def attributes_for_pagination(collection, category, channel_USD):
         is_published=True,
         visible_in_listings=True,
     )
-    ProductVariant.objects.create(product=product)
-    ProductVariant.objects.create(product=product, sku="testVariant")
+    variants = ProductVariant.objects.bulk_create(
+        [
+            ProductVariant(product=product),
+            ProductVariant(product=product, sku="testVariant"),
+        ]
+    )
+    ProductVariantChannelListing.objects.bulk_create(
+        [
+            ProductVariantChannelListing(
+                variant=variants[0],
+                channel=channel_USD,
+                cost_price_amount=Decimal(1),
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+            ),
+            ProductVariantChannelListing(
+                variant=variants[1],
+                channel=channel_USD,
+                cost_price_amount=Decimal(1),
+                price_amount=Decimal(10),
+                currency=channel_USD.currency_code,
+            ),
+        ]
+    )
 
     collection.products.add(product)
     AttributeVariant.objects.bulk_create(

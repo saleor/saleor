@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import graphene
 import pytest
 
@@ -9,6 +11,7 @@ from ....product.models import (
     ProductChannelListing,
     ProductType,
     ProductVariant,
+    ProductVariantChannelListing,
 )
 from ...channel.filters import LACK_OF_CHANNEL_IN_FILTERING_MSG
 from ...tests.utils import assert_graphql_error_with_message, get_graphql_content
@@ -57,7 +60,6 @@ def attributes_for_filtering_with_channels(
     product = Product.objects.create(
         name="Test product", product_type=product_type, category=category,
     )
-    ProductVariant.objects.create(product=product)
     ProductChannelListing.objects.bulk_create(
         [
             ProductChannelListing(
@@ -82,6 +84,28 @@ def attributes_for_filtering_with_channels(
                 is_published=False,
             ),
         ]
+    )
+    variant = ProductVariant.objects.create(product=product)
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        cost_price_amount=Decimal(1),
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_PLN,
+        cost_price_amount=Decimal(1),
+        price_amount=Decimal(10),
+        currency=channel_PLN.currency_code,
+    )
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=other_channel_USD,
+        cost_price_amount=Decimal(1),
+        price_amount=Decimal(10),
+        currency=other_channel_USD.currency_code,
     )
 
     collection.products.add(product)
