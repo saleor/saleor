@@ -149,7 +149,7 @@ def test_query_category_product_only_visible_in_listings_as_staff_without_perm(
 
 
 def test_query_category_product_only_visible_in_listings_as_staff_with_perm(
-    staff_api_client, product_list, permission_manage_products, channel_USD
+    staff_api_client, product_list, permission_manage_products
 ):
     # given
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -160,10 +160,7 @@ def test_query_category_product_only_visible_in_listings_as_staff_with_perm(
 
     product_count = Product.objects.count()
 
-    variables = {
-        "id": graphene.Node.to_global_id("Category", category.pk),
-        "channel": channel_USD.slug,
-    }
+    variables = {"id": graphene.Node.to_global_id("Category", category.pk)}
 
     # when
     response = staff_api_client.post_graphql(QUERY_CATEGORY, variables=variables)
@@ -197,7 +194,7 @@ def test_query_category_product_only_visible_in_listings_as_app_without_perm(
 
 
 def test_query_category_product_only_visible_in_listings_as_app_with_perm(
-    app_api_client, product_list, permission_manage_products, channel_USD
+    app_api_client, product_list, permission_manage_products
 ):
     # given
     app_api_client.app.permissions.add(permission_manage_products)
@@ -208,10 +205,7 @@ def test_query_category_product_only_visible_in_listings_as_app_with_perm(
 
     product_count = Product.objects.count()
 
-    variables = {
-        "id": graphene.Node.to_global_id("Category", category.pk),
-        "channel": channel_USD.slug,
-    }
+    variables = {"id": graphene.Node.to_global_id("Category", category.pk)}
 
     # when
     response = app_api_client.post_graphql(QUERY_CATEGORY, variables=variables)
