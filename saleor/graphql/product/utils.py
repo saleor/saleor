@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -15,45 +15,84 @@ if TYPE_CHECKING:
     from ...product.models import Attribute, ProductVariant
 
 
-def validate_attribute_input_for_product(instance: "Attribute", values: List[str]):
-    if not values:
-        if not instance.value_required:
-            return
-        raise ValidationError(
-            f"{instance.slug} expects a value but none were given",
-            code=ProductErrorCode.REQUIRED.value,
-        )
+def validate_attributes_input_for_product(
+    input_data: List[Tuple["Attribute", List[str]]],
+):
+    error_no_value_given = ValidationError(
+        "Attribute expects a value but none were given",
+        code=ProductErrorCode.REQUIRED.value,
+    )
+    error_dropdown_get_more_than_one_value = ValidationError(
+        "Attribute attribute must take only one value",
+        code=ProductErrorCode.INVALID.value,
+    )
+    error_blank_value = ValidationError(
+        "Attribute values cannot be blank", code=ProductErrorCode.REQUIRED.value,
+    )
 
-    if instance.input_type != AttributeInputType.MULTISELECT and len(values) != 1:
-        raise ValidationError(
-            f"A {instance.input_type} attribute must take only one value",
-            code=ProductErrorCode.INVALID.value,
-        )
+    attribute_errors: Dict[ValidationError, List[str]] = defaultdict(list)
+    for attribute, values in input_data:
+        attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+        if not values:
+            if attribute.value_required:
+                attribute_errors[error_no_value_given].append(attribute_id)
+            continue
 
-    for value in values:
-        if not value.strip():
-            raise ValidationError(
-                "Attribute values cannot be blank", code=ProductErrorCode.REQUIRED.value
+        if attribute.input_type != AttributeInputType.MULTISELECT and len(values) != 1:
+            attribute_errors[error_dropdown_get_more_than_one_value].append(
+                attribute_id
             )
+            continue
+
+        for value in values:
+            if value is None or not value.strip():
+                attribute_errors[error_blank_value].append(attribute_id)
+                continue
+
+    return prepare_error_list_from_error_attribute_mapping(attribute_errors)
 
 
-def validate_attribute_input_for_variant(instance: "Attribute", values: List[str]):
-    if not values:
-        raise ValidationError(
-            f"{instance.slug} expects a value but none were given",
-            code=ProductErrorCode.REQUIRED.value,
-        )
+def validate_attributes_input_for_variant(
+    input_data: List[Tuple["Attribute", List[str]]]
+):
+    error_no_value_given = ValidationError(
+        "Attribute expects a value but none were given",
+        code=ProductErrorCode.REQUIRED.value,
+    )
+    error_more_than_one_value_given = ValidationError(
+        "A variant attribute cannot take more than one value",
+        code=ProductErrorCode.INVALID.value,
+    )
+    error_blank_value = ValidationError(
+        "Attribute values cannot be blank", code=ProductErrorCode.REQUIRED.value,
+    )
 
-    if len(values) != 1:
-        raise ValidationError(
-            "A variant attribute cannot take more than one value",
-            code=ProductErrorCode.INVALID.value,
-        )
+    attribute_errors: Dict[ValidationError, List[str]] = defaultdict(list)
+    for attribute, values in input_data:
+        attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+        if not values:
+            attribute_errors[error_no_value_given].append(attribute_id)
+            continue
 
-    if values[0] is None or not values[0].strip():
-        raise ValidationError(
-            "Attribute values cannot be blank", code=ProductErrorCode.REQUIRED.value
-        )
+        if len(values) != 1:
+            attribute_errors[error_more_than_one_value_given].append(attribute_id)
+            continue
+
+        if values[0] is None or not values[0].strip():
+            attribute_errors[error_blank_value].append(attribute_id)
+
+    return prepare_error_list_from_error_attribute_mapping(attribute_errors)
+
+
+def prepare_error_list_from_error_attribute_mapping(
+    attribute_errors: Dict[ValidationError, List[str]]
+):
+    errors = []
+    for error, attributes in attribute_errors.items():
+        error.params = {"attributes": attributes}
+        errors.append(error)
+
+    return errors
 
 
 def get_used_attribute_values_for_variant(variant):

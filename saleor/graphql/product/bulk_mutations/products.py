@@ -4,7 +4,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from ....core.permissions import ProductPermissions
+from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....order import OrderStatus, models as order_models
 from ....product import models
 from ....product.error_codes import ProductErrorCode
@@ -362,6 +362,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
     @classmethod
+    @transaction.atomic
     def perform_mutation(cls, _root, info, ids, **data):
         _, pks = resolve_global_ids_to_primary_keys(ids, ProductVariant)
         # get draft order lines for variants
@@ -371,10 +372,24 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             ).values_list("pk", flat=True)
         )
 
+        product_pks = list(
+            models.Product.objects.filter(variants__in=pks)
+            .distinct()
+            .values_list("pk", flat=True)
+        )
+
         response = super().perform_mutation(_root, info, ids, **data)
 
         # delete order lines for deleted variants
         order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()
+
+        # set new product default variant if any has been removed
+        products = models.Product.objects.filter(
+            pk__in=product_pks, default_variant__isnull=True
+        )
+        for product in products:
+            product.default_variant = product.variants.first()
+            product.save(update_fields=["default_variant"])
 
         return response
 
@@ -539,7 +554,7 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes product types."
         model = models.ProductType
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 

@@ -11,7 +11,7 @@ from graphene.types import InputObjectType
 from graphql_relay import from_global_id
 
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import ProductPermissions
+from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....order import OrderStatus, models as order_models
 from ....product import models
 from ....product.error_codes import ProductErrorCode
@@ -57,8 +57,8 @@ from ..utils import (
     create_stocks,
     get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
-    validate_attribute_input_for_product,
-    validate_attribute_input_for_variant,
+    validate_attributes_input_for_product,
+    validate_attributes_input_for_variant,
 )
 from .common import ReorderInput
 
@@ -221,6 +221,10 @@ class CollectionCreate(ModelMutation):
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
             validate_image_file(image_data, "background_image")
+        is_published = cleaned_input.get("is_published")
+        publication_date = cleaned_input.get("publication_date")
+        if is_published and not publication_date:
+            cleaned_input["publication_date"] = datetime.date.today()
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
@@ -684,21 +688,29 @@ class AttributeAssignmentMixin:
         - ensure all required attributes are passed
         - ensure the values are correct for a product
         """
-        supplied_attribute_pk = []
-        for attribute, values in cleaned_input:
-            validate_attribute_input_for_product(attribute, values)
-            supplied_attribute_pk.append(attribute.pk)
+        errors = validate_attributes_input_for_product(cleaned_input)
+
+        supplied_attribute_pk = [attribute.pk for attribute, _ in cleaned_input]
 
         # Asserts all required attributes are supplied
-        missing_required_filter = Q(value_required=True) & ~Q(
-            pk__in=supplied_attribute_pk
+        missing_required_attributes = qs.filter(
+            Q(value_required=True) & ~Q(pk__in=supplied_attribute_pk)
         )
 
-        if qs.filter(missing_required_filter).exists():
-            raise ValidationError(
+        if missing_required_attributes:
+            ids = [
+                graphene.Node.to_global_id("Attribute", attr.pk)
+                for attr in missing_required_attributes
+            ]
+            error = ValidationError(
                 "All attributes flagged as having a value required must be supplied.",
                 code=ProductErrorCode.REQUIRED.value,
+                params={"attributes": ids},
             )
+            errors.append(error)
+
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
     def _check_input_for_variant(cls, cleaned_input: T_INPUT_MAP, qs: QuerySet):
@@ -714,8 +726,9 @@ class AttributeAssignmentMixin:
                 "All attributes must take a value", code=ProductErrorCode.REQUIRED.value
             )
 
-        for attribute, values in cleaned_input:
-            validate_attribute_input_for_variant(attribute, values)
+        errors = validate_attributes_input_for_variant(cleaned_input)
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
     def _validate_input(
@@ -884,6 +897,9 @@ class ProductCreate(ModelMutation):
                 raise ValidationError({"attributes": exc})
 
         is_published = cleaned_input.get("is_published")
+        publication_date = cleaned_input.get("publication_date")
+        if is_published and not publication_date:
+            cleaned_input["publication_date"] = datetime.date.today()
         category = cleaned_input.get("category")
         if not category and is_published:
             raise ValidationError(
@@ -1184,11 +1200,17 @@ class ProductVariantCreate(ModelMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        errors_mapping = {"price_amount": "price"}
 
     @classmethod
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
+        if not attributes:
+            raise ValidationError(
+                "All attributes must take a value.", ProductErrorCode.REQUIRED.value
+            )
+
         attributes_qs = product_type.variant_attributes
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, is_variant=True
@@ -1259,36 +1281,32 @@ class ProductVariantCreate(ModelMutation):
         if stocks:
             cls.check_for_duplicates_in_stocks(stocks)
 
+        if instance.product_id is not None:
+            # If the variant is getting updated,
+            # simply retrieve the associated product type
+            product_type = instance.product.product_type
+            used_attribute_values = get_used_variants_attribute_values(instance.product)
+        else:
+            # If the variant is getting created, no product type is associated yet,
+            # retrieve it from the required "product" input field
+            product_type = cleaned_input["product"].product_type
+            used_attribute_values = get_used_variants_attribute_values(
+                cleaned_input["product"]
+            )
+
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
         # the value's PK.
-        attributes = cleaned_input.get("attributes")
-        if attributes:
-            if instance.product_id is not None:
-                # If the variant is getting updated,
-                # simply retrieve the associated product type
-                product_type = instance.product.product_type
-                used_attribute_values = get_used_variants_attribute_values(
-                    instance.product
-                )
-            else:
-                # If the variant is getting created, no product type is associated yet,
-                # retrieve it from the required "product" input field
-                product_type = cleaned_input["product"].product_type
-                used_attribute_values = get_used_variants_attribute_values(
-                    cleaned_input["product"]
-                )
+        attributes = cleaned_input.get("attributes", [])
+        try:
+            cls.validate_duplicated_attribute_values(
+                attributes, used_attribute_values, instance
+            )
+            cleaned_input["attributes"] = cls.clean_attributes(attributes, product_type)
+        except ValidationError as exc:
+            raise ValidationError({"attributes": exc})
 
-            try:
-                cls.validate_duplicated_attribute_values(
-                    attributes, used_attribute_values, instance
-                )
-                cleaned_input["attributes"] = cls.clean_attributes(
-                    attributes, product_type
-                )
-            except ValidationError as exc:
-                raise ValidationError({"attributes": exc})
         return cleaned_input
 
     @classmethod
@@ -1367,6 +1385,7 @@ class ProductVariantUpdate(ProductVariantCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        errors_mapping = {"price_amount": "price"}
 
     @classmethod
     def validate_duplicated_attribute_values(
@@ -1402,6 +1421,11 @@ class ProductVariantDelete(ModelDeleteMutation):
     def success_response(cls, instance):
         # Update the "minimal_variant_prices" of the parent product
         update_product_minimal_variant_price_task.delay(instance.product_id)
+        product = models.Product.objects.get(id=instance.product_id)
+        # if the product default variant has been removed set the new one
+        if not product.default_variant:
+            product.default_variant = product.variants.first()
+            product.save(update_fields=["default_variant"])
         return super().success_response(instance)
 
     @classmethod
@@ -1506,7 +1530,7 @@ class ProductTypeCreate(ModelMutation):
     class Meta:
         description = "Creates a new product type."
         model = models.ProductType
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -1568,7 +1592,7 @@ class ProductTypeUpdate(ProductTypeCreate):
     class Meta:
         description = "Updates an existing product type."
         model = models.ProductType
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -1589,7 +1613,7 @@ class ProductTypeDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a product type."
         model = models.ProductType
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -1619,7 +1643,7 @@ class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductType
         description = "Update public metadata for product type."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         public = True
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1629,7 +1653,7 @@ class ProductTypeClearMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata for product type."
         model = models.ProductType
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         public = True
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1639,7 +1663,7 @@ class ProductTypeUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Update private metadata for product type."
         model = models.ProductType
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         public = False
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1649,7 +1673,7 @@ class ProductTypeClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears private metadata for product type."
         model = models.ProductType
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         public = False
         error_type_class = ProductError
         error_type_field = "product_errors"

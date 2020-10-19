@@ -1,15 +1,18 @@
-import functools
-import operator
 from collections import OrderedDict, defaultdict
 from itertools import chain
 from typing import Dict, Iterable
 
-from django.db.models import Q, QuerySet
+from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.forms import CheckboxSelectMultiple
 from django_filters import MultipleChoiceFilter, OrderingFilter, RangeFilter
 
 from ..core.filters import SortedFilterSet
-from .models import Attribute, Product
+from .models import (
+    AssignedProductAttribute,
+    AssignedVariantAttribute,
+    Attribute,
+    Product,
+)
 
 SORT_BY_FIELDS = OrderedDict(
     [
@@ -24,16 +27,25 @@ T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
 
 
 def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
-    # Combine filters of the same attribute with OR operator
-    # and then combine full query with AND operator.
-    combine_and = [
-        Q(**{"attributes__values__pk__in": values_pk})
-        | Q(**{"variants__attributes__values__pk__in": values_pk})
-        for _, values_pk in queries.items()
+    filters = [
+        Q(
+            Exists(
+                AssignedProductAttribute.objects.filter(
+                    product__id=OuterRef("pk"), values__pk__in=values
+                )
+            )
+        )
+        | Q(
+            Exists(
+                AssignedVariantAttribute.objects.filter(
+                    variant__product__id=OuterRef("pk"), values__pk__in=values,
+                )
+            )
+        )
+        for values in queries.values()
     ]
-    query = functools.reduce(operator.and_, combine_and)
-    qs = qs.filter(query).distinct()
-    return qs
+
+    return qs.filter(*filters)
 
 
 class AttributeValuesFilter(MultipleChoiceFilter):

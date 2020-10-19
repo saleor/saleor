@@ -3,14 +3,13 @@ from datetime import datetime, timedelta
 import graphene
 from django.middleware.csrf import _get_new_csrf_token
 from freezegun import freeze_time
-from jwt import decode
 
 from .....account.error_codes import AccountErrorCode
 from .....core.jwt import (
     JWT_ACCESS_TYPE,
-    JWT_ALGORITHM,
     JWT_REFRESH_TYPE,
     create_refresh_token,
+    jwt_decode,
 )
 from ....tests.utils import get_graphql_content
 
@@ -52,7 +51,7 @@ def test_create_token(api_client, customer_user, settings):
     token = data["token"]
     refreshToken = data["refreshToken"]
 
-    payload = decode(token, settings.SECRET_KEY, algorithms=JWT_ALGORITHM)
+    payload = jwt_decode(token)
     assert payload["email"] == customer_user.email
     assert payload["user_id"] == graphene.Node.to_global_id("User", customer_user.id)
     assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
@@ -60,7 +59,7 @@ def test_create_token(api_client, customer_user, settings):
     assert datetime.fromtimestamp(payload["exp"]) == expected_expiration_datetime
     assert payload["type"] == JWT_ACCESS_TYPE
 
-    payload = decode(refreshToken, settings.SECRET_KEY, algorithms=JWT_ALGORITHM)
+    payload = jwt_decode(refreshToken)
     assert payload["email"] == customer_user.email
     assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
     expected_expiration_datetime = datetime.utcnow() + settings.JWT_TTL_REFRESH

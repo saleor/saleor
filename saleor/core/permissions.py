@@ -52,6 +52,10 @@ class ProductPermissions(BasePermissionEnum):
     MANAGE_PRODUCTS = "product.manage_products"
 
 
+class ProductTypePermissions(BasePermissionEnum):
+    MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES = "product.manage_product_types_and_attributes"
+
+
 class ShippingPermissions(BasePermissionEnum):
     MANAGE_SHIPPING = "shipping.manage_shipping"
 
@@ -71,6 +75,7 @@ PERMISSIONS_ENUMS = [
     OrderPermissions,
     PagePermissions,
     ProductPermissions,
+    ProductTypePermissions,
     ShippingPermissions,
     SitePermissions,
     CheckoutPermissions,

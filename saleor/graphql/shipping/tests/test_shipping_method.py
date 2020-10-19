@@ -622,6 +622,28 @@ def test_create_shipping_method_with_negative_price(
     assert_negative_positive_decimal_value(response)
 
 
+def test_create_shipping_price_invalid_price(
+    staff_api_client, shipping_zone, permission_manage_shipping,
+):
+    query = PRICE_BASED_SHIPPING_QUERY
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "name": "DHL",
+        "price": 1234567891234,
+        "minimumOrderPrice": 0,
+        "maximumOrderPrice": 20,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+    }
+
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    error = content["data"]["shippingPriceCreate"]["shippingErrors"][0]
+    assert error["field"] == "price"
+    assert error["code"] == ShippingErrorCode.INVALID.name
+
+
 def test_create_shipping_method_with_to_many_decimal_places_in_price(
     staff_api_client, shipping_zone, permission_manage_shipping,
 ):  # given

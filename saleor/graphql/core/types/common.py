@@ -155,9 +155,6 @@ class PermissionGroupError(Error):
 
 class ProductError(Error):
     code = ProductErrorCode(description="The error code.", required=True)
-
-
-class ProductAttributeError(ProductError):
     attributes = graphene.List(
         graphene.NonNull(graphene.ID),
         description="List of attributes IDs which causes the error.",
