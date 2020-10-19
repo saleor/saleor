@@ -5,11 +5,11 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 
 from ....account import events as account_events, models
-from ....account.emails import (
-    send_set_password_email_with_url,
-    send_user_password_reset_email_with_url,
-)
 from ....account.error_codes import AccountErrorCode
+from ....account.notifications import (
+    send_set_password_notification,
+    send_user_password_reset_notification,
+)
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions
 from ....core.utils.url import validate_storefront_url
@@ -139,7 +139,7 @@ class RequestPasswordReset(BaseMutation):
                     )
                 }
             )
-        send_user_password_reset_email_with_url(redirect_url, user)
+        send_user_password_reset_notification(redirect_url, user, info.context.plugins)
         return RequestPasswordReset()
 
 
@@ -428,8 +428,8 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             account_events.customer_account_created_event(user=instance)
 
         if cleaned_input.get("redirect_url"):
-            send_set_password_email_with_url(
-                cleaned_input.get("redirect_url"), instance
+            send_set_password_notification(
+                cleaned_input.get("redirect_url"), instance, info.context.plugins
             )
 
 

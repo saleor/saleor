@@ -19,6 +19,7 @@ from .models import PluginConfiguration
 if TYPE_CHECKING:
     # flake8: noqa
     from .base_plugin import BasePlugin
+    from .notify_events import NotifyEvent
     from ..checkout.models import Checkout, CheckoutLine
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
@@ -512,6 +513,10 @@ class PluginsManager(PaymentInterface):
         return self.__run_method_on_single_plugin(
             plugin, "webhook", default_value, request, path
         )
+
+    def notify(self, event: "NotifyEvent", payload: dict):
+        default_value = None
+        return self.__run_method_on_plugins("notify", default_value, event, payload)
 
 
 def get_plugins_manager(
