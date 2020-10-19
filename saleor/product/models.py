@@ -283,7 +283,7 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     )
     objects = ProductsQueryset.as_manager()
     translated = TranslationProxy()
-    rating = models.FloatField(default=0.0)
+    rating = models.FloatField(null=True, blank=True)
 
     class Meta:
         app_label = "product"
