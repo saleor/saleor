@@ -8,7 +8,7 @@ from ..utils.filters import filter_by_query_param
 
 
 def filter_menu_search(qs, _, value):
-    menu_fields = ["name"]
+    menu_fields = ["name", "slug"]
     qs = filter_by_query_param(qs, value, menu_fields)
     return qs
 

@@ -160,6 +160,19 @@ def test_menus_query_with_filter(
 def test_menus_query_with_slug_filter(staff_api_client, permission_manage_menus):
     Menu.objects.create(name="Menu1", slug="Menu1")
     Menu.objects.create(name="Menu2", slug="Menu2")
+    Menu.objects.create(name="Menu3", slug="menu3-slug")
+    variables = {"filter": {"search": "menu3-slug"}}
+    staff_api_client.user.user_permissions.add(permission_manage_menus)
+    response = staff_api_client.post_graphql(QUERY_MENU_WITH_FILTER, variables)
+    content = get_graphql_content(response)
+    menus = content["data"]["menus"]["edges"]
+    assert len(menus) == 1
+    assert menus[0]["node"]["slug"] == "menu3-slug"
+
+
+def test_menus_query_with_slug_list_filter(staff_api_client, permission_manage_menus):
+    Menu.objects.create(name="Menu1", slug="Menu1")
+    Menu.objects.create(name="Menu2", slug="Menu2")
     Menu.objects.create(name="Menu3", slug="Menu3")
     variables = {"filter": {"slug": ["Menu2", "Menu3"]}}
     staff_api_client.user.user_permissions.add(permission_manage_menus)
