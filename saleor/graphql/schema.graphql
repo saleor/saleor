@@ -2366,6 +2366,7 @@ enum MenuErrorCode {
 
 input MenuFilterInput {
   search: String
+  slug: [String]
 }
 
 input MenuInput {
