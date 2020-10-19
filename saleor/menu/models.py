@@ -10,7 +10,8 @@ from ..product.models import Category, Collection
 
 
 class Menu(models.Model):
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=250)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
 
     class Meta:
         ordering = ("pk",)
