@@ -686,18 +686,24 @@ def test_update_product_variant_unset_cost_price(
 
 
 def test_update_product_variant_invalid_price(
-    staff_api_client, product, permission_manage_products
+    staff_api_client, product, size_attribute, permission_manage_products
 ):
     query = """
         mutation updateVariant(
             $id: ID!
             $sku: String!
             $price: PositiveDecimal
-            $costPrice: PositiveDecimal
+            $costPrice: PositiveDecimal,
+            $attributes: [AttributeValueInput],
         ) {
             productVariantUpdate(
                 id: $id
-                input: { sku: $sku, price: $price, costPrice: $costPrice }
+                input: {
+                    sku: $sku,
+                    price: $price,
+                    costPrice: $costPrice,
+                    attributes: $attributes,
+                }
             ) {
                 productErrors {
                     field
@@ -709,12 +715,14 @@ def test_update_product_variant_invalid_price(
     """
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
 
     variables = {
         "id": variant_id,
         "sku": variant.sku,
         "costPrice": 15,
         "price": 1234567891234,
+        "attributes": [{"id": attribute_id, "values": ["S"]}],
     }
 
     response = staff_api_client.post_graphql(
