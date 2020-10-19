@@ -378,13 +378,15 @@ def test_attributes_in_collection_query(
     user_api_client,
     product_type,
     category,
-    collection,
+    published_collection,
     collection_with_products,
     tested_field,
     channel_USD,
 ):
     if "Collection" in tested_field:
-        filtered_by_node_id = graphene.Node.to_global_id("Collection", collection.pk)
+        filtered_by_node_id = graphene.Node.to_global_id(
+            "Collection", published_collection.pk
+        )
     elif "Category" in tested_field:
         filtered_by_node_id = graphene.Node.to_global_id("Category", category.pk)
     else:
@@ -408,10 +410,7 @@ def test_attributes_in_collection_query(
     # Create another collection with products but shouldn't get matched
     # as we don't look for this other collection
     other_collection = Collection.objects.create(
-        name="Other Collection",
-        slug="other-collection",
-        is_published=True,
-        description="Description",
+        name="Other Collection", slug="other-collection", description="Description",
     )
     other_collection.products.add(other_product)
 

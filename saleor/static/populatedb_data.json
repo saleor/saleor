@@ -10147,8 +10147,6 @@
     "model": "product.collection",
     "pk": 1,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": null,
@@ -10176,8 +10174,6 @@
     "model": "product.collection",
     "pk": 2,
     "fields": {
-      "publication_date": "2020-01-01",
-      "is_published": true,
       "private_metadata": {},
       "metadata": {},
       "seo_title": null,
@@ -10199,6 +10195,46 @@
         }],
         "entityMap": {}
       }
+    }
+  },
+  {
+    "model": "product.collectionchannellisting",
+    "pk": 1,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "collection": 1,
+      "channel": 1
+    }
+  },
+  {
+    "model": "product.collectionchannellisting",
+    "pk": 2,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "collection": 2,
+      "channel": 1
+    }
+  },
+  {
+    "model": "product.collectionchannellisting",
+    "pk": 3,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "collection": 1,
+      "channel": 2
+    }
+  },
+  {
+    "model": "product.collectionchannellisting",
+    "pk": 4,
+    "fields": {
+      "publication_date": null,
+      "is_published": false,
+      "collection": 2,
+      "channel": 2
     }
   }
 ]

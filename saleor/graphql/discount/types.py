@@ -31,7 +31,7 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
     categories = PrefetchingConnectionField(
         Category, description="List of categories this sale applies to."
     )
-    collections = PrefetchingConnectionField(
+    collections = ChannelContextFilterConnectionField(
         Collection, description="List of collections this sale applies to."
     )
     products = ChannelContextFilterConnectionField(
@@ -42,6 +42,7 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         type_name="sale",
         resolver=ChannelContextType.resolve_translation,
     )
+    # TODO: change to channel_listings
     channel_listing = graphene.List(
         graphene.NonNull(SaleChannelListing),
         description="List of channels available for the sale.",
@@ -71,8 +72,10 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_collections(root: ChannelContext[models.Sale], info, **_kwargs):
-        return root.node.collections.all()
+    def resolve_collections(root: ChannelContext[models.Sale], info, *_args, **_kwargs):
+        # TODO: Add dataloader.
+        qs = root.node.collections.all()
+        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
@@ -112,7 +115,7 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
     categories = PrefetchingConnectionField(
         Category, description="List of categories this voucher applies to."
     )
-    collections = PrefetchingConnectionField(
+    collections = ChannelContextFilterConnectionField(
         Collection, description="List of collections this voucher applies to."
     )
     products = ChannelContextFilterConnectionField(
@@ -137,6 +140,7 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         Money, description="Minimum order value to apply voucher."
     )
     type = VoucherTypeEnum(description="Determines a type of voucher.", required=True)
+    # TODO: change to channel_listings
     channel_listing = graphene.List(
         graphene.NonNull(VoucherChannelListing),
         description="List of availability in channels for the voucher.",
@@ -172,8 +176,12 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_collections(root: ChannelContext[models.Voucher], info, **_kwargs):
-        return root.node.collections.all()
+    def resolve_collections(
+        root: ChannelContext[models.Voucher], info, *_args, **_kwargs
+    ):
+        # TODO: Add dataloader.
+        qs = root.node.collections.all()
+        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)

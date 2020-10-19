@@ -14,7 +14,7 @@ from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions
 from ....order import OrderStatus, models as order_models
 from ....product import models
-from ....product.error_codes import ProductErrorCode
+from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.tasks import (
     update_product_discounted_price_task,
     update_products_discounted_prices_of_catalogues_task,
@@ -34,7 +34,7 @@ from ...channel import ChannelContext
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types import SeoInput, Upload
-from ...core.types.common import CollectionProductError, ProductError
+from ...core.types.common import CollectionError, ProductError
 from ...core.utils import (
     clean_seo_fields,
     from_global_id_strict_type,
@@ -205,8 +205,8 @@ class CollectionCreate(ModelMutation):
         description = "Creates a new collection."
         model = models.Collection
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -216,7 +216,7 @@ class CollectionCreate(ModelMutation):
                 instance, "name", cleaned_input
             )
         except ValidationError as error:
-            error.code = ProductErrorCode.REQUIRED.value
+            error.code = CollectionErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
@@ -234,6 +234,13 @@ class CollectionCreate(ModelMutation):
         if cleaned_input.get("background_image"):
             create_collection_background_image_thumbnails.delay(instance.pk)
 
+    @classmethod
+    def perform_mutation(cls, _root, info, **kwargs):
+        result = super().perform_mutation(_root, info, **kwargs)
+        return CollectionCreate(
+            collection=ChannelContext(node=result.collection, channel_slug=None)
+        )
+
 
 class CollectionUpdate(CollectionCreate):
     class Arguments:
@@ -246,8 +253,8 @@ class CollectionUpdate(CollectionCreate):
         description = "Updates a collection."
         model = models.Collection
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -264,8 +271,15 @@ class CollectionDelete(ModelDeleteMutation):
         description = "Deletes a collection."
         model = models.Collection
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **kwargs):
+        result = super().perform_mutation(_root, info, **kwargs)
+        return CollectionDelete(
+            collection=ChannelContext(node=result.collection, channel_slug=None)
+        )
 
 
 class MoveProductInput(graphene.InputObjectType):
@@ -290,8 +304,8 @@ class CollectionReorderProducts(BaseMutation):
     class Meta:
         description = "Reorder the products of a collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
     class Arguments:
         collection_id = graphene.Argument(
@@ -340,7 +354,7 @@ class CollectionReorderProducts(BaseMutation):
                     {
                         "moves": ValidationError(
                             f"Couldn't resolve to a product: {move_info.product_id}",
-                            code=ProductErrorCode.NOT_FOUND,
+                            code=CollectionErrorCode.NOT_FOUND.value,
                         )
                     }
                 )
@@ -348,6 +362,7 @@ class CollectionReorderProducts(BaseMutation):
 
         with transaction.atomic():
             perform_reordering(m2m_related_field, operations)
+        collection = ChannelContext(node=collection, channel_slug=None)
         return CollectionReorderProducts(collection=collection)
 
 
@@ -367,8 +382,8 @@ class CollectionAddProducts(BaseMutation):
     class Meta:
         description = "Adds products to a collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = CollectionProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
     @classmethod
     @transaction.atomic()
@@ -384,17 +399,20 @@ class CollectionAddProducts(BaseMutation):
             update_products_discounted_prices_of_catalogues_task.delay(
                 product_ids=[pq.pk for pq in products]
             )
-        return CollectionAddProducts(collection=collection)
+        return CollectionAddProducts(
+            collection=ChannelContext(node=collection, channel_slug=None)
+        )
 
     @classmethod
     def clean_products(cls, products):
         products_ids_without_variants = get_products_ids_without_variants(products)
         if products_ids_without_variants:
+            code = CollectionErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.value
             raise ValidationError(
                 {
                     "products": ValidationError(
                         "Cannot manage products without variants.",
-                        code=ProductErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT,
+                        code=code,
                         params={"products": products_ids_without_variants},
                     )
                 }
@@ -417,8 +435,8 @@ class CollectionRemoveProducts(BaseMutation):
     class Meta:
         description = "Remove products from a collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, collection_id, products):
@@ -432,7 +450,9 @@ class CollectionRemoveProducts(BaseMutation):
             update_products_discounted_prices_of_catalogues_task.delay(
                 product_ids=[p.pk for p in products]
             )
-        return CollectionRemoveProducts(collection=collection)
+        return CollectionRemoveProducts(
+            collection=ChannelContext(node=collection, channel_slug=None)
+        )
 
 
 class CollectionUpdateMeta(UpdateMetaBaseMutation):
@@ -441,8 +461,13 @@ class CollectionUpdateMeta(UpdateMetaBaseMutation):
         description = "Update public metadata for collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
+
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        return super().success_response(instance)
 
 
 class CollectionClearMeta(ClearMetaBaseMutation):
@@ -451,8 +476,13 @@ class CollectionClearMeta(ClearMetaBaseMutation):
         description = "Clears public metadata for collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
+
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        return super().success_response(instance)
 
 
 class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -461,8 +491,13 @@ class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
         description = "Update private metadata for collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
+
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        return super().success_response(instance)
 
 
 class CollectionClearPrivateMeta(ClearMetaBaseMutation):
@@ -471,8 +506,13 @@ class CollectionClearPrivateMeta(ClearMetaBaseMutation):
         description = "Clears private metadata item for collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = CollectionError
+        error_type_field = "collection_errors"
+
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        return super().success_response(instance)
 
 
 class CategoryUpdateMeta(UpdateMetaBaseMutation):

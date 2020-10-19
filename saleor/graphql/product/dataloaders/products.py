@@ -6,6 +6,7 @@ from django.db.models import F
 from ....product.models import (
     Category,
     Collection,
+    CollectionChannelListing,
     CollectionProduct,
     Product,
     ProductChannelListing,
@@ -324,3 +325,11 @@ class CollectionsByProductIdLoader(DataLoader):
             .load_many(set(cid for pid, cid in product_collection_pairs))
             .then(map_collections)
         )
+
+
+class CollectionChannelListingByIdLoader(DataLoader):
+    context_key = "collectionchannelisting_by_id"
+
+    def batch_load(self, keys):
+        collections = CollectionChannelListing.objects.in_bulk(keys)
+        return [collections.get(key) for key in keys]

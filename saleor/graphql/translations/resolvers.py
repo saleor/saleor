@@ -30,3 +30,7 @@ def resolve_sales(_info):
 
 def resolve_vouchers(_info):
     return discount_models.Voucher.objects.all()
+
+
+def resolve_collections(_info):
+    return product_models.Collection.objects.all()

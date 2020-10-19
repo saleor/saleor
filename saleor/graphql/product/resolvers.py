@@ -25,16 +25,29 @@ def resolve_categories(info, level=None, **_kwargs):
     return qs.distinct()
 
 
-def resolve_collection_by_slug(info, slug):
+def resolve_collection_by_id(info, id, channel_slug):
     requestor = get_user_or_app_from_context(info.context)
     return (
-        models.Collection.objects.visible_to_user(requestor).filter(slug=slug).first()
+        models.Collection.objects.visible_to_user(requestor, channel_slug=channel_slug)
+        .filter(id=id)
+        .first()
     )
 
 
-def resolve_collections(info, **_kwargs):
+def resolve_collection_by_slug(info, slug, channel_slug):
+    requestor = get_user_or_app_from_context(info.context)
+    return (
+        models.Collection.objects.visible_to_user(requestor, channel_slug)
+        .filter(slug=slug)
+        .first()
+    )
+
+
+def resolve_collections(info, channel_slug):
     user = info.context.user
-    return models.Collection.objects.visible_to_user(user)
+    qs = models.Collection.objects.visible_to_user(user, channel_slug)
+
+    return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 
 def resolve_digital_contents(_info):

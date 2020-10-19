@@ -58,6 +58,7 @@ from .mutations.attributes import (
     ProductTypeReorderAttributes,
 )
 from .mutations.channels import (
+    CollectionChannelListingUpdate,
     ProductChannelListingUpdate,
     ProductVariantChannelListingUpdate,
 )
@@ -119,6 +120,7 @@ from .resolvers import (
     resolve_attributes,
     resolve_categories,
     resolve_category_by_slug,
+    resolve_collection_by_id,
     resolve_collection_by_slug,
     resolve_collections,
     resolve_digital_contents,
@@ -193,13 +195,19 @@ class ProductQueries(graphene.ObjectType):
         Collection,
         id=graphene.Argument(graphene.ID, description="ID of the collection.",),
         slug=graphene.Argument(graphene.String, description="Slug of the category"),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description="Look up a collection by ID.",
     )
-    collections = FilterInputConnectionField(
+    collections = ChannelContextFilterConnectionField(
         Collection,
         filter=CollectionFilterInput(description="Filtering options for collections."),
         sort_by=CollectionSortingInput(description="Sort collections."),
         description="List of the shop's collections.",
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
     )
     product = graphene.Field(
         Product,
@@ -292,15 +300,27 @@ class ProductQueries(graphene.ObjectType):
         if slug:
             return resolve_category_by_slug(slug=slug)
 
-    def resolve_collection(self, info, id=None, slug=None):
+    def resolve_collection(self, info, id=None, slug=None, channel=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
+        if channel is None:
+            channel = get_default_channel_slug_or_graphql_error()
         if id:
-            return graphene.Node.get_node_from_global_id(info, id, Collection)
-        if slug:
-            return resolve_collection_by_slug(info, slug=slug)
+            _, id = graphene.Node.from_global_id(id)
+            collection = resolve_collection_by_id(info, id, channel)
+        else:
+            collection = resolve_collection_by_slug(
+                info, slug=slug, channel_slug=channel
+            )
+        return (
+            ChannelContext(node=collection, channel_slug=channel)
+            if collection
+            else None
+        )
 
-    def resolve_collections(self, info, **kwargs):
-        return resolve_collections(info, **kwargs)
+    def resolve_collections(self, info, channel=None, *_args, **_kwargs):
+        if channel is None:
+            channel = get_default_channel_slug_or_graphql_error()
+        return resolve_collections(info, channel)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_digital_content(self, info, id):
@@ -317,7 +337,7 @@ class ProductQueries(graphene.ObjectType):
         if id:
             _, id = graphene.Node.from_global_id(id)
             product = resolve_product_by_id(info, id, channel_slug=channel)
-        if slug:
+        else:
             product = resolve_product_by_slug(
                 info, product_slug=slug, channel_slug=channel
             )
@@ -340,7 +360,6 @@ class ProductQueries(graphene.ObjectType):
         validate_one_of_args_is_in_query("id", id, "sku", sku)
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        variant = None
         if id:
             _, id = graphene.Node.from_global_id(id)
             variant = resolve_variant_by_id(info, id, channel_slug=channel)
@@ -464,6 +483,7 @@ class ProductMutations(graphene.ObjectType):
             "removed after 2020-07-31."
         )
     )
+    collection_channel_listing_update = CollectionChannelListingUpdate.Field()
 
     product_create = ProductCreate.Field()
     product_delete = ProductDelete.Field()

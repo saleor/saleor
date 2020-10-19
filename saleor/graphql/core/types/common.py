@@ -7,6 +7,7 @@ from ..enums import (
     AppErrorCode,
     ChannelErrorCode,
     CheckoutErrorCode,
+    CollectionErrorCode,
     DiscountErrorCode,
     ExportErrorCode,
     GiftCardErrorCode,
@@ -184,11 +185,19 @@ class ProductError(Error):
     )
 
 
-class CollectionProductError(ProductWithoutVariantError, ProductError):
-    pass
+class CollectionError(ProductWithoutVariantError):
+    code = CollectionErrorCode(description="The error code.", required=True)
 
 
 class ProductChannelListingError(ProductError):
+    channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channels IDs which causes the error.",
+        required=False,
+    )
+
+
+class CollectionChannelListingError(ProductError):
     channels = graphene.List(
         graphene.NonNull(graphene.ID),
         description="List of channels IDs which causes the error.",

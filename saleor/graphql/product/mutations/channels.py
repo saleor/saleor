@@ -7,22 +7,30 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from ....core.permissions import ProductPermissions
-from ....product.error_codes import ProductErrorCode
-from ....product.models import ProductChannelListing, ProductVariantChannelListing
+from ....product.error_codes import CollectionErrorCode, ProductErrorCode
+from ....product.models import (
+    CollectionChannelListing,
+    ProductChannelListing,
+    ProductVariantChannelListing,
+)
 from ....product.tasks import update_product_discounted_price_task
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types.common import ProductChannelListingError
+from ...core.types.common import (
+    CollectionChannelListingError,
+    ProductChannelListingError,
+)
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
-from ..types.products import Product, ProductVariant
+from ..types.products import Collection, Product, ProductVariant
 
 if TYPE_CHECKING:
     from ....product.models import (
         Product as ProductModel,
+        Collection as CollectionModel,
         ProductVariant as ProductVariantModel,
     )
     from ....channel.models import Channel as ChannelModel
@@ -30,14 +38,17 @@ if TYPE_CHECKING:
 ErrorType = DefaultDict[str, List[ValidationError]]
 
 
-class ProductChannelListingAddInput(graphene.InputObjectType):
+class PublishableChannelListingInput(graphene.InputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     is_published = graphene.Boolean(
-        description="Determines if product is visible to customers."
+        description="Determines if object is visible to customers."
     )
     publication_date = graphene.types.datetime.Date(
         description="Publication date. ISO 8601 standard."
     )
+
+
+class ProductChannelListingAddInput(PublishableChannelListingInput):
     visible_in_listings = graphene.Boolean(
         description=(
             "Determines if product is visible in product listings "
@@ -84,14 +95,6 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductChannelListingError
         error_type_field = "product_channel_listing_errors"
-
-    @classmethod
-    def clean_publication_date(cls, cleaned_input):
-        for add_channel in cleaned_input.get("add_channels", []):
-            is_published = add_channel.get("is_published")
-            publication_date = add_channel.get("publication_date")
-            if is_published and not publication_date:
-                add_channel["publication_date"] = datetime.date.today()
 
     @classmethod
     def clean_available_for_purchase(cls, cleaned_input, errors: ErrorType):
@@ -346,4 +349,78 @@ class ProductVariantChannelListingUpdate(BaseMutation):
 
         return ProductVariantChannelListingUpdate(
             variant=ChannelContext(node=variant, channel_slug=None)
+        )
+
+
+class CollectionChannelListingUpdateInput(graphene.InputObjectType):
+    add_channels = graphene.List(
+        graphene.NonNull(PublishableChannelListingInput),
+        description="List of channels to which the collection should be assigned.",
+        required=False,
+    )
+    remove_channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channels from which the collection should be unassigned.",
+        required=False,
+    )
+
+
+class CollectionChannelListingUpdate(BaseChannelListingMutation):
+    collection = graphene.Field(
+        Collection, description="An updated collection instance."
+    )
+
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of a collection to update.")
+        input = CollectionChannelListingUpdateInput(
+            required=True,
+            description=(
+                "Fields required to create or update collection channel listings."
+            ),
+        )
+
+    class Meta:
+        description = "Manage collection's availability in channels."
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = CollectionChannelListingError
+        error_type_field = "collection_channel_listing_errors"
+
+    @classmethod
+    def add_channels(cls, collection: "CollectionModel", add_channels: List[Dict]):
+        for add_channel in add_channels:
+            defaults = {}
+            for field in ["is_published", "publication_date"]:
+                if field in add_channel.keys():
+                    defaults[field] = add_channel.get(field, None)
+            CollectionChannelListing.objects.update_or_create(
+                collection=collection, channel=add_channel["channel"], defaults=defaults
+            )
+
+    @classmethod
+    def remove_channels(cls, collection: "CollectionModel", remove_channels: List[int]):
+        CollectionChannelListing.objects.filter(
+            collection=collection, channel_id__in=remove_channels
+        ).delete()
+
+    @classmethod
+    @transaction.atomic()
+    def save(cls, info, collection: "CollectionModel", cleaned_input: Dict):
+        cls.add_channels(collection, cleaned_input.get("add_channels", []))
+        cls.remove_channels(collection, cleaned_input.get("remove_channels", []))
+
+    @classmethod
+    def perform_mutation(cls, _root, info, id, input):
+        collection = cls.get_node_or_error(info, id, only_type=Collection, field="id")
+        errors = defaultdict(list)
+
+        cleaned_input = cls.clean_channels(
+            info, input, errors, CollectionErrorCode.DUPLICATED_INPUT_ITEM.value,
+        )
+        cls.clean_publication_date(cleaned_input)
+        if errors:
+            raise ValidationError(errors)
+
+        cls.save(info, collection, cleaned_input)
+        return CollectionChannelListingUpdate(
+            collection=ChannelContext(node=collection, channel_slug=None)
         )

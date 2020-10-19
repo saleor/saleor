@@ -75,7 +75,11 @@ from ..filters import AttributeFilterInput, ProductFilterInput
 from ..resolvers import resolve_attributes
 from ..sorters import ProductOrder
 from .attributes import Attribute, SelectedAttribute
-from .channels import ProductChannelListing, ProductVariantChannelListing
+from .channels import (
+    CollectionChannelListing,
+    ProductChannelListing,
+    ProductVariantChannelListing,
+)
 from .digital_contents import DigitalContent
 
 
@@ -157,6 +161,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "This field will be removed after 2020-07-31."
         ),
     )
+    # TODO: change to channel_listings
     channel_listing = graphene.List(
         graphene.NonNull(ProductVariantChannelListing),
         description="List of price information in channels for the product.",
@@ -437,6 +442,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         required=True,
         description="List of attributes assigned to this product.",
     )
+    # TODO: change to channel_listings
     channel_listing = graphene.List(
         graphene.NonNull(ProductChannelListing),
         description="List of availability in channels for the product.",
@@ -642,8 +648,16 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ProductChannelListingByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_collections(root: ChannelContext[models.Product], *_args):
-        return root.node.collections.all()
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    def resolve_collections(root: ChannelContext[models.Product], *_args, **_kwargs):
+        instances = root.node.collections.all()
+        channel_slug = root.channel_slug
+
+        collections = [
+            ChannelContext(node=collection, channel_slug=channel_slug)
+            for collection in instances
+        ]
+        return collections
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -788,12 +802,9 @@ class ProductType(CountableDjangoObjectType):
 
 
 @key(fields="id")
-class Collection(CountableDjangoObjectType):
+class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     products = ChannelContextFilterConnectionField(
         Product,
-        channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
-        ),
         filter=ProductFilterInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
@@ -801,17 +812,25 @@ class Collection(CountableDjangoObjectType):
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
     )
-    translation = TranslationField(CollectionTranslation, type_name="collection")
+    translation = TranslationField(
+        CollectionTranslation,
+        type_name="collection",
+        resolver=ChannelContextType.resolve_translation,
+    )
+    # TODO: change to channel_listings
+    channel_listing = graphene.List(
+        graphene.NonNull(CollectionChannelListing),
+        description="List of channels in which the collection is available.",
+    )
 
     class Meta:
+        default_resolver = ChannelContextType.resolver_with_context
         description = "Represents a collection of products."
         only_fields = [
             "description",
             "description_json",
             "id",
-            "is_published",
             "name",
-            "publication_date",
             "seo_description",
             "seo_title",
             "slug",
@@ -820,40 +839,39 @@ class Collection(CountableDjangoObjectType):
         model = models.Collection
 
     @staticmethod
-    def resolve_background_image(root: models.Collection, info, size=None, **_kwargs):
-        if root.background_image:
+    def resolve_background_image(
+        root: ChannelContext[models.Collection], info, size=None, **_kwargs
+    ):
+        if root.node.background_image:
+            node = root.node
             return Image.get_adjusted(
-                image=root.background_image,
-                alt=root.background_image_alt,
+                image=node.background_image,
+                alt=node.background_image_alt,
                 size=size,
                 rendition_key_set="background_images",
                 info=info,
             )
 
     @staticmethod
-    def resolve_products(root: models.Collection, info, channel=None, **kwargs):
+    def resolve_products(root: ChannelContext[models.Collection], info, **kwargs):
         user = info.context.user
-        if channel is None:
-            channel = get_default_channel_slug_or_graphql_error()
-        qs = root.products.collection_sorted(user, channel)
-        return ChannelQsContext(qs=qs, channel_slug=channel)
-
-    @classmethod
-    def get_node(cls, info, id):
-        if info.context:
-            requestor = get_user_or_app_from_context(info.context)
-            qs = cls._meta.model.objects.visible_to_user(requestor)
-            return qs.filter(id=id).first()
-        return None
+        qs = root.node.products.collection_sorted(user, root.channel_slug)
+        return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: models.Collection, _info):
-        return resolve_private_meta(root, _info)
+    def resolve_channel_listing(root: ChannelContext[models.Collection], _info):
+        # TODO : Add dataloader
+        return root.node.channel_listing.all()
 
     @staticmethod
-    def resolve_meta(root: models.Collection, _info):
-        return resolve_meta(root, _info)
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    def resolve_private_meta(root: ChannelContext[models.Collection], _info):
+        return resolve_private_meta(root.node, _info)
+
+    @staticmethod
+    def resolve_meta(root: ChannelContext[models.Collection], _info):
+        return resolve_meta(root.node, _info)
 
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):

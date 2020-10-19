@@ -13,7 +13,12 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce
 
-from ...product.models import Category, Product, ProductChannelListing
+from ...product.models import (
+    Category,
+    CollectionChannelListing,
+    Product,
+    ProductChannelListing,
+)
 from ..channel.sorters import validate_channel_slug
 from ..core.types import ChannelSortInputObjectType, SortInputObjectType
 
@@ -107,7 +112,7 @@ class CategorySortField(graphene.Enum):
         return queryset.annotate(subcategory_count=Count("children__id"))
 
 
-class CategorySortingInput(SortInputObjectType):
+class CategorySortingInput(ChannelSortInputObjectType):
     class Meta:
         sort_enum = CategorySortField
         type_name = "categories"
@@ -136,8 +141,32 @@ class CollectionSortField(graphene.Enum):
     def qs_with_product_count(queryset: QuerySet, **_kwargs) -> QuerySet:
         return queryset.annotate(product_count=Count("collectionproduct__id"))
 
+    @staticmethod
+    def qs_with_availability(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
+        subquery = Subquery(
+            CollectionChannelListing.objects.filter(
+                collection_id=OuterRef("pk"), channel__slug=channel_slug
+            ).values_list("is_published")[:1]
+        )
+        return queryset.annotate(
+            is_published=ExpressionWrapper(subquery, output_field=BooleanField())
+        )
 
-class CollectionSortingInput(SortInputObjectType):
+    @staticmethod
+    def qs_with_publication_date(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
+        subquery = Subquery(
+            CollectionChannelListing.objects.filter(
+                collection_id=OuterRef("pk"), channel__slug=channel_slug
+            ).values_list("publication_date")[:1]
+        )
+        return queryset.annotate(
+            publication_date=ExpressionWrapper(subquery, output_field=DateField())
+        )
+
+
+class CollectionSortingInput(ChannelSortInputObjectType):
     class Meta:
         sort_enum = CollectionSortField
         type_name = "collections"

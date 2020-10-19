@@ -5,6 +5,7 @@ from ....graphql.core.types import Money, MoneyRange
 from ....product import models
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
 from ...channel.dataloaders import (
+    ChannelByCollectionChannelListingIDLoader,
     ChannelByProductChannelListingIDLoader,
     ChannelByProductVariantChannelListingIDLoader,
 )
@@ -96,3 +97,15 @@ class ProductVariantChannelListing(CountableDjangoObjectType):
         if not variant_channel_listing:
             return None
         return get_margin_for_variant(variant_channel_listing)
+
+
+class CollectionChannelListing(CountableDjangoObjectType):
+    class Meta:
+        description = "Represents collection channel listing."
+        model = models.CollectionChannelListing
+        interfaces = [graphene.relay.Node]
+        only_fields = ["id", "channel", "is_published", "publication_date"]
+
+    @staticmethod
+    def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):
+        return ChannelByCollectionChannelListingIDLoader(info.context).load(root.id)

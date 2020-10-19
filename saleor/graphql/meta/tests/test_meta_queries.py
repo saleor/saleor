@@ -802,8 +802,8 @@ def test_query_public_meta_for_category_as_app(
 
 
 QUERY_COLLECTION_PUBLIC_META = """
-    query collectionMeta($id: ID!){
-        collection(id: $id){
+    query collectionMeta($id: ID!, $channel: String) {
+        collection(id: $id, channel: $channel) {
             metadata{
                 key
                 value
@@ -813,12 +813,17 @@ QUERY_COLLECTION_PUBLIC_META = """
 """
 
 
-def test_query_public_meta_for_collection_as_anonymous_user(api_client, collection):
+def test_query_public_meta_for_collection_as_anonymous_user(
+    api_client, published_collection, channel_USD
+):
     # given
+    collection = published_collection
     collection.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     collection.save(update_fields=["metadata"])
-    variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
-
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection.pk),
+        "channel": channel_USD.slug,
+    }
     # when
     response = api_client.post_graphql(QUERY_COLLECTION_PUBLIC_META, variables)
     content = get_graphql_content(response)
@@ -829,11 +834,17 @@ def test_query_public_meta_for_collection_as_anonymous_user(api_client, collecti
     assert metadata["value"] == PUBLIC_VALUE
 
 
-def test_query_public_meta_for_collection_as_customer(user_api_client, collection):
+def test_query_public_meta_for_collection_as_customer(
+    user_api_client, published_collection, channel_USD
+):
     # given
+    collection = published_collection
     collection.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     collection.save(update_fields=["metadata"])
-    variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection.pk),
+        "channel": channel_USD.slug,
+    }
 
     # when
     response = user_api_client.post_graphql(QUERY_COLLECTION_PUBLIC_META, variables)
@@ -846,12 +857,16 @@ def test_query_public_meta_for_collection_as_customer(user_api_client, collectio
 
 
 def test_query_public_meta_for_collection_as_staff(
-    staff_api_client, collection, permission_manage_products
+    staff_api_client, published_collection, permission_manage_products, channel_USD
 ):
     # given
+    collection = published_collection
     collection.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     collection.save(update_fields=["metadata"])
-    variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection.pk),
+        "channel": graphene.Node.to_global_id("Channel", channel_USD.pk),
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -869,13 +884,16 @@ def test_query_public_meta_for_collection_as_staff(
 
 
 def test_query_public_meta_for_collection_as_app(
-    app_api_client, collection, permission_manage_products
+    app_api_client, published_collection, permission_manage_products, channel_USD
 ):
     # given
+    collection = published_collection
     collection.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     collection.save(update_fields=["metadata"])
-    variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
-
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection.pk),
+        "channel": channel_USD.slug,
+    }
     # when
     response = app_api_client.post_graphql(
         QUERY_COLLECTION_PUBLIC_META,
@@ -2108,8 +2126,8 @@ def test_query_private_meta_for_category_as_app(
 
 
 QUERY_COLLECTION_PRIVATE_META = """
-    query collectionMeta($id: ID!){
-        collection(id: $id){
+    query collectionMeta($id: ID!, $channel: String){
+        collection(id: $id, channel: $channel){
             privateMetadata{
                 key
                 value
@@ -2119,9 +2137,14 @@ QUERY_COLLECTION_PRIVATE_META = """
 """
 
 
-def test_query_private_meta_for_collection_as_anonymous_user(api_client, collection):
+def test_query_private_meta_for_collection_as_anonymous_user(
+    api_client, published_collection, channel_USD
+):
     # given
-    variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", published_collection.pk),
+        "channel": channel_USD.slug,
+    }
 
     # when
     response = api_client.post_graphql(QUERY_COLLECTION_PRIVATE_META, variables)
@@ -2130,9 +2153,14 @@ def test_query_private_meta_for_collection_as_anonymous_user(api_client, collect
     assert_no_permission(response)
 
 
-def test_query_private_meta_for_collection_as_customer(user_api_client, collection):
+def test_query_private_meta_for_collection_as_customer(
+    user_api_client, published_collection, channel_USD
+):
     # given
-    variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", published_collection.pk),
+        "channel": channel_USD.slug,
+    }
 
     # when
     response = user_api_client.post_graphql(QUERY_COLLECTION_PRIVATE_META, variables)
@@ -2142,12 +2170,16 @@ def test_query_private_meta_for_collection_as_customer(user_api_client, collecti
 
 
 def test_query_private_meta_for_collection_as_staff(
-    staff_api_client, collection, permission_manage_products
+    staff_api_client, published_collection, permission_manage_products, channel_USD
 ):
     # given
+    collection = published_collection
     collection.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     collection.save(update_fields=["private_metadata"])
-    variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", published_collection.pk),
+        "channel": channel_USD.slug,
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -2165,12 +2197,16 @@ def test_query_private_meta_for_collection_as_staff(
 
 
 def test_query_private_meta_for_collection_as_app(
-    app_api_client, collection, permission_manage_products
+    app_api_client, published_collection, permission_manage_products, channel_USD
 ):
     # given
+    collection = published_collection
     collection.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     collection.save(update_fields=["private_metadata"])
-    variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection.pk),
+        "channel": channel_USD.slug,
+    }
 
     # when
     response = app_api_client.post_graphql(

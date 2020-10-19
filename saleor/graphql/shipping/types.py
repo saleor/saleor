@@ -36,6 +36,7 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
         type_name="shipping method",
         resolver=ChannelContextType.resolve_translation,
     )
+    # TODO: change to channel_listings
     channel_listing = graphene.List(
         graphene.NonNull(ShippingMethodChannelListing),
         description="List of channels available for the method.",

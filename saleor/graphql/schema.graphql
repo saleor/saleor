@@ -795,6 +795,7 @@ enum CategorySortField {
 
 input CategorySortingInput {
   direction: OrderDirection!
+  channel: String
   field: CategorySortField!
 }
 
@@ -1145,22 +1146,21 @@ type Collection implements Node & ObjectWithMetadata {
   name: String!
   description: String!
   descriptionJson: JSONString!
-  publicationDate: Date
-  isPublished: Boolean!
   slug: String!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
-  products(channel: String, filter: ProductFilterInput, sortBy: ProductOrder, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(filter: ProductFilterInput, sortBy: ProductOrder, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
+  channelListing: [CollectionChannelListing!]
 }
 
 type CollectionAddProducts {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   collection: Collection
-  productErrors: [CollectionProductError!]!
+  collectionErrors: [CollectionError!]!
 }
 
 type CollectionBulkDelete {
@@ -1169,15 +1169,41 @@ type CollectionBulkDelete {
   productErrors: [ProductError!]!
 }
 
+type CollectionChannelListing implements Node {
+  publicationDate: Date
+  isPublished: Boolean!
+  id: ID!
+  channel: Channel!
+}
+
+type CollectionChannelListingError {
+  field: String
+  message: String
+  code: ProductErrorCode!
+  attributes: [ID!]
+  channels: [ID!]
+}
+
+type CollectionChannelListingUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  collection: Collection
+  collectionChannelListingErrors: [CollectionChannelListingError!]!
+}
+
+input CollectionChannelListingUpdateInput {
+  addChannels: [PublishableChannelListingInput!]
+  removeChannels: [ID!]
+}
+
 type CollectionClearMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   collection: Collection
 }
 
 type CollectionClearPrivateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   collection: Collection
 }
 
@@ -1194,7 +1220,7 @@ type CollectionCountableEdge {
 
 type CollectionCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   collection: Collection
 }
 
@@ -1213,14 +1239,32 @@ input CollectionCreateInput {
 
 type CollectionDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   collection: Collection
+}
+
+type CollectionError {
+  field: String
+  message: String
+  products: [ID!]
+  code: CollectionErrorCode!
+}
+
+enum CollectionErrorCode {
+  DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
 }
 
 input CollectionFilterInput {
   published: CollectionPublished
   search: String
   ids: [ID]
+  channel: String
 }
 
 input CollectionInput {
@@ -1235,14 +1279,6 @@ input CollectionInput {
   publicationDate: Date
 }
 
-type CollectionProductError {
-  field: String
-  message: String
-  code: ProductErrorCode!
-  attributes: [ID!]
-  products: [ID!]
-}
-
 enum CollectionPublished {
   PUBLISHED
   HIDDEN
@@ -1251,13 +1287,13 @@ enum CollectionPublished {
 type CollectionRemoveProducts {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   collection: Collection
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
 }
 
 type CollectionReorderProducts {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   collection: Collection
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
 }
 
 enum CollectionSortField {
@@ -1269,6 +1305,7 @@ enum CollectionSortField {
 
 input CollectionSortingInput {
   direction: OrderDirection!
+  channel: String
   field: CollectionSortField!
 }
 
@@ -1301,19 +1338,19 @@ type CollectionTranslation implements Node {
 
 type CollectionUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   collection: Collection
 }
 
 type CollectionUpdateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   collection: Collection
 }
 
 type CollectionUpdatePrivateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  collectionErrors: [CollectionError!]!
   collection: Collection
 }
 
@@ -2210,12 +2247,6 @@ type GroupCountableEdge {
   cursor: String!
 }
 
-type HomepageCollectionUpdate {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  shop: Shop
-  shopErrors: [ShopError!]!
-}
-
 type Image {
   url: String!
   alt: String
@@ -2665,7 +2696,6 @@ type Mutation {
   staffNotificationRecipientCreate(input: StaffNotificationRecipientInput!): StaffNotificationRecipientCreate
   staffNotificationRecipientUpdate(id: ID!, input: StaffNotificationRecipientInput!): StaffNotificationRecipientUpdate
   staffNotificationRecipientDelete(id: ID!): StaffNotificationRecipientDelete
-  homepageCollectionUpdate(collection: ID): HomepageCollectionUpdate
   shopDomainUpdate(input: SiteDomainInput): ShopDomainUpdate
   shopSettingsUpdate(input: ShopSettingsInput!): ShopSettingsUpdate
   shopFetchTaxRates: ShopFetchTaxRates
@@ -2719,6 +2749,7 @@ type Mutation {
   collectionClearMetadata(id: ID!, input: MetaPath!): CollectionClearMeta @deprecated(reason: "Use the `deleteMetadata` mutation instead. This field will be removed after 2020-07-31.")
   collectionUpdatePrivateMetadata(id: ID!, input: MetaInput!): CollectionUpdatePrivateMeta @deprecated(reason: "Use the `updatePrivateMetadata` mutation instead. This field will be removed after 2020-07-31.")
   collectionClearPrivateMetadata(id: ID!, input: MetaPath!): CollectionClearPrivateMeta @deprecated(reason: "Use the `deletePrivateMetadata` mutation instead. This field will be removed after 2020-07-31.")
+  collectionChannelListingUpdate(id: ID!, input: CollectionChannelListingUpdateInput!): CollectionChannelListingUpdate
   productCreate(input: ProductCreateInput!): ProductCreate
   productDelete(id: ID!): ProductDelete
   productBulkDelete(ids: [ID]!): ProductBulkDelete
@@ -4377,6 +4408,12 @@ type ProductVariantUpdatePrivateMeta {
   productVariant: ProductVariant
 }
 
+input PublishableChannelListingInput {
+  channelId: ID!
+  isPublished: Boolean
+  publicationDate: Date
+}
+
 type Query {
   webhook(id: ID!): Webhook
   webhooks(sortBy: WebhookSortingInput, filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection @deprecated(reason: "Use webhooks field on app(s) query instead. This field will be removed after 2020-07-31.")
@@ -4397,8 +4434,8 @@ type Query {
   attribute(id: ID!): Attribute
   categories(filter: CategoryFilterInput, sortBy: CategorySortingInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID, slug: String): Category
-  collection(id: ID, slug: String): Collection
-  collections(filter: CollectionFilterInput, sortBy: CollectionSortingInput, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
+  collection(id: ID, slug: String, channel: String): Collection
+  collections(filter: CollectionFilterInput, sortBy: CollectionSortingInput, channel: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   product(id: ID, slug: String, channel: String): Product
   products(filter: ProductFilterInput, sortBy: ProductOrder, stockAvailability: StockAvailability, channel: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
@@ -4416,10 +4453,10 @@ type Query {
   draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   ordersTotal(period: ReportingPeriod): TaxedMoney
   orderByToken(token: UUID!): Order
-  menu(id: ID, name: String): Menu
-  menus(sortBy: MenuSortingInput, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
-  menuItem(id: ID!): MenuItem
-  menuItems(sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
+  menu(channel: String, id: ID, name: String): Menu
+  menus(channel: String, sortBy: MenuSortingInput, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
+  menuItem(id: ID!, channel: String): MenuItem
+  menuItems(channel: String, sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   plugin(id: ID!): Plugin
@@ -4936,7 +4973,6 @@ type Shop {
   defaultMailSenderAddress: String
   description: String
   domain: Domain!
-  homepageCollection: Collection @deprecated(reason: "Use the `collection` query with the `slug` parameter. This field will be removed in Saleor 3.0")
   languages: [LanguageDisplay]!
   name: String!
   navigation: Navigation
