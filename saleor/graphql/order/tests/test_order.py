@@ -163,75 +163,73 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
     assert expected_total_price == line.unit_price.gross * line.quantity
 
 
-def test_order_query(
-    staff_api_client,
-    permission_manage_orders,
-    fulfilled_order,
-    shipping_zone,
-    shipping_zone_pln,
-):
-    order = fulfilled_order
-    query = """
-    query OrdersQuery {
-        orders(first: 1) {
-            edges {
-                node {
-                    number
-                    canFinalize
-                    status
-                    channel {
-                        slug
+ORDER_QUERY = """
+query OrdersQuery {
+    orders(first: 1) {
+        edges {
+            node {
+                number
+                canFinalize
+                status
+                channel {
+                    slug
+                }
+                statusDisplay
+                paymentStatus
+                paymentStatusDisplay
+                userEmail
+                isPaid
+                shippingPrice {
+                    gross {
+                        amount
                     }
-                    statusDisplay
-                    paymentStatus
-                    paymentStatusDisplay
-                    userEmail
-                    isPaid
-                    shippingPrice {
-                        gross {
-                            amount
-                        }
+                }
+                lines {
+                    id
+                }
+                fulfillments {
+                    fulfillmentOrder
+                }
+                payments{
+                    id
+                }
+                subtotal {
+                    net {
+                        amount
                     }
-                    lines {
-                        id
+                }
+                total {
+                    net {
+                        amount
                     }
-                    fulfillments {
-                        fulfillmentOrder
+                }
+                availableShippingMethods {
+                    id
+                    price {
+                        amount
                     }
-                    payments{
-                        id
+                    minimumOrderPrice {
+                        amount
+                        currency
                     }
-                    subtotal {
-                        net {
-                            amount
-                        }
-                    }
-                    total {
-                        net {
-                            amount
-                        }
-                    }
-                    availableShippingMethods {
-                        id
-                        price {
-                            amount
-                        }
-                        minimumOrderPrice {
-                            amount
-                            currency
-                        }
-                        type
-                    }
-                    shippingMethod{
-                        id
-                    }
+                    type
+                }
+                shippingMethod{
+                    id
                 }
             }
         }
     }
-    """
+}
+"""
+
+
+def test_order_query(
+    staff_api_client, permission_manage_orders, fulfilled_order, shipping_zone
+):
+    order = fulfilled_order
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    response = staff_api_client.post_graphql(query)
+    response = staff_api_client.post_graphql(ORDER_QUERY)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
     assert order_data["number"] == str(order.pk)
@@ -259,7 +257,57 @@ def test_order_query(
         price=order.get_subtotal().gross,
         weight=order.get_total_weight(),
         country_code=order.shipping_address.country.code,
-        channel_id=fulfilled_order.channel_id,
+        channel_id=order.channel_id,
+    )
+    assert len(order_data["availableShippingMethods"]) == (expected_methods.count())
+
+    method = order_data["availableShippingMethods"][0]
+    expected_method = expected_methods.first()
+    expected_shipping_price = expected_method.channel_listing.get(
+        channel_id=order.channel_id
+    )
+    assert float(expected_shipping_price.price.amount) == method["price"]["amount"]
+    assert float(expected_shipping_price.minimum_order_price.amount) == (
+        method["minimumOrderPrice"]["amount"]
+    )
+    assert expected_method.type.upper() == method["type"]
+
+
+def test_order_query_in_pln_channel(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines_channel_PLN,
+    channel_PLN,
+):
+    order = order_with_lines_channel_PLN
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_QUERY)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["number"] == str(order.pk)
+    assert order_data["channel"]["slug"] == order.channel.slug
+    assert order_data["canFinalize"] is True
+    assert order_data["status"] == order.status.upper()
+    assert order_data["statusDisplay"] == order.get_status_display()
+    payment_status = PaymentChargeStatusEnum.get(order.get_payment_status()).name
+    assert order_data["paymentStatus"] == payment_status
+    payment_status_display = order.get_payment_status_display()
+    assert order_data["paymentStatusDisplay"] == payment_status_display
+    assert order_data["isPaid"] == order.is_fully_paid()
+    assert order_data["userEmail"] == order.user_email
+    expected_price = Money(
+        amount=str(order_data["shippingPrice"]["gross"]["amount"]),
+        currency=channel_PLN.currency_code,
+    )
+    assert expected_price == order.shipping_price.gross
+    assert len(order_data["lines"]) == order.lines.count()
+    assert len(order_data["payments"]) == order.payments.count()
+
+    expected_methods = ShippingMethod.objects.applicable_shipping_methods(
+        price=order.get_subtotal().gross,
+        weight=order.get_total_weight(),
+        country_code=order.shipping_address.country.code,
+        channel_id=order.channel_id,
     )
     assert len(order_data["availableShippingMethods"]) == (expected_methods.count())
 

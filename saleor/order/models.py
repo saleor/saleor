@@ -209,7 +209,7 @@ class Order(ModelWithMetadata):
             ]
         )
         total_captured = [payment.get_captured_amount() for payment in payments]
-        total_paid = sum(total_captured, zero_taxed_money())
+        total_paid = sum(total_captured, zero_taxed_money(currency=self.currency))
         return total_paid
 
     def _index_billing_phone(self):
@@ -273,7 +273,7 @@ class Order(ModelWithMetadata):
 
     def get_subtotal(self):
         subtotal_iterator = (line.get_total() for line in self)
-        return sum(subtotal_iterator, zero_taxed_money())
+        return sum(subtotal_iterator, zero_taxed_money(currency=self.currency))
 
     def get_total_quantity(self):
         return sum([line.quantity for line in self])
