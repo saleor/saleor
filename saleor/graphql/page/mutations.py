@@ -1,6 +1,6 @@
 from collections import defaultdict
 from datetime import date
-from typing import Dict, List
+from typing import TYPE_CHECKING, Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -16,6 +16,9 @@ from ..core.utils import (
     get_duplicates_ids,
     validate_slug_and_generate_if_needed,
 )
+
+if TYPE_CHECKING:
+    from ...product.models import Attribute
 
 
 class PageInput(graphene.InputObjectType):
@@ -110,7 +113,12 @@ class PageTypeUpdateInput(PageTypeCreateInput):
 
 class PageTypeMixin:
     @classmethod
-    def validate_attributes(cls, errors: dict, attributes, field):
+    def validate_attributes(
+        cls,
+        errors: Dict[str, List[ValidationError]],
+        attributes: List["Attribute"],
+        field: str,
+    ):
         """All attributes must be page type attribute.
 
         Raise an error if any of the attributes are not page attribute.
