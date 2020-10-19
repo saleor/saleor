@@ -623,6 +623,24 @@ def shipping_method(shipping_zone, channel_USD):
 
 
 @pytest.fixture
+def shipping_method_channel_PLN(shipping_zone, channel_PLN):
+    method = ShippingMethod.objects.create(
+        name="DHL",
+        type=ShippingMethodType.PRICE_BASED,
+        shipping_zone=shipping_zone,
+        # TODO: We should drop `currency` from `ShippingMethod`
+        currency=channel_PLN.currency_code,
+    )
+    ShippingMethodChannelListing.objects.create(
+        shipping_method=method,
+        channel=channel_PLN,
+        minimum_order_price=Money(0, channel_PLN.currency_code),
+        price=Money(10, channel_PLN.currency_code),
+    )
+    return method
+
+
+@pytest.fixture
 def color_attribute(db):  # pylint: disable=W0613
     attribute = Attribute.objects.create(slug="color", name="Color")
     AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
@@ -1728,6 +1746,109 @@ def order_with_lines(
     order.channel = channel_USD
     shipping_method = shipping_zone.shipping_methods.first()
     shipping_price = shipping_method.channel_listing.get(channel_id=channel_USD.id,)
+    order.shipping_method_name = shipping_method.name
+    order.shipping_method = shipping_method
+
+    net = shipping_price.get_total()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    order.shipping_price = TaxedMoney(net=net, gross=gross)
+    order.save()
+
+    recalculate_order(order)
+
+    order.refresh_from_db()
+    return order
+
+
+@pytest.fixture
+def order_with_lines_channel_PLN(
+    order, product_type, category, shipping_method_channel_PLN, warehouse, channel_PLN
+):
+    product = Product.objects.create(
+        name="Test product in PLN channel",
+        slug="test-product-8-pln",
+        product_type=product_type,
+        category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_PLN,
+        is_published=True,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date.today(),
+    )
+    variant = ProductVariant.objects.create(product=product, sku="SKU_A_PLN")
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_PLN,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_PLN.currency_code,
+    )
+    stock = Stock.objects.create(
+        warehouse=warehouse, product_variant=variant, quantity=5
+    )
+    net = variant.get_price(channel_PLN.slug)
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    line = order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=3,
+        variant=variant,
+        unit_price=TaxedMoney(net=net, gross=gross),
+        tax_rate=23,
+    )
+    Allocation.objects.create(
+        order_line=line, stock=stock, quantity_allocated=line.quantity
+    )
+
+    product = Product.objects.create(
+        name="Test product 2 in PLN channel",
+        slug="test-product-9-pln",
+        product_type=product_type,
+        category=category,
+    )
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_PLN,
+        is_published=True,
+        visible_in_listings=True,
+        available_for_purchase=datetime.date.today(),
+    )
+    variant = ProductVariant.objects.create(product=product, sku="SKU_B_PLN")
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_PLN,
+        price_amount=Decimal(20),
+        cost_price_amount=Decimal(2),
+        currency=channel_PLN.currency_code,
+    )
+    stock = Stock.objects.create(
+        product_variant=variant, warehouse=warehouse, quantity=2
+    )
+
+    net = variant.get_price(channel_PLN.slug)
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    line = order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=2,
+        variant=variant,
+        unit_price=TaxedMoney(net=net, gross=gross),
+        tax_rate=23,
+    )
+    Allocation.objects.create(
+        order_line=line, stock=stock, quantity_allocated=line.quantity
+    )
+
+    order.shipping_address = order.billing_address.get_copy()
+    order.channel = channel_PLN
+    shipping_method = shipping_method_channel_PLN
+    shipping_price = shipping_method.channel_listing.get(channel_id=channel_PLN.id,)
     order.shipping_method_name = shipping_method.name
     order.shipping_method = shipping_method
 
