@@ -42,7 +42,7 @@ class Page(CountableDjangoObjectType):
 @key(fields="id")
 class PageType(CountableDjangoObjectType):
     attributes = graphene.List(
-        Attribute, description="Page type attribute of that page type."
+        Attribute, description="Page attributes of that page type."
     )
     available_attributes = FilterInputConnectionField(
         Attribute,
