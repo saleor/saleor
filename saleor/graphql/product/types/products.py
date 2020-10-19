@@ -494,10 +494,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "default_variant",
         ]
 
-    @classmethod
-    def get_node(cls, info, id):
-        raise Exception("dupa")
-
     @staticmethod
     def resolve_default_variant(root: ChannelContext[models.Product], info):
         default_variant_id = root.node.default_variant_id
