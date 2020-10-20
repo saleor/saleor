@@ -17,8 +17,8 @@ def validate_total_quantity(order):
         )
 
 
-def validate_shipping_method(order):
-    if not order.shipping_method:
+def validate_shipping_method(order, required):
+    if not order.shipping_method and required:
         raise ValidationError(
             {
                 "shipping": ValidationError(
@@ -27,36 +27,40 @@ def validate_shipping_method(order):
                 )
             }
         )
-    if (
-        order.shipping_address.country.code
-        not in order.shipping_method.shipping_zone.countries
-    ):
-        raise ValidationError(
-            {
-                "shipping": ValidationError(
-                    "Shipping method is not valid for chosen shipping address",
-                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
-                )
-            }
-        )
+    if order.shipping_method:
+        if not order.shipping_address or (
+            order.shipping_address.country.code
+            not in order.shipping_method.shipping_zone.countries
+        ):
+            raise ValidationError(
+                {
+                    "shipping": ValidationError(
+                        "Shipping method is not valid for chosen shipping address",
+                        code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                    )
+                }
+            )
 
 
-def validate_order_address(order):
-    if not order.shipping_address:
-        raise ValidationError(
-            {
-                "order": ValidationError(
-                    "Can't finalize draft with no shipping address.",
-                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS,
-                )
-            }
-        )
+def validate_billing_address(order):
     if not order.billing_address:
         raise ValidationError(
             {
                 "order": ValidationError(
                     "Can't finalize draft with no billing address.",
                     code=OrderErrorCode.BILLING_ADDRESS_NOT_SET,
+                )
+            }
+        )
+
+
+def validate_shipping_address(order):
+    if not order.shipping_address:
+        raise ValidationError(
+            {
+                "order": ValidationError(
+                    "Can't finalize draft with no shipping address.",
+                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS,
                 )
             }
         )
@@ -124,8 +128,12 @@ def validate_draft_order(order, country):
 
     Returns a list of errors if any were found.
     """
-    validate_order_address(order)
-    validate_shipping_method(order)
+    validate_billing_address(order)
+    if order.is_shipping_required():
+        validate_shipping_address(order)
+        validate_shipping_method(order, required=True)
+    else:
+        validate_shipping_method(order, required=False)
     validate_total_quantity(order)
     validate_order_lines(order, country)
     validate_product_is_published(order)
