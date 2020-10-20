@@ -7,6 +7,7 @@ from ...product import models as product_models
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
+from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..product.dataloaders.attributes import PageAttributesByPageTypeIdLoader
 from ..product.filters import AttributeFilterInput
@@ -69,3 +70,12 @@ class PageType(CountableDjangoObjectType):
         return product_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
         )
+
+    @staticmethod
+    @permission_required(PagePermissions.MANAGE_PAGES)
+    def resolve_private_meta(root: models.PageType, _info):
+        return resolve_private_meta(root, _info)
+
+    @staticmethod
+    def resolve_meta(root: models.PageType, _info):
+        return resolve_meta(root, _info)
