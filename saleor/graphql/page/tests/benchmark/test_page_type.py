@@ -64,3 +64,66 @@ def test_query_page_type(
     content = get_graphql_content(response)
     data = content["data"]["pageType"]
     assert data
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=True)
+def test_query_page_types(
+    page_type,
+    staff_api_client,
+    author_page_attribute,
+    permission_manage_pages,
+    permission_manage_products,
+    count_queries,
+):
+    query = """
+        query {
+            pageTypes(first: 10) {
+                edges {
+                    node {
+                        id
+                        name
+                        slug
+                        attributes {
+                            slug
+                            name
+                            type
+                            inputType
+                            values {
+                                name
+                                slug
+                                type
+                            }
+                            valueRequired
+                            visibleInStorefront
+                            filterableInStorefront
+                        }
+                        availableAttributes(first: 10) {
+                            edges {
+                                node {
+                                    slug
+                                    name
+                                    type
+                                    inputType
+                                    values {
+                                        name
+                                        slug
+                                        type
+                                    }
+                                    valueRequired
+                                    visibleInStorefront
+                                    filterableInStorefront
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    response = staff_api_client.post_graphql(
+        query, {}, permissions=[permission_manage_products, permission_manage_pages],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["pageTypes"]
+    assert data
