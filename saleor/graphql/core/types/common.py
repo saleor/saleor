@@ -188,6 +188,11 @@ class ShippingError(Error):
 
 class PageError(Error):
     code = PageErrorCode(description="The error code.", required=True)
+    attributes = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of attributes IDs which causes the error.",
+        required=False,
+    )
 
 
 class PaymentError(Error):

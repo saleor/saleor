@@ -2690,6 +2690,8 @@ type Mutation {
   pageBulkPublish(ids: [ID]!, isPublished: Boolean!): PageBulkPublish
   pageUpdate(id: ID!, input: PageInput!): PageUpdate
   pageTranslate(id: ID!, input: PageTranslationInput!, languageCode: LanguageCodeEnum!): PageTranslate
+  pageTypeCreate(input: PageTypeCreateInput!): PageTypeCreate
+  pageTypeUpdate(id: ID, input: PageTypeUpdateInput!): PageTypeUpdate
   draftOrderComplete(id: ID!): DraftOrderComplete
   draftOrderCreate(input: DraftOrderCreateInput!): DraftOrderCreate
   draftOrderDelete(id: ID!): DraftOrderDelete
@@ -3286,6 +3288,7 @@ type PageError {
   field: String
   message: String
   code: PageErrorCode!
+  attributes: [ID!]
 }
 
 enum PageErrorCode {
@@ -3294,6 +3297,7 @@ enum PageErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  DUPLICATED_INPUT_ITEM
 }
 
 input PageFilterInput {
@@ -3375,6 +3379,31 @@ type PageType implements Node & ObjectWithMetadata {
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
   attributes: [Attribute]
   availableAttributes(filter: AttributeFilterInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+}
+
+type PageTypeCreate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  pageErrors: [PageError!]!
+  pageType: PageType
+}
+
+input PageTypeCreateInput {
+  name: String
+  slug: String
+  addAttributes: [ID!]
+}
+
+type PageTypeUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  pageErrors: [PageError!]!
+  pageType: PageType
+}
+
+input PageTypeUpdateInput {
+  name: String
+  slug: String
+  addAttributes: [ID!]
+  removeAttributes: [ID!]
 }
 
 type PageUpdate {
