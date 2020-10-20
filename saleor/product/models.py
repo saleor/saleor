@@ -281,9 +281,10 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
         on_delete=models.SET_NULL,
         related_name="+",
     )
+    rating = models.FloatField(null=True, blank=True)
+
     objects = ProductsQueryset.as_manager()
     translated = TranslationProxy()
-    rating = models.FloatField(null=True, blank=True)
 
     class Meta:
         app_label = "product"
