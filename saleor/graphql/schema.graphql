@@ -3884,6 +3884,7 @@ enum ProductOrderField {
   TYPE
   PUBLISHED
   PUBLICATION_DATE
+  RATING
 }
 
 type ProductPricingInfo {
