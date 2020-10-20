@@ -69,9 +69,7 @@ def test_export_products(
         mock_file,
         file_type,
     )
-    send_email_mock.assert_called_once_with(
-        user_export_file, user_export_file.user.email, "export_products_success"
-    )
+    send_email_mock.assert_called_once_with(user_export_file)
     save_file_mock.assert_called_once_with(user_export_file, mock_file, ANY)
 
 
@@ -110,9 +108,7 @@ def test_export_products_ids(
         Product.objects.filter(pk__in=pks).values_list("pk", flat=True)
     )
     assert args[1:] == (export_info, {"id"}, ["id"], ";", mock_file, file_type,)
-    send_email_mock.assert_called_once_with(
-        user_export_file, user_export_file.user.email, "export_products_success"
-    )
+    send_email_mock.assert_called_once_with(user_export_file)
     save_file_mock.assert_called_once_with(user_export_file, mock_file, ANY)
 
 
@@ -155,9 +151,7 @@ def test_export_products_filter(
         Product.objects.filter(is_published=True).values_list("pk", flat=True)
     )
     assert args[1:] == (export_info, {"id"}, ["id"], ";", mock_file, file_type,)
-    send_email_mock.assert_called_once_with(
-        user_export_file, user_export_file.user.email, "export_products_success"
-    )
+    send_email_mock.assert_called_once_with(user_export_file)
     save_file_mock.assert_called_once_with(user_export_file, mock_file, ANY)
 
 
@@ -206,7 +200,7 @@ def test_export_products_by_app(
         file_type,
     )
 
-    send_email_mock.assert_not_called()
+    send_email_mock.assert_called_once_with(app_export_file)
 
     save_file_mock.assert_called_once_with(app_export_file, mock_file, ANY)
 
