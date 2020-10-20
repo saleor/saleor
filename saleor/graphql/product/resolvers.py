@@ -134,7 +134,9 @@ def resolve_report_product_sales(period, channel_slug=None) -> ChannelQsContext:
 
     # exclude draft and canceled orders
     exclude_status = [OrderStatus.DRAFT, OrderStatus.CANCELED]
-    qs = qs.exclude(order_lines__order__status__in=exclude_status)
+    qs = qs.exclude(order_lines__order__status__in=exclude_status).filter(
+        order_lines__order__channel__slug=str(channel_slug)
+    )
 
     # filter by period
     qs = filter_by_period(qs, period, "order_lines__order__created")
