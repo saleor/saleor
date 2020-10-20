@@ -301,8 +301,8 @@ def restock_fulfillment_lines(fulfillment, warehouse):
     OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
 
 
-def sum_order_totals(qs):
-    zero = Money(0, currency=settings.DEFAULT_CURRENCY)
+def sum_order_totals(qs, currency_code):
+    zero = Money(0, currency=currency_code)
     taxed_zero = TaxedMoney(zero, zero)
     return sum([order.total for order in qs], taxed_zero)
 

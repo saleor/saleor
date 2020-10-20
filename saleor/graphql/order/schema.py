@@ -114,6 +114,10 @@ class OrderQueries(graphene.ObjectType):
         TaxedMoney,
         description="Return the total sales amount from a specific period.",
         period=graphene.Argument(ReportingPeriod, description="A period of time."),
+        channel=graphene.Argument(
+            graphene.String,
+            description="Slug of a channel for which the data should be returned.",
+        ),
     )
     order_by_token = graphene.Field(
         Order,
@@ -138,8 +142,8 @@ class OrderQueries(graphene.ObjectType):
         return resolve_draft_orders(info, created)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_orders_total(self, info, period, **_kwargs):
-        return resolve_orders_total(info, period)
+    def resolve_orders_total(self, info, period, channel=None, **_kwargs):
+        return resolve_orders_total(info, period, channel)
 
     def resolve_order_by_token(self, _info, token):
         return resolve_order_by_token(token)
