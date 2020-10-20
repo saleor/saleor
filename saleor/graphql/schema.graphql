@@ -3381,6 +3381,17 @@ type PageType implements Node & ObjectWithMetadata {
   availableAttributes(filter: AttributeFilterInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
 }
 
+type PageTypeCountableConnection {
+  pageInfo: PageInfo!
+  edges: [PageTypeCountableEdge!]!
+  totalCount: Int
+}
+
+type PageTypeCountableEdge {
+  node: PageType!
+  cursor: String!
+}
+
 type PageTypeCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   pageErrors: [PageError!]!
@@ -3391,6 +3402,20 @@ input PageTypeCreateInput {
   name: String
   slug: String
   addAttributes: [ID!]
+}
+
+input PageTypeFilterInput {
+  search: String
+}
+
+enum PageTypeSortField {
+  NAME
+  SLUG
+}
+
+input PageTypeSortingInput {
+  direction: OrderDirection!
+  field: PageTypeSortField!
 }
 
 type PageTypeUpdate {
@@ -4336,6 +4361,7 @@ type Query {
   page(id: ID, slug: String): Page
   pages(sortBy: PageSortingInput, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
   pageType(id: ID): PageType
+  pageTypes(sortBy: PageTypeSortingInput, filter: PageTypeFilterInput, before: String, after: String, first: Int, last: Int): PageTypeCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   order(id: ID!): Order
   orders(sortBy: OrderSortingInput, filter: OrderFilterInput, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection

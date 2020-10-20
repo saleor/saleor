@@ -3,7 +3,7 @@ import graphene
 from ..core.fields import FilterInputConnectionField
 from ..translations.mutations import PageTranslate
 from .bulk_mutations import PageBulkDelete, PageBulkPublish
-from .filters import PageFilterInput
+from .filters import PageFilterInput, PageTypeFilterInput
 from .mutations import (
     PageCreate,
     PageDelete,
@@ -11,8 +11,13 @@ from .mutations import (
     PageTypeUpdate,
     PageUpdate,
 )
-from .resolvers import resolve_page, resolve_page_type, resolve_pages
-from .sorters import PageSortingInput
+from .resolvers import (
+    resolve_page,
+    resolve_page_type,
+    resolve_page_types,
+    resolve_pages,
+)
+from .sorters import PageSortingInput, PageTypeSortingInput
 from .types import Page, PageType
 
 
@@ -34,6 +39,12 @@ class PageQueries(graphene.ObjectType):
         id=graphene.Argument(graphene.ID, description="ID of the page type."),
         description="Look up a page type by ID.",
     )
+    page_types = FilterInputConnectionField(
+        PageType,
+        sort_by=PageTypeSortingInput(description="Sort page types."),
+        filter=PageTypeFilterInput(description="Filtering options for page types."),
+        description="List of the page types.",
+    )
 
     def resolve_page(self, info, id=None, slug=None):
         return resolve_page(info, id, slug)
@@ -43,6 +54,9 @@ class PageQueries(graphene.ObjectType):
 
     def resolve_page_type(self, info, id):
         return resolve_page_type(info, id)
+
+    def resolve_page_types(self, info, **kwargs):
+        return resolve_page_types(info, **kwargs)
 
 
 class PageMutations(graphene.ObjectType):

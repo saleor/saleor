@@ -1920,6 +1920,22 @@ def page_type(db, size_page_attribute, tag_page_attribute):
 
 
 @pytest.fixture
+def page_type_list(db, tag_page_attribute):
+    page_types = list(
+        PageType.objects.bulk_create(
+            [
+                PageType(name="Test page type 1", slug="test-page-type-1"),
+                PageType(name="Example page type 2", slug="page-type-2"),
+                PageType(name="Example page type 3", slug="page-type-3"),
+            ]
+        )
+    )
+    for page_type in page_types:
+        page_type.page_attributes.add(tag_page_attribute)
+    return page_types
+
+
+@pytest.fixture
 def model_form_class():
     mocked_form_class = MagicMock(name="test", spec=ModelForm)
     mocked_form_class._meta = Mock(name="_meta")
