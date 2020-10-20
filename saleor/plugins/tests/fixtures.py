@@ -3,9 +3,7 @@ from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
 
 from ..base_plugin import ConfigurationTypeField
-from ..manager import get_plugins_manager
 from ..models import PluginConfiguration
-from ..user_email.plugin import UserEmailPlugin
 from .sample_plugins import PluginInactive, PluginSample
 
 

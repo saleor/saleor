@@ -2,7 +2,7 @@ import re
 import uuid
 from collections import defaultdict
 from datetime import timedelta
-from unittest.mock import ANY, MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
@@ -10,7 +10,6 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.files import File
-from django.core.validators import URLValidator
 from django.test import override_settings
 from freezegun import freeze_time
 from prices import Money

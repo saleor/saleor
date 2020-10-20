@@ -3,7 +3,14 @@ from dataclasses import dataclass
 
 from ...core.notify_events import NotifyEventType, UserNotifyEvent
 from ..base_plugin import BasePlugin
-from .emails import *
+from .emails import (
+    handle_account_change_email_confirm,
+    handle_account_change_email_request,
+    handle_account_confirmation,
+    handle_account_delete,
+    handle_account_password_reset_event,
+    handle_account_set_customer_password,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +55,7 @@ class UserEmailPlugin(BasePlugin):
     # }
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        configuration = {item["name"]: item["value"] for item in self.configuration}
+        # configuration = {item["name"]: item["value"] for item in self.configuration}
         self.active = True
 
     def notify(self, event: NotifyEventType, payload: dict, previous_value):
@@ -59,4 +66,4 @@ class UserEmailPlugin(BasePlugin):
         if event not in event_map:
             logger.warning(f"Missing handler for event {event}")
             return previous_value
-        event_map[event](payload)
+        event_map[event](payload)  # type: ignore
