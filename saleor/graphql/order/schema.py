@@ -95,6 +95,9 @@ class OrderQueries(graphene.ObjectType):
                 "This field will be removed after 2020-07-31."
             ),
         ),
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
         description="List of orders.",
     )
     draft_orders = FilterInputConnectionField(
@@ -134,8 +137,8 @@ class OrderQueries(graphene.ObjectType):
         return resolve_order(info, data.get("id"))
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_orders(self, info, created=None, status=None, **_kwargs):
-        return resolve_orders(info, created, status)
+    def resolve_orders(self, info, created=None, status=None, channel=None, **_kwargs):
+        return resolve_orders(info, created, status, channel)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_draft_orders(self, info, created=None, **_kwargs):

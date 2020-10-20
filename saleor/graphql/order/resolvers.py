@@ -30,8 +30,10 @@ def filter_orders(qs, info, created, status):
     return qs
 
 
-def resolve_orders(info, created, status, **_kwargs):
+def resolve_orders(info, created, status, channel_slug, **_kwargs):
     qs = models.Order.objects.confirmed()
+    if channel_slug:
+        qs = qs.filter(channel__slug=str(channel_slug))
     return filter_orders(qs, info, created, status)
 
 
