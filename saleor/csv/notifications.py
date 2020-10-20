@@ -9,12 +9,6 @@ if TYPE_CHECKING:
     from .models import ExportFile
 
 
-EXPORT_TEMPLATES = {
-    "export_products_success": "csv/export_products_file",
-    "export_failed": "csv/export_failed",
-}
-
-
 def get_default_export_payload(export_file: "ExportFile") -> dict:
     user_id = export_file.user.id if export_file.user else None
     user_email = export_file.user.email if export_file.user else None
