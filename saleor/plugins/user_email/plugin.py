@@ -58,4 +58,5 @@ class UserEmailPlugin(BasePlugin):
             return previous_value
         if event not in event_map:
             logger.warning(f"Missing handler for event {event}")
+            return previous_value
         event_map[event](payload)

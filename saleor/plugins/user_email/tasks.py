@@ -28,9 +28,7 @@ def send_account_confirmation_email_task(email, token, redirect_url):
 
 
 @app.task
-def send_password_reset_email_with_url_task(
-    recipient_email, redirect_url, user_id, token
-):
+def send_password_reset_email_task(recipient_email, redirect_url, user_id, token):
     params = urlencode({"email": recipient_email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     _send_password_reset_email(recipient_email, reset_url, user_id)
@@ -79,9 +77,7 @@ def send_user_change_email_notification_task(recipient_email):
 
 
 @app.task
-def send_account_delete_confirmation_email_with_url_task(
-    recipient_email, redirect_url, token
-):
+def send_account_delete_confirmation_email_task(recipient_email, redirect_url, token):
     params = urlencode({"token": token})
     delete_url = prepare_url(params, redirect_url)
     _send_delete_confirmation_email(recipient_email, delete_url)
@@ -99,7 +95,7 @@ def _send_delete_confirmation_email(recipient_email, delete_url):
 
 
 @app.task
-def send_set_user_password_email_with_url_task(recipient_email, redirect_url, token):
+def send_set_user_password_email_task(recipient_email, redirect_url, token):
     params = urlencode({"email": recipient_email, "token": token})
     password_set_url = prepare_url(params, redirect_url)
     _send_set_password_email(recipient_email, password_set_url)

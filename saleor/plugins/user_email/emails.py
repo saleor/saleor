@@ -1,10 +1,10 @@
 from ...account.models import User
 from .tasks import (
     send_account_confirmation_email_task,
-    send_account_delete_confirmation_email_with_url_task,
-    send_password_reset_email_with_url_task,
+    send_account_delete_confirmation_email_task,
+    send_password_reset_email_task,
     send_request_email_change_email_task,
-    send_set_user_password_email_with_url_task,
+    send_set_user_password_email_task,
     send_user_change_email_notification_task,
 )
 
@@ -27,7 +27,7 @@ def get_default_user_payload(user: User):
 
 
 def handle_account_password_reset_event(payload):
-    send_password_reset_email_with_url_task.delay(
+    send_password_reset_email_task.delay(
         payload["email"], payload["redirect_url"], payload["id"], payload["token"]
     )
 
@@ -53,12 +53,12 @@ def handle_account_change_email_confirm(payload):
 
 
 def handle_account_delete(payload):
-    send_account_delete_confirmation_email_with_url_task.delay(
+    send_account_delete_confirmation_email_task.delay(
         payload["email"], payload["redirect_url"], payload["token"]
     )
 
 
 def handle_account_set_customer_password(payload):
-    send_set_user_password_email_with_url_task.delay(
+    send_set_user_password_email_task.delay(
         payload["email"], payload["redirect_url"], payload["token"]
     )
