@@ -5,6 +5,7 @@ class UserNotifyEvent:
     ACCOUNT_CHANGE_EMAIL_CONFIRM = "account_change_email_confirm"
     ACCOUNT_DELETE = "account_delete"
     ACCOUNT_SET_CUSTOMER_PASSWORD = "account_set_customer_password"
+    INVOICE_READY = "invoice_ready"
 
     CHOICES = [
         ACCOUNT_CONFIRMATION,
@@ -13,6 +14,7 @@ class UserNotifyEvent:
         ACCOUNT_CHANGE_EMAIL_CONFIRM,
         ACCOUNT_DELETE,
         ACCOUNT_SET_CUSTOMER_PASSWORD,
+        INVOICE_READY,
     ]
 
 
