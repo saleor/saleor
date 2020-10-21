@@ -27,7 +27,7 @@ def validate_shipping_method(order):
                 )
             }
         )
-    if not order.shipping_address or (
+    if (
         order.shipping_address.country.code
         not in order.shipping_method.shipping_zone.countries
     ):
