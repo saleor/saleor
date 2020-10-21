@@ -23,3 +23,7 @@ def resolve_pages(info, **_kwargs):
 
 def resolve_page_type(info, global_page_type_id):
     return graphene.Node.get_node_from_global_id(info, global_page_type_id, PageType)
+
+
+def resolve_page_types(info, **_kwargs):
+    return models.PageType.objects.all()
