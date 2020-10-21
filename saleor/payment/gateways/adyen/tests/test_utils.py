@@ -492,4 +492,4 @@ def test_get_payment_method_info_no_additional_data(dummy_payment_data):
     )
 
     # then
-    assert payment_method_info is None
+    assert payment_method_info == PaymentMethodInfo(type="card")

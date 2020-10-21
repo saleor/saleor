@@ -307,9 +307,7 @@ class AdyenGatewayPlugin(BasePlugin):
                 token=result.message.get("pspReference"),
                 adyen_client=self.adyen,
             )
-
         payment_method_info = get_payment_method_info(payment_information, result)
-
         return GatewayResponse(
             is_success=is_success,
             action_required="action" in result.message,
@@ -359,6 +357,8 @@ class AdyenGatewayPlugin(BasePlugin):
             # action
             response = self.capture_payment(payment_information, None)
             is_success = response.is_success
+
+        payment_method_info = get_payment_method_info(payment_information, result)
         action = result.message.get("action")
         return GatewayResponse(
             is_success=is_success,
@@ -371,6 +371,7 @@ class AdyenGatewayPlugin(BasePlugin):
             error=result.message.get("refusalReason"),
             raw_response=result.message,
             searchable_key=result.message.get("pspReference", ""),
+            payment_method_info=payment_method_info,
         )
 
     @require_active_plugin

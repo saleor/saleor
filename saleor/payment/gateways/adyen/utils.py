@@ -283,13 +283,13 @@ def request_for_payment_cancel(
 def get_payment_method_info(
     payment_information: "PaymentData", api_call_result: Adyen.Adyen
 ):
-    payment_method_info = None
     additional_data = api_call_result.message.get("additionalData")
     payment_data = payment_information.data or {}
     payment_method = payment_data.get("paymentMethod", {}).get("type")
+    brand = None
     if additional_data:
-        payment_method_info = PaymentMethodInfo(
-            brand=additional_data.get("paymentMethod"),
-            type="card" if payment_method == "scheme" else payment_method,
-        )
+        brand = additional_data.get("paymentMethod")
+    payment_method_info = PaymentMethodInfo(
+        brand=brand, type="card" if payment_method == "scheme" else payment_method,
+    )
     return payment_method_info
