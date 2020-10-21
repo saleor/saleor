@@ -6,7 +6,12 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils.text import slugify
 
-from ....core.permissions import ProductPermissions, ProductTypePermissions
+from ....core.exceptions import PermissionDenied
+from ....core.permissions import (
+    PageTypePermissions,
+    ProductPermissions,
+    ProductTypePermissions,
+)
 from ....product import AttributeInputType, models
 from ....product.error_codes import ProductErrorCode
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -32,7 +37,7 @@ class AttributeCreateInput(graphene.InputObjectType):
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     name = graphene.String(required=True, description=AttributeDescriptions.NAME)
     slug = graphene.String(required=False, description=AttributeDescriptions.SLUG)
-    type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
+    type = AttributeTypeEnum(description=AttributeDescriptions.TYPE, required=True)
     values = graphene.List(
         AttributeValueCreateInput, description=AttributeDescriptions.VALUES
     )
@@ -191,16 +196,24 @@ class AttributeCreate(AttributeMixin, ModelMutation):
     class Meta:
         model = models.Attribute
         description = "Creates an attribute."
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
+        input = data.get("input")
+        # check permissions based on attribute type
+        if input["type"] == AttributeTypeEnum.PRODUCT_TYPE.value:
+            permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
+        else:
+            permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        if not cls.check_permissions(info.context, permissions):
+            raise PermissionDenied()
+
         instance = models.Attribute()
 
         # Do cleaning and uniqueness checks
-        cleaned_input = cls.clean_input(info, instance, data.get("input"))
+        cleaned_input = cls.clean_input(info, instance, input)
         cls.clean_attribute(instance, cleaned_input)
         cls.clean_values(cleaned_input, instance)
 
