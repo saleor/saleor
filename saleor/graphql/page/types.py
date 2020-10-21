@@ -5,10 +5,10 @@ from ...core.permissions import PagePermissions
 from ...page import models
 from ...product import models as product_models
 from ..core.connection import CountableDjangoObjectType
-from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
-from ..meta.types import ObjectWithMetadata
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
+from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
+from ..meta.types import ObjectWithMetadata
 from ..product.dataloaders.attributes import PageAttributesByPageTypeIdLoader
 from ..product.filters import AttributeFilterInput
 from ..product.types import Attribute
