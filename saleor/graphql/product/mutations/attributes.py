@@ -551,12 +551,14 @@ class ProductAttributeUnassign(BaseMutation):
     class Arguments:
         product_type_id = graphene.ID(
             required=True,
-            description="ID of the product type to assign the attributes into.",
+            description=(
+                "ID of the product type from which the attributes should be unassigned."
+            ),
         )
         attribute_ids = graphene.List(
             graphene.ID,
             required=True,
-            description="The IDs of the attributes to assign.",
+            description="The IDs of the attributes to unassign.",
         )
 
     class Meta:
