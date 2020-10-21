@@ -61,6 +61,7 @@ class AdyenGatewayPlugin(BasePlugin):
         {"name": "hmac-secret-key", "value": ""},
         {"name": "notification-user", "value": ""},
         {"name": "notification-password", "value": ""},
+        {"name": "enable-native-3d-secure", "value": False},
     ]
 
     CONFIG_STRUCTURE = {
@@ -169,6 +170,17 @@ class AdyenGatewayPlugin(BasePlugin):
             ),
             "label": "Notification password",
         },
+        "enable-native-3d-secure": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": (
+                "Saleor uses 3d secure redirect authentication by default. If you want"
+                " to use native 3d secure authentication, enable this option. For more"
+                " details see Adyen documentation: native - "
+                "https://docs.adyen.com/checkout/3d-secure/redirect-3ds2-3ds1, redirect"
+                " - https://docs.adyen.com/checkout/3d-secure/redirect-3ds2-3ds1"
+            ),
+            "label": "Enable native 3d secure",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -188,6 +200,7 @@ class AdyenGatewayPlugin(BasePlugin):
                 "webhook_user": configuration["notification-user"],
                 "webhook_user_password": configuration["notification-password"],
                 "adyen_auto_capture": configuration["adyen-auto-capture"],
+                "enable_native_3d_secure": configuration["enable-native-3d-secure"],
             },
         )
         api_key = self.config.connection_params["api_key"]
@@ -267,6 +280,7 @@ class AdyenGatewayPlugin(BasePlugin):
             return_url=return_url,
             merchant_account=self.config.connection_params["merchant_account"],
             origin_url=self.config.connection_params["origin_url"],
+            native_3d_secure=self.config.connection_params["enable_native_3d_secure"],
         )
         result = api_call(request_data, self.adyen.checkout.payments)
         result_code = result.message["resultCode"].strip().lower()

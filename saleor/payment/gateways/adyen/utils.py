@@ -58,6 +58,7 @@ def request_data_for_payment(
     return_url: str,
     merchant_account: str,
     origin_url: str,
+    native_3d_secure: bool,
 ) -> Dict[str, Any]:
     payment_data = payment_information.data or {}
 
@@ -65,18 +66,20 @@ def request_data_for_payment(
         raise PaymentError("Payment data are not valid.")
 
     extra_request_params = {}
+    channel = payment_data.get("channel", "web")
     if "browserInfo" in payment_data:
         extra_request_params["browserInfo"] = payment_data["browserInfo"]
     if "billingAddress" in payment_data:
         extra_request_params["billingAddress"] = payment_data["billingAddress"]
     if "shopperIP" in payment_data:
         extra_request_params["shopperIP"] = payment_data["shopperIP"]
-    if (
-        "browserInfo" in extra_request_params
-        and "billingAddress" in extra_request_params
-        and origin_url
-    ):
+
+    if channel.lower() == "web" and origin_url:
         extra_request_params["origin"] = origin_url
+
+    extra_request_params["channel"] = channel
+    if native_3d_secure:
+        extra_request_params["additionalData"] = {"allow3DS2": "true"}
 
     payment_method = payment_data.get("paymentMethod")
     if not payment_method:
