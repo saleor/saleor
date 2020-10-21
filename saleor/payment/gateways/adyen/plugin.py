@@ -359,10 +359,11 @@ class AdyenGatewayPlugin(BasePlugin):
             # action
             response = self.capture_payment(payment_information, None)
             is_success = response.is_success
-
+        action = result.message.get("action")
         return GatewayResponse(
             is_success=is_success,
             action_required="action" in result.message,
+            action_required_data=action,
             kind=kind,
             amount=payment_information.amount,
             currency=payment_information.currency,

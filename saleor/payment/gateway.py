@@ -218,10 +218,12 @@ def confirm(payment: Payment, additional_data: Optional[dict] = None) -> Transac
     response, error = _fetch_gateway_response(
         plugin_manager.confirm_payment, payment.gateway, payment_data
     )
+    action_required = response is not None and response.action_required
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.CONFIRM,
         payment_information=payment_data,
+        action_required=action_required,
         error_msg=error,
         gateway_response=response,
     )
