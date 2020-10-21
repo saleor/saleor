@@ -460,7 +460,7 @@ input AttributeCreateInput {
   inputType: AttributeInputTypeEnum
   name: String!
   slug: String
-  type: AttributeTypeEnum
+  type: AttributeTypeEnum!
   values: [AttributeValueCreateInput]
   valueRequired: Boolean
   isVariantOnly: Boolean
