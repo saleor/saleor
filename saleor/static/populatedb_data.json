@@ -5987,6 +5987,33 @@
     }
   },
   {
+    "model": "product.attributepage",
+    "pk": 2,
+    "fields": {
+      "sort_order": null,
+      "attribute": 29,
+      "page_type": 1
+    }
+},
+{
+    "model": "product.attributepage",
+    "pk": 3,
+    "fields": {
+      "sort_order": null,
+      "attribute": 29,
+      "page_type": 2
+    }
+},
+{
+    "model": "product.attributepage",
+    "pk": 4,
+    "fields": {
+      "sort_order": null,
+      "attribute": 27,
+      "page_type": 2
+    }
+},
+  {
     "model": "product.attribute",
     "pk": 13,
     "fields": {
