@@ -2,7 +2,7 @@ import re
 import uuid
 from collections import defaultdict
 from datetime import timedelta
-from unittest.mock import ANY, MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
@@ -10,7 +10,6 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.files import File
-from django.core.validators import URLValidator
 from django.test import override_settings
 from freezegun import freeze_time
 from prices import Money
@@ -18,8 +17,10 @@ from prices import Money
 from ....account import events as account_events
 from ....account.error_codes import AccountErrorCode
 from ....account.models import Address, User
+from ....account.notifications import get_default_user_payload
 from ....checkout import AddressType
 from ....core.jwt import create_token
+from ....core.notify_events import NotifyEventType
 from ....core.permissions import AccountPermissions, OrderPermissions
 from ....order.models import FulfillmentStatus, Order
 from ....product.tests.utils import create_image
@@ -708,8 +709,10 @@ ACCOUNT_REGISTER_MUTATION = """
 @override_settings(
     ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
 )
-@patch("saleor.account.emails._send_account_confirmation_email")
-def test_customer_register(send_account_confirmation_email_mock, api_client):
+@patch("saleor.account.notifications.default_token_generator.make_token")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_customer_register(mocked_notify, mocked_generator, api_client):
+    mocked_generator.return_value = "token"
     email = "customer@example.com"
     variables = {
         "email": email,
@@ -718,12 +721,21 @@ def test_customer_register(send_account_confirmation_email_mock, api_client):
     }
     query = ACCOUNT_REGISTER_MUTATION
     mutation_name = "accountRegister"
+
     response = api_client.post_graphql(query, variables)
+
+    new_user = User.objects.get(email=email)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
+
+    expected_payload = get_default_user_payload(new_user)
+    expected_payload["token"] = "token"
+    expected_payload["redirect_url"] = "http://localhost:3000"
+
     assert not data["accountErrors"]
-    assert send_account_confirmation_email_mock.delay.call_count == 1
-    new_user = User.objects.get(email=email)
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_CONFIRMATION, payload=expected_payload
+    )
 
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -738,29 +750,29 @@ def test_customer_register(send_account_confirmation_email_mock, api_client):
 
 
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
-@patch("saleor.account.emails._send_account_confirmation_email")
-def test_customer_register_disabled_email_confirmation(
-    send_account_confirmation_email_mock, api_client
-):
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_customer_register_disabled_email_confirmation(mocked_notify, api_client):
     email = "customer@example.com"
     variables = {"email": email, "password": "Password"}
     response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
     errors = response.json()["data"]["accountRegister"]["accountErrors"]
 
     assert errors == []
-    send_account_confirmation_email_mock.delay.assert_not_called()
+    created_user = User.objects.get()
+    expected_payload = get_default_user_payload(created_user)
+    expected_payload["token"] = "token"
+    expected_payload["redirect_url"] = "http://localhost:3000"
+    mocked_notify.assert_not_called()
 
 
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True)
-@patch("saleor.account.emails._send_account_confirmation_email")
-def test_customer_register_no_redirect_url(
-    send_account_confirmation_email_mock, api_client
-):
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_customer_register_no_redirect_url(mocked_notify, api_client):
     variables = {"email": "customer@example.com", "password": "Password"}
     response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
     errors = response.json()["data"]["accountRegister"]["accountErrors"]
     assert "redirectUrl" in map(lambda error: error["field"], errors)
-    assert send_account_confirmation_email_mock.delay.call_count == 0
+    mocked_notify.assert_not_called()
 
 
 CUSTOMER_CREATE_MUTATION = """
@@ -805,10 +817,12 @@ CUSTOMER_CREATE_MUTATION = """
 """
 
 
-@patch("saleor.account.emails._send_set_password_email")
+@patch("saleor.account.notifications.default_token_generator.make_token")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 def test_customer_create(
-    _send_set_password_email_mock, staff_api_client, address, permission_manage_users
+    mocked_notify, mocked_generator, staff_api_client, address, permission_manage_users
 ):
+    mocked_generator.return_value = "token"
     email = "api_user@example.com"
     first_name = "api_first_name"
     last_name = "api_last_name"
@@ -849,8 +863,12 @@ def test_customer_create(
     assert not data["user"]["isStaff"]
     assert data["user"]["isActive"]
 
-    _send_set_password_email_mock.assert_called_once_with(
-        new_customer.email, ANY, "dashboard/customer/set_password"
+    new_user = User.objects.get(email=email)
+    expected_payload = get_default_user_payload(new_user)
+    expected_payload["token"] = "token"
+    expected_payload["redirect_url"] = "https://www.example.com"
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD, payload=expected_payload
     )
 
     customer_creation_event = account_events.CustomerEvent.objects.get()
@@ -858,13 +876,12 @@ def test_customer_create(
     assert customer_creation_event.user == new_customer
 
 
-@freeze_time("2018-05-31 12:00:01")
-@patch("saleor.account.emails._send_set_user_password_email_with_url.delay")
+@patch("saleor.account.notifications.default_token_generator.make_token")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 def test_customer_create_send_password_with_url(
-    _send_set_user_password_email_with_url_mock,
-    staff_api_client,
-    permission_manage_users,
+    mocked_notify, mocked_generator, staff_api_client, permission_manage_users,
 ):
+    mocked_generator.return_value = "token"
     email = "api_user@example.com"
     variables = {"email": email, "redirect_url": "https://www.example.com"}
 
@@ -878,9 +895,11 @@ def test_customer_create_send_password_with_url(
     new_customer = User.objects.get(email=email)
     assert new_customer
 
-    token = default_token_generator.make_token(new_customer)
-    _send_set_user_password_email_with_url_mock.assert_called_once_with(
-        new_customer.email, ANY, token, "dashboard/customer/set_password"
+    expected_payload = get_default_user_payload(new_customer)
+    expected_payload["redirect_url"] = "https://www.example.com"
+    expected_payload["token"] = "token"
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD, payload=expected_payload
     )
 
 
@@ -1207,8 +1226,10 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
 """
 
 
-@patch("saleor.account.emails._send_delete_confirmation_email")
-def test_account_request_deletion(send_delete_confirmation_email_mock, user_api_client):
+@patch("saleor.account.notifications.default_token_generator.make_token")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_account_request_deletion(mocked_notify, mocked_token, user_api_client):
+    mocked_token.return_value = "token"
     user = user_api_client.user
     variables = {"redirectUrl": "https://www.example.com"}
     response = user_api_client.post_graphql(
@@ -1217,17 +1238,18 @@ def test_account_request_deletion(send_delete_confirmation_email_mock, user_api_
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
-    send_delete_confirmation_email_mock.assert_called_once_with(user.email, ANY)
-    url = send_delete_confirmation_email_mock.mock_calls[0][1][1]
-    url_validator = URLValidator()
-    url_validator(url)
+    expected_payload = get_default_user_payload(user)
+    expected_payload["redirect_url"] = "https://www.example.com"
+    expected_payload["token"] = "token"
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_DELETE, payload=expected_payload
+    )
 
 
 @freeze_time("2018-05-31 12:00:01")
-@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
-def test_account_request_deletion_token_validation(
-    send_account_delete_confirmation_email_with_url_mock, user_api_client
-):
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_account_request_deletion_token_validation(mocked_notify, user_api_client):
     user = user_api_client.user
     token = default_token_generator.make_token(user)
     variables = {"redirectUrl": "https://www.example.com"}
@@ -1237,27 +1259,27 @@ def test_account_request_deletion_token_validation(
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
-    send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
-        user.email, ANY, token
+
+    expected_payload = get_default_user_payload(user)
+    expected_payload["redirect_url"] = "https://www.example.com"
+    expected_payload["token"] = token
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_DELETE, payload=expected_payload
     )
-    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][1]
-    url_validator = URLValidator()
-    url_validator(url)
 
 
-@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
-def test_account_request_deletion_anonymous_user(
-    send_account_delete_confirmation_email_with_url_mock, api_client
-):
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_account_request_deletion_anonymous_user(mocked_notify, api_client):
     variables = {"redirectUrl": "https://www.example.com"}
     response = api_client.post_graphql(ACCOUNT_REQUEST_DELETION_MUTATION, variables)
     assert_no_permission(response)
-    send_account_delete_confirmation_email_with_url_mock.assert_not_called()
+    mocked_notify.assert_not_called()
 
 
-@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion_storefront_hosts_not_allowed(
-    send_account_delete_confirmation_email_with_url_mock, user_api_client
+    mocked_notify, user_api_client
 ):
     variables = {"redirectUrl": "https://www.fake.com"}
     response = user_api_client.post_graphql(
@@ -1270,13 +1292,13 @@ def test_account_request_deletion_storefront_hosts_not_allowed(
         "field": "redirectUrl",
         "code": AccountErrorCode.INVALID.name,
     }
-    send_account_delete_confirmation_email_with_url_mock.assert_not_called()
+    mocked_notify.assert_not_called()
 
 
 @freeze_time("2018-05-31 12:00:01")
-@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion_all_storefront_hosts_allowed(
-    send_account_delete_confirmation_email_with_url_mock, user_api_client, settings
+    mocked_notify, user_api_client, settings
 ):
     user = user_api_client.user
     token = default_token_generator.make_token(user)
@@ -1288,19 +1310,19 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
-    send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
-        user.email, ANY, token
+
+    expected_payload = get_default_user_payload(user)
+    expected_payload["redirect_url"] = "https://www.test.com"
+    expected_payload["token"] = token
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_DELETE, payload=expected_payload
     )
-    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][1]
-    url_validator = URLValidator()
-    url_validator(url)
 
 
 @freeze_time("2018-05-31 12:00:01")
-@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
-def test_account_request_deletion_subdomain(
-    send_account_delete_confirmation_email_with_url_mock, user_api_client, settings
-):
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_account_request_deletion_subdomain(mocked_notify, user_api_client, settings):
     user = user_api_client.user
     token = default_token_generator.make_token(user)
     settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
@@ -1311,12 +1333,13 @@ def test_account_request_deletion_subdomain(
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
-    send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
-        user.email, ANY, token
+    expected_payload = get_default_user_payload(user)
+    expected_payload["redirect_url"] = "https://sub.example.com"
+    expected_payload["token"] = token
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_DELETE, payload=expected_payload
     )
-    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][1]
-    url_validator = URLValidator()
-    url_validator(url)
 
 
 ACCOUNT_DELETE_MUTATION = """
@@ -1485,9 +1508,10 @@ STAFF_CREATE_MUTATION = """
 """
 
 
-@patch("saleor.account.emails._send_set_password_email")
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 def test_staff_create(
-    _send_set_password_email_mock,
+    mocked_notify,
     staff_api_client,
     staff_user,
     media_root,
@@ -1535,8 +1559,13 @@ def test_staff_create(
     assert len(groups) == 1
     assert {perm["code"].lower() for perm in groups[0]["permissions"]} == expected_perms
 
-    _send_set_password_email_mock.assert_called_once_with(
-        staff_user.email, ANY, "dashboard/staff/set_password"
+    token = default_token_generator.make_token(staff_user)
+    expected_payload = get_default_user_payload(staff_user)
+    expected_payload["redirect_url"] = "https://www.example.com"
+    expected_payload["token"] = token
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD, payload=expected_payload
     )
 
 
@@ -1566,9 +1595,10 @@ def test_staff_create_app_no_permission(
     assert_no_permission(response)
 
 
-@patch("saleor.account.emails._send_set_password_email")
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 def test_staff_create_out_of_scope_group(
-    _send_set_password_email_mock,
+    mocked_notify,
     staff_api_client,
     superuser_api_client,
     media_root,
@@ -1610,7 +1640,7 @@ def test_staff_create_out_of_scope_group(
 
     assert errors[0] == expected_error
 
-    _send_set_password_email_mock.assert_not_called()
+    mocked_notify.assert_not_called()
 
     # for superuser
     response = superuser_api_client.post_graphql(STAFF_CREATE_MUTATION, variables)
@@ -1651,18 +1681,20 @@ def test_staff_create_out_of_scope_group(
     for group in expected_groups:
         assert group in groups
 
-    _send_set_password_email_mock.assert_called_once_with(
-        staff_user.email, ANY, "dashboard/staff/set_password"
+    token = default_token_generator.make_token(staff_user)
+    expected_payload = get_default_user_payload(staff_user)
+    expected_payload["redirect_url"] = "https://www.example.com"
+    expected_payload["token"] = token
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD, payload=expected_payload
     )
 
 
 @freeze_time("2018-05-31 12:00:01")
-@patch("saleor.account.emails._send_set_user_password_email_with_url.delay")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 def test_staff_create_send_password_with_url(
-    _send_set_user_password_email_with_url_mock,
-    staff_api_client,
-    media_root,
-    permission_manage_staff,
+    mocked_notify, staff_api_client, media_root, permission_manage_staff,
 ):
     email = "api_user@example.com"
     variables = {"email": email, "redirect_url": "https://www.example.com"}
@@ -1678,8 +1710,12 @@ def test_staff_create_send_password_with_url(
     assert staff_user.is_staff
 
     token = default_token_generator.make_token(staff_user)
-    _send_set_user_password_email_with_url_mock.assert_called_once_with(
-        staff_user.email, ANY, token, "dashboard/staff/set_password"
+    expected_payload = get_default_user_payload(staff_user)
+    expected_payload["redirect_url"] = "https://www.example.com"
+    expected_payload["token"] = token
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD, payload=expected_payload
     )
 
 
@@ -2956,22 +2992,22 @@ CONFIRM_ACCOUNT_MUTATION = """
 """
 
 
-@patch("saleor.account.emails._send_password_reset_email")
-def test_account_reset_password(
-    send_password_reset_email_mock, user_api_client, customer_user
-):
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_account_reset_password(mocked_notify, user_api_client, customer_user):
     variables = {"email": customer_user.email, "redirectUrl": "https://www.example.com"}
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
-    assert send_password_reset_email_mock.called
-    send_password_reset_email_mock.assert_called_once_with(
-        user_api_client.user.email, ANY, user_api_client.user.pk
+    token = default_token_generator.make_token(customer_user)
+    expected_payload = get_default_user_payload(customer_user)
+    expected_payload["redirect_url"] = "https://www.example.com"
+    expected_payload["token"] = token
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=expected_payload
     )
-    url = send_password_reset_email_mock.mock_calls[0][1][1]
-    url_validator = URLValidator()
-    url_validator(url)
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -3029,29 +3065,27 @@ def test_account_confirmation_invalid_token(
     match_orders_with_new_user_mock.assert_not_called()
 
 
-@patch("saleor.account.emails._send_password_reset_email")
-def test_request_password_reset_email_for_staff(
-    send_password_reset_email_mock, staff_api_client
-):
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_request_password_reset_email_for_staff(mocked_notify, staff_api_client):
     redirect_url = "https://www.example.com"
     variables = {"email": staff_api_client.user.email, "redirectUrl": redirect_url}
     response = staff_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
-    assert send_password_reset_email_mock.call_count == 1
-    send_password_reset_email_mock.assert_called_once_with(
-        staff_api_client.user.email, ANY, staff_api_client.user.pk
+    token = default_token_generator.make_token(staff_api_client.user)
+    expected_payload = get_default_user_payload(staff_api_client.user)
+    expected_payload["redirect_url"] = "https://www.example.com"
+    expected_payload["token"] = token
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=expected_payload
     )
-    url = send_password_reset_email_mock.mock_calls[0][1][1]
-    url_validator = URLValidator()
-    url_validator(url)
 
 
-@patch("saleor.account.emails._send_password_reset_email")
-def test_account_reset_password_invalid_email(
-    send_password_reset_email_mock, user_api_client
-):
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_account_reset_password_invalid_email(mocked_notify, user_api_client):
     variables = {
         "email": "non-existing-email@email.com",
         "redirectUrl": "https://www.example.com",
@@ -3060,12 +3094,12 @@ def test_account_reset_password_invalid_email(
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert len(data["errors"]) == 1
-    assert not send_password_reset_email_mock.called
+    mocked_notify.assert_not_called()
 
 
-@patch("saleor.account.emails._send_password_reset_email")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password_storefront_hosts_not_allowed(
-    send_password_reset_email_mock, user_api_client, customer_user
+    mocked_notify, user_api_client, customer_user
 ):
     variables = {"email": customer_user.email, "redirectUrl": "https://www.fake.com"}
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
@@ -3073,12 +3107,13 @@ def test_account_reset_password_storefront_hosts_not_allowed(
     data = content["data"]["requestPasswordReset"]
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "redirectUrl"
-    assert not send_password_reset_email_mock.called
+    mocked_notify.assert_not_called()
 
 
-@patch("saleor.account.emails._send_password_reset_email")
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password_all_storefront_hosts_allowed(
-    send_password_reset_email_mock, user_api_client, customer_user, settings
+    mocked_notify, user_api_client, customer_user, settings
 ):
     settings.ALLOWED_CLIENT_HOSTS = ["*"]
     variables = {"email": customer_user.email, "redirectUrl": "https://www.test.com"}
@@ -3086,18 +3121,21 @@ def test_account_reset_password_all_storefront_hosts_allowed(
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
-    assert send_password_reset_email_mock.called
-    send_password_reset_email_mock.assert_called_once_with(
-        user_api_client.user.email, ANY, user_api_client.user.pk
+
+    token = default_token_generator.make_token(customer_user)
+    expected_payload = get_default_user_payload(customer_user)
+    expected_payload["redirect_url"] = "https://www.test.com"
+    expected_payload["token"] = token
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=expected_payload
     )
-    url = send_password_reset_email_mock.mock_calls[0][1][1]
-    url_validator = URLValidator()
-    url_validator(url)
 
 
-@patch("saleor.account.emails._send_password_reset_email")
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_reset_password_subdomain(
-    send_password_reset_email_mock, user_api_client, customer_user, settings
+    mocked_notify, user_api_client, customer_user, settings
 ):
     settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
     variables = {"email": customer_user.email, "redirectUrl": "https://sub.example.com"}
@@ -3105,13 +3143,15 @@ def test_account_reset_password_subdomain(
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
-    assert send_password_reset_email_mock.called
-    send_password_reset_email_mock.assert_called_once_with(
-        user_api_client.user.email, ANY, user_api_client.user.pk
+
+    token = default_token_generator.make_token(customer_user)
+    expected_payload = get_default_user_payload(customer_user)
+    expected_payload["redirect_url"] = "https://sub.example.com"
+    expected_payload["token"] = token
+
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=expected_payload
     )
-    url = send_password_reset_email_mock.mock_calls[0][1][1]
-    url_validator = URLValidator()
-    url_validator(url)
 
 
 ACCOUNT_ADDRESS_CREATE_MUTATION = """

@@ -17,6 +17,7 @@ from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxType
     from ..checkout.models import Checkout, CheckoutLine
     from ..discount import DiscountInfo
@@ -68,6 +69,13 @@ class BasePlugin:
         """Handle received http request.
 
         Overwrite this method if the plugin expects the incoming requests.
+        """
+        return NotImplemented
+
+    def notify(self, event: "NotifyEventType", payload: dict, previous_value):
+        """Handle notification request.
+
+        Overwrite this method if the plugin is responsible for sending notifications.
         """
         return NotImplemented
 
