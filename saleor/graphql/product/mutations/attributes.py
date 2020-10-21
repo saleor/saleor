@@ -96,7 +96,7 @@ class AttributeUpdateInput(graphene.InputObjectType):
     )
 
 
-class AttributeAssignInput(graphene.InputObjectType):
+class ProductAttributeAssignInput(graphene.InputObjectType):
     id = graphene.ID(required=True, description="The ID of the attribute to assign.")
     type = ProductAttributeType(
         required=True, description="The attribute type to be assigned as."
@@ -293,7 +293,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         return AttributeUpdate(attribute=instance)
 
 
-class AttributeAssign(BaseMutation):
+class ProductAttributeAssign(BaseMutation):
     product_type = graphene.Field(ProductType, description="The updated product type.")
 
     class Arguments:
@@ -302,7 +302,7 @@ class AttributeAssign(BaseMutation):
             description="ID of the product type to assign the attributes into.",
         )
         operations = graphene.List(
-            AttributeAssignInput,
+            ProductAttributeAssignInput,
             required=True,
             description="The operations to perform.",
         )
@@ -319,7 +319,7 @@ class AttributeAssign(BaseMutation):
         )
 
     @classmethod
-    def get_operations(cls, info, operations: List[AttributeAssignInput]):
+    def get_operations(cls, info, operations: List[ProductAttributeAssignInput]):
         """Resolve all passed global ids into integer PKs of the Attribute type."""
         product_attrs_pks = []
         variant_attrs_pks = []
@@ -432,7 +432,7 @@ class AttributeAssign(BaseMutation):
     @transaction.atomic()
     def perform_mutation(cls, _root, info, **data):
         product_type_id: str = data["product_type_id"]
-        operations: List[AttributeAssignInput] = data["operations"]
+        operations: List[ProductAttributeAssignInput] = data["operations"]
         # Retrieve the requested product type
         product_type: models.ProductType = graphene.Node.get_node_from_global_id(
             info, product_type_id, only_type=ProductType
@@ -461,7 +461,7 @@ class AttributeAssign(BaseMutation):
         return cls(product_type=product_type)
 
 
-class AttributeUnassign(BaseMutation):
+class ProductAttributeUnassign(BaseMutation):
     product_type = graphene.Field(ProductType, description="The updated product type.")
 
     class Arguments:
