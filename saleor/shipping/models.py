@@ -104,7 +104,8 @@ class ShippingMethodQueryset(models.QuerySet):
         applicable to the given price & weight total.
         """
         qs = self.filter(
-            shipping_zone__countries__contains=country_code, currency=price.currency,
+            shipping_zone__countries__contains=country_code,
+            channel_listing__currency=price.currency,
         )
         qs = self.applicable_shipping_methods_by_channel(qs, channel_id)
         qs = qs.prefetch_related("shipping_zone")
@@ -137,10 +138,6 @@ class ShippingMethodQueryset(models.QuerySet):
 class ShippingMethod(models.Model):
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=30, choices=ShippingMethodType.CHOICES)
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        default=settings.DEFAULT_CURRENCY,
-    )
     shipping_zone = models.ForeignKey(
         ShippingZone, related_name="shipping_methods", on_delete=models.CASCADE
     )

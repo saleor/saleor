@@ -554,8 +554,8 @@ def shipping_zone(db, channel_USD):  # pylint: disable=W0613
         channel=channel_USD,
         currency=channel_USD.currency_code,
         shipping_method=method,
-        minimum_order_price=Money(0, "USD"),
-        price=Money(10, "USD"),
+        minimum_order_price=Money(0, channel_USD.currency_code),
+        price=Money(10, channel_USD.currency_code),
     )
     return shipping_zone
 
@@ -626,17 +626,14 @@ def shipping_method(shipping_zone, channel_USD):
 @pytest.fixture
 def shipping_method_channel_PLN(shipping_zone, channel_PLN):
     method = ShippingMethod.objects.create(
-        name="DHL",
-        type=ShippingMethodType.PRICE_BASED,
-        shipping_zone=shipping_zone,
-        # TODO: We should drop `currency` from `ShippingMethod`
-        currency=channel_PLN.currency_code,
+        name="DHL", type=ShippingMethodType.PRICE_BASED, shipping_zone=shipping_zone,
     )
     ShippingMethodChannelListing.objects.create(
         shipping_method=method,
         channel=channel_PLN,
         minimum_order_price=Money(0, channel_PLN.currency_code),
         price=Money(10, channel_PLN.currency_code),
+        currency=channel_PLN.currency_code,
     )
     return method
 
@@ -1854,7 +1851,7 @@ def order_with_lines(
     order.shipping_address = order.billing_address.get_copy()
     order.channel = channel_USD
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_price = shipping_method.channel_listing.get(channel_id=channel_USD.id,)
+    shipping_price = shipping_method.channel_listing.get(channel_id=channel_USD.id)
     order.shipping_method_name = shipping_method.name
     order.shipping_method = shipping_method
 

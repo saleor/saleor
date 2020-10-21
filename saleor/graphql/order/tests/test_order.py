@@ -322,6 +322,37 @@ def test_order_query_in_pln_channel(
     assert expected_method.type.upper() == method["type"]
 
 
+def test_order_query_without_available_shipping_methods(
+    staff_api_client,
+    permission_manage_orders,
+    order,
+    shipping_method_channel_PLN,
+    channel_USD,
+):
+    order.channel = channel_USD
+    order.shipping_method = shipping_method_channel_PLN
+    order.save()
+    query = """
+    query OrdersQuery {
+        orders(first: 1) {
+            edges {
+                node {
+                    availableShippingMethods {
+                        name
+                    }
+                }
+            }
+        }
+    }
+    """
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert len(order_data["availableShippingMethods"]) == 0
+
+
 @pytest.mark.parametrize(
     "expected_price_type, expected_price, display_gross_prices",
     (("gross", 13, True), ("net", 10, False)),

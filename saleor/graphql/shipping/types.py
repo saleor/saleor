@@ -73,25 +73,30 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
         if price:
             return price
         # TODO: Add dataloader.
-        return root.node.channel_listing.get(channel__slug=root.channel_slug).price
+        channel_listing = root.node.channel_listing.filter(
+            channel__slug=root.channel_slug
+        ).first()
+        return channel_listing.price if channel_listing else None
 
     @staticmethod
     def resolve_maximum_order_price(
         root: ChannelContext[models.ShippingMethod], *_args
     ):
         # TODO: Add dataloader.
-        return root.node.channel_listing.get(
+        channel_listing = root.node.channel_listing.filter(
             channel__slug=root.channel_slug
-        ).maximum_order_price
+        ).first()
+        return channel_listing.maximum_order_price if channel_listing else None
 
     @staticmethod
     def resolve_minimum_order_price(
         root: ChannelContext[models.ShippingMethod], *_args
     ):
         # TODO: Add dataloader.
-        return root.node.channel_listing.get(
+        channel_listing = root.node.channel_listing.filter(
             channel__slug=root.channel_slug
-        ).minimum_order_price
+        ).first()
+        return channel_listing.minimum_order_price if channel_listing else None
 
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)

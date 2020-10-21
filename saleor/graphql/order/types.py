@@ -528,27 +528,30 @@ class Order(CountableDjangoObjectType):
         available = get_valid_shipping_methods_for_order(root)
         if available is None:
             return []
-
+        available_shipping_methods = []
         manager = get_plugins_manager()
         display_gross = display_gross_prices()
         for shipping_method in available:
             # Ignore typing check because it is checked in
             # get_valid_shipping_methods_for_order
             # TODO: Add dataloader here.
-            shipping_channel_listing = shipping_method.channel_listing.get(
+            shipping_channel_listing = shipping_method.channel_listing.filter(
                 channel=root.channel
-            )
-            taxed_price = manager.apply_taxes_to_shipping(
-                shipping_channel_listing.price, root.shipping_address  # type: ignore
-            )
-            if display_gross:
-                shipping_method.price = taxed_price.gross
-            else:
-                shipping_method.price = taxed_price.net
+            ).first()
+            if shipping_channel_listing:
+                taxed_price = manager.apply_taxes_to_shipping(
+                    shipping_channel_listing.price,
+                    root.shipping_address,  # type: ignore
+                )
+                if display_gross:
+                    shipping_method.price = taxed_price.gross
+                else:
+                    shipping_method.price = taxed_price.net
+                available_shipping_methods.append(shipping_method)
         channel_slug = root.channel.slug
         instances = [
             ChannelContext(node=shipping, channel_slug=channel_slug)
-            for shipping in available
+            for shipping in available_shipping_methods
         ]
 
         return instances

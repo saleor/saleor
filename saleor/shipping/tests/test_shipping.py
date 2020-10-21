@@ -26,11 +26,9 @@ from ..utils import default_shipping_zone_exists, get_countries_without_shipping
 def test_applicable_shipping_methods_price(
     shipping_zone, price, min_price, max_price, shipping_included, channel_USD
 ):
-    method = shipping_zone.shipping_methods.create(
-        currency="USD", type=ShippingMethodType.PRICE_BASED,
-    )
+    method = shipping_zone.shipping_methods.create(type=ShippingMethodType.PRICE_BASED,)
     ShippingMethodChannelListing.objects.create(
-        currency="USD",
+        currency=channel_USD.currency_code,
         minimum_order_price_amount=min_price,
         maximum_order_price_amount=max_price,
         shipping_method=method,
