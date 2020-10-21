@@ -21,7 +21,6 @@ from ....plugins.manager import PluginsManager
 from ....shipping.models import ShippingMethod
 from ....warehouse.models import Allocation, Stock
 from ....warehouse.tests.utils import get_available_quantity_for_stock
-from ...core.enums import ReportingPeriod
 from ...order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
@@ -163,7 +162,7 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
     assert expected_total_price == line.unit_price.gross * line.quantity
 
 
-ORDER_QUERY = """
+ORDERS_QUERY = """
 query OrdersQuery {
     orders(first: 1) {
         edges {
@@ -229,7 +228,7 @@ def test_order_query(
 ):
     order = fulfilled_order
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    response = staff_api_client.post_graphql(ORDER_QUERY)
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
     assert order_data["number"] == str(order.pk)
@@ -281,7 +280,7 @@ def test_order_query_in_pln_channel(
 ):
     order = order_with_lines_channel_PLN
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    response = staff_api_client.post_graphql(ORDER_QUERY)
+    response = staff_api_client.post_graphql(ORDERS_QUERY)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
     assert order_data["number"] == str(order.pk)
@@ -3021,30 +3020,6 @@ def test_draft_order_clear_shipping_method(
     assert draft_order.shipping_method is None
     assert draft_order.shipping_price == zero_taxed_money()
     assert draft_order.shipping_method_name is None
-
-
-def test_orders_total(staff_api_client, permission_manage_orders, order_with_lines):
-    query = """
-    query Orders($period: ReportingPeriod) {
-        ordersTotal(period: $period) {
-            gross {
-                amount
-                currency
-            }
-            net {
-                currency
-                amount
-            }
-        }
-    }
-    """
-    variables = {"period": ReportingPeriod.TODAY.name}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
-    content = get_graphql_content(response)
-    amount = str(content["data"]["ordersTotal"]["gross"]["amount"])
-    assert Money(amount, "USD") == order_with_lines.total.gross
 
 
 ORDER_BY_TOKEN_QUERY = """

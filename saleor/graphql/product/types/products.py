@@ -386,7 +386,14 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_revenue(root: ChannelContext[models.ProductVariant], *_args, period):
         start_date = reporting_period_to_date(period)
-        return calculate_revenue_for_variant(root.node, start_date)
+        variant = root.node
+        variant_channel_listing = variant.channel_listing.filter(
+            channel__slug=str(root.channel_slug)
+        ).first()
+        if not variant_channel_listing:
+            return None
+        currency_code = variant_channel_listing.currency
+        return calculate_revenue_for_variant(variant, start_date, currency_code)
 
     @staticmethod
     def resolve_images(root: ChannelContext[models.ProductVariant], info, *_args):

@@ -1871,8 +1871,21 @@ def order_with_lines(
 
 @pytest.fixture
 def order_with_lines_channel_PLN(
-    order, product_type, category, shipping_method_channel_PLN, warehouse, channel_PLN
+    customer_user,
+    product_type,
+    category,
+    shipping_method_channel_PLN,
+    warehouse,
+    channel_PLN,
 ):
+    address = customer_user.default_billing_address.get_copy()
+    order = Order.objects.create(
+        billing_address=address,
+        channel=channel_PLN,
+        shipping_address=address,
+        user_email=customer_user.email,
+        user=customer_user,
+    )
     product = Product.objects.create(
         name="Test product in PLN channel",
         slug="test-product-8-pln",
