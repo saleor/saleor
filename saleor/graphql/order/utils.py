@@ -17,8 +17,8 @@ def validate_total_quantity(order):
         )
 
 
-def validate_shipping_method(order, required):
-    if not order.shipping_method and required:
+def validate_shipping_method(order):
+    if not order.shipping_method:
         raise ValidationError(
             {
                 "shipping": ValidationError(
@@ -27,19 +27,18 @@ def validate_shipping_method(order, required):
                 )
             }
         )
-    if order.shipping_method:
-        if not order.shipping_address or (
-            order.shipping_address.country.code
-            not in order.shipping_method.shipping_zone.countries
-        ):
-            raise ValidationError(
-                {
-                    "shipping": ValidationError(
-                        "Shipping method is not valid for chosen shipping address",
-                        code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
-                    )
-                }
-            )
+    if not order.shipping_address or (
+        order.shipping_address.country.code
+        not in order.shipping_method.shipping_zone.countries
+    ):
+        raise ValidationError(
+            {
+                "shipping": ValidationError(
+                    "Shipping method is not valid for chosen shipping address",
+                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                )
+            }
+        )
 
 
 def validate_billing_address(order):
@@ -131,9 +130,7 @@ def validate_draft_order(order, country):
     validate_billing_address(order)
     if order.is_shipping_required():
         validate_shipping_address(order)
-        validate_shipping_method(order, required=True)
-    else:
-        validate_shipping_method(order, required=False)
+        validate_shipping_method(order)
     validate_total_quantity(order)
     validate_order_lines(order, country)
     validate_product_is_published(order)

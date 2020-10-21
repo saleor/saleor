@@ -1132,24 +1132,6 @@ def test_validate_draft_order_no_shipping_address_no_method_shipping_not_require
     assert validate_draft_order(order, "US") is None
 
 
-def test_validate_draft_order_no_shipping_address_with_method_shipping_not_required(
-    draft_order, shipping_method
-):
-    # ensure that if shipping method even if not required,
-    # will be validated when provided.
-    order = draft_order
-    order.shipping_address = None
-    order.shipping_method = shipping_method
-    required_mock = Mock(return_value=False)
-    order.is_shipping_required = required_mock
-
-    with pytest.raises(ValidationError) as e:
-        validate_draft_order(order, "US")
-    error = e.value.error_dict["shipping"][0]
-    assert error.message == "Shipping method is not valid for chosen shipping address"
-    assert error.code.value == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value
-
-
 DRAFT_ORDER_COMPLETE_MUTATION = """
     mutation draftComplete($id: ID!) {
         draftOrderComplete(id: $id) {
