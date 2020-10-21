@@ -14,14 +14,14 @@ from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
-from saleor.product.models import Product
 
-from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions
-from ..utils import get_nodes
+from saleor.product.models import Product
 from .types import Error, Upload
 from .utils import from_global_id_strict_type, snake_to_camel_case
 from .utils.error_codes import get_error_code_from_error
+from ..utils import get_nodes
+from ...core.exceptions import PermissionDenied
+from ...core.permissions import AccountPermissions
 
 registry = get_global_registry()
 
@@ -560,6 +560,7 @@ class BaseBulkMutation(BaseMutation):
             step = math.ceil(len(instances) / (chunks))
 
             for i, instance in enumerate(instances):
+                instance.refresh_from_db()
                 if not instance.is_published:
                     starting_at = (datetime.strptime(data.get('starting_at'), '%Y-%m-%d %H:%M') + timedelta(minutes=(start))).strftime("%Y-%m-%d %H:%M")
                     info.context.plugins.product_published({"product": instance, "offer_type": data.get('offer_type'), "starting_at": starting_at})
