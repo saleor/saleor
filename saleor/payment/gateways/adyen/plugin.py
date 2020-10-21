@@ -348,7 +348,7 @@ class AdyenGatewayPlugin(BasePlugin):
         if not additional_data:
             raise PaymentError("Unable to finish the payment.")
 
-        result = api_call(additional_data, self.adyen.checkout.payments)
+        result = api_call(additional_data, self.adyen.checkout.payments_details)
         result_code = result.message["resultCode"].strip().lower()
         is_success = result_code not in FAILED_STATUSES
 

@@ -208,7 +208,10 @@ def void(payment: Payment) -> Transaction:
 @payment_postprocess
 def confirm(payment: Payment, additional_data: Optional[dict] = None) -> Transaction:
     plugin_manager = get_plugins_manager()
-    token = _get_past_transaction_token(payment, TransactionKind.ACTION_TO_CONFIRM)
+    txn = payment.transactions.filter(
+        kind=TransactionKind.ACTION_TO_CONFIRM, is_success=True
+    ).last()
+    token = txn.token if txn else ""
     payment_data = create_payment_information(
         payment=payment, payment_token=token, additional_data=additional_data
     )
