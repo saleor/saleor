@@ -497,6 +497,7 @@ def order(customer_user, channel_USD):
     return Order.objects.create(
         billing_address=address,
         channel=channel_USD,
+        currency=channel_USD.currency_code,
         shipping_address=address,
         user_email=customer_user.email,
         user=customer_user,

@@ -163,10 +163,7 @@ class VoucherChannelListing(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
     )
     discount = MoneyField(amount_field="discount_value", currency_field="currency")
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        default=settings.DEFAULT_CURRENCY,
-    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
     min_spent_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

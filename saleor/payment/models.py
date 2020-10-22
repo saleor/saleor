@@ -102,6 +102,7 @@ class Payment(models.Model):
         return max(self.transactions.all(), default=None, key=attrgetter("pk"))
 
     def get_total(self):
+        # TODO: Remove default currency
         return Money(self.total, self.currency or settings.DEFAULT_CURRENCY)
 
     def get_authorized_amount(self):
@@ -132,6 +133,7 @@ class Payment(models.Model):
 
         # Calculate authorized amount from all succeeded auth transactions
         for txn in authorized_txns:
+            # TODO: Remove default currency
             money += Money(txn.amount, self.currency or settings.DEFAULT_CURRENCY)
 
         # If multiple partial capture is supported later though it's unlikely,
@@ -139,6 +141,7 @@ class Payment(models.Model):
         return money
 
     def get_captured_amount(self):
+        # TODO: Remove default currency
         return Money(self.captured_amount, self.currency or settings.DEFAULT_CURRENCY)
 
     def get_charge_amount(self):
@@ -232,4 +235,5 @@ class Transaction(models.Model):
         )
 
     def get_amount(self):
+        # TODO: Remove default currency
         return Money(self.amount, self.currency or settings.DEFAULT_CURRENCY)

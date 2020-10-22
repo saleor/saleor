@@ -190,6 +190,7 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     def resolve_currencies(_, _info):
+        # TODO: What should we return here?
         return settings.AVAILABLE_CURRENCIES
 
     @staticmethod
