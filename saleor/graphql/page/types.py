@@ -14,6 +14,7 @@ from ..product.filters import AttributeFilterInput
 from ..product.types import Attribute
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
+from .dataloaders import PageTypeByIdLoader
 
 
 class Page(CountableDjangoObjectType):
@@ -30,6 +31,7 @@ class Page(CountableDjangoObjectType):
             "created",
             "id",
             "is_published",
+            "page_type",
             "publication_date",
             "seo_description",
             "seo_title",
@@ -46,6 +48,10 @@ class Page(CountableDjangoObjectType):
     @staticmethod
     def resolve_private_meta(root: models.Page, _info):
         return resolve_private_meta(root, _info)
+
+    @staticmethod
+    def resolve_page_type(root: models.Page, info):
+        return PageTypeByIdLoader(info.context).load(root.page_type_id)
 
 
 @key(fields="id")

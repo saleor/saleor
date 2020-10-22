@@ -3249,6 +3249,7 @@ type Page implements Node & ObjectWithMetadata {
   publicationDate: Date
   isPublished: Boolean!
   slug: String!
+  pageType: PageType!
   created: DateTime!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!

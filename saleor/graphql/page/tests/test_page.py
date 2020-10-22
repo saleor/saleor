@@ -15,6 +15,9 @@ PAGE_QUERY = """
         page(id: $id, slug: $slug) {
             title
             slug
+            pageType {
+                id
+            }
         }
     }
 """
@@ -31,6 +34,9 @@ def test_query_published_page(user_api_client, page):
     page_data = content["data"]["page"]
     assert page_data["title"] == page.title
     assert page_data["slug"] == page.slug
+    assert page_data["pageType"]["id"] == graphene.Node.to_global_id(
+        "PageType", page.page_type.pk
+    )
 
     # query by slug
     variables = {"slug": page.slug}
@@ -110,6 +116,9 @@ CREATE_PAGE_MUTATION = """
                 slug
                 isPublished
                 publicationDate
+                pageType {
+                    id
+                }
             }
             pageErrors {
                 field
@@ -128,6 +137,7 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     page_content_json = json.dumps({"content": "test content"})
     page_title = "test title"
     page_is_published = True
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
     # test creating root page
     variables = {
@@ -136,7 +146,7 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
         "contentJson": page_content_json,
         "isPublished": page_is_published,
         "slug": page_slug,
-        "pageType": graphene.Node.to_global_id("PageType", page_type.pk),
+        "pageType": page_type_id,
     }
     response = staff_api_client.post_graphql(
         CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
@@ -150,6 +160,7 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     assert data["page"]["slug"] == page_slug
     assert data["page"]["isPublished"] == page_is_published
     assert data["page"]["publicationDate"] == "2020-03-18"
+    assert data["page"]["pageType"]["id"] == page_type_id
 
 
 def test_page_create_required_fields(
