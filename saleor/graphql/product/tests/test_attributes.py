@@ -1559,6 +1559,112 @@ def test_assign_attribute_to_product_type_having_already_that_attribute(
     )
 
 
+def test_assign_page_attribute_to_product_type(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    tag_page_attribute,
+    product_type,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    tag_page_attr_id = graphene.Node.to_global_id("Attribute", tag_page_attribute.pk)
+
+    variables = {
+        "productTypeId": graphene.Node.to_global_id("ProductType", product_type.pk),
+        "operations": [
+            {"type": ProductAttributeType.PRODUCT.value, "id": tag_page_attr_id},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PRODUCT_ASSIGN_ATTR_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productAttributeAssign"]
+    errors = data["productErrors"]
+
+    assert not data["productType"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "operations"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["attributes"] == [tag_page_attr_id]
+
+
+def test_assign_attribute_to_product_type_multiply_errors_returned(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    color_attribute,
+    size_attribute,
+    tag_page_attribute,
+):
+    # given
+    product_type = ProductType.objects.create(name="Type")
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    product_type.product_attributes.add(color_attribute)
+
+    unsupported_type_attr = size_attribute
+    unsupported_type_attr.input_type = AttributeInputType.MULTISELECT
+    unsupported_type_attr.save(update_fields=["input_type"])
+
+    color_attr_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    unsupported_type_attr_id = graphene.Node.to_global_id(
+        "Attribute", unsupported_type_attr.pk
+    )
+    tag_page_attr_id = graphene.Node.to_global_id("Attribute", tag_page_attribute.pk)
+
+    variables = {
+        "productTypeId": graphene.Node.to_global_id("ProductType", product_type.pk),
+        "operations": [
+            {"type": ProductAttributeType.PRODUCT.value, "id": color_attr_id},
+            {
+                "type": ProductAttributeType.VARIANT.value,
+                "id": unsupported_type_attr_id,
+            },
+            {"type": ProductAttributeType.PRODUCT.value, "id": tag_page_attr_id},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PRODUCT_ASSIGN_ATTR_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productAttributeAssign"]
+    errors = data["productErrors"]
+
+    assert not data["productType"]
+    assert len(errors) == 3
+    expected_errors = [
+        {
+            "code": ProductErrorCode.ATTRIBUTE_ALREADY_ASSIGNED.name,
+            "field": "operations",
+            "message": mock.ANY,
+            "attributes": [color_attr_id],
+        },
+        {
+            "code": ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name,
+            "field": "operations",
+            "message": mock.ANY,
+            "attributes": [unsupported_type_attr_id],
+        },
+        {
+            "code": ProductErrorCode.INVALID.name,
+            "field": "operations",
+            "message": mock.ANY,
+            "attributes": [tag_page_attr_id],
+        },
+    ]
+    for error in expected_errors:
+        assert error in errors
+
+
 PAGE_ASSIGN_ATTR_QUERY = """
     mutation assign($pageTypeId: ID!, $attributeIds: [ID!]!) {
       pageAttributeAssign(pageTypeId: $pageTypeId, attributeIds: $attributeIds) {

@@ -342,68 +342,98 @@ class ProductAttributeAssign(BaseMutation):
         return product_attrs_pks, variant_attrs_pks
 
     @classmethod
+    def check_attributes_types(cls, errors, product_attrs_pks, variant_attrs_pks):
+        """Ensure the attributes are product attributes."""
+
+        not_valid_attributes = models.Attribute.objects.filter(
+            Q(pk__in=product_attrs_pks) | Q(pk__in=variant_attrs_pks)
+        ).exclude(type=AttributeType.PRODUCT_TYPE)
+
+        if not_valid_attributes:
+            not_valid_attr_ids = [
+                graphene.Node.to_global_id("Attribute", attr.pk)
+                for attr in not_valid_attributes
+            ]
+            error = ValidationError(
+                "Only product attributes can be assigned.",
+                code=ProductErrorCode.INVALID.value,
+                params={"attributes": not_valid_attr_ids},
+            )
+            errors["operations"].append(error)
+
+    @classmethod
     def check_operations_not_assigned_already(
-        cls, product_type, product_attrs_pks, variant_attrs_pks
+        cls, errors, product_type, product_attrs_pks, variant_attrs_pks
     ):
         qs = (
             models.Attribute.objects.get_assigned_product_type_attributes(
                 product_type.pk
             )
-            .values_list("name", "slug")
+            .values_list("pk", "name", "slug")
             .filter(Q(pk__in=product_attrs_pks) | Q(pk__in=variant_attrs_pks))
         )
 
         invalid_attributes = list(qs)
         if invalid_attributes:
-            msg = ", ".join([f"{name} ({slug})" for name, slug in invalid_attributes])
-            raise ValidationError(
-                {
-                    "operations": ValidationError(
-                        (f"{msg} have already been assigned to this product type."),
-                        code=ProductErrorCode.ATTRIBUTE_ALREADY_ASSIGNED,
-                    )
-                }
+            msg = ", ".join(
+                [f"{name} ({slug})" for _, name, slug in invalid_attributes]
             )
+            invalid_attr_ids = [
+                graphene.Node.to_global_id("Attribute", attr[0])
+                for attr in invalid_attributes
+            ]
+            error = ValidationError(
+                (f"{msg} have already been assigned to this product type."),
+                code=ProductErrorCode.ATTRIBUTE_ALREADY_ASSIGNED,
+                params={"attributes": invalid_attr_ids},
+            )
+            errors["operations"].append(error)
 
         # check if attributes' input type is assignable to variants
-        is_not_assignable_to_variant = models.Attribute.objects.filter(
+        not_assignable_to_variant = models.Attribute.objects.filter(
             Q(pk__in=variant_attrs_pks)
             & Q(input_type__in=AttributeInputType.NON_ASSIGNABLE_TO_VARIANTS)
-        ).exists()
+        )
 
-        if is_not_assignable_to_variant:
-            raise ValidationError(
-                {
-                    "operations": ValidationError(
-                        (
-                            f"Attributes having for input types "
-                            f"{AttributeInputType.NON_ASSIGNABLE_TO_VARIANTS} "
-                            f"cannot be assigned as variant attributes"
-                        ),
-                        code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED,
-                    )
-                }
+        if not_assignable_to_variant:
+            not_assignable_attr_ids = [
+                graphene.Node.to_global_id("Attribute", attr.pk)
+                for attr in not_assignable_to_variant
+            ]
+            error = ValidationError(
+                (
+                    f"Attributes having for input types "
+                    f"{AttributeInputType.NON_ASSIGNABLE_TO_VARIANTS} "
+                    f"cannot be assigned as variant attributes"
+                ),
+                code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED,
+                params={"attributes": not_assignable_attr_ids},
             )
+            errors["operations"].append(error)
 
     @classmethod
-    def check_product_operations_are_assignable(cls, product_attrs_pks):
-        contains_restricted_attributes = models.Attribute.objects.filter(
+    def check_product_operations_are_assignable(cls, errors, product_attrs_pks):
+        restricted_attributes = models.Attribute.objects.filter(
             pk__in=product_attrs_pks, is_variant_only=True
-        ).exists()
+        )
 
-        if contains_restricted_attributes:
-            raise ValidationError(
-                {
-                    "operations": ValidationError(
-                        "Cannot assign variant only attributes.",
-                        code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED,
-                    )
-                }
+        if restricted_attributes:
+            restricted_attr_ids = [
+                graphene.Node.to_global_id("Attribute", attr.pk)
+                for attr in restricted_attributes
+            ]
+            error = ValidationError(
+                "Cannot assign variant only attributes.",
+                code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED,
+                params={"attributes": restricted_attr_ids},
             )
+            errors["operations"].append(error)
 
     @classmethod
     def clean_operations(cls, product_type, product_attrs_pks, variant_attrs_pks):
         """Ensure the attributes are not already assigned to the product type."""
+        errors = defaultdict(list)
+
         attrs_pk = product_attrs_pks + variant_attrs_pks
         attributes = models.Attribute.objects.filter(id__in=attrs_pk).values_list(
             "pk", flat=True
@@ -413,19 +443,21 @@ class ProductAttributeAssign(BaseMutation):
             invalid_attrs = [
                 graphene.Node.to_global_id("Attribute", pk) for pk in invalid_attrs
             ]
-            raise ValidationError(
-                {
-                    "operations": ValidationError(
-                        "Attribute doesn't exist.",
-                        code=ProductErrorCode.NOT_FOUND,
-                        params={"attributes": list(invalid_attrs)},
-                    )
-                }
+            error = ValidationError(
+                "Attribute doesn't exist.",
+                code=ProductErrorCode.NOT_FOUND,
+                params={"attributes": list(invalid_attrs)},
             )
-        cls.check_product_operations_are_assignable(product_attrs_pks)
+            errors["operations"].append(error)
+
+        cls.check_attributes_types(errors, product_attrs_pks, variant_attrs_pks)
+        cls.check_product_operations_are_assignable(errors, product_attrs_pks)
         cls.check_operations_not_assigned_already(
-            product_type, product_attrs_pks, variant_attrs_pks
+            errors, product_type, product_attrs_pks, variant_attrs_pks
         )
+
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
     def save_field_values(cls, product_type, model_name, pks):
@@ -550,7 +582,7 @@ class PageAttributeAssign(BaseMutation):
         page_type: "page_models.PageType",
         attr_pks: List[int],
     ):
-        """Ensure the attributes are page attribute and are not already assigned."""
+        """Ensure the attributes are page attributes and are not already assigned."""
 
         # check if any attribute is not a page type
         invalid_attributes = models.Attribute.objects.filter(pk__in=attr_pks).exclude(
