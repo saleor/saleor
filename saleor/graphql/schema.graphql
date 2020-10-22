@@ -1068,7 +1068,6 @@ type Collection implements Node & ObjectWithMetadata {
   description: String!
   descriptionJson: JSONString!
   publicationDate: Date
-  isPublished: Boolean!
   slug: String!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
@@ -1077,6 +1076,7 @@ type Collection implements Node & ObjectWithMetadata {
   products(filter: ProductFilterInput, sortBy: ProductOrder, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
+  isPublished: Boolean!
 }
 
 type CollectionAddProducts {
@@ -3242,7 +3242,6 @@ type Page implements Node & ObjectWithMetadata {
   content: String!
   contentJson: JSONString!
   publicationDate: Date
-  isPublished: Boolean!
   slug: String!
   created: DateTime!
   privateMetadata: [MetadataItem]!
@@ -3250,6 +3249,7 @@ type Page implements Node & ObjectWithMetadata {
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
+  isPublished: Boolean!
 }
 
 type PageBulkDelete {
@@ -3646,7 +3646,6 @@ type Product implements Node & ObjectWithMetadata {
   description: String!
   descriptionJson: JSONString!
   publicationDate: Date
-  isPublished: Boolean!
   productType: ProductType!
   slug: String!
   category: Category
@@ -3675,6 +3674,7 @@ type Product implements Node & ObjectWithMetadata {
   collections: [Collection]
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
   isAvailableForPurchase: Boolean
+  isPublished: Boolean!
 }
 
 type ProductBulkDelete {
