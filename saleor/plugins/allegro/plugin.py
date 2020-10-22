@@ -274,19 +274,20 @@ class AllegroPlugin(BasePlugin):
     def product_published(self, product_with_params: Any, previous_value: Any) -> Any:
         product = product_with_params.get('product')
         if self.active == True and product.is_published == False:
-            product.store_value_in_private_metadata(
-                {'publish.allegro.status': ProductPublishState.MODERATED.value})
-            allegro_api = AllegroAPI(self.config.token_value)
-            if product.variants.first().stocks.first().quantity > 0:
-                allegro_api.product_publish(saleor_product=product,
-                                            starting_at=product_with_params.get(
-                                                'starting_at'),
-                                            offer_type=product_with_params.get(
-                                                'offer_type'))
-            else:
-                allegro_api.errors.append('002: stan magazynowy produktu wynosi 0')
-                allegro_api.update_errors_in_private_metadata(product,
-                                                              allegro_api.errors)
+            if product.variants.first().metadata.get('reserved') is not True:
+                product.store_value_in_private_metadata(
+                    {'publish.allegro.status': ProductPublishState.MODERATED.value})
+                allegro_api = AllegroAPI(self.config.token_value)
+                if product.variants.first().stocks.first().quantity > 0:
+                    allegro_api.product_publish(saleor_product=product,
+                                                starting_at=product_with_params.get(
+                                                    'starting_at'),
+                                                offer_type=product_with_params.get(
+                                                    'offer_type'))
+                else:
+                    allegro_api.errors.append('002: stan magazynowy produktu wynosi 0')
+                    allegro_api.update_errors_in_private_metadata(product,
+                                                                  allegro_api.errors)
 
     def calculate_hours_to_token_expire(self):
         token_expire = datetime.strptime(self.config.token_access, '%d/%m/%Y %H:%M:%S')
@@ -435,6 +436,9 @@ class AllegroAPI:
                 saleor_product.get_value_from_private_metadata(
                     "publish.allegro.date") is None and \
                 saleor_product.is_published is False:
+
+            saleor_product.is_published = True
+            saleor_product.save(update_fields=["is_published"])
 
             category_id = saleor_product.product_type.metadata.get(
                 'allegro.mapping.categoryId')
@@ -694,7 +698,8 @@ class AllegroAPI:
     @staticmethod
     def update_errors_in_private_metadata(product, errors):
         product.store_value_in_private_metadata({'publish.allegro.errors': errors})
-        product.save(update_fields=["private_metadata"])
+        product.is_published = False
+        product.save(update_fields=["private_metadata", "is_published"])
 
     def get_detailed_offer_publication(self, offer_id):
         endpoint = 'sale/offer-publication-commands/' + str(offer_id) + '/tasks'
@@ -787,7 +792,7 @@ class BaseParametersMapper:
 
         if key.get('dictionary') is None:
             if mapped_parameter_value is not None:
-                if mapped_parameter_value.isnumeric():
+                if mapped_parameter_value.replace('.', '').isnumeric():
                     value = self.set_allegro_typed_value(key, mapped_parameter_value)
                     return value
                 else:
@@ -950,6 +955,15 @@ class AllegroParametersMapper(BaseParametersMapper):
         if mapped_parameter_map is not None:
             return mapped_parameter_map.get("!")
 
+    def get_shoe_size(self, parameter):
+        if('rozmiar-buty-damskie' in self.product_attributes):
+            key = 'rozmiar-buty-damskie-' + self.product_attributes.get('rozmiar-buty-damskie')
+        if('rozmiar-buty-meskie' in self.product_attributes):
+            key = 'rozmiar-buty-meskie-' + self.product_attributes.get('rozmiar-buty-meskie')
+        mapped_parameter_map = self.get_global_parameter_map(slugify(parameter))
+        if mapped_parameter_map is not None:
+            return mapped_parameter_map.get(key)
+
     def get_allegro_parameter(self, parameter):
         mapped_parameter_key, mapped_parameter_value = \
             self.get_mapped_parameter_key_and_value(parameter)
@@ -983,6 +997,11 @@ class AllegroParametersMapper(BaseParametersMapper):
                                                                     str(
                                                                         mapped_parameter_value))
 
+        if allegro_parameter is None:
+            if mapped_parameter_value is None:
+                mapped_parameter_value = self.get_shoe_size(slugify(mapped_parameter_key))
+                allegro_parameter = self.create_allegro_parameter(slugify(parameter),
+                                                          mapped_parameter_value)
         return allegro_parameter
 
 
