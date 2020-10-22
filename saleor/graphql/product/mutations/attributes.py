@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List
+from typing import TYPE_CHECKING, Dict, List
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -30,6 +30,9 @@ from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeInputTypeEnum, AttributeTypeEnum, ProductAttributeType
 from ..types import Attribute, AttributeValue
 from .common import ReorderInput
+
+if TYPE_CHECKING:
+    from ....page import models as page_models
 
 
 class AttributeValueCreateInput(graphene.InputObjectType):
@@ -464,6 +467,62 @@ class ProductAttributeAssign(BaseMutation):
         return cls(product_type=product_type)
 
 
+class ProductAttributeUnassign(BaseMutation):
+    product_type = graphene.Field(ProductType, description="The updated product type.")
+
+    class Arguments:
+        product_type_id = graphene.ID(
+            required=True,
+            description=(
+                "ID of the product type from which the attributes should be unassigned."
+            ),
+        )
+        attribute_ids = graphene.List(
+            graphene.ID,
+            required=True,
+            description="The IDs of the attributes to unassign.",
+        )
+
+    class Meta:
+        description = "Un-assign attributes from a given product type."
+        error_type_class = ProductError
+        error_type_field = "product_errors"
+
+    @classmethod
+    def check_permissions(cls, context):
+        return context.user.has_perm(
+            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES
+        )
+
+    @classmethod
+    def save_field_values(cls, product_type, field, pks):
+        """Add in bulk the PKs to assign to a given product type."""
+        getattr(product_type, field).remove(*pks)
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        product_type_id: str = data["product_type_id"]
+        attribute_ids: List[str] = data["attribute_ids"]
+        # Retrieve the requested product type
+        product_type = graphene.Node.get_node_from_global_id(
+            info, product_type_id, only_type=ProductType
+        )  # type: models.ProductType
+
+        # Resolve all the passed IDs to ints
+        attribute_pks = [
+            from_global_id_strict_type(
+                attribute_id, only_type=Attribute, field="attribute_id"
+            )
+            for attribute_id in attribute_ids
+        ]
+
+        # Commit
+        cls.save_field_values(product_type, "product_attributes", attribute_pks)
+        cls.save_field_values(product_type, "variant_attributes", attribute_pks)
+
+        return cls(product_type=product_type)
+
+
 class PageAttributeAssign(BaseMutation):
     page_type = graphene.Field(PageType, description="The updated page type.")
 
@@ -485,7 +544,12 @@ class PageAttributeAssign(BaseMutation):
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
 
     @classmethod
-    def clean_attributes(cls, errors, page_type, attr_pks):
+    def clean_attributes(
+        cls,
+        errors: Dict["str", List[ValidationError]],
+        page_type: "page_models.PageType",
+        attr_pks: List[int],
+    ):
         """Ensure the attributes are page attribute and are not already assigned."""
 
         # check if any attribute is not a page type
@@ -543,62 +607,6 @@ class PageAttributeAssign(BaseMutation):
         page_type.page_attributes.add(*attr_pks)
 
         return cls(page_type=page_type)
-
-
-class ProductAttributeUnassign(BaseMutation):
-    product_type = graphene.Field(ProductType, description="The updated product type.")
-
-    class Arguments:
-        product_type_id = graphene.ID(
-            required=True,
-            description=(
-                "ID of the product type from which the attributes should be unassigned."
-            ),
-        )
-        attribute_ids = graphene.List(
-            graphene.ID,
-            required=True,
-            description="The IDs of the attributes to unassign.",
-        )
-
-    class Meta:
-        description = "Un-assign attributes from a given product type."
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-    @classmethod
-    def check_permissions(cls, context):
-        return context.user.has_perm(
-            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES
-        )
-
-    @classmethod
-    def save_field_values(cls, product_type, field, pks):
-        """Add in bulk the PKs to assign to a given product type."""
-        getattr(product_type, field).remove(*pks)
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        product_type_id: str = data["product_type_id"]
-        attribute_ids: List[str] = data["attribute_ids"]
-        # Retrieve the requested product type
-        product_type = graphene.Node.get_node_from_global_id(
-            info, product_type_id, only_type=ProductType
-        )  # type: models.ProductType
-
-        # Resolve all the passed IDs to ints
-        attribute_pks = [
-            from_global_id_strict_type(
-                attribute_id, only_type=Attribute, field="attribute_id"
-            )
-            for attribute_id in attribute_ids
-        ]
-
-        # Commit
-        cls.save_field_values(product_type, "product_attributes", attribute_pks)
-        cls.save_field_values(product_type, "variant_attributes", attribute_pks)
-
-        return cls(product_type=product_type)
 
 
 class PageAttributeUnassign(BaseMutation):
