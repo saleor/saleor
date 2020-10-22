@@ -537,7 +537,7 @@ def test_create_order_with_gift_card_partial_use(
     )
 
     assert order.gift_cards.count() > 0
-    assert order.total == zero_taxed_money()
+    assert order.total == zero_taxed_money(order.currency)
     assert gift_card_balance_before_order == expected_old_balance
 
 
