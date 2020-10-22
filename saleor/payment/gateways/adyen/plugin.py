@@ -173,8 +173,8 @@ class AdyenGatewayPlugin(BasePlugin):
         "enable-native-3d-secure": {
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": (
-                "Saleor uses 3d secure redirect authentication by default. If you want"
-                " to use native 3d secure authentication, enable this option. For more"
+                "Saleor uses 3D Secure redirect authentication by default. If you want"
+                " to use native 3D Secure authentication, enable this option. For more"
                 " details see Adyen documentation: native - "
                 "https://docs.adyen.com/checkout/3d-secure/redirect-3ds2-3ds1, redirect"
                 " - https://docs.adyen.com/checkout/3d-secure/redirect-3ds2-3ds1"
