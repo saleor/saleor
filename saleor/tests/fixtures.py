@@ -1872,42 +1872,51 @@ def unpublished_collection():
 
 
 @pytest.fixture
-def page(db):
+def page(db, page_type):
     data = {
         "slug": "test-url",
         "title": "Test page",
         "content": "test content",
         "is_published": True,
+        "page_type": page_type,
     }
     page = Page.objects.create(**data)
     return page
 
 
 @pytest.fixture
-def page_list(db):
+def page_list(db, page_type):
     data_1 = {
         "slug": "test-url",
         "title": "Test page",
         "content": "test content",
         "is_published": True,
+        "page_type": page_type,
     }
     data_2 = {
         "slug": "test-url-2",
         "title": "Test page",
         "content": "test content",
         "is_published": True,
+        "page_type": page_type,
     }
     pages = Page.objects.bulk_create([Page(**data_1), Page(**data_2)])
     return pages
 
 
 @pytest.fixture
-def page_list_unpublished(db):
+def page_list_unpublished(db, page_type):
     pages = Page.objects.bulk_create(
         [
-            Page(slug="page-1", title="Page 1", is_published=False),
-            Page(slug="page-2", title="Page 2", is_published=False),
-            Page(slug="page-3", title="Page 3", is_published=False),
+            Page(
+                slug="page-1", title="Page 1", is_published=False, page_type=page_type
+            ),
+            Page(
+                slug="page-2", title="Page 2", is_published=False, page_type=page_type
+            ),
+            Page(
+                slug="page-3", title="Page 3", is_published=False, page_type=page_type
+            ),
         ]
     )
     return pages
