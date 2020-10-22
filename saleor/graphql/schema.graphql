@@ -4759,7 +4759,7 @@ type Shop {
   geolocalization: Geolocalization
   authorizationKeys: [AuthorizationKey]!
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
-  currencies: [String]!
+  currencies: [String]! @deprecated(reason: "This field will be removed in Saleor 3.0")
   defaultCurrency: String!
   defaultCountry: CountryDisplay
   defaultMailSenderName: String
