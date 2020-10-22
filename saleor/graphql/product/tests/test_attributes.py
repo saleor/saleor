@@ -1344,7 +1344,7 @@ PRODUCT_ASSIGN_ATTR_QUERY = """
 """
 
 
-def test_assign_product_attributes_to_product_type(
+def test_assign_attributes_to_product_type(
     staff_api_client,
     permission_manage_product_types_and_attributes,
     product_type_attribute_list,
@@ -1399,7 +1399,7 @@ def test_assign_product_attributes_to_product_type(
     assert found_variant_attrs_ids == variant_attributes_ids
 
 
-def test_assign_non_existing_product_attributes_to_product_type(
+def test_assign_non_existing_attributes_to_product_type(
     staff_api_client,
     permission_manage_product_types_and_attributes,
     product_type_attribute_list,
@@ -1511,7 +1511,7 @@ def test_assign_variant_attribute_having_unsupported_input_type(
         (ProductAttributeType.VARIANT, ProductAttributeType.VARIANT),
     ),
 )
-def test_assign_product_attribute_to_product_type_having_already_that_attribute(
+def test_assign_attribute_to_product_type_having_already_that_attribute(
     staff_api_client,
     permission_manage_product_types_and_attributes,
     color_attribute_without_values,
@@ -1579,7 +1579,7 @@ PAGE_ASSIGN_ATTR_QUERY = """
 """
 
 
-def test_assign_page_attributes_to_page_type_by_staff(
+def test_assign_attributes_to_page_type_by_staff(
     staff_api_client,
     permission_manage_page_types_and_attributes,
     page_type,
@@ -1615,7 +1615,7 @@ def test_assign_page_attributes_to_page_type_by_staff(
     }
 
 
-def test_assign_page_attributes_to_page_type_by_app(
+def test_assign_attributes_to_page_type_by_app(
     app_api_client,
     permission_manage_page_types_and_attributes,
     page_type,
@@ -1651,7 +1651,7 @@ def test_assign_page_attributes_to_page_type_by_app(
     }
 
 
-def test_assign_page_attributes_to_page_type_by_staff_no_perm(
+def test_assign_attributes_to_page_type_by_staff_no_perm(
     staff_api_client,
     permission_manage_page_types_and_attributes,
     page_type,
@@ -1674,7 +1674,7 @@ def test_assign_page_attributes_to_page_type_by_staff_no_perm(
     assert_no_permission(response)
 
 
-def test_assign_page_attributes_to_page_type_by_app_no_perm(
+def test_assign_attributes_to_page_type_by_app_no_perm(
     app_api_client,
     permission_manage_page_types_and_attributes,
     page_type,
@@ -1697,7 +1697,7 @@ def test_assign_page_attributes_to_page_type_by_app_no_perm(
     assert_no_permission(response)
 
 
-def test_assign_page_attributes_to_page_type_not_page_attribute(
+def test_assign_attributes_to_page_type_not_page_attribute(
     staff_api_client,
     permission_manage_page_types_and_attributes,
     page_type,
@@ -1738,7 +1738,7 @@ def test_assign_page_attributes_to_page_type_not_page_attribute(
     assert errors[0]["attributes"] == [color_attribute_id]
 
 
-def test_assign_page_attributes_to_page_type_attribute_already_assigned(
+def test_assign_attributes_to_page_type_attribute_already_assigned(
     staff_api_client,
     permission_manage_page_types_and_attributes,
     page_type,
@@ -1779,7 +1779,7 @@ def test_assign_page_attributes_to_page_type_attribute_already_assigned(
     assert errors[0]["attributes"] == [assigned_attr_id]
 
 
-def test_assign_page_attributes_to_page_type_multiple_error_returned(
+def test_assign_attributes_to_page_type_multiple_error_returned(
     staff_api_client,
     permission_manage_page_types_and_attributes,
     page_type,
