@@ -317,7 +317,7 @@ class Order(ModelWithMetadata):
         payment = self.get_last_payment()
         if payment:
             return payment.get_authorized_amount()
-        return zero_money()
+        return zero_money(self.currency)
 
     @property
     def total_captured(self):
@@ -328,7 +328,7 @@ class Order(ModelWithMetadata):
             ChargeStatus.PARTIALLY_REFUNDED,
         ):
             return Money(payment.captured_amount, payment.currency)
-        return zero_money()
+        return zero_money(self.currency)
 
     @property
     def total_balance(self):

@@ -106,7 +106,7 @@ class Payment(models.Model):
         return Money(self.total, self.currency or settings.DEFAULT_CURRENCY)
 
     def get_authorized_amount(self):
-        money = zero_money()
+        money = zero_money(self.currency)
 
         # Query all the transactions which should be prefetched
         # to optimize db queries

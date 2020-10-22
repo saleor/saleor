@@ -10,7 +10,7 @@ class TaxError(Exception):
     """Default tax error."""
 
 
-def zero_money(currency: str = settings.DEFAULT_CURRENCY) -> Money:
+def zero_money(currency: str) -> Money:
     """Return a money object set to zero.
 
     This is a function used as a model's default.

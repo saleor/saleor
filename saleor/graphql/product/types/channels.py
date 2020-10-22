@@ -54,7 +54,9 @@ class ProductChannelListing(CountableDjangoObjectType):
             variant_id__in=variants, channel_id=root.channel_id
         )
         has_variants = True if len(variants) > 0 else False
-        purchase_cost, _ = get_product_costs_data(channel_listings, has_variants)
+        purchase_cost, _ = get_product_costs_data(
+            channel_listings, has_variants, root.currency
+        )
         return purchase_cost
 
     @staticmethod
@@ -66,7 +68,9 @@ class ProductChannelListing(CountableDjangoObjectType):
             variant_id__in=variants, channel_id=root.channel_id
         )
         has_variants = True if len(variants) > 0 else False
-        _, margin = get_product_costs_data(channel_listings, has_variants)
+        _, margin = get_product_costs_data(
+            channel_listings, has_variants, root.currency
+        )
         return Margin(margin[0], margin[1])
 
     @staticmethod
