@@ -1927,6 +1927,7 @@ def page_type(db, size_page_attribute, tag_page_attribute):
     page_type = PageType.objects.create(name="Test page type", slug="test-page-type")
     page_type.page_attributes.add(size_page_attribute)
     page_type.page_attributes.add(tag_page_attribute)
+
     return page_type
 
 

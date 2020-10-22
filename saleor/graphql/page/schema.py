@@ -9,6 +9,7 @@ from .mutations.pages import (
     PageCreate,
     PageDelete,
     PageTypeCreate,
+    PageTypeDelete,
     PageTypeUpdate,
     PageUpdate,
 )
@@ -72,6 +73,7 @@ class PageMutations(graphene.ObjectType):
     # page type mutations
     page_type_create = PageTypeCreate.Field()
     page_type_update = PageTypeUpdate.Field()
+    page_type_delete = PageTypeDelete.Field()
 
     # attributes mutations
     page_attribute_assign = PageAttributeAssign.Field()

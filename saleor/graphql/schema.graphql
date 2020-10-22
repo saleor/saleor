@@ -2679,6 +2679,7 @@ type Mutation {
   pageTranslate(id: ID!, input: PageTranslationInput!, languageCode: LanguageCodeEnum!): PageTranslate
   pageTypeCreate(input: PageTypeCreateInput!): PageTypeCreate
   pageTypeUpdate(id: ID, input: PageTypeUpdateInput!): PageTypeUpdate
+  pageTypeDelete(id: ID!): PageTypeDelete
   pageAttributeAssign(attributeIds: [ID!]!, pageTypeId: ID!): PageAttributeAssign
   pageAttributeUnassign(attributeIds: [ID!]!, pageTypeId: ID!): PageAttributeUnassign
   draftOrderComplete(id: ID!): DraftOrderComplete
@@ -3420,6 +3421,12 @@ input PageTypeCreateInput {
   name: String
   slug: String
   addAttributes: [ID!]
+}
+
+type PageTypeDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  pageErrors: [PageError!]!
+  pageType: PageType
 }
 
 input PageTypeFilterInput {

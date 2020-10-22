@@ -256,3 +256,15 @@ class PageTypeUpdate(PageTypeMixin, ModelMutation):
             instance.page_attributes.remove(*remove_attributes)
         if add_attributes is not None:
             instance.page_attributes.add(*add_attributes)
+
+
+class PageTypeDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of the page type to delete.")
+
+    class Meta:
+        description = "Delete a page type."
+        model = models.PageType
+        permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        error_type_class = PageError
+        error_type_field = "page_errors"
