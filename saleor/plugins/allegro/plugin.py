@@ -1359,7 +1359,7 @@ class AllegroProductMapper:
 
         self.set_publication_status('INACTIVE')
         self.set_publication_ended_by('USER')
-        self.set_publication_republish('False')
+        self.set_publication_republish('True')
 
         self.set_parameters(self.saleor_parameters)
         self.set_external(
