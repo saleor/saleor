@@ -80,7 +80,6 @@ def test_query_currencies(user_api_client, settings):
     query = """
     query {
         shop {
-            currencies
             defaultCurrency
         }
     }
@@ -88,7 +87,6 @@ def test_query_currencies(user_api_client, settings):
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content["data"]["shop"]
-    assert len(data["currencies"]) == len(settings.AVAILABLE_CURRENCIES)
     assert data["defaultCurrency"] == settings.DEFAULT_CURRENCY
 
 
