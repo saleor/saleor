@@ -32,9 +32,7 @@ def add_page_types_to_existing_pages(apps, schema_editor):
     pages = Page.objects.all()
 
     if pages:
-        page_type, _ = PageType.objects.get_or_create(
-            name="Default page type", slug="default-page-type"
-        )
+        page_type = PageType.objects.create(name="Default", slug="default")
 
         page_type.pages.add(*pages)
 
