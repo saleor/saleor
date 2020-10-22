@@ -50,6 +50,7 @@ from .mutations.attributes import (
     AttributeValueDelete,
     AttributeValueUpdate,
     PageAttributeAssign,
+    PageAttributeUnassign,
     ProductAttributeAssign,
     ProductAttributeUnassign,
     ProductTypeReorderAttributes,
@@ -324,6 +325,7 @@ class ProductMutations(graphene.ObjectType):
     product_attribute_assign = ProductAttributeAssign.Field()
     product_attribute_unassign = ProductAttributeUnassign.Field()
     page_attribute_assign = PageAttributeAssign.Field()
+    page_attribute_unassign = PageAttributeUnassign.Field()
     attribute_update = AttributeUpdate.Field()
     attribute_translate = AttributeTranslate.Field()
     attribute_update_metadata = AttributeUpdateMeta.Field(

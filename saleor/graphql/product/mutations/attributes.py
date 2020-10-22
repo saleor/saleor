@@ -531,7 +531,7 @@ class PageAttributeAssign(BaseMutation):
         # retrieve the requested page type
         page_type = cls.get_node_or_error(info, page_type_id, only_type=PageType)
 
-        # resolve all passed attributes IDs to attributes
+        # resolve all passed attributes IDs to attributes pks
         _, attr_pks = resolve_global_ids_to_primary_keys(attribute_ids, Attribute)
 
         # ensure the attributes are assignable
@@ -599,6 +599,44 @@ class ProductAttributeUnassign(BaseMutation):
         cls.save_field_values(product_type, "variant_attributes", attribute_pks)
 
         return cls(product_type=product_type)
+
+
+class PageAttributeUnassign(BaseMutation):
+    page_type = graphene.Field(PageType, description="The updated page type.")
+
+    class Arguments:
+        page_type_id = graphene.ID(
+            required=True,
+            description=(
+                "ID of the page type from which the attributes should be unassign."
+            ),
+        )
+        attribute_ids = graphene.List(
+            graphene.NonNull(graphene.ID),
+            required=True,
+            description="The IDs of the attributes to unassign.",
+        )
+
+    class Meta:
+        description = "Unassign attributes from a given page type."
+        permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        page_type_id = data["page_type_id"]
+        attribute_ids = data["attribute_ids"]
+
+        # retrieve the requested page type
+        page_type = cls.get_node_or_error(info, page_type_id, only_type=PageType)
+
+        # resolve all passed attributes IDs to attributes pks
+        _, attr_pks = resolve_global_ids_to_primary_keys(attribute_ids, Attribute)
+
+        page_type.page_attributes.remove(*attr_pks)
+
+        return cls(page_type=page_type)
 
 
 class AttributeDelete(ModelDeleteMutation):
