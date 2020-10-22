@@ -208,17 +208,24 @@ def void(payment: Payment) -> Transaction:
 @payment_postprocess
 def confirm(payment: Payment, additional_data: Optional[dict] = None) -> Transaction:
     plugin_manager = get_plugins_manager()
-    token = _get_past_transaction_token(payment, TransactionKind.ACTION_TO_CONFIRM)
+    txn = payment.transactions.filter(
+        kind=TransactionKind.ACTION_TO_CONFIRM, is_success=True
+    ).last()
+    token = txn.token if txn else ""
     payment_data = create_payment_information(
         payment=payment, payment_token=token, additional_data=additional_data
     )
     response, error = _fetch_gateway_response(
         plugin_manager.confirm_payment, payment.gateway, payment_data
     )
+    action_required = response is not None and response.action_required
+    if response and response.payment_method_info:
+        update_payment_method_details(payment, response)
     return get_already_processed_transaction_or_create_new_transaction(
         payment=payment,
         kind=TransactionKind.CONFIRM,
         payment_information=payment_data,
+        action_required=action_required,
         error_msg=error,
         gateway_response=response,
     )
