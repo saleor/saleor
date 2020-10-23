@@ -5,20 +5,20 @@ from typing import TYPE_CHECKING, Dict, List
 import graphene
 from django.core.exceptions import ValidationError
 
-from ...core.permissions import PagePermissions, PageTypePermissions
-from ...page import models
-from ...page.error_codes import PageErrorCode
-from ...product import AttributeType
-from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types.common import PageError, SeoInput
-from ..core.utils import (
+from ....core.permissions import PagePermissions, PageTypePermissions
+from ....page import models
+from ....page.error_codes import PageErrorCode
+from ....product import AttributeType
+from ...core.mutations import ModelDeleteMutation, ModelMutation
+from ...core.types.common import PageError, SeoInput
+from ...core.utils import (
     clean_seo_fields,
     get_duplicates_ids,
     validate_slug_and_generate_if_needed,
 )
 
 if TYPE_CHECKING:
-    from ...product.models import Attribute
+    from ....product.models import Attribute
 
 
 class PageInput(graphene.InputObjectType):
