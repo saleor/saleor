@@ -4,7 +4,8 @@ from ..core.fields import FilterInputConnectionField
 from ..translations.mutations import PageTranslate
 from .bulk_mutations import PageBulkDelete, PageBulkPublish
 from .filters import PageFilterInput, PageTypeFilterInput
-from .mutations import (
+from .mutations.attributes import PageAttributeAssign, PageAttributeUnassign
+from .mutations.pages import (
     PageCreate,
     PageDelete,
     PageTypeCreate,
@@ -71,3 +72,7 @@ class PageMutations(graphene.ObjectType):
     # page type mutations
     page_type_create = PageTypeCreate.Field()
     page_type_update = PageTypeUpdate.Field()
+
+    # attributes mutations
+    page_attribute_assign = PageAttributeAssign.Field()
+    page_attribute_unassign = PageAttributeUnassign.Field()
