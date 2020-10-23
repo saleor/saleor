@@ -1,6 +1,7 @@
 import graphene
 
 from ...core.permissions import ProductPermissions
+from ...product import models
 from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.enums import ReportingPeriod
@@ -19,6 +20,7 @@ from ..translations.mutations import (
     ProductTranslate,
     ProductVariantTranslate,
 )
+from ..utils import get_user_or_app_from_context
 from .bulk_mutations.attributes import AttributeBulkDelete, AttributeValueBulkDelete
 from .bulk_mutations.products import (
     CategoryBulkDelete,
@@ -318,7 +320,9 @@ class ProductQueries(graphene.ObjectType):
         )
 
     def resolve_collections(self, info, channel=None, *_args, **_kwargs):
-        if channel is None:
+        user = get_user_or_app_from_context(info.context)
+        user_has_access_to_all = models.Collection.objects.user_has_access_to_all(user)
+        if channel is None and not user_has_access_to_all:
             channel = get_default_channel_slug_or_graphql_error()
         return resolve_collections(info, channel)
 
@@ -344,7 +348,9 @@ class ProductQueries(graphene.ObjectType):
         return ChannelContext(node=product, channel_slug=channel) if product else None
 
     def resolve_products(self, info, channel=None, **kwargs):
-        if channel is None:
+        user = get_user_or_app_from_context(info.context)
+        user_has_access_to_all = models.Product.objects.user_has_access_to_all(user)
+        if channel is None and not user_has_access_to_all:
             channel = get_default_channel_slug_or_graphql_error()
         return resolve_products(info, channel_slug=channel, **kwargs)
 
@@ -370,9 +376,19 @@ class ProductQueries(graphene.ObjectType):
         return ChannelContext(node=variant, channel_slug=channel) if variant else None
 
     def resolve_product_variants(self, info, ids=None, channel=None, **_kwargs):
-        if channel is None:
+        requestor = get_user_or_app_from_context(info.context)
+        user_has_access_to_all = models.Product.objects.user_has_access_to_all(
+            requestor
+        )
+        if channel is None and not user_has_access_to_all:
             channel = get_default_channel_slug_or_graphql_error()
-        return resolve_product_variants(info, ids=ids, channel_slug=channel)
+        return resolve_product_variants(
+            info,
+            ids=ids,
+            channel_slug=channel,
+            access_to_all=user_has_access_to_all,
+            requestor=requestor,
+        )
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_report_product_sales(self, *_args, period, channel=None, **_kwargs):

@@ -114,10 +114,11 @@ def resolve_product_variant_by_sku(info, sku, channel_slug):
     )
 
 
-def resolve_product_variants(info, ids=None, channel_slug=None) -> ChannelQsContext:
-    requestor = get_user_or_app_from_context(info.context)
+def resolve_product_variants(
+    info, access_to_all, requestor, ids=None, channel_slug=None
+) -> ChannelQsContext:
     visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
-    if not visible_products.user_has_access_to_all(requestor):
+    if not access_to_all:
         visible_products = visible_products.annotate_visible_in_listings(
             channel_slug
         ).exclude(visible_in_listings=False)

@@ -865,7 +865,7 @@ def test_query_public_meta_for_collection_as_staff(
     collection.save(update_fields=["metadata"])
     variables = {
         "id": graphene.Node.to_global_id("Collection", collection.pk),
-        "channel": graphene.Node.to_global_id("Channel", channel_USD.pk),
+        "channel": channel_USD.slug,
     }
 
     # when

@@ -162,6 +162,8 @@ class ProductsQueryset(models.QuerySet):
 
     def visible_to_user(self, user: "User", channel_slug: str):
         if self.user_has_access_to_all(user):
+            if channel_slug:
+                return self.filter(channel_listing__channel__slug=str(channel_slug))
             return self.all()
         return self.published_with_variants(channel_slug)
 
@@ -915,6 +917,8 @@ class CollectionsQueryset(models.QuerySet):
 
     def visible_to_user(self, user: "User", channel_slug: str):
         if self.user_has_access_to_all(user):
+            if channel_slug:
+                return self.filter(channel_listing__channel__slug=str(channel_slug))
             return self.all()
         return self.published(channel_slug)
 
