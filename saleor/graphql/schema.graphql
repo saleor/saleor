@@ -2671,7 +2671,7 @@ type Mutation {
   paymentCapture(amount: PositiveDecimal, paymentId: ID!): PaymentCapture
   paymentRefund(amount: PositiveDecimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
-  pageCreate(input: PageInput!): PageCreate
+  pageCreate(input: PageCreateInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
   pageBulkPublish(ids: [ID]!, isPublished: Boolean!): PageBulkPublish
@@ -3234,6 +3234,7 @@ type Page implements Node & ObjectWithMetadata {
   publicationDate: Date
   isPublished: Boolean!
   slug: String!
+  pageType: PageType!
   created: DateTime!
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
@@ -3281,6 +3282,17 @@ type PageCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   pageErrors: [PageError!]!
   page: Page
+}
+
+input PageCreateInput {
+  slug: String
+  title: String
+  content: String
+  contentJson: JSONString
+  isPublished: Boolean
+  publicationDate: String
+  seo: SeoInput
+  pageType: ID!
 }
 
 type PageDelete {
