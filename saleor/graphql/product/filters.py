@@ -7,6 +7,21 @@ from django.db.models import F, Q, Subquery, Sum
 from django.db.models.functions import Coalesce
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
+from . import types
+from .enums import (
+    CollectionPublished,
+    ProductTypeConfigurable,
+    ProductTypeEnum,
+    StockAvailability,
+)
+from .types.attributes import AttributeInput
+from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
+from ..core.types import FilterInputObjectType
+from ..core.types.common import IntRangeInput, PriceRangeInput, DateRangeInput
+from ..core.utils import from_global_id_strict_type
+from ..utils import get_nodes, resolve_global_ids_to_primary_keys
+from ..utils.filters import filter_by_query_param, filter_range_field
+from ..warehouse import types as warehouse_types
 from ...product.filters import filter_products_by_attributes_values
 from ...product.models import (
     Attribute,
@@ -18,21 +33,6 @@ from ...product.models import (
 )
 from ...search.backends import picker
 from ...warehouse.models import Stock
-from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
-from ..core.types import FilterInputObjectType
-from ..core.types.common import IntRangeInput, PriceRangeInput
-from ..core.utils import from_global_id_strict_type
-from ..utils import get_nodes, resolve_global_ids_to_primary_keys
-from ..utils.filters import filter_by_query_param, filter_range_field
-from ..warehouse import types as warehouse_types
-from . import types
-from .enums import (
-    CollectionPublished,
-    ProductTypeConfigurable,
-    ProductTypeEnum,
-    StockAvailability,
-)
-from .types.attributes import AttributeInput
 
 
 def filter_fields_containing_value(*search_fields: str):
@@ -287,6 +287,7 @@ def filter_quantity(qs, quantity_value, warehouses=None):
     )
     return qs.filter(variants__in=product_variants)
 
+
 def filter_allegro_status(qs, _, value):
     if value:
         json_dict = {
@@ -294,6 +295,11 @@ def filter_allegro_status(qs, _, value):
         }
         qs = Product.objects.filter(private_metadata__contains=json_dict)
     return qs
+
+
+def filter_updated_at_range(qs, _, value):
+    return filter_range_field(qs, "updated_at__date", value)
+
 
 class ProductStockFilterInput(graphene.InputObjectType):
     warehouse_ids = graphene.List(graphene.NonNull(graphene.ID), required=False)
@@ -322,6 +328,8 @@ class ProductFilter(django_filters.FilterSet):
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
     allegro_status = django_filters.CharFilter(method=filter_allegro_status)
+    updated_at = ObjectTypeFilter(input_class=DateRangeInput,
+                                  method=filter_updated_at_range)
 
     class Meta:
         model = Product
@@ -336,6 +344,7 @@ class ProductFilter(django_filters.FilterSet):
             "stocks",
             "search",
             "allegro_status",
+            "updated_at",
         ]
 
 
