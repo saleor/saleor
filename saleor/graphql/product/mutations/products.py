@@ -1206,6 +1206,11 @@ class ProductVariantCreate(ModelMutation):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
+        if not attributes:
+            raise ValidationError(
+                "All attributes must take a value.", ProductErrorCode.REQUIRED.value
+            )
+
         attributes_qs = product_type.variant_attributes
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, is_variant=True
@@ -1276,27 +1281,26 @@ class ProductVariantCreate(ModelMutation):
         if stocks:
             cls.check_for_duplicates_in_stocks(stocks)
 
-        # Attributes are provided as list of `AttributeValueInput` objects.
-        # We need to transform them into the format they're stored in the
-        # `Product` model, which is HStore field that maps attribute's PK to
-        # the value's PK.
-        attributes = cleaned_input.get("attributes")
-        if attributes:
-            if instance.product_id is not None:
-                # If the variant is getting updated,
-                # simply retrieve the associated product type
-                product_type = instance.product.product_type
-                used_attribute_values = get_used_variants_attribute_values(
-                    instance.product
-                )
-            else:
-                # If the variant is getting created, no product type is associated yet,
-                # retrieve it from the required "product" input field
-                product_type = cleaned_input["product"].product_type
-                used_attribute_values = get_used_variants_attribute_values(
-                    cleaned_input["product"]
-                )
+        if instance.pk:
+            # If the variant is getting updated,
+            # simply retrieve the associated product type
+            product_type = instance.product.product_type
+            used_attribute_values = get_used_variants_attribute_values(instance.product)
+        else:
+            # If the variant is getting created, no product type is associated yet,
+            # retrieve it from the required "product" input field
+            product_type = cleaned_input["product"].product_type
+            used_attribute_values = get_used_variants_attribute_values(
+                cleaned_input["product"]
+            )
 
+        # Run the validation only if product type is configurable
+        if product_type.has_variants:
+            # Attributes are provided as list of `AttributeValueInput` objects.
+            # We need to transform them into the format they're stored in the
+            # `Product` model, which is HStore field that maps attribute's PK to
+            # the value's PK.
+            attributes = cleaned_input.get("attributes", [])
             try:
                 cls.validate_duplicated_attribute_values(
                     attributes, used_attribute_values, instance
@@ -1306,6 +1310,7 @@ class ProductVariantCreate(ModelMutation):
                 )
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
+
         return cleaned_input
 
     @classmethod

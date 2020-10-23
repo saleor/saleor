@@ -24,7 +24,7 @@ class Menu(CountableDjangoObjectType):
             "through the store."
         )
         interfaces = [relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = ["id", "name", "slug"]
         model = models.Menu
 
     @staticmethod

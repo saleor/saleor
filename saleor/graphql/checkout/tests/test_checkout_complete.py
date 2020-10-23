@@ -492,7 +492,9 @@ def test_checkout_confirm(
     address,
     shipping_method,
 ):
-    mock_get_manager.confirm_payment.return_value = ACTION_REQUIRED_GATEWAY_RESPONSE
+    response = ACTION_REQUIRED_GATEWAY_RESPONSE
+    response.action_required = False
+    mock_get_manager.confirm_payment.return_value = response
 
     checkout = checkout_with_item
     checkout.shipping_address = address
