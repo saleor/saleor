@@ -37,9 +37,15 @@ class PageInput(graphene.InputObjectType):
     seo = SeoInput(description="Search engine optimization fields.")
 
 
+class PageCreateInput(PageInput):
+    page_type = graphene.ID(
+        description="ID of the page type that page belongs to.", required=True
+    )
+
+
 class PageCreate(ModelMutation):
     class Arguments:
-        input = PageInput(
+        input = PageCreateInput(
             required=True, description="Fields required to create a page."
         )
 
