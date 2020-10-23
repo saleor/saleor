@@ -302,7 +302,9 @@
             {% if order.get_last_payment %}
                 <span class="normal-text">{{ order.get_last_payment.gateway }}</span>
             {% else %}
-                <span class="normal-text">Unpaid</span>
+                <span class="normal-text">
+                    {% trans "Unpaid" context "Invoice PDF: Payment method value" %}
+                </span>
             {% endif %}
             <br />
         </div>
