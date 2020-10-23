@@ -87,6 +87,7 @@ WeightUnitsEnum = graphene.Enum(
 
 AccountErrorCode = graphene.Enum.from_enum(account_error_codes.AccountErrorCode)
 AppErrorCode = graphene.Enum.from_enum(app_error_codes.AppErrorCode)
+AttributeErrorCode = graphene.Enum.from_enum(product_error_codes.AttributeErrorCode)
 CheckoutErrorCode = graphene.Enum.from_enum(checkout_error_codes.CheckoutErrorCode)
 ExportErrorCode = graphene.Enum.from_enum(csv_error_codes.ExportErrorCode)
 DiscountErrorCode = graphene.Enum.from_enum(discount_error_codes.DiscountErrorCode)

@@ -418,13 +418,13 @@ type AttributeBulkDelete {
 
 type AttributeClearMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
   attribute: Attribute
 }
 
 type AttributeClearPrivateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
   attribute: Attribute
 }
 
@@ -442,7 +442,7 @@ type AttributeCountableEdge {
 type AttributeCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   attribute: Attribute
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
 }
 
 input AttributeCreateInput {
@@ -462,8 +462,23 @@ input AttributeCreateInput {
 
 type AttributeDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
   attribute: Attribute
+}
+
+type AttributeError {
+  field: String
+  message: String
+  code: AttributeErrorCode!
+}
+
+enum AttributeErrorCode {
+  ALREADY_EXISTS
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
 }
 
 input AttributeFilterInput {
@@ -494,7 +509,7 @@ enum AttributeInputTypeEnum {
 type AttributeReorderValues {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   attribute: Attribute
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
 }
 
 enum AttributeSortField {
@@ -541,7 +556,7 @@ enum AttributeTypeEnum {
 type AttributeUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   attribute: Attribute
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
 }
 
 input AttributeUpdateInput {
@@ -560,13 +575,13 @@ input AttributeUpdateInput {
 
 type AttributeUpdateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
   attribute: Attribute
 }
 
 type AttributeUpdatePrivateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
   attribute: Attribute
 }
 
@@ -588,7 +603,7 @@ type AttributeValueBulkDelete {
 type AttributeValueCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   attribute: Attribute
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
   attributeValue: AttributeValue
 }
 
@@ -599,7 +614,7 @@ input AttributeValueCreateInput {
 type AttributeValueDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   attribute: Attribute
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
   attributeValue: AttributeValue
 }
 
@@ -637,7 +652,7 @@ enum AttributeValueType {
 type AttributeValueUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   attribute: Attribute
-  productErrors: [ProductError!]!
+  attributeErrors: [AttributeError!]!
   attributeValue: AttributeValue
 }
 
