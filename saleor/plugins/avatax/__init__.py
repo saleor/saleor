@@ -309,7 +309,7 @@ def generate_request_data(
     address: Dict[str, str],
     customer_email: str,
     config: AvataxConfiguration,
-    currency=settings.DEFAULT_CURRENCY,
+    currency: str,
 ):
     company_address = Site.objects.get_current().settings.company_address
     if company_address:
@@ -432,7 +432,7 @@ def get_order_request_data(order: "Order", config: AvataxConfiguration):
         address=address.as_data() if address else {},
         customer_email=order.user_email,
         config=config,
-        currency=order.total.currency,
+        currency=order.currency,
     )
     return data
 

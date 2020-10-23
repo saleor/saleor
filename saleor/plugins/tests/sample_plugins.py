@@ -144,7 +144,7 @@ class ActiveDummyPaymentGateway(BasePlugin):
     ]
     PLUGIN_NAME = "SampleDummy"
     DEFAULT_ACTIVE = True
-    SUPPORTED_CURRENCIES = ["PLN", "USD"]
+    SUPPORTED_CURRENCIES = ["EUR", "USD"]
 
     def process_payment(self, payment_information, previous_value):
         pass

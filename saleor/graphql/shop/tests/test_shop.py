@@ -76,20 +76,6 @@ def test_query_countries_with_translation(
     assert data["countries"][0]["country"] == expected_value
 
 
-def test_query_currencies(user_api_client, settings):
-    query = """
-    query {
-        shop {
-            defaultCurrency
-        }
-    }
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    data = content["data"]["shop"]
-    assert data["defaultCurrency"] == settings.DEFAULT_CURRENCY
-
-
 def test_query_name(user_api_client, site_settings):
     query = """
     query {
@@ -669,11 +655,11 @@ def test_query_available_payment_gateways_specified_currency_USD(
     }
 
 
-def test_query_available_payment_gateways_specified_currency_PLN(
+def test_query_available_payment_gateways_specified_currency_EUR(
     user_api_client, sample_gateway
 ):
     query = AVAILABLE_PAYMENT_GATEWAYS_QUERY
-    response = user_api_client.post_graphql(query, {"currency": "PLN"})
+    response = user_api_client.post_graphql(query, {"currency": "EUR"})
     content = get_graphql_content(response)
     data = content["data"]["shop"]["availablePaymentGateways"]
     assert data[0]["id"] == "sampleDummy.active"
