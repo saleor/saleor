@@ -1,6 +1,7 @@
 import graphene
 import pytest
 
+from ....page.models import Page
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 DELETE_PAGE_TYPE_MUTATION = """
@@ -29,9 +30,9 @@ def test_page_type_delete_by_staff(
         permission_manage_page_types_and_attributes
     )
 
-    pages = page_type.pages.all()
+    pages_pks = list(page_type.pages.values_list("pk", flat=True))
 
-    assert pages
+    assert pages_pks
 
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
@@ -51,9 +52,7 @@ def test_page_type_delete_by_staff(
         page_type.refresh_from_db()
 
     # ensure that corresponding pages has been removed
-    for page in pages:
-        with pytest.raises(page._meta.model.DoesNotExist):
-            page.refresh_from_db()
+    assert not Page.objects.filter(pk__in=pages_pks)
 
 
 def test_page_type_delete_by_staff_no_perm(
@@ -79,9 +78,9 @@ def test_page_type_delete_by_app(
 
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
-    pages = page_type.pages.all()
+    pages_pks = list(page_type.pages.values_list("pk", flat=True))
 
-    assert pages
+    assert pages_pks
 
     variables = {"id": page_type_id}
 
@@ -99,9 +98,7 @@ def test_page_type_delete_by_app(
         page_type.refresh_from_db()
 
     # ensure that corresponding pages has been removed
-    for page in pages:
-        with pytest.raises(page._meta.model.DoesNotExist):
-            page.refresh_from_db()
+    assert not Page.objects.filter(pk__in=pages_pks)
 
 
 def test_page_type_delete_by_app_no_perm(

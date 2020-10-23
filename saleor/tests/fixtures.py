@@ -1942,8 +1942,16 @@ def page_type_list(db, tag_page_attribute):
             ]
         )
     )
-    for page_type in page_types:
+
+    for i, page_type in enumerate(page_types):
         page_type.page_attributes.add(tag_page_attribute)
+        Page.objects.create(
+            title=f"Test page {i}",
+            slug=f"test-url-{i}",
+            is_published=True,
+            page_type=page_type,
+        )
+
     return page_types
 
 
