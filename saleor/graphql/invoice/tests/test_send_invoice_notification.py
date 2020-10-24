@@ -10,8 +10,8 @@ from ....invoice.notifications import get_invoice_payload
 from ....order import OrderEvents
 
 INVOICE_SEND_EMAIL_MUTATION = """
-    mutation invoiceSendEmail($id: ID!) {
-        invoiceSendEmail(
+    mutation invoiceSendNotification($id: ID!) {
+        invoiceSendNotification(
             id: $id
         ) {
             invoiceErrors {
@@ -40,7 +40,7 @@ def test_invoice_send_notification(
     expected_payload = get_invoice_payload(invoice)
 
     mock_notify.assert_called_once_with(NotifyEventType.INVOICE_READY, expected_payload)
-    assert not content["data"]["invoiceSendEmail"]["invoiceErrors"]
+    assert not content["data"]["invoiceSendNotification"]["invoiceErrors"]
     assert InvoiceEvent.objects.filter(
         type=InvoiceEvents.SENT,
         user=staff_api_client.user,
@@ -67,7 +67,7 @@ def test_invoice_send_notification_pending(
         INVOICE_SEND_EMAIL_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["invoiceSendEmail"]["invoiceErrors"]
+    errors = content["data"]["invoiceSendNotification"]["invoiceErrors"]
     assert errors == [
         {"field": "invoice", "code": "NOT_READY"},
         {"field": "url", "code": "URL_NOT_SET"},
@@ -89,7 +89,7 @@ def test_invoice_send_notification_without_url_and_number(
         INVOICE_SEND_EMAIL_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["invoiceSendEmail"]["invoiceErrors"]
+    errors = content["data"]["invoiceSendNotification"]["invoiceErrors"]
     assert errors == [
         {"field": "url", "code": "URL_NOT_SET"},
         {"field": "number", "code": "NUMBER_NOT_SET"},
@@ -117,6 +117,6 @@ def test_invoice_send_email_without_email(
     content = get_graphql_content(response)
     mock_notify.assert_not_called()
     assert order_mock.called
-    errors = content["data"]["invoiceSendEmail"]["invoiceErrors"]
+    errors = content["data"]["invoiceSendNotification"]["invoiceErrors"]
     assert errors == [{"field": "order", "code": "EMAIL_NOT_SET"}]
     assert not order.events.filter(type=OrderEvents.INVOICE_SENT).exists()

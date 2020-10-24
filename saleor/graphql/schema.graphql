@@ -2200,7 +2200,7 @@ type InvoiceRequestDelete {
   invoice: Invoice
 }
 
-type InvoiceSendEmail {
+type InvoiceSendNotification {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   invoiceErrors: [InvoiceError!]!
   invoice: Invoice
@@ -2740,7 +2740,7 @@ type Mutation {
   invoiceCreate(input: InvoiceCreateInput!, orderId: ID!): InvoiceCreate
   invoiceDelete(id: ID!): InvoiceDelete
   invoiceUpdate(id: ID!, input: UpdateInvoiceInput!): InvoiceUpdate
-  invoiceSendEmail(id: ID!): InvoiceSendEmail
+  invoiceSendNotification(id: ID!): InvoiceSendNotification
   giftCardActivate(id: ID!): GiftCardActivate
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate

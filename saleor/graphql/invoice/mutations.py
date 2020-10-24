@@ -261,9 +261,7 @@ class InvoiceUpdate(ModelMutation):
         return InvoiceUpdate(invoice=instance)
 
 
-# FIXME Should we rename the mutation? We send invoice somehow but it is not required to
-# be an email
-class InvoiceSendEmail(ModelMutation):
+class InvoiceSendNotification(ModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to be sent.")
 
@@ -311,4 +309,4 @@ class InvoiceSendEmail(ModelMutation):
             user=info.context.user,
             email=instance.order.get_customer_email(),
         )
-        return InvoiceSendEmail(invoice=instance)
+        return InvoiceSendNotification(invoice=instance)
