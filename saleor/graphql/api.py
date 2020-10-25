@@ -1,3 +1,4 @@
+from django.conf import settings
 from graphene_federation import build_schema
 
 from .account.schema import AccountMutations, AccountQueries
@@ -21,8 +22,7 @@ from .translations.schema import TranslationQueries
 from .warehouse.schema import StockQueries, WarehouseMutations, WarehouseQueries
 from .webhook.schema import WebhookMutations, WebhookQueries
 
-
-class Query(
+QUERY_CLASSES = (
     AccountQueries,
     AppQueries,
     CheckoutQueries,
@@ -42,11 +42,9 @@ class Query(
     TranslationQueries,
     WarehouseQueries,
     WebhookQueries,
-):
-    pass
+)
 
-
-class Mutation(
+MUTATION_CLASSES = (
     AccountMutations,
     AppMutations,
     CheckoutMutations,
@@ -65,8 +63,12 @@ class Mutation(
     ShopMutations,
     WarehouseMutations,
     WebhookMutations,
-):
-    pass
+)
 
+QUERY_CLASSES += getattr(settings, "GRAPHQL_QUERY_CLASSES", tuple())
+MUTATION_CLASSES += getattr(settings, "GRAPHQL_MUTATION_CLASSES", tuple())
 
-schema = build_schema(Query, mutation=Mutation)
+QueryClass = type("Query", QUERY_CLASSES, {})
+MutationClass = type("Mutation", MUTATION_CLASSES, {})
+
+schema = build_schema(QueryClass, mutation=MutationClass)
