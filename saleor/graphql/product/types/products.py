@@ -615,16 +615,19 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        country = info.context.country
-        in_stock = is_product_in_stock(root.node, country)
-        # TODO: Add channel listing
-        product_channel_listing = models.ProductChannelListing.objects.filter(
-            product=root.node, channel__slug=root.channel_slug
-        ).first()
-        is_visible = False
-        if product_channel_listing:
-            is_visible = product_channel_listing.is_available_for_purchase()
-        return is_visible and in_stock
+        def calculate_is_available(product_channel_listing):
+            country = info.context.country
+            in_stock = is_product_in_stock(root.node, country)
+            is_visible = False
+            if product_channel_listing:
+                is_visible = product_channel_listing.is_available_for_purchase()
+            return is_visible and in_stock
+
+        return (
+            ProductChannelListingByProductIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_is_available)
+        )
 
     @staticmethod
     def resolve_attributes(root: ChannelContext[models.Product], info):
