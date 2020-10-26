@@ -79,28 +79,20 @@ class DiscountQueries(graphene.ObjectType):
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_sale(self, info, id, channel=None):
-        # if channel is None:
-        #     channel = get_default_channel_slug_or_graphql_error()
         sale = graphene.Node.get_node_from_global_id(info, id, Sale)
         return ChannelContext(node=sale, channel_slug=channel) if sale else None
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_sales(self, info, query=None, channel=None, **kwargs):
-        # if channel is None:
-        #     channel = get_default_channel_slug_or_graphql_error()
         return resolve_sales(info, query, channel_slug=channel, **kwargs)
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_voucher(self, info, id, channel=None):
-        # if channel is None:
-        #     channel = get_default_channel_slug_or_graphql_error()
         voucher = graphene.Node.get_node_from_global_id(info, id, Voucher)
         return ChannelContext(node=voucher, channel_slug=channel) if voucher else None
 
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_vouchers(self, info, query=None, channel=None, **kwargs):
-        # if channel is None:
-        #     channel = get_default_channel_slug_or_graphql_error()
         return resolve_vouchers(info, query, channel_slug=channel, **kwargs)
 
 
