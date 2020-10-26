@@ -2297,7 +2297,7 @@ socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
 
 [[package]]
 name = "uvicorn"
-version = "0.12.1"
+version = "0.12.2"
 description = "The lightning-fast ASGI server."
 category = "main"
 optional = false
@@ -3534,8 +3534,8 @@ urllib3 = [
     {file = "urllib3-1.25.10.tar.gz", hash = "sha256:91056c15fa70756691db97756772bb1eb9678fa585d9184f24534b100dc60f4a"},
 ]
 uvicorn = [
-    {file = "uvicorn-0.12.1-py3-none-any.whl", hash = "sha256:d06a25caa8dc680ad92eb3ec67363f5281c092059613a1cc0100acba37fc0f45"},
-    {file = "uvicorn-0.12.1.tar.gz", hash = "sha256:a461e76406088f448f36323f5ac774d50e5a552b6ccb54e4fca8d83ef614a7c2"},
+    {file = "uvicorn-0.12.2-py3-none-any.whl", hash = "sha256:e5dbed4a8a44c7b04376021021d63798d6a7bcfae9c654a0b153577b93854fba"},
+    {file = "uvicorn-0.12.2.tar.gz", hash = "sha256:8ff7495c74b8286a341526ff9efa3988ebab9a4b2f561c7438c3cb420992d7dd"},
 ]
 vcrpy = [
     {file = "vcrpy-4.1.0-py2.py3-none-any.whl", hash = "sha256:d833248442bbc560599add895c9ab0ef518676579e8dc72d8b0933bdb3880253"},
