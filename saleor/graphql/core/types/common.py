@@ -5,6 +5,7 @@ from ...translations.enums import LanguageCodeEnum
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
+    AttributeErrorCode,
     CheckoutErrorCode,
     DiscountErrorCode,
     ExportErrorCode,
@@ -80,6 +81,10 @@ class AppError(Error):
         description="List of permissions which causes the error.",
         required=False,
     )
+
+
+class AttributeError(Error):
+    code = AttributeErrorCode(description="The error code.", required=True)
 
 
 class StaffError(AccountError):

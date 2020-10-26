@@ -14,9 +14,9 @@ from ....core.permissions import (
     ProductTypePermissions,
 )
 from ....product import AttributeInputType, AttributeType, models
-from ....product.error_codes import ProductErrorCode
+from ....product.error_codes import AttributeErrorCode, ProductErrorCode
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types.common import ProductError
+from ...core.types.common import AttributeError, ProductError
 from ...core.utils import (
     from_global_id_strict_type,
     validate_slug_and_generate_if_needed,
@@ -119,7 +119,7 @@ class AttributeMixin:
                 raise ValidationError(
                     {
                         cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
-                            msg, code=ProductErrorCode.ALREADY_EXISTS
+                            msg, code=AttributeErrorCode.ALREADY_EXISTS
                         )
                     }
                 )
@@ -132,7 +132,8 @@ class AttributeMixin:
             raise ValidationError(
                 {
                     cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
-                        "Provided values are not unique.", code=ProductErrorCode.UNIQUE
+                        "Provided values are not unique.",
+                        code=AttributeErrorCode.UNIQUE,
                     )
                 }
             )
@@ -169,7 +170,7 @@ class AttributeMixin:
                 instance, "name", cleaned_input
             )
         except ValidationError as error:
-            error.code = ProductErrorCode.REQUIRED.value
+            error.code = AttributeErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
 
         return cleaned_input
@@ -197,8 +198,8 @@ class AttributeCreate(AttributeMixin, ModelMutation):
     class Meta:
         model = models.Attribute
         description = "Creates an attribute."
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = AttributeError
+        error_type_field = "attribute_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -247,8 +248,8 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         model = models.Attribute
         description = "Updates attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = AttributeError
+        error_type_field = "attribute_errors"
 
     @classmethod
     def clean_remove_values(cls, cleaned_input, instance):
@@ -260,7 +261,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
                 raise ValidationError(
                     {
                         "remove_values": ValidationError(
-                            msg, code=ProductErrorCode.INVALID
+                            msg, code=AttributeErrorCode.INVALID
                         )
                     }
                 )
@@ -558,8 +559,8 @@ class AttributeDelete(ModelDeleteMutation):
         model = models.Attribute
         description = "Deletes an attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = AttributeError
+        error_type_field = "attribute_errors"
 
 
 class AttributeUpdateMeta(UpdateMetaBaseMutation):
@@ -568,8 +569,8 @@ class AttributeUpdateMeta(UpdateMetaBaseMutation):
         description = "Update public metadata for attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = AttributeError
+        error_type_field = "attribute_errors"
 
 
 class AttributeClearMeta(ClearMetaBaseMutation):
@@ -578,8 +579,8 @@ class AttributeClearMeta(ClearMetaBaseMutation):
         model = models.Attribute
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = AttributeError
+        error_type_field = "attribute_errors"
 
 
 class AttributeUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -588,8 +589,8 @@ class AttributeUpdatePrivateMeta(UpdateMetaBaseMutation):
         model = models.Attribute
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = AttributeError
+        error_type_field = "attribute_errors"
 
 
 class AttributeClearPrivateMeta(ClearMetaBaseMutation):
@@ -598,8 +599,8 @@ class AttributeClearPrivateMeta(ClearMetaBaseMutation):
         model = models.Attribute
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = AttributeError
+        error_type_field = "attribute_errors"
 
 
 def validate_value_is_unique(attribute: models.Attribute, value: models.AttributeValue):
@@ -610,7 +611,7 @@ def validate_value_is_unique(attribute: models.Attribute, value: models.Attribut
             {
                 "name": ValidationError(
                     f"Value with slug {value.slug} already exists.",
-                    code=ProductErrorCode.ALREADY_EXISTS.value,
+                    code=AttributeErrorCode.ALREADY_EXISTS.value,
                 )
             }
         )
@@ -633,8 +634,8 @@ class AttributeValueCreate(ModelMutation):
         model = models.AttributeValue
         description = "Creates a value for an attribute."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = AttributeError
+        error_type_field = "attribute_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -675,8 +676,8 @@ class AttributeValueUpdate(ModelMutation):
         model = models.AttributeValue
         description = "Updates value of an attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = AttributeError
+        error_type_field = "attribute_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -707,8 +708,8 @@ class AttributeValueDelete(ModelDeleteMutation):
         model = models.AttributeValue
         description = "Deletes a value of an attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = AttributeError
+        error_type_field = "attribute_errors"
 
     @classmethod
     def success_response(cls, instance):
@@ -801,8 +802,8 @@ class AttributeReorderValues(BaseMutation):
     class Meta:
         description = "Reorder the values of an attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = AttributeError
+        error_type_field = "attribute_errors"
 
     class Arguments:
         attribute_id = graphene.Argument(
@@ -827,7 +828,7 @@ class AttributeReorderValues(BaseMutation):
                 {
                     "attribute_id": ValidationError(
                         f"Couldn't resolve to an attribute: {attribute_id}",
-                        code=ProductErrorCode.NOT_FOUND,
+                        code=AttributeErrorCode.NOT_FOUND,
                     )
                 }
             )
@@ -848,7 +849,7 @@ class AttributeReorderValues(BaseMutation):
                     {
                         "moves": ValidationError(
                             f"Couldn't resolve to an attribute value: {move_info.id}",
-                            code=ProductErrorCode.NOT_FOUND,
+                            code=AttributeErrorCode.NOT_FOUND,
                         )
                     }
                 )
