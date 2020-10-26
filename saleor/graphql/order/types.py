@@ -26,7 +26,7 @@ from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
-from ..warehouse.types import Warehouse
+from ..warehouse.types import Allocation, Warehouse
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
 
@@ -255,6 +255,9 @@ class OrderLine(CountableDjangoObjectType):
     translated_variant_name = graphene.String(
         required=True, description="Variant name in the customer's language"
     )
+    allocations = graphene.List(
+        Allocation, description="List of allocations across warehouses.",
+    )
 
     class Meta:
         description = "Represents order line of particular order."
@@ -298,6 +301,10 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_translated_variant_name(root: models.OrderLine, _info):
         return root.translated_variant_name
+
+    @staticmethod
+    def resolve_allocations(root: models.OrderLine, _info):
+        return root.allocations.all()
 
 
 class Order(CountableDjangoObjectType):

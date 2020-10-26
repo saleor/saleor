@@ -195,6 +195,12 @@ type AddressValidationData {
   postalCodePrefix: String
 }
 
+type Allocation implements Node {
+  id: ID!
+  quantity: Int!
+  warehouse: Warehouse
+}
+
 type App implements Node & ObjectWithMetadata {
   id: ID!
   name: String
@@ -3142,6 +3148,7 @@ type OrderLine implements Node {
   variant: ProductVariant
   translatedProductName: String!
   translatedVariantName: String!
+  allocations: [Allocation]
 }
 
 input OrderLineCreateInput {
