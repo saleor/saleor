@@ -2022,7 +2022,7 @@ def test_order_mark_as_paid_with_external_reference(
 
     data = content["data"]["orderMarkAsPaid"]["order"]
     order.refresh_from_db()
-    assert data["isPaid"] is True is order.is_fully_paid()
+    assert data["isPaid"] is True
     assert order.is_fully_paid()
     event_order_paid = order.events.first()
     assert event_order_paid.type == order_events.OrderEvents.ORDER_MARKED_AS_PAID
