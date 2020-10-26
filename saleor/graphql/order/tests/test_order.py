@@ -1967,28 +1967,31 @@ def test_order_capture(
     }
 
 
+MUTATION_MARK_ORDER_AS_PAID = """
+    mutation markPaid($id: ID!, $transaction: String) {
+        orderMarkAsPaid(id: $id, transactionReference: $transaction) {
+            errors {
+                field
+                message
+            }
+            orderErrors {
+                field
+                message
+                code
+            }
+            order {
+                isPaid
+            }
+        }
+    }
+"""
+
+
 def test_paid_order_mark_as_paid(
     staff_api_client, permission_manage_orders, payment_txn_preauth
 ):
     order = payment_txn_preauth.order
-    query = """
-            mutation markPaid($id: ID!) {
-                orderMarkAsPaid(id: $id) {
-                    errors {
-                        field
-                        message
-                    }
-                    orderErrors {
-                        field
-                        message
-                        code
-                    }
-                    order {
-                        isPaid
-                    }
-                }
-            }
-        """
+    query = MUTATION_MARK_ORDER_AS_PAID
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(
@@ -2004,23 +2007,35 @@ def test_paid_order_mark_as_paid(
     assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
 
 
+def test_order_mark_as_paid_with_external_reference(
+    staff_api_client, permission_manage_orders, order_with_lines, staff_user
+):
+    order = order_with_lines
+    query = MUTATION_MARK_ORDER_AS_PAID
+    assert not order.is_fully_paid()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "transaction": "searchable-id"}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["orderMarkAsPaid"]["order"]
+    order.refresh_from_db()
+    assert data["isPaid"] is True is order.is_fully_paid()
+    assert order.is_fully_paid()
+    event_order_paid = order.events.first()
+    assert event_order_paid.type == order_events.OrderEvents.ORDER_MARKED_AS_PAID
+    assert event_order_paid.user == staff_user
+    order_payments = order.payments.filter(transactions__searchable_key="searchable-id")
+    assert order_payments.count() == 1
+
+
 def test_order_mark_as_paid(
     staff_api_client, permission_manage_orders, order_with_lines, staff_user
 ):
     order = order_with_lines
-    query = """
-            mutation markPaid($id: ID!) {
-                orderMarkAsPaid(id: $id) {
-                    errors {
-                        field
-                        message
-                    }
-                    order {
-                        isPaid
-                    }
-                }
-            }
-        """
+    query = MUTATION_MARK_ORDER_AS_PAID
     assert not order.is_fully_paid()
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -2044,15 +2059,7 @@ def test_order_mark_as_paid_no_billing_address(
     order_with_lines.billing_address = None
     order_with_lines.save()
 
-    query = """
-            mutation markPaid($id: ID!) {
-                orderMarkAsPaid(id: $id) {
-                    orderErrors {
-                        code
-                    }
-                }
-            }
-        """
+    query = MUTATION_MARK_ORDER_AS_PAID
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(

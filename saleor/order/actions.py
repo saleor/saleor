@@ -6,7 +6,9 @@ from django.db import transaction
 
 from ..core import analytics
 from ..core.exceptions import InsufficientStock
-from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError
+from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError, TransactionKind
+from ..payment.models import Payment, Transaction
+from ..payment.utils import create_payment
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deallocate_stock_for_order, decrease_stock
 from . import FulfillmentStatus, OrderStatus, emails, events, utils
@@ -27,7 +29,6 @@ from .utils import (
 if TYPE_CHECKING:
     from .models import Order
     from ..account.models import User
-    from ..payment.models import Payment
     from ..warehouse.models import Warehouse
 
 
@@ -195,14 +196,14 @@ def cancel_fulfillment(
 
 
 @transaction.atomic
-def mark_order_as_paid(order: "Order", request_user: "User"):
+def mark_order_as_paid(
+    order: "Order", request_user: "User", external_reference: Optional[str] = None
+):
     """Mark order as paid.
 
     Allows to create a payment for an order without actually performing any
     payment by the gateway.
     """
-    # pylint: disable=cyclic-import
-    from ..payment.utils import create_payment
 
     payment = create_payment(
         gateway=CustomPaymentChoices.MANUAL,
@@ -216,6 +217,17 @@ def mark_order_as_paid(order: "Order", request_user: "User"):
     payment.captured_amount = order.total.gross.amount
     payment.save(update_fields=["captured_amount", "charge_status", "modified"])
 
+    Transaction.objects.create(
+        payment=payment,
+        action_required=False,
+        kind=TransactionKind.EXTERNAL,
+        token=external_reference or "",
+        is_success=True,
+        amount=order.total.gross.amount,
+        currency=order.total.gross.currency,
+        searchable_key=external_reference or "",
+        gateway_response={},
+    )
     events.order_manually_marked_as_paid_event(order=order, user=request_user)
     manager = get_plugins_manager()
     manager.order_fully_paid(order)

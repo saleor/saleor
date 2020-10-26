@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 from prices import Money, TaxedMoney
 
-from ...payment import ChargeStatus, PaymentError
+from ...payment import ChargeStatus, PaymentError, TransactionKind
 from ...payment.models import Payment
 from ...product.models import DigitalContent
 from ...product.tests.utils import create_image
@@ -127,6 +127,23 @@ def test_mark_as_paid(admin_user, draft_order):
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == draft_order.total.gross.amount
     assert draft_order.events.last().type == (OrderEvents.ORDER_MARKED_AS_PAID)
+    transactions = payment.transactions.all()
+    assert transactions.count() == 1
+    assert transactions[0].kind == TransactionKind.EXTERNAL
+
+
+def test_mark_as_paid_with_external_reference(admin_user, draft_order):
+    external_reference = "transaction_id"
+    mark_order_as_paid(draft_order, admin_user, external_reference=external_reference)
+    payment = draft_order.payments.last()
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+    assert payment.captured_amount == draft_order.total.gross.amount
+    assert draft_order.events.last().type == (OrderEvents.ORDER_MARKED_AS_PAID)
+    transactions = payment.transactions.all()
+    assert transactions.count() == 1
+    assert transactions[0].kind == TransactionKind.EXTERNAL
+    assert transactions[0].searchable_key == external_reference
+    assert transactions[0].token == external_reference
 
 
 def test_mark_as_paid_no_billing_address(admin_user, draft_order):
