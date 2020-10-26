@@ -665,15 +665,17 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_collections(root: ChannelContext[models.Product], *_args, **_kwargs):
-        instances = root.node.collections.all()
-        channel_slug = root.channel_slug
-
-        collections = [
-            ChannelContext(node=collection, channel_slug=channel_slug)
-            for collection in instances
-        ]
-        return collections
+    def resolve_collections(root: ChannelContext[models.Product], info, **_kwargs):
+        return (
+            CollectionsByProductIdLoader(info.context)
+            .load(root.node.id)
+            .then(
+                lambda collections: [
+                    ChannelContext(node=collection, channel_slug=root.channel_slug)
+                    for collection in collections
+                ]
+            )
+        )
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
