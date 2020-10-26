@@ -1786,7 +1786,7 @@ testing = ["fields", "hunter", "process-tests (2.0.2)", "six", "pytest-xdist", "
 
 [[package]]
 name = "pytest-django"
-version = "4.0.0"
+version = "4.1.0"
 description = "A Django plugin for pytest."
 category = "dev"
 optional = false
@@ -2410,7 +2410,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8"
-content-hash = "1fbb9702f0e980e28be32c2a3d343aa1bdb7b9546071a88c35828015f81f8c6a"
+content-hash = "58609506652be25572c2ed863a831b1ffba601349bd13523927d1a0317e18aeb"
 
 [metadata.files]
 adyen = [
@@ -3297,8 +3297,8 @@ pytest-cov = [
     {file = "pytest_cov-2.10.1-py2.py3-none-any.whl", hash = "sha256:45ec2d5182f89a81fc3eb29e3d1ed3113b9e9a873bcddb2a71faaab066110191"},
 ]
 pytest-django = [
-    {file = "pytest-django-4.0.0.tar.gz", hash = "sha256:5f964ccda1f551e00589ab0679a7c45c36c509a44b5bfb5ad07954e0ae3f4bed"},
-    {file = "pytest_django-4.0.0-py2.py3-none-any.whl", hash = "sha256:0e91003fdd41ac0322c1978682be2ca180bc564203dd53c698f99242bf513614"},
+    {file = "pytest-django-4.1.0.tar.gz", hash = "sha256:26f02c16d36fd4c8672390deebe3413678d89f30720c16efb8b2a6bf63b9041f"},
+    {file = "pytest_django-4.1.0-py3-none-any.whl", hash = "sha256:10e384e6b8912ded92db64c58be8139d9ae23fb8361e5fc139d8e4f8fc601bc2"},
 ]
 pytest-django-queries = [
     {file = "pytest-django-queries-1.1.0.tar.gz", hash = "sha256:16f4dffa5a4c95bb2e10e6f4289796503578bc46ea69a81b2f4ed8376f7c75b5"},
@@ -3507,6 +3507,12 @@ typed-ast = [
     {file = "typed_ast-1.4.1-cp38-cp38-win32.whl", hash = "sha256:715ff2f2df46121071622063fc7543d9b1fd19ebfc4f5c8895af64a77a8c852c"},
     {file = "typed_ast-1.4.1-cp38-cp38-win_amd64.whl", hash = "sha256:fc0fea399acb12edbf8a628ba8d2312f583bdbdb3335635db062fa98cf71fca4"},
     {file = "typed_ast-1.4.1-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:d43943ef777f9a1c42bf4e552ba23ac77a6351de620aa9acf64ad54933ad4d34"},
+    {file = "typed_ast-1.4.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:92c325624e304ebf0e025d1224b77dd4e6393f18aab8d829b5b7e04afe9b7a2c"},
+    {file = "typed_ast-1.4.1-cp39-cp39-manylinux1_i686.whl", hash = "sha256:d648b8e3bf2fe648745c8ffcee3db3ff903d0817a01a12dd6a6ea7a8f4889072"},
+    {file = "typed_ast-1.4.1-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:fac11badff8313e23717f3dada86a15389d0708275bddf766cca67a84ead3e91"},
+    {file = "typed_ast-1.4.1-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:0d8110d78a5736e16e26213114a38ca35cb15b6515d535413b090bd50951556d"},
+    {file = "typed_ast-1.4.1-cp39-cp39-win32.whl", hash = "sha256:b52ccf7cfe4ce2a1064b18594381bccf4179c2ecf7f513134ec2f993dd4ab395"},
+    {file = "typed_ast-1.4.1-cp39-cp39-win_amd64.whl", hash = "sha256:3742b32cf1c6ef124d57f95be609c473d7ec4c14d0090e5a5e05a15269fb4d0c"},
     {file = "typed_ast-1.4.1.tar.gz", hash = "sha256:8c8aaad94455178e3187ab22c8b01a3837f8ee50e09cf31f1ba129eb293ec30b"},
 ]
 typing-extensions = [
