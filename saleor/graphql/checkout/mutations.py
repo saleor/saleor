@@ -293,7 +293,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         cleaned_input = super().clean_input(info, instance, data)
         user = info.context.user
         country = info.context.country.code
-        cleaned_input["channel"] = cls.clean_channel(cleaned_input.get("channel"))
+        channel = cls.clean_channel(cleaned_input.get("channel"))
+        cleaned_input["channel"] = channel
+        cleaned_input["currency"] = channel.currency_code
 
         # set country to one from shipping address
         shipping_address = cleaned_input.get("shipping_address")

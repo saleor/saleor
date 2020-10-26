@@ -1,5 +1,4 @@
 import graphene
-from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
@@ -174,7 +173,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             gateway=gateway,
             payment_token=data.get("token", ""),
             total=amount,
-            currency=settings.DEFAULT_CURRENCY,
+            currency=checkout.currency,
             email=checkout.email,
             extra_data=extra_data,
             # FIXME this is not a customer IP address. It is a client storefront ip

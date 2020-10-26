@@ -13,7 +13,7 @@ class DiscountValueType:
     PERCENTAGE = "percentage"
 
     CHOICES = [
-        (FIXED, settings.DEFAULT_CURRENCY),
+        (FIXED, "fixed"),
         (PERCENTAGE, "%"),
     ]
 

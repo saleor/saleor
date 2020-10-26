@@ -82,10 +82,7 @@ class Checkout(ModelWithMetadata):
     )
     note = models.TextField(blank=True, default="")
 
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        default=settings.DEFAULT_CURRENCY,
-    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
     country = CountryField(default=get_default_country)
 
     discount_amount = models.DecimalField(

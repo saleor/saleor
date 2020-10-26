@@ -89,10 +89,7 @@ class Order(ModelWithMetadata):
     )
     user_email = models.EmailField(blank=True, default="")
 
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        default=settings.DEFAULT_CURRENCY,
-    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
 
     shipping_method = models.ForeignKey(
         ShippingMethod,
@@ -320,7 +317,7 @@ class Order(ModelWithMetadata):
         payment = self.get_last_payment()
         if payment:
             return payment.get_authorized_amount()
-        return zero_money()
+        return zero_money(self.currency)
 
     @property
     def total_captured(self):
@@ -331,7 +328,7 @@ class Order(ModelWithMetadata):
             ChargeStatus.PARTIALLY_REFUNDED,
         ):
             return Money(payment.captured_amount, payment.currency)
-        return zero_money()
+        return zero_money(self.currency)
 
     @property
     def total_balance(self):
@@ -378,10 +375,7 @@ class OrderLine(models.Model):
         validators=[MinValueValidator(0)], default=0
     )
 
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        default=settings.DEFAULT_CURRENCY,
-    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
 
     unit_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,

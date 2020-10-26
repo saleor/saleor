@@ -233,7 +233,9 @@ def test_product_channel_listing_update_as_staff_user(
 
     variant = product.variants.first()
     variant_channel_listing = variant.channel_listing.filter(channel_id=channel_USD.id)
-    purchase_cost, margin = get_product_costs_data(variant_channel_listing, True)
+    purchase_cost, margin = get_product_costs_data(
+        variant_channel_listing, True, channel_USD.currency_code
+    )
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListing"][0]["isPublished"] is True

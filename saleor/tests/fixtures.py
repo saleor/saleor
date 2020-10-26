@@ -497,6 +497,7 @@ def order(customer_user, channel_USD):
     return Order.objects.create(
         billing_address=address,
         channel=channel_USD,
+        currency=channel_USD.currency_code,
         shipping_address=address,
         user_email=customer_user.email,
         user=customer_user,
@@ -2103,6 +2104,7 @@ def payment_txn_preauth(order_with_lines, payment_dummy):
 
     payment.transactions.create(
         amount=payment.total,
+        currency=payment.currency,
         kind=TransactionKind.AUTH,
         gateway_response={},
         is_success=True,
@@ -2121,6 +2123,7 @@ def payment_txn_captured(order_with_lines, payment_dummy):
 
     payment.transactions.create(
         amount=payment.total,
+        currency=payment.currency,
         kind=TransactionKind.CAPTURE,
         gateway_response={},
         is_success=True,
@@ -2138,6 +2141,7 @@ def payment_txn_to_confirm(order_with_lines, payment_dummy):
 
     payment.transactions.create(
         amount=payment.total,
+        currency=payment.currency,
         kind=TransactionKind.ACTION_TO_CONFIRM,
         gateway_response={},
         is_success=True,
@@ -2157,6 +2161,7 @@ def payment_txn_refunded(order_with_lines, payment_dummy):
 
     payment.transactions.create(
         amount=payment.total,
+        currency=payment.currency,
         kind=TransactionKind.REFUND,
         gateway_response={},
         is_success=True,
@@ -2640,7 +2645,7 @@ def payment_dummy(db, order_with_lines):
         cc_exp_month=12,
         cc_exp_year=2027,
         total=order_with_lines.total.gross.amount,
-        currency=order_with_lines.total.gross.currency,
+        currency=order_with_lines.currency,
         billing_first_name=order_with_lines.billing_address.first_name,
         billing_last_name=order_with_lines.billing_address.last_name,
         billing_company_name=order_with_lines.billing_address.company_name,

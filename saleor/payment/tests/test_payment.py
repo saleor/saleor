@@ -37,7 +37,7 @@ def gateway_response(settings, payment_method_details):
         action_required=False,
         transaction_id="transaction-token",
         amount=Decimal(14.50),
-        currency=settings.DEFAULT_CURRENCY,
+        currency="USD",
         kind=TransactionKind.CAPTURE,
         error=None,
         raw_response={
@@ -107,7 +107,7 @@ def test_create_payment_requires_order_or_checkout(settings):
         "gateway": "Dummy",
         "payment_token": "token",
         "total": 10,
-        "currency": settings.DEFAULT_CURRENCY,
+        "currency": "USD",
         "email": "test@example.com",
     }
     with pytest.raises(TypeError) as e:
