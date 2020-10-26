@@ -200,9 +200,7 @@ def test_filter_collection_products(user_api_client, product_list, collection):
     # given
     query = GET_FILTERED_PRODUCTS_COLLECTION_QUERY
 
-    for product in product_list:
-        collection.products.add(product)
-
+    collection.products.set(product_list)
     p1 = product_list[0]
     p1.is_published = False
     p1.save(update_fields=["is_published"])
@@ -223,6 +221,43 @@ def test_filter_collection_products(user_api_client, product_list, collection):
         graphene.Node.to_global_id("Product", product.pk)
         for product in product_list[1:]
     }
+
+
+def test_filter_collection_products_by_multiple_attributes(
+    user_api_client,
+    collection,
+    product_with_two_variants,
+    product_with_variant_with_two_attributes,
+    size_attribute,
+    weight_attribute,
+):
+    # given
+    collection.products.set(
+        [product_with_two_variants, product_with_variant_with_two_attributes]
+    )
+    assert collection.products.count() == 2
+
+    filters = {
+        "attributes": [{"slug": "modes", "values": ["eco"]}],
+    }
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection.pk),
+        "filters": filters,
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        GET_FILTERED_PRODUCTS_COLLECTION_QUERY, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products_data = content["data"]["collection"]["products"]["edges"]
+
+    assert len(products_data) == 1
+    assert products_data[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_with_two_variants
+    )
 
 
 CREATE_COLLECTION_MUTATION = """

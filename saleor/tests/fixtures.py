@@ -1750,7 +1750,7 @@ def collection(db):
 @pytest.fixture
 def collection_with_products(db, collection, product_list_published):
     collection.products.set(list(product_list_published))
-    return product_list_published
+    return collection
 
 
 @pytest.fixture
