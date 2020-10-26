@@ -955,14 +955,9 @@ class AllegroParametersMapper(BaseParametersMapper):
         if mapped_parameter_map is not None:
             return mapped_parameter_map.get("!")
 
-    def get_shoe_size(self, parameter):
-        key = None
-        if('rozmiar-buty-damskie' in self.product_attributes):
-            key = 'rozmiar-buty-damskie-' + self.product_attributes.get('rozmiar-buty-damskie')
-        if('rozmiar-buty-meskie' in self.product_attributes):
-            key = 'rozmiar-buty-meskie-' + self.product_attributes.get('rozmiar-buty-meskie')
+    def get_shoe_size(self, parameter, key):
         mapped_parameter_map = self.get_global_parameter_map(slugify(parameter))
-        if mapped_parameter_map is not None and key is not None:
+        if mapped_parameter_map is not None:
             return mapped_parameter_map.get(key)
 
     def get_allegro_parameter(self, parameter):
@@ -1000,7 +995,16 @@ class AllegroParametersMapper(BaseParametersMapper):
 
         if allegro_parameter is None:
             if mapped_parameter_value is None:
-                mapped_parameter_value = self.get_shoe_size(slugify(mapped_parameter_key))
+                if ('rozmiar-buty-damskie' in self.product_attributes):
+                    key = 'rozmiar-buty-damskie-' + self.product_attributes.get(
+                        'rozmiar-buty-damskie')
+                    mapped_parameter_value = self.get_shoe_size(
+                        slugify(mapped_parameter_key), key)
+                if ('rozmiar-buty-meskie' in self.product_attributes):
+                    key = 'rozmiar-buty-meskie-' + self.product_attributes.get(
+                        'rozmiar-buty-meskie')
+                    mapped_parameter_value = self.get_shoe_size(
+                        slugify(mapped_parameter_key), key)
                 allegro_parameter = self.create_allegro_parameter(slugify(parameter),
                                                           mapped_parameter_value)
         return allegro_parameter
