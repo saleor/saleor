@@ -218,6 +218,21 @@ class DraftOrderUpdate(DraftOrderCreate):
         error_type_class = OrderError
         error_type_field = "order_errors"
 
+    @classmethod
+    def get_instance(cls, info, **data):
+        instance = super().get_instance(info, **data)
+        if instance.status != OrderStatus.DRAFT:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Provided order id belongs to non-order. "
+                        "Use `orderUpdate` mutation instead.",
+                        code=OrderErrorCode.INVALID,
+                    )
+                }
+            )
+        return instance
+
 
 class DraftOrderDelete(ModelDeleteMutation):
     class Arguments:

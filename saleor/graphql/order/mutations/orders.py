@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from ....account.models import User
 from ....core.permissions import OrderPermissions
 from ....core.taxes import zero_taxed_money
-from ....order import events, models
+from ....order import OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -165,12 +165,29 @@ class OrderUpdate(DraftOrderUpdate):
         return cleaned_input
 
     @classmethod
+    def get_instance(cls, info, **data):
+        # call get_instance from ModelMutation
+        instance = super(DraftOrderUpdate, cls).get_instance(info, **data)
+        if instance.status == OrderStatus.DRAFT:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Provided order id belongs to draft order. "
+                        "Use `draftOrderUpdate` mutation instead.",
+                        code=OrderErrorCode.INVALID,
+                    )
+                }
+            )
+        return instance
+
+    @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
         if instance.user_email:
             user = User.objects.filter(email=instance.user_email).first()
             instance.user = user
         instance.save()
+        info.context.plugins.order_updated(instance)
 
 
 class OrderUpdateShippingInput(graphene.InputObjectType):
