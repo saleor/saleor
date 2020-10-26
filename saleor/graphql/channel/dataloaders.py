@@ -16,6 +16,14 @@ class ChannelByIdLoader(DataLoader):
         return [channels.get(channel_id) for channel_id in keys]
 
 
+class ChannelBySlugLoader(DataLoader):
+    context_key = "channel_by_slug"
+
+    def batch_load(self, keys):
+        channels = Channel.objects.in_bulk(keys, field_name="slug")
+        return [channels.get(slug) for slug in keys]
+
+
 class ChannelByProductChannelListingIDLoader(DataLoader):
     context_key = "channel_by_product_channel_listing"
 

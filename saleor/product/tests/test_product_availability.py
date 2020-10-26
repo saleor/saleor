@@ -9,7 +9,7 @@ from .. import models
 from ..utils.availability import get_product_availability
 
 
-def test_availability(stock, monkeypatch, settings):
+def test_availability(stock, monkeypatch, settings, channel_USD):
     product = stock.product_variant.product
     product_channel_listing = product.channel_listing.first()
     variants = product.variants.all()
@@ -25,6 +25,7 @@ def test_availability(stock, monkeypatch, settings):
         product_channel_listing=product_channel_listing,
         variants=product.variants.all(),
         variants_channel_listing=variants_channel_listing,
+        channel=channel_USD,
         collections=[],
         discounts=[],
         country="PL",
@@ -46,6 +47,7 @@ def test_availability(stock, monkeypatch, settings):
         variants_channel_listing=variants_channel_listing,
         collections=[],
         discounts=[],
+        channel=channel_USD,
         local_currency="PLN",
         country="PL",
     )
@@ -58,6 +60,7 @@ def test_availability(stock, monkeypatch, settings):
         variants_channel_listing=variants_channel_listing,
         collections=[],
         discounts=[],
+        channel=channel_USD,
         country="PL",
     )
     assert availability.price_range.start.tax.amount

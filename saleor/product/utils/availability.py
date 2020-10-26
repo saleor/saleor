@@ -5,18 +5,18 @@ import opentracing
 from django.conf import settings
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from saleor.product.models import (
+from ...channel.models import Channel
+from ...core.utils import to_local_currency
+from ...discount import DiscountInfo
+from ...discount.utils import calculate_discounted_price
+from ...plugins.manager import get_plugins_manager
+from ...product.models import (
     Collection,
     Product,
     ProductChannelListing,
     ProductVariant,
     ProductVariantChannelListing,
 )
-
-from ...core.utils import to_local_currency
-from ...discount import DiscountInfo
-from ...discount.utils import calculate_discounted_price
-from ...plugins.manager import get_plugins_manager
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -90,14 +90,15 @@ def get_variant_price(
     variant_channel_listing: ProductVariantChannelListing,
     product: Product,
     collections: Iterable[Collection],
-    discounts: Iterable[DiscountInfo]
+    discounts: Iterable[DiscountInfo],
+    channel: Channel
 ):
     return calculate_discounted_price(
         product=product,
         price=variant_channel_listing.price,
         collections=collections,
         discounts=discounts,
-        channel=variant_channel_listing.channel,
+        channel=channel,
     )
 
 
@@ -107,7 +108,8 @@ def get_product_price_range(
     variants: Iterable[ProductVariant],
     variants_channel_listing: List[ProductVariantChannelListing],
     collections: Iterable[Collection],
-    discounts: Iterable[DiscountInfo]
+    discounts: Iterable[DiscountInfo],
+    channel: Channel,
 ) -> Optional[MoneyRange]:
     with opentracing.global_tracer().start_active_span("get_product_price_range"):
         if variants:
@@ -118,6 +120,7 @@ def get_product_price_range(
                     product=product,
                     collections=collections,
                     discounts=discounts,
+                    channel=channel,
                 )
                 for i, variant in enumerate(variants)
             ]
@@ -134,6 +137,7 @@ def get_product_availability(
     variants_channel_listing: List[ProductVariantChannelListing],
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo],
+    channel: Channel,
     country: Optional[str] = None,
     local_currency: Optional[str] = None,
     plugins: Optional["PluginsManager"] = None,
@@ -149,6 +153,7 @@ def get_product_availability(
             variants_channel_listing=variants_channel_listing,
             collections=collections,
             discounts=discounts,
+            channel=channel,
         )
         if discounted_net_range is not None:
             discounted = TaxedMoneyRange(
@@ -167,6 +172,7 @@ def get_product_availability(
             variants_channel_listing=variants_channel_listing,
             collections=collections,
             discounts=[],
+            channel=channel,
         )
         if undiscounted_net_range is not None:
             undiscounted = TaxedMoneyRange(
@@ -224,6 +230,8 @@ def get_variant_availability(
                 product=product,
                 collections=collections,
                 discounts=discounts,
+                # TODO: Optimization needed
+                channel=variant_channel_listing.channel,
             ),
             country,
         )
@@ -235,6 +243,8 @@ def get_variant_availability(
                 product=product,
                 collections=collections,
                 discounts=[],
+                # TODO: Optimization needed
+                channel=variant_channel_listing.channel,
             ),
             country,
         )

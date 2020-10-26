@@ -55,13 +55,13 @@ class ProductChannelListingByProductIdLoader(DataLoader[int, ProductChannelListi
         product_channel_listings = ProductChannelListing.objects.filter(
             product_id__in=keys
         )
-        product_id_varaint_channel_listings_map = defaultdict(list)
+        product_id_variant_channel_listings_map = defaultdict(list)
         for product_channel_listing in product_channel_listings:
-            product_id_varaint_channel_listings_map[
+            product_id_variant_channel_listings_map[
                 product_channel_listing.product_id
             ].append(product_channel_listing)
         return [
-            product_id_varaint_channel_listings_map.get(product_id, [])
+            product_id_variant_channel_listings_map.get(product_id, [])
             for product_id in keys
         ]
 
