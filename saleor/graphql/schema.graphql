@@ -2679,6 +2679,8 @@ type Mutation {
   pageTranslate(id: ID!, input: PageTranslationInput!, languageCode: LanguageCodeEnum!): PageTranslate
   pageTypeCreate(input: PageTypeCreateInput!): PageTypeCreate
   pageTypeUpdate(id: ID, input: PageTypeUpdateInput!): PageTypeUpdate
+  pageTypeDelete(id: ID!): PageTypeDelete
+  pageTypeBulkDelete(ids: [ID!]!): PageTypeBulkDelete
   pageAttributeAssign(attributeIds: [ID!]!, pageTypeId: ID!): PageAttributeAssign
   pageAttributeUnassign(attributeIds: [ID!]!, pageTypeId: ID!): PageAttributeUnassign
   draftOrderComplete(id: ID!): DraftOrderComplete
@@ -3399,6 +3401,12 @@ type PageType implements Node & ObjectWithMetadata {
   availableAttributes(filter: AttributeFilterInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
 }
 
+type PageTypeBulkDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  count: Int!
+  pageErrors: [PageError!]!
+}
+
 type PageTypeCountableConnection {
   pageInfo: PageInfo!
   edges: [PageTypeCountableEdge!]!
@@ -3420,6 +3428,12 @@ input PageTypeCreateInput {
   name: String
   slug: String
   addAttributes: [ID!]
+}
+
+type PageTypeDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  pageErrors: [PageError!]!
+  pageType: PageType
 }
 
 input PageTypeFilterInput {
