@@ -789,12 +789,15 @@ class BaseParametersMapper:
     def create_allegro_parameter(self, mapped_parameter_key, mapped_parameter_value):
 
         key = self.get_allegro_key(mapped_parameter_key)
-
         if key.get('dictionary') is None:
             if mapped_parameter_value is not None:
                 if mapped_parameter_value.replace('.', '').isnumeric():
                     value = self.set_allegro_typed_value(key, mapped_parameter_value)
                     return value
+                elif key.get('restrictions') and key.get('restrictions').get('range'):
+                    if('-' in mapped_parameter_value):
+                        value = self.set_allegro_typed_range_value(key, mapped_parameter_value)
+                        return value
                 else:
                     return None
             else:
@@ -832,10 +835,17 @@ class BaseParametersMapper:
             return {'id': param['id'], 'valuesIds': [],
                     "values": [value], "rangeValue": None}
 
+    @staticmethod
+    def set_allegro_typed_range_value(param, value):
+        if param.get('dictionary') is None and value is not None:
+            splited = value.split('-')
+            return {'id': param['id'], 'valuesIds': [],
+                    "values": [], "rangeValue": {'from': splited[0], 'to': splited[1]}}
+
     def create_allegro_fuzzy_parameter(self, mapped_parameter_key,
                                        mapped_parameter_value):
         key = self.get_allegro_key(mapped_parameter_key)
-        if key is not None:
+        if key is not None and key.get('dictionary') is not None:
             value = self.set_allegro_fuzzy_value(key, mapped_parameter_value)
             return value
 
@@ -924,7 +934,6 @@ class AllegroParametersMapper(BaseParametersMapper):
             parameter) or self.get_global_parameter_key(parameter) or parameter
         mapped_parameter_value = self.get_parameter_out_of_saleor_specyfic(str(
             mapped_parameter_key))
-
         if mapped_parameter_value is not None:
             return mapped_parameter_key, mapped_parameter_value
         mapped_parameter_value = self.product_attributes.get(
@@ -965,6 +974,8 @@ class AllegroParametersMapper(BaseParametersMapper):
             self.get_mapped_parameter_key_and_value(parameter)
         allegro_parameter = self.create_allegro_parameter(slugify(parameter),
                                                           mapped_parameter_value)
+        if(self.get_specific_parameter_key(mapped_parameter_key)):
+            mapped_parameter_key = self.get_specific_parameter_key(mapped_parameter_key)
 
         if allegro_parameter is None:
             mapped_parameter_value = self.get_value_one_to_one_global(
