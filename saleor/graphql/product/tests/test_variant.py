@@ -61,6 +61,10 @@ def test_fetch_variant(
                     currency
                     amount
                 }
+                costPrice {
+                    currency
+                    amount
+                }
             }
             product {
                 id
@@ -99,6 +103,10 @@ def test_fetch_variant(
     assert channel_listing_data["channel"]["slug"] == channel_listing.channel.slug
     assert channel_listing_data["price"]["currency"] == channel_listing.currency
     assert channel_listing_data["price"]["amount"] == channel_listing.price_amount
+    assert channel_listing_data["costPrice"]["currency"] == channel_listing.currency
+    assert (
+        channel_listing_data["costPrice"]["amount"] == channel_listing.cost_price_amount
+    )
 
 
 QUERY_PRODUCT_VARIANT_CHANNEL_LISTING = """
@@ -110,6 +118,10 @@ QUERY_PRODUCT_VARIANT_CHANNEL_LISTING = """
                     slug
                 }
                 price {
+                    currency
+                    amount
+                }
+                costPrice {
                     currency
                     amount
                 }
@@ -148,6 +160,10 @@ def test_get_product_variant_channel_listing_as_staff_user(
                 "currency": channel_listing.currency,
                 "amount": channel_listing.price_amount,
             },
+            "costPrice": {
+                "currency": channel_listing.currency,
+                "amount": channel_listing.cost_price_amount,
+            },
         } in data["channelListing"]
     assert len(data["channelListing"]) == variant.channel_listing.count()
 
@@ -180,6 +196,10 @@ def test_get_product_variant_channel_listing_as_app(
             "price": {
                 "currency": channel_listing.currency,
                 "amount": channel_listing.price_amount,
+            },
+            "costPrice": {
+                "currency": channel_listing.currency,
+                "amount": channel_listing.cost_price_amount,
             },
         } in data["channelListing"]
     assert len(data["channelListing"]) == variant.channel_listing.count()
@@ -1341,6 +1361,10 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
                         currency
                         amount
                     }
+                    costPrice {
+                        currency
+                        amount
+                    }
                 }
             }
             count
@@ -1588,6 +1612,7 @@ def test_product_variant_bulk_create_channel_listings_input(
             "channelListings": [
                 {
                     "price": 10.0,
+                    "costPrice": 11.0,
                     "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
                 }
             ],
@@ -1599,10 +1624,12 @@ def test_product_variant_bulk_create_channel_listings_input(
             "channelListings": [
                 {
                     "price": 15.0,
+                    "costPrice": 16.0,
                     "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
                 },
                 {
                     "price": 12.0,
+                    "costPrice": 13.0,
                     "channelId": graphene.Node.to_global_id("Channel", channel_PLN.pk),
                 },
             ],
@@ -1631,6 +1658,10 @@ def test_product_variant_bulk_create_channel_listings_input(
                         "amount": variants[0]["channelListings"][0]["price"],
                         "currency": channel_USD.currency_code,
                     },
+                    "costPrice": {
+                        "amount": variants[0]["channelListings"][0]["costPrice"],
+                        "currency": channel_USD.currency_code,
+                    },
                 }
             ],
         },
@@ -1643,11 +1674,19 @@ def test_product_variant_bulk_create_channel_listings_input(
                         "amount": variants[1]["channelListings"][0]["price"],
                         "currency": channel_USD.currency_code,
                     },
+                    "costPrice": {
+                        "amount": variants[1]["channelListings"][0]["costPrice"],
+                        "currency": channel_USD.currency_code,
+                    },
                 },
                 {
                     "channel": {"slug": channel_PLN.slug},
                     "price": {
                         "amount": variants[1]["channelListings"][1]["price"],
+                        "currency": channel_PLN.currency_code,
+                    },
+                    "costPrice": {
+                        "amount": variants[1]["channelListings"][1]["costPrice"],
                         "currency": channel_PLN.currency_code,
                     },
                 },
@@ -1727,8 +1766,8 @@ def test_product_variant_bulk_create_too_many_decimal_places_in_price(
         {
             "sku": str(uuid4())[:12],
             "channelListings": [
-                {"price": 10.1234, "channelId": channel_id},
-                {"price": 10.12345, "channelId": channel_pln_id},
+                {"price": 10.1234, "costPrice": 10.1234, "channelId": channel_id},
+                {"price": 10.12345, "costPrice": 10.12345, "channelId": channel_pln_id},
             ],
             "attributes": [{"id": size_attribute_id, "values": [attribute_value.name]}],
         },
@@ -1741,7 +1780,7 @@ def test_product_variant_bulk_create_too_many_decimal_places_in_price(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert len(data["bulkProductErrors"]) == 2
+    assert len(data["bulkProductErrors"]) == 4
     errors = data["bulkProductErrors"]
     assert errors[0]["field"] == "price"
     assert errors[0]["code"] == ProductErrorCode.INVALID.name
@@ -1751,6 +1790,14 @@ def test_product_variant_bulk_create_too_many_decimal_places_in_price(
     assert errors[1]["code"] == ProductErrorCode.INVALID.name
     assert errors[1]["index"] == 0
     assert errors[1]["channels"] == [channel_pln_id]
+    assert errors[2]["field"] == "costPrice"
+    assert errors[2]["code"] == ProductErrorCode.INVALID.name
+    assert errors[2]["index"] == 0
+    assert errors[2]["channels"] == [channel_id]
+    assert errors[3]["field"] == "costPrice"
+    assert errors[3]["code"] == ProductErrorCode.INVALID.name
+    assert errors[3]["index"] == 0
+    assert errors[3]["channels"] == [channel_pln_id]
     assert product_variant_count == ProductVariant.objects.count()
 
 

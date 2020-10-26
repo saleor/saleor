@@ -64,7 +64,7 @@ def test_applicable_shipping_methods_weight(
         type=ShippingMethodType.WEIGHT_BASED,
     )
     ShippingMethodChannelListing.objects.create(
-        shipping_method=method, channel=channel_USD
+        shipping_method=method, channel=channel_USD, currency=channel_USD.currency_code
     )
 
     assert "PL" in shipping_zone.countries
@@ -151,13 +151,16 @@ def test_applicable_shipping_methods(shipping_zone, channel_USD):
     ShippingMethodChannelListing.objects.bulk_create(
         [
             ShippingMethodChannelListing(
-                shipping_method=weight_method, channel=channel_USD
+                shipping_method=weight_method,
+                channel=channel_USD,
+                currency=channel_USD.currency_code,
             ),
             ShippingMethodChannelListing(
                 minimum_order_price=Money("1.0", "USD"),
                 maximum_order_price=Money("10.0", "USD"),
                 shipping_method=price_method,
                 channel=channel_USD,
+                currency=channel_USD.currency_code,
             ),
         ]
     )
@@ -181,7 +184,9 @@ def test_applicable_shipping_methods_not_in_channel(shipping_zone, channel_USD):
         type=ShippingMethodType.WEIGHT_BASED,
     )
     ShippingMethodChannelListing.objects.create(
-        shipping_method=weight_method, channel=channel_USD
+        shipping_method=weight_method,
+        channel=channel_USD,
+        currency=channel_USD.currency_code,
     ),
     result = ShippingMethod.objects.applicable_shipping_methods(
         price=Money("5.0", "USD"),
@@ -208,7 +213,9 @@ def test_use_default_shipping_zone(shipping_zone, channel_USD):
     )
 
     ShippingMethodChannelListing.objects.create(
-        shipping_method=weight_method, channel=channel_USD
+        shipping_method=weight_method,
+        channel=channel_USD,
+        currency=channel_USD.currency_code,
     )
     result = ShippingMethod.objects.applicable_shipping_methods(
         price=Money("5.0", "USD"),

@@ -204,7 +204,7 @@ def test_checkout_complete(
     assert payment.transactions.count() == 1
 
     gift_card.refresh_from_db()
-    assert gift_card.current_balance == zero_money()
+    assert gift_card.current_balance == zero_money(gift_card.currency)
     assert gift_card.last_used_on
 
     assert not Checkout.objects.filter(
@@ -776,7 +776,7 @@ def test_checkout_complete_without_redirect_url(
     assert payment.transactions.count() == 1
 
     gift_card.refresh_from_db()
-    assert gift_card.current_balance == zero_money()
+    assert gift_card.current_balance == zero_money(gift_card.currency)
     assert gift_card.last_used_on
 
     assert not Checkout.objects.filter(

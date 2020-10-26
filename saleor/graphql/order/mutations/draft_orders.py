@@ -89,12 +89,8 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def validate_product_is_published_in_channel(
-        cls, info, instance, variants, channel_id
+        cls, info, instance, variants, channel
     ):
-        channel = instance.channel if hasattr(instance, "channel") else None
-        if not channel and channel_id:
-            channel = cls.get_node_or_error(info, channel_id, only_type=Channel)
-
         if not channel:
             raise ValidationError(
                 {
@@ -168,11 +164,17 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             channel = cleaned_input.get("channel") or instance.channel
             cls.clean_voucher(voucher, channel)
 
+        channel = instance.channel if hasattr(instance, "channel") else None
+        if not channel and channel_id:
+            channel = cls.get_node_or_error(info, channel_id, only_type=Channel)
+        if channel:
+            cleaned_input["currency"] = channel.currency_code
+
         if lines:
             variant_ids = [line.get("variant_id") for line in lines]
             variants = cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
             cls.validate_product_is_published_in_channel(
-                info, instance, variants, channel_id
+                info, instance, variants, channel
             )
             quantities = [line.get("quantity") for line in lines]
             cleaned_input["variants"] = variants
@@ -347,7 +349,7 @@ class DraftOrderComplete(BaseMutation):
 
         if not order.is_shipping_required():
             order.shipping_method_name = None
-            order.shipping_price = zero_taxed_money()
+            order.shipping_price = zero_taxed_money(order.currency)
             if order.shipping_address:
                 order.shipping_address.delete()
                 order.shipping_address = None

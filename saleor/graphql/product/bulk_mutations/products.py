@@ -165,15 +165,6 @@ class ProductVariantBulkCreate(BaseMutation):
             info, instance, data, input_cls=ProductVariantBulkCreateInput
         )
 
-        cost_price_amount = cleaned_input.pop("cost_price", None)
-        if cost_price_amount is not None:
-            try:
-                validate_price_precision(cost_price_amount)
-            except ValidationError as error:
-                error.code = ProductErrorCode.INVALID.value
-                raise ValidationError({"cost_price": error})
-            cleaned_input["cost_price_amount"] = cost_price_amount
-
         attributes = cleaned_input.get("attributes")
         if attributes:
             try:
@@ -197,6 +188,20 @@ class ProductVariantBulkCreate(BaseMutation):
         return cleaned_input
 
     @classmethod
+    def clean_price(
+        cls, price, field_name, currency, channel_id, variant_index, errors
+    ):
+        try:
+            validate_price_precision(price, currency)
+        except ValidationError as error:
+            error.code = ProductErrorCode.INVALID.value
+            error.params = {
+                "channels": [channel_id],
+                "index": variant_index,
+            }
+            errors[field_name].append(error)
+
+    @classmethod
     def clean_channel_listings(cls, channels_data, errors, product, variant_index):
         channel_ids = [
             channel_listing["channel_id"] for channel_listing in channels_data
@@ -216,18 +221,21 @@ class ProductVariantBulkCreate(BaseMutation):
             channel_listing_data["channel"] = channels[index]
 
         for channel_listing_data in channels_data:
-            price_amount = channel_listing_data.get("price")
-            try:
-                validate_price_precision(
-                    price_amount, channel_listing_data["channel"].currency_code
-                )
-            except ValidationError as error:
-                error.code = ProductErrorCode.INVALID.value
-                error.params = {
-                    "index": variant_index,
-                    "channels": [channel_listing_data["channel_id"]],
-                }
-                errors["price"].append(error)
+            price = channel_listing_data.get("price")
+            cost_price = channel_listing_data.get("cost_price")
+            channel_id = channel_listing_data["channel_id"]
+            currency_code = channel_listing_data["channel"].currency_code
+            cls.clean_price(
+                price, "price", currency_code, channel_id, variant_index, errors
+            )
+            cls.clean_price(
+                cost_price,
+                "cost_price",
+                currency_code,
+                channel_id,
+                variant_index,
+                errors,
+            )
 
         channels_not_assigned_to_product = []
         channels_assigned_to_product = list(
@@ -349,11 +357,13 @@ class ProductVariantBulkCreate(BaseMutation):
         for channel_listing_data in channel_listings_data:
             channel = channel_listing_data["channel"]
             price = channel_listing_data["price"]
+            cost_price = channel_listing_data.get("cost_price")
             variant_channel_listings.append(
                 models.ProductVariantChannelListing(
                     channel=channel,
                     variant=variant,
                     price_amount=price,
+                    cost_price_amount=cost_price,
                     currency=channel.currency_code,
                 )
             )

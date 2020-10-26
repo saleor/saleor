@@ -95,12 +95,6 @@ class Shop(graphene.ObjectType):
         description="List of countries available in the shop.",
         required=True,
     )
-    currencies = graphene.List(
-        graphene.String, description="List of available currencies.", required=True
-    )
-    default_currency = graphene.String(
-        description="Shop's default currency.", required=True
-    )
     default_country = graphene.Field(
         CountryDisplay, description="Shop's default country."
     )
@@ -189,10 +183,6 @@ class Shop(graphene.ObjectType):
             ]
 
     @staticmethod
-    def resolve_currencies(_, _info):
-        return settings.AVAILABLE_CURRENCIES
-
-    @staticmethod
     def resolve_domain(_, info):
         site = info.context.site
         return Domain(
@@ -210,10 +200,6 @@ class Shop(graphene.ObjectType):
                 country=CountryDisplay(code=country.code, country=country.name)
             )
         return Geolocalization(country=None)
-
-    @staticmethod
-    def resolve_default_currency(_, _info):
-        return settings.DEFAULT_CURRENCY
 
     @staticmethod
     def resolve_description(_, info):

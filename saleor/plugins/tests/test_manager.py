@@ -315,7 +315,7 @@ def test_manager_serve_list_all_payment_gateways_specified_currency():
     ]
     manager = PluginsManager(plugins=plugins)
     assert (
-        manager.list_payment_gateways(currency="PLN", active_only=False)
+        manager.list_payment_gateways(currency="EUR", active_only=False)
         == expected_gateways
     )
 

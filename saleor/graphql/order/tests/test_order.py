@@ -2960,7 +2960,7 @@ def test_order_update_shipping_clear_shipping_method(
 
     order.refresh_from_db()
     assert order.shipping_method is None
-    assert order.shipping_price == zero_taxed_money()
+    assert order.shipping_price == zero_taxed_money(order.currency)
     assert order.shipping_method_name is None
 
 
@@ -3049,7 +3049,7 @@ def test_draft_order_clear_shipping_method(
     assert data["order"]["id"] == order_id
     draft_order.refresh_from_db()
     assert draft_order.shipping_method is None
-    assert draft_order.shipping_price == zero_taxed_money()
+    assert draft_order.shipping_price == zero_taxed_money(draft_order.currency)
     assert draft_order.shipping_method_name is None
 
 

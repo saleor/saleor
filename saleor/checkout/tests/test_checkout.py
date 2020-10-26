@@ -572,7 +572,7 @@ def test_remove_voucher_from_checkout(checkout_with_voucher, voucher_translation
     assert not checkout.voucher_code
     assert not checkout.discount_name
     assert not checkout.translated_discount_name
-    assert checkout.discount == zero_money()
+    assert checkout.discount == zero_money(checkout.channel.currency_code)
 
 
 def test_recalculate_checkout_discount(
@@ -613,7 +613,7 @@ def test_recalculate_checkout_discount_voucher_not_applicable(
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
-    assert checkout.discount == zero_money()
+    assert checkout.discount == zero_money(checkout.channel.currency_code)
 
 
 def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, voucher):
@@ -628,7 +628,7 @@ def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, vo
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
-    assert checkout.discount == zero_money()
+    assert checkout.discount == zero_money(checkout.channel.currency_code)
 
 
 def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping(
@@ -688,7 +688,7 @@ def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shippi
 
     assert not checkout.discount_name
     assert not checkout.voucher_code
-    assert checkout.discount == zero_money()
+    assert checkout.discount == zero_money(checkout.channel.currency_code)
 
 
 def test_change_address_in_checkout(checkout, address):

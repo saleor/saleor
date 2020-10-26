@@ -192,7 +192,7 @@ class Checkout(CountableDjangoObjectType):
                 )
                 - root.get_total_gift_cards_balance()
             )
-            return max(taxed_total, zero_taxed_money())
+            return max(taxed_total, zero_taxed_money(root.currency))
 
         lines = CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
         discounts = DiscountsByDateTimeLoader(info.context).load(
