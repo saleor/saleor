@@ -225,7 +225,7 @@ class DraftOrderUpdate(DraftOrderCreate):
             raise ValidationError(
                 {
                     "id": ValidationError(
-                        "Provided order id belongs to non-order. "
+                        "Provided order id belongs to non-draft order. "
                         "Use `orderUpdate` mutation instead.",
                         code=OrderErrorCode.INVALID,
                     )
