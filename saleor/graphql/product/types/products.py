@@ -25,6 +25,7 @@ from ....warehouse.availability import (
 )
 from ...account.enums import CountryCodeEnum
 from ...channel import ChannelContext, ChannelQsContext
+from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import CountableDjangoObjectType
@@ -563,40 +564,45 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             context
         ).load((root.node.id, channel_slug))
         collections = CollectionsByProductIdLoader(context).load(root.node.id)
+        channel = ChannelBySlugLoader(context).load(channel_slug)
 
         def calculate_pricing_info(discounts):
-            def calculate_pricing_with_product_channel_listings(
-                product_channel_listing,
-            ):
-                def calculate_pricing_with_variants(variants):
-                    def calculate_pricing_with_variants_channel_listings(
-                        variants_channel_listing,
-                    ):
-                        def calculate_pricing_with_collections(collections):
-                            availability = get_product_availability(
-                                product=root.node,
-                                product_channel_listing=product_channel_listing,
-                                variants=variants,
-                                variants_channel_listing=variants_channel_listing,
-                                collections=collections,
-                                discounts=discounts,
-                                country=context.country,
-                                local_currency=context.currency,
-                                plugins=context.plugins,
-                            )
-                            return ProductPricingInfo(**asdict(availability))
+            def calculate_pricing_with_channel(channel):
+                def calculate_pricing_with_product_channel_listings(
+                    product_channel_listing,
+                ):
+                    def calculate_pricing_with_variants(variants):
+                        def calculate_pricing_with_variants_channel_listings(
+                            variants_channel_listing,
+                        ):
+                            def calculate_pricing_with_collections(collections):
+                                availability = get_product_availability(
+                                    product=root.node,
+                                    product_channel_listing=product_channel_listing,
+                                    variants=variants,
+                                    variants_channel_listing=variants_channel_listing,
+                                    collections=collections,
+                                    discounts=discounts,
+                                    channel=channel,
+                                    country=context.country,
+                                    local_currency=context.currency,
+                                    plugins=context.plugins,
+                                )
+                                return ProductPricingInfo(**asdict(availability))
 
-                        return collections.then(calculate_pricing_with_collections)
+                            return collections.then(calculate_pricing_with_collections)
 
-                    return variants_channel_listing.then(
-                        calculate_pricing_with_variants_channel_listings
-                    )
+                        return variants_channel_listing.then(
+                            calculate_pricing_with_variants_channel_listings
+                        )
 
-                return variants.then(calculate_pricing_with_variants)
+                    return variants.then(calculate_pricing_with_variants)
 
-            return product_channel_listing.then(
-                calculate_pricing_with_product_channel_listings
-            )
+                return product_channel_listing.then(
+                    calculate_pricing_with_product_channel_listings
+                )
+
+            return channel.then(calculate_pricing_with_channel)
 
         return (
             DiscountsByDateTimeLoader(context)

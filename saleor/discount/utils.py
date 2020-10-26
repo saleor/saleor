@@ -230,13 +230,13 @@ def fetch_products(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
 
 
 def fetch_sale_channel_listings(sale_pks: Iterable[str],):
-    channel_listings = SaleChannelListing.objects.filter(
-        sale_id__in=sale_pks
-    ).prefetch_related("channel")
+    channel_listings = SaleChannelListing.objects.filter(sale_id__in=sale_pks).annotate(
+        channel_slug=F("channel__slug")
+    )
     channel_listings_map: Dict[int, Dict[str, SaleChannelListing]] = defaultdict(dict)
     for channel_listing in channel_listings:
         sale_id_row = channel_listings_map[channel_listing.sale_id]
-        sale_id_row[channel_listing.channel.slug] = channel_listing
+        sale_id_row[channel_listing.channel_slug] = channel_listing
     return channel_listings_map
 
 
