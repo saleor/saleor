@@ -956,12 +956,13 @@ class AllegroParametersMapper(BaseParametersMapper):
             return mapped_parameter_map.get("!")
 
     def get_shoe_size(self, parameter):
+        key = None
         if('rozmiar-buty-damskie' in self.product_attributes):
             key = 'rozmiar-buty-damskie-' + self.product_attributes.get('rozmiar-buty-damskie')
         if('rozmiar-buty-meskie' in self.product_attributes):
             key = 'rozmiar-buty-meskie-' + self.product_attributes.get('rozmiar-buty-meskie')
         mapped_parameter_map = self.get_global_parameter_map(slugify(parameter))
-        if mapped_parameter_map is not None:
+        if mapped_parameter_map is not None and key is not None:
             return mapped_parameter_map.get(key)
 
     def get_allegro_parameter(self, parameter):
