@@ -695,16 +695,20 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return convert_weight_to_default_weight_unit(root.node.weight)
 
     @staticmethod
-    def resolve_is_available_for_purchase(root: ChannelContext[models.Product], _info):
+    def resolve_is_available_for_purchase(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
-        # TODO: Add data loader for loading product_channel_listing
-        product_channel_listing = root.node.channel_listing.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        if not product_channel_listing:
-            return None
-        return product_channel_listing.is_available_for_purchase()
+
+        def calculate_is_available_for_purchase(product_channel_listing):
+            if not product_channel_listing:
+                return None
+            return product_channel_listing.is_available_for_purchase()
+
+        return (
+            ProductChannelListingByProductIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_is_available_for_purchase)
+        )
 
     @staticmethod
     def resolve_available_for_purchase(root: ChannelContext[models.Product], info):
