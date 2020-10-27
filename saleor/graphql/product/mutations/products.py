@@ -59,8 +59,7 @@ from ..utils import (
     create_stocks,
     get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
-    validate_attributes_input_for_page,
-    validate_attributes_input_for_product,
+    validate_attributes_input_for_product_and_page,
     validate_attributes_input_for_variant,
 )
 from .common import ReorderInput
@@ -691,7 +690,9 @@ class AttributeAssignmentMixin:
         - ensure all required attributes are passed
         - ensure the values are correct for a product
         """
-        errors = validate_attributes_input_for_product(cleaned_input)
+        errors = validate_attributes_input_for_product_and_page(
+            cleaned_input, ProductErrorCode
+        )
 
         supplied_attribute_pk = [attribute.pk for attribute, _ in cleaned_input]
 
@@ -754,7 +755,9 @@ class AttributeAssignmentMixin:
 
         :raises ValidationError: when an invalid operation was found.
         """
-        errors = validate_attributes_input_for_page(cleaned_input)
+        errors = validate_attributes_input_for_product_and_page(
+            cleaned_input, PageErrorCode
+        )
 
         supplied_attribute_pk = [attribute.pk for attribute, _ in cleaned_input]
 

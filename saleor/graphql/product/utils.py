@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.utils import IntegrityError
 
-from ...page.error_codes import PageErrorCode
 from ...product import AttributeInputType
 from ...product.error_codes import ProductErrorCode
 from ...warehouse.models import Stock
@@ -16,19 +15,19 @@ if TYPE_CHECKING:
     from ...product.models import Attribute, ProductVariant
 
 
-def validate_attributes_input_for_product(
-    input_data: List[Tuple["Attribute", List[str]]],
+def validate_attributes_input_for_product_and_page(
+    input_data: List[Tuple["Attribute", List[str]]], error_code_enum,
 ):
     error_no_value_given = ValidationError(
         "Attribute expects a value but none were given",
-        code=ProductErrorCode.REQUIRED.value,
+        code=error_code_enum.REQUIRED.value,
     )
     error_dropdown_get_more_than_one_value = ValidationError(
         "Attribute attribute must take only one value",
-        code=ProductErrorCode.INVALID.value,
+        code=error_code_enum.INVALID.value,
     )
     error_blank_value = ValidationError(
-        "Attribute values cannot be blank", code=ProductErrorCode.REQUIRED.value,
+        "Attribute values cannot be blank", code=error_code_enum.REQUIRED.value,
     )
 
     attribute_errors: Dict[ValidationError, List[str]] = defaultdict(list)
@@ -81,43 +80,6 @@ def validate_attributes_input_for_variant(
 
         if values[0] is None or not values[0].strip():
             attribute_errors[error_blank_value].append(attribute_id)
-
-    return prepare_error_list_from_error_attribute_mapping(attribute_errors)
-
-
-def validate_attributes_input_for_page(
-    input_data: List[Tuple["Attribute", List[str]]],
-):
-    error_no_value_given = ValidationError(
-        "Attribute expects a value but none were given",
-        code=PageErrorCode.REQUIRED.value,
-    )
-    error_dropdown_get_more_than_one_value = ValidationError(
-        "Attribute attribute must take only one value",
-        code=PageErrorCode.INVALID.value,
-    )
-    error_blank_value = ValidationError(
-        "Attribute values cannot be blank", code=PageErrorCode.REQUIRED.value,
-    )
-
-    attribute_errors: Dict[ValidationError, List[str]] = defaultdict(list)
-    for attribute, values in input_data:
-        attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
-        if not values:
-            if attribute.value_required:
-                attribute_errors[error_no_value_given].append(attribute_id)
-            continue
-
-        if attribute.input_type != AttributeInputType.MULTISELECT and len(values) != 1:
-            attribute_errors[error_dropdown_get_more_than_one_value].append(
-                attribute_id
-            )
-            continue
-
-        for value in values:
-            if value is None or not value.strip():
-                attribute_errors[error_blank_value].append(attribute_id)
-                continue
 
     return prepare_error_list_from_error_attribute_mapping(attribute_errors)
 
