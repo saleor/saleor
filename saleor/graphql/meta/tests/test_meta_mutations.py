@@ -1058,6 +1058,8 @@ def test_delete_public_metadata_for_product_variant(
 
 def test_delete_public_metadata_for_app(staff_api_client, permission_manage_apps, app):
     # given
+    app.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    app.save(update_fields=["metadata"])
     app_id = graphene.Node.to_global_id("App", app.pk)
 
     # when
@@ -1075,6 +1077,8 @@ def test_delete_public_metadata_for_page(
     staff_api_client, permission_manage_pages, page
 ):
     # given
+    page.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    page.save(update_fields=["metadata"])
     page_id = graphene.Node.to_global_id("Page", page.pk)
 
     # when
@@ -2248,6 +2252,8 @@ def test_delete_private_metadata_for_product_variant(
 
 def test_delete_private_metadata_for_app(staff_api_client, permission_manage_apps, app):
     # given
+    app.store_value_in_private_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    app.save(update_fields=["private_metadata"])
     app_id = graphene.Node.to_global_id("App", app.pk)
 
     # when
@@ -2265,6 +2271,8 @@ def test_delete_private_metadata_for_page(
     staff_api_client, permission_manage_pages, page
 ):
     # given
+    page.store_value_in_private_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    page.save(update_fields=["private_metadata"])
     page_id = graphene.Node.to_global_id("Page", page.pk)
 
     # when
