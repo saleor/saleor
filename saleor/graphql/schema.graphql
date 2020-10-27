@@ -3307,6 +3307,7 @@ input PageCreateInput {
   title: String
   content: String
   contentJson: JSONString
+  attributes: [AttributeValueInput!]
   isPublished: Boolean
   publicationDate: String
   seo: SeoInput
@@ -3352,6 +3353,7 @@ input PageInput {
   title: String
   content: String
   contentJson: JSONString
+  attributes: [AttributeValueInput!]
   isPublished: Boolean
   publicationDate: String
   seo: SeoInput
