@@ -203,6 +203,37 @@ def test_collections_query_as_staff(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     edges = content["data"]["collections"]["edges"]
+    assert len(edges) == 1
+
+
+def test_collections_query_as_staff_without_channel(
+    staff_api_client,
+    published_collection,
+    unpublished_collection_PLN,
+    permission_manage_products,
+    channel_USD,
+):
+    query = """
+        query Collections($channel: String) {
+            collections(first: 2, channel: $channel) {
+                edges {
+                    node {
+                        name
+                        slug
+                        description
+                        products {
+                            totalCount
+                        }
+                    }
+                }
+            }
+        }
+    """
+    # query all collections only as a staff user with proper permissions
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    edges = content["data"]["collections"]["edges"]
     assert len(edges) == 2
 
 

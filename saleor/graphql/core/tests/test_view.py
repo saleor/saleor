@@ -279,8 +279,8 @@ def test_unexpected_exceptions_are_logged_in_their_own_logger(
     published_collection,
     channel_USD,
 ):
-    def bad_mocked_resolve_collection_by_id(info, id, channel):
-        raise NotImplementedError(info, id, channel)
+    def bad_mocked_resolve_collection_by_id(info, id, channel, requestor):
+        raise NotImplementedError(info, id, channel, requestor)
 
     mocked_resolve_collection_by_id.side_effect = bad_mocked_resolve_collection_by_id
 
