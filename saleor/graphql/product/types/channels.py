@@ -11,6 +11,10 @@ from ...channel.dataloaders import (
 )
 from ...core.connection import CountableDjangoObjectType
 from ...decorators import permission_required
+from ...product.dataloaders import (
+    ProductVariantsByProductIdLoader,
+    VariantChannelListingByVariantIdAndChannelSlugLoader,
+)
 
 
 class Margin(graphene.ObjectType):
@@ -61,17 +65,40 @@ class ProductChannelListing(CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_margin(root: models.ProductChannelListing, *_args):
-        # TODO: Add dataloader.
-        variants = root.product.variants.all().values_list("id", flat=True)
-        channel_listings = models.ProductVariantChannelListing.objects.filter(
-            variant_id__in=variants, channel_id=root.channel_id
+    def resolve_margin(root: models.ProductChannelListing, info, *_kwargs):
+        channel = ChannelByProductChannelListingIDLoader(info.context).load(root.id)
+
+        def calculate_margin_with_variants(variants):
+            def calculate_margin_with_channel(channel):
+                def calculate_margin_with_channel_listings(variant_channel_listings):
+                    variant_channel_listings = list(
+                        filter(None, variant_channel_listings)
+                    )
+                    if not variant_channel_listings:
+                        return None
+
+                    has_variants = True if len(variant_ids_channel_slug) > 0 else False
+                    _, margin = get_product_costs_data(
+                        variant_channel_listings, has_variants, root.currency
+                    )
+                    return Margin(margin[0], margin[1])
+
+                variant_ids_channel_slug = [
+                    (variant.id, channel.slug) for variant in variants
+                ]
+                return (
+                    VariantChannelListingByVariantIdAndChannelSlugLoader(info.context)
+                    .load_many(variant_ids_channel_slug)
+                    .then(calculate_margin_with_channel_listings)
+                )
+
+            return channel.then(calculate_margin_with_channel)
+
+        return (
+            ProductVariantsByProductIdLoader(info.context)
+            .load(root.product_id)
+            .then(calculate_margin_with_variants)
         )
-        has_variants = True if len(variants) > 0 else False
-        _, margin = get_product_costs_data(
-            channel_listings, has_variants, root.currency
-        )
-        return Margin(margin[0], margin[1])
 
     @staticmethod
     def resolve_is_available_for_purchase(root: models.ProductChannelListing, _info):
