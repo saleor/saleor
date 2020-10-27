@@ -4,8 +4,9 @@ from collections import defaultdict
 from datetime import timedelta
 from unittest.mock import ANY, MagicMock, Mock, patch
 
+
 import graphene
-import pytest
+import pytest 
 from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
@@ -3644,6 +3645,9 @@ def test_query_customers_with_sort(
         ({"search": "Doe"}, 1),  # default_shipping_address__last_name
         ({"search": "wroc"}, 1),  # default_shipping_address__city
         ({"search": "pl"}, 2),  # default_shipping_address__country, email
+        ({"search": "+48713988102"}, 1),
+        ({"search": "7139881"}, 1),
+        ({"search": "+48713"}, 1),
     ],
 )
 def test_query_customer_members_with_filter_search(
@@ -3656,6 +3660,8 @@ def test_query_customer_members_with_filter_search(
     staff_user,
 ):
 
+    # print("Address is: " + str(address)
+    print("test ==== ")
     User.objects.bulk_create(
         [
             User(
