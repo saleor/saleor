@@ -105,7 +105,9 @@ def test_get_variant_pricing_not_on_sale(api_client, product, channel_USD):
     assert pricing["price"]["net"]["amount"] == price.amount
 
 
-def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
+def test_variant_pricing(
+    variant: ProductVariant, monkeypatch, settings, stock, channel_USD
+):
     taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
     monkeypatch.setattr(
         PluginsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
@@ -122,6 +124,7 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
         product_channel_listing=product_channel_listing,
         collections=[],
         discounts=[],
+        channel=channel_USD,
     )
     assert pricing.price == taxed_price
     assert pricing.price_local_currency is None
@@ -141,6 +144,7 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
         product_channel_listing=product_channel_listing,
         collections=[],
         discounts=[],
+        channel=channel_USD,
         local_currency="PLN",
         country="US",
     )
@@ -153,6 +157,7 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
         product_channel_listing=product_channel_listing,
         collections=[],
         discounts=[],
+        channel=channel_USD,
     )
     assert pricing.price.tax.amount
     assert pricing.price_undiscounted.tax.amount
