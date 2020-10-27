@@ -877,7 +877,7 @@ class AllegroParametersMapper(BaseParametersMapper):
         if custom_map is not None:
             custom_map = [m for m in custom_map if '*' not in m]
             if bool(custom_map):
-                return self.parse_list_to_map(custom_map).get(parameter)
+                return self.parse_attributes_to_map(custom_map).get(parameter)
 
     def get_global_parameter_key(self, parameter):
         config = self.get_plugin_configuration()
@@ -914,6 +914,10 @@ class AllegroParametersMapper(BaseParametersMapper):
             return {item[0]: item[2] for item in list_in}
 
     @staticmethod
+    def parse_attributes_to_map(list_in):
+            return {item[0]: item[1:] for item in list_in}
+
+    @staticmethod
     def get_plugin_configuration():
         manager = get_plugins_manager()
         plugin = manager.get_plugin(AllegroPlugin.PLUGIN_ID)
@@ -929,17 +933,23 @@ class AllegroParametersMapper(BaseParametersMapper):
         return self.product_attributes.get(parameter)
 
     def get_mapped_parameter_key_and_value(self, parameter):
-
+        mapped_parameter_key_in_saleor_scope = None
         mapped_parameter_key = self.get_specific_parameter_key(
             parameter) or self.get_global_parameter_key(parameter) or parameter
+
+        if(type(mapped_parameter_key) == list):
+            if(len(mapped_parameter_key) < 2):
+                mapped_parameter_key, *_ = mapped_parameter_key
+            else:
+                mapped_parameter_key, mapped_parameter_key_in_saleor_scope = mapped_parameter_key
         mapped_parameter_value = self.get_parameter_out_of_saleor_specyfic(str(
             mapped_parameter_key))
         if mapped_parameter_value is not None:
-            return mapped_parameter_key, mapped_parameter_value
+            return mapped_parameter_key, mapped_parameter_value, mapped_parameter_key_in_saleor_scope
         mapped_parameter_value = self.product_attributes.get(
             slugify(str(mapped_parameter_key)))
 
-        return mapped_parameter_key, mapped_parameter_value
+        return mapped_parameter_key, mapped_parameter_value, mapped_parameter_key_in_saleor_scope
 
     def get_parameter_out_of_saleor_specyfic(self, parameter):
         custom_map = self.product.product_type.metadata.get(
@@ -956,6 +966,7 @@ class AllegroParametersMapper(BaseParametersMapper):
 
     def get_value_one_to_one_global(self, parameter, value):
         mapped_parameter_map = self.get_global_parameter_map(slugify(parameter))
+        print('get_value_one_to_one_global', slugify(parameter), value, mapped_parameter_map)
         if mapped_parameter_map is not None:
             return mapped_parameter_map.get(value)
 
@@ -970,12 +981,12 @@ class AllegroParametersMapper(BaseParametersMapper):
             return mapped_parameter_map.get(key)
 
     def get_allegro_parameter(self, parameter):
-        mapped_parameter_key, mapped_parameter_value = \
+        mapped_parameter_key, mapped_parameter_value, mapped_parameter_key_in_saleor_scope  = \
             self.get_mapped_parameter_key_and_value(parameter)
+        if(mapped_parameter_key_in_saleor_scope):
+            mapped_parameter_key = mapped_parameter_key_in_saleor_scope
         allegro_parameter = self.create_allegro_parameter(slugify(parameter),
                                                           mapped_parameter_value)
-        if(self.get_specific_parameter_key(mapped_parameter_key)):
-            mapped_parameter_key = self.get_specific_parameter_key(mapped_parameter_key)
 
         if allegro_parameter is None:
             mapped_parameter_value = self.get_value_one_to_one_global(
