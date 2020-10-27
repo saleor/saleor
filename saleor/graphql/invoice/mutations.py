@@ -266,7 +266,7 @@ class InvoiceSendNotification(ModelMutation):
         id = graphene.ID(required=True, description="ID of an invoice to be sent.")
 
     class Meta:
-        description = "Send an invoice by using a notification plugin."
+        description = "Send an invoice notification to the customer."
         model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
