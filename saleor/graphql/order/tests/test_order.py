@@ -103,7 +103,7 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
                             quantity
                             allocations {
                                 id
-                                quantity
+                                quantityAllocated
                                 warehouse {
                                     id
                                 }
@@ -160,8 +160,58 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
         "Warehouse", allocation.stock.warehouse.pk
     )
     assert first_order_data_line["allocations"] == [
-        {"id": allocation_id, "quantity": 2, "warehouse": {"id": warehouse_id}}
+        {
+            "id": allocation_id,
+            "quantityAllocated": 0,
+            "warehouse": {"id": warehouse_id},
+        }
     ]
+
+
+def test_order_line_with_allocations(
+    staff_api_client, permission_manage_orders, order_with_lines,
+):
+    # given
+    order = order_with_lines
+    query = """
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        lines {
+                            id
+                            allocations {
+                                id
+                                quantityAllocated
+                                warehouse {
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(query)
+
+    # then
+    content = get_graphql_content(response)
+    lines = content["data"]["orders"]["edges"][0]["node"]["lines"]
+
+    for line in lines:
+        _, _id = graphene.Node.from_global_id(line["id"])
+        order_line = order.lines.get(pk=_id)
+        allocations_from_query = {
+            allocation["quantityAllocated"] for allocation in line["allocations"]
+        }
+        allocations_from_db = set(
+            order_line.allocations.values_list("quantity_allocated", flat=True)
+        )
+        assert allocations_from_query == allocations_from_db
 
 
 def test_order_query(

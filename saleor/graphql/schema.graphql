@@ -197,8 +197,8 @@ type AddressValidationData {
 
 type Allocation implements Node {
   id: ID!
-  quantity: Int!
-  warehouse: Warehouse
+  quantityAllocated: Int!
+  warehouse: Warehouse!
 }
 
 type App implements Node & ObjectWithMetadata {

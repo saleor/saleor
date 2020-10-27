@@ -93,23 +93,33 @@ class Stock(CountableDjangoObjectType):
 
 
 class Allocation(CountableDjangoObjectType):
-    quantity = graphene.Int(
+    quantity_allocated = graphene.Int(
         required=True,
         description="Quantity of a product in the warehouse's possession, "
         "including the allocated stock that is waiting for shipment.",
     )
     warehouse = graphene.Field(
-        Warehouse, description="The warehouse were items were allocated."
+        Warehouse, required=True, description="The warehouse were items were allocated."
     )
 
     class Meta:
-        description = "Represets allocation."
+        description = "Represents allocation."
         model = models.Allocation
         interfaces = [graphene.relay.Node]
         only_fields = ["id"]
 
+    @staticmethod
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
     def resolve_warehouse(root, *_args):
         return root.stock.warehouse
 
-    def resolve_quantity(root, *_args):
-        return root.stock.quantity
+    @staticmethod
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
+    def resolve_quantity_allocated(root, *_args):
+        return root.stock.allocations.aggregate(
+            quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
+        )["quantity_allocated"]
