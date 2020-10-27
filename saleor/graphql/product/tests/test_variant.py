@@ -1527,6 +1527,8 @@ def test_product_variant_bulk_create_by_attribute_id(
     assert attribute_value_count == size_attribute.values.count()
     product_variant = ProductVariant.objects.get(sku=sku)
     assert not product_variant.cost_price
+    product.refresh_from_db()
+    assert product.default_variant == product_variant
 
 
 @pytest.mark.parametrize(
