@@ -1881,6 +1881,13 @@ def page(db, page_type):
         "page_type": page_type,
     }
     page = Page.objects.create(**data)
+
+    # associate attribute value
+    page_attr = page_type.page_attributes.first()
+    page_attr_value = page_attr.values.first()
+
+    associate_attribute_values_to_instance(page, page_attr, page_attr_value)
+
     return page
 
 

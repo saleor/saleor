@@ -18,14 +18,32 @@ PAGE_QUERY = """
             pageType {
                 id
             }
+            attributes {
+                attribute {
+                    slug
+                }
+                values {
+                    slug
+                }
+            }
         }
     }
 """
 
 
 def test_query_published_page(user_api_client, page):
+    # given
     page.is_published = True
     page.save()
+
+    page_type = page.page_type
+
+    assert page.attributes.count() == 1
+    page_attr_assigned = page.attributes.first()
+    page_attr = page_attr_assigned.attribute
+
+    assert page_attr_assigned.values.count() == 1
+    page_attr_value = page_attr_assigned.values.first()
 
     # query by ID
     variables = {"id": graphene.Node.to_global_id("Page", page.id)}
@@ -37,6 +55,14 @@ def test_query_published_page(user_api_client, page):
     assert page_data["pageType"]["id"] == graphene.Node.to_global_id(
         "PageType", page.page_type.pk
     )
+
+    expected_attributes = []
+    for attr in page_type.page_attributes.all():
+        values = [{"slug": page_attr_value.slug}] if attr.slug == page_attr.slug else []
+        expected_attributes.append({"attribute": {"slug": attr.slug}, "values": values})
+
+    for attr_data in page_data["attributes"]:
+        assert attr_data in expected_attributes
 
     # query by slug
     variables = {"slug": page.slug}
