@@ -215,6 +215,7 @@ def get_variant_availability(
     product_channel_listing: Optional[ProductChannelListing],
     collections: Iterable[Collection],
     discounts: Iterable[DiscountInfo],
+    channel: Channel,
     country: Optional[str] = None,
     local_currency: Optional[str] = None,
     plugins: Optional["PluginsManager"] = None,
@@ -230,8 +231,7 @@ def get_variant_availability(
                 product=product,
                 collections=collections,
                 discounts=discounts,
-                # TODO: Optimization needed
-                channel=variant_channel_listing.channel,
+                channel=channel,
             ),
             country,
         )
@@ -243,8 +243,7 @@ def get_variant_availability(
                 product=product,
                 collections=collections,
                 discounts=[],
-                # TODO: Optimization needed
-                channel=variant_channel_listing.channel,
+                channel=channel,
             ),
             country,
         )
