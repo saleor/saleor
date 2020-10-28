@@ -275,8 +275,7 @@ class AllegroPlugin(BasePlugin):
         product = product_with_params.get('product')
         if self.active == True and product.is_published == False:
             allegro_api = AllegroAPI(self.config.token_value)
-            if product.variants.first().metadata.get('reserved') is not True and \
-                    product.variants.first().private_metadata.get('location') is not None:
+            if product.variants.first().metadata.get('reserved') is not True:
                 product.store_value_in_private_metadata(
                     {'publish.allegro.status': ProductPublishState.MODERATED.value})
                 if product.variants.first().stocks.first().quantity > 0:
@@ -290,12 +289,7 @@ class AllegroPlugin(BasePlugin):
                     allegro_api.update_errors_in_private_metadata(product,
                                                                   allegro_api.errors)
             else:
-                allegro_api.errors.append('003: produkt jest zarezerwowany lub ' +
-                             'nieuzupełniona jest jego lokacja magazynowa')
-                allegro_api.update_errors_in_private_metadata(product,
-                                                              allegro_api.errors)
-                logger.error('003: produkt jest zarezerwowany lub ' +
-                             'nieuzupełniona jest jego lokacja magazynowa')
+                logger.error('003: produkt jest zarezerwowany')
     def calculate_hours_to_token_expire(self):
         token_expire = datetime.strptime(self.config.token_access, '%d/%m/%Y %H:%M:%S')
         duration = token_expire - datetime.now()
