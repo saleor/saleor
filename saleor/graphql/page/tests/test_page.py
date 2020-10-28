@@ -32,7 +32,6 @@ PAGE_QUERY = """
 
 
 def test_query_published_page(user_api_client, page):
-    # given
     page.is_published = True
     page.save()
 
