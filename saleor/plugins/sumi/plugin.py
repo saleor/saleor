@@ -319,7 +319,7 @@ class SumiPlugin(BasePlugin):
                                                          'produktu ' + str(product))
             else:
                 results.get('errors').append(
-                    '004: brak atrybutu locations')
+                    '003: inny błąd')
                 results['status'] = 'error'
 
             logger.debug('locate_products response: ' + str(results))

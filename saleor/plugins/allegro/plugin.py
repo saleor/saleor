@@ -290,11 +290,11 @@ class AllegroPlugin(BasePlugin):
                     allegro_api.update_errors_in_private_metadata(product,
                                                                   allegro_api.errors)
             else:
-                allegro_api.errors.append('005: produkt jest zarezerwowany lub ' +
+                allegro_api.errors.append('003: produkt jest zarezerwowany lub ' +
                              'nieuzupełniona jest jego lokacja magazynowa')
                 allegro_api.update_errors_in_private_metadata(product,
                                                               allegro_api.errors)
-                logger.error('005: produkt jest zarezerwowany lub ' +
+                logger.error('003: produkt jest zarezerwowany lub ' +
                              'nieuzupełniona jest jego lokacja magazynowa')
     def calculate_hours_to_token_expire(self):
         token_expire = datetime.strptime(self.config.token_access, '%d/%m/%Y %H:%M:%S')
