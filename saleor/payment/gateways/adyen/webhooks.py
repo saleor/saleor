@@ -574,11 +574,9 @@ def validate_merchant_account(
     notification: Dict[str, Any], gateway_config: "GatewayConfig"
 ):
     merchant_account_code = notification.get("merchantAccountCode")
-    if merchant_account_code != gateway_config.connection_params.get(
+    return merchant_account_code == gateway_config.connection_params.get(
         "merchant_account"
-    ):
-        return False
-    return True
+    )
 
 
 @transaction_with_commit_on_errors()
