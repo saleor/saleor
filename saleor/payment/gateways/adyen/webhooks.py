@@ -569,6 +569,17 @@ def validate_auth_user(headers: HttpHeaders, gateway_config: "GatewayConfig") ->
     return False
 
 
+def validate_merchant_account(
+    notification: Dict[str, Any], gateway_config: "GatewayConfig"
+):
+    merchant_account_code = notification.get("merchantAccountCode")
+    if merchant_account_code != gateway_config.connection_params.get(
+        "merchant_account"
+    ):
+        return False
+    return True
+
+
 @transaction_with_commit_on_errors()
 def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
     json_data = json.loads(request.body)
@@ -582,6 +593,8 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
         return HttpResponseBadRequest("Invalid or missing hmac signature.")
     if not validate_auth_user(request.headers, gateway_config):
         return HttpResponseBadRequest("Invalid or missing basic auth.")
+    if not validate_merchant_account(notification, gateway_config):
+        return HttpResponseBadRequest("Not supported merchant account.")
 
     event_handler = EVENT_MAP.get(notification.get("eventCode", ""))
     if event_handler:
