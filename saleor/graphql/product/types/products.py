@@ -40,6 +40,10 @@ from ...decorators import one_of_permissions_required, permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
+from ...order.dataloaders import (
+    OrderByIdLoader,
+    OrderLinesByVariantIdAndChannelIdLoader,
+)
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -390,16 +394,44 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_revenue(root: ChannelContext[models.ProductVariant], *_args, period):
+    def resolve_revenue(root: ChannelContext[models.ProductVariant], info, period):
         start_date = reporting_period_to_date(period)
         variant = root.node
-        variant_channel_listing = variant.channel_listing.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        if not variant_channel_listing:
-            return None
-        currency_code = variant_channel_listing.currency
-        return calculate_revenue_for_variant(variant, start_date, currency_code)
+        channel_slug = root.channel_slug
+
+        def calculate_revenue_with_channel(channel):
+            if not channel:
+                return None
+
+            def calculate_revenue_with_order_lines(order_lines):
+                def calculate_revenue_with_orders(orders):
+                    orders_dict = {order.id: order for order in orders}
+                    return calculate_revenue_for_variant(
+                        variant,
+                        start_date,
+                        order_lines,
+                        orders_dict,
+                        channel.currency_code,
+                    )
+
+                order_ids = [order_line.order_id for order_line in order_lines]
+                return (
+                    OrderByIdLoader(info.context)
+                    .load_many(order_ids)
+                    .then(calculate_revenue_with_orders)
+                )
+
+            return (
+                OrderLinesByVariantIdAndChannelIdLoader(info.context)
+                .load((variant.id, channel.id))
+                .then(calculate_revenue_with_order_lines)
+            )
+
+        return (
+            ChannelBySlugLoader(info.context)
+            .load(channel_slug)
+            .then(calculate_revenue_with_channel)
+        )
 
     @staticmethod
     def resolve_images(root: ChannelContext[models.ProductVariant], info, *_args):
