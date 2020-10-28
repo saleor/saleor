@@ -54,7 +54,7 @@ def get_payment(
         return None
     try:
         _type, db_payment_id = from_global_id(payment_id)
-    except UnicodeDecodeError:
+    except (UnicodeDecodeError, binascii.Error):
         logger.warning(
             "Unable to decode the payment ID %s. Reference %s",
             payment_id,
