@@ -4,6 +4,7 @@ import hashlib
 import hmac
 import json
 import logging
+from json.decoder import JSONDecodeError
 from typing import Any, Callable, Dict, Optional
 from urllib.parse import urlencode
 
@@ -582,7 +583,10 @@ def validate_merchant_account(
 
 @transaction_with_commit_on_errors()
 def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
-    json_data = json.loads(request.body)
+    try:
+        json_data = json.loads(request.body)
+    except JSONDecodeError:
+        return HttpResponse("[accepted]")
     # JSON and HTTP POST notifications always contain a single NotificationRequestItem
     # object.
     notification = json_data.get("notificationItems")[0].get(
