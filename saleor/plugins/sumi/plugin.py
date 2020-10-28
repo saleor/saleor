@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import datetime
+from json import JSONDecodeError
 
 from django.http import HttpResponse
 from django.http.response import JsonResponse
@@ -277,3 +278,64 @@ class SumiPlugin(BasePlugin):
         if plugin_configuration.configuration:
             cls._append_config_structure(plugin_configuration.configuration)
         return plugin_configuration
+
+    @staticmethod
+    def locate_products(request):
+        try:
+            products = json.loads(request.body.decode('utf-8')).get('locations')
+        except JSONDecodeError:
+            http_response = HttpResponse()
+            http_response.status_code = 403
+            logger.debug('sell_products response: ' + str(http_response))
+            return http_response
+        logger.info('locate_products request: ' + str(products))
+        results = {"status": "ok", "data": [], "errors": []}
+        if SumiPlugin.is_auth(
+                request.headers.get('X-API-KEY')) and request.method == 'POST':
+            if products is not None:
+                for product in products:
+                    if type(product) is list:
+                        try:
+                            sku = product[0]
+                            location = product[1]
+                            product_variant = ProductVariant.objects.filter(sku=sku)
+                            if product_variant.exists():
+                                result = SumiPlugin.save_location_in_private_metadata(
+                                                            product_variant.first(), location)
+                                if isinstance(result, ProductVariant):
+                                    results.get('data').append(str(result))
+                                else:
+                                    results.get('errors').append(result.get('error'))
+                                    results['status'] = 'error'
+                            else:
+                                results.get('errors').append(
+                                    '001: nie znaleziono produktu o kodzie ' + str(
+                                        sku))
+                                results['status'] = 'error'
+                        except IndexError:
+                            results['status'] = 'error'
+                            results.get('errors').append('003: wystąpił błąd podczas ' +
+                                                         'przetwarzania sprzedanego ' +
+                                                         'produktu ' + str(product))
+            else:
+                results.get('errors').append(
+                    '003: inny błąd')
+                results['status'] = 'error'
+
+            logger.debug('locate_products response: ' + str(results))
+            return JsonResponse(results)
+        else:
+            http_response = HttpResponse()
+            http_response.status_code = 403
+            logger.debug('sell_products response: ' + str(http_response))
+            return http_response
+
+    @staticmethod
+    def save_location_in_private_metadata(product_variant, location):
+        try:
+            product_variant.store_value_in_private_metadata({'location': location})
+            product_variant.save(update_fields=["private_metadata"])
+            return product_variant
+        except:
+            return {'error': '003: wystąpił błąd podczas przetwarzania produktu ' + str(
+                product_variant)}
