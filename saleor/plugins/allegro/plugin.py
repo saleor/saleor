@@ -966,7 +966,6 @@ class AllegroParametersMapper(BaseParametersMapper):
 
     def get_value_one_to_one_global(self, parameter, value):
         mapped_parameter_map = self.get_global_parameter_map(slugify(parameter))
-        print('get_value_one_to_one_global', slugify(parameter), value, mapped_parameter_map)
         if mapped_parameter_map is not None:
             return mapped_parameter_map.get(value)
 
