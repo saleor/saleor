@@ -29,6 +29,7 @@ class MenuQueries(graphene.ObjectType):
         ),
         id=graphene.Argument(graphene.ID, description="ID of the menu."),
         name=graphene.Argument(graphene.String, description="The menu's name."),
+        slug=graphene.Argument(graphene.String, description="The menu's slug."),
         description="Look up a navigation menu by ID or name.",
     )
     menus = ChannelContextFilterConnectionField(
@@ -63,7 +64,9 @@ class MenuQueries(graphene.ObjectType):
     def resolve_menu(self, info, channel=None, **data):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        return resolve_menu(info, channel, data.get("id"), data.get("name"),)
+        return resolve_menu(
+            info, channel, data.get("id"), data.get("name"), data.get("slug")
+        )
 
     def resolve_menus(self, info, query=None, channel=None, **kwargs):
         if channel is None:

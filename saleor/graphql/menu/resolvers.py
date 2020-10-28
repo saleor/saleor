@@ -10,12 +10,15 @@ MENU_SEARCH_FIELDS = ("name",)
 MENU_ITEM_SEARCH_FIELDS = ("name",)
 
 
-def resolve_menu(info, channel, menu_id=None, name=None):
-    validate_one_of_args_is_in_query("id", menu_id, "name", name)
+def resolve_menu(info, channel, menu_id=None, name=None, slug=None):
+    validate_one_of_args_is_in_query("id", menu_id, "name", name, "slug", slug)
+    menu = None
     if menu_id:
         menu = graphene.Node.get_node_from_global_id(info, menu_id, Menu)
-    else:
+    if name:
         menu = models.Menu.objects.filter(name=name).first()
+    if slug:
+        menu = models.Menu.objects.filter(slug=slug).first()
     return ChannelContext(node=menu, channel_slug=channel) if menu else None
 
 

@@ -2,7 +2,7 @@ from django.db import models
 from draftjs_sanitizer import clean_draft_js
 
 from ..core.db.fields import SanitizedJSONField
-from ..core.models import PublishableModel, PublishedQuerySet
+from ..core.models import ModelWithMetadata, PublishableModel, PublishedQuerySet
 from ..core.permissions import PagePermissions
 from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
@@ -14,7 +14,7 @@ class PagePublishedQuerySet(PublishedQuerySet):
         return user.is_active and user.has_perm(PagePermissions.MANAGE_PAGES)
 
 
-class Page(SeoModel, PublishableModel):
+class Page(ModelWithMetadata, SeoModel, PublishableModel):
     slug = models.SlugField(unique=True, max_length=255)
     title = models.CharField(max_length=250)
     content = models.TextField(blank=True)

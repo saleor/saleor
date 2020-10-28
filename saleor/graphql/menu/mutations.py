@@ -15,7 +15,10 @@ from ...product import models as product_models
 from ..channel import ChannelContext
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import MenuError
-from ..core.utils import from_global_id_strict_type
+from ..core.utils import (
+    from_global_id_strict_type,
+    validate_slug_and_generate_if_needed,
+)
 from ..core.utils.reordering import perform_reordering
 from ..page.types import Page
 from ..product.types import Category, Collection
@@ -46,12 +49,12 @@ class MenuItemCreateInput(MenuItemInput):
     )
 
 
-class MenuInput(graphene.InputObjectType):
-    name = graphene.String(description="Name of the menu.")
-
-
 class MenuCreateInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the menu.", required=True)
+    slug = graphene.String(
+        description="Slug of the menu. Will be generated if not provided.",
+        required=False,
+    )
     items = graphene.List(MenuItemInput, description="List of menu items.")
 
 
@@ -71,6 +74,14 @@ class MenuCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+        try:
+            cleaned_input = validate_slug_and_generate_if_needed(
+                instance, "name", cleaned_input
+            )
+        except ValidationError as error:
+            error.code = MenuErrorCode.REQUIRED.value
+            raise ValidationError({"slug": error})
+
         items = []
         for item in cleaned_input.get("items", []):
             category = item.get("category")
@@ -124,6 +135,11 @@ class MenuCreate(ModelMutation):
     def success_response(cls, instance):
         instance = ChannelContext(node=instance, channel_slug=None)
         return super().success_response(instance)
+
+
+class MenuInput(graphene.InputObjectType):
+    name = graphene.String(description="Name of the menu.")
+    slug = graphene.String(description="Slug of the menu.", required=False)
 
 
 class MenuUpdate(ModelMutation):

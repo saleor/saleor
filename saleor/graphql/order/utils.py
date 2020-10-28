@@ -19,19 +19,48 @@ def validate_total_quantity(order):
 
 
 def validate_shipping_method(order):
-    method = order.shipping_method
-    shipping_address = order.shipping_address
-    shipping_not_valid = (
-        method
-        and shipping_address
-        and shipping_address.country.code not in method.shipping_zone.countries
-    )  # noqa
-    if shipping_not_valid:
+    if not order.shipping_method:
+        raise ValidationError(
+            {
+                "shipping": ValidationError(
+                    "Shipping method is required.",
+                    code=OrderErrorCode.SHIPPING_METHOD_REQUIRED,
+                )
+            }
+        )
+    if (
+        order.shipping_address.country.code
+        not in order.shipping_method.shipping_zone.countries
+    ):
         raise ValidationError(
             {
                 "shipping": ValidationError(
                     "Shipping method is not valid for chosen shipping address",
                     code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                )
+            }
+        )
+
+
+def validate_billing_address(order):
+    if not order.billing_address:
+        raise ValidationError(
+            {
+                "order": ValidationError(
+                    "Can't finalize draft with no billing address.",
+                    code=OrderErrorCode.BILLING_ADDRESS_NOT_SET,
+                )
+            }
+        )
+
+
+def validate_shipping_address(order):
+    if not order.shipping_address:
+        raise ValidationError(
+            {
+                "order": ValidationError(
+                    "Can't finalize draft with no shipping address.",
+                    code=OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS,
                 )
             }
         )
@@ -122,7 +151,9 @@ def validate_draft_order(order, country):
 
     Returns a list of errors if any were found.
     """
+    validate_billing_address(order)
     if order.is_shipping_required():
+        validate_shipping_address(order)
         validate_shipping_method(order)
     validate_total_quantity(order)
     validate_order_lines(order, country)

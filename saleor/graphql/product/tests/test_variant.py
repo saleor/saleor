@@ -372,6 +372,33 @@ def test_create_product_variant_with_negative_weight(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
+def test_create_product_variant_without_attributes(
+    staff_api_client, product, permission_manage_products
+):
+    # given
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {
+        "productId": product_id,
+        "sku": "test-sku",
+        "price": 0,
+        "attributes": [],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantCreate"]
+    error = data["productErrors"][0]
+
+    assert error["field"] == "attributes"
+    assert error["code"] == ProductErrorCode.REQUIRED.name
+
+
 def test_create_product_variant_not_all_attributes(
     staff_api_client, product, product_type, color_attribute, permission_manage_products
 ):
@@ -589,18 +616,24 @@ def test_create_product_variant_update_with_new_attributes(
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product_variant(
-    updated_webhook_mock, staff_api_client, product, permission_manage_products
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
 ):
     query = """
         mutation updateVariant (
             $id: ID!,
             $sku: String!,
-            $trackInventory: Boolean!) {
+            $trackInventory: Boolean!,
+            $attributes: [AttributeValueInput]) {
                 productVariantUpdate(
                     id: $id,
                     input: {
                         sku: $sku,
-                        trackInventory: $trackInventory
+                        trackInventory: $trackInventory,
+                        attributes: $attributes,
                     }) {
                     productVariant {
                         name
@@ -622,12 +655,14 @@ def test_update_product_variant(
     """
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
     sku = "test sku"
 
     variables = {
         "id": variant_id,
         "sku": sku,
         "trackInventory": True,
+        "attributes": [{"id": attribute_id, "values": ["S"]}],
     }
 
     response = staff_api_client.post_graphql(
@@ -925,12 +960,16 @@ def test_update_product_variant_requires_values(
     assert not variant.product.variants.filter(sku=sku).exists()
 
 
-def test_update_product_variant_withot_data_not_raise_price_validation_error(
-    staff_api_client, variant, permission_manage_products
+def test_update_product_variant_with_price_does_not_raise_price_validation_error(
+    staff_api_client, variant, size_attribute, permission_manage_products
 ):
     mutation = """
-    mutation updateVariant ($id: ID!) {
-        productVariantUpdate(id: $id, input: {}) {
+    mutation updateVariant ($id: ID!, $attributes: [AttributeValueInput]) {
+        productVariantUpdate(
+            id: $id,
+            input: {
+            attributes: $attributes,
+        }) {
             productVariant {
                 id
             }
@@ -941,11 +980,15 @@ def test_update_product_variant_withot_data_not_raise_price_validation_error(
         }
     }
     """
-    # given a product variant
+    # given a product variant and an attribute
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
 
-    # when running the updateVariant mutation without input
-    variables = {"id": variant_id}
+    # when running the updateVariant mutation without price input field
+    variables = {
+        "id": variant_id,
+        "attributes": [{"id": attribute_id, "values": ["S"]}],
+    }
     response = staff_api_client.post_graphql(
         mutation, variables, permissions=[permission_manage_products]
     )

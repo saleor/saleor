@@ -78,6 +78,21 @@ def test_update_config_items_adds_new_keys(monkeypatch):
     assert any([config_field["name"] == "New-field" for config_field in current_config])
 
 
+def test_update_configuration_structure_removes_old_keys(
+    monkeypatch, plugin_configuration
+):
+    mocked_config = {
+        name: value
+        for name, value in PluginSample.CONFIG_STRUCTURE.items()
+        if name != "Username"
+    }
+    monkeypatch.setattr(PluginSample, "CONFIG_STRUCTURE", mocked_config)
+    configuration = PluginSample._update_configuration_structure(
+        plugin_configuration.configuration
+    )
+    assert all([config_field["name"] != "Username" for config_field in configuration])
+
+
 def test_save_plugin_configuration(plugin_configuration):
     cleaned_data = {"configuration": [{"name": "Username", "value": "new-username"}]}
     PluginSample.save_plugin_configuration(plugin_configuration, cleaned_data)
@@ -130,7 +145,9 @@ def test_base_plugin__update_configuration_structure_when_old_config_is_empty(
 ):
     plugin_configuration.configuration = []
     plugin_configuration.save()
-    PluginSample._update_configuration_structure(plugin_configuration.configuration)
+    plugin_configuration.configuration = PluginSample._update_configuration_structure(
+        plugin_configuration.configuration
+    )
     plugin_configuration.save()
     plugin_configuration.refresh_from_db()
     assert len(plugin_configuration.configuration) == len(
@@ -154,7 +171,9 @@ def test_base_plugin__update_configuration_structure_configuration_has_change(
         "DEFAULT_CONFIGURATION",
         PluginSample.DEFAULT_CONFIGURATION + [private_key_dict],
     )
-    PluginSample._update_configuration_structure(plugin_configuration.configuration)
+    plugin_configuration.configuration = PluginSample._update_configuration_structure(
+        plugin_configuration.configuration
+    )
     plugin_configuration.save()
     plugin_configuration.refresh_from_db()
     assert len(old_configuration) + 1 == len(plugin_configuration.configuration)

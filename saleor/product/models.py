@@ -34,7 +34,7 @@ from versatileimagefield.fields import PPOIField, VersatileImageField
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, PublishableModel, SortableModel
-from ..core.permissions import ProductPermissions
+from ..core.permissions import ProductPermissions, ProductTypePermissions
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.translations import TranslationProxy
@@ -111,6 +111,12 @@ class ProductType(ModelWithMetadata):
     class Meta:
         ordering = ("slug",)
         app_label = "product"
+        permissions = (
+            (
+                ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.codename,
+                "Manage product types and attributes.",
+            ),
+        )
 
     def __str__(self) -> str:
         return self.name

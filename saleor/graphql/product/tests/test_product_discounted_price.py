@@ -7,9 +7,7 @@ from ...discount.enums import DiscountValueTypeEnum
 from ...tests.utils import get_graphql_content
 
 
-@patch(
-    "saleor.graphql.product.mutations.products." "update_product_discounted_price_task"
-)
+@patch("saleor.graphql.product.mutations.products.update_product_discounted_price_task")
 def test_product_variant_delete_updates_discounted_price(
     mock_update_product_discounted_price_task,
     staff_api_client,
