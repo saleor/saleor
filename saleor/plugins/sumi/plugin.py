@@ -333,7 +333,6 @@ class SumiPlugin(BasePlugin):
     @staticmethod
     def save_location_in_private_metadata(product_variant, location):
         try:
-            print('save_location_in_private_metadata', product_variant)
             product_variant.store_value_in_private_metadata({'location': location})
             product_variant.save(update_fields=["private_metadata"])
             return product_variant
