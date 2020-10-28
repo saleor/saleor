@@ -4,11 +4,7 @@ from ....core.permissions import ProductPermissions
 from ....graphql.core.types import Money, MoneyRange
 from ....product import models
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
-from ...channel.dataloaders import (
-    ChannelByCollectionChannelListingIDLoader,
-    ChannelByIdLoader,
-    ChannelByProductVariantChannelListingIDLoader,
-)
+from ...channel.dataloaders import ChannelByIdLoader
 from ...core.connection import CountableDjangoObjectType
 from ...decorators import permission_required
 from ...product.dataloaders import (
@@ -140,7 +136,7 @@ class ProductVariantChannelListing(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_channel(root: models.ProductVariantChannelListing, info, **_kwargs):
-        return ChannelByProductVariantChannelListingIDLoader(info.context).load(root.id)
+        return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -162,4 +158,4 @@ class CollectionChannelListing(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_channel(root: models.ProductChannelListing, info, **_kwargs):
-        return ChannelByCollectionChannelListingIDLoader(info.context).load(root.id)
+        return ChannelByIdLoader(info.context).load(root.channel_id)

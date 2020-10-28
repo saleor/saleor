@@ -1,11 +1,6 @@
 from ...channel.models import Channel
 from ..checkout.dataloaders import CheckoutByIdLoader, CheckoutLineByIdLoader
 from ..core.dataloaders import DataLoader
-from ..product.dataloaders import (
-    CollectionChannelListingByIdLoader,
-    ProductChannelListingByIdLoader,
-    ProductVariantChannelListingByIdLoader,
-)
 
 
 class ChannelByIdLoader(DataLoader):
@@ -22,60 +17,6 @@ class ChannelBySlugLoader(DataLoader):
     def batch_load(self, keys):
         channels = Channel.objects.in_bulk(keys, field_name="slug")
         return [channels.get(slug) for slug in keys]
-
-
-class ChannelByProductChannelListingIDLoader(DataLoader):
-    context_key = "channel_by_product_channel_listing"
-
-    def batch_load(self, keys):
-        def channel_by_product_channel_listings(product_channel_listings):
-            channel_ids = [
-                product_channel_listing.channel_id
-                for product_channel_listing in product_channel_listings
-            ]
-            return ChannelByIdLoader(self.context).load_many(channel_ids)
-
-        return (
-            ProductChannelListingByIdLoader(self.context)
-            .load_many(keys)
-            .then(channel_by_product_channel_listings)
-        )
-
-
-class ChannelByProductVariantChannelListingIDLoader(DataLoader):
-    context_key = "channel_by_product_variant_channel_listing"
-
-    def batch_load(self, keys):
-        def channel_by_variant_channel_listing(variant_channel_listings):
-            channel_ids = [
-                variant_channel_listing.channel_id
-                for variant_channel_listing in variant_channel_listings
-            ]
-            return ChannelByIdLoader(self.context).load_many(channel_ids)
-
-        return (
-            ProductVariantChannelListingByIdLoader(self.context)
-            .load_many(keys)
-            .then(channel_by_variant_channel_listing)
-        )
-
-
-class ChannelByCollectionChannelListingIDLoader(DataLoader):
-    context_key = "channel_by_collection_channel_listing"
-
-    def batch_load(self, keys):
-        def channel_by_collection_channel_listing(collection_channel_listings):
-            channel_ids = [
-                collection_channel_listing.channel_id
-                for collection_channel_listing in collection_channel_listings
-            ]
-            return ChannelByIdLoader(self.context).load_many(channel_ids)
-
-        return (
-            CollectionChannelListingByIdLoader(self.context)
-            .load_many(keys)
-            .then(channel_by_collection_channel_listing)
-        )
 
 
 class ChannelByCheckoutLineIDLoader(DataLoader):
