@@ -1584,7 +1584,7 @@ def voucher_with_many_channels(voucher, channel_PLN):
 @pytest.fixture
 def voucher_percentage(channel_USD):
     voucher = Voucher.objects.create(
-        code="mirumee", discount_value_type=DiscountValueType.PERCENTAGE,
+        code="saleor", discount_value_type=DiscountValueType.PERCENTAGE,
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,

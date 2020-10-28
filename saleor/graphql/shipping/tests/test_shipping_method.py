@@ -174,6 +174,81 @@ def test_shipping_zones_query(
     assert content["data"]["shippingZones"]["totalCount"] == num_of_shippings
 
 
+def test_shipping_methods_query_with_channel(
+    staff_api_client,
+    shipping_zone,
+    shipping_method_channel_PLN,
+    permission_manage_shipping,
+    permission_manage_products,
+    channel_USD,
+):
+    query = """
+    query MultipleShippings($channel: String) {
+        shippingZones(first: 100, channel: $channel) {
+            edges {
+                node {
+                    shippingMethods {
+                        channelListing {
+                            price {
+                                amount
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    shipping_zone.shipping_methods.add(shipping_method_channel_PLN)
+    variables = {"channel": channel_USD.slug}
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_shipping, permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    assert (
+        len(content["data"]["shippingZones"]["edges"][0]["node"]["shippingMethods"])
+        == 1
+    )
+
+
+def test_shipping_methods_query(
+    staff_api_client,
+    shipping_zone,
+    shipping_method_channel_PLN,
+    permission_manage_shipping,
+    permission_manage_products,
+    channel_USD,
+):
+    query = """
+    query MultipleShippings {
+        shippingZones(first: 100) {
+            edges {
+                node {
+                    shippingMethods {
+                        channelListing {
+                            price {
+                                amount
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    shipping_zone.shipping_methods.add(shipping_method_channel_PLN)
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_shipping, permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    assert (
+        len(content["data"]["shippingZones"]["edges"][0]["node"]["shippingMethods"])
+        == 2
+    )
+
+
 CREATE_SHIPPING_ZONE_QUERY = """
     mutation createShipping(
         $name: String, $default: Boolean, $countries: [String], $addWarehouses: [ID] ){
