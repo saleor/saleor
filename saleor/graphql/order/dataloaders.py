@@ -23,7 +23,7 @@ class OrderLinesByVariantIdAndChannelIdLoader(DataLoader):
         return [order_line_by_variant_and_channel_map[key] for key in keys]
 
 
-class OrderByOrderId(DataLoader):
+class OrderByIdLoader(DataLoader):
     context_key = "order_by_id"
 
     def batch_load(self, keys):

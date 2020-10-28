@@ -40,7 +40,10 @@ from ...decorators import one_of_permissions_required, permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
-from ...order.dataloaders import OrderByOrderId, OrderLinesByVariantIdAndChannelIdLoader
+from ...order.dataloaders import (
+    OrderByIdLoader,
+    OrderLinesByVariantIdAndChannelIdLoader,
+)
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -413,7 +416,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
                 order_ids = [order_line.order_id for order_line in order_lines]
                 return (
-                    OrderByOrderId(info.context)
+                    OrderByIdLoader(info.context)
                     .load_many(order_ids)
                     .then(calculate_revenue_with_orders)
                 )
