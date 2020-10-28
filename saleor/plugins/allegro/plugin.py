@@ -789,12 +789,15 @@ class BaseParametersMapper:
     def create_allegro_parameter(self, mapped_parameter_key, mapped_parameter_value):
 
         key = self.get_allegro_key(mapped_parameter_key)
-
         if key.get('dictionary') is None:
             if mapped_parameter_value is not None:
                 if mapped_parameter_value.replace('.', '').isnumeric():
                     value = self.set_allegro_typed_value(key, mapped_parameter_value)
                     return value
+                elif key.get('restrictions') and key.get('restrictions').get('range'):
+                    if('-' in mapped_parameter_value):
+                        value = self.set_allegro_typed_range_value(key, mapped_parameter_value)
+                        return value
                 else:
                     return None
             else:
@@ -832,10 +835,17 @@ class BaseParametersMapper:
             return {'id': param['id'], 'valuesIds': [],
                     "values": [value], "rangeValue": None}
 
+    @staticmethod
+    def set_allegro_typed_range_value(param, value):
+        if param.get('dictionary') is None and value is not None:
+            splited = value.split('-')
+            return {'id': param['id'], 'valuesIds': [],
+                    "values": [], "rangeValue": {'from': splited[0], 'to': splited[1]}}
+
     def create_allegro_fuzzy_parameter(self, mapped_parameter_key,
                                        mapped_parameter_value):
         key = self.get_allegro_key(mapped_parameter_key)
-        if key is not None:
+        if key is not None and key.get('dictionary') is not None:
             value = self.set_allegro_fuzzy_value(key, mapped_parameter_value)
             return value
 
@@ -867,7 +877,7 @@ class AllegroParametersMapper(BaseParametersMapper):
         if custom_map is not None:
             custom_map = [m for m in custom_map if '*' not in m]
             if bool(custom_map):
-                return self.parse_list_to_map(custom_map).get(parameter)
+                return self.parse_attributes_to_map(custom_map).get(parameter)
 
     def get_global_parameter_key(self, parameter):
         config = self.get_plugin_configuration()
@@ -904,6 +914,10 @@ class AllegroParametersMapper(BaseParametersMapper):
             return {item[0]: item[2] for item in list_in}
 
     @staticmethod
+    def parse_attributes_to_map(list_in):
+            return {item[0]: item[1:] for item in list_in}
+
+    @staticmethod
     def get_plugin_configuration():
         manager = get_plugins_manager()
         plugin = manager.get_plugin(AllegroPlugin.PLUGIN_ID)
@@ -919,18 +933,23 @@ class AllegroParametersMapper(BaseParametersMapper):
         return self.product_attributes.get(parameter)
 
     def get_mapped_parameter_key_and_value(self, parameter):
-
+        mapped_parameter_key_in_saleor_scope = None
         mapped_parameter_key = self.get_specific_parameter_key(
             parameter) or self.get_global_parameter_key(parameter) or parameter
+
+        if(type(mapped_parameter_key) == list):
+            if(len(mapped_parameter_key) < 2):
+                mapped_parameter_key, *_ = mapped_parameter_key
+            else:
+                mapped_parameter_key, mapped_parameter_key_in_saleor_scope = mapped_parameter_key
         mapped_parameter_value = self.get_parameter_out_of_saleor_specyfic(str(
             mapped_parameter_key))
-
         if mapped_parameter_value is not None:
-            return mapped_parameter_key, mapped_parameter_value
+            return mapped_parameter_key, mapped_parameter_value, mapped_parameter_key_in_saleor_scope
         mapped_parameter_value = self.product_attributes.get(
             slugify(str(mapped_parameter_key)))
 
-        return mapped_parameter_key, mapped_parameter_value
+        return mapped_parameter_key, mapped_parameter_value, mapped_parameter_key_in_saleor_scope
 
     def get_parameter_out_of_saleor_specyfic(self, parameter):
         custom_map = self.product.product_type.metadata.get(
@@ -961,8 +980,10 @@ class AllegroParametersMapper(BaseParametersMapper):
             return mapped_parameter_map.get(key)
 
     def get_allegro_parameter(self, parameter):
-        mapped_parameter_key, mapped_parameter_value = \
+        mapped_parameter_key, mapped_parameter_value, mapped_parameter_key_in_saleor_scope  = \
             self.get_mapped_parameter_key_and_value(parameter)
+        if(mapped_parameter_key_in_saleor_scope):
+            mapped_parameter_key = mapped_parameter_key_in_saleor_scope
         allegro_parameter = self.create_allegro_parameter(slugify(parameter),
                                                           mapped_parameter_value)
 
