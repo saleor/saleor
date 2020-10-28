@@ -1649,8 +1649,13 @@ def test_require_draft_order_when_removing_lines(
     assert data["errors"]
 
 
+@patch("saleor.plugins.base_plugin.BasePlugin.order_updated")
 def test_order_update(
-    staff_api_client, permission_manage_orders, order_with_lines, graphql_address_data
+    plugin_mock,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    graphql_address_data,
 ):
     order = order_with_lines
     order.user = None
@@ -1695,6 +1700,7 @@ def test_order_update(
     assert order.user_email == email
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
+    assert plugin_mock.called is True
 
 
 def test_order_update_anonymous_user_no_user_email(
