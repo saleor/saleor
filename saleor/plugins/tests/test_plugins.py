@@ -78,7 +78,7 @@ def test_update_config_items_adds_new_keys(monkeypatch):
     assert any([config_field["name"] == "New-field" for config_field in current_config])
 
 
-def test__update_configuration_structure_removes_old_keys(
+def test_update_configuration_structure_removes_old_keys(
     monkeypatch, plugin_configuration
 ):
     mocked_config = {
