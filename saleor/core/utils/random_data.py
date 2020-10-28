@@ -249,7 +249,12 @@ def create_product_variants(variants_data):
         defaults["product_id"] = product_id
         set_field_as_money(defaults, "price_override")
         set_field_as_money(defaults, "cost_price")
+        is_default_variant = defaults.pop("default", False)
         variant, _ = ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
+        if is_default_variant:
+            product = variant.product
+            product.default_variant = variant
+            product.save(update_fields=["default_variant", "updated_at"])
         quantity = random.randint(100, 500)
         create_stocks(variant, quantity=quantity)
 
@@ -311,7 +316,6 @@ def create_products_by_schema(placeholder_dir, create_images):
     for item in db_items:
         model = item.pop("model")
         types[model].append(item)
-
     create_product_types(product_type_data=types["product.producttype"])
     create_categories(
         categories_data=types["product.category"], placeholder_dir=placeholder_dir
