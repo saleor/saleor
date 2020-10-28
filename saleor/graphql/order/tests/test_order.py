@@ -103,7 +103,7 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
                             quantity
                             allocations {
                                 id
-                                quantityAllocated
+                                quantity
                                 warehouse {
                                     id
                                 }
@@ -160,11 +160,7 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
         "Warehouse", allocation.stock.warehouse.pk
     )
     assert first_order_data_line["allocations"] == [
-        {
-            "id": allocation_id,
-            "quantityAllocated": 0,
-            "warehouse": {"id": warehouse_id},
-        }
+        {"id": allocation_id, "quantity": 0, "warehouse": {"id": warehouse_id}}
     ]
 
 
@@ -182,7 +178,7 @@ def test_order_line_with_allocations(
                             id
                             allocations {
                                 id
-                                quantityAllocated
+                                quantity
                                 warehouse {
                                     id
                                 }
@@ -206,7 +202,7 @@ def test_order_line_with_allocations(
         _, _id = graphene.Node.from_global_id(line["id"])
         order_line = order.lines.get(pk=_id)
         allocations_from_query = {
-            allocation["quantityAllocated"] for allocation in line["allocations"]
+            allocation["quantity"] for allocation in line["allocations"]
         }
         allocations_from_db = set(
             order_line.allocations.values_list("quantity_allocated", flat=True)

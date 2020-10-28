@@ -197,7 +197,7 @@ type AddressValidationData {
 
 type Allocation implements Node {
   id: ID!
-  quantityAllocated: Int!
+  quantity: Int!
   warehouse: Warehouse!
 }
 
