@@ -988,7 +988,8 @@ def test_validate_draft_order_wrong_shipping(draft_order):
     assert e.value.error_dict["shipping"][0].message == msg
 
 
-def test_validate_draft_order_no_order_lines(order):
+def test_validate_draft_order_no_order_lines(order, shipping_method):
+    order.shipping_method = shipping_method
     with pytest.raises(ValidationError) as e:
         validate_draft_order(order, "US")
     msg = "Could not create order without any products."
@@ -1077,6 +1078,60 @@ def test_validate_draft_order_out_of_stock_variant(draft_order):
     assert e.value.error_dict["lines"][0].message == msg
 
 
+def test_validate_draft_order_no_shipping_address(draft_order):
+    order = draft_order
+    order.shipping_address = None
+
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order, "US")
+    error = e.value.error_dict["order"][0]
+    assert error.message == "Can't finalize draft with no shipping address."
+    assert error.code.value == OrderErrorCode.ORDER_NO_SHIPPING_ADDRESS.value
+
+
+def test_validate_draft_order_no_billing_address(draft_order):
+    order = draft_order
+    order.billing_address = None
+
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order, "US")
+    error = e.value.error_dict["order"][0]
+    assert error.message == "Can't finalize draft with no billing address."
+    assert error.code.value == OrderErrorCode.BILLING_ADDRESS_NOT_SET.value
+
+
+def test_validate_draft_order_no_shipping_method(draft_order):
+    order = draft_order
+    order.shipping_method = None
+
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order, "US")
+    error = e.value.error_dict["shipping"][0]
+    assert error.message == "Shipping method is required."
+    assert error.code.value == OrderErrorCode.SHIPPING_METHOD_REQUIRED.value
+
+
+def test_validate_draft_order_no_shipping_method_shipping_not_required(draft_order):
+    order = draft_order
+    order.shipping_method = None
+    required_mock = Mock(return_value=False)
+    order.is_shipping_required = required_mock
+
+    assert validate_draft_order(order, "US") is None
+
+
+def test_validate_draft_order_no_shipping_address_no_method_shipping_not_required(
+    draft_order,
+):
+    order = draft_order
+    order.shipping_method = None
+    order.shipping_address = None
+    required_mock = Mock(return_value=False)
+    order.is_shipping_required = required_mock
+
+    assert validate_draft_order(order, "US") is None
+
+
 DRAFT_ORDER_COMPLETE_MUTATION = """
     mutation draftComplete($id: ID!) {
         draftOrderComplete(id: $id) {
@@ -1125,11 +1180,14 @@ def test_draft_order_complete(
 
 def test_draft_order_complete_product_without_inventory_tracking(
     staff_api_client,
+    shipping_method,
     permission_manage_orders,
     staff_user,
     draft_order_without_inventory_tracking,
 ):
     order = draft_order_without_inventory_tracking
+    order.shipping_method = shipping_method
+    order.save()
 
     # Ensure no events were created
     assert not OrderEvent.objects.exists()
@@ -1591,8 +1649,13 @@ def test_require_draft_order_when_removing_lines(
     assert data["errors"]
 
 
+@patch("saleor.plugins.base_plugin.BasePlugin.order_updated")
 def test_order_update(
-    staff_api_client, permission_manage_orders, order_with_lines, graphql_address_data
+    plugin_mock,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    graphql_address_data,
 ):
     order = order_with_lines
     order.user = None
@@ -1637,6 +1700,7 @@ def test_order_update(
     assert order.user_email == email
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
+    assert plugin_mock.called is True
 
 
 def test_order_update_anonymous_user_no_user_email(

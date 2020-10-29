@@ -9,11 +9,11 @@ def menus_for_pagination(db):
     # We have "footer" and "navbar" from default saleor configuration
     return Menu.objects.bulk_create(
         [
-            Menu(name="menu1",),
-            Menu(name="menuMenu1",),
-            Menu(name="menuMenu2",),
-            Menu(name="menu2",),
-            Menu(name="menu3",),
+            Menu(name="menu1", slug="menu1"),
+            Menu(name="menuMenu1", slug="menuMenu1"),
+            Menu(name="menuMenu2", slug="menuMenu2"),
+            Menu(name="menu2", slug="menu2"),
+            Menu(name="menu3", slug="menu3"),
         ]
     )
 

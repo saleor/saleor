@@ -1184,6 +1184,7 @@ enum CollectionSortField {
   NAME
   AVAILABILITY
   PRODUCT_COUNT
+  PUBLICATION_DATE
 }
 
 input CollectionSortingInput {
@@ -2306,6 +2307,7 @@ type Margin {
 type Menu implements Node {
   id: ID!
   name: String!
+  slug: String!
   items: [MenuItem]
 }
 
@@ -2334,6 +2336,7 @@ type MenuCreate {
 
 input MenuCreateInput {
   name: String!
+  slug: String
   items: [MenuItemInput]
 }
 
@@ -2363,10 +2366,12 @@ enum MenuErrorCode {
 
 input MenuFilterInput {
   search: String
+  slug: [String]
 }
 
 input MenuInput {
   name: String
+  slug: String
 }
 
 type MenuItem implements Node {
@@ -3229,7 +3234,7 @@ type OrderVoid {
   orderErrors: [OrderError!]!
 }
 
-type Page implements Node {
+type Page implements Node & ObjectWithMetadata {
   seoTitle: String
   seoDescription: String
   id: ID!
@@ -3240,6 +3245,10 @@ type Page implements Node {
   isPublished: Boolean!
   slug: String!
   created: DateTime!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
+  privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
+  meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
 }
 
@@ -3491,6 +3500,7 @@ enum PermissionEnum {
   MANAGE_ORDERS
   MANAGE_PAGES
   MANAGE_PRODUCTS
+  MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES
   MANAGE_SHIPPING
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
@@ -3878,6 +3888,7 @@ enum ProductOrderField {
   DATE
   TYPE
   PUBLISHED
+  PUBLICATION_DATE
 }
 
 type ProductPricingInfo {
@@ -4288,7 +4299,7 @@ type Query {
   draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   ordersTotal(period: ReportingPeriod): TaxedMoney
   orderByToken(token: UUID!): Order
-  menu(id: ID, name: String): Menu
+  menu(id: ID, name: String, slug: String): Menu
   menus(sortBy: MenuSortingInput, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
   menuItem(id: ID!): MenuItem
   menuItems(sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
@@ -4748,17 +4759,17 @@ type Shop {
   geolocalization: Geolocalization
   authorizationKeys: [AuthorizationKey]!
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
-  currencies: [String]!
-  defaultCurrency: String!
+  currencies: [String]! @deprecated(reason: "This field will be removed in Saleor 3.0")
+  defaultCurrency: String! @deprecated(reason: "This field will be removed in Saleor 3.0")
   defaultCountry: CountryDisplay
   defaultMailSenderName: String
   defaultMailSenderAddress: String
   description: String
   domain: Domain!
-  homepageCollection: Collection
+  homepageCollection: Collection @deprecated(reason: "Use the `collection` query with the `slug` parameter. This field will be removed in Saleor 3.0")
   languages: [LanguageDisplay]!
   name: String!
-  navigation: Navigation
+  navigation: Navigation @deprecated(reason: "Fetch menus using the `menu` query with `slug` parameter.")
   permissions: [Permission]!
   phonePrefixes: [String]!
   headerText: String

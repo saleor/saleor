@@ -57,7 +57,7 @@ def request_data_for_payment(
     payment_information: "PaymentData",
     return_url: str,
     merchant_account: str,
-    origin_url: str,
+    native_3d_secure: bool,
 ) -> Dict[str, Any]:
     payment_data = payment_information.data or {}
 
@@ -65,18 +65,22 @@ def request_data_for_payment(
         raise PaymentError("Payment data are not valid.")
 
     extra_request_params = {}
+    channel = payment_data.get("channel", "web")
+    origin_url = payment_data.get("originUrl")
+
     if "browserInfo" in payment_data:
         extra_request_params["browserInfo"] = payment_data["browserInfo"]
     if "billingAddress" in payment_data:
         extra_request_params["billingAddress"] = payment_data["billingAddress"]
     if "shopperIP" in payment_data:
         extra_request_params["shopperIP"] = payment_data["shopperIP"]
-    if (
-        "browserInfo" in extra_request_params
-        and "billingAddress" in extra_request_params
-        and origin_url
-    ):
+
+    if channel.lower() == "web" and origin_url:
         extra_request_params["origin"] = origin_url
+
+    extra_request_params["channel"] = channel
+    if native_3d_secure:
+        extra_request_params["additionalData"] = {"allow3DS2": "true"}
 
     payment_method = payment_data.get("paymentMethod")
     if not payment_method:
@@ -280,13 +284,13 @@ def request_for_payment_cancel(
 def get_payment_method_info(
     payment_information: "PaymentData", api_call_result: Adyen.Adyen
 ):
-    payment_method_info = None
     additional_data = api_call_result.message.get("additionalData")
     payment_data = payment_information.data or {}
     payment_method = payment_data.get("paymentMethod", {}).get("type")
+    brand = None
     if additional_data:
-        payment_method_info = PaymentMethodInfo(
-            brand=additional_data.get("paymentMethod"),
-            type="card" if payment_method == "scheme" else payment_method,
-        )
+        brand = additional_data.get("paymentMethod")
+    payment_method_info = PaymentMethodInfo(
+        brand=brand, type="card" if payment_method == "scheme" else payment_method,
+    )
     return payment_method_info

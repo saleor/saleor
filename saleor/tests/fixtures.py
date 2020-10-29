@@ -220,10 +220,12 @@ def site_settings(db, settings) -> SiteSettings:
     settings.SITE_ID = site.pk
 
     main_menu = Menu.objects.get_or_create(
-        name=settings.DEFAULT_MENUS["top_menu_name"]
+        name=settings.DEFAULT_MENUS["top_menu_name"],
+        slug=settings.DEFAULT_MENUS["top_menu_name"],
     )[0]
     secondary_menu = Menu.objects.get_or_create(
-        name=settings.DEFAULT_MENUS["bottom_menu_name"]
+        name=settings.DEFAULT_MENUS["bottom_menu_name"],
+        slug=settings.DEFAULT_MENUS["bottom_menu_name"],
     )[0]
     obj.top_menu = main_menu
     obj.bottom_menu = secondary_menu
@@ -1691,6 +1693,11 @@ def permission_manage_products():
 
 
 @pytest.fixture
+def permission_manage_product_types_and_attributes():
+    return Permission.objects.get(codename="manage_product_types_and_attributes")
+
+
+@pytest.fixture
 def permission_manage_shipping():
     return Permission.objects.get(codename="manage_shipping")
 
@@ -1848,7 +1855,7 @@ def model_form_class():
 
 @pytest.fixture
 def menu(db):
-    return Menu.objects.get_or_create(name="test-navbar")[0]
+    return Menu.objects.get_or_create(name="test-navbar", slug="test-navbar")[0]
 
 
 @pytest.fixture

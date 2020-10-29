@@ -623,7 +623,6 @@ def handle_additional_actions(
     try:
         request_data = prepare_api_request_data(request, data)
     except KeyError as e:
-
         return HttpResponseBadRequest(e.args[0])
     try:
         result = api_call(request_data, payment_details)
@@ -689,6 +688,10 @@ def handle_api_response(
     payment_data = create_payment_information(
         payment=payment, payment_token=payment.token,
     )
+    payment_brand = response.message.get("additionalData", {}).get("paymentMethod")
+    if payment_brand:
+        payment.cc_brand = payment_brand
+        payment.save(update_fields=["cc_brand"])
 
     error_message = response.message.get("refusalReason")
 

@@ -171,6 +171,7 @@ class OrderUpdate(DraftOrderUpdate):
             user = User.objects.filter(email=instance.user_email).first()
             instance.user = user
         instance.save()
+        info.context.plugins.order_updated(instance)
 
 
 class OrderUpdateShippingInput(graphene.InputObjectType):
