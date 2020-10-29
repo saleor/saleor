@@ -54,7 +54,6 @@ class AdyenGatewayPlugin(BasePlugin):
         {"name": "api-key", "value": None},
         {"name": "supported-currencies", "value": ""},
         {"name": "client-key", "value": ""},
-        {"name": "origin-url", "value": ""},
         {"name": "live", "value": ""},
         {"name": "adyen-auto-capture", "value": True},
         {"name": "auto-capture", "value": False},
@@ -95,19 +94,6 @@ class AdyenGatewayPlugin(BasePlugin):
                 "Not required for Android or iOS app."
             ),
             "label": "Client Key",
-        },
-        "origin-url": {
-            "type": ConfigurationTypeField.STRING,
-            "help_text": (
-                "The origin URL of the page where you are rendering the Drop-in. This "
-                "should not include subdirectories and a trailing slash. For example, "
-                "if you are rendering the Drop-in on "
-                "https://your-company.com/checkout/payment, specify here: "
-                "https://your-company.com. For more details see: "
-                "https://docs.adyen.com/checkout/drop-in-web"
-                "Not required for Android or iOS app."
-            ),
-            "label": "Origin URL",
         },
         "live": {
             "type": ConfigurationTypeField.STRING,
@@ -194,7 +180,6 @@ class AdyenGatewayPlugin(BasePlugin):
                 "api_key": configuration["api-key"],
                 "merchant_account": configuration["merchant-account"],
                 "client_key": configuration["client-key"],
-                "origin_url": configuration["origin-url"],
                 "live": configuration["live"],
                 "webhook_hmac": configuration["hmac-secret-key"],
                 "webhook_user": configuration["notification-user"],
@@ -279,7 +264,6 @@ class AdyenGatewayPlugin(BasePlugin):
             payment_information,
             return_url=return_url,
             merchant_account=self.config.connection_params["merchant_account"],
-            origin_url=self.config.connection_params["origin_url"],
             native_3d_secure=self.config.connection_params["enable_native_3d_secure"],
         )
         result = api_call(request_data, self.adyen.checkout.payments)

@@ -485,9 +485,12 @@ class PluginsManager(PaymentInterface):
                     identifier=plugin_id,
                     defaults={"configuration": plugin.configuration},
                 )
-                return plugin.save_plugin_configuration(
+                configuration = plugin.save_plugin_configuration(
                     plugin_configuration, cleaned_data
                 )
+                configuration.name = plugin.PLUGIN_NAME
+                configuration.description = plugin.PLUGIN_DESCRIPTION
+                return configuration
 
     def get_plugin(self, plugin_id: str) -> Optional["BasePlugin"]:
         for plugin in self.plugins:
