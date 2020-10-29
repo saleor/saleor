@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Dict, List, Tuple
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.db.utils import IntegrityError
 
 from ...product import AttributeInputType
@@ -16,8 +17,16 @@ if TYPE_CHECKING:
 
 
 def validate_attributes_input_for_product_and_page(
-    input_data: List[Tuple["Attribute", List[str]]], error_code_enum,
+    input_data: List[Tuple["Attribute", List[str]]],
+    attribute_qs: "QuerySet",
+    error_code_enum,
 ):
+    """Validate attribute input.
+
+    - ensure all required attributes are passed
+    - ensure the values are correct for a products or a page
+    """
+
     error_no_value_given = ValidationError(
         "Attribute expects a value but none were given",
         code=error_code_enum.REQUIRED.value,
@@ -49,7 +58,41 @@ def validate_attributes_input_for_product_and_page(
                 attribute_errors[error_blank_value].append(attribute_id)
                 continue
 
-    return prepare_error_list_from_error_attribute_mapping(attribute_errors)
+    errors = prepare_error_list_from_error_attribute_mapping(attribute_errors)
+    errors = validate_required_attributes(
+        input_data, attribute_qs, errors, error_code_enum
+    )
+
+    return errors
+
+
+def validate_required_attributes(
+    input_data: List[Tuple["Attribute", List[str]]],
+    attribute_qs: "QuerySet",
+    errors: List[ValidationError],
+    error_code_enum,
+):
+    """Ensure all required attributes are supplied."""
+
+    supplied_attribute_pk = [attribute.pk for attribute, _ in input_data]
+
+    missing_required_attributes = attribute_qs.filter(
+        Q(value_required=True) & ~Q(pk__in=supplied_attribute_pk)
+    )
+
+    if missing_required_attributes:
+        ids = [
+            graphene.Node.to_global_id("Attribute", attr.pk)
+            for attr in missing_required_attributes
+        ]
+        error = ValidationError(
+            "All attributes flagged as having a value required must be supplied.",
+            code=error_code_enum.REQUIRED.value,
+            params={"attributes": ids},
+        )
+        errors.append(error)
+
+    return errors
 
 
 def validate_attributes_input_for_variant(
