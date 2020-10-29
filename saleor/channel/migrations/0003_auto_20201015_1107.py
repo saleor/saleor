@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("channel", "0002_channel_availability"),
-        ("product", "0134_auto_20201006_0635"),
+        ("product", "0136_collection_channellisting"),
         ("discount", "0023_voucherchannellisting"),
         ("order", "0090_orderchannel"),
         ("checkout", "0031_auto_20200819_0912"),

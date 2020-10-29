@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-11 12:15+0000\n"
+"POT-Creation-Date: 2020-10-23 07:04+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32,52 +32,57 @@ msgid ""
 "%(street_address_2)s"
 msgstr ""
 
-#: templates/invoices/invoice.html:218
+#: templates/invoices/invoice.html:210
 msgctxt "Invoice PDF header"
 msgid "INVOICE INFORMATION"
 msgstr ""
 
-#: templates/invoices/invoice.html:221
+#: templates/invoices/invoice.html:213
 msgctxt "Invoice PDF header: Invoice number"
 msgid "Invoice number:"
 msgstr ""
 
-#: templates/invoices/invoice.html:227
+#: templates/invoices/invoice.html:219
 msgctxt "Invoice PDF header: order number"
 msgid "Order:"
 msgstr ""
 
-#: templates/invoices/invoice.html:233
+#: templates/invoices/invoice.html:225
 msgctxt "Invoice PDF header"
 msgid "Date:"
 msgstr ""
 
-#: templates/invoices/invoice.html:239
+#: templates/invoices/invoice.html:231
 msgctxt "Invoice PDF amount (price)"
 msgid "Amount:"
 msgstr ""
 
-#: templates/invoices/invoice.html:248
+#: templates/invoices/invoice.html:240
 msgctxt "Invoice PDF"
 msgid "BILLING ADDRESS"
 msgstr ""
 
-#: templates/invoices/invoice.html:277
+#: templates/invoices/invoice.html:269
 msgctxt "Invoice PDF"
 msgid "SHIPMENT ADDRESS"
 msgstr ""
 
-#: templates/invoices/invoice.html:308
+#: templates/invoices/invoice.html:300
 msgctxt "Invoice PDF"
 msgid "PAYMENT METHOD"
 msgstr ""
 
-#: templates/invoices/invoice.html:316
+#: templates/invoices/invoice.html:306
+msgctxt "Invoice PDF: Payment method value"
+msgid "Unpaid"
+msgstr ""
+
+#: templates/invoices/invoice.html:314
 msgctxt "Invoice PDF"
 msgid "SHIPMENT METHOD"
 msgstr ""
 
-#: templates/invoices/invoice.html:326
+#: templates/invoices/invoice.html:324
 msgctxt "Invoice PDF table header"
 msgid "ITEMS ORDERED"
 msgstr ""

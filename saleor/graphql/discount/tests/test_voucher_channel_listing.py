@@ -63,7 +63,7 @@ def test_voucher_channel_listing_create_as_staff(
     assert channel_listing[0]["currency"] == channel_USD.currency_code
 
 
-def test_product_channel_listing_update_as_app(
+def test_voucher_channel_listing_update_as_app(
     app_api_client, voucher_without_channel, permission_manage_discounts, channel_USD
 ):
     # given
@@ -95,7 +95,7 @@ def test_product_channel_listing_update_as_app(
     assert channel_listing[0]["currency"] == channel_USD.currency_code
 
 
-def test_product_channel_listing_update_as_customer(
+def test_voucher_channel_listing_update_as_customer(
     user_api_client, voucher_without_channel, channel_USD
 ):
     # given
@@ -116,7 +116,7 @@ def test_product_channel_listing_update_as_customer(
     assert_no_permission(response)
 
 
-def test_product_channel_listing_update_as_anonymous(
+def test_voucher_channel_listing_update_as_anonymous(
     api_client, voucher_without_channel, channel_USD
 ):
     # given

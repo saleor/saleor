@@ -518,21 +518,28 @@ class BasePlugin:
 
     @classmethod
     def _update_configuration_structure(cls, configuration: PluginConfigurationType):
+        updated_configuration = []
         config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
         desired_config_keys = set(config_structure.keys())
+        for config_field in configuration:
+            if config_field["name"] not in desired_config_keys:
+                continue
+            updated_configuration.append(config_field)
 
-        configured_keys = set(d["name"] for d in configuration)
+        configured_keys = set(d["name"] for d in updated_configuration)
         missing_keys = desired_config_keys - configured_keys
 
         if not missing_keys:
-            return
+            return updated_configuration
 
         default_config = cls.DEFAULT_CONFIGURATION
         if not default_config:
-            return
+            return updated_configuration
 
         update_values = [copy(k) for k in default_config if k["name"] in missing_keys]
-        configuration.extend(update_values)
+        if update_values:
+            updated_configuration.extend(update_values)
+        return updated_configuration
 
     @classmethod
     def get_default_active(cls):
@@ -543,7 +550,7 @@ class BasePlugin:
     ) -> PluginConfigurationType:
         if not configuration:
             configuration = []
-        self._update_configuration_structure(configuration)
+        configuration = self._update_configuration_structure(configuration)
         if configuration:
             # Let's add a translated descriptions and labels
             self._append_config_structure(configuration)

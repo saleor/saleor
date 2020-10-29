@@ -25,6 +25,7 @@ from ....warehouse.availability import (
 )
 from ...account.enums import CountryCodeEnum
 from ...channel import ChannelContext, ChannelQsContext
+from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import CountableDjangoObjectType
@@ -39,6 +40,10 @@ from ...decorators import one_of_permissions_required, permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
+from ...order.dataloaders import (
+    OrderByIdLoader,
+    OrderLinesByVariantIdAndChannelIdLoader,
+)
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -302,40 +307,45 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             context
         ).load((root.node.id, root.channel_slug))
         collections = CollectionsByProductIdLoader(context).load(root.node.product_id)
+        channel = ChannelBySlugLoader(context).load(root.channel_slug)
 
         def calculate_pricing_info(discounts):
-            def calculate_pricing_with_product_variant_channel_listings(
-                variant_channel_listing,
-            ):
-                def calculate_pricing_with_product(product):
-                    def calculate_pricing_with_product_channel_listings(
-                        product_channel_listing,
-                    ):
-                        def calculate_pricing_with_collections(collections):
-                            availability = get_variant_availability(
-                                variant=root.node,
-                                variant_channel_listing=variant_channel_listing,
-                                product=product,
-                                product_channel_listing=product_channel_listing,
-                                collections=collections,
-                                discounts=discounts,
-                                country=context.country,
-                                local_currency=context.currency,
-                                plugins=context.plugins,
-                            )
-                            return VariantPricingInfo(**asdict(availability))
+            def calculate_pricing_with_channel(channel):
+                def calculate_pricing_with_product_variant_channel_listings(
+                    variant_channel_listing,
+                ):
+                    def calculate_pricing_with_product(product):
+                        def calculate_pricing_with_product_channel_listings(
+                            product_channel_listing,
+                        ):
+                            def calculate_pricing_with_collections(collections):
+                                availability = get_variant_availability(
+                                    variant=root.node,
+                                    variant_channel_listing=variant_channel_listing,
+                                    product=product,
+                                    product_channel_listing=product_channel_listing,
+                                    collections=collections,
+                                    discounts=discounts,
+                                    channel=channel,
+                                    country=context.country,
+                                    local_currency=context.currency,
+                                    plugins=context.plugins,
+                                )
+                                return VariantPricingInfo(**asdict(availability))
 
-                        return collections.then(calculate_pricing_with_collections)
+                            return collections.then(calculate_pricing_with_collections)
 
-                    return product_channel_listing.then(
-                        calculate_pricing_with_product_channel_listings
-                    )
+                        return product_channel_listing.then(
+                            calculate_pricing_with_product_channel_listings
+                        )
 
-                return product.then(calculate_pricing_with_product)
+                    return product.then(calculate_pricing_with_product)
 
-            return variant_channel_listing.then(
-                calculate_pricing_with_product_variant_channel_listings
-            )
+                return variant_channel_listing.then(
+                    calculate_pricing_with_product_variant_channel_listings
+                )
+
+            return channel.then(calculate_pricing_with_channel)
 
         return (
             DiscountsByDateTimeLoader(context)
@@ -384,16 +394,44 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_revenue(root: ChannelContext[models.ProductVariant], *_args, period):
+    def resolve_revenue(root: ChannelContext[models.ProductVariant], info, period):
         start_date = reporting_period_to_date(period)
         variant = root.node
-        variant_channel_listing = variant.channel_listing.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        if not variant_channel_listing:
-            return None
-        currency_code = variant_channel_listing.currency
-        return calculate_revenue_for_variant(variant, start_date, currency_code)
+        channel_slug = root.channel_slug
+
+        def calculate_revenue_with_channel(channel):
+            if not channel:
+                return None
+
+            def calculate_revenue_with_order_lines(order_lines):
+                def calculate_revenue_with_orders(orders):
+                    orders_dict = {order.id: order for order in orders}
+                    return calculate_revenue_for_variant(
+                        variant,
+                        start_date,
+                        order_lines,
+                        orders_dict,
+                        channel.currency_code,
+                    )
+
+                order_ids = [order_line.order_id for order_line in order_lines]
+                return (
+                    OrderByIdLoader(info.context)
+                    .load_many(order_ids)
+                    .then(calculate_revenue_with_orders)
+                )
+
+            return (
+                OrderLinesByVariantIdAndChannelIdLoader(info.context)
+                .load((variant.id, channel.id))
+                .then(calculate_revenue_with_order_lines)
+            )
+
+        return (
+            ChannelBySlugLoader(info.context)
+            .load(channel_slug)
+            .then(calculate_revenue_with_channel)
+        )
 
     @staticmethod
     def resolve_images(root: ChannelContext[models.ProductVariant], info, *_args):
@@ -563,40 +601,45 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             context
         ).load((root.node.id, channel_slug))
         collections = CollectionsByProductIdLoader(context).load(root.node.id)
+        channel = ChannelBySlugLoader(context).load(channel_slug)
 
         def calculate_pricing_info(discounts):
-            def calculate_pricing_with_product_channel_listings(
-                product_channel_listing,
-            ):
-                def calculate_pricing_with_variants(variants):
-                    def calculate_pricing_with_variants_channel_listings(
-                        variants_channel_listing,
-                    ):
-                        def calculate_pricing_with_collections(collections):
-                            availability = get_product_availability(
-                                product=root.node,
-                                product_channel_listing=product_channel_listing,
-                                variants=variants,
-                                variants_channel_listing=variants_channel_listing,
-                                collections=collections,
-                                discounts=discounts,
-                                country=context.country,
-                                local_currency=context.currency,
-                                plugins=context.plugins,
-                            )
-                            return ProductPricingInfo(**asdict(availability))
+            def calculate_pricing_with_channel(channel):
+                def calculate_pricing_with_product_channel_listings(
+                    product_channel_listing,
+                ):
+                    def calculate_pricing_with_variants(variants):
+                        def calculate_pricing_with_variants_channel_listings(
+                            variants_channel_listing,
+                        ):
+                            def calculate_pricing_with_collections(collections):
+                                availability = get_product_availability(
+                                    product=root.node,
+                                    product_channel_listing=product_channel_listing,
+                                    variants=variants,
+                                    variants_channel_listing=variants_channel_listing,
+                                    collections=collections,
+                                    discounts=discounts,
+                                    channel=channel,
+                                    country=context.country,
+                                    local_currency=context.currency,
+                                    plugins=context.plugins,
+                                )
+                                return ProductPricingInfo(**asdict(availability))
 
-                        return collections.then(calculate_pricing_with_collections)
+                            return collections.then(calculate_pricing_with_collections)
 
-                    return variants_channel_listing.then(
-                        calculate_pricing_with_variants_channel_listings
-                    )
+                        return variants_channel_listing.then(
+                            calculate_pricing_with_variants_channel_listings
+                        )
 
-                return variants.then(calculate_pricing_with_variants)
+                    return variants.then(calculate_pricing_with_variants)
 
-            return product_channel_listing.then(
-                calculate_pricing_with_product_channel_listings
-            )
+                return product_channel_listing.then(
+                    calculate_pricing_with_product_channel_listings
+                )
+
+            return channel.then(calculate_pricing_with_channel)
 
         return (
             DiscountsByDateTimeLoader(context)
@@ -609,16 +652,19 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        country = info.context.country
-        in_stock = is_product_in_stock(root.node, country)
-        # TODO: Add channel listing
-        product_channel_listing = models.ProductChannelListing.objects.filter(
-            product=root.node, channel__slug=root.channel_slug
-        ).first()
-        is_visible = False
-        if product_channel_listing:
-            is_visible = product_channel_listing.is_available_for_purchase()
-        return is_visible and in_stock
+        def calculate_is_available(product_channel_listing):
+            country = info.context.country
+            in_stock = is_product_in_stock(root.node, country)
+            is_visible = False
+            if product_channel_listing:
+                is_visible = product_channel_listing.is_available_for_purchase()
+            return is_visible and in_stock
+
+        return (
+            ProductChannelListingByProductIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_is_available)
+        )
 
     @staticmethod
     def resolve_attributes(root: ChannelContext[models.Product], info):
@@ -656,15 +702,17 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_collections(root: ChannelContext[models.Product], *_args, **_kwargs):
-        instances = root.node.collections.all()
-        channel_slug = root.channel_slug
-
-        collections = [
-            ChannelContext(node=collection, channel_slug=channel_slug)
-            for collection in instances
-        ]
-        return collections
+    def resolve_collections(root: ChannelContext[models.Product], info, **_kwargs):
+        return (
+            CollectionsByProductIdLoader(info.context)
+            .load(root.node.id)
+            .then(
+                lambda collections: [
+                    ChannelContext(node=collection, channel_slug=root.channel_slug)
+                    for collection in collections
+                ]
+            )
+        )
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -684,28 +732,36 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return convert_weight_to_default_weight_unit(root.node.weight)
 
     @staticmethod
-    def resolve_is_available_for_purchase(root: ChannelContext[models.Product], _info):
+    def resolve_is_available_for_purchase(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
-        # TODO: Add data loader for loading product_channel_listing
-        product_channel_listing = root.node.channel_listing.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        if not product_channel_listing:
-            return None
-        return product_channel_listing.is_available_for_purchase()
+
+        def calculate_is_available_for_purchase(product_channel_listing):
+            if not product_channel_listing:
+                return None
+            return product_channel_listing.is_available_for_purchase()
+
+        return (
+            ProductChannelListingByProductIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_is_available_for_purchase)
+        )
 
     @staticmethod
-    def resolve_available_for_purchase(root: ChannelContext[models.Product], _info):
+    def resolve_available_for_purchase(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
-        # TODO: Add data loader for loading product_channel_listing
-        product_channel_listing = root.node.channel_listing.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        if not product_channel_listing:
-            return None
-        return product_channel_listing.available_for_purchase
+
+        def calculate_available_for_purchase(product_channel_listing):
+            if not product_channel_listing:
+                return None
+            return product_channel_listing.available_for_purchase
+
+        return (
+            ProductChannelListingByProductIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_available_for_purchase)
+        )
 
     @staticmethod
     def resolve_product_type(root: ChannelContext[models.Product], info):

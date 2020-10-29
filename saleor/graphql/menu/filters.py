@@ -1,14 +1,20 @@
 import django_filters
+import graphene
 
 from ...menu.models import Menu, MenuItem
+from ..core.filters import ListObjectTypeFilter
 from ..core.types import FilterInputObjectType
 from ..utils.filters import filter_by_query_param
 
 
 def filter_menu_search(qs, _, value):
-    menu_fields = ["name"]
+    menu_fields = ["name", "slug"]
     qs = filter_by_query_param(qs, value, menu_fields)
     return qs
+
+
+def filter_menu_slug(qs, _, value):
+    return qs.filter(slug__in=value)
 
 
 def filter_menu_item_search(qs, _, value):
@@ -19,10 +25,11 @@ def filter_menu_item_search(qs, _, value):
 
 class MenuFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method=filter_menu_search)
+    slug = ListObjectTypeFilter(input_class=graphene.String, method=filter_menu_slug)
 
     class Meta:
         model = Menu
-        fields = ["search"]
+        fields = ["search", "slug"]
 
 
 class MenuItemFilter(django_filters.FilterSet):

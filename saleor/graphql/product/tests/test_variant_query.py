@@ -23,7 +23,7 @@ def test_get_variant_without_id_and_sku(staff_api_client, permission_manage_prod
 
     # then
     assert_graphql_error_with_message(
-        response, "Either 'id'  or 'sku' argument is required"
+        response, "At least one of arguments is required: 'id', 'sku'."
     )
 
 
