@@ -45,6 +45,7 @@ from ...payment import gateway
 from ...payment.utils import create_payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import (
+    AssignedPageAttribute,
     AssignedProductAttribute,
     AssignedVariantAttribute,
     Attribute,
@@ -306,6 +307,20 @@ def assign_attributes_to_variants(variant_attributes):
             assoc.values.set(AttributeValue.objects.filter(pk__in=assigned_values))
 
 
+def assign_attributes_to_pages(page_attributes):
+    for value in page_attributes:
+        pk = value["pk"]
+        defaults = value["fields"]
+        defaults["page_id"] = defaults.pop("page")
+        defaults["assignment_id"] = defaults.pop("assignment")
+        assigned_values = defaults.pop("values")
+        assoc, created = AssignedPageAttribute.objects.update_or_create(
+            pk=pk, defaults=defaults
+        )
+        if created:
+            assoc.values.set(AttributeValue.objects.filter(pk__in=assigned_values))
+
+
 def set_field_as_money(defaults, field):
     amount_field = f"{field}_amount"
     if amount_field in defaults and defaults[amount_field] is not None:
@@ -351,6 +366,7 @@ def create_products_by_schema(placeholder_dir, create_images):
     assign_attributes_to_variants(
         variant_attributes=types["product.assignedvariantattribute"]
     )
+    assign_attributes_to_pages(page_attributes=types["product.assignedpageattribute"])
     create_collections(
         data=types["product.collection"], placeholder_dir=placeholder_dir
     )
@@ -1189,8 +1205,9 @@ def create_page():
         "content_json": content_json,
         "title": "About",
         "is_published": True,
+        "page_type_id": 1,
     }
-    page, dummy = Page.objects.get_or_create(slug="about", defaults=page_data)
+    page, dummy = Page.objects.get_or_create(pk=1, slug="about", defaults=page_data)
     yield "Page %s created" % page.slug
 
 

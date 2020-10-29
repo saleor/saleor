@@ -5870,6 +5870,28 @@
     }
   },
   {
+    "model": "product.assignedpageattribute",
+    "pk": 1,
+    "fields": {
+        "page": 1,
+        "assignment": 3,
+        "values": [
+            87
+        ]
+    }
+  },
+  {
+    "model": "product.assignedpageattribute",
+    "pk": 2,
+    "fields": {
+        "page": 1,
+        "assignment": 2,
+        "values": [
+            93
+        ]
+    }
+  },
+  {
     "model": "product.attributeproduct",
     "pk": 1,
     "fields": {
@@ -6000,8 +6022,8 @@
     "pk": 3,
     "fields": {
       "sort_order": null,
-      "attribute": 29,
-      "page_type": 2
+      "attribute": 27,
+      "page_type": 1
     }
 },
 {
@@ -6009,7 +6031,7 @@
     "pk": 4,
     "fields": {
       "sort_order": null,
-      "attribute": 27,
+      "attribute": 29,
       "page_type": 2
     }
 },
