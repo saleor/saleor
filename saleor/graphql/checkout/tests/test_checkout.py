@@ -2590,6 +2590,49 @@ def test_query_checkouts(
     assert str(checkout.token) == received_checkout["token"]
 
 
+def test_query_with_channel(
+    checkouts_list, staff_api_client, permission_manage_checkouts, channel_USD
+):
+    query = """
+    query CheckoutsQuery($channel: String) {
+        checkouts(first: 20, channel: $channel) {
+            edges {
+                node {
+                    token
+                }
+            }
+        }
+    }
+    """
+    variables = {"channel": channel_USD.slug}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_checkouts]
+    )
+    content = get_graphql_content(response)
+    assert len(content["data"]["checkouts"]["edges"]) == 3
+
+
+def test_query_without_channel(
+    checkouts_list, staff_api_client, permission_manage_checkouts
+):
+    query = """
+    {
+        checkouts(first: 20) {
+            edges {
+                node {
+                    token
+                }
+            }
+        }
+    }
+    """
+    response = staff_api_client.post_graphql(
+        query, {}, permissions=[permission_manage_checkouts]
+    )
+    content = get_graphql_content(response)
+    assert len(content["data"]["checkouts"]["edges"]) == 5
+
+
 def test_query_checkout_lines(
     checkout_with_item, staff_api_client, permission_manage_checkouts
 ):
