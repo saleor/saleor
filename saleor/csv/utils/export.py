@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from ...product.models import Product
 from .. import FileTypes
-from ..emails import send_email_with_link_to_download_file
+from ..notifications import send_export_download_link_notification
 from .products_data import get_export_fields_and_headers_info, get_products_data
 
 if TYPE_CHECKING:
@@ -47,10 +47,7 @@ def export_products(
     save_csv_file_in_export_file(export_file, temporary_file, file_name)
     temporary_file.close()
 
-    if export_file.user:
-        send_email_with_link_to_download_file(
-            export_file, export_file.user.email, "export_products_success"
-        )
+    send_export_download_link_notification(export_file)
 
 
 def get_filename(model_name: str, file_type: str) -> str:
