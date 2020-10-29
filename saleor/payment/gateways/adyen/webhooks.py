@@ -50,7 +50,7 @@ def get_payment(
     payment_id: Optional[str], transaction_id: Optional[str] = None
 ) -> Optional[Payment]:
     transaction_id = transaction_id or ""
-    if not payment_id:
+    if payment_id is None or not payment_id.strip():
         logger.warning("Missing payment ID. Reference %s", transaction_id)
         return None
     try:
