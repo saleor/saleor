@@ -46,7 +46,9 @@ logger = logging.getLogger(__name__)
 
 
 def get_payment(
-    payment_id: Optional[str], transaction_id: Optional[str] = None, active=True
+    payment_id: Optional[str],
+    transaction_id: Optional[str] = None,
+    check_if_active=True,
 ) -> Optional[Payment]:
     transaction_id = transaction_id or ""
     if not payment_id:
@@ -61,12 +63,14 @@ def get_payment(
             transaction_id,
         )
         return None
-    payment = (
+    payments = (
         Payment.objects.prefetch_related("order", "checkout")
         .select_for_update(of=("self",))
-        .filter(id=db_payment_id, is_active=active, gateway="mirumee.payments.adyen")
-        .first()
+        .filter(id=db_payment_id, gateway="mirumee.payments.adyen")
     )
+    if check_if_active:
+        payments = payments.filter(is_active=True)
+    payment = payments.first()
     if not payment:
         logger.warning(
             "Payment for %s (%s) was not found. Reference %s",
@@ -233,7 +237,10 @@ def handle_cancellation(notification: Dict[str, Any], _gateway_config: GatewayCo
     # https://docs.adyen.com/checkout/cancel#cancellation-notifciation
     transaction_id = notification.get("pspReference")
     payment = get_payment(
-        notification.get("merchantReference"), transaction_id, active=False
+        # check_if_active=False as the payment can be still active or already cancelled
+        notification.get("merchantReference"),
+        transaction_id,
+        check_if_active=False,
     )
     if not payment:
         return

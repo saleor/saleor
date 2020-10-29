@@ -248,9 +248,14 @@ def test_handle_authorization_with_adyen_auto_capture_and_payment_charged(
     assert external_events.count() == 1
 
 
-def test_handle_cancel(notification, adyen_plugin, payment_adyen_for_order):
+@pytest.mark.parametrize("payment_is_active", (True, False))
+def test_handle_cancel(
+    payment_is_active, notification, adyen_plugin, payment_adyen_for_order
+):
     payment = payment_adyen_for_order
     payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.is_active = payment_is_active
+    payment.save()
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
