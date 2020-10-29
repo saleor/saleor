@@ -129,7 +129,7 @@ class RequestPasswordReset(BaseMutation):
             )
 
         try:
-            user = models.User.objects.get(email=email, is_active=true)
+            user = models.User.objects.get(email=email, is_active=True)
         except ObjectDoesNotExist:
             raise ValidationError(
                 {
