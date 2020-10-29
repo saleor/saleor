@@ -471,7 +471,7 @@ class AdyenGatewayPlugin(BasePlugin):
 
         amount = payment_information.amount
         currency = payment_information.currency
-        msg = f"Refund for amount {amount}{currency} has been requested."
+        msg = f"Adyen: Refund for amount {amount}{currency} has been requested."
         external_notification_event(
             order=transaction.payment.order,  # type: ignore
             user=None,
