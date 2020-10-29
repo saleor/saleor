@@ -163,10 +163,10 @@ class AdyenGatewayPlugin(BasePlugin):
                 "Saleor uses 3D Secure redirect authentication by default. If you want"
                 " to use native 3D Secure authentication, enable this option. For more"
                 " details see Adyen documentation: native - "
-                "https://docs.adyen.com/checkout/3d-secure/redirect-3ds2-3ds1, redirect"
+                "https://docs.adyen.com/checkout/3d-secure/native-3ds2, redirect"
                 " - https://docs.adyen.com/checkout/3d-secure/redirect-3ds2-3ds1"
             ),
-            "label": "Enable native 3d secure",
+            "label": "Enable native 3D Secure",
         },
     }
 
