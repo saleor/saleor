@@ -60,7 +60,7 @@ def get_variant_costs_data(
     costs = []
     margins = []
     costs.append(get_cost_price(variant_channel_listing))
-    margin = get_margin_for_variant(variant_channel_listing)
+    margin = get_margin_for_variant_channel_listing(variant_channel_listing)
     if margin:
         margins.append(margin)
     return CostsData(costs, margins)
@@ -72,7 +72,7 @@ def get_cost_price(variant_channel_listing: "ProductVariantChannelListing") -> "
     return variant_channel_listing.cost_price
 
 
-def get_margin_for_variant(
+def get_margin_for_variant_channel_listing(
     variant_channel_listing: "ProductVariantChannelListing",
 ) -> Optional[float]:
     if variant_channel_listing.cost_price is None:

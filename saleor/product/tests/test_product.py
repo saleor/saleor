@@ -12,7 +12,7 @@ from ..filters import filter_products_by_attributes_values
 from ..models import DigitalContentUrl
 from ..thumbnails import create_product_thumbnails
 from ..utils.attributes import associate_attribute_values_to_instance
-from ..utils.costs import get_margin_for_variant
+from ..utils.costs import get_margin_for_variant_channel_listing
 from ..utils.digital_products import increment_download_count
 
 
@@ -242,13 +242,15 @@ def test_digital_product_view_url_expired(client, digital_content):
 @pytest.mark.parametrize(
     "price, cost", [(Money("0", "USD"), Money("1", "USD")), (Money("2", "USD"), None)]
 )
-def test_costs_get_margin_for_variant(variant, price, cost, channel_USD):
+def test_costs_get_margin_for_variant_channel_listing(
+    variant, price, cost, channel_USD
+):
     variant_channel_listing = variant.channel_listing.filter(
         channel_id=channel_USD.id
     ).first()
     variant_channel_listing.cost_price = cost
     variant_channel_listing.price = price
-    assert not get_margin_for_variant(variant_channel_listing)
+    assert not get_margin_for_variant_channel_listing(variant_channel_listing)
 
 
 @patch("saleor.product.thumbnails.create_thumbnails")
