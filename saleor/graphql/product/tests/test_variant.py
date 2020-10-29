@@ -1198,6 +1198,30 @@ def test_fetch_all_variants_staff_user(
     assert data["edges"][0]["node"]["id"] == variant_id
 
 
+def test_fetch_all_variants_staff_user_with_channel(
+    staff_api_client,
+    product_list_with_variants_many_channel,
+    permission_manage_products,
+    channel_PLN,
+):
+    variables = {"channel": channel_PLN.slug}
+    data = _fetch_all_variants(
+        staff_api_client, variables, permissions=[permission_manage_products]
+    )
+    assert data["totalCount"] == 2
+
+
+def test_fetch_all_variants_staff_user_without_channel(
+    staff_api_client,
+    product_list_with_variants_many_channel,
+    permission_manage_products,
+):
+    data = _fetch_all_variants(
+        staff_api_client, permissions=[permission_manage_products]
+    )
+    assert data["totalCount"] == 3
+
+
 def test_fetch_all_variants_customer(
     user_api_client, unavailable_product_with_variant, channel_USD
 ):
