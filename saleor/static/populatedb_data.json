@@ -1792,7 +1792,7 @@
       "product": 72,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -1805,7 +1805,7 @@
       "product": 74,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -1818,7 +1818,7 @@
       "product": 122,
       "channel": 1,
       "visible_in_listings": false,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -1831,7 +1831,7 @@
       "product": 79,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -1844,7 +1844,7 @@
       "product": 115,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -1857,7 +1857,7 @@
       "product": 116,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -1870,7 +1870,7 @@
       "product": 73,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -1883,7 +1883,7 @@
       "product": 76,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -1896,7 +1896,7 @@
       "product": 89,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -1909,7 +1909,7 @@
       "product": 85,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -1922,7 +1922,7 @@
       "product": 78,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -1935,7 +1935,7 @@
       "product": 65,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2021-08-31",
       "currency": "USD"
     }
   },
@@ -1948,7 +1948,7 @@
       "product": 123,
       "channel": 1,
       "visible_in_listings": false,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -1961,7 +1961,7 @@
       "product": 120,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -1974,7 +1974,7 @@
       "product": 64,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2021-08-31",
       "currency": "USD"
     }
   },
@@ -1987,7 +1987,7 @@
       "product": 117,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2000,7 +2000,7 @@
       "product": 61,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2013,7 +2013,7 @@
       "product": 121,
       "channel": 1,
       "visible_in_listings": false,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2026,7 +2026,7 @@
       "product": 71,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2039,7 +2039,7 @@
       "product": 75,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2052,7 +2052,7 @@
       "product": 107,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2065,7 +2065,7 @@
       "product": 108,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2078,7 +2078,7 @@
       "product": 109,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2091,7 +2091,7 @@
       "product": 110,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2104,7 +2104,7 @@
       "product": 77,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2117,7 +2117,7 @@
       "product": 63,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2021-08-31",
       "currency": "USD"
     }
   },
@@ -2130,7 +2130,7 @@
       "product": 81,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2143,7 +2143,7 @@
       "product": 119,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2156,7 +2156,7 @@
       "product": 84,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2169,7 +2169,7 @@
       "product": 83,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2182,7 +2182,7 @@
       "product": 62,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2021-08-31",
       "currency": "USD"
     }
   },
@@ -2195,7 +2195,7 @@
       "product": 112,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2208,7 +2208,7 @@
       "product": 111,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2221,7 +2221,7 @@
       "product": 114,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2234,7 +2234,7 @@
       "product": 113,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2247,7 +2247,7 @@
       "product": 124,
       "channel": 1,
       "visible_in_listings": false,
-      "available_for_purchase": null,
+      "available_for_purchase": "2021-08-31",
       "currency": "USD"
     }
   },
@@ -2260,7 +2260,7 @@
       "product": 118,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2273,7 +2273,7 @@
       "product": 86,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2286,7 +2286,7 @@
       "product": 88,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2299,7 +2299,7 @@
       "product": 82,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2312,7 +2312,7 @@
       "product": 87,
       "channel": 1,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "USD"
     }
   },
@@ -2325,7 +2325,7 @@
       "product": 72,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2338,7 +2338,7 @@
       "product": 74,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2351,7 +2351,7 @@
       "product": 122,
       "channel": 2,
       "visible_in_listings": false,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2364,7 +2364,7 @@
       "product": 79,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2377,7 +2377,7 @@
       "product": 115,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2390,7 +2390,7 @@
       "product": 116,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2403,7 +2403,7 @@
       "product": 73,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2416,7 +2416,7 @@
       "product": 76,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2429,7 +2429,7 @@
       "product": 89,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2442,7 +2442,7 @@
       "product": 85,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2455,7 +2455,7 @@
       "product": 78,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2468,7 +2468,7 @@
       "product": 65,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2021-08-31",
       "currency": "PLN"
     }
   },
@@ -2481,7 +2481,7 @@
       "product": 123,
       "channel": 2,
       "visible_in_listings": false,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2494,7 +2494,7 @@
       "product": 120,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2507,7 +2507,7 @@
       "product": 64,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2021-08-31",
       "currency": "PLN"
     }
   },
@@ -2520,7 +2520,7 @@
       "product": 117,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2533,7 +2533,7 @@
       "product": 61,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2546,7 +2546,7 @@
       "product": 121,
       "channel": 2,
       "visible_in_listings": false,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2559,7 +2559,7 @@
       "product": 71,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2572,7 +2572,7 @@
       "product": 75,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2585,7 +2585,7 @@
       "product": 107,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2598,7 +2598,7 @@
       "product": 108,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2611,7 +2611,7 @@
       "product": 109,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2624,7 +2624,7 @@
       "product": 110,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2637,7 +2637,7 @@
       "product": 77,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2650,7 +2650,7 @@
       "product": 63,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2021-08-31",
       "currency": "PLN"
     }
   },
@@ -2663,7 +2663,7 @@
       "product": 81,
       "channel": 2,
       "visible_in_listings": false,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2676,7 +2676,7 @@
       "product": 119,
       "channel": 2,
       "visible_in_listings": false,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2689,7 +2689,7 @@
       "product": 84,
       "channel": 2,
       "visible_in_listings": true,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
@@ -2702,7 +2702,7 @@
       "product": 83,
       "channel": 2,
       "visible_in_listings": false,
-      "available_for_purchase": null,
+      "available_for_purchase": "2020-08-31",
       "currency": "PLN"
     }
   },
