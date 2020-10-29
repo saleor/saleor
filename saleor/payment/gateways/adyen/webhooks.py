@@ -584,6 +584,7 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
     try:
         json_data = json.loads(request.body)
     except JSONDecodeError:
+        logger.warning("Cannot parse request body.")
         return HttpResponse("[accepted]")
     # JSON and HTTP POST notifications always contain a single NotificationRequestItem
     # object.
@@ -591,12 +592,13 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
         "NotificationRequestItem", {}
     )
 
+    if not validate_merchant_account(notification, gateway_config):
+        logger.warning("Not supported merchant account.")
+        return HttpResponse("[accepted]")
     if not validate_hmac_signature(notification, gateway_config):
         return HttpResponseBadRequest("Invalid or missing hmac signature.")
     if not validate_auth_user(request.headers, gateway_config):
         return HttpResponseBadRequest("Invalid or missing basic auth.")
-    if not validate_merchant_account(notification, gateway_config):
-        return HttpResponseBadRequest("Not supported merchant account.")
 
     event_handler = EVENT_MAP.get(notification.get("eventCode", ""))
     if event_handler:
