@@ -38,19 +38,19 @@ from .filters import (
     ProductVariantFilterInput,
 )
 from .mutations.attributes import (
-    AttributeAssign,
     AttributeClearMeta,
     AttributeClearPrivateMeta,
     AttributeCreate,
     AttributeDelete,
     AttributeReorderValues,
-    AttributeUnassign,
     AttributeUpdate,
     AttributeUpdateMeta,
     AttributeUpdatePrivateMeta,
     AttributeValueCreate,
     AttributeValueDelete,
     AttributeValueUpdate,
+    ProductAttributeAssign,
+    ProductAttributeUnassign,
     ProductTypeReorderAttributes,
 )
 from .mutations.digital_contents import (
@@ -320,8 +320,8 @@ class ProductMutations(graphene.ObjectType):
     attribute_create = AttributeCreate.Field()
     attribute_delete = AttributeDelete.Field()
     attribute_bulk_delete = AttributeBulkDelete.Field()
-    attribute_assign = AttributeAssign.Field()
-    attribute_unassign = AttributeUnassign.Field()
+    product_attribute_assign = ProductAttributeAssign.Field()
+    product_attribute_unassign = ProductAttributeUnassign.Field()
     attribute_update = AttributeUpdate.Field()
     attribute_translate = AttributeTranslate.Field()
     attribute_update_metadata = AttributeUpdateMeta.Field(

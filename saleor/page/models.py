@@ -14,9 +14,12 @@ class PagePublishedQuerySet(PublishedQuerySet):
         return user.is_active and user.has_perm(PagePermissions.MANAGE_PAGES)
 
 
-class Page(SeoModel, PublishableModel):
+class Page(ModelWithMetadata, SeoModel, PublishableModel):
     slug = models.SlugField(unique=True, max_length=255)
     title = models.CharField(max_length=250)
+    page_type = models.ForeignKey(
+        "PageType", related_name="pages", on_delete=models.CASCADE
+    )
     content = models.TextField(blank=True)
     content_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_draft_js

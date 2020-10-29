@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("page", "0014_pagetype"),
+        ("page", "0015_pagetype"),
         ("product", "0130_attribute_type"),
     ]
 

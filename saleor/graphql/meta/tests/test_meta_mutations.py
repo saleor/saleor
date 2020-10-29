@@ -527,6 +527,21 @@ def test_add_public_metadata_for_app(staff_api_client, permission_manage_apps, a
     )
 
 
+def test_add_public_metadata_for_page(staff_api_client, permission_manage_pages, page):
+    # given
+    page_id = graphene.Node.to_global_id("Page", page.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client, permission_manage_pages, page_id, "Page",
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], page, page_id
+    )
+
+
 def test_update_public_metadata_for_item(api_client, checkout):
     # given
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
@@ -1056,6 +1071,23 @@ def test_delete_public_metadata_for_app(staff_api_client, permission_manage_apps
     # then
     assert item_without_public_metadata(
         response["data"]["deleteMetadata"]["item"], app, app_id
+    )
+
+
+def test_delete_public_metadata_for_page(
+    staff_api_client, permission_manage_pages, page
+):
+    # given
+    page_id = graphene.Node.to_global_id("Page", page.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_pages, page_id, "Page",
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], page, page_id
     )
 
 
@@ -1621,6 +1653,21 @@ def test_add_private_metadata_for_app(staff_api_client, permission_manage_apps, 
     )
 
 
+def test_add_private_metadata_for_page(staff_api_client, permission_manage_pages, page):
+    # given
+    page_id = graphene.Node.to_global_id("Page", page.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_pages, page_id, "Page",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], page, page_id,
+    )
+
+
 def test_update_private_metadata_for_item(
     staff_api_client, checkout, permission_manage_checkouts
 ):
@@ -2174,6 +2221,23 @@ def test_delete_private_metadata_for_app(staff_api_client, permission_manage_app
     # then
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], app, app_id,
+    )
+
+
+def test_delete_private_metadata_for_page(
+    staff_api_client, permission_manage_pages, page
+):
+    # given
+    page_id = graphene.Node.to_global_id("Page", page.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_pages, page_id, "Page",
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"], page, page_id,
     )
 
 

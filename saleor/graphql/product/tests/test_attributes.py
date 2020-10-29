@@ -9,7 +9,7 @@ from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
 
 from ....product import AttributeInputType, AttributeType
-from ....product.error_codes import ProductErrorCode
+from ....product.error_codes import AttributeErrorCode, ProductErrorCode
 from ....product.models import (
     Attribute,
     AttributeProduct,
@@ -462,7 +462,7 @@ CREATE_ATTRIBUTES_QUERY = """
                 field
                 message
             }
-            productErrors {
+            attributeErrors {
                 field
                 message
                 code
@@ -504,7 +504,7 @@ def test_create_attribute_and_attribute_values(
         query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
-    assert not content["data"]["attributeCreate"]["errors"]
+    assert not content["data"]["attributeCreate"]["attributeErrors"]
     data = content["data"]["attributeCreate"]
 
     # Check if the attribute was correctly created
@@ -539,7 +539,7 @@ def test_create_page_attribute_and_attribute_values(
         query, variables, permissions=[permission_manage_page_types_and_attributes]
     )
     content = get_graphql_content(response)
-    assert not content["data"]["attributeCreate"]["errors"]
+    assert not content["data"]["attributeCreate"]["attributeErrors"]
     data = content["data"]["attributeCreate"]
 
     # Check if the attribute was correctly created
@@ -580,7 +580,7 @@ def test_create_attribute_with_given_slug(
         mutation createAttribute(
             $name: String!, $slug: String, $type: AttributeTypeEnum!) {
         attributeCreate(input: {name: $name, slug: $slug, type: $type}) {
-            productErrors {
+            attributeErrors {
                 field
                 message
                 code
@@ -600,7 +600,7 @@ def test_create_attribute_with_given_slug(
     }
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))
 
-    assert not content["data"]["attributeCreate"]["productErrors"]
+    assert not content["data"]["attributeCreate"]["attributeErrors"]
     assert content["data"]["attributeCreate"]["attribute"]["slug"] == expected_slug
 
 
@@ -620,7 +620,7 @@ def test_create_attribute_value_name_and_slug_with_unicode(
     )
     content = get_graphql_content(response)
     data = content["data"]["attributeCreate"]
-    assert not data["productErrors"]
+    assert not data["attributeErrors"]
     assert data["attribute"]["name"] == name
     assert data["attribute"]["slug"] == slug
 
@@ -666,7 +666,7 @@ def test_create_attribute_and_attribute_values_errors(
     assert errors[0]["field"] == "values"
     assert errors[0]["message"] == error_msg
 
-    product_errors = content["data"]["attributeCreate"]["productErrors"]
+    product_errors = content["data"]["attributeCreate"]["attributeErrors"]
     assert product_errors[0]["code"] == error_code.name
 
 
@@ -683,7 +683,7 @@ UPDATE_ATTRIBUTE_MUTATION = """
             field
             message
         }
-        productErrors {
+        attributeErrors {
             field
             message
             code
@@ -750,7 +750,7 @@ def test_update_attribute_remove_and_add_values(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    assert not data["errors"]
+    assert not data["attributeErrors"]
     assert data["attribute"]["name"] == name == attribute.name
     assert not attribute.values.filter(pk=attribute_value_id).exists()
     assert attribute.values.filter(name=attribute_value_name).exists()
@@ -792,7 +792,7 @@ UPDATE_ATTRIBUTE_SLUG_MUTATION = """
             field
             message
         }
-        productErrors {
+        attributeErrors {
             field
             message
             code
@@ -838,7 +838,7 @@ def test_update_attribute_slug(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    errors = data["productErrors"]
+    errors = data["attributeErrors"]
     if not error_message:
         assert data["attribute"]["name"] == name == attribute.name
         assert data["attribute"]["slug"] == input_slug == attribute.slug
@@ -873,7 +873,7 @@ def test_update_attribute_slug_exists(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    errors = data["productErrors"]
+    errors = data["attributeErrors"]
 
     assert errors
     assert data["attribute"] is None
@@ -913,7 +913,7 @@ def test_update_attribute_slug_and_name(
                 field
                 message
             }
-            productErrors {
+            attributeErrors {
                 field
                 message
                 code
@@ -941,7 +941,7 @@ def test_update_attribute_slug_and_name(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    errors = data["productErrors"]
+    errors = data["attributeErrors"]
     if not error_message:
         assert data["attribute"]["name"] == input_name == attribute.name
         assert data["attribute"]["slug"] == input_slug == attribute.slug
@@ -995,7 +995,7 @@ def test_update_attribute_and_add_attribute_values_errors(
     assert errors[0]["field"] == "addValues"
     assert errors[0]["message"] == error_msg
 
-    product_errors = content["data"]["attributeUpdate"]["productErrors"]
+    product_errors = content["data"]["attributeUpdate"]["attributeErrors"]
     assert product_errors[0]["code"] == error_code.name
 
 
@@ -1026,7 +1026,7 @@ def test_update_attribute_and_remove_others_attribute_value(
     err_msg = "Value %s does not belong to this attribute." % str(size_attribute)
     assert errors[0]["message"] == err_msg
 
-    product_errors = content["data"]["attributeUpdate"]["productErrors"]
+    product_errors = content["data"]["attributeUpdate"]["attributeErrors"]
     assert product_errors[0]["code"] == ProductErrorCode.INVALID.name
 
 
@@ -1067,7 +1067,7 @@ CREATE_ATTRIBUTE_VALUE_QUERY = """
         $attributeId: ID!, $name: String!) {
     attributeValueCreate(
         attribute: $attributeId, input: {name: $name}) {
-        productErrors {
+        attributeErrors {
             field
             message
             code
@@ -1100,7 +1100,7 @@ def test_create_attribute_value(
     )
     content = get_graphql_content(response)
     data = content["data"]["attributeValueCreate"]
-    assert not data["productErrors"]
+    assert not data["attributeErrors"]
 
     attr_data = data["attributeValue"]
     assert attr_data["name"] == name
@@ -1122,9 +1122,9 @@ def test_create_attribute_value_not_unique_name(
     )
     content = get_graphql_content(response)
     data = content["data"]["attributeValueCreate"]
-    assert data["productErrors"]
-    assert data["productErrors"][0]["code"] == ProductErrorCode.ALREADY_EXISTS.name
-    assert data["productErrors"][0]["field"] == "name"
+    assert data["attributeErrors"]
+    assert data["attributeErrors"][0]["code"] == AttributeErrorCode.ALREADY_EXISTS.name
+    assert data["attributeErrors"][0]["field"] == "name"
 
 
 def test_create_attribute_value_capitalized_name(
@@ -1140,9 +1140,9 @@ def test_create_attribute_value_capitalized_name(
     )
     content = get_graphql_content(response)
     data = content["data"]["attributeValueCreate"]
-    assert data["productErrors"]
-    assert data["productErrors"][0]["code"] == ProductErrorCode.ALREADY_EXISTS.name
-    assert data["productErrors"][0]["field"] == "name"
+    assert data["attributeErrors"]
+    assert data["attributeErrors"][0]["code"] == AttributeErrorCode.ALREADY_EXISTS.name
+    assert data["attributeErrors"][0]["field"] == "name"
 
 
 UPDATE_ATTRIBUTE_VALUE_QUERY = """
@@ -1150,7 +1150,7 @@ mutation updateChoice(
         $id: ID!, $name: String!) {
     attributeValueUpdate(
     id: $id, input: {name: $name}) {
-        errors {
+        attributeErrors {
             field
             message
         }
@@ -1205,9 +1205,9 @@ def test_update_attribute_value_name_not_unique(
     )
     content = get_graphql_content(response)
     data = content["data"]["attributeValueUpdate"]
-    assert data["errors"]
-    assert data["errors"][0]["message"]
-    assert data["errors"][0]["field"] == "name"
+    assert data["attributeErrors"]
+    assert data["attributeErrors"][0]["message"]
+    assert data["attributeErrors"][0]["field"] == "name"
 
 
 def test_delete_attribute_value(
@@ -1321,9 +1321,9 @@ def test_resolve_assigned_attribute_without_values(api_client, product_type, pro
     assert variant["attributes"][0]["values"] == []
 
 
-ASSIGN_ATTR_QUERY = """
-    mutation assign($productTypeId: ID!, $operations: [AttributeAssignInput]!) {
-      attributeAssign(productTypeId: $productTypeId, operations: $operations) {
+PRODUCT_ASSIGN_ATTR_QUERY = """
+    mutation assign($productTypeId: ID!, $operations: [ProductAttributeAssignInput]!) {
+      productAttributeAssign(productTypeId: $productTypeId, operations: $operations) {
         productErrors {
           field
           code
@@ -1352,7 +1352,7 @@ def test_assign_attributes_to_product_type(
     product_type = ProductType.objects.create(name="Default Type", has_variants=True)
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
-    query = ASSIGN_ATTR_QUERY
+    query = PRODUCT_ASSIGN_ATTR_QUERY
     operations = []
     variables = {"productTypeId": product_type_global_id, "operations": operations}
 
@@ -1375,7 +1375,7 @@ def test_assign_attributes_to_product_type(
             variables,
             permissions=[permission_manage_product_types_and_attributes],
         )
-    )["data"]["attributeAssign"]
+    )["data"]["productAttributeAssign"]
     assert not content["productErrors"], "Should have succeeded"
 
     assert content["productType"]["id"] == product_type_global_id
@@ -1407,7 +1407,7 @@ def test_assign_non_existing_attributes_to_product_type(
     product_type = ProductType.objects.create(name="Default Type", has_variants=True)
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
-    query = ASSIGN_ATTR_QUERY
+    query = PRODUCT_ASSIGN_ATTR_QUERY
     attribute_id = graphene.Node.to_global_id("Attribute", "55511155593")
     operations = [{"type": "PRODUCT", "id": attribute_id}]
     variables = {"productTypeId": product_type_global_id, "operations": operations}
@@ -1416,7 +1416,7 @@ def test_assign_non_existing_attributes_to_product_type(
         query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
-    content = content["data"]["attributeAssign"]
+    content = content["data"]["productAttributeAssign"]
     assert content["productErrors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
     assert content["productErrors"][0]["field"] == "operations"
     assert content["productErrors"][0]["attributes"] == [attribute_id]
@@ -1440,7 +1440,7 @@ def test_assign_variant_attribute_to_product_type_with_disabled_variants(
 
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
-    query = ASSIGN_ATTR_QUERY
+    query = PRODUCT_ASSIGN_ATTR_QUERY
     operations = [
         {"type": "VARIANT", "id": graphene.Node.to_global_id("Attribute", attribute.pk)}
     ]
@@ -1448,7 +1448,7 @@ def test_assign_variant_attribute_to_product_type_with_disabled_variants(
 
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"
-    ]["attributeAssign"]
+    ]["productAttributeAssign"]
     assert content["productErrors"][0]["field"] == "operations"
     assert (
         content["productErrors"][0]["message"]
@@ -1481,7 +1481,7 @@ def test_assign_variant_attribute_having_unsupported_input_type(
 
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
-    query = ASSIGN_ATTR_QUERY
+    query = PRODUCT_ASSIGN_ATTR_QUERY
     operations = [
         {"type": "VARIANT", "id": graphene.Node.to_global_id("Attribute", attribute.pk)}
     ]
@@ -1489,7 +1489,7 @@ def test_assign_variant_attribute_having_unsupported_input_type(
 
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"
-    ]["attributeAssign"]
+    ]["productAttributeAssign"]
     assert content["productErrors"][0]["field"] == "operations"
     assert (
         content["productErrors"][0]["message"]
@@ -1536,7 +1536,7 @@ def test_assign_attribute_to_product_type_having_already_that_attribute(
     else:
         raise ValueError(f"Unknown: {product_type}")
 
-    query = ASSIGN_ATTR_QUERY
+    query = PRODUCT_ASSIGN_ATTR_QUERY
     operations = [
         {
             "type": gql_attribute_type.value,
@@ -1547,7 +1547,7 @@ def test_assign_attribute_to_product_type_having_already_that_attribute(
 
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"
-    ]["attributeAssign"]
+    ]["productAttributeAssign"]
     assert content["productErrors"][0]["field"] == "operations"
     assert (
         content["productErrors"][0]["message"]
@@ -1559,12 +1559,120 @@ def test_assign_attribute_to_product_type_having_already_that_attribute(
     )
 
 
-UNASSIGN_ATTR_QUERY = """
-    mutation unAssignAttribute(
+def test_assign_page_attribute_to_product_type(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    tag_page_attribute,
+    product_type,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    tag_page_attr_id = graphene.Node.to_global_id("Attribute", tag_page_attribute.pk)
+
+    variables = {
+        "productTypeId": graphene.Node.to_global_id("ProductType", product_type.pk),
+        "operations": [
+            {"type": ProductAttributeType.PRODUCT.value, "id": tag_page_attr_id},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PRODUCT_ASSIGN_ATTR_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productAttributeAssign"]
+    errors = data["productErrors"]
+
+    assert not data["productType"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "operations"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["attributes"] == [tag_page_attr_id]
+
+
+def test_assign_attribute_to_product_type_multiply_errors_returned(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    color_attribute,
+    size_attribute,
+    tag_page_attribute,
+):
+    # given
+    product_type = ProductType.objects.create(name="Type")
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    product_type.product_attributes.add(color_attribute)
+
+    unsupported_type_attr = size_attribute
+    unsupported_type_attr.input_type = AttributeInputType.MULTISELECT
+    unsupported_type_attr.save(update_fields=["input_type"])
+
+    color_attr_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    unsupported_type_attr_id = graphene.Node.to_global_id(
+        "Attribute", unsupported_type_attr.pk
+    )
+    tag_page_attr_id = graphene.Node.to_global_id("Attribute", tag_page_attribute.pk)
+
+    variables = {
+        "productTypeId": graphene.Node.to_global_id("ProductType", product_type.pk),
+        "operations": [
+            {"type": ProductAttributeType.PRODUCT.value, "id": color_attr_id},
+            {
+                "type": ProductAttributeType.VARIANT.value,
+                "id": unsupported_type_attr_id,
+            },
+            {"type": ProductAttributeType.PRODUCT.value, "id": tag_page_attr_id},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PRODUCT_ASSIGN_ATTR_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productAttributeAssign"]
+    errors = data["productErrors"]
+
+    assert not data["productType"]
+    assert len(errors) == 3
+    expected_errors = [
+        {
+            "code": ProductErrorCode.ATTRIBUTE_ALREADY_ASSIGNED.name,
+            "field": "operations",
+            "message": mock.ANY,
+            "attributes": [color_attr_id],
+        },
+        {
+            "code": ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name,
+            "field": "operations",
+            "message": mock.ANY,
+            "attributes": [unsupported_type_attr_id],
+        },
+        {
+            "code": ProductErrorCode.INVALID.name,
+            "field": "operations",
+            "message": mock.ANY,
+            "attributes": [tag_page_attr_id],
+        },
+    ]
+    for error in expected_errors:
+        assert error in errors
+
+
+PRODUCT_UNASSIGN_ATTR_QUERY = """
+    mutation ProductUnassignAttribute(
       $productTypeId: ID!, $attributeIds: [ID]!
     ) {
-      attributeUnassign(productTypeId: $productTypeId, attributeIds: $attributeIds) {
-        errors {
+      productAttributeUnassign(
+          productTypeId: $productTypeId, attributeIds: $attributeIds
+      ) {
+        productErrors {
           field
           message
         }
@@ -1598,7 +1706,7 @@ def test_unassign_attributes_from_product_type(
         "Attribute", product_attributes[1].pk
     )
 
-    query = UNASSIGN_ATTR_QUERY
+    query = PRODUCT_UNASSIGN_ATTR_QUERY
     variables = {
         "productTypeId": product_type_global_id,
         "attributeIds": [
@@ -1612,8 +1720,8 @@ def test_unassign_attributes_from_product_type(
             variables,
             permissions=[permission_manage_product_types_and_attributes],
         )
-    )["data"]["attributeUnassign"]
-    assert not content["errors"]
+    )["data"]["productAttributeUnassign"]
+    assert not content["productErrors"]
 
     assert content["productType"]["id"] == product_type_global_id
     assert len(content["productType"]["productAttributes"]) == 1
@@ -1640,7 +1748,7 @@ def test_unassign_attributes_not_in_product_type(
     product_type = ProductType.objects.create(name="Type")
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
-    query = UNASSIGN_ATTR_QUERY
+    query = PRODUCT_UNASSIGN_ATTR_QUERY
     variables = {
         "productTypeId": product_type_global_id,
         "attributeIds": [
@@ -1650,8 +1758,8 @@ def test_unassign_attributes_not_in_product_type(
 
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"
-    ]["attributeUnassign"]
-    assert not content["errors"]
+    ]["productAttributeUnassign"]
+    assert not content["productErrors"]
 
     assert content["productType"]["id"] == product_type_global_id
     assert len(content["productType"]["productAttributes"]) == 0
@@ -1756,9 +1864,11 @@ ATTRIBUTES_RESORT_QUERY = """
           }
         }
 
-        errors {
+        productErrors {
           field
           message
+          code
+          attributes
         }
       }
     }
@@ -1787,10 +1897,12 @@ def test_sort_attributes_within_product_type_invalid_product_type(
         )
     )["data"]["productTypeReorderAttributes"]
 
-    assert content["errors"] == [
+    assert content["productErrors"] == [
         {
             "field": "productTypeId",
+            "code": ProductErrorCode.NOT_FOUND.name,
             "message": f"Couldn't resolve to a product type: {product_type_id}",
+            "attributes": None,
         }
     ]
 
@@ -1819,10 +1931,12 @@ def test_sort_attributes_within_product_type_invalid_id(
         )
     )["data"]["productTypeReorderAttributes"]
 
-    assert content["errors"] == [
+    assert content["productErrors"] == [
         {
             "field": "moves",
-            "message": f"Couldn't resolve to an attribute: {attribute_id}",
+            "message": "Couldn't resolve to an attribute.",
+            "attributes": [attribute_id],
+            "code": ProductErrorCode.NOT_FOUND.name,
         }
     ]
 
@@ -1879,7 +1993,7 @@ def test_sort_attributes_within_product_type(
     content = get_graphql_content(
         staff_api_client.post_graphql(ATTRIBUTES_RESORT_QUERY, variables)
     )["data"]["productTypeReorderAttributes"]
-    assert not content["errors"]
+    assert not content["productErrors"]
 
     assert (
         content["productType"]["id"] == product_type_id

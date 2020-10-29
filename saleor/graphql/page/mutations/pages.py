@@ -4,21 +4,23 @@ from typing import TYPE_CHECKING, Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
-from ...core.permissions import PagePermissions, PageTypePermissions
-from ...page import models
-from ...page.error_codes import PageErrorCode
-from ...product import AttributeType
-from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types.common import PageError, SeoInput
-from ..core.utils import (
+from ....core.permissions import PagePermissions, PageTypePermissions
+from ....page import models
+from ....page.error_codes import PageErrorCode
+from ....product import AttributeType
+from ...core.mutations import ModelDeleteMutation, ModelMutation
+from ...core.types.common import PageError, SeoInput
+from ...core.utils import (
     clean_seo_fields,
     get_duplicates_ids,
     validate_slug_and_generate_if_needed,
 )
+from ...product.mutations.products import AttributeAssignmentMixin, AttributeValueInput
 
 if TYPE_CHECKING:
-    from ...product.models import Attribute
+    from ....product.models import Attribute
 
 
 class PageInput(graphene.InputObjectType):
@@ -28,6 +30,9 @@ class PageInput(graphene.InputObjectType):
         description=("Page content. May consist of ordinary text, HTML and images.")
     )
     content_json = graphene.JSONString(description="Page content in JSON format.")
+    attributes = graphene.List(
+        graphene.NonNull(AttributeValueInput), description="List of attributes."
+    )
     is_published = graphene.Boolean(
         description="Determines if page is visible in the storefront."
     )
@@ -37,9 +42,15 @@ class PageInput(graphene.InputObjectType):
     seo = SeoInput(description="Search engine optimization fields.")
 
 
+class PageCreateInput(PageInput):
+    page_type = graphene.ID(
+        description="ID of the page type that page belongs to.", required=True
+    )
+
+
 class PageCreate(ModelMutation):
     class Arguments:
-        input = PageInput(
+        input = PageCreateInput(
             required=True, description="Fields required to create a page."
         )
 
@@ -51,6 +62,14 @@ class PageCreate(ModelMutation):
         error_type_field = "page_errors"
 
     @classmethod
+    def clean_attributes(cls, attributes: dict, page_type: models.PageType):
+        attributes_qs = page_type.page_attributes
+        attributes = AttributeAssignmentMixin.clean_input(
+            attributes, attributes_qs, is_page_attributes=True
+        )
+        return attributes
+
+    @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
         try:
@@ -60,12 +79,36 @@ class PageCreate(ModelMutation):
         except ValidationError as error:
             error.code = PageErrorCode.REQUIRED
             raise ValidationError({"slug": error})
+
         is_published = cleaned_input.get("is_published")
         publication_date = cleaned_input.get("publication_date")
         if is_published and not publication_date:
             cleaned_input["publication_date"] = date.today()
+
+        attributes = cleaned_input.get("attributes")
+        page_type = (
+            instance.page_type if instance.pk else cleaned_input.get("page_type")
+        )
+        if attributes and page_type:
+            try:
+                cleaned_input["attributes"] = cls.clean_attributes(
+                    attributes, page_type
+                )
+            except ValidationError as exc:
+                raise ValidationError({"attributes": exc})
+
         clean_seo_fields(cleaned_input)
+
         return cleaned_input
+
+    @classmethod
+    @transaction.atomic
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+
+        attributes = cleaned_data.get("attributes")
+        if attributes:
+            AttributeAssignmentMixin.save(instance, attributes)
 
 
 class PageUpdate(PageCreate):
@@ -250,3 +293,15 @@ class PageTypeUpdate(PageTypeMixin, ModelMutation):
             instance.page_attributes.remove(*remove_attributes)
         if add_attributes is not None:
             instance.page_attributes.add(*add_attributes)
+
+
+class PageTypeDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of the page type to delete.")
+
+    class Meta:
+        description = "Delete a page type."
+        model = models.PageType
+        permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        error_type_class = PageError
+        error_type_field = "page_errors"

@@ -1189,6 +1189,7 @@ def create_page():
         "content_json": content_json,
         "title": "About",
         "is_published": True,
+        "page_type_id": 1,
     }
     page, dummy = Page.objects.get_or_create(slug="about", defaults=page_data)
     yield "Page %s created" % page.slug

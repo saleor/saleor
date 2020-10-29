@@ -15,3 +15,12 @@ class ProductErrorCode(Enum):
     REQUIRED = "required"
     UNIQUE = "unique"
     VARIANT_NO_DIGITAL_CONTENT = "variant_no_digital_content"
+
+
+class AttributeErrorCode(Enum):
+    ALREADY_EXISTS = "already_exists"
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"
+    UNIQUE = "unique"

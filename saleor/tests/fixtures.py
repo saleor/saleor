@@ -220,10 +220,12 @@ def site_settings(db, settings) -> SiteSettings:
     settings.SITE_ID = site.pk
 
     main_menu = Menu.objects.get_or_create(
-        name=settings.DEFAULT_MENUS["top_menu_name"]
+        name=settings.DEFAULT_MENUS["top_menu_name"],
+        slug=settings.DEFAULT_MENUS["top_menu_name"],
     )[0]
     secondary_menu = Menu.objects.get_or_create(
-        name=settings.DEFAULT_MENUS["bottom_menu_name"]
+        name=settings.DEFAULT_MENUS["bottom_menu_name"],
+        slug=settings.DEFAULT_MENUS["bottom_menu_name"],
     )[0]
     obj.top_menu = main_menu
     obj.bottom_menu = secondary_menu
@@ -1870,42 +1872,58 @@ def unpublished_collection():
 
 
 @pytest.fixture
-def page(db):
+def page(db, page_type):
     data = {
         "slug": "test-url",
         "title": "Test page",
         "content": "test content",
         "is_published": True,
+        "page_type": page_type,
     }
     page = Page.objects.create(**data)
+
+    # associate attribute value
+    page_attr = page_type.page_attributes.first()
+    page_attr_value = page_attr.values.first()
+
+    associate_attribute_values_to_instance(page, page_attr, page_attr_value)
+
     return page
 
 
 @pytest.fixture
-def page_list(db):
+def page_list(db, page_type):
     data_1 = {
         "slug": "test-url",
         "title": "Test page",
         "content": "test content",
         "is_published": True,
+        "page_type": page_type,
     }
     data_2 = {
         "slug": "test-url-2",
         "title": "Test page",
         "content": "test content",
         "is_published": True,
+        "page_type": page_type,
     }
     pages = Page.objects.bulk_create([Page(**data_1), Page(**data_2)])
     return pages
 
 
 @pytest.fixture
-def page_list_unpublished(db):
+def page_list_unpublished(db, page_type):
     pages = Page.objects.bulk_create(
         [
-            Page(slug="page-1", title="Page 1", is_published=False),
-            Page(slug="page-2", title="Page 2", is_published=False),
-            Page(slug="page-3", title="Page 3", is_published=False),
+            Page(
+                slug="page-1", title="Page 1", is_published=False, page_type=page_type
+            ),
+            Page(
+                slug="page-2", title="Page 2", is_published=False, page_type=page_type
+            ),
+            Page(
+                slug="page-3", title="Page 3", is_published=False, page_type=page_type
+            ),
         ]
     )
     return pages
@@ -1930,8 +1948,16 @@ def page_type_list(db, tag_page_attribute):
             ]
         )
     )
-    for page_type in page_types:
+
+    for i, page_type in enumerate(page_types):
         page_type.page_attributes.add(tag_page_attribute)
+        Page.objects.create(
+            title=f"Test page {i}",
+            slug=f"test-url-{i}",
+            is_published=True,
+            page_type=page_type,
+        )
+
     return page_types
 
 
@@ -1946,7 +1972,7 @@ def model_form_class():
 
 @pytest.fixture
 def menu(db):
-    return Menu.objects.get_or_create(name="test-navbar")[0]
+    return Menu.objects.get_or_create(name="test-navbar", slug="test-navbar")[0]
 
 
 @pytest.fixture

@@ -13,6 +13,8 @@ from graphql_relay import from_global_id
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....order import OrderStatus, models as order_models
+from ....page import models as page_models
+from ....page.error_codes import PageErrorCode
 from ....product import AttributeType, models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import (
@@ -57,7 +59,7 @@ from ..utils import (
     create_stocks,
     get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
-    validate_attributes_input_for_product,
+    validate_attributes_input_for_product_and_page,
     validate_attributes_input_for_variant,
 )
 from .common import ReorderInput
@@ -587,7 +589,7 @@ class ProductCreateInput(ProductInput):
 
 
 T_INPUT_MAP = List[Tuple[models.Attribute, List[str]]]
-T_INSTANCE = Union[models.Product, models.ProductVariant]
+T_INSTANCE = Union[models.Product, models.ProductVariant, page_models.Page]
 
 
 class AttributeAssignmentMixin:
@@ -680,37 +682,19 @@ class AttributeAssignmentMixin:
         )
 
     @classmethod
-    def _check_input_for_product(cls, cleaned_input: T_INPUT_MAP, qs: QuerySet):
-        """Check the cleaned attribute input for a product.
+    def _validate_product_attributes_input(
+        cls, cleaned_input: T_INPUT_MAP, attribute_qs: QuerySet, is_variant: bool
+    ):
+        """Check if no invalid operations were supplied.
 
-        An Attribute queryset is supplied.
-
-        - ensure all required attributes are passed
-        - ensure the values are correct for a product
+        :raises ValidationError: when an invalid operation was found.
         """
-        errors = validate_attributes_input_for_product(cleaned_input)
-
-        supplied_attribute_pk = [attribute.pk for attribute, _ in cleaned_input]
-
-        # Asserts all required attributes are supplied
-        missing_required_attributes = qs.filter(
-            Q(value_required=True) & ~Q(pk__in=supplied_attribute_pk)
-        )
-
-        if missing_required_attributes:
-            ids = [
-                graphene.Node.to_global_id("Attribute", attr.pk)
-                for attr in missing_required_attributes
-            ]
-            error = ValidationError(
-                "All attributes flagged as having a value required must be supplied.",
-                code=ProductErrorCode.REQUIRED.value,
-                params={"attributes": ids},
+        if is_variant:
+            return cls._check_input_for_variant(cleaned_input, attribute_qs)
+        else:
+            return cls._check_input_for_page_and_product(
+                cleaned_input, attribute_qs, False
             )
-            errors.append(error)
-
-        if errors:
-            raise ValidationError(errors)
 
     @classmethod
     def _check_input_for_variant(cls, cleaned_input: T_INPUT_MAP, qs: QuerySet):
@@ -731,21 +715,31 @@ class AttributeAssignmentMixin:
             raise ValidationError(errors)
 
     @classmethod
-    def _validate_input(
-        cls, cleaned_input: T_INPUT_MAP, attribute_qs, is_variant: bool
+    def _check_input_for_page_and_product(
+        cls, cleaned_input: T_INPUT_MAP, qs: QuerySet, is_page_attributes: bool
     ):
-        """Check if no invalid operations were supplied.
+        """Check the cleaned attribute input for a product.
 
-        :raises ValidationError: when an invalid operation was found.
+        An Attribute queryset is supplied.
+
+        - ensure all required attributes are passed
+        - ensure the values are correct for a product
         """
-        if is_variant:
-            return cls._check_input_for_variant(cleaned_input, attribute_qs)
-        else:
-            return cls._check_input_for_product(cleaned_input, attribute_qs)
+        error_codes_enum = PageErrorCode if is_page_attributes else ProductErrorCode
+        errors = validate_attributes_input_for_product_and_page(
+            cleaned_input, qs, error_codes_enum
+        )
+
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
     def clean_input(
-        cls, raw_input: dict, attributes_qs: QuerySet, is_variant: bool
+        cls,
+        raw_input: dict,
+        attributes_qs: QuerySet,
+        is_variant: bool = False,
+        is_page_attributes: bool = False,
     ) -> T_INPUT_MAP:
         """Resolve and prepare the input for further checks.
 
@@ -753,6 +747,7 @@ class AttributeAssignmentMixin:
         :param attributes_qs:
             A queryset of attributes, the attribute values must be prefetched.
             Prefetch is needed by ``_pre_save_values`` during save.
+        :param page_attributes: Whether the input is for page type or not.
         :param is_variant: Whether the input is for a variant or a product.
 
         :raises ValidationError: contain the message.
@@ -796,7 +791,13 @@ class AttributeAssignmentMixin:
                 key = slugs[attribute.slug]
 
             cleaned_input.append((attribute, key))
-        cls._validate_input(cleaned_input, attributes_qs, is_variant)
+
+        if is_page_attributes:
+            cls._check_input_for_page_and_product(cleaned_input, attributes_qs, True)
+        else:
+            cls._validate_product_attributes_input(
+                cleaned_input, attributes_qs, is_variant
+            )
         return cleaned_input
 
     @classmethod
@@ -1206,6 +1207,11 @@ class ProductVariantCreate(ModelMutation):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
+        if not attributes:
+            raise ValidationError(
+                "All attributes must take a value.", ProductErrorCode.REQUIRED.value
+            )
+
         attributes_qs = product_type.variant_attributes
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, is_variant=True
@@ -1276,36 +1282,32 @@ class ProductVariantCreate(ModelMutation):
         if stocks:
             cls.check_for_duplicates_in_stocks(stocks)
 
+        if instance.product_id is not None:
+            # If the variant is getting updated,
+            # simply retrieve the associated product type
+            product_type = instance.product.product_type
+            used_attribute_values = get_used_variants_attribute_values(instance.product)
+        else:
+            # If the variant is getting created, no product type is associated yet,
+            # retrieve it from the required "product" input field
+            product_type = cleaned_input["product"].product_type
+            used_attribute_values = get_used_variants_attribute_values(
+                cleaned_input["product"]
+            )
+
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
         # the value's PK.
-        attributes = cleaned_input.get("attributes")
-        if attributes:
-            if instance.product_id is not None:
-                # If the variant is getting updated,
-                # simply retrieve the associated product type
-                product_type = instance.product.product_type
-                used_attribute_values = get_used_variants_attribute_values(
-                    instance.product
-                )
-            else:
-                # If the variant is getting created, no product type is associated yet,
-                # retrieve it from the required "product" input field
-                product_type = cleaned_input["product"].product_type
-                used_attribute_values = get_used_variants_attribute_values(
-                    cleaned_input["product"]
-                )
+        attributes = cleaned_input.get("attributes", [])
+        try:
+            cls.validate_duplicated_attribute_values(
+                attributes, used_attribute_values, instance
+            )
+            cleaned_input["attributes"] = cls.clean_attributes(attributes, product_type)
+        except ValidationError as exc:
+            raise ValidationError({"attributes": exc})
 
-            try:
-                cls.validate_duplicated_attribute_values(
-                    attributes, used_attribute_values, instance
-                )
-                cleaned_input["attributes"] = cls.clean_attributes(
-                    attributes, product_type
-                )
-            except ValidationError as exc:
-                raise ValidationError({"attributes": exc})
         return cleaned_input
 
     @classmethod

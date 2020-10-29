@@ -6,6 +6,7 @@ from ...checkout import models as checkout_models
 from ...core.exceptions import PermissionDenied
 from ...core.models import ModelWithMetadata
 from ...order import models as order_models
+from ...page import models as page_models
 from ...product import models as product_models
 from ..utils import get_user_or_app_from_context
 from .permissions import PRIVATE_META_PERMISSION_MAP
@@ -31,6 +32,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
         order_models.Fulfillment: order_types.Fulfillment,
         order_models.Order: order_types.Order,
         invoice_models.Invoice: invoice_types.Invoice,
+        page_models.Page: page_types.Page,
         product_models.PageType: page_types.PageType,
         product_models.Product: product_types.Product,
         product_models.ProductType: product_types.ProductType,
