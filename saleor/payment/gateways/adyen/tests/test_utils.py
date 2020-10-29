@@ -111,6 +111,7 @@ def test_append_klarna_data_tax_included(
 def test_request_data_for_payment_payment_not_valid(dummy_payment_data):
     # given
     dummy_payment_data.data = {
+        "originUrl": "https://www.example.com",
         "is_valid": False,
     }
     native_3d_secure = False
@@ -121,7 +122,6 @@ def test_request_data_for_payment_payment_not_valid(dummy_payment_data):
             dummy_payment_data,
             "https://www.example.com",
             "MerchantTestAccount",
-            "https://www.example.com",
             native_3d_secure,
         )
 
@@ -133,6 +133,7 @@ def test_request_data_for_payment(dummy_payment_data):
     # given
     return_url = "https://www.example.com"
     merchant_account = "MerchantTestAccount"
+    origin_url = "https://www.example.com"
     data = {
         "is_valid": True,
         "riskData": {"clientData": "test_client_data"},
@@ -140,13 +141,14 @@ def test_request_data_for_payment(dummy_payment_data):
         "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
         "billingAddress": {"address": "test_address"},
         "shopperIP": "123",
+        "originUrl": origin_url,
     }
     dummy_payment_data.data = data
     native_3d_secure = False
 
     # when
     result = request_data_for_payment(
-        dummy_payment_data, return_url, merchant_account, return_url, native_3d_secure
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
     )
 
     # then
@@ -173,6 +175,7 @@ def test_request_data_for_payment_native_3d_secure(dummy_payment_data):
     # given
     return_url = "https://www.example.com"
     merchant_account = "MerchantTestAccount"
+    origin_url = "https://www.example.com"
     data = {
         "is_valid": True,
         "riskData": {"clientData": "test_client_data"},
@@ -180,13 +183,14 @@ def test_request_data_for_payment_native_3d_secure(dummy_payment_data):
         "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
         "billingAddress": {"address": "test_address"},
         "shopperIP": "123",
+        "originUrl": origin_url,
     }
     dummy_payment_data.data = data
     native_3d_secure = True
 
     # when
     result = request_data_for_payment(
-        dummy_payment_data, return_url, merchant_account, return_url, native_3d_secure
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
     )
 
     # then
@@ -201,7 +205,7 @@ def test_request_data_for_payment_native_3d_secure(dummy_payment_data):
         "paymentMethod": {"type": "scheme"},
         "returnUrl": return_url,
         "merchantAccount": merchant_account,
-        "origin": return_url,
+        "origin": origin_url,
         "shopperIP": data["shopperIP"],
         "billingAddress": data["billingAddress"],
         "browserInfo": data["browserInfo"],
@@ -220,7 +224,7 @@ def test_request_data_for_payment_channel_different_than_web(dummy_payment_data)
 
     # when
     result = request_data_for_payment(
-        dummy_payment_data, return_url, merchant_account, return_url, native_3d_secure
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
     )
 
     # then
@@ -247,6 +251,7 @@ def test_request_data_for_payment_append_klarna_data(
     # given
     return_url = "https://www.example.com"
     merchant_account = "MerchantTestAccount"
+    origin_url = "https://www.example.com"
     data = {
         "is_valid": True,
         "riskData": {"clientData": "test_client_data"},
@@ -254,6 +259,7 @@ def test_request_data_for_payment_append_klarna_data(
         "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
         "billingAddress": {"address": "test_address"},
         "shopperIP": "123",
+        "originUrl": origin_url,
     }
     dummy_payment_data.data = data
     klarna_result = {
@@ -278,7 +284,7 @@ def test_request_data_for_payment_append_klarna_data(
     native_3d_secure = False
     # when
     result = request_data_for_payment(
-        dummy_payment_data, return_url, merchant_account, return_url, native_3d_secure
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
     )
 
     # then
