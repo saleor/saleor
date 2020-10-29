@@ -4,6 +4,7 @@ import hashlib
 import hmac
 import json
 import logging
+from json.decoder import JSONDecodeError
 from typing import Any, Callable, Dict, Optional
 from urllib.parse import urlencode
 
@@ -49,12 +50,12 @@ def get_payment(
     payment_id: Optional[str], transaction_id: Optional[str] = None
 ) -> Optional[Payment]:
     transaction_id = transaction_id or ""
-    if not payment_id:
+    if payment_id is None or not payment_id.strip():
         logger.warning("Missing payment ID. Reference %s", transaction_id)
         return None
     try:
         _type, db_payment_id = from_global_id(payment_id)
-    except UnicodeDecodeError:
+    except (UnicodeDecodeError, binascii.Error):
         logger.warning(
             "Unable to decode the payment ID %s. Reference %s",
             payment_id,
@@ -569,15 +570,31 @@ def validate_auth_user(headers: HttpHeaders, gateway_config: "GatewayConfig") ->
     return False
 
 
+def validate_merchant_account(
+    notification: Dict[str, Any], gateway_config: "GatewayConfig"
+):
+    merchant_account_code = notification.get("merchantAccountCode")
+    return merchant_account_code == gateway_config.connection_params.get(
+        "merchant_account"
+    )
+
+
 @transaction_with_commit_on_errors()
 def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
-    json_data = json.loads(request.body)
+    try:
+        json_data = json.loads(request.body)
+    except JSONDecodeError:
+        logger.warning("Cannot parse request body.")
+        return HttpResponse("[accepted]")
     # JSON and HTTP POST notifications always contain a single NotificationRequestItem
     # object.
     notification = json_data.get("notificationItems")[0].get(
         "NotificationRequestItem", {}
     )
 
+    if not validate_merchant_account(notification, gateway_config):
+        logger.warning("Not supported merchant account.")
+        return HttpResponse("[accepted]")
     if not validate_hmac_signature(notification, gateway_config):
         return HttpResponseBadRequest("Invalid or missing hmac signature.")
     if not validate_auth_user(request.headers, gateway_config):
