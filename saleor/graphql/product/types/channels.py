@@ -3,7 +3,10 @@ import graphene
 from ....core.permissions import ProductPermissions
 from ....graphql.core.types import Money, MoneyRange
 from ....product import models
-from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
+from ....product.utils.costs import (
+    get_margin_for_variant_channel_listing,
+    get_product_costs_data,
+)
 from ...channel.dataloaders import ChannelByIdLoader
 from ...core.connection import CountableDjangoObjectType
 from ...decorators import permission_required
@@ -141,12 +144,7 @@ class ProductVariantChannelListing(CountableDjangoObjectType):
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.ProductVariantChannelListing, *_args):
-        variant_channel_listing = root.objects.filter(
-            channel_id=root.channel_id
-        ).first()
-        if not variant_channel_listing:
-            return None
-        return get_margin_for_variant(variant_channel_listing)
+        return get_margin_for_variant_channel_listing(root)
 
 
 class CollectionChannelListing(CountableDjangoObjectType):

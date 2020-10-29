@@ -38,6 +38,7 @@ mutation UpdateProductVariantChannelListing(
                     amount
                     currency
                 }
+                margin
             }
         }
     }
