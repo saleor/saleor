@@ -9,16 +9,25 @@ from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
-from ..product.dataloaders.attributes import PageAttributesByPageTypeIdLoader
 from ..product.filters import AttributeFilterInput
 from ..product.types import Attribute
+from ..product.types.attributes import SelectedAttribute
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
-from .dataloaders import PageTypeByIdLoader
+from .dataloaders import (
+    PageAttributesByPageTypeIdLoader,
+    PageTypeByIdLoader,
+    SelectedAttributesByPageIdLoader,
+)
 
 
 class Page(CountableDjangoObjectType):
     translation = TranslationField(PageTranslation, type_name="page")
+    attributes = graphene.List(
+        graphene.NonNull(SelectedAttribute),
+        required=True,
+        description="List of attributes assigned to this product.",
+    )
 
     class Meta:
         description = (
@@ -52,6 +61,10 @@ class Page(CountableDjangoObjectType):
     @staticmethod
     def resolve_page_type(root: models.Page, info):
         return PageTypeByIdLoader(info.context).load(root.page_type_id)
+
+    @staticmethod
+    def resolve_attributes(root: models.Page, info):
+        return SelectedAttributesByPageIdLoader(info.context).load(root.id)
 
 
 @key(fields="id")
