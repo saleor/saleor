@@ -1,20 +1,23 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, List
+from typing import Dict, List
 
 import graphene
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import transaction
 
 from ....core.permissions import PageTypePermissions
+from ....page import models as page_models
 from ....page.error_codes import PageErrorCode
 from ....product import AttributeType, models
 from ...core.mutations import BaseMutation
 from ...core.types.common import PageError
+from ...core.utils import from_global_id_strict_type
+from ...core.utils.reordering import perform_reordering
 from ...page.types import PageType
+from ...product.mutations.attributes import BaseReorderAttributesMutation
+from ...product.mutations.common import ReorderInput
 from ...product.types import Attribute
 from ...utils import resolve_global_ids_to_primary_keys
-
-if TYPE_CHECKING:
-    from ....page import models as page_models
 
 
 class PageAttributeAssign(BaseMutation):
@@ -139,3 +142,58 @@ class PageAttributeUnassign(BaseMutation):
         page_type.page_attributes.remove(*attr_pks)
 
         return cls(page_type=page_type)
+
+
+class PageTypeReorderAttributes(BaseReorderAttributesMutation):
+    page_type = graphene.Field(
+        PageType, description="Page type from which attributes are reordered."
+    )
+
+    class Arguments:
+        page_type_id = graphene.Argument(
+            graphene.ID, required=True, description="ID of a page type."
+        )
+        moves = graphene.List(
+            graphene.NonNull(ReorderInput),
+            required=True,
+            description="The list of attribute reordering operations.",
+        )
+
+    class Meta:
+        description = "Reorder the attributes of a page type."
+        permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        error_type_class = PageError
+        error_type_field = "page_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        page_type_id = data["page_type_id"]
+        pk = from_global_id_strict_type(page_type_id, only_type=PageType, field="pk")
+
+        try:
+            page_type = page_models.PageType.objects.prefetch_related(
+                "attributepage"
+            ).get(pk=pk)
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "page_type_id": ValidationError(
+                        f"Couldn't resolve to a page type: {page_type_id}",
+                        code=PageErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
+
+        page_attributes = page_type.attributepage.all()
+        moves = data["moves"]
+
+        try:
+            operations = cls.prepare_operations(moves, page_attributes)
+        except ValidationError as error:
+            error.code = PageErrorCode.NOT_FOUND.value
+            raise ValidationError({"moves": error})
+
+        with transaction.atomic():
+            perform_reordering(page_attributes, operations)
+
+        return PageTypeReorderAttributes(page_type=page_type)

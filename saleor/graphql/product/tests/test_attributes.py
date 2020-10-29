@@ -1864,9 +1864,11 @@ ATTRIBUTES_RESORT_QUERY = """
           }
         }
 
-        errors {
+        productErrors {
           field
           message
+          code
+          attributes
         }
       }
     }
@@ -1895,10 +1897,12 @@ def test_sort_attributes_within_product_type_invalid_product_type(
         )
     )["data"]["productTypeReorderAttributes"]
 
-    assert content["errors"] == [
+    assert content["productErrors"] == [
         {
             "field": "productTypeId",
+            "code": ProductErrorCode.NOT_FOUND.name,
             "message": f"Couldn't resolve to a product type: {product_type_id}",
+            "attributes": None,
         }
     ]
 
@@ -1927,10 +1931,12 @@ def test_sort_attributes_within_product_type_invalid_id(
         )
     )["data"]["productTypeReorderAttributes"]
 
-    assert content["errors"] == [
+    assert content["productErrors"] == [
         {
             "field": "moves",
-            "message": f"Couldn't resolve to an attribute: {attribute_id}",
+            "message": "Couldn't resolve to an attribute.",
+            "attributes": [attribute_id],
+            "code": ProductErrorCode.NOT_FOUND.name,
         }
     ]
 
@@ -1987,7 +1993,7 @@ def test_sort_attributes_within_product_type(
     content = get_graphql_content(
         staff_api_client.post_graphql(ATTRIBUTES_RESORT_QUERY, variables)
     )["data"]["productTypeReorderAttributes"]
-    assert not content["errors"]
+    assert not content["productErrors"]
 
     assert (
         content["productType"]["id"] == product_type_id

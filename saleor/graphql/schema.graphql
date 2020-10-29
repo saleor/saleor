@@ -2698,6 +2698,7 @@ type Mutation {
   pageTypeBulkDelete(ids: [ID!]!): PageTypeBulkDelete
   pageAttributeAssign(attributeIds: [ID!]!, pageTypeId: ID!): PageAttributeAssign
   pageAttributeUnassign(attributeIds: [ID!]!, pageTypeId: ID!): PageAttributeUnassign
+  pageTypeReorderAttributes(moves: [ReorderInput!]!, pageTypeId: ID!): PageTypeReorderAttributes
   draftOrderComplete(id: ID!): DraftOrderComplete
   draftOrderCreate(input: DraftOrderCreateInput!): DraftOrderCreate
   draftOrderDelete(id: ID!): DraftOrderDelete
@@ -3456,6 +3457,12 @@ type PageTypeDelete {
 
 input PageTypeFilterInput {
   search: String
+}
+
+type PageTypeReorderAttributes {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  pageType: PageType
+  pageErrors: [PageError!]!
 }
 
 enum PageTypeSortField {

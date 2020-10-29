@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List
+from typing import TYPE_CHECKING, List
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -24,10 +24,14 @@ from ...core.utils import (
 from ...core.utils.reordering import perform_reordering
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...product.types import ProductType
+from ...utils import resolve_global_ids_to_primary_keys
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeInputTypeEnum, AttributeTypeEnum, ProductAttributeType
 from ..types import Attribute, AttributeValue
 from .common import ReorderInput
+
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
 
 
 class AttributeValueCreateInput(graphene.InputObjectType):
@@ -718,7 +722,57 @@ class AttributeValueDelete(ModelDeleteMutation):
         return response
 
 
-class ProductTypeReorderAttributes(BaseMutation):
+class BaseReorderAttributesMutation(BaseMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def prepare_operations(cls, moves: ReorderInput, attributes: "QuerySet"):
+        """Prepare operations dict for reordering attributes.
+
+        Operation dict format:
+            key: attribute pk,
+            value: sort_order value - relative sorting position of the attribute
+        """
+        attribute_ids = []
+        sort_orders = []
+
+        # resolve attribute moves
+        for move_info in moves:
+            attribute_ids.append(move_info.id)
+            sort_orders.append(move_info.sort_order)
+
+        _, attr_pks = resolve_global_ids_to_primary_keys(attribute_ids, Attribute)
+        attr_pks = [int(pk) for pk in attr_pks]
+
+        attributes_m2m = attributes.filter(attribute_id__in=attr_pks)
+
+        if attributes_m2m.count() != len(attr_pks):
+            attribute_pks = attributes_m2m.values_list("attribute_id", flat=True)
+            invalid_attrs = set(attr_pks) - set(attribute_pks)
+            invalid_attr_ids = [
+                graphene.Node.to_global_id("Attribute", attr_pk)
+                for attr_pk in invalid_attrs
+            ]
+            raise ValidationError(
+                "Couldn't resolve to an attribute.",
+                params={"attributes": invalid_attr_ids},
+            )
+
+        attributes_m2m = list(attributes_m2m)
+        attributes_m2m.sort(
+            key=lambda e: attr_pks.index(e.attribute.pk)
+        )  # preserve order in pks
+
+        operations = {
+            attribute.pk: sort_order
+            for attribute, sort_order in zip(attributes_m2m, sort_orders)
+        }
+
+        return operations
+
+
+class ProductTypeReorderAttributes(BaseReorderAttributesMutation):
     product_type = graphene.Field(
         ProductType, description="Product type from which attributes are reordered."
     )
@@ -768,29 +822,16 @@ class ProductTypeReorderAttributes(BaseMutation):
             )
 
         attributes_m2m = getattr(product_type, m2m_field)
-        operations = {}
 
-        # Resolve the attributes
-        for move_info in moves:
-            attribute_pk = from_global_id_strict_type(
-                move_info.id, only_type=Attribute, field="moves"
-            )
-
-            try:
-                m2m_info = attributes_m2m.get(attribute_id=int(attribute_pk))
-            except ObjectDoesNotExist:
-                raise ValidationError(
-                    {
-                        "moves": ValidationError(
-                            f"Couldn't resolve to an attribute: {move_info.id}",
-                            code=ProductErrorCode.NOT_FOUND,
-                        )
-                    }
-                )
-            operations[m2m_info.pk] = move_info.sort_order
+        try:
+            operations = cls.prepare_operations(moves, attributes_m2m)
+        except ValidationError as error:
+            error.code = ProductErrorCode.NOT_FOUND.value
+            raise ValidationError({"moves": error})
 
         with transaction.atomic():
             perform_reordering(attributes_m2m, operations)
+
         return ProductTypeReorderAttributes(product_type=product_type)
 
 
