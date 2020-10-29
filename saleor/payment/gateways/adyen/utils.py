@@ -51,7 +51,7 @@ def to_adyen_price(value: Decimal, currency: str):
 
 def get_tax_percentage_in_adyen_format(total_gross, total_net):
     tax_percentage_in_adyen_format = 0
-    if total_gross:
+    if total_gross and total_net:
         # get tax percent in adyen format
         gross_percentage = total_gross / total_net
         gross_percentage = gross_percentage.quantize(Decimal(".01"))  # 1.23
