@@ -11,6 +11,7 @@ from django.http import HttpResponse, HttpResponseNotFound
 from ....checkout.models import Checkout
 from ....core.utils import build_absolute_uri
 from ....core.utils.url import prepare_url
+from ....order.events import external_notification_event
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import PaymentError, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentGateway
@@ -468,12 +469,24 @@ class AdyenGatewayPlugin(BasePlugin):
         )
         result = api_call(request, self.adyen.payment.refund)
 
+        amount = payment_information.amount
+        currency = payment_information.currency
+        msg = f"Adyen: Refund for amount {amount}{currency} has been requested."
+        external_notification_event(
+            order=transaction.payment.order,  # type: ignore
+            user=None,
+            message=msg,
+            parameters={
+                "service": transaction.payment.gateway,
+                "id": transaction.payment.token,
+            },
+        )
         return GatewayResponse(
             is_success=True,
             action_required=False,
             kind=TransactionKind.REFUND_ONGOING,
-            amount=payment_information.amount,
-            currency=payment_information.currency,
+            amount=amount,
+            currency=currency,
             transaction_id=result.message.get("pspReference", ""),
             error="",
             raw_response=result.message,
