@@ -308,8 +308,8 @@ class OrderLine(CountableDjangoObjectType):
     @one_of_permissions_required(
         [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
     )
-    def resolve_allocations(root: models.OrderLine, _info):
-        return AllocationsByOrderLineIdLoader(_info.context).load(root.id)
+    def resolve_allocations(root: models.OrderLine, info):
+        return AllocationsByOrderLineIdLoader(info.context).load(root.id)
 
 
 class Order(CountableDjangoObjectType):
