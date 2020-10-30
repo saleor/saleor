@@ -101,6 +101,13 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
                                 id
                             }
                             quantity
+                            allocations {
+                                id
+                                quantity
+                                warehouse {
+                                    id
+                                }
+                            }
                             unitPrice {
                                 currency
                                 gross {
@@ -126,22 +133,81 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    assert order_data["lines"][0]["thumbnail"] is None
+    first_order_data_line = order_data["lines"][0]
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
-    assert order_data["lines"][0]["variant"]["id"] == variant_id
-    assert order_data["lines"][0]["quantity"] == line.quantity
-    assert order_data["lines"][0]["unitPrice"]["currency"] == line.unit_price.currency
+
+    assert first_order_data_line["thumbnail"] is None
+    assert first_order_data_line["variant"]["id"] == variant_id
+    assert first_order_data_line["quantity"] == line.quantity
+    assert first_order_data_line["unitPrice"]["currency"] == line.unit_price.currency
+
     expected_unit_price = Money(
-        amount=str(order_data["lines"][0]["unitPrice"]["gross"]["amount"]),
+        amount=str(first_order_data_line["unitPrice"]["gross"]["amount"]),
         currency="USD",
     )
-    assert order_data["lines"][0]["totalPrice"]["currency"] == line.unit_price.currency
+    assert first_order_data_line["totalPrice"]["currency"] == line.unit_price.currency
     assert expected_unit_price == line.unit_price.gross
+
     expected_total_price = Money(
-        amount=str(order_data["lines"][0]["totalPrice"]["gross"]["amount"]),
+        amount=str(first_order_data_line["totalPrice"]["gross"]["amount"]),
         currency="USD",
     )
     assert expected_total_price == line.unit_price.gross * line.quantity
+
+    allocation = line.allocations.first()
+    allocation_id = graphene.Node.to_global_id("Allocation", allocation.pk)
+    warehouse_id = graphene.Node.to_global_id(
+        "Warehouse", allocation.stock.warehouse.pk
+    )
+    assert first_order_data_line["allocations"] == [
+        {"id": allocation_id, "quantity": 0, "warehouse": {"id": warehouse_id}}
+    ]
+
+
+def test_order_line_with_allocations(
+    staff_api_client, permission_manage_orders, order_with_lines,
+):
+    # given
+    order = order_with_lines
+    query = """
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        lines {
+                            id
+                            allocations {
+                                id
+                                quantity
+                                warehouse {
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(query)
+
+    # then
+    content = get_graphql_content(response)
+    lines = content["data"]["orders"]["edges"][0]["node"]["lines"]
+
+    for line in lines:
+        _, _id = graphene.Node.from_global_id(line["id"])
+        order_line = order.lines.get(pk=_id)
+        allocations_from_query = {
+            allocation["quantity"] for allocation in line["allocations"]
+        }
+        allocations_from_db = set(
+            order_line.allocations.values_list("quantity_allocated", flat=True)
+        )
+        assert allocations_from_query == allocations_from_db
 
 
 def test_order_query(

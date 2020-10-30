@@ -4,7 +4,7 @@ from graphene import relay
 
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions, OrderPermissions
+from ...core.permissions import AccountPermissions, OrderPermissions, ProductPermissions
 from ...core.taxes import display_gross_prices
 from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderStatus, models
@@ -18,7 +18,7 @@ from ..account.utils import requestor_has_access
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
-from ..decorators import permission_required
+from ..decorators import one_of_permissions_required, permission_required
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
@@ -26,7 +26,8 @@ from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
-from ..warehouse.types import Warehouse
+from ..warehouse.types import Allocation, Warehouse
+from .dataloaders import AllocationsByOrderLineIdLoader
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
 
@@ -255,6 +256,10 @@ class OrderLine(CountableDjangoObjectType):
     translated_variant_name = graphene.String(
         required=True, description="Variant name in the customer's language"
     )
+    allocations = graphene.List(
+        graphene.NonNull(Allocation),
+        description="List of allocations across warehouses.",
+    )
 
     class Meta:
         description = "Represents order line of particular order."
@@ -298,6 +303,13 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_translated_variant_name(root: models.OrderLine, _info):
         return root.translated_variant_name
+
+    @staticmethod
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
+    def resolve_allocations(root: models.OrderLine, info):
+        return AllocationsByOrderLineIdLoader(info.context).load(root.id)
 
 
 class Order(CountableDjangoObjectType):
