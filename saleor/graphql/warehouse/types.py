@@ -116,6 +116,4 @@ class Allocation(CountableDjangoObjectType):
         [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
     )
     def resolve_quantity(root, *_args):
-        return root.stock.allocations.aggregate(
-            quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
-        )["quantity_allocated"]
+        return root.quantity_allocated
