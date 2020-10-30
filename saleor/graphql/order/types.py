@@ -17,7 +17,7 @@ from ...warehouse import models as warehouse_models
 from ..account.types import User
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
-from ..channel.dataloaders import ChannelByIdLoader
+from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
@@ -28,10 +28,12 @@ from ..invoice.types import Invoice
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
+from ..product.dataloaders import ProductVariantByIdLoader
 from ..product.types import ProductVariant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..shipping.types import ShippingMethod
 from ..warehouse.types import Warehouse
+from .dataloaders import OrderLinesByOrderIdLoader
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
 
@@ -305,10 +307,18 @@ class OrderLine(CountableDjangoObjectType):
         return root.translated_variant_name
 
     @staticmethod
-    def resolve_variant(root: models.OrderLine, _info):
-        # TODO: Add dataloader for variant and channel_slug
-        channel_slug = root.order.channel.slug if root.order.channel else None
-        return ChannelContext(node=root.variant, channel_slug=channel_slug)
+    def resolve_variant(root: models.OrderLine, info):
+        if not root.variant_id:
+            return None
+
+        def wrap_variant_with_channel_context(data):
+            variant, channel = data
+            return ChannelContext(node=variant, channel_slug=channel.slug)
+
+        variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
+        channel = ChannelByOrderLineIdLoader(info.context).load(root.id)
+
+        return Promise.all([variant, channel]).then(wrap_variant_with_channel_context)
 
 
 class Order(CountableDjangoObjectType):
@@ -465,8 +475,8 @@ class Order(CountableDjangoObjectType):
         return qs.order_by("pk")
 
     @staticmethod
-    def resolve_lines(root: models.Order, _info):
-        return root.lines.all().order_by("pk")
+    def resolve_lines(root: models.Order, info):
+        return OrderLinesByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)
