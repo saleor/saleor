@@ -9,7 +9,7 @@ from ...core.taxes import display_gross_prices, zero_taxed_money
 from ...plugins.manager import get_plugins_manager
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
-from ..channel.dataloaders import ChannelByCheckoutLineIDLoader
+from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..core.connection import CountableDjangoObjectType
 from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
@@ -18,6 +18,7 @@ from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..giftcard.types import GiftCard
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
+from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
 from .dataloaders import CheckoutLinesByCheckoutTokenLoader
@@ -177,12 +178,24 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_method(root: models.Checkout, info):
-        shipping_method = root.shipping_method
-        if shipping_method is None:
+        if not root.shipping_method_id:
             return None
-        return ChannelContext(node=shipping_method, channel_slug=root.channel.slug)
+
+        def wrap_shipping_method_with_channel_context(data):
+            shipping_method, channel = data
+            return ChannelContext(node=shipping_method, channel_slug=channel.slug)
+
+        shipping_method = ShippingMethodByIdLoader(info.context).load(
+            root.shipping_method_id
+        )
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
+
+        return Promise.all([shipping_method, channel]).then(
+            wrap_shipping_method_with_channel_context
+        )
 
     @staticmethod
+    # TODO: We should optimize it in/after PR#5819
     def resolve_total_price(root: models.Checkout, info):
         def calculate_total_price(data):
             lines, discounts = data
@@ -202,6 +215,7 @@ class Checkout(CountableDjangoObjectType):
         return Promise.all([lines, discounts]).then(calculate_total_price)
 
     @staticmethod
+    # TODO: We should optimize it in/after PR#5819
     def resolve_subtotal_price(root: models.Checkout, info):
         def calculate_subtotal_price(data):
             lines, discounts = data
@@ -217,6 +231,7 @@ class Checkout(CountableDjangoObjectType):
         return Promise.all([lines, discounts]).then(calculate_subtotal_price)
 
     @staticmethod
+    # TODO: We should optimize it in/after PR#5819
     def resolve_shipping_price(root: models.Checkout, info):
         def calculate_shipping_price(data):
             lines, discounts = data
@@ -232,11 +247,12 @@ class Checkout(CountableDjangoObjectType):
         return Promise.all([lines, discounts]).then(calculate_shipping_price)
 
     @staticmethod
+    # TODO: We should optimize it in/after PR#5819
     def resolve_lines(root: models.Checkout, *_args):
-        # TODO: We should add dataloader here.
         return root.lines.prefetch_related("variant")
 
     @staticmethod
+    # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Checkout, info):
         def calculate_available_shipping_methods(data):
             lines, discounts = data
