@@ -36,7 +36,67 @@ class AttributesByAttributeId(DataLoader):
         return [attributes.get(key) for key in keys]
 
 
+class BaseProductAttributesByProductTypeIdLoader(DataLoader):
+    """Loads product attributes by product type ID."""
+
+    context_key = "product_attributes_by_producttype"
+    model_name = None
+
+    def batch_load(self, keys):
+        if not self.model_name:
+            raise ValueError("Provide a model_name for this dataloader.")
+
+        user = self.user
+        if user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS):
+            qs = self.model_name.objects.all()
+        else:
+            qs = self.model_name.objects.filter(attribute__visible_in_storefront=True)
+        product_type_attribute_pairs = qs.filter(product_type_id__in=keys).values_list(
+            "product_type_id", "attribute_id"
+        )
+
+        product_type_to_attributes_map = defaultdict(list)
+        for product_type_id, attr_id in product_type_attribute_pairs:
+            product_type_to_attributes_map[product_type_id].append(attr_id)
+
+        def map_attributes(attributes):
+            attributes_map = {attr.id: attr for attr in attributes}
+            return [
+                [
+                    attributes_map[attr_id]
+                    for attr_id in product_type_to_attributes_map[product_type_id]
+                ]
+                for product_type_id in keys
+            ]
+
+        return (
+            AttributesByAttributeId(self.context)
+            .load_many(set(attr_id for _, attr_id in product_type_attribute_pairs))
+            .then(map_attributes)
+        )
+
+
+class ProductAttributesByProductTypeIdLoader(
+    BaseProductAttributesByProductTypeIdLoader
+):
+    """Loads product attributes by product type ID."""
+
+    context_key = "product_attributes_by_producttype"
+    model_name = AttributeProduct
+
+
+class VariantAttributesByProductTypeIdLoader(
+    BaseProductAttributesByProductTypeIdLoader
+):
+    """Loads variant attributes by product type ID."""
+
+    context_key = "variant_attributes_by_producttype"
+    model_name = AttributeVariant
+
+
 class AttributeProductsByProductTypeIdLoader(DataLoader):
+    """Loads AttributeProduct objects by product type ID."""
+
     context_key = "attributeproducts_by_producttype"
 
     def batch_load(self, keys):

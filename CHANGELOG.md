@@ -20,7 +20,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `PRODUCT_UPDATED` webhook event - #6100 by @tomaszszymanski129
 - Search orders by graphql PaymentID - #6135 by @korycins
 - Search orders by custom key provided by payment gateway - #6135 by @korycins
+- Default product variant - #6140 by @tomaszszymanski129
 - Allow product variants to be sortable - #6138 by @tomaszszymanski129
+- Staff with only manage_orders should be able to query all stock related date. - #6139 by @fowczarek
+- Add filtering to `ProductVariants` query and option to fetch variant by sku in `ProductVariant` query - #6190 by @fowczarek
+- Add filtering by Product IDs to `products` query - #6224 by @GrzegorzDerdak
+
 
 ### Breaking Changes
 
@@ -30,6 +35,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add dummy credit card payment - #5822 by @IKarbowiak
 - Anonymize and update order and payment fields; drop PaymentSecureConfirm mutation, drop Payment type fields: extraData, billingAddress, billingEmail, drop gatewayResponse from Transaction type - #5926 by @IKarbowiak
 - Switch the HTTP stack from WSGI to ASGI based on Uvicorn - #5960 by @patrys
+- Add manage product types and attributes permission - #6219 by @IKarbowiak
 
 ### Fixes
 
@@ -57,6 +63,21 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix crashing system when avalara is improperly configured - #6117 by @IKarbowiak
 - Fix for failing finalising draft order - #6133 by @korycins
 - Remove corresponding draft order lines when variant is removing - #6119 by @IKarbowiak
+- Update required perms for apps management - #6173 by @IKarbowiak
+- Raise an error for an empty key in metadata - #6176 by @IKarbowiak
+- Add attributes to product error - #6181 by @IKarbowiak
+- Allow to add product variant with 0 price to draft order - #6189 by @IKarbowiak
+- Fix deleting product when default variant is deleted - #6186 by @IKarbowiak
+- Fix get unpublished products, product variants and collection as app - #6194 by @fowczarek
+- Set OrderFulfillStockInput fields as required - #6196 by @IKarbowiak
+- Fix attribute filtering by categories and collections - #6214 by @fowczarek
+- Fix is_visible when publication_date==today - #6225 by @korycins
+- Fix filtering products by multiple attributes - #6215 by @GrzegorzDerdak
+- Add attributes validation while creating/updating a product's variant - #6269 by @GrzegorzDerdak
+- Add metadata to page model - #6292 by @dominik-zeglen
+- Fix for unnecesary attributes validation while updating simple product - #6300 by @GrzegorzDerdak
+- Include order line total price to webhook payload - #6354 by @korycins
+- Fix for fulfilling an order when product quantity equals allocated quantity - #6333 by @GrzegorzDerdak
 
 ## 2.10.2
 

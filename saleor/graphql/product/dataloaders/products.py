@@ -42,6 +42,14 @@ class ProductByVariantIdLoader(DataLoader):
         )
 
 
+class ProductTypeByIdLoader(DataLoader):
+    context_key = "product_type_by_id"
+
+    def batch_load(self, keys):
+        product_types = ProductType.objects.in_bulk(keys)
+        return [product_types.get(product_type_id) for product_type_id in keys]
+
+
 class ImagesByProductIdLoader(DataLoader):
     context_key = "images_by_product"
 

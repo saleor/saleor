@@ -29,7 +29,7 @@
         .section-header,
         .section-invoice-info {
             background-color: #EFF5F8;
-            height: 235px;
+            height: 255px;
         }
 
         .section-left {
@@ -105,12 +105,6 @@
 
         .summary-row {
             line-height: normal;
-        }
-
-        .logo-placeholder {
-            height: 30px;
-            width: 78px;
-            padding-bottom: 20px;
         }
 
         .padded-font {
@@ -190,8 +184,6 @@
 <body>
     <div class="section-header section-left">
         <div class="content-padded">
-            <div class="logo-placeholder"></div>
-            <br />
             <span class="normal-text">{{ order.billing_address.company_name }}</span>
             <br />
             <span class="normal-text">{{ order.billing_address.street_address_1 }}</span>
@@ -307,7 +299,13 @@
         <div class="content-tight-padded padded-top">
             <span class="header-title">{% trans "PAYMENT METHOD" context "Invoice PDF" %}</span>
             <br />
-            <span class="normal-text">{{ order.get_last_payment.gateway }}</span>
+            {% if order.get_last_payment %}
+                <span class="normal-text">{{ order.get_last_payment.gateway }}</span>
+            {% else %}
+                <span class="normal-text">
+                    {% trans "Unpaid" context "Invoice PDF: Payment method value" %}
+                </span>
+            {% endif %}
             <br />
         </div>
     </div>

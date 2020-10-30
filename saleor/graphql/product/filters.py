@@ -214,6 +214,8 @@ def filter_attributes_by_product_types(qs, field, value, requestor):
     if not value:
         return qs
 
+    product_qs = Product.objects.visible_to_user(requestor)
+
     if field == "in_category":
         category_id = from_global_id_strict_type(
             value, only_type="Category", field=field
@@ -224,7 +226,7 @@ def filter_attributes_by_product_types(qs, field, value, requestor):
             return qs.none()
 
         tree = category.get_descendants(include_self=True)
-        product_qs = Product.objects.filter(category__in=tree)
+        product_qs = product_qs.filter(category__in=tree)
 
         if not product_qs.user_has_access_to_all(requestor):
             product_qs = product_qs.exclude(visible_in_listings=False)
@@ -233,7 +235,7 @@ def filter_attributes_by_product_types(qs, field, value, requestor):
         collection_id = from_global_id_strict_type(
             value, only_type="Collection", field=field
         )
-        product_qs = Product.objects.filter(collections__id=collection_id)
+        product_qs = product_qs.filter(collections__id=collection_id)
 
     else:
         raise NotImplementedError(f"Filtering by {field} is unsupported")
@@ -263,6 +265,10 @@ def filter_warehouses(qs, _, value):
         )
         return qs.filter(variants__stocks__warehouse__pk__in=warehouse_pks)
     return qs
+
+
+def filter_sku_list(qs, _, value):
+    return qs.filter(sku__in=value)
 
 
 def filter_quantity(qs, quantity_value, warehouses=None):
@@ -320,6 +326,7 @@ class ProductFilter(django_filters.FilterSet):
     product_types = GlobalIDMultipleChoiceFilter(field_name="product_type")
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     search = django_filters.CharFilter(method=filter_search)
+    ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
         model = Product
@@ -334,6 +341,17 @@ class ProductFilter(django_filters.FilterSet):
             "stocks",
             "search",
         ]
+
+
+class ProductVariantFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(
+        method=filter_fields_containing_value("name", "product__name", "sku")
+    )
+    sku = ListObjectTypeFilter(input_class=graphene.String, method=filter_sku_list)
+
+    class Meta:
+        model = ProductVariant
+        fields = ["search", "sku"]
 
 
 class CollectionFilter(django_filters.FilterSet):
@@ -411,6 +429,11 @@ class AttributeFilter(django_filters.FilterSet):
 class ProductFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = ProductFilter
+
+
+class ProductVariantFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = ProductVariantFilter
 
 
 class CollectionFilterInput(FilterInputObjectType):

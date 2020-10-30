@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
@@ -344,7 +345,7 @@ def test_delete_product_images(
 
 
 def test_delete_product_types(
-    staff_api_client, product_type_list, permission_manage_products
+    staff_api_client, product_type_list, permission_manage_product_types_and_attributes
 ):
     query = """
     mutation productTypeBulkDelete($ids: [ID]!) {
@@ -361,7 +362,7 @@ def test_delete_product_types(
         ]
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
 
@@ -478,3 +479,140 @@ def test_delete_product_variants_in_draft_orders(
         second_draft_order.refresh_from_db()
 
     assert OrderLine.objects.filter(pk=order_line_not_in_draft_pk).exists()
+
+
+def test_delete_product_variants_delete_default_variant(
+    staff_api_client, product, permission_manage_products
+):
+    # given
+    query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
+
+    new_default_variant = product.variants.first()
+
+    variants = ProductVariant.objects.bulk_create(
+        [
+            ProductVariant(product=product, sku="1", price_amount=Decimal(10)),
+            ProductVariant(product=product, sku="2", price_amount=Decimal(10)),
+            ProductVariant(product=product, sku="3", price_amount=Decimal(10)),
+        ]
+    )
+
+    default_variant = variants[0]
+
+    product = default_variant.product
+    product.default_variant = default_variant
+    product.save(update_fields=["default_variant"])
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("ProductVariant", variant.id)
+            for variant in variants
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["productVariantBulkDelete"]["count"] == 3
+    assert not ProductVariant.objects.filter(
+        id__in=[variant.id for variant in variants]
+    ).exists()
+
+    product.refresh_from_db()
+    assert product.default_variant.pk == new_default_variant.pk
+
+
+def test_delete_product_variants_delete_all_product_variants(
+    staff_api_client, product, permission_manage_products
+):
+    # given
+    query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
+
+    new_default_variant = product.variants.first()
+
+    variants = ProductVariant.objects.bulk_create(
+        [
+            ProductVariant(product=product, sku="1", price_amount=Decimal(10)),
+            ProductVariant(product=product, sku="2", price_amount=Decimal(10)),
+        ]
+    )
+
+    default_variant = variants[0]
+
+    product = default_variant.product
+    product.default_variant = default_variant
+    product.save(update_fields=["default_variant"])
+
+    ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.id) for variant in variants
+    ]
+    ids.append(graphene.Node.to_global_id("ProductVariant", new_default_variant.id))
+
+    variables = {"ids": ids}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["productVariantBulkDelete"]["count"] == 3
+    assert not ProductVariant.objects.filter(
+        id__in=[variant.id for variant in variants]
+    ).exists()
+
+    product.refresh_from_db()
+    assert product.default_variant is None
+
+
+def test_delete_product_variants_from_different_products(
+    staff_api_client, product, product_with_two_variants, permission_manage_products
+):
+    # given
+    query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
+
+    product_1 = product
+    product_2 = product_with_two_variants
+
+    product_1_default_variant = product_1.variants.first()
+    product_2_default_variant = product_2.variants.first()
+
+    product_1.default_variant = product_1_default_variant
+    product_2.default_variant = product_2_default_variant
+
+    Product.objects.bulk_update([product_1, product_2], ["default_variant"])
+
+    product_2_second_variant = product_2.variants.last()
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("ProductVariant", product_1_default_variant.id),
+            graphene.Node.to_global_id("ProductVariant", product_2_default_variant.id),
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert content["data"]["productVariantBulkDelete"]["count"] == 2
+    assert not ProductVariant.objects.filter(
+        id__in=[product_1_default_variant.id, product_2_default_variant.id]
+    ).exists()
+
+    product_1.refresh_from_db()
+    product_2.refresh_from_db()
+
+    assert product_1.default_variant is None
+    assert product_2.default_variant.pk == product_2_second_variant.pk

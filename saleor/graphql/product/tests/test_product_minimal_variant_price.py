@@ -78,17 +78,20 @@ def test_product_variant_update_updates_minimal_variant_price(
     mock_update_product_minimal_variant_price_task,
     staff_api_client,
     product,
+    size_attribute,
     permission_manage_products,
 ):
     query = """
         mutation ProductVariantUpdate(
             $id: ID!,
             $price: PositiveDecimal,
+            $attributes: [AttributeValueInput],
         ) {
             productVariantUpdate(
                 id: $id,
                 input: {
                     price: $price,
+                    attributes: $attributes
                 }
             ) {
                 productVariant {
@@ -103,8 +106,13 @@ def test_product_variant_update_updates_minimal_variant_price(
     """
     variant = product.variants.first()
     variant_id = to_global_id("ProductVariant", variant.pk)
+    attribute_id = to_global_id("Attribute", size_attribute.pk)
     price = "1.99"
-    variables = {"id": variant_id, "price": price}
+    variables = {
+        "id": variant_id,
+        "price": price,
+        "attributes": [{"id": attribute_id, "values": ["S"]}],
+    }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )

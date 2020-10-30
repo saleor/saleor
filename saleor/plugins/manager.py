@@ -502,7 +502,7 @@ class PluginsManager(PaymentInterface):
     # FIXME these methods should be more generic
 
     def assign_tax_code_to_object_meta(
-        self, obj: Union["Product", "ProductType"], tax_code: str
+        self, obj: Union["Product", "ProductType"], tax_code: Optional[str]
     ):
         default_value = None
         return self.__run_method_on_plugins(
@@ -532,9 +532,12 @@ class PluginsManager(PaymentInterface):
                     identifier=plugin_id,
                     defaults={"configuration": plugin.configuration},
                 )
-                return plugin.save_plugin_configuration(
+                configuration = plugin.save_plugin_configuration(
                     plugin_configuration, cleaned_data
                 )
+                configuration.name = plugin.PLUGIN_NAME
+                configuration.description = plugin.PLUGIN_DESCRIPTION
+                return configuration
 
     def get_plugin(self, plugin_id: str) -> Optional["BasePlugin"]:
         for plugin in self.plugins:

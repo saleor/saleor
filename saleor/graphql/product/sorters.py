@@ -105,6 +105,7 @@ class CollectionSortField(graphene.Enum):
     NAME = ["name"]
     AVAILABILITY = ["is_published", "name"]
     PRODUCT_COUNT = ["product_count", "name"]
+    PUBLICATION_DATE = ["publication_date", "name"]
 
     @property
     def description(self):
@@ -113,6 +114,7 @@ class CollectionSortField(graphene.Enum):
             CollectionSortField.NAME,
             CollectionSortField.AVAILABILITY,
             CollectionSortField.PRODUCT_COUNT,
+            CollectionSortField.PUBLICATION_DATE,
         ]:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort collections by {sort_name}."
@@ -136,6 +138,7 @@ class ProductOrderField(graphene.Enum):
     DATE = ["updated_at", "name", "slug"]
     TYPE = ["product_type__name", "name", "slug"]
     PUBLISHED = ["is_published", "name", "slug"]
+    PUBLICATION_DATE = ["publication_date", "name", "slug"]
 
     @property
     def description(self):
@@ -149,6 +152,7 @@ class ProductOrderField(graphene.Enum):
             ),
             ProductOrderField.DATE.name: "update date",
             ProductOrderField.PUBLISHED.name: "publication status",
+            ProductOrderField.PUBLICATION_DATE.name: "publication date",
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}."

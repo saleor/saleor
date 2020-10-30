@@ -3,12 +3,13 @@ name: TEST-ENV-CLEANUP
 
 on:
   pull_request:
-    # trigger on "edited" to update instance when configuration changes in PR description
-    types: [closed]
+    types: [closed, unlabeled]
     branches: ["*"]
 
 jobs:
   cleanup:
+    name: Remove test environment deployment
+    if: ${{ ((github.event.action == 'unlabeled') && (github.event.label.name == 'test deployment')) || ((github.event.action == 'closed') && contains(github.event.pull_request.labels.*.name, 'test deployment')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: rlespinasse/github-slug-action@2.0.0

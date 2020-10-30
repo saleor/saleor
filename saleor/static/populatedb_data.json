@@ -301,7 +301,7 @@
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "name": "Paint",
       "slug": "paint",
@@ -318,7 +318,7 @@
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "name": "Music",
       "slug": "music",
@@ -335,7 +335,7 @@
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "name": "Juice",
       "slug": "juice",
@@ -352,7 +352,7 @@
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "name": "Wine",
       "slug": "wine",
@@ -369,7 +369,7 @@
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "name": "Beer",
       "slug": "beer",
@@ -386,7 +386,7 @@
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "name": "Cushion",
       "slug": "cushion",
@@ -403,7 +403,7 @@
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "name": "Shoe",
       "slug": "shoe",
@@ -420,7 +420,7 @@
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "name": "Top (clothing)",
       "slug": "top-clothing",
@@ -448,14 +448,14 @@
     "model": "product.product",
     "pk": 61,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "taxes": {
           "vatlayer": {
             "code": "standard",
-            "description": ""
+            "description": "standard"
           }
         }
       },
@@ -491,12 +491,12 @@
     "model": "product.product",
     "pk": 62,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color.",
@@ -530,12 +530,12 @@
     "model": "product.product",
     "pk": 63,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "",
@@ -569,12 +569,12 @@
     "model": "product.product",
     "pk": 64,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed.",
@@ -608,12 +608,12 @@
     "model": "product.product",
     "pk": 65,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint.",
@@ -647,12 +647,12 @@
     "model": "product.product",
     "pk": 71,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges.",
@@ -686,12 +686,12 @@
     "model": "product.product",
     "pk": 72,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
@@ -725,12 +725,12 @@
     "model": "product.product",
     "pk": 73,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth.",
@@ -764,12 +764,12 @@
     "model": "product.product",
     "pk": 74,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
@@ -803,12 +803,12 @@
     "model": "product.product",
     "pk": 75,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out.",
@@ -842,12 +842,12 @@
     "model": "product.product",
     "pk": 76,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some.",
@@ -881,12 +881,12 @@
     "model": "product.product",
     "pk": 77,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Is it a bird? Is it a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!",
@@ -920,12 +920,12 @@
     "model": "product.product",
     "pk": 78,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice.",
@@ -959,12 +959,12 @@
     "model": "product.product",
     "pk": 79,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
@@ -998,12 +998,12 @@
     "model": "product.product",
     "pk": 81,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes.",
@@ -1037,12 +1037,12 @@
     "model": "product.product",
     "pk": 82,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days.",
@@ -1076,12 +1076,12 @@
     "model": "product.product",
     "pk": 83,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!",
@@ -1115,12 +1115,12 @@
     "model": "product.product",
     "pk": 84,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love.",
@@ -1154,12 +1154,12 @@
     "model": "product.product",
     "pk": 85,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
@@ -1193,12 +1193,12 @@
     "model": "product.product",
     "pk": 86,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs.",
@@ -1232,12 +1232,12 @@
     "model": "product.product",
     "pk": 87,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
@@ -1271,12 +1271,12 @@
     "model": "product.product",
     "pk": 88,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
@@ -1310,12 +1310,12 @@
     "model": "product.product",
     "pk": 89,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Pay homage to the music and art of Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls.",
@@ -1349,12 +1349,12 @@
     "model": "product.product",
     "pk": 107,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
@@ -1388,12 +1388,12 @@
     "model": "product.product",
     "pk": 108,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel.",
@@ -1427,12 +1427,12 @@
     "model": "product.product",
     "pk": 109,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling.",
@@ -1466,12 +1466,12 @@
     "model": "product.product",
     "pk": 110,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night.",
@@ -1505,12 +1505,12 @@
     "model": "product.product",
     "pk": 111,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses.",
@@ -1544,12 +1544,12 @@
     "model": "product.product",
     "pk": 112,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank.",
@@ -1583,12 +1583,12 @@
     "model": "product.product",
     "pk": 113,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day.",
@@ -1622,12 +1622,12 @@
     "model": "product.product",
     "pk": 114,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last.",
@@ -1661,12 +1661,12 @@
     "model": "product.product",
     "pk": 115,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good.",
@@ -1700,12 +1700,12 @@
     "model": "product.product",
     "pk": 116,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world.",
@@ -1739,12 +1739,12 @@
     "model": "product.product",
     "pk": 117,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie.",
@@ -1778,12 +1778,12 @@
     "model": "product.product",
     "pk": 118,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {
         "vatlayer.code": "standard",
-        "vatlayer.description": ""
+        "vatlayer.description": "standard"
       },
       "seo_title": "",
       "seo_description": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair.",
@@ -1817,7 +1817,7 @@
     "model": "product.product",
     "pk": 119,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -1853,7 +1853,7 @@
     "model": "product.product",
     "pk": 120,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -1889,7 +1889,7 @@
     "model": "product.product",
     "pk": 121,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -1925,7 +1925,7 @@
     "model": "product.product",
     "pk": 122,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -1961,7 +1961,7 @@
     "model": "product.product",
     "pk": 123,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -1997,7 +1997,7 @@
     "model": "product.product",
     "pk": 124,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -7451,7 +7451,7 @@
     "model": "product.collection",
     "pk": 1,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},
@@ -7480,7 +7480,7 @@
     "model": "product.collection",
     "pk": 2,
     "fields": {
-      "publication_date": null,
+      "publication_date": "2020-01-01",
       "is_published": true,
       "private_metadata": {},
       "metadata": {},

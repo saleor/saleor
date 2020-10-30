@@ -16,7 +16,9 @@ from ..utils.costs import get_margin_for_variant
 from ..utils.digital_products import increment_download_count
 
 
-def test_filtering_by_attribute(db, color_attribute, category, settings):
+def test_filtering_by_attributes(
+    db, color_attribute, size_attribute, category, settings
+):
     product_type_a = models.ProductType.objects.create(
         name="New class", slug="new-class1", has_variants=True
     )
@@ -75,6 +77,16 @@ def test_filtering_by_attribute(db, color_attribute, category, settings):
     filtered = filter_products_by_attributes_values(product_qs, filters)
     assert product_a.pk in list(filtered)
     assert product_b.pk in list(filtered)
+
+    # Associate additional attribute to a product
+    size = size_attribute.values.first()
+    product_type_a.product_attributes.add(size_attribute)
+    associate_attribute_values_to_instance(product_a, size_attribute, size)
+
+    # Filter by multiple attributes
+    filters = {color_attribute.pk: [color_2.pk], size_attribute.pk: [size.pk]}
+    filtered = filter_products_by_attributes_values(product_qs, filters)
+    assert product_a.pk in list(filtered)
 
 
 @pytest.mark.parametrize(

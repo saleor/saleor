@@ -90,8 +90,10 @@ def test_calculate_checkout_line_total(
     site_settings.save()
     line = checkout_with_item.lines.first()
     product = line.variant.product
-    manager.assign_tax_code_to_object_meta(product, "PC040156")
+    product.metadata = {}
+    manager.assign_tax_code_to_object_meta(product.product_type, "PC040156")
     product.save()
+    product.product_type.save()
     discounts = [discount_info] if with_discount else None
     total = manager.calculate_checkout_line_total(
         checkout_with_item,
@@ -153,9 +155,10 @@ def test_calculate_checkout_total_uses_default_calculation(
     checkout_with_item.save()
     line = checkout_with_item.lines.first()
     product = line.variant.product
-    manager.assign_tax_code_to_object_meta(product, "PC040156")
+    product.metadata = {}
+    manager.assign_tax_code_to_object_meta(product.product_type, "PC040156")
     product.save()
-
+    product.product_type.save()
     product_with_single_variant.charge_taxes = False
     product_with_single_variant.category = non_default_category
     product_with_single_variant.save()
@@ -222,9 +225,10 @@ def test_calculate_checkout_total(
     checkout_with_item.save()
     line = checkout_with_item.lines.first()
     product = line.variant.product
-    manager.assign_tax_code_to_object_meta(product, "PC040156")
+    product.metadata = {}
+    manager.assign_tax_code_to_object_meta(product.product_type, "PC040156")
     product.save()
-
+    product.product_type.save()
     product_with_single_variant.charge_taxes = False
     product_with_single_variant.category = non_default_category
     product_with_single_variant.save()
