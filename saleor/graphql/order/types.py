@@ -22,6 +22,7 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import permission_required
+from ..discount.dataloaders import VoucherByIdLoader
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
@@ -540,6 +541,7 @@ class Order(CountableDjangoObjectType):
         )
 
     @staticmethod
+    # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, _info):
         available = get_valid_shipping_methods_for_order(root)
         if available is None:
@@ -597,9 +599,15 @@ class Order(CountableDjangoObjectType):
         return resolve_meta(root, _info)
 
     @staticmethod
-    def resolve_voucher(root: models.Order, _info):
-        # TODO: Add dataloader for channel_slug
-        if not root.voucher:
+    def resolve_voucher(root: models.Order, info):
+        if not root.voucher_id:
             return None
-        channel_slug = root.channel.slug if root.channel else None
-        return ChannelContext(node=root.voucher, channel_slug=channel_slug)
+
+        def wrap_voucher_with_channel_context(data):
+            voucher, channel = data
+            return ChannelContext(node=voucher, channel_slug=channel.slug)
+
+        voucher = VoucherByIdLoader(info.context).load(root.voucher_id)
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
+
+        return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)
