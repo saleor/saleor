@@ -77,6 +77,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add metadata to page model - #6292 by @dominik-zeglen
 - Fix for unnecesary attributes validation while updating simple product - #6300 by @GrzegorzDerdak
 - Include order line total price to webhook payload - #6354 by @korycins
+- Fix for fulfilling an order when product quantity equals allocated quantity - #6333 by @GrzegorzDerdak
 
 ## 2.10.2
 

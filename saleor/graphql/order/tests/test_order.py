@@ -101,6 +101,13 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
                                 id
                             }
                             quantity
+                            allocations {
+                                id
+                                quantity
+                                warehouse {
+                                    id
+                                }
+                            }
                             unitPrice {
                                 currency
                                 gross {
@@ -126,22 +133,81 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    assert order_data["lines"][0]["thumbnail"] is None
+    first_order_data_line = order_data["lines"][0]
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
-    assert order_data["lines"][0]["variant"]["id"] == variant_id
-    assert order_data["lines"][0]["quantity"] == line.quantity
-    assert order_data["lines"][0]["unitPrice"]["currency"] == line.unit_price.currency
+
+    assert first_order_data_line["thumbnail"] is None
+    assert first_order_data_line["variant"]["id"] == variant_id
+    assert first_order_data_line["quantity"] == line.quantity
+    assert first_order_data_line["unitPrice"]["currency"] == line.unit_price.currency
+
     expected_unit_price = Money(
-        amount=str(order_data["lines"][0]["unitPrice"]["gross"]["amount"]),
+        amount=str(first_order_data_line["unitPrice"]["gross"]["amount"]),
         currency="USD",
     )
-    assert order_data["lines"][0]["totalPrice"]["currency"] == line.unit_price.currency
+    assert first_order_data_line["totalPrice"]["currency"] == line.unit_price.currency
     assert expected_unit_price == line.unit_price.gross
+
     expected_total_price = Money(
-        amount=str(order_data["lines"][0]["totalPrice"]["gross"]["amount"]),
+        amount=str(first_order_data_line["totalPrice"]["gross"]["amount"]),
         currency="USD",
     )
     assert expected_total_price == line.unit_price.gross * line.quantity
+
+    allocation = line.allocations.first()
+    allocation_id = graphene.Node.to_global_id("Allocation", allocation.pk)
+    warehouse_id = graphene.Node.to_global_id(
+        "Warehouse", allocation.stock.warehouse.pk
+    )
+    assert first_order_data_line["allocations"] == [
+        {"id": allocation_id, "quantity": 0, "warehouse": {"id": warehouse_id}}
+    ]
+
+
+def test_order_line_with_allocations(
+    staff_api_client, permission_manage_orders, order_with_lines,
+):
+    # given
+    order = order_with_lines
+    query = """
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        lines {
+                            id
+                            allocations {
+                                id
+                                quantity
+                                warehouse {
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(query)
+
+    # then
+    content = get_graphql_content(response)
+    lines = content["data"]["orders"]["edges"][0]["node"]["lines"]
+
+    for line in lines:
+        _, _id = graphene.Node.from_global_id(line["id"])
+        order_line = order.lines.get(pk=_id)
+        allocations_from_query = {
+            allocation["quantity"] for allocation in line["allocations"]
+        }
+        allocations_from_db = set(
+            order_line.allocations.values_list("quantity_allocated", flat=True)
+        )
+        assert allocations_from_query == allocations_from_db
 
 
 def test_order_query(
@@ -808,9 +874,9 @@ DRAFT_ORDER_UPDATE_MUTATION = """
 
 
 def test_draft_order_update(
-    staff_api_client, permission_manage_orders, order_with_lines, voucher
+    staff_api_client, permission_manage_orders, draft_order, voucher
 ):
-    order = order_with_lines
+    order = draft_order
     assert not order.voucher
     assert not order.customer_note
     query = DRAFT_ORDER_UPDATE_MUTATION
@@ -829,18 +895,36 @@ def test_draft_order_update(
     assert order.customer_note == customer_note
 
 
+def test_draft_order_update_with_non_draft_order(
+    staff_api_client, permission_manage_orders, order_with_lines, voucher
+):
+    order = order_with_lines
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    customer_note = "Test customer note"
+    variables = {"id": order_id, "voucher": voucher_id, "customerNote": customer_note}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderUpdate"]["orderErrors"][0]
+    assert error["field"] == "id"
+    assert error["code"] == OrderErrorCode.INVALID.name
+
+
 @patch("saleor.graphql.order.mutations.draft_orders.update_order_prices")
 def test_draft_order_update_tax_error(
     update_order_prices_mock,
     staff_api_client,
     permission_manage_orders,
-    order_with_lines,
+    draft_order,
     voucher,
     graphql_address_data,
 ):
     err_msg = "Test error"
     update_order_prices_mock.side_effect = TaxError(err_msg)
-    order = order_with_lines
+    order = draft_order
     assert not order.voucher
     assert not order.customer_note
     query = DRAFT_ORDER_UPDATE_MUTATION
@@ -1649,6 +1733,25 @@ def test_require_draft_order_when_removing_lines(
     assert data["errors"]
 
 
+ORDER_UPDATE_MUTATION = """
+    mutation orderUpdate($id: ID!, $email: String, $address: AddressInput) {
+        orderUpdate(
+            id: $id, input: {
+                userEmail: $email,
+                shippingAddress: $address,
+                billingAddress: $address}) {
+            orderErrors {
+                field
+                code
+            }
+            order {
+                userEmail
+            }
+        }
+    }
+"""
+
+
 @patch("saleor.plugins.base_plugin.BasePlugin.order_updated")
 def test_order_update(
     plugin_mock,
@@ -1660,24 +1763,6 @@ def test_order_update(
     order = order_with_lines
     order.user = None
     order.save()
-    query = """
-        mutation orderUpdate(
-        $id: ID!, $email: String, $address: AddressInput) {
-            orderUpdate(
-                id: $id, input: {
-                    userEmail: $email,
-                    shippingAddress: $address,
-                    billingAddress: $address}) {
-                errors {
-                    field
-                    message
-                }
-                order {
-                    userEmail
-                }
-            }
-        }
-        """
     email = "not_default@example.com"
     assert not order.user_email == email
     assert not order.shipping_address.first_name == graphql_address_data["firstName"]
@@ -1685,10 +1770,10 @@ def test_order_update(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id, "email": email, "address": graphql_address_data}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        ORDER_UPDATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    assert not content["data"]["orderUpdate"]["errors"]
+    assert not content["data"]["orderUpdate"]["orderErrors"]
     data = content["data"]["orderUpdate"]["order"]
     assert data["userEmail"] == email
 
@@ -1701,6 +1786,30 @@ def test_order_update(
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
     assert plugin_mock.called is True
+
+
+@patch("saleor.plugins.base_plugin.BasePlugin.order_updated")
+def test_order_update_with_draft_order(
+    plugin_mock,
+    staff_api_client,
+    permission_manage_orders,
+    draft_order,
+    graphql_address_data,
+):
+    order = draft_order
+    order.user = None
+    order.save()
+    email = "not_default@example.com"
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "email": email, "address": graphql_address_data}
+    response = staff_api_client.post_graphql(
+        ORDER_UPDATE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["orderUpdate"]["orderErrors"][0]
+    assert error["field"] == "id"
+    assert error["code"] == OrderErrorCode.INVALID.name
+    assert plugin_mock.called is False
 
 
 def test_order_update_anonymous_user_no_user_email(
