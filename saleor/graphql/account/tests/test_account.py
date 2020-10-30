@@ -13,7 +13,6 @@ from django.core.files import File
 from django.core.validators import URLValidator
 from django.test import override_settings
 from freezegun import freeze_time
-from prices import Money
 
 from ....account import events as account_events
 from ....account.error_codes import AccountErrorCode
@@ -3532,52 +3531,6 @@ def test_query_customers_with_filter_placed_orders_(
     second_customer = User.objects.create(email="second_example@example.com")
     with freeze_time("2012-01-14 11:00:00"):
         Order.objects.create(user=second_customer, channel=channel_USD)
-    variables = {"filter": customer_filter}
-    response = staff_api_client.post_graphql(
-        query_customer_with_filter, variables, permissions=[permission_manage_users]
-    )
-    content = get_graphql_content(response)
-    users = content["data"]["customers"]["edges"]
-
-    assert len(users) == count
-
-
-@pytest.mark.parametrize(
-    "customer_filter, count",
-    [
-        ({"moneySpent": {"gte": 16, "lte": 25}}, 1),
-        ({"moneySpent": {"gte": 15, "lte": 26}}, 2),
-        ({"moneySpent": {"gte": 0}}, 2),
-        ({"moneySpent": {"lte": 16}}, 1),
-    ],
-)
-def test_query_customers_with_filter_placed_orders__(
-    customer_filter,
-    count,
-    query_customer_with_filter,
-    staff_api_client,
-    permission_manage_users,
-    customer_user,
-    channel_USD,
-):
-    second_customer = User.objects.create(email="second_example@example.com")
-    Order.objects.bulk_create(
-        [
-            Order(
-                user=customer_user,
-                token=str(uuid.uuid4()),
-                total_gross=Money(15, "USD"),
-                channel=channel_USD,
-            ),
-            Order(
-                user=second_customer,
-                token=str(uuid.uuid4()),
-                total_gross=Money(25, "USD"),
-                channel=channel_USD,
-            ),
-        ]
-    )
-
     variables = {"filter": customer_filter}
     response = staff_api_client.post_graphql(
         query_customer_with_filter, variables, permissions=[permission_manage_users]

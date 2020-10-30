@@ -1709,7 +1709,6 @@ enum CustomerEventsEnum {
 
 input CustomerFilterInput {
   dateJoined: DateRangeInput
-  moneySpent: PriceRangeInput
   numberOfOrders: IntRangeInput
   placedOrders: DateRangeInput
   search: String
