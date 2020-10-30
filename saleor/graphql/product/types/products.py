@@ -1025,7 +1025,7 @@ class Category(CountableDjangoObjectType):
                 .exclude(visible_in_listings=False,)
             )
         if channel and requestor_has_access_to_all:
-            qs = qs.filter(channel_listing__channel__slug=str(channel))
+            qs = qs.filter(channel_listing__channel__slug=channel)
         qs = qs.filter(category__in=tree)
         return ChannelQsContext(qs=qs, channel_slug=channel)
 
