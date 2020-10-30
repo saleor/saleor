@@ -68,8 +68,9 @@ def request_data_for_payment(
     channel = payment_data.get("channel", "web")
     origin_url = payment_data.get("originUrl")
 
-    if "browserInfo" in payment_data:
-        extra_request_params["browserInfo"] = payment_data["browserInfo"]
+    browser_info = payment_data.get("browserInfo")
+    if browser_info:
+        extra_request_params["browserInfo"] = browser_info
     if "billingAddress" in payment_data:
         extra_request_params["billingAddress"] = payment_data["billingAddress"]
     if "shopperIP" in payment_data:
