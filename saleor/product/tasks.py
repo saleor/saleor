@@ -1,8 +1,9 @@
 from typing import Iterable, List, Optional
 
+from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..discount.models import Sale
-from .models import Attribute, Product, ProductType, ProductVariant
+from .models import Product, ProductType, ProductVariant
 from .utils.attributes import generate_name_for_variant
 from .utils.variant_prices import (
     update_product_minimal_variant_price,

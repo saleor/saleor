@@ -1,5 +1,6 @@
 from django.db.models import Sum
 
+from ...attribute import models as attribute_models
 from ...order import OrderStatus
 from ...product import models
 from ..utils import get_database_id, get_user_or_app_from_context
@@ -9,7 +10,7 @@ from .filters import filter_products_by_stock_availability
 
 def resolve_attributes(info, qs=None, **_kwargs):
     requestor = get_user_or_app_from_context(info.context)
-    qs = qs or models.Attribute.objects.get_visible_to_user(requestor)
+    qs = qs or attribute_models.Attribute.objects.get_visible_to_user(requestor)
     return qs.distinct()
 
 

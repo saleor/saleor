@@ -7,15 +7,9 @@ from django.db.models import F, Q, Subquery, Sum
 from django.db.models.functions import Coalesce
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
+from ...attribute.models import Attribute
 from ...product.filters import filter_products_by_attributes_values
-from ...product.models import (
-    Attribute,
-    Category,
-    Collection,
-    Product,
-    ProductType,
-    ProductVariant,
-)
+from ...product.models import Category, Collection, Product, ProductType, ProductVariant
 from ...search.backends import picker
 from ...warehouse.models import Stock
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter

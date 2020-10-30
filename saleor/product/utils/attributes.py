@@ -1,15 +1,14 @@
 from typing import TYPE_CHECKING, Optional, Set, Union
 
-from ...page.models import Page
-from ..models import (
+from ...attribute.models import (
     AssignedPageAttribute,
     AssignedProductAttribute,
     AssignedVariantAttribute,
     Attribute,
     AttributeValue,
-    Product,
-    ProductVariant,
 )
+from ...page.models import Page
+from ..models import Product, ProductVariant
 
 AttributeAssignmentType = Union[
     AssignedProductAttribute, AssignedVariantAttribute, AssignedPageAttribute
@@ -18,7 +17,7 @@ AttributeAssignmentType = Union[
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..models import AttributeProduct, AttributeVariant, AttributePage
+    from ...attribute.models import AttributeProduct, AttributeVariant, AttributePage
 
 
 def generate_name_for_variant(variant: ProductVariant) -> str:

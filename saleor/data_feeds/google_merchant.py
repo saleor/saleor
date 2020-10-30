@@ -10,11 +10,12 @@ from django.utils import timezone
 from django.utils.encoding import smart_text
 from django_countries.fields import Country
 
+from ..attribute.models import Attribute, AttributeValue
 from ..core.taxes import charge_taxes_on_shipping
 from ..discount import DiscountInfo
 from ..discount.utils import fetch_discounts
 from ..plugins.manager import get_plugins_manager
-from ..product.models import Attribute, AttributeValue, Category, ProductVariant
+from ..product.models import Category, ProductVariant
 from ..warehouse.availability import is_variant_in_stock
 
 CATEGORY_SEPARATOR = " > "

@@ -1,6 +1,7 @@
 from typing import Any, List
 
 from ...account import models as account_models
+from ...attribute import AttributeType, models as attribute_models
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,
@@ -13,7 +14,6 @@ from ...core.permissions import (
     ProductPermissions,
     ProductTypePermissions,
 )
-from ...product import AttributeType, models as product_models
 
 
 def no_permissions(_info, _object_pk: Any) -> List[None]:
@@ -79,7 +79,7 @@ def page_type_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
 
 
 def attribute_permissions(_info, attribute_pk: int):
-    attribute = product_models.Attribute.objects.get(pk=attribute_pk)
+    attribute = attribute_models.Attribute.objects.get(pk=attribute_pk)
     if attribute.type == AttributeType.PAGE_TYPE:
         return page_type_permissions(_info, attribute_pk)
     else:

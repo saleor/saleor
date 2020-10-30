@@ -8,13 +8,15 @@ from django.db.models import Q
 from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
 
-from ....product import AttributeInputType, AttributeType
-from ....product.error_codes import AttributeErrorCode, ProductErrorCode
-from ....product.models import (
+from ....attribute import AttributeInputType, AttributeType
+from ....attribute.models import (
     Attribute,
     AttributeProduct,
     AttributeValue,
     AttributeVariant,
+)
+from ....product.error_codes import AttributeErrorCode, ProductErrorCode
+from ....product.models import (
     Category,
     Collection,
     Product,

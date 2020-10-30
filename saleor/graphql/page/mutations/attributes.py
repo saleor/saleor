@@ -5,10 +5,10 @@ import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 
+from ....attribute import AttributeType, models
 from ....core.permissions import PageTypePermissions
 from ....page import models as page_models
 from ....page.error_codes import PageErrorCode
-from ....product import AttributeType, models
 from ...core.mutations import BaseMutation
 from ...core.types.common import PageError
 from ...core.utils import from_global_id_strict_type

@@ -5,11 +5,10 @@ import graphene
 import pytest
 from prices import Money, TaxedMoney
 
+from ....attribute.models import Attribute, AttributeValue
 from ....order import OrderStatus
 from ....order.models import OrderLine
 from ....product.models import (
-    Attribute,
-    AttributeValue,
     Category,
     Collection,
     Product,

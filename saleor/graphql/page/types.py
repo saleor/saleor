@@ -1,9 +1,9 @@
 import graphene
 from graphene_federation import key
 
+from ...attribute import models as attribute_models
 from ...core.permissions import PagePermissions
 from ...page import models
-from ...product import models as product_models
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
@@ -94,6 +94,6 @@ class PageType(CountableDjangoObjectType):
     @staticmethod
     @permission_required(PagePermissions.MANAGE_PAGES)
     def resolve_available_attributes(root: models.PageType, info, **kwargs):
-        return product_models.Attribute.objects.get_unassigned_page_type_attributes(
+        return attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
         )

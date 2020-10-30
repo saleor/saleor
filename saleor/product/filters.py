@@ -6,13 +6,13 @@ from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.forms import CheckboxSelectMultiple
 from django_filters import MultipleChoiceFilter, OrderingFilter, RangeFilter
 
-from ..core.filters import SortedFilterSet
-from .models import (
+from ..attribute.models import (
     AssignedProductAttribute,
     AssignedVariantAttribute,
     Attribute,
-    Product,
 )
+from ..core.filters import SortedFilterSet
+from .models import Product
 
 SORT_BY_FIELDS = OrderedDict(
     [

@@ -3,15 +3,9 @@ from decimal import Decimal
 import graphene
 import pytest
 
-from ....product import AttributeType
-from ....product.models import (
-    Attribute,
-    AttributeProduct,
-    AttributeVariant,
-    Product,
-    ProductType,
-    ProductVariant,
-)
+from ....attribute import AttributeType
+from ....attribute.models import Attribute, AttributeProduct, AttributeVariant
+from ....product.models import Product, ProductType, ProductVariant
 from ...tests.utils import get_graphql_content
 
 

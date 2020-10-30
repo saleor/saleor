@@ -1,7 +1,8 @@
 from unittest.mock import patch
 
+from .....attribute.models import Attribute
 from .....graphql.csv.enums import ProductFieldEnum
-from .....product.models import Attribute, Product, ProductImage, VariantImage
+from .....product.models import Product, ProductImage, VariantImage
 from .....warehouse.models import Warehouse
 from ....utils.products_data import (
     ProductExportFields,

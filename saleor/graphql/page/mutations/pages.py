@@ -6,10 +6,10 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from ....attribute import AttributeType
 from ....core.permissions import PagePermissions, PageTypePermissions
 from ....page import models
 from ....page.error_codes import PageErrorCode
-from ....product import AttributeType
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import PageError, SeoInput
 from ...core.utils import (
@@ -20,7 +20,7 @@ from ...core.utils import (
 from ...product.mutations.products import AttributeAssignmentMixin, AttributeValueInput
 
 if TYPE_CHECKING:
-    from ....product.models import Attribute
+    from ....attribute.models import Attribute
 
 
 class PageInput(graphene.InputObjectType):

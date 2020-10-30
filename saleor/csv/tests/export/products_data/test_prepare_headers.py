@@ -1,5 +1,5 @@
+from .....attribute.models import Attribute
 from .....graphql.csv.enums import ProductFieldEnum
-from .....product.models import Attribute
 from ....utils.products_data import (
     get_attributes_headers,
     get_export_fields_and_headers_info,

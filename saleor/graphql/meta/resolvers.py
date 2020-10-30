@@ -2,6 +2,7 @@ from operator import itemgetter
 
 from ...account import models as account_models
 from ...app import models as app_models
+from ...attribute import models as attribute_models
 from ...checkout import models as checkout_models
 from ...core.exceptions import PermissionDenied
 from ...core.models import ModelWithMetadata
@@ -24,7 +25,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     from ...invoice import models as invoice_models
 
     MODEL_TO_TYPE_MAP = {
-        product_models.Attribute: product_types.Attribute,
+        attribute_models.Attribute: product_types.Attribute,
         product_models.Category: product_types.Category,
         checkout_models.Checkout: checkout_types.Checkout,
         product_models.Collection: product_types.Collection,

@@ -26,6 +26,13 @@ from prices import Money, TaxedMoney
 from ..account.models import Address, StaffNotificationRecipient, User
 from ..app.models import App, AppInstallation
 from ..app.types import AppType
+from ..attribute import AttributeInputType, AttributeType
+from ..attribute.models import (
+    Attribute,
+    AttributeTranslation,
+    AttributeValue,
+    AttributeValueTranslation,
+)
 from ..checkout import utils
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
@@ -56,12 +63,7 @@ from ..payment.models import Payment
 from ..plugins.invoicing.plugin import InvoicingPlugin
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
-from ..product import AttributeInputType, AttributeType
 from ..product.models import (
-    Attribute,
-    AttributeTranslation,
-    AttributeValue,
-    AttributeValueTranslation,
     Category,
     CategoryTranslation,
     Collection,

@@ -7,13 +7,14 @@ from django.db import transaction
 from django.db.models import Q
 from django.db.utils import IntegrityError
 
-from ...product import AttributeInputType
+from ...attribute import AttributeInputType
 from ...product.error_codes import ProductErrorCode
 from ...warehouse.models import Stock
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
-    from ...product.models import Attribute, ProductVariant
+    from ...attribute.models import Attribute
+    from ...product.models import ProductVariant
 
 
 def validate_attributes_input_for_product_and_page(

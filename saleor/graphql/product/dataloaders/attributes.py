@@ -2,8 +2,7 @@ from collections import defaultdict
 
 from promise import Promise
 
-from ....core.permissions import ProductPermissions
-from ....product.models import (
+from ....attribute.models import (
     AssignedProductAttribute,
     AssignedVariantAttribute,
     Attribute,
@@ -11,6 +10,7 @@ from ....product.models import (
     AttributeValue,
     AttributeVariant,
 )
+from ....core.permissions import ProductPermissions
 from ...core.dataloaders import DataLoader
 from .products import ProductByIdLoader, ProductVariantByIdLoader
 

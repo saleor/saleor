@@ -1,6 +1,7 @@
 import graphene
 from django.conf import settings
 
+from ...attribute import models as attribute_models
 from ...core.permissions import DiscountPermissions, ShippingPermissions
 from ...discount import models as discount_models
 from ...menu import models as menu_models
@@ -51,7 +52,7 @@ class BaseTranslationType(CountableDjangoObjectType):
 
 class AttributeValueTranslation(BaseTranslationType):
     class Meta:
-        model = product_models.AttributeValueTranslation
+        model = attribute_models.AttributeValueTranslation
         interfaces = [graphene.relay.Node]
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
@@ -66,18 +67,18 @@ class AttributeValueTranslatableContent(CountableDjangoObjectType):
     )
 
     class Meta:
-        model = product_models.AttributeValue
+        model = attribute_models.AttributeValue
         interfaces = [graphene.relay.Node]
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
     @staticmethod
-    def resolve_attribute_value(root: product_models.AttributeValue, _info):
+    def resolve_attribute_value(root: attribute_models.AttributeValue, _info):
         return root
 
 
 class AttributeTranslation(BaseTranslationType):
     class Meta:
-        model = product_models.AttributeTranslation
+        model = attribute_models.AttributeTranslation
         interfaces = [graphene.relay.Node]
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
@@ -90,12 +91,12 @@ class AttributeTranslatableContent(CountableDjangoObjectType):
     )
 
     class Meta:
-        model = product_models.Attribute
+        model = attribute_models.Attribute
         interfaces = [graphene.relay.Node]
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
     @staticmethod
-    def resolve_attribute(root: product_models.Attribute, _info):
+    def resolve_attribute(root: attribute_models.Attribute, _info):
         return root
 
 

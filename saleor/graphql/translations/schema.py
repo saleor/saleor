@@ -1,17 +1,11 @@
 import graphene
 
+from ...attribute.models import Attribute, AttributeValue
 from ...core.permissions import SitePermissions
 from ...discount.models import Sale, Voucher
 from ...menu.models import MenuItem
 from ...page.models import Page
-from ...product.models import (
-    Attribute,
-    AttributeValue,
-    Category,
-    Collection,
-    Product,
-    ProductVariant,
-)
+from ...product.models import Category, Collection, Product, ProductVariant
 from ...shipping.models import ShippingMethod
 from ..core.connection import CountableConnection
 from ..core.fields import BaseConnectionField

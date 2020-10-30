@@ -1,7 +1,7 @@
 import graphene
 
+from ....attribute import models
 from ....core.permissions import ProductPermissions
-from ....product import models
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types.common import ProductError
 

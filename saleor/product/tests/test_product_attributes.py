@@ -3,8 +3,9 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 
-from .. import AttributeInputType
-from ..models import AttributeValue, Product, ProductType, ProductVariant
+from ...attribute import AttributeInputType
+from ...attribute.models import AttributeValue
+from ..models import Product, ProductType, ProductVariant
 from ..tasks import _update_variants_names
 from ..utils.attributes import (
     associate_attribute_values_to_instance,

@@ -13,16 +13,15 @@ from graphql_relay import to_global_id
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
+from ....attribute import AttributeInputType, AttributeType
+from ....attribute.models import Attribute, AttributeValue
 from ....core.taxes import TaxType
 from ....core.weight import WeightUnits
 from ....order import OrderStatus
 from ....order.models import OrderLine
 from ....plugins.manager import PluginsManager
-from ....product import AttributeInputType, AttributeType
 from ....product.error_codes import ProductErrorCode
 from ....product.models import (
-    Attribute,
-    AttributeValue,
     Category,
     Collection,
     Product,

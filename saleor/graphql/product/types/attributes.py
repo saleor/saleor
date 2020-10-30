@@ -3,8 +3,8 @@ import re
 import graphene
 from graphene import relay
 
+from ....attribute import models as models
 from ....core.permissions import ProductPermissions
-from ....product import models
 from ...core.connection import CountableDjangoObjectType
 from ...decorators import permission_required
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
