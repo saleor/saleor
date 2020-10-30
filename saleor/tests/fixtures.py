@@ -33,6 +33,7 @@ from ..attribute.models import (
     AttributeValue,
     AttributeValueTranslation,
 )
+from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout import utils
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
@@ -78,7 +79,6 @@ from ..product.models import (
     ProductVariantTranslation,
 )
 from ..product.tests.utils import create_image
-from ..product.utils.attributes import associate_attribute_values_to_instance
 from ..shipping.models import (
     ShippingMethod,
     ShippingMethodTranslation,

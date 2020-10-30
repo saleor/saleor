@@ -15,6 +15,7 @@ from ....attribute.models import (
     AttributeValue,
     AttributeVariant,
 )
+from ....attribute.utils import associate_attribute_values_to_instance
 from ....product.error_codes import AttributeErrorCode, ProductErrorCode
 from ....product.models import (
     Category,
@@ -23,7 +24,6 @@ from ....product.models import (
     ProductType,
     ProductVariant,
 )
-from ....product.utils.attributes import associate_attribute_values_to_instance
 from ...core.utils import snake_to_camel_case
 from ...tests.utils import get_graphql_content
 from ..enums import AttributeTypeEnum, AttributeValueType, ProductAttributeType

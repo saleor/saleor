@@ -6,12 +6,12 @@ import pytest
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
+from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.weight import WeightUnits
 from ....order import OrderStatus
 from ....order.models import OrderLine
 from ....product.error_codes import ProductErrorCode
 from ....product.models import Product, ProductVariant
-from ....product.utils.attributes import associate_attribute_values_to_instance
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.models import Stock, Warehouse
 from ...core.enums import WeightUnitsEnum

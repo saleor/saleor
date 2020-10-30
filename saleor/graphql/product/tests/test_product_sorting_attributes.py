@@ -5,8 +5,8 @@ import graphene
 import pytest
 
 from ....attribute import AttributeType, models as attribute_models
+from ....attribute.utils import associate_attribute_values_to_instance
 from ....product import models as product_models
-from ....product.utils.attributes import associate_attribute_values_to_instance
 from ...tests.utils import get_graphql_content
 
 HERE = os.path.realpath(os.path.dirname(__file__))

@@ -11,6 +11,7 @@ from graphene.types import InputObjectType
 from graphql_relay import from_global_id
 
 from ....attribute import AttributeType
+from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....order import OrderStatus, models as order_models
@@ -29,10 +30,7 @@ from ....product.thumbnails import (
     create_product_thumbnails,
 )
 from ....product.utils import delete_categories
-from ....product.utils.attributes import (
-    associate_attribute_values_to_instance,
-    generate_name_for_variant,
-)
+from ....product.utils.variants import generate_name_for_variant
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import PositiveDecimal, WeightScalar
 from ...core.types import SeoInput, Upload
