@@ -48,4 +48,4 @@ def test_get_payment_not_active_payment(payment_dummy, caplog):
 
     # then
     assert not result
-    assert f"Payment for {payment_id} was not found." in caplog.text
+    assert f"Payment for {payment_id} ({payment_dummy.pk}) was not found. Reference %s"
