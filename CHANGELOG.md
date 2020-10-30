@@ -76,6 +76,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add attributes validation while creating/updating a product's variant - #6269 by @GrzegorzDerdak
 - Add metadata to page model - #6292 by @dominik-zeglen
 - Fix for unnecesary attributes validation while updating simple product - #6300 by @GrzegorzDerdak
+- Include order line total price to webhook payload - #6354 by @korycins
 
 ## 2.10.2
 

@@ -1312,7 +1312,7 @@ def order_line_with_one_allocation(customer_user, variant_with_many_stocks):
         quantity=2,
         variant=variant,
         unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=23,
+        tax_rate=Decimal(23),
     )
 
     Allocation.objects.create(
