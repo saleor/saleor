@@ -43,7 +43,7 @@ def test_report_product_sales(
     count_queries,
 ):
     query = """
-        query TopProducts($period: ReportingPeriod!, $channel: String) {
+        query TopProducts($period: ReportingPeriod!, $channel: String!) {
           reportProductSales(period: $period, first: 20, channel: $channel) {
             edges {
               node {
