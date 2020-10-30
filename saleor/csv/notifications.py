@@ -24,7 +24,8 @@ def get_default_export_payload(export_file: "ExportFile") -> dict:
     }
 
 
-def send_email_with_link_to_download_file(export_file: "ExportFile"):
+def send_export_download_link_notification(export_file: "ExportFile"):
+    """Call PluginManager.notify to trigger the notification for success export."""
     payload = get_default_export_payload(export_file)
     payload["csv_link"] = build_absolute_uri(export_file.content_file.url)
 
@@ -34,6 +35,7 @@ def send_email_with_link_to_download_file(export_file: "ExportFile"):
 
 
 def send_export_failed_info(export_file: "ExportFile"):
+    """Call PluginManager.notify to trigger the notification for failed export."""
     payload = get_default_export_payload(export_file)
     manager = get_plugins_manager()
     manager.notify(NotifyEventType.CSV_EXPORT_FAILED, payload)

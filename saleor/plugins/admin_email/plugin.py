@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from ...core.notify_events import AdminNotifyEvent, NotifyEventType
 from ..base_plugin import BasePlugin
 from .emails import (
-    handle_account_set_staff_password,
-    handle_csv_export_failed,
-    handle_csv_product_export_success,
+    send_csv_export_failed,
+    send_csv_product_export_success,
+    send_set_staff_password_email,
 )
 
 logger = logging.getLogger(__name__)
@@ -19,9 +19,9 @@ class UserEmailConfig:
 
 
 event_map = {
-    AdminNotifyEvent.ACCOUNT_SET_STAFF_PASSWORD: handle_account_set_staff_password,
-    AdminNotifyEvent.CSV_PRODUCT_EXPORT_SUCCESS: handle_csv_product_export_success,
-    AdminNotifyEvent.CSV_EXPORT_FAILED: handle_csv_export_failed,
+    AdminNotifyEvent.ACCOUNT_SET_STAFF_PASSWORD: send_set_staff_password_email,
+    AdminNotifyEvent.CSV_PRODUCT_EXPORT_SUCCESS: send_csv_product_export_success,
+    AdminNotifyEvent.CSV_EXPORT_FAILED: send_csv_export_failed,
 }
 
 
