@@ -1206,11 +1206,6 @@ class ProductVariantCreate(ModelMutation):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        if not attributes:
-            raise ValidationError(
-                "All attributes must take a value.", ProductErrorCode.REQUIRED.value
-            )
-
         attributes_qs = product_type.variant_attributes
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, is_variant=True
@@ -1300,14 +1295,21 @@ class ProductVariantCreate(ModelMutation):
             # We need to transform them into the format they're stored in the
             # `Product` model, which is HStore field that maps attribute's PK to
             # the value's PK.
-            attributes = cleaned_input.get("attributes", [])
+            attributes = cleaned_input.get("attributes")
             try:
-                cls.validate_duplicated_attribute_values(
-                    attributes, used_attribute_values, instance
-                )
-                cleaned_input["attributes"] = cls.clean_attributes(
-                    attributes, product_type
-                )
+                if attributes:
+                    cls.validate_duplicated_attribute_values(
+                        attributes, used_attribute_values, instance
+                    )
+                    cleaned_input["attributes"] = cls.clean_attributes(
+                        attributes, product_type
+                    )
+                elif not instance.pk and not attributes:
+                    # if attributes were not provided on creation
+                    raise ValidationError(
+                        "All attributes must take a value.",
+                        ProductErrorCode.REQUIRED.value,
+                    )
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
 
