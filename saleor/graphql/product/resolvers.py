@@ -69,12 +69,12 @@ def resolve_product_by_slug(info, product_slug, channel_slug, requestor):
 
 
 def resolve_products(
-    info, user, stock_availability=None, channel_slug=None, **_kwargs
+    info, requestor, stock_availability=None, channel_slug=None, **_kwargs
 ) -> ChannelQsContext:
-    qs = models.Product.objects.visible_to_user(user, channel_slug)
+    qs = models.Product.objects.visible_to_user(requestor, channel_slug)
     if stock_availability:
         qs = filter_products_by_stock_availability(qs, stock_availability)
-    if not qs.user_has_access_to_all(user):
+    if not qs.user_has_access_to_all(requestor):
         qs = qs.annotate_visible_in_listings(channel_slug).exclude(
             visible_in_listings=False
         )
@@ -94,10 +94,10 @@ def resolve_product_types(info, **_kwargs):
 
 
 def resolve_product_variant_by_sku(
-    info, sku, channel_slug, requestor, user_has_access_to_all
+    info, sku, channel_slug, requestor, requestor_has_access_to_all
 ):
     visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
-    if not user_has_access_to_all:
+    if not requestor_has_access_to_all:
         visible_products = visible_products.annotate_visible_in_listings(
             channel_slug
         ).exclude(visible_in_listings=False)
@@ -110,10 +110,10 @@ def resolve_product_variant_by_sku(
 
 
 def resolve_product_variants(
-    info, access_to_all, requestor, ids=None, channel_slug=None
+    info, requestor_has_access_to_all, requestor, ids=None, channel_slug=None
 ) -> ChannelQsContext:
     visible_products = models.Product.objects.visible_to_user(requestor, channel_slug)
-    if not access_to_all:
+    if not requestor_has_access_to_all:
         visible_products = visible_products.annotate_visible_in_listings(
             channel_slug
         ).exclude(visible_in_listings=False)
@@ -125,19 +125,19 @@ def resolve_product_variants(
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 
-def resolve_report_product_sales(period, channel_slug=None) -> ChannelQsContext:
+def resolve_report_product_sales(period, channel_slug) -> ChannelQsContext:
     qs = models.ProductVariant.objects.all()
 
     # exclude draft and canceled orders
     exclude_status = [OrderStatus.DRAFT, OrderStatus.CANCELED]
     qs = qs.exclude(order_lines__order__status__in=exclude_status)
-    if channel_slug:
-        qs = qs.filter(order_lines__order__channel__slug=str(channel_slug))
 
     # filter by period
     qs = filter_by_period(qs, period, "order_lines__order__created")
 
     qs = qs.annotate(quantity_ordered=Sum("order_lines__quantity"))
-    qs = qs.filter(quantity_ordered__isnull=False)
+    qs = qs.filter(
+        quantity_ordered__isnull=False, order_lines__order__channel__slug=channel_slug
+    )
     qs = qs.order_by("-quantity_ordered")
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)

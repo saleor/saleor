@@ -22,6 +22,7 @@ def get_default_channel() -> Channel:
     :raises ChannelNotDefined: When there is more than one channel.
     :raises NoDefaultChannel: When there are no channels.
     """
+
     try:
         channel = Channel.objects.get()
     except Channel.MultipleObjectsReturned:

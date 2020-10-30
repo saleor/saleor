@@ -4379,7 +4379,7 @@ def test_product_variant_price(
 
 
 QUERY_REPORT_PRODUCT_SALES = """
-query TopProducts($period: ReportingPeriod!, $channel: String) {
+query TopProducts($period: ReportingPeriod!, $channel: String!) {
     reportProductSales(period: $period, first: 20, channel: $channel) {
         edges {
             node {

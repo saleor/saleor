@@ -281,7 +281,8 @@ class ProductQueries(graphene.ObjectType):
             ReportingPeriod, required=True, description="Span of time."
         ),
         channel=graphene.String(
-            description="Slug of a channel for which the data should be returned."
+            description="Slug of a channel for which the data should be returned.",
+            required=True,
         ),
         description="List of top selling products.",
     )
@@ -306,10 +307,10 @@ class ProductQueries(graphene.ObjectType):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         requestor = get_user_or_app_from_context(info.context)
 
-        user_has_access_to_all = models.Collection.objects.user_has_access_to_all(
+        requestor_has_access_to_all = models.Collection.objects.user_has_access_to_all(
             requestor
         )
-        if channel is None and not user_has_access_to_all:
+        if channel is None and not requestor_has_access_to_all:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
             _, id = graphene.Node.from_global_id(id)
@@ -325,9 +326,11 @@ class ProductQueries(graphene.ObjectType):
         )
 
     def resolve_collections(self, info, channel=None, *_args, **_kwargs):
-        user = get_user_or_app_from_context(info.context)
-        user_has_access_to_all = models.Collection.objects.user_has_access_to_all(user)
-        if channel is None and not user_has_access_to_all:
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = models.Collection.objects.user_has_access_to_all(
+            requestor
+        )
+        if channel is None and not requestor_has_access_to_all:
             channel = get_default_channel_slug_or_graphql_error()
         return resolve_collections(info, channel)
 
@@ -342,11 +345,11 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product(self, info, id=None, slug=None, channel=None, **_kwargs):
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         requestor = get_user_or_app_from_context(info.context)
-        user_has_access_to_all = models.Collection.objects.user_has_access_to_all(
+        requestor_has_access_to_all = models.Collection.objects.user_has_access_to_all(
             requestor
         )
 
-        if channel is None and not user_has_access_to_all:
+        if channel is None and not requestor_has_access_to_all:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
             _, id = graphene.Node.from_global_id(id)
@@ -360,11 +363,13 @@ class ProductQueries(graphene.ObjectType):
         return ChannelContext(node=product, channel_slug=channel) if product else None
 
     def resolve_products(self, info, channel=None, **kwargs):
-        user = get_user_or_app_from_context(info.context)
-        user_has_access_to_all = models.Product.objects.user_has_access_to_all(user)
-        if channel is None and not user_has_access_to_all:
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = models.Product.objects.user_has_access_to_all(
+            requestor
+        )
+        if channel is None and not requestor_has_access_to_all:
             channel = get_default_channel_slug_or_graphql_error()
-        return resolve_products(info, user, channel_slug=channel, **kwargs)
+        return resolve_products(info, requestor, channel_slug=channel, **kwargs)
 
     def resolve_product_type(self, info, id, **_kwargs):
         return graphene.Node.get_node_from_global_id(info, id, ProductType)
@@ -376,42 +381,44 @@ class ProductQueries(graphene.ObjectType):
         self, info, id=None, sku=None, channel=None,
     ):
         validate_one_of_args_is_in_query("id", id, "sku", sku)
-        user = get_user_or_app_from_context(info.context)
-        user_has_access_to_all = models.Product.objects.user_has_access_to_all(user)
-        if channel is None and not user_has_access_to_all:
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = models.Product.objects.user_has_access_to_all(
+            requestor
+        )
+        if channel is None and not requestor_has_access_to_all:
             channel = get_default_channel_slug_or_graphql_error()
         if id:
             _, id = graphene.Node.from_global_id(id)
             variant = resolve_variant_by_id(
-                info, id, channel_slug=channel, requestor=user
+                info, id, channel_slug=channel, requestor=requestor
             )
         else:
             variant = resolve_product_variant_by_sku(
                 info,
                 sku=sku,
                 channel_slug=channel,
-                requestor=user,
-                user_has_access_to_all=user_has_access_to_all,
+                requestor=requestor,
+                requestor_has_access_to_all=requestor_has_access_to_all,
             )
         return ChannelContext(node=variant, channel_slug=channel) if variant else None
 
     def resolve_product_variants(self, info, ids=None, channel=None, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        user_has_access_to_all = models.Product.objects.user_has_access_to_all(
+        requestor_has_access_to_all = models.Product.objects.user_has_access_to_all(
             requestor
         )
-        if channel is None and not user_has_access_to_all:
+        if channel is None and not requestor_has_access_to_all:
             channel = get_default_channel_slug_or_graphql_error()
         return resolve_product_variants(
             info,
             ids=ids,
             channel_slug=channel,
-            access_to_all=user_has_access_to_all,
+            requestor_has_access_to_all=requestor_has_access_to_all,
             requestor=requestor,
         )
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_report_product_sales(self, *_args, period, channel=None, **_kwargs):
+    def resolve_report_product_sales(self, *_args, period, channel, **_kwargs):
         return resolve_report_product_sales(period, channel_slug=channel)
 
 
