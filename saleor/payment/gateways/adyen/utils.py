@@ -72,7 +72,6 @@ def request_data_for_payment(
     payment_information: "PaymentData",
     return_url: str,
     merchant_account: str,
-    origin_url: str,
     native_3d_secure: bool,
 ) -> Dict[str, Any]:
     payment_data = payment_information.data or {}
@@ -82,8 +81,12 @@ def request_data_for_payment(
 
     extra_request_params = {}
     channel = payment_data.get("channel", "web")
-    if "browserInfo" in payment_data:
-        extra_request_params["browserInfo"] = payment_data["browserInfo"]
+    origin_url = payment_data.get("originUrl")
+
+    browser_info = payment_data.get("browserInfo")
+    if browser_info:
+        extra_request_params["browserInfo"] = browser_info
+
     billing_address = payment_data.get("billingAddress")
     if billing_address:
         extra_request_params["billingAddress"] = billing_address
