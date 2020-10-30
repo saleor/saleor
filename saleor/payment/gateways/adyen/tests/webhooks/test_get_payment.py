@@ -42,10 +42,15 @@ def test_get_payment_not_active_payment(payment_dummy, caplog):
     payment_dummy.save(update_fields=["is_active"])
 
     payment_id = graphene.Node.to_global_id("Payemnt", payment_dummy.pk)
+    transaction_id = "psp reference"
 
     # when
-    result = get_payment(payment_id)
+    result = get_payment(payment_id, transaction_id)
 
     # then
+    expected_msg = (
+        f"Payment for {payment_id} ({payment_dummy.pk}) was not found. Reference "
+        f"{transaction_id}"
+    )
     assert not result
-    assert f"Payment for {payment_id} ({payment_dummy.pk}) was not found. Reference %s"
+    assert expected_msg in caplog.text
