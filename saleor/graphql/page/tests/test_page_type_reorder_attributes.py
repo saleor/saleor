@@ -55,12 +55,12 @@ def test_reorder_page_type_attributes_by_staff(
         "pageTypeId": graphene.Node.to_global_id("PageType", page_type.pk),
         "moves": [
             {
-                "id": graphene.Node.to_global_id("Attribute", attributes[0].pk),
-                "sortOrder": 2,
+                "id": graphene.Node.to_global_id("Attribute", sorted_attributes[2].pk),
+                "sortOrder": -2,
             },
             {
-                "id": graphene.Node.to_global_id("Attribute", attributes[2].pk),
-                "sortOrder": -1,
+                "id": graphene.Node.to_global_id("Attribute", sorted_attributes[0].pk),
+                "sortOrder": 1,
             },
         ],
     }
@@ -150,11 +150,11 @@ def test_reorder_page_type_attributes_by_app(
         "pageTypeId": graphene.Node.to_global_id("PageType", page_type.pk),
         "moves": [
             {
-                "id": graphene.Node.to_global_id("Attribute", attributes[2].pk),
+                "id": graphene.Node.to_global_id("Attribute", sorted_attributes[2].pk),
                 "sortOrder": -2,
             },
             {
-                "id": graphene.Node.to_global_id("Attribute", attributes[0].pk),
+                "id": graphene.Node.to_global_id("Attribute", sorted_attributes[0].pk),
                 "sortOrder": 1,
             },
         ],
