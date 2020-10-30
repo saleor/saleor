@@ -95,11 +95,13 @@ def request_data_for_payment(
     if delivery_address:
         extra_request_params["deliveryAddress"] = delivery_address
 
-    if "shopperIP" in payment_data:
-        extra_request_params["shopperIP"] = payment_data["shopperIP"]
+    shopper_ip = payment_data.get("shopperIP")
+    if shopper_ip:
+        extra_request_params["shopperIP"] = shopper_ip
 
-    if "deviceFingerprint" in payment_data:
-        extra_request_params["deviceFingerprint"] = payment_data["deviceFingerprint"]
+    device_fingerprint = payment_data.get("deviceFingerprint")
+    if device_fingerprint:
+        extra_request_params["deviceFingerprint"] = device_fingerprint
 
     if channel.lower() == "web" and origin_url:
         extra_request_params["origin"] = origin_url
