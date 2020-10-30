@@ -1820,6 +1820,7 @@ class ProductVariantReorder(BaseMutation):
 
         product.save(update_fields=["updated_at"])
         info.context.plugins.product_updated(product)
+        product = ChannelContext(node=product, channel_slug=None)
         return ProductVariantReorder(product=product)
 
 
