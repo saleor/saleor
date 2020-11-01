@@ -200,7 +200,9 @@ def test_filter_collection_products(user_api_client, product_list, collection):
     # given
     query = GET_FILTERED_PRODUCTS_COLLECTION_QUERY
 
-    collection.products.set(product_list)
+    for product in product_list:
+        collection.products.add(product)
+
     p1 = product_list[0]
     p1.is_published = False
     p1.save(update_fields=["is_published"])

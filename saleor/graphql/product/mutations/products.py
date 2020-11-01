@@ -1206,11 +1206,6 @@ class ProductVariantCreate(ModelMutation):
     def clean_attributes(
         cls, attributes: dict, product_type: models.ProductType
     ) -> T_INPUT_MAP:
-        if not attributes:
-            raise ValidationError(
-                "All attributes must take a value.", ProductErrorCode.REQUIRED.value
-            )
-
         attributes_qs = product_type.variant_attributes
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, is_variant=True
@@ -1281,7 +1276,7 @@ class ProductVariantCreate(ModelMutation):
         if stocks:
             cls.check_for_duplicates_in_stocks(stocks)
 
-        if instance.product_id is not None:
+        if instance.pk:
             # If the variant is getting updated,
             # simply retrieve the associated product type
             product_type = instance.product.product_type
@@ -1294,18 +1289,29 @@ class ProductVariantCreate(ModelMutation):
                 cleaned_input["product"]
             )
 
-        # Attributes are provided as list of `AttributeValueInput` objects.
-        # We need to transform them into the format they're stored in the
-        # `Product` model, which is HStore field that maps attribute's PK to
-        # the value's PK.
-        attributes = cleaned_input.get("attributes", [])
-        try:
-            cls.validate_duplicated_attribute_values(
-                attributes, used_attribute_values, instance
-            )
-            cleaned_input["attributes"] = cls.clean_attributes(attributes, product_type)
-        except ValidationError as exc:
-            raise ValidationError({"attributes": exc})
+        # Run the validation only if product type is configurable
+        if product_type.has_variants:
+            # Attributes are provided as list of `AttributeValueInput` objects.
+            # We need to transform them into the format they're stored in the
+            # `Product` model, which is HStore field that maps attribute's PK to
+            # the value's PK.
+            attributes = cleaned_input.get("attributes")
+            try:
+                if attributes:
+                    cls.validate_duplicated_attribute_values(
+                        attributes, used_attribute_values, instance
+                    )
+                    cleaned_input["attributes"] = cls.clean_attributes(
+                        attributes, product_type
+                    )
+                elif not instance.pk and not attributes:
+                    # if attributes were not provided on creation
+                    raise ValidationError(
+                        "All attributes must take a value.",
+                        ProductErrorCode.REQUIRED.value,
+                    )
+            except ValidationError as exc:
+                raise ValidationError({"attributes": exc})
 
         return cleaned_input
 

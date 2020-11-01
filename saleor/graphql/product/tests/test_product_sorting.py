@@ -89,8 +89,8 @@ def test_sort_products_within_collection(
     staff_api_client.user.user_permissions.add(permission_manage_products)
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
 
-    products_count = collection_with_products.products.count()
-    assert products_count == 3
+    products = collection_with_products
+    assert len(products) == 3
 
     # Sort the products per sort_order
     products = list(collection.products.collection_sorted(staff_user))

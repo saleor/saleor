@@ -97,10 +97,15 @@ class Shop(graphene.ObjectType):
         required=True,
     )
     currencies = graphene.List(
-        graphene.String, description="List of available currencies.", required=True
+        graphene.String,
+        description="List of available currencies.",
+        required=True,
+        deprecation_reason="This field will be removed in Saleor 3.0",
     )
     default_currency = graphene.String(
-        description="Shop's default currency.", required=True
+        description="Shop's default currency.",
+        required=True,
+        deprecation_reason="This field will be removed in Saleor 3.0",
     )
     default_country = graphene.Field(
         CountryDisplay, description="Shop's default country."
