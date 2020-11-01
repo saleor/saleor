@@ -188,6 +188,13 @@ query CollectionProducts($id: ID!, $filters: ProductFilterInput) {
       edges {
         node {
           id
+          attributes {
+            attribute {
+              values {
+                slug
+              }
+            }
+          }
         }
       }
     }
@@ -229,13 +236,11 @@ def test_filter_collection_products_by_multiple_attributes(
     user_api_client,
     collection,
     product_with_two_variants,
-    product_with_variant_with_two_attributes,
-    size_attribute,
-    weight_attribute,
+    product_with_multiple_values_attributes,
 ):
     # given
     collection.products.set(
-        [product_with_two_variants, product_with_variant_with_two_attributes]
+        [product_with_two_variants, product_with_multiple_values_attributes]
     )
     assert collection.products.count() == 2
 
@@ -255,11 +260,17 @@ def test_filter_collection_products_by_multiple_attributes(
     # then
     content = get_graphql_content(response)
     products_data = content["data"]["collection"]["products"]["edges"]
+    product = products_data[0]["node"]
+
+    _, _id = graphene.Node.from_global_id(product["id"])
 
     assert len(products_data) == 1
-    assert products_data[0]["node"]["id"] == graphene.Node.to_global_id(
-        "Product", product_with_two_variants
+    assert product["id"] == graphene.Node.to_global_id(
+        "Product", product_with_multiple_values_attributes.pk
     )
+    assert product["attributes"] == [
+        {"attribute": {"values": [{"slug": "eco"}, {"slug": "power"}]}}
+    ]
 
 
 CREATE_COLLECTION_MUTATION = """
