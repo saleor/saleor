@@ -25,6 +25,7 @@ from ..discount.utils import (
     increase_voucher_usage,
     remove_voucher_usage_by_customer,
 )
+from ..order import OrderStatus
 from ..order.actions import order_created
 from ..order.emails import send_order_confirmation, send_staff_order_confirmation
 from ..order.models import Order, OrderLine
@@ -248,7 +249,9 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     total_price_left = order_data.pop("total_price_left")
     order_lines = order_data.pop("lines")
 
-    order = Order.objects.create(**order_data, checkout_token=checkout.token)
+    order = Order.objects.create(
+        **order_data, status=OrderStatus.UNCONFIRMED, checkout_token=checkout.token
+    )
     for line in order_lines:
         line.order_id = order.pk
     order_lines = OrderLine.objects.bulk_create(order_lines)
@@ -419,7 +422,7 @@ def complete_checkout(
     if not action_required:
         try:
             order = _create_order(
-                checkout=checkout, order_data=order_data, user=user,  # type: ignore
+                checkout=checkout, order_data=order_data, user=user  # type: ignore
             )
             # remove checkout after order is successfully created
             checkout.delete()

@@ -34,8 +34,8 @@ class OrderQueryset(models.QuerySet):
         return self.confirmed().filter(checkout_token=token).first()
 
     def confirmed(self):
-        """Return non-draft orders."""
-        return self.exclude(status=OrderStatus.DRAFT)
+        """Return orders that aren't draft or unconfirmed."""
+        return self.exclude(status__in=[OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 
     def drafts(self):
         """Return draft orders."""
