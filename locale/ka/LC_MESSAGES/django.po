@@ -4,11 +4,7 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 #
 # Translators:
-# Carmel Vaher <carmelvaher@gmail.com>, 2020
-# Henri Tamvere <henri.tamvere@magmatech.ee>, 2020
-# Erlend Eelmets <debcf78e@opayq.com>, 2020
-# Patryk Zawadzki <patrys@room-303.com>, 2020
-# Marcin Gębala <maarcin.gebala@gmail.com>, 2020
+# Vakh Zukhbaia <vakh87@gmail.com>, 2020
 #
 #, fuzzy
 msgid ""
@@ -17,13 +13,13 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-10-23 07:04+0000\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Marcin Gębala <maarcin.gebala@gmail.com>, 2020\n"
-"Language-Team: Estonian (https://www.transifex.com/mirumee/teams/34782/et/)\n"
+"Last-Translator: Vakh Zukhbaia <vakh87@gmail.com>, 2020\n"
+"Language-Team: Georgian (https://www.transifex.com/mirumee/teams/34782/ka/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: et\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: ka\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
 
 #: saleor/account/templatetags/i18n_address_tags.py:12
 #, python-format
@@ -44,102 +40,102 @@ msgstr ""
 #: templates/invoices/invoice.html:210
 msgctxt "Invoice PDF header"
 msgid "INVOICE INFORMATION"
-msgstr "ARVETE TEAVE"
+msgstr "ინვოისი"
 
 #: templates/invoices/invoice.html:213
 msgctxt "Invoice PDF header: Invoice number"
 msgid "Invoice number:"
-msgstr "Arve number:"
+msgstr "ინვოისის ნომერი:"
 
 #: templates/invoices/invoice.html:219
 msgctxt "Invoice PDF header: order number"
 msgid "Order:"
-msgstr "Tellimus:"
+msgstr "შეკვეთა:"
 
 #: templates/invoices/invoice.html:225
 msgctxt "Invoice PDF header"
 msgid "Date:"
-msgstr "Kuupäev:"
+msgstr "თარიღი:"
 
 #: templates/invoices/invoice.html:231
 msgctxt "Invoice PDF amount (price)"
 msgid "Amount:"
-msgstr "Summa:"
+msgstr "ჯამი:"
 
 #: templates/invoices/invoice.html:240
 msgctxt "Invoice PDF"
 msgid "BILLING ADDRESS"
-msgstr "ARVE AADRESS"
+msgstr "ბილინგ მისამართი:"
 
 #: templates/invoices/invoice.html:269
 msgctxt "Invoice PDF"
 msgid "SHIPMENT ADDRESS"
-msgstr "SAADETE AADRESS"
+msgstr "მიწოდების მისამართი"
 
 #: templates/invoices/invoice.html:300
 msgctxt "Invoice PDF"
 msgid "PAYMENT METHOD"
-msgstr "MAKSEVIIS"
+msgstr "გადახდის მეთოდი"
 
 #: templates/invoices/invoice.html:306
 msgctxt "Invoice PDF: Payment method value"
 msgid "Unpaid"
-msgstr "Maksmata"
+msgstr "გადაუხდელი"
 
 #: templates/invoices/invoice.html:314
 msgctxt "Invoice PDF"
 msgid "SHIPMENT METHOD"
-msgstr "SAATMISVIIS"
+msgstr "მიწოდების მეთოდი"
 
 #: templates/invoices/invoice.html:324
 msgctxt "Invoice PDF table header"
 msgid "ITEMS ORDERED"
-msgstr "TELLITUD PUNKTID"
+msgstr "ნივთი/ები შეკვეთილია"
 
 #: templates/invoices/invoice_products_table.html:7
 msgctxt "Invoice PDF table"
 msgid "Products"
-msgstr "Tooted"
+msgstr "პროდუქცია"
 
 #: templates/invoices/invoice_products_table.html:10
 msgctxt "Invoice PDF table"
 msgid "Price"
-msgstr "Hind"
+msgstr "ფასი"
 
 #: templates/invoices/invoice_products_table.html:13
 msgctxt "Invoice PDF table"
 msgid "Quantity"
-msgstr "Kogus"
+msgstr "რაოდენობა"
 
 #: templates/invoices/invoice_products_table.html:16
 msgctxt "Invoice PDF table"
 msgid "Total Price"
-msgstr "Koguhind"
+msgstr "ჯამური ფასი"
 
 #: templates/invoices/invoice_summary_table.html:8
 msgctxt "Invoice PDF summary"
 msgid "Subtotal"
-msgstr "Vahesumma"
+msgstr "ქვეტოტალი"
 
 #: templates/invoices/invoice_summary_table.html:21
 msgctxt "Invoice PDF summary"
 msgid "Delivery Cost"
-msgstr "Tarnekulu"
+msgstr "მიწოდების/ტრანსპორტირების საფასური"
 
 #: templates/invoices/invoice_summary_table.html:34
 msgctxt "Invoice PDF summary"
 msgid "Tax"
-msgstr "Maks"
+msgstr "დღგ"
 
 #: templates/invoices/invoice_summary_table.html:47
 msgctxt "Invoice PDF summary"
 msgid "Grand Total"
-msgstr "Kogusumma"
+msgstr "ჯამი"
 
 #: templates/templated_email/account/account_delete.email:4
 msgctxt "Account delete reset e-mail subject"
 msgid "Delete your account"
-msgstr "Kustutage oma konto"
+msgstr "ანგარიშის წაშლა"
 
 #: templates/templated_email/account/account_delete.email:9
 #, python-format
@@ -152,15 +148,14 @@ msgid ""
 "Please note that this action is permanent and cannot be reversed.\n"
 msgstr ""
 "\n"
-"Saite selle meilisõnumi, kuna teie või keegi teine ​​on taotlenud teie kasutajakonto kustutamist aadressil %(site_name)s.\n"
-"Konto kustutamiseks klõpsake alloleval lingil.\n"
-"\n"
-"Pange tähele, et see toiming on püsiv ja seda ei saa tagasi pöörata.\n"
+"გაცნობებთ რომ თქვენს მიერ მოტხოვნით იგეგმება თქვენი მომხმარებლის ანგარიშის წაშლა %(site_name)s\n"
+"თქვენი ანგარიშის წასაშლელად გადადით ქვემოთ მოცემულ ბმულზე\n"
+"გთხოვთ გაითვალისწინოთ, რომ ეს მოქმედება მუდმივია და მისი შეცვლა შეუძლებელია\n"
 
 #: templates/templated_email/account/confirm.email:4
 msgctxt "Account confirmation e-mail subject"
 msgid "Account confirmation e-mail"
-msgstr "Konto kinnitamise e-post"
+msgstr "ანგარიშის დადასტურების ელ.ფოსტა"
 
 #: templates/templated_email/account/confirm.email:9
 #, python-format
@@ -171,14 +166,14 @@ msgid ""
 "Please click the link below to do so and log into your account.\n"
 msgstr ""
 "\n"
-"%(site_name)s sisselogimiseks peate kõigepealt kinnitama oma e-posti aadressi.\n"
-"Selleks klõpsake alloleval lingil ja logige sisse oma kontole.\n"
+"იმ შემთხვევაში რომ შეხვიდეთ %(site_name)s,  ჯერ უნდა დაადასტუროთ თქვენი ელ.ფოსტის მისამართი.\n"
+"ამისათვის გთხოვთ, გადადით ქვემოთ მოცემულ ბმულზე და შეხვიდეთ თქვენს ანგარიშში.\n"
 
 #: templates/templated_email/account/email_changed_notification.email:4
 #: templates/templated_email/account/request_email_change.email:4
 msgctxt "Email change e-mail subject"
 msgid "Email change e-mail"
-msgstr "E-posti aadressi muutmine"
+msgstr "ელ. ფოსთის შეცვლა"
 
 #: templates/templated_email/account/email_changed_notification.email:9
 #, python-format
@@ -191,13 +186,13 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-"Saite selle meilisõnumi, kuna teie või keegi teine ​​on muutnud teie kasutajakonto e-posti aadressi %(site_name)s.\n"
-"Kui te seda muudatust ei taotlenud, võtke ühendust administraatoriga.\n"
+"გაცნობებთ რომ თქვენს ანგარიშზე (%(site_name)s) მოხდა ელ.ფოსტის შეცვლა.\n"
+"თუ თქვენ არ მოითხოვეთ ეს ცვლილება, გთხოვთ დაგვიკავშრდით.\n"
 
 #: templates/templated_email/account/password_reset.email:4
 msgctxt "Password reset e-mail subject"
 msgid "Password reset e-mail"
-msgstr "Parooli lähtestamise e-post"
+msgstr "პაროლის აღდგენა ელ.ფოსტა"
 
 #: templates/templated_email/account/password_reset.email:9
 #, python-format
@@ -208,8 +203,8 @@ msgid ""
 "It can be safely ignored if you did not request a password reset. Click the link below to reset your password.\n"
 msgstr ""
 "\n"
-"Saite selle meilisõnumi, kuna teie või keegi teine ​​on taotlenud parooli oma kasutajakontole aadressil %(site_name)s.\n"
-"Seda saab turvaliselt ignoreerida, kui te ei taotlenud parooli lähtestamist. Parooli lähtestamiseks klõpsake alloleval lingil.\n"
+"გახნობებთ რომ თვენი მოთხოვნით ხდება პაროლის შეცვლა ანგარიშზე %(site_name)s.\n"
+"დააჭირეთ ქვემოთ მოცემულ ბმულს თქვენი ახალი პაროლის შესაყვანად.\n"
 
 #: templates/templated_email/account/request_email_change.email:9
 #, python-format
@@ -220,16 +215,12 @@ msgid ""
 "You're receiving this e-mail because you or someone else has requested an email change for your user account at %(site_name)s.\n"
 "It can be safely ignored if you did not request an email change. Click the link below to confirm new email address.\n"
 msgstr ""
-"\n"
-"\n"
-"Saite selle meilisõnumi, kuna teie või keegi teine ​​on taotlenud oma kasutajakonto e-posti aadressi muutmist aadressil %(site_name)s.\n"
-"Seda võib julgelt eirata, kui te ei taotlenud e-posti aadressi muutmist. Uue e-posti aadressi kinnitamiseks klõpsake alloleval lingil.\n"
 
 #: templates/templated_email/csv/export_failed.email:4
 #: templates/templated_email/csv/export_products_file.email:4
 msgctxt "Export products e-mail subject"
 msgid "Export products data"
-msgstr "Toodete eksportimine"
+msgstr "პროდუქციის მონაცემების ექსპორტი"
 
 #: templates/templated_email/csv/export_failed.email:10
 msgctxt "Export products e-mail text"
@@ -237,20 +228,21 @@ msgid ""
 "Sorry, we cannot finish product export, some unexpected errors occurred. "
 "Please try again."
 msgstr ""
-"Kahjuks ei saa me toote eksportimist lõpule viia, ilmnesid ootamatud "
-"vead.Palun proovi uuesti."
+"უკაცრავად, პროდუქტის ექსპორტი ვერ მოხერხდა, მოხდა მოულოდნელი შეცდომები. "
+"გთხოვთ კიდევ სცადეთ."
 
 #: templates/templated_email/csv/export_products_file.email:10
 #, python-format
 msgctxt "Export products e-mail text"
 msgid "Your file with products data is ready to download: %(csv_link)s"
-msgstr "Teie tooteandmetega fail on allalaadimiseks valmis: %(csv_link)s"
+msgstr ""
+"თქვენი ფაილი პროდუქტების მონაცემებით მზად არის ჩამოსატვირთად:%(csv_link)s"
 
 #: templates/templated_email/dashboard/customer/set_password.email:2
 #, python-format
 msgctxt "Set password for customer e-mail title"
 msgid "Hello from %(site_name)s!"
-msgstr "Tere, kasutaja %(site_name)s!"
+msgstr "მოგესალმებით %(site_name)s -დან!"
 
 #: templates/templated_email/dashboard/customer/set_password.email:6
 #, python-format
@@ -260,15 +252,12 @@ msgid ""
 "You're receiving this e-mail because you have to set a password for your customer account at %(site_name)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
-"\n"
-"Saite selle meilisõnumi, kuna peate määrama oma kliendikontole parooli aadressil %(site_name)s.\n"
-"Parooli lähtestamiseks klõpsake alloleval lingil.\n"
 
 #: templates/templated_email/dashboard/staff/set_password.email:2
 #, python-format
 msgctxt "Set password for staff member e-mail title"
 msgid "Hello from %(site_name)s!"
-msgstr "Tere, kasutaja %(site_name)s!"
+msgstr "მოგესალმებით %(site_name)s -დან!"
 
 #: templates/templated_email/dashboard/staff/set_password.email:6
 #, python-format
@@ -278,15 +267,12 @@ msgid ""
 "You're receiving this e-mail because you have to set a password for your staff member account at %(site_name)s.\n"
 "Click the link below to reset your password.\n"
 msgstr ""
-"\n"
-"Saite selle e-kirja, kuna peate oma töötaja liikme kontole parooli määrama aadressil %(site_name)s.\n"
-"Parooli lähtestamiseks klõpsake alloleval lingil.\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment confirmation email subject"
 msgid "Your order %(order)s has been fulfilled"
-msgstr "Teie tellimus %(order)s on täidetud"
+msgstr "თქვენი შეკვეთა %(order)s შესრულებულია"
 
 #: templates/templated_email/order/confirm_fulfillment.email:11
 msgctxt "Fulfillment confirmation email text"
@@ -295,7 +281,7 @@ msgid ""
 "Thank you for your order. Below is the list of fulfilled products.\n"
 msgstr ""
 "\n"
-"Täname teid tellimuse eest. Allpool on loetelu täidetud toodetest.\n"
+"გმადლობთ შეკვეთისთვის. ქვემოთ მოცემულია შესრულებული პროდუქტების ჩამონათვალი.\n"
 
 #: templates/templated_email/order/confirm_fulfillment.email:15
 #: templates/templated_email/source/confirm_fulfillment.mjml:25
@@ -303,14 +289,16 @@ msgstr ""
 #, python-format
 msgctxt "Fulfillment confirmation email text"
 msgid "You can track your shipment with %(tracking_number)s code."
-msgstr "Saate oma saadetist jälgida %(tracking_number)s koodiga."
+msgstr ""
+"თქვენ შეგიძლიათ თვალყური ადევნოთ თქვენს გადაზიდვას %(tracking_number)s "
+"კოდით."
 
 #: templates/templated_email/order/confirm_order.email:6
 #: templates/templated_email/order/staff_confirm_order.email:6
 #, python-format
 msgctxt "Order confirmation e-mail subject"
 msgid "Order %(order)s details"
-msgstr "Tellimuse %(order)s üksikasjad"
+msgstr "შეკვეთს %(order)s დეტალები"
 
 #: templates/templated_email/order/confirm_order.email:13
 msgctxt "Order confirmation e-mail text"
@@ -319,7 +307,7 @@ msgid ""
 "Thank you for your order. Below is the list of ordered products.\n"
 msgstr ""
 "\n"
-"Täname teid tellimuse eest. Allpool on tellitud toodete loend.\n"
+"გმადლობთ შეკვეთისთვის. ქვემოთ მოცემულია შესრულებული პროდუქტების ჩამონათვალი.\n"
 
 #: templates/templated_email/order/confirm_order.email:17
 #: templates/templated_email/order/staff_confirm_order.email:17
@@ -331,50 +319,50 @@ msgid ""
 "%(order_details_url)s\n"
 msgstr ""
 "\n"
-"Makseandmete nägemiseks külastage palun: \n"
-"%(order_details_url)s \n"
+"თქვენი გადახდის დეტალების სანახავად ეწვიეთ:\n"
+"%(order_details_url)s\n"
 
 #: templates/templated_email/order/confirm_order.email:25
 #: templates/templated_email/order/staff_confirm_order.email:25
 msgctxt "Order confirmation e-mail table header"
 msgid "Order summary"
-msgstr "Tellimuse kokkuvõte"
+msgstr "შეკვეთის დეტალები"
 
 #: templates/templated_email/order/confirm_order.email:26
 #: templates/templated_email/order/staff_confirm_order.email:26
 msgctxt "Order confirmation e-mail table header"
 msgid "Subtotal"
-msgstr "Vahesumma"
+msgstr "ქვეტოტალი"
 
 #: templates/templated_email/order/confirm_order.email:27
 #: templates/templated_email/order/staff_confirm_order.email:27
 msgctxt "Order confirmation e-mail table header"
 msgid "Shipping"
-msgstr "Saatmine"
+msgstr "მიწოდება"
 
 #: templates/templated_email/order/confirm_order.email:28
 #: templates/templated_email/order/staff_confirm_order.email:28
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes (included)"
-msgstr "Maksud (kaasa arvatud)"
+msgstr "დღგ (ჩათვლით)"
 
 #: templates/templated_email/order/confirm_order.email:28
 #: templates/templated_email/order/staff_confirm_order.email:28
 msgctxt "Order confirmation e-mail table header"
 msgid "Taxes"
-msgstr "Maksud"
+msgstr "დღგ"
 
 #: templates/templated_email/order/confirm_order.email:29
 #: templates/templated_email/order/staff_confirm_order.email:29
 msgctxt "Order confirmation e-mail table header"
 msgid "Discount:"
-msgstr "Soodustus:"
+msgstr "ფასდაკლება:"
 
 #: templates/templated_email/order/confirm_order.email:30
 #: templates/templated_email/order/staff_confirm_order.email:30
 msgctxt "Order confirmation e-mail table header"
 msgid "Total"
-msgstr "Kokku"
+msgstr "ჯამი"
 
 #: templates/templated_email/order/confirm_order.email:32
 #: templates/templated_email/order/staff_confirm_order.email:32
@@ -382,7 +370,7 @@ msgstr "Kokku"
 #: templates/templated_email/source/staff_confirm_order.mjml:29
 msgctxt "Order confirmation e-mail billing address"
 msgid "Billing address"
-msgstr "Arve Aadress"
+msgstr "გადახდის მისამართი"
 
 #: templates/templated_email/order/confirm_order.email:33
 #: templates/templated_email/order/staff_confirm_order.email:33
@@ -390,7 +378,7 @@ msgstr "Arve Aadress"
 #: templates/templated_email/source/staff_confirm_order.mjml:39
 msgctxt "Order confirmation e-mail text"
 msgid "No billing address"
-msgstr "Arveldusaadressi pole"
+msgstr "გადახდის მისამართის გარაშე"
 
 #: templates/templated_email/order/confirm_order.email:35
 #: templates/templated_email/order/staff_confirm_order.email:35
@@ -398,7 +386,7 @@ msgstr "Arveldusaadressi pole"
 #: templates/templated_email/source/staff_confirm_order.mjml:30
 msgctxt "Order confirmation e-mail shipping address"
 msgid "Shipping address"
-msgstr "Kohaletoimetamise aadress"
+msgstr "მიწოდების მისამართი"
 
 #: templates/templated_email/order/confirm_order.email:36
 #: templates/templated_email/order/staff_confirm_order.email:36
@@ -406,13 +394,13 @@ msgstr "Kohaletoimetamise aadress"
 #: templates/templated_email/source/staff_confirm_order.mjml:46
 msgctxt "Order confirmation e-mail text"
 msgid "No shipping required"
-msgstr "Saatmine pole vajalik"
+msgstr "მიწოდების მისამართი გარაშე"
 
 #: templates/templated_email/order/order_cancel.email:4
 #, python-format
 msgctxt "Order cancel e-mail subject"
 msgid "Order %(order)s canceled"
-msgstr "Tellimus %(order)s on tühistatud"
+msgstr "შეკვეთა %(order)s გაუქმებულია"
 
 #: templates/templated_email/order/order_cancel.email:11
 msgctxt "Order cancel e-mail text"
@@ -421,13 +409,13 @@ msgid ""
 "Your order has been canceled.\n"
 msgstr ""
 "\n"
-"Teie tellimus on tühistatud.\n"
+"თქვენი შეკვეთა გაუქმებულია.\n"
 
 #: templates/templated_email/order/order_refund.email:4
 #, python-format
 msgctxt "Order refund e-mail subject"
 msgid "Order %(order)s refunded"
-msgstr "Tellimus %(order)s tagastati"
+msgstr "შეკვეთა %(order)s დაბრუნებულია"
 
 #: templates/templated_email/order/order_refund.email:11
 #, python-format
@@ -437,13 +425,13 @@ msgid ""
 "A payment of %(amount)s %(currency)s has been refunded for your order.\n"
 msgstr ""
 "\n"
-"Teie tellimuse eest tagastati makse %(amount)s %(currency)s.\n"
+"გადხდილი %(amount)s %(currency)s ანაზღაურდა თქვენი შეკვეთისთვის.\n"
 
 #: templates/templated_email/order/payment/confirm_payment.email:4
 #, python-format
 msgctxt "Payment confirmation subject"
 msgid "Order %(order)s payment details"
-msgstr "Tellimuse %(order)s makse üksikasjad"
+msgstr "შეკვეთა %(order)s გადახდის დეტალები"
 
 #: templates/templated_email/order/payment/confirm_payment.email:11
 msgctxt "Payment confirmation email text"
@@ -452,11 +440,14 @@ msgid ""
 "Thank you for your payment.\n"
 "Your payment was successfully processed.\n"
 msgstr ""
+"\n"
+"მადლობა შეკვეთისთვის.\n"
+"თქვენი გადახდა წარმატებით დამუშავდა.\n"
 
 #: templates/templated_email/order/send_invoice.email:4
 msgctxt "Invoice email subject"
 msgid "Invoice"
-msgstr "Arve"
+msgstr "ინვოისი"
 
 #: templates/templated_email/order/send_invoice.email:9
 #, python-format
@@ -466,7 +457,7 @@ msgid ""
 "In order to download invoice %(number)s, click the link below.\n"
 msgstr ""
 "\n"
-"Arve %(number)s allalaadimiseks klõpsake allolevat linki.\n"
+"ინვოისის გადმოსაწერად %(number)s, დააჭირეთ ქვემოთ მოცემულ ბმულს.\n"
 
 #: templates/templated_email/order/staff_confirm_order.email:13
 msgctxt "Order confirmation staff e-mail text"
@@ -475,13 +466,13 @@ msgid ""
 "Below is the list of ordered products.\n"
 msgstr ""
 "\n"
-"Allpool on tellitud toodete loend.\n"
+"ქვემოთ მოცემულია შეკვეთილი პროდუქტების ჩამონათვალი.\n"
 
 #: templates/templated_email/order/update_fulfillment.email:4
 #, python-format
 msgctxt "Fulfillment update email subject"
 msgid "Shipping update for order %(order)s"
-msgstr "Tellimuse %(order)s saatmisvärskendus"
+msgstr "გადაზიდვის განახლება შეკვეთისთვის %(order)s"
 
 #: templates/templated_email/order/update_fulfillment.email:11
 msgctxt "Fulfillment update email text"
@@ -490,27 +481,28 @@ msgid ""
 "Your shipping status has been updated. Below is the list of ordered products that have been updated with new tracking number.\n"
 msgstr ""
 "\n"
-"Teie saatmise seisundit on uuendatud. Allpool on loetelu tellitud toodetega, millel on uuendatud jälgimisnumber.\n"
+"თქვენი გადაზიდვის სტატუსი განახლდა. ქვემოთ მოცემულია შეკვეთილი პროდუქტების ჩამონათვალი, რომლებიც განახლებულია ახალი თვალთვალის ნომრით.\n"
 
 #: templates/templated_email/order/update_fulfillment.email:15
 #, python-format
 msgctxt "Fulfillment update email text"
 msgid ""
 "You can track your shipment with the following code: %(tracking_number)s."
-msgstr "Saadetist saate jälgida järgmise koodiga:%(tracking_number)s."
+msgstr ""
+"შეგიძლიათ გააგზავნოთ თქვენი გადაზიდვა შემდეგი კოდით: %(tracking_number)s"
 
 #: templates/templated_email/shared/_footer.email:2
 #: templates/templated_email/source/shared/footer.mjml:4
 msgctxt "Base email text"
 msgid "This is an automatically generated e-mail, please do not reply."
-msgstr "See on automaatselt genereeritud e-kiri, palun ärge vastake."
+msgstr "ეს არის ავტომატურად წარმოქმნილი ელ.წერილი, ნუ უპასუხებთ ამ წერილს."
 
 #: templates/templated_email/shared/_footer.email:5
 #: templates/templated_email/source/shared/footer.mjml:13
 #, python-format
 msgctxt "Base email footer"
 msgid "Sincerely, %(site_name)s"
-msgstr "Lugupidamisega %(site_name)s"
+msgstr "პატივისცემით, %(site_name)s"
 
 #: templates/templated_email/shared/_header.email:2
 #: templates/templated_email/source/account_delete.mjml:13
@@ -532,7 +524,7 @@ msgstr "Lugupidamisega %(site_name)s"
 #: templates/templated_email/source/update_fulfillment.mjml:13
 msgctxt "Standard e-mail greeting"
 msgid "Hi!"
-msgstr "Tere!"
+msgstr "გამარჯობა!"
 
 #: templates/templated_email/source/account_delete.mjml:16
 #, python-format
@@ -543,10 +535,6 @@ msgid ""
 " delete your account. Please note that this action is permanent and cannot "
 "be reversed."
 msgstr ""
-"Saite selle e-kirja, kuna teie või keegi teine ​​on taotlenud ateie "
-"kasutajakonto kustutamine aadressil %(site_name)s. <br/> Klõpsake alloleval "
-"lingilkustutage oma konto. Pange tähele, et see toiming on püsiv ja seda ei "
-"saa tehatagasi pöörata."
 
 #: templates/templated_email/source/confirm.mjml:16
 #, python-format
@@ -555,14 +543,11 @@ msgid ""
 "In order to log into %(site_name)s, you have to confirm your email address "
 "first. Please click the link below to do so and log into your account."
 msgstr ""
-"%(site_name)s sisselogimiseks peate kinnitama oma e-posti "
-"aadressikõigepealt. Selleks klõpsake palun allolevat linki ja logige sisse "
-"oma kontole."
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:16
 msgctxt "Fulfillment confirmation email text"
 msgid "Thank you for your order. Below is the list of fulfilled products."
-msgstr "Täname teid tellimuse eest. Allpool on loetelu täidetud toodetest."
+msgstr ""
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:21
 #: templates/templated_email/source/update_fulfillment.mjml:21
@@ -572,16 +557,12 @@ msgid ""
 "You can track your shipment with <a "
 "href=\"%(tracking_number)s\">%(tracking_number)s</a> link."
 msgstr ""
-"Saate oma saadetist jälgida "
-"<ahref=\"%(tracking_number)s\">%(tracking_number)s</a>"
 
 #: templates/templated_email/source/confirm_fulfillment.mjml:33
 msgctxt "Fulfillment digital products email text"
 msgid ""
 "You can download your digital products by clicking in download link(s)."
 msgstr ""
-"Oma digitaaltooteid saate alla laadida, klõpsates allalaadimislingil "
-"(linkidel)."
 
 #: templates/templated_email/source/confirm_order.mjml:18
 #, python-format
@@ -591,14 +572,11 @@ msgid ""
 " payment details please visit: <a "
 "href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
-"Täname Teid tellimuse eest. Allpool on loetelu tellitud toodetest. Makse "
-"andmete nägemiseks külastage: <a "
-"href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 
 #: templates/templated_email/source/confirm_order.mjml:22
 msgctxt "Order confirmation e-mail text"
 msgid "Thank you for your order. Below is the list of ordered products."
-msgstr "Täname teid tellimuse eest. Allpool on tellitud toodete loend."
+msgstr ""
 
 #: templates/templated_email/source/confirm_payment.mjml:16
 msgctxt "Payment confirmation e-mail text"
@@ -613,9 +591,6 @@ msgid ""
 "for your user account at %(site_name)s.<br /> If you didn't request this "
 "change, please contact the administrator."
 msgstr ""
-"Saite selle meilisõnumi, kuna teie või keegi teine ​​on e-posti aadressi "
-"muutnudoma kasutajakonto jaoks aadressil %(site_name)s. <br /> Kui te seda "
-"ei taotlenudmuutmiseks pöörduge administraatori poole."
 
 #: templates/templated_email/source/export_failed.mjml:16
 msgctxt "Export products e-mail text"
@@ -623,8 +598,6 @@ msgid ""
 "Sorry, we couldn't finish exporting products, some unexpected errors "
 "occurred. Please try again."
 msgstr ""
-"Vabandust, me ei saanud toodete eksportimist lõpule viia, mõned ootamatud "
-"veadtoimunud. Palun proovi uuesti."
 
 #: templates/templated_email/source/export_products_file.mjml:16
 #, python-format
@@ -633,77 +606,77 @@ msgid ""
 "Your file with products data is ready to download: <a "
 "href=\"%(csv_link)s\">%(csv_link)s</a>"
 msgstr ""
-"Teie tooteandmetega fail on allalaadimiseks valmis: "
-"<ahref=\"%(csv_link)s\">%(csv_link)s</a>"
+"თქვენი ფაილი პროდუქტების მონაცემებით მზად არის ჩამოსატვირთად: <a "
+"href=\"%(csv_link)s\">%(csv_link)s</a> "
 
 #: templates/templated_email/source/order_cancel.mjml:16
 msgctxt "Order cancel e-mail text"
 msgid "Your order has been canceled."
-msgstr "Teie tellimus on tühistatud."
+msgstr "თქვენი შეკვეთა გაუქმნდა."
 
 #: templates/templated_email/source/order_refund.mjml:16
 #, python-format
 msgctxt "Order refund e-mail text"
 msgid "A payment of %(amount)s %(currency)s has been refunded for your order."
-msgstr "Teie tellimuse eest tagastati makse %(amount)s %(currency)s."
+msgstr "გადხდილი %(amount)s %(currency)s ანაზღაურდა თქვენი შეკვეთისთვის."
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:11
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:29
 #: templates/templated_email/source/partials/_order_lines.mjml:59
 msgctxt "Ordered item name"
 msgid "Item"
-msgstr "Üksus"
+msgstr "ნივთი"
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:12
 #: templates/templated_email/source/partials/_order_lines.mjml:60
 msgctxt "Quantity ordered of a product"
 msgid "Quantity"
-msgstr "Kogus"
+msgstr "რაოდენობა"
 
 #: templates/templated_email/source/partials/_fulfillment_lines.mjml:30
 msgctxt "Ordered item download links"
 msgid "Download Link"
-msgstr "Lae alla link"
+msgstr "გადმოწერის ბმული"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:12
 msgctxt "E-mail order lines summary table"
 msgid "Subtotal"
-msgstr "Vahesumma"
+msgstr "ქვეტოტალი"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:20
 msgctxt "E-mail order lines summary table"
 msgid "Shipping"
-msgstr "Saatmine"
+msgstr "მიწოდება"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:29
 msgctxt "E-mail order lines summary table"
 msgid "Taxes (included)"
-msgstr "Maksud (kaasa arvatud)"
+msgstr "დღგ (ჩათვლით)"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:31
 msgctxt "E-mail order lines summary table"
 msgid "Taxes"
-msgstr "Maksud"
+msgstr "დღგ"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:41
 msgctxt "E-mail order lines summary table"
 msgid "Discount"
-msgstr "Allahindlus"
+msgstr "ფასდაკლება"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:50
 msgctxt "E-mail order lines summary table"
 msgid "Total"
-msgstr "Kokku"
+msgstr "ჯამი"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:61
 msgctxt "Unit price of a product"
 msgid "Per unit"
-msgstr "Ühiku kohta"
+msgstr "ერთეულზე"
 
 #: templates/templated_email/source/partials/_order_lines.mjml:62
 msgctxt "Ordered item subtotal (unit price * quantity)"
 msgid "Subtotal"
-msgstr "Vahesumma"
+msgstr "ქვეტოტალი"
 
 #: templates/templated_email/source/password_reset.mjml:16
 #, python-format
@@ -714,10 +687,6 @@ msgid ""
 "ignored if you did not request a password reset. Click the link below to "
 "reset your password."
 msgstr ""
-"Saite selle e-kirja, kuna teie või keegi teine ​​on taotlenud aparool oma "
-"kasutajakontole aadressil %(site_name)s. <br/> See võib olla "
-"turvalineignoreeritakse, kui te ei taotlenud parooli lähtestamist. Klõpsake "
-"alloleval lingilTaasta oma salasõna."
 
 #: templates/templated_email/source/request_email_change.mjml:16
 #, python-format
@@ -728,16 +697,12 @@ msgid ""
 "ignored if you did not request an email change. Click the link below to "
 "confirm new email address."
 msgstr ""
-"Saite selle meilisõnumi, kuna teie või keegi teine ​​on taotlenudmeilikonto "
-"muutmine teie kasutajakontol aadressil %(site_name)s. <br /> See võib olla "
-"turvalineignoreeritakse, kui te ei taotlenud meilisõnumi muutmist. Klõpsake "
-"alloleval lingilkinnitage uus e-posti aadress."
 
 #: templates/templated_email/source/send_invoice.mjml:16
 #, python-format
 msgctxt "Send invoice e-mail text"
 msgid "In order to download invoice %(number)s, click the link below."
-msgstr "Arve %(number)s allalaadimiseks klõpsake allolevat linki."
+msgstr "ინვოისის გადმოსაწერად %(number)s, დააჭირეთ ქვემოთ მოცემულ ბმულს."
 
 #: templates/templated_email/source/set_customer_password.mjml:16
 #, python-format
@@ -747,9 +712,6 @@ msgid ""
 "customer account at %(site_name)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
-"Saite selle e-kirja, kuna peate oma paroolile määramakliendikonto aadressil "
-"%(site_name)s. <br/> Klõpsake alloleval lingil oma konto "
-"seadistamiseksparool."
 
 #: templates/templated_email/source/set_password.mjml:16
 #, python-format
@@ -759,9 +721,6 @@ msgid ""
 " member account at %(site_name)s.<br/> Click the link below to set up your "
 "password."
 msgstr ""
-"Saite selle e-kirja, kuna peate oma töötajatele parooli määramaliikme konto "
-"aadressil %(site_name)s. <br/> Klõpsake alloleval lingil oma konto "
-"seadistamiseksparool."
 
 #: templates/templated_email/source/staff_confirm_order.mjml:17
 #, python-format
@@ -770,9 +729,6 @@ msgid ""
 "Someone placed a new order in your store. To see order details please visit:"
 " <a href=\"%(order_details_url)s\">%(order_details_url)s</a>"
 msgstr ""
-"Keegi esitas teie poes uue tellimuse. Tellimuse üksikasjade nägemiseks "
-"külastage palun: <a "
-"href=\\\"%(order_details_url)s\\\">%(order_details_url)s</a>"
 
 #: templates/templated_email/source/update_fulfillment.mjml:16
 msgctxt "Fulfillment update email text"
@@ -780,6 +736,3 @@ msgid ""
 "Your shipping status has been updated. Below is the list of ordered products"
 " that have been updated with new tracking number."
 msgstr ""
-"Teie saatmisolekut on värskendatud. Allpool on tellitud toodete loendmida on"
-" uuendatud uue jälgimisnumbriga.Teie saatmise seisundit on uuendatud. "
-"Allpool on loetelu tellitud toodetega, millel on uuendatud jälgimisnumber."
