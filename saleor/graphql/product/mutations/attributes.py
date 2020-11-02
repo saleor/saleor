@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.utils.text import slugify
 
 from ....attribute import AttributeInputType, AttributeType, models as attribute_models
+from ....attribute.error_codes import AttributeErrorCode
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import (
     PageTypePermissions,
@@ -15,7 +16,7 @@ from ....core.permissions import (
     ProductTypePermissions,
 )
 from ....product import models
-from ....product.error_codes import AttributeErrorCode, ProductErrorCode
+from ....product.error_codes import ProductErrorCode
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import AttributeError, ProductError
 from ...core.utils import (

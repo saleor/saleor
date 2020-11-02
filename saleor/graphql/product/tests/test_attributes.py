@@ -9,6 +9,7 @@ from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
 
 from ....attribute import AttributeInputType, AttributeType
+from ....attribute.error_codes import AttributeErrorCode
 from ....attribute.models import (
     Attribute,
     AttributeProduct,
@@ -16,7 +17,7 @@ from ....attribute.models import (
     AttributeVariant,
 )
 from ....attribute.utils import associate_attribute_values_to_instance
-from ....product.error_codes import AttributeErrorCode, ProductErrorCode
+from ....product.error_codes import ProductErrorCode
 from ....product.models import (
     Category,
     Collection,
