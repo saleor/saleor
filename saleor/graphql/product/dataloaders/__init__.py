@@ -8,6 +8,7 @@ from .attributes import (
 from .products import (
     CategoryByIdLoader,
     CollectionByIdLoader,
+    CollectionChannelListingByCollectionIdLoader,
     CollectionChannelListingByIdLoader,
     CollectionsByProductIdLoader,
     ImagesByProductIdLoader,
@@ -29,6 +30,7 @@ __all__ = [
     "AttributeValuesByAttributeIdLoader",
     "CategoryByIdLoader",
     "CollectionByIdLoader",
+    "CollectionChannelListingByCollectionIdLoader",
     "CollectionChannelListingByIdLoader",
     "CollectionsByProductIdLoader",
     "ImagesByProductIdLoader",
