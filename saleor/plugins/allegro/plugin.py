@@ -311,9 +311,19 @@ class AllegroPlugin(BasePlugin):
         html += '<th></th>'
         html += '</tr>'
         for error in errors:
-            html += '<tr>'
-            html += '<td>' + str(error) + '</td>'
-            html += '</tr>'
+            if len(error) > 0:
+                html += '<tr>'
+                html += '<td>' + str(error) + '</td>'
+                html += '</tr>'
+        html += '<tr>'
+        html += '<td>' + '</td>'
+        html += '</tr>'
+        html += '<tr>'
+        html += '<td>' + 'Popawnie przetworzone: ' + str(len([error for error in errors if len(error) == 0])) + '</td>'
+        html += '</tr>'
+        html += '<tr>'
+        html += '<td>' + 'Niepopawnie przetworzone: ' + str(len([error for error in errors if len(error) > 0])) + '</td>'
+        html += '</tr>'
         html += '</table>'
         return html
 
