@@ -12,6 +12,7 @@ from ...product.filters import filter_products_by_attributes_values
 from ...product.models import Category, Collection, Product, ProductType, ProductVariant
 from ...search.backends import picker
 from ...warehouse.models import Stock
+from ..attribute.enums import AttributeTypeEnum
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types import FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
@@ -24,7 +25,6 @@ from ..utils import (
 from ..utils.filters import filter_by_query_param, filter_range_field
 from ..warehouse import types as warehouse_types
 from .enums import (
-    AttributeTypeEnum,
     CollectionPublished,
     ProductTypeConfigurable,
     ProductTypeEnum,

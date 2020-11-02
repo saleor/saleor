@@ -31,6 +31,7 @@ from ....product.thumbnails import (
 )
 from ....product.utils import delete_categories
 from ....product.utils.variants import generate_name_for_variant
+from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import PositiveDecimal, WeightScalar
 from ...core.types import SeoInput, Upload
@@ -61,7 +62,6 @@ from ..utils import (
     validate_attributes_input_for_product_and_page,
     validate_attributes_input_for_variant,
 )
-from .common import ReorderInput
 
 if TYPE_CHECKING:
     from ....attribute import models as attribute_models

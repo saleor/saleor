@@ -5,6 +5,12 @@ from graphene import relay
 
 from ....attribute import models as models
 from ....core.permissions import ProductPermissions
+from ...attribute.descriptions import AttributeDescriptions, AttributeValueDescriptions
+from ...attribute.enums import (
+    AttributeInputTypeEnum,
+    AttributeTypeEnum,
+    AttributeValueType,
+)
 from ...core.connection import CountableDjangoObjectType
 from ...decorators import permission_required
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
@@ -12,8 +18,6 @@ from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import AttributeTranslation, AttributeValueTranslation
 from ..dataloaders import AttributeValuesByAttributeIdLoader
-from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
-from ..enums import AttributeInputTypeEnum, AttributeTypeEnum, AttributeValueType
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)

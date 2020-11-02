@@ -6,14 +6,11 @@ from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.validators import validate_one_of_args_is_in_query
 from ..decorators import permission_required
 from ..translations.mutations import (
-    AttributeTranslate,
-    AttributeValueTranslate,
     CategoryTranslate,
     CollectionTranslate,
     ProductTranslate,
     ProductVariantTranslate,
 )
-from .bulk_mutations.attributes import AttributeBulkDelete, AttributeValueBulkDelete
 from .bulk_mutations.products import (
     CategoryBulkDelete,
     CollectionBulkDelete,
@@ -38,17 +35,6 @@ from .filters import (
     ProductVariantFilterInput,
 )
 from .mutations.attributes import (
-    AttributeClearMeta,
-    AttributeClearPrivateMeta,
-    AttributeCreate,
-    AttributeDelete,
-    AttributeReorderValues,
-    AttributeUpdate,
-    AttributeUpdateMeta,
-    AttributeUpdatePrivateMeta,
-    AttributeValueCreate,
-    AttributeValueDelete,
-    AttributeValueUpdate,
     ProductAttributeAssign,
     ProductAttributeUnassign,
     ProductTypeReorderAttributes,
@@ -317,44 +303,8 @@ class ProductQueries(graphene.ObjectType):
 
 
 class ProductMutations(graphene.ObjectType):
-    attribute_create = AttributeCreate.Field()
-    attribute_delete = AttributeDelete.Field()
-    attribute_bulk_delete = AttributeBulkDelete.Field()
     product_attribute_assign = ProductAttributeAssign.Field()
     product_attribute_unassign = ProductAttributeUnassign.Field()
-    attribute_update = AttributeUpdate.Field()
-    attribute_translate = AttributeTranslate.Field()
-    attribute_update_metadata = AttributeUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    attribute_clear_metadata = AttributeClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    attribute_update_private_metadata = AttributeUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-    attribute_clear_private_metadata = AttributeClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-
-    attribute_value_create = AttributeValueCreate.Field()
-    attribute_value_delete = AttributeValueDelete.Field()
-    attribute_value_bulk_delete = AttributeValueBulkDelete.Field()
-    attribute_value_update = AttributeValueUpdate.Field()
-    attribute_value_translate = AttributeValueTranslate.Field()
-    attribute_reorder_values = AttributeReorderValues.Field()
 
     category_create = CategoryCreate.Field()
     category_delete = CategoryDelete.Field()

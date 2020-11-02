@@ -2,6 +2,7 @@ from graphene_federation import build_schema
 
 from .account.schema import AccountMutations, AccountQueries
 from .app.schema import AppMutations, AppQueries
+from .attribute.schema import AttributeMutations
 from .checkout.schema import CheckoutMutations, CheckoutQueries
 from .core.schema import CoreQueries
 from .csv.schema import CsvMutations, CsvQueries
@@ -49,6 +50,7 @@ class Query(
 class Mutation(
     AccountMutations,
     AppMutations,
+    AttributeMutations,
     CheckoutMutations,
     CsvMutations,
     DiscountMutations,
