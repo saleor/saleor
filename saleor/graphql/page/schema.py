@@ -42,7 +42,9 @@ class PageQueries(graphene.ObjectType):
     )
     page_type = graphene.Field(
         PageType,
-        id=graphene.Argument(graphene.ID, description="ID of the page type."),
+        id=graphene.Argument(
+            graphene.ID, description="ID of the page type.", required=True
+        ),
         description="Look up a page type by ID.",
     )
     page_types = FilterInputConnectionField(
