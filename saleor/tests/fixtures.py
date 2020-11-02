@@ -257,6 +257,24 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkouts_list(channel_USD, channel_PLN):
+    checkouts_usd = Checkout.objects.bulk_create(
+        [
+            Checkout(currency=channel_USD.currency_code, channel=channel_USD),
+            Checkout(currency=channel_USD.currency_code, channel=channel_USD),
+            Checkout(currency=channel_USD.currency_code, channel=channel_USD),
+        ]
+    )
+    checkouts_pln = Checkout.objects.bulk_create(
+        [
+            Checkout(currency=channel_PLN.currency_code, channel=channel_PLN),
+            Checkout(currency=channel_PLN.currency_code, channel=channel_PLN),
+        ]
+    )
+    return [*checkouts_pln, *checkouts_usd]
+
+
+@pytest.fixture
 def checkout_ready_to_complete(checkout_with_item, address, shipping_method, gift_card):
     checkout = checkout_with_item
     checkout.shipping_address = address
@@ -1586,7 +1604,7 @@ def voucher_with_many_channels(voucher, channel_PLN):
 @pytest.fixture
 def voucher_percentage(channel_USD):
     voucher = Voucher.objects.create(
-        code="mirumee", discount_value_type=DiscountValueType.PERCENTAGE,
+        code="saleor", discount_value_type=DiscountValueType.PERCENTAGE,
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,

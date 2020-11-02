@@ -159,9 +159,15 @@ class ShippingZone(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_methods(root: ChannelContext[models.ShippingZone], *_args):
+        shipping_methods = root.node.shipping_methods.all()
+        channel_slug = root.channel_slug
+        if channel_slug:
+            shipping_methods = shipping_methods.filter(
+                channel_listing__channel__slug=str(channel_slug)
+            )
         shipping_methods = [
             ChannelContext(node=shipping, channel_slug=root.channel_slug)
-            for shipping in root.node.shipping_methods.all()
+            for shipping in shipping_methods
         ]
         return shipping_methods
 

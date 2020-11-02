@@ -195,6 +195,25 @@ def test_product_query_by_id_not_existing_in_channel_as_staff_user(
     )
     content = get_graphql_content(response)
     product_data = content["data"]["product"]
+    assert product_data is None
+
+
+def test_product_query_by_id_as_staff_user_without_channel_slug(
+    staff_api_client, permission_manage_products, product, channel_USD
+):
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+    }
+    ProductChannelListing.objects.filter(product=product, channel=channel_USD).delete()
+
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
     assert product_data is not None
     assert product_data["name"] == product.name
 
@@ -248,6 +267,25 @@ def test_product_query_by_id_not_existing_in_channel_as_app(
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
         "channel": channel_USD.slug,
+    }
+    ProductChannelListing.objects.filter(product=product, channel=channel_USD).delete()
+
+    response = app_api_client.post_graphql(
+        QUERY_PRODUCT,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is None
+
+
+def test_product_query_by_id_as_app_without_channel_slug(
+    app_api_client, permission_manage_products, product, channel_USD
+):
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
     }
     ProductChannelListing.objects.filter(product=product, channel=channel_USD).delete()
 
@@ -466,6 +504,25 @@ def test_product_query_by_slug_not_existing_in_channel_as_staff_user(
     )
     content = get_graphql_content(response)
     product_data = content["data"]["product"]
+    assert product_data is None
+
+
+def test_product_query_by_slug_as_staff_user_without_channel(
+    staff_api_client, permission_manage_products, product, channel_USD
+):
+    variables = {
+        "slug": product.slug,
+    }
+    ProductChannelListing.objects.filter(product=product, channel=channel_USD).delete()
+
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
     assert product_data is not None
     assert product_data["name"] == product.name
 
@@ -519,6 +576,25 @@ def test_product_query_by_slug_not_existing_in_channel_as_app(
     variables = {
         "slug": product.slug,
         "channel": channel_USD.slug,
+    }
+    ProductChannelListing.objects.filter(product=product, channel=channel_USD).delete()
+
+    response = app_api_client.post_graphql(
+        QUERY_PRODUCT,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+    assert product_data is None
+
+
+def test_product_query_by_slug_as_app_without_channel(
+    app_api_client, permission_manage_products, product, channel_USD
+):
+    variables = {
+        "slug": product.slug,
     }
     ProductChannelListing.objects.filter(product=product, channel=channel_USD).delete()
 
@@ -795,14 +871,37 @@ def test_fetch_all_products_not_available_as_staff_user(
 
 
 def test_fetch_all_products_not_existing_in_channel_as_staff_user(
-    staff_api_client, permission_manage_products, product, channel_USD
+    staff_api_client, permission_manage_products, channel_USD, product_list
 ):
     variables = {"channel": channel_USD.slug}
-    ProductChannelListing.objects.filter(product=product, channel=channel_USD).delete()
+    ProductChannelListing.objects.filter(
+        product=product_list[0], channel=channel_USD
+    ).delete()
 
     response = staff_api_client.post_graphql(
         QUERY_FETCH_ALL_PRODUCTS,
         variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # if channel slug is provided we return all products related to this channel
+    num_products = Product.objects.count() - 1
+
+    assert content["data"]["products"]["totalCount"] == num_products
+    assert len(content["data"]["products"]["edges"]) == num_products
+
+
+def test_fetch_all_products_as_staff_user_without_channel_slug(
+    staff_api_client, permission_manage_products, product_list, channel_USD
+):
+    ProductChannelListing.objects.filter(
+        product=product_list[0], channel=channel_USD
+    ).delete()
+
+    response = staff_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
         permissions=(permission_manage_products,),
         check_no_permissions=False,
     )
@@ -849,14 +948,36 @@ def test_fetch_all_products_not_available_as_app(
 
 
 def test_fetch_all_products_not_existing_in_channel_as_app(
-    app_api_client, permission_manage_products, product, channel_USD
+    app_api_client, permission_manage_products, product_list, channel_USD
 ):
     variables = {"channel": channel_USD.slug}
-    ProductChannelListing.objects.filter(product=product, channel=channel_USD).delete()
+    ProductChannelListing.objects.filter(
+        product=product_list[0], channel=channel_USD
+    ).delete()
 
     response = app_api_client.post_graphql(
         QUERY_FETCH_ALL_PRODUCTS,
         variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    # if channel slug is provided we return all products related to this channel
+
+    num_products = Product.objects.count() - 1
+    assert content["data"]["products"]["totalCount"] == num_products
+    assert len(content["data"]["products"]["edges"]) == num_products
+
+
+def test_fetch_all_products_as_app_without_channel_slug(
+    app_api_client, permission_manage_products, product_list, channel_USD
+):
+    ProductChannelListing.objects.filter(
+        product=product_list[0], channel=channel_USD
+    ).delete()
+
+    response = app_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
         permissions=(permission_manage_products,),
         check_no_permissions=False,
     )
@@ -4261,7 +4382,7 @@ def test_product_variant_price(
 
 
 QUERY_REPORT_PRODUCT_SALES = """
-query TopProducts($period: ReportingPeriod!, $channel: String) {
+query TopProducts($period: ReportingPeriod!, $channel: String!) {
     reportProductSales(period: $period, first: 20, channel: $channel) {
         edges {
             node {

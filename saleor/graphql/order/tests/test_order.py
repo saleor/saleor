@@ -67,7 +67,7 @@ def draft_orders_query_with_filter():
 
 
 @pytest.fixture
-def orders(customer_user, channel_USD):
+def orders(customer_user, channel_USD, channel_PLN):
     return Order.objects.bulk_create(
         [
             Order(
@@ -92,13 +92,13 @@ def orders(customer_user, channel_USD):
                 user=customer_user,
                 status=OrderStatus.FULFILLED,
                 token=uuid.uuid4(),
-                channel=channel_USD,
+                channel=channel_PLN,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.DRAFT,
                 token=uuid.uuid4(),
-                channel=channel_USD,
+                channel=channel_PLN,
             ),
         ]
     )
@@ -456,6 +456,49 @@ def test_order_query_gift_cards(
 
 
 def test_order_query_draft_excluded(staff_api_client, permission_manage_orders, orders):
+    query = """
+    query OrdersQuery {
+        orders(first: 10) {
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+    """
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query)
+    edges = get_graphql_content(response)["data"]["orders"]["edges"]
+
+    assert len(edges) == Order.objects.confirmed().count()
+
+
+def test_orders_with_channel(
+    staff_api_client, permission_manage_orders, orders, channel_USD
+):
+    query = """
+    query OrdersQuery($channel: String) {
+        orders(first: 10, channel: $channel) {
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+    """
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"channel": channel_USD.slug}
+    response = staff_api_client.post_graphql(query, variables)
+    edges = get_graphql_content(response)["data"]["orders"]["edges"]
+
+    assert len(edges) == 3
+
+
+def test_orders_without_channel(staff_api_client, permission_manage_orders, orders):
     query = """
     query OrdersQuery {
         orders(first: 10) {

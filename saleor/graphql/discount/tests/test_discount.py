@@ -208,6 +208,63 @@ def test_voucher_query_with_channel_slug(
         } in data["channelListing"]
 
 
+def test_vouchers_query_with_channel_slug(
+    staff_api_client,
+    voucher_percentage,
+    voucher_with_many_channels,
+    permission_manage_discounts,
+    channel_PLN,
+    product,
+):
+
+    query = """
+    query vouchers($channel: String) {
+        vouchers(first: 2, channel: $channel) {
+            edges {
+                node {
+                    name
+                }
+            }
+        }
+    }
+    """
+    variables = {"channel": channel_PLN.slug}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    assert len(content["data"]["vouchers"]["edges"]) == 1
+
+
+def test_vouchers_query(
+    staff_api_client,
+    voucher_percentage,
+    voucher_with_many_channels,
+    permission_manage_discounts,
+    channel_PLN,
+    product,
+):
+
+    query = """
+    query vouchers {
+        vouchers(first: 2) {
+            edges {
+                node {
+                    name
+                }
+            }
+        }
+    }
+    """
+
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+    assert len(content["data"]["vouchers"]["edges"]) == 2
+
+
 def test_sale_query(
     staff_api_client,
     sale,
@@ -303,6 +360,63 @@ def test_sale_query_with_channel_slug(
     assert data["discountValue"] == channel_listing.discount_value
     assert data["channelListing"][0]["discountValue"] == channel_listing.discount_value
     assert data["startDate"] == sale.start_date.isoformat()
+
+
+def test_sales_query(
+    staff_api_client,
+    sale_with_many_channels,
+    sale,
+    permission_manage_discounts,
+    channel_USD,
+    permission_manage_products,
+):
+    query = """
+        query sales {
+            sales(first: 2) {
+                edges {
+                    node {
+                        name
+                    }
+                }
+            }
+        }
+        """
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_discounts, permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["sales"]["edges"]) == 2
+
+
+def test_sales_query_with_channel_slug(
+    staff_api_client,
+    sale_with_many_channels,
+    sale,
+    permission_manage_discounts,
+    channel_PLN,
+    permission_manage_products,
+):
+    query = """
+        query sales($channel: String) {
+            sales(first: 2, channel: $channel) {
+                edges {
+                    node {
+                        name
+                    }
+                }
+            }
+        }
+        """
+    variables = {"channel": channel_PLN.slug}
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_discounts, permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["sales"]["edges"]) == 1
 
 
 CREATE_VOUCHER_MUTATION = """

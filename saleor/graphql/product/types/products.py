@@ -1011,16 +1011,21 @@ class Category(CountableDjangoObjectType):
     @staticmethod
     def resolve_products(root: models.Category, info, channel=None, **_kwargs):
         requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = models.Product.objects.user_has_access_to_all(
+            requestor
+        )
         tree = root.get_descendants(include_self=True)
-        if channel is None:
+        if channel is None and not requestor_has_access_to_all:
             channel = get_default_channel_slug_or_graphql_error()
         qs = models.Product.objects.all()
-        if not qs.user_has_access_to_all(requestor):
+        if not requestor_has_access_to_all:
             qs = (
                 qs.published(channel)
                 .annotate_visible_in_listings(channel)
                 .exclude(visible_in_listings=False,)
             )
+        if channel and requestor_has_access_to_all:
+            qs = qs.filter(channel_listing__channel__slug=channel)
         qs = qs.filter(category__in=tree)
         return ChannelQsContext(qs=qs, channel_slug=channel)
 
