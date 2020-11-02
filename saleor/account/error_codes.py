@@ -12,6 +12,7 @@ class AccountErrorCode(Enum):
     DELETE_STAFF_ACCOUNT = "delete_staff_account"
     DELETE_SUPERUSER_ACCOUNT = "delete_superuser_account"
     GRAPHQL_ERROR = "graphql_error"
+    INACTIVE = "inactive"
     INVALID = "invalid"
     INVALID_PASSWORD = "invalid_password"
     LEFT_NOT_MANAGEABLE_PERMISSION = "left_not_manageable_permission"
