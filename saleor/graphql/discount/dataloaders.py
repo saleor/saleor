@@ -1,5 +1,5 @@
 from ...discount import DiscountInfo
-from ...discount.models import Sale
+from ...discount.models import Sale, Voucher
 from ...discount.utils import (
     fetch_categories,
     fetch_collections,
@@ -36,3 +36,11 @@ class DiscountsByDateTimeLoader(DataLoader):
             ]
             for datetime in keys
         ]
+
+
+class VoucherByIdLoader(DataLoader):
+    context_key = "voucher_by_id"
+
+    def batch_load(self, keys):
+        vouchers = Voucher.objects.in_bulk(keys)
+        return [vouchers.get(voucher_id) for voucher_id in keys]

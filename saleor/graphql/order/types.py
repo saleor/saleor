@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 from graphene import relay
+from promise import Promise
 
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
@@ -16,18 +17,23 @@ from ...warehouse import models as warehouse_models
 from ..account.types import User
 from ..account.utils import requestor_has_access
 from ..channel import ChannelContext
+from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import permission_required
+from ..discount.dataloaders import VoucherByIdLoader
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
+from ..product.dataloaders import ProductVariantByIdLoader
 from ..product.types import ProductVariant
+from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..shipping.types import ShippingMethod
 from ..warehouse.types import Warehouse
+from .dataloaders import OrderLinesByOrderIdLoader
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
 
@@ -301,10 +307,18 @@ class OrderLine(CountableDjangoObjectType):
         return root.translated_variant_name
 
     @staticmethod
-    def resolve_variant(root: models.OrderLine, _info):
-        # TODO: Add dataloader for variant and channel_slug
-        channel_slug = root.order.channel.slug if root.order.channel else None
-        return ChannelContext(node=root.variant, channel_slug=channel_slug)
+    def resolve_variant(root: models.OrderLine, info):
+        if not root.variant_id:
+            return None
+
+        def wrap_variant_with_channel_context(data):
+            variant, channel = data
+            return ChannelContext(node=variant, channel_slug=channel.slug)
+
+        variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
+        channel = ChannelByOrderLineIdLoader(info.context).load(root.id)
+
+        return Promise.all([variant, channel]).then(wrap_variant_with_channel_context)
 
 
 class Order(CountableDjangoObjectType):
@@ -461,8 +475,8 @@ class Order(CountableDjangoObjectType):
         return qs.order_by("pk")
 
     @staticmethod
-    def resolve_lines(root: models.Order, _info):
-        return root.lines.all().order_by("pk")
+    def resolve_lines(root: models.Order, info):
+        return OrderLinesByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)
@@ -520,10 +534,24 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_shipping_method(root: models.Order, info):
-        # TODO: Add dataloader for shipping_method and channelslug
-        return ChannelContext(node=root.shipping_method, channel_slug=root.channel.slug)
+        if not root.shipping_method_id:
+            return None
+
+        def wrap_shipping_method_with_channel_context(data):
+            shipping_method, channel = data
+            return ChannelContext(node=shipping_method, channel_slug=channel.slug)
+
+        shipping_method = ShippingMethodByIdLoader(info.context).load(
+            root.shipping_method_id
+        )
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
+
+        return Promise.all([shipping_method, channel]).then(
+            wrap_shipping_method_with_channel_context
+        )
 
     @staticmethod
+    # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, _info):
         available = get_valid_shipping_methods_for_order(root)
         if available is None:
@@ -581,9 +609,15 @@ class Order(CountableDjangoObjectType):
         return resolve_meta(root, _info)
 
     @staticmethod
-    def resolve_voucher(root: models.Order, _info):
-        # TODO: Add dataloader for channel_slug
-        if not root.voucher:
+    def resolve_voucher(root: models.Order, info):
+        if not root.voucher_id:
             return None
-        channel_slug = root.channel.slug if root.channel else None
-        return ChannelContext(node=root.voucher, channel_slug=channel_slug)
+
+        def wrap_voucher_with_channel_context(data):
+            voucher, channel = data
+            return ChannelContext(node=voucher, channel_slug=channel.slug)
+
+        voucher = VoucherByIdLoader(info.context).load(root.voucher_id)
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
+
+        return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)

@@ -29,3 +29,22 @@ class OrderByIdLoader(DataLoader):
     def batch_load(self, keys):
         orders = Order.objects.in_bulk(keys)
         return [orders.get(order_id) for order_id in keys]
+
+
+class OrderLineByIdLoader(DataLoader):
+    context_key = "orderline_by_id"
+
+    def batch_load(self, keys):
+        order_lines = OrderLine.objects.in_bulk(keys)
+        return [order_lines.get(line_id) for line_id in keys]
+
+
+class OrderLinesByOrderIdLoader(DataLoader):
+    context_key = "orderlines_by_order"
+
+    def batch_load(self, keys):
+        lines = OrderLine.objects.filter(order_id__in=keys).order_by("pk")
+        line_map = defaultdict(list)
+        for line in lines.iterator():
+            line_map[line.order_id].append(line)
+        return [line_map.get(order_id, []) for order_id in keys]

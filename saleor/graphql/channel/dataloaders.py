@@ -1,6 +1,7 @@
 from ...channel.models import Channel
 from ..checkout.dataloaders import CheckoutByIdLoader, CheckoutLineByIdLoader
 from ..core.dataloaders import DataLoader
+from ..order.dataloaders import OrderByIdLoader, OrderLineByIdLoader
 
 
 class ChannelByIdLoader(DataLoader):
@@ -40,3 +41,24 @@ class ChannelByCheckoutLineIDLoader(DataLoader):
         return (
             CheckoutLineByIdLoader(self.context).load_many(keys).then(channel_by_lines)
         )
+
+
+class ChannelByOrderLineIdLoader(DataLoader):
+    context_key = "channel_by_orderline"
+
+    def batch_load(self, keys):
+        def channel_by_lines(order_lines):
+            order_ids = [line.order_id for line in order_lines]
+
+            def channels_by_checkout(orders):
+                channel_ids = [order.channel_id for order in orders]
+
+                return ChannelByIdLoader(self.context).load_many(channel_ids)
+
+            return (
+                OrderByIdLoader(self.context)
+                .load_many(order_ids)
+                .then(channels_by_checkout)
+            )
+
+        return OrderLineByIdLoader(self.context).load_many(keys).then(channel_by_lines)
