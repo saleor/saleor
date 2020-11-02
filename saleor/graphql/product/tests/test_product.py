@@ -1953,6 +1953,9 @@ REORDER_PRODUCT_VARIANTS_MUTATION = """
                 code
                 field
             }
+            product {
+                id
+            }
         }
     }
 """
