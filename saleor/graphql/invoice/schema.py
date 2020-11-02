@@ -5,7 +5,7 @@ from .mutations import (
     InvoiceDelete,
     InvoiceRequest,
     InvoiceRequestDelete,
-    InvoiceSendEmail,
+    InvoiceSendNotification,
     InvoiceUpdate,
 )
 
@@ -16,4 +16,4 @@ class InvoiceMutations(graphene.ObjectType):
     invoice_create = InvoiceCreate.Field()
     invoice_delete = InvoiceDelete.Field()
     invoice_update = InvoiceUpdate.Field()
-    invoice_send_email = InvoiceSendEmail.Field()
+    invoice_send_notification = InvoiceSendNotification.Field()

@@ -110,3 +110,17 @@ def _send_set_password_email(recipient_email, password_set_url):
         context=ctx,
         **send_kwargs,
     )
+
+
+@app.task
+def send_invoice_task(recipient_email, invoice_number, invoice_download_url):
+    """Send an invoice to user of related order with URL to download it."""
+    send_kwargs, ctx = get_email_context()
+    ctx["number"] = invoice_number
+    ctx["download_url"] = invoice_download_url
+    send_templated_mail(
+        template_name="order/send_invoice",
+        recipient_list=[recipient_email],
+        context=ctx,
+        **send_kwargs,
+    )
