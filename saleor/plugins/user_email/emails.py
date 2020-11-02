@@ -2,6 +2,7 @@ from ...account.models import User
 from .tasks import (
     send_account_confirmation_email_task,
     send_account_delete_confirmation_email_task,
+    send_invoice_task,
     send_password_reset_email_task,
     send_request_email_change_email_task,
     send_set_user_password_email_task,
@@ -61,4 +62,12 @@ def handle_account_delete(payload):
 def handle_account_set_customer_password(payload):
     send_set_user_password_email_task.delay(
         payload["email"], payload["redirect_url"], payload["token"]
+    )
+
+
+def handle_send_invoice(payload):
+    send_invoice_task.delay(
+        recipient_email=payload["recipient"],
+        invoice_number=payload["number"],
+        invoice_download_url=payload["download_url"],
     )

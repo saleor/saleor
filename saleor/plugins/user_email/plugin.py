@@ -10,6 +10,7 @@ from .emails import (
     handle_account_delete,
     handle_account_password_reset_event,
     handle_account_set_customer_password,
+    handle_send_invoice,
 )
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,7 @@ event_map = {
     UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_CONFIRM: handle_account_change_email_confirm,
     UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_REQUEST: handle_account_change_email_request,
     UserNotifyEvent.ACCOUNT_PASSWORD_RESET: handle_account_password_reset_event,
+    UserNotifyEvent.INVOICE_READY: handle_send_invoice,
 }
 
 
@@ -61,6 +63,7 @@ class UserEmailPlugin(BasePlugin):
     def notify(self, event: NotifyEventType, payload: dict, previous_value):
         if not self.active:
             return previous_value
+
         if event not in UserNotifyEvent.CHOICES:
             return previous_value
         if event not in event_map:
