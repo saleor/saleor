@@ -111,7 +111,7 @@ def validate_product_is_published(order):
 
 def validate_product_is_available_for_purchase(order):
     for line in order:
-        product_channel_listing = line.variant.product.channel_listing.filter(
+        product_channel_listing = line.variant.product.channel_listings.filter(
             channel_id=order.channel_id
         ).first()
         if not (

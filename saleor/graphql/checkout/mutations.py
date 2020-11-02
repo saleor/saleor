@@ -135,7 +135,7 @@ def check_lines_quantity(variants, quantities, country):
 def validate_variants_available_for_purchase(variants, channel_id):
     not_available_variants = []
     for variant in variants:
-        product_channel_listing = variant.product.channel_listing.filter(
+        product_channel_listing = variant.product.channel_listings.filter(
             channel_id=channel_id
         ).first()
         if not (

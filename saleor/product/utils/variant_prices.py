@@ -42,7 +42,7 @@ def update_product_discounted_price(product, discounts=None):
     collections = list(product.collections.all())
     variant_prices_in_channels_dict = _get_variant_prices_in_channels_dict(product)
     changed_products_channels_to_update = []
-    for product_channel_listing in product.channel_listing.all():
+    for product_channel_listing in product.channel_listings.all():
         channel_id = product_channel_listing.channel_id
         variant_prices_dict = variant_prices_in_channels_dict[channel_id]
         product_discounted_price = _get_product_discounted_price(
@@ -66,7 +66,7 @@ def update_products_discounted_prices(products, discounts=None):
     if discounts is None:
         discounts = fetch_active_discounts()
 
-    for product in products.prefetch_related("channel_listing"):
+    for product in products.prefetch_related("channel_listings"):
         update_product_discounted_price(product, discounts)
 
 

@@ -1220,7 +1220,7 @@ def product_without_shipping(category, warehouse, channel_USD):
 def product_without_category(product):
     product.category = None
     product.save()
-    product.channel_listing.all().update(is_published=False)
+    product.channel_listings.all().update(is_published=False)
     return product
 
 

@@ -487,8 +487,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         required=True,
         description="List of attributes assigned to this product.",
     )
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(ProductChannelListing),
         description="List of availability in channels for the product.",
     )
@@ -697,7 +696,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_channel_listing(root: ChannelContext[models.Product], info, **_kwargs):
+    def resolve_channel_listings(root: ChannelContext[models.Product], info, **_kwargs):
         return ProductChannelListingByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
@@ -1025,7 +1024,7 @@ class Category(CountableDjangoObjectType):
                 .exclude(visible_in_listings=False,)
             )
         if channel and requestor_has_access_to_all:
-            qs = qs.filter(channel_listing__channel__slug=channel)
+            qs = qs.filter(channel_listings__channel__slug=channel)
         qs = qs.filter(category__in=tree)
         return ChannelQsContext(qs=qs, channel_slug=channel)
 

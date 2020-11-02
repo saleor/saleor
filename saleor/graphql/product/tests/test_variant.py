@@ -1262,7 +1262,7 @@ def test_product_variants_visible_in_listings_by_customer(
     user_api_client, product_list, channel_USD
 ):
     # given
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -1276,7 +1276,7 @@ def test_product_variants_visible_in_listings_by_staff_without_perm(
     staff_api_client, product_list, channel_USD
 ):
     # given
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -1292,7 +1292,7 @@ def test_product_variants_visible_in_listings_by_staff_with_perm(
     staff_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -1310,7 +1310,7 @@ def test_product_variants_visible_in_listings_by_app_without_perm(
     app_api_client, product_list, channel_USD
 ):
     # given
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -1324,7 +1324,7 @@ def test_product_variants_visible_in_listings_by_app_with_perm(
     app_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 

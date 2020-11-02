@@ -189,7 +189,7 @@ def test_get_products_data_for_product_without_channel(
 ):
     # given
     product.variants.add(variant_with_many_stocks)
-    product_with_image.channel_listing.all().delete()
+    product_with_image.channel_listings.all().delete()
 
     products = Product.objects.all()
     export_fields = {"id", "variants__sku"}

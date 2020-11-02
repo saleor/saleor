@@ -101,13 +101,13 @@ def filter_products_by_minimal_price(
 ):
     if minimal_price_lte:
         qs = qs.filter(
-            channel_listing__discounted_price_amount__lte=minimal_price_lte,
-            channel_listing__channel__slug=channel_slug,
+            channel_listings__discounted_price_amount__lte=minimal_price_lte,
+            channel_listings__channel__slug=channel_slug,
         )
     if minimal_price_gte:
         qs = qs.filter(
-            channel_listing__discounted_price_amount__gte=minimal_price_gte,
-            channel_listing__channel__slug=channel_slug,
+            channel_listings__discounted_price_amount__gte=minimal_price_gte,
+            channel_listings__channel__slug=channel_slug,
         )
     return qs
 
@@ -174,8 +174,8 @@ def filter_collections(qs, _, value):
 
 def _filter_is_published(qs, _, value, channel_slug):
     return qs.filter(
-        channel_listing__is_published=value,
-        channel_listing__channel__slug=channel_slug,
+        channel_listings__is_published=value,
+        channel_listings__channel__slug=channel_slug,
     )
 
 
