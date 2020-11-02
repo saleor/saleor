@@ -6,7 +6,7 @@ import json
 import logging
 from json.decoder import JSONDecodeError
 from typing import Any, Callable, Dict, Optional
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 import Adyen
 import graphene
@@ -21,7 +21,7 @@ from django.http import (
     QueryDict,
 )
 from django.http.request import HttpHeaders
-from django.shortcuts import redirect
+from django.http.response import HttpResponseRedirect
 from graphql_relay import from_global_id
 
 from ....checkout.complete_checkout import complete_checkout
@@ -672,7 +672,10 @@ def handle_additional_actions(
         return HttpResponseBadRequest(str(e))
     handle_api_response(payment, result)
     redirect_url = prepare_redirect_url(payment_id, checkout_pk, result, return_url)
-    return redirect(redirect_url)
+    parsed = urlparse(return_url)
+    redirect_class = HttpResponseRedirect
+    redirect_class.allowed_schemes = [parsed.scheme]
+    return redirect_class(redirect_url)
 
 
 def prepare_api_request_data(request: WSGIRequest, data: dict):
