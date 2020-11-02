@@ -2405,11 +2405,11 @@ python-versions = "*"
 
 [[package]]
 name = "weasyprint"
-version = "51"
+version = "52"
 description = "The Awesome Document Factory"
 category = "main"
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.6"
 
 [package.dependencies]
 cairocffi = ">=0.9.0"
@@ -2417,6 +2417,7 @@ CairoSVG = ">=2.4.0"
 cffi = ">=0.6"
 cssselect2 = ">=0.1"
 html5lib = ">=0.999999999"
+Pillow = ">=4.0.0"
 Pyphen = ">=0.9.1"
 tinycss2 = ">=1.0.0"
 
@@ -3643,8 +3644,8 @@ wcwidth = [
     {file = "wcwidth-0.2.5.tar.gz", hash = "sha256:c4d647b99872929fdb7bdcaa4fbe7f01413ed3d98077df798530e5b04f116c83"},
 ]
 weasyprint = [
-    {file = "WeasyPrint-51-py3-none-any.whl", hash = "sha256:469974f6e74b1eef71dc56a9b80cc17621f319234d2a4ab656ddd0fd9e66c27f"},
-    {file = "WeasyPrint-51.tar.gz", hash = "sha256:b3e971973a4f03c1430e6b838b75b5b57630415fcae8666d2be1347630ff6d6a"},
+    {file = "WeasyPrint-52-py3-none-any.whl", hash = "sha256:c809ee2807b714a57a6f05ccf9e9ca950295e009bbce7c8c26ac5f45129b4509"},
+    {file = "WeasyPrint-52.tar.gz", hash = "sha256:fa91c71cd5ddf2a6c8d10ab5bac7b5e09df27f9f93aab0502547f310c2208e67"},
 ]
 webencodings = [
     {file = "webencodings-0.5.1-py2.py3-none-any.whl", hash = "sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78"},
