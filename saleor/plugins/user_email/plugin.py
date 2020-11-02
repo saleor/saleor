@@ -10,6 +10,12 @@ from .emails import (
     handle_account_delete,
     handle_account_password_reset_event,
     handle_account_set_customer_password,
+    handle_fulfillment_confirmation,
+    handle_fulfillment_update,
+    handle_order_canceled,
+    handle_order_confirmation,
+    handle_order_refund,
+    handle_payment_confirmation,
     handle_send_invoice,
 )
 
@@ -30,6 +36,12 @@ event_map = {
     UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_REQUEST: handle_account_change_email_request,
     UserNotifyEvent.ACCOUNT_PASSWORD_RESET: handle_account_password_reset_event,
     UserNotifyEvent.INVOICE_READY: handle_send_invoice,
+    UserNotifyEvent.ORDER_CONFIRMATION: handle_order_confirmation,
+    UserNotifyEvent.ORDER_FULFILLMENT_CONFIRMATION: handle_fulfillment_confirmation,
+    UserNotifyEvent.ORDER_FULFILLMENT_UPDATE: handle_fulfillment_update,
+    UserNotifyEvent.ORDER_PAYMENT_CONFIRMATION: handle_payment_confirmation,
+    UserNotifyEvent.ORDER_CANCELED: handle_order_canceled,
+    UserNotifyEvent.ORDER_REFUND_CONFIRMATION: handle_order_refund,
 }
 
 

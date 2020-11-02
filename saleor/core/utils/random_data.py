@@ -424,8 +424,8 @@ def create_fake_user(save=True):
 
 # We don't want to spam the console with payment confirmations sent to
 # fake customers.
-@patch("saleor.order.emails.send_payment_confirmation.delay")
-def create_fake_payment(mock_email_confirmation, order):
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def create_fake_payment(mock_notify, order):
     payment = create_payment(
         gateway="mirumee.payments.dummy",
         customer_ip_address=fake.ipv4(),

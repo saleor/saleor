@@ -1,30 +1,18 @@
-from ...account.models import User
 from .tasks import (
+    handle_fulfillment_confirmation_task,
+    handle_fulfillment_update_task,
+    handle_order_canceled_task,
+    handle_order_refund_task,
+    handle_payment_confirmation_task,
     send_account_confirmation_email_task,
     send_account_delete_confirmation_email_task,
     send_invoice_task,
+    send_order_confirmation_task,
     send_password_reset_email_task,
     send_request_email_change_email_task,
     send_set_user_password_email_task,
     send_user_change_email_notification_task,
 )
-
-REQUEST_EMAIL_CHANGE_TEMPLATE = "account/request_email_change"
-EMAIL_CHANGED_NOTIFICATION_TEMPLATE = "account/email_changed_notification"
-ACCOUNT_DELETE_TEMPLATE = "account/account_delete"
-PASSWORD_RESET_TEMPLATE = "account/password_reset"
-
-
-def get_default_user_payload(user: User):
-    return {
-        "email": user.email,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "is_staff": user.is_staff,
-        "is_active": user.is_active,
-        "private_metadata": user.private_metadata,
-        "metadata": user.metadata,
-    }
 
 
 def handle_account_password_reset_event(payload):
@@ -67,7 +55,33 @@ def handle_account_set_customer_password(payload):
 
 def handle_send_invoice(payload):
     send_invoice_task.delay(
-        recipient_email=payload["recipient"],
+        recipient_email=payload["email"],
         invoice_number=payload["number"],
         invoice_download_url=payload["download_url"],
     )
+
+
+def handle_order_confirmation(payload):
+    send_order_confirmation_task(payload=payload)
+
+
+def handle_fulfillment_confirmation(payload):
+
+    handle_fulfillment_confirmation_task(payload)
+
+
+def handle_fulfillment_update(payload):
+    handle_fulfillment_update_task(payload)
+
+
+def handle_payment_confirmation(payload):
+
+    handle_payment_confirmation_task(payload)
+
+
+def handle_order_canceled(payload):
+    handle_order_canceled_task.delay(payload)
+
+
+def handle_order_refund(payload):
+    handle_order_refund_task.delay(payload)

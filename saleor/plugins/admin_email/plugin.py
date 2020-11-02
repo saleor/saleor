@@ -7,6 +7,7 @@ from .emails import (
     handle_account_set_staff_password,
     handle_csv_export_failed,
     handle_csv_product_export_success,
+    handle_staff_order_confirmation,
 )
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ event_map = {
     AdminNotifyEvent.ACCOUNT_SET_STAFF_PASSWORD: handle_account_set_staff_password,
     AdminNotifyEvent.CSV_PRODUCT_EXPORT_SUCCESS: handle_csv_product_export_success,
     AdminNotifyEvent.CSV_EXPORT_FAILED: handle_csv_export_failed,
+    AdminNotifyEvent.STAFF_ORDER_CONFIRMATION: handle_staff_order_confirmation,
 }
 
 

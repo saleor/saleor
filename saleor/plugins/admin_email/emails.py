@@ -2,6 +2,7 @@ from .tasks import (
     send_email_with_link_to_download_file,
     send_export_failed_info,
     send_set_staff_password_email_task,
+    send_staff_order_confirmation_task,
 )
 
 
@@ -23,3 +24,7 @@ def handle_csv_export_failed(payload: dict):
     recipient_email = payload.get("user_email")
     if recipient_email:
         send_export_failed_info.delay(recipient_email)
+
+
+def handle_staff_order_confirmation(payload: dict):
+    send_staff_order_confirmation_task.delay(payload)

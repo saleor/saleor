@@ -21,6 +21,10 @@ from ..actions import (
     order_refunded,
 )
 from ..models import Fulfillment
+from ..notifications import (
+    send_fulfillment_confirmation_to_customer,
+    send_payment_confirmation,
+)
 
 
 @pytest.fixture
@@ -56,25 +60,33 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
     return order
 
 
-@patch("saleor.order.emails.send_fulfillment_confirmation.delay")
-@patch("saleor.order.emails.send_payment_confirmation.delay")
+@patch("saleor.order.actions.get_plugins_manager")
+@patch(
+    "saleor.order.actions.send_fulfillment_confirmation_to_customer",
+    wraps=send_fulfillment_confirmation_to_customer,
+)
+@patch(
+    "saleor.order.actions.send_payment_confirmation", wraps=send_payment_confirmation
+)
 def test_handle_fully_paid_order_digital_lines(
     mock_send_payment_confirmation,
-    mock_send_fulfillment_confirmation,
+    send_fulfillment_confirmation_to_customer,
+    mocked_get_plugins_manager,
     order_with_digital_line,
 ):
-
+    manager = mocked_get_plugins_manager()
     order = order_with_digital_line
+    order.payments.add(Payment.objects.create())
     handle_fully_paid_order(order)
 
     fulfillment = order.fulfillments.first()
-
     (
         event_order_paid,
         event_email_sent,
         event_order_fulfilled,
         event_digital_links,
     ) = order.events.all()
+
     assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
 
     assert event_email_sent.type == OrderEvents.EMAIL_SENT
@@ -88,15 +100,21 @@ def test_handle_fully_paid_order_digital_lines(
         event_digital_links.parameters["email_type"] == OrderEventsEmails.DIGITAL_LINKS
     )
 
-    mock_send_payment_confirmation.assert_called_once_with(order.pk)
-    mock_send_fulfillment_confirmation.assert_called_once_with(order.pk, fulfillment.pk)
+    mock_send_payment_confirmation.assert_called_once_with(order, manager)
+    send_fulfillment_confirmation_to_customer.assert_called_once_with(
+        order, fulfillment, user=order.user, manager=manager
+    )
 
     order.refresh_from_db()
     assert order.status == OrderStatus.FULFILLED
 
 
-@patch("saleor.order.emails.send_payment_confirmation.delay")
-def test_handle_fully_paid_order(mock_send_payment_confirmation, order):
+@patch("saleor.order.actions.get_plugins_manager")
+@patch("saleor.order.actions.send_payment_confirmation")
+def test_handle_fully_paid_order(
+    mock_send_payment_confirmation, mocked_get_plugins_manager, order
+):
+    order.payments.add(Payment.objects.create())
     handle_fully_paid_order(order)
     event_order_paid, event_email_sent = order.events.all()
     assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
@@ -107,10 +125,12 @@ def test_handle_fully_paid_order(mock_send_payment_confirmation, order):
         "email_type": OrderEventsEmails.PAYMENT,
     }
 
-    mock_send_payment_confirmation.assert_called_once_with(order.pk)
+    mock_send_payment_confirmation.assert_called_once_with(
+        order, mocked_get_plugins_manager()
+    )
 
 
-@patch("saleor.order.emails.send_payment_confirmation.delay")
+@patch("saleor.order.notifications.send_payment_confirmation")
 def test_handle_fully_paid_order_no_email(mock_send_payment_confirmation, order):
     order.user = None
     order.user_email = ""
@@ -176,9 +196,11 @@ def test_cancel_fulfillment_variant_witout_inventory_tracking(
     assert stock_quantity_before == line.order_line.variant.stocks.get().quantity
 
 
+@patch("saleor.order.actions.get_plugins_manager")
 @patch("saleor.order.actions.send_order_canceled_confirmation")
 def test_cancel_order(
     send_order_canceled_confirmation_mock,
+    mocked_get_plugins_manager,
     fulfilled_order_with_all_cancelled_fulfillments,
 ):
     # given
@@ -200,12 +222,18 @@ def test_cancel_order(
         order_line__order=order, quantity_allocated__gt=0
     ).exists()
 
-    send_order_canceled_confirmation_mock.assert_called_once_with(order, None)
+    send_order_canceled_confirmation_mock.assert_called_once_with(
+        order, None, mocked_get_plugins_manager()
+    )
 
 
+@patch("saleor.order.actions.get_plugins_manager")
 @patch("saleor.order.actions.send_order_refunded_confirmation")
 def test_order_refunded(
-    send_order_refunded_confirmation_mock, order, checkout_with_item,
+    send_order_refunded_confirmation_mock,
+    mocked_get_plugins_manager,
+    order,
+    checkout_with_item,
 ):
     # given
     payment = Payment.objects.create(
@@ -221,7 +249,7 @@ def test_order_refunded(
     assert order_event.type == OrderEvents.PAYMENT_REFUNDED
 
     send_order_refunded_confirmation_mock.assert_called_once_with(
-        order, order.user, amount, payment.currency
+        order, order.user, amount, payment.currency, mocked_get_plugins_manager()
     )
 
 
@@ -268,7 +296,7 @@ def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
     assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
 
 
-@patch("saleor.order.actions.emails.send_fulfillment_confirmation")
+@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer")
 @patch("saleor.order.utils.get_default_digital_content_settings")
 def test_fulfill_digital_lines(
     mock_digital_settings, mock_email_fulfillment, order_with_lines, media_root
@@ -294,4 +322,4 @@ def test_fulfill_digital_lines(
 
     assert fulfillment_lines.count() == 1
     assert line.digital_content_url
-    assert mock_email_fulfillment.delay.called
+    assert mock_email_fulfillment.called

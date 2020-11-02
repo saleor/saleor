@@ -46,3 +46,15 @@ def send_export_failed_info(recipient_email: str):
         context=ctx,
         **send_kwargs,
     )
+
+
+@app.task
+def send_staff_order_confirmation_task(payload):
+    send_kwargs, ctx = get_email_context()
+    payload.update(ctx)
+    send_templated_mail(
+        template_name="order/staff_confirm_order",
+        recipient_list=payload["recipient_list"],
+        context=payload,
+        **send_kwargs,
+    )

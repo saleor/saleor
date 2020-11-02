@@ -13,8 +13,8 @@
           {% trans "Hi!" context "Standard e-mail greeting" %}
         </mj-text>
         <mj-text>
-          {% blocktrans trimmed context "Order cancel e-mail text" %}
-            Your order has been canceled.
+          {% blocktrans trimmed with id=order.id context "Order cancel e-mail text" %}
+            Your order #{{ id }} has been canceled.
           {% endblocktrans %}
         </mj-text>
       </mj-column>
