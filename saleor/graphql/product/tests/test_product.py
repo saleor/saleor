@@ -1189,7 +1189,7 @@ def test_fetch_product_from_category_query(
                         }
                         variants {
                             name
-                            channelListing {
+                            channelListings {
                                 costPrice {
                                     amount
                                 }
@@ -1248,7 +1248,7 @@ def test_fetch_product_from_category_query(
     assert product_data["slug"] == product.slug
 
     variant = product.variants.first()
-    variant_channel_listing = variant.channel_listing.filter(channel_id=channel_USD.id)
+    variant_channel_listing = variant.channel_listings.filter(channel_id=channel_USD.id)
     purchase_cost, margin = get_product_costs_data(
         variant_channel_listing, True, channel_USD.currency_code
     )
@@ -1262,8 +1262,8 @@ def test_fetch_product_from_category_query(
     assert margin[1] == product_data["channelListings"][0]["margin"]["stop"]
 
     variant = product.variants.first()
-    variant_channel_listing = variant.channel_listing.get(channel_id=channel_USD.id)
-    variant_channel_data = product_data["variants"][0]["channelListing"][0]
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    variant_channel_data = product_data["variants"][0]["channelListings"][0]
     variant_cost = variant_channel_data["costPrice"]["amount"]
 
     assert variant_channel_listing.cost_price.amount == variant_cost

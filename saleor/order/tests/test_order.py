@@ -81,7 +81,7 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
 ):
     order = order_with_lines
     variant = product.variants.get()
-    variant_channel_listing = variant.channel_listing.get()
+    variant_channel_listing = variant.channel_listings.get()
     variant_channel_listing.price = Money(0, "USD")
     variant_channel_listing.save(update_fields=["price_amount", "currency"])
 

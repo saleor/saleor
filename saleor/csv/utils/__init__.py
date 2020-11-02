@@ -49,9 +49,9 @@ class ProductExportFields:
     }
 
     VARIANT_CHANNEL_LISTING_FIELDS = {
-        "channel_pk": "variants__channel_listing__channel__pk",
-        "slug": "variants__channel_listing__channel__slug",
-        "price_amount": "variants__channel_listing__price_amount",
-        "variant_currency_code": "variants__channel_listing__currency",
-        "variant_cost_price": "variants__channel_listing__cost_price_amount",
+        "channel_pk": "variants__channel_listings__channel__pk",
+        "slug": "variants__channel_listings__channel__slug",
+        "price_amount": "variants__channel_listings__price_amount",
+        "variant_currency_code": "variants__channel_listings__currency",
+        "variant_cost_price": "variants__channel_listings__cost_price_amount",
     }

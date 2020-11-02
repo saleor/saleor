@@ -85,13 +85,13 @@ def filter_products_by_attributes(qs, filter_value):
 def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte=None):
     if price_lte:
         qs = qs.filter(
-            variants__channel_listing__price_amount__lte=price_lte,
-            variants__channel_listing__channel__slug=channel_slug,
+            variants__channel_listings__price_amount__lte=price_lte,
+            variants__channel_listings__channel__slug=channel_slug,
         )
     if price_gte:
         qs = qs.filter(
-            variants__channel_listing__price_amount__gte=price_gte,
-            variants__channel_listing__channel__slug=channel_slug,
+            variants__channel_listings__price_amount__gte=price_gte,
+            variants__channel_listings__channel__slug=channel_slug,
         )
     return qs
 

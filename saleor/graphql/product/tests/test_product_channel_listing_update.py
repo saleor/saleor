@@ -232,7 +232,7 @@ def test_product_channel_listing_update_as_staff_user(
     product_data = data["product"]
 
     variant = product.variants.first()
-    variant_channel_listing = variant.channel_listing.filter(channel_id=channel_USD.id)
+    variant_channel_listing = variant.channel_listings.filter(channel_id=channel_USD.id)
     purchase_cost, margin = get_product_costs_data(
         variant_channel_listing, True, channel_USD.currency_code
     )
@@ -898,7 +898,7 @@ def test_product_channel_listing_update_remove_channel(
     product = product_available_in_many_channels
     product_channel_listing_pln = product.channel_listings.get(channel=channel_PLN)
     variant = product.variants.get()
-    variant_channel_listing_pln = variant.channel_listing.get(channel=channel_PLN)
+    variant_channel_listing_pln = variant.channel_listings.get(channel=channel_PLN)
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -921,7 +921,7 @@ def test_product_channel_listing_update_remove_channel(
     assert product_data["slug"] == product.slug
     assert len(product_data["channelListings"]) == 1
     assert product.channel_listings.get() == product_channel_listing_pln
-    assert variant.channel_listing.get() == variant_channel_listing_pln
+    assert variant.channel_listings.get() == variant_channel_listing_pln
 
 
 def test_product_channel_listing_update_remove_not_assigned_channel(

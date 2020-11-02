@@ -166,8 +166,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "This field will be removed after 2020-07-31."
         ),
     )
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(ProductVariantChannelListing),
         description="List of price information in channels for the product.",
     )
@@ -288,7 +287,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_channel_listing(
+    def resolve_channel_listings(
         root: ChannelContext[models.ProductVariant], info, **_kwargs
     ):
         return VariantChannelListingByVariantIdLoader(info.context).load(root.node.id)
