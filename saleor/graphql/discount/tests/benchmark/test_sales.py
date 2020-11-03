@@ -65,6 +65,15 @@ query GetSales($channel: String){
         }
         channelListing {
           id
+          discountValue
+          currency
+          channel {
+            id
+            name
+            isActive
+            slug
+            currencyCode
+          }
         }
         discountValue
         currency

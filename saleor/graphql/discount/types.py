@@ -3,6 +3,7 @@ from graphene import relay
 
 from ...core.permissions import DiscountPermissions
 from ...discount import models
+from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import ChannelContext, ChannelContextType
 from ..core import types
 from ..core.connection import CountableDjangoObjectType
@@ -29,6 +30,10 @@ class SaleChannelListing(CountableDjangoObjectType):
         model = models.SaleChannelListing
         interfaces = [relay.Node]
         only_fields = ["id", "channel", "discount_value", "currency"]
+
+    @staticmethod
+    def resolve_channel(root: models.SaleChannelListing, info, **_kwargs):
+        return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
 class Sale(ChannelContextType, CountableDjangoObjectType):
