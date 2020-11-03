@@ -18,7 +18,6 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
-from ..attribute import AttributeInputType, AttributeType
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import (
     ModelWithMetadata,
@@ -33,7 +32,6 @@ from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits, zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
-from ..page.models import Page, PageType
 from ..seo.models import SeoModel, SeoModelTranslation
 
 if TYPE_CHECKING:

@@ -1,7 +1,6 @@
 import re
 
 import graphene
-from graphene import relay
 
 from ...attribute import models
 from ...core.permissions import ProductPermissions
@@ -47,7 +46,7 @@ class AttributeValue(CountableDjangoObjectType):
     class Meta:
         description = "Represents a value of an attribute."
         only_fields = ["id"]
-        interfaces = [relay.Node]
+        interfaces = [graphene.relay.Node]
         model = models.AttributeValue
 
     @staticmethod
@@ -97,7 +96,7 @@ class Attribute(CountableDjangoObjectType):
             "variants at the product type level."
         )
         only_fields = ["id", "product_types", "product_variant_types"]
-        interfaces = [relay.Node, ObjectWithMetadata]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Attribute
 
     @staticmethod
