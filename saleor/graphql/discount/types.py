@@ -96,11 +96,15 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_currency(root: ChannelContext[models.Sale], *_args, **_kwargs):
-        channel_listing = root.node.channel_listing.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        return channel_listing.currency if channel_listing else None
+    def resolve_currency(root: ChannelContext[models.Sale], info, **_kwargs):
+        def calculate_currency(channel_listing):
+            return channel_listing.currency if channel_listing else None
+
+        return (
+            SaleChannelListingBySaleIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_currency)
+        )
 
 
 class VoucherChannelListing(CountableDjangoObjectType):
