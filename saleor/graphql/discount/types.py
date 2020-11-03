@@ -247,11 +247,18 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_min_spent(root: ChannelContext[models.Voucher], *_args, **_kwargs):
-        channel_listing = root.node.channel_listing.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        return channel_listing.min_spent if channel_listing else None
+    def resolve_min_spent(root: ChannelContext[models.Voucher], info, **_kwargs):
+        if not root.channel_slug:
+            return None
+
+        def calculate_min_spent(channel_listing):
+            return channel_listing.min_spent if channel_listing else None
+
+        return (
+            VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_min_spent)
+        )
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
