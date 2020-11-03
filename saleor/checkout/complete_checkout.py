@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Iterable, List, Optional, Tuple
 
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.encoding import smart_text
@@ -249,8 +250,14 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     total_price_left = order_data.pop("total_price_left")
     order_lines = order_data.pop("lines")
 
+    site_settings = Site.objects.get_current().settings
+    status = (
+        OrderStatus.UNFULFILLED
+        if site_settings.automatically_confirm_all_new_orders
+        else OrderStatus.UNCONFIRMED
+    )
     order = Order.objects.create(
-        **order_data, status=OrderStatus.UNCONFIRMED, checkout_token=checkout.token
+        **order_data, checkout_token=checkout.token, status=status
     )
     for line in order_lines:
         line.order_id = order.pk
@@ -422,7 +429,7 @@ def complete_checkout(
     if not action_required:
         try:
             order = _create_order(
-                checkout=checkout, order_data=order_data, user=user  # type: ignore
+                checkout=checkout, order_data=order_data, user=user,  # type: ignore
             )
             # remove checkout after order is successfully created
             checkout.delete()
