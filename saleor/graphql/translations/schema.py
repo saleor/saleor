@@ -7,6 +7,7 @@ from ...menu.models import MenuItem
 from ...page.models import Page
 from ...product.models import Category, Collection, Product, ProductVariant
 from ...shipping.models import ShippingMethod
+from ..attribute.resolvers import resolve_attributes
 from ..core.connection import CountableConnection
 from ..core.fields import BaseConnectionField
 from ..decorators import permission_required
@@ -14,7 +15,6 @@ from ..discount.resolvers import resolve_sales, resolve_vouchers
 from ..menu.resolvers import resolve_menu_items
 from ..page.resolvers import resolve_pages
 from ..product.resolvers import (
-    resolve_attributes,
     resolve_categories,
     resolve_collections,
     resolve_product_variants,

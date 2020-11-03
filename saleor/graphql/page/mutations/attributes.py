@@ -9,6 +9,7 @@ from ....attribute import AttributeType, models
 from ....core.permissions import PageTypePermissions
 from ....page import models as page_models
 from ....page.error_codes import PageErrorCode
+from ...attribute.types import Attribute
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
 from ...core.types.common import PageError
@@ -16,7 +17,6 @@ from ...core.utils import from_global_id_strict_type
 from ...core.utils.reordering import perform_reordering
 from ...page.types import PageType
 from ...product.mutations.attributes import BaseReorderAttributesMutation
-from ...product.types import Attribute
 from ...utils import resolve_global_ids_to_primary_keys
 
 

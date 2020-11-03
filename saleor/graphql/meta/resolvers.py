@@ -16,6 +16,7 @@ from .permissions import PRIVATE_META_PERMISSION_MAP
 def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     # Imports inside resolvers to avoid circular imports.
     from ..account import types as account_types
+    from ..attribute import types as attribute_types
     from ..app import types as app_types
     from ..checkout import types as checkout_types
     from ..order import types as order_types
@@ -25,7 +26,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     from ...invoice import models as invoice_models
 
     MODEL_TO_TYPE_MAP = {
-        attribute_models.Attribute: product_types.Attribute,
+        attribute_models.Attribute: attribute_types.Attribute,
         product_models.Category: product_types.Category,
         checkout_models.Checkout: checkout_types.Checkout,
         product_models.Collection: product_types.Collection,

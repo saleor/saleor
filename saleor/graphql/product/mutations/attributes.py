@@ -10,6 +10,7 @@ from ....attribute import AttributeInputType, AttributeType, models as attribute
 from ....core.permissions import ProductTypePermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
+from ...attribute.types import Attribute
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
 from ...core.types.common import ProductError
@@ -18,7 +19,6 @@ from ...core.utils.reordering import perform_reordering
 from ...product.types import ProductType
 from ...utils import resolve_global_ids_to_primary_keys
 from ..enums import ProductAttributeType
-from ..types import Attribute
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet

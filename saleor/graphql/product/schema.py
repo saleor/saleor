@@ -27,7 +27,6 @@ from .bulk_mutations.products import (
 )
 from .enums import StockAvailability
 from .filters import (
-    AttributeFilterInput,
     CategoryFilterInput,
     CollectionFilterInput,
     ProductFilterInput,
@@ -95,7 +94,6 @@ from .mutations.products import (
     VariantImageUnassign,
 )
 from .resolvers import (
-    resolve_attributes,
     resolve_categories,
     resolve_category_by_slug,
     resolve_collection_by_slug,
@@ -109,14 +107,12 @@ from .resolvers import (
     resolve_report_product_sales,
 )
 from .sorters import (
-    AttributeSortingInput,
     CategorySortingInput,
     CollectionSortingInput,
     ProductOrder,
     ProductTypeSortingInput,
 )
 from .types import (
-    Attribute,
     Category,
     Collection,
     DigitalContent,
@@ -136,19 +132,6 @@ class ProductQueries(graphene.ObjectType):
     )
     digital_contents = PrefetchingConnectionField(
         DigitalContent, description="List of digital content."
-    )
-    attributes = FilterInputConnectionField(
-        Attribute,
-        description="List of the shop's attributes.",
-        filter=AttributeFilterInput(description="Filtering options for attributes."),
-        sort_by=AttributeSortingInput(description="Sorting options for attributes."),
-    )
-    attribute = graphene.Field(
-        Attribute,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the attribute.", required=True
-        ),
-        description="Look up an attribute by ID.",
     )
     categories = FilterInputConnectionField(
         Category,
@@ -237,12 +220,6 @@ class ProductQueries(graphene.ObjectType):
         ),
         description="List of top selling products.",
     )
-
-    def resolve_attributes(self, info, **kwargs):
-        return resolve_attributes(info, **kwargs)
-
-    def resolve_attribute(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Attribute)
 
     def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level=level, **kwargs)

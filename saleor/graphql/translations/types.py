@@ -62,7 +62,7 @@ class AttributeValueTranslatableContent(CountableDjangoObjectType):
         AttributeValueTranslation, type_name="attribute value"
     )
     attribute_value = graphene.Field(
-        "saleor.graphql.product.types.attributes.AttributeValue",
+        "saleor.graphql.attribute.types.AttributeValue",
         description="Represents a value of an attribute.",
     )
 
@@ -86,7 +86,7 @@ class AttributeTranslation(BaseTranslationType):
 class AttributeTranslatableContent(CountableDjangoObjectType):
     translation = TranslationField(AttributeTranslation, type_name="attribute")
     attribute = graphene.Field(
-        "saleor.graphql.product.types.attributes.Attribute",
+        "saleor.graphql.attribute.types.Attribute",
         description="Custom attribute of a product.",
     )
 

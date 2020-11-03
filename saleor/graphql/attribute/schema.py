@@ -1,7 +1,9 @@
 import graphene
 
+from ..core.fields import FilterInputConnectionField
 from ..translations.mutations import AttributeTranslate, AttributeValueTranslate
 from .bulk_mutations import AttributeBulkDelete, AttributeValueBulkDelete
+from .filters import AttributeFilterInput
 from .mutations import (
     AttributeClearMeta,
     AttributeClearPrivateMeta,
@@ -15,6 +17,31 @@ from .mutations import (
     AttributeValueDelete,
     AttributeValueUpdate,
 )
+from .resolvers import resolve_attributes
+from .sorters import AttributeSortingInput
+from .types import Attribute
+
+
+class AttributeQueries(graphene.ObjectType):
+    attributes = FilterInputConnectionField(
+        Attribute,
+        description="List of the shop's attributes.",
+        filter=AttributeFilterInput(description="Filtering options for attributes."),
+        sort_by=AttributeSortingInput(description="Sorting options for attributes."),
+    )
+    attribute = graphene.Field(
+        Attribute,
+        id=graphene.Argument(
+            graphene.ID, description="ID of the attribute.", required=True
+        ),
+        description="Look up an attribute by ID.",
+    )
+
+    def resolve_attributes(self, info, **kwargs):
+        return resolve_attributes(info, **kwargs)
+
+    def resolve_attribute(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, Attribute)
 
 
 class AttributeMutations(graphene.ObjectType):

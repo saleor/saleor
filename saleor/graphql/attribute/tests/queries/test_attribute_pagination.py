@@ -3,10 +3,10 @@ from decimal import Decimal
 import graphene
 import pytest
 
-from ....attribute import AttributeType
-from ....attribute.models import Attribute, AttributeProduct, AttributeVariant
-from ....product.models import Product, ProductType, ProductVariant
-from ...tests.utils import get_graphql_content
+from .....attribute import AttributeType
+from .....attribute.models import Attribute, AttributeProduct, AttributeVariant
+from .....product.models import Product, ProductType, ProductVariant
+from ....tests.utils import get_graphql_content
 
 
 @pytest.fixture

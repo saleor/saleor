@@ -4,14 +4,13 @@ from graphene_federation import key
 from ...attribute import models as attribute_models
 from ...core.permissions import PagePermissions
 from ...page import models
+from ..attribute.filters import AttributeFilterInput
+from ..attribute.types import Attribute, SelectedAttribute
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
-from ..product.filters import AttributeFilterInput
-from ..product.types import Attribute
-from ..product.types.attributes import SelectedAttribute
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
 from .dataloaders import (

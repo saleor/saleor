@@ -27,6 +27,9 @@ from ....warehouse.availability import (
     is_product_in_stock,
 )
 from ...account.enums import CountryCodeEnum
+from ...attribute.filters import AttributeFilterInput
+from ...attribute.resolvers import resolve_attributes
+from ...attribute.types import Attribute, SelectedAttribute
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
 from ...core.fields import FilterInputConnectionField, PrefetchingConnectionField
@@ -62,10 +65,8 @@ from ..dataloaders import (
     SelectedAttributesByProductVariantIdLoader,
     VariantAttributesByProductTypeIdLoader,
 )
-from ..filters import AttributeFilterInput, ProductFilterInput
-from ..resolvers import resolve_attributes
+from ..filters import ProductFilterInput
 from ..sorters import ProductOrder
-from .attributes import Attribute, SelectedAttribute
 from .digital_contents import DigitalContent
 
 

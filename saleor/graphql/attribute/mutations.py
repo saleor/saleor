@@ -11,6 +11,7 @@ from ...core.permissions import (
     ProductPermissions,
     ProductTypePermissions,
 )
+from ..attribute.types import Attribute, AttributeValue
 from ..core.inputs import ReorderInput
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import AttributeError
@@ -20,7 +21,6 @@ from ..core.utils import (
 )
 from ..core.utils.reordering import perform_reordering
 from ..meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
-from ..product.types import Attribute, AttributeValue
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeInputTypeEnum, AttributeTypeEnum
 
