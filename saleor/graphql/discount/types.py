@@ -233,11 +233,18 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_currency(root: ChannelContext[models.Voucher], *_args, **_kwargs):
-        channel_listing = root.node.channel_listing.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        return channel_listing.currency if channel_listing else None
+    def resolve_currency(root: ChannelContext[models.Voucher], info, **_kwargs):
+        if not root.channel_slug:
+            return None
+
+        def calculate_currency(channel_listing):
+            return channel_listing.currency if channel_listing else None
+
+        return (
+            VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_currency)
+        )
 
     @staticmethod
     def resolve_min_spent(root: ChannelContext[models.Voucher], *_args, **_kwargs):
