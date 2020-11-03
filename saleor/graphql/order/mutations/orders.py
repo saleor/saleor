@@ -1,10 +1,11 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....account.models import User
 from ....core.permissions import OrderPermissions
 from ....core.taxes import zero_taxed_money
-from ....order import events, models
+from ....order import OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -24,7 +25,7 @@ from ...core.types.common import OrderError
 from ...core.utils import validate_required_string_field
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...meta.deprecated.types import MetaInput, MetaPath
-from ...order.mutations.draft_orders import DraftOrderUpdate
+from ...order.mutations.draft_orders import DraftOrderCreate
 from ...order.types import Order, OrderEvent
 from ...shipping.types import ShippingMethod
 
@@ -138,7 +139,7 @@ class OrderUpdateInput(graphene.InputObjectType):
     shipping_address = AddressInput(description="Shipping address of the customer.")
 
 
-class OrderUpdate(DraftOrderUpdate):
+class OrderUpdate(DraftOrderCreate):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an order to update.")
         input = OrderUpdateInput(
@@ -165,12 +166,29 @@ class OrderUpdate(DraftOrderUpdate):
         return cleaned_input
 
     @classmethod
+    def get_instance(cls, info, **data):
+        instance = super().get_instance(info, **data)
+        if instance.status == OrderStatus.DRAFT:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Provided order id belongs to draft order. "
+                        "Use `draftOrderUpdate` mutation instead.",
+                        code=OrderErrorCode.INVALID,
+                    )
+                }
+            )
+        return instance
+
+    @classmethod
+    @transaction.atomic
     def save(cls, info, instance, cleaned_input):
-        super().save(info, instance, cleaned_input)
+        cls._save_addresses(info, instance, cleaned_input)
         if instance.user_email:
             user = User.objects.filter(email=instance.user_email).first()
             instance.user = user
         instance.save()
+        info.context.plugins.order_updated(instance)
 
 
 class OrderUpdateShippingInput(graphene.InputObjectType):

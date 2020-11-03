@@ -31,13 +31,16 @@ def test_get_shopper_locale_value(country_code, shopper_locale, settings):
     assert result == shopper_locale
 
 
-def test_append_klarna_data(dummy_payment_data, payment_dummy, checkout_with_item):
+def test_append_klarna_data(
+    dummy_payment_data, payment_dummy, checkout_ready_to_complete
+):
     # given
-    checkout_with_item.payments.add(payment_dummy)
-    line = checkout_with_item.lines.first()
+    checkout_ready_to_complete.payments.add(payment_dummy)
+    line = checkout_ready_to_complete.lines.first()
     payment_data = {
         "reference": "test",
     }
+    country_code = checkout_ready_to_complete.get_country()
 
     # when
     result = append_klarna_data(dummy_payment_data, payment_data)
@@ -48,10 +51,9 @@ def test_append_klarna_data(dummy_payment_data, payment_dummy, checkout_with_ite
     )
     assert result == {
         "reference": "test",
-        "shopperLocale": "en_US",
+        "shopperLocale": get_shopper_locale_value(country_code),
         "shopperReference": dummy_payment_data.customer_email,
-        "countryCode": str(checkout_with_item.country),
-        "shopperEmail": dummy_payment_data.customer_email,
+        "countryCode": country_code,
         "lineItems": [
             {
                 "description": f"{line.variant.product.name}, {line.variant.name}",
@@ -61,14 +63,26 @@ def test_append_klarna_data(dummy_payment_data, payment_dummy, checkout_with_ite
                 "taxPercentage": 0,
                 "amountExcludingTax": total,
                 "amountIncludingTax": total,
-            }
+            },
+            {
+                "amountExcludingTax": "1000",
+                "amountIncludingTax": "1000",
+                "description": "Shipping - DHL",
+                "id": f"Shipping:{checkout_ready_to_complete.shipping_method.id}",
+                "quantity": 1,
+                "taxAmount": "0",
+                "taxPercentage": 0,
+            },
         ],
     }
 
 
 @mock.patch("saleor.payment.gateways.adyen.utils.checkout_line_total")
 def test_append_klarna_data_tax_included(
-    mocked_checkout_line_total, dummy_payment_data, payment_dummy, checkout_with_item
+    mocked_checkout_line_total,
+    dummy_payment_data,
+    payment_dummy,
+    checkout_ready_to_complete,
 ):
     # given
     net = Money(100, "USD")
@@ -77,9 +91,10 @@ def test_append_klarna_data_tax_included(
     mocked_checkout_line_total.return_value = quantize_price(
         TaxedMoney(net=net, gross=gross), "USD"
     )
+    country_code = checkout_ready_to_complete.get_country()
 
-    checkout_with_item.payments.add(payment_dummy)
-    line = checkout_with_item.lines.first()
+    checkout_ready_to_complete.payments.add(payment_dummy)
+    line = checkout_ready_to_complete.lines.first()
     payment_data = {
         "reference": "test",
     }
@@ -88,12 +103,12 @@ def test_append_klarna_data_tax_included(
     result = append_klarna_data(dummy_payment_data, payment_data)
 
     # then
-    assert result == {
+
+    expected_result = {
         "reference": "test",
-        "shopperLocale": "en_US",
+        "shopperLocale": get_shopper_locale_value(country_code),
         "shopperReference": dummy_payment_data.customer_email,
-        "countryCode": str(checkout_with_item.country),
-        "shopperEmail": dummy_payment_data.customer_email,
+        "countryCode": country_code,
         "lineItems": [
             {
                 "description": f"{line.variant.product.name}, {line.variant.name}",
@@ -103,14 +118,25 @@ def test_append_klarna_data_tax_included(
                 "taxPercentage": 2300,
                 "amountExcludingTax": to_adyen_price(net.amount, "USD"),
                 "amountIncludingTax": to_adyen_price(gross.amount, "USD"),
-            }
+            },
+            {
+                "amountExcludingTax": "1000",
+                "amountIncludingTax": "1000",
+                "description": "Shipping - DHL",
+                "id": f"Shipping:{checkout_ready_to_complete.shipping_method.id}",
+                "quantity": 1,
+                "taxAmount": "0",
+                "taxPercentage": 0,
+            },
         ],
     }
+    assert result == expected_result
 
 
 def test_request_data_for_payment_payment_not_valid(dummy_payment_data):
     # given
     dummy_payment_data.data = {
+        "originUrl": "https://www.example.com",
         "is_valid": False,
     }
     native_3d_secure = False
@@ -121,7 +147,6 @@ def test_request_data_for_payment_payment_not_valid(dummy_payment_data):
             dummy_payment_data,
             "https://www.example.com",
             "MerchantTestAccount",
-            "https://www.example.com",
             native_3d_secure,
         )
 
@@ -133,6 +158,7 @@ def test_request_data_for_payment(dummy_payment_data):
     # given
     return_url = "https://www.example.com"
     merchant_account = "MerchantTestAccount"
+    origin_url = "https://www.example.com"
     data = {
         "is_valid": True,
         "riskData": {"clientData": "test_client_data"},
@@ -140,13 +166,14 @@ def test_request_data_for_payment(dummy_payment_data):
         "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
         "billingAddress": {"address": "test_address"},
         "shopperIP": "123",
+        "originUrl": origin_url,
     }
     dummy_payment_data.data = data
     native_3d_secure = False
 
     # when
     result = request_data_for_payment(
-        dummy_payment_data, return_url, merchant_account, return_url, native_3d_secure
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
     )
 
     # then
@@ -166,6 +193,7 @@ def test_request_data_for_payment(dummy_payment_data):
         "billingAddress": data["billingAddress"],
         "browserInfo": data["browserInfo"],
         "channel": "web",
+        "shopperEmail": "example@test.com",
     }
 
 
@@ -173,6 +201,7 @@ def test_request_data_for_payment_native_3d_secure(dummy_payment_data):
     # given
     return_url = "https://www.example.com"
     merchant_account = "MerchantTestAccount"
+    origin_url = "https://www.example.com"
     data = {
         "is_valid": True,
         "riskData": {"clientData": "test_client_data"},
@@ -180,13 +209,14 @@ def test_request_data_for_payment_native_3d_secure(dummy_payment_data):
         "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
         "billingAddress": {"address": "test_address"},
         "shopperIP": "123",
+        "originUrl": origin_url,
     }
     dummy_payment_data.data = data
     native_3d_secure = True
 
     # when
     result = request_data_for_payment(
-        dummy_payment_data, return_url, merchant_account, return_url, native_3d_secure
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
     )
 
     # then
@@ -201,12 +231,13 @@ def test_request_data_for_payment_native_3d_secure(dummy_payment_data):
         "paymentMethod": {"type": "scheme"},
         "returnUrl": return_url,
         "merchantAccount": merchant_account,
-        "origin": return_url,
+        "origin": origin_url,
         "shopperIP": data["shopperIP"],
         "billingAddress": data["billingAddress"],
         "browserInfo": data["browserInfo"],
         "channel": "web",
         "additionalData": {"allow3DS2": "true"},
+        "shopperEmail": "example@test.com",
     }
 
 
@@ -220,7 +251,7 @@ def test_request_data_for_payment_channel_different_than_web(dummy_payment_data)
 
     # when
     result = request_data_for_payment(
-        dummy_payment_data, return_url, merchant_account, return_url, native_3d_secure
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
     )
 
     # then
@@ -237,6 +268,7 @@ def test_request_data_for_payment_channel_different_than_web(dummy_payment_data)
         "merchantAccount": merchant_account,
         "channel": "iOS",
         "additionalData": {"allow3DS2": "true"},
+        "shopperEmail": "example@test.com",
     }
 
 
@@ -247,6 +279,7 @@ def test_request_data_for_payment_append_klarna_data(
     # given
     return_url = "https://www.example.com"
     merchant_account = "MerchantTestAccount"
+    origin_url = "https://www.example.com"
     data = {
         "is_valid": True,
         "riskData": {"clientData": "test_client_data"},
@@ -254,6 +287,7 @@ def test_request_data_for_payment_append_klarna_data(
         "browserInfo": {"acceptHeader": "*/*", "colorDepth": 30, "language": "pl"},
         "billingAddress": {"address": "test_address"},
         "shopperIP": "123",
+        "originUrl": origin_url,
     }
     dummy_payment_data.data = data
     klarna_result = {
@@ -272,13 +306,12 @@ def test_request_data_for_payment_append_klarna_data(
         "billingAddress": data["billingAddress"],
         "browserInfo": data["browserInfo"],
         "shopperLocale": "test_shopper",
-        "shopperEmail": "test_email",
     }
     append_klarna_data_mock.return_value = klarna_result
     native_3d_secure = False
     # when
     result = request_data_for_payment(
-        dummy_payment_data, return_url, merchant_account, return_url, native_3d_secure
+        dummy_payment_data, return_url, merchant_account, native_3d_secure
     )
 
     # then

@@ -755,7 +755,7 @@ class ProductType(CountableDjangoObjectType):
 
 @key(fields="id")
 class Collection(CountableDjangoObjectType):
-    products = PrefetchingConnectionField(
+    products = FilterInputConnectionField(
         Product,
         filter=ProductFilterInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
