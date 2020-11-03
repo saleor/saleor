@@ -16,6 +16,7 @@ from ..decorators import permission_required
 from ..product.types import Category, Collection, Product
 from ..translations.fields import TranslationField
 from ..translations.types import SaleTranslation, VoucherTranslation
+from .dataloaders import SaleChannelListingBySaleIdAndChanneSlugLoader
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 
@@ -84,11 +85,15 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
-    def resolve_discount_value(root: ChannelContext[models.Sale], *_args, **_kwargs):
-        channel_listing = root.node.channel_listing.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        return channel_listing.discount_value if channel_listing else None
+    def resolve_discount_value(root: ChannelContext[models.Sale], info, **_kwargs):
+        def calculate_discount_value(channel_listing):
+            return channel_listing.discount_value if channel_listing else None
+
+        return (
+            SaleChannelListingBySaleIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_discount_value)
+        )
 
     @staticmethod
     def resolve_currency(root: ChannelContext[models.Sale], *_args, **_kwargs):
