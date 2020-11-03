@@ -76,6 +76,7 @@ class PageType(CountableDjangoObjectType):
         filter=AttributeFilterInput(),
         description="Attributes that can be assigned to the page type.",
     )
+    has_pages = graphene.Boolean(description="Whether page type has pages assigned.")
 
     class Meta:
         description = (
@@ -96,3 +97,9 @@ class PageType(CountableDjangoObjectType):
         return attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
         )
+
+    @staticmethod
+    @permission_required(PagePermissions.MANAGE_PAGES)
+    def resolve_has_pages(root: models.PageType, info, **kwargs):
+        # TODO: try to use dataloader here
+        return root.pages.exists()
