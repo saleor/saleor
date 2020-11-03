@@ -2057,7 +2057,7 @@ def test_filter_attributes_in_category_not_visible_in_listings_by_customer(
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(visible_in_listings=False)
+    last_product.channel_listings.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2106,7 +2106,7 @@ def test_filter_attributes_in_category_not_visible_in_listings_by_staff_with_per
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(visible_in_listings=False)
+    last_product.channel_listings.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2150,7 +2150,7 @@ def test_filter_attributes_in_category_not_visible_in_listings_by_staff_without_
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(visible_in_listings=False)
+    last_product.channel_listings.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2199,7 +2199,7 @@ def test_filter_attributes_in_category_not_visible_in_listings_by_app_with_perm(
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(visible_in_listings=False)
+    last_product.channel_listings.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2243,7 +2243,7 @@ def test_filter_attributes_in_category_not_visible_in_listings_by_app_without_pe
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(visible_in_listings=False)
+    last_product.channel_listings.all().update(visible_in_listings=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2286,7 +2286,7 @@ def test_filter_attributes_in_category_not_published_by_customer(
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(is_published=False)
+    last_product.channel_listings.all().update(is_published=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2335,7 +2335,7 @@ def test_filter_attributes_in_category_not_published_by_staff_with_perm(
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(is_published=False)
+    last_product.channel_listings.all().update(is_published=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2379,7 +2379,7 @@ def test_filter_attributes_in_category_not_published_by_staff_without_perm(
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(is_published=False)
+    last_product.channel_listings.all().update(is_published=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2428,7 +2428,7 @@ def test_filter_attributes_in_category_not_published_by_app_with_perm(
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(is_published=False)
+    last_product.channel_listings.all().update(is_published=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2472,7 +2472,7 @@ def test_filter_attributes_in_category_not_published_by_app_without_perm(
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(is_published=False)
+    last_product.channel_listings.all().update(is_published=False)
 
     associate_attribute_values_to_instance(
         product_list[-1], weight_attribute, weight_attribute.values.first()
@@ -2515,7 +2515,7 @@ def test_filter_attributes_in_collection_not_visible_in_listings_by_customer(
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(visible_in_listings=False)
+    last_product.channel_listings.all().update(visible_in_listings=False)
 
     for product in product_list:
         collection.products.add(product)
@@ -2557,7 +2557,7 @@ def test_filter_in_collection_not_published_by_customer(
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(is_published=False)
+    last_product.channel_listings.all().update(is_published=False)
 
     for product in product_list:
         collection.products.add(product)
@@ -2609,7 +2609,7 @@ def test_filter_in_collection_not_published_by_staff_with_perm(
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(is_published=False)
+    last_product.channel_listings.all().update(is_published=False)
 
     for product in product_list:
         collection.products.add(product)
@@ -2656,7 +2656,7 @@ def test_filter_in_collection_not_published_by_staff_without_perm(
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(is_published=False)
+    last_product.channel_listings.all().update(is_published=False)
 
     for product in product_list:
         collection.products.add(product)
@@ -2708,7 +2708,7 @@ def test_filter_in_collection_not_published_by_app_with_perm(
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(is_published=False)
+    last_product.channel_listings.all().update(is_published=False)
 
     for product in product_list:
         collection.products.add(product)
@@ -2755,7 +2755,7 @@ def test_filter_in_collection_not_published_by_app_without_perm(
     last_product = product_list[-1]
     last_product.product_type = product_type
     last_product.save(update_fields=["product_type"])
-    last_product.channel_listing.all().update(is_published=False)
+    last_product.channel_listings.all().update(is_published=False)
 
     for product in product_list:
         collection.products.add(product)

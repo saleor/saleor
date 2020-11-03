@@ -114,7 +114,7 @@ def test_variant_pricing(
     )
 
     product = variant.product
-    product_channel_listing = product.channel_listing.get()
+    product_channel_listing = product.channel_listings.get()
     variant_channel_listing = variant.channel_listing.get()
 
     pricing = get_variant_availability(

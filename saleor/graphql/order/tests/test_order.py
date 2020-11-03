@@ -1104,7 +1104,7 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    variant.product.channel_listing.all().delete()
+    variant.product.channel_listings.all().delete()
     variant.channel_listing.all().delete()
     variables = {
         "user": user_id,
@@ -1184,7 +1184,7 @@ def test_draft_order_create_with_channel_with_unpublished_product(
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
     variant_1 = product_without_shipping.variants.first()
-    channel_listing = variant_1.product.channel_listing.get()
+    channel_listing = variant_1.product.channel_listings.get()
     channel_listing.is_published = False
     channel_listing.save()
 
@@ -1244,7 +1244,7 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
     variant_1 = product_without_shipping.variants.first()
-    channel_listing = variant_1.product.channel_listing.get()
+    channel_listing = variant_1.product.channel_listings.get()
     channel_listing.publication_date = next_day
     channel_listing.save()
 
@@ -1611,7 +1611,7 @@ def test_can_finalize_order_product_unavailable_for_purchase(
     order.save(update_fields=["status"])
 
     product = order.lines.first().variant.product
-    product.channel_listing.update(available_for_purchase=None)
+    product.channel_listings.update(available_for_purchase=None)
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -1635,7 +1635,7 @@ def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
     order.save(update_fields=["status"])
 
     product = order.lines.first().variant.product
-    product.channel_listing.update(
+    product.channel_listings.update(
         available_for_purchase=date.today() + timedelta(days=1)
     )
 
@@ -1694,7 +1694,7 @@ def test_validate_draft_order_with_unpublished_product(draft_order):
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    product_channel_listing = variant.product.channel_listing.get()
+    product_channel_listing = variant.product.channel_listings.get()
     product_channel_listing.is_published = False
     product_channel_listing.save(update_fields=["is_published"])
     line.refresh_from_db()
@@ -1712,7 +1712,7 @@ def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order)
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    variant.product.channel_listing.update(available_for_purchase=None)
+    variant.product.channel_listings.update(available_for_purchase=None)
     line.refresh_from_db()
 
     with pytest.raises(ValidationError) as e:
@@ -1730,7 +1730,7 @@ def test_validate_draft_order_with_product_available_for_purchase_in_future(
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    variant.product.channel_listing.update(
+    variant.product.channel_listings.update(
         available_for_purchase=date.today() + timedelta(days=2)
     )
     line.refresh_from_db()
@@ -2028,7 +2028,7 @@ def test_draft_order_complete_unavailable_for_purchase(
     assert not OrderEvent.objects.exists()
 
     product = order.lines.first().variant.product
-    product.channel_listing.update(
+    product.channel_listings.update(
         available_for_purchase=date.today() + timedelta(days=5)
     )
 

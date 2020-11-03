@@ -3791,7 +3791,7 @@ type Product implements Node & ObjectWithMetadata {
   isAvailable: Boolean
   taxType: TaxType
   attributes: [SelectedAttribute!]!
-  channelListing: [ProductChannelListing!]
+  channelListings: [ProductChannelListing!]
   imageById(id: ID): ProductImage
   variants: [ProductVariant]
   images: [ProductImage]

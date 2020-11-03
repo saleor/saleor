@@ -38,7 +38,7 @@ def add_stocks_to_expected_data(data, variant, warehouse_ids, pk=None):
 
 
 def add_channel_to_expected_product_data(data, product, channel_ids, pk=None):
-    for channel_listing in product.channel_listing.all():
+    for channel_listing in product.channel_listings.all():
         if str(channel_listing.channel.pk) in channel_ids:
             channel_slug = channel_listing.channel.slug
             for lookup, field in [

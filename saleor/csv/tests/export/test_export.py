@@ -160,7 +160,7 @@ def test_export_products_filter_is_published(
     args, _ = export_products_in_batches_mock.call_args
     assert set(args[0].values_list("pk", flat=True)) == set(
         Product.objects.filter(
-            channel_listing__is_published=True, channel_listing__channel=channel_USD
+            channel_listings__is_published=True, channel_listings__channel=channel_USD
         ).values_list("pk", flat=True)
     )
     assert args[1:] == (export_info, {"id"}, ["id"], ";", mock_file, file_type,)
