@@ -52,7 +52,7 @@ matrix:
       python: "3.8"
     - env: TOXENV=check_migrations
       python: "3.8"
-    - env: TOXENV=pydocstyle	
+    - env: TOXENV=pydocstyle
       python: "3.8"
   allow_failures:
     - env: DJANGO="master"
