@@ -20,6 +20,7 @@ def test_query_page_type(
                 id
                 name
                 slug
+                hasPages
                 attributes {
                     slug
                     name
@@ -69,7 +70,7 @@ def test_query_page_type(
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=True)
 def test_query_page_types(
-    page_type,
+    page_type_list,
     staff_api_client,
     author_page_attribute,
     permission_manage_pages,
@@ -84,6 +85,7 @@ def test_query_page_types(
                         id
                         name
                         slug
+                        hasPages
                         attributes {
                             slug
                             name

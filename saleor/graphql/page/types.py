@@ -16,6 +16,7 @@ from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
 from .dataloaders import (
     PageAttributesByPageTypeIdLoader,
+    PagesByPageTypeIdLoader,
     PageTypeByIdLoader,
     SelectedAttributesByPageIdLoader,
 )
@@ -102,5 +103,9 @@ class PageType(CountableDjangoObjectType):
     @staticmethod
     @permission_required(PagePermissions.MANAGE_PAGES)
     def resolve_has_pages(root: models.PageType, info, **kwargs):
-        # TODO: try to use dataloader here
-        return root.pages.exists()
+        def check_if_has_pages(pages):
+            return bool(pages)
+
+        return (
+            PagesByPageTypeIdLoader(info.context).load(root.pk).then(check_if_has_pages)
+        )
