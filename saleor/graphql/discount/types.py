@@ -16,7 +16,10 @@ from ..decorators import permission_required
 from ..product.types import Category, Collection, Product
 from ..translations.fields import TranslationField
 from ..translations.types import SaleTranslation, VoucherTranslation
-from .dataloaders import SaleChannelListingBySaleIdAndChanneSlugLoader
+from .dataloaders import (
+    SaleChannelListingBySaleIdAndChanneSlugLoader,
+    SaleChannelListingBySaleIdLoader,
+)
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 
@@ -67,14 +70,12 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_channel_listing(root: ChannelContext[models.Sale], *_args, **_kwargs):
-        # TODO: Add dataloader.
-        return root.node.channel_listing.all()
+    def resolve_channel_listing(root: ChannelContext[models.Sale], info, **_kwargs):
+        return SaleChannelListingBySaleIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_collections(root: ChannelContext[models.Sale], info, *_args, **_kwargs):
-        # TODO: Add dataloader.
         qs = root.node.collections.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 

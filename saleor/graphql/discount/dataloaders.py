@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.db.models import F
 
 from ...discount import DiscountInfo
@@ -62,3 +64,16 @@ class SaleChannelListingBySaleIdAndChanneSlugLoader(DataLoader):
             key = (sales_channel_listing.sale_id, sales_channel_listing.channel_slug)
             sales_channel_listings_by_sale_and_channel_map[key] = sales_channel_listing
         return [sales_channel_listings_by_sale_and_channel_map[key] for key in keys]
+
+
+class SaleChannelListingBySaleIdLoader(DataLoader):
+    context_key = "salechannelisting_by_sale"
+
+    def batch_load(self, keys):
+        sales_channel_listings = SaleChannelListing.objects.filter(sale_id__in=keys)
+        sales_channel_listings_by_sale_map = defaultdict(list)
+        for sales_channel_listing in sales_channel_listings:
+            sales_channel_listings_by_sale_map[sales_channel_listing.sale_id].append(
+                sales_channel_listing
+            )
+        return [sales_channel_listings_by_sale_map[sale_id] for sale_id in keys]
