@@ -87,6 +87,9 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_discount_value(root: ChannelContext[models.Sale], info, **_kwargs):
+        if not root.channel_slug:
+            return None
+
         def calculate_discount_value(channel_listing):
             return channel_listing.discount_value if channel_listing else None
 
@@ -98,6 +101,9 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_currency(root: ChannelContext[models.Sale], info, **_kwargs):
+        if not root.channel_slug:
+            return None
+
         def calculate_currency(channel_listing):
             return channel_listing.currency if channel_listing else None
 
