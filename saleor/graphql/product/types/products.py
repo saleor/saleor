@@ -878,8 +878,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         type_name="collection",
         resolver=ChannelContextType.resolve_translation,
     )
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(CollectionChannelListing),
         description="List of channels in which the collection is available.",
     )
@@ -921,9 +920,9 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_channel_listing(root: ChannelContext[models.Collection], _info):
+    def resolve_channel_listings(root: ChannelContext[models.Collection], _info):
         # TODO : Add dataloader
-        return root.node.channel_listing.all()
+        return root.node.channel_listings.all()
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

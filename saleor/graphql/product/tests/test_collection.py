@@ -952,7 +952,7 @@ def _fetch_collection(client, collection, channel_slug, permissions=None):
     query fetchCollection($id: ID!, $channel: String){
         collection(id: $id, channel: $channel) {
             name,
-            channelListing {
+            channelListings {
                 isPublished
             }
         }
@@ -979,7 +979,7 @@ def test_fetch_unpublished_collection_staff_user(
         permissions=[permission_manage_products],
     )
     assert collection_data["name"] == unpublished_collection.name
-    assert collection_data["channelListing"][0]["isPublished"] is False
+    assert collection_data["channelListings"][0]["isPublished"] is False
 
 
 def test_fetch_unpublished_collection_customer(
