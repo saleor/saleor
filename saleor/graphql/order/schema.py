@@ -34,6 +34,7 @@ from .mutations.orders import (
     OrderCapture,
     OrderClearMeta,
     OrderClearPrivateMeta,
+    OrderConfirm,
     OrderMarkAsPaid,
     OrderRefund,
     OrderUpdate,
@@ -165,6 +166,7 @@ class OrderMutations(graphene.ObjectType):
             "removed after 2020-07-31."
         )
     )
+    order_confirm = OrderConfirm.Field()
     order_clear_meta = OrderClearMeta.Field(
         deprecation_reason=(
             "Use the `deleteMetadata` mutation instead. This field will be removed "

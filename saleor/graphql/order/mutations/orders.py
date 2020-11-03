@@ -19,7 +19,7 @@ from ....order.error_codes import OrderErrorCode
 from ....order.utils import get_valid_shipping_methods_for_order, update_order_prices
 from ....payment import CustomPaymentChoices, PaymentError, TransactionKind, gateway
 from ...account.types import AddressInput
-from ...core.mutations import BaseMutation
+from ...core.mutations import BaseMutation, ModelMutation
 from ...core.scalars import UUID, PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import validate_required_string_field
@@ -540,3 +540,39 @@ class OrderClearPrivateMeta(ClearMetaBaseMutation):
         model = models.Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = False
+
+
+class OrderConfirm(ModelMutation):
+    order = graphene.Field(Order, description="Order which has been confirmed.")
+
+    class Arguments:
+        id = graphene.ID(description="ID of an order to confirm.", required=True)
+
+    class Meta:
+        description = "Confirms an unconfirmed order by changing status to unfulfilled."
+        model = models.Order
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        instance = super().get_instance(info, **data)
+        if instance.status != OrderStatus.UNCONFIRMED:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Provided order id belongs to an order with status "
+                        "different than unconfirmed.",
+                        code=OrderErrorCode.INVALID,
+                    )
+                }
+            )
+        return instance
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        order = cls.get_instance(info, **data)
+        order.status = OrderStatus.UNFULFILLED
+        order.save(update_fields=["status"])
+        return OrderConfirm(order=order)

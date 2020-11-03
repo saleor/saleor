@@ -493,6 +493,13 @@ def order(customer_user):
 
 
 @pytest.fixture
+def order_unconfirmed(order):
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    return order
+
+
+@pytest.fixture
 def admin_user(db):
     """Return a Django admin user."""
     return User.objects.create_superuser("admin@example.com", "password")
