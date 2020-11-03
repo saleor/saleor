@@ -333,3 +333,21 @@ class CollectionChannelListingByIdLoader(DataLoader):
     def batch_load(self, keys):
         collections = CollectionChannelListing.objects.in_bulk(keys)
         return [collections.get(key) for key in keys]
+
+
+class CollectionChannelListingByCollectionIdLoader(DataLoader):
+    context_key = "collectionchannelisting_by_collection"
+
+    def batch_load(self, keys):
+        collections_channel_listings = CollectionChannelListing.objects.filter(
+            collection_id__in=keys
+        )
+        collection_id_collection_channel_listings_map = defaultdict(list)
+        for collection_channel_listing in collections_channel_listings:
+            collection_id_collection_channel_listings_map[
+                collection_channel_listing.collection_id
+            ].append(collection_channel_listing)
+        return [
+            collection_id_collection_channel_listings_map.get(collection_id, [])
+            for collection_id in keys
+        ]
