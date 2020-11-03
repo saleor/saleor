@@ -8,6 +8,7 @@ PAGE_TYPE_QUERY = """
             id
             name
             slug
+            hasPages
             attributes {
                 slug
             }
@@ -29,6 +30,7 @@ def test_page_type_query_by_staff(
     author_page_attribute,
     permission_manage_pages,
     color_attribute,
+    page,
 ):
     # given
     staff_user = staff_api_client.user
@@ -48,6 +50,7 @@ def test_page_type_query_by_staff(
     assert {attr["slug"] for attr in page_type_data["attributes"]} == {
         attr.slug for attr in page_type.page_attributes.all()
     }
+    assert page_type_data["hasPages"] is True
     available_attributes = page_type_data["availableAttributes"]["edges"]
     assert len(available_attributes) == 1
     assert available_attributes[0]["node"]["slug"] == author_page_attribute.slug
@@ -144,3 +147,34 @@ def test_page_type_query_filter_unassigned_attributes(
     available_attributes = page_type_data["availableAttributes"]["edges"]
     assert len(available_attributes) == 1
     assert available_attributes[0]["node"]["slug"] == expected_attribute.slug
+
+
+def test_page_type_query_no_pages(
+    staff_api_client,
+    page_type,
+    author_page_attribute,
+    permission_manage_pages,
+    color_attribute,
+):
+    # given
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_pages)
+
+    variables = {"id": graphene.Node.to_global_id("PageType", page_type.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(PAGE_TYPE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    page_type_data = content["data"]["pageType"]
+
+    assert page_type_data["slug"] == page_type.slug
+    assert page_type_data["name"] == page_type.name
+    assert {attr["slug"] for attr in page_type_data["attributes"]} == {
+        attr.slug for attr in page_type.page_attributes.all()
+    }
+    assert page_type_data["hasPages"] is False
+    available_attributes = page_type_data["availableAttributes"]["edges"]
+    assert len(available_attributes) == 1
+    assert available_attributes[0]["node"]["slug"] == author_page_attribute.slug
