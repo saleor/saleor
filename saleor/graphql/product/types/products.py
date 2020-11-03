@@ -59,6 +59,7 @@ from ...warehouse.dataloaders import (
 from ...warehouse.types import Stock
 from ..dataloaders import (
     CategoryByIdLoader,
+    CollectionChannelListingByCollectionIdLoader,
     CollectionsByProductIdLoader,
     ImagesByProductIdLoader,
     ImagesByProductVariantIdLoader,
@@ -922,9 +923,10 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_channel_listing(root: ChannelContext[models.Collection], _info):
-        # TODO : Add dataloader
-        return root.node.channel_listing.all()
+    def resolve_channel_listing(root: ChannelContext[models.Collection], info):
+        return CollectionChannelListingByCollectionIdLoader(info.context).load(
+            root.node.id
+        )
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
