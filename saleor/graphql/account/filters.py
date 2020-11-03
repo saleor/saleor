@@ -43,6 +43,7 @@ def filter_staff_search(qs, _, value):
         "default_shipping_address__last_name",
         "default_shipping_address__city",
         "default_shipping_address__country",
+        "default_shipping_address__phone",
     )
     if value:
         qs = filter_by_query_param(qs, value, search_fields)
