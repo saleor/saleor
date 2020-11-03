@@ -20,6 +20,7 @@ from ..translations.types import SaleTranslation, VoucherTranslation
 from .dataloaders import (
     SaleChannelListingBySaleIdAndChanneSlugLoader,
     SaleChannelListingBySaleIdLoader,
+    VoucherChannelListingByVoucherIdAndChanneSlugLoader,
 )
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 
@@ -218,11 +219,18 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         ]
 
     @staticmethod
-    def resolve_discount_value(root: ChannelContext[models.Voucher], *_args, **_kwargs):
-        channel_listing = root.node.channel_listing.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        return channel_listing.discount_value if channel_listing else None
+    def resolve_discount_value(root: ChannelContext[models.Voucher], info, **_kwargs):
+        if not root.channel_slug:
+            return None
+
+        def calculate_discount_value(channel_listing):
+            return channel_listing.discount_value if channel_listing else None
+
+        return (
+            VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_discount_value)
+        )
 
     @staticmethod
     def resolve_currency(root: ChannelContext[models.Voucher], *_args, **_kwargs):

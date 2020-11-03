@@ -3,7 +3,7 @@ from collections import defaultdict
 from django.db.models import F
 
 from ...discount import DiscountInfo
-from ...discount.models import Sale, SaleChannelListing, Voucher
+from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
 from ...discount.utils import (
     fetch_categories,
     fetch_collections,
@@ -42,14 +42,6 @@ class DiscountsByDateTimeLoader(DataLoader):
         ]
 
 
-class VoucherByIdLoader(DataLoader):
-    context_key = "voucher_by_id"
-
-    def batch_load(self, keys):
-        vouchers = Voucher.objects.in_bulk(keys)
-        return [vouchers.get(voucher_id) for voucher_id in keys]
-
-
 class SaleChannelListingBySaleIdAndChanneSlugLoader(DataLoader):
     context_key = "salechannelisting_by_sale_and_channel"
 
@@ -77,3 +69,34 @@ class SaleChannelListingBySaleIdLoader(DataLoader):
                 sales_channel_listing
             )
         return [sales_channel_listings_by_sale_map[sale_id] for sale_id in keys]
+
+
+class VoucherByIdLoader(DataLoader):
+    context_key = "voucher_by_id"
+
+    def batch_load(self, keys):
+        vouchers = Voucher.objects.in_bulk(keys)
+        return [vouchers.get(voucher_id) for voucher_id in keys]
+
+
+class VoucherChannelListingByVoucherIdAndChanneSlugLoader(DataLoader):
+    context_key = "voucherchannelisting_by_voucher_and_channel"
+
+    def batch_load(self, keys):
+        voucher_ids = [key[0] for key in keys]
+        channel_slugs = [key[1] for key in keys]
+        voucher_channel_listings = VoucherChannelListing.objects.filter(
+            voucher_id__in=voucher_ids, channel__slug__in=channel_slugs
+        ).annotate(channel_slug=F("channel__slug"))
+        voucher_channel_listings_by_voucher_and_channel_map = {}
+        for voucher_channel_listing in voucher_channel_listings:
+            key = (
+                voucher_channel_listing.voucher_id,
+                voucher_channel_listing.channel_slug,
+            )
+            voucher_channel_listings_by_voucher_and_channel_map[
+                key
+            ] = voucher_channel_listing
+        return [
+            voucher_channel_listings_by_voucher_and_channel_map[key] for key in keys
+        ]
