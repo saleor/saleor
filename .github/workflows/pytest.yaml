@@ -67,7 +67,7 @@ jobs:
         path: junit/test-results.xml
       if: ${{ always() }}
 
-    - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
+    - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1.0.0a2
       with:
         query_raw_dump_path: ${{ env.BENCH_PATH }}
         diff_endpoint: "https://dtab784j47g1o.cloudfront.net/default/diff"
