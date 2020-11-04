@@ -7,6 +7,7 @@ from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
 
+from ....attribute import models as attribute_models
 from ....core.permissions import OrderPermissions, ProductPermissions
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
@@ -26,6 +27,9 @@ from ....warehouse.availability import (
     is_product_in_stock,
 )
 from ...account.enums import CountryCodeEnum
+from ...attribute.filters import AttributeFilterInput
+from ...attribute.resolvers import resolve_attributes
+from ...attribute.types import Attribute, SelectedAttribute
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
 from ...core.fields import FilterInputConnectionField, PrefetchingConnectionField
@@ -61,10 +65,8 @@ from ..dataloaders import (
     SelectedAttributesByProductVariantIdLoader,
     VariantAttributesByProductTypeIdLoader,
 )
-from ..filters import AttributeFilterInput, ProductFilterInput
-from ..resolvers import resolve_attributes
+from ..filters import ProductFilterInput
 from ..sorters import ProductOrder
-from .attributes import Attribute, SelectedAttribute
 from .digital_contents import DigitalContent
 
 
@@ -102,7 +104,7 @@ def resolve_attribute_list(
         attributes_qs = attributes_qs.get_visible_to_user(user)
 
     # An empty QuerySet for unresolved values
-    empty_qs = models.AttributeValue.objects.none()
+    empty_qs = attribute_models.AttributeValue.objects.none()
 
     # Goes through all the attributes assigned to the product type
     # The assigned values are returned as a QuerySet, but will assign a
@@ -726,7 +728,9 @@ class ProductType(CountableDjangoObjectType):
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_available_attributes(root: models.ProductType, info, **kwargs):
-        qs = models.Attribute.objects.get_unassigned_product_type_attributes(root.pk)
+        qs = attribute_models.Attribute.objects.get_unassigned_product_type_attributes(
+            root.pk
+        )
         return resolve_attributes(info, qs=qs, **kwargs)
 
     @staticmethod

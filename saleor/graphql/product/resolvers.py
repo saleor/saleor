@@ -7,12 +7,6 @@ from ..utils.filters import filter_by_period
 from .filters import filter_products_by_stock_availability
 
 
-def resolve_attributes(info, qs=None, **_kwargs):
-    requestor = get_user_or_app_from_context(info.context)
-    qs = qs or models.Attribute.objects.get_visible_to_user(requestor)
-    return qs.distinct()
-
-
 def resolve_category_by_slug(slug):
     return models.Category.objects.filter(slug=slug).first()
 

@@ -1,19 +1,18 @@
 import re
 
 import graphene
-from graphene import relay
 
-from ....core.permissions import ProductPermissions
-from ....product import models
-from ...core.connection import CountableDjangoObjectType
-from ...decorators import permission_required
-from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
-from ...meta.types import ObjectWithMetadata
-from ...translations.fields import TranslationField
-from ...translations.types import AttributeTranslation, AttributeValueTranslation
-from ..dataloaders import AttributeValuesByAttributeIdLoader
-from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
-from ..enums import AttributeInputTypeEnum, AttributeTypeEnum, AttributeValueType
+from ...attribute import models
+from ...core.permissions import ProductPermissions
+from ..core.connection import CountableDjangoObjectType
+from ..decorators import permission_required
+from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
+from ..meta.types import ObjectWithMetadata
+from ..translations.fields import TranslationField
+from ..translations.types import AttributeTranslation, AttributeValueTranslation
+from .dataloaders import AttributeValuesByAttributeIdLoader
+from .descriptions import AttributeDescriptions, AttributeValueDescriptions
+from .enums import AttributeInputTypeEnum, AttributeTypeEnum, AttributeValueType
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -47,7 +46,7 @@ class AttributeValue(CountableDjangoObjectType):
     class Meta:
         description = "Represents a value of an attribute."
         only_fields = ["id"]
-        interfaces = [relay.Node]
+        interfaces = [graphene.relay.Node]
         model = models.AttributeValue
 
     @staticmethod
@@ -97,7 +96,7 @@ class Attribute(CountableDjangoObjectType):
             "variants at the product type level."
         )
         only_fields = ["id", "product_types", "product_variant_types"]
-        interfaces = [relay.Node, ObjectWithMetadata]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Attribute
 
     @staticmethod

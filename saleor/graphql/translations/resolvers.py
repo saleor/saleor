@@ -1,4 +1,4 @@
-from ...product import models as product_models
+from ...attribute import models as attribute_models
 from ...shipping import models as shipping_models
 
 
@@ -12,4 +12,4 @@ def resolve_shipping_methods(info):
 
 
 def resolve_attribute_values(info):
-    return product_models.AttributeValue.objects.all()
+    return attribute_models.AttributeValue.objects.all()

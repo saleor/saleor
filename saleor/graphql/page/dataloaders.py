@@ -2,14 +2,11 @@ from collections import defaultdict
 
 from promise import Promise
 
+from ...attribute.models import AssignedPageAttribute, AttributePage, AttributeValue
 from ...core.permissions import PagePermissions
 from ...page.models import Page, PageType
-from ...product.models import AssignedPageAttribute, AttributePage, AttributeValue
+from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ..core.dataloaders import DataLoader
-from ..product.dataloaders.attributes import (
-    AttributesByAttributeId,
-    AttributeValueByIdLoader,
-)
 
 
 class PageByIdLoader(DataLoader):

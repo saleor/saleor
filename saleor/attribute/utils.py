@@ -1,14 +1,13 @@
-from typing import TYPE_CHECKING, Optional, Set, Union
+from typing import TYPE_CHECKING, Set, Union
 
-from ...page.models import Page
-from ..models import (
+from ..page.models import Page
+from ..product.models import Product, ProductVariant
+from .models import (
     AssignedPageAttribute,
     AssignedProductAttribute,
     AssignedVariantAttribute,
     Attribute,
     AttributeValue,
-    Product,
-    ProductVariant,
 )
 
 AttributeAssignmentType = Union[
@@ -17,20 +16,7 @@ AttributeAssignmentType = Union[
 
 
 if TYPE_CHECKING:
-    # flake8: noqa
-    from ..models import AttributeProduct, AttributeVariant, AttributePage
-
-
-def generate_name_for_variant(variant: ProductVariant) -> str:
-    """Generate ProductVariant's name based on its attributes."""
-    attributes_display = []
-
-    for attribute_rel in variant.attributes.all():  # type: AssignedVariantAttribute
-        values_qs = attribute_rel.values.all()  # FIXME: this should be sorted
-        translated_values = [str(value.translated) for value in values_qs]
-        attributes_display.append(", ".join(translated_values))
-
-    return " / ".join(attributes_display)
+    from .models import AttributeProduct, AttributeVariant, AttributePage
 
 
 def _associate_attribute_to_instance(

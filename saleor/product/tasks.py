@@ -1,15 +1,16 @@
 from typing import Iterable, List, Optional
 
+from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..discount.models import Sale
-from .models import Attribute, Product, ProductType, ProductVariant
-from .utils.attributes import generate_name_for_variant
+from .models import Product, ProductType, ProductVariant
 from .utils.variant_prices import (
     update_product_minimal_variant_price,
     update_products_minimal_variant_prices,
     update_products_minimal_variant_prices_of_catalogues,
     update_products_minimal_variant_prices_of_discount,
 )
+from .utils.variants import generate_name_for_variant
 
 
 def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
