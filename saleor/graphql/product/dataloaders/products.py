@@ -11,6 +11,7 @@ from ....product.models import (
     VariantImage,
 )
 from ...core.dataloaders import DataLoader
+from ...utils import get_user_or_app_from_context
 
 
 class CategoryByIdLoader(DataLoader):
@@ -25,7 +26,8 @@ class ProductByIdLoader(DataLoader):
     context_key = "product_by_id"
 
     def batch_load(self, keys):
-        products = Product.objects.visible_to_user(self.user).in_bulk(keys)
+        requestor = get_user_or_app_from_context(self.context)
+        products = Product.objects.visible_to_user(requestor).in_bulk(keys)
         return [products.get(product_id) for product_id in keys]
 
 

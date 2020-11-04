@@ -252,36 +252,38 @@ def test_query_plugin_configuration_as_customer_user(user_api_client, settings):
 
 
 PLUGIN_UPDATE_MUTATION = """
-        mutation pluginUpdate(
-            $id: ID!,
-            $active: Boolean,
-            $configuration: [ConfigurationItemInput]
-        ){pluginUpdate(
-            id:$id,
-            input:{active: $active, configuration: $configuration}
-        ){
-            plugin{
-              name
-              active
-              configuration{
+    mutation pluginUpdate(
+        $id: ID!
+        $active: Boolean
+        $configuration: [ConfigurationItemInput]
+    ) {
+        pluginUpdate(
+            id: $id
+            input: { active: $active, configuration: $configuration }
+        ) {
+            plugin {
                 name
-                value
-                type
-                helpText
-                label
-              }
+                description
+                active
+                configuration {
+                    name
+                    value
+                    type
+                    helpText
+                    label
+                }
             }
-            errors{
-              field
-              message
+            errors {
+                field
+                message
             }
             pluginsErrors {
-              field
-              code
+                field
+                code
             }
-          }
         }
-    """
+    }
+"""
 
 
 @pytest.mark.parametrize(
@@ -310,6 +312,11 @@ def test_plugin_configuration_update(
     )
     content = get_graphql_content(response)
 
+    plugin_data = content["data"]["pluginUpdate"]["plugin"]
+
+    assert plugin_data["name"] == plugin.PLUGIN_NAME
+    assert plugin_data["description"] == plugin.PLUGIN_DESCRIPTION
+
     plugin = PluginConfiguration.objects.get(identifier=PluginSample.PLUGIN_ID)
     assert plugin.active == active
 
@@ -321,7 +328,7 @@ def test_plugin_configuration_update(
     assert second_configuration_item["name"] == old_configuration[1]["name"]
     assert second_configuration_item["value"] == old_configuration[1]["value"]
 
-    configuration = content["data"]["pluginUpdate"]["plugin"]["configuration"]
+    configuration = plugin_data["configuration"]
     assert configuration is not None
     assert configuration[0]["name"] == updated_configuration_item["name"]
     assert configuration[0]["value"] == updated_configuration_item["value"]
