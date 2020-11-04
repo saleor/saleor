@@ -21,6 +21,7 @@ from .dataloaders import (
     SaleChannelListingBySaleIdAndChanneSlugLoader,
     SaleChannelListingBySaleIdLoader,
     VoucherChannelListingByVoucherIdAndChanneSlugLoader,
+    VoucherChannelListingByVoucherIdLoader,
 )
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 
@@ -199,9 +200,8 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_collections(
-        root: ChannelContext[models.Voucher], info, *_args, **_kwargs
+        root: ChannelContext[models.Voucher], _info, *_args, **_kwargs
     ):
-        # TODO: Add dataloader.
         qs = root.node.collections.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
@@ -262,6 +262,5 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_channel_listing(root: ChannelContext[models.Voucher], _info, **_kwargs):
-        # TODO: Add dataloader.
-        return root.node.channel_listing.all()
+    def resolve_channel_listing(root: ChannelContext[models.Voucher], info, **_kwargs):
+        return VoucherChannelListingByVoucherIdLoader(info.context).load(root.node.id)
