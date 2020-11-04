@@ -96,3 +96,4 @@ jobs:
         upload_endpoint: ${{ secrets.QUERIES_UPLOAD_ENDPOINT_URL }}
         upload_secret_key: ${{ secrets.QUERIES_UPLOAD_SECRET }}
       if: ${{ github.event_name == 'push' }}
+#
