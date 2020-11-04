@@ -62,7 +62,7 @@ def add_channel_to_expected_product_data(data, product, channel_ids, pk=None):
 
 
 def add_channel_to_expected_variant_data(data, variant, channel_ids, pk=None):
-    for channel_listing in variant.channel_listing.all():
+    for channel_listing in variant.channel_listings.all():
         if str(channel_listing.channel.pk) in channel_ids:
             channel_slug = channel_listing.channel.slug
             price_header = f"{channel_slug} (channel price amount)"

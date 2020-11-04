@@ -12,7 +12,7 @@ from ..utils.variant_prices import update_product_discounted_price
 
 def test_update_product_discounted_price(product, channel_USD):
     variant = product.variants.first()
-    variant_channel_listing = variant.channel_listing.get(channel_id=channel_USD.id)
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
     product_channel_listing = product.channel_listings.get(channel_id=channel_USD.id)
     variant_channel_listing.price = Money("4.99", "USD")
     variant_channel_listing.save()
@@ -30,7 +30,7 @@ def test_update_products_discounted_prices_of_catalogues_for_product(
     product, channel_USD
 ):
     variant = product.variants.first()
-    variant_channel_listing = variant.channel_listing.get(channel_id=channel_USD.id)
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
     product_channel_listing = product.channel_listings.get(channel_id=channel_USD.id)
     variant_channel_listing.price = Money("0.99", "USD")
     variant_channel_listing.save()
@@ -48,7 +48,7 @@ def test_update_products_discounted_prices_of_catalogues_for_category(
     category, product, channel_USD
 ):
     variant = product.variants.first()
-    variant_channel_listing = variant.channel_listing.get(
+    variant_channel_listing = variant.channel_listings.get(
         channel=channel_USD, variant=variant,
     )
     variant_channel_listing.price = Money("0.89", "USD")
@@ -68,7 +68,7 @@ def test_update_products_discounted_prices_of_catalogues_for_collection(
     collection, product, channel_USD
 ):
     variant = product.variants.first()
-    variant_channel_listing = variant.channel_listing.get(
+    variant_channel_listing = variant.channel_listings.get(
         channel=channel_USD, variant=variant,
     )
     variant_channel_listing.price = Money("0.79", "USD")
@@ -90,7 +90,7 @@ def test_update_products_discounted_prices_task(product_list):
         product_channel_listing = product.channel_listings.get()
         assert product_channel_listing.discounted_price != price
         variant = product.variants.first()
-        variant_channel_listing = variant.channel_listing.get()
+        variant_channel_listing = variant.channel_listings.get()
         variant_channel_listing.price = price
         variant_channel_listing.save()
         # Check that "variant.save()" doesn't update the "discounted_price"

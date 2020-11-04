@@ -513,7 +513,9 @@ def create_fake_payment(mock_email_confirmation, order):
 
 def create_order_lines(order, discounts, how_many=10):
     channel = order.channel
-    available_variant_ids = channel.variant_listing.values_list("variant_id", flat=True)
+    available_variant_ids = channel.variant_listings.values_list(
+        "variant_id", flat=True
+    )
     variants = (
         ProductVariant.objects.filter(pk__in=available_variant_ids)
         .order_by("?")

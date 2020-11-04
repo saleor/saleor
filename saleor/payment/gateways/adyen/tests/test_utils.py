@@ -44,7 +44,7 @@ def test_append_klarna_data(dummy_payment_data, payment_dummy, checkout_with_ite
     result = append_klarna_data(dummy_payment_data, payment_data)
 
     # then
-    variant_channel_listing = line.variant.channel_listing.get(channel_id=channel_id)
+    variant_channel_listing = line.variant.channel_listings.get(channel_id=channel_id)
     variant_price = variant_channel_listing.price_amount
     variant_currency = variant_channel_listing.currency
     total = to_adyen_price(variant_price * line.quantity, variant_currency)

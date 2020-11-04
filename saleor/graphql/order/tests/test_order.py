@@ -1105,7 +1105,7 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variant.product.channel_listings.all().delete()
-    variant.channel_listing.all().delete()
+    variant.channel_listings.all().delete()
     variables = {
         "user": user_id,
         "discount": discount,

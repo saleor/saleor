@@ -453,7 +453,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     def get_price(
         self, channel_slug: str, discounts: Optional[Iterable[DiscountInfo]] = None
     ) -> "Money":
-        channel_listing = self.channel_listing.get(channel__slug=channel_slug)
+        channel_listing = self.channel_listings.get(channel__slug=channel_slug)
         return calculate_discounted_price(
             product=self.product,
             price=channel_listing.price,
@@ -522,14 +522,14 @@ class ProductVariantChannelListing(models.Model):
         ProductVariant,
         null=False,
         blank=False,
-        related_name="channel_listing",
+        related_name="channel_listings",
         on_delete=models.CASCADE,
     )
     channel = models.ForeignKey(
         Channel,
         null=False,
         blank=False,
-        related_name="variant_listing",
+        related_name="variant_listings",
         on_delete=models.CASCADE,
     )
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)

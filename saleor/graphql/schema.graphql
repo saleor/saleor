@@ -4236,7 +4236,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   quantity: Int! @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   quantityAllocated: Int @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   stockQuantity: Int! @deprecated(reason: "Use the quantityAvailable field instead. This field will be removed after 2020-07-31.")
-  channelListing: [ProductVariantChannelListing!]
+  channelListings: [ProductVariantChannelListing!]
   pricing: VariantPricingInfo
   isAvailable: Boolean @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   attributes: [SelectedAttribute!]!
