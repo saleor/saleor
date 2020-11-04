@@ -14,7 +14,13 @@ from ....core.utils.url import prepare_url
 from ....order.events import external_notification_event
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import PaymentError, TransactionKind
-from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentGateway
+from ...interface import (
+    GatewayConfig,
+    GatewayResponse,
+    InitializePaymentResponse,
+    PaymentData,
+    PaymentGateway,
+)
 from ...models import Payment, Transaction
 from ..utils import get_supported_currencies
 from .utils import (
@@ -168,6 +174,17 @@ class AdyenGatewayPlugin(BasePlugin):
             ),
             "label": "Enable native 3D Secure",
         },
+        "apple-pay-cert": {
+            "type": ConfigurationTypeField.SECRET,
+            "help_text": (
+                "Follow the Adyen docs related to activating the apple pay for the "
+                "web - https://docs.adyen.com/payment-methods/apple-pay/"
+                "enable-apple-pay. This certificate is only required when you offer "
+                "the apple pay as a web payment method.  Leave it blank if you don't "
+                "offer apple pay or offer it only as a payment method in your iOS app."
+            ),
+            "label": "Apple Pay certificate",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -213,6 +230,13 @@ class AdyenGatewayPlugin(BasePlugin):
     @require_active_plugin
     def token_is_required_as_payment_input(self, previous_value):
         return False
+
+    @require_active_plugin
+    def initialize_payment(self, data, previous_value) -> "InitializePaymentResponse":
+        payment_method = data.get("paymentMethod")
+        if payment_method == "applepay":
+            validation_url = data.get("validationURL")  # type: ignore
+        return
 
     @require_active_plugin
     def get_payment_gateway_for_checkout(
