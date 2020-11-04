@@ -104,7 +104,10 @@ def test_product_variant_update_updates_minimal_variant_price(
     variant = product.variants.first()
     variant_id = to_global_id("ProductVariant", variant.pk)
     price = "1.99"
-    variables = {"id": variant_id, "price": price}
+    variables = {
+        "id": variant_id,
+        "price": price,
+    }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )

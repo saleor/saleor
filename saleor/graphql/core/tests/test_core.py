@@ -134,21 +134,30 @@ def test_mutation_positive_decimal_input(
 ):
     query = """
     mutation PositiveDecimalInput(
-        $id: ID!, $cost: PositiveDecimal, $price: PositiveDecimal
+        $id: ID!,
+        $cost: PositiveDecimal,
+        $price: PositiveDecimal,
     ) {
-        productVariantUpdate(id: $id, input: {costPrice: $cost, price: $price}) {
+        productVariantUpdate(
+            id: $id,
+            input: {
+                costPrice: $cost,
+                price: $price,
+            }
+        ) {
             errors {
                 field
                 message
             }
             productVariant {
-                costPrice{
+                costPrice {
                     amount
                 }
             }
         }
     }
     """
+
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.id),
         "price": 15,
@@ -168,9 +177,17 @@ def test_mutation_positive_decimal_input_without_arguments(
 ):
     query = """
     mutation ProductVariantUpdate(
-        $id: ID!, $price: PositiveDecimal, $costPrice: PositiveDecimal
+        $id: ID!,
+        $price: PositiveDecimal,
+        $costPrice: PositiveDecimal,
     ) {
-        productVariantUpdate(id: $id, input: {costPrice: $costPrice, price: $price}) {
+        productVariantUpdate(
+            id: $id,
+            input: {
+                costPrice: $costPrice,
+                price: $price,
+            }
+        ) {
             errors {
                 field
                 message
@@ -194,6 +211,54 @@ def test_mutation_positive_decimal_input_without_arguments(
     content = get_graphql_content(response)
     data = content["data"]["productVariantUpdate"]
     assert data["errors"] == []
+
+
+def test_mutation_update_product_with_default_variant(
+    product_with_default_variant, staff_api_client, permission_manage_products
+):
+    # given
+    query = """
+    mutation ProductVariantUpdate(
+        $id: ID!,
+        $sku: String,
+    ) {
+        productVariantUpdate(
+            id: $id,
+            input: {
+                sku: $sku,
+            }
+        ) {
+            errors {
+                field
+                message
+            }
+            productVariant {
+                sku
+            }
+        }
+    }
+    """
+    variant = product_with_default_variant.variants.first()
+    variant_id = variant.pk
+
+    assert product_with_default_variant.product_type.has_variants is False
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant_id),
+        "sku": "Updated product SKU",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]
+
+    assert data["errors"] == []
+    assert data["productVariant"]["sku"] == "Updated product SKU"
 
 
 def test_filter_input():

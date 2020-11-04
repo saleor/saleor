@@ -24,6 +24,7 @@ class MenuQueries(graphene.ObjectType):
         Menu,
         id=graphene.Argument(graphene.ID, description="ID of the menu."),
         name=graphene.Argument(graphene.String, description="The menu's name."),
+        slug=graphene.Argument(graphene.String, description="The menu's slug."),
         description="Look up a navigation menu by ID or name.",
     )
     menus = FilterInputConnectionField(
@@ -47,7 +48,7 @@ class MenuQueries(graphene.ObjectType):
     )
 
     def resolve_menu(self, info, **data):
-        return resolve_menu(info, data.get("id"), data.get("name"))
+        return resolve_menu(info, data.get("id"), data.get("name"), data.get("slug"))
 
     def resolve_menus(self, info, query=None, **kwargs):
         return resolve_menus(info, query, **kwargs)

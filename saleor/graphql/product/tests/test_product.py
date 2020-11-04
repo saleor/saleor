@@ -64,6 +64,28 @@ def query_products_with_filter():
 
 
 @pytest.fixture
+def query_products_with_attributes():
+    query = """
+        query {
+          products(first:5) {
+            edges{
+              node{
+                id
+                name
+                attributes {
+                    attribute {
+                        id
+                    }
+                }
+              }
+            }
+          }
+        }
+        """
+    return query
+
+
+@pytest.fixture
 def query_collections_with_filter():
     query = """
     query ($filter: CollectionFilterInput!, ) {
@@ -770,6 +792,34 @@ def test_products_query_with_filter_category_and_search(
     assert len(products) == 1
     assert products[0]["node"]["id"] == product_id
     assert products[0]["node"]["name"] == product.name
+
+
+def test_products_with_variants_query_as_app(
+    query_products_with_attributes,
+    app_api_client,
+    product_with_multiple_values_attributes,
+    permission_manage_products,
+):
+    product = product_with_multiple_values_attributes
+    attribute = product.attributes.first().attribute
+    attribute.visible_in_storefront = False
+    attribute.save()
+    second_product = product
+    second_product.id = None
+    second_product.slug = "second-product"
+    second_product.save()
+    product.save()
+
+    app_api_client.app.permissions.add(permission_manage_products)
+    response = app_api_client.post_graphql(query_products_with_attributes)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 2
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    for response_product in products:
+        attrs = response_product["node"]["attributes"]
+        assert len(attrs) == 1
+        assert attrs[0]["attribute"]["id"] == attribute_id
 
 
 @pytest.mark.parametrize(
