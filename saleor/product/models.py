@@ -914,17 +914,17 @@ class CollectionsQueryset(models.QuerySet):
     def published(self, channel_slug: str):
         today = datetime.date.today()
         return self.filter(
-            Q(channel_listing__publication_date__lte=today)
-            | Q(channel_listing__publication_date__isnull=True),
-            channel_listing__channel__slug=str(channel_slug),
-            channel_listing__channel__is_active=True,
-            channel_listing__is_published=True,
+            Q(channel_listings__publication_date__lte=today)
+            | Q(channel_listings__publication_date__isnull=True),
+            channel_listings__channel__slug=str(channel_slug),
+            channel_listings__channel__is_active=True,
+            channel_listings__is_published=True,
         )
 
     def visible_to_user(self, user: "User", channel_slug: str):
         if self.user_has_access_to_all(user):
             if channel_slug:
-                return self.filter(channel_listing__channel__slug=str(channel_slug))
+                return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()
         return self.published(channel_slug)
 
@@ -962,14 +962,14 @@ class CollectionChannelListing(PublishableModel):
         Collection,
         null=False,
         blank=False,
-        related_name="channel_listing",
+        related_name="channel_listings",
         on_delete=models.CASCADE,
     )
     channel = models.ForeignKey(
         Channel,
         null=False,
         blank=False,
-        related_name="collection_listing",
+        related_name="collection_listings",
         on_delete=models.CASCADE,
     )
 

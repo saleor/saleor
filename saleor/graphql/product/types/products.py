@@ -879,8 +879,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         type_name="collection",
         resolver=ChannelContextType.resolve_translation,
     )
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(CollectionChannelListing),
         description="List of channels in which the collection is available.",
     )

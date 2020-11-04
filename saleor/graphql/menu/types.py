@@ -91,9 +91,9 @@ class MenuItem(ChannelContextType, CountableDjangoObjectType):
         if root.node.collection_id and root.channel_slug:
             collection = Collection.objects.filter(
                 id=root.node.collection_id,
-                channel_listing__channel__slug=str(root.channel_slug),
-                channel_listing__channel__is_active=True,
-                channel_listing__is_published=True,
+                channel_listings__channel__slug=str(root.channel_slug),
+                channel_listings__channel__is_active=True,
+                channel_listings__is_published=True,
             ).first()
             return (
                 ChannelContext(node=collection, channel_slug=None)
