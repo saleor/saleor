@@ -129,9 +129,8 @@ class VoucherChannelListing(CountableDjangoObjectType):
         only_fields = ["id", "channel", "discount_value", "currency", "min_spent"]
 
     @staticmethod
-    def resolve_channel(root: models.VoucherChannelListing, _info, **_kwargs):
-        # TODO: Add dataloader.
-        return root.channel
+    def resolve_channel(root: models.VoucherChannelListing, info, **_kwargs):
+        return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
 class Voucher(ChannelContextType, CountableDjangoObjectType):
