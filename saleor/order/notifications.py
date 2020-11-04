@@ -128,26 +128,24 @@ def get_default_fulfillment_line_payload(line: "FulfillmentLine"):
 
 
 def get_default_fulfillment_payload(order, fulfillment):
-    payload = {"order": get_default_order_payload(order)}
     lines = fulfillment.lines.all()
     physical_lines = [line for line in lines if not line.order_line.is_digital]
 
     digital_lines = [line for line in lines if line.order_line.is_digital]
-    payload.update(
-        {
-            "fulfillment": {
-                "tracking_number": fulfillment.tracking_number,
-                "is_tracking_number_url": fulfillment.is_tracking_number_url,
-            },
-            "physical_lines": [
-                get_default_fulfillment_line_payload(line) for line in physical_lines
-            ],
-            "digital_lines": [
-                get_default_fulfillment_line_payload(line) for line in digital_lines
-            ],
-            "email": order.get_customer_email(),
-        }
-    )
+    payload = {
+        "order": get_default_order_payload(order),
+        "fulfillment": {
+            "tracking_number": fulfillment.tracking_number,
+            "is_tracking_number_url": fulfillment.is_tracking_number_url,
+        },
+        "physical_lines": [
+            get_default_fulfillment_line_payload(line) for line in physical_lines
+        ],
+        "digital_lines": [
+            get_default_fulfillment_line_payload(line) for line in digital_lines
+        ],
+        "recipient_email": order.get_customer_email(),
+    }
     return payload
 
 
@@ -158,9 +156,11 @@ def prepare_order_details_url(order: Order, redirect_url: str) -> str:
 
 def send_order_confirmation(order, redirect_url, user, manager):
     """Send notification with order confirmation."""
-    # FIXME Order payload should be placed in order key.
-    order_payload = get_default_order_payload(order, redirect_url)
-    manager.notify(NotifyEventType.ORDER_CONFIRMATION, order_payload)
+    payload = {
+        "order": get_default_order_payload(order, redirect_url),
+        "recipient_email": order.get_customer_email(),
+    }
+    manager.notify(NotifyEventType.ORDER_CONFIRMATION, payload)
     events.email_sent_event(
         order=order,
         user=None,
@@ -211,7 +211,7 @@ def send_payment_confirmation(order, manager):
     payment = order.get_last_payment()
     payload = {
         "order": get_default_order_payload(order),
-        "email": order.get_customer_email(),
+        "recipient_email": order.get_customer_email(),
         "payment": {
             "created": payment.created,
             "modified": payment.modified,
@@ -227,7 +227,7 @@ def send_payment_confirmation(order, manager):
 def send_order_canceled_confirmation(order: "Order", user: Optional["User"], manager):
     payload = {
         "order": get_default_order_payload(order),
-        "email": order.get_customer_email(),
+        "recipient_email": order.get_customer_email(),
     }
     manager.notify(NotifyEventType.ORDER_CANCELED, payload)
     events.email_sent_event(
@@ -238,8 +238,12 @@ def send_order_canceled_confirmation(order: "Order", user: Optional["User"], man
 def send_order_refunded_confirmation(
     order: "Order", user: Optional["User"], amount: "Decimal", currency: str, manager
 ):
-    payload = get_default_order_payload(order)
-    payload.update({"amount": amount, "currency": currency})
+    payload = {
+        "order": get_default_order_payload(order),
+        "recipient_email": order.get_customer_email(),
+        "amount": amount,
+        "currency": currency,
+    }
     manager.notify(NotifyEventType.ORDER_REFUND_CONFIRMATION, payload)
     events.email_sent_event(
         order=order, user=user, email_type=events.OrderEventsEmails.ORDER_REFUND

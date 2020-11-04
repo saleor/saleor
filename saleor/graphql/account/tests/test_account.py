@@ -728,9 +728,12 @@ def test_customer_register(mocked_notify, mocked_generator, api_client):
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
 
-    expected_payload = get_default_user_payload(new_user)
-    expected_payload["token"] = "token"
-    expected_payload["redirect_url"] = "http://localhost:3000"
+    expected_payload = {
+        "user": get_default_user_payload(new_user),
+        "token": "token",
+        "redirect_url": "http://localhost:3000",
+        "recipient_email": new_user.email,
+    }
 
     assert not data["accountErrors"]
     mocked_notify.assert_called_once_with(
@@ -864,9 +867,12 @@ def test_customer_create(
     assert data["user"]["isActive"]
 
     new_user = User.objects.get(email=email)
-    expected_payload = get_default_user_payload(new_user)
-    expected_payload["token"] = "token"
-    expected_payload["redirect_url"] = "https://www.example.com"
+    expected_payload = {
+        "user": get_default_user_payload(new_user),
+        "token": "token",
+        "redirect_url": "https://www.example.com",
+        "recipient_email": new_user.email,
+    }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD, payload=expected_payload
     )
@@ -895,9 +901,12 @@ def test_customer_create_send_password_with_url(
     new_customer = User.objects.get(email=email)
     assert new_customer
 
-    expected_payload = get_default_user_payload(new_customer)
-    expected_payload["redirect_url"] = "https://www.example.com"
-    expected_payload["token"] = "token"
+    expected_payload = {
+        "user": get_default_user_payload(new_customer),
+        "redirect_url": "https://www.example.com",
+        "token": "token",
+        "recipient_email": new_customer.email,
+    }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD, payload=expected_payload
     )
@@ -1238,9 +1247,12 @@ def test_account_request_deletion(mocked_notify, mocked_token, user_api_client):
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
-    expected_payload = get_default_user_payload(user)
-    expected_payload["redirect_url"] = "https://www.example.com"
-    expected_payload["token"] = "token"
+    expected_payload = {
+        "user": get_default_user_payload(user),
+        "redirect_url": "https://www.example.com",
+        "token": "token",
+        "recipient_email": user.email,
+    }
 
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_DELETE, payload=expected_payload
@@ -1260,9 +1272,12 @@ def test_account_request_deletion_token_validation(mocked_notify, user_api_clien
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
 
-    expected_payload = get_default_user_payload(user)
-    expected_payload["redirect_url"] = "https://www.example.com"
-    expected_payload["token"] = token
+    expected_payload = {
+        "user": get_default_user_payload(user),
+        "redirect_url": "https://www.example.com",
+        "token": token,
+        "recipient_email": user.email,
+    }
 
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_DELETE, payload=expected_payload
@@ -1311,9 +1326,12 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
 
-    expected_payload = get_default_user_payload(user)
-    expected_payload["redirect_url"] = "https://www.test.com"
-    expected_payload["token"] = token
+    expected_payload = {
+        "user": get_default_user_payload(user),
+        "redirect_url": "https://www.test.com",
+        "token": token,
+        "recipient_email": user.email,
+    }
 
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_DELETE, payload=expected_payload
@@ -1333,9 +1351,12 @@ def test_account_request_deletion_subdomain(mocked_notify, user_api_client, sett
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
-    expected_payload = get_default_user_payload(user)
-    expected_payload["redirect_url"] = "https://sub.example.com"
-    expected_payload["token"] = token
+    expected_payload = {
+        "user": get_default_user_payload(user),
+        "redirect_url": "https://sub.example.com",
+        "token": token,
+        "recipient_email": user.email,
+    }
 
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_DELETE, payload=expected_payload
@@ -1560,9 +1581,12 @@ def test_staff_create(
     assert {perm["code"].lower() for perm in groups[0]["permissions"]} == expected_perms
 
     token = default_token_generator.make_token(staff_user)
-    expected_payload = get_default_user_payload(staff_user)
-    expected_payload["redirect_url"] = "https://www.example.com"
-    expected_payload["token"] = token
+    expected_payload = {
+        "user": get_default_user_payload(staff_user),
+        "redirect_url": "https://www.example.com",
+        "token": token,
+        "recipient_email": staff_user.email,
+    }
 
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD, payload=expected_payload
@@ -1682,9 +1706,12 @@ def test_staff_create_out_of_scope_group(
         assert group in groups
 
     token = default_token_generator.make_token(staff_user)
-    expected_payload = get_default_user_payload(staff_user)
-    expected_payload["redirect_url"] = "https://www.example.com"
-    expected_payload["token"] = token
+    expected_payload = {
+        "user": get_default_user_payload(staff_user),
+        "redirect_url": "https://www.example.com",
+        "token": token,
+        "recipient_email": staff_user.email,
+    }
 
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD, payload=expected_payload
@@ -1710,9 +1737,12 @@ def test_staff_create_send_password_with_url(
     assert staff_user.is_staff
 
     token = default_token_generator.make_token(staff_user)
-    expected_payload = get_default_user_payload(staff_user)
-    expected_payload["redirect_url"] = "https://www.example.com"
-    expected_payload["token"] = token
+    expected_payload = {
+        "user": get_default_user_payload(staff_user),
+        "redirect_url": "https://www.example.com",
+        "token": token,
+        "recipient_email": staff_user.email,
+    }
 
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD, payload=expected_payload
@@ -3001,9 +3031,12 @@ def test_account_reset_password(mocked_notify, user_api_client, customer_user):
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
     token = default_token_generator.make_token(customer_user)
-    expected_payload = get_default_user_payload(customer_user)
-    expected_payload["redirect_url"] = "https://www.example.com"
-    expected_payload["token"] = token
+    expected_payload = {
+        "user": get_default_user_payload(customer_user),
+        "redirect_url": "https://www.example.com",
+        "token": token,
+        "recipient_email": customer_user.email,
+    }
 
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=expected_payload
@@ -3075,9 +3108,12 @@ def test_request_password_reset_email_for_staff(mocked_notify, staff_api_client)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
     token = default_token_generator.make_token(staff_api_client.user)
-    expected_payload = get_default_user_payload(staff_api_client.user)
-    expected_payload["redirect_url"] = "https://www.example.com"
-    expected_payload["token"] = token
+    expected_payload = {
+        "user": get_default_user_payload(staff_api_client.user),
+        "redirect_url": "https://www.example.com",
+        "token": token,
+        "recipient_email": staff_api_client.user.email,
+    }
 
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=expected_payload
@@ -3123,9 +3159,12 @@ def test_account_reset_password_all_storefront_hosts_allowed(
     assert not data["errors"]
 
     token = default_token_generator.make_token(customer_user)
-    expected_payload = get_default_user_payload(customer_user)
-    expected_payload["redirect_url"] = "https://www.test.com"
-    expected_payload["token"] = token
+    expected_payload = {
+        "user": get_default_user_payload(customer_user),
+        "redirect_url": "https://www.test.com",
+        "token": token,
+        "recipient_email": customer_user.email,
+    }
 
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=expected_payload
@@ -3145,9 +3184,12 @@ def test_account_reset_password_subdomain(
     assert not data["errors"]
 
     token = default_token_generator.make_token(customer_user)
-    expected_payload = get_default_user_payload(customer_user)
-    expected_payload["redirect_url"] = "https://sub.example.com"
-    expected_payload["token"] = token
+    expected_payload = {
+        "user": get_default_user_payload(customer_user),
+        "redirect_url": "https://sub.example.com",
+        "token": token,
+        "recipient_email": customer_user.email,
+    }
 
     mocked_notify.assert_called_once_with(
         NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=expected_payload

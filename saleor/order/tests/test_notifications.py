@@ -124,7 +124,7 @@ def test_get_default_fulfillment_payload(
         },
         "physical_lines": [get_default_fulfillment_line_payload(physical_line)],
         "digital_lines": [get_default_fulfillment_line_payload(digital_line)],
-        "email": order.get_customer_email(),
+        "recipient_email": order.get_customer_email(),
     }
 
 
@@ -134,7 +134,7 @@ def test_send_email_payment_confirmation(mocked_notify, site_settings, payment_d
     order = payment_dummy.order
     expected_payload = {
         "order": get_default_order_payload(order),
-        "email": order.get_customer_email(),
+        "recipient_email": order.get_customer_email(),
         "payment": {
             "created": payment_dummy.created,
             "modified": payment_dummy.modified,
@@ -184,7 +184,10 @@ def test_send_email_order_confirmation(mocked_notify, order, site_settings):
 
     notifications.send_order_confirmation(order, redirect_url, order.user, manager)
 
-    expected_payload = get_default_order_payload(order, redirect_url)
+    expected_payload = {
+        "order": get_default_order_payload(order, redirect_url),
+        "recipient_email": order.get_customer_email(),
+    }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_CONFIRMATION, expected_payload
     )
@@ -211,7 +214,7 @@ def test_send_confirmation_emails_without_addresses_for_payment(
 
     expected_payload = {
         "order": get_default_order_payload(order),
-        "email": order.get_customer_email(),
+        "recipient_email": order.get_customer_email(),
         "payment": {
             "created": payment_dummy.created,
             "modified": payment_dummy.modified,
@@ -248,7 +251,10 @@ def test_send_confirmation_emails_without_addresses_for_order(
 
     notifications.send_order_confirmation(order, redirect_url, order.user, manager)
 
-    expected_payload = get_default_order_payload(order, redirect_url)
+    expected_payload = {
+        "order": get_default_order_payload(order, redirect_url),
+        "recipient_email": order.get_customer_email(),
+    }
 
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_CONFIRMATION, expected_payload
@@ -305,7 +311,7 @@ def test_send_email_order_canceled(mocked_notify, order, site_settings):
     # then
     expected_payload = {
         "order": get_default_order_payload(order),
-        "email": order.get_customer_email(),
+        "recipient_email": order.get_customer_email(),
     }
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_CANCELED, expected_payload
@@ -324,8 +330,12 @@ def test_send_email_order_refunded(mocked_notify, order, site_settings):
     )
 
     # then
-    expected_payload = get_default_order_payload(order)
-    expected_payload.update({"amount": amount, "currency": order.currency})
+    expected_payload = {
+        "order": get_default_order_payload(order),
+        "amount": amount,
+        "currency": order.currency,
+        "recipient_email": order.get_customer_email(),
+    }
 
     mocked_notify.assert_called_once_with(
         NotifyEventType.ORDER_REFUND_CONFIRMATION, expected_payload

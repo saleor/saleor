@@ -26,7 +26,7 @@ def _send_set_password_email(recipient_email, password_set_url):
 
 
 @app.task
-def send_email_with_link_to_download_file(recipient_email: str, csv_link: str):
+def send_email_with_link_to_download_file_task(recipient_email: str, csv_link: str):
     send_kwargs, ctx = get_email_context()
     ctx["csv_link"] = csv_link
     send_templated_mail(
@@ -38,7 +38,7 @@ def send_email_with_link_to_download_file(recipient_email: str, csv_link: str):
 
 
 @app.task
-def send_export_failed_info(recipient_email: str):
+def send_export_failed_email_task(recipient_email: str):
     send_kwargs, ctx = get_email_context()
     send_templated_mail(
         template_name="csv/export_failed",
@@ -49,7 +49,7 @@ def send_export_failed_info(recipient_email: str):
 
 
 @app.task
-def send_staff_order_confirmation_task(payload):
+def send_staff_order_confirmation_email_task(payload):
     send_kwargs, ctx = get_email_context()
     payload.update(ctx)
     send_templated_mail(
