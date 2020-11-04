@@ -87,7 +87,7 @@ def test_voucher_query(
                         code
                         country
                     }
-                    channelListing {
+                    channelListings {
                         id
                         channel {
                             slug
@@ -122,13 +122,13 @@ def test_voucher_query(
     assert data["countries"] == [
         {"country": country.name, "code": country.code} for country in voucher.countries
     ]
-    channel_listing = voucher.channel_listing.first()
+    channel_listing = voucher.channel_listings.first()
     assert {
         "id": ANY,
         "channel": {"slug": channel_listing.channel.slug},
         "discountValue": channel_listing.discount_value,
         "currency": channel_listing.channel.currency_code,
-    } in data["channelListing"]
+    } in data["channelListings"]
 
 
 def test_voucher_query_with_channel_slug(
@@ -165,7 +165,7 @@ def test_voucher_query_with_channel_slug(
                         code
                         country
                     }
-                    channelListing {
+                    channelListings {
                         id
                         channel {
                             slug
@@ -198,14 +198,14 @@ def test_voucher_query_with_channel_slug(
     assert data["countries"] == [
         {"country": country.name, "code": country.code} for country in voucher.countries
     ]
-    assert len(data["channelListing"]) == 2
-    for channel_listing in voucher.channel_listing.all():
+    assert len(data["channelListings"]) == 2
+    for channel_listing in voucher.channel_listings.all():
         assert {
             "id": ANY,
             "channel": {"slug": channel_listing.channel.slug},
             "discountValue": channel_listing.discount_value,
             "currency": channel_listing.channel.currency_code,
-        } in data["channelListing"]
+        } in data["channelListings"]
 
 
 def test_vouchers_query_with_channel_slug(
