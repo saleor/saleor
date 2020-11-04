@@ -4,6 +4,7 @@ from graphene import relay
 from ...core.permissions import ShippingPermissions
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
+from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import ChannelContext, ChannelContextType
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import CountryDisplay, Money, MoneyRange
@@ -32,6 +33,10 @@ class ShippingMethodChannelListing(CountableDjangoObjectType):
             "maximum_order_price",
             "minimum_order_price",
         ]
+
+    @staticmethod
+    def resolve_channel(root: models.ShippingMethodChannelListing, info, **_kwargs):
+        return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
 class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
