@@ -20,7 +20,7 @@ def test_checkout_lines_delete_with_not_applicable_voucher(
     subtotal = calculations.checkout_subtotal(
         checkout=checkout_with_item, lines=list(checkout_with_item)
     )
-    voucher.channel_listing.filter(channel=channel_USD).update(
+    voucher.channel_listings.filter(channel=channel_USD).update(
         min_spent_amount=subtotal.gross.amount
     )
 

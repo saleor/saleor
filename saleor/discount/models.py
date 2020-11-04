@@ -93,7 +93,7 @@ class Voucher(models.Model):
         )
 
     def get_discount(self, channel: Channel):
-        voucher_channel_listing = self.channel_listing.filter(channel=channel).first()
+        voucher_channel_listing = self.channel_listings.filter(channel=channel).first()
         if not voucher_channel_listing:
             raise NotApplicable("This voucher is not assigned to this channel")
         if self.discount_value_type == DiscountValueType.FIXED:
@@ -115,7 +115,7 @@ class Voucher(models.Model):
         return price - after_discount
 
     def validate_min_spent(self, value: Money, channel: Channel):
-        voucher_channel_listing = self.channel_listing.filter(channel=channel).first()
+        voucher_channel_listing = self.channel_listings.filter(channel=channel).first()
         if not voucher_channel_listing:
             raise NotApplicable("This voucher is not assigned to this channel")
         min_spent = voucher_channel_listing.min_spent
@@ -148,14 +148,14 @@ class VoucherChannelListing(models.Model):
         Voucher,
         null=False,
         blank=False,
-        related_name="channel_listing",
+        related_name="channel_listings",
         on_delete=models.CASCADE,
     )
     channel = models.ForeignKey(
         Channel,
         null=False,
         blank=False,
-        related_name="voucher_listing",
+        related_name="voucher_listings",
         on_delete=models.CASCADE,
     )
     discount_value = models.DecimalField(

@@ -1055,7 +1055,7 @@ def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    voucher.channel_listing.all().delete()
+    voucher.channel_listings.all().delete()
     variables = {
         "user": user_id,
         "discount": discount,
@@ -1418,7 +1418,7 @@ def test_draft_order_update_voucher_not_available(
     query = DRAFT_UPDATE_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
-    voucher.channel_listing.all().delete()
+    voucher.channel_listings.all().delete()
     variables = {
         "id": order_id,
         "voucher": voucher_id,

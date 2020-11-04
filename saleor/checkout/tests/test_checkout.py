@@ -579,7 +579,7 @@ def test_recalculate_checkout_discount(
     checkout_with_voucher, voucher, voucher_translation_fr, settings, channel_USD
 ):
     settings.LANGUAGE_CODE = "fr"
-    voucher.channel_listing.filter(channel=channel_USD).update(discount_value=10)
+    voucher.channel_listings.filter(channel=channel_USD).update(discount_value=10)
 
     recalculate_checkout_discount(
         checkout_with_voucher, list(checkout_with_voucher), None
@@ -605,7 +605,7 @@ def test_recalculate_checkout_discount_voucher_not_applicable(
     checkout_with_voucher, voucher, channel_USD
 ):
     checkout = checkout_with_voucher
-    voucher.channel_listing.filter(channel=channel_USD).update(min_spent_amount=100)
+    voucher.channel_listings.filter(channel=channel_USD).update(min_spent_amount=100)
 
     recalculate_checkout_discount(
         checkout_with_voucher, list(checkout_with_voucher), None

@@ -243,7 +243,7 @@ def test_voucher_channel_listing_update(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     discount_value = 5.5
     min_amount_spent = 100.2
-    assert not voucher.channel_listing.get().discount_value == discount_value
+    assert not voucher.channel_listings.get().discount_value == discount_value
     variables = {
         "id": voucher_id,
         "input": {

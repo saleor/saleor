@@ -1652,7 +1652,7 @@ def voucher_free_shipping(voucher_percentage, channel_USD):
     voucher_percentage.type = VoucherType.SHIPPING
     voucher_percentage.name = "Free shipping"
     voucher_percentage.save()
-    voucher_percentage.channel_listing.filter(channel=channel_USD).update(
+    voucher_percentage.channel_listings.filter(channel=channel_USD).update(
         discount_value=100
     )
     return voucher_percentage

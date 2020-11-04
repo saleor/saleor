@@ -5541,7 +5541,7 @@ type Voucher implements Node {
   discountValue: Float
   currency: String
   minSpent: Money
-  channelListing: [VoucherChannelListing!]
+  channelListings: [VoucherChannelListing!]
 }
 
 type VoucherAddCatalogues {
