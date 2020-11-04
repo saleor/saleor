@@ -1,6 +1,6 @@
 import datetime
 from collections import defaultdict
-from typing import Iterable, List, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, List, Tuple, Union
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -10,12 +10,14 @@ from django.utils.text import slugify
 from graphene.types import InputObjectType
 from graphql_relay import from_global_id
 
+from ....attribute import AttributeType
+from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....order import OrderStatus, models as order_models
 from ....page import models as page_models
 from ....page.error_codes import PageErrorCode
-from ....product import AttributeType, models
+from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import (
     update_product_minimal_variant_price_task,
@@ -28,10 +30,8 @@ from ....product.thumbnails import (
     create_product_thumbnails,
 )
 from ....product.utils import delete_categories
-from ....product.utils.attributes import (
-    associate_attribute_values_to_instance,
-    generate_name_for_variant,
-)
+from ....product.utils.variants import generate_name_for_variant
+from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import PositiveDecimal, WeightScalar
 from ...core.types import SeoInput, Upload
@@ -62,7 +62,9 @@ from ..utils import (
     validate_attributes_input_for_product_and_page,
     validate_attributes_input_for_variant,
 )
-from .common import ReorderInput
+
+if TYPE_CHECKING:
+    from ....attribute import models as attribute_models
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -588,7 +590,7 @@ class ProductCreateInput(ProductInput):
     )
 
 
-T_INPUT_MAP = List[Tuple[models.Attribute, List[str]]]
+T_INPUT_MAP = List[Tuple["attribute_models.Attribute", List[str]]]
 T_INSTANCE = Union[models.Product, models.ProductVariant, page_models.Page]
 
 
@@ -619,7 +621,7 @@ class AttributeAssignmentMixin:
     ):
         """Retrieve attributes nodes from given global IDs and/or slugs."""
         qs = qs.filter(Q(pk__in=pks) | Q(slug__in=slugs))
-        nodes = list(qs)  # type: List[models.Attribute]
+        nodes: List["attribute_models.Attribute"] = list(qs)
 
         if not nodes:
             raise ValidationError(
@@ -669,7 +671,9 @@ class AttributeAssignmentMixin:
         return int(internal_id)
 
     @classmethod
-    def _pre_save_values(cls, attribute: models.Attribute, values: List[str]):
+    def _pre_save_values(
+        cls, attribute: "attribute_models.Attribute", values: List[str]
+    ):
         """Lazy-retrieve or create the database objects from the supplied raw values."""
         get_or_create = attribute.values.get_or_create
         return tuple(

@@ -6,8 +6,8 @@ from django.conf import settings
 from django.db.models import Case, CharField, Value as V, When
 from django.db.models.functions import Concat
 
+from ...attribute.models import Attribute
 from ...core.utils import build_absolute_uri
-from ...product.models import Attribute
 from ...warehouse.models import Warehouse
 
 if TYPE_CHECKING:

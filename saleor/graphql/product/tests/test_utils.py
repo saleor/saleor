@@ -1,7 +1,7 @@
 import graphene
 
+from ....attribute import AttributeInputType
 from ....page.error_codes import PageErrorCode
-from ....product import AttributeInputType
 from ....product.error_codes import ProductErrorCode
 from ..utils import (
     validate_attributes_input_for_product_and_page,

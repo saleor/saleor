@@ -5,8 +5,9 @@ from unittest.mock import Mock
 from django.utils.encoding import smart_text
 from django_prices_vatlayer.models import VAT
 
+from ...attribute.models import AttributeValue
 from ...core.taxes import charge_taxes_on_shipping
-from ...product.models import AttributeValue, Category
+from ...product.models import Category
 from ..google_merchant import (
     get_feed_items,
     item_attributes,

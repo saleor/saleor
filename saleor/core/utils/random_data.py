@@ -23,6 +23,16 @@ from prices import Money, TaxedMoney
 
 from ...account.models import Address, User
 from ...account.utils import store_user_address
+from ...attribute.models import (
+    AssignedPageAttribute,
+    AssignedProductAttribute,
+    AssignedVariantAttribute,
+    Attribute,
+    AttributePage,
+    AttributeProduct,
+    AttributeValue,
+    AttributeVariant,
+)
 from ...checkout import AddressType
 from ...core.permissions import (
     AccountPermissions,
@@ -45,14 +55,6 @@ from ...payment import gateway
 from ...payment.utils import create_payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import (
-    AssignedPageAttribute,
-    AssignedProductAttribute,
-    AssignedVariantAttribute,
-    Attribute,
-    AttributePage,
-    AttributeProduct,
-    AttributeValue,
-    AttributeVariant,
     Category,
     Collection,
     CollectionProduct,

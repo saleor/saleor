@@ -2,6 +2,7 @@ import graphene
 
 from ...account import error_codes as account_error_codes
 from ...app import error_codes as app_error_codes
+from ...attribute import error_codes as attribute_error_codes
 from ...checkout import error_codes as checkout_error_codes
 from ...core import JobStatus, error_codes as core_error_codes
 from ...core.permissions import get_permissions_enum_list
@@ -87,7 +88,7 @@ WeightUnitsEnum = graphene.Enum(
 
 AccountErrorCode = graphene.Enum.from_enum(account_error_codes.AccountErrorCode)
 AppErrorCode = graphene.Enum.from_enum(app_error_codes.AppErrorCode)
-AttributeErrorCode = graphene.Enum.from_enum(product_error_codes.AttributeErrorCode)
+AttributeErrorCode = graphene.Enum.from_enum(attribute_error_codes.AttributeErrorCode)
 CheckoutErrorCode = graphene.Enum.from_enum(checkout_error_codes.CheckoutErrorCode)
 ExportErrorCode = graphene.Enum.from_enum(csv_error_codes.ExportErrorCode)
 DiscountErrorCode = graphene.Enum.from_enum(discount_error_codes.DiscountErrorCode)
