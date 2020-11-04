@@ -12,6 +12,10 @@ from ..shipping.resolvers import resolve_price_range
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
+from .dataloaders import (
+    ShippingMethodsByShippingZoneIdAndChannelSlugLoader,
+    ShippingMethodsByShippingZoneIdLoader,
+)
 from .enums import ShippingMethodTypeEnum
 
 
@@ -158,18 +162,29 @@ class ShippingZone(ChannelContextType, CountableDjangoObjectType):
         ]
 
     @staticmethod
-    def resolve_shipping_methods(root: ChannelContext[models.ShippingZone], *_args):
-        shipping_methods = root.node.shipping_methods.all()
+    def resolve_shipping_methods(
+        root: ChannelContext[models.ShippingZone], info, **_kwargs
+    ):
+        def wrap_shipping_method_with_channel_context(shipping_methods):
+            shipping_methods = [
+                ChannelContext(node=shipping, channel_slug=root.channel_slug)
+                for shipping in shipping_methods
+            ]
+            return shipping_methods
+
         channel_slug = root.channel_slug
         if channel_slug:
-            shipping_methods = shipping_methods.filter(
-                channel_listing__channel__slug=str(channel_slug)
+            return (
+                ShippingMethodsByShippingZoneIdAndChannelSlugLoader(info.context)
+                .load((root.node.id, channel_slug))
+                .then(wrap_shipping_method_with_channel_context)
             )
-        shipping_methods = [
-            ChannelContext(node=shipping, channel_slug=root.channel_slug)
-            for shipping in shipping_methods
-        ]
-        return shipping_methods
+
+        return (
+            ShippingMethodsByShippingZoneIdLoader(info.context)
+            .load(root.node.id)
+            .then(wrap_shipping_method_with_channel_context)
+        )
 
     @staticmethod
     def resolve_warehouses(root: ChannelContext[models.ShippingZone], *_args):
