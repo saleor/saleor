@@ -25,10 +25,10 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
-    from .models import Order
     from ..account.models import User
     from ..payment.models import Payment
     from ..warehouse.models import Warehouse
+    from .models import Order
 
 
 logger = logging.getLogger(__name__)

@@ -14,14 +14,14 @@ from .permissions import PRIVATE_META_PERMISSION_MAP
 
 def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     # Imports inside resolvers to avoid circular imports.
+    from ...invoice import models as invoice_models
     from ..account import types as account_types
     from ..app import types as app_types
     from ..checkout import types as checkout_types
+    from ..invoice import types as invoice_types
     from ..order import types as order_types
     from ..page import types as page_types
     from ..product import types as product_types
-    from ..invoice import types as invoice_types
-    from ...invoice import models as invoice_models
 
     MODEL_TO_TYPE_MAP = {
         product_models.Attribute: product_types.Attribute,
