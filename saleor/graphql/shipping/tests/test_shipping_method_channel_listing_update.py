@@ -18,7 +18,7 @@ mutation UpdateShippingMethodChannelListing(
         }
         shippingMethod {
             name
-            channelListing {
+            channelListings {
                 price {
                     amount
                 }
@@ -79,17 +79,18 @@ def test_shipping_method_channel_listing_create_as_staff_user(
     assert not data["shippingErrors"]
     assert shipping_method_data["name"] == shipping_method.name
 
-    assert shipping_method_data["channelListing"][1]["price"]["amount"] == price
+    assert shipping_method_data["channelListings"][1]["price"]["amount"] == price
     assert (
-        shipping_method_data["channelListing"][1]["maximumOrderPrice"]["amount"]
+        shipping_method_data["channelListings"][1]["maximumOrderPrice"]["amount"]
         == max_value
     )
     assert (
-        shipping_method_data["channelListing"][1]["minimumOrderPrice"]["amount"]
+        shipping_method_data["channelListings"][1]["minimumOrderPrice"]["amount"]
         == min_value
     )
     assert (
-        shipping_method_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
+        shipping_method_data["channelListings"][1]["channel"]["slug"]
+        == channel_PLN.slug
     )
 
 
@@ -139,15 +140,16 @@ def test_shipping_method_channel_listing_update_as_staff_user(
 
     # then
     assert (
-        shipping_method_data["channelListing"][0]["maximumOrderPrice"]["amount"]
+        shipping_method_data["channelListings"][0]["maximumOrderPrice"]["amount"]
         == max_value
     )
     assert (
-        shipping_method_data["channelListing"][0]["minimumOrderPrice"]["amount"]
+        shipping_method_data["channelListings"][0]["minimumOrderPrice"]["amount"]
         == min_value
     )
     assert (
-        shipping_method_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+        shipping_method_data["channelListings"][0]["channel"]["slug"]
+        == channel_USD.slug
     )
 
     channel_listing.refresh_from_db()

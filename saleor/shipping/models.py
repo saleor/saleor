@@ -105,7 +105,7 @@ class ShippingMethodQueryset(models.QuerySet):
         """
         qs = self.filter(
             shipping_zone__countries__contains=country_code,
-            channel_listing__currency=price.currency,
+            channel_listings__currency=price.currency,
         )
         qs = self.applicable_shipping_methods_by_channel(qs, channel_id)
         qs = qs.prefetch_related("shipping_zone")
@@ -177,14 +177,14 @@ class ShippingMethodChannelListing(models.Model):
         ShippingMethod,
         null=False,
         blank=False,
-        related_name="channel_listing",
+        related_name="channel_listings",
         on_delete=models.CASCADE,
     )
     channel = models.ForeignKey(
         Channel,
         null=False,
         blank=False,
-        related_name="shipping_method_listing",
+        related_name="shipping_method_listings",
         on_delete=models.CASCADE,
     )
     minimum_order_price_amount = models.DecimalField(

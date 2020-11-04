@@ -4818,7 +4818,7 @@ type ShippingMethod implements Node {
   maximumOrderWeight: Weight
   type: ShippingMethodTypeEnum
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
-  channelListing: [ShippingMethodChannelListing!]
+  channelListings: [ShippingMethodChannelListing!]
   price: Money
   maximumOrderPrice: Money
   minimumOrderPrice: Money
