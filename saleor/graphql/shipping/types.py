@@ -13,6 +13,7 @@ from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
 from .dataloaders import (
+    ShippingMethodChannelListingByShippingMethodIdLoader,
     ShippingMethodsByShippingZoneIdAndChannelSlugLoader,
     ShippingMethodsByShippingZoneIdLoader,
 )
@@ -104,9 +105,12 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_channel_listing(root: ChannelContext[models.ShippingMethod], *_args):
-        # TODO: Add dataloader.
-        return root.node.channel_listing.all()
+    def resolve_channel_listing(
+        root: ChannelContext[models.ShippingMethod], info, **_kwargs
+    ):
+        return ShippingMethodChannelListingByShippingMethodIdLoader(info.context).load(
+            root.node.id
+        )
 
     @staticmethod
     def resolve_maximum_order_weight(

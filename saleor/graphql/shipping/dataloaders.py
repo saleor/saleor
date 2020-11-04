@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from django.db.models import F
 
-from ...shipping.models import ShippingMethod
+from ...shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..core.dataloaders import DataLoader
 
 
@@ -45,3 +45,21 @@ class ShippingMethodsByShippingZoneIdAndChannelSlugLoader(DataLoader):
                 shipping_method
             )
         return [shipping_methods_by_shipping_zone_and_channel_map[key] for key in keys]
+
+
+class ShippingMethodChannelListingByShippingMethodIdLoader(DataLoader):
+    context_key = "shippingmethodchannellisting_by_shippingmethod"
+
+    def batch_load(self, keys):
+        shipping_method_channel_listings = ShippingMethodChannelListing.objects.filter(
+            shipping_method_id__in=keys
+        )
+        shipping_method_channel_listings_by_shipping_method_map = defaultdict(list)
+        for shipping_method_channel_listing in shipping_method_channel_listings:
+            shipping_method_channel_listings_by_shipping_method_map[
+                shipping_method_channel_listing.shipping_method_id
+            ].append(shipping_method_channel_listing)
+        return [
+            shipping_method_channel_listings_by_shipping_method_map[shipping_method_id]
+            for shipping_method_id in keys
+        ]
