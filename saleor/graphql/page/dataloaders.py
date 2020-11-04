@@ -7,13 +7,15 @@ from ...core.permissions import PagePermissions
 from ...page.models import Page, PageType
 from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ..core.dataloaders import DataLoader
+from ..utils import get_user_or_app_from_context
 
 
 class PageByIdLoader(DataLoader):
     context_key = "page_by_id"
 
     def batch_load(self, keys):
-        pages = Page.objects.visible_to_user(self.user).in_bulk(keys)
+        requestor = get_user_or_app_from_context(self.context)
+        pages = Page.objects.visible_to_user(requestor).in_bulk(keys)
         return [pages.get(page_id) for page_id in keys]
 
 
@@ -31,8 +33,8 @@ class PageAttributesByPageTypeIdLoader(DataLoader):
     context_key = "page_attributes_by_pagetype"
 
     def batch_load(self, keys):
-        user = self.user
-        if user.is_active and user.has_perm(PagePermissions.MANAGE_PAGES):
+        requestor = get_user_or_app_from_context(self.context)
+        if requestor.is_active and requestor.has_perm(PagePermissions.MANAGE_PAGES):
             qs = AttributePage.objects.all()
         else:
             qs = AttributePage.objects.filter(attribute__visible_in_storefront=True)
@@ -68,8 +70,8 @@ class AttributePagesByPageTypeIdLoader(DataLoader):
     context_key = "attributepages_by_pagetype"
 
     def batch_load(self, keys):
-        user = self.user
-        if user.is_active and user.has_perm(PagePermissions.MANAGE_PAGES):
+        requestor = get_user_or_app_from_context(self.context)
+        if requestor.is_active and requestor.has_perm(PagePermissions.MANAGE_PAGES):
             qs = AttributePage.objects.all()
         else:
             qs = AttributePage.objects.filter(attribute__visible_in_storefront=True)
@@ -86,8 +88,8 @@ class AssignedPageAttributesByPageIdLoader(DataLoader):
     context_key = "assignedpageattributes_by_page"
 
     def batch_load(self, keys):
-        user = self.user
-        if user.is_active and user.has_perm(PagePermissions.MANAGE_PAGES):
+        requestor = get_user_or_app_from_context(self.context)
+        if requestor.is_active and requestor.has_perm(PagePermissions.MANAGE_PAGES):
             qs = AssignedPageAttribute.objects.all()
         else:
             qs = AssignedPageAttribute.objects.filter(
