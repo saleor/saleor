@@ -28,7 +28,7 @@ from ...utils.export import (
 )
 @patch("saleor.csv.utils.export.create_file_with_headers")
 @patch("saleor.csv.utils.export.export_products_in_batches")
-@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
+@patch("saleor.csv.utils.export.send_export_download_link_notification")
 @patch("saleor.csv.utils.export.save_csv_file_in_export_file")
 def test_export_products(
     save_file_mock,
@@ -75,7 +75,7 @@ def test_export_products(
 
 @patch("saleor.csv.utils.export.create_file_with_headers")
 @patch("saleor.csv.utils.export.export_products_in_batches")
-@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
+@patch("saleor.csv.utils.export.send_export_download_link_notification")
 @patch("saleor.csv.utils.export.save_csv_file_in_export_file")
 def test_export_products_ids(
     save_file_mock,
@@ -114,7 +114,7 @@ def test_export_products_ids(
 
 @patch("saleor.csv.utils.export.create_file_with_headers")
 @patch("saleor.csv.utils.export.export_products_in_batches")
-@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
+@patch("saleor.csv.utils.export.send_export_download_link_notification")
 @patch("saleor.csv.utils.export.save_csv_file_in_export_file")
 def test_export_products_filter(
     save_file_mock,
@@ -157,7 +157,7 @@ def test_export_products_filter(
 
 @patch("saleor.csv.utils.export.create_file_with_headers")
 @patch("saleor.csv.utils.export.export_products_in_batches")
-@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
+@patch("saleor.csv.utils.export.send_export_download_link_notification")
 @patch("saleor.csv.utils.export.save_csv_file_in_export_file")
 def test_export_products_by_app(
     save_file_mock,

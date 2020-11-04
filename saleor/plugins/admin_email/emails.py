@@ -6,13 +6,13 @@ from .tasks import (
 )
 
 
-def handle_account_set_staff_password(payload):
+def send_set_staff_password_email(payload):
     send_set_staff_password_email_task.delay(
         payload["email"], payload["redirect_url"], payload["token"]
     )
 
 
-def handle_csv_product_export_success(payload: dict):
+def send_csv_product_export_success(payload: dict):
     recipient_email = payload.get("user_email")
     if recipient_email:
         send_email_with_link_to_download_file.delay(
@@ -20,11 +20,11 @@ def handle_csv_product_export_success(payload: dict):
         )
 
 
-def handle_csv_export_failed(payload: dict):
+def send_staff_order_confirmation(payload: dict):
+    send_staff_order_confirmation_task.delay(payload)
+
+
+def send_csv_export_failed(payload: dict):
     recipient_email = payload.get("user_email")
     if recipient_email:
         send_export_failed_info.delay(recipient_email)
-
-
-def handle_staff_order_confirmation(payload: dict):
-    send_staff_order_confirmation_task.delay(payload)

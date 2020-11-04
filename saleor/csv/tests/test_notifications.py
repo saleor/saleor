@@ -12,7 +12,7 @@ from ..notifications import get_default_export_payload
 
 @freeze_time("2018-05-31 12:00:01")
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
-def test_send_email_with_link_to_download_file(
+def test_send_export_download_link_notification(
     mocked_notify, site_settings, user_export_file, tmpdir, media_root
 ):
     # given
@@ -23,7 +23,7 @@ def test_send_email_with_link_to_download_file(
     user_export_file.save()
 
     # when
-    notifications.send_email_with_link_to_download_file(user_export_file)
+    notifications.send_export_download_link_notification(user_export_file)
 
     # then
     expected_payload = get_default_export_payload(user_export_file)
