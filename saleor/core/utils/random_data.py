@@ -146,7 +146,7 @@ IMAGES_MAPPING = {
 
 CATEGORY_IMAGES = {7: "accessories.jpg", 8: "groceries.jpg", 9: "apparel.jpg"}
 
-COLLECTION_IMAGES = {1: "summer.jpg", 2: "clothing.jpg"}
+COLLECTION_IMAGES = {1: "summer.jpg", 2: "clothing.jpg", 3: "clothing.jpg"}
 
 
 def get_weight(weight):

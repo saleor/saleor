@@ -10144,6 +10144,42 @@
     }
   },
   {
+    "model": "product.collectionproduct",
+    "pk": 5,
+    "fields": {
+      "sort_order": null,
+      "collection": 3,
+      "product": 83
+    }
+  },
+  {
+    "model": "product.collectionproduct",
+    "pk": 6,
+    "fields": {
+      "sort_order": null,
+      "collection": 3,
+      "product": 84
+    }
+  },
+  {
+    "model": "product.collectionproduct",
+    "pk": 7,
+    "fields": {
+      "sort_order": null,
+      "collection": 3,
+      "product": 61
+    }
+  },
+  {
+    "model": "product.collectionproduct",
+    "pk": 8,
+    "fields": {
+      "sort_order": null,
+      "collection": 3,
+      "product": 110
+    }
+  },
+  {
     "model": "product.collection",
     "pk": 1,
     "fields": {
@@ -10198,6 +10234,33 @@
     }
   },
   {
+    "model": "product.collection",
+    "pk": 3,
+    "fields": {
+      "private_metadata": {},
+      "metadata": {},
+      "seo_title": null,
+      "seo_description": null,
+      "name": "Featured Products",
+      "slug": "featured-products",
+      "background_image": "collection-backgrounds/clothing_R7nkNxS.jpg",
+      "background_image_alt": "",
+      "description": "Featured Products. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
+      "description_json": {
+        "blocks": [{
+          "key": "",
+          "data": {},
+          "text": "Featured Products. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
+          "type": "unstyled",
+          "depth": 0,
+          "entityRanges": [],
+          "inlineStyleRanges": []
+        }],
+        "entityMap": {}
+      }
+    }
+  },
+  {
     "model": "product.collectionchannellisting",
     "pk": 1,
     "fields": {
@@ -10235,6 +10298,16 @@
       "is_published": false,
       "collection": 2,
       "channel": 2
+    }
+  },
+  {
+    "model": "product.collectionchannellisting",
+    "pk": 5,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "collection": 3,
+      "channel": 1
     }
   }
 ]
