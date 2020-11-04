@@ -20,7 +20,7 @@ mutation UpdateSaleChannelListing(
         }
         sale {
             name
-            channelListing {
+            channelListings {
                 discountValue
                 channel {
                     slug
@@ -70,9 +70,10 @@ def test_sale_channel_listing_create_as_staff_user(
     assert not data["discountErrors"]
     assert shipping_method_data["name"] == sale.name
 
-    assert shipping_method_data["channelListing"][1]["discountValue"] == discounted
+    assert shipping_method_data["channelListings"][1]["discountValue"] == discounted
     assert (
-        shipping_method_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
+        shipping_method_data["channelListings"][1]["channel"]["slug"]
+        == channel_PLN.slug
     )
     mock_update_discounted_prices_of_discount_task.delay.assert_called_once_with(
         sale.pk,
@@ -120,7 +121,7 @@ def test_sale_channel_listing_update_as_staff_user(
     shipping_method_data = data["sale"]
     assert not data["discountErrors"]
 
-    assert shipping_method_data["channelListing"][0]["discountValue"] == discounted
+    assert shipping_method_data["channelListings"][0]["discountValue"] == discounted
     mock_update_discounted_prices_of_discount_task.delay.assert_called_once_with(
         sale.pk,
     )
