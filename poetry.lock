@@ -230,7 +230,7 @@ test = ["pytest-runner", "pytest-cov", "pytest-flake8", "pytest-isort"]
 
 [[package]]
 name = "celery"
-version = "5.0.1"
+version = "5.0.2"
 description = "Distributed Task Queue."
 category = "main"
 optional = false
@@ -2547,8 +2547,8 @@ cairosvg = [
     {file = "CairoSVG-2.4.2.tar.gz", hash = "sha256:4e668f96653326780036ebb0a9ff2bb59a8443d7bcfc51a14aab77b57a8e67ad"},
 ]
 celery = [
-    {file = "celery-5.0.1-py3-none-any.whl", hash = "sha256:7aa4ee46ed318bc177900ae7c01500354aee62d723255b0925db0754bcd4d390"},
-    {file = "celery-5.0.1.tar.gz", hash = "sha256:e3e8956d74af986b1e9770e0a294338b259618bf70283d6157416328e50c2bd6"},
+    {file = "celery-5.0.2-py3-none-any.whl", hash = "sha256:930c3acd55349d028c4e7104a7d377729cbcca19d9fce470c17172d9e7f9a8b6"},
+    {file = "celery-5.0.2.tar.gz", hash = "sha256:012c814967fe89e3f5d2cf49df2dba3de5f29253a7f4f2270e8fce6b901b4ebf"},
 ]
 certifi = [
     {file = "certifi-2020.6.20-py2.py3-none-any.whl", hash = "sha256:8fc0819f1f30ba15bdb34cceffb9ef04d99f420f68eb75d901e9560b8749fc41"},
