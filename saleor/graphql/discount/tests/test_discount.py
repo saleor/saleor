@@ -198,7 +198,7 @@ def test_voucher_query_with_channel_slug(
     assert data["countries"] == [
         {"country": country.name, "code": country.code} for country in voucher.countries
     ]
-    assert len(data["channelListing"]) == 2
+    assert len(data["channelListings"]) == 2
     for channel_listing in voucher.channel_listings.all():
         assert {
             "id": ANY,

@@ -14,7 +14,7 @@ mutation UpdateVoucherChannelListing($id: ID!, $input: VoucherChannelListingInpu
         }
         voucher {
             code
-            channelListing {
+            channelListings {
                 channel{
                     slug
                 }
@@ -57,7 +57,7 @@ def test_voucher_channel_listing_create_as_staff(
     # then
     data = content["data"]["voucherChannelListingUpdate"]["voucher"]
     assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
-    channel_listing = data["channelListing"]
+    channel_listing = data["channelListings"]
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
     assert channel_listing[0]["discountValue"] == discount_value
     assert channel_listing[0]["currency"] == channel_USD.currency_code
@@ -89,7 +89,7 @@ def test_voucher_channel_listing_update_as_app(
     # then
     data = content["data"]["voucherChannelListingUpdate"]["voucher"]
     assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
-    channel_listing = data["channelListing"]
+    channel_listing = data["channelListings"]
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
     assert channel_listing[0]["discountValue"] == discount_value
     assert channel_listing[0]["currency"] == channel_USD.currency_code
@@ -182,7 +182,7 @@ def test_voucher_channel_listing_create_many_channel(
     # then
     data = content["data"]["voucherChannelListingUpdate"]["voucher"]
     assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
-    channel_listing = data["channelListing"]
+    channel_listing = data["channelListings"]
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
     assert channel_listing[0]["discountValue"] == discount_value
     assert channel_listing[0]["minSpent"]["amount"] == min_amount_spent
@@ -227,7 +227,7 @@ def test_voucher_channel_listing_create_and_remove(
     # then
     data = content["data"]["voucherChannelListingUpdate"]["voucher"]
     assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
-    channel_listing = data["channelListing"]
+    channel_listing = data["channelListings"]
     assert len(channel_listing) == 1
     assert channel_listing[0]["channel"]["slug"] == channel_PLN.slug
     assert channel_listing[0]["discountValue"] == discount_value_pln
@@ -268,7 +268,7 @@ def test_voucher_channel_listing_update(
     # then
     data = content["data"]["voucherChannelListingUpdate"]["voucher"]
     assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
-    channel_listing = data["channelListing"]
+    channel_listing = data["channelListings"]
     assert len(channel_listing) == 1
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
     assert channel_listing[0]["discountValue"] == discount_value
@@ -303,7 +303,7 @@ def test_voucher_channel_listing_update_without_discount_value(
     # then
     data = content["data"]["voucherChannelListingUpdate"]["voucher"]
     assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
-    channel_listing = data["channelListing"]
+    channel_listing = data["channelListings"]
     assert len(channel_listing) == 1
     assert channel_listing[0]["channel"]["slug"] == channel_USD.slug
     assert channel_listing[0]["discountValue"] == 20
@@ -333,7 +333,7 @@ def test_voucher_channel_listing_remove_channel(
     # then
     data = content["data"]["voucherChannelListingUpdate"]["voucher"]
     assert not content["data"]["voucherChannelListingUpdate"]["discountErrors"]
-    channel_listing = data["channelListing"]
+    channel_listing = data["channelListings"]
     assert len(channel_listing) == 0
 
 

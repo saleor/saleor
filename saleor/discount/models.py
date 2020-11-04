@@ -41,8 +41,8 @@ class VoucherQueryset(models.QuerySet):
 
     def active_in_channel(self, date, channel_slug: str):
         return self.active(date).filter(
-            channel_listing__channel__slug=channel_slug,
-            channel_listing__channel__is_active=True,
+            channel_listings__channel__slug=channel_slug,
+            channel_listings__channel__is_active=True,
         )
 
     def expired(self, date):
