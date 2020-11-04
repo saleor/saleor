@@ -271,25 +271,38 @@ class AllegroPlugin(BasePlugin):
 
         return plugin_configuration
 
+    def product_validate(self, product):
+        errors = []
+
+        product_variant = product.variants.first()
+
+        if product.is_published:
+            errors.append('003: produkt jest już opublikowany')
+        if not self.active:
+            errors.append('003: plugin jest nieaktywny')
+        if product_variant.metadata.get('reserved') is True:
+            errors.append('003: produkt jest zarezerwowany')
+        if product_variant.stocks.first().quantity < 1:
+            errors.append('002: stan magazynowy produktu wynosi 0')
+        if product_variant.private_metadata.get('location') is None:
+            errors.append('003: brak lokacji magazynowej dla produktu')
+        if product_variant.price_amount == 0:
+            errors.append('003: cena produktu wynosi 0')
+        AllegroAPI(None).update_errors_in_private_metadata(product, errors)
+        return errors
+
     def product_published(self, product_with_params: Any, previous_value: Any) -> Any:
         product = product_with_params.get('product')
-        if self.active == True and product.is_published == False:
+        if len(self.product_validate(product)) == 0:
             allegro_api = AllegroAPI(self.config.token_value)
-            if product.variants.first().metadata.get('reserved') is not True:
-                product.store_value_in_private_metadata(
+            product.store_value_in_private_metadata(
                     {'publish.allegro.status': ProductPublishState.MODERATED.value})
-                if product.variants.first().stocks.first().quantity > 0:
-                    allegro_api.product_publish(saleor_product=product,
-                                                starting_at=product_with_params.get(
-                                                    'starting_at'),
-                                                offer_type=product_with_params.get(
-                                                    'offer_type'))
-                else:
-                    allegro_api.errors.append('002: stan magazynowy produktu wynosi 0')
-                    allegro_api.update_errors_in_private_metadata(product,
-                                                                  allegro_api.errors)
-            else:
-                logger.error('003: produkt jest zarezerwowany')
+            allegro_api.product_publish(saleor_product=product,
+                                                    starting_at=product_with_params.get(
+                                                        'starting_at'),
+                                                    offer_type=product_with_params.get(
+                                                        'offer_type'))
+
     def calculate_hours_to_token_expire(self):
         token_expire = datetime.strptime(self.config.token_access, '%d/%m/%Y %H:%M:%S')
         duration = token_expire - datetime.now()
