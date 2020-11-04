@@ -1,6 +1,15 @@
 name: Pytest
 
-on: [push]
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+  push:
+    branches:
+      - master
+      - ci/*
+
+env:
+  BENCH_PATH: ./queries-results.json
 
 jobs:
   build:
@@ -43,14 +52,25 @@ jobs:
         python -m pip install -r requirements_dev.txt
 
     - name: Run tests
-      run: pytest --cov --junitxml=junit/test-results.xml
+      run: |
+        pytest \
+          --cov \
+          --junitxml=junit/test-results.xml \
+          --django-db-bench=${{ env.BENCH_PATH }}
       env:
         DATABASE_URL: "postgres://saleor:saleor@postgres:5432/saleor"
 
     - uses: codecov/codecov-action@v1
-
     - uses: actions/upload-artifact@v1
       with:
         name: pytest-results
         path: junit/test-results.xml
       if: ${{ always() }}
+
+    - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1.0.0a2
+      with:
+        query_raw_dump_path: ${{ env.BENCH_PATH }}
+        diff_endpoint: "https://dtab784j47g1o.cloudfront.net/default/saleor-db-queries-bot-diff"
+        diff_results_base_url: "https://dtab784j47g1o.cloudfront.net"
+        upload_endpoint: ${{ secrets.QUERIES_UPLOAD_ENDPOINT_URL }}
+        upload_secret_key: ${{ secrets.QUERIES_UPLOAD_SECRET }}
