@@ -70,7 +70,7 @@ jobs:
     - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1.0.0a2
       with:
         query_raw_dump_path: ${{ env.BENCH_PATH }}
-        diff_endpoint: "https://dtab784j47g1o.cloudfront.net/default/diff"
+        diff_endpoint: "https://dtab784j47g1o.cloudfront.net/default/saleor-db-queries-bot-diff"
         diff_results_base_url: "https://dtab784j47g1o.cloudfront.net"
         upload_endpoint: ${{ secrets.QUERIES_UPLOAD_ENDPOINT_URL }}
         upload_secret_key: ${{ secrets.QUERIES_UPLOAD_SECRET }}
