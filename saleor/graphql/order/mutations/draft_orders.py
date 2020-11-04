@@ -127,7 +127,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @staticmethod
     def _save_addresses(info, instance: models.Order, cleaned_input):
-        # Create the draft creation event
         shipping_address = cleaned_input.get("shipping_address")
         if shipping_address:
             shipping_address.save()
@@ -206,7 +205,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
 class DraftOrderUpdate(DraftOrderCreate):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of an order to update.")
+        id = graphene.ID(required=True, description="ID of a draft order to update.")
         input = DraftOrderInput(
             required=True, description="Fields required to update an order."
         )
@@ -217,6 +216,21 @@ class DraftOrderUpdate(DraftOrderCreate):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        instance = super().get_instance(info, **data)
+        if instance.status != OrderStatus.DRAFT:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Provided order id belongs to non-draft order. "
+                        "Use `orderUpdate` mutation instead.",
+                        code=OrderErrorCode.INVALID,
+                    )
+                }
+            )
+        return instance
 
 
 class DraftOrderDelete(ModelDeleteMutation):

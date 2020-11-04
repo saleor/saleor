@@ -8,7 +8,11 @@ from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
 
-from ....checkout.calculations import checkout_line_total, checkout_total
+from ....checkout.calculations import (
+    checkout_line_total,
+    checkout_shipping_price,
+    checkout_total,
+)
 from ....checkout.models import Checkout
 from ....core.prices import quantize_price
 from ....discount.utils import fetch_active_discounts
@@ -45,6 +49,17 @@ def to_adyen_price(value: Decimal, currency: str):
     return str(value_without_comma.quantize(Decimal("1")))
 
 
+def get_tax_percentage_in_adyen_format(total_gross, total_net):
+    tax_percentage_in_adyen_format = 0
+    if total_gross and total_net:
+        # get tax percent in adyen format
+        gross_percentage = total_gross / total_net
+        gross_percentage = gross_percentage.quantize(Decimal(".01"))  # 1.23
+        tax_percentage = gross_percentage * 100 - 100  # 23.00
+        tax_percentage_in_adyen_format = int(tax_percentage * 100)  # 2300
+    return tax_percentage_in_adyen_format
+
+
 def api_call(request_data: Optional[Dict[str, Any]], method: Callable) -> Adyen.Adyen:
     try:
         return method(request_data)
@@ -57,7 +72,6 @@ def request_data_for_payment(
     payment_information: "PaymentData",
     return_url: str,
     merchant_account: str,
-    origin_url: str,
     native_3d_secure: bool,
 ) -> Dict[str, Any]:
     payment_data = payment_information.data or {}
@@ -67,24 +81,46 @@ def request_data_for_payment(
 
     extra_request_params = {}
     channel = payment_data.get("channel", "web")
-    if "browserInfo" in payment_data:
-        extra_request_params["browserInfo"] = payment_data["browserInfo"]
-    if "billingAddress" in payment_data:
-        extra_request_params["billingAddress"] = payment_data["billingAddress"]
-    if "shopperIP" in payment_data:
-        extra_request_params["shopperIP"] = payment_data["shopperIP"]
+    origin_url = payment_data.get("originUrl")
+
+    browser_info = payment_data.get("browserInfo")
+    if browser_info:
+        extra_request_params["browserInfo"] = browser_info
+
+    billing_address = payment_data.get("billingAddress")
+    if billing_address:
+        extra_request_params["billingAddress"] = billing_address
+
+    delivery_address = payment_data.get("deliveryAddress")
+    if delivery_address:
+        extra_request_params["deliveryAddress"] = delivery_address
+
+    shopper_ip = payment_data.get("shopperIP")
+    if shopper_ip:
+        extra_request_params["shopperIP"] = shopper_ip
+
+    device_fingerprint = payment_data.get("deviceFingerprint")
+    if device_fingerprint:
+        extra_request_params["deviceFingerprint"] = device_fingerprint
 
     if channel.lower() == "web" and origin_url:
         extra_request_params["origin"] = origin_url
 
+    shopper_name = payment_data.get("shopperName")
+    if shopper_name:
+        extra_request_params["shopperName"] = shopper_name
+
     extra_request_params["channel"] = channel
-    if native_3d_secure:
-        extra_request_params["additionalData"] = {"allow3DS2": "true"}
 
     payment_method = payment_data.get("paymentMethod")
     if not payment_method:
         raise PaymentError("Unable to find the paymentMethod section.")
 
+    method = payment_method.get("type", "")
+    if native_3d_secure and "scheme" == method:
+        extra_request_params["additionalData"] = {"allow3DS2": "true"}
+
+    extra_request_params["shopperEmail"] = payment_information.customer_email
     request_data = {
         "amount": {
             "value": to_adyen_price(
@@ -99,21 +135,43 @@ def request_data_for_payment(
         **extra_request_params,
     }
 
-    method = payment_method.get("type", [])
     if "klarna" in method:
         request_data = append_klarna_data(payment_information, request_data)
     return request_data
 
 
+def get_shipping_data(checkout, lines, discounts):
+    shipping_total = checkout_shipping_price(
+        checkout=checkout, lines=lines, discounts=discounts
+    )
+    total_gross = shipping_total.gross.amount
+    total_net = shipping_total.net.amount
+    tax_amount = shipping_total.tax.amount
+    tax_percentage_in_adyen_format = get_tax_percentage_in_adyen_format(
+        total_gross, total_net
+    )
+    return {
+        "quantity": 1,
+        "amountExcludingTax": to_adyen_price(total_net, checkout.currency),
+        "taxPercentage": tax_percentage_in_adyen_format,
+        "description": f"Shipping - {checkout.shipping_method.name}",
+        "id": f"Shipping:{checkout.shipping_method.id}",
+        "taxAmount": to_adyen_price(tax_amount, checkout.currency),
+        "amountIncludingTax": to_adyen_price(total_gross, checkout.currency),
+    }
+
+
 def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
-    checkout = Checkout.objects.filter(
-        payments__id=payment_information.payment_id
-    ).first()
+    checkout = (
+        Checkout.objects.prefetch_related("shipping_method",)
+        .filter(payments__id=payment_information.payment_id)
+        .first()
+    )
 
     if not checkout:
         raise PaymentError("Unable to calculate products for klarna.")
 
-    lines = checkout.lines.prefetch_related("variant").all()
+    lines = checkout.lines.prefetch_related("variant__product").all()
     discounts = fetch_active_discounts()
     currency = payment_information.currency
     country_code = checkout.get_country()
@@ -121,21 +179,16 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
     payment_data["shopperLocale"] = get_shopper_locale_value(country_code)
     payment_data["shopperReference"] = payment_information.customer_email
     payment_data["countryCode"] = country_code
-    payment_data["shopperEmail"] = payment_information.customer_email
     line_items = []
+
     for line in lines:
         total = checkout_line_total(line=line, discounts=discounts)
         total_gross = total.gross.amount
         total_net = total.net.amount
         tax_amount = total.tax.amount
-
-        tax_percentage_in_adyen_format = 0
-        if total_gross:
-            # get tax percent in adyen format
-            gross_percentage = total_gross / total_net
-            gross_percentage = gross_percentage.quantize(Decimal(".01"))  # 1.23
-            tax_percentage = gross_percentage * 100 - 100  # 23.00
-            tax_percentage_in_adyen_format = int(tax_percentage * 100)  # 2300
+        tax_percentage_in_adyen_format = get_tax_percentage_in_adyen_format(
+            total_gross, total_net
+        )
 
         line_data = {
             "quantity": line.quantity,
@@ -147,6 +200,10 @@ def append_klarna_data(payment_information: "PaymentData", payment_data: dict):
             "amountIncludingTax": to_adyen_price(total_gross, currency),
         }
         line_items.append(line_data)
+
+    if checkout.shipping_method and checkout.is_shipping_required():
+        line_items.append(get_shipping_data(checkout, lines, discounts))
+
     payment_data["lineItems"] = line_items
     return payment_data
 

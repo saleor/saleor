@@ -38,7 +38,6 @@ env:
     - QUERIES_RESULTS_PATH=/tmp/queries-results.json
   matrix:
     - DJANGO="3.1"
-    - DJANGO="master"
 
 matrix:
   fast_finish: true
@@ -56,9 +55,6 @@ matrix:
     - env: TOXENV=pydocstyle
       python: "3.8"
     - env: TOXENV=isort
-      python: "3.8"
-  allow_failures:
-    - env: DJANGO="master"
       python: "3.8"
 
 services:
