@@ -4542,7 +4542,7 @@ type Sale implements Node {
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   translation(languageCode: LanguageCodeEnum!): SaleTranslation
-  channelListing: [SaleChannelListing!]
+  channelListings: [SaleChannelListing!]
   discountValue: Float
   currency: String
 }

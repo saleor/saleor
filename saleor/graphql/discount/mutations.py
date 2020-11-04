@@ -630,7 +630,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def remove_channels(cls, sale: "SaleModel", remove_channels: List[int]):
-        sale.channel_listing.filter(channel_id__in=remove_channels).delete()
+        sale.channel_listings.filter(channel_id__in=remove_channels).delete()
 
     @classmethod
     @transaction.atomic()

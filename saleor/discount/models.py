@@ -266,14 +266,14 @@ class SaleChannelListing(models.Model):
         Sale,
         null=False,
         blank=False,
-        related_name="channel_listing",
+        related_name="channel_listings",
         on_delete=models.CASCADE,
     )
     channel = models.ForeignKey(
         Channel,
         null=False,
         blank=False,
-        related_name="sale_listing",
+        related_name="sale_listings",
         on_delete=models.CASCADE,
     )
     discount_value = models.DecimalField(

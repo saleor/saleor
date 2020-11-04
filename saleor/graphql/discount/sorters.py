@@ -24,8 +24,8 @@ class SaleSortField(graphene.Enum):
         validate_channel_slug(channel_slug)
         return queryset.annotate(
             value=Min(
-                "channel_listing__discount_value",
-                filter=Q(channel_listing__channel__slug=channel_slug),
+                "channel_listings__discount_value",
+                filter=Q(channel_listings__channel__slug=channel_slug),
             )
         )
 

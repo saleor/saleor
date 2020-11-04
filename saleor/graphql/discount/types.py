@@ -42,8 +42,7 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         type_name="sale",
         resolver=ChannelContextType.resolve_translation,
     )
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(SaleChannelListing),
         description="List of channels available for the sale.",
     )
@@ -66,9 +65,9 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_channel_listing(root: ChannelContext[models.Sale], *_args, **_kwargs):
+    def resolve_channel_listings(root: ChannelContext[models.Sale], *_args, **_kwargs):
         # TODO: Add dataloader.
-        return root.node.channel_listing.all()
+        return root.node.channel_listings.all()
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
@@ -85,14 +84,14 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_discount_value(root: ChannelContext[models.Sale], *_args, **_kwargs):
-        channel_listing = root.node.channel_listing.filter(
+        channel_listing = root.node.channel_listings.filter(
             channel__slug=str(root.channel_slug)
         ).first()
         return channel_listing.discount_value if channel_listing else None
 
     @staticmethod
     def resolve_currency(root: ChannelContext[models.Sale], *_args, **_kwargs):
-        channel_listing = root.node.channel_listing.filter(
+        channel_listing = root.node.channel_listings.filter(
             channel__slug=str(root.channel_slug)
         ).first()
         return channel_listing.currency if channel_listing else None

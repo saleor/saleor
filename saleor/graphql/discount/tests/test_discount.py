@@ -293,7 +293,7 @@ def test_sale_query(
                             }
                         }
                         name
-                        channelListing {
+                        channelListings {
                             discountValue
                         }
                         startDate
@@ -305,7 +305,7 @@ def test_sale_query(
     response = staff_api_client.post_graphql(
         query, permissions=[permission_manage_discounts, permission_manage_products]
     )
-    channel_listing_usd = sale.channel_listing.get(channel=channel_USD)
+    channel_listing_usd = sale.channel_listings.get(channel=channel_USD)
     content = get_graphql_content(response)
     data = content["data"]["sales"]["edges"][0]["node"]
     assert data["products"]["edges"][0]["node"]["name"] == sale.products.first().name
@@ -313,7 +313,8 @@ def test_sale_query(
     assert data["type"] == sale.type.upper()
     assert data["name"] == sale.name
     assert (
-        data["channelListing"][0]["discountValue"] == channel_listing_usd.discount_value
+        data["channelListings"][0]["discountValue"]
+        == channel_listing_usd.discount_value
     )
     assert data["startDate"] == sale.start_date.isoformat()
 
@@ -336,7 +337,7 @@ def test_sale_query_with_channel_slug(
                         }
                         discountValue
                         name
-                        channelListing {
+                        channelListings {
                             discountValue
                         }
                         startDate
@@ -349,7 +350,7 @@ def test_sale_query_with_channel_slug(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
     )
-    channel_listing = sale.channel_listing.get()
+    channel_listing = sale.channel_listings.get()
     content = get_graphql_content(response)
 
     data = content["data"]["sales"]["edges"][0]["node"]
@@ -358,7 +359,7 @@ def test_sale_query_with_channel_slug(
     assert data["name"] == sale.name
     assert data["products"]["edges"][0]["node"]["name"] == sale.products.first().name
     assert data["discountValue"] == channel_listing.discount_value
-    assert data["channelListing"][0]["discountValue"] == channel_listing.discount_value
+    assert data["channelListings"][0]["discountValue"] == channel_listing.discount_value
     assert data["startDate"] == sale.start_date.isoformat()
 
 

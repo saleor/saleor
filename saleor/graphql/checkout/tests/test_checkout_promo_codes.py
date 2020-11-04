@@ -117,7 +117,7 @@ def test_checkout_totals_use_discounts(
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
-    sale_channel_listing = sale.channel_listing.get(channel=channel_USD)
+    sale_channel_listing = sale.channel_listings.get(channel=channel_USD)
     discounts = [
         DiscountInfo(
             sale=sale,

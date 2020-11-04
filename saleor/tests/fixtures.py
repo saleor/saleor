@@ -2271,7 +2271,7 @@ def sale_with_many_channels(product, category, collection, channel_USD, channel_
 
 @pytest.fixture
 def discount_info(category, collection, sale, channel_USD):
-    sale_channel_listing = sale.channel_listing.get(channel=channel_USD)
+    sale_channel_listing = sale.channel_listings.get(channel=channel_USD)
 
     return DiscountInfo(
         sale=sale,
