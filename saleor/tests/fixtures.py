@@ -582,7 +582,7 @@ def shipping_zone(db, channel_USD):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def shipping_zones(db, channel_USD):
+def shipping_zones(db, channel_USD, channel_PLN):
     shipping_zone_poland, shipping_zone_usa = ShippingZone.objects.bulk_create(
         [
             ShippingZone(name="Poland", countries=["PL"]),
@@ -609,6 +609,19 @@ def shipping_zones(db, channel_USD):
                 shipping_method=second_method,
                 minimum_order_price=Money(0, "USD"),
                 currency=channel_USD.currency_code,
+            ),
+            ShippingMethodChannelListing(
+                channel=channel_PLN,
+                shipping_method=method,
+                minimum_order_price=Money(0, "PLN"),
+                price=Money(40, "PLN"),
+                currency=channel_PLN.currency_code,
+            ),
+            ShippingMethodChannelListing(
+                channel=channel_PLN,
+                shipping_method=second_method,
+                minimum_order_price=Money(0, "PLN"),
+                currency=channel_PLN.currency_code,
             ),
         ]
     )
