@@ -10309,5 +10309,15 @@
       "collection": 3,
       "channel": 1
     }
+  },
+  {
+    "model": "product.collectionchannellisting",
+    "pk": 6,
+    "fields": {
+      "publication_date": "2020-01-01",
+      "is_published": true,
+      "collection": 3,
+      "channel": 2
+    }
   }
 ]
