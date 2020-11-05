@@ -87,15 +87,12 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        def return_price(channel_listing):
-            return channel_listing.price
-
         return (
             ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
                 info.context
             )
             .load((root.node.id, root.channel_slug))
-            .then(return_price)
+            .then(lambda channel_listing: channel_listing.price)
         )
 
     @staticmethod
@@ -105,15 +102,12 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        def return_maximum_order_price(channel_listing):
-            return channel_listing.maximum_order_price
-
         return (
             ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
                 info.context
             )
             .load((root.node.id, root.channel_slug))
-            .then(return_maximum_order_price)
+            .then(lambda channel_listing: channel_listing.maximum_order_price)
         )
 
     @staticmethod
@@ -123,15 +117,12 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        def return_minimum_order_price(channel_listing):
-            return channel_listing.minimum_order_price
-
         return (
             ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
                 info.context
             )
             .load((root.node.id, root.channel_slug))
-            .then(return_minimum_order_price)
+            .then(lambda channel_listing: channel_listing.minimum_order_price)
         )
 
     @staticmethod
