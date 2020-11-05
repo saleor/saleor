@@ -8,6 +8,7 @@ from ...core.models import ModelWithMetadata
 from ...order import models as order_models
 from ...page import models as page_models
 from ...product import models as product_models
+from ...shipping import models as shipping_models
 from ..utils import get_user_or_app_from_context
 from .permissions import PRIVATE_META_PERMISSION_MAP
 
@@ -20,6 +21,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     from ..order import types as order_types
     from ..page import types as page_types
     from ..product import types as product_types
+    from ..shipping import types as shipping_types
     from ..invoice import types as invoice_types
     from ...invoice import models as invoice_models
 
@@ -36,6 +38,8 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
         product_models.Product: product_types.Product,
         product_models.ProductType: product_types.ProductType,
         product_models.ProductVariant: product_types.ProductVariant,
+        shipping_models.ShippingMethod: shipping_types.ShippingMethod,
+        shipping_models.ShippingZone: shipping_types.ShippingZone,
         app_models.App: app_types.App,
         account_models.User: account_types.User,
     }
