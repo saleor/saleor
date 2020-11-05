@@ -1773,15 +1773,11 @@ SORT_PRODUCTS_QUERY = """
 
 
 def test_sort_products(user_api_client, product, channel_USD):
-    # set price and update date of the first product
-    product.minimal_variant_price_amount = 10
     product.updated_at = datetime.utcnow()
     product.save()
 
-    # Create the second product with higher price and date
     product.pk = None
     product.slug = "second-product"
-    product.minimal_variant_amount = 20
     product.updated_at = datetime.utcnow()
     product.save()
     ProductChannelListing.objects.create(

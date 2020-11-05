@@ -8,7 +8,7 @@ from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from graphene import InputField
 
-from ....product.models import Category, Product
+from ....product.models import Category, Product, ProductChannelListing
 from ...product import types as product_types
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 from ...utils import get_database_id, requestor_is_superuser
@@ -241,12 +241,9 @@ def test_validate_slug_and_generate_if_needed_generate_slug(cleaned_input):
         ({"gte": 40}, 0, []),
     ],
 )
-@pytest.mark.skip(
-    reason="We should refactor this in separete PR. https://app.clickup.com/t/6a5txz"
-)
 def test_filter_range_field(value, count, product_indexes, product_list):
-    qs = Product.objects.all().order_by("pk")
-    field = "minimal_variant_price_amount"
+    qs = ProductChannelListing.objects.all().order_by("pk")
+    field = "discounted_price_amount"
 
     result = filter_range_field(qs, field, value)
 
