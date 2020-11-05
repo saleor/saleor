@@ -451,6 +451,59 @@ def test_draft_order_query(staff_api_client, permission_manage_orders, orders):
     assert len(edges) == Order.objects.drafts().count()
 
 
+def test_order_update_settings(
+    staff_api_client, permission_manage_orders, site_settings
+):
+    mutation = """
+        mutation orderSettings($confirmOrders: Boolean!) {
+            orderUpdateSettings(
+                input: { automaticallyConfirmAllNewOrders: $confirmOrders }
+            ) {
+                orderSettings {
+                    automaticallyConfirmAllNewOrders
+                }
+            }
+        }
+    """
+    assert site_settings.automatically_confirm_all_new_orders is True
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(mutation, {"confirmOrders": False})
+    content = get_graphql_content(response)
+    response_settings = content["data"]["orderUpdateSettings"]["orderSettings"]
+    assert response_settings["automaticallyConfirmAllNewOrders"] is False
+    site_settings.refresh_from_db()
+    assert site_settings.automatically_confirm_all_new_orders is False
+
+
+ORDER_SETTINGS_QUERY = """
+    query orderSettings {
+        orderSettings {
+            automaticallyConfirmAllNewOrders
+        }
+    }
+"""
+
+
+def test_order_settings_query_as_staff(
+    staff_api_client, permission_manage_orders, site_settings
+):
+    assert site_settings.automatically_confirm_all_new_orders is True
+
+    site_settings.automatically_confirm_all_new_orders = False
+    site_settings.save(update_fields=["automatically_confirm_all_new_orders"])
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(ORDER_SETTINGS_QUERY)
+    content = get_graphql_content(response)
+
+    assert content["data"]["orderSettings"]["automaticallyConfirmAllNewOrders"] is False
+
+
+def test_order_settings_query_as_user(user_api_client, site_settings):
+    response = user_api_client.post_graphql(ORDER_SETTINGS_QUERY)
+    assert_no_permission(response)
+
+
 def test_nested_order_events_query(
     staff_api_client,
     permission_manage_orders,

@@ -2709,6 +2709,7 @@ type Mutation {
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!): OrderCancel
   orderCapture(amount: PositiveDecimal!, id: ID!): OrderCapture
+  orderUpdateSettings(input: OrderUpdateSettingsInput!): OrderUpdateSettings
   orderClearPrivateMeta(id: ID!, input: MetaPath!): OrderClearPrivateMeta @deprecated(reason: "Use the `deletePrivateMetadata` mutation instead. This field will be removed after 2020-07-31.")
   orderClearMeta(input: MetaPath!, token: UUID!): OrderClearMeta @deprecated(reason: "Use the `deleteMetadata` mutation instead. This field will be removed after 2020-07-31.")
   orderFulfill(input: OrderFulfillInput!, order: ID): OrderFulfill
@@ -3172,6 +3173,16 @@ type OrderRefund {
   orderErrors: [OrderError!]!
 }
 
+type OrderSettingsError {
+  field: String
+  message: String
+  code: OrderSettingsErrorCode!
+}
+
+enum OrderSettingsErrorCode {
+  INVALID
+}
+
 enum OrderSortField {
   NUMBER
   CREATION_DATE
@@ -3224,6 +3235,16 @@ type OrderUpdateMeta {
 type OrderUpdatePrivateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   order: Order
+}
+
+type OrderUpdateSettings {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  orderSettings: SiteSettings
+  orderSettingsErrors: [OrderSettingsError!]!
+}
+
+input OrderUpdateSettingsInput {
+  automaticallyConfirmAllNewOrders: Boolean!
 }
 
 type OrderUpdateShipping {
@@ -4302,6 +4323,7 @@ type Query {
   page(id: ID, slug: String): Page
   pages(sortBy: PageSortingInput, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
+  orderSettings: SiteSettings
   order(id: ID!): Order
   orders(sortBy: OrderSortingInput, filter: OrderFilterInput, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
@@ -4872,6 +4894,10 @@ type ShopTranslation implements Node {
 input SiteDomainInput {
   domain: String
   name: String
+}
+
+type SiteSettings {
+  automaticallyConfirmAllNewOrders: Boolean!
 }
 
 type StaffBulkDelete {

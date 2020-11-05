@@ -27,3 +27,7 @@ class OrderErrorCode(Enum):
     ZERO_QUANTITY = "zero_quantity"
     INSUFFICIENT_STOCK = "insufficient_stock"
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
+
+
+class OrderSettingsErrorCode(Enum):
+    INVALID = "invalid"

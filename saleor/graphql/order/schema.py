@@ -39,6 +39,7 @@ from .mutations.orders import (
     OrderUpdate,
     OrderUpdateMeta,
     OrderUpdatePrivateMeta,
+    OrderUpdateSettings,
     OrderUpdateShipping,
     OrderVoid,
 )
@@ -51,7 +52,7 @@ from .resolvers import (
     resolve_orders_total,
 )
 from .sorters import OrderSortingInput
-from .types import Order, OrderEvent
+from .types import Order, OrderEvent, SiteSettings
 
 
 class OrderFilterInput(FilterInputObjectType):
@@ -72,6 +73,7 @@ class OrderQueries(graphene.ObjectType):
             "homepage (at the moment it only contains order-events)."
         ),
     )
+    order_settings = graphene.Field(SiteSettings)
     order = graphene.Field(
         Order,
         description="Look up an order by ID.",
@@ -122,6 +124,10 @@ class OrderQueries(graphene.ObjectType):
     )
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
+    def resolve_order_settings(self, info, *args, **_kwargs):
+        return info.context.site.settings
+
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_homepage_events(self, *_args, **_kwargs):
         return resolve_homepage_events()
 
@@ -159,6 +165,7 @@ class OrderMutations(graphene.ObjectType):
     order_add_note = OrderAddNote.Field()
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
+    order_update_settings = OrderUpdateSettings.Field()
     order_clear_private_meta = OrderClearPrivateMeta.Field(
         deprecation_reason=(
             "Use the `deletePrivateMetadata` mutation instead. This field will be "

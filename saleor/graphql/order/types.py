@@ -12,6 +12,7 @@ from ...order.models import FulfillmentStatus
 from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
 from ...plugins.manager import get_plugins_manager
 from ...product.templatetags.product_images import get_product_image_thumbnail
+from ...site import models as site_models
 from ...warehouse import models as warehouse_models
 from ..account.types import User
 from ..account.utils import requestor_has_access
@@ -36,6 +37,13 @@ class OrderEventOrderLineObject(graphene.ObjectType):
     quantity = graphene.Int(description="The variant quantity.")
     order_line = graphene.Field(lambda: OrderLine, description="The order line.")
     item_name = graphene.String(description="The variant name.")
+
+
+class SiteSettings(CountableDjangoObjectType):
+    class Meta:
+        only_fields = ["automatically_confirm_all_new_orders"]
+        description = "Checkout object."
+        model = site_models.SiteSettings
 
 
 class OrderEvent(CountableDjangoObjectType):
