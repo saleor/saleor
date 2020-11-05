@@ -4,9 +4,9 @@ from . import ExportEvents
 from .models import ExportEvent
 
 if TYPE_CHECKING:
-    from .models import ExportFile
-    from ..app.models import App
     from ..account.models import User
+    from ..app.models import App
+    from .models import ExportFile
 
 
 UserType = Optional["User"]
