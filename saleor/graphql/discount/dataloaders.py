@@ -1,5 +1,9 @@
+from collections import defaultdict
+
+from django.db.models import F
+
 from ...discount import DiscountInfo
-from ...discount.models import Sale, Voucher
+from ...discount.models import Sale, SaleChannelListing, Voucher
 from ...discount.utils import (
     fetch_categories,
     fetch_collections,
@@ -44,3 +48,32 @@ class VoucherByIdLoader(DataLoader):
     def batch_load(self, keys):
         vouchers = Voucher.objects.in_bulk(keys)
         return [vouchers.get(voucher_id) for voucher_id in keys]
+
+
+class SaleChannelListingBySaleIdAndChanneSlugLoader(DataLoader):
+    context_key = "salechannelisting_by_sale_and_channel"
+
+    def batch_load(self, keys):
+        sale_ids = [key[0] for key in keys]
+        channel_slugs = [key[1] for key in keys]
+        sales_channel_listings = SaleChannelListing.objects.filter(
+            sale_id__in=sale_ids, channel__slug__in=channel_slugs
+        ).annotate(channel_slug=F("channel__slug"))
+        sales_channel_listings_by_sale_and_channel_map = {}
+        for sales_channel_listing in sales_channel_listings:
+            key = (sales_channel_listing.sale_id, sales_channel_listing.channel_slug)
+            sales_channel_listings_by_sale_and_channel_map[key] = sales_channel_listing
+        return [sales_channel_listings_by_sale_and_channel_map[key] for key in keys]
+
+
+class SaleChannelListingBySaleIdLoader(DataLoader):
+    context_key = "salechannelisting_by_sale"
+
+    def batch_load(self, keys):
+        sales_channel_listings = SaleChannelListing.objects.filter(sale_id__in=keys)
+        sales_channel_listings_by_sale_map = defaultdict(list)
+        for sales_channel_listing in sales_channel_listings:
+            sales_channel_listings_by_sale_map[sales_channel_listing.sale_id].append(
+                sales_channel_listing
+            )
+        return [sales_channel_listings_by_sale_map[sale_id] for sale_id in keys]

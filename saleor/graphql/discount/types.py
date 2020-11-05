@@ -3,6 +3,7 @@ from graphene import relay
 
 from ...core.permissions import DiscountPermissions
 from ...discount import models
+from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import ChannelContext, ChannelContextType
 from ..core import types
 from ..core.connection import CountableDjangoObjectType
@@ -16,6 +17,10 @@ from ..decorators import permission_required
 from ..product.types import Category, Collection, Product
 from ..translations.fields import TranslationField
 from ..translations.types import SaleTranslation, VoucherTranslation
+from .dataloaders import (
+    SaleChannelListingBySaleIdAndChanneSlugLoader,
+    SaleChannelListingBySaleIdLoader,
+)
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 
@@ -25,6 +30,10 @@ class SaleChannelListing(CountableDjangoObjectType):
         model = models.SaleChannelListing
         interfaces = [relay.Node]
         only_fields = ["id", "channel", "discount_value", "currency"]
+
+    @staticmethod
+    def resolve_channel(root: models.SaleChannelListing, info, **_kwargs):
+        return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
 class Sale(ChannelContextType, CountableDjangoObjectType):
@@ -66,14 +75,12 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_channel_listing(root: ChannelContext[models.Sale], *_args, **_kwargs):
-        # TODO: Add dataloader.
-        return root.node.channel_listing.all()
+    def resolve_channel_listing(root: ChannelContext[models.Sale], info, **_kwargs):
+        return SaleChannelListingBySaleIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_collections(root: ChannelContext[models.Sale], info, *_args, **_kwargs):
-        # TODO: Add dataloader.
         qs = root.node.collections.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
@@ -84,18 +91,32 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod
-    def resolve_discount_value(root: ChannelContext[models.Sale], *_args, **_kwargs):
-        channel_listing = root.node.channel_listing.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        return channel_listing.discount_value if channel_listing else None
+    def resolve_discount_value(root: ChannelContext[models.Sale], info, **_kwargs):
+        if not root.channel_slug:
+            return None
+
+        def calculate_discount_value(channel_listing):
+            return channel_listing.discount_value if channel_listing else None
+
+        return (
+            SaleChannelListingBySaleIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_discount_value)
+        )
 
     @staticmethod
-    def resolve_currency(root: ChannelContext[models.Sale], *_args, **_kwargs):
-        channel_listing = root.node.channel_listing.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        return channel_listing.currency if channel_listing else None
+    def resolve_currency(root: ChannelContext[models.Sale], info, **_kwargs):
+        if not root.channel_slug:
+            return None
+
+        def calculate_currency(channel_listing):
+            return channel_listing.currency if channel_listing else None
+
+        return (
+            SaleChannelListingBySaleIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_currency)
+        )
 
 
 class VoucherChannelListing(CountableDjangoObjectType):
