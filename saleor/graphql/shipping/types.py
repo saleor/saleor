@@ -78,16 +78,25 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
         ]
 
     @staticmethod
-    def resolve_price(root: ChannelContext[models.ShippingMethod], *_args):
+    def resolve_price(root: ChannelContext[models.ShippingMethod], info, **_kwargs):
         # Price field are dynamically generated in available_shipping_methods resolver
         price = getattr(root.node, "price", None)
         if price:
             return price
-        # TODO: Add dataloader.
-        channel_listing = root.node.channel_listing.filter(
-            channel__slug=root.channel_slug
-        ).first()
-        return channel_listing.price if channel_listing else None
+
+        if not root.channel_slug:
+            return None
+
+        def return_price(channel_listing):
+            return channel_listing.price
+
+        return (
+            ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(
+                info.context
+            )
+            .load((root.node.id, root.channel_slug))
+            .then(return_price)
+        )
 
     @staticmethod
     def resolve_maximum_order_price(
