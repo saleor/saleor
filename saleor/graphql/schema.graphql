@@ -3189,6 +3189,7 @@ input OrderSortingInput {
 
 enum OrderStatus {
   DRAFT
+  UNCONFIRMED
   UNFULFILLED
   PARTIALLY_FULFILLED
   FULFILLED
