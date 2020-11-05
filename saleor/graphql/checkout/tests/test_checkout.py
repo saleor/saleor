@@ -1189,7 +1189,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     site_settings,
 ):
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_price = shipping_method.channel_listing.get(
+    shipping_price = shipping_method.channel_listings.get(
         channel_id=checkout_with_item.channel_id
     ).price
     taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))

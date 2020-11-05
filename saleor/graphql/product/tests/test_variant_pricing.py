@@ -48,7 +48,7 @@ query ($channel: String) {
 
 def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
     price = product.variants.first().channel_listings.get().price
-    sale_discounted_value = sale.channel_listing.get().discount_value
+    sale_discounted_value = sale.channel_listings.get().discount_value
     discounted_price = price.amount - sale_discounted_value
 
     response = api_client.post_graphql(
