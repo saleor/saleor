@@ -81,7 +81,7 @@ query GetVouchers($channel: String){
             }
           }
         }
-        channelListing {
+        channelListings {
           id
           discountValue
           currency
