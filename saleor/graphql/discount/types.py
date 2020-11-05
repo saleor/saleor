@@ -97,13 +97,14 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        def calculate_discount_value(channel_listing):
-            return channel_listing.discount_value if channel_listing else None
-
         return (
             SaleChannelListingBySaleIdAndChanneSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
-            .then(calculate_discount_value)
+            .then(
+                lambda channel_listing: channel_listing.discount_value
+                if channel_listing
+                else None
+            )
         )
 
     @staticmethod
@@ -111,13 +112,14 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        def calculate_currency(channel_listing):
-            return channel_listing.currency if channel_listing else None
-
         return (
             SaleChannelListingBySaleIdAndChanneSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
-            .then(calculate_currency)
+            .then(
+                lambda channel_listing: channel_listing.currency
+                if channel_listing
+                else None
+            )
         )
 
 
@@ -222,13 +224,14 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        def calculate_discount_value(channel_listing):
-            return channel_listing.discount_value if channel_listing else None
-
         return (
             VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
-            .then(calculate_discount_value)
+            .then(
+                lambda channel_listing: channel_listing.discount_value
+                if channel_listing
+                else None
+            )
         )
 
     @staticmethod
@@ -236,13 +239,14 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        def calculate_currency(channel_listing):
-            return channel_listing.currency if channel_listing else None
-
         return (
             VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
-            .then(calculate_currency)
+            .then(
+                lambda channel_listing: channel_listing.currency
+                if channel_listing
+                else None
+            )
         )
 
     @staticmethod
@@ -250,13 +254,14 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        def calculate_min_spent(channel_listing):
-            return channel_listing.min_spent if channel_listing else None
-
         return (
             VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
-            .then(calculate_min_spent)
+            .then(
+                lambda channel_listing: channel_listing.min_spent
+                if channel_listing
+                else None
+            )
         )
 
     @staticmethod
