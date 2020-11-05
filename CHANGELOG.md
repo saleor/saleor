@@ -4,6 +4,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Add metadata to shipping zones and shipping methods - by @maarcingebala #6340
+
 ## 2.11.0
 
 ### Features
