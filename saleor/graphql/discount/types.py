@@ -20,6 +20,8 @@ from ..translations.types import SaleTranslation, VoucherTranslation
 from .dataloaders import (
     SaleChannelListingBySaleIdAndChanneSlugLoader,
     SaleChannelListingBySaleIdLoader,
+    VoucherChannelListingByVoucherIdAndChanneSlugLoader,
+    VoucherChannelListingByVoucherIdLoader,
 )
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 
@@ -126,9 +128,8 @@ class VoucherChannelListing(CountableDjangoObjectType):
         only_fields = ["id", "channel", "discount_value", "currency", "min_spent"]
 
     @staticmethod
-    def resolve_channel(root: models.VoucherChannelListing, _info, **_kwargs):
-        # TODO: Add dataloader.
-        return root.channel
+    def resolve_channel(root: models.VoucherChannelListing, info, **_kwargs):
+        return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
 class Voucher(ChannelContextType, CountableDjangoObjectType):
@@ -196,9 +197,8 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_collections(
-        root: ChannelContext[models.Voucher], info, *_args, **_kwargs
+        root: ChannelContext[models.Voucher], _info, *_args, **_kwargs
     ):
-        # TODO: Add dataloader.
         qs = root.node.collections.all()
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
@@ -216,30 +216,48 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         ]
 
     @staticmethod
-    def resolve_discount_value(root: ChannelContext[models.Voucher], *_args, **_kwargs):
-        channel_listing = root.node.channel_listings.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        return channel_listing.discount_value if channel_listing else None
+    def resolve_discount_value(root: ChannelContext[models.Voucher], info, **_kwargs):
+        if not root.channel_slug:
+            return None
+
+        def calculate_discount_value(channel_listing):
+            return channel_listing.discount_value if channel_listing else None
+
+        return (
+            VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_discount_value)
+        )
 
     @staticmethod
-    def resolve_currency(root: ChannelContext[models.Voucher], *_args, **_kwargs):
-        channel_listing = root.node.channel_listings.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        return channel_listing.currency if channel_listing else None
+    def resolve_currency(root: ChannelContext[models.Voucher], info, **_kwargs):
+        if not root.channel_slug:
+            return None
+
+        def calculate_currency(channel_listing):
+            return channel_listing.currency if channel_listing else None
+
+        return (
+            VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_currency)
+        )
 
     @staticmethod
-    def resolve_min_spent(root: ChannelContext[models.Voucher], *_args, **_kwargs):
-        channel_listing = root.node.channel_listings.filter(
-            channel__slug=str(root.channel_slug)
-        ).first()
-        return channel_listing.min_spent if channel_listing else None
+    def resolve_min_spent(root: ChannelContext[models.Voucher], info, **_kwargs):
+        if not root.channel_slug:
+            return None
+
+        def calculate_min_spent(channel_listing):
+            return channel_listing.min_spent if channel_listing else None
+
+        return (
+            VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
+            .load((root.node.id, root.channel_slug))
+            .then(calculate_min_spent)
+        )
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_channel_listings(
-        root: ChannelContext[models.Voucher], _info, **_kwargs
-    ):
-        # TODO: Add dataloader.
-        return root.node.channel_listings.all()
+    def resolve_channel_listings(root: ChannelContext[models.Voucher], info, **_kwargs):
+        return VoucherChannelListingByVoucherIdLoader(info.context).load(root.node.id)
