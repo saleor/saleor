@@ -351,3 +351,27 @@ class CollectionChannelListingByCollectionIdLoader(DataLoader):
             collection_id_collection_channel_listings_map.get(collection_id, [])
             for collection_id in keys
         ]
+
+
+class CollectionChannelListingByCollectionIdAndChannelSlugLoader(DataLoader):
+    context_key = "collectionchannelisting_by_collection_and_channel"
+
+    def batch_load(self, keys):
+        collection_ids = [key[0] for key in keys]
+        channel_slugs = [key[1] for key in keys]
+        collections_channel_listings = CollectionChannelListing.objects.filter(
+            collection_id__in=collection_ids, channel__slug__in=channel_slugs
+        ).annotate(channel_slug=F("channel__slug"))
+        collections_channel_listings_by_collection_and_channel_map = {}
+        for collections_channel_listing in collections_channel_listings:
+            key = (
+                collections_channel_listing.collection_id,
+                collections_channel_listing.channel_slug,
+            )
+            collections_channel_listings_by_collection_and_channel_map[
+                key
+            ] = collections_channel_listing
+        return [
+            collections_channel_listings_by_collection_and_channel_map.get(key, None)
+            for key in keys
+        ]
