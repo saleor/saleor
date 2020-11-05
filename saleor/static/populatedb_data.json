@@ -2042,7 +2042,8 @@
       "product": 61,
       "track_inventory": true,
       "cost_price_amount": "5.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2090,7 +2091,8 @@
       "product": 62,
       "track_inventory": true,
       "cost_price_amount": "5.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2138,7 +2140,8 @@
       "product": 63,
       "track_inventory": true,
       "cost_price_amount": "5.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2186,7 +2189,8 @@
       "product": 64,
       "track_inventory": true,
       "cost_price_amount": "5.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2234,7 +2238,8 @@
       "product": 65,
       "track_inventory": true,
       "cost_price_amount": "5.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2282,7 +2287,8 @@
       "product": 71,
       "track_inventory": true,
       "cost_price_amount": "1.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2330,7 +2336,8 @@
       "product": 81,
       "track_inventory": true,
       "cost_price_amount": null,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -2346,7 +2353,8 @@
       "product": 82,
       "track_inventory": true,
       "cost_price_amount": null,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -2362,7 +2370,8 @@
       "product": 83,
       "track_inventory": true,
       "cost_price_amount": null,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -2378,7 +2387,8 @@
       "product": 84,
       "track_inventory": true,
       "cost_price_amount": null,
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -2394,7 +2404,8 @@
       "product": 85,
       "track_inventory": true,
       "cost_price_amount": "11.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -2426,7 +2437,8 @@
       "product": 86,
       "track_inventory": true,
       "cost_price_amount": "13.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -2458,7 +2470,8 @@
       "product": 72,
       "track_inventory": true,
       "cost_price_amount": "1.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2506,7 +2519,8 @@
       "product": 73,
       "track_inventory": true,
       "cost_price_amount": "1.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2554,7 +2568,8 @@
       "product": 74,
       "track_inventory": true,
       "cost_price_amount": "1.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2602,7 +2617,8 @@
       "product": 75,
       "track_inventory": true,
       "cost_price_amount": "1.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2650,7 +2666,8 @@
       "product": 76,
       "track_inventory": true,
       "cost_price_amount": "1.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2698,7 +2715,8 @@
       "product": 77,
       "track_inventory": true,
       "cost_price_amount": "1.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2746,7 +2764,8 @@
       "product": 78,
       "track_inventory": true,
       "cost_price_amount": "1.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2794,7 +2813,8 @@
       "product": 79,
       "track_inventory": true,
       "cost_price_amount": "1.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2842,7 +2862,8 @@
       "product": 87,
       "track_inventory": true,
       "cost_price_amount": "20.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -2922,7 +2943,8 @@
       "product": 88,
       "track_inventory": true,
       "cost_price_amount": "10.00",
-      "weight": "1.0:kg"
+      "weight": "1.0:kg",
+      "default": true
     }
   },
   {
@@ -2986,7 +3008,8 @@
       "product": 89,
       "track_inventory": true,
       "cost_price_amount": "10.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -3066,7 +3089,8 @@
       "product": 107,
       "track_inventory": true,
       "cost_price_amount": "10.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -3146,7 +3170,8 @@
       "product": 108,
       "track_inventory": true,
       "cost_price_amount": "10.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -3226,7 +3251,8 @@
       "product": 109,
       "track_inventory": true,
       "cost_price_amount": "10.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -3306,7 +3332,8 @@
       "product": 110,
       "track_inventory": true,
       "cost_price_amount": "10.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -3386,7 +3413,8 @@
       "product": 111,
       "track_inventory": true,
       "cost_price_amount": "10.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -3466,7 +3494,8 @@
       "product": 112,
       "track_inventory": true,
       "cost_price_amount": "10.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -3546,7 +3575,8 @@
       "product": 113,
       "track_inventory": true,
       "cost_price_amount": "10.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -3626,7 +3656,8 @@
       "product": 114,
       "track_inventory": true,
       "cost_price_amount": "10.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -3706,7 +3737,8 @@
       "product": 115,
       "track_inventory": true,
       "cost_price_amount": "10.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -3786,7 +3818,8 @@
       "product": 116,
       "track_inventory": true,
       "cost_price_amount": "10.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -3866,7 +3899,8 @@
       "product": 117,
       "track_inventory": true,
       "cost_price_amount": "10.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -3946,7 +3980,8 @@
       "product": 118,
       "track_inventory": true,
       "cost_price_amount": "10.00",
-      "weight": "0.0:kg"
+      "weight": "0.0:kg",
+      "default": true
     }
   },
   {
@@ -4026,7 +4061,8 @@
       "product": 119,
       "track_inventory": true,
       "cost_price_amount": null,
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -4042,7 +4078,8 @@
       "product": 120,
       "track_inventory": true,
       "cost_price_amount": null,
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -4058,7 +4095,8 @@
       "product": 121,
       "track_inventory": true,
       "cost_price_amount": null,
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -4074,7 +4112,8 @@
       "product": 122,
       "track_inventory": true,
       "cost_price_amount": null,
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -4090,7 +4129,8 @@
       "product": 123,
       "track_inventory": true,
       "cost_price_amount": null,
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {
@@ -4106,7 +4146,8 @@
       "product": 124,
       "track_inventory": true,
       "cost_price_amount": null,
-      "weight": null
+      "weight": null,
+      "default": true
     }
   },
   {

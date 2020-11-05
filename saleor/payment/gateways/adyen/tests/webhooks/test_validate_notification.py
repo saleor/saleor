@@ -1,6 +1,10 @@
 from django.contrib.auth.hashers import make_password
 
-from ...webhooks import validate_auth_user, validate_hmac_signature
+from ...webhooks import (
+    validate_auth_user,
+    validate_hmac_signature,
+    validate_merchant_account,
+)
 
 
 def test_validate_hmac_signature(adyen_plugin, notification_with_hmac_signature):
@@ -73,3 +77,21 @@ def test_validate_auth_user_when_auth_is_disabled(adyen_plugin):
     config = plugin.config
     is_valid = validate_auth_user(headers={}, gateway_config=config)
     assert is_valid is True
+
+
+def test_validate_merchant_account(adyen_plugin, notification_with_hmac_signature):
+    plugin = adyen_plugin()
+    config = plugin.config
+    notification_with_hmac_signature[
+        "merchantAccountCode"
+    ] = config.connection_params.get("merchant_account")
+    assert validate_merchant_account(notification_with_hmac_signature, config) is True
+
+
+def test_validate_merchant_account_invalid_merchant_account(
+    adyen_plugin, notification_with_hmac_signature
+):
+    plugin = adyen_plugin()
+    config = plugin.config
+    notification_with_hmac_signature["merchantAccountCode"] = "test"
+    assert validate_merchant_account(notification_with_hmac_signature, config) is False

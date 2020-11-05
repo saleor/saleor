@@ -94,6 +94,7 @@ LANGUAGES = [
     ("is", "Icelandic"),
     ("it", "Italian"),
     ("ja", "Japanese"),
+    ("ka", "Georgian"),
     ("km", "Khmer"),
     ("ko", "Korean"),
     ("lt", "Lithuanian"),
