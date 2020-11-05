@@ -67,12 +67,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pre-commit-
 
-    # Run linters and Django related checks
-    - name: Run Linters and Checks
-      run: |
-        pre-commit run --all
-      if: ${{ always() }}
-
     # Publish coverage and test results
     - uses: codecov/codecov-action@v1
     - uses: actions/upload-artifact@v1
@@ -96,3 +90,9 @@ jobs:
         upload_endpoint: ${{ secrets.QUERIES_UPLOAD_ENDPOINT_URL }}
         upload_secret_key: ${{ secrets.QUERIES_UPLOAD_SECRET }}
       if: ${{ github.event_name == 'push' }}
+
+    # Run linters and Django related checks
+    - name: Run Linters and Checks
+      run: |
+        pre-commit run --all
+      if: ${{ always() }}
