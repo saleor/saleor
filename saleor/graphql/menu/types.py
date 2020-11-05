@@ -3,12 +3,18 @@ from graphene import relay
 
 from ...menu import models
 from ...product.models import Collection
+from ..channel.dataloaders import ChannelBySlugLoader
 from ..channel.types import ChannelContext, ChannelContextType
 from ..core.connection import CountableDjangoObjectType
 from ..page.dataloaders import PageByIdLoader
-from ..product.dataloaders import CategoryByIdLoader
+from ..product.dataloaders import (
+    CategoryByIdLoader,
+    CollectionByIdLoader,
+    CollectionChannelListingByCollectionIdAndChannelSlugLoader,
+)
 from ..translations.fields import TranslationField
 from ..translations.types import MenuItemTranslation
+from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     MenuByIdLoader,
     MenuItemByIdLoader,
@@ -87,20 +93,59 @@ class MenuItem(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_collection(root: ChannelContext[models.MenuItem], info, **_kwargs):
-        # TODO: Add dataloader
-        if root.node.collection_id and root.channel_slug:
-            collection = Collection.objects.filter(
-                id=root.node.collection_id,
-                channel_listing__channel__slug=str(root.channel_slug),
-                channel_listing__channel__is_active=True,
-                channel_listing__is_published=True,
-            ).first()
+        if not root.node.collection_id:
+            return None
+
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = Collection.objects.user_has_access_to_all(
+            requestor
+        )
+        if requestor_has_access_to_all:
             return (
-                ChannelContext(node=collection, channel_slug=None)
-                if collection
-                else None
+                CollectionByIdLoader(info.context)
+                .load(root.node.collection_id)
+                .then(
+                    lambda collection: ChannelContext(
+                        node=collection, channel_slug=root.channel_slug
+                    )
+                    if collection
+                    else None
+                )
             )
-        return None
+
+        # If it's a non-staff user with proper permission we should check that
+        # channel is active and collection is visible in this channel
+        channel_slug = str(root.channel_slug)
+        channel = ChannelBySlugLoader(info.context).load(channel_slug)
+
+        def calculate_collection_availability(collection_channel_listing):
+            def calculate_collection_availability_with_channel(channel):
+                collection_is_visible = (
+                    collection_channel_listing.is_visible
+                    if collection_channel_listing
+                    else False
+                )
+                if not channel.is_active or not collection_is_visible:
+                    return None
+                return (
+                    CollectionByIdLoader(info.context)
+                    .load(root.node.collection_id)
+                    .then(
+                        lambda collection: ChannelContext(
+                            node=collection, channel_slug=channel_slug
+                        )
+                        if collection
+                        else None
+                    )
+                )
+
+            return channel.then(calculate_collection_availability_with_channel)
+
+        return (
+            CollectionChannelListingByCollectionIdAndChannelSlugLoader(info.context)
+            .load((root.node.collection_id, channel_slug))
+            .then(calculate_collection_availability)
+        )
 
     @staticmethod
     def resolve_menu(root: ChannelContext[models.MenuItem], info, **_kwargs):
