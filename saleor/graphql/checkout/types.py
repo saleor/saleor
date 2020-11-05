@@ -4,17 +4,15 @@ from promise import Promise
 from ...checkout import calculations, models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions, CheckoutPermissions
+from ...core.permissions import AccountPermissions
 from ...core.taxes import display_gross_prices, zero_taxed_money
 from ...plugins.manager import get_plugins_manager
 from ..account.utils import requestor_has_access
 from ..core.connection import CountableDjangoObjectType
 from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
-from ..decorators import permission_required
 from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..giftcard.types import GiftCard
-from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
@@ -254,12 +252,3 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     def resolve_is_shipping_required(root: models.Checkout, _info):
         return root.is_shipping_required()
-
-    @staticmethod
-    @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
-    def resolve_private_meta(root: models.Checkout, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.Checkout, _info):
-        return resolve_meta(root, _info)
