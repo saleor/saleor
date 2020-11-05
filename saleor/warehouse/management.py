@@ -9,7 +9,7 @@ from ..core.exceptions import AllocationError, InsufficientStock
 from .models import Allocation, Stock, Warehouse
 
 if TYPE_CHECKING:
-    from ..order.models import OrderLine, Order
+    from ..order.models import Order, OrderLine
 
 
 @transaction.atomic
