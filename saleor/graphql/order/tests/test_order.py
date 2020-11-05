@@ -262,7 +262,7 @@ def test_order_query(
 
     method = order_data["availableShippingMethods"][0]
     expected_method = expected_methods.first()
-    expected_shipping_price = expected_method.channel_listing.get(
+    expected_shipping_price = expected_method.channel_listings.get(
         channel_id=order.channel_id
     )
     assert float(expected_shipping_price.price.amount) == method["price"]["amount"]
@@ -312,7 +312,7 @@ def test_order_query_in_pln_channel(
 
     method = order_data["availableShippingMethods"][0]
     expected_method = expected_methods.first()
-    expected_shipping_price = expected_method.channel_listing.get(
+    expected_shipping_price = expected_method.channel_listings.get(
         channel_id=order.channel_id
     )
     assert float(expected_shipping_price.price.amount) == method["price"]["amount"]
@@ -386,7 +386,7 @@ def test_order_available_shipping_methods_query(
     }
     """
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_price = shipping_method.channel_listing.get(
+    shipping_price = shipping_method.channel_listings.get(
         channel_id=fulfilled_order.channel_id
     ).price
     taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
@@ -3031,7 +3031,7 @@ def test_order_update_shipping(
     assert data["order"]["id"] == order_id
 
     order.refresh_from_db()
-    shipping_total = shipping_method.channel_listing.get(
+    shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id
     ).get_total()
     shipping_price = TaxedMoney(shipping_total, shipping_total)
@@ -3046,7 +3046,7 @@ def test_order_update_shipping_clear_shipping_method(
     staff_api_client, permission_manage_orders, order, staff_user, shipping_method
 ):
     order.shipping_method = shipping_method
-    shipping_total = shipping_method.channel_listing.get(
+    shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id,
     ).get_total()
 

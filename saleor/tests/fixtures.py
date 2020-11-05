@@ -1872,7 +1872,7 @@ def order_with_lines(
     order.shipping_address = order.billing_address.get_copy()
     order.channel = channel_USD
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_price = shipping_method.channel_listing.get(channel_id=channel_USD.id)
+    shipping_price = shipping_method.channel_listings.get(channel_id=channel_USD.id)
     order.shipping_method_name = shipping_method.name
     order.shipping_method = shipping_method
 
@@ -1988,7 +1988,7 @@ def order_with_lines_channel_PLN(
     order.shipping_address = order.billing_address.get_copy()
     order.channel = channel_PLN
     shipping_method = shipping_method_channel_PLN
-    shipping_price = shipping_method.channel_listing.get(channel_id=channel_PLN.id,)
+    shipping_price = shipping_method.channel_listings.get(channel_id=channel_PLN.id,)
     order.shipping_method_name = shipping_method.name
     order.shipping_method = shipping_method
 

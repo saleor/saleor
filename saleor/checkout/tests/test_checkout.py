@@ -640,7 +640,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     checkout = checkout_with_voucher_percentage_and_shipping
 
     lines = list(checkout)
-    channel_listing = shipping_method.channel_listing.get(channel_id=channel_USD.id)
+    channel_listing = shipping_method.channel_listings.get(channel_id=channel_USD.id)
     channel_listing.price = calculations.checkout_subtotal(
         checkout=checkout, lines=lines
     ).gross + Money("10.00", "USD")
@@ -664,7 +664,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     checkout = checkout_with_voucher_percentage_and_shipping
 
     lines = list(checkout)
-    channel_listing = shipping_method.channel_listing.get(channel=channel_USD)
+    channel_listing = shipping_method.channel_listings.get(channel=channel_USD)
     channel_listing.price = calculations.checkout_subtotal(
         checkout=checkout, lines=lines
     ).gross - Money("1.00", "USD")

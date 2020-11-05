@@ -397,7 +397,7 @@ def test_update_order_prices(order_with_lines):
     price_2 = line_2.variant.get_price(channel_slug)
     price_2 = TaxedMoney(net=price_2, gross=price_2)
 
-    shipping_price = order_with_lines.shipping_method.channel_listing.get(
+    shipping_price = order_with_lines.shipping_method.channel_listings.get(
         channel_id=order_with_lines.channel_id
     ).price
     shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)

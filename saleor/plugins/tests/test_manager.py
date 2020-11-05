@@ -164,7 +164,7 @@ def test_manager_apply_taxes_to_product(product, plugins, price, channel_USD):
 def test_manager_apply_taxes_to_shipping(
     shipping_method, address, plugins, price_amount, channel_USD
 ):
-    shipping_price = shipping_method.channel_listing.get(
+    shipping_price = shipping_method.channel_listings.get(
         channel_id=channel_USD.id
     ).price
     expected_price = Money(price_amount, "USD")

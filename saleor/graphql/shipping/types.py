@@ -36,8 +36,7 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
         type_name="shipping method",
         resolver=ChannelContextType.resolve_translation,
     )
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(ShippingMethodChannelListing),
         description="List of channels available for the method.",
     )
@@ -73,7 +72,7 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
         if price:
             return price
         # TODO: Add dataloader.
-        channel_listing = root.node.channel_listing.filter(
+        channel_listing = root.node.channel_listings.filter(
             channel__slug=root.channel_slug
         ).first()
         return channel_listing.price if channel_listing else None
@@ -83,7 +82,7 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
         root: ChannelContext[models.ShippingMethod], *_args
     ):
         # TODO: Add dataloader.
-        channel_listing = root.node.channel_listing.filter(
+        channel_listing = root.node.channel_listings.filter(
             channel__slug=root.channel_slug
         ).first()
         return channel_listing.maximum_order_price if channel_listing else None
@@ -93,16 +92,16 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
         root: ChannelContext[models.ShippingMethod], *_args
     ):
         # TODO: Add dataloader.
-        channel_listing = root.node.channel_listing.filter(
+        channel_listing = root.node.channel_listings.filter(
             channel__slug=root.channel_slug
         ).first()
         return channel_listing.minimum_order_price if channel_listing else None
 
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_channel_listing(root: ChannelContext[models.ShippingMethod], *_args):
+    def resolve_channel_listings(root: ChannelContext[models.ShippingMethod], *_args):
         # TODO: Add dataloader.
-        return root.node.channel_listing.all()
+        return root.node.channel_listings.all()
 
     @staticmethod
     def resolve_maximum_order_weight(
@@ -163,7 +162,7 @@ class ShippingZone(ChannelContextType, CountableDjangoObjectType):
         channel_slug = root.channel_slug
         if channel_slug:
             shipping_methods = shipping_methods.filter(
-                channel_listing__channel__slug=str(channel_slug)
+                channel_listings__channel__slug=str(channel_slug)
             )
         shipping_methods = [
             ChannelContext(node=shipping, channel_slug=root.channel_slug)
