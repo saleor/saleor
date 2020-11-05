@@ -63,7 +63,7 @@ query GetSales($channel: String){
             }
           }
         }
-        channelListing {
+        channelListings {
           id
           discountValue
           currency
