@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('payment', '0021_transaction_searchable_key'),
+        ("payment", "0021_transaction_searchable_key"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='payment',
-            name='token',
-            field=models.CharField(blank=True, default='', max_length=512),
+            model_name="payment",
+            name="token",
+            field=models.CharField(blank=True, default="", max_length=512),
         ),
         migrations.AlterField(
-            model_name='transaction',
-            name='searchable_key',
+            model_name="transaction",
+            name="searchable_key",
             field=models.CharField(blank=True, max_length=512, null=True),
         ),
         migrations.AlterField(
-            model_name='transaction',
-            name='token',
-            field=models.CharField(blank=True, default='', max_length=512),
+            model_name="transaction",
+            name="token",
+            field=models.CharField(blank=True, default="", max_length=512),
         ),
     ]
