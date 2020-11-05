@@ -5,10 +5,16 @@ from ...core.permissions import ShippingPermissions
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
 from ..channel.dataloaders import ChannelByIdLoader
-from ..channel.types import ChannelContext, ChannelContextType
+from ..channel.types import (
+    ChannelContext,
+    ChannelContextType,
+    ChannelContextTypeWithMetadata,
+)
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import CountryDisplay, Money, MoneyRange
 from ..decorators import permission_required
+from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
+from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
@@ -40,7 +46,7 @@ class ShippingMethodChannelListing(CountableDjangoObjectType):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
-class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
+class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     type = ShippingMethodTypeEnum(description="Type of the shipping method.")
     translation = TranslationField(
         ShippingMethodTranslation,
@@ -69,7 +75,7 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
             "them. They are directly exposed to the customers."
         )
         model = models.ShippingMethod
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         only_fields = [
             "id",
             "maximum_order_weight",
@@ -146,8 +152,17 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
     ):
         return convert_weight_to_default_weight_unit(root.node.minimum_order_weight)
 
+    @staticmethod
+    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
+    def resolve_private_meta(root: models.ShippingMethod, _info):
+        return resolve_private_meta(root, _info)
 
-class ShippingZone(ChannelContextType, CountableDjangoObjectType):
+    @staticmethod
+    def resolve_meta(root: models.ShippingMethod, _info):
+        return resolve_meta(root, _info)
+
+
+class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     price_range = graphene.Field(
         MoneyRange, description="Lowest and highest prices for the shipping."
     )
@@ -173,7 +188,7 @@ class ShippingZone(ChannelContextType, CountableDjangoObjectType):
             "the customers directly."
         )
         model = models.ShippingZone
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         only_fields = ["default", "id", "name"]
 
     @staticmethod
@@ -215,3 +230,12 @@ class ShippingZone(ChannelContextType, CountableDjangoObjectType):
     @staticmethod
     def resolve_warehouses(root: ChannelContext[models.ShippingZone], *_args):
         return root.node.warehouses.all()
+
+    @staticmethod
+    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
+    def resolve_private_meta(root: ChannelContext[models.ShippingZone], _info):
+        return resolve_private_meta(root.node, _info)
+
+    @staticmethod
+    def resolve_meta(root: ChannelContext[models.ShippingZone], _info):
+        return resolve_meta(root.node, _info)

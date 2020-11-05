@@ -373,7 +373,7 @@ class ProductVariantBulkCreate(BaseMutation):
 
     @classmethod
     @transaction.atomic
-    def save_variants(cls, info, instances, cleaned_inputs):
+    def save_variants(cls, info, instances, product, cleaned_inputs):
         assert len(instances) == len(
             cleaned_inputs
         ), "There should be the same number of instances and cleaned inputs."
@@ -381,6 +381,9 @@ class ProductVariantBulkCreate(BaseMutation):
             cls.save(info, instance, cleaned_input)
             cls.create_variant_stocks(instance, cleaned_input)
             cls.create_variant_channel_listings(instance, cleaned_input)
+        if not product.default_variant:
+            product.default_variant = instances[0]
+            product.save(update_fields=["default_variant", "updated_at"])
 
     @classmethod
     def create_variant_stocks(cls, variant, cleaned_input):
@@ -402,7 +405,7 @@ class ProductVariantBulkCreate(BaseMutation):
         instances = cls.create_variants(info, cleaned_inputs, product, errors)
         if errors:
             raise ValidationError(errors)
-        cls.save_variants(info, instances, cleaned_inputs)
+        cls.save_variants(info, instances, product, cleaned_inputs)
 
         # Recalculate the "discounted price" for the parent product
         update_product_discounted_price_task.delay(product.pk)

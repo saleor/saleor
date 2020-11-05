@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
     # before merge to master squash this migration with `0021_shippingmethodlisting`
     dependencies = [
-        ("shipping", "0022_auto_20200910_1000"),
+        ("shipping", "0023_auto_20200910_1000"),
     ]
 
     operations = [

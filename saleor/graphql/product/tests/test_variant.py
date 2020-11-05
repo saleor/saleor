@@ -1469,6 +1469,9 @@ def test_product_variant_bulk_create_by_attribute_id(
     assert data["count"] == 1
     assert product_variant_count + 1 == ProductVariant.objects.count()
     assert attribute_value_count == size_attribute.values.count()
+    product_variant = ProductVariant.objects.get(sku=sku)
+    product.refresh_from_db()
+    assert product.default_variant == product_variant
 
 
 def test_product_variant_bulk_create_empty_attribute(
