@@ -152,3 +152,14 @@ class Payment(CountableDjangoObjectType):
         if not any(data.values()):
             return None
         return CreditCard(**data)
+
+
+class PaymentInitialized(graphene.ObjectType):
+    class Meta:
+        description = "Represents a initialized data by payment gateway."
+
+    gateway = graphene.String(description="Payment gateway.", required=True)
+    name = graphene.String(description="Payment gateway name.", required=True)
+    data = graphene.JSONString(
+        description="Initiliazed data by gateway.", required=False
+    )

@@ -10,6 +10,7 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
+    InitializedPaymentResponse,
     PaymentData,
     PaymentGateway,
 )
@@ -366,6 +367,11 @@ class BasePlugin:
 
     def fetch_taxes_data(self, previous_value: Any) -> Any:
         """Triggered when ShopFetchTaxRates mutation is called."""
+        return NotImplemented
+
+    def initialize_payment(
+        self, payment_data: dict, previous_value
+    ) -> "InitializedPaymentResponse":
         return NotImplemented
 
     def authorize_payment(

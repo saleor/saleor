@@ -17,7 +17,7 @@ from ... import PaymentError, TransactionKind
 from ...interface import (
     GatewayConfig,
     GatewayResponse,
-    InitializePaymentResponse,
+    InitializedPaymentResponse,
     PaymentData,
     PaymentGateway,
 )
@@ -30,11 +30,13 @@ from .utils import (
     api_call,
     call_capture,
     get_payment_method_info,
+    initialize_payment_for_apple_pay,
     request_data_for_gateway_config,
     request_data_for_payment,
     request_for_payment_cancel,
     request_for_payment_refund,
     update_payment_with_action_required_data,
+    validate_payment_for_apple_pay,
 )
 from .webhooks import handle_additional_actions, handle_webhook
 
@@ -68,6 +70,7 @@ class AdyenGatewayPlugin(BasePlugin):
         {"name": "notification-user", "value": ""},
         {"name": "notification-password", "value": ""},
         {"name": "enable-native-3d-secure", "value": False},
+        {"name": "apple-pay-cert", "value": None},
     ]
 
     CONFIG_STRUCTURE = {
@@ -204,6 +207,7 @@ class AdyenGatewayPlugin(BasePlugin):
                 "webhook_user_password": configuration["notification-password"],
                 "adyen_auto_capture": configuration["adyen-auto-capture"],
                 "enable_native_3d_secure": configuration["enable-native-3d-secure"],
+                "apple_pay_cert": configuration["apple-pay-cert"],
             },
         )
         api_key = self.config.connection_params["api_key"]
@@ -232,11 +236,35 @@ class AdyenGatewayPlugin(BasePlugin):
         return False
 
     @require_active_plugin
-    def initialize_payment(self, data, previous_value) -> "InitializePaymentResponse":
-        payment_method = data.get("paymentMethod")
+    def initialize_payment(
+        self, payment_data, previous_value
+    ) -> "InitializedPaymentResponse":
+        payment_method = payment_data.get("paymentMethod")
         if payment_method == "applepay":
-            validation_url = data.get("validationURL")  # type: ignore
-        return
+            # The apple pay on the web requires additional step
+            validation_url = payment_data.get("validationUrl")
+            merchant_identifier = payment_data.get("merchantIdentifier")
+            domain = payment_data.get("domain")
+            display_name = payment_data.get("displayName")
+            certificate = self.config.connection_params["apple_pay_cert"]
+            validate_payment_for_apple_pay(
+                validation_url=validation_url,
+                merchant_identifier=merchant_identifier,
+                domain=domain,
+                display_name=display_name,
+                certificate=certificate,
+            )
+            session_obj = initialize_payment_for_apple_pay(
+                validation_url=validation_url,
+                merchant_identifier=merchant_identifier,
+                domain=domain,
+                display_name=display_name,
+                certificate=certificate,
+            )
+            return InitializedPaymentResponse(
+                gateway=self.PLUGIN_ID, name=self.PLUGIN_NAME, data=session_obj
+            )
+        return previous_value
 
     @require_active_plugin
     def get_payment_gateway_for_checkout(
