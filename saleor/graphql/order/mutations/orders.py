@@ -573,6 +573,6 @@ class OrderConfirm(ModelMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         order = cls.get_instance(info, **data)
-        order.status = OrderStatus.UNFULFILLED
+        order.status = OrderStatus.UNCONFIRMED
         order.save(update_fields=["status"])
         return OrderConfirm(order=order)
