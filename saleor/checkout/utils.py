@@ -81,7 +81,7 @@ def add_variant_to_checkout(
     If `replace` is truthy then any previous quantity is discarded instead
     of added to.
     """
-    product_channel_listing = variant.product.channel_listing.filter(
+    product_channel_listing = variant.product.channel_listings.filter(
         channel_id=checkout.channel_id
     ).first()
     if not product_channel_listing or not product_channel_listing.is_published:

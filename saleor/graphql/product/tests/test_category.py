@@ -108,7 +108,7 @@ def test_query_category_product_only_visible_in_listings_as_customer(
     # given
     category = Category.objects.first()
 
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -131,7 +131,7 @@ def test_query_category_product_only_visible_in_listings_as_staff_without_perm(
     # given
     category = Category.objects.first()
 
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -156,7 +156,7 @@ def test_query_category_product_only_visible_in_listings_as_staff_with_perm(
 
     category = Category.objects.first()
 
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -176,7 +176,7 @@ def test_query_category_product_only_visible_in_listings_as_app_without_perm(
     # given
     category = Category.objects.first()
 
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -201,7 +201,7 @@ def test_query_category_product_only_visible_in_listings_as_app_with_perm(
 
     category = Category.objects.first()
 
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 

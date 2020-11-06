@@ -669,7 +669,7 @@ def test_product_query_is_available_for_purchase_true(
 ):
     # given
     available_for_purchase = datetime.today() - timedelta(days=1)
-    product.channel_listing.update(available_for_purchase=available_for_purchase)
+    product.channel_listings.update(available_for_purchase=available_for_purchase)
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -694,7 +694,7 @@ def test_product_query_is_available_for_purchase_false(
 ):
     # given
     available_for_purchase = datetime.today() + timedelta(days=1)
-    product.channel_listing.update(available_for_purchase=available_for_purchase)
+    product.channel_listings.update(available_for_purchase=available_for_purchase)
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -718,7 +718,7 @@ def test_product_query_is_available_for_purchase_false_no_available_for_purchase
     user_api_client, product, channel_USD
 ):
     # given
-    product.channel_listing.update(available_for_purchase=None)
+    product.channel_listings.update(available_for_purchase=None)
 
     variables = {
         "id": graphene.Node.to_global_id("Product", product.pk),
@@ -1085,7 +1085,7 @@ def test_fetch_all_products_visible_in_listings(
     user_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].channel_listing.update(visible_in_listings=False)
+    product_list[0].channel_listings.update(visible_in_listings=False)
 
     product_count = Product.objects.count()
     variables = {"channel": channel_USD.slug}
@@ -1105,7 +1105,7 @@ def test_fetch_all_products_visible_in_listings_by_staff_with_perm(
     staff_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].channel_listing.update(visible_in_listings=False)
+    product_list[0].channel_listings.update(visible_in_listings=False)
 
     product_count = Product.objects.count()
     variables = {"channel": channel_USD.slug}
@@ -1128,7 +1128,7 @@ def test_fetch_all_products_visible_in_listings_by_staff_without_perm(
     staff_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].channel_listing.update(visible_in_listings=False)
+    product_list[0].channel_listings.update(visible_in_listings=False)
 
     product_count = Product.objects.count()
     variables = {"channel": channel_USD.slug}
@@ -1148,7 +1148,7 @@ def test_fetch_all_products_visible_in_listings_by_app_with_perm(
     app_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].channel_listing.update(visible_in_listings=False)
+    product_list[0].channel_listings.update(visible_in_listings=False)
 
     product_count = Product.objects.count()
     variables = {"channel": channel_USD.slug}
@@ -1171,7 +1171,7 @@ def test_fetch_all_products_visible_in_listings_by_app_without_perm(
     app_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].channel_listing.update(visible_in_listings=False)
+    product_list[0].channel_listings.update(visible_in_listings=False)
 
     product_count = Product.objects.count()
     variables = {"channel": channel_USD.slug}
@@ -1211,13 +1211,13 @@ def test_fetch_product_from_category_query(
                         }
                         variants {
                             name
-                            channelListing {
+                            channelListings {
                                 costPrice {
                                     amount
                                 }
                             }
                         }
-                        channelListing {
+                        channelListings {
                             purchaseCost {
                                 start {
                                     amount
@@ -1270,22 +1270,22 @@ def test_fetch_product_from_category_query(
     assert product_data["slug"] == product.slug
 
     variant = product.variants.first()
-    variant_channel_listing = variant.channel_listing.filter(channel_id=channel_USD.id)
+    variant_channel_listing = variant.channel_listings.filter(channel_id=channel_USD.id)
     purchase_cost, margin = get_product_costs_data(
         variant_channel_listing, True, channel_USD.currency_code
     )
-    cost_start = product_data["channelListing"][0]["purchaseCost"]["start"]["amount"]
-    cost_stop = product_data["channelListing"][0]["purchaseCost"]["stop"]["amount"]
+    cost_start = product_data["channelListings"][0]["purchaseCost"]["start"]["amount"]
+    cost_stop = product_data["channelListings"][0]["purchaseCost"]["stop"]["amount"]
 
     assert purchase_cost.start.amount == cost_start
     assert purchase_cost.stop.amount == cost_stop
     assert product_data["isAvailable"] is True
-    assert margin[0] == product_data["channelListing"][0]["margin"]["start"]
-    assert margin[1] == product_data["channelListing"][0]["margin"]["stop"]
+    assert margin[0] == product_data["channelListings"][0]["margin"]["start"]
+    assert margin[1] == product_data["channelListings"][0]["margin"]["stop"]
 
     variant = product.variants.first()
-    variant_channel_listing = variant.channel_listing.get(channel_id=channel_USD.id)
-    variant_channel_data = product_data["variants"][0]["channelListing"][0]
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    variant_channel_data = product_data["variants"][0]["channelListings"][0]
     variant_cost = variant_channel_data["costPrice"]["amount"]
 
     assert variant_channel_listing.cost_price.amount == variant_cost

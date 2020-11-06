@@ -53,8 +53,7 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         type_name="shipping method",
         resolver=ChannelContextType.resolve_translation,
     )
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(ShippingMethodChannelListing),
         description="List of channels available for the method.",
     )
@@ -145,7 +144,7 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_channel_listing(
+    def resolve_channel_listings(
         root: ChannelContext[models.ShippingMethod], info, **_kwargs
     ):
         return ShippingMethodChannelListingByShippingMethodIdLoader(info.context).load(

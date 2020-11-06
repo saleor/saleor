@@ -161,7 +161,7 @@ def test_sales_with_sorting_and_channel_USD(
         ),
     ],
 )
-def test_vouchers_with_sorting_and_channel_PLN(
+def test_sales_with_sorting_and_channel_PLN(
     sort_by,
     sales_order,
     staff_api_client,

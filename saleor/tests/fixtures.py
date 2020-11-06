@@ -1233,7 +1233,7 @@ def product_without_shipping(category, warehouse, channel_USD):
 def product_without_category(product):
     product.category = None
     product.save()
-    product.channel_listing.all().update(is_published=False)
+    product.channel_listings.all().update(is_published=False)
     return product
 
 
@@ -1665,7 +1665,7 @@ def voucher_free_shipping(voucher_percentage, channel_USD):
     voucher_percentage.type = VoucherType.SHIPPING
     voucher_percentage.name = "Free shipping"
     voucher_percentage.save()
-    voucher_percentage.channel_listing.filter(channel=channel_USD).update(
+    voucher_percentage.channel_listings.filter(channel=channel_USD).update(
         discount_value=100
     )
     return voucher_percentage
@@ -1885,7 +1885,7 @@ def order_with_lines(
     order.shipping_address = order.billing_address.get_copy()
     order.channel = channel_USD
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_price = shipping_method.channel_listing.get(channel_id=channel_USD.id)
+    shipping_price = shipping_method.channel_listings.get(channel_id=channel_USD.id)
     order.shipping_method_name = shipping_method.name
     order.shipping_method = shipping_method
 
@@ -2001,7 +2001,7 @@ def order_with_lines_channel_PLN(
     order.shipping_address = order.billing_address.get_copy()
     order.channel = channel_PLN
     shipping_method = shipping_method_channel_PLN
-    shipping_price = shipping_method.channel_listing.get(channel_id=channel_PLN.id,)
+    shipping_price = shipping_method.channel_listings.get(channel_id=channel_PLN.id,)
     order.shipping_method_name = shipping_method.name
     order.shipping_method = shipping_method
 
@@ -2284,7 +2284,7 @@ def sale_with_many_channels(product, category, collection, channel_USD, channel_
 
 @pytest.fixture
 def discount_info(category, collection, sale, channel_USD):
-    sale_channel_listing = sale.channel_listing.get(channel=channel_USD)
+    sale_channel_listing = sale.channel_listings.get(channel=channel_USD)
 
     return DiscountInfo(
         sale=sale,

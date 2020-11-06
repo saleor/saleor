@@ -53,8 +53,7 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         type_name="sale",
         resolver=ChannelContextType.resolve_translation,
     )
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(SaleChannelListing),
         description="List of channels available for the sale.",
     )
@@ -77,7 +76,7 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_channel_listing(root: ChannelContext[models.Sale], info, **_kwargs):
+    def resolve_channel_listings(root: ChannelContext[models.Sale], info, **_kwargs):
         return SaleChannelListingBySaleIdLoader(info.context).load(root.node.id)
 
     @staticmethod
@@ -164,8 +163,7 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         Money, description="Minimum order value to apply voucher."
     )
     type = VoucherTypeEnum(description="Determines a type of voucher.", required=True)
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(VoucherChannelListing),
         description="List of availability in channels for the voucher.",
     )
@@ -266,5 +264,5 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_channel_listing(root: ChannelContext[models.Voucher], info, **_kwargs):
+    def resolve_channel_listings(root: ChannelContext[models.Voucher], info, **_kwargs):
         return VoucherChannelListingByVoucherIdLoader(info.context).load(root.node.id)

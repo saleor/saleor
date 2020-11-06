@@ -139,7 +139,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def clean_voucher(cls, voucher, channel):
-        if not voucher.channel_listing.filter(channel=channel).exists():
+        if not voucher.channel_listings.filter(channel=channel).exists():
             raise ValidationError(
                 {
                     "voucher": ValidationError(

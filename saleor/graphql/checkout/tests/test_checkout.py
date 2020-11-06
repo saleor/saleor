@@ -986,7 +986,7 @@ def test_checkout_create_unavailable_for_purchase_product(
     variant = stock.product_variant
     product = variant.product
 
-    product.channel_listing.update(available_for_purchase=None)
+    product.channel_listings.update(available_for_purchase=None)
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
@@ -1022,7 +1022,7 @@ def test_checkout_create_available_for_purchase_from_tomorrow_product(
     variant = stock.product_variant
     product = variant.product
 
-    product.channel_listing.update(
+    product.channel_listings.update(
         available_for_purchase=datetime.date.today() + datetime.timedelta(days=1)
     )
 
@@ -1189,7 +1189,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     site_settings,
 ):
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_price = shipping_method.channel_listing.get(
+    shipping_price = shipping_method.channel_listings.get(
         channel_id=checkout_with_item.channel_id
     ).price
     taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
@@ -1332,7 +1332,7 @@ def test_checkout_lines_add_with_unavailable_for_purchase_product(
     # given
     variant = stock.product_variant
     product = stock.product_variant.product
-    product.channel_listing.update(available_for_purchase=None)
+    product.channel_listings.update(available_for_purchase=None)
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
@@ -1359,7 +1359,7 @@ def test_checkout_lines_add_with_available_for_purchase_from_tomorrow_product(
     # given
     variant = stock.product_variant
     product = stock.product_variant.product
-    product.channel_listing.update(
+    product.channel_listings.update(
         available_for_purchase=datetime.date.today() + datetime.timedelta(days=1)
     )
 

@@ -1160,7 +1160,7 @@ type Collection implements Node & ObjectWithMetadata {
   products(filter: ProductFilterInput, sortBy: ProductOrder, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
-  channelListing: [CollectionChannelListing!]
+  channelListings: [CollectionChannelListing!]
 }
 
 type CollectionAddProducts {
@@ -3799,7 +3799,7 @@ type Product implements Node & ObjectWithMetadata {
   isAvailable: Boolean
   taxType: TaxType
   attributes: [SelectedAttribute!]!
-  channelListing: [ProductChannelListing!]
+  channelListings: [ProductChannelListing!]
   imageById(id: ID): ProductImage
   variants: [ProductVariant]
   images: [ProductImage]
@@ -4244,7 +4244,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   quantity: Int! @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   quantityAllocated: Int @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   stockQuantity: Int! @deprecated(reason: "Use the quantityAvailable field instead. This field will be removed after 2020-07-31.")
-  channelListing: [ProductVariantChannelListing!]
+  channelListings: [ProductVariantChannelListing!]
   pricing: VariantPricingInfo
   isAvailable: Boolean @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
   attributes: [SelectedAttribute!]!
@@ -4550,7 +4550,7 @@ type Sale implements Node {
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   translation(languageCode: LanguageCodeEnum!): SaleTranslation
-  channelListing: [SaleChannelListing!]
+  channelListings: [SaleChannelListing!]
   discountValue: Float
   currency: String
 }
@@ -4830,7 +4830,7 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
   type: ShippingMethodTypeEnum
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
-  channelListing: [ShippingMethodChannelListing!]
+  channelListings: [ShippingMethodChannelListing!]
   price: Money
   maximumOrderPrice: Money
   minimumOrderPrice: Money
@@ -5557,7 +5557,7 @@ type Voucher implements Node {
   discountValue: Float
   currency: String
   minSpent: Money
-  channelListing: [VoucherChannelListing!]
+  channelListings: [VoucherChannelListing!]
 }
 
 type VoucherAddCatalogues {

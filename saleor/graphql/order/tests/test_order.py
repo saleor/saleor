@@ -328,7 +328,7 @@ def test_order_query(
 
     method = order_data["availableShippingMethods"][0]
     expected_method = expected_methods.first()
-    expected_shipping_price = expected_method.channel_listing.get(
+    expected_shipping_price = expected_method.channel_listings.get(
         channel_id=order.channel_id
     )
     assert float(expected_shipping_price.price.amount) == method["price"]["amount"]
@@ -378,7 +378,7 @@ def test_order_query_in_pln_channel(
 
     method = order_data["availableShippingMethods"][0]
     expected_method = expected_methods.first()
-    expected_shipping_price = expected_method.channel_listing.get(
+    expected_shipping_price = expected_method.channel_listings.get(
         channel_id=order.channel_id
     )
     assert float(expected_shipping_price.price.amount) == method["price"]["amount"]
@@ -452,7 +452,7 @@ def test_order_available_shipping_methods_query(
     }
     """
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_price = shipping_method.channel_listing.get(
+    shipping_price = shipping_method.channel_listings.get(
         channel_id=fulfilled_order.channel_id
     ).price
     taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
@@ -1121,7 +1121,7 @@ def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    voucher.channel_listing.all().delete()
+    voucher.channel_listings.all().delete()
     variables = {
         "user": user_id,
         "discount": discount,
@@ -1170,8 +1170,8 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    variant.product.channel_listing.all().delete()
-    variant.channel_listing.all().delete()
+    variant.product.channel_listings.all().delete()
+    variant.channel_listings.all().delete()
     variables = {
         "user": user_id,
         "discount": discount,
@@ -1250,7 +1250,7 @@ def test_draft_order_create_with_channel_with_unpublished_product(
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
     variant_1 = product_without_shipping.variants.first()
-    channel_listing = variant_1.product.channel_listing.get()
+    channel_listing = variant_1.product.channel_listings.get()
     channel_listing.is_published = False
     channel_listing.save()
 
@@ -1310,7 +1310,7 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
     variant_1 = product_without_shipping.variants.first()
-    channel_listing = variant_1.product.channel_listing.get()
+    channel_listing = variant_1.product.channel_listings.get()
     channel_listing.publication_date = next_day
     channel_listing.save()
 
@@ -1488,7 +1488,7 @@ def test_draft_order_update_voucher_not_available(
     query = DRAFT_UPDATE_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
-    voucher.channel_listing.all().delete()
+    voucher.channel_listings.all().delete()
     variables = {
         "id": order_id,
         "voucher": voucher_id,
@@ -1699,7 +1699,7 @@ def test_can_finalize_order_product_unavailable_for_purchase(
     order.save(update_fields=["status"])
 
     product = order.lines.first().variant.product
-    product.channel_listing.update(available_for_purchase=None)
+    product.channel_listings.update(available_for_purchase=None)
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -1723,7 +1723,7 @@ def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
     order.save(update_fields=["status"])
 
     product = order.lines.first().variant.product
-    product.channel_listing.update(
+    product.channel_listings.update(
         available_for_purchase=date.today() + timedelta(days=1)
     )
 
@@ -1782,7 +1782,7 @@ def test_validate_draft_order_with_unpublished_product(draft_order):
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    product_channel_listing = variant.product.channel_listing.get()
+    product_channel_listing = variant.product.channel_listings.get()
     product_channel_listing.is_published = False
     product_channel_listing.save(update_fields=["is_published"])
     line.refresh_from_db()
@@ -1800,7 +1800,7 @@ def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order)
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    variant.product.channel_listing.update(available_for_purchase=None)
+    variant.product.channel_listings.update(available_for_purchase=None)
     line.refresh_from_db()
 
     with pytest.raises(ValidationError) as e:
@@ -1818,7 +1818,7 @@ def test_validate_draft_order_with_product_available_for_purchase_in_future(
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    variant.product.channel_listing.update(
+    variant.product.channel_listings.update(
         available_for_purchase=date.today() + timedelta(days=2)
     )
     line.refresh_from_db()
@@ -2116,7 +2116,7 @@ def test_draft_order_complete_unavailable_for_purchase(
     assert not OrderEvent.objects.exists()
 
     product = order.lines.first().variant.product
-    product.channel_listing.update(
+    product.channel_listings.update(
         available_for_purchase=date.today() + timedelta(days=5)
     )
 
@@ -3144,7 +3144,7 @@ def test_order_update_shipping(
     assert data["order"]["id"] == order_id
 
     order.refresh_from_db()
-    shipping_total = shipping_method.channel_listing.get(
+    shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id
     ).get_total()
     shipping_price = TaxedMoney(shipping_total, shipping_total)
@@ -3159,7 +3159,7 @@ def test_order_update_shipping_clear_shipping_method(
     staff_api_client, permission_manage_orders, order, staff_user, shipping_method
 ):
     order.shipping_method = shipping_method
-    shipping_total = shipping_method.channel_listing.get(
+    shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id,
     ).get_total()
 

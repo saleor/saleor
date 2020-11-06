@@ -19,7 +19,7 @@ query GetShippingMethods($channel: String) {
             value
           }
           type
-          channelListing {
+          channelListings {
             id
             channel {
               id
@@ -68,7 +68,7 @@ def test_vouchers_query_with_channel_slug(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_vouchers_query_withot_channel_slug(
+def test_vouchers_query_without_channel_slug(
     staff_api_client, shipping_zones, permission_manage_shipping, count_queries,
 ):
     get_graphql_content(
