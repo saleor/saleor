@@ -23,9 +23,7 @@ def _associate_attribute_to_instance(
     instance: Union[Product, ProductVariant, Page], attribute_pk: int
 ) -> AttributeAssignmentType:
     """Associate a given attribute to an instance."""
-    assignment: Union[
-        "AssignedProductAttribute", "AssignedVariantAttribute", "AssignedPageAttribute"
-    ]
+    assignment: AttributeAssignmentType
     if isinstance(instance, Product):
         attribute_rel: Union[
             "AttributeProduct", "AttributeVariant", "AttributePage"
