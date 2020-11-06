@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("product", "0131_auto_20201014_1122"),
+        ("product", "0130_add_attribute_type_and_page_to_attribute_relation"),
         ("page", "0015_pagetype"),
     ]
 
