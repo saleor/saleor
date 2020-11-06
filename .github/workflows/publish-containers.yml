@@ -6,7 +6,7 @@ on:
       - "v*.*.*"
     branches:
       - master
-      - preview/*
+      - dev
 
 jobs:
   docker:
@@ -46,7 +46,7 @@ jobs:
           fi
 
           TAGS=$"\
-          ghcr.io/${{ steps.image.outputs.image_name }}:latest,\
+          ghcr.io/${{ steps.image.outputs.image_name }}:${NAMED_VERSION},\
           ghcr.io/${{ steps.image.outputs.image_name }}:${VERSION}\
           "
 
