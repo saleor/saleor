@@ -81,6 +81,9 @@ def orders(customer_user):
             ),
             Order(user=customer_user, status=OrderStatus.FULFILLED, token=uuid.uuid4()),
             Order(user=customer_user, status=OrderStatus.DRAFT, token=uuid.uuid4()),
+            Order(
+                user=customer_user, status=OrderStatus.UNCONFIRMED, token=uuid.uuid4()
+            ),
         ]
     )
 
@@ -405,7 +408,9 @@ def test_order_query_gift_cards(
     )
 
 
-def test_order_query_draft_excluded(staff_api_client, permission_manage_orders, orders):
+def test_order_query_shows_confirmed_orders(
+    staff_api_client, permission_manage_orders, orders
+):
     query = """
     query OrdersQuery {
         orders(first: 10) {

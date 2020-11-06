@@ -1,5 +1,8 @@
 class OrderStatus:
-    DRAFT = "draft"  # fully editable, not confirmed order created by staff users
+    DRAFT = "draft"  # fully editable, not finalized order created by staff users
+    UNCONFIRMED = (
+        "unconfirmed"  # order created by customers when confirmation is required
+    )
     UNFULFILLED = "unfulfilled"  # order with no items marked as fulfilled
     PARTIALLY_FULFILLED = (
         "partially fulfilled"  # order with some items marked as fulfilled
@@ -9,6 +12,7 @@ class OrderStatus:
 
     CHOICES = [
         (DRAFT, "Draft"),
+        (UNCONFIRMED, "Unconfirmed"),
         (UNFULFILLED, "Unfulfilled"),
         (PARTIALLY_FULFILLED, "Partially fulfilled"),
         (FULFILLED, "Fulfilled"),

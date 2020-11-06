@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Iterable, List, Optional, Tuple
 
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.encoding import smart_text
@@ -25,6 +26,7 @@ from ..discount.utils import (
     increase_voucher_usage,
     remove_voucher_usage_by_customer,
 )
+from ..order import OrderStatus
 from ..order.actions import order_created
 from ..order.emails import send_order_confirmation, send_staff_order_confirmation
 from ..order.models import Order, OrderLine
@@ -248,7 +250,16 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     total_price_left = order_data.pop("total_price_left")
     order_lines = order_data.pop("lines")
 
-    order = Order.objects.create(**order_data, checkout_token=checkout.token)
+    # TODO: refactor to use request.site / info.context site
+    site_settings = Site.objects.get_current().settings
+    status = (
+        OrderStatus.UNFULFILLED
+        if site_settings.automatically_confirm_all_new_orders
+        else OrderStatus.UNCONFIRMED
+    )
+    order = Order.objects.create(
+        **order_data, checkout_token=checkout.token, status=status
+    )
     for line in order_lines:
         line.order_id = order.pk
     order_lines = OrderLine.objects.bulk_create(order_lines)
