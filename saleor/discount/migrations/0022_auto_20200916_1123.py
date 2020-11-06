@@ -5,6 +5,7 @@ import os
 import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
+from django.utils.text import slugify
 
 
 def migrate_sale_data(apps, schema):
@@ -15,7 +16,7 @@ def migrate_sale_data(apps, schema):
     currency = os.environ.get("DEFAULT_CURRENCY", "USD")
     if Sale.objects.exists():
         channel, _ = Channel.objects.get_or_create(
-            slug=settings.DEFAULT_CHANNEL_SLUG,
+            slug=slugify(settings.DEFAULT_CHANNEL_SLUG),
             defaults={"name": f"Channel {currency}", "currency": currency},
         )
         for sale in Sale.objects.iterator():
