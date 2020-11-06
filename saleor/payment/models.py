@@ -37,7 +37,7 @@ class Payment(models.Model):
     charge_status = models.CharField(
         max_length=20, choices=ChargeStatus.CHOICES, default=ChargeStatus.NOT_CHARGED
     )
-    token = models.CharField(max_length=128, blank=True, default="")
+    token = models.CharField(max_length=512, blank=True, default="")
     total = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
@@ -198,7 +198,7 @@ class Transaction(models.Model):
     payment = models.ForeignKey(
         Payment, related_name="transactions", on_delete=models.PROTECT
     )
-    token = models.CharField(max_length=128, blank=True, default="")
+    token = models.CharField(max_length=512, blank=True, default="")
     kind = models.CharField(max_length=25, choices=TransactionKind.CHOICES)
     is_success = models.BooleanField(default=False)
     action_required = models.BooleanField(default=False)
@@ -219,7 +219,7 @@ class Transaction(models.Model):
     customer_id = models.CharField(max_length=256, null=True)
     gateway_response = JSONField(encoder=DjangoJSONEncoder)
     already_processed = models.BooleanField(default=False)
-    searchable_key = models.CharField(max_length=256, null=True, blank=True)
+    searchable_key = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         ordering = ("pk",)

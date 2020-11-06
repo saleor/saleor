@@ -8,8 +8,8 @@ about: Create a report to help us improve
 …
 
 ### Steps to reproduce the problem
-1. 
-2. 
+1.
+2.
 
 ### What I expected to happen
 …
