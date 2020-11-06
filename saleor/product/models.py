@@ -46,10 +46,10 @@ from . import AttributeInputType
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from django.db.models import OrderBy
     from prices import Money
 
     from ..account.models import User
-    from django.db.models import OrderBy
 
 
 class Category(MPTTModel, ModelWithMetadata, SeoModel):

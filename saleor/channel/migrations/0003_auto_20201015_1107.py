@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
         ("discount", "0023_voucherchannellisting"),
         ("order", "0090_orderchannel"),
         ("checkout", "0031_auto_20200819_0912"),
-        ("shipping", "0022_auto_20200910_1000"),
+        ("shipping", "0023_auto_20200910_1000"),
     ]
 
     operations = [

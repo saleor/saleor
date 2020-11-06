@@ -10,6 +10,44 @@ from ....models import Payment
 from ....utils import create_payment_information, create_transaction
 
 
+@mock.patch("saleor.payment.gateways.adyen.plugin.api_call")
+def test_process_additional_action(
+    mocked_api_call,
+    dummy_payment_data,
+    payment_dummy,
+    checkout_ready_to_complete,
+    adyen_plugin,
+):
+    expected_message = {"resultCode": "authorised", "pspReference": "ref-id"}
+    mocked_app_response = mock.MagicMock(message=expected_message)
+
+    mocked_api_call.return_value = mocked_app_response
+    plugin = adyen_plugin(auto_capture=False)
+    dummy_payment_data.data = {
+        "additional-data": "payment-data",
+    }
+
+    kind = TransactionKind.AUTH
+    response = plugin._process_additional_action(dummy_payment_data, kind)
+
+    assert response == GatewayResponse(
+        is_success=True,
+        action_required=False,
+        action_required_data=None,
+        kind=kind,
+        amount=dummy_payment_data.amount,
+        currency=dummy_payment_data.currency,
+        transaction_id="ref-id",
+        error=None,
+        raw_response=expected_message,
+        searchable_key="ref-id",
+        payment_method_info=PaymentMethodInfo(),
+    )
+    mocked_api_call.assert_called_with(
+        dummy_payment_data.data, plugin.adyen.checkout.payments_details
+    )
+
+
 @pytest.mark.vcr
 def test_get_payment_gateway_for_checkout(
     adyen_plugin, checkout_with_single_item, address

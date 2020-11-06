@@ -1,5 +1,5 @@
 import json
-from typing import Optional
+from typing import Iterable, Optional
 
 from django.db.models import QuerySet
 
@@ -12,7 +12,7 @@ from ..core.utils.anonymization import (
 )
 from ..invoice.models import Invoice
 from ..order import FulfillmentStatus, OrderStatus
-from ..order.models import Fulfillment, FulfillmentLine, Order
+from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
 from ..payment import ChargeStatus
 from ..product.models import Product
@@ -55,6 +55,30 @@ ORDER_FIELDS = (
 )
 
 
+def generate_order_lines_payload(lines: Iterable[OrderLine]):
+    line_fields = (
+        "product_name",
+        "variant_name",
+        "translated_product_name",
+        "translated_variant_name",
+        "product_sku",
+        "quantity",
+        "currency",
+        "unit_price_net_amount",
+        "unit_price_gross_amount",
+        "tax_rate",
+    )
+    serializer = PayloadSerializer()
+    return serializer.serialize(
+        lines,
+        fields=line_fields,
+        extra_dict_data={
+            "total_price_net_amount": (lambda l: l.get_total().net.amount),
+            "total_price_gross_amount": (lambda l: l.get_total().gross.amount),
+        },
+    )
+
+
 def generate_order_payload(order: "Order"):
     serializer = PayloadSerializer()
     fulfillment_fields = ("status", "tracking_number", "created")
@@ -81,30 +105,20 @@ def generate_order_payload(order: "Order"):
         "billing_country_code",
         "billing_country_area",
     )
-    line_fields = (
-        "product_name",
-        "variant_name",
-        "translated_product_name",
-        "translated_variant_name",
-        "product_sku",
-        "quantity",
-        "currency",
-        "unit_price_net_amount",
-        "unit_price_gross_amount",
-        "tax_rate",
-    )
+
     shipping_method_fields = ("name", "type", "currency", "price_amount")
+    lines = order.lines.all()
     order_data = serializer.serialize(
         [order],
         fields=ORDER_FIELDS,
         additional_fields={
             "shipping_method": (lambda o: o.shipping_method, shipping_method_fields),
-            "lines": (lambda o: o.lines.all(), line_fields),
             "payments": (lambda o: o.payments.all(), payment_fields),
             "shipping_address": (lambda o: o.shipping_address, ADDRESS_FIELDS),
             "billing_address": (lambda o: o.billing_address, ADDRESS_FIELDS),
             "fulfillments": (lambda o: o.fulfillments.all(), fulfillment_fields),
         },
+        extra_dict_data={"lines": json.loads(generate_order_lines_payload(lines))},
     )
     return order_data
 

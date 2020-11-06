@@ -6,11 +6,11 @@ if TYPE_CHECKING:
     from ..checkout.models import Checkout, CheckoutLine
     from ..discount import DiscountInfo
     from ..payment.interface import (
-        PaymentData,
-        GatewayResponse,
-        TokenConfig,
         CustomerSource,
+        GatewayResponse,
+        PaymentData,
         PaymentGateway,
+        TokenConfig,
     )
 
 

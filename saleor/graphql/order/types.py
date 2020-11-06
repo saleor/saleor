@@ -5,7 +5,7 @@ from promise import Promise
 
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions, OrderPermissions
+from ...core.permissions import AccountPermissions, OrderPermissions, ProductPermissions
 from ...core.taxes import display_gross_prices
 from ...graphql.utils import get_user_or_app_from_context
 from ...order import OrderStatus, models
@@ -21,7 +21,7 @@ from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
-from ..decorators import permission_required
+from ..decorators import one_of_permissions_required, permission_required
 from ..discount.dataloaders import VoucherByIdLoader
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
@@ -32,8 +32,8 @@ from ..product.dataloaders import ProductVariantByIdLoader
 from ..product.types import ProductVariant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..shipping.types import ShippingMethod
-from ..warehouse.types import Warehouse
-from .dataloaders import OrderLinesByOrderIdLoader
+from ..warehouse.types import Allocation, Warehouse
+from .dataloaders import AllocationsByOrderLineIdLoader, OrderLinesByOrderIdLoader
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
 
@@ -262,6 +262,10 @@ class OrderLine(CountableDjangoObjectType):
     translated_variant_name = graphene.String(
         required=True, description="Variant name in the customer's language"
     )
+    allocations = graphene.List(
+        graphene.NonNull(Allocation),
+        description="List of allocations across warehouses.",
+    )
 
     class Meta:
         description = "Represents order line of particular order."
@@ -319,6 +323,13 @@ class OrderLine(CountableDjangoObjectType):
         channel = ChannelByOrderLineIdLoader(info.context).load(root.id)
 
         return Promise.all([variant, channel]).then(wrap_variant_with_channel_context)
+
+    @staticmethod
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
+    def resolve_allocations(root: models.OrderLine, info):
+        return AllocationsByOrderLineIdLoader(info.context).load(root.id)
 
 
 class Order(CountableDjangoObjectType):
@@ -562,7 +573,6 @@ class Order(CountableDjangoObjectType):
         for shipping_method in available:
             # Ignore typing check because it is checked in
             # get_valid_shipping_methods_for_order
-            # TODO: Add dataloader here.
             shipping_channel_listing = shipping_method.channel_listings.filter(
                 channel=root.channel
             ).first()

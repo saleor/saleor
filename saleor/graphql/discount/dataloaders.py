@@ -55,7 +55,7 @@ class SaleChannelListingBySaleIdAndChanneSlugLoader(DataLoader):
         for sale_channel_listing in sale_channel_listings:
             key = (sale_channel_listing.sale_id, sale_channel_listing.channel_slug)
             sale_channel_listings_by_sale_and_channel_map[key] = sale_channel_listing
-        return [sale_channel_listings_by_sale_and_channel_map[key] for key in keys]
+        return [sale_channel_listings_by_sale_and_channel_map.get(key) for key in keys]
 
 
 class SaleChannelListingBySaleIdLoader(DataLoader):
@@ -98,7 +98,7 @@ class VoucherChannelListingByVoucherIdAndChanneSlugLoader(DataLoader):
                 key
             ] = voucher_channel_listing
         return [
-            voucher_channel_listings_by_voucher_and_channel_map[key] for key in keys
+            voucher_channel_listings_by_voucher_and_channel_map.get(key) for key in keys
         ]
 
 

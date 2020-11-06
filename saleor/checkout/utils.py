@@ -81,9 +81,9 @@ def add_variant_to_checkout(
     If `replace` is truthy then any previous quantity is discarded instead
     of added to.
     """
-    # TODO: Refactor when add relation between checkout and channel (Separate PR)
-    # We need to channel_listing by channel_slug from checkout.
-    product_channel_listing = variant.product.channel_listings.first()
+    product_channel_listing = variant.product.channel_listings.filter(
+        channel_id=checkout.channel_id
+    ).first()
     if not product_channel_listing or not product_channel_listing.is_published:
         raise ProductNotPublished()
 

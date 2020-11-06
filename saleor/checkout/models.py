@@ -23,9 +23,10 @@ from ..shipping.models import ShippingMethod
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..product.models import ProductVariant
     from django_measurement import Weight
+
     from ..payment.models import Payment
+    from ..product.models import ProductVariant
 
 
 class CheckoutQueryset(models.QuerySet):

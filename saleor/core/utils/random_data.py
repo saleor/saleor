@@ -146,7 +146,7 @@ IMAGES_MAPPING = {
 
 CATEGORY_IMAGES = {7: "accessories.jpg", 8: "groceries.jpg", 9: "apparel.jpg"}
 
-COLLECTION_IMAGES = {1: "summer.jpg", 2: "clothing.jpg"}
+COLLECTION_IMAGES = {1: "summer.jpg", 2: "clothing.jpg", 3: "clothing.jpg"}
 
 
 def get_weight(weight):
@@ -283,7 +283,12 @@ def create_product_variants(variants_data):
         defaults["product_id"] = product_id
         set_field_as_money(defaults, "price_override")
         set_field_as_money(defaults, "cost_price")
+        is_default_variant = defaults.pop("default", False)
         variant, _ = ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
+        if is_default_variant:
+            product = variant.product
+            product.default_variant = variant
+            product.save(update_fields=["default_variant", "updated_at"])
         quantity = random.randint(100, 500)
         create_stocks(variant, quantity=quantity)
 
