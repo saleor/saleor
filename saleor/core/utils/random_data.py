@@ -38,6 +38,7 @@ from ...discount.models import Sale, Voucher
 from ...discount.utils import fetch_discounts
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
+from ...order import OrderStatus
 from ...order.models import Fulfillment, Order, OrderLine
 from ...order.utils import update_order_status
 from ...page.models import Page
@@ -523,7 +524,7 @@ def create_fulfillments(order):
     update_order_status(order)
 
 
-def create_fake_order(discounts, max_order_lines=5):
+def create_fake_order(discounts, max_order_lines=5, alter_status=None):
     customers = (
         User.objects.filter(is_superuser=False)
         .exclude(default_billing_address=None)
@@ -570,6 +571,11 @@ def create_fake_order(discounts, max_order_lines=5):
 
     create_fake_payment(order=order)
     create_fulfillments(order)
+
+    if alter_status:
+        order.status = alter_status
+        order.save(update_fields=["status"])
+
     return order
 
 
@@ -641,10 +647,13 @@ def create_staff_users(how_many=2, superuser=False):
     return users
 
 
-def create_orders(how_many=10):
+def create_orders(how_many=10, unconfirmed=0):
     discounts = fetch_discounts(timezone.now())
-    for _ in range(how_many):
-        order = create_fake_order(discounts)
+    for i in range(how_many):
+        if unconfirmed <= how_many and i in range(i, unconfirmed):
+            order = create_fake_order(discounts, alter_status=OrderStatus.UNCONFIRMED)
+        else:
+            order = create_fake_order(discounts)
         yield "Order: %s" % (order,)
 
 

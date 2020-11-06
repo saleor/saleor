@@ -13,6 +13,7 @@ from ...account.models import Address, User
 from ...account.utils import create_superuser
 from ...discount.models import Sale, Voucher
 from ...giftcard.models import GiftCard
+from ...order import OrderStatus
 from ...order.models import Order
 from ...product.models import ProductImage, ProductType
 from ...shipping.models import ShippingZone
@@ -147,6 +148,30 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
     for _ in random_data.create_orders(how_many):
         pass
     assert Order.objects.all().count() == 2
+
+
+@pytest.mark.parametrize("how_many", [1, 3, 10])
+def test_create_orders(how_many, monkeypatch, image, media_root, warehouse):
+    monkeypatch.setattr(
+        "saleor.core.utils.random_data.get_image", Mock(return_value=image)
+    )
+    random_data.create_products_by_schema("/", False)
+    list(random_data.create_orders(how_many))
+    assert Order.objects.all().count() == how_many
+    assert Order.objects.filter(status=OrderStatus.UNCONFIRMED).exists() is False
+
+
+@pytest.mark.parametrize("how_many, unconfirmed", [(1, 1), (2, 1), (10, 5)])
+def test_create_orders_include_unconfirmed(
+    how_many, unconfirmed, monkeypatch, image, media_root, warehouse
+):
+    monkeypatch.setattr(
+        "saleor.core.utils.random_data.get_image", Mock(return_value=image)
+    )
+    random_data.create_products_by_schema("/", False)
+    list(random_data.create_orders(how_many, unconfirmed=unconfirmed))
+    assert Order.objects.count() == how_many
+    assert Order.objects.filter(status=OrderStatus.UNCONFIRMED).count() == unconfirmed
 
 
 def test_create_product_sales(db):
