@@ -5637,6 +5637,7 @@ type WebhookEvent {
 enum WebhookEventTypeEnum {
   ANY_EVENTS
   ORDER_CREATED
+  ORDER_CONFIRMED
   ORDER_FULLY_PAID
   ORDER_UPDATED
   ORDER_CANCELLED
@@ -5660,6 +5661,7 @@ input WebhookFilterInput {
 
 enum WebhookSampleEventTypeEnum {
   ORDER_CREATED
+  ORDER_CONFIRMED
   ORDER_FULLY_PAID
   ORDER_UPDATED
   ORDER_CANCELLED
