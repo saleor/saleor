@@ -126,7 +126,7 @@ class PaymentGateway:
 
 
 @dataclass
-class InitializePaymentResponse:
-    id: str
+class InitializedPaymentResponse:
+    gateway: str
     name: str
     data: Optional[JSONType] = None

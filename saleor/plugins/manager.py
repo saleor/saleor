@@ -30,6 +30,7 @@ if TYPE_CHECKING:
         GatewayResponse,
         CustomerSource,
         PaymentGateway,
+        InitializedPaymentResponse,
     )
 
 
@@ -313,6 +314,19 @@ class PluginsManager(PaymentInterface):
     def checkout_updated(self, checkout: "Checkout"):
         default_value = None
         return self.__run_method_on_plugins("checkout_updated", default_value, checkout)
+
+    def initialize_payment(
+        self, gateway, payment_data: dict
+    ) -> Optional["InitializedPaymentResponse"]:
+        method_name = "initialize_payment"
+        default_value = None
+        gtw = self.get_plugin(gateway)
+        if not gtw:
+            return None
+
+        return self.__run_method_on_single_plugin(
+            gtw, method_name, previous_value=default_value, payment_data=payment_data,
+        )
 
     def authorize_payment(
         self, gateway: str, payment_information: "PaymentData"
