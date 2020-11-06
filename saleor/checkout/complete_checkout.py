@@ -250,6 +250,7 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     total_price_left = order_data.pop("total_price_left")
     order_lines = order_data.pop("lines")
 
+    # TODO: refactor to use request.site / info.context site
     site_settings = Site.objects.get_current().settings
     status = (
         OrderStatus.UNFULFILLED
