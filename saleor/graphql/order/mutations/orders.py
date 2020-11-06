@@ -21,11 +21,9 @@ from ....payment import CustomPaymentChoices, PaymentError, TransactionKind, gat
 from ....site import models as site_models
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelMutation
-from ...core.scalars import UUID, PositiveDecimal
+from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError, OrderSettingsError
 from ...core.utils import validate_required_string_field
-from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
-from ...meta.deprecated.types import MetaInput, MetaPath
 from ...order.mutations.draft_orders import DraftOrderCreate
 from ...order.types import Order, OrderEvent, SiteSettings
 from ...shipping.types import ShippingMethod
@@ -486,61 +484,6 @@ class OrderRefund(BaseMutation):
         if transaction.kind == TransactionKind.REFUND:
             order_refunded(order, info.context.user, amount, payment)
         return OrderRefund(order=order)
-
-
-class OrderUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates meta for order."
-        model = models.Order
-        public = True
-
-    class Arguments:
-        token = UUID(description="Token of an object to update.", required=True)
-        input = MetaInput(
-            description="Fields required to update new or stored metadata item.",
-            required=True,
-        )
-
-    @classmethod
-    def get_instance(cls, info, **data):
-        token = data["token"]
-        return models.Order.objects.get(token=token)
-
-
-class OrderUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates private meta for order."
-        model = models.Order
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        public = False
-
-
-class OrderClearMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clears stored metadata value."
-        model = models.Order
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        public = True
-
-    class Arguments:
-        token = UUID(description="Token of an object to clear.", required=True)
-        input = MetaPath(
-            description="Fields required to update new or stored metadata item.",
-            required=True,
-        )
-
-    @classmethod
-    def get_instance(cls, info, **data):
-        token = data["token"]
-        return models.Order.objects.get(token=token)
-
-
-class OrderClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clears stored private metadata value."
-        model = models.Order
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        public = False
 
 
 class OrderUpdateSettingsInput(graphene.InputObjectType):

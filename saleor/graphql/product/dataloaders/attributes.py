@@ -12,6 +12,7 @@ from ....product.models import (
     AttributeVariant,
 )
 from ...core.dataloaders import DataLoader
+from ...utils import get_user_or_app_from_context
 from .products import ProductByIdLoader, ProductVariantByIdLoader
 
 
@@ -46,8 +47,10 @@ class BaseProductAttributesByProductTypeIdLoader(DataLoader):
         if not self.model_name:
             raise ValueError("Provide a model_name for this dataloader.")
 
-        user = self.user
-        if user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS):
+        requestor = get_user_or_app_from_context(self.context)
+        if requestor.is_active and requestor.has_perm(
+            ProductPermissions.MANAGE_PRODUCTS
+        ):
             qs = self.model_name.objects.all()
         else:
             qs = self.model_name.objects.filter(attribute__visible_in_storefront=True)
@@ -100,8 +103,10 @@ class AttributeProductsByProductTypeIdLoader(DataLoader):
     context_key = "attributeproducts_by_producttype"
 
     def batch_load(self, keys):
-        user = self.user
-        if user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS):
+        requestor = get_user_or_app_from_context(self.context)
+        if requestor.is_active and requestor.has_perm(
+            ProductPermissions.MANAGE_PRODUCTS
+        ):
             qs = AttributeProduct.objects.all()
         else:
             qs = AttributeProduct.objects.filter(attribute__visible_in_storefront=True)
@@ -118,8 +123,10 @@ class AttributeVariantsByProductTypeIdLoader(DataLoader):
     context_key = "attributevariants_by_producttype"
 
     def batch_load(self, keys):
-        user = self.user
-        if user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS):
+        requestor = get_user_or_app_from_context(self.context)
+        if requestor.is_active and requestor.has_perm(
+            ProductPermissions.MANAGE_PRODUCTS
+        ):
             qs = AttributeVariant.objects.all()
         else:
             qs = AttributeVariant.objects.filter(attribute__visible_in_storefront=True)
@@ -136,8 +143,10 @@ class AssignedProductAttributesByProductIdLoader(DataLoader):
     context_key = "assignedproductattributes_by_product"
 
     def batch_load(self, keys):
-        user = self.user
-        if user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS):
+        requestor = get_user_or_app_from_context(self.context)
+        if requestor.is_active and requestor.has_perm(
+            ProductPermissions.MANAGE_PRODUCTS
+        ):
             qs = AssignedProductAttribute.objects.all()
         else:
             qs = AssignedProductAttribute.objects.filter(
@@ -156,8 +165,10 @@ class AssignedVariantAttributesByProductVariantId(DataLoader):
     context_key = "assignedvariantattributes_by_productvariant"
 
     def batch_load(self, keys):
-        user = self.user
-        if user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS):
+        requestor = get_user_or_app_from_context(self.context)
+        if requestor.is_active and requestor.has_perm(
+            ProductPermissions.MANAGE_PRODUCTS
+        ):
             qs = AssignedVariantAttribute.objects.all()
         else:
             qs = AssignedVariantAttribute.objects.filter(
@@ -244,7 +255,7 @@ class SelectedAttributesByProductIdLoader(DataLoader):
     context_key = "selectedattributes_by_product"
 
     def batch_load(self, keys):
-        def with_products_and_assigned_attributed(result):
+        def with_products_and_assigned_attributes(result):
             products, product_attributes = result
             assigned_product_attribute_ids = [
                 a.id for attrs in product_attributes for a in attrs
@@ -316,7 +327,7 @@ class SelectedAttributesByProductIdLoader(DataLoader):
         ).load_many(keys)
 
         return Promise.all([products, assigned_attributes]).then(
-            with_products_and_assigned_attributed
+            with_products_and_assigned_attributes
         )
 
 

@@ -11,6 +11,7 @@ from ...core.permissions import (
     PagePermissions,
     ProductPermissions,
     ProductTypePermissions,
+    ShippingPermissions,
 )
 
 
@@ -72,6 +73,10 @@ def page_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
     return [PagePermissions.MANAGE_PAGES]
 
 
+def shipping_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+    return [ShippingPermissions.MANAGE_SHIPPING]
+
+
 PUBLIC_META_PERMISSION_MAP = {
     "Attribute": product_type_permissions,
     "Category": product_permissions,
@@ -85,6 +90,8 @@ PUBLIC_META_PERMISSION_MAP = {
     "Product": product_permissions,
     "ProductType": product_type_permissions,
     "ProductVariant": product_permissions,
+    "ShippingMethod": shipping_permissions,
+    "ShippingZone": shipping_permissions,
     "App": app_permissions,
     "User": public_user_permissions,
 }
@@ -103,6 +110,8 @@ PRIVATE_META_PERMISSION_MAP = {
     "Product": product_permissions,
     "ProductType": product_type_permissions,
     "ProductVariant": product_permissions,
+    "ShippingMethod": shipping_permissions,
+    "ShippingZone": shipping_permissions,
     "App": app_permissions,
     "User": private_user_permissions,
 }
