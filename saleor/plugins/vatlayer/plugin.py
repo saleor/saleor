@@ -27,12 +27,11 @@ from . import (
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from ...account.models import Address
     from ...checkout.models import Checkout, CheckoutLine
     from ...channel.models import Channel
     from ...discount import DiscountInfo
-
-    from ...account.models import Address
-    from ...order.models import OrderLine, Order
+    from ...order.models import Order, OrderLine
     from ..models import PluginConfiguration
 
 

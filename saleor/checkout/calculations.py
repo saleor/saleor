@@ -7,6 +7,7 @@ from ..plugins.manager import get_plugins_manager
 
 if TYPE_CHECKING:
     from prices import TaxedMoney
+
     from .models import Checkout, CheckoutLine
     from ..channel.models import Channel
 

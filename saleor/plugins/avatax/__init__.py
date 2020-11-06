@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ...checkout.models import Checkout, CheckoutLine
     from ...order.models import Order
-    from ...product.models import Product, ProductVariant, ProductType
+    from ...product.models import Product, ProductType, ProductVariant
 
 logger = logging.getLogger(__name__)
 

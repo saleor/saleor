@@ -25,6 +25,7 @@ urlpatterns = [
 
 if settings.DEBUG:
     import warnings
+
     from .core import views
 
     try:

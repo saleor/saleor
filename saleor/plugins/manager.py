@@ -18,20 +18,20 @@ from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from .base_plugin import BasePlugin
-    from ..checkout.models import Checkout, CheckoutLine
-    from ..channel.models import Channel
-    from ..product.models import Product, ProductType
     from ..account.models import Address, User
-    from ..order.models import Fulfillment, OrderLine, Order
+    from ..channel.models import Channel
+    from ..checkout.models import Checkout, CheckoutLine
     from ..invoice.models import Invoice
+    from ..order.models import Fulfillment, Order, OrderLine
     from ..payment.interface import (
-        PaymentData,
-        TokenConfig,
-        GatewayResponse,
         CustomerSource,
+        GatewayResponse,
+        PaymentData,
         PaymentGateway,
+        TokenConfig,
     )
+    from ..product.models import Product, ProductType
+    from .base_plugin import BasePlugin
 
 
 class PluginsManager(PaymentInterface):

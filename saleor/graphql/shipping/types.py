@@ -132,15 +132,6 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
-    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_channel_listing(
-        root: ChannelContext[models.ShippingMethod], info, **_kwargs
-    ):
-        return ShippingMethodChannelListingByShippingMethodIdLoader(info.context).load(
-            root.node.id
-        )
-
-    @staticmethod
     def resolve_maximum_order_weight(
         root: ChannelContext[models.ShippingMethod], *_args
     ):
@@ -154,12 +145,21 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_private_meta(root: models.ShippingMethod, _info):
-        return resolve_private_meta(root, _info)
+    def resolve_channel_listing(
+        root: ChannelContext[models.ShippingMethod], info, **_kwargs
+    ):
+        return ShippingMethodChannelListingByShippingMethodIdLoader(info.context).load(
+            root.node.id
+        )
 
     @staticmethod
-    def resolve_meta(root: models.ShippingMethod, _info):
-        return resolve_meta(root, _info)
+    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
+    def resolve_private_meta(root: ChannelContext[models.ShippingMethod], _info):
+        return resolve_private_meta(root.node, _info)
+
+    @staticmethod
+    def resolve_meta(root: ChannelContext[models.ShippingMethod], _info):
+        return resolve_meta(root.node, _info)
 
 
 class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):

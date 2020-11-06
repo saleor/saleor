@@ -324,6 +324,7 @@ class OrderLine(CountableDjangoObjectType):
 
         return Promise.all([variant, channel]).then(wrap_variant_with_channel_context)
 
+    @staticmethod
     @one_of_permissions_required(
         [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
     )
