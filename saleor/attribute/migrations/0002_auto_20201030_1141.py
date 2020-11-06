@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("attribute", "0001_initial"),
-        ("product", "0132_auto_20201030_1137"),
+        ("product", "0131_drop_attribute_models"),
     ]
 
     operations = [
