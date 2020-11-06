@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
@@ -20,8 +22,62 @@ from ..core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ..core.utils.reordering import perform_reordering
+from ..utils import resolve_global_ids_to_primary_keys
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeInputTypeEnum, AttributeTypeEnum
+
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
+
+
+class BaseReorderAttributesMutation(BaseMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def prepare_operations(cls, moves: ReorderInput, attributes: "QuerySet"):
+        """Prepare operations dict for reordering attributes.
+
+        Operation dict format:
+            key: attribute pk,
+            value: sort_order value - relative sorting position of the attribute
+        """
+        attribute_ids = []
+        sort_orders = []
+
+        # resolve attribute moves
+        for move_info in moves:
+            attribute_ids.append(move_info.id)
+            sort_orders.append(move_info.sort_order)
+
+        _, attr_pks = resolve_global_ids_to_primary_keys(attribute_ids, Attribute)
+        attr_pks = [int(pk) for pk in attr_pks]
+
+        attributes_m2m = attributes.filter(attribute_id__in=attr_pks)
+
+        if attributes_m2m.count() != len(attr_pks):
+            attribute_pks = attributes_m2m.values_list("attribute_id", flat=True)
+            invalid_attrs = set(attr_pks) - set(attribute_pks)
+            invalid_attr_ids = [
+                graphene.Node.to_global_id("Attribute", attr_pk)
+                for attr_pk in invalid_attrs
+            ]
+            raise ValidationError(
+                "Couldn't resolve to an attribute.",
+                params={"attributes": invalid_attr_ids},
+            )
+
+        attributes_m2m = list(attributes_m2m)
+        attributes_m2m.sort(
+            key=lambda e: attr_pks.index(e.attribute.pk)
+        )  # preserve order in pks
+
+        operations = {
+            attribute.pk: sort_order
+            for attribute, sort_order in zip(attributes_m2m, sort_orders)
+        }
+
+        return operations
 
 
 class AttributeValueCreateInput(graphene.InputObjectType):
