@@ -32,7 +32,6 @@ from ...core.fields import FilterInputConnectionField, PrefetchingConnectionFiel
 from ...core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange, TaxType
 from ...decorators import one_of_permissions_required, permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
-from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import (
@@ -420,15 +419,6 @@ class ProductVariant(CountableDjangoObjectType):
         return qs.filter(pk=pk).first()
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: models.ProductVariant, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.ProductVariant, _info):
-        return resolve_meta(root, _info)
-
-    @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
@@ -637,15 +627,6 @@ class Product(CountableDjangoObjectType):
         return None
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: models.Product, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.Product, _info):
-        return resolve_meta(root, _info)
-
-    @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
@@ -730,15 +711,6 @@ class ProductType(CountableDjangoObjectType):
         return resolve_attributes(info, qs=qs, **kwargs)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: models.ProductType, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.ProductType, _info):
-        return resolve_meta(root, _info)
-
-    @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
@@ -798,15 +770,6 @@ class Collection(CountableDjangoObjectType):
             qs = cls._meta.model.objects.visible_to_user(requestor)
             return qs.filter(id=id).first()
         return None
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: models.Collection, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.Collection, _info):
-        return resolve_meta(root, _info)
 
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
@@ -884,15 +847,6 @@ class Category(CountableDjangoObjectType):
         if not qs.user_has_access_to_all(requestor):
             qs = qs.exclude(visible_in_listings=False)
         return qs.filter(category__in=tree)
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: models.Category, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.Category, _info):
-        return resolve_meta(root, _info)
 
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):

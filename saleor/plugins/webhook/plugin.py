@@ -13,11 +13,11 @@ from ..base_plugin import BasePlugin
 from .tasks import trigger_webhooks_for_event
 
 if TYPE_CHECKING:
-    from ...order.models import Fulfillment, Order
     from ...account.models import User
-    from ...product.models import Product
     from ...checkout.models import Checkout
     from ...invoice.models import Invoice
+    from ...order.models import Fulfillment, Order
+    from ...product.models import Product
 
 
 class WebhookPlugin(BasePlugin):

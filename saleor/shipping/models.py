@@ -9,6 +9,7 @@ from django_prices.models import MoneyField
 from measurement.measures import Weight
 from prices import Money, MoneyRange
 
+from ..core.models import ModelWithMetadata
 from ..core.permissions import ShippingPermissions
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import (
@@ -59,7 +60,7 @@ def _get_weight_type_display(min_weight, max_weight):
     }
 
 
-class ShippingZone(models.Model):
+class ShippingZone(ModelWithMetadata):
     name = models.CharField(max_length=100)
     countries = CountryField(multiple=True, default=[], blank=True)
     default = models.BooleanField(default=False)
@@ -119,7 +120,7 @@ class ShippingMethodQueryset(models.QuerySet):
         )
 
 
-class ShippingMethod(models.Model):
+class ShippingMethod(ModelWithMetadata):
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=30, choices=ShippingMethodType.CHOICES)
     currency = models.CharField(

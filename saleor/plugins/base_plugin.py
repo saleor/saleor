@@ -17,13 +17,13 @@ from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..core.taxes import TaxType
-    from ..checkout.models import Checkout, CheckoutLine
-    from ..discount import DiscountInfo
-    from ..product.models import Product, ProductType
     from ..account.models import Address, User
-    from ..order.models import Fulfillment, OrderLine, Order
+    from ..checkout.models import Checkout, CheckoutLine
+    from ..core.taxes import TaxType
+    from ..discount import DiscountInfo
     from ..invoice.models import Invoice
+    from ..order.models import Fulfillment, Order, OrderLine
+    from ..product.models import Product, ProductType
 
 
 PluginConfigurationType = List[dict]

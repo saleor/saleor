@@ -7,6 +7,7 @@ from ...core.taxes import zero_money
 
 if TYPE_CHECKING:
     from prices import Money
+
     from ..models import Product, ProductVariant
 
 
