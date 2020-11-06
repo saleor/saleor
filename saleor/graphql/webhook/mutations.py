@@ -131,6 +131,26 @@ class WebhookUpdate(ModelMutation):
         error_type_field = "webhook_errors"
 
     @classmethod
+    def clean_input(cls, info, instance, data):
+        cleaned_data = super().clean_input(info, instance, data)
+        app = cleaned_data.get("app")
+
+        if not instance.app_id and not app:
+            raise ValidationError("Missing token or app", code=WebhookErrorCode.INVALID)
+
+        if instance.app_id:
+            # Let's skip app id in case when context has
+            # app instance
+            app = instance.app
+            cleaned_data.pop("app", None)
+
+        if not app or not app.is_active:
+            raise ValidationError(
+                "App doesn't exist or is disabled", code=WebhookErrorCode.NOT_FOUND,
+            )
+        return cleaned_data
+
+    @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.save()
         events = set(cleaned_input.get("events", []))
