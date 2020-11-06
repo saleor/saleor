@@ -2,6 +2,7 @@
 
 import django.db.models.deletion
 from django.db import migrations, models
+from django.utils.text import slugify
 
 
 def add_channel_slug(apps, schema_editor):
@@ -15,12 +16,9 @@ def add_channel_slug(apps, schema_editor):
         channel = channels_dict.get(currency)
 
         if not channel:
+            name = f"Channel {currency}"
             channel, _ = Channel.objects.get_or_create(
-                currency_code=currency,
-                defaults={
-                    "name": f"Channel {currency}",
-                    "slug": f"channel-{currency.lower()}",
-                },
+                currency_code=currency, defaults={"name": name, "slug": slugify(name)},
             )
             channels_dict[currency] = channel
 
