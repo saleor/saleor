@@ -7,7 +7,7 @@ from ...core.utils import build_absolute_uri
 from ...core.utils.json_serializer import HTMLSafeJSON
 
 if TYPE_CHECKING:
-    from ...order.models import OrderLine, Order
+    from ...order.models import Order, OrderLine
 
 
 def get_organization():

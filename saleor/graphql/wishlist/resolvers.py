@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     # pylint: disable=unused-import
     from django.db.models.query import QuerySet
     from graphene.types import ResolveInfo
+
     from ...account.models import User
     from ...wishlist.models import WishlistItem
 
