@@ -1,14 +1,17 @@
 from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import Dict, Iterable, List, Optional
 
 import django_filters
 import graphene
-from django.db.models import F, Q, Subquery, Sum
+from django.db.models import Exists, F, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Coalesce
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
-from ...attribute.models import Attribute
-from ...product.filters import filter_products_by_attributes_values
+from ...attribute.models import (
+    AssignedProductAttribute,
+    AssignedVariantAttribute,
+    Attribute,
+)
 from ...product.models import Category, Collection, Product, ProductType, ProductVariant
 from ...search.backends import picker
 from ...warehouse.models import Stock
@@ -52,6 +55,31 @@ def _clean_product_attributes_filter_input(
         queries[attr_pk] += attr_val_pk
 
     return queries
+
+
+T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
+
+
+def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
+    filters = [
+        Q(
+            Exists(
+                AssignedProductAttribute.objects.filter(
+                    product__id=OuterRef("pk"), values__pk__in=values
+                )
+            )
+        )
+        | Q(
+            Exists(
+                AssignedVariantAttribute.objects.filter(
+                    variant__product__id=OuterRef("pk"), values__pk__in=values,
+                )
+            )
+        )
+        for values in queries.values()
+    ]
+
+    return qs.filter(*filters)
 
 
 def filter_products_by_attributes(qs, filter_value):

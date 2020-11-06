@@ -6,7 +6,6 @@ from ...attribute import models
 from ...core.permissions import ProductPermissions
 from ..core.connection import CountableDjangoObjectType
 from ..decorators import permission_required
-from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
@@ -102,15 +101,6 @@ class Attribute(CountableDjangoObjectType):
     @staticmethod
     def resolve_values(root: models.Attribute, info):
         return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: models.Attribute, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.Attribute, _info):
-        return resolve_meta(root, _info)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

@@ -9,7 +9,6 @@ from ..attribute.types import Attribute, SelectedAttribute
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
-from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
@@ -49,14 +48,6 @@ class Page(CountableDjangoObjectType):
         ]
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Page
-
-    @staticmethod
-    def resolve_meta(root: models.Page, info):
-        return resolve_meta(root, info)
-
-    @staticmethod
-    def resolve_private_meta(root: models.Page, _info):
-        return resolve_private_meta(root, _info)
 
     @staticmethod
     def resolve_page_type(root: models.Page, info):
