@@ -21,7 +21,6 @@ from ...checkout.utils import (
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
-from ...core.permissions import OrderPermissions
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
 from ...payment import models as payment_models
@@ -32,7 +31,6 @@ from ..account.types import AddressInput
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import CheckoutError
 from ..core.utils import from_global_id_strict_type
-from ..meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -897,43 +895,3 @@ class CheckoutRemovePromoCode(BaseMutation):
         remove_promo_code_from_checkout(checkout, promo_code)
         info.context.plugins.checkout_updated(checkout)
         return CheckoutRemovePromoCode(checkout=checkout)
-
-
-class CheckoutUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates metadata for checkout."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        model = models.Checkout
-        public = True
-        error_type_class = CheckoutError
-        error_type_field = "checkout_errors"
-
-
-class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates private metadata for checkout."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        model = models.Checkout
-        public = False
-        error_type_class = CheckoutError
-        error_type_field = "checkout_errors"
-
-
-class CheckoutClearMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clear metadata for checkout."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        model = models.Checkout
-        public = True
-        error_type_class = CheckoutError
-        error_type_field = "checkout_errors"
-
-
-class CheckoutClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clear private metadata for checkout."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        model = models.Checkout
-        public = False
-        error_type_class = CheckoutError
-        error_type_field = "checkout_errors"

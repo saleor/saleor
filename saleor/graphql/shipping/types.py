@@ -1,14 +1,10 @@
 import graphene
 from graphene import relay
 
-from saleor.core.permissions import ShippingPermissions
-
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import CountryDisplay, MoneyRange
-from ..decorators import permission_required
-from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
@@ -46,15 +42,6 @@ class ShippingMethod(CountableDjangoObjectType):
     @staticmethod
     def resolve_minimum_order_weight(root: models.ShippingMethod, *_args):
         return convert_weight_to_default_weight_unit(root.minimum_order_weight)
-
-    @staticmethod
-    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_private_meta(root: models.ShippingMethod, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.ShippingMethod, _info):
-        return resolve_meta(root, _info)
 
 
 class ShippingZone(CountableDjangoObjectType):
@@ -103,12 +90,3 @@ class ShippingZone(CountableDjangoObjectType):
     @staticmethod
     def resolve_warehouses(root: models.ShippingZone, *_args):
         return root.warehouses.all()
-
-    @staticmethod
-    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_private_meta(root: models.ShippingZone, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.ShippingZone, _info):
-        return resolve_meta(root, _info)
