@@ -2037,7 +2037,6 @@ QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
                     id
                     sku
                     trackInventory
-                    quantity
                     price {
                         amount
                     }
@@ -5119,8 +5118,10 @@ mutation createProduct(
         $name: String!,
         $sku: String,
         $stocks: [StockInput!],
-        $basePrice: PositiveDecimal!
-        $trackInventory: Boolean)
+        $basePrice: PositiveDecimal!,
+        $trackInventory: Boolean,
+        $country: CountryCode
+        )
     {
         productCreate(
             input: {
@@ -5140,8 +5141,7 @@ mutation createProduct(
                     id
                     sku
                     trackInventory
-                    quantity
-                    stockQuantity
+                    quantityAvailable(countryCode: $country)
                 }
             }
             productErrors {
@@ -5179,6 +5179,7 @@ def test_create_product_without_variant_creates_stocks(
         "sku": "23434",
         "trackInventory": True,
         "basePrice": Decimal("19"),
+        "country": warehouse.address.country.code,
     }
     response = staff_api_client.post_graphql(
         MUTATION_CREATE_PRODUCT_WITH_STOCKS,
@@ -5187,7 +5188,7 @@ def test_create_product_without_variant_creates_stocks(
     )
     content = get_graphql_content(response)
     data = content["data"]["productCreate"]
-    quantity = data["product"]["variants"][0]["stockQuantity"]
+    quantity = data["product"]["variants"][0]["quantityAvailable"]
     assert quantity == 20
 
 
@@ -5211,6 +5212,7 @@ def test_create_product_with_variants_does_not_create_stock(
         "sku": "23434",
         "trackInventory": True,
         "basePrice": Decimal("19"),
+        "country": warehouse.address.country.code,
     }
     response = staff_api_client.post_graphql(
         MUTATION_CREATE_PRODUCT_WITH_STOCKS,
