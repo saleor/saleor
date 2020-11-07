@@ -12,12 +12,6 @@ if TYPE_CHECKING:
     from ..product.models import Product, ProductVariant
 
 
-def _get_quantity_allocated(stocks: StockQuerySet) -> int:
-    return stocks.aggregate(
-        quantity_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0)
-    )["quantity_allocated"]
-
-
 def _get_available_quantity(stocks: StockQuerySet) -> int:
     results = stocks.aggregate(
         total_quantity=Coalesce(Sum("quantity", distinct=True), 0),
@@ -85,13 +79,6 @@ def get_available_quantity_for_customer(
         available_quantity_in_shipping_zones.items(), key=lambda x: x[1]
     )[1]
     return min(max_available_quantity, settings.MAX_CHECKOUT_LINE_QUANTITY)
-
-
-def get_quantity_allocated(variant: "ProductVariant", country_code: str) -> int:
-    stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
-    if not stocks:
-        return 0
-    return _get_quantity_allocated(stocks)
 
 
 def is_variant_in_stock(variant: "ProductVariant", country_code: str) -> bool:

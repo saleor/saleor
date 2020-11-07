@@ -7,7 +7,6 @@ from ..availability import (
     check_stock_quantity,
     get_available_quantity,
     get_available_quantity_for_customer,
-    get_quantity_allocated,
 )
 from ..models import Allocation, Stock
 
@@ -141,24 +140,6 @@ def test_get_available_quantity_for_customer_without_country(
 
     available_quantity = get_available_quantity_for_customer(variant_with_many_stocks)
     assert available_quantity == 12
-
-
-def test_get_quantity_allocated(
-    variant_with_many_stocks, order_line_with_allocation_in_many_stocks
-):
-    quantity_allocated = get_quantity_allocated(variant_with_many_stocks, COUNTRY_CODE)
-    assert quantity_allocated == 3
-
-
-def test_get_quantity_allocated_without_allocation(variant_with_many_stocks):
-    quantity_allocated = get_quantity_allocated(variant_with_many_stocks, COUNTRY_CODE)
-    assert quantity_allocated == 0
-
-
-def test_get_quantity_allocated_without_stock(variant_with_many_stocks):
-    variant_with_many_stocks.stocks.all().delete()
-    quantity_allocated = get_quantity_allocated(variant_with_many_stocks, COUNTRY_CODE)
-    assert quantity_allocated == 0
 
 
 def test_are_all_product_variants_in_stock_all_in_stock(stock):

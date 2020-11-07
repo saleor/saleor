@@ -20,11 +20,7 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
-from ....warehouse.availability import (
-    get_available_quantity,
-    get_quantity_allocated,
-    is_product_in_stock,
-)
+from ....warehouse.availability import is_product_in_stock
 from ...account.enums import CountryCodeEnum
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
@@ -178,28 +174,6 @@ class ProductPricingInfo(BasePricingInfo):
 
 @key(fields="id")
 class ProductVariant(CountableDjangoObjectType):
-    quantity = graphene.Int(
-        required=True,
-        description="Quantity of a product available for sale.",
-        deprecation_reason=(
-            "Use the stock field instead. This field will be removed after 2020-07-31."
-        ),
-    )
-    quantity_allocated = graphene.Int(
-        required=False,
-        description="Quantity allocated for orders.",
-        deprecation_reason=(
-            "Use the stock field instead. This field will be removed after 2020-07-31."
-        ),
-    )
-    stock_quantity = graphene.Int(
-        required=True,
-        description="Quantity of a product available for sale.",
-        deprecation_reason=(
-            "Use the quantityAvailable field instead. "
-            "This field will be removed after 2020-07-31."
-        ),
-    )
     price = graphene.Field(
         Money,
         description=(
@@ -216,13 +190,6 @@ class ProductVariant(CountableDjangoObjectType):
             "only meant for displaying."
         ),
     )
-    is_available = graphene.Boolean(
-        description="Whether the variant is in stock and visible or not.",
-        deprecation_reason=(
-            "Use the stock field instead. This field will be removed after 2020-07-31."
-        ),
-    )
-
     attributes = graphene.List(
         graphene.NonNull(SelectedAttribute),
         required=True,
@@ -306,15 +273,6 @@ class ProductVariant(CountableDjangoObjectType):
         return getattr(root, "digital_content", None)
 
     @staticmethod
-    def resolve_stock_quantity(root: models.ProductVariant, info):
-        if not root.track_inventory:
-            return settings.MAX_CHECKOUT_LINE_QUANTITY
-
-        return AvailableQuantityByProductVariantIdAndCountryCodeLoader(
-            info.context
-        ).load((root.id, info.context.country))
-
-    @staticmethod
     def resolve_attributes(root: models.ProductVariant, info):
         return SelectedAttributesByProductVariantIdLoader(info.context).load(root.id)
 
@@ -368,36 +326,11 @@ class ProductVariant(CountableDjangoObjectType):
         return ProductByIdLoader(info.context).load(root.product_id)
 
     @staticmethod
-    def resolve_is_available(root: models.ProductVariant, info):
-        if not root.track_inventory:
-            return True
-
-        def is_variant_in_stock(available_quantity):
-            return available_quantity > 0
-
-        return (
-            AvailableQuantityByProductVariantIdAndCountryCodeLoader(info.context)
-            .load((root.id, info.context.country))
-            .then(is_variant_in_stock)
-        )
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_quantity(root: models.ProductVariant, info):
-        return get_available_quantity(root, info.context.country)
-
-    @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_quantity_ordered(root: models.ProductVariant, *_args):
         # This field is added through annotation when using the
         # `resolve_report_product_sales` resolver.
         return getattr(root, "quantity_ordered", None)
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_quantity_allocated(root: models.ProductVariant, info):
-        country = info.context.country
-        return get_quantity_allocated(root, country)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
