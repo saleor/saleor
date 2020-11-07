@@ -25,7 +25,7 @@ def test_send_email_request_change(mocked_notify, site_settings, customer_user):
         "old_email": customer_user.email,
         "new_email": new_email,
         "redirect_url": redirect_url,
-        "recipient_email": customer_user.email,
+        "recipient_email": new_email,
         "token": token,
     }
 
