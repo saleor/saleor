@@ -24,8 +24,6 @@ def test_product_details(product, api_client, count_queries, channel_USD):
           id
           sku
           name
-          stockQuantity
-          isAvailable
           pricing {
             discountLocalCurrency {
               currency

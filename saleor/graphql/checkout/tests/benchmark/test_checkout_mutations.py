@@ -58,7 +58,6 @@ FRAGMENT_CHECKOUT_LINE = (
             ...Price
           }
           variant {
-            stockQuantity
             ...ProductVariant
           }
           quantity
