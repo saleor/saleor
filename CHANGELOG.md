@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add metadata to shipping zones and shipping methods - #6340 by @maarcingebala
 - Drop deprecated meta mutations - #6422 by @maarcingebala
 - Migrate draftjs content to editorjs format - by @IKarbowiak #6430
+- Drop deprecated fields from the `ProductVariant` type: `quantity`, `quantityAllocated`, `stockQuantity`, `isAvailable` - #6436 by @maarcingebala
 
 ## 2.11.0
 
