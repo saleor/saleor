@@ -1,12 +1,14 @@
 import graphene
 from graphene import relay
 
+from ...core.permissions import PagePermissions
 from ...menu import models
 from ..core.connection import CountableDjangoObjectType
 from ..page.dataloaders import PageByIdLoader
 from ..product.dataloaders import CategoryByIdLoader, CollectionByIdLoader
 from ..translations.fields import TranslationField
 from ..translations.types import MenuItemTranslation
+from ..utils import get_user_or_app_from_context
 from .dataloaders import (
     MenuByIdLoader,
     MenuItemByIdLoader,
@@ -86,7 +88,19 @@ class MenuItem(CountableDjangoObjectType):
     @staticmethod
     def resolve_page(root: models.MenuItem, info, **kwargs):
         if root.page_id:
-            return PageByIdLoader(info.context).load(root.page_id)
+            requestor = get_user_or_app_from_context(info.context)
+            requestor_has_access_to_all = requestor.is_active and requestor.has_perm(
+                PagePermissions.MANAGE_PAGES
+            )
+            return (
+                PageByIdLoader(info.context)
+                .load(root.page_id)
+                .then(
+                    lambda page: page
+                    if requestor_has_access_to_all or page.is_visible
+                    else None
+                )
+            )
         return None
 
 

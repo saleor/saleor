@@ -14,8 +14,7 @@ class PageByIdLoader(DataLoader):
     context_key = "page_by_id"
 
     def batch_load(self, keys):
-        requestor = get_user_or_app_from_context(self.context)
-        pages = Page.objects.visible_to_user(requestor).in_bulk(keys)
+        pages = Page.objects.in_bulk(keys)
         return [pages.get(page_id) for page_id in keys]
 
 
@@ -33,8 +32,7 @@ class PagesByPageTypeIdLoader(DataLoader):
     context_key = "pages_by_pagetype"
 
     def batch_load(self, keys):
-        requestor = get_user_or_app_from_context(self.context)
-        pages = Page.objects.visible_to_user(requestor).filter(page_type_id__in=keys)
+        pages = Page.objects.filter(page_type_id__in=keys)
 
         pagetype_to_pages = defaultdict(list)
         for page in pages:
