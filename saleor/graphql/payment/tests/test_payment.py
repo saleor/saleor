@@ -3,7 +3,6 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
-import mock
 import pytest
 
 from ....checkout import calculations
@@ -850,7 +849,7 @@ mutation PaymentInitialize($gateway: String!, $paymentData: JSONString){
 """
 
 
-@mock.patch.object(PluginsManager, "initialize_payment")
+@patch.object(PluginsManager, "initialize_payment")
 def test_payment_initialize(mocked_initialize_payment, api_client):
     exected_initialize_payment_response = InitializedPaymentResponse(
         gateway="gateway.id",
@@ -894,7 +893,7 @@ def test_payment_initialize_gateway_doesnt_exist(api_client):
     assert content["data"]["paymentInitialize"]["initializedPayment"] is None
 
 
-@mock.patch.object(PluginsManager, "initialize_payment")
+@patch.object(PluginsManager, "initialize_payment")
 def test_payment_initialize_plugin_raises_error(mocked_initialize_payment, api_client):
     error_msg = "Missing paymentMethod field."
     mocked_initialize_payment.side_effect = PaymentError(error_msg)
