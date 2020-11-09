@@ -48,6 +48,7 @@ def parse_text(text, style_ranges, entity_ranges, entity_map):
 
     parsed_text = ""
     previous_index = 0
+    # insert html element on specified indexes
     for offset, tags in operations.items():
         end_index = offset + 1
         parsed_text += text[previous_index:end_index]
@@ -60,6 +61,13 @@ def parse_text(text, style_ranges, entity_ranges, entity_map):
 
 
 def prepare_operations(operations, ranges, entity_map, entity):
+    """Prepare operations dict defining operations on specific indexes.
+
+    Data format:
+        - key: index value
+        - value: list of html elements that should be insert into text on specific index
+
+    """
     for range_date in ranges:
         tag = "a" if entity else TAG_MAPPING[range_date["style"]]
         offset = range_date["offset"]
@@ -75,6 +83,14 @@ def prepare_operations(operations, ranges, entity_map, entity):
 
 
 def get_block_data(text, key, list_data, editor_js_blocks):
+    """Prepare editorjs blocks based on draftjs blocks.
+
+    Draftjs types are replaces with corresponding editorjs types.
+
+    List must be handled specially. In draftjs every list item is in separate block,
+    but in editorjs all list items are in a list in one block.
+    """
+    # if the list_data is not empty and list elements ended, append list block
     if list_data and "list-item" not in key:
         list_block = {"type": "list", "data": list_data}
         editor_js_blocks.append(list_block)
@@ -82,9 +98,14 @@ def get_block_data(text, key, list_data, editor_js_blocks):
 
     if "list-item" in key:
         style = key.split("-")[0]
+        # if the list data is not empty and list style is the same as current block,
+        # just append list element to the list data
         if list_data and list_data["style"] == style:
             list_data["items"].append(text)
         else:
+            # if list data is not empty it means that list style has been changed,
+            # in this situation create new block from existing list data and
+            # override the list data with the new data
             if list_data:
                 list_block = {"type": "list", "data": list_data}
                 editor_js_blocks.append(list_block)
