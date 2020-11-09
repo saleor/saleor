@@ -127,13 +127,35 @@ def migrate_draftjs_to_editorjs_format(apps, schema_editor):
 
 
 def migrate_model_field_data(Model):
-    instances = []
-    for instance in Model.objects.all():
-        if instance.description_json:
-            instance.description_json = parse_to_editorjs(instance.description_json)
-            instances.append(instance)
+    queryset = Model.objects.all().order_by("pk")
+    for batch_pks in queryset_in_batches(queryset):
+        instances = []
+        batch = Model.objects.filter(pk__in=batch_pks)
+        for instance in batch:
+            if instance.description_json:
+                instance.description_json = parse_to_editorjs(instance.description_json)
+                instances.append(instance)
 
-    Model.objects.bulk_update(instances, ["description_json"])
+        Model.objects.bulk_update(instances, ["description_json"])
+
+
+def queryset_in_batches(queryset):
+    """Slice a queryset into batches.
+
+    Input queryset should be sorted be pk.
+    """
+    start_pk = 0
+
+    while True:
+        qs = queryset.filter(pk__gt=start_pk)[:2000]
+        pks = list(qs.values_list("pk", flat=True))
+
+        if not pks:
+            break
+
+        yield pks
+
+        start_pk = pks[-1]
 
 
 class Migration(migrations.Migration):
