@@ -453,9 +453,9 @@ def test_order_confirm(staff_api_client, order_unconfirmed, permission_manage_or
     )
     order_data = get_graphql_content(response)["data"]["orderConfirm"]["order"]
 
-    assert order_data["status"] == OrderStatus.UNCONFIRMED.upper()
+    assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
     order_unconfirmed.refresh_from_db()
-    assert order_unconfirmed.status == OrderStatus.UNCONFIRMED
+    assert order_unconfirmed.status == OrderStatus.UNFULFILLED
 
 
 def test_order_confirm_unfulfilled(staff_api_client, order, permission_manage_orders):
