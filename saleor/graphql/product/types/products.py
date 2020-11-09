@@ -148,6 +148,13 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     pricing = graphene.Field(
         VariantPricingInfo,
+        country_code=graphene.Argument(
+            CountryCodeEnum,
+            description=(
+                "Country code used for tax calculations. If not provided, the default "
+                "country will be used."
+            ),
+        ),
         description=(
             "Lists the storefront variant's pricing, the current price and discounts, "
             "only meant for displaying."
@@ -218,7 +225,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
     )
     def resolve_stocks(
-        root: ChannelContext[models.ProductVariant], info, country_code=None
+        root: ChannelContext[models.ProductVariant], _info, country_code=None
     ):
         if not country_code:
             return root.node.stocks.annotate_available_quantity()
@@ -254,7 +261,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return VariantChannelListingByVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_pricing(root: ChannelContext[models.ProductVariant], info):
+    def resolve_pricing(
+        root: ChannelContext[models.ProductVariant], info, country_code=None
+    ):
         if not root.channel_slug:
             return None
 
@@ -269,6 +278,9 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         ).load((root.node.id, channel_slug))
         collections = CollectionsByProductIdLoader(context).load(root.node.product_id)
         channel = ChannelBySlugLoader(context).load(channel_slug)
+
+        if not country_code:
+            country_code = settings.DEFAULT_COUNTRY
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel(channel):
@@ -288,7 +300,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    country=context.country,
+                                    country=country_code,
                                     local_currency=context.currency,
                                     plugins=context.plugins,
                                 )
@@ -398,13 +410,28 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     pricing = graphene.Field(
         ProductPricingInfo,
+        country_code=graphene.Argument(
+            CountryCodeEnum,
+            description=(
+                "Country code used for tax calculations. If not provided, the default "
+                "country will be used."
+            ),
+        ),
         description=(
             "Lists the storefront product's pricing, the current price and discounts, "
             "only meant for displaying."
         ),
     )
     is_available = graphene.Boolean(
-        description="Whether the product is in stock and visible or not."
+        country_code=graphene.Argument(
+            CountryCodeEnum,
+            description=(
+                "Country code used to determine stock availability in warehouse that "
+                "ships to customer's country. If not provided, the default country "
+                "will be used."
+            ),
+        ),
+        description="Whether the product is in stock and visible or not.",
     )
     tax_type = graphene.Field(
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
@@ -514,7 +541,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ""
 
     @staticmethod
-    def resolve_pricing(root: ChannelContext[models.Product], info):
+    def resolve_pricing(root: ChannelContext[models.Product], info, country_code=None):
         if not root.channel_slug:
             return None
 
@@ -529,6 +556,9 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         ).load((root.node.id, channel_slug))
         collections = CollectionsByProductIdLoader(context).load(root.node.id)
         channel = ChannelBySlugLoader(context).load(channel_slug)
+
+        if not country_code:
+            country_code = settings.DEFAULT_COUNTRY
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel(channel):
@@ -548,7 +578,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    country=context.country,
+                                    country=country_code,
                                     local_currency=context.currency,
                                     plugins=context.plugins,
                                 )
@@ -575,13 +605,14 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
-    def resolve_is_available(root: ChannelContext[models.Product], info):
+    def resolve_is_available(
+        root: ChannelContext[models.Product], info, country_code=None
+    ):
         if not root.channel_slug:
             return None
 
         def calculate_is_available(product_channel_listing):
-            country = info.context.country
-            in_stock = is_product_in_stock(root.node, country)
+            in_stock = is_product_in_stock(root.node, country_code)
             is_visible = False
             if product_channel_listing:
                 is_visible = product_channel_listing.is_available_for_purchase()

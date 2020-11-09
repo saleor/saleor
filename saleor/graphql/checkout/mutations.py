@@ -30,7 +30,7 @@ from ...payment import models as payment_models
 from ...product import models as product_models
 from ...warehouse.availability import check_stock_quantity, get_available_quantity
 from ..account.i18n import I18nMixin
-from ..account.types import AddressInput
+from ..account.types import AddressInput, CountryCodeEnum
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import CheckoutError
 from ..core.utils import from_global_id_strict_type
@@ -158,6 +158,20 @@ def validate_variants_available_for_purchase(variants, channel_id):
         )
 
 
+def get_country_for_checkout(
+    shipping_address=None, billing_address=None, input_country=None
+):
+    country = (
+        shipping_address
+        and shipping_address.country
+        or billing_address
+        and billing_address.country
+        or input_country
+        or settings.DEFAULT_COUNTRY
+    )
+    return country
+
+
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
     variant_id = graphene.ID(required=True, description="ID of the product variant.")
@@ -184,6 +198,14 @@ class CheckoutCreateInput(graphene.InputObjectType):
         )
     )
     billing_address = AddressInput(description="Billing address of the customer.")
+    country = graphene.Field(
+        CountryCodeEnum,
+        description=(
+            "Country of the customer. Use this parameter to pass the country when no "
+            "shipping or billing address is known. If not passed, a default country "
+            "configured in the server will be used."
+        ),
+    )
 
 
 class CheckoutCreate(ModelMutation, I18nMixin):
@@ -289,19 +311,17 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
         user = info.context.user
-        country = info.context.country.code
         channel = data.pop("channel")
         cleaned_input = super().clean_input(info, instance, data)
 
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
 
-        # set country to one from shipping address
-        shipping_address = cleaned_input.get("shipping_address")
-        if shipping_address and shipping_address.country:
-            if shipping_address.country != country:
-                country = shipping_address.country
-        cleaned_input["country"] = country
+        shipping_address = cls.retrieve_shipping_address(user, data)
+        billing_address = cls.retrieve_billing_address(user, data)
+        country = get_country_for_checkout(
+            shipping_address, billing_address, cleaned_input.get("country")
+        )
 
         # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
@@ -311,14 +331,14 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 cleaned_input["quantities"],
             ) = cls.process_checkout_lines(lines, country, channel.id)
 
-        cleaned_input["shipping_address"] = cls.retrieve_shipping_address(user, data)
-        cleaned_input["billing_address"] = cls.retrieve_billing_address(user, data)
-
         # Use authenticated user's email as default email
         if user.is_authenticated:
             email = data.pop("email", None)
             cleaned_input["email"] = email or user.email
 
+        cleaned_input["shipping_address"] = shipping_address
+        cleaned_input["billing_address"] = billing_address
+        cleaned_input["country"] = country
         return cleaned_input
 
     @classmethod
@@ -642,17 +662,11 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         shipping_address = cls.validate_address(
             shipping_address, instance=checkout.shipping_address, info=info
         )
-
-        lines = list(checkout)
-
-        country = info.context.country.code
-        # set country to one from shipping address
-        if shipping_address and shipping_address.country:
-            if shipping_address.country != country:
-                country = shipping_address.country
+        country = get_country_for_checkout(shipping_address)
         checkout.set_country(country, commit=True)
 
         # Resolve and process the lines, validating variants quantities
+        lines = list(checkout)
         if lines:
             cls.process_checkout_lines(lines, country)
 

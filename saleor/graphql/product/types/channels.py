@@ -12,6 +12,7 @@ from ....product.utils.costs import (
     get_margin_for_variant_channel_listing,
     get_product_costs_data,
 )
+from ...account.enums import CountryCodeEnum
 from ...channel.dataloaders import ChannelByIdLoader
 from ...core.connection import CountableDjangoObjectType
 from ...decorators import permission_required
@@ -40,6 +41,15 @@ class ProductChannelListing(CountableDjangoObjectType):
     )
     pricing = graphene.Field(
         "saleor.graphql.product.types.products.ProductPricingInfo",
+        country_code=graphene.Argument(
+            CountryCodeEnum,
+            description=(
+                "Two-letter ISO 3166-1 country code. When provided, the exact quantity "
+                "from a warehouse operating in shipping zones that contain this "
+                "country will be returned. Otherwise, it will return the maximum "
+                "quantity from all shipping zones."
+            ),
+        ),
         description=(
             "Lists the storefront product's pricing, the current price and discounts, "
             "only meant for displaying."
@@ -142,7 +152,7 @@ class ProductChannelListing(CountableDjangoObjectType):
         return root.is_available_for_purchase()
 
     @staticmethod
-    def resolve_pricing(root: models.ProductChannelListing, info):
+    def resolve_pricing(root: models.ProductChannelListing, info, country_code=None):
         context = info.context
 
         def calculate_pricing_info(discounts):
@@ -163,7 +173,7 @@ class ProductChannelListing(CountableDjangoObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    country=context.country,
+                                    country=country_code,
                                     local_currency=context.currency,
                                     plugins=context.plugins,
                                 )

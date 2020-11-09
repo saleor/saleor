@@ -935,6 +935,7 @@ input CheckoutCreateInput {
   email: String
   shippingAddress: AddressInput
   billingAddress: AddressInput
+  country: CountryCode
 }
 
 type CheckoutCustomerAttach {
@@ -3690,8 +3691,8 @@ type Product implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   url: String! @deprecated(reason: "This field will be removed after 2020-07-31.")
   thumbnail(size: Int): Image
-  pricing: ProductPricingInfo
-  isAvailable: Boolean
+  pricing(countryCode: CountryCode): ProductPricingInfo
+  isAvailable(countryCode: CountryCode): Boolean
   taxType: TaxType
   attributes: [SelectedAttribute!]!
   channelListings: [ProductChannelListing!]
@@ -3743,7 +3744,7 @@ type ProductChannelListing implements Node {
   purchaseCost: MoneyRange
   margin: Margin
   isAvailableForPurchase: Boolean
-  pricing: ProductPricingInfo
+  pricing(countryCode: CountryCode): ProductPricingInfo
 }
 
 input ProductChannelListingAddInput {
@@ -4112,7 +4113,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   channelListings: [ProductVariantChannelListing!]
-  pricing: VariantPricingInfo
+  pricing(countryCode: CountryCode): VariantPricingInfo
   attributes: [SelectedAttribute!]!
   costPrice: Money
   margin: Int
