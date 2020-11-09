@@ -40,7 +40,7 @@ def add_page_types_to_existing_pages(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("page", "0014_add_metadata"),
+        ("page", "0015_migrate_from_draftjs_to_editorjs_format"),
     ]
 
     operations = [
