@@ -5,12 +5,12 @@ from graphene.utils.str_converters import to_camel_case
 
 from .....attribute.models import Attribute
 from .....product.models import Category, Collection, Product, ProductType
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import AttributeTypeEnum, AttributeValueType
 from ...types import resolve_attribute_value_type
 
 
-def test_get_single_attribute_by_pk(user_api_client, color_attribute_without_values):
+def test_get_single_attribute_by_user(user_api_client, color_attribute_without_values):
     attribute_gql_id = graphene.Node.to_global_id(
         "Attribute", color_attribute_without_values.id
     )
@@ -18,6 +18,7 @@ def test_get_single_attribute_by_pk(user_api_client, color_attribute_without_val
     query($id: ID!) {
         attribute(id: $id) {
             id
+            name
             slug
         }
     }
@@ -29,6 +30,150 @@ def test_get_single_attribute_by_pk(user_api_client, color_attribute_without_val
     assert content["data"]["attribute"], "Should have found an attribute"
     assert content["data"]["attribute"]["id"] == attribute_gql_id
     assert content["data"]["attribute"]["slug"] == color_attribute_without_values.slug
+
+
+QUERY_ATTRIBUTE = """
+query($id: ID!) {
+    attribute(id: $id) {
+        id
+        slug
+        name
+        inputType
+        type
+        values {
+            slug
+            inputType
+        }
+        valueRequired
+        visibleInStorefront
+        filterableInStorefront
+        filterableInDashboard
+        availableInGrid
+        storefrontSearchPosition
+    }
+}
+"""
+
+
+def test_get_single_product_attribute_by_staff(
+    staff_api_client, color_attribute_without_values, permission_manage_products
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    attribute_gql_id = graphene.Node.to_global_id(
+        "Attribute", color_attribute_without_values.id
+    )
+    query = QUERY_ATTRIBUTE
+    content = get_graphql_content(
+        staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+    )
+
+    assert content["data"]["attribute"], "Should have found an attribute"
+    assert content["data"]["attribute"]["id"] == attribute_gql_id
+    assert content["data"]["attribute"]["slug"] == color_attribute_without_values.slug
+    assert (
+        content["data"]["attribute"]["valueRequired"]
+        == color_attribute_without_values.value_required
+    )
+    assert (
+        content["data"]["attribute"]["visibleInStorefront"]
+        == color_attribute_without_values.visible_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInStorefront"]
+        == color_attribute_without_values.filterable_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInDashboard"]
+        == color_attribute_without_values.filterable_in_dashboard
+    )
+    assert (
+        content["data"]["attribute"]["availableInGrid"]
+        == color_attribute_without_values.available_in_grid
+    )
+    assert (
+        content["data"]["attribute"]["storefrontSearchPosition"]
+        == color_attribute_without_values.storefront_search_position
+    )
+
+
+def test_get_single_product_attribute_by_app(
+    staff_api_client, color_attribute_without_values, permission_manage_products
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    attribute_gql_id = graphene.Node.to_global_id(
+        "Attribute", color_attribute_without_values.id
+    )
+    query = QUERY_ATTRIBUTE
+    content = get_graphql_content(
+        staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+    )
+
+    assert content["data"]["attribute"], "Should have found an attribute"
+    assert content["data"]["attribute"]["id"] == attribute_gql_id
+    assert content["data"]["attribute"]["slug"] == color_attribute_without_values.slug
+    assert (
+        content["data"]["attribute"]["valueRequired"]
+        == color_attribute_without_values.value_required
+    )
+    assert (
+        content["data"]["attribute"]["visibleInStorefront"]
+        == color_attribute_without_values.visible_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInStorefront"]
+        == color_attribute_without_values.filterable_in_storefront
+    )
+    assert (
+        content["data"]["attribute"]["filterableInDashboard"]
+        == color_attribute_without_values.filterable_in_dashboard
+    )
+    assert (
+        content["data"]["attribute"]["availableInGrid"]
+        == color_attribute_without_values.available_in_grid
+    )
+    assert (
+        content["data"]["attribute"]["storefrontSearchPosition"]
+        == color_attribute_without_values.storefront_search_position
+    )
+
+
+def test_get_single_product_attribute_by_staff_no_perm(
+    staff_api_client, color_attribute_without_values, permission_manage_pages
+):
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+    attribute_gql_id = graphene.Node.to_global_id(
+        "Attribute", color_attribute_without_values.id
+    )
+    query = QUERY_ATTRIBUTE
+    response = staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+
+    assert_no_permission(response)
+
+
+def test_get_single_page_attribute_by_staff(
+    staff_api_client, size_page_attribute, permission_manage_pages
+):
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+    attribute_gql_id = graphene.Node.to_global_id("Attribute", size_page_attribute.id)
+    query = QUERY_ATTRIBUTE
+    content = get_graphql_content(
+        staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+    )
+
+    assert content["data"]["attribute"], "Should have found an attribute"
+    assert content["data"]["attribute"]["id"] == attribute_gql_id
+    assert content["data"]["attribute"]["slug"] == size_page_attribute.slug
+
+
+def test_get_single_page_attribute_by_staff_no_perm(
+    staff_api_client, size_page_attribute, permission_manage_products
+):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    attribute_gql_id = graphene.Node.to_global_id("Attribute", size_page_attribute.id)
+    query = QUERY_ATTRIBUTE
+    response = staff_api_client.post_graphql(query, {"id": attribute_gql_id})
+
+    assert_no_permission(response)
 
 
 QUERY_ATTRIBUTES = """

@@ -4,8 +4,9 @@ from typing import Iterable, Union
 
 from graphql.execution.base import ResolveInfo
 
+from ..attribute import AttributeType
 from ..core.exceptions import PermissionDenied
-from ..core.permissions import AccountPermissions
+from ..core.permissions import AccountPermissions, PagePermissions, ProductPermissions
 
 
 def context(f):
@@ -27,6 +28,23 @@ def account_passes_test(test_func):
         @context(f)
         def wrapper(context, *args, **kwargs):
             if test_func(context):
+                return f(*args, **kwargs)
+            raise PermissionDenied()
+
+        return wrapper
+
+    return decorator
+
+
+def account_passes_test_for_attribute(test_func):
+    """Determine if user/app has permission to access to content."""
+
+    def decorator(f):
+        @wraps(f)
+        @context(f)
+        def wrapper(context, *args, **kwargs):
+            root = args[0]
+            if test_func(context, root):
                 return f(*args, **kwargs)
             raise PermissionDenied()
 
@@ -72,3 +90,23 @@ def one_of_permissions_required(perms: Iterable[Enum]):
 staff_member_required = account_passes_test(
     lambda context: context.user.is_active and context.user.is_staff
 )
+
+
+def check_attribute_required_permissions():
+    def check_perms(context, root):
+        if root.type == AttributeType.PAGE_TYPE:
+            return _permission_required((PagePermissions.MANAGE_PAGES,), context)
+        else:
+            return _permission_required((ProductPermissions.MANAGE_PRODUCTS,), context)
+
+    return account_passes_test_for_attribute(check_perms)
+
+
+def check_attribute_value_required_permissions():
+    def check_perms(context, root):
+        if root.attribute.type == AttributeType.PAGE_TYPE:
+            return _permission_required((PagePermissions.MANAGE_PAGES,), context)
+        else:
+            return _permission_required((ProductPermissions.MANAGE_PRODUCTS,), context)
+
+    return account_passes_test_for_attribute(check_perms)
