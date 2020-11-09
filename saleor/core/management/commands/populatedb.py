@@ -109,7 +109,7 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         for msg in create_users(20):
             self.stdout.write(msg)
-        for msg in create_orders(20, unconfirmed=3):
+        for msg in create_orders(20):
             self.stdout.write(msg)
         for msg in set_homepage_collection():
             self.stdout.write(msg)

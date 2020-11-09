@@ -524,13 +524,16 @@ def create_fulfillments(order):
     update_order_status(order)
 
 
-def create_fake_order(discounts, max_order_lines=5, alter_status=None):
+def create_fake_order(discounts, max_order_lines=5):
     customers = (
         User.objects.filter(is_superuser=False)
         .exclude(default_billing_address=None)
         .order_by("?")
     )
     customer = random.choice([None, customers.first()])
+
+    # 20% chance to be unconfirmed order.
+    will_be_unconfirmed = random.choice([0, 0, 0, 0, 1])
 
     if customer:
         address = customer.default_shipping_address
@@ -558,8 +561,8 @@ def create_fake_order(discounts, max_order_lines=5, alter_status=None):
             "shipping_price": shipping_price,
         }
     )
-    if alter_status:
-        order_data["status"] = alter_status
+    if will_be_unconfirmed:
+        order_data["status"] = OrderStatus.UNCONFIRMED
 
     order = Order.objects.create(**order_data)
 
@@ -573,7 +576,7 @@ def create_fake_order(discounts, max_order_lines=5, alter_status=None):
 
     create_fake_payment(order=order)
 
-    if alter_status != OrderStatus.UNCONFIRMED:
+    if not will_be_unconfirmed:
         create_fulfillments(order)
 
     return order
@@ -647,13 +650,10 @@ def create_staff_users(how_many=2, superuser=False):
     return users
 
 
-def create_orders(how_many=10, unconfirmed=0):
+def create_orders(how_many=10):
     discounts = fetch_discounts(timezone.now())
-    for i in range(how_many):
-        if unconfirmed <= how_many and i < unconfirmed:
-            order = create_fake_order(discounts, alter_status=OrderStatus.UNCONFIRMED)
-        else:
-            order = create_fake_order(discounts)
+    for _ in range(how_many):
+        order = create_fake_order(discounts)
         yield "Order: %s" % (order,)
 
 
