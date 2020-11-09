@@ -178,7 +178,7 @@ class AdyenGatewayPlugin(BasePlugin):
             "label": "Enable native 3D Secure",
         },
         "apple-pay-cert": {
-            "type": ConfigurationTypeField.SECRET,
+            "type": ConfigurationTypeField.SECRET_TEXT,
             "help_text": (
                 "Follow the Adyen docs related to activating the apple pay for the "
                 "web - https://docs.adyen.com/payment-methods/apple-pay/"
