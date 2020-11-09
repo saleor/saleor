@@ -558,6 +558,8 @@ def create_fake_order(discounts, max_order_lines=5, alter_status=None):
             "shipping_price": shipping_price,
         }
     )
+    if alter_status:
+        order_data["status"] = alter_status
 
     order = Order.objects.create(**order_data)
 
@@ -570,11 +572,9 @@ def create_fake_order(discounts, max_order_lines=5, alter_status=None):
     order.save()
 
     create_fake_payment(order=order)
-    create_fulfillments(order)
 
-    if alter_status:
-        order.status = alter_status
-        order.save(update_fields=["status"])
+    if alter_status != OrderStatus.UNCONFIRMED:
+        create_fulfillments(order)
 
     return order
 
@@ -650,7 +650,7 @@ def create_staff_users(how_many=2, superuser=False):
 def create_orders(how_many=10, unconfirmed=0):
     discounts = fetch_discounts(timezone.now())
     for i in range(how_many):
-        if unconfirmed <= how_many and i in range(i, unconfirmed):
+        if unconfirmed <= how_many and i < unconfirmed:
             order = create_fake_order(discounts, alter_status=OrderStatus.UNCONFIRMED)
         else:
             order = create_fake_order(discounts)
