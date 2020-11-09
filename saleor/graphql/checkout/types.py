@@ -18,6 +18,7 @@ from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..giftcard.types import GiftCard
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
+from ..product.resolvers import resolve_variant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..shipping.types import ShippingMethod
 from ..utils import get_user_or_app_from_context
@@ -70,9 +71,9 @@ class CheckoutLine(CountableDjangoObjectType):
         filter_fields = ["id"]
 
     @staticmethod
-    def resolve_variant(root, _info):
-        channel_slug = root.checkout.channel.slug
-        return ChannelContext(node=root.variant, channel_slug=channel_slug)
+    def resolve_variant(root: models.CheckoutLine, info):
+        dataloader = ChannelByCheckoutLineIDLoader(info.context)
+        return resolve_variant(info, root, dataloader)
 
     @staticmethod
     def resolve_total_price(root, info):

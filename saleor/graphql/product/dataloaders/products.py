@@ -34,8 +34,6 @@ class ProductByIdLoader(DataLoader):
     context_key = "product_by_id"
 
     def batch_load(self, keys):
-        # FIXME: check if we need to use visible_for_user queryset here or we can
-        # ensure the right access to visible products at some higher level.
         products = Product.objects.all().in_bulk(keys)
         return [products.get(product_id) for product_id in keys]
 
@@ -66,7 +64,7 @@ class ProductChannelListingByProductIdLoader(DataLoader[int, ProductChannelListi
         ]
 
 
-class ProductChannelListingByProductIdAndChanneSlugLoader(
+class ProductChannelListingByProductIdAndChannelSlugLoader(
     DataLoader[ProductIdAndChannelSlug, ProductChannelListing]
 ):
     context_key = "productchannelisting_by_product_and_channel"

@@ -65,7 +65,7 @@ from ..dataloaders import (
     ImagesByProductVariantIdLoader,
     ProductAttributesByProductTypeIdLoader,
     ProductByIdLoader,
-    ProductChannelListingByProductIdAndChanneSlugLoader,
+    ProductChannelListingByProductIdAndChannelSlugLoader,
     ProductChannelListingByProductIdLoader,
     ProductTypeByIdLoader,
     ProductVariantByIdLoader,
@@ -301,7 +301,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
         context = info.context
         product = ProductByIdLoader(context).load(root.node.product_id)
-        product_channel_listing = ProductChannelListingByProductIdAndChanneSlugLoader(
+        product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
         ).load((root.node.product_id, root.channel_slug))
         variant_channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
@@ -594,7 +594,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
         context = info.context
         channel_slug = root.channel_slug
-        product_channel_listing = ProductChannelListingByProductIdAndChanneSlugLoader(
+        product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
         ).load((root.node.id, channel_slug))
         variants = ProductVariantsByProductIdLoader(context).load(root.node.id)
@@ -662,7 +662,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             return is_visible and in_stock
 
         return (
-            ProductChannelListingByProductIdAndChanneSlugLoader(info.context)
+            ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
             .then(calculate_is_available)
         )
@@ -743,7 +743,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             return product_channel_listing.is_available_for_purchase()
 
         return (
-            ProductChannelListingByProductIdAndChanneSlugLoader(info.context)
+            ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
             .then(calculate_is_available_for_purchase)
         )
@@ -759,7 +759,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             return product_channel_listing.available_for_purchase
 
         return (
-            ProductChannelListingByProductIdAndChanneSlugLoader(info.context)
+            ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
             .then(calculate_available_for_purchase)
         )
