@@ -488,8 +488,9 @@ class OrderRefund(BaseMutation):
 class OrderSettingsUpdateInput(graphene.InputObjectType):
     automatically_confirm_all_new_orders = graphene.Boolean(
         required=True,
-        description="When enabled, all new orders from checkout "
-        "will be marked as unconfirmed.",
+        description="When disabled, all new orders from checkout "
+        "will be marked as unconfirmed. When enabled orders from checkout will "
+        "become unfulfilled immediately.",
     )
 
 
