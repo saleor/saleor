@@ -18,7 +18,7 @@ def migrate_visible_in_listings_and_available_for_purchase(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("product", "0134_migrate_cost_price_to_channel_listing"),
+        ("product", "0135_migrate_cost_price_to_channel_listing"),
     ]
 
     operations = [
