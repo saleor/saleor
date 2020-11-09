@@ -12,8 +12,6 @@ from ..payment.mutations import CheckoutPaymentCreate
 from .mutations import (
     CheckoutAddPromoCode,
     CheckoutBillingAddressUpdate,
-    CheckoutClearMeta,
-    CheckoutClearPrivateMeta,
     CheckoutComplete,
     CheckoutCreate,
     CheckoutCustomerAttach,
@@ -25,8 +23,6 @@ from .mutations import (
     CheckoutRemovePromoCode,
     CheckoutShippingAddressUpdate,
     CheckoutShippingMethodUpdate,
-    CheckoutUpdateMeta,
-    CheckoutUpdatePrivateMeta,
 )
 from .resolvers import resolve_checkout, resolve_checkout_lines, resolve_checkouts
 from .types import Checkout, CheckoutLine
@@ -85,27 +81,3 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_payment_create = CheckoutPaymentCreate.Field()
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
-    checkout_update_metadata = CheckoutUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation. This field will be removed after "
-            "2020-07-31."
-        )
-    )
-    checkout_clear_metadata = CheckoutClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation. This field will be removed after "
-            "2020-07-31."
-        )
-    )
-    checkout_update_private_metadata = CheckoutUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    checkout_clear_private_metadata = CheckoutClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation. This field will be removed "
-            "after 2020-07-31."
-        )
-    )

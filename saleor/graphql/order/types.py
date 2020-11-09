@@ -25,7 +25,6 @@ from ..decorators import one_of_permissions_required, permission_required
 from ..discount.dataloaders import VoucherByIdLoader
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
-from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..product.dataloaders import ProductVariantByIdLoader
@@ -227,15 +226,6 @@ class Fulfillment(CountableDjangoObjectType):
     def resolve_warehouse(root: models.Fulfillment, _info):
         line = root.lines.first()
         return line.stock.warehouse if line and line.stock else None
-
-    @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_private_meta(root: models.Fulfillment, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.Fulfillment, _info):
-        return resolve_meta(root, _info)
 
 
 class OrderLine(CountableDjangoObjectType):
@@ -608,15 +598,6 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_gift_cards(root: models.Order, _info):
         return root.gift_cards.all()
-
-    @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_private_meta(root: models.Order, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.Order, _info):
-        return resolve_meta(root, _info)
 
     @staticmethod
     def resolve_voucher(root: models.Order, info):

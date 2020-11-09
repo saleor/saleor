@@ -6,7 +6,6 @@ from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
-from ....order import models
 from ....order.actions import (
     cancel_fulfillment,
     create_fulfillments,
@@ -17,7 +16,6 @@ from ....order.error_codes import OrderErrorCode
 from ...core.mutations import BaseMutation
 from ...core.types.common import OrderError
 from ...core.utils import from_global_id_strict_type, get_duplicated_values
-from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...order.types import Fulfillment, Order
 from ...warehouse.types import Warehouse
 from ..types import OrderLine
@@ -68,38 +66,6 @@ class FulfillmentCancelInput(graphene.InputObjectType):
     warehouse_id = graphene.ID(
         description="ID of warehouse where items will be restock.", required=True
     )
-
-
-class FulfillmentClearMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clears metadata for fulfillment."
-        model = models.Fulfillment
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        public = True
-
-
-class FulfillmentUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates metadata for fulfillment."
-        model = models.Fulfillment
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        public = True
-
-
-class FulfillmentClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clears private metadata for fulfillment."
-        model = models.Fulfillment
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        public = False
-
-
-class FulfillmentUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates metadata for fulfillment."
-        model = models.Fulfillment
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        public = False
 
 
 class OrderFulfill(BaseMutation):

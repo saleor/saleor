@@ -4549,7 +4549,7 @@ def test_product_restricted_fields_permissions(
     query = """
     query Product($id: ID!, $channel: String) {
         product(id: $id, channel: $channel) {
-            privateMeta { __typename}
+            privateMetadata { __typename}
         }
     }
     """
@@ -4560,12 +4560,11 @@ def test_product_restricted_fields_permissions(
     permissions = [permission_manage_orders, permission_manage_products]
     response = staff_api_client.post_graphql(query, variables, permissions)
     content = get_graphql_content(response)
-    assert "privateMeta" in content["data"]["product"]
+    assert "privateMetadata" in content["data"]["product"]
 
 
 @pytest.mark.parametrize(
-    "field, is_nested",
-    (("digitalContent", True), ("quantityOrdered", False), ("privateMeta", True),),
+    "field, is_nested", (("digitalContent", True), ("quantityOrdered", False)),
 )
 def test_variant_restricted_fields_permissions(
     staff_api_client,

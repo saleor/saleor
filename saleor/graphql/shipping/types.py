@@ -13,7 +13,6 @@ from ..channel.types import (
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import CountryDisplay, Money, MoneyRange
 from ..decorators import permission_required
-from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range
 from ..translations.fields import TranslationField
@@ -151,15 +150,6 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             root.node.id
         )
 
-    @staticmethod
-    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_private_meta(root: ChannelContext[models.ShippingMethod], _info):
-        return resolve_private_meta(root.node, _info)
-
-    @staticmethod
-    def resolve_meta(root: ChannelContext[models.ShippingMethod], _info):
-        return resolve_meta(root.node, _info)
-
 
 class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     price_range = graphene.Field(
@@ -229,12 +219,3 @@ class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     def resolve_warehouses(root: ChannelContext[models.ShippingZone], *_args):
         return root.node.warehouses.all()
-
-    @staticmethod
-    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_private_meta(root: ChannelContext[models.ShippingZone], _info):
-        return resolve_private_meta(root.node, _info)
-
-    @staticmethod
-    def resolve_meta(root: ChannelContext[models.ShippingZone], _info):
-        return resolve_meta(root.node, _info)

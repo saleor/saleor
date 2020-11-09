@@ -38,7 +38,6 @@ from ...core.fields import (
 from ...core.types import Image, Money, TaxedMoney, TaxedMoneyRange, TaxType
 from ...decorators import one_of_permissions_required, permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
-from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
     OrderByIdLoader,
@@ -438,15 +437,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ImagesByProductVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: ChannelContext[models.ProductVariant], _info):
-        return resolve_private_meta(root.node, _info)
-
-    @staticmethod
-    def resolve_meta(root: ChannelContext[models.ProductVariant], _info):
-        return resolve_meta(root.node, _info)
-
-    @staticmethod
     def __resolve_reference(
         root: ChannelContext[models.ProductVariant], _info, **_kwargs
     ):
@@ -714,15 +704,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         )
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: ChannelContext[models.Product], _info):
-        return resolve_private_meta(root.node, _info)
-
-    @staticmethod
-    def resolve_meta(root: ChannelContext[models.Product], _info):
-        return resolve_meta(root.node, _info)
-
-    @staticmethod
     def __resolve_reference(root: ChannelContext[models.Product], _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.node.id)
 
@@ -846,15 +827,6 @@ class ProductType(CountableDjangoObjectType):
         return resolve_attributes(info, qs=qs, **kwargs)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: models.ProductType, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.ProductType, _info):
-        return resolve_meta(root, _info)
-
-    @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
@@ -925,15 +897,6 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return CollectionChannelListingByCollectionIdLoader(info.context).load(
             root.node.id
         )
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: ChannelContext[models.Collection], _info):
-        return resolve_private_meta(root.node, _info)
-
-    @staticmethod
-    def resolve_meta(root: ChannelContext[models.Collection], _info):
-        return resolve_meta(root.node, _info)
 
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
@@ -1027,15 +990,6 @@ class Category(CountableDjangoObjectType):
             qs = qs.filter(channel_listings__channel__slug=channel)
         qs = qs.filter(category__in=tree)
         return ChannelQsContext(qs=qs, channel_slug=channel)
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: models.Category, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.Category, _info):
-        return resolve_meta(root, _info)
 
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):

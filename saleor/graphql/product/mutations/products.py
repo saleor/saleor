@@ -43,7 +43,6 @@ from ...core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
-from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...warehouse.types import Warehouse
 from ..types import (
     Category,
@@ -453,106 +452,6 @@ class CollectionRemoveProducts(BaseMutation):
         return CollectionRemoveProducts(
             collection=ChannelContext(node=collection, channel_slug=None)
         )
-
-
-class CollectionUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        model = models.Collection
-        description = "Update public metadata for collection."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = True
-        error_type_class = CollectionError
-        error_type_field = "collection_errors"
-
-    @classmethod
-    def success_response(cls, instance):
-        instance = ChannelContext(node=instance, channel_slug=None)
-        return super().success_response(instance)
-
-
-class CollectionClearMeta(ClearMetaBaseMutation):
-    class Meta:
-        model = models.Collection
-        description = "Clears public metadata for collection."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = True
-        error_type_class = CollectionError
-        error_type_field = "collection_errors"
-
-    @classmethod
-    def success_response(cls, instance):
-        instance = ChannelContext(node=instance, channel_slug=None)
-        return super().success_response(instance)
-
-
-class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        model = models.Collection
-        description = "Update private metadata for collection."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = False
-        error_type_class = CollectionError
-        error_type_field = "collection_errors"
-
-    @classmethod
-    def success_response(cls, instance):
-        instance = ChannelContext(node=instance, channel_slug=None)
-        return super().success_response(instance)
-
-
-class CollectionClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        model = models.Collection
-        description = "Clears private metadata item for collection."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = False
-        error_type_class = CollectionError
-        error_type_field = "collection_errors"
-
-    @classmethod
-    def success_response(cls, instance):
-        instance = ChannelContext(node=instance, channel_slug=None)
-        return super().success_response(instance)
-
-
-class CategoryUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        model = models.Category
-        description = "Update public metadata for category."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class CategoryClearMeta(ClearMetaBaseMutation):
-    class Meta:
-        model = models.Category
-        description = "Clears public metadata for category."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        model = models.Category
-        description = "Update private metadata for category."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class CategoryClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        model = models.Category
-        description = "Clears private metadata for category."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
 
 
 class AttributeValueInput(InputObjectType):
@@ -1016,46 +915,6 @@ class ProductDelete(ModelDeleteMutation):
         return response
 
 
-class ProductUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        model = models.Product
-        description = "Update public metadata for product."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class ProductClearMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clears public metadata item for product."
-        model = models.Product
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class ProductUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Update private metadata for product."
-        model = models.Product
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class ProductClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clears private metadata item for product."
-        model = models.Product
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
 class ProductVariantInput(graphene.InputObjectType):
     attributes = graphene.List(
         AttributeValueInput,
@@ -1338,46 +1197,6 @@ class ProductVariantDelete(ModelDeleteMutation):
         return response
 
 
-class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        model = models.ProductVariant
-        description = "Update public metadata for product variant."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class ProductVariantClearMeta(ClearMetaBaseMutation):
-    class Meta:
-        model = models.ProductVariant
-        description = "Clears public metadata for product variant."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        model = models.ProductVariant
-        description = "Update private metadata for product variant."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        model = models.ProductVariant
-        description = "Clears private metadata for product variant."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
 class ProductTypeInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the product type.")
     slug = graphene.String(description="Product type slug.")
@@ -1527,46 +1346,6 @@ class ProductTypeDelete(ModelDeleteMutation):
         order_models.OrderLine.objects.filter(pk__in=order_line_pks).delete()
 
         return response
-
-
-class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        model = models.ProductType
-        description = "Update public metadata for product type."
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class ProductTypeClearMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clears public metadata for product type."
-        model = models.ProductType
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class ProductTypeUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Update private metadata for product type."
-        model = models.ProductType
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class ProductTypeClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clears private metadata for product type."
-        model = models.ProductType
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
 
 
 class ProductImageCreateInput(graphene.InputObjectType):
