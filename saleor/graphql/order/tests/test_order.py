@@ -447,6 +447,7 @@ ORDER_CONFIRM_MUTATION = """
 
 def test_order_confirm(staff_api_client, order_unconfirmed, permission_manage_orders):
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+    assert not OrderEvent.objects.exists()
     response = staff_api_client.post_graphql(
         ORDER_CONFIRM_MUTATION,
         {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
@@ -456,6 +457,12 @@ def test_order_confirm(staff_api_client, order_unconfirmed, permission_manage_or
     assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
     order_unconfirmed.refresh_from_db()
     assert order_unconfirmed.status == OrderStatus.UNFULFILLED
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.filter(
+        order=order_unconfirmed,
+        user=staff_api_client.user,
+        type=order_events.OrderEvents.CONFIRMED,
+    ).exists()
 
 
 def test_order_confirm_unfulfilled(staff_api_client, order, permission_manage_orders):
