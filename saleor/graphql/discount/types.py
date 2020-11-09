@@ -53,8 +53,7 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         type_name="sale",
         resolver=ChannelContextType.resolve_translation,
     )
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(SaleChannelListing),
         description="List of channels available for the sale.",
     )
@@ -77,7 +76,7 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_channel_listing(root: ChannelContext[models.Sale], info, **_kwargs):
+    def resolve_channel_listings(root: ChannelContext[models.Sale], info, **_kwargs):
         return SaleChannelListingBySaleIdLoader(info.context).load(root.node.id)
 
     @staticmethod
@@ -97,13 +96,14 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        def calculate_discount_value(channel_listing):
-            return channel_listing.discount_value if channel_listing else None
-
         return (
             SaleChannelListingBySaleIdAndChanneSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
-            .then(calculate_discount_value)
+            .then(
+                lambda channel_listing: channel_listing.discount_value
+                if channel_listing
+                else None
+            )
         )
 
     @staticmethod
@@ -111,13 +111,14 @@ class Sale(ChannelContextType, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        def calculate_currency(channel_listing):
-            return channel_listing.currency if channel_listing else None
-
         return (
             SaleChannelListingBySaleIdAndChanneSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
-            .then(calculate_currency)
+            .then(
+                lambda channel_listing: channel_listing.currency
+                if channel_listing
+                else None
+            )
         )
 
 
@@ -162,8 +163,7 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         Money, description="Minimum order value to apply voucher."
     )
     type = VoucherTypeEnum(description="Determines a type of voucher.", required=True)
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(VoucherChannelListing),
         description="List of availability in channels for the voucher.",
     )
@@ -222,13 +222,14 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        def calculate_discount_value(channel_listing):
-            return channel_listing.discount_value if channel_listing else None
-
         return (
             VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
-            .then(calculate_discount_value)
+            .then(
+                lambda channel_listing: channel_listing.discount_value
+                if channel_listing
+                else None
+            )
         )
 
     @staticmethod
@@ -236,13 +237,14 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        def calculate_currency(channel_listing):
-            return channel_listing.currency if channel_listing else None
-
         return (
             VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
-            .then(calculate_currency)
+            .then(
+                lambda channel_listing: channel_listing.currency
+                if channel_listing
+                else None
+            )
         )
 
     @staticmethod
@@ -250,16 +252,17 @@ class Voucher(ChannelContextType, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
-        def calculate_min_spent(channel_listing):
-            return channel_listing.min_spent if channel_listing else None
-
         return (
             VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
-            .then(calculate_min_spent)
+            .then(
+                lambda channel_listing: channel_listing.min_spent
+                if channel_listing
+                else None
+            )
         )
 
     @staticmethod
     @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
-    def resolve_channel_listing(root: ChannelContext[models.Voucher], info, **_kwargs):
+    def resolve_channel_listings(root: ChannelContext[models.Voucher], info, **_kwargs):
         return VoucherChannelListingByVoucherIdLoader(info.context).load(root.node.id)

@@ -490,7 +490,7 @@ def test_discount_as_negative_for_html():
 def test_get_fixed_sale_discount(sale):
     # given
     sale.type = DiscountValueType.FIXED
-    channel_listing = sale.channel_listing.get()
+    channel_listing = sale.channel_listings.get()
 
     # when
     result = sale.get_discount(channel_listing).keywords
@@ -504,7 +504,7 @@ def test_get_fixed_sale_discount(sale):
 def test_get_percentage_sale_discount(sale):
     # given
     sale.type = DiscountValueType.PERCENTAGE
-    channel_listing = sale.channel_listing.get()
+    channel_listing = sale.channel_listings.get()
 
     # when
     result = sale.get_discount(channel_listing).keywords
@@ -515,7 +515,7 @@ def test_get_percentage_sale_discount(sale):
 
 def test_get_unknown_sale_discount(sale):
     sale.type = "unknown"
-    channel_listing = sale.channel_listing.get()
+    channel_listing = sale.channel_listings.get()
 
     with pytest.raises(NotImplementedError):
         sale.get_discount(channel_listing)

@@ -10,7 +10,6 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from ....account.models import CustomerEvent
-from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
 from ....order import OrderStatus, events as order_events
 from ....order.error_codes import OrderErrorCode
@@ -119,6 +118,13 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
                                 id
                             }
                             quantity
+                            allocations {
+                                id
+                                quantity
+                                warehouse {
+                                    id
+                                }
+                            }
                             unitPrice {
                                 currency
                                 gross {
@@ -144,22 +150,81 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    assert order_data["lines"][0]["thumbnail"] is None
+    first_order_data_line = order_data["lines"][0]
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
-    assert order_data["lines"][0]["variant"]["id"] == variant_id
-    assert order_data["lines"][0]["quantity"] == line.quantity
-    assert order_data["lines"][0]["unitPrice"]["currency"] == line.unit_price.currency
+
+    assert first_order_data_line["thumbnail"] is None
+    assert first_order_data_line["variant"]["id"] == variant_id
+    assert first_order_data_line["quantity"] == line.quantity
+    assert first_order_data_line["unitPrice"]["currency"] == line.unit_price.currency
+
     expected_unit_price = Money(
-        amount=str(order_data["lines"][0]["unitPrice"]["gross"]["amount"]),
+        amount=str(first_order_data_line["unitPrice"]["gross"]["amount"]),
         currency="USD",
     )
-    assert order_data["lines"][0]["totalPrice"]["currency"] == line.unit_price.currency
+    assert first_order_data_line["totalPrice"]["currency"] == line.unit_price.currency
     assert expected_unit_price == line.unit_price.gross
+
     expected_total_price = Money(
-        amount=str(order_data["lines"][0]["totalPrice"]["gross"]["amount"]),
+        amount=str(first_order_data_line["totalPrice"]["gross"]["amount"]),
         currency="USD",
     )
     assert expected_total_price == line.unit_price.gross * line.quantity
+
+    allocation = line.allocations.first()
+    allocation_id = graphene.Node.to_global_id("Allocation", allocation.pk)
+    warehouse_id = graphene.Node.to_global_id(
+        "Warehouse", allocation.stock.warehouse.pk
+    )
+    assert first_order_data_line["allocations"] == [
+        {"id": allocation_id, "quantity": 0, "warehouse": {"id": warehouse_id}}
+    ]
+
+
+def test_order_line_with_allocations(
+    staff_api_client, permission_manage_orders, order_with_lines,
+):
+    # given
+    order = order_with_lines
+    query = """
+        query OrdersQuery {
+            orders(first: 1) {
+                edges {
+                    node {
+                        lines {
+                            id
+                            allocations {
+                                id
+                                quantity
+                                warehouse {
+                                    id
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(query)
+
+    # then
+    content = get_graphql_content(response)
+    lines = content["data"]["orders"]["edges"][0]["node"]["lines"]
+
+    for line in lines:
+        _, _id = graphene.Node.from_global_id(line["id"])
+        order_line = order.lines.get(pk=_id)
+        allocations_from_query = {
+            allocation["quantity"] for allocation in line["allocations"]
+        }
+        allocations_from_db = set(
+            order_line.allocations.values_list("quantity_allocated", flat=True)
+        )
+        assert allocations_from_query == allocations_from_db
 
 
 ORDERS_QUERY = """
@@ -262,7 +327,7 @@ def test_order_query(
 
     method = order_data["availableShippingMethods"][0]
     expected_method = expected_methods.first()
-    expected_shipping_price = expected_method.channel_listing.get(
+    expected_shipping_price = expected_method.channel_listings.get(
         channel_id=order.channel_id
     )
     assert float(expected_shipping_price.price.amount) == method["price"]["amount"]
@@ -312,7 +377,7 @@ def test_order_query_in_pln_channel(
 
     method = order_data["availableShippingMethods"][0]
     expected_method = expected_methods.first()
-    expected_shipping_price = expected_method.channel_listing.get(
+    expected_shipping_price = expected_method.channel_listings.get(
         channel_id=order.channel_id
     )
     assert float(expected_shipping_price.price.amount) == method["price"]["amount"]
@@ -386,7 +451,7 @@ def test_order_available_shipping_methods_query(
     }
     """
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_price = shipping_method.channel_listing.get(
+    shipping_price = shipping_method.channel_listings.get(
         channel_id=fulfilled_order.channel_id
     ).price
     taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
@@ -1055,7 +1120,7 @@ def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    voucher.channel_listing.all().delete()
+    voucher.channel_listings.all().delete()
     variables = {
         "user": user_id,
         "discount": discount,
@@ -1104,8 +1169,8 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    variant.product.channel_listing.all().delete()
-    variant.channel_listing.all().delete()
+    variant.product.channel_listings.all().delete()
+    variant.channel_listings.all().delete()
     variables = {
         "user": user_id,
         "discount": discount,
@@ -1184,7 +1249,7 @@ def test_draft_order_create_with_channel_with_unpublished_product(
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
     variant_1 = product_without_shipping.variants.first()
-    channel_listing = variant_1.product.channel_listing.get()
+    channel_listing = variant_1.product.channel_listings.get()
     channel_listing.is_published = False
     channel_listing.save()
 
@@ -1244,7 +1309,7 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
     variant_1 = product_without_shipping.variants.first()
-    channel_listing = variant_1.product.channel_listing.get()
+    channel_listing = variant_1.product.channel_listings.get()
     channel_listing.publication_date = next_day
     channel_listing.save()
 
@@ -1392,6 +1457,8 @@ def test_draft_order_update_existing_channel_id(
     staff_api_client, permission_manage_orders, order_with_lines, channel_PLN
 ):
     order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save()
     query = DRAFT_UPDATE_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
@@ -1414,11 +1481,13 @@ def test_draft_order_update_voucher_not_available(
     staff_api_client, permission_manage_orders, order_with_lines, voucher
 ):
     order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save()
     assert order.voucher is None
     query = DRAFT_UPDATE_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
-    voucher.channel_listing.all().delete()
+    voucher.channel_listings.all().delete()
     variables = {
         "id": order_id,
         "voucher": voucher_id,
@@ -1458,9 +1527,9 @@ DRAFT_ORDER_UPDATE_MUTATION = """
 
 
 def test_draft_order_update(
-    staff_api_client, permission_manage_orders, order_with_lines, voucher
+    staff_api_client, permission_manage_orders, draft_order, voucher
 ):
-    order = order_with_lines
+    order = draft_order
     assert not order.voucher
     assert not order.customer_note
     query = DRAFT_ORDER_UPDATE_MUTATION
@@ -1484,18 +1553,36 @@ def test_draft_order_update(
     assert order.customer_note == customer_note
 
 
+def test_draft_order_update_with_non_draft_order(
+    staff_api_client, permission_manage_orders, order_with_lines, voucher
+):
+    order = order_with_lines
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+    customer_note = "Test customer note"
+    variables = {"id": order_id, "voucher": voucher_id, "customerNote": customer_note}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderUpdate"]["orderErrors"][0]
+    assert error["field"] == "id"
+    assert error["code"] == OrderErrorCode.INVALID.name
+
+
 @patch("saleor.graphql.order.mutations.draft_orders.update_order_prices")
 def test_draft_order_update_tax_error(
     update_order_prices_mock,
     staff_api_client,
     permission_manage_orders,
-    order_with_lines,
+    draft_order,
     voucher,
     graphql_address_data,
 ):
     err_msg = "Test error"
     update_order_prices_mock.side_effect = TaxError(err_msg)
-    order = order_with_lines
+    order = draft_order
     assert not order.voucher
     assert not order.customer_note
     query = DRAFT_ORDER_UPDATE_MUTATION
@@ -1611,7 +1698,7 @@ def test_can_finalize_order_product_unavailable_for_purchase(
     order.save(update_fields=["status"])
 
     product = order.lines.first().variant.product
-    product.channel_listing.update(available_for_purchase=None)
+    product.channel_listings.update(available_for_purchase=None)
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -1635,7 +1722,7 @@ def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
     order.save(update_fields=["status"])
 
     product = order.lines.first().variant.product
-    product.channel_listing.update(
+    product.channel_listings.update(
         available_for_purchase=date.today() + timedelta(days=1)
     )
 
@@ -1694,7 +1781,7 @@ def test_validate_draft_order_with_unpublished_product(draft_order):
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    product_channel_listing = variant.product.channel_listing.get()
+    product_channel_listing = variant.product.channel_listings.get()
     product_channel_listing.is_published = False
     product_channel_listing.save(update_fields=["is_published"])
     line.refresh_from_db()
@@ -1712,7 +1799,7 @@ def test_validate_draft_order_with_unavailable_for_purchase_product(draft_order)
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    variant.product.channel_listing.update(available_for_purchase=None)
+    variant.product.channel_listings.update(available_for_purchase=None)
     line.refresh_from_db()
 
     with pytest.raises(ValidationError) as e:
@@ -1730,7 +1817,7 @@ def test_validate_draft_order_with_product_available_for_purchase_in_future(
     order = draft_order
     line = order.lines.first()
     variant = line.variant
-    variant.product.channel_listing.update(
+    variant.product.channel_listings.update(
         available_for_purchase=date.today() + timedelta(days=2)
     )
     line.refresh_from_db()
@@ -2028,7 +2115,7 @@ def test_draft_order_complete_unavailable_for_purchase(
     assert not OrderEvent.objects.exists()
 
     product = order.lines.first().variant.product
-    product.channel_listing.update(
+    product.channel_listings.update(
         available_for_purchase=date.today() + timedelta(days=5)
     )
 
@@ -2350,6 +2437,25 @@ def test_require_draft_order_when_removing_lines(
     assert data["errors"]
 
 
+ORDER_UPDATE_MUTATION = """
+    mutation orderUpdate($id: ID!, $email: String, $address: AddressInput) {
+        orderUpdate(
+            id: $id, input: {
+                userEmail: $email,
+                shippingAddress: $address,
+                billingAddress: $address}) {
+            orderErrors {
+                field
+                code
+            }
+            order {
+                userEmail
+            }
+        }
+    }
+"""
+
+
 @patch("saleor.plugins.base_plugin.BasePlugin.order_updated")
 def test_order_update(
     plugin_mock,
@@ -2361,24 +2467,6 @@ def test_order_update(
     order = order_with_lines
     order.user = None
     order.save()
-    query = """
-        mutation orderUpdate(
-        $id: ID!, $email: String, $address: AddressInput) {
-            orderUpdate(
-                id: $id, input: {
-                    userEmail: $email,
-                    shippingAddress: $address,
-                    billingAddress: $address}) {
-                errors {
-                    field
-                    message
-                }
-                order {
-                    userEmail
-                }
-            }
-        }
-        """
     email = "not_default@example.com"
     assert not order.user_email == email
     assert not order.shipping_address.first_name == graphql_address_data["firstName"]
@@ -2386,10 +2474,10 @@ def test_order_update(
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id, "email": email, "address": graphql_address_data}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        ORDER_UPDATE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    assert not content["data"]["orderUpdate"]["errors"]
+    assert not content["data"]["orderUpdate"]["orderErrors"]
     data = content["data"]["orderUpdate"]["order"]
     assert data["userEmail"] == email
 
@@ -2402,6 +2490,30 @@ def test_order_update(
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
     assert plugin_mock.called is True
+
+
+@patch("saleor.plugins.base_plugin.BasePlugin.order_updated")
+def test_order_update_with_draft_order(
+    plugin_mock,
+    staff_api_client,
+    permission_manage_orders,
+    draft_order,
+    graphql_address_data,
+):
+    order = draft_order
+    order.user = None
+    order.save()
+    email = "not_default@example.com"
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "email": email, "address": graphql_address_data}
+    response = staff_api_client.post_graphql(
+        ORDER_UPDATE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["orderUpdate"]["orderErrors"][0]
+    assert error["field"] == "id"
+    assert error["code"] == OrderErrorCode.INVALID.name
+    assert plugin_mock.called is False
 
 
 def test_order_update_anonymous_user_no_user_email(
@@ -3031,7 +3143,7 @@ def test_order_update_shipping(
     assert data["order"]["id"] == order_id
 
     order.refresh_from_db()
-    shipping_total = shipping_method.channel_listing.get(
+    shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id
     ).get_total()
     shipping_price = TaxedMoney(shipping_total, shipping_total)
@@ -3046,7 +3158,7 @@ def test_order_update_shipping_clear_shipping_method(
     staff_api_client, permission_manage_orders, order, staff_user, shipping_method
 ):
     order.shipping_method = shipping_method
-    shipping_total = shipping_method.channel_listing.get(
+    shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id,
     ).get_total()
 
@@ -4250,215 +4362,3 @@ def test_draft_orders_query_with_filter_search_by_id(
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["draftOrders"]["totalCount"] == 1
-
-
-@pytest.fixture
-def update_order_meta():
-    return """
-    mutation orderUpdateMeta($token: UUID!, $input: MetaInput!) {
-        orderUpdateMeta(token: $token, input: $input){
-            errors {
-                message
-            }
-        }
-    }
-    """
-
-
-@pytest.fixture
-def update_order_private_meta():
-    return """
-    mutation orderUpdatePrivateMeta($id: ID!, $input: MetaInput!) {
-        orderUpdatePrivateMeta(id: $id, input: $input){
-            errors {
-                message
-            }
-        }
-    }
-    """
-
-
-@pytest.fixture
-def order_meta_update_variables(order):
-    return {
-        "token": order.token,
-        "input": {
-            "namespace": "test",
-            "clientName": "client1",
-            "key": "foo",
-            "value": "bar",
-        },
-    }
-
-
-@pytest.fixture
-def order_private_meta_update_variables(order):
-    order_id = graphene.Node.to_global_id("Order", order.id)
-    return {
-        "id": order_id,
-        "input": {
-            "namespace": "test",
-            "clientName": "client1",
-            "key": "foo",
-            "value": "bar",
-        },
-    }
-
-
-def test_user_without_permission_cannot_update_private_meta(
-    staff_api_client,
-    staff_user,
-    update_order_private_meta,
-    order_private_meta_update_variables,
-):
-    assert not staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
-    response = staff_api_client.post_graphql(
-        update_order_private_meta, order_private_meta_update_variables
-    )
-    assert_no_permission(response)
-
-
-def test_user_does_not_need_permission_to_update_meta(
-    staff_api_client, update_order_meta, order_meta_update_variables, order
-):
-    response = staff_api_client.post_graphql(
-        update_order_meta, order_meta_update_variables, permissions=[]
-    )
-    content = get_graphql_content(response)
-    errors = content["data"]["orderUpdateMeta"]["errors"]
-    assert len(errors) == 0
-    order.refresh_from_db()
-    assert order.get_value_from_metadata("foo") == "bar"
-
-
-def test_user_with_permission_can_update_private_meta(
-    permission_manage_orders,
-    staff_api_client,
-    staff_user,
-    update_order_private_meta,
-    order_private_meta_update_variables,
-    order,
-):
-    staff_user.user_permissions.add(permission_manage_orders)
-    assert staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
-    response = staff_api_client.post_graphql(
-        update_order_private_meta, order_private_meta_update_variables
-    )
-    content = get_graphql_content(response)
-    errors = content["data"]["orderUpdatePrivateMeta"]["errors"]
-    assert len(errors) == 0
-    order.refresh_from_db()
-    assert order.get_value_from_private_metadata("foo") == "bar"
-
-
-@pytest.fixture
-def clear_order_meta():
-    return """
-        mutation orderClearMeta($token: UUID!, $input: MetaPath!) {
-            orderClearMeta(token: $token, input: $input) {
-                errors {
-                    message
-                }
-            }
-        }
-    """
-
-
-@pytest.fixture
-def clear_order_private_meta():
-    return """
-        mutation orderClearPrivateMeta($id: ID!, $input: MetaPath!) {
-            orderClearPrivateMeta(id: $id, input: $input) {
-                errors {
-                    message
-                }
-            }
-        }
-    """
-
-
-@pytest.fixture
-def clear_meta_variables(order):
-    return {
-        "token": order.token,
-        "input": {"namespace": "test", "clientName": "client1", "key": "foo"},
-    }
-
-
-@pytest.fixture
-def clear_meta_private_variables(order):
-    order_id = graphene.Node.to_global_id("Order", order.id)
-    return {
-        "id": order_id,
-        "input": {
-            "namespace": "testPrivate",
-            "clientName": "clientPrivate1",
-            "key": "foofoo",
-        },
-    }
-
-
-@pytest.fixture
-def order_with_meta(order):
-    order.store_value_in_metadata(items={"foo": "bar"})
-    order.store_value_in_private_metadata(items={"foofoo": "barbar"})
-    order.save()
-    return order
-
-
-def test_user_without_permission_cannot_clear_meta(
-    staff_user, staff_api_client, clear_order_meta, clear_meta_variables
-):
-    assert not staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
-    response = staff_api_client.post_graphql(clear_order_meta, clear_meta_variables)
-    assert_no_permission(response)
-
-
-def test_user_without_permission_cannot_clear_private_meta(
-    staff_user, staff_api_client, clear_order_private_meta, clear_meta_private_variables
-):
-    assert not staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
-    response = staff_api_client.post_graphql(
-        clear_order_private_meta, clear_meta_private_variables
-    )
-    assert_no_permission(response)
-
-
-def test_user_with_permission_can_clear_meta(
-    staff_user,
-    staff_api_client,
-    clear_order_meta,
-    clear_meta_variables,
-    order_with_meta,
-    permission_manage_orders,
-):
-    staff_user.user_permissions.add(permission_manage_orders)
-    assert staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
-    response = staff_api_client.post_graphql(clear_order_meta, clear_meta_variables)
-    assert response.status_code == 200
-    content = get_graphql_content(response)
-    errors = content["data"]["orderClearMeta"]["errors"]
-    assert len(errors) == 0
-    order_with_meta.refresh_from_db()
-    assert not order_with_meta.get_value_from_metadata("foo")
-
-
-def test_user_with_permission_can_clear_private_meta(
-    staff_user,
-    staff_api_client,
-    clear_order_private_meta,
-    clear_meta_private_variables,
-    order_with_meta,
-    permission_manage_orders,
-):
-    staff_user.user_permissions.add(permission_manage_orders)
-    assert staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
-    response = staff_api_client.post_graphql(
-        clear_order_private_meta, clear_meta_private_variables
-    )
-    assert response.status_code == 200
-    content = get_graphql_content(response)
-    errors = content["data"]["orderClearPrivateMeta"]["errors"]
-    assert len(errors) == 0
-    order_with_meta.refresh_from_db()
-    assert not order_with_meta.get_value_from_private_metadata(key="foofoo")

@@ -1,14 +1,15 @@
 from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import Dict, Iterable, List, Optional
 
 import django_filters
 import graphene
-from django.db.models import F, Q, Subquery, Sum
+from django.db.models import Exists, F, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Coalesce
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
-from ...product.filters import filter_products_by_attributes_values
 from ...product.models import (
+    AssignedProductAttribute,
+    AssignedVariantAttribute,
     Attribute,
     Category,
     Collection,
@@ -77,6 +78,31 @@ def _clean_product_attributes_filter_input(
     return queries
 
 
+T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
+
+
+def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
+    filters = [
+        Q(
+            Exists(
+                AssignedProductAttribute.objects.filter(
+                    product__id=OuterRef("pk"), values__pk__in=values
+                )
+            )
+        )
+        | Q(
+            Exists(
+                AssignedVariantAttribute.objects.filter(
+                    variant__product__id=OuterRef("pk"), values__pk__in=values,
+                )
+            )
+        )
+        for values in queries.values()
+    ]
+
+    return qs.filter(*filters)
+
+
 def filter_products_by_attributes(qs, filter_value):
     queries = _clean_product_attributes_filter_input(filter_value)
     return filter_products_by_attributes_values(qs, queries)
@@ -85,13 +111,13 @@ def filter_products_by_attributes(qs, filter_value):
 def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte=None):
     if price_lte:
         qs = qs.filter(
-            variants__channel_listing__price_amount__lte=price_lte,
-            variants__channel_listing__channel__slug=channel_slug,
+            variants__channel_listings__price_amount__lte=price_lte,
+            variants__channel_listings__channel__slug=channel_slug,
         )
     if price_gte:
         qs = qs.filter(
-            variants__channel_listing__price_amount__gte=price_gte,
-            variants__channel_listing__channel__slug=channel_slug,
+            variants__channel_listings__price_amount__gte=price_gte,
+            variants__channel_listings__channel__slug=channel_slug,
         )
     return qs
 
@@ -101,13 +127,13 @@ def filter_products_by_minimal_price(
 ):
     if minimal_price_lte:
         qs = qs.filter(
-            channel_listing__discounted_price_amount__lte=minimal_price_lte,
-            channel_listing__channel__slug=channel_slug,
+            channel_listings__discounted_price_amount__lte=minimal_price_lte,
+            channel_listings__channel__slug=channel_slug,
         )
     if minimal_price_gte:
         qs = qs.filter(
-            channel_listing__discounted_price_amount__gte=minimal_price_gte,
-            channel_listing__channel__slug=channel_slug,
+            channel_listings__discounted_price_amount__gte=minimal_price_gte,
+            channel_listings__channel__slug=channel_slug,
         )
     return qs
 
@@ -174,8 +200,8 @@ def filter_collections(qs, _, value):
 
 def _filter_is_published(qs, _, value, channel_slug):
     return qs.filter(
-        channel_listing__is_published=value,
-        channel_listing__channel__slug=channel_slug,
+        channel_listings__is_published=value,
+        channel_listings__channel__slug=channel_slug,
     )
 
 

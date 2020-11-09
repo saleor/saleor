@@ -1453,7 +1453,7 @@ def test_translation_query_collection(
     channel_USD,
 ):
 
-    channel_listing = published_collection.channel_listing.get()
+    channel_listing = published_collection.channel_listings.get()
     channel_listing.save()
     collection_id = graphene.Node.to_global_id("Collection", published_collection.id)
 

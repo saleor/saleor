@@ -5,10 +5,15 @@ from ...core.permissions import ShippingPermissions
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
 from ..channel.dataloaders import ChannelByIdLoader
-from ..channel.types import ChannelContext, ChannelContextType
+from ..channel.types import (
+    ChannelContext,
+    ChannelContextType,
+    ChannelContextTypeWithMetadata,
+)
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import CountryDisplay, Money, MoneyRange
 from ..decorators import permission_required
+from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
@@ -40,15 +45,14 @@ class ShippingMethodChannelListing(CountableDjangoObjectType):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
 
-class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
+class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     type = ShippingMethodTypeEnum(description="Type of the shipping method.")
     translation = TranslationField(
         ShippingMethodTranslation,
         type_name="shipping method",
         resolver=ChannelContextType.resolve_translation,
     )
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(ShippingMethodChannelListing),
         description="List of channels available for the method.",
     )
@@ -69,7 +73,7 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
             "them. They are directly exposed to the customers."
         )
         model = models.ShippingMethod
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         only_fields = [
             "id",
             "maximum_order_weight",
@@ -126,15 +130,6 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
         )
 
     @staticmethod
-    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
-    def resolve_channel_listing(
-        root: ChannelContext[models.ShippingMethod], info, **_kwargs
-    ):
-        return ShippingMethodChannelListingByShippingMethodIdLoader(info.context).load(
-            root.node.id
-        )
-
-    @staticmethod
     def resolve_maximum_order_weight(
         root: ChannelContext[models.ShippingMethod], *_args
     ):
@@ -146,8 +141,17 @@ class ShippingMethod(ChannelContextType, CountableDjangoObjectType):
     ):
         return convert_weight_to_default_weight_unit(root.node.minimum_order_weight)
 
+    @staticmethod
+    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
+    def resolve_channel_listings(
+        root: ChannelContext[models.ShippingMethod], info, **_kwargs
+    ):
+        return ShippingMethodChannelListingByShippingMethodIdLoader(info.context).load(
+            root.node.id
+        )
 
-class ShippingZone(ChannelContextType, CountableDjangoObjectType):
+
+class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     price_range = graphene.Field(
         MoneyRange, description="Lowest and highest prices for the shipping."
     )
@@ -173,7 +177,7 @@ class ShippingZone(ChannelContextType, CountableDjangoObjectType):
             "the customers directly."
         )
         model = models.ShippingZone
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         only_fields = ["default", "id", "name"]
 
     @staticmethod

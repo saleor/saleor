@@ -7,8 +7,8 @@ from freezegun import freeze_time
 from prices import Money
 
 from ...account import events as account_events
+from ...graphql.product.filters import filter_products_by_attributes_values
 from .. import models
-from ..filters import filter_products_by_attributes_values
 from ..models import DigitalContentUrl
 from ..thumbnails import create_product_thumbnails
 from ..utils.attributes import associate_attribute_values_to_instance
@@ -245,7 +245,7 @@ def test_digital_product_view_url_expired(client, digital_content):
 def test_costs_get_margin_for_variant_channel_listing(
     variant, price, cost, channel_USD
 ):
-    variant_channel_listing = variant.channel_listing.filter(
+    variant_channel_listing = variant.channel_listings.filter(
         channel_id=channel_USD.id
     ).first()
     variant_channel_listing.cost_price = cost

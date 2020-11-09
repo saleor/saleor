@@ -45,15 +45,11 @@ from .filters import (
 )
 from .mutations.attributes import (
     AttributeAssign,
-    AttributeClearMeta,
-    AttributeClearPrivateMeta,
     AttributeCreate,
     AttributeDelete,
     AttributeReorderValues,
     AttributeUnassign,
     AttributeUpdate,
-    AttributeUpdateMeta,
-    AttributeUpdatePrivateMeta,
     AttributeValueCreate,
     AttributeValueDelete,
     AttributeValueUpdate,
@@ -71,50 +67,30 @@ from .mutations.digital_contents import (
     DigitalContentUrlCreate,
 )
 from .mutations.products import (
-    CategoryClearMeta,
-    CategoryClearPrivateMeta,
     CategoryCreate,
     CategoryDelete,
     CategoryUpdate,
-    CategoryUpdateMeta,
-    CategoryUpdatePrivateMeta,
     CollectionAddProducts,
-    CollectionClearMeta,
-    CollectionClearPrivateMeta,
     CollectionCreate,
     CollectionDelete,
     CollectionRemoveProducts,
     CollectionReorderProducts,
     CollectionUpdate,
-    CollectionUpdateMeta,
-    CollectionUpdatePrivateMeta,
-    ProductClearMeta,
-    ProductClearPrivateMeta,
     ProductCreate,
     ProductDelete,
     ProductImageCreate,
     ProductImageDelete,
     ProductImageReorder,
     ProductImageUpdate,
-    ProductTypeClearMeta,
-    ProductTypeClearPrivateMeta,
     ProductTypeCreate,
     ProductTypeDelete,
     ProductTypeUpdate,
-    ProductTypeUpdateMeta,
-    ProductTypeUpdatePrivateMeta,
     ProductUpdate,
-    ProductUpdateMeta,
-    ProductUpdatePrivateMeta,
-    ProductVariantClearMeta,
-    ProductVariantClearPrivateMeta,
     ProductVariantCreate,
     ProductVariantDelete,
     ProductVariantReorder,
     ProductVariantSetDefault,
     ProductVariantUpdate,
-    ProductVariantUpdateMeta,
-    ProductVariantUpdatePrivateMeta,
     VariantImageAssign,
     VariantImageUnassign,
 )
@@ -430,30 +406,6 @@ class ProductMutations(graphene.ObjectType):
     attribute_unassign = AttributeUnassign.Field()
     attribute_update = AttributeUpdate.Field()
     attribute_translate = AttributeTranslate.Field()
-    attribute_update_metadata = AttributeUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    attribute_clear_metadata = AttributeClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    attribute_update_private_metadata = AttributeUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-    attribute_clear_private_metadata = AttributeClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
 
     attribute_value_create = AttributeValueCreate.Field()
     attribute_value_delete = AttributeValueDelete.Field()
@@ -467,30 +419,6 @@ class ProductMutations(graphene.ObjectType):
     category_bulk_delete = CategoryBulkDelete.Field()
     category_update = CategoryUpdate.Field()
     category_translate = CategoryTranslate.Field()
-    category_update_metadata = CategoryUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    category_clear_metadata = CategoryClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    category_update_private_metadata = CategoryUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-    category_clear_private_metadata = CategoryClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
 
     collection_add_products = CollectionAddProducts.Field()
     collection_create = CollectionCreate.Field()
@@ -500,30 +428,6 @@ class ProductMutations(graphene.ObjectType):
     collection_remove_products = CollectionRemoveProducts.Field()
     collection_update = CollectionUpdate.Field()
     collection_translate = CollectionTranslate.Field()
-    collection_update_metadata = CollectionUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    collection_clear_metadata = CollectionClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    collection_update_private_metadata = CollectionUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-    collection_clear_private_metadata = CollectionClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
     collection_channel_listing_update = CollectionChannelListingUpdate.Field()
 
     product_create = ProductCreate.Field()
@@ -531,30 +435,6 @@ class ProductMutations(graphene.ObjectType):
     product_bulk_delete = ProductBulkDelete.Field()
     product_update = ProductUpdate.Field()
     product_translate = ProductTranslate.Field()
-    product_update_metadata = ProductUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    product_clear_metadata = ProductClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    product_update_private_metadata = ProductUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-    product_clear_private_metadata = ProductClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
 
     product_channel_listing_update = ProductChannelListingUpdate.Field()
 
@@ -570,31 +450,6 @@ class ProductMutations(graphene.ObjectType):
     product_type_bulk_delete = ProductTypeBulkDelete.Field()
     product_type_update = ProductTypeUpdate.Field()
     product_type_reorder_attributes = ProductTypeReorderAttributes.Field()
-
-    product_type_update_metadata = ProductTypeUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    product_type_clear_metadata = ProductTypeClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    product_type_update_private_metadata = ProductTypeUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-    product_type_clear_private_metadata = ProductTypeClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
 
     digital_content_create = DigitalContentCreate.Field()
     digital_content_delete = DigitalContentDelete.Field()
@@ -612,30 +467,6 @@ class ProductMutations(graphene.ObjectType):
     product_variant_update = ProductVariantUpdate.Field()
     product_variant_set_default = ProductVariantSetDefault.Field()
     product_variant_translate = ProductVariantTranslate.Field()
-    product_variant_update_metadata = ProductVariantUpdateMeta.Field(
-        deprecation_reason=(
-            "Use the `updateMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    product_variant_clear_metadata = ProductVariantClearMeta.Field(
-        deprecation_reason=(
-            "Use the `deleteMetadata` mutation instead. This field will be removed "
-            "after 2020-07-31."
-        )
-    )
-    product_variant_update_private_metadata = ProductVariantUpdatePrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `updatePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
-    product_variant_clear_private_metadata = ProductVariantClearPrivateMeta.Field(
-        deprecation_reason=(
-            "Use the `deletePrivateMetadata` mutation instead. This field will be "
-            "removed after 2020-07-31."
-        )
-    )
     product_variant_channel_listing_update = ProductVariantChannelListingUpdate.Field()
 
     variant_image_assign = VariantImageAssign.Field()

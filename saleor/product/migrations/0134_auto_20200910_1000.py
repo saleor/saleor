@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("product", "0132_refactor_minimal_variant_price"),
+        ("product", "0133_refactor_minimal_variant_price"),
     ]
 
     operations = [

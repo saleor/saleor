@@ -11,6 +11,7 @@ from django.http import HttpResponse, HttpResponseNotFound
 from ....checkout.models import Checkout
 from ....core.utils import build_absolute_uri
 from ....core.utils.url import prepare_url
+from ....order.events import external_notification_event
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import PaymentError, TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentGateway
@@ -162,10 +163,10 @@ class AdyenGatewayPlugin(BasePlugin):
                 "Saleor uses 3D Secure redirect authentication by default. If you want"
                 " to use native 3D Secure authentication, enable this option. For more"
                 " details see Adyen documentation: native - "
-                "https://docs.adyen.com/checkout/3d-secure/redirect-3ds2-3ds1, redirect"
+                "https://docs.adyen.com/checkout/3d-secure/native-3ds2, redirect"
                 " - https://docs.adyen.com/checkout/3d-secure/redirect-3ds2-3ds1"
             ),
-            "label": "Enable native 3d secure",
+            "label": "Enable native 3D Secure",
         },
     }
 
@@ -333,20 +334,25 @@ class AdyenGatewayPlugin(BasePlugin):
         result = api_call(additional_data, self.adyen.checkout.payments_details)
         result_code = result.message["resultCode"].strip().lower()
         is_success = result_code not in FAILED_STATUSES
-
+        action_required = "action" in result.message
         if result_code in PENDING_STATUSES:
             kind = TransactionKind.PENDING
-        elif is_success and config.auto_capture:
+        elif is_success and config.auto_capture and not action_required:
             # For enabled auto_capture on Saleor side we need to proceed an additional
             # action
-            response = self.capture_payment(payment_information, None)
-            is_success = response.is_success
+            kind = TransactionKind.CAPTURE
+            result = call_capture(
+                payment_information=payment_information,
+                merchant_account=self.config.connection_params["merchant_account"],
+                token=result.message.get("pspReference"),
+                adyen_client=self.adyen,
+            )
 
         payment_method_info = get_payment_method_info(payment_information, result)
         action = result.message.get("action")
         return GatewayResponse(
             is_success=is_success,
-            action_required="action" in result.message,
+            action_required=action_required,
             action_required_data=action,
             kind=kind,
             amount=payment_information.amount,
@@ -468,12 +474,25 @@ class AdyenGatewayPlugin(BasePlugin):
         )
         result = api_call(request, self.adyen.payment.refund)
 
+        amount = payment_information.amount
+        currency = payment_information.currency
+        if transaction.payment.order:
+            msg = f"Adyen: Refund for amount {amount}{currency} has been requested."
+            external_notification_event(
+                order=transaction.payment.order,  # type: ignore
+                user=None,
+                message=msg,
+                parameters={
+                    "service": transaction.payment.gateway,
+                    "id": transaction.payment.token,
+                },
+            )
         return GatewayResponse(
             is_success=True,
             action_required=False,
             kind=TransactionKind.REFUND_ONGOING,
-            amount=payment_information.amount,
-            currency=payment_information.currency,
+            amount=amount,
+            currency=currency,
             transaction_id=result.message.get("pspReference", ""),
             error="",
             raw_response=result.message,

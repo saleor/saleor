@@ -579,7 +579,7 @@ def test_recalculate_checkout_discount(
     checkout_with_voucher, voucher, voucher_translation_fr, settings, channel_USD
 ):
     settings.LANGUAGE_CODE = "fr"
-    voucher.channel_listing.filter(channel=channel_USD).update(discount_value=10)
+    voucher.channel_listings.filter(channel=channel_USD).update(discount_value=10)
 
     recalculate_checkout_discount(
         checkout_with_voucher, list(checkout_with_voucher), None
@@ -605,7 +605,7 @@ def test_recalculate_checkout_discount_voucher_not_applicable(
     checkout_with_voucher, voucher, channel_USD
 ):
     checkout = checkout_with_voucher
-    voucher.channel_listing.filter(channel=channel_USD).update(min_spent_amount=100)
+    voucher.channel_listings.filter(channel=channel_USD).update(min_spent_amount=100)
 
     recalculate_checkout_discount(
         checkout_with_voucher, list(checkout_with_voucher), None
@@ -640,7 +640,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
     checkout = checkout_with_voucher_percentage_and_shipping
 
     lines = list(checkout)
-    channel_listing = shipping_method.channel_listing.get(channel_id=channel_USD.id)
+    channel_listing = shipping_method.channel_listings.get(channel_id=channel_USD.id)
     channel_listing.price = calculations.checkout_subtotal(
         checkout=checkout, lines=lines
     ).gross + Money("10.00", "USD")
@@ -664,7 +664,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     checkout = checkout_with_voucher_percentage_and_shipping
 
     lines = list(checkout)
-    channel_listing = shipping_method.channel_listing.get(channel=channel_USD)
+    channel_listing = shipping_method.channel_listings.get(channel=channel_USD)
     channel_listing.price = calculations.checkout_subtotal(
         checkout=checkout, lines=lines
     ).gross - Money("1.00", "USD")

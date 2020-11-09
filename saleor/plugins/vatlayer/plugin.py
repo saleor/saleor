@@ -27,12 +27,11 @@ from . import (
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from ...account.models import Address
     from ...checkout.models import Checkout, CheckoutLine
     from ...channel.models import Channel
     from ...discount import DiscountInfo
-
-    from ...account.models import Address
-    from ...order.models import OrderLine, Order
+    from ...order.models import Order, OrderLine
     from ..models import PluginConfiguration
 
 
@@ -124,7 +123,7 @@ class VatlayerPlugin(BasePlugin):
             taxes = self._get_taxes_for_country(address.country)
         if not checkout.shipping_method:
             return previous_value
-        shipping_price = checkout.shipping_method.channel_listing.get(
+        shipping_price = checkout.shipping_method.channel_listings.get(
             channel_id=checkout.channel_id
         ).price
         return get_taxed_shipping_price(shipping_price, taxes)
@@ -141,7 +140,7 @@ class VatlayerPlugin(BasePlugin):
             taxes = self._get_taxes_for_country(address.country)
         if not order.shipping_method:
             return previous_value
-        shipping_price = order.shipping_method.channel_listing.get(
+        shipping_price = order.shipping_method.channel_listings.get(
             channel_id=order.channel_id
         ).price
         return get_taxed_shipping_price(shipping_price, taxes)

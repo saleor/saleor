@@ -47,8 +47,8 @@ query ($channel: String) {
 
 
 def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
-    price = product.variants.first().channel_listing.get().price
-    sale_discounted_value = sale.channel_listing.get().discount_value
+    price = product.variants.first().channel_listings.get().price
+    sale_discounted_value = sale.channel_listings.get().discount_value
     discounted_price = price.amount - sale_discounted_value
 
     response = api_client.post_graphql(
@@ -78,7 +78,7 @@ def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
 
 
 def test_get_variant_pricing_not_on_sale(api_client, product, channel_USD):
-    price = product.variants.first().channel_listing.get().price
+    price = product.variants.first().channel_listings.get().price
 
     response = api_client.post_graphql(
         QUERY_GET_VARIANT_PRICING, {"channel": channel_USD.slug}
@@ -114,8 +114,8 @@ def test_variant_pricing(
     )
 
     product = variant.product
-    product_channel_listing = product.channel_listing.get()
-    variant_channel_listing = variant.channel_listing.get()
+    product_channel_listing = product.channel_listings.get()
+    variant_channel_listing = variant.channel_listings.get()
 
     pricing = get_variant_availability(
         variant=variant,

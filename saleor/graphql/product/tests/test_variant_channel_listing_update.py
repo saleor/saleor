@@ -24,7 +24,7 @@ mutation UpdateProductVariantChannelListing(
         }
         variant {
             id
-            channelListing {
+            channelListings {
                 channel {
                     id
                     slug
@@ -223,14 +223,14 @@ def test_variant_channel_listing_update_as_staff_user(
     variant_data = data["variant"]
     assert not data["productChannelListingErrors"]
     assert variant_data["id"] == variant_id
-    assert variant_data["channelListing"][0]["price"]["currency"] == "USD"
-    assert variant_data["channelListing"][0]["price"]["amount"] == price
-    assert variant_data["channelListing"][0]["costPrice"]["amount"] == price
-    assert variant_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
-    assert variant_data["channelListing"][1]["price"]["currency"] == "PLN"
-    assert variant_data["channelListing"][1]["price"]["amount"] == second_price
-    assert variant_data["channelListing"][1]["costPrice"]["amount"] == second_price
-    assert variant_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
+    assert variant_data["channelListings"][0]["price"]["currency"] == "USD"
+    assert variant_data["channelListings"][0]["price"]["amount"] == price
+    assert variant_data["channelListings"][0]["costPrice"]["amount"] == price
+    assert variant_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
+    assert variant_data["channelListings"][1]["price"]["currency"] == "PLN"
+    assert variant_data["channelListings"][1]["price"]["amount"] == second_price
+    assert variant_data["channelListings"][1]["costPrice"]["amount"] == second_price
+    assert variant_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
@@ -308,12 +308,12 @@ def test_variant_channel_listing_update_as_app(
     variant_data = data["variant"]
     assert not data["productChannelListingErrors"]
     assert variant_data["id"] == variant_id
-    assert variant_data["channelListing"][0]["price"]["currency"] == "USD"
-    assert variant_data["channelListing"][0]["price"]["amount"] == 1
-    assert variant_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
-    assert variant_data["channelListing"][1]["price"]["currency"] == "PLN"
-    assert variant_data["channelListing"][1]["price"]["amount"] == 20
-    assert variant_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
+    assert variant_data["channelListings"][0]["price"]["currency"] == "USD"
+    assert variant_data["channelListings"][0]["price"]["amount"] == 1
+    assert variant_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
+    assert variant_data["channelListings"][1]["price"]["currency"] == "PLN"
+    assert variant_data["channelListings"][1]["price"]["amount"] == 20
+    assert variant_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
 
 
 def test_variant_channel_listing_update_as_customer(
@@ -425,10 +425,10 @@ def test_product_variant_channel_listing_update_remove_cost_price(
     variant_data = data["variant"]
     assert not data["productChannelListingErrors"]
     assert variant_data["id"] == variant_id
-    assert variant_data["channelListing"][0]["price"]["currency"] == "USD"
-    assert variant_data["channelListing"][0]["price"]["amount"] == 1
-    assert not variant_data["channelListing"][0]["costPrice"]
-    assert variant_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+    assert variant_data["channelListings"][0]["price"]["currency"] == "USD"
+    assert variant_data["channelListings"][0]["price"]["amount"] == 1
+    assert not variant_data["channelListings"][0]["costPrice"]
+    assert variant_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
 
 
 def test_product_channel_listing_update_too_many_decimal_places_in_cost_price(

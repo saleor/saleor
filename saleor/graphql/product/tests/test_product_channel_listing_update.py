@@ -22,7 +22,7 @@ mutation UpdateProductChannelListing(
         }
         product {
             slug
-            channelListing {
+            channelListings {
                 isPublished
                 publicationDate
                 visibleInListings
@@ -232,38 +232,38 @@ def test_product_channel_listing_update_as_staff_user(
     product_data = data["product"]
 
     variant = product.variants.first()
-    variant_channel_listing = variant.channel_listing.filter(channel_id=channel_USD.id)
+    variant_channel_listing = variant.channel_listings.filter(channel_id=channel_USD.id)
     purchase_cost, margin = get_product_costs_data(
         variant_channel_listing, True, channel_USD.currency_code
     )
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert product_data["channelListing"][0]["isPublished"] is True
-    assert product_data["channelListing"][0]["publicationDate"] is None
-    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
-    assert product_data["channelListing"][0]["visibleInListings"] is True
-    assert product_data["channelListing"][0]["isAvailableForPurchase"] is True
+    assert product_data["channelListings"][0]["isPublished"] is True
+    assert product_data["channelListings"][0]["publicationDate"] is None
+    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListings"][0]["visibleInListings"] is True
+    assert product_data["channelListings"][0]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListing"][0]["availableForPurchase"]
+        product_data["channelListings"][0]["availableForPurchase"]
         == datetime.date(1999, 1, 1).isoformat()
     )
-    cost_start = product_data["channelListing"][0]["purchaseCost"]["start"]["amount"]
-    cost_stop = product_data["channelListing"][0]["purchaseCost"]["stop"]["amount"]
+    cost_start = product_data["channelListings"][0]["purchaseCost"]["start"]["amount"]
+    cost_stop = product_data["channelListings"][0]["purchaseCost"]["stop"]["amount"]
 
     assert purchase_cost.start.amount == cost_start
     assert purchase_cost.stop.amount == cost_stop
-    assert margin[0] == product_data["channelListing"][0]["margin"]["start"]
-    assert margin[1] == product_data["channelListing"][0]["margin"]["stop"]
-    assert product_data["channelListing"][1]["isPublished"] is False
+    assert margin[0] == product_data["channelListings"][0]["margin"]["start"]
+    assert margin[1] == product_data["channelListings"][0]["margin"]["stop"]
+    assert product_data["channelListings"][1]["isPublished"] is False
     assert (
-        product_data["channelListing"][1]["publicationDate"]
+        product_data["channelListings"][1]["publicationDate"]
         == publication_date.isoformat()
     )
-    assert product_data["channelListing"][1]["visibleInListings"] is True
-    assert product_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
-    assert product_data["channelListing"][1]["isAvailableForPurchase"] is True
+    assert product_data["channelListings"][1]["visibleInListings"] is True
+    assert product_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
+    assert product_data["channelListings"][1]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListing"][1]["availableForPurchase"]
+        product_data["channelListings"][1]["availableForPurchase"]
         == available_for_purchase_date.isoformat()
     )
 
@@ -347,25 +347,25 @@ def test_product_channel_listing_update_as_app(
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert product_data["channelListing"][0]["isPublished"] is True
-    assert product_data["channelListing"][0]["publicationDate"] is None
-    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
-    assert product_data["channelListing"][0]["visibleInListings"] is True
-    assert product_data["channelListing"][0]["isAvailableForPurchase"] is True
+    assert product_data["channelListings"][0]["isPublished"] is True
+    assert product_data["channelListings"][0]["publicationDate"] is None
+    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListings"][0]["visibleInListings"] is True
+    assert product_data["channelListings"][0]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListing"][0]["availableForPurchase"]
+        product_data["channelListings"][0]["availableForPurchase"]
         == datetime.date(1999, 1, 1).isoformat()
     )
-    assert product_data["channelListing"][1]["isPublished"] is False
+    assert product_data["channelListings"][1]["isPublished"] is False
     assert (
-        product_data["channelListing"][1]["publicationDate"]
+        product_data["channelListings"][1]["publicationDate"]
         == publication_date.isoformat()
     )
-    assert product_data["channelListing"][1]["visibleInListings"] is True
-    assert product_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
-    assert product_data["channelListing"][1]["isAvailableForPurchase"] is True
+    assert product_data["channelListings"][1]["visibleInListings"] is True
+    assert product_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
+    assert product_data["channelListings"][1]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListing"][1]["availableForPurchase"]
+        product_data["channelListings"][1]["availableForPurchase"]
         == available_for_purchase_date.isoformat()
     )
 
@@ -445,19 +445,19 @@ def test_product_channel_listing_update_add_channel(
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert product_data["channelListing"][0]["isPublished"] is True
-    assert product_data["channelListing"][0]["publicationDate"] is None
-    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
-    assert product_data["channelListing"][1]["isPublished"] is False
+    assert product_data["channelListings"][0]["isPublished"] is True
+    assert product_data["channelListings"][0]["publicationDate"] is None
+    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListings"][1]["isPublished"] is False
     assert (
-        product_data["channelListing"][1]["publicationDate"]
+        product_data["channelListings"][1]["publicationDate"]
         == publication_date.isoformat()
     )
-    assert product_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
-    assert product_data["channelListing"][1]["visibleInListings"] is True
-    assert product_data["channelListing"][1]["isAvailableForPurchase"] is True
+    assert product_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
+    assert product_data["channelListings"][1]["visibleInListings"] is True
+    assert product_data["channelListings"][1]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListing"][1]["availableForPurchase"]
+        product_data["channelListings"][1]["availableForPurchase"]
         == available_for_purchase_date.isoformat()
     )
 
@@ -487,22 +487,22 @@ def test_product_channel_listing_update_add_channel_without_publication_date(
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert product_data["channelListing"][0]["isPublished"] is True
-    assert product_data["channelListing"][0]["publicationDate"] is None
-    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
-    assert product_data["channelListing"][1]["isPublished"] is True
+    assert product_data["channelListings"][0]["isPublished"] is True
+    assert product_data["channelListings"][0]["publicationDate"] is None
+    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListings"][1]["isPublished"] is True
     assert (
-        product_data["channelListing"][1]["publicationDate"]
+        product_data["channelListings"][1]["publicationDate"]
         == datetime.date(2020, 3, 18).isoformat()
     )
-    assert product_data["channelListing"][1]["channel"]["slug"] == channel_PLN.slug
+    assert product_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
 
 
 def test_product_channel_listing_update_unpublished(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
     # given
-    product.channel_listing.update(publication_date=datetime.date.today())
+    product.channel_listings.update(publication_date=datetime.date.today())
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -523,16 +523,16 @@ def test_product_channel_listing_update_unpublished(
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert product_data["channelListing"][0]["isPublished"] is False
+    assert product_data["channelListings"][0]["isPublished"] is False
     assert (
-        product_data["channelListing"][0]["publicationDate"]
+        product_data["channelListings"][0]["publicationDate"]
         == datetime.date.today().isoformat()
     )
-    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
-    assert product_data["channelListing"][0]["visibleInListings"] is True
-    assert product_data["channelListing"][0]["isAvailableForPurchase"] is True
+    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListings"][0]["visibleInListings"] is True
+    assert product_data["channelListings"][0]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListing"][0]["availableForPurchase"]
+        product_data["channelListings"][0]["availableForPurchase"]
         == datetime.date(1999, 1, 1).isoformat()
     )
 
@@ -542,7 +542,7 @@ def test_product_channel_listing_update_publish_without_publication_date(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
     # given
-    product.channel_listing.update(is_published=False)
+    product.channel_listings.update(is_published=False)
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -563,19 +563,19 @@ def test_product_channel_listing_update_publish_without_publication_date(
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert product_data["channelListing"][0]["isPublished"] is True
+    assert product_data["channelListings"][0]["isPublished"] is True
     assert (
-        product_data["channelListing"][0]["publicationDate"]
+        product_data["channelListings"][0]["publicationDate"]
         == datetime.date(2020, 3, 18).isoformat()
     )
-    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
 
 
 def test_product_channel_listing_update_remove_publication_date(
     staff_api_client, product, permission_manage_products, channel_USD
 ):
     # given
-    product.channel_listing.update(publication_date=datetime.date.today())
+    product.channel_listings.update(publication_date=datetime.date.today())
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -596,13 +596,13 @@ def test_product_channel_listing_update_remove_publication_date(
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert product_data["channelListing"][0]["isPublished"] is True
-    assert product_data["channelListing"][0]["publicationDate"] is None
-    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
-    assert product_data["channelListing"][0]["visibleInListings"] is True
-    assert product_data["channelListing"][0]["isAvailableForPurchase"] is True
+    assert product_data["channelListings"][0]["isPublished"] is True
+    assert product_data["channelListings"][0]["publicationDate"] is None
+    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListings"][0]["visibleInListings"] is True
+    assert product_data["channelListings"][0]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListing"][0]["availableForPurchase"]
+        product_data["channelListings"][0]["availableForPurchase"]
         == datetime.date(1999, 1, 1).isoformat()
     )
 
@@ -633,13 +633,13 @@ def test_product_channel_listing_update_visible_in_listings(
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert product_data["channelListing"][0]["isPublished"] is True
-    assert product_data["channelListing"][0]["publicationDate"] is None
-    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
-    assert product_data["channelListing"][0]["visibleInListings"] is False
-    assert product_data["channelListing"][0]["isAvailableForPurchase"] is True
+    assert product_data["channelListings"][0]["isPublished"] is True
+    assert product_data["channelListings"][0]["publicationDate"] is None
+    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListings"][0]["visibleInListings"] is False
+    assert product_data["channelListings"][0]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListing"][0]["availableForPurchase"]
+        product_data["channelListings"][0]["availableForPurchase"]
         == datetime.date(1999, 1, 1).isoformat()
     )
 
@@ -677,16 +677,16 @@ def test_product_channel_listing_update_update_publication_data(
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert product_data["channelListing"][0]["isPublished"] is False
+    assert product_data["channelListings"][0]["isPublished"] is False
     assert (
-        product_data["channelListing"][0]["publicationDate"]
+        product_data["channelListings"][0]["publicationDate"]
         == publication_date.isoformat()
     )
-    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
-    assert product_data["channelListing"][0]["visibleInListings"] is True
-    assert product_data["channelListing"][0]["isAvailableForPurchase"] is True
+    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListings"][0]["visibleInListings"] is True
+    assert product_data["channelListings"][0]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListing"][0]["availableForPurchase"]
+        product_data["channelListings"][0]["availableForPurchase"]
         == datetime.date(1999, 1, 1).isoformat()
     )
 
@@ -717,12 +717,12 @@ def test_product_channel_listing_update_update_is_available_for_purchase_false(
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert product_data["channelListing"][0]["isPublished"] is True
-    assert not product_data["channelListing"][0]["publicationDate"]
-    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
-    assert product_data["channelListing"][0]["visibleInListings"] is True
-    assert product_data["channelListing"][0]["isAvailableForPurchase"] is False
-    assert not product_data["channelListing"][0]["availableForPurchase"]
+    assert product_data["channelListings"][0]["isPublished"] is True
+    assert not product_data["channelListings"][0]["publicationDate"]
+    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListings"][0]["visibleInListings"] is True
+    assert product_data["channelListings"][0]["isAvailableForPurchase"] is False
+    assert not product_data["channelListings"][0]["availableForPurchase"]
 
 
 def test_product_channel_listing_update_update_is_available_for_purchase_without_date(
@@ -751,13 +751,13 @@ def test_product_channel_listing_update_update_is_available_for_purchase_without
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert product_data["channelListing"][0]["isPublished"] is True
-    assert not product_data["channelListing"][0]["publicationDate"]
-    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
-    assert product_data["channelListing"][0]["visibleInListings"] is True
-    assert product_data["channelListing"][0]["isAvailableForPurchase"] is True
+    assert product_data["channelListings"][0]["isPublished"] is True
+    assert not product_data["channelListings"][0]["publicationDate"]
+    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListings"][0]["visibleInListings"] is True
+    assert product_data["channelListings"][0]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListing"][0]["availableForPurchase"]
+        product_data["channelListings"][0]["availableForPurchase"]
         == datetime.date.today().isoformat()
     )
 
@@ -795,13 +795,13 @@ def test_product_channel_listing_update_update_is_available_for_purchase_past_da
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert product_data["channelListing"][0]["isPublished"] is True
-    assert not product_data["channelListing"][0]["publicationDate"]
-    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
-    assert product_data["channelListing"][0]["visibleInListings"] is True
-    assert product_data["channelListing"][0]["isAvailableForPurchase"] is True
+    assert product_data["channelListings"][0]["isPublished"] is True
+    assert not product_data["channelListings"][0]["publicationDate"]
+    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListings"][0]["visibleInListings"] is True
+    assert product_data["channelListings"][0]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListing"][0]["availableForPurchase"]
+        product_data["channelListings"][0]["availableForPurchase"]
         == available_for_purchase_date.isoformat()
     )
 
@@ -839,13 +839,13 @@ def test_product_channel_listing_update_update_is_available_for_purchase_future_
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert product_data["channelListing"][0]["isPublished"] is True
-    assert not product_data["channelListing"][0]["publicationDate"]
-    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
-    assert product_data["channelListing"][0]["visibleInListings"] is True
-    assert product_data["channelListing"][0]["isAvailableForPurchase"] is False
+    assert product_data["channelListings"][0]["isPublished"] is True
+    assert not product_data["channelListings"][0]["publicationDate"]
+    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListings"][0]["visibleInListings"] is True
+    assert product_data["channelListings"][0]["isAvailableForPurchase"] is False
     assert (
-        product_data["channelListing"][0]["availableForPurchase"]
+        product_data["channelListings"][0]["availableForPurchase"]
         == available_for_purchase_date.isoformat()
     )
 
@@ -896,9 +896,9 @@ def test_product_channel_listing_update_remove_channel(
 ):
     # given
     product = product_available_in_many_channels
-    product_channel_listing_pln = product.channel_listing.get(channel=channel_PLN)
+    product_channel_listing_pln = product.channel_listings.get(channel=channel_PLN)
     variant = product.variants.get()
-    variant_channel_listing_pln = variant.channel_listing.get(channel=channel_PLN)
+    variant_channel_listing_pln = variant.channel_listings.get(channel=channel_PLN)
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -919,9 +919,9 @@ def test_product_channel_listing_update_remove_channel(
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert len(product_data["channelListing"]) == 1
-    assert product.channel_listing.get() == product_channel_listing_pln
-    assert variant.channel_listing.get() == variant_channel_listing_pln
+    assert len(product_data["channelListings"]) == 1
+    assert product.channel_listings.get() == product_channel_listing_pln
+    assert variant.channel_listings.get() == variant_channel_listing_pln
 
 
 def test_product_channel_listing_update_remove_not_assigned_channel(
@@ -948,16 +948,16 @@ def test_product_channel_listing_update_remove_not_assigned_channel(
     product_data = data["product"]
     assert not data["productChannelListingErrors"]
     assert product_data["slug"] == product.slug
-    assert product_data["channelListing"][0]["isPublished"] is True
-    assert product_data["channelListing"][0]["publicationDate"] is None
-    assert product_data["channelListing"][0]["channel"]["slug"] == channel_USD.slug
+    assert product_data["channelListings"][0]["isPublished"] is True
+    assert product_data["channelListings"][0]["publicationDate"] is None
+    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
 
 
 def test_product_channel_listing_update_publish_product_without_category(
     staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
 ):
     # given
-    product.channel_listing.all().delete()
+    product.channel_listings.all().delete()
     product.category = None
     product.save()
     product_id = graphene.Node.to_global_id("Product", product.pk)

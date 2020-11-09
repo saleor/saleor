@@ -36,7 +36,7 @@ class ShippingMethodsByShippingZoneIdAndChannelSlugLoader(DataLoader):
     def batch_load(self, keys):
         shipping_methods = ShippingMethod.objects.filter(
             shipping_zone_id__in=keys
-        ).annotate(channel_slug=F("channel_listing__channel__slug"))
+        ).annotate(channel_slug=F("channel_listings__channel__slug"))
 
         shipping_methods_by_shipping_zone_and_channel_map = defaultdict(list)
         for shipping_method in shipping_methods:

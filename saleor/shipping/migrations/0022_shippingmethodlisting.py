@@ -2,6 +2,7 @@
 
 import django.db.models.deletion
 from django.db import migrations, models
+from django.utils.text import slugify
 
 
 def create_shipping_method_channel_listing(apps, schema_editor):
@@ -15,14 +16,11 @@ def create_shipping_method_channel_listing(apps, schema_editor):
 
     for shipping_method in ShippingMethod.objects.iterator():
         currency = shipping_method.currency
+        name = f"Channel {currency}"
         channel = channels_dict.get(currency)
         if not channel:
             channel, _ = Channel.objects.get_or_create(
-                currency_code=currency,
-                defaults={
-                    "name": f"Channel {currency}",
-                    "slug": f"channel-{currency.lower()}",
-                },
+                currency_code=currency, defaults={"name": name, "slug": slugify(name)},
             )
             channels_dict[currency] = channel
         if shipping_method.type == "price":
@@ -43,7 +41,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("channel", "0001_initial"),
-        ("shipping", "0020_auto_20200902_1249"),
+        ("shipping", "0021_auto_20201021_2158"),
     ]
 
     operations = [

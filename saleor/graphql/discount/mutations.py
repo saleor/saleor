@@ -319,7 +319,7 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def clean_prices(cls, cleaned_input, voucher, errors):
-        channel_slugs_assigned_to_voucher = voucher.channel_listing.values_list(
+        channel_slugs_assigned_to_voucher = voucher.channel_listings.values_list(
             "channel__slug", flat=True
         )
         is_fixed_value_type = voucher.discount_value_type == DiscountValueType.FIXED
@@ -402,7 +402,7 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def remove_channels(cls, voucher, remove_channels):
-        voucher.channel_listing.filter(channel_id__in=remove_channels).delete()
+        voucher.channel_listings.filter(channel_id__in=remove_channels).delete()
 
     @classmethod
     @transaction.atomic()
@@ -630,7 +630,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def remove_channels(cls, sale: "SaleModel", remove_channels: List[int]):
-        sale.channel_listing.filter(channel_id__in=remove_channels).delete()
+        sale.channel_listings.filter(channel_id__in=remove_channels).delete()
 
     @classmethod
     @transaction.atomic()

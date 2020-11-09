@@ -14,11 +14,11 @@ from .models import NotApplicable, Sale, SaleChannelListing, VoucherCustomer
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from .models import Voucher
     from ..channel.models import Channel
-    from ..product.models import Collection, Product
     from ..checkout.models import Checkout, CheckoutLine
     from ..order.models import Order
+    from ..product.models import Collection, Product
+    from .models import Voucher
 
 
 def increase_voucher_usage(voucher: "Voucher") -> None:

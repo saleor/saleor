@@ -344,7 +344,7 @@ def test_collections_with_filtering_with_channel_USD(
     "filter_by, collections_count",
     [({"published": "PUBLISHED"}, 1), ({"published": "HIDDEN"}, 3)],
 )
-def test_products_with_filtering_with_channel_PLN(
+def test_collections_with_filtering_with_channel_PLN(
     filter_by,
     collections_count,
     staff_api_client,

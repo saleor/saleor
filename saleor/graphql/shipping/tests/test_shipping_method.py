@@ -15,7 +15,7 @@ SHIPPING_ZONE_QUERY = """
         shippingZone(id: $id, channel:$channel) {
             name
             shippingMethods {
-                channelListing {
+                channelListings {
                     id
                     price {
                         amount
@@ -147,7 +147,7 @@ def test_shipping_zones_query(
                         }
                     }
                     shippingMethods {
-                        channelListing {
+                        channelListings {
                             price {
                                 amount
                             }
@@ -188,7 +188,7 @@ def test_shipping_methods_query_with_channel(
             edges {
                 node {
                     shippingMethods {
-                        channelListing {
+                        channelListings {
                             price {
                                 amount
                             }
@@ -227,7 +227,7 @@ def test_shipping_methods_query(
             edges {
                 node {
                     shippingMethods {
-                        channelListing {
+                        channelListings {
                             price {
                                 amount
                             }
@@ -652,7 +652,7 @@ PRICE_BASED_SHIPPING_QUERY = """
         shippingMethod {
             id
             name
-            channelListing {
+            channelListings {
             price {
                 amount
             }

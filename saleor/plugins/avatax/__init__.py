@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ...checkout.models import Checkout, CheckoutLine
     from ...order.models import Order
-    from ...product.models import Product, ProductVariant, ProductType
+    from ...product.models import Product, ProductType, ProductVariant
 
 logger = logging.getLogger(__name__)
 
@@ -210,7 +210,7 @@ def append_shipping_to_data(data: List[Dict], shipping_method, channel_id):
         Site.objects.get_current().settings.charge_taxes_on_shipping
     )
     if charge_taxes_on_shipping and shipping_method:
-        shipping_price = shipping_method.channel_listing.get(
+        shipping_price = shipping_method.channel_listings.get(
             channel_id=channel_id
         ).price
         append_line_to_data(

@@ -18,20 +18,20 @@ from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from .base_plugin import BasePlugin
-    from ..checkout.models import Checkout, CheckoutLine
-    from ..channel.models import Channel
-    from ..product.models import Product, ProductType
     from ..account.models import Address, User
-    from ..order.models import Fulfillment, OrderLine, Order
+    from ..channel.models import Channel
+    from ..checkout.models import Checkout, CheckoutLine
     from ..invoice.models import Invoice
+    from ..order.models import Fulfillment, Order, OrderLine
     from ..payment.interface import (
-        PaymentData,
-        TokenConfig,
-        GatewayResponse,
         CustomerSource,
+        GatewayResponse,
+        PaymentData,
         PaymentGateway,
+        TokenConfig,
     )
+    from ..product.models import Product, ProductType
+    from .base_plugin import BasePlugin
 
 
 class PluginsManager(PaymentInterface):
@@ -155,7 +155,7 @@ class PluginsManager(PaymentInterface):
     def calculate_order_shipping(self, order: "Order") -> TaxedMoney:
         if not order.shipping_method:
             return zero_taxed_money(order.currency)
-        shipping_price = order.shipping_method.channel_listing.get(
+        shipping_price = order.shipping_method.channel_listings.get(
             channel_id=order.channel_id
         ).price
         default_value = quantize_price(
@@ -496,9 +496,12 @@ class PluginsManager(PaymentInterface):
                     identifier=plugin_id,
                     defaults={"configuration": plugin.configuration},
                 )
-                return plugin.save_plugin_configuration(
+                configuration = plugin.save_plugin_configuration(
                     plugin_configuration, cleaned_data
                 )
+                configuration.name = plugin.PLUGIN_NAME
+                configuration.description = plugin.PLUGIN_DESCRIPTION
+                return configuration
 
     def get_plugin(self, plugin_id: str) -> Optional["BasePlugin"]:
         for plugin in self.plugins:

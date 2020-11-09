@@ -16,7 +16,6 @@ from ...core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
-from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeInputTypeEnum, AttributeTypeEnum
@@ -507,46 +506,6 @@ class AttributeDelete(ModelDeleteMutation):
         model = models.Attribute
         description = "Deletes an attribute."
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class AttributeUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        model = models.Attribute
-        description = "Update public metadata for attribute."
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class AttributeClearMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clears public metadata item for attribute."
-        model = models.Attribute
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        public = True
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class AttributeUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Update public metadata for attribute."
-        model = models.Attribute
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        public = False
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-
-class AttributeClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clears public metadata item for attribute."
-        model = models.Attribute
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        public = False
         error_type_class = ProductError
         error_type_field = "product_errors"
 

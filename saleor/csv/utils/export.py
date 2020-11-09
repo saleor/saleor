@@ -13,6 +13,7 @@ from .products_data import get_products_data
 if TYPE_CHECKING:
     # flake8: noqa
     from django.db.models import QuerySet
+
     from ..models import ExportFile
 
 

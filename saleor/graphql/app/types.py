@@ -6,7 +6,6 @@ from ...core.permissions import AppPermission
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import Permission
 from ..core.types.common import Job
-from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
 from ..webhook.types import Webhook
@@ -110,14 +109,6 @@ class App(CountableDjangoObjectType):
     @staticmethod
     def resolve_tokens(root: models.App, _info, **_kwargs):
         return root.tokens.all()  # type: ignore
-
-    @staticmethod
-    def resolve_meta(root: models.App, info):
-        return resolve_meta(root, info)
-
-    @staticmethod
-    def resolve_private_meta(root: models.App, _info):
-        return resolve_private_meta(root, _info)
 
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):

@@ -4,7 +4,7 @@ from promise import Promise
 from ...checkout import calculations, models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import AccountPermissions, CheckoutPermissions
+from ...core.permissions import AccountPermissions
 from ...core.taxes import display_gross_prices, zero_taxed_money
 from ...plugins.manager import get_plugins_manager
 from ..account.utils import requestor_has_access
@@ -13,10 +13,8 @@ from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoad
 from ..core.connection import CountableDjangoObjectType
 from ..core.scalars import UUID
 from ..core.types.money import TaxedMoney
-from ..decorators import permission_required
 from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..giftcard.types import GiftCard
-from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..product.resolvers import resolve_variant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
@@ -265,8 +263,7 @@ class Checkout(CountableDjangoObjectType):
             for shipping_method in available:
                 # ignore mypy checking because it is checked in
                 # get_valid_shipping_methods_for_checkout
-                # TODO: Add dataloader here.
-                shipping_channel_listing = shipping_method.channel_listing.get(
+                shipping_channel_listing = shipping_method.channel_listings.get(
                     channel=root.channel
                 )
                 taxed_price = manager.apply_taxes_to_shipping(  # type: ignore
@@ -304,12 +301,3 @@ class Checkout(CountableDjangoObjectType):
     @staticmethod
     def resolve_is_shipping_required(root: models.Checkout, _info):
         return root.is_shipping_required()
-
-    @staticmethod
-    @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
-    def resolve_private_meta(root: models.Checkout, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.Checkout, _info):
-        return resolve_meta(root, _info)

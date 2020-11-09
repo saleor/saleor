@@ -7,6 +7,7 @@ from ...core import models
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
 from ...product import models as product_models
+from ...shipping import models as shipping_models
 from ..channel import ChannelContext
 from ..core.mutations import BaseMutation
 from ..core.types.common import MetadataError
@@ -122,6 +123,8 @@ class BaseMetadataMutation(BaseMutation):
                     product_models.Product,
                     product_models.ProductVariant,
                     product_models.Collection,
+                    shipping_models.ShippingMethod,
+                    shipping_models.ShippingZone,
                 ]
             ]
         )

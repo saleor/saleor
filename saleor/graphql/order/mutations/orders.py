@@ -1,10 +1,11 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....account.models import User
 from ....core.permissions import OrderPermissions
 from ....core.taxes import zero_taxed_money
-from ....order import events, models
+from ....order import OrderStatus, events, models
 from ....order.actions import (
     cancel_order,
     clean_mark_order_as_paid,
@@ -19,12 +20,10 @@ from ....order.utils import get_valid_shipping_methods_for_order, update_order_p
 from ....payment import CustomPaymentChoices, PaymentError, TransactionKind, gateway
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
-from ...core.scalars import UUID, PositiveDecimal
+from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...core.utils import validate_required_string_field
-from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
-from ...meta.deprecated.types import MetaInput, MetaPath
-from ...order.mutations.draft_orders import DraftOrderUpdate
+from ...order.mutations.draft_orders import DraftOrderCreate
 from ...order.types import Order, OrderEvent
 from ...shipping.types import ShippingMethod
 
@@ -138,7 +137,7 @@ class OrderUpdateInput(graphene.InputObjectType):
     shipping_address = AddressInput(description="Shipping address of the customer.")
 
 
-class OrderUpdate(DraftOrderUpdate):
+class OrderUpdate(DraftOrderCreate):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an order to update.")
         input = OrderUpdateInput(
@@ -165,8 +164,24 @@ class OrderUpdate(DraftOrderUpdate):
         return cleaned_input
 
     @classmethod
+    def get_instance(cls, info, **data):
+        instance = super().get_instance(info, **data)
+        if instance.status == OrderStatus.DRAFT:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Provided order id belongs to draft order. "
+                        "Use `draftOrderUpdate` mutation instead.",
+                        code=OrderErrorCode.INVALID,
+                    )
+                }
+            )
+        return instance
+
+    @classmethod
+    @transaction.atomic
     def save(cls, info, instance, cleaned_input):
-        super().save(info, instance, cleaned_input)
+        cls._save_addresses(info, instance, cleaned_input)
         if instance.user_email:
             user = User.objects.filter(email=instance.user_email).first()
             instance.user = user
@@ -468,58 +483,3 @@ class OrderRefund(BaseMutation):
         if transaction.kind == TransactionKind.REFUND:
             order_refunded(order, info.context.user, amount, payment)
         return OrderRefund(order=order)
-
-
-class OrderUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates meta for order."
-        model = models.Order
-        public = True
-
-    class Arguments:
-        token = UUID(description="Token of an object to update.", required=True)
-        input = MetaInput(
-            description="Fields required to update new or stored metadata item.",
-            required=True,
-        )
-
-    @classmethod
-    def get_instance(cls, info, **data):
-        token = data["token"]
-        return models.Order.objects.get(token=token)
-
-
-class OrderUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates private meta for order."
-        model = models.Order
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        public = False
-
-
-class OrderClearMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clears stored metadata value."
-        model = models.Order
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        public = True
-
-    class Arguments:
-        token = UUID(description="Token of an object to clear.", required=True)
-        input = MetaPath(
-            description="Fields required to update new or stored metadata item.",
-            required=True,
-        )
-
-    @classmethod
-    def get_instance(cls, info, **data):
-        token = data["token"]
-        return models.Order.objects.get(token=token)
-
-
-class OrderClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clears stored private metadata value."
-        model = models.Order
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        public = False

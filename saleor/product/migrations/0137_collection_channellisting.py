@@ -4,6 +4,7 @@ import os
 
 import django.db.models.deletion
 from django.db import migrations, models
+from django.utils.text import slugify
 
 
 def create_collection_channel_listing(apps, schema_editor):
@@ -13,12 +14,9 @@ def create_collection_channel_listing(apps, schema_editor):
 
     if Collection.objects.exists():
         currency = os.environ.get("DEFAULT_CURRENCY", "USD")
+        name = f"Channel {currency}"
         channel, _ = Channel.objects.get_or_create(
-            currency_code=currency,
-            defaults={
-                "name": f"Channel {currency}",
-                "slug": f"channel-{currency.lower()}",
-            },
+            currency_code=currency, defaults={"name": name, "slug": slugify(name)},
         )
         for collection in Collection.objects.iterator():
 
@@ -34,7 +32,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("channel", "0002_channel_availability"),
-        ("product", "0135_auto_20201006_0635"),
+        ("product", "0136_auto_20201006_0635"),
     ]
 
     operations = [

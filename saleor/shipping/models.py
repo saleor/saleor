@@ -10,6 +10,7 @@ from measurement.measures import Weight
 from prices import Money
 
 from ..channel.models import Channel
+from ..core.models import ModelWithMetadata
 from ..core.permissions import ShippingPermissions
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import (
@@ -66,7 +67,7 @@ def _get_weight_type_display(min_weight, max_weight):
     }
 
 
-class ShippingZone(models.Model):
+class ShippingZone(ModelWithMetadata):
     name = models.CharField(max_length=100)
     countries = CountryField(multiple=True, default=[], blank=True)
     default = models.BooleanField(default=False)
@@ -105,7 +106,7 @@ class ShippingMethodQueryset(models.QuerySet):
         """
         qs = self.filter(
             shipping_zone__countries__contains=country_code,
-            channel_listing__currency=price.currency,
+            channel_listings__currency=price.currency,
         )
         qs = self.applicable_shipping_methods_by_channel(qs, channel_id)
         qs = qs.prefetch_related("shipping_zone")
@@ -135,7 +136,7 @@ class ShippingMethodQueryset(models.QuerySet):
         )
 
 
-class ShippingMethod(models.Model):
+class ShippingMethod(ModelWithMetadata):
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=30, choices=ShippingMethodType.CHOICES)
     shipping_zone = models.ForeignKey(
@@ -177,14 +178,14 @@ class ShippingMethodChannelListing(models.Model):
         ShippingMethod,
         null=False,
         blank=False,
-        related_name="channel_listing",
+        related_name="channel_listings",
         on_delete=models.CASCADE,
     )
     channel = models.ForeignKey(
         Channel,
         null=False,
         blank=False,
-        related_name="shipping_method_listing",
+        related_name="shipping_method_listings",
         on_delete=models.CASCADE,
     )
     minimum_order_price_amount = models.DecimalField(

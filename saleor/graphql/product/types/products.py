@@ -38,7 +38,6 @@ from ...core.fields import (
 from ...core.types import Image, Money, TaxedMoney, TaxedMoneyRange, TaxType
 from ...decorators import one_of_permissions_required, permission_required
 from ...discount.dataloaders import DiscountsByDateTimeLoader
-from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
     OrderByIdLoader,
@@ -167,8 +166,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "This field will be removed after 2020-07-31."
         ),
     )
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(ProductVariantChannelListing),
         description="List of price information in channels for the product.",
     )
@@ -289,7 +287,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_channel_listing(
+    def resolve_channel_listings(
         root: ChannelContext[models.ProductVariant], info, **_kwargs
     ):
         return VariantChannelListingByVariantIdLoader(info.context).load(root.node.id)
@@ -439,15 +437,6 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ImagesByProductVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: ChannelContext[models.ProductVariant], _info):
-        return resolve_private_meta(root.node, _info)
-
-    @staticmethod
-    def resolve_meta(root: ChannelContext[models.ProductVariant], _info):
-        return resolve_meta(root.node, _info)
-
-    @staticmethod
     def __resolve_reference(
         root: ChannelContext[models.ProductVariant], _info, **_kwargs
     ):
@@ -488,8 +477,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         required=True,
         description="List of attributes assigned to this product.",
     )
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(ProductChannelListing),
         description="List of availability in channels for the product.",
     )
@@ -698,7 +686,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_channel_listing(root: ChannelContext[models.Product], info, **_kwargs):
+    def resolve_channel_listings(root: ChannelContext[models.Product], info, **_kwargs):
         return ProductChannelListingByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
@@ -714,15 +702,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
                 ]
             )
         )
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: ChannelContext[models.Product], _info):
-        return resolve_private_meta(root.node, _info)
-
-    @staticmethod
-    def resolve_meta(root: ChannelContext[models.Product], _info):
-        return resolve_meta(root.node, _info)
 
     @staticmethod
     def __resolve_reference(root: ChannelContext[models.Product], _info, **_kwargs):
@@ -848,15 +827,6 @@ class ProductType(CountableDjangoObjectType):
         return resolve_attributes(info, qs=qs, **kwargs)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: models.ProductType, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.ProductType, _info):
-        return resolve_meta(root, _info)
-
-    @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
@@ -881,8 +851,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         type_name="collection",
         resolver=ChannelContextType.resolve_translation,
     )
-    # TODO: change to channel_listings
-    channel_listing = graphene.List(
+    channel_listings = graphene.List(
         graphene.NonNull(CollectionChannelListing),
         description="List of channels in which the collection is available.",
     )
@@ -924,19 +893,10 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_channel_listing(root: ChannelContext[models.Collection], info):
+    def resolve_channel_listings(root: ChannelContext[models.Collection], info):
         return CollectionChannelListingByCollectionIdLoader(info.context).load(
             root.node.id
         )
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: ChannelContext[models.Collection], _info):
-        return resolve_private_meta(root.node, _info)
-
-    @staticmethod
-    def resolve_meta(root: ChannelContext[models.Collection], _info):
-        return resolve_meta(root.node, _info)
 
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
@@ -1027,18 +987,9 @@ class Category(CountableDjangoObjectType):
                 .exclude(visible_in_listings=False,)
             )
         if channel and requestor_has_access_to_all:
-            qs = qs.filter(channel_listing__channel__slug=channel)
+            qs = qs.filter(channel_listings__channel__slug=channel)
         qs = qs.filter(category__in=tree)
         return ChannelQsContext(qs=qs, channel_slug=channel)
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root: models.Category, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.Category, _info):
-        return resolve_meta(root, _info)
 
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):

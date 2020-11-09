@@ -200,7 +200,7 @@ def test_retrieve_channel_listings(
             edges {
               node {
                 id
-                channelListing{
+                channelListings {
                   publicationDate
                   isPublished
                   channel{

@@ -53,7 +53,7 @@ def test_fetch_variant(
                 id
             }
             name
-            channelListing {
+            channelListings {
                 channel {
                     slug
                 }
@@ -98,8 +98,8 @@ def test_fetch_variant(
     assert len(data["stocks"]) == variant.stocks.count()
     assert data["weight"]["value"] == 10000
     assert data["weight"]["unit"] == WeightUnitsEnum.G.name
-    channel_listing_data = data["channelListing"][0]
-    channel_listing = variant.channel_listing.get()
+    channel_listing_data = data["channelListings"][0]
+    channel_listing = variant.channel_listings.get()
     assert channel_listing_data["channel"]["slug"] == channel_listing.channel.slug
     assert channel_listing_data["price"]["currency"] == channel_listing.currency
     assert channel_listing_data["price"]["amount"] == channel_listing.price_amount
@@ -113,7 +113,7 @@ QUERY_PRODUCT_VARIANT_CHANNEL_LISTING = """
     query ProductVariantDetails($id: ID!, $channel: String) {
         productVariant(id: $id, channel: $channel) {
             id
-            channelListing {
+            channelListings {
                 channel {
                     slug
                 }
@@ -152,7 +152,7 @@ def test_get_product_variant_channel_listing_as_staff_user(
 
     # then
     data = content["data"]["productVariant"]
-    channel_listings = variant.channel_listing.all()
+    channel_listings = variant.channel_listings.all()
     for channel_listing in channel_listings:
         assert {
             "channel": {"slug": channel_listing.channel.slug},
@@ -164,8 +164,8 @@ def test_get_product_variant_channel_listing_as_staff_user(
                 "currency": channel_listing.currency,
                 "amount": channel_listing.cost_price_amount,
             },
-        } in data["channelListing"]
-    assert len(data["channelListing"]) == variant.channel_listing.count()
+        } in data["channelListings"]
+    assert len(data["channelListings"]) == variant.channel_listings.count()
 
 
 def test_get_product_variant_channel_listing_as_app(
@@ -189,7 +189,7 @@ def test_get_product_variant_channel_listing_as_app(
 
     # then
     data = content["data"]["productVariant"]
-    channel_listings = variant.channel_listing.all()
+    channel_listings = variant.channel_listings.all()
     for channel_listing in channel_listings:
         assert {
             "channel": {"slug": channel_listing.channel.slug},
@@ -201,8 +201,8 @@ def test_get_product_variant_channel_listing_as_app(
                 "currency": channel_listing.currency,
                 "amount": channel_listing.cost_price_amount,
             },
-        } in data["channelListing"]
-    assert len(data["channelListing"]) == variant.channel_listing.count()
+        } in data["channelListings"]
+    assert len(data["channelListings"]) == variant.channel_listings.count()
 
 
 def test_get_product_variant_channel_listing_as_customer(
@@ -638,7 +638,7 @@ def test_update_product_variant(
                     productVariant {
                         name
                         sku
-                        channelListing {
+                        channelListings {
                             channel {
                                 slug
                             }
@@ -1262,7 +1262,7 @@ def test_product_variants_visible_in_listings_by_customer(
     user_api_client, product_list, channel_USD
 ):
     # given
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -1276,7 +1276,7 @@ def test_product_variants_visible_in_listings_by_staff_without_perm(
     staff_api_client, product_list, channel_USD
 ):
     # given
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -1292,7 +1292,7 @@ def test_product_variants_visible_in_listings_by_staff_with_perm(
     staff_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -1310,7 +1310,7 @@ def test_product_variants_visible_in_listings_by_app_without_perm(
     app_api_client, product_list, channel_USD
 ):
     # given
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -1324,7 +1324,7 @@ def test_product_variants_visible_in_listings_by_app_with_perm(
     app_api_client, product_list, permission_manage_products, channel_USD
 ):
     # given
-    product_list[0].channel_listing.all().update(visible_in_listings=False)
+    product_list[0].channel_listings.all().update(visible_in_listings=False)
 
     product_count = Product.objects.count()
 
@@ -1414,7 +1414,7 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
                     }
                     quantity
                 }
-                channelListing {
+                channelListings {
                     channel {
                         slug
                     }
@@ -1463,6 +1463,9 @@ def test_product_variant_bulk_create_by_attribute_id(
     assert data["count"] == 1
     assert product_variant_count + 1 == ProductVariant.objects.count()
     assert attribute_value_count == size_attribute.values.count()
+    product_variant = ProductVariant.objects.get(sku=sku)
+    product.refresh_from_db()
+    assert product.default_variant == product_variant
 
 
 def test_product_variant_bulk_create_empty_attribute(
@@ -1712,7 +1715,7 @@ def test_product_variant_bulk_create_channel_listings_input(
     expected_result = {
         variants[0]["sku"]: {
             "sku": variants[0]["sku"],
-            "channelListing": [
+            "channelListings": [
                 {
                     "channel": {"slug": channel_USD.slug},
                     "price": {
@@ -1728,7 +1731,7 @@ def test_product_variant_bulk_create_channel_listings_input(
         },
         variants[1]["sku"]: {
             "sku": variants[1]["sku"],
-            "channelListing": [
+            "channelListings": [
                 {
                     "channel": {"slug": channel_USD.slug},
                     "price": {
@@ -1758,11 +1761,11 @@ def test_product_variant_bulk_create_channel_listings_input(
         variant_data.pop("id")
         assert variant_data["sku"] in expected_result
         expected_variant = expected_result[variant_data["sku"]]
-        expected_channel_listing = expected_variant["channelListing"]
+        expected_channel_listing = expected_variant["channelListings"]
         assert all(
             [
                 channelListing in expected_channel_listing
-                for channelListing in variant_data["channelListing"]
+                for channelListing in variant_data["channelListings"]
             ]
         )
 

@@ -104,3 +104,30 @@ class Stock(CountableDjangoObjectType):
     @staticmethod
     def resolve_product_variant(root, *_args):
         return ChannelContext(node=root.product_variant, channel_slug=None)
+
+
+class Allocation(CountableDjangoObjectType):
+    quantity = graphene.Int(required=True, description="Quantity allocated for orders.")
+    warehouse = graphene.Field(
+        Warehouse, required=True, description="The warehouse were items were allocated."
+    )
+
+    class Meta:
+        description = "Represents allocation."
+        model = models.Allocation
+        interfaces = [graphene.relay.Node]
+        only_fields = ["id"]
+
+    @staticmethod
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
+    def resolve_warehouse(root, *_args):
+        return root.stock.warehouse
+
+    @staticmethod
+    @one_of_permissions_required(
+        [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
+    )
+    def resolve_quantity(root, *_args):
+        return root.quantity_allocated

@@ -46,10 +46,10 @@ from . import AttributeInputType
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from django.db.models import OrderBy
     from prices import Money
 
     from ..account.models import User
-    from django.db.models import OrderBy
 
 
 class Category(MPTTModel, ModelWithMetadata, SeoModel):
@@ -143,20 +143,20 @@ class ProductsQueryset(models.QuerySet):
     def published(self, channel_slug: str):
         today = datetime.date.today()
         return self.filter(
-            Q(channel_listing__publication_date__lte=today)
-            | Q(channel_listing__publication_date__isnull=True),
-            channel_listing__channel__slug=str(channel_slug),
-            channel_listing__channel__is_active=True,
-            channel_listing__is_published=True,
+            Q(channel_listings__publication_date__lte=today)
+            | Q(channel_listings__publication_date__isnull=True),
+            channel_listings__channel__slug=str(channel_slug),
+            channel_listings__channel__is_active=True,
+            channel_listings__is_published=True,
         )
 
     def not_published(self, channel_slug: str):
         today = datetime.date.today()
         return self.filter(
-            Q(channel_listing__publication_date__gt=today)
-            & Q(channel_listing__is_published=True)
-            | Q(channel_listing__is_published=False),
-            channel_listing__channel__slug=str(channel_slug),
+            Q(channel_listings__publication_date__gt=today)
+            & Q(channel_listings__is_published=True)
+            | Q(channel_listings__is_published=False),
+            channel_listings__channel__slug=str(channel_slug),
         )
 
     def published_with_variants(self, channel_slug: str):
@@ -169,7 +169,7 @@ class ProductsQueryset(models.QuerySet):
     def visible_to_user(self, user: "User", channel_slug: str):
         if self.user_has_access_to_all(user):
             if channel_slug:
-                return self.filter(channel_listing__channel__slug=str(channel_slug))
+                return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()
         return self.published_with_variants(channel_slug)
 
@@ -393,14 +393,14 @@ class ProductChannelListing(PublishableModel):
         Product,
         null=False,
         blank=False,
-        related_name="channel_listing",
+        related_name="channel_listings",
         on_delete=models.CASCADE,
     )
     channel = models.ForeignKey(
         Channel,
         null=False,
         blank=False,
-        related_name="product_listing",
+        related_name="product_listings",
         on_delete=models.CASCADE,
     )
     visible_in_listings = models.BooleanField(default=False)
@@ -453,7 +453,7 @@ class ProductVariant(SortableModel, ModelWithMetadata):
     def get_price(
         self, channel_slug: str, discounts: Optional[Iterable[DiscountInfo]] = None
     ) -> "Money":
-        channel_listing = self.channel_listing.get(channel__slug=channel_slug)
+        channel_listing = self.channel_listings.get(channel__slug=channel_slug)
         return calculate_discounted_price(
             product=self.product,
             price=channel_listing.price,
@@ -522,14 +522,14 @@ class ProductVariantChannelListing(models.Model):
         ProductVariant,
         null=False,
         blank=False,
-        related_name="channel_listing",
+        related_name="channel_listings",
         on_delete=models.CASCADE,
     )
     channel = models.ForeignKey(
         Channel,
         null=False,
         blank=False,
-        related_name="variant_listing",
+        related_name="variant_listings",
         on_delete=models.CASCADE,
     )
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
@@ -914,17 +914,17 @@ class CollectionsQueryset(models.QuerySet):
     def published(self, channel_slug: str):
         today = datetime.date.today()
         return self.filter(
-            Q(channel_listing__publication_date__lte=today)
-            | Q(channel_listing__publication_date__isnull=True),
-            channel_listing__channel__slug=str(channel_slug),
-            channel_listing__channel__is_active=True,
-            channel_listing__is_published=True,
+            Q(channel_listings__publication_date__lte=today)
+            | Q(channel_listings__publication_date__isnull=True),
+            channel_listings__channel__slug=str(channel_slug),
+            channel_listings__channel__is_active=True,
+            channel_listings__is_published=True,
         )
 
     def visible_to_user(self, user: "User", channel_slug: str):
         if self.user_has_access_to_all(user):
             if channel_slug:
-                return self.filter(channel_listing__channel__slug=str(channel_slug))
+                return self.filter(channel_listings__channel__slug=str(channel_slug))
             return self.all()
         return self.published(channel_slug)
 
@@ -962,14 +962,14 @@ class CollectionChannelListing(PublishableModel):
         Collection,
         null=False,
         blank=False,
-        related_name="channel_listing",
+        related_name="channel_listings",
         on_delete=models.CASCADE,
     )
     channel = models.ForeignKey(
         Channel,
         null=False,
         blank=False,
-        related_name="collection_listing",
+        related_name="collection_listings",
         on_delete=models.CASCADE,
     )
 
