@@ -450,28 +450,59 @@ def test_draft_order_query(staff_api_client, permission_manage_orders, orders):
     assert len(edges) == Order.objects.drafts().count()
 
 
-def test_order_update_settings(
-    staff_api_client, permission_manage_orders, site_settings
-):
-    mutation = """
-        mutation orderSettings($confirmOrders: Boolean!) {
-            orderUpdateSettings(
-                input: { automaticallyConfirmAllNewOrders: $confirmOrders }
-            ) {
-                orderSettings {
-                    automaticallyConfirmAllNewOrders
-                }
+ORDER_SETTINGS_UPDATE_MUTATION = """
+    mutation orderSettings($confirmOrders: Boolean!) {
+        orderSettingsUpdate(
+            input: { automaticallyConfirmAllNewOrders: $confirmOrders }
+        ) {
+            orderSettings {
+                automaticallyConfirmAllNewOrders
             }
         }
-    """
+    }
+"""
+
+
+def test_order_settings_update_by_staff(
+    staff_api_client, permission_manage_orders, site_settings
+):
     assert site_settings.automatically_confirm_all_new_orders is True
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    response = staff_api_client.post_graphql(mutation, {"confirmOrders": False})
+    response = staff_api_client.post_graphql(
+        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+    )
     content = get_graphql_content(response)
-    response_settings = content["data"]["orderUpdateSettings"]["orderSettings"]
+    response_settings = content["data"]["orderSettingsUpdate"]["orderSettings"]
     assert response_settings["automaticallyConfirmAllNewOrders"] is False
     site_settings.refresh_from_db()
     assert site_settings.automatically_confirm_all_new_orders is False
+
+
+def test_order_settings_update_by_app(
+    app_api_client, permission_manage_orders, site_settings
+):
+    assert site_settings.automatically_confirm_all_new_orders is True
+    app_api_client.app.permissions.set([permission_manage_orders])
+    response = app_api_client.post_graphql(
+        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+    )
+    content = get_graphql_content(response)
+    response_settings = content["data"]["orderSettingsUpdate"]["orderSettings"]
+    assert response_settings["automaticallyConfirmAllNewOrders"] is False
+    site_settings.refresh_from_db()
+    assert site_settings.automatically_confirm_all_new_orders is False
+
+
+def test_order_settings_update_by_user_without_permissions(
+    user_api_client, permission_manage_orders, site_settings
+):
+    assert site_settings.automatically_confirm_all_new_orders is True
+    response = user_api_client.post_graphql(
+        ORDER_SETTINGS_UPDATE_MUTATION, {"confirmOrders": False}
+    )
+    assert_no_permission(response)
+    site_settings.refresh_from_db()
+    assert site_settings.automatically_confirm_all_new_orders is True
 
 
 ORDER_SETTINGS_QUERY = """

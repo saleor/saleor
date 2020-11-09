@@ -30,8 +30,8 @@ from .mutations.orders import (
     OrderCapture,
     OrderMarkAsPaid,
     OrderRefund,
+    OrderSettingsUpdate,
     OrderUpdate,
-    OrderUpdateSettings,
     OrderUpdateShipping,
     OrderVoid,
 )
@@ -44,7 +44,7 @@ from .resolvers import (
     resolve_orders_total,
 )
 from .sorters import OrderSortingInput
-from .types import Order, OrderEvent, SiteSettings
+from .types import Order, OrderEvent, OrderSettings
 
 
 class OrderFilterInput(FilterInputObjectType):
@@ -65,7 +65,9 @@ class OrderQueries(graphene.ObjectType):
             "homepage (at the moment it only contains order-events)."
         ),
     )
-    order_settings = graphene.Field(SiteSettings)
+    order_settings = graphene.Field(
+        OrderSettings, description="Order related settings from site settings."
+    )
     order = graphene.Field(
         Order,
         description="Look up an order by ID.",
@@ -157,7 +159,7 @@ class OrderMutations(graphene.ObjectType):
     order_add_note = OrderAddNote.Field()
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
-    order_update_settings = OrderUpdateSettings.Field()
+    order_settings_update = OrderSettingsUpdate.Field()
     order_fulfill = OrderFulfill.Field()
     order_fulfillment_cancel = FulfillmentCancel.Field()
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()

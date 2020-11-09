@@ -18,14 +18,13 @@ from ....order.actions import (
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import get_valid_shipping_methods_for_order, update_order_prices
 from ....payment import CustomPaymentChoices, PaymentError, TransactionKind, gateway
-from ....site import models as site_models
 from ...account.types import AddressInput
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError, OrderSettingsError
 from ...core.utils import validate_required_string_field
 from ...order.mutations.draft_orders import DraftOrderCreate
-from ...order.types import Order, OrderEvent, SiteSettings
+from ...order.types import Order, OrderEvent, OrderSettings
 from ...shipping.types import ShippingMethod
 
 
@@ -486,30 +485,33 @@ class OrderRefund(BaseMutation):
         return OrderRefund(order=order)
 
 
-class OrderUpdateSettingsInput(graphene.InputObjectType):
+class OrderSettingsUpdateInput(graphene.InputObjectType):
     automatically_confirm_all_new_orders = graphene.Boolean(
         required=True,
         description="When enabled, all new orders from checkout "
-        "will be marked as unconfirmed",
+        "will be marked as unconfirmed.",
     )
 
 
-class OrderUpdateSettings(ModelMutation):
-    order_settings = graphene.Field(SiteSettings, description="Order settings.")
+class OrderSettingsUpdate(BaseMutation):
+    order_settings = graphene.Field(OrderSettings, description="Order settings.")
 
     class Arguments:
-        input = OrderUpdateSettingsInput(
+        input = OrderSettingsUpdateInput(
             required=True, description="Fields required to update shop order settings."
         )
 
     class Meta:
         description = "Update shop order settings."
-        model = site_models.SiteSettings
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderSettingsError
         error_type_field = "order_settings_errors"
-        return_field_name = "orderSettings"
 
     @classmethod
-    def get_instance(cls, info, **data):
-        return info.context.site.settings
+    def perform_mutation(cls, _root, info, **data):
+        instance = info.context.site.settings
+        instance.automatically_confirm_all_new_orders = data["input"][
+            "automatically_confirm_all_new_orders"
+        ]
+        instance.save(update_fields=["automatically_confirm_all_new_orders"])
+        return OrderSettingsUpdate(order_settings=instance)

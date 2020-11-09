@@ -38,10 +38,10 @@ class OrderEventOrderLineObject(graphene.ObjectType):
     item_name = graphene.String(description="The variant name.")
 
 
-class SiteSettings(CountableDjangoObjectType):
+class OrderSettings(CountableDjangoObjectType):
     class Meta:
         only_fields = ["automatically_confirm_all_new_orders"]
-        description = "Checkout object."
+        description = "Order related settings from site settings."
         model = site_models.SiteSettings
 
 

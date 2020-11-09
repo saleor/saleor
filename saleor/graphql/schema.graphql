@@ -2520,7 +2520,7 @@ type Mutation {
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!): OrderCancel
   orderCapture(amount: PositiveDecimal!, id: ID!): OrderCapture
-  orderUpdateSettings(input: OrderUpdateSettingsInput!): OrderUpdateSettings
+  orderSettingsUpdate(input: OrderSettingsUpdateInput!): OrderSettingsUpdate
   orderFulfill(input: OrderFulfillInput!, order: ID): OrderFulfill
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
@@ -2951,6 +2951,10 @@ type OrderRefund {
   orderErrors: [OrderError!]!
 }
 
+type OrderSettings {
+  automaticallyConfirmAllNewOrders: Boolean!
+}
+
 type OrderSettingsError {
   field: String
   message: String
@@ -2959,6 +2963,16 @@ type OrderSettingsError {
 
 enum OrderSettingsErrorCode {
   INVALID
+}
+
+type OrderSettingsUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  orderSettings: OrderSettings
+  orderSettingsErrors: [OrderSettingsError!]!
+}
+
+input OrderSettingsUpdateInput {
+  automaticallyConfirmAllNewOrders: Boolean!
 }
 
 enum OrderSortField {
@@ -3003,16 +3017,6 @@ input OrderUpdateInput {
   billingAddress: AddressInput
   userEmail: String
   shippingAddress: AddressInput
-}
-
-type OrderUpdateSettings {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  orderSettings: SiteSettings
-  orderSettingsErrors: [OrderSettingsError!]!
-}
-
-input OrderUpdateSettingsInput {
-  automaticallyConfirmAllNewOrders: Boolean!
 }
 
 type OrderUpdateShipping {
@@ -4011,7 +4015,7 @@ type Query {
   page(id: ID, slug: String): Page
   pages(sortBy: PageSortingInput, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
-  orderSettings: SiteSettings
+  orderSettings: OrderSettings
   order(id: ID!): Order
   orders(sortBy: OrderSortingInput, filter: OrderFilterInput, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
@@ -4572,10 +4576,6 @@ type ShopTranslation implements Node {
 input SiteDomainInput {
   domain: String
   name: String
-}
-
-type SiteSettings {
-  automaticallyConfirmAllNewOrders: Boolean!
 }
 
 type StaffBulkDelete {
