@@ -150,20 +150,20 @@ d = ["aiohttp (>=3.3.2)", "aiohttp-cors"]
 
 [[package]]
 name = "boto3"
-version = "1.16.10"
+version = "1.16.13"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-botocore = ">=1.19.10,<1.20.0"
+botocore = ">=1.19.13,<1.20.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.3.0,<0.4.0"
 
 [[package]]
 name = "botocore"
-version = "1.19.10"
+version = "1.19.13"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
@@ -2524,12 +2524,12 @@ black = [
     {file = "black-19.10b0.tar.gz", hash = "sha256:c2edb73a08e9e0e6f65a0e6af18b059b8b1cdd5bef997d7a0b181df93dc81539"},
 ]
 boto3 = [
-    {file = "boto3-1.16.10-py2.py3-none-any.whl", hash = "sha256:b5537e814c7d3f6c7efbc26049a868f3bd5b60f3a3a86d5f2527f98fca6ed33f"},
-    {file = "boto3-1.16.10.tar.gz", hash = "sha256:ada5af5cd813997fa2fe30ee47460bbea253f5a728a5946916d44bb12370d6e9"},
+    {file = "boto3-1.16.13-py2.py3-none-any.whl", hash = "sha256:23d2575b7bd01c4e7153f283c1d1c12d329dabf78a6279d4192f2e752bb67b1a"},
+    {file = "boto3-1.16.13.tar.gz", hash = "sha256:cb3f4c2f2576153b845e5b4f325d54a04f4ca00c156f2063965432bfa5d714dd"},
 ]
 botocore = [
-    {file = "botocore-1.19.10-py2.py3-none-any.whl", hash = "sha256:0391922fc6fc1f36a51b9eb8c54b1278c37d9df1a0c6e40361213680d180c358"},
-    {file = "botocore-1.19.10.tar.gz", hash = "sha256:d44ecd33311cf163aec2c033e8941ae11f3a34e278e4b59aa7ee29b7455a5e62"},
+    {file = "botocore-1.19.13-py2.py3-none-any.whl", hash = "sha256:1b1b4cf5efd552ecc7f1ce0fc674d5fba56857db5ffe6394ee76edd1a568d7a6"},
+    {file = "botocore-1.19.13.tar.gz", hash = "sha256:b3b4b8fa33620f015c52e426a92e7db21b5e667ed4785c5fbc484ebfdb2b5153"},
 ]
 braintree = [
     {file = "braintree-4.4.0-py2.py3-none-any.whl", hash = "sha256:10b99ea6ea482d1438b0d058dbe51f6a33fe98fe6d0d977d4b7c5868fe3b9e35"},
@@ -3270,6 +3270,8 @@ psycopg2-binary = [
     {file = "psycopg2_binary-2.8.6-cp39-cp39-macosx_10_9_x86_64.macosx_10_9_intel.macosx_10_10_intel.macosx_10_10_x86_64.whl", hash = "sha256:89705f45ce07b2dfa806ee84439ec67c5d9a0ef20154e0e475e2b2ed392a5b83"},
     {file = "psycopg2_binary-2.8.6-cp39-cp39-manylinux1_i686.whl", hash = "sha256:42ec1035841b389e8cc3692277a0bd81cdfe0b65d575a2c8862cec7a80e62e52"},
     {file = "psycopg2_binary-2.8.6-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:7312e931b90fe14f925729cde58022f5d034241918a5c4f9797cac62f6b3a9dd"},
+    {file = "psycopg2_binary-2.8.6-cp39-cp39-win32.whl", hash = "sha256:6422f2ff0919fd720195f64ffd8f924c1395d30f9a495f31e2392c2efafb5056"},
+    {file = "psycopg2_binary-2.8.6-cp39-cp39-win_amd64.whl", hash = "sha256:15978a1fbd225583dd8cdaf37e67ccc278b5abecb4caf6b2d6b8e2b948e953f6"},
 ]
 purl = [
     {file = "purl-1.5-py2.py3-none-any.whl", hash = "sha256:5ac0e85979da0172d80156701cb3eb9b1eff31f3b43e981ef6dc06251c53a3a4"},
