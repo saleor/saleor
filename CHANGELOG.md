@@ -4,8 +4,9 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-- Add metadata to shipping zones and shipping methods - by @maarcingebala #6340
+- Add metadata to shipping zones and shipping methods - #6340 by @maarcingebala
 - Drop deprecated meta mutations - #6422 by @maarcingebala
+- Migrate draftjs content to editorjs format - by @IKarbowiak #6430
 - Add Page Types - #6261 by @IKarbowiak
 
 ## 2.11.0
