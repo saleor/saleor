@@ -188,6 +188,13 @@ query CollectionProducts($id: ID!, $filters: ProductFilterInput) {
       edges {
         node {
           id
+          attributes {
+            attribute {
+              values {
+                slug
+              }
+            }
+          }
         }
       }
     }
@@ -223,6 +230,47 @@ def test_filter_collection_products(user_api_client, product_list, collection):
         graphene.Node.to_global_id("Product", product.pk)
         for product in product_list[1:]
     }
+
+
+def test_filter_collection_products_by_multiple_attributes(
+    user_api_client,
+    collection,
+    product_with_two_variants,
+    product_with_multiple_values_attributes,
+):
+    # given
+    collection.products.set(
+        [product_with_two_variants, product_with_multiple_values_attributes]
+    )
+    assert collection.products.count() == 2
+
+    filters = {
+        "attributes": [{"slug": "modes", "values": ["eco"]}],
+    }
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection.pk),
+        "filters": filters,
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        GET_FILTERED_PRODUCTS_COLLECTION_QUERY, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products_data = content["data"]["collection"]["products"]["edges"]
+    product = products_data[0]["node"]
+
+    _, _id = graphene.Node.from_global_id(product["id"])
+
+    assert len(products_data) == 1
+    assert product["id"] == graphene.Node.to_global_id(
+        "Product", product_with_multiple_values_attributes.pk
+    )
+    assert product["attributes"] == [
+        {"attribute": {"values": [{"slug": "eco"}, {"slug": "power"}]}}
+    ]
 
 
 CREATE_COLLECTION_MUTATION = """

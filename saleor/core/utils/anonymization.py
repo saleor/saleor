@@ -8,8 +8,8 @@ from ...account.models import Address, User
 from .random_data import create_address, create_fake_user
 
 if TYPE_CHECKING:
-    from ...order.models import Order
     from ...checkout.models import Checkout
+    from ...order.models import Order
 
 logger = logging.getLogger(__name__)
 

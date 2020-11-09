@@ -5,6 +5,7 @@ from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import CountryDisplay, MoneyRange
+from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
@@ -23,7 +24,7 @@ class ShippingMethod(CountableDjangoObjectType):
             "them. They are directly exposed to the customers."
         )
         model = models.ShippingMethod
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         only_fields = [
             "id",
             "maximum_order_price",
@@ -34,9 +35,11 @@ class ShippingMethod(CountableDjangoObjectType):
             "price",
         ]
 
+    @staticmethod
     def resolve_maximum_order_weight(root: models.ShippingMethod, *_args):
         return convert_weight_to_default_weight_unit(root.maximum_order_weight)
 
+    @staticmethod
     def resolve_minimum_order_weight(root: models.ShippingMethod, *_args):
         return convert_weight_to_default_weight_unit(root.minimum_order_weight)
 
@@ -66,7 +69,7 @@ class ShippingZone(CountableDjangoObjectType):
             "the customers directly."
         )
         model = models.ShippingZone
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         only_fields = ["default", "id", "name"]
 
     @staticmethod

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Union
 from babel.numbers import get_currency_precision
 
 if TYPE_CHECKING:
-    from prices import TaxedMoney, Money, TaxedMoneyRange
+    from prices import Money, TaxedMoney, TaxedMoneyRange
 
 
 def quantize_price(
