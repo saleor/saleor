@@ -10,7 +10,9 @@ from ...enums import AttributeTypeEnum, AttributeValueType
 from ...types import resolve_attribute_value_type
 
 
-def test_get_single_attribute_by_user(user_api_client, color_attribute_without_values):
+def test_get_single_attribute_by_id_as_customer(
+    user_api_client, color_attribute_without_values
+):
     attribute_gql_id = graphene.Node.to_global_id(
         "Attribute", color_attribute_without_values.id
     )
