@@ -494,5 +494,4 @@ def test_validate_plugin_configuration_correct_cert(mocked_request, adyen_plugin
     plugin = adyen_plugin(apple_pay_cert="correct_cert")
     mocked_request.side_effect = RequestException()
     configuration = PluginConfiguration.objects.get()
-    with pytest.raises(ValidationError):
-        plugin.validate_plugin_configuration(configuration)
+    plugin.validate_plugin_configuration(configuration)
