@@ -184,7 +184,7 @@ def resolve_variant(
 
         return (
             ProductChannelListingByProductIdAndChannelSlugLoader(context)
-            .load((variant.product_id, channel))
+            .load((variant.product_id, channel.slug))
             .then(product_is_available)
         )
 
