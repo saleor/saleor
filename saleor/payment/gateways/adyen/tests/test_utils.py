@@ -18,7 +18,7 @@ from ..utils import (
     request_data_for_payment,
     to_adyen_price,
     update_payment_with_action_required_data,
-    validate_payment_for_apple_pay,
+    validate_payment_data_for_apple_pay,
 )
 
 
@@ -571,23 +571,23 @@ def test_get_payment_method_info_no_additional_data(dummy_payment_data):
         ),
     ],
 )
-def test_validate_payment_for_apple_pay_raises_payment_error(
+def test_validate_payment_data_for_apple_pay_raises_payment_error(
     validation_url, merchant_identifier, domain, display_name, certificate
 ):
     with pytest.raises(PaymentError):
-        validate_payment_for_apple_pay(
+        validate_payment_data_for_apple_pay(
             validation_url, merchant_identifier, domain, display_name, certificate
         )
 
 
-def test_validate_payment_for_apple_pay():
+def test_validate_payment_data_for_apple_pay():
     validation_url = "https://apple-pay-gateway.apple.com/paymentservices/startSession"
     merchant_identifier = "merchant.com.identifier"
     domain = "saleor.com"
     display_name = "Saleor "
     certificate = "certifiate data"
 
-    validate_payment_for_apple_pay(
+    validate_payment_data_for_apple_pay(
         validation_url, merchant_identifier, domain, display_name, certificate
     )
 

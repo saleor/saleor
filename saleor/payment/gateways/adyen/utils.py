@@ -356,7 +356,7 @@ def get_payment_method_info(
     return payment_method_info
 
 
-def validate_payment_for_apple_pay(
+def validate_payment_data_for_apple_pay(
     validation_url: Optional[str],
     merchant_identifier: Optional[str],
     domain: Optional[str],
@@ -398,17 +398,26 @@ def initialize_payment_for_apple_pay(
         "initiativeContext": domain,
     }
     request_exception = False
+    response = None
+    try:
+        response = make_request_to_initialize_apple_pay(
+            validation_url, request_data, certificate
+        )
+    except requests.exceptions.RequestException:
+        logger.warning("Failed to fetch the Apple Pay session", exc_info=True)
+        request_exception = True
+    if request_exception or response and not response.ok:
+        raise PaymentError(
+            "Unable to create Apple Pay payment session. Make sure that input data "
+            " and certificate are correct."
+        )
+    return response.json()  # type: ignore
+
+
+def make_request_to_initialize_apple_pay(
+    validation_url: str, request_data: dict, certificate: str
+):
     with NamedTemporaryFile() as f:
         f.write(certificate.encode())
         f.flush()  # ensure all data written
-        try:
-            response = requests.post(validation_url, json=request_data, cert=f.name)
-        except requests.exceptions.RequestException:
-            logger.warning("Failed to fetch the Apple Pay session", exc_info=True)
-            request_exception = True
-        if request_exception or not response.ok:
-            raise PaymentError(
-                "Unable to create Apple Pay payment session. Make sure that input data "
-                " and certificate are correct."
-            )
-        return response.json()
+        return requests.post(validation_url, json=request_data, cert=f.name)
