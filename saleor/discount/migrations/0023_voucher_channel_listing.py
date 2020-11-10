@@ -85,4 +85,13 @@ class Migration(migrations.Migration):
         migrations.RemoveField(model_name="voucher", name="currency",),
         migrations.RemoveField(model_name="voucher", name="discount_value",),
         migrations.RemoveField(model_name="voucher", name="min_spent_amount",),
+        migrations.AlterField(
+            model_name="voucher",
+            name="discount_value_type",
+            field=models.CharField(
+                choices=[("fixed", "fixed"), ("percentage", "%")],
+                default="fixed",
+                max_length=10,
+            ),
+        ),
     ]

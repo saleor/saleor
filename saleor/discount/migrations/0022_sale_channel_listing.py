@@ -71,4 +71,13 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(migrate_sale_data, migrations.RunPython.noop),
         migrations.RemoveField(model_name="sale", name="value",),
+        migrations.AlterField(
+            model_name="sale",
+            name="type",
+            field=models.CharField(
+                choices=[("fixed", "fixed"), ("percentage", "%")],
+                default="fixed",
+                max_length=10,
+            ),
+        ),
     ]
