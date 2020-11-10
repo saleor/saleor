@@ -9,11 +9,12 @@ from ....discount.error_codes import DiscountErrorCode
 from ....giftcard.error_codes import GiftCardErrorCode
 from ....invoice.error_codes import InvoiceErrorCode
 from ....menu.error_codes import MenuErrorCode
-from ....order.error_codes import OrderErrorCode, OrderSettingsErrorCode
+from ....order.error_codes import OrderErrorCode
 from ....payment.error_codes import PaymentErrorCode
 from ....plugins.error_codes import PluginErrorCode
 from ....product.error_codes import ProductErrorCode
 from ....shipping.error_codes import ShippingErrorCode
+from ...shop.error_codes import OrderSettingsErrorCode
 
 DJANGO_VALIDATORS_ERROR_CODES = [
     "invalid",

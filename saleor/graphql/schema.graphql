@@ -2429,6 +2429,7 @@ type Mutation {
   shopFetchTaxRates: ShopFetchTaxRates
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
+  orderSettingsUpdate(input: OrderSettingsUpdateInput!): OrderSettingsUpdate
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
@@ -2520,7 +2521,6 @@ type Mutation {
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!): OrderCancel
   orderCapture(amount: PositiveDecimal!, id: ID!): OrderCapture
-  orderSettingsUpdate(input: OrderSettingsUpdateInput!): OrderSettingsUpdate
   orderFulfill(input: OrderFulfillInput!, order: ID): OrderFulfill
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
@@ -3993,6 +3993,7 @@ type Query {
   stock(id: ID!): Stock
   stocks(filter: StockFilterInput, before: String, after: String, first: Int, last: Int): StockCountableConnection
   shop: Shop!
+  orderSettings: OrderSettings
   shippingZone(id: ID!): ShippingZone
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
@@ -4015,7 +4016,6 @@ type Query {
   page(id: ID, slug: String): Page
   pages(sortBy: PageSortingInput, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
-  orderSettings: OrderSettings
   order(id: ID!): Order
   orders(sortBy: OrderSortingInput, filter: OrderFilterInput, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection

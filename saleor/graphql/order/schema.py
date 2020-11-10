@@ -6,8 +6,6 @@ from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..core.types import FilterInputObjectType, TaxedMoney
 from ..decorators import permission_required
-from ..shop.mutations import OrderSettingsUpdate
-from ..shop.types import OrderSettings
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.orders import OrderBulkCancel
 from .enums import OrderStatusFilter
@@ -66,9 +64,6 @@ class OrderQueries(graphene.ObjectType):
             "homepage (at the moment it only contains order-events)."
         ),
     )
-    order_settings = graphene.Field(
-        OrderSettings, description="Order related settings from site settings."
-    )
     order = graphene.Field(
         Order,
         description="Look up an order by ID.",
@@ -119,10 +114,6 @@ class OrderQueries(graphene.ObjectType):
     )
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_order_settings(self, info, *args, **_kwargs):
-        return info.context.site.settings
-
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_homepage_events(self, *_args, **_kwargs):
         return resolve_homepage_events()
 
@@ -160,7 +151,6 @@ class OrderMutations(graphene.ObjectType):
     order_add_note = OrderAddNote.Field()
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
-    order_settings_update = OrderSettingsUpdate.Field()
     order_fulfill = OrderFulfill.Field()
     order_fulfillment_cancel = FulfillmentCancel.Field()
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
