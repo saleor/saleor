@@ -1,3 +1,4 @@
+from lxml import etree
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import constants, createTransactionController
 
@@ -11,7 +12,6 @@ def process_payment(
     merchantAuth = apicontractsv1.merchantAuthenticationType()
     merchantAuth.name = config.connection_params.get("api_login_id")
     merchantAuth.transactionKey = config.connection_params.get("transaction_key")
-    print(payment_information)
 
     # Set the transaction's refId
     refId = str(payment_information.payment_id)
@@ -28,7 +28,7 @@ def process_payment(
     # Create order information
     order = apicontractsv1.orderType()
     order.invoiceNumber = payment_information.order_id
-    # order.description = ""
+    order.description = ""
 
     # Set the customer's Bill To address
     customerAddress = apicontractsv1.customerAddressType()
@@ -47,13 +47,6 @@ def process_payment(
     customerData.id = payment_information.customer_id
     customerData.email = payment_information.customer_email
 
-    # Add values for transaction settings
-    # duplicateWindowSetting = apicontractsv1.settingType()
-    # duplicateWindowSetting.settingName = "duplicateWindow"
-    # duplicateWindowSetting.settingValue = "600"
-    # settings = apicontractsv1.ArrayOfSetting()
-    # settings.setting.append(duplicateWindowSetting)
-
     # Create a transactionRequestType object and add the previous objects to it
     transactionrequest = apicontractsv1.transactionRequestType()
     transactionrequest.transactionType = "authCaptureTransaction"
@@ -62,7 +55,6 @@ def process_payment(
     transactionrequest.payment = paymentOne
     transactionrequest.billTo = customerAddress
     transactionrequest.customer = customerData
-    # transactionrequest.transactionSettings = settings
 
     # Assemble the complete transaction request
     createtransactionrequest = apicontractsv1.createTransactionRequest()
@@ -78,7 +70,8 @@ def process_payment(
     print(response.messages.message[0]["text"])
     print(response.transactionResponse)
 
-    message = ""
+    error = None
+    raw_response = etree.tostring(response).decode()
     if response is not None:
         if response.messages.resultCode == "Ok":
             if hasattr(response.transactionResponse, "messages") == True:
@@ -89,19 +82,22 @@ def process_payment(
                     transaction_id=response.transactionResponse.transId,
                     amount=payment_information.amount,
                     currency=payment_information.currency,
-                    error=None,
+                    error=error,
                     kind=TransactionKind.CAPTURE,
-                    raw_response=message.description,
+                    raw_response=raw_response,
                     customer_id=payment_information.customer_id,
                 )
             else:
-                if hasattr(response.transactionResponse, 'errors') == True:
+                if hasattr(response.transactionResponse, "errors") == True:
                     message = response.transactionResponse.errors.error[0].errorText
         else:
-            if hasattr(response, 'transactionResponse') == True and hasattr(response.transactionResponse, 'errors') == True:
+            if (
+                hasattr(response, "transactionResponse") == True
+                and hasattr(response.transactionResponse, "errors") == True
+            ):
                 message = response.transactionResponse.errors.error[0].errorText
             else:
-                message = response.messages.message[0]['text'].text
+                message = response.messages.message[0]["text"].text
     else:
         message = "Null Response"
 
