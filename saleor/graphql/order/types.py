@@ -27,7 +27,7 @@ from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
-from ..product.dataloaders import ProductVariantByIdLoader
+from ..product.resolvers import resolve_variant
 from ..product.types import ProductVariant
 from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..shipping.types import ShippingMethod
@@ -302,17 +302,8 @@ class OrderLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_variant(root: models.OrderLine, info):
-        if not root.variant_id:
-            return None
-
-        def wrap_variant_with_channel_context(data):
-            variant, channel = data
-            return ChannelContext(node=variant, channel_slug=channel.slug)
-
-        variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
-        channel = ChannelByOrderLineIdLoader(info.context).load(root.id)
-
-        return Promise.all([variant, channel]).then(wrap_variant_with_channel_context)
+        dataloader = ChannelByOrderLineIdLoader(info.context)
+        return resolve_variant(info, root, dataloader)
 
     @staticmethod
     @one_of_permissions_required(

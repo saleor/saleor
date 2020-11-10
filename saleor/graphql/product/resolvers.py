@@ -1,8 +1,21 @@
-from django.db.models import Sum
+from typing import Union
 
+from django.db.models import Sum
+from promise import Promise
+
+from ...checkout.models import CheckoutLine
 from ...order import OrderStatus
+from ...order.models import OrderLine
 from ...product import models
-from ..channel import ChannelQsContext
+from ..channel import ChannelContext, ChannelQsContext
+from ..channel.dataloaders import (
+    ChannelByCheckoutLineIDLoader,
+    ChannelByOrderLineIdLoader,
+)
+from ..product.dataloaders import (
+    ProductChannelListingByProductIdAndChannelSlugLoader,
+    ProductVariantByIdLoader,
+)
 from ..utils import get_database_id, get_user_or_app_from_context
 from ..utils.filters import filter_by_period
 from .filters import filter_products_by_stock_availability
@@ -141,3 +154,41 @@ def resolve_report_product_sales(period, channel_slug) -> ChannelQsContext:
     )
     qs = qs.order_by("-quantity_ordered")
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
+
+
+def resolve_variant(
+    info,
+    root: Union[CheckoutLine, OrderLine],
+    channel_dataloader: Union[
+        ChannelByCheckoutLineIDLoader, ChannelByOrderLineIdLoader
+    ],
+):
+    context = info.context
+    if not root.variant_id:
+        return None
+
+    def requestor_has_access_to_variant(data):
+        variant, channel = data
+
+        def product_is_available(product_channel_listing):
+            if not product_channel_listing:
+                return None
+            requester = get_user_or_app_from_context(context)
+            visible_in_listings = product_channel_listing.visible_in_listings
+            requestor_has_access_to_all = models.Product.objects.user_has_access_to_all(
+                requester
+            )
+            if visible_in_listings or requestor_has_access_to_all:
+                return ChannelContext(node=variant, channel_slug=channel.slug)
+            return None
+
+        return (
+            ProductChannelListingByProductIdAndChannelSlugLoader(context)
+            .load((variant.product_id, channel.slug))
+            .then(product_is_available)
+        )
+
+    variant = ProductVariantByIdLoader(context).load(root.variant_id)
+    channel = channel_dataloader.load(root.id)
+
+    return Promise.all([variant, channel]).then(requestor_has_access_to_variant)

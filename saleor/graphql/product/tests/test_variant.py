@@ -1362,15 +1362,9 @@ def _fetch_variant(client, variant, channel_slug=None, permissions=None):
 def test_fetch_unpublished_variant_staff_user(
     staff_api_client, unavailable_product_with_variant, permission_manage_products
 ):
-    # TODO: This test shouldn't use channel_slug but currently it
-    # channel are not loading in lazy way.
     variant = unavailable_product_with_variant.variants.first()
-    channel_slug = variant.channel_listings.get().channel.slug
     data = _fetch_variant(
-        staff_api_client,
-        variant,
-        channel_slug=channel_slug,
-        permissions=[permission_manage_products],
+        staff_api_client, variant, permissions=[permission_manage_products],
     )
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)

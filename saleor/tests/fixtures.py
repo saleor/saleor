@@ -1275,6 +1275,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 product=products[0],
                 channel=channel_USD,
                 is_published=True,
+                discounted_price_amount=10,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
             ),
@@ -1282,6 +1283,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 product=products[1],
                 channel=channel_USD,
                 is_published=True,
+                discounted_price_amount=20,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
             ),
@@ -1289,6 +1291,7 @@ def product_list(product_type, category, warehouse, channel_USD, channel_PLN):
                 product=products[2],
                 channel=channel_USD,
                 is_published=True,
+                discounted_price_amount=30,
                 currency=channel_USD.currency_code,
                 visible_in_listings=True,
             ),
@@ -1678,9 +1681,9 @@ def voucher_customer(voucher, customer_user):
 
 
 @pytest.fixture
-def order_line(order, variant, channel_USD):
-    # TODO: We should use channel from order. #5883
-    net = variant.get_price(channel_USD.slug)
+def order_line(order, variant):
+    channel_slug = order.channel.slug
+    net = variant.get_price(channel_slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     return order.lines.create(
         product_name=str(variant.product),
@@ -1709,8 +1712,8 @@ def order_line_with_allocation_in_many_stocks(
         channel=channel_USD,
     )
 
-    # TODO: We should use channel from order. #5883
-    net = variant.get_price(channel_USD.slug)
+    channel_slug = order.channel.slug
+    net = variant.get_price(channel_slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order_line = order.lines.create(
         product_name=str(variant.product),
@@ -1748,8 +1751,7 @@ def order_line_with_one_allocation(
         channel=channel_USD,
     )
 
-    # TODO: We should use channel from order. #5883
-    net = variant.get_price(channel_USD.slug)
+    net = variant.get_price(order.channel.slug)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order_line = order.lines.create(
         product_name=str(variant.product),
