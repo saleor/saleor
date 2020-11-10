@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
                     "channel",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="sale_listing",
+                        related_name="sale_listings",
                         to="channel.channel",
                     ),
                 ),
@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
                     "sale",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="channel_listing",
+                        related_name="channel_listings",
                         to="discount.sale",
                     ),
                 ),

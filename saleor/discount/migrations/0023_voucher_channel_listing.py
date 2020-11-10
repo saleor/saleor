@@ -35,8 +35,7 @@ def migrate_voucher_data(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("channel", "0001_initial"),
-        ("discount", "0022_auto_20200916_1123"),
+        ("discount", "0022_sale_channel_listing"),
     ]
 
     operations = [
@@ -56,7 +55,7 @@ class Migration(migrations.Migration):
                     "discount_value",
                     models.DecimalField(decimal_places=3, max_digits=12),
                 ),
-                ("currency", models.CharField(default="USD", max_length=3)),
+                ("currency", models.CharField(max_length=3)),
                 (
                     "min_spent_amount",
                     models.DecimalField(
@@ -67,7 +66,7 @@ class Migration(migrations.Migration):
                     "channel",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="voucher_listing",
+                        related_name="voucher_listings",
                         to="channel.channel",
                     ),
                 ),
@@ -75,7 +74,7 @@ class Migration(migrations.Migration):
                     "voucher",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="channel_listing",
+                        related_name="channel_listings",
                         to="discount.voucher",
                     ),
                 ),
