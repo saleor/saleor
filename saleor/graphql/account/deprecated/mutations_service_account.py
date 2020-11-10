@@ -8,7 +8,6 @@ from ...account.utils import can_manage_app, get_out_of_scope_permissions
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
-from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
 from .types import ServiceAccount, ServiceAccountToken
 
@@ -236,25 +235,3 @@ class ServiceAccountDelete(ModelDeleteMutation):
     @classmethod
     def get_type_for_model(cls):
         return ServiceAccount
-
-
-class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        return_field_name = "serviceAccount"
-        description = "Updates private metadata for a service account."
-        permissions = (AppPermission.MANAGE_APPS,)
-        model = models.App
-        public = False
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-
-
-class ServiceAccountClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        return_field_name = "serviceAccount"
-        description = "Clear private metadata for a service account."
-        model = models.App
-        permissions = (AppPermission.MANAGE_APPS,)
-        public = False
-        error_type_class = AccountError
-        error_type_field = "account_errors"
