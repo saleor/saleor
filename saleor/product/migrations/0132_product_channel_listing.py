@@ -26,6 +26,10 @@ def migrate_products_publishable_data(apps, schema_editor):
             channel=channel,
             is_published=product.is_published,
             publication_date=product.publication_date,
+            currency=currency,
+            visible_in_listings=product.visible_in_listings,
+            available_for_purchase=product.available_for_purchase,
+            discounted_price_amount=product.minimal_variant_price_amount,
         )
 
 
@@ -55,7 +59,7 @@ class Migration(migrations.Migration):
                     "channel",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="product_listing",
+                        related_name="product_listings",
                         to="channel.channel",
                     ),
                 ),
@@ -63,14 +67,29 @@ class Migration(migrations.Migration):
                     "product",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="channel_listing",
+                        related_name="channel_listings",
                         to="product.product",
                     ),
                 ),
+                (
+                    "discounted_price_amount",
+                    models.DecimalField(
+                        blank=True, decimal_places=3, max_digits=12, null=True,
+                    ),
+                ),
+                ("currency", models.CharField(max_length=3)),
+                ("visible_in_listings", models.BooleanField(default=False)),
+                ("available_for_purchase", models.DateField(blank=True, null=True)),
             ],
             options={"ordering": ("pk",), "unique_together": {("product", "channel")}},
         ),
         migrations.RunPython(migrate_products_publishable_data),
         migrations.RemoveField(model_name="product", name="is_published",),
         migrations.RemoveField(model_name="product", name="publication_date",),
+        migrations.RemoveField(model_name="product", name="currency",),
+        migrations.RemoveField(
+            model_name="product", name="minimal_variant_price_amount",
+        ),
+        migrations.RemoveField(model_name="product", name="visible_in_listings",),
+        migrations.RemoveField(model_name="product", name="available_for_purchase",),
     ]

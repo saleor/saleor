@@ -30,6 +30,7 @@ def migrate_variant_price_data(apps, schema_editor):
                 channel=channel,
                 currency=currency,
                 price_amount=variant.price_amount,
+                cost_price_amount=variant.cost_price_amount,
             )
 
 
@@ -55,12 +56,12 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("currency", models.CharField(max_length=3,),),
-                ("price_amount", models.DecimalField(decimal_places=2, max_digits=12)),
+                ("price_amount", models.DecimalField(decimal_places=3, max_digits=12)),
                 (
                     "channel",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="variant_listing",
+                        related_name="variant_listings",
                         to="channel.Channel",
                     ),
                 ),
@@ -68,8 +69,14 @@ class Migration(migrations.Migration):
                     "variant",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="channel_listing",
+                        related_name="channel_listings",
                         to="product.ProductVariant",
+                    ),
+                ),
+                (
+                    "cost_price_amount",
+                    models.DecimalField(
+                        blank=True, decimal_places=3, max_digits=12, null=True
                     ),
                 ),
             ],
@@ -77,4 +84,6 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(migrate_variant_price_data),
         migrations.RemoveField(model_name="productvariant", name="price_amount",),
+        migrations.RemoveField(model_name="productvariant", name="cost_price_amount",),
+        migrations.RemoveField(model_name="productvariant", name="currency",),
     ]
