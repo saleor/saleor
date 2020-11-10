@@ -518,5 +518,6 @@ class OrderConfirm(ModelMutation):
         order = cls.get_instance(info, **data)
         order.status = OrderStatus.UNFULFILLED
         order.save(update_fields=["status"])
+        events.order_confirmed_event(order=order, user=info.context.user)
         info.context.plugins.order_confirmed(order)
         return OrderConfirm(order=order)
