@@ -2521,6 +2521,7 @@ type Mutation {
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!): OrderCancel
   orderCapture(amount: PositiveDecimal!, id: ID!): OrderCapture
+  orderConfirm(id: ID!): OrderConfirm
   orderFulfill(input: OrderFulfillInput!, order: ID): OrderFulfill
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
@@ -2744,6 +2745,12 @@ type OrderCapture {
   orderErrors: [OrderError!]!
 }
 
+type OrderConfirm {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
 type OrderCountableConnection {
   pageInfo: PageInfo!
   edges: [OrderCountableEdge!]!
@@ -2863,6 +2870,7 @@ enum OrderEventsEnum {
   ORDER_FULLY_PAID
   UPDATED_ADDRESS
   EMAIL_SENT
+  CONFIRMED
   PAYMENT_AUTHORIZED
   PAYMENT_CAPTURED
   EXTERNAL_SERVICE_NOTIFICATION

@@ -28,6 +28,7 @@ from .mutations.orders import (
     OrderAddNote,
     OrderCancel,
     OrderCapture,
+    OrderConfirm,
     OrderMarkAsPaid,
     OrderRefund,
     OrderUpdate,
@@ -151,6 +152,7 @@ class OrderMutations(graphene.ObjectType):
     order_add_note = OrderAddNote.Field()
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
+    order_confirm = OrderConfirm.Field()
     order_fulfill = OrderFulfill.Field()
     order_fulfillment_cancel = FulfillmentCancel.Field()
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()

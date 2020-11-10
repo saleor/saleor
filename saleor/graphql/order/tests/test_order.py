@@ -430,6 +430,57 @@ def test_order_query_shows_non_draft_orders(
     assert len(edges) == Order.objects.non_draft().count()
 
 
+ORDER_CONFIRM_MUTATION = """
+    mutation orderConfirm($id: ID!) {
+        orderConfirm(id: $id) {
+            orderErrors {
+                field
+                code
+            }
+            order {
+                status
+            }
+        }
+    }
+"""
+
+
+def test_order_confirm(staff_api_client, order_unconfirmed, permission_manage_orders):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    assert not OrderEvent.objects.exists()
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
+    )
+    order_data = get_graphql_content(response)["data"]["orderConfirm"]["order"]
+
+    assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
+    order_unconfirmed.refresh_from_db()
+    assert order_unconfirmed.status == OrderStatus.UNFULFILLED
+    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.filter(
+        order=order_unconfirmed,
+        user=staff_api_client.user,
+        type=order_events.OrderEvents.CONFIRMED,
+    ).exists()
+
+
+def test_order_confirm_unfulfilled(staff_api_client, order, permission_manage_orders):
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION, {"id": graphene.Node.to_global_id("Order", order.id)}
+    )
+    content = get_graphql_content(response)["data"]["orderConfirm"]
+    errors = content["orderErrors"]
+
+    order.refresh_from_db()
+    assert order.status == OrderStatus.UNFULFILLED
+    assert content["order"] is None
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == OrderErrorCode.INVALID.name
+
+
 def test_draft_order_query(staff_api_client, permission_manage_orders, orders):
     query = """
     query DraftOrdersQuery {

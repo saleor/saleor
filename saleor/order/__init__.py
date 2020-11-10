@@ -33,6 +33,7 @@ class FulfillmentStatus:
 class OrderEvents:
     """The different order event types."""
 
+    CONFIRMED = "confirmed"
     DRAFT_CREATED = "draft_created"
     DRAFT_ADDED_PRODUCTS = "draft_added_products"
     DRAFT_REMOVED_PRODUCTS = "draft_removed_products"
@@ -83,6 +84,7 @@ class OrderEvents:
         (ORDER_FULLY_PAID, "The order was fully paid"),
         (UPDATED_ADDRESS, "The address from the placed order was updated"),
         (EMAIL_SENT, "The email was sent"),
+        (CONFIRMED, "Order was confirmed"),
         (PAYMENT_AUTHORIZED, "The payment was authorized"),
         (PAYMENT_CAPTURED, "The payment was captured"),
         (EXTERNAL_SERVICE_NOTIFICATION, "Notification from external service"),
