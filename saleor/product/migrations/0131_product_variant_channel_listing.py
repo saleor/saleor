@@ -61,7 +61,6 @@ class Migration(migrations.Migration):
                     "channel",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        # 0139_auto_20201102_1132
                         related_name="variant_listings",
                         to="channel.Channel",
                     ),
@@ -70,12 +69,10 @@ class Migration(migrations.Migration):
                     "variant",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        # 0139_auto_20201102_1132
                         related_name="channel_listings",
                         to="product.ProductVariant",
                     ),
                 ),
-                # 0135_migrate_cost_price_to_channel_listing
                 (
                     "cost_price_amount",
                     models.DecimalField(
@@ -87,7 +84,6 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(migrate_variant_price_data),
         migrations.RemoveField(model_name="productvariant", name="price_amount",),
-        # 0135_migrate_cost_price_to_channel_listing
         migrations.RemoveField(model_name="productvariant", name="cost_price_amount",),
         migrations.RemoveField(model_name="productvariant", name="currency",),
     ]
