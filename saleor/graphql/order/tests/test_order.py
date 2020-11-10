@@ -408,7 +408,7 @@ def test_order_query_gift_cards(
     )
 
 
-def test_order_query_shows_confirmed_orders(
+def test_order_query_shows_non_draft_orders(
     staff_api_client, permission_manage_orders, orders
 ):
     query = """
@@ -427,7 +427,7 @@ def test_order_query_shows_confirmed_orders(
     response = staff_api_client.post_graphql(query)
     edges = get_graphql_content(response)["data"]["orders"]["edges"]
 
-    assert len(edges) == Order.objects.confirmed().count()
+    assert len(edges) == Order.objects.non_draft().count()
 
 
 ORDER_CONFIRM_MUTATION = """
@@ -3239,6 +3239,7 @@ def test_order_query_with_filter_payment_status(
     "orders_filter, count, status",
     [
         ({"status": "UNFULFILLED"}, 2, OrderStatus.UNFULFILLED),
+        ({"status": "UNCONFIRMED"}, 1, OrderStatus.UNCONFIRMED),
         ({"status": "PARTIALLY_FULFILLED"}, 1, OrderStatus.PARTIALLY_FULFILLED),
         ({"status": "FULFILLED"}, 1, OrderStatus.FULFILLED),
         ({"status": "CANCELED"}, 1, OrderStatus.CANCELED),

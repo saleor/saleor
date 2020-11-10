@@ -2429,6 +2429,7 @@ type Mutation {
   shopFetchTaxRates: ShopFetchTaxRates
   shopSettingsTranslate(input: ShopSettingsTranslationInput!, languageCode: LanguageCodeEnum!): ShopSettingsTranslate
   shopAddressUpdate(input: AddressInput): ShopAddressUpdate
+  orderSettingsUpdate(input: OrderSettingsUpdateInput!): OrderSettingsUpdate
   shippingPriceCreate(input: ShippingPriceInput!): ShippingPriceCreate
   shippingPriceDelete(id: ID!): ShippingPriceDelete
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
@@ -2958,6 +2959,30 @@ type OrderRefund {
   orderErrors: [OrderError!]!
 }
 
+type OrderSettings {
+  automaticallyConfirmAllNewOrders: Boolean!
+}
+
+type OrderSettingsError {
+  field: String
+  message: String
+  code: OrderSettingsErrorCode!
+}
+
+enum OrderSettingsErrorCode {
+  INVALID
+}
+
+type OrderSettingsUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  orderSettings: OrderSettings
+  orderSettingsErrors: [OrderSettingsError!]!
+}
+
+input OrderSettingsUpdateInput {
+  automaticallyConfirmAllNewOrders: Boolean!
+}
+
 enum OrderSortField {
   NUMBER
   CREATION_DATE
@@ -2985,6 +3010,7 @@ enum OrderStatusFilter {
   READY_TO_FULFILL
   READY_TO_CAPTURE
   UNFULFILLED
+  UNCONFIRMED
   PARTIALLY_FULFILLED
   FULFILLED
   CANCELED
@@ -3976,6 +4002,7 @@ type Query {
   stock(id: ID!): Stock
   stocks(filter: StockFilterInput, before: String, after: String, first: Int, last: Int): StockCountableConnection
   shop: Shop!
+  orderSettings: OrderSettings
   shippingZone(id: ID!): ShippingZone
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent

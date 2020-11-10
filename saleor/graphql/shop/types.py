@@ -15,6 +15,7 @@ from ...product import models as product_models
 from ...site import models as site_models
 from ..account.types import Address, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
+from ..core.connection import CountableDjangoObjectType
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
 from ..core.utils import str_to_enum
@@ -63,6 +64,13 @@ class Geolocalization(graphene.ObjectType):
 
     class Meta:
         description = "Represents customers's geolocalization data."
+
+
+class OrderSettings(CountableDjangoObjectType):
+    class Meta:
+        only_fields = ["automatically_confirm_all_new_orders"]
+        description = "Order related settings from site settings."
+        model = site_models.SiteSettings
 
 
 class Shop(graphene.ObjectType):
