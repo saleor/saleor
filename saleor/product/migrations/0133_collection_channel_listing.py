@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("channel", "0002_channel_availability"),
-        ("product", "0132_productchannellisting"),
+        ("product", "0132_product_channel_listing"),
     ]
 
     operations = [
