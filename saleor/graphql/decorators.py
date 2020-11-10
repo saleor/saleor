@@ -96,8 +96,7 @@ def check_attribute_required_permissions():
     def check_perms(context, root):
         if root.type == AttributeType.PAGE_TYPE:
             return _permission_required((PagePermissions.MANAGE_PAGES,), context)
-        else:
-            return _permission_required((ProductPermissions.MANAGE_PRODUCTS,), context)
+        return _permission_required((ProductPermissions.MANAGE_PRODUCTS,), context)
 
     return account_passes_test_for_attribute(check_perms)
 
@@ -106,7 +105,6 @@ def check_attribute_value_required_permissions():
     def check_perms(context, root):
         if root.attribute.type == AttributeType.PAGE_TYPE:
             return _permission_required((PagePermissions.MANAGE_PAGES,), context)
-        else:
-            return _permission_required((ProductPermissions.MANAGE_PRODUCTS,), context)
+        return _permission_required((ProductPermissions.MANAGE_PRODUCTS,), context)
 
     return account_passes_test_for_attribute(check_perms)
