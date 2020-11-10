@@ -5,6 +5,43 @@ from django.db import migrations, models
 from django.utils.text import slugify
 
 
+def migrate_visible_in_listings_and_available_for_purchase(apps, schema_editor):
+    ProductChannelListing = apps.get_model("product", "ProductChannelListing")
+
+    for channel_listing in ProductChannelListing.objects.iterator():
+        product = channel_listing.product
+        channel_listing.visible_in_listings = product.visible_in_listings
+        channel_listing.available_for_purchase = product.available_for_purchase
+        channel_listing.save(
+            update_fields=["visible_in_listings", "available_for_purchase"]
+        )
+
+
+def migrate_minimal_variant_price_data(apps, schema_editor):
+    Channel = apps.get_model("channel", "Channel")
+    Product = apps.get_model("product", "Product")
+    ProductChannelListing = apps.get_model("product", "ProductChannelListing")
+
+    channels_dict = {}
+    for product in Product.objects.iterator():
+        currency = product.currency
+        channel = channels_dict.get(currency)
+        if not channel:
+            name = f"Channel {currency}"
+            channel, _ = Channel.objects.get_or_create(
+                currency_code=currency, defaults={"name": name, "slug": slugify(name)},
+            )
+            channels_dict[currency] = channel
+        ProductChannelListing.objects.update_or_create(
+            product=product,
+            channel=channel,
+            defaults={
+                "currency": currency,
+                "discounted_price_amount": product.minimal_variant_price_amount,
+            },
+        )
+
+
 def migrate_products_publishable_data(apps, schema_editor):
     Channel = apps.get_model("channel", "Channel")
     Product = apps.get_model("product", "Product")
@@ -55,7 +92,8 @@ class Migration(migrations.Migration):
                     "channel",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="product_listing",
+                        # 0138_auto_20201102_0935
+                        related_name="product_listings",
                         to="channel.channel",
                     ),
                 ),
@@ -63,14 +101,44 @@ class Migration(migrations.Migration):
                     "product",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="channel_listing",
+                        # 0138_auto_20201102_0935
+                        related_name="channel_listings",
                         to="product.product",
                     ),
                 ),
+                # 0133_refactor_minimal_variant_price
+                (
+                    "discounted_price_amount",
+                    models.DecimalField(
+                        # 0134_auto_20200910_1000
+                        blank=True,
+                        decimal_places=3,
+                        max_digits=12,
+                        null=True,
+                    ),
+                ),
+                ("currency", models.CharField(max_length=3)),
+                # 0136_auto_20201006_0635
+                ("visible_in_listings", models.BooleanField(default=False)),
+                # 0136_auto_20201006_0635
+                ("available_for_purchase", models.DateField(blank=True, null=True)),
             ],
             options={"ordering": ("pk",), "unique_together": {("product", "channel")}},
         ),
         migrations.RunPython(migrate_products_publishable_data),
         migrations.RemoveField(model_name="product", name="is_published",),
         migrations.RemoveField(model_name="product", name="publication_date",),
+        # 0133_refactor_minimal_variant_price
+        migrations.RunPython(migrate_minimal_variant_price_data),
+        migrations.RemoveField(model_name="product", name="currency",),
+        migrations.RemoveField(
+            model_name="product", name="minimal_variant_price_amount",
+        ),
+        # 0136_auto_20201006_0635
+        migrations.RunPython(
+            migrate_visible_in_listings_and_available_for_purchase,
+            migrations.RunPython.noop,
+        ),
+        migrations.RemoveField(model_name="product", name="visible_in_listings",),
+        migrations.RemoveField(model_name="product", name="available_for_purchase",),
     ]

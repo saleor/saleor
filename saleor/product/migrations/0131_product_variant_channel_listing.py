@@ -5,6 +5,17 @@ from django.db import migrations, models
 from django.utils.text import slugify
 
 
+def migrate_cost_price(apps, schema_editor):
+    ProductVariantChannelListing = apps.get_model(
+        "product", "ProductVariantChannelListing"
+    )
+
+    for product_variant_listing in ProductVariantChannelListing.objects.iterator():
+        product_variant = product_variant_listing.variant
+        product_variant_listing.cost_price_amount = product_variant.cost_price_amount
+        product_variant_listing.save(update_fields=["cost_price_amount"])
+
+
 def migrate_variant_price_data(apps, schema_editor):
     Channel = apps.get_model("channel", "Channel")
     ProductVariant = apps.get_model("product", "ProductVariant")
@@ -55,12 +66,13 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("currency", models.CharField(max_length=3,),),
-                ("price_amount", models.DecimalField(decimal_places=2, max_digits=12)),
+                ("price_amount", models.DecimalField(decimal_places=3, max_digits=12)),
                 (
                     "channel",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="variant_listing",
+                        # 0139_auto_20201102_1132
+                        related_name="variant_listings",
                         to="channel.Channel",
                     ),
                 ),
@@ -68,8 +80,16 @@ class Migration(migrations.Migration):
                     "variant",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="channel_listing",
+                        # 0139_auto_20201102_1132
+                        related_name="channel_listings",
                         to="product.ProductVariant",
+                    ),
+                ),
+                # 0135_migrate_cost_price_to_channel_listing
+                (
+                    "cost_price_amount",
+                    models.DecimalField(
+                        blank=True, decimal_places=3, max_digits=12, null=True
                     ),
                 ),
             ],
@@ -77,4 +97,8 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(migrate_variant_price_data),
         migrations.RemoveField(model_name="productvariant", name="price_amount",),
+        # 0135_migrate_cost_price_to_channel_listing
+        migrations.RunPython(migrate_cost_price, migrations.RunPython.noop),
+        migrations.RemoveField(model_name="productvariant", name="cost_price_amount",),
+        migrations.RemoveField(model_name="productvariant", name="currency",),
     ]
