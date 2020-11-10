@@ -93,8 +93,14 @@ staff_member_required = account_passes_test(
 
 
 def check_attribute_required_permissions():
-    def check_perms(context, root):
-        if root.type == AttributeType.PAGE_TYPE:
+    """Check attribute permissions that depend on attribute type.
+
+    As an attribute can belong to the product or to the page,
+    different permissions need to be checked.
+    """
+
+    def check_perms(context, attribute):
+        if attribute.type == AttributeType.PAGE_TYPE:
             return _permission_required((PagePermissions.MANAGE_PAGES,), context)
         return _permission_required((ProductPermissions.MANAGE_PRODUCTS,), context)
 
@@ -102,8 +108,14 @@ def check_attribute_required_permissions():
 
 
 def check_attribute_value_required_permissions():
-    def check_perms(context, root):
-        if root.attribute.type == AttributeType.PAGE_TYPE:
+    """Check attribute value permissions depending on the corresponding attribute type.
+
+    As an value's attribute can belong to the product or to the page,
+    different permissions need to be checked.
+    """
+
+    def check_perms(context, attribute_value):
+        if attribute_value.attribute.type == AttributeType.PAGE_TYPE:
             return _permission_required((PagePermissions.MANAGE_PAGES,), context)
         return _permission_required((ProductPermissions.MANAGE_PRODUCTS,), context)
 
