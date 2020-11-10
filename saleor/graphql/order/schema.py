@@ -6,6 +6,8 @@ from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.scalars import UUID
 from ..core.types import FilterInputObjectType, TaxedMoney
 from ..decorators import permission_required
+from ..shop.mutations import OrderSettingsUpdate
+from ..shop.types import OrderSettings
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.orders import OrderBulkCancel
 from .enums import OrderStatusFilter
@@ -30,7 +32,6 @@ from .mutations.orders import (
     OrderCapture,
     OrderMarkAsPaid,
     OrderRefund,
-    OrderSettingsUpdate,
     OrderUpdate,
     OrderUpdateShipping,
     OrderVoid,
@@ -44,7 +45,7 @@ from .resolvers import (
     resolve_orders_total,
 )
 from .sorters import OrderSortingInput
-from .types import Order, OrderEvent, OrderSettings
+from .types import Order, OrderEvent
 
 
 class OrderFilterInput(FilterInputObjectType):

@@ -21,10 +21,10 @@ from ....payment import CustomPaymentChoices, PaymentError, TransactionKind, gat
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types.common import OrderError, OrderSettingsError
+from ...core.types.common import OrderError
 from ...core.utils import validate_required_string_field
 from ...order.mutations.draft_orders import DraftOrderCreate
-from ...order.types import Order, OrderEvent, OrderSettings
+from ...order.types import Order, OrderEvent
 from ...shipping.types import ShippingMethod
 
 
@@ -483,36 +483,3 @@ class OrderRefund(BaseMutation):
         if transaction.kind == TransactionKind.REFUND:
             order_refunded(order, info.context.user, amount, payment)
         return OrderRefund(order=order)
-
-
-class OrderSettingsUpdateInput(graphene.InputObjectType):
-    automatically_confirm_all_new_orders = graphene.Boolean(
-        required=True,
-        description="When disabled, all new orders from checkout "
-        "will be marked as unconfirmed. When enabled orders from checkout will "
-        "become unfulfilled immediately.",
-    )
-
-
-class OrderSettingsUpdate(BaseMutation):
-    order_settings = graphene.Field(OrderSettings, description="Order settings.")
-
-    class Arguments:
-        input = OrderSettingsUpdateInput(
-            required=True, description="Fields required to update shop order settings."
-        )
-
-    class Meta:
-        description = "Update shop order settings."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        error_type_class = OrderSettingsError
-        error_type_field = "order_settings_errors"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        instance = info.context.site.settings
-        instance.automatically_confirm_all_new_orders = data["input"][
-            "automatically_confirm_all_new_orders"
-        ]
-        instance.save(update_fields=["automatically_confirm_all_new_orders"])
-        return OrderSettingsUpdate(order_settings=instance)
