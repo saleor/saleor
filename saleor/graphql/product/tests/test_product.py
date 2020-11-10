@@ -4450,7 +4450,7 @@ def test_report_product_sales(
     assert Decimal(amount) == line_b.quantity * line_b.unit_price_gross_amount
 
 
-@pytest.mark.parametrize("field", ("purchaseCost", "margin", "privateMeta"))
+@pytest.mark.parametrize("field", ("purchaseCost", "margin"))
 def test_product_restricted_fields_permissions(
     staff_api_client,
     permission_manage_products,
@@ -4485,7 +4485,6 @@ def test_product_restricted_fields_permissions(
         ("costPrice", True),
         ("price", True),
         ("quantityOrdered", False),
-        ("privateMeta", True),
     ),
 )
 def test_variant_restricted_fields_permissions(
