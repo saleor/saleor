@@ -18,6 +18,7 @@ def require_active_plugin(fn):
 
     return wrapped
 
+
 class AuthorizeNetGatewayPlugin(BasePlugin):
     PLUGIN_NAME = GATEWAY_NAME
     PLUGIN_ID = "mirumee.payments.authorize_net"
@@ -25,18 +26,24 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
     DEFAULT_CONFIGURATION = [
         {"name": "API Login ID", "value": None},
         {"name": "Transaction Key", "value": None},
+        {"name": "Client Key", "value": None},
     ]
 
     CONFIG_STRUCTURE = {
         "API Login ID": {
-            "type": ConfigurationTypeField.SECRET,
-            "help_text": ("Provide Authorize.Net Login ID."),
+            "type": ConfigurationTypeField.STRING,
+            "help_text": ("Provide public Authorize.Net Login ID."),
             "label": "API Login ID",
         },
         "Transaction Key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": ("Provide Authorize.Net Transaction Key."),
+            "help_text": ("Provide private Authorize.Net Transaction Key."),
             "label": "Transaction Key",
+        },
+        "Client Key": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": ("Provide public Authorize.Net Client Key"),
+            "label": "Client Key",
         },
     }
 
@@ -52,6 +59,7 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
             connection_params={
                 "api_login_id": configuration["API Login ID"],
                 "transaction_key": configuration["Transaction Key"],
+                "client_key": configuration["Client Key"],
             },
             # store_customer=configuration["Store customers card"],
         )
@@ -64,25 +72,25 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
     #     self, payment_information: "PaymentData", previous_value
     # ) -> "GatewayResponse":
     #     pass
-        # return authorize(payment_information, self._get_gateway_config())
+    # return authorize(payment_information, self._get_gateway_config())
 
     @require_active_plugin
     def capture_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        pass # return capture(payment_information, self._get_gateway_config())
+        pass  # return capture(payment_information, self._get_gateway_config())
 
     @require_active_plugin
     def refund_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        pass # return refund(payment_information, self._get_gateway_config())
+        pass  # return refund(payment_information, self._get_gateway_config())
 
     @require_active_plugin
     def void_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        pass # return void(payment_information, self._get_gateway_config())
+        pass  # return void(payment_information, self._get_gateway_config())
 
     @require_active_plugin
     def process_payment(
@@ -108,6 +116,9 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
     def get_payment_config(self, previous_value):
         config = self._get_gateway_config()
         return [
-            {"field": "api_key", "value": config.connection_params["api_login_id"]},
-            {"field": "store_customer_card", "value": config.store_customer},
+            {
+                "field": "api_login_id",
+                "value": config.connection_params["api_login_id"],
+            },
+            {"field": "client_key", "value": config.connection_params["client_key"]},
         ]
