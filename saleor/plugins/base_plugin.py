@@ -34,7 +34,7 @@ class ConfigurationTypeField:
     STRING = "String"
     BOOLEAN = "Boolean"
     SECRET = "Secret"
-    SECRET_MULTILINE = "SecretText"
+    SECRET_MULTILINE = "SecretMultiline"
     PASSWORD = "Password"
     CHOICES = [
         (STRING, "Field is a String"),
