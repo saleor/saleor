@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("channel", "0001_initial"),
-        ("checkout", "0030_checkout_channel"),
+        ("checkout", "0030_checkout_channel_listing"),
         ("product", "0130_migrate_from_draftjs_to_editorjs_format"),
     ]
 
