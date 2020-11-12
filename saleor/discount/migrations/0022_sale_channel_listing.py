@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
                     "channel",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="sale_listing",
+                        related_name="sale_listings",
                         to="channel.channel",
                     ),
                 ),
@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
                     "sale",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="channel_listing",
+                        related_name="channel_listings",
                         to="discount.sale",
                     ),
                 ),
@@ -71,4 +71,13 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(migrate_sale_data, migrations.RunPython.noop),
         migrations.RemoveField(model_name="sale", name="value",),
+        migrations.AlterField(
+            model_name="sale",
+            name="type",
+            field=models.CharField(
+                choices=[("fixed", "fixed"), ("percentage", "%")],
+                default="fixed",
+                max_length=10,
+            ),
+        ),
     ]
