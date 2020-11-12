@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
         ("channel", "0002_channel_availability"),
         ("product", "0133_collection_channel_listing"),
         ("discount", "0023_voucherchannellisting"),
-        ("order", "0090_orderchannel"),
+        ("order", "0090_order_channel_listing"),
         ("checkout", "0031_auto_20200819_0912"),
         ("shipping", "0023_auto_20200910_1000"),
     ]
