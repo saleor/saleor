@@ -4,9 +4,7 @@ import warnings
 from urllib3.util import parse_url
 
 BLACKLISTED_URL_SCHEMES = ("javascript",)
-HYPERLINK_TAG_WITH_URL_PATTERN = (
-    r"(.*?<a\s+href=\\?\")((?:https://|http://)\S+[^\\])(\\?\">)"
-)
+HYPERLINK_TAG_WITH_URL_PATTERN = r"(.*?<a\s+href=\\?\")(\w+://\S+[^\\])(\\?\">)"
 
 
 def clean_editor_js(definitions: dict):
