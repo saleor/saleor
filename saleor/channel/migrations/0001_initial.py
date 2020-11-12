@@ -54,6 +54,7 @@ def create_default_channel(apps, schema_editor):
             name="Default channel",
             slug=settings.DEFAULT_CHANNEL_SLUG,
             currency_code=default_currency,
+            is_active=True,
         )
 
 
@@ -84,6 +85,7 @@ class Migration(migrations.Migration):
                 ),
                 ("name", models.CharField(max_length=250)),
                 ("slug", models.SlugField(max_length=255, unique=True)),
+                ("is_active", models.BooleanField(default=False)),
                 (
                     "currency_code",
                     models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH),

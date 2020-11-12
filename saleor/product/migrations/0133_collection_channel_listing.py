@@ -31,7 +31,7 @@ def create_collection_channel_listing(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("channel", "0002_channel_availability"),
+        ("channel", "0001_initial"),
         ("product", "0132_product_channel_listing"),
     ]
 
