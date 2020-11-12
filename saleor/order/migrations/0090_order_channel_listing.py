@@ -55,4 +55,12 @@ class Migration(migrations.Migration):
                 to="channel.channel",
             ),
         ),
+        migrations.AlterField(
+            model_name="order", name="currency", field=models.CharField(max_length=3),
+        ),
+        migrations.AlterField(
+            model_name="orderline",
+            name="currency",
+            field=models.CharField(max_length=3),
+        ),
     ]
