@@ -6,8 +6,9 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Add metadata to shipping zones and shipping methods - #6340 by @maarcingebala
 - Drop deprecated meta mutations - #6422 by @maarcingebala
-- Migrate draftjs content to editorjs format - by @IKarbowiak #6430
+- Migrate draftjs content to editorjs format - #6430 by @IKarbowiak
 - Drop deprecated service accounts and webhooks API - #6431 by @maarcingebala
+- Add editorjs sanitizer - #6456 by @IKarbowiak
 
 ## 2.11.0
 
