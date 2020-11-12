@@ -109,7 +109,7 @@ def test_channel_update_mutation_as_anonymous(api_client, channel_USD):
     assert_no_permission(response)
 
 
-def test_channel_update_mutation_with_invalid_slug(
+def test_channel_update_mutation_slugify_slug_field(
     permission_manage_channels, staff_api_client, channel_USD
 ):
     # given

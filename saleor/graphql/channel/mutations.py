@@ -48,12 +48,12 @@ class ChannelCreate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
-        clean_input = super().clean_input(info, instance, data)
-        slug = clean_input.get("slug")
+        cleaned_input = super().clean_input(info, instance, data)
+        slug = cleaned_input.get("slug")
         if slug:
-            clean_input["slug"] = slugify(slug)
+            cleaned_input["slug"] = slugify(slug)
 
-        return clean_input
+        return cleaned_input
 
 
 class ChannelUpdateInput(ChannelInput):
@@ -77,12 +77,12 @@ class ChannelUpdate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
-        clean_input = super().clean_input(info, instance, data)
-        slug = clean_input.get("slug")
+        cleaned_input = super().clean_input(info, instance, data)
+        slug = cleaned_input.get("slug")
         if slug:
-            clean_input["slug"] = slugify(slug)
+            cleaned_input["slug"] = slugify(slug)
 
-        return clean_input
+        return cleaned_input
 
 
 class ChannelDeleteInput(graphene.InputObjectType):
