@@ -44,5 +44,10 @@ class Migration(migrations.Migration):
                 to="channel.channel",
             ),
         ),
+        migrations.AlterField(
+            model_name="checkout",
+            name="currency",
+            field=models.CharField(max_length=3),
+        ),
         migrations.RunPython(add_channel_slug),
     ]
