@@ -11,15 +11,11 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": ""
+          },
+          "type": "paragraph"
+        }]
       },
       "parent": null,
       "background_image": "category-backgrounds/accessories_8AEdvHR.jpg",
@@ -43,15 +39,11 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": ""
+          },
+          "type": "paragraph"
+        }]
       },
       "parent": null,
       "background_image": "category-backgrounds/groceries_CFNOYEO.jpg",
@@ -75,15 +67,11 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": ""
+          },
+          "type": "paragraph"
+        }]
       },
       "parent": null,
       "background_image": "category-backgrounds/apparel_j1eQDeZ.jpg",
@@ -275,15 +263,11 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "89slb",
-          "data": {},
-          "text": "",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": ""
+          },
+          "type": "paragraph"
+        }]
       },
       "parent": 7,
       "background_image": "",
@@ -465,15 +449,11 @@
       "description": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 20,
       "updated_at": "2020-08-31T06:53:16.102Z",
@@ -498,15 +478,11 @@
       "description": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 20,
       "updated_at": "2020-08-31T06:53:16.307Z",
@@ -531,15 +507,11 @@
       "description": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan’s dreams.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan’s dreams.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan’s dreams."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 20,
       "updated_at": "2020-08-31T06:53:29.317Z",
@@ -564,15 +536,11 @@
       "description": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 20,
       "updated_at": "2020-08-31T06:53:29.548Z",
@@ -597,15 +565,11 @@
       "description": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 20,
       "updated_at": "2020-08-31T06:53:29.787Z",
@@ -630,15 +594,11 @@
       "description": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
       "updated_at": "2020-08-31T06:53:17.155Z",
@@ -663,15 +623,11 @@
       "description": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Fell straight from the tree, on to Newton’s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
       "updated_at": "2020-08-31T06:53:17.312Z",
@@ -696,15 +652,11 @@
       "description": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
       "updated_at": "2020-08-31T06:53:17.473Z",
@@ -729,15 +681,11 @@
       "description": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
       "updated_at": "2020-08-31T06:53:17.630Z",
@@ -762,15 +710,11 @@
       "description": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "I can’t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
       "updated_at": "2020-08-31T06:53:17.782Z",
@@ -795,15 +739,11 @@
       "description": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
       "updated_at": "2020-08-31T06:53:31.827Z",
@@ -828,15 +768,11 @@
       "description": "Is it a bird? Is a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Is it a bird? Is a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Is it a bird? Is a plane? No! It’s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!"
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
       "updated_at": "2020-08-31T06:53:18.105Z",
@@ -861,15 +797,11 @@
       "description": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you’ll ever need in one delicious juice."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
       "updated_at": "2020-08-31T06:53:32.287Z",
@@ -894,15 +826,11 @@
       "description": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 14,
       "updated_at": "2020-08-31T06:53:18.411Z",
@@ -927,15 +855,11 @@
       "description": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 15,
       "updated_at": "2020-08-31T06:53:18.558Z",
@@ -960,15 +884,11 @@
       "description": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 15,
       "updated_at": "2020-08-31T06:53:30.364Z",
@@ -993,15 +913,11 @@
       "description": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Find your sea legs and then lose the power to use them with extra strong seaman’s lager. Don’t drink and sail, me hearties!"
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 15,
       "updated_at": "2020-08-31T06:53:18.900Z",
@@ -1026,15 +942,11 @@
       "description": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 15,
       "updated_at": "2020-08-31T06:53:30.527Z",
@@ -1059,15 +971,11 @@
       "description": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 22,
       "updated_at": "2020-08-31T06:53:30.677Z",
@@ -1092,15 +1000,11 @@
       "description": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Minimalist interiors need simple, sleek soft furnishings. Don’t parrot what others do, set your own monochrome trends with Saleor designs."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 22,
       "updated_at": "2020-08-31T06:53:20.430Z",
@@ -1125,15 +1029,11 @@
       "description": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 13,
       "updated_at": "2020-08-31T06:53:32.761Z",
@@ -1158,15 +1058,11 @@
       "description": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "PE at school wouldn’t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 13,
       "updated_at": "2020-08-31T06:53:33.172Z",
@@ -1191,15 +1087,11 @@
       "description": "Pay homage to the music and art of a Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Pay homage to the music and art of a Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Pay homage to the music and art of a Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 10,
       "updated_at": "2020-08-31T06:53:33.473Z",
@@ -1224,15 +1116,11 @@
       "description": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 11,
       "updated_at": "2020-08-31T06:53:22.365Z",
@@ -1257,15 +1145,11 @@
       "description": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Polo? Yolo… so don’t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 11,
       "updated_at": "2020-08-31T06:53:34.274Z",
@@ -1290,15 +1174,11 @@
       "description": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 11,
       "updated_at": "2020-08-31T06:53:22.900Z",
@@ -1323,15 +1203,11 @@
       "description": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 11,
       "updated_at": "2020-08-31T06:53:35.075Z",
@@ -1356,15 +1232,11 @@
       "description": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 10,
       "updated_at": "2020-08-31T06:53:35.478Z",
@@ -1389,15 +1261,11 @@
       "description": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 10,
       "updated_at": "2020-08-31T06:53:24.137Z",
@@ -1422,15 +1290,11 @@
       "description": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 10,
       "updated_at": "2020-08-31T06:53:36.267Z",
@@ -1455,15 +1319,11 @@
       "description": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Your t-shirt is your second skin. It’s the version of you that you show to the world. Wear one that flows with your movements and is built to last."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 10,
       "updated_at": "2020-08-31T06:53:36.707Z",
@@ -1488,15 +1348,11 @@
       "description": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 12,
       "updated_at": "2020-08-31T06:53:25.468Z",
@@ -1521,15 +1377,11 @@
       "description": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 12,
       "updated_at": "2020-08-31T06:53:25.725Z",
@@ -1554,15 +1406,11 @@
       "description": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 12,
       "updated_at": "2020-08-31T06:53:37.920Z",
@@ -1587,15 +1435,11 @@
       "description": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin’ and profilin’ with flair."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 12,
       "updated_at": "2020-08-31T06:53:26.266Z",
@@ -1617,15 +1461,11 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "cjb65",
-          "data": {},
-          "text": "Sea Lullabies by Digital Audio.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Sea Lullabies by Digital Audio."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 23,
       "updated_at": "2020-08-31T06:53:27.068Z",
@@ -1647,15 +1487,11 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "c6n3e",
-          "data": {},
-          "text": "Lake Tunes by Digital Audio.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Lake Tunes by Digital Audio."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 23,
       "updated_at": "2020-08-31T06:53:27.344Z",
@@ -1677,15 +1513,11 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "5gh2n",
-          "data": {},
-          "text": "Ocean Poems by Digital Audio.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Ocean Poems by Digital Audio."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 23,
       "updated_at": "2020-08-31T06:53:27.611Z",
@@ -1707,15 +1539,11 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "buneo",
-          "data": {},
-          "text": "Bathroom Songs by Digital Audio.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Bathroom Songs by Digital Audio."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 23,
       "updated_at": "2020-08-31T06:53:27.873Z",
@@ -1737,15 +1565,11 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "675on",
-          "data": {},
-          "text": "Lagoon Chants by Digital Audio.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Lagoon Chants by Digital Audio."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 23,
       "updated_at": "2020-08-31T06:53:28.105Z",
@@ -1767,15 +1591,11 @@
       "description": "",
       "description_json": {
         "blocks": [{
-          "key": "bbp2o",
-          "data": {},
-          "text": "Waterfall Ballads by Digital Audio.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+          "data": {
+            "text": "Waterfall Ballads by Digital Audio."
+          },
+          "type": "paragraph"
+        }]
       },
       "category": 23,
       "updated_at": "2020-08-31T06:53:28.398Z",
@@ -10235,15 +10055,11 @@
       "description": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+            "data": {
+                "text": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun."
+            },
+            "type": "paragraph"
+        }]
       }
     }
   },
@@ -10262,15 +10078,11 @@
       "description": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
       "description_json": {
         "blocks": [{
-          "key": "",
-          "data": {},
-          "text": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
-          "type": "unstyled",
-          "depth": 0,
-          "entityRanges": [],
-          "inlineStyleRanges": []
-        }],
-        "entityMap": {}
+            "data": {
+                "text": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader."
+            },
+            "type": "paragraph"
+        }]
       }
     }
   },
