@@ -48,7 +48,7 @@ class PluginSample(BasePlugin):
             "label": "Private key",
         },
         "certificate": {
-            "type": ConfigurationTypeField.SECRET_TEXT,
+            "type": ConfigurationTypeField.SECRET_MULTILINE,
             "help_text": "",
             "label": "Multiline certificate",
         },

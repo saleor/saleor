@@ -478,7 +478,7 @@ def test_capture_payment(payment_adyen_for_order, order_with_lines, adyen_plugin
     assert response.payment_method_info == PaymentMethodInfo(brand="visa", type="test")
 
 
-@mock.patch("saleor.payment.gateways.adyen.utils.requests.post")
+@mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post")
 def test_validate_plugin_configuration_incorrect_certificate(
     mocked_request, adyen_plugin
 ):
@@ -489,7 +489,7 @@ def test_validate_plugin_configuration_incorrect_certificate(
         plugin.validate_plugin_configuration(configuration)
 
 
-@mock.patch("saleor.payment.gateways.adyen.utils.requests.post")
+@mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post")
 def test_validate_plugin_configuration_correct_cert(mocked_request, adyen_plugin):
     plugin = adyen_plugin(apple_pay_cert="correct_cert")
     mocked_request.side_effect = RequestException()

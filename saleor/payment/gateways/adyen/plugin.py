@@ -26,21 +26,19 @@ from ...interface import (
 )
 from ...models import Payment, Transaction
 from ..utils import get_supported_currencies
-from .utils import (
+from .utils.apple_pay import initialize_apple_pay, make_request_to_initialize_apple_pay
+from .utils.common import (
     AUTH_STATUS,
     FAILED_STATUSES,
     PENDING_STATUSES,
     api_call,
     call_capture,
     get_payment_method_info,
-    initialize_payment_for_apple_pay,
-    make_request_to_initialize_apple_pay,
     request_data_for_gateway_config,
     request_data_for_payment,
     request_for_payment_cancel,
     request_for_payment_refund,
     update_payment_with_action_required_data,
-    validate_payment_data_for_apple_pay,
 )
 from .webhooks import handle_additional_actions, handle_webhook
 
@@ -182,13 +180,13 @@ class AdyenGatewayPlugin(BasePlugin):
             "label": "Enable native 3D Secure",
         },
         "apple-pay-cert": {
-            "type": ConfigurationTypeField.SECRET_TEXT,
+            "type": ConfigurationTypeField.SECRET_MULTILINE,
             "help_text": (
-                "Follow the Adyen docs related to activating the apple pay for the "
+                "Follow the Adyen docs related to activating the Apple Pay for the "
                 "web - https://docs.adyen.com/payment-methods/apple-pay/"
                 "enable-apple-pay. This certificate is only required when you offer "
-                "the apple pay as a web payment method.  Leave it blank if you don't "
-                "offer apple pay or offer it only as a payment method in your iOS app."
+                "the Apple Pay as a web payment method.  Leave it blank if you don't "
+                "offer Apple Pay or offer it only as a payment method in your iOS app."
             ),
             "label": "Apple Pay certificate",
         },
@@ -246,24 +244,8 @@ class AdyenGatewayPlugin(BasePlugin):
         payment_method = payment_data.get("paymentMethod")
         if payment_method == "applepay":
             # The apple pay on the web requires additional step
-            validation_url = payment_data.get("validationUrl")
-            merchant_identifier = payment_data.get("merchantIdentifier")
-            domain = payment_data.get("domain")
-            display_name = payment_data.get("displayName")
-            certificate = self.config.connection_params["apple_pay_cert"]
-            validate_payment_data_for_apple_pay(
-                validation_url=validation_url,
-                merchant_identifier=merchant_identifier,
-                domain=domain,
-                display_name=display_name,
-                certificate=certificate,
-            )
-            session_obj = initialize_payment_for_apple_pay(
-                validation_url=validation_url,
-                merchant_identifier=merchant_identifier,
-                domain=domain,
-                display_name=display_name,
-                certificate=certificate,
+            session_obj = initialize_apple_pay(
+                payment_data, self.config.connection_params["apple_pay_cert"]
             )
             return InitializedPaymentResponse(
                 gateway=self.PLUGIN_ID, name=self.PLUGIN_NAME, data=session_obj
