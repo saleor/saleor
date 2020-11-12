@@ -1148,7 +1148,7 @@ enum ConfigurationTypeFieldEnum {
   BOOLEAN
   SECRET
   PASSWORD
-  SECRETTEXT
+  SECRETMULTILINE
 }
 
 type ConfirmAccount {
