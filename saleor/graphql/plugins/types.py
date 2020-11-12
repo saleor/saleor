@@ -24,7 +24,7 @@ def hide_private_configuration_fields(configuration, config_structure):
 
         if field_type in [
             ConfigurationTypeField.SECRET,
-            ConfigurationTypeField.SECRET_TEXT,
+            ConfigurationTypeField.SECRET_MULTILINE,
         ]:
             if not value:
                 field["value"] = None

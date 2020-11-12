@@ -1,28 +1,24 @@
 import json
 import logging
 from decimal import Decimal
-from tempfile import NamedTemporaryFile
 from typing import Any, Callable, Dict, Optional
-from urllib.parse import urlsplit
 
 import Adyen
-import requests
 from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
 
-from ....checkout.calculations import (
+from .....checkout.calculations import (
     checkout_line_total,
     checkout_shipping_price,
     checkout_total,
 )
-from ....checkout.models import Checkout
-from ....core.prices import quantize_price
-from ....discount.utils import fetch_active_discounts
-from ....payment.models import Payment
-from ... import PaymentError
-from ...interface import PaymentData, PaymentMethodInfo
-from .apple_domains import APPLE_DOMAINS
+from .....checkout.models import Checkout
+from .....core.prices import quantize_price
+from .....discount.utils import fetch_active_discounts
+from .....payment.models import Payment
+from .... import PaymentError
+from ....interface import PaymentData, PaymentMethodInfo
 
 logger = logging.getLogger(__name__)
 
@@ -354,70 +350,3 @@ def get_payment_method_info(
         brand=brand, type="card" if payment_method == "scheme" else payment_method,
     )
     return payment_method_info
-
-
-def validate_payment_data_for_apple_pay(
-    validation_url: Optional[str],
-    merchant_identifier: Optional[str],
-    domain: Optional[str],
-    display_name: Optional[str],
-    certificate,
-):
-    if not certificate:
-        raise PaymentError("Support for Apple Pay on the web is disabled.")
-
-    required_fields = [
-        (validation_url, "validationUrl"),
-        (merchant_identifier, "merchantIdentifier"),
-        (domain, "domain"),
-        (display_name, "displayName"),
-    ]
-    for field, name in required_fields:
-        if not field:
-            raise PaymentError(f"Missing {name} in the input data.")
-
-    domain = urlsplit(validation_url).netloc
-    if domain not in APPLE_DOMAINS:
-        raise PaymentError(
-            "The domain of the validation url is not defined as an Apple Pay domain."
-        )
-
-
-def initialize_payment_for_apple_pay(
-    validation_url: str,
-    merchant_identifier: str,
-    domain: str,
-    display_name: str,
-    certificate: str,
-) -> dict:
-
-    request_data = {
-        "merchantIdentifier": merchant_identifier,
-        "displayName": display_name,
-        "initiative": "web",
-        "initiativeContext": domain,
-    }
-    request_exception = False
-    response = None
-    try:
-        response = make_request_to_initialize_apple_pay(
-            validation_url, request_data, certificate
-        )
-    except requests.exceptions.RequestException:
-        logger.warning("Failed to fetch the Apple Pay session", exc_info=True)
-        request_exception = True
-    if request_exception or response and not response.ok:
-        raise PaymentError(
-            "Unable to create Apple Pay payment session. Make sure that input data "
-            " and certificate are correct."
-        )
-    return response.json()  # type: ignore
-
-
-def make_request_to_initialize_apple_pay(
-    validation_url: str, request_data: dict, certificate: str
-):
-    with NamedTemporaryFile() as f:
-        f.write(certificate.encode())
-        f.flush()  # ensure all data written
-        return requests.post(validation_url, json=request_data, cert=f.name)

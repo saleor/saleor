@@ -41,7 +41,7 @@ from ... import ChargeStatus, PaymentError, TransactionKind
 from ...gateway import payment_refund_or_void
 from ...interface import GatewayConfig, GatewayResponse
 from ...utils import create_payment_information, create_transaction, gateway_postprocess
-from .utils import FAILED_STATUSES, api_call, from_adyen_price
+from .utils.common import FAILED_STATUSES, api_call, from_adyen_price
 
 logger = logging.getLogger(__name__)
 

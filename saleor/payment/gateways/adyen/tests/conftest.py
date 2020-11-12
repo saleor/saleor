@@ -32,7 +32,7 @@ def adyen_plugin(settings):
         settings.PLUGINS = ["saleor.payment.gateways.adyen.plugin.AdyenGatewayPlugin"]
         manager = get_plugins_manager()
 
-        with mock.patch("saleor.payment.gateways.adyen.utils.requests.post"):
+        with mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post"):
             manager.save_plugin_configuration(
                 AdyenGatewayPlugin.PLUGIN_ID,
                 {
