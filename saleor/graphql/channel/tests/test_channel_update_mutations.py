@@ -1,4 +1,5 @@
 import graphene
+from django.utils.text import slugify
 
 from ....channel.error_codes import ChannelErrorCode
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -108,7 +109,7 @@ def test_channel_update_mutation_as_anonymous(api_client, channel_USD):
     assert_no_permission(response)
 
 
-def test_channel_update_mutation_with_invalid_slug(
+def test_channel_update_mutation_slugify_slug_field(
     permission_manage_channels, staff_api_client, channel_USD
 ):
     # given
@@ -126,9 +127,8 @@ def test_channel_update_mutation_with_invalid_slug(
     content = get_graphql_content(response)
 
     # then
-    error = content["data"]["channelUpdate"]["channelErrors"][0]
-    assert error["field"] == "slug"
-    assert error["code"] == ChannelErrorCode.INVALID.name
+    channel_data = content["data"]["channelUpdate"]["channel"]
+    assert channel_data["slug"] == slugify(slug)
 
 
 def test_channel_update_mutation_with_duplicated_slug(

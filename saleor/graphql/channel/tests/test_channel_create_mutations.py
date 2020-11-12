@@ -1,3 +1,5 @@
+from django.utils.text import slugify
+
 from ....channel.error_codes import ChannelErrorCode
 from ....channel.models import Channel
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -107,7 +109,7 @@ def test_channel_create_mutation_as_anonymous(api_client):
     assert_no_permission(response)
 
 
-def test_channel_create_mutation_with_invalid_slug(
+def test_channel_create_mutation_slugify_slug_field(
     permission_manage_channels, staff_api_client,
 ):
     # given
@@ -125,9 +127,8 @@ def test_channel_create_mutation_with_invalid_slug(
     content = get_graphql_content(response)
 
     # then
-    error = content["data"]["channelCreate"]["channelErrors"][0]
-    assert error["field"] == "slug"
-    assert error["code"] == ChannelErrorCode.INVALID.name
+    channel_data = content["data"]["channelCreate"]["channel"]
+    assert channel_data["slug"] == slugify(slug)
 
 
 def test_channel_create_mutation_with_duplicated_slug(

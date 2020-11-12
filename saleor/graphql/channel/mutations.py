@@ -4,6 +4,7 @@ from typing import DefaultDict, Dict, Iterable, List
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils.text import slugify
 
 from ...channel import models
 from ...checkout.models import Checkout
@@ -45,6 +46,15 @@ class ChannelCreate(ModelMutation):
     def get_type_for_model(cls):
         return Channel
 
+    @classmethod
+    def clean_input(cls, info, instance, data, input_cls=None):
+        cleaned_input = super().clean_input(info, instance, data)
+        slug = cleaned_input.get("slug")
+        if slug:
+            cleaned_input["slug"] = slugify(slug)
+
+        return cleaned_input
+
 
 class ChannelUpdateInput(ChannelInput):
     name = graphene.String(description="Name of the channel.")
@@ -64,6 +74,15 @@ class ChannelUpdate(ModelMutation):
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"
+
+    @classmethod
+    def clean_input(cls, info, instance, data, input_cls=None):
+        cleaned_input = super().clean_input(info, instance, data)
+        slug = cleaned_input.get("slug")
+        if slug:
+            cleaned_input["slug"] = slugify(slug)
+
+        return cleaned_input
 
 
 class ChannelDeleteInput(graphene.InputObjectType):
