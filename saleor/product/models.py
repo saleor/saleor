@@ -5,14 +5,12 @@ from uuid import uuid4
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
-from django.db.models import JSONField  # type: ignore
 from django.db.models import Case, Count, F, FilteredRelation, Q, Sum, Value, When
 from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
-from draftjs_sanitizer import clean_draft_js
 from measurement.measures import Weight
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
@@ -26,6 +24,7 @@ from ..core.models import (
     SortableModel,
 )
 from ..core.permissions import ProductPermissions, ProductTypePermissions
+from ..core.sanitizers.editorjs_sanitizer import clean_editor_js
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.translations import TranslationProxy
@@ -47,7 +46,9 @@ class Category(MPTTModel, ModelWithMetadata, SeoModel):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     description = models.TextField(blank=True)
-    description_json = JSONField(blank=True, default=dict)
+    description_json = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
     parent = models.ForeignKey(
         "self", null=True, blank=True, related_name="children", on_delete=models.CASCADE
     )
@@ -71,7 +72,9 @@ class CategoryTranslation(SeoModelTranslation):
     )
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    description_json = JSONField(blank=True, default=dict)
+    description_json = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
 
     class Meta:
         unique_together = (("language_code", "category"),)
@@ -243,7 +246,7 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     description = models.TextField(blank=True)
     description_json = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_draft_js
+        blank=True, default=dict, sanitizer=clean_editor_js
     )
     category = models.ForeignKey(
         Category,
@@ -335,7 +338,7 @@ class ProductTranslation(SeoModelTranslation):
     name = models.CharField(max_length=250)
     description = models.TextField(blank=True)
     description_json = SanitizedJSONField(
-        blank=True, default=dict, sanitizer=clean_draft_js
+        blank=True, default=dict, sanitizer=clean_editor_js
     )
 
     class Meta:
@@ -873,7 +876,9 @@ class Collection(SeoModel, ModelWithMetadata, PublishableModel):
     )
     background_image_alt = models.CharField(max_length=128, blank=True)
     description = models.TextField(blank=True)
-    description_json = JSONField(blank=True, default=dict)
+    description_json = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
 
     translated = TranslationProxy()
 
@@ -891,7 +896,9 @@ class CollectionTranslation(SeoModelTranslation):
     )
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
-    description_json = JSONField(blank=True, default=dict)
+    description_json = SanitizedJSONField(
+        blank=True, default=dict, sanitizer=clean_editor_js
+    )
 
     class Meta:
         unique_together = (("language_code", "collection"),)
