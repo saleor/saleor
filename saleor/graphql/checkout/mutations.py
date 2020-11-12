@@ -835,6 +835,8 @@ class CheckoutComplete(BaseMutation):
                 tracking_code=tracking_code,
                 redirect_url=data.get("redirect_url"),
             )
+        if info.context.site.settings.automatically_confirm_all_new_orders:
+            info.context.plugins.order_confirmed(order)
         # If gateway returns information that additional steps are required we need
         # to inform the frontend and pass all required data
         return CheckoutComplete(

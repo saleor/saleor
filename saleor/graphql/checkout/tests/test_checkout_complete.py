@@ -82,7 +82,10 @@ def test_checkout_complete_order_already_exists(
 
 
 @pytest.mark.integration
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete(
+    order_confirmed_mock,
+    site_settings,
     user_api_client,
     checkout_with_gift_card,
     gift_card,
@@ -104,6 +107,9 @@ def test_checkout_complete(
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
+
+    site_settings.automatically_confirm_all_new_orders = True
+    site_settings.save()
 
     total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
     payment = payment_dummy
@@ -150,10 +156,16 @@ def test_checkout_complete(
     assert not Checkout.objects.filter(
         pk=checkout.pk
     ).exists(), "Checkout should have been deleted"
+    order_confirmed_mock.assert_called_once_with(order)
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete_requires_confirmation(
-    user_api_client, site_settings, payment_dummy, checkout_ready_to_complete,
+    order_confirmed_mock,
+    user_api_client,
+    site_settings,
+    payment_dummy,
+    checkout_ready_to_complete,
 ):
     site_settings.automatically_confirm_all_new_orders = False
     site_settings.save()
@@ -173,6 +185,7 @@ def test_checkout_complete_requires_confirmation(
     )
     order = Order.objects.get(pk=order_id)
     assert order.status == OrderStatus.UNCONFIRMED
+    order_confirmed_mock.assert_not_called()
 
 
 @pytest.mark.integration
