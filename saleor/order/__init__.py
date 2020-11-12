@@ -107,6 +107,7 @@ class OrderEvents:
 class OrderEventsEmails:
     """The different order emails event types."""
 
+    CONFIRMED = "confirmed"
     PAYMENT = "payment_confirmation"
     SHIPPING = "shipping_confirmation"
     TRACKING_UPDATED = "tracking_updated"
@@ -118,6 +119,7 @@ class OrderEventsEmails:
 
     CHOICES = [
         (PAYMENT, "The payment confirmation email was sent"),
+        (CONFIRMED, "The order confirmed email was sent"),
         (SHIPPING, "The shipping confirmation email was sent"),
         (TRACKING_UPDATED, "The fulfillment tracking code email was sent"),
         (ORDER_CONFIRMATION, "The order placement confirmation email was sent"),
