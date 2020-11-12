@@ -457,11 +457,17 @@ def test_order_confirm(staff_api_client, order_unconfirmed, permission_manage_or
     assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
     order_unconfirmed.refresh_from_db()
     assert order_unconfirmed.status == OrderStatus.UNFULFILLED
-    assert OrderEvent.objects.count() == 1
+    assert OrderEvent.objects.count() == 2
     assert OrderEvent.objects.filter(
         order=order_unconfirmed,
         user=staff_api_client.user,
         type=order_events.OrderEvents.CONFIRMED,
+    ).exists()
+    assert OrderEvent.objects.filter(
+        order=order_unconfirmed,
+        user=staff_api_client.user,
+        type=order_events.OrderEvents.EMAIL_SENT,
+        parameters__email=order_unconfirmed.get_customer_email(),
     ).exists()
 
 

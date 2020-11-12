@@ -15,6 +15,7 @@ from ....order.actions import (
     order_shipping_updated,
     order_voided,
 )
+from ....order.emails import send_order_confirmed
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import get_valid_shipping_methods_for_order, update_order_prices
 from ....payment import CustomPaymentChoices, PaymentError, TransactionKind, gateway
@@ -520,4 +521,5 @@ class OrderConfirm(ModelMutation):
         order.save(update_fields=["status"])
         events.order_confirmed_event(order=order, user=info.context.user)
         info.context.plugins.order_confirmed(order)
+        send_order_confirmed.delay(order.pk, info.context.user.pk)
         return OrderConfirm(order=order)
