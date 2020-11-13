@@ -47,6 +47,11 @@ class PluginSample(BasePlugin):
             "help_text": "API key",
             "label": "Private key",
         },
+        "certificate": {
+            "type": ConfigurationTypeField.SECRET_MULTILINE,
+            "help_text": "",
+            "label": "Multiline certificate",
+        },
     }
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:

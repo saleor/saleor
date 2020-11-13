@@ -5,10 +5,9 @@ from unittest import mock
 import pytest
 from prices import Money, TaxedMoney
 
-from .....core.prices import quantize_price
-from .... import PaymentError
-from ....interface import PaymentMethodInfo
-from ..utils import (
+from saleor.core.prices import quantize_price
+from saleor.payment import PaymentError
+from saleor.payment.gateways.adyen.utils.common import (
     append_klarna_data,
     from_adyen_price,
     get_payment_method_info,
@@ -18,6 +17,7 @@ from ..utils import (
     to_adyen_price,
     update_payment_with_action_required_data,
 )
+from saleor.payment.interface import PaymentMethodInfo
 
 
 @pytest.mark.parametrize(
@@ -77,7 +77,7 @@ def test_append_klarna_data(
     }
 
 
-@mock.patch("saleor.payment.gateways.adyen.utils.checkout_line_total")
+@mock.patch("saleor.payment.gateways.adyen.utils.common.checkout_line_total")
 def test_append_klarna_data_tax_included(
     mocked_checkout_line_total,
     dummy_payment_data,
@@ -272,7 +272,7 @@ def test_request_data_for_payment_channel_different_than_web(dummy_payment_data)
     }
 
 
-@mock.patch("saleor.payment.gateways.adyen.utils.append_klarna_data")
+@mock.patch("saleor.payment.gateways.adyen.utils.common.append_klarna_data")
 def test_request_data_for_payment_append_klarna_data(
     append_klarna_data_mock, dummy_payment_data
 ):
