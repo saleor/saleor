@@ -1140,10 +1140,6 @@ def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
     assert error["field"] == "voucher"
 
 
-@pytest.mark.skip(
-    "We should fix it before merge to master. We should add similar test "
-    "in other draft order mutations"
-)
 def test_draft_order_create_with_product_and_variant_not_assigned_to_order_channel(
     staff_api_client,
     permission_manage_orders,
@@ -1156,8 +1152,6 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
     graphql_address_data,
 ):
     query = DRAFT_ORDER_CREATE_MUTATION
-
-    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     discount = "10"
@@ -1167,7 +1161,6 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
     ]
     shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
-    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variant.product.channel_listings.all().delete()
     variant.channel_listings.all().delete()
@@ -1177,7 +1170,6 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
         "lines": variant_list,
         "shippingAddress": shipping_address,
         "shippingMethod": shipping_id,
-        "voucher": voucher_id,
         "customerNote": customer_note,
         "channel": channel_id,
     }
@@ -1186,7 +1178,51 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
     )
     content = get_graphql_content(response)
     error = content["data"]["draftOrderCreate"]["orderErrors"][0]
-    assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
+    assert error["code"] == OrderErrorCode.PRODUCT_NOT_PUBLISHED.name
+    assert error["field"] == "lines"
+    assert error["variants"] == [variant_id]
+
+
+@pytest.mark.skip("Fix this")
+def test_draft_order_create_with_variant_not_assigned_to_order_channel(
+    staff_api_client,
+    permission_manage_orders,
+    staff_user,
+    customer_user,
+    shipping_method,
+    variant,
+    voucher,
+    channel_USD,
+    graphql_address_data,
+):
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    discount = "10"
+    customer_note = "Test note"
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variant.channel_listings.all().delete()
+    variables = {
+        "user": user_id,
+        "discount": discount,
+        "lines": variant_list,
+        "shippingAddress": shipping_address,
+        "shippingMethod": shipping_id,
+        "customerNote": customer_note,
+        "channel": channel_id,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderCreate"]["orderErrors"][0]
+    assert error["code"] == OrderErrorCode.PRODUCT_NOT_PUBLISHED.name
     assert error["field"] == "lines"
     assert error["variants"] == [variant_id]
 

@@ -10,6 +10,7 @@ from django.db.models import (
     BooleanField,
     Case,
     Count,
+    DateField,
     ExpressionWrapper,
     F,
     FilteredRelation,
@@ -156,11 +157,11 @@ class ProductsQueryset(models.QuerySet):
 
     def not_published(self, channel_slug: str):
         today = datetime.date.today()
-        return self.filter(
-            Q(channel_listings__publication_date__gt=today)
-            & Q(channel_listings__is_published=True)
-            | Q(channel_listings__is_published=False),
-            channel_listings__channel__slug=str(channel_slug),
+        return self.annotate_publication_info(channel_slug).filter(
+            Q(publication_date__gt=today) & Q(is_published=True)
+            | Q(is_published=False)
+            | Q(channel_is_active=False)
+            | Q(channel_is_active__isnull=True)
         )
 
     def published_with_variants(self, channel_slug: str):
@@ -180,6 +181,43 @@ class ProductsQueryset(models.QuerySet):
     @staticmethod
     def user_has_access_to_all(user):
         return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+
+    def annotate_publication_info(self, channel_slug: str):
+        return (
+            self.annotate_is_published(channel_slug)
+            .annotate_publication_date(channel_slug)
+            .annotate_channel_activity(channel_slug)
+        )
+
+    def annotate_is_published(self, channel_slug: str):
+        query = Subquery(
+            ProductChannelListing.objects.filter(
+                product_id=OuterRef("pk"), channel__slug=str(channel_slug)
+            ).values_list("is_published")[:1]
+        )
+        return self.annotate(
+            is_published=ExpressionWrapper(query, output_field=BooleanField())
+        )
+
+    def annotate_publication_date(self, channel_slug: str):
+        query = Subquery(
+            ProductChannelListing.objects.filter(
+                product_id=OuterRef("pk"), channel__slug=str(channel_slug)
+            ).values_list("publication_date")[:1]
+        )
+        return self.annotate(
+            publication_date=ExpressionWrapper(query, output_field=DateField())
+        )
+
+    def annotate_channel_activity(self, channel_slug: str):
+        query = Subquery(
+            ProductChannelListing.objects.filter(
+                product_id=OuterRef("pk"), channel__slug=str(channel_slug)
+            ).values_list("channel__is_active")[:1]
+        )
+        return self.annotate(
+            channel_is_active=ExpressionWrapper(query, output_field=BooleanField())
+        )
 
     def annotate_visible_in_listings(self, channel_slug):
         query = Subquery(

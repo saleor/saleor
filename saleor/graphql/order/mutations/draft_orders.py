@@ -108,7 +108,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         )
         if unpublished_product:
             unpublished_variants = product_models.ProductVariant.objects.filter(
-                product_id__in=unpublished_product
+                product_id__in=unpublished_product, id__in=variant_ids
             ).values_list("pk", flat=True)
             unpublished_variants_global_ids = [
                 graphene.Node.to_global_id("ProductVariant", unpublished_variant)
