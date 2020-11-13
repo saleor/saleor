@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Migrate draftjs content to editorjs format - #6430 by @IKarbowiak
 - Drop deprecated service accounts and webhooks API - #6431 by @maarcingebala
 - Add editorjs sanitizer - #6456 by @IKarbowiak
+- Add generic FileUpload mutation - #6470 by @IKarbowiak
 
 ## 2.11.0
 
