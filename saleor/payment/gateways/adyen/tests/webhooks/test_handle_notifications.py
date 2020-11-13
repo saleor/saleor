@@ -8,7 +8,7 @@ import pytest
 from ......checkout import calculations
 from ......order import OrderEvents, OrderStatus
 from ..... import ChargeStatus, TransactionKind
-from ...utils import to_adyen_price
+from ...utils.common import to_adyen_price
 from ...webhooks import (
     create_new_transaction,
     handle_authorization,

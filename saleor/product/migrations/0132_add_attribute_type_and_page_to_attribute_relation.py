@@ -12,8 +12,8 @@ def set_product_type_to_all_existing_attributes(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("page", "0016_pagetype"),
-        ("product", "0130_migrate_from_draftjs_to_editorjs_format"),
+        ("page", "0017_pagetype"),
+        ("product", "0131_auto_20201112_0904"),
     ]
 
     operations = [
