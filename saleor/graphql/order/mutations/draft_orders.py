@@ -18,7 +18,6 @@ from ....order.utils import (
     recalculate_order,
     update_order_prices,
 )
-from ....product import models as product_models
 from ....warehouse.management import allocate_stock
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
@@ -28,7 +27,7 @@ from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
-from ..utils import validate_draft_order
+from ..utils import validate_draft_order, validate_product_is_published_in_channel
 
 
 class OrderLineInput(graphene.InputObjectType):
@@ -88,44 +87,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         error_type_field = "order_errors"
 
     @classmethod
-    def validate_product_is_published_in_channel(
-        cls, info, instance, variants, channel
-    ):
-        if not channel:
-            raise ValidationError(
-                {
-                    "channel": ValidationError(
-                        "Can't add product variant for draft order without channel",
-                        code=OrderErrorCode.MISSING_CHANNEL,
-                    )
-                }
-            )
-        variant_ids = [variant.id for variant in variants]
-        unpublished_product = list(
-            product_models.Product.objects.filter(
-                variants__id__in=variant_ids
-            ).not_published(channel.slug)
-        )
-        if unpublished_product:
-            unpublished_variants = product_models.ProductVariant.objects.filter(
-                product_id__in=unpublished_product, id__in=variant_ids
-            ).values_list("pk", flat=True)
-            unpublished_variants_global_ids = [
-                graphene.Node.to_global_id("ProductVariant", unpublished_variant)
-                for unpublished_variant in unpublished_variants
-            ]
-            raise ValidationError(
-                {
-                    "lines": ValidationError(
-                        "Can't add product variant that are not published in "
-                        "the channel associated with this order.",
-                        code=OrderErrorCode.PRODUCT_NOT_PUBLISHED,
-                        params={"variants": unpublished_variants_global_ids},
-                    )
-                }
-            )
-
-    @classmethod
     def clean_channel_id(cls, instance, channel_id):
         if channel_id and hasattr(instance, "channel"):
             raise ValidationError(
@@ -173,9 +134,13 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         if lines:
             variant_ids = [line.get("variant_id") for line in lines]
             variants = cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
-            cls.validate_product_is_published_in_channel(
-                info, instance, variants, channel
-            )
+            try:
+                validate_product_is_published_in_channel(variants, channel)
+            except ValidationError as error:
+                field_name = "lines"
+                if error.code == OrderErrorCode.MISSING_CHANNEL:
+                    field_name = "channel"
+                raise ValidationError({field_name: error})
             quantities = [line.get("quantity") for line in lines]
             cleaned_input["variants"] = variants
             cleaned_input["quantities"] = quantities
@@ -442,7 +407,11 @@ class DraftOrderLinesCreate(BaseMutation):
                         )
                     }
                 )
-
+        variants = [line[1] for line in lines_to_add]
+        try:
+            validate_product_is_published_in_channel(variants, order.channel)
+        except ValidationError as error:
+            raise ValidationError({"input": error})
         # Add the lines
         try:
             lines = [

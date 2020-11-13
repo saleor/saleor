@@ -1878,7 +1878,7 @@ def test_validate_draft_order_out_of_stock_variant(draft_order):
 
     with pytest.raises(ValidationError) as e:
         validate_draft_order(order, "US")
-    msg = "Insufficient product stock: SKU_A"
+    msg = "Insufficient product stock: SKU_AA"
     assert e.value.error_dict["lines"][0].message == msg
 
 
@@ -2178,9 +2178,11 @@ DRAFT_ORDER_LINES_CREATE_MUTATION = """
         draftOrderLinesCreate(id: $orderId,
                 input: [{variantId: $variantId, quantity: $quantity}]) {
 
-            errors {
+            orderErrors {
                 field
+                code
                 message
+                variants
             }
             orderLines {
                 id
@@ -2229,8 +2231,31 @@ def test_draft_order_lines_create(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderLinesCreate"]
-    assert data["errors"]
-    assert data["errors"][0]["field"] == "quantity"
+    assert data["orderErrors"]
+    assert data["orderErrors"][0]["field"] == "quantity"
+
+
+def test_draft_order_lines_create_with_product_and_variant_not_assigned_to_channel(
+    draft_order, permission_manage_orders, staff_api_client, variant
+):
+    query = DRAFT_ORDER_LINES_CREATE_MUTATION
+    order = draft_order
+    line = order.lines.first()
+    assert variant != line.variant
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": 1}
+    variant.product.channel_listings.all().delete()
+    variant.channel_listings.all().delete()
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderLinesCreate"]["orderErrors"][0]
+    assert error["code"] == OrderErrorCode.PRODUCT_NOT_PUBLISHED.name
+    assert error["field"] == "input"
+    assert error["variants"] == [variant_id]
 
 
 def test_require_draft_order_when_creating_lines(
@@ -2248,7 +2273,7 @@ def test_require_draft_order_when_creating_lines(
     )
     content = get_graphql_content(response)
     data = content["data"]["draftOrderLinesCreate"]
-    assert data["errors"]
+    assert data["orderErrors"]
 
 
 DRAFT_ORDER_LINE_UPDATE_MUTATION = """

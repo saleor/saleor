@@ -1816,7 +1816,7 @@ def order_with_lines(
         visible_in_listings=True,
         available_for_purchase=datetime.date.today(),
     )
-    variant = ProductVariant.objects.create(product=product, sku="SKU_A")
+    variant = ProductVariant.objects.create(product=product, sku="SKU_AA")
     ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
