@@ -10,6 +10,7 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
+    InitializedPaymentResponse,
     PaymentData,
     PaymentGateway,
 )
@@ -33,12 +34,14 @@ class ConfigurationTypeField:
     STRING = "String"
     BOOLEAN = "Boolean"
     SECRET = "Secret"
+    SECRET_MULTILINE = "SecretMultiline"
     PASSWORD = "Password"
     CHOICES = [
         (STRING, "Field is a String"),
         (BOOLEAN, "Field is a Boolean"),
         (SECRET, "Field is a Secret"),
         (PASSWORD, "Field is a Password"),
+        (SECRET_MULTILINE, "Field is a Secret multiline"),
     ]
 
 
@@ -366,6 +369,11 @@ class BasePlugin:
 
     def fetch_taxes_data(self, previous_value: Any) -> Any:
         """Triggered when ShopFetchTaxRates mutation is called."""
+        return NotImplemented
+
+    def initialize_payment(
+        self, payment_data: dict, previous_value
+    ) -> "InitializedPaymentResponse":
         return NotImplemented
 
     def authorize_payment(
