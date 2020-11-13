@@ -10,6 +10,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop deprecated service accounts and webhooks API - #6431 by @maarcingebala
 - Add editorjs sanitizer - #6456 by @IKarbowiak
 
+# 2.11.1
+
+- Add support for Apple Pay on the web - #6466 by @korycins
+
 ## 2.11.0
 
 ### Features
