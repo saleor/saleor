@@ -1261,6 +1261,7 @@ enum ConfigurationTypeFieldEnum {
   BOOLEAN
   SECRET
   PASSWORD
+  SECRETMULTILINE
 }
 
 type ConfirmAccount {
@@ -2692,6 +2693,7 @@ type Mutation {
   paymentCapture(amount: PositiveDecimal, paymentId: ID!): PaymentCapture
   paymentRefund(amount: PositiveDecimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
+  paymentInitialize(gateway: String!, paymentData: JSONString): PaymentInitialize
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
@@ -3464,6 +3466,18 @@ type PaymentGateway {
   id: ID!
   config: [GatewayConfigLine!]!
   currencies: [String]!
+}
+
+type PaymentInitialize {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  initializedPayment: PaymentInitialized
+  paymentErrors: [PaymentError!]!
+}
+
+type PaymentInitialized {
+  gateway: String!
+  name: String!
+  data: JSONString
 }
 
 input PaymentInput {
