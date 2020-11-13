@@ -4,13 +4,13 @@ Tagging Process
 +-----------------------------------+-----------------------------------------------------------------------+
 | Git Ref                           | Container Tags                                                        |
 +===================================+=======================================================================+
-| ``refs/tags/v1.0.0``              | ghcr.io/mirumee/saleor:1.0.0                                          |
+| ``refs/tags/1.0.0``               | ghcr.io/mirumee/saleor:1.0.0                                          |
 |                                   | ghcr.io/mirumee/saleor:latest                                         |
 +-----------------------------------+-----------------------------------------------------------------------+
-| ``refs/tags/v1.0.0a1``            | ghcr.io/mirumee/saleor:1.0.0a1                                        |
+| ``refs/tags/1.0.0a1``             | ghcr.io/mirumee/saleor:1.0.0a1                                        |
 |                                   | ghcr.io/mirumee/saleor:snapshot                                       |
 +-----------------------------------+-----------------------------------------------------------------------+
-| ``refs/tags/v1.0.0rc1``           | ghcr.io/mirumee/saleor:1.0.0rc1                                       |
+| ``refs/tags/1.0.0rc1``            | ghcr.io/mirumee/saleor:1.0.0rc1                                       |
 |                                   | ghcr.io/mirumee/saleor:snapshot                                       |
 +-----------------------------------+-----------------------------------------------------------------------+
 | ``refs/heads/master``             | docker.io/mirumee/saleor:master                                       |

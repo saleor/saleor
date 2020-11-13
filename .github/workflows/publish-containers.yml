@@ -3,7 +3,8 @@ name: Publish
 on:
   push:
     tags:
-      - "v*.*.*"
+      # Matches stable and pre-releases
+      - "[0-9]+.[0-9]+.[0-9]+*"
     branches:
       - master
       - dev
@@ -30,18 +31,18 @@ jobs:
       # Pre-releases, alphas, etc. as :snapshot
       - name: Prepare Image Tags from Git Tag
         id: tagged
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: |
           # Remove everything else than the tagged version
-          VERSION=${GITHUB_REF#refs/tags/v}
+          VERSION=${GITHUB_REF#refs/tags/}
 
           # Tag as stable (:latest) if there is no letters in the version
           # Otherwise, tag as preview (:snapshot)
-          if [[ $VERSION =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            # Matches v1.0.0, v1.0.1, etc.
+          if [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # Matches 1.0.0, 1.0.1, etc.
             NAMED_VERSION="latest"
           else
-            # Matches v1.0.0a1, v1.0.0rc1, etc.
+            # Matches 1.0.0a1, 1.0.0rc1, etc.
             NAMED_VERSION="snapshot"
           fi
 
