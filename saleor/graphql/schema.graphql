@@ -4776,8 +4776,6 @@ type UploadError {
 
 enum UploadErrorCode {
   GRAPHQL_ERROR
-  NOT_FOUND
-  REQUIRED
 }
 
 type UploadedFile {
