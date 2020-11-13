@@ -160,8 +160,7 @@ class ProductsQueryset(models.QuerySet):
         return self.annotate_publication_info(channel_slug).filter(
             Q(publication_date__gt=today) & Q(is_published=True)
             | Q(is_published=False)
-            | Q(channel_is_active=False)
-            | Q(channel_is_active__isnull=True)
+            | Q(is_published__isnull=True)
         )
 
     def published_with_variants(self, channel_slug: str):
@@ -183,10 +182,8 @@ class ProductsQueryset(models.QuerySet):
         return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
 
     def annotate_publication_info(self, channel_slug: str):
-        return (
-            self.annotate_is_published(channel_slug)
-            .annotate_publication_date(channel_slug)
-            .annotate_channel_activity(channel_slug)
+        return self.annotate_is_published(channel_slug).annotate_publication_date(
+            channel_slug
         )
 
     def annotate_is_published(self, channel_slug: str):
