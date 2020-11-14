@@ -26,8 +26,8 @@ from ..discount.utils import (
     remove_voucher_usage_by_customer,
 )
 from ..order.actions import order_created
-from ..order.emails import send_order_confirmation, send_staff_order_confirmation
 from ..order.models import Order, OrderLine
+from ..order.notifications import send_order_confirmation, send_staff_order_confirmation
 from ..payment import PaymentError, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import store_customer_id
@@ -273,12 +273,16 @@ def _create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
 
     transaction.on_commit(lambda: order_created(order=order, user=user))
 
+    # FIXME manager should be passed directly from the info.context.
+    # This should be fixed after we will improve the checkout performance
+    manager = get_plugins_manager()
     # Send the order confirmation email
     transaction.on_commit(
-        lambda: send_order_confirmation.delay(order.pk, checkout.redirect_url, user.pk)
+        lambda: send_order_confirmation(order, checkout.redirect_url, user, manager)
     )
+    # TODO we can drop it and subscribe admin and user email plugins to the same event
     transaction.on_commit(
-        lambda: send_staff_order_confirmation.delay(order.pk, checkout.redirect_url)
+        lambda: send_staff_order_confirmation(order, checkout.redirect_url, manager)
     )
 
     return order

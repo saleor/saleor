@@ -9,13 +9,17 @@ from ...discount.models import DiscountValueType, NotApplicable, Voucher, Vouche
 from ...discount.utils import validate_voucher_in_order
 from ...payment import ChargeStatus
 from ...payment.models import Payment
+from ...plugins.manager import get_plugins_manager
 from ...product.models import Collection
 from ...warehouse.models import Stock
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
 from .. import OrderEvents, OrderStatus, models
-from ..emails import send_fulfillment_confirmation_to_customer
 from ..events import OrderEvent, OrderEventsEmails, email_sent_event
 from ..models import Order
+from ..notifications import (
+    get_default_fulfillment_payload,
+    send_fulfillment_confirmation_to_customer,
+)
 from ..templatetags.order_lines import display_translated_order_line_name
 from ..utils import (
     add_variant_to_draft_order,
@@ -675,12 +679,12 @@ def test_ordered_item_change_quantity(transactional_db, order_with_lines):
     assert order_with_lines.get_total_quantity() == 0
 
 
-@patch("saleor.order.actions.emails.send_fulfillment_confirmation")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 @pytest.mark.parametrize(
     "has_standard,has_digital", ((True, True), (True, False), (False, True))
 )
 def test_send_fulfillment_order_lines_mails(
-    mocked_send_fulfillment_confirmation,
+    mocked_notify,
     staff_user,
     fulfilled_order,
     fulfillment,
@@ -688,7 +692,7 @@ def test_send_fulfillment_order_lines_mails(
     has_standard,
     has_digital,
 ):
-
+    manager = get_plugins_manager()
     order = fulfilled_order
     assert order.lines.count() == 2
 
@@ -705,12 +709,13 @@ def test_send_fulfillment_order_lines_mails(
         line.save()
 
     send_fulfillment_confirmation_to_customer(
-        order=order, fulfillment=fulfillment, user=staff_user
+        order=order, fulfillment=fulfillment, user=staff_user, manager=manager
     )
     events = OrderEvent.objects.all()
 
-    mocked_send_fulfillment_confirmation.delay.assert_called_once_with(
-        order.pk, fulfillment.pk
+    expected_payload = get_default_fulfillment_payload(order, fulfillment)
+    mocked_notify.assert_called_once_with(
+        "order_fulfillment_confirmation", payload=expected_payload
     )
 
     # Ensure the standard fulfillment event was triggered

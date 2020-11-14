@@ -1,8 +1,8 @@
 {% load i18n %}
 
 {% block subject %}
-  {% blocktrans trimmed context "Payment confirmation subject" %}
-    Order {{ order }} payment details
+  {% blocktrans trimmed with id=order.id context "Payment confirmation subject" %}
+    Order {{ id }} payment details
   {% endblocktrans %}
 {% endblock %}
 

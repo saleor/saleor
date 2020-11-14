@@ -19,72 +19,70 @@ def get_default_user_payload(user: User):
 
 def send_user_password_reset_notification(redirect_url, user, manager):
     """Trigger sending a password reset notification for the given user."""
-    user_payload = get_default_user_payload(user)
-    user_payload.update(
-        {
-            "token": default_token_generator.make_token(user),
-            "redirect_url": redirect_url,
-        }
-    )
+    user_payload = {
+        "user": get_default_user_payload(user),
+        "recipient_email": user.email,
+        "token": default_token_generator.make_token(user),
+        "redirect_url": redirect_url,
+    }
     manager.notify(NotifyEventType.ACCOUNT_PASSWORD_RESET, payload=user_payload)
 
 
 def send_account_confirmation(user, redirect_url, manager):
     """Trigger sending an account confirmation notification for the given user."""
-    user_payload = get_default_user_payload(user)
-    user_payload.update(
-        {
-            "token": default_token_generator.make_token(user),
-            "redirect_url": redirect_url,
-        }
-    )
-    manager.notify(NotifyEventType.ACCOUNT_CONFIRMATION, payload=user_payload)
+
+    payload = {
+        "user": get_default_user_payload(user),
+        "recipient_email": user.email,
+        "token": default_token_generator.make_token(user),
+        "redirect_url": redirect_url,
+    }
+    manager.notify(NotifyEventType.ACCOUNT_CONFIRMATION, payload=payload)
 
 
 def send_request_user_change_email_notification(
     redirect_url, user, new_email, token, manager
 ):
     """Trigger sending a notification change email for the given user."""
-    user_payload = get_default_user_payload(user)
-    user_payload.update(
-        {
-            "old_email": user.email,
-            "new_email": new_email,
-            "redirect_url": redirect_url,
-            "token": token,
-        }
-    )
-    manager.notify(NotifyEventType.ACCOUNT_CHANGE_EMAIL_REQUEST, payload=user_payload)
+    payload = {
+        "user": get_default_user_payload(user),
+        "recipient_email": new_email,
+        "old_email": user.email,
+        "new_email": new_email,
+        "redirect_url": redirect_url,
+        "token": token,
+    }
+    manager.notify(NotifyEventType.ACCOUNT_CHANGE_EMAIL_REQUEST, payload=payload)
 
 
 def send_user_change_email_notification(recipient_email, user, manager):
     """Trigger sending a email change notification for the given user."""
-    user_payload = get_default_user_payload(user)
-    user_payload["old_email"] = recipient_email
-    manager.notify(NotifyEventType.ACCOUNT_CHANGE_EMAIL_CONFIRM, payload=user_payload)
+    payload = {
+        "user": get_default_user_payload(user),
+        "recipient_email": recipient_email,
+    }
+    manager.notify(NotifyEventType.ACCOUNT_CHANGE_EMAIL_CONFIRM, payload=payload)
 
 
 def send_account_delete_confirmation_notification(redirect_url, user, manager):
     """Trigger sending a account delete notification for the given user."""
-    user_payload = get_default_user_payload(user)
-    user_payload.update(
-        {
-            "token": default_token_generator.make_token(user),
-            "redirect_url": redirect_url,
-        }
-    )
-    manager.notify(NotifyEventType.ACCOUNT_DELETE, payload=user_payload)
+    payload = {
+        "user": get_default_user_payload(user),
+        "recipient_email": user.email,
+        "token": default_token_generator.make_token(user),
+        "redirect_url": redirect_url,
+    }
+    manager.notify(NotifyEventType.ACCOUNT_DELETE, payload=payload)
 
 
 def send_set_password_notification(redirect_url, user, manager, staff=False):
     """Trigger sending a set password notification for the given customer/staff."""
-    user_payload = get_default_user_payload(user)
-    user_payload.update(
-        {
-            "token": default_token_generator.make_token(user),
-            "redirect_url": redirect_url,
-        }
-    )
+    user_payload = {
+        "user": get_default_user_payload(user),
+        "token": default_token_generator.make_token(user),
+        "redirect_url": redirect_url,
+        "recipient_email": user.email,
+    }
     if staff:
         event = NotifyEventType.ACCOUNT_SET_STAFF_PASSWORD
     else:

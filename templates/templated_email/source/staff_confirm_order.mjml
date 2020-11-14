@@ -14,7 +14,7 @@
           {% trans "Hi!" context "Standard e-mail greeting" %}
         </mj-text>
         <mj-text>
-          {% blocktrans trimmed context "Order confirmation staff e-mail text" %}
+          {% blocktrans trimmed with order_details_url=order.order_details_url context "Order confirmation staff e-mail text" %}
             Someone placed a new order in your store. To see order details please visit: <a href="{{ order_details_url }}">{{ order_details_url }}</a>
           {% endblocktrans %}
         </mj-text>

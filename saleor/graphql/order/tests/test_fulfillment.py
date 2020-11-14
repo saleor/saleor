@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
@@ -506,7 +506,7 @@ def test_order_fulfill_warehouse_duplicated_order_line_id(
     mock_create_fulfillments.assert_not_called()
 
 
-@patch("saleor.order.emails.send_fulfillment_update.delay")
+@patch("saleor.plugins.manager.PluginsManager.notify")
 def test_fulfillment_update_tracking(
     send_fulfillment_update_mock,
     staff_api_client,
@@ -548,7 +548,7 @@ FULFILLMENT_UPDATE_TRACKING_WITH_SEND_NOTIFICATION_QUERY = """
     """
 
 
-@patch("saleor.order.emails.send_fulfillment_update.delay")
+@patch("saleor.graphql.order.mutations.fulfillments.send_fulfillment_update")
 def test_fulfillment_update_tracking_send_notification_true(
     send_fulfillment_update_mock,
     staff_api_client,
@@ -567,11 +567,11 @@ def test_fulfillment_update_tracking_send_notification_true(
     data = content["data"]["orderFulfillmentUpdateTracking"]["fulfillment"]
     assert data["trackingNumber"] == tracking
     send_fulfillment_update_mock.assert_called_once_with(
-        fulfillment.order.pk, fulfillment.pk
+        fulfillment.order, fulfillment, ANY
     )
 
 
-@patch("saleor.order.emails.send_fulfillment_update.delay")
+@patch("saleor.order.notifications.send_fulfillment_update")
 def test_fulfillment_update_tracking_send_notification_false(
     send_fulfillment_update_mock,
     staff_api_client,

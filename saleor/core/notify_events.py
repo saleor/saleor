@@ -6,6 +6,12 @@ class UserNotifyEvent:
     ACCOUNT_DELETE = "account_delete"
     ACCOUNT_SET_CUSTOMER_PASSWORD = "account_set_customer_password"
     INVOICE_READY = "invoice_ready"
+    ORDER_CONFIRMATION = "order_confirmation"
+    ORDER_FULFILLMENT_CONFIRMATION = "order_fulfillment_confirmation"
+    ORDER_FULFILLMENT_UPDATE = "order_fulfillment_update"
+    ORDER_PAYMENT_CONFIRMATION = "order_payment_confirmation"
+    ORDER_CANCELED = "order_canceled"
+    ORDER_REFUND_CONFIRMATION = "order_refund_confirmation"
 
     CHOICES = [
         ACCOUNT_CONFIRMATION,
@@ -15,6 +21,12 @@ class UserNotifyEvent:
         ACCOUNT_DELETE,
         ACCOUNT_SET_CUSTOMER_PASSWORD,
         INVOICE_READY,
+        ORDER_CONFIRMATION,
+        ORDER_FULFILLMENT_CONFIRMATION,
+        ORDER_FULFILLMENT_UPDATE,
+        ORDER_PAYMENT_CONFIRMATION,
+        ORDER_CANCELED,
+        ORDER_REFUND_CONFIRMATION,
     ]
 
 
@@ -22,11 +34,13 @@ class AdminNotifyEvent:
     ACCOUNT_SET_STAFF_PASSWORD = "account_set_staff_password"
     CSV_PRODUCT_EXPORT_SUCCESS = "csv_export_products_success"
     CSV_EXPORT_FAILED = "csv_export_failed"
+    STAFF_ORDER_CONFIRMATION = "staff_order_confirmation"
 
     CHOICES = [
         ACCOUNT_SET_STAFF_PASSWORD,
         CSV_PRODUCT_EXPORT_SUCCESS,
         CSV_EXPORT_FAILED,
+        STAFF_ORDER_CONFIRMATION,
     ]
 
 

@@ -1,8 +1,8 @@
 {% load i18n %}
 
 {% block subject %}
-  {% blocktrans trimmed with order=fulfillment.order context "Fulfillment confirmation email subject" %}
-    Your order {{ order }} has been fulfilled
+  {% blocktrans trimmed with id=order.id context "Fulfillment confirmation email subject" %}
+    Your order {{ id }} has been fulfilled
   {% endblocktrans %}
 {% endblock %}
 
@@ -18,11 +18,11 @@ You can track your shipment with {{ tracking_number }} code.
 {% endif %}
 
 {% for line in physical_lines %}
-{{ line.quantity }} x {{ line.order_line }}
+{{ line.quantity }} x {{ line.order_line.product_name }} {{line.order_line.variant_name }}
 {% endfor %}
 
 {% for line in digital_lines %}
-{{ line.quantity }} x {{ line.order_line.digital_content_url.get_absolute_url }}
+{{ line.quantity }} x {{ line.order_line.digital_url }}
 {% endfor %}
 
 {% include 'templated_email/shared/_footer.email' %}

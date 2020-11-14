@@ -16,7 +16,7 @@ def test_send_email_with_link_to_download_file(
     user_export_file.save()
 
     # when
-    emails.send_email_with_link_to_download_file(user_export_file)  # noqa: F821
+    emails.send_email_with_link_to_download_file_task(user_export_file)  # noqa: F821
 
     # then
     template = emails.EXPORT_TEMPLATES["export_products_success"]  # noqa: F821
@@ -61,7 +61,7 @@ def test_send_export_failed_info(
     expected_recipients = [user_export_file.user.email]
 
     # when
-    emails.send_export_failed_info(user_export_file)  # noqa: F821
+    emails.send_export_failed_email_task(user_export_file)  # noqa: F821
 
     # then
     template = emails.EXPORT_TEMPLATES["export_failed"]  # noqa: F821

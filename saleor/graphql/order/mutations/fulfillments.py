@@ -12,8 +12,8 @@ from ....order.actions import (
     create_fulfillments,
     fulfillment_tracking_updated,
 )
-from ....order.emails import send_fulfillment_update
 from ....order.error_codes import OrderErrorCode
+from ....order.notifications import send_fulfillment_update
 from ...core.mutations import BaseMutation
 from ...core.types.common import OrderError
 from ...core.utils import from_global_id_strict_type, get_duplicated_values
@@ -299,7 +299,7 @@ class FulfillmentUpdateTracking(BaseMutation):
         input_data = data.get("input", {})
         notify_customer = input_data.get("notify_customer")
         if notify_customer:
-            send_fulfillment_update.delay(order.pk, fulfillment.pk)
+            send_fulfillment_update(order, fulfillment, info.context.plugins)
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 
 

@@ -9,14 +9,14 @@ from ..core.exceptions import InsufficientStock
 from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deallocate_stock_for_order, decrease_stock
-from . import FulfillmentStatus, OrderStatus, emails, events, utils
-from .emails import (
+from . import FulfillmentStatus, OrderStatus, events, utils
+from .models import Fulfillment, FulfillmentLine
+from .notifications import (
     send_fulfillment_confirmation_to_customer,
     send_order_canceled_confirmation,
     send_order_refunded_confirmation,
     send_payment_confirmation,
 )
-from .models import Fulfillment, FulfillmentLine
 from .utils import (
     order_line_needs_automatic_fulfillment,
     recalculate_order,
@@ -52,12 +52,12 @@ def order_created(order: "Order", user: "User", from_draft: bool = False):
 
 def handle_fully_paid_order(order: "Order", user: Optional["User"] = None):
     events.order_fully_paid_event(order=order, user=user)
-
+    manager = get_plugins_manager()
     if order.get_customer_email():
         events.email_sent_event(
             order=order, user=user, email_type=events.OrderEventsEmails.PAYMENT
         )
-        send_payment_confirmation.delay(order.pk)
+        send_payment_confirmation(order, manager)
 
         if utils.order_needs_automatic_fulfillment(order):
             automatically_fulfill_digital_lines(order)
@@ -66,7 +66,6 @@ def handle_fully_paid_order(order: "Order", user: Optional["User"] = None):
     except Exception:
         # Analytics failing should not abort the checkout flow
         logger.exception("Recording order in analytics failed")
-    manager = get_plugins_manager()
     manager.order_fully_paid(order)
     manager.order_updated(order)
 
@@ -88,7 +87,7 @@ def cancel_order(order: "Order", user: Optional["User"]):
     manager.order_cancelled(order)
     manager.order_updated(order)
 
-    send_order_canceled_confirmation(order, user)
+    send_order_canceled_confirmation(order, user, manager)
 
 
 def order_refunded(
@@ -97,9 +96,10 @@ def order_refunded(
     events.payment_refunded_event(
         order=order, user=user, amount=amount, payment=payment
     )
-    get_plugins_manager().order_updated(order)
+    manager = get_plugins_manager()
+    manager.order_updated(order)
 
-    send_order_refunded_confirmation(order, user, amount, payment.currency)
+    send_order_refunded_confirmation(order, user, amount, payment.currency, manager)
 
 
 def order_voided(order: "Order", user: "User", payment: "Payment"):
@@ -129,7 +129,7 @@ def order_fulfilled(
 
     if notify_customer:
         for fulfillment in fulfillments:
-            send_fulfillment_confirmation_to_customer(order, fulfillment, user)
+            send_fulfillment_confirmation_to_customer(order, fulfillment, user, manager)
 
 
 def order_shipping_updated(order: "Order"):
@@ -263,8 +263,10 @@ def automatically_fulfill_digital_lines(order: "Order"):
         fulfill_order_line(
             order_line=line, quantity=quantity, warehouse_pk=warehouse_pk
         )
-    emails.send_fulfillment_confirmation_to_customer(
-        order, fulfillment, user=order.user
+
+    manager = get_plugins_manager()
+    send_fulfillment_confirmation_to_customer(
+        order, fulfillment, user=order.user, manager=manager
     )
     update_order_status(order)
 
