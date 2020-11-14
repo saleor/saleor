@@ -17,7 +17,7 @@ from ..utils import add_variant_to_draft_order
 def test_get_order_line_payload(order_line):
     payload = get_order_line_payload(order_line)
     unit_tax_amount = (
-        order_line.unit_price_gross_amount - order_line.unit_price_net_amount,
+        order_line.unit_price_gross_amount - order_line.unit_price_net_amount
     )
     total_gross = order_line.unit_price_gross * order_line.quantity
     total_net = order_line.unit_price_net * order_line.quantity
