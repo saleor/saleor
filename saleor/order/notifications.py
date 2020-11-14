@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 def get_order_line_payload(line: "OrderLine"):
-    unit_tax_amount = (line.unit_price_gross_amount - line.unit_price_net_amount,)
+    unit_tax_amount = line.unit_price_gross_amount - line.unit_price_net_amount
     total_gross = line.unit_price_gross * line.quantity
     total_net = line.unit_price_net * line.quantity
     total_tax = total_gross - total_net

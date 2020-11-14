@@ -61,16 +61,7 @@ class UserEmailPlugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         configuration = {item["name"]: item["value"] for item in self.configuration}
-        self.config = EmailConfig(
-            host=configuration["host"],
-            port=configuration["port"],
-            username=configuration["username"],
-            password=configuration["password"],
-            sender_name=configuration["sender_name"],
-            sender_address=configuration["sender_address"],
-            use_tls=configuration["use_tls"],
-            use_ssl=configuration["use_ssl"],
-        )
+        self.config = EmailConfig(**configuration)
 
     def notify(self, event: NotifyEventType, payload: dict, previous_value):
         if not self.active:
