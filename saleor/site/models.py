@@ -60,6 +60,8 @@ class SiteSettings(models.Model):
     company_address = models.ForeignKey(
         "account.Address", blank=True, null=True, on_delete=models.SET_NULL
     )
+    # FIXME these values are configurable from email plugin. Not needed to be placed
+    # here
     default_mail_sender_name = models.CharField(
         max_length=settings.DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH,
         blank=True,
