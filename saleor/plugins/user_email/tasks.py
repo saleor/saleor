@@ -7,11 +7,6 @@ from ...celeryconf import app
 from ...core.emails import get_email_context
 from ...core.utils.url import prepare_url
 
-REQUEST_EMAIL_CHANGE_TEMPLATE = "account/request_email_change"
-EMAIL_CHANGED_NOTIFICATION_TEMPLATE = "account/email_changed_notification"
-ACCOUNT_DELETE_TEMPLATE = "account/account_delete"
-PASSWORD_RESET_TEMPLATE = "account/password_reset"
-
 
 @app.task
 def send_account_confirmation_email_task(email, token, redirect_url):
@@ -55,7 +50,7 @@ def send_request_email_change_email_task(
     send_kwargs, ctx = get_email_context()
     ctx["redirect_url"] = redirect_url
     send_templated_mail(
-        template_name=REQUEST_EMAIL_CHANGE_TEMPLATE,
+        template_name="account/request_email_change",
         recipient_list=[new_email],
         context=ctx,
         **send_kwargs,
@@ -69,7 +64,7 @@ def send_request_email_change_email_task(
 def send_user_change_email_notification_task(recipient_email):
     send_kwargs, ctx = get_email_context()
     send_templated_mail(
-        template_name=EMAIL_CHANGED_NOTIFICATION_TEMPLATE,
+        template_name="account/email_changed_notification",
         recipient_list=[recipient_email],
         context=ctx,
         **send_kwargs,
@@ -87,7 +82,7 @@ def _send_delete_confirmation_email(recipient_email, delete_url):
     send_kwargs, ctx = get_email_context()
     ctx["delete_url"] = delete_url
     send_templated_mail(
-        template_name=ACCOUNT_DELETE_TEMPLATE,
+        template_name="account/account_delete",
         recipient_list=[recipient_email],
         context=ctx,
         **send_kwargs,
@@ -113,7 +108,7 @@ def _send_set_password_email(recipient_email, password_set_url):
 
 
 @app.task
-def send_invoice_task(recipient_email, invoice_number, invoice_download_url):
+def send_invoice_email_task(recipient_email, invoice_number, invoice_download_url):
     """Send an invoice to user of related order with URL to download it."""
     send_kwargs, ctx = get_email_context()
     ctx["number"] = invoice_number
@@ -122,5 +117,83 @@ def send_invoice_task(recipient_email, invoice_number, invoice_download_url):
         template_name="order/send_invoice",
         recipient_list=[recipient_email],
         context=ctx,
+        **send_kwargs,
+    )
+
+
+@app.task
+def send_order_confirmation_email_task(payload):
+    """Send order confirmation email."""
+    recipient_email = payload["recipient_email"]
+    send_kwargs, ctx = get_email_context()
+    payload.update(ctx)
+    send_templated_mail(
+        template_name="order/confirm_order",
+        recipient_list=[recipient_email],
+        context=payload,
+        **send_kwargs,
+    )
+
+
+@app.task
+def send_fulfillment_confirmation_email_task(payload):
+    recipient_email = payload["recipient_email"]
+    send_kwargs, ctx = get_email_context()
+    payload.update(ctx)
+    send_templated_mail(
+        template_name="order/confirm_fulfillment",
+        recipient_list=[recipient_email],
+        context=payload,
+        **send_kwargs,
+    )
+
+
+@app.task
+def send_fulfillment_update_email_task(payload):
+    recipient_email = payload["recipient_email"]
+    send_kwargs, ctx = get_email_context()
+    payload.update(ctx)
+    send_templated_mail(
+        template_name="order/update_fulfillment",
+        recipient_list=[recipient_email],
+        context=payload,
+        **send_kwargs,
+    )
+
+
+@app.task
+def send_payment_confirmation_email_task(payload):
+    send_kwargs, ctx = get_email_context()
+    payload.update(ctx)
+    send_templated_mail(
+        template_name="order/payment/confirm_payment",
+        recipient_list=[payload["email"]],
+        context=payload,
+        **send_kwargs,
+    )
+
+
+@app.task
+def send_order_canceled_email_task(payload):
+    recipient_email = payload["recipient_email"]
+    send_kwargs, ctx = get_email_context()
+    payload.update(ctx)
+    send_templated_mail(
+        template_name="order/order_cancel",
+        recipient_list=[recipient_email],
+        context=payload,
+        **send_kwargs,
+    )
+
+
+@app.task
+def send_order_refund_email_task(payload):
+    recipient_email = payload["recipient_email"]
+    send_kwargs, ctx = get_email_context()
+    payload.update(ctx)
+    send_templated_mail(
+        template_name="order/order_refund",
+        recipient_list=[recipient_email],
+        context=payload,
         **send_kwargs,
     )

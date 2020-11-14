@@ -8,9 +8,14 @@ from ..actions import create_fulfillments
 from ..models import FulfillmentLine, OrderStatus
 
 
+@patch("saleor.order.actions.get_plugins_manager")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments(
-    mock_email_fulfillment, staff_user, order_with_lines, warehouse,
+    mock_email_fulfillment,
+    mock_get_plugins_manager,
+    staff_user,
+    order_with_lines,
+    warehouse,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -49,7 +54,7 @@ def test_create_fulfillments(
     )
 
     mock_email_fulfillment.assert_called_once_with(
-        order, order.fulfillments.get(), staff_user
+        order, order.fulfillments.get(), staff_user, mock_get_plugins_manager()
     )
 
 
@@ -152,9 +157,14 @@ def test_create_fulfillments_many_warehouses(
     )
 
 
+@patch("saleor.order.actions.get_plugins_manager")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_with_one_line_empty_quantity(
-    mock_email_fulfillment, staff_user, order_with_lines, warehouse,
+    mock_email_fulfillment,
+    mock_get_plugins_manager,
+    staff_user,
+    order_with_lines,
+    warehouse,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -191,13 +201,15 @@ def test_create_fulfillments_with_one_line_empty_quantity(
     )
 
     mock_email_fulfillment.assert_called_once_with(
-        order, order.fulfillments.get(), staff_user
+        order, order.fulfillments.get(), staff_user, mock_get_plugins_manager()
     )
 
 
+@patch("saleor.order.actions.get_plugins_manager")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_with_variant_without_inventory_tracking(
     mock_email_fulfillment,
+    mock_get_plugins_manager,
     staff_user,
     order_with_line_without_inventory_tracking,
     warehouse,
@@ -231,14 +243,20 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
     assert stock_quantity_before == stock.quantity
 
     mock_email_fulfillment.assert_called_once_with(
-        order, order.fulfillments.get(), staff_user
+        order, order.fulfillments.get(), staff_user, mock_get_plugins_manager()
     )
 
 
+@patch("saleor.order.actions.get_plugins_manager")
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillments_without_allocations(
-    mock_email_fulfillment, staff_user, order_with_lines, warehouse,
+    mock_email_fulfillment,
+    mock_get_plugins_manager,
+    staff_user,
+    order_with_lines,
+    warehouse,
 ):
+
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
     Allocation.objects.filter(order_line__order=order).delete()
@@ -277,7 +295,7 @@ def test_create_fulfillments_without_allocations(
     )
 
     mock_email_fulfillment.assert_called_once_with(
-        order, order.fulfillments.get(), staff_user
+        order, order.fulfillments.get(), staff_user, mock_get_plugins_manager()
     )
 
 

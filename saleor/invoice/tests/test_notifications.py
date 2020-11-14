@@ -10,4 +10,3 @@ def test_collect_invoice_data_for_email(order):
     assert payload["id"] == invoice.id
     assert payload["number"] == number
     assert payload["download_url"] == url
-    assert payload["recipient"] == order.user.email

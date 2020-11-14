@@ -26,8 +26,11 @@ def test_send_export_download_link_notification(
     notifications.send_export_download_link_notification(user_export_file)
 
     # then
-    expected_payload = get_default_export_payload(user_export_file)
-    expected_payload["csv_link"] = build_absolute_uri(user_export_file.content_file.url)
+    expected_payload = {
+        "export": get_default_export_payload(user_export_file),
+        "csv_link": build_absolute_uri(user_export_file.content_file.url),
+        "recipient_email": user_export_file.user.email,
+    }
 
     mocked_notify.assert_called_once_with(
         AdminNotifyEvent.CSV_PRODUCT_EXPORT_SUCCESS, expected_payload
@@ -56,7 +59,10 @@ def test_send_export_failed_info(
     notifications.send_export_failed_info(user_export_file)
 
     # then
-    expected_payload = get_default_export_payload(user_export_file)
+    expected_payload = {
+        "export": get_default_export_payload(user_export_file),
+        "recipient_email": user_export_file.user.email,
+    }
 
     mocked_notify.assert_called_once_with(
         AdminNotifyEvent.CSV_EXPORT_FAILED, expected_payload

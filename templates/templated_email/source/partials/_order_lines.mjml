@@ -1,6 +1,7 @@
 <mj-raw>
   {% load display_translated_order_line_name from order_lines %}
   {% load price from taxed_prices %}
+  {% load price_amount from taxed_prices %}
   {% load voucher %}
 </mj-raw>
 <mj-section>
@@ -12,7 +13,7 @@
             {% trans "Subtotal" context "E-mail order lines summary table" %}
           </td>
           <td style="text-align: right;">
-            {% price order.get_subtotal display_gross=order.display_gross_prices html=False %}
+            {% price_amount order.subtotal_net_amount order.subtotal_gross_amount order.currency display_gross=order.display_gross_prices html=False %}
           </td>
         </tr>
         <tr>
@@ -20,7 +21,7 @@
             {% trans "Shipping" context "E-mail order lines summary table" %}
           </td>
           <td style="text-align: right;">
-            {% price order.shipping_price display_gross=order.display_gross_prices html=False %}
+            {% price_amount order.shipping_price_net_amount order.shipping_price_gross_amount order.currency display_gross=order.display_gross_prices html=False %}
           </td>
         </tr>
         <tr>
@@ -32,7 +33,7 @@
             {% endif %}
           </td>
           <td style="text-align: right;">
-            {% price order.total.tax html=False %}
+            {% price_amount order.tax_amount order.tax_amount order.currency display_gross=order.display_gross_prices html=False %}
           </td>
         </tr>
         {% if order.discount_amount %}
@@ -50,7 +51,7 @@
             <strong>{% trans "Total" context "E-mail order lines summary table" %}</strong>
           </td>
           <td style="text-align: right;">
-            <strong>{% price order.total display_gross=order.display_gross_prices html=False %}</strong>
+            <strong>{% price_amount order.total_net_amount order.total_gross_amount order.currency display_gross=order.display_gross_prices html=False %}</strong>
           </td>
         </tr>
       </tfoot>
@@ -63,14 +64,18 @@
         </tr>
       </thead>
       <tbody>
-        {% for line in order %}
+        {% for line in order.lines %}
           <tr class="table-item-row">
-            <td>{% display_translated_order_line_name line %}</td>
+            {% if line.variant_name %}
+              <td>{{ line.product_name }} ({{line.variant_name }})</td>
+            {% else %}
+              <td>{{ line.product_name }}</td>
+            {% endif %}
             <td style="text-align: right;">{{ line.quantity }}</td>
             <td style="text-align: right;">
-              {% price line.unit_price display_gross=order.display_gross_prices html=False %}
+              {% price_amount line.unit_price_net_amount line.unit_price_gross_amount order.currency display_gross=order.display_gross_prices html=False %}
             </td>
-            <td style="text-align: right;">{% price line.get_total display_gross=order.display_gross_prices html=False %}</td>
+            <td style="text-align: right;">{% price_amount line.total_net_amount line.total_gross_amount order.currency display_gross=order.display_gross_prices html=False %}</td>
           </tr>
         {% endfor %}
       </tbody>

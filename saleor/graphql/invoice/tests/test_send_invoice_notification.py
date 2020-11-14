@@ -37,7 +37,10 @@ def test_invoice_send_notification(
         INVOICE_SEND_EMAIL_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    expected_payload = get_invoice_payload(invoice)
+    expected_payload = {
+        "invoice": get_invoice_payload(invoice),
+        "recipient_email": invoice.order.get_customer_email(),
+    }
 
     mock_notify.assert_called_once_with(NotifyEventType.INVOICE_READY, expected_payload)
     assert not content["data"]["invoiceSendNotification"]["invoiceErrors"]

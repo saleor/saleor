@@ -20,15 +20,14 @@ def test_send_email_request_change(mocked_notify, site_settings, customer_user):
         redirect_url, customer_user, new_email, token, manager
     )
 
-    expected_payload = get_default_user_payload(customer_user)
-    expected_payload.update(
-        {
-            "old_email": customer_user.email,
-            "new_email": new_email,
-            "redirect_url": redirect_url,
-            "token": token,
-        }
-    )
+    expected_payload = {
+        "user": get_default_user_payload(customer_user),
+        "old_email": customer_user.email,
+        "new_email": new_email,
+        "redirect_url": redirect_url,
+        "recipient_email": new_email,
+        "token": token,
+    }
 
     mocked_notify.assert_called_once_with(
         UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_REQUEST, payload=expected_payload
@@ -43,8 +42,10 @@ def test_send_email_changed_notification(mocked_notify, site_settings, customer_
         old_email, customer_user, get_plugins_manager()
     )
 
-    expected_payload = get_default_user_payload(customer_user)
-    expected_payload.update({"old_email": old_email})
+    expected_payload = {
+        "user": get_default_user_payload(customer_user),
+        "recipient_email": old_email,
+    }
 
     mocked_notify.assert_called_once_with(
         UserNotifyEvent.ACCOUNT_CHANGE_EMAIL_CONFIRM, payload=expected_payload
