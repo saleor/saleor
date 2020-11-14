@@ -22,7 +22,9 @@ def user_email_plugin(settings):
 
         settings.PLUGINS = ["saleor.plugins.user_email.plugin.UserEmailPlugin"]
         manager = get_plugins_manager()
-        with patch("saleor.plugins.email_common.validate_default_email_configuration",):
+        with patch(
+            "saleor.plugins.user_email.plugin.validate_default_email_configuration"
+        ):
             manager.save_plugin_configuration(
                 UserEmailPlugin.PLUGIN_ID,
                 {

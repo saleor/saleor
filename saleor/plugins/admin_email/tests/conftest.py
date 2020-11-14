@@ -21,7 +21,9 @@ def admin_email_plugin(settings):
     ):
         settings.PLUGINS = ["saleor.plugins.admin_email.plugin.AdminEmailPlugin"]
         manager = get_plugins_manager()
-        with patch("saleor.plugins.email_common.validate_default_email_configuration",):
+        with patch(
+            "saleor.plugins.admin_email.plugin.validate_default_email_configuration"
+        ):
             manager.save_plugin_configuration(
                 AdminEmailPlugin.PLUGIN_ID,
                 {
