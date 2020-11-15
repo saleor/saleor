@@ -3065,7 +3065,7 @@ def test_account_reset_password_invalid_email(
    
 @patch("saleor.account.emails._send_password_reset_email")
 def test_account_reset_password_user_is_inactive(
-    send_password_reset_email_mock, customer_user
+    send_password_reset_email_mock, user_api_client, customer_user
 ):
     customer_user.is_active = False
     variables = {
