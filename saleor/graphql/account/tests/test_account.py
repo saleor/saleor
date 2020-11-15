@@ -3069,7 +3069,7 @@ def test_account_reset_password_user_is_inactive(
 ):
     customer_user.is_active = False
     variables = {
-        customer_user.email,
+        "email": customer_user.email,
         "redirectUrl": "https://www.example.com",
     }
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
