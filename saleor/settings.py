@@ -515,6 +515,7 @@ PLUGINS = [
     "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
     "saleor.plugins.allegro.plugin.AllegroPlugin",
     "saleor.plugins.sumi.plugin.SumiPlugin",
+    "saleor.plugins.allegroSync.plugin.AllegroSyncPlugin",
 ]
 
 # Plugin discovery
