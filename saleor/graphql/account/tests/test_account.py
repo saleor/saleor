@@ -3067,7 +3067,10 @@ def test_account_reset_password_invalid_email(
 def test_account_reset_password_user_is_inactive(
     send_password_reset_email_mock, user_api_client, customer_user
 ):
-    customer_user.is_active = False
+    user = customer_user
+    user.is_active = False
+    user.save()
+    
     variables = {
         "email": customer_user.email,
         "redirectUrl": "https://www.example.com",
