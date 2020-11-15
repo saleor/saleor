@@ -3062,7 +3062,7 @@ def test_account_reset_password_invalid_email(
     assert len(data["errors"]) == 1
     assert not send_password_reset_email_mock.called
 
-   
+
 @patch("saleor.account.emails._send_password_reset_email")
 def test_account_reset_password_user_is_inactive(
     send_password_reset_email_mock, user_api_client, customer_user
@@ -3070,7 +3070,7 @@ def test_account_reset_password_user_is_inactive(
     user = customer_user
     user.is_active = False
     user.save()
-    
+
     variables = {
         "email": customer_user.email,
         "redirectUrl": "https://www.example.com",
@@ -3081,7 +3081,7 @@ def test_account_reset_password_user_is_inactive(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "email"
     assert not send_password_reset_email_mock.called
-    
+
 
 @patch("saleor.account.emails._send_password_reset_email")
 def test_account_reset_password_storefront_hosts_not_allowed(

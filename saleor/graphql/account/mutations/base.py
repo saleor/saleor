@@ -139,8 +139,8 @@ class RequestPasswordReset(BaseMutation):
                     )
                 }
             )
-        
-        if (not user.is_active):
+
+        if not user.is_active:
             raise ValidationError(
                 {
                     "email": ValidationError(
