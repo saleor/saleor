@@ -503,6 +503,7 @@ class Product(CountableDjangoObjectType):
             "weight",
             "visible_in_listings",
             "default_variant",
+            "rating",
         ]
 
     @staticmethod

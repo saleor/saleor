@@ -141,6 +141,7 @@ class ProductOrderField(graphene.Enum):
     PUBLISHED = ["is_published", "name", "slug"]
     PUBLICATION_DATE = ["publication_date", "name", "slug"]
     COLLECTION_ORDER = ["row_number"]
+    RATING = ["rating", "name", "slug"]
 
     @property
     def description(self):
@@ -159,6 +160,7 @@ class ProductOrderField(graphene.Enum):
             ProductOrderField.DATE.name: "update date.",
             ProductOrderField.PUBLISHED.name: "publication status.",
             ProductOrderField.PUBLICATION_DATE.name: "publication date.",
+            ProductOrderField.RATING.name: "rating.",
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}"
