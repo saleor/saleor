@@ -86,4 +86,5 @@ class AllegroSyncPlugin(BasePlugin):
                     product_errors.append('nie znaleziono produktu o podanym SKU')
 
                 errors.append({'sku': sku, 'errors': product_errors})
-        # plugin_configs.send_mail_with_publish_errors(errors, None)
+        return plugin_configs.send_mail_with_publish_errors(errors, {})
+

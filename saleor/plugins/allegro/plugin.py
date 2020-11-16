@@ -314,6 +314,8 @@ class AllegroPlugin(BasePlugin):
 
     def send_mail_with_publish_errors(self, publish_errors: Any,
                                       previous_value: Any) -> Any:
+        print('Send mail', publish_errors)
+
         if publish_errors is not None:
             return self.send_mail(publish_errors)
 
@@ -326,10 +328,12 @@ class AllegroPlugin(BasePlugin):
         for error in errors:
             html += '<tr>'
             try:
-                html += '<td style="width: 9rem;">' + str(error.get('sku')) + '</td>'
-                html += '<td>' + str(error.get('errors')) + '</td>'
+                if len(error.get('errors')) > 0:
+                    html += '<td style="width: 9rem;">' + str(error.get('sku')) + '</td>'
+                    html += '<td>' + str(error.get('errors')) + '</td>'
             except:
-                html += '<td>' + str(error) + '</td>'
+                if len(error) > 0:
+                    html += '<td>' + str(error) + '</td>'
             html += '</tr>'
         html += '<tr>'
         html += '<td>' + '</td>'
@@ -338,10 +342,10 @@ class AllegroPlugin(BasePlugin):
         html += '<br>'
         html += '<table style="width:100%; margin-bottom: 1rem;">'
         html += '<tr>'
-        html += '<td>' + 'Popawnie przetworzone: ' + str(len([error for error in errors if len(error) == 0])) + '</td>'
+        html += '<td>' + 'Popawnie przetworzone: ' + str(len([error for error in errors if len(error.get('errors')) == 0])) + '</td>'
         html += '</tr>'
         html += '<tr>'
-        html += '<td>' + 'Niepopawnie przetworzone: ' + str(len([error for error in errors if len(error) > 0])) + '</td>'
+        html += '<td>' + 'Niepopawnie przetworzone: ' + str(len([error for error in errors if len(error.get('errors')) > 0])) + '</td>'
         html += '</tr>'
         html += '</table>'
 
