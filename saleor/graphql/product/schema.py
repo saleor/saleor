@@ -85,6 +85,7 @@ from .mutations.products import (
     VariantImageUnassign,
 )
 from .resolvers import (
+    resolve_attribute_by_slug,
     resolve_attributes,
     resolve_categories,
     resolve_category_by_slug,
@@ -135,9 +136,8 @@ class ProductQueries(graphene.ObjectType):
     )
     attribute = graphene.Field(
         Attribute,
-        id=graphene.Argument(
-            graphene.ID, description="ID of the attribute.", required=True
-        ),
+        id=graphene.Argument(graphene.ID, description="ID of the attribute"),
+        slug=graphene.Argument(graphene.String, description="Slug of the attribute"),
         description="Look up an attribute by ID.",
     )
     categories = FilterInputConnectionField(
@@ -231,8 +231,12 @@ class ProductQueries(graphene.ObjectType):
     def resolve_attributes(self, info, **kwargs):
         return resolve_attributes(info, **kwargs)
 
-    def resolve_attribute(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Attribute)
+    def resolve_attribute(self, info, id=None, slug=None):
+        validate_one_of_args_is_in_query("id", id, "slug", slug)
+        if id:
+            return graphene.Node.get_node_from_global_id(info, id, Product)
+        if slug:
+            return resolve_attribute_by_slug(slug=slug)
 
     def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level=level, **kwargs)
