@@ -7,6 +7,7 @@ from django.core.exceptions import (
     ImproperlyConfigured,
     ValidationError,
 )
+from django.core.files.storage import default_storage
 from django.db.models.fields.files import FileField
 from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
@@ -15,8 +16,10 @@ from graphql.error import GraphQLError
 
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
+from ..decorators import staff_member_or_app_required
 from ..utils import get_nodes
-from .types import Error, Upload
+from .types import Error, Upload, UploadedFile
+from .types.common import UploadError
 from .utils import from_global_id_strict_type, snake_to_camel_case
 from .utils.error_codes import get_error_code_from_error
 
@@ -618,3 +621,31 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
     @classmethod
     def bulk_action(cls, queryset):
         queryset.delete()
+
+
+class FileUpload(BaseMutation):
+    uploaded_file = graphene.Field(UploadedFile)
+
+    class Arguments:
+        file = Upload(
+            required=True, description="Represents a file in a multipart request."
+        )
+
+    class Meta:
+        description = (
+            "Upload a file. This mutation must be sent as a `multipart` "
+            "request. More detailed specs of the upload format can be found here: "
+            "https://github.com/jaydenseric/graphql-multipart-request-spec"
+        )
+        error_type_class = UploadError
+        error_type_field = "upload_errors"
+
+    @classmethod
+    @staff_member_or_app_required
+    def perform_mutation(cls, _root, info, **data):
+        file_data = info.context.FILES.get(data["file"])
+        path = default_storage.save(file_data._name, file_data.file)
+
+        return FileUpload(
+            uploaded_file=UploadedFile(url=path, content_type=file_data.content_type)
+        )
