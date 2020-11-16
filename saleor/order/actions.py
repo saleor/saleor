@@ -6,6 +6,7 @@ from django.db import transaction
 
 from ..core import analytics
 from ..core.exceptions import InsufficientStock
+from ..order.emails import send_order_confirmed
 from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deallocate_stock_for_order, decrease_stock
@@ -48,6 +49,17 @@ def order_created(order: "Order", user: "User", from_draft: bool = False):
             order_authorized(
                 order=order, user=user, amount=payment.total, payment=payment
             )
+
+
+def order_confirmed(order: "Order", context, send_confirmation_email: bool = False):
+    """Order confirmed.
+
+    Trigger event, plugin hooks and optionally confirmation email.
+    """
+    events.order_confirmed_event(order=order, user=context.user)
+    context.plugins.order_confirmed(order)
+    if send_confirmation_email:
+        send_order_confirmed.delay(order.pk, context.user.pk)
 
 
 def handle_fully_paid_order(order: "Order", user: Optional["User"] = None):

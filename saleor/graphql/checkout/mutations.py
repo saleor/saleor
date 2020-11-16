@@ -23,6 +23,7 @@ from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
+from ...order.actions import order_confirmed
 from ...payment import models as payment_models
 from ...product import models as product_models
 from ...warehouse.availability import check_stock_quantity, get_available_quantity
@@ -835,8 +836,8 @@ class CheckoutComplete(BaseMutation):
                 tracking_code=tracking_code,
                 redirect_url=data.get("redirect_url"),
             )
-        if info.context.site.settings.automatically_confirm_all_new_orders:
-            info.context.plugins.order_confirmed(order)
+        if info.context.site.settings.automatically_confirm_all_new_orders and order:
+            order_confirmed(order, info.context)
         # If gateway returns information that additional steps are required we need
         # to inform the frontend and pass all required data
         return CheckoutComplete(
