@@ -570,7 +570,7 @@ class BaseBulkMutation(BaseMutation):
 
                     error = instance.get_value_from_private_metadata('publish.allegro.errors')
                     if error is not None:
-                        publish_errors.append(error)
+                        publish_errors.append({'sku': instance.variants.first().sku, 'errors': error})
             if len(publish_errors) > 0:
                 info.context.plugins.send_mail_with_publish_errors(publish_errors)
 
