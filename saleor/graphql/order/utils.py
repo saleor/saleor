@@ -114,7 +114,7 @@ def validate_product_is_published_in_channel(variants, channel):
     if not channel:
         raise ValidationError(
             "Can't add product variant for draft order without channel",
-            code=OrderErrorCode.MISSING_CHANNEL,
+            code=OrderErrorCode.REQUIRED,
         )
     variant_ids = [variant.id for variant in variants]
     unpublished_product = list(
@@ -140,7 +140,7 @@ def validate_variant_channel_listings(variants, channel):
     if not channel:
         raise ValidationError(
             "Can't add product variant for draft order without channel",
-            code=OrderErrorCode.MISSING_CHANNEL,
+            code=OrderErrorCode.REQUIRED,
         )
     variant_ids = set([variant.id for variant in variants])
     variant_channel_listings = ProductVariantChannelListing.objects.filter(

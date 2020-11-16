@@ -206,16 +206,6 @@ class ProductsQueryset(models.QuerySet):
             publication_date=ExpressionWrapper(query, output_field=DateField())
         )
 
-    def annotate_channel_activity(self, channel_slug: str):
-        query = Subquery(
-            ProductChannelListing.objects.filter(
-                product_id=OuterRef("pk"), channel__slug=str(channel_slug)
-            ).values_list("channel__is_active")[:1]
-        )
-        return self.annotate(
-            channel_is_active=ExpressionWrapper(query, output_field=BooleanField())
-        )
-
     def annotate_visible_in_listings(self, channel_slug):
         query = Subquery(
             ProductChannelListing.objects.filter(

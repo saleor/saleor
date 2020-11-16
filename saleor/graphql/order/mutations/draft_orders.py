@@ -143,7 +143,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 validate_variant_channel_listings(variants, channel)
             except ValidationError as error:
                 field_name = "lines"
-                if error.code == OrderErrorCode.MISSING_CHANNEL:
+                if error.code == OrderErrorCode.REQUIRED:
                     field_name = "channel"
                 raise ValidationError({field_name: error})
             quantities = [line.get("quantity") for line in lines]

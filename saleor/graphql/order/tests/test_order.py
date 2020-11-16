@@ -1255,7 +1255,7 @@ def test_draft_order_create_without_channel(
     )
     content = get_graphql_content(response)
     error = content["data"]["draftOrderCreate"]["orderErrors"][0]
-    assert error["code"] == OrderErrorCode.MISSING_CHANNEL.name
+    assert error["code"] == OrderErrorCode.REQUIRED.name
     assert error["field"] == "channel"
 
 
