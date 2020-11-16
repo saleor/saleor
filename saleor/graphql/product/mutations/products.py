@@ -480,6 +480,7 @@ class ProductInput(graphene.InputObjectType):
             "(doesn't apply to product collections)."
         )
     )
+    rating = graphene.Float(description="Defines the product rating value.")
 
 
 class StockInput(graphene.InputObjectType):

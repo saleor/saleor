@@ -1384,6 +1384,7 @@ CREATE_PRODUCT_MUTATION = """
                             }
                             name
                             slug
+                            rating
                             productType {
                                 name
                             }
@@ -1492,6 +1493,38 @@ def test_create_product(
     )
     assert slugify(non_existent_attr_value) in values
     assert color_value_slug in values
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_create_product_with_rating(
+    staff_api_client, product_type, category, permission_manage_products, settings,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+    expected_rating = 4.57
+
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "rating": expected_rating,
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["rating"] == expected_rating
+    assert Product.objects.get().rating == expected_rating
 
 
 PRODUCT_VARIANT_SET_DEFAULT_MUTATION = """
@@ -2435,6 +2468,43 @@ def test_update_product(
     assert attributes[0]["values"][0]["slug"] == "rainbow"
 
     updated_webhook_mock.assert_called_once_with(product)
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_update_product_rating(
+    staff_api_client, product, permission_manage_products,
+):
+    query = """
+        mutation updateProduct($productId: ID!, $input: ProductInput!) {
+            productUpdate(id: $productId, input: $input) {
+                product {
+                    rating
+                }
+                productErrors {
+                    field
+                    code
+                    message
+                    attributes
+                }
+            }
+        }
+    """
+
+    product.rating = 5.5
+    product.save(update_fields=["rating"])
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    expected_rating = 9.57
+    variables = {"productId": product_id, "input": {"rating": expected_rating}}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+    assert data["product"]["rating"] == expected_rating
+    product.refresh_from_db()
+    assert product.rating == expected_rating
 
 
 def test_update_product_when_default_currency_changeed(

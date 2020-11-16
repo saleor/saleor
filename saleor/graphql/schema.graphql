@@ -3436,6 +3436,7 @@ type Product implements Node & ObjectWithMetadata {
   availableForPurchase: Date
   visibleInListings: Boolean!
   defaultVariant: ProductVariant
+  rating: Float
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   url: String! @deprecated(reason: "This field will be removed after 2020-07-31.")
@@ -3502,6 +3503,7 @@ input ProductCreateInput {
   trackInventory: Boolean
   basePrice: PositiveDecimal
   visibleInListings: Boolean
+  rating: Float
   productType: ID!
   stocks: [StockInput!]
 }
@@ -3639,6 +3641,7 @@ input ProductInput {
   trackInventory: Boolean
   basePrice: PositiveDecimal
   visibleInListings: Boolean
+  rating: Float
 }
 
 input ProductOrder {
@@ -3655,6 +3658,7 @@ enum ProductOrderField {
   TYPE
   PUBLISHED
   PUBLICATION_DATE
+  RATING
 }
 
 type ProductPricingInfo {
