@@ -3,7 +3,10 @@ from decimal import Decimal
 from unittest import mock
 
 import pytest
+from django.core.exceptions import ValidationError
+from requests.exceptions import RequestException, SSLError
 
+from .....plugins.models import PluginConfiguration
 from .... import PaymentError, TransactionKind
 from ....interface import GatewayResponse, PaymentMethodInfo
 from ....models import Payment
@@ -473,3 +476,22 @@ def test_capture_payment(payment_adyen_for_order, order_with_lines, adyen_plugin
     assert response.currency == order_with_lines.currency
     assert response.transaction_id == "852595499936560C"  # ID returned by Adyen
     assert response.payment_method_info == PaymentMethodInfo(brand="visa", type="test")
+
+
+@mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post")
+def test_validate_plugin_configuration_incorrect_certificate(
+    mocked_request, adyen_plugin
+):
+    plugin = adyen_plugin(apple_pay_cert="cert")
+    mocked_request.side_effect = SSLError()
+    configuration = PluginConfiguration.objects.get()
+    with pytest.raises(ValidationError):
+        plugin.validate_plugin_configuration(configuration)
+
+
+@mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post")
+def test_validate_plugin_configuration_correct_cert(mocked_request, adyen_plugin):
+    plugin = adyen_plugin(apple_pay_cert="correct_cert")
+    mocked_request.side_effect = RequestException()
+    configuration = PluginConfiguration.objects.get()
+    plugin.validate_plugin_configuration(configuration)
