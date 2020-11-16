@@ -314,8 +314,6 @@ class AllegroPlugin(BasePlugin):
 
     def send_mail_with_publish_errors(self, publish_errors: Any,
                                       previous_value: Any) -> Any:
-        print('Send mail', publish_errors)
-
         if publish_errors is not None:
             return self.send_mail(publish_errors)
 
