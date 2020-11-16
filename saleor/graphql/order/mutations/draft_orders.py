@@ -27,7 +27,11 @@ from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
-from ..utils import validate_draft_order, validate_product_is_published_in_channel
+from ..utils import (
+    validate_draft_order,
+    validate_product_is_published_in_channel,
+    validate_variant_channel_listings,
+)
 
 
 class OrderLineInput(graphene.InputObjectType):
@@ -136,6 +140,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             variants = cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
             try:
                 validate_product_is_published_in_channel(variants, channel)
+                validate_variant_channel_listings(variants, channel)
             except ValidationError as error:
                 field_name = "lines"
                 if error.code == OrderErrorCode.MISSING_CHANNEL:
@@ -409,7 +414,9 @@ class DraftOrderLinesCreate(BaseMutation):
                 )
         variants = [line[1] for line in lines_to_add]
         try:
-            validate_product_is_published_in_channel(variants, order.channel)
+            channel = order.channel
+            validate_product_is_published_in_channel(variants, channel)
+            validate_variant_channel_listings(variants, channel)
         except ValidationError as error:
             raise ValidationError({"input": error})
         # Add the lines

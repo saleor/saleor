@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ...core.exceptions import InsufficientStock
 from ...order.error_codes import OrderErrorCode
-from ...product.models import Product, ProductVariant
+from ...product.models import Product, ProductVariant, ProductVariantChannelListing
 from ...warehouse.availability import check_stock_quantity
 
 
@@ -133,6 +133,36 @@ def validate_product_is_published_in_channel(variants, channel):
             "the channel associated with this draft order.",
             code=OrderErrorCode.PRODUCT_NOT_PUBLISHED,
             params={"variants": unpublished_variants_global_ids},
+        )
+
+
+def validate_variant_channel_listings(variants, channel):
+    if not channel:
+        raise ValidationError(
+            "Can't add product variant for draft order without channel",
+            code=OrderErrorCode.MISSING_CHANNEL,
+        )
+    variant_ids = set([variant.id for variant in variants])
+    variant_channel_listings = ProductVariantChannelListing.objects.filter(
+        channel=channel, variant_id__in=variant_ids
+    )
+    variant_ids_in_channel = set(
+        [
+            variant_channel_listing.variant_id
+            for variant_channel_listing in variant_channel_listings
+        ]
+    )
+    missing_variant_ids_in_channel = variant_ids - variant_ids_in_channel
+    if missing_variant_ids_in_channel:
+        missing_variant_global_ids = [
+            graphene.Node.to_global_id("ProductVariant", missing_variant_id_in_channel)
+            for missing_variant_id_in_channel in missing_variant_ids_in_channel
+        ]
+        raise ValidationError(
+            "Can't add product variant that are don't have price in"
+            "the channel associated with this draft order.",
+            code=OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL,
+            params={"variants": missing_variant_global_ids},
         )
 
 

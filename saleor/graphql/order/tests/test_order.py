@@ -1143,11 +1143,9 @@ def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
 def test_draft_order_create_with_product_and_variant_not_assigned_to_order_channel(
     staff_api_client,
     permission_manage_orders,
-    staff_user,
     customer_user,
     shipping_method,
     variant,
-    voucher,
     channel_USD,
     graphql_address_data,
 ):
@@ -1183,15 +1181,12 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
     assert error["variants"] == [variant_id]
 
 
-@pytest.mark.skip("Fix this")
 def test_draft_order_create_with_variant_not_assigned_to_order_channel(
     staff_api_client,
     permission_manage_orders,
-    staff_user,
     customer_user,
     shipping_method,
     variant,
-    voucher,
     channel_USD,
     graphql_address_data,
 ):
@@ -1222,7 +1217,7 @@ def test_draft_order_create_with_variant_not_assigned_to_order_channel(
     )
     content = get_graphql_content(response)
     error = content["data"]["draftOrderCreate"]["orderErrors"][0]
-    assert error["code"] == OrderErrorCode.PRODUCT_NOT_PUBLISHED.name
+    assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
     assert error["field"] == "lines"
     assert error["variants"] == [variant_id]
 
@@ -2254,6 +2249,35 @@ def test_draft_order_lines_create_with_product_and_variant_not_assigned_to_chann
     content = get_graphql_content(response)
     error = content["data"]["draftOrderLinesCreate"]["orderErrors"][0]
     assert error["code"] == OrderErrorCode.PRODUCT_NOT_PUBLISHED.name
+    assert error["field"] == "input"
+    assert error["variants"] == [variant_id]
+
+
+def test_draft_order_lines_create_with_variant_not_assigned_to_channel(
+    draft_order,
+    staff_api_client,
+    permission_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    channel_USD,
+    graphql_address_data,
+):
+    query = DRAFT_ORDER_LINES_CREATE_MUTATION
+    order = draft_order
+    line = order.lines.first()
+    assert variant != line.variant
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": 1}
+    variant.channel_listings.all().delete()
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderLinesCreate"]["orderErrors"][0]
+    assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
     assert error["field"] == "input"
     assert error["variants"] == [variant_id]
 
