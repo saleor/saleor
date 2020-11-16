@@ -7,6 +7,7 @@ from .common import (
     Permission,
     SeoInput,
     TaxType,
+    UploadedFile,
     Weight,
 )
 from .filter_input import FilterInputObjectType

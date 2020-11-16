@@ -24,6 +24,7 @@ from ..enums import (
     ShopErrorCode,
     StockErrorCode,
     TranslationErrorCode,
+    UploadErrorCode,
     WarehouseErrorCode,
     WebhookErrorCode,
     WeightUnitsEnum,
@@ -212,6 +213,10 @@ class BulkStockError(ProductError):
     )
 
 
+class UploadError(Error):
+    code = UploadErrorCode(description="The error code.", required=True)
+
+
 class WarehouseError(Error):
     code = WarehouseErrorCode(description="The error code.", required=True)
 
@@ -262,6 +267,13 @@ class Image(graphene.ObjectType):
             url = image.url
         url = info.context.build_absolute_uri(url)
         return Image(url, alt)
+
+
+class UploadedFile(graphene.ObjectType):
+    url = graphene.String(required=True, description="The URL of the uploaded file.")
+    content_type = graphene.String(
+        required=True, description="Content type of uploaded file."
+    )
 
 
 class PriceRangeInput(graphene.InputObjectType):
