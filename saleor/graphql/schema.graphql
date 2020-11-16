@@ -3869,7 +3869,7 @@ type ProductType implements Node & ObjectWithMetadata {
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   taxRate: TaxRateType
   taxType: TaxType
-  variantAttributes: [Attribute]
+  variantAttributes(variantSelection: Boolean): [Attribute]
   productAttributes: [Attribute]
   availableAttributes(filter: AttributeFilterInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
 }

@@ -7,7 +7,7 @@ from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
 
-from ....attribute import models as attribute_models
+from ....attribute import AttributeInputType, AttributeType, models as attribute_models
 from ....core.permissions import OrderPermissions, ProductPermissions
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
@@ -656,7 +656,12 @@ class ProductType(CountableDjangoObjectType):
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
     )
     variant_attributes = graphene.List(
-        Attribute, description="Variant attributes of that product type."
+        Attribute,
+        description="Variant attributes of that product type.",
+        variant_selection=graphene.Argument(
+            graphene.Boolean,
+            description="Whether an attribute can be used in a variant selection.",
+        ),
     )
     product_attributes = graphene.List(
         Attribute, description="Product attributes of that product type."
@@ -700,8 +705,24 @@ class ProductType(CountableDjangoObjectType):
         return ProductAttributesByProductTypeIdLoader(info.context).load(root.pk)
 
     @staticmethod
-    def resolve_variant_attributes(root: models.ProductType, info):
-        return VariantAttributesByProductTypeIdLoader(info.context).load(root.pk)
+    def resolve_variant_attributes(
+        root: models.ProductType, info, variant_selection: bool = False,
+    ):
+        def apply_variant_selection_filter(attributes):
+            if not variant_selection:
+                return attributes
+            return [
+                attribute
+                for attribute in attributes
+                if attribute.input_type == AttributeInputType.DROPDOWN
+                and attribute.type == AttributeType.PRODUCT_TYPE
+            ]
+
+        return (
+            VariantAttributesByProductTypeIdLoader(info.context)
+            .load(root.pk)
+            .then(apply_variant_selection_filter)
+        )
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, **_kwargs):
