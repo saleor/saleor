@@ -72,3 +72,8 @@ def one_of_permissions_required(perms: Iterable[Enum]):
 staff_member_required = account_passes_test(
     lambda context: context.user.is_active and context.user.is_staff
 )
+
+
+staff_member_or_app_required = account_passes_test(
+    lambda context: context.app or (context.user.is_active and context.user.is_staff)
+)
