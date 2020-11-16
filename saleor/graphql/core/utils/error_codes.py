@@ -4,7 +4,12 @@ from ....account.error_codes import AccountErrorCode, PermissionGroupErrorCode
 from ....app.error_codes import AppErrorCode
 from ....attribute.error_codes import AttributeErrorCode
 from ....checkout.error_codes import CheckoutErrorCode
-from ....core.error_codes import MetadataErrorCode, ShopErrorCode, TranslationErrorCode
+from ....core.error_codes import (
+    MetadataErrorCode,
+    ShopErrorCode,
+    TranslationErrorCode,
+    UploadErrorCode,
+)
 from ....csv.error_codes import ExportErrorCode
 from ....discount.error_codes import DiscountErrorCode
 from ....giftcard.error_codes import GiftCardErrorCode
@@ -65,6 +70,7 @@ SALEOR_ERROR_CODE_ENUMS = [
     ShippingErrorCode,
     ShopErrorCode,
     TranslationErrorCode,
+    UploadErrorCode,
 ]
 
 saleor_error_codes = []

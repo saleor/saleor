@@ -92,6 +92,11 @@ staff_member_required = account_passes_test(
 )
 
 
+staff_member_or_app_required = account_passes_test(
+    lambda context: context.app or (context.user.is_active and context.user.is_staff)
+)
+
+
 def check_attribute_required_permissions():
     """Check attribute permissions that depend on attribute type.
 

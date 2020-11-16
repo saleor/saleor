@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("page", "0017_pagetype"),
-        ("product", "0131_auto_20201112_0904"),
+        ("product", "0132_product_rating"),
     ]
 
     operations = [
