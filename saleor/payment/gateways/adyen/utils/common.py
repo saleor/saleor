@@ -8,17 +8,17 @@ from babel.numbers import get_currency_precision
 from django.conf import settings
 from django_countries.fields import Country
 
-from ....checkout.calculations import (
+from .....checkout.calculations import (
     checkout_line_total,
     checkout_shipping_price,
     checkout_total,
 )
-from ....checkout.models import Checkout
-from ....core.prices import quantize_price
-from ....discount.utils import fetch_active_discounts
-from ....payment.models import Payment
-from ... import PaymentError
-from ...interface import PaymentData, PaymentMethodInfo
+from .....checkout.models import Checkout
+from .....core.prices import quantize_price
+from .....discount.utils import fetch_active_discounts
+from .....payment.models import Payment
+from .... import PaymentError
+from ....interface import PaymentData, PaymentMethodInfo
 
 logger = logging.getLogger(__name__)
 

@@ -137,14 +137,6 @@ class ProductType(ModelWithMetadata):
 
 
 class ProductsQueryset(models.QuerySet):
-    def collection_sorted(self, user: "User", channel_slug: str):
-        qs = self.visible_to_user(user, channel_slug)
-        qs = qs.order_by(
-            F("collectionproduct__sort_order").asc(nulls_last=True),
-            F("collectionproduct__id"),
-        )
-        return qs
-
     def published(self, channel_slug: str):
         today = datetime.date.today()
         return self.filter(
@@ -340,6 +332,8 @@ class Product(SeoModel, ModelWithMetadata):
         on_delete=models.SET_NULL,
         related_name="+",
     )
+    rating = models.FloatField(null=True, blank=True)
+
     objects = ProductsQueryset.as_manager()
     translated = TranslationProxy()
 

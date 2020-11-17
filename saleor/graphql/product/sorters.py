@@ -4,6 +4,7 @@ from django.db.models import (
     Count,
     DateField,
     ExpressionWrapper,
+    F,
     IntegerField,
     Min,
     OuterRef,
@@ -11,7 +12,8 @@ from django.db.models import (
     QuerySet,
     Subquery,
 )
-from django.db.models.functions import Coalesce
+from django.db.models.expressions import Window
+from django.db.models.functions import Coalesce, RowNumber
 
 from ...product.models import (
     Category,
@@ -180,23 +182,30 @@ class ProductOrderField(graphene.Enum):
     TYPE = ["product_type__name", "name", "slug"]
     PUBLISHED = ["is_published", "name", "slug"]
     PUBLICATION_DATE = ["publication_date", "name", "slug"]
+    COLLECTION = ["row_number"]
+    RATING = ["rating", "name", "slug"]
 
     @property
     def description(self):
         # pylint: disable=no-member
         descriptions = {
-            ProductOrderField.NAME.name: "name",
-            ProductOrderField.PRICE.name: "price",
-            ProductOrderField.TYPE.name: "type",
-            ProductOrderField.MINIMAL_PRICE.name: (
-                "a minimal price of a product's variant"
+            ProductOrderField.COLLECTION.name: (
+                "collection. Note: "
+                "This option is available only for the `Collection.products` query."
             ),
-            ProductOrderField.DATE.name: "update date",
-            ProductOrderField.PUBLISHED.name: "publication status",
-            ProductOrderField.PUBLICATION_DATE.name: "publication date",
+            ProductOrderField.NAME.name: "name.",
+            ProductOrderField.PRICE.name: "price.",
+            ProductOrderField.TYPE.name: "type.",
+            ProductOrderField.MINIMAL_PRICE.name: (
+                "a minimal price of a product's variant."
+            ),
+            ProductOrderField.DATE.name: "update date.",
+            ProductOrderField.PUBLISHED.name: "publication status.",
+            ProductOrderField.PUBLICATION_DATE.name: "publication date.",
+            ProductOrderField.RATING.name: "rating.",
         }
         if self.name in descriptions:
-            return f"Sort products by {descriptions[self.name]}."
+            return f"Sort products by {descriptions[self.name]}"
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
@@ -241,6 +250,18 @@ class ProductOrderField(graphene.Enum):
         )
         return queryset.annotate(
             publication_date=ExpressionWrapper(subquery, output_field=DateField())
+        )
+
+    @staticmethod
+    def qs_with_collection(queryset: QuerySet, **_kwargs) -> QuerySet:
+        return queryset.annotate(
+            row_number=Window(
+                expression=RowNumber(),
+                order_by=(
+                    F("collectionproduct__sort_order").asc(nulls_last=True),
+                    F("collectionproduct__id"),
+                ),
+            )
         )
 
 

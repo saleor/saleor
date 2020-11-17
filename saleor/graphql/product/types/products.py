@@ -526,6 +526,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             "updated_at",
             "weight",
             "default_variant",
+            "rating",
         ]
 
     @staticmethod
@@ -888,7 +889,7 @@ class Collection(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     @staticmethod
     def resolve_products(root: ChannelContext[models.Collection], info, **kwargs):
         user = info.context.user
-        qs = root.node.products.collection_sorted(user, root.channel_slug)
+        qs = root.node.products.visible_to_user(user, root.channel_slug)
         return ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
 
     @staticmethod

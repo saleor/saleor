@@ -1265,6 +1265,7 @@ enum ConfigurationTypeFieldEnum {
   BOOLEAN
   SECRET
   PASSWORD
+  SECRETMULTILINE
 }
 
 type ConfirmAccount {
@@ -1959,6 +1960,12 @@ enum FileTypesEnum {
   XLSX
 }
 
+type FileUpload {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  uploadedFile: UploadedFile
+  uploadErrors: [UploadError!]!
+}
+
 type Fulfillment implements Node & ObjectWithMetadata {
   id: ID!
   fulfillmentOrder: Int!
@@ -2618,6 +2625,7 @@ type Mutation {
   paymentCapture(amount: PositiveDecimal, paymentId: ID!): PaymentCapture
   paymentRefund(amount: PositiveDecimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
+  paymentInitialize(gateway: String!, paymentData: JSONString): PaymentInitialize
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
@@ -2688,6 +2696,7 @@ type Mutation {
   voucherTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): VoucherTranslate
   voucherChannelListingUpdate(id: ID!, input: VoucherChannelListingInput!): VoucherChannelListingUpdate
   exportProducts(input: ExportProductsInput!): ExportProducts
+  fileUpload(file: Upload!): FileUpload
   checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID!, paymentData: JSONString, redirectUrl: String, storeSource: Boolean = false): CheckoutComplete
@@ -3352,6 +3361,18 @@ type PaymentGateway {
   currencies: [String]!
 }
 
+type PaymentInitialize {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  initializedPayment: PaymentInitialized
+  paymentErrors: [PaymentError!]!
+}
+
+type PaymentInitialized {
+  gateway: String!
+  name: String!
+  data: JSONString
+}
+
 input PaymentInput {
   gateway: String!
   token: String
@@ -3546,6 +3567,7 @@ type Product implements Node & ObjectWithMetadata {
   chargeTaxes: Boolean!
   weight: Weight
   defaultVariant: ProductVariant
+  rating: Float
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   url: String! @deprecated(reason: "This field will be removed after 2020-07-31.")
@@ -3640,6 +3662,7 @@ input ProductCreateInput {
   taxCode: String
   seo: SeoInput
   weight: WeightScalar
+  rating: Float
   productType: ID!
 }
 
@@ -3770,6 +3793,7 @@ input ProductInput {
   taxCode: String
   seo: SeoInput
   weight: WeightScalar
+  rating: Float
 }
 
 input ProductOrder {
@@ -3787,6 +3811,8 @@ enum ProductOrderField {
   TYPE
   PUBLISHED
   PUBLICATION_DATE
+  COLLECTION
+  RATING
 }
 
 type ProductPricingInfo {
@@ -4959,6 +4985,21 @@ type UpdatePrivateMetadata {
 }
 
 scalar Upload
+
+type UploadError {
+  field: String
+  message: String
+  code: UploadErrorCode!
+}
+
+enum UploadErrorCode {
+  GRAPHQL_ERROR
+}
+
+type UploadedFile {
+  url: String!
+  contentType: String!
+}
 
 type User implements Node & ObjectWithMetadata {
   id: ID!

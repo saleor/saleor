@@ -484,6 +484,7 @@ class ProductInput(graphene.InputObjectType):
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
+    rating = graphene.Float(description="Defines the product rating value.")
 
 
 class StockInput(graphene.InputObjectType):

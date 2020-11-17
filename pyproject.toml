@@ -13,9 +13,9 @@ documentation = "https://docs.getsaleor.com/en/latest/"
 
 [tool.poetry.dependencies]
 python = "~3.8"
-babel = "~2.8"
+babel = ">=2.8,<2.10"
 boto3 = "^1.14"
-braintree = ">=4.2,<4.5"
+braintree = ">=4.2,<4.6"
 celery = { version = ">=4.4.5,<6.0.0", extras = ["redis"] }
 dj-database-url = "^0"
 dj-email-url = "^1"
