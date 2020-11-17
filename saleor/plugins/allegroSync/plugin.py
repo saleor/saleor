@@ -1,11 +1,14 @@
 import json
 import logging
 from dataclasses import dataclass
+from email.mime.multipart import MIMEMultipart
 from saleor.product.models import ProductVariant
 from saleor.plugins.manager import PluginsManager
 from saleor.plugins.allegro.plugin import AllegroPlugin, AllegroAPI
 from saleor.plugins.base_plugin import BasePlugin
 from saleor.plugins.models import PluginConfiguration
+import smtplib
+from email.mime.text import MIMEText
 
 logger = logging.getLogger(__name__)
 
@@ -55,8 +58,7 @@ class AllegroSyncPlugin(BasePlugin):
 
         return errors
 
-    @staticmethod
-    def synchronize_allegro_offers():
+    def synchronize_allegro_offers(self):
         manage = PluginsManager(plugins=["saleor.plugins.allegro.plugin.AllegroPlugin"])
         plugin_configs = manage.get_plugin(AllegroPlugin.PLUGIN_ID)
         conf = {item["name"]: item["value"] for item in plugin_configs.configuration}
@@ -86,5 +88,21 @@ class AllegroSyncPlugin(BasePlugin):
                     product_errors.append('nie znaleziono produktu o podanym SKU')
 
                 errors.append({'sku': sku, 'errors': product_errors})
-        return plugin_configs.send_mail_with_publish_errors(errors, {})
+        html_errors_list = plugin_configs.create_table(errors)
+        return self.send_mail(html_errors_list)
 
+    def send_mail(self, html_errors_list):
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login('noreply.salingo@gmail.com', self.password)
+
+        msg = MIMEMultipart('alternative')
+
+        html = MIMEText(html_errors_list, 'html')
+
+        msg.attach(html)
+        msg['Subject'] = 'Logi z synchronizacji ofert'
+        msg['From'] = 'sync+noreply.salingo@gmail.com'
+        msg['To'] = 'sync+noreply.salingo@gmail.com'
+
+        server.sendmail('noreply.salingo@gmail.com', 'noreply.salingo@gmail.com', msg.as_string())
