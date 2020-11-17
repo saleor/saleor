@@ -645,6 +645,31 @@ def weight_attribute(db):
 
 
 @pytest.fixture
+def image_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="image",
+        name="Image",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.FILE,
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name="Test file",
+        slug="test-file",
+        file_url="test_file.txt",
+        content_type="text/plain",
+    )
+    AttributeValue.objects.create(
+        attribute=attribute,
+        name="Test file 2",
+        slug="test-file-2",
+        file_url="test_file.jpeg",
+        content_type="image/jpeg",
+    )
+    return attribute
+
+
+@pytest.fixture
 def image_attribute_without_values_and_file_input_type(db):
     return Attribute.objects.create(
         slug="image",
