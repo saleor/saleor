@@ -1834,6 +1834,11 @@ enum ExportScope {
   FILTER
 }
 
+type File {
+  url: String!
+  contentType: String!
+}
+
 enum FileTypesEnum {
   CSV
   XLSX
@@ -1841,7 +1846,7 @@ enum FileTypesEnum {
 
 type FileUpload {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  uploadedFile: UploadedFile
+  uploadedFile: File
   uploadErrors: [UploadError!]!
 }
 
@@ -4923,11 +4928,6 @@ type UploadError {
 
 enum UploadErrorCode {
   GRAPHQL_ERROR
-}
-
-type UploadedFile {
-  url: String!
-  contentType: String!
 }
 
 type User implements Node & ObjectWithMetadata {
