@@ -1,10 +1,11 @@
 import logging
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
+from typing import Optional
 
 from django.conf import settings
 
 from ...core.notify_events import AdminNotifyEvent, NotifyEventType
-from ..base_plugin import BasePlugin
+from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..email_common import (
     DEFAULT_EMAIL_CONFIG_STRUCTURE,
     DEFAULT_EMAIL_CONFIGURATION,
@@ -12,6 +13,22 @@ from ..email_common import (
     validate_default_email_configuration,
 )
 from ..models import PluginConfiguration
+from .constants import (
+    CSV_EXPORT_FAILED_DEFAULT_TITLE,
+    CSV_EXPORT_FAILED_TEMPLATE_FIELD,
+    CSV_EXPORT_FAILED_TITLE_FIELD,
+    CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_TITLE,
+    CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD,
+    CSV_PRODUCT_EXPORT_SUCCESS_TITLE_FIELD,
+    DEFAULT_EMAIL_VALUE,
+    PLUGIN_ID,
+    SET_STAFF_PASSWORD_DEFAULT_TITLE,
+    SET_STAFF_PASSWORD_TEMPLATE_FIELD,
+    SET_STAFF_PASSWORD_TITLE_FIELD,
+    STAFF_ORDER_CONFIRMATION_DEFAULT_TITLE,
+    STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD,
+    STAFF_ORDER_CONFIRMATION_TITLE_FIELD,
+)
 from .notify_events import (
     send_csv_export_failed,
     send_csv_product_export_success,
@@ -20,6 +37,25 @@ from .notify_events import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class AdminTemplate:
+    staff_order_confirmation: Optional[str]
+    set_staff_password_email: Optional[str]
+    csv_product_export_success: Optional[str]
+    csv_export_failed: Optional[str]
+
+
+def get_admin_template_map(templates: AdminTemplate):
+    return {
+        AdminNotifyEvent.STAFF_ORDER_CONFIRMATION: templates.staff_order_confirmation,
+        AdminNotifyEvent.ACCOUNT_SET_STAFF_PASSWORD: templates.set_staff_password_email,
+        AdminNotifyEvent.CSV_PRODUCT_EXPORT_SUCCESS: (
+            templates.csv_product_export_success
+        ),
+        AdminNotifyEvent.CSV_EXPORT_FAILED: templates.csv_export_failed,
+    }
 
 
 def get_admin_event_map():
@@ -32,12 +68,84 @@ def get_admin_event_map():
 
 
 class AdminEmailPlugin(BasePlugin):
-    PLUGIN_ID = "mirumee.notifications.admin_email"
+    PLUGIN_ID = PLUGIN_ID
     PLUGIN_NAME = "Admin emails"
     DEFAULT_ACTIVE = True
 
-    DEFAULT_CONFIGURATION = [] + DEFAULT_EMAIL_CONFIGURATION  # type: ignore
-    CONFIG_STRUCTURE = {}
+    DEFAULT_TEMPLATE_MESSAGE = (
+        "An HTML template built with handlebars template language. Leave it "
+        "blank if you don't want to send an email for this action. Use the "
+        "default Saleor template by providing DEFAULT value."
+    )
+    DEFAULT_TITLE_MESSAGE = "An email subject built with handlebars template language."
+    DEFAULT_CONFIGURATION = [
+        {
+            "name": STAFF_ORDER_CONFIRMATION_TITLE_FIELD,
+            "value": STAFF_ORDER_CONFIRMATION_DEFAULT_TITLE,
+        },
+        {"name": STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD, "value": DEFAULT_EMAIL_VALUE},
+        {
+            "name": SET_STAFF_PASSWORD_TITLE_FIELD,
+            "value": SET_STAFF_PASSWORD_DEFAULT_TITLE,
+        },
+        {"name": SET_STAFF_PASSWORD_TEMPLATE_FIELD, "value": DEFAULT_EMAIL_VALUE},
+        {
+            "name": CSV_PRODUCT_EXPORT_SUCCESS_TITLE_FIELD,
+            "value": CSV_PRODUCT_EXPORT_SUCCESS_DEFAULT_TITLE,
+        },
+        {
+            "name": CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD,
+            "value": DEFAULT_EMAIL_VALUE,
+        },
+        {
+            "name": CSV_EXPORT_FAILED_TITLE_FIELD,
+            "value": CSV_EXPORT_FAILED_DEFAULT_TITLE,
+        },
+        {"name": CSV_EXPORT_FAILED_TEMPLATE_FIELD, "value": DEFAULT_EMAIL_VALUE},
+    ] + DEFAULT_EMAIL_CONFIGURATION  # type: ignore
+
+    CONFIG_STRUCTURE = {
+        STAFF_ORDER_CONFIRMATION_TITLE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TITLE_MESSAGE,
+            "label": "Staff order confirmation subject",
+        },
+        STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Staff order confirmation template",
+        },
+        SET_STAFF_PASSWORD_TITLE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TITLE_MESSAGE,
+            "label": "Set staff password subject",
+        },
+        SET_STAFF_PASSWORD_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "Set staff password email template",
+        },
+        CSV_PRODUCT_EXPORT_SUCCESS_TITLE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TITLE_MESSAGE,
+            "label": "CSV product export success subject",
+        },
+        CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "CSV product export success template",
+        },
+        CSV_EXPORT_FAILED_TITLE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TITLE_MESSAGE,
+            "label": "CSV export failed template",
+        },
+        CSV_EXPORT_FAILED_TEMPLATE_FIELD: {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": DEFAULT_TEMPLATE_MESSAGE,
+            "label": "CSV export failed template",
+        },
+    }
     CONFIG_STRUCTURE.update(DEFAULT_EMAIL_CONFIG_STRUCTURE)
 
     def __init__(self, *args, **kwargs):
@@ -54,6 +162,16 @@ class AdminEmailPlugin(BasePlugin):
             use_tls=configuration["use_tls"],
             use_ssl=configuration["use_ssl"],
         )
+        self.templates = AdminTemplate(
+            csv_export_failed=configuration[CSV_EXPORT_FAILED_TEMPLATE_FIELD],
+            csv_product_export_success=configuration[
+                CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD
+            ],
+            set_staff_password_email=configuration[SET_STAFF_PASSWORD_TEMPLATE_FIELD],
+            staff_order_confirmation=configuration[
+                STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD
+            ],
+        )
 
     def notify(self, event: NotifyEventType, payload: dict, previous_value):
         if not self.active:
@@ -63,6 +181,9 @@ class AdminEmailPlugin(BasePlugin):
             return previous_value
         if event not in event_map:
             logger.warning(f"Missing handler for event {event}")
+            return previous_value
+        template_map = get_admin_template_map(self.templates)
+        if not template_map.get(event):
             return previous_value
         event_map[event](payload, asdict(self.config))  # type: ignore
 

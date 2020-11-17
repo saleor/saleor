@@ -116,6 +116,8 @@ def get_default_order_payload(order: "Order", redirect_url: str = ""):
             "shipping_method_name": order.shipping_method_name,
         }
     )
+    if not order.discount_amount:
+        order_payload["discount_amount"] = 0
     return order_payload
 
 

@@ -61,8 +61,7 @@
         
         
       <div style>
-        {% load i18n %}
-      {% load i18n_address_tags %}{% load static %}
+        
       
       <!--[if mso | IE]>
       <table
@@ -96,7 +95,9 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{% trans "Hi!" context "Standard e-mail greeting" %}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:16px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Standard e-mail greeting"}}
+            Hi! Pawel to gej!
+          {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -104,9 +105,10 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% blocktrans trimmed with order_details_url=order.order_details_url context "Order confirmation staff e-mail text" %}
-            Someone placed a new order in your store. To see order details please visit: <a href="{{ order_details_url }}">{{ order_details_url }}</a>
-          {% endblocktrans %}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Order confirmation staff e-mail text"}}
+            Someone placed a new order in your store. To see order details please visit:
+            <a href="{{order.order_details_url}}">{{order.order_details_url}}</a>
+          {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -134,14 +136,7 @@
           </td>
         </tr>
       </table>
-      <![endif]-->
-    
-    {% load display_translated_order_line_name from order_lines %}
-  {% load price from taxed_prices %}
-  {% load price_amount from taxed_prices %}
-  {% load voucher %}
       
-      <!--[if mso | IE]>
       <table
          align="center" border="0" cellpadding="0" cellspacing="0" class="" style="width:600px;" width="600"
       >
@@ -177,74 +172,91 @@
         <tfoot>
         <tr>
           <td colspan="3" style="padding: 5px; text-align: right;" align="right">
-            {% trans "Subtotal" context "E-mail order lines summary table" %}
+            {{#blocktrans "E-mail order lines summary table"}}
+              Subtotal
+            {{/blocktrans}}
           </td>
           <td style="padding: 5px; text-align: right;" align="right">
-            {% price_amount order.subtotal_net_amount order.subtotal_gross_amount order.currency display_gross=order.display_gross_prices html=False %}
+            {{price order.subtotal_net_amount order.subtotal_gross_amount order.currency display_gross=order.display_gross_prices}}
           </td>
         </tr>
         <tr>
           <td colspan="3" style="padding: 5px; text-align: right;" align="right">
-            {% trans "Shipping" context "E-mail order lines summary table" %}
+            {{#blocktrans "E-mail order lines summary table"}}
+              Shipping
+            {{/blocktrans}}
           </td>
           <td style="padding: 5px; text-align: right;" align="right">
-            {% price_amount order.shipping_price_net_amount order.shipping_price_gross_amount order.currency display_gross=order.display_gross_prices html=False %}
+            {{price order.shipping_price_net_amount order.shipping_price_gross_amount order.currency display_gross=order.display_gross_prices}}
           </td>
         </tr>
         <tr>
           <td colspan="3" style="padding: 5px; text-align: right;" align="right">
-            {% if order.display_gross_prices %}
-              {% trans "Taxes (included)" context "E-mail order lines summary table" %}
-            {% else %}
-              {% trans "Taxes" context "E-mail order lines summary table" %}
-            {% endif %}
+            {{#if order.display_gross_prices}}
+              {{#blocktrans "E-mail order lines summary table"}}
+                Taxes (included)
+              {{/blocktrans}}
+            {{else}}
+              {{#blocktrans "E-mail order lines summary table"}}
+                Taxes
+              {{/blocktrans}}
+            {{/if}}
           </td>
           <td style="padding: 5px; text-align: right;" align="right">
-            {% price_amount order.tax_amount order.tax_amount order.currency display_gross=order.display_gross_prices html=False %}
+            {{price order.tax_amount order.tax_amount order.currency display_gross=order.display_gross_prices}}
           </td>
         </tr>
-        {% if order.discount_amount %}
+        {{#if order.discount_amount}}
           <tr>
             <td colspan="3" style="padding: 5px; text-align: right;" align="right">
-              {% trans "Discount" context "E-mail order lines summary table" %}
+              {{order.discount_amount}}
+              {{#blocktrans "E-mail order lines summary table"}}
+                Discount
+              {{/blocktrans}}
             </td>
             <td style="padding: 5px; text-align: right;" align="right">
-              {% discount_as_negative order.discount html=True %}
+              {{price order.discount_amount order.discount_amount order.currency display_gross=order.display_gross_prices}}
             </td>
           </tr>
-        {% endif %}
+        {{/if}}
         <tr>
           <td colspan="3" style="padding: 5px; text-align: right;" align="right">
-            <strong>{% trans "Total" context "E-mail order lines summary table" %}</strong>
+            <strong>
+              {{#blocktrans "E-mail order lines summary table"}}Total{{/blocktrans}}
+            </strong>
           </td>
           <td style="padding: 5px; text-align: right;" align="right">
-            <strong>{% price_amount order.total_net_amount order.total_gross_amount order.currency display_gross=order.display_gross_prices html=False %}</strong>
+            <strong>
+              {{price order.total_net_amount order.total_gross_amount order.currency display_gross=order.display_gross_prices}}
+            </strong>
           </td>
         </tr>
       </tfoot>
       <thead class="table-header-row" style="border-bottom: 2px solid #000;">
         <tr>
-          <th style="padding: 5px;">{% trans "Item" context "Ordered item name" %}</th>
-          <th style="padding: 5px;">{% trans "Quantity" context "Quantity ordered of a product" %}</th>
-          <th style="padding: 5px;">{% trans "Per unit" context "Unit price of a product" %}</th>
-          <th style="padding: 5px;">{% trans "Subtotal" context "Ordered item subtotal (unit price * quantity)" %}</th>
+          <th style="padding: 5px;">{{#blocktrans "Ordered item name"}}Item{{/blocktrans}}</th>
+          <th style="padding: 5px;">{{#blocktrans "Quantity ordered of a product"}}Quantity{{/blocktrans}}</th>
+          <th style="padding: 5px;">{{#blocktrans "Unit price of a product"}}Per unit{{/blocktrans}}</th>
+          <th style="padding: 5px;">{{#blocktrans "Ordered item subtotal (unit price * quantity)"}}Subtotal{{/blocktrans}}</th>
         </tr>
       </thead>
       <tbody>
-        {% for line in order.lines %}
+        {{#each order.lines}}
           <tr class="table-item-row" style="border-bottom: 1px solid #D3D1D0;">
-            {% if line.variant_name %}
-              <td style="padding: 5px;">{{ line.product_name }} ({{line.variant_name }})</td>
-            {% else %}
-              <td style="padding: 5px;">{{ line.product_name }}</td>
-            {% endif %}
-            <td style="padding: 5px; text-align: right;" align="right">{{ line.quantity }}</td>
+            {{#if variant_name}}
+              <td style="padding: 5px;">{{product_name}} ({{variant_name}})</td>
+            {{else}}
+              <td style="padding: 5px;">{{product_name}}</td>
+            {{/if}}
+            <td style="padding: 5px; text-align: right;" align="right">{{quantity}}</td>
             <td style="padding: 5px; text-align: right;" align="right">
-              {% price_amount line.unit_price_net_amount line.unit_price_gross_amount order.currency display_gross=order.display_gross_prices html=False %}
+              {{price unit_price_net_amount unit_price_gross_amount ../order.currency display_gross=../order.display_gross_prices}}
             </td>
-            <td style="padding: 5px; text-align: right;" align="right">{% price_amount line.total_net_amount line.total_gross_amount order.currency display_gross=order.display_gross_prices html=False %}</td>
+            <td style="padding: 5px; text-align: right;" align="right">
+              {{price total_net_amount total_gross_amount ../order.currency display_gross=../order.display_gross_prices}}
+            </td>
           </tr>
-        {% endfor %}
+        {{/each}}
       </tbody>
       </table>
     
@@ -309,25 +321,25 @@
       <table cellpadding="0" cellspacing="0" width="100%" border="0" style="color:#000000;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:22px;table-layout:auto;width:100%;border:none;">
         <thead class="table-header-row" style="border-bottom: 2px solid #000;">
             <tr>
-              <th style="padding: 5px;">{% trans "Billing address" context "Order confirmation e-mail billing address" %}</th>
-              <th style="padding: 5px;">{% trans "Shipping address" context "Order confirmation e-mail shipping address" %}</th>
+              <th style="padding: 5px;">{{#blocktrans "Order confirmation e-mail billing address"}}Billing address{{/blocktrans}}</th>
+              <th style="padding: 5px;">{{#blocktrans "Order confirmation e-mail shipping address"}}Shipping address{{/blocktrans}}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td class="address" style="padding: 5px;">
-                {% if order.billing_address %}
-                  {% format_address order.billing_address %}
-                {% else %}
-                  {% trans "No billing address" context "Order confirmation e-mail text" %}
-                {% endif %}
+                {{#if order.billing_address}}
+                  {{format_address order.billing_address}}
+                {{else}}
+                  {{#blocktrans "Order confirmation e-mail text"}}No billing address{{/blocktrans}}
+                {{/if}}
               </td>
               <td css-class="address" style="padding: 5px;">
-                {% if order.shipping_address %}
-                  {% format_address order.shipping_address %}
-                {% else %}
-                  {% trans "No shipping required" context "Order confirmation e-mail text" %}
-                {% endif %}
+                {{#if order.shipping_address}}
+                  {{format_address order.shipping_address}}
+                {{else}}
+                  {{#blocktrans "Order confirmation e-mail text"}}No shipping required{{/blocktrans}}
+                {{/if}}
               </td>
             </tr>
           </tbody>
@@ -391,9 +403,9 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% blocktrans trimmed context "Base email text" %}
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#blocktrans "Base email text" }}
         This is an automatically generated e-mail, please do not reply.
-      {% endblocktrans %}</div>
+      {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -453,9 +465,9 @@
             <tr>
               <td align="center" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{% blocktrans trimmed context "Base email footer" %}
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:center;color:#000000;">{{#blocktrans "Base email footer" }}
         Sincerely, {{ site_name }}
-      {% endblocktrans %}</div>
+      {{/blocktrans}}</div>
     
               </td>
             </tr>
@@ -515,9 +527,11 @@
             <tr>
               <td align="left" style="font-size: 0px; padding: 10px 25px; word-break: break-word;">
                 
-      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{% if schema_markup %}
-        <script type="application/ld+json">{{ schema_markup|safe }}</script>
-      {% endif %}</div>
+      <div style="font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;line-height:1;text-align:left;color:#000000;">{{#if order}}
+        <script type="application/ld+json">
+        {{{{raw}}}}{{schema_markup}}{{{{/raw}}}}
+        </script>
+      {{/if}}</div>
     
               </td>
             </tr>
