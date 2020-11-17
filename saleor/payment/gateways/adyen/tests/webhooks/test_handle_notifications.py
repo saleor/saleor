@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 from unittest import mock
 
@@ -7,7 +8,7 @@ import pytest
 from ......checkout import calculations
 from ......order import OrderEvents, OrderStatus
 from ..... import ChargeStatus, TransactionKind
-from ...utils import to_adyen_price
+from ...utils.common import to_adyen_price
 from ...webhooks import (
     create_new_transaction,
     handle_authorization,
@@ -21,6 +22,8 @@ from ...webhooks import (
     handle_reversed_refund,
     webhook_not_implemented,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def test_handle_authorization_for_order(
@@ -43,6 +46,27 @@ def test_handle_authorization_for_order(
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
     assert external_events.count() == 1
+
+
+def test_handle_authorization_for_order_invalid_payment_id(
+    notification, adyen_plugin, payment_adyen_for_order, caplog
+):
+    payment = payment_adyen_for_order
+    invalid_reference = "test invalid reference"
+    notification = notification(
+        merchant_reference=invalid_reference,
+        value=to_adyen_price(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+    transaction_count = payment.transactions.count()
+
+    caplog.set_level(logging.WARNING)
+
+    handle_authorization(notification, config)
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == transaction_count
+    assert f"Unable to decode the payment ID {invalid_reference}." in caplog.text
 
 
 def test_handle_multiple_authorization_notification(
@@ -248,9 +272,14 @@ def test_handle_authorization_with_adyen_auto_capture_and_payment_charged(
     assert external_events.count() == 1
 
 
-def test_handle_cancel(notification, adyen_plugin, payment_adyen_for_order):
+@pytest.mark.parametrize("payment_is_active", (True, False))
+def test_handle_cancel(
+    payment_is_active, notification, adyen_plugin, payment_adyen_for_order
+):
     payment = payment_adyen_for_order
     payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.is_active = payment_is_active
+    payment.save()
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     notification = notification(
         merchant_reference=payment_id,
@@ -270,6 +299,31 @@ def test_handle_cancel(notification, adyen_plugin, payment_adyen_for_order):
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
     assert external_events.count() == 1
+
+
+def test_handle_cancel_invalid_payment_id(
+    notification, adyen_plugin, payment_adyen_for_order, caplog
+):
+    payment = payment_adyen_for_order
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    invalid_reference = "test invalid reference"
+    notification = notification(
+        merchant_reference=invalid_reference,
+        value=to_adyen_price(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+    transaction_count = payment.transactions.count()
+
+    caplog.set_level(logging.WARNING)
+
+    handle_cancellation(notification, config)
+
+    payment.order.refresh_from_db()
+    assert payment.transactions.count() == transaction_count
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == transaction_count
+    assert f"Unable to decode the payment ID {invalid_reference}." in caplog.text
 
 
 def test_handle_cancel_already_canceled(
@@ -354,6 +408,27 @@ def test_handle_capture_for_checkout(
     assert external_events.count() == 1
 
 
+def test_handle_capture_invalid_payment_id(
+    notification, adyen_plugin, payment_adyen_for_order, caplog
+):
+    payment = payment_adyen_for_order
+    invalid_reference = "test invalid reference"
+    notification = notification(
+        merchant_reference=invalid_reference,
+        value=to_adyen_price(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+    transaction_count = payment.transactions.count()
+
+    caplog.set_level(logging.WARNING)
+
+    handle_capture(notification, config)
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == transaction_count
+    assert f"Unable to decode the payment ID {invalid_reference}." in caplog.text
+
+
 def test_handle_capture_with_payment_already_charged(
     notification, adyen_plugin, payment_adyen_for_order
 ):
@@ -409,6 +484,30 @@ def test_handle_failed_capture(
     assert external_events.count() == 1
 
 
+def test_handle_failed_capture_invalid_payment_id(
+    notification, adyen_plugin, payment_adyen_for_order, caplog
+):
+    payment = payment_adyen_for_order
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.captured_amount = payment.total
+    payment.save()
+    invalid_reference = "test invalid reference"
+    notification = notification(
+        merchant_reference=invalid_reference,
+        value=to_adyen_price(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+    transaction_count = payment.transactions.count()
+
+    caplog.set_level(logging.WARNING)
+
+    handle_failed_capture(notification, config)
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == transaction_count
+    assert f"Unable to decode the payment ID {invalid_reference}." in caplog.text
+
+
 def test_handle_failed_capture_partial_charge(
     notification, adyen_plugin, payment_adyen_for_order
 ):
@@ -456,6 +555,27 @@ def test_handle_pending(notification, adyen_plugin, payment_adyen_for_order):
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
     assert external_events.count() == 1
+
+
+def test_handle_pending_invalid_payment_id(
+    notification, adyen_plugin, payment_adyen_for_order, caplog
+):
+    payment = payment_adyen_for_order
+    invalid_reference = "test invalid reference"
+    notification = notification(
+        merchant_reference=invalid_reference,
+        value=to_adyen_price(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+    transaction_count = payment.transactions.count()
+
+    caplog.set_level(logging.WARNING)
+
+    handle_pending(notification, config)
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == transaction_count
+    assert f"Unable to decode the payment ID {invalid_reference}." in caplog.text
 
 
 def test_handle_pending_with_adyen_auto_capture(
@@ -535,6 +655,30 @@ def test_handle_refund(
     assert external_events.count() == 1
 
 
+def test_handle_refund_invalid_payment_id(
+    notification, adyen_plugin, payment_adyen_for_order, caplog
+):
+    payment = payment_adyen_for_order
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.captured_amount = payment.total
+    payment.save()
+    invalid_reference = "test invalid reference"
+    notification = notification(
+        merchant_reference=invalid_reference,
+        value=to_adyen_price(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+    transaction_count = payment.transactions.count()
+
+    caplog.set_level(logging.WARNING)
+
+    handle_refund(notification, config)
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == transaction_count
+    assert f"Unable to decode the payment ID {invalid_reference}." in caplog.text
+
+
 @mock.patch("saleor.payment.gateways.adyen.webhooks.order_refunded")
 def test_handle_refund_already_refunded(
     mock_order_refunded, notification, adyen_plugin, payment_adyen_for_order
@@ -578,6 +722,30 @@ def test_handle_failed_refund_missing_transaction(
         type=OrderEvents.EXTERNAL_SERVICE_NOTIFICATION
     )
     assert external_events.count() == 1
+
+
+def test_handle_failed_refund_invalid_payment_id(
+    notification, adyen_plugin, payment_adyen_for_order, caplog
+):
+    payment = payment_adyen_for_order
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.captured_amount = payment.total
+    payment.save()
+    invalid_reference = "test invalid reference"
+    notification = notification(
+        merchant_reference=invalid_reference,
+        value=to_adyen_price(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+    transaction_count = payment.transactions.count()
+
+    caplog.set_level(logging.WARNING)
+
+    handle_failed_refund(notification, config)
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == transaction_count
+    assert f"Unable to decode the payment ID {invalid_reference}." in caplog.text
 
 
 def test_handle_failed_refund_with_transaction_refund_ongoing(
@@ -655,6 +823,30 @@ def test_handle_reversed_refund(notification, adyen_plugin, payment_adyen_for_or
     assert external_events.count() == 1
 
 
+def test_handle_reversed_refund_invalid_payment_id(
+    notification, adyen_plugin, payment_adyen_for_order, caplog
+):
+    payment = payment_adyen_for_order
+    payment.charge_status = ChargeStatus.FULLY_REFUNDED
+    payment.captured_amount = Decimal("0.0")
+    payment.save()
+    invalid_reference = "test invalid reference"
+    notification = notification(
+        merchant_reference=invalid_reference,
+        value=to_adyen_price(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+    transaction_count = payment.transactions.count()
+
+    caplog.set_level(logging.WARNING)
+
+    handle_reversed_refund(notification, config)
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == transaction_count
+    assert f"Unable to decode the payment ID {invalid_reference}." in caplog.text
+
+
 def test_handle_reversed_refund_already_processed(
     notification, adyen_plugin, payment_adyen_for_order
 ):
@@ -694,6 +886,30 @@ def test_webhook_not_implemented(notification, adyen_plugin, payment_adyen_for_o
     assert external_events.count() == 1
 
 
+def test_webhook_not_implemented_invalid_payment_id(
+    notification, adyen_plugin, payment_adyen_for_order, caplog
+):
+    payment = payment_adyen_for_order
+    payment.charge_status = ChargeStatus.FULLY_CHARGED
+    payment.captured_amount = payment.total
+    payment.save()
+    invalid_reference = "test invalid reference"
+    notification = notification(
+        merchant_reference=invalid_reference,
+        value=to_adyen_price(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+    transaction_count = payment.transactions.count()
+
+    caplog.set_level(logging.WARNING)
+
+    webhook_not_implemented(notification, config)
+
+    payment.refresh_from_db()
+    assert payment.transactions.count() == transaction_count
+    assert f"Unable to decode the payment ID {invalid_reference}." in caplog.text
+
+
 @mock.patch("saleor.payment.gateways.adyen.webhooks.handle_refund")
 def test_handle_cancel_or_refund_action_refund(
     mock_handle_refund, notification, adyen_plugin, payment_adyen_for_order
@@ -729,3 +945,22 @@ def test_handle_cancel_or_refund_action_cancel(
     handle_cancel_or_refund(notification, config)
 
     mock_handle_cancellation.assert_called_once_with(notification, config)
+
+
+def test_handle_cancel_or_refund_action_cancel_invalid_payment_id(
+    notification, adyen_plugin, payment_adyen_for_order, caplog
+):
+    payment = payment_adyen_for_order
+    config = adyen_plugin().config
+    invalid_reference = "test invalid reference"
+    notification = notification(
+        merchant_reference=invalid_reference,
+        value=to_adyen_price(payment.total, payment.currency),
+    )
+    notification["additionalData"]["modification.action"] = "cancel"
+
+    caplog.set_level(logging.WARNING)
+
+    handle_cancel_or_refund(notification, config)
+
+    assert f"Unable to decode the payment ID {invalid_reference}." in caplog.text

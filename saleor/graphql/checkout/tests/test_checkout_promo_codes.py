@@ -15,13 +15,14 @@ from .test_checkout import (
 
 
 def test_checkout_lines_delete_with_not_applicable_voucher(
-    user_api_client, checkout_with_item, voucher
+    user_api_client, checkout_with_item, voucher, channel_USD
 ):
     subtotal = calculations.checkout_subtotal(
         checkout=checkout_with_item, lines=list(checkout_with_item)
     )
-    voucher.min_spent = subtotal.gross
-    voucher.save(update_fields=["min_spent_amount", "currency"])
+    voucher.channel_listings.filter(channel=channel_USD).update(
+        min_spent_amount=subtotal.gross.amount
+    )
 
     add_voucher_to_checkout(checkout_with_item, list(checkout_with_item), voucher)
     assert checkout_with_item.voucher_code == voucher.code
@@ -80,15 +81,17 @@ def test_checkout_shipping_address_update_with_not_applicable_voucher(
     assert checkout_with_item.voucher_code is None
 
 
-def test_checkout_totals_use_discounts(api_client, checkout_with_item, sale):
+def test_checkout_totals_use_discounts(
+    api_client, checkout_with_item, sale, channel_USD
+):
     checkout = checkout_with_item
     # make sure that we're testing a variant that is actually on sale
     product = checkout.lines.first().variant.product
     sale.products.add(product)
 
     query = """
-    query getCheckout($token: UUID) {
-        checkout(token: $token) {
+    query getCheckout($token: UUID, $channel: String) {
+        checkout(token: $token, channel: $channel) {
             lines {
                 totalPrice {
                     gross {
@@ -110,14 +113,15 @@ def test_checkout_totals_use_discounts(api_client, checkout_with_item, sale):
     }
     """
 
-    variables = {"token": str(checkout.token)}
+    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
-
+    sale_channel_listing = sale.channel_listings.get(channel=channel_USD)
     discounts = [
         DiscountInfo(
             sale=sale,
+            channel_listings={channel_USD.slug: sale_channel_listing},
             product_ids={product.id},
             category_ids=set(),
             collection_ids=set(),
@@ -130,13 +134,15 @@ def test_checkout_totals_use_discounts(api_client, checkout_with_item, sale):
     assert data["subtotalPrice"]["gross"]["amount"] == taxed_total.gross.amount
 
     line = checkout.lines.first()
-    line_total = calculations.checkout_line_total(line=line, discounts=discounts)
+    line_total = calculations.checkout_line_total(
+        line=line, discounts=discounts, channel=channel_USD
+    )
     assert data["lines"][0]["totalPrice"]["gross"]["amount"] == line_total.gross.amount
 
 
 QUERY_GET_CHECKOUT_GIFT_CARD_CODES = """
-query getCheckout($token: UUID!) {
-  checkout(token: $token) {
+query getCheckout($token: UUID!, $channel: String!) {
+  checkout(token: $token, channel: $channel) {
     token
     giftCards {
       displayCode
@@ -151,7 +157,10 @@ query getCheckout($token: UUID!) {
 
 def test_checkout_get_gift_card_code(user_api_client, checkout_with_gift_card):
     gift_card = checkout_with_gift_card.gift_cards.first()
-    variables = {"token": str(checkout_with_gift_card.token)}
+    variables = {
+        "token": str(checkout_with_gift_card.token),
+        "channel": checkout_with_gift_card.channel.slug,
+    }
     response = user_api_client.post_graphql(
         QUERY_GET_CHECKOUT_GIFT_CARD_CODES, variables
     )
@@ -168,7 +177,10 @@ def test_checkout_get_gift_card_codes(
     checkout_with_gift_card.save()
     gift_card_first = checkout_with_gift_card.gift_cards.first()
     gift_card_last = checkout_with_gift_card.gift_cards.last()
-    variables = {"token": str(checkout_with_gift_card.token)}
+    variables = {
+        "token": str(checkout_with_gift_card.token),
+        "channel": checkout_with_gift_card.channel.slug,
+    }
     response = user_api_client.post_graphql(
         QUERY_GET_CHECKOUT_GIFT_CARD_CODES, variables
     )
@@ -181,7 +193,7 @@ def test_checkout_get_gift_card_codes(
 
 
 def test_checkout_get_gift_card_code_without_gift_card(user_api_client, checkout):
-    variables = {"token": str(checkout.token)}
+    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
     response = user_api_client.post_graphql(
         QUERY_GET_CHECKOUT_GIFT_CARD_CODES, variables
     )
@@ -360,6 +372,20 @@ def test_checkout_add_voucher_code_not_applicable_voucher(
     variables = {
         "checkoutId": checkout_id,
         "promoCode": voucher_with_high_min_spent_amount.code,
+    }
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "promoCode"
+
+
+def test_checkout_add_voucher_code_not_assigned_to_channel(
+    api_client, checkout_with_item, voucher_without_channel
+):
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+    variables = {
+        "checkoutId": checkout_id,
+        "promoCode": voucher_without_channel.code,
     }
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
@@ -555,6 +581,27 @@ def test_checkout_remove_voucher_code(api_client, checkout_with_voucher):
     assert data["checkout"]["id"] == checkout_id
     assert data["checkout"]["voucherCode"] is None
     assert checkout_with_voucher.voucher_code is None
+
+
+def test_checkout_remove_voucher_code_with_inactive_channel(
+    api_client, checkout_with_voucher
+):
+    channel = checkout_with_voucher.channel
+    channel.is_active = False
+    channel.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_voucher.pk)
+    variables = {
+        "checkoutId": checkout_id,
+        "promoCode": checkout_with_voucher.voucher_code,
+    }
+
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    checkout_with_voucher.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["id"] == checkout_id
+    assert data["checkout"]["voucherCode"] == checkout_with_voucher.voucher_code
 
 
 def test_checkout_remove_gift_card_code(api_client, checkout_with_gift_card):

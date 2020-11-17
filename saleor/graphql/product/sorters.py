@@ -1,9 +1,28 @@
 import graphene
-from django.db.models import Count, IntegerField, Min, OuterRef, QuerySet, Subquery
-from django.db.models.functions import Coalesce
+from django.db.models import (
+    BooleanField,
+    Count,
+    DateField,
+    ExpressionWrapper,
+    F,
+    IntegerField,
+    Min,
+    OuterRef,
+    Q,
+    QuerySet,
+    Subquery,
+)
+from django.db.models.expressions import Window
+from django.db.models.functions import Coalesce, RowNumber
 
-from ...product.models import Category, Product
-from ..core.types import SortInputObjectType
+from ...product.models import (
+    Category,
+    CollectionChannelListing,
+    Product,
+    ProductChannelListing,
+)
+from ..channel.sorters import validate_channel_slug
+from ..core.types import ChannelSortInputObjectType, SortInputObjectType
 
 
 class AttributeSortField(graphene.Enum):
@@ -75,7 +94,7 @@ class CategorySortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def qs_with_product_count(queryset: QuerySet) -> QuerySet:
+    def qs_with_product_count(queryset: QuerySet, **_kwargs) -> QuerySet:
         return queryset.annotate(
             product_count=Coalesce(
                 Subquery(
@@ -91,11 +110,11 @@ class CategorySortField(graphene.Enum):
         )
 
     @staticmethod
-    def qs_with_subcategory_count(queryset: QuerySet) -> QuerySet:
+    def qs_with_subcategory_count(queryset: QuerySet, **_kwargs) -> QuerySet:
         return queryset.annotate(subcategory_count=Count("children__id"))
 
 
-class CategorySortingInput(SortInputObjectType):
+class CategorySortingInput(ChannelSortInputObjectType):
     class Meta:
         sort_enum = CategorySortField
         type_name = "categories"
@@ -121,11 +140,35 @@ class CollectionSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def qs_with_product_count(queryset: QuerySet) -> QuerySet:
+    def qs_with_product_count(queryset: QuerySet, **_kwargs) -> QuerySet:
         return queryset.annotate(product_count=Count("collectionproduct__id"))
 
+    @staticmethod
+    def qs_with_availability(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
+        subquery = Subquery(
+            CollectionChannelListing.objects.filter(
+                collection_id=OuterRef("pk"), channel__slug=channel_slug
+            ).values_list("is_published")[:1]
+        )
+        return queryset.annotate(
+            is_published=ExpressionWrapper(subquery, output_field=BooleanField())
+        )
 
-class CollectionSortingInput(SortInputObjectType):
+    @staticmethod
+    def qs_with_publication_date(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
+        subquery = Subquery(
+            CollectionChannelListing.objects.filter(
+                collection_id=OuterRef("pk"), channel__slug=channel_slug
+            ).values_list("publication_date")[:1]
+        )
+        return queryset.annotate(
+            publication_date=ExpressionWrapper(subquery, output_field=DateField())
+        )
+
+
+class CollectionSortingInput(ChannelSortInputObjectType):
     class Meta:
         sort_enum = CollectionSortField
         type_name = "collections"
@@ -134,38 +177,95 @@ class CollectionSortingInput(SortInputObjectType):
 class ProductOrderField(graphene.Enum):
     NAME = ["name", "slug"]
     PRICE = ["min_variants_price_amount", "name", "slug"]
-    MINIMAL_PRICE = ["minimal_variant_price_amount", "name", "slug"]
+    MINIMAL_PRICE = ["discounted_price_amount", "name", "slug"]
     DATE = ["updated_at", "name", "slug"]
     TYPE = ["product_type__name", "name", "slug"]
     PUBLISHED = ["is_published", "name", "slug"]
     PUBLICATION_DATE = ["publication_date", "name", "slug"]
+    COLLECTION = ["row_number"]
+    RATING = ["rating", "name", "slug"]
 
     @property
     def description(self):
         # pylint: disable=no-member
         descriptions = {
-            ProductOrderField.NAME.name: "name",
-            ProductOrderField.PRICE.name: "price",
-            ProductOrderField.TYPE.name: "type",
-            ProductOrderField.MINIMAL_PRICE.name: (
-                "a minimal price of a product's variant"
+            ProductOrderField.COLLECTION.name: (
+                "collection. Note: "
+                "This option is available only for the `Collection.products` query."
             ),
-            ProductOrderField.DATE.name: "update date",
-            ProductOrderField.PUBLISHED.name: "publication status",
-            ProductOrderField.PUBLICATION_DATE.name: "publication date",
+            ProductOrderField.NAME.name: "name.",
+            ProductOrderField.PRICE.name: "price.",
+            ProductOrderField.TYPE.name: "type.",
+            ProductOrderField.MINIMAL_PRICE.name: (
+                "a minimal price of a product's variant."
+            ),
+            ProductOrderField.DATE.name: "update date.",
+            ProductOrderField.PUBLISHED.name: "publication status.",
+            ProductOrderField.PUBLICATION_DATE.name: "publication date.",
+            ProductOrderField.RATING.name: "rating.",
         }
         if self.name in descriptions:
-            return f"Sort products by {descriptions[self.name]}."
+            return f"Sort products by {descriptions[self.name]}"
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def qs_with_price(queryset: QuerySet) -> QuerySet:
+    def qs_with_price(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
         return queryset.annotate(
-            min_variants_price_amount=Min("variants__price_amount")
+            min_variants_price_amount=Min(
+                "variants__channel_listings__price_amount",
+                filter=Q(variants__channel_listings__channel__slug=channel_slug),
+            )
+        )
+
+    @staticmethod
+    def qs_with_minimal_price(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
+        return queryset.annotate(
+            discounted_price_amount=Min(
+                "channel_listings__discounted_price_amount",
+                filter=Q(channel_listings__channel__slug=channel_slug),
+            )
+        )
+
+    @staticmethod
+    def qs_with_published(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
+        subquery = Subquery(
+            ProductChannelListing.objects.filter(
+                product_id=OuterRef("pk"), channel__slug=channel_slug
+            ).values_list("is_published")[:1]
+        )
+        return queryset.annotate(
+            is_published=ExpressionWrapper(subquery, output_field=BooleanField())
+        )
+
+    @staticmethod
+    def qs_with_publication_date(queryset: QuerySet, channel_slug: str) -> QuerySet:
+        validate_channel_slug(channel_slug)
+        subquery = Subquery(
+            ProductChannelListing.objects.filter(
+                product_id=OuterRef("pk"), channel__slug=channel_slug
+            ).values_list("publication_date")[:1]
+        )
+        return queryset.annotate(
+            publication_date=ExpressionWrapper(subquery, output_field=DateField())
+        )
+
+    @staticmethod
+    def qs_with_collection(queryset: QuerySet, **_kwargs) -> QuerySet:
+        return queryset.annotate(
+            row_number=Window(
+                expression=RowNumber(),
+                order_by=(
+                    F("collectionproduct__sort_order").asc(nulls_last=True),
+                    F("collectionproduct__id"),
+                ),
+            )
         )
 
 
-class ProductOrder(SortInputObjectType):
+class ProductOrder(ChannelSortInputObjectType):
     attribute_id = graphene.Argument(
         graphene.ID,
         description=(

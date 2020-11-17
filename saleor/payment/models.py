@@ -37,7 +37,7 @@ class Payment(models.Model):
     charge_status = models.CharField(
         max_length=20, choices=ChargeStatus.CHOICES, default=ChargeStatus.NOT_CHARGED
     )
-    token = models.CharField(max_length=128, blank=True, default="")
+    token = models.CharField(max_length=512, blank=True, default="")
     total = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
@@ -102,10 +102,10 @@ class Payment(models.Model):
         return max(self.transactions.all(), default=None, key=attrgetter("pk"))
 
     def get_total(self):
-        return Money(self.total, self.currency or settings.DEFAULT_CURRENCY)
+        return Money(self.total, self.currency)
 
     def get_authorized_amount(self):
-        money = zero_money()
+        money = zero_money(self.currency)
 
         # Query all the transactions which should be prefetched
         # to optimize db queries
@@ -132,14 +132,14 @@ class Payment(models.Model):
 
         # Calculate authorized amount from all succeeded auth transactions
         for txn in authorized_txns:
-            money += Money(txn.amount, self.currency or settings.DEFAULT_CURRENCY)
+            money += Money(txn.amount, self.currency)
 
         # If multiple partial capture is supported later though it's unlikely,
         # the authorized amount should exclude the already captured amount here
         return money
 
     def get_captured_amount(self):
-        return Money(self.captured_amount, self.currency or settings.DEFAULT_CURRENCY)
+        return Money(self.captured_amount, self.currency)
 
     def get_charge_amount(self):
         """Retrieve the maximum capture possible."""
@@ -198,7 +198,7 @@ class Transaction(models.Model):
     payment = models.ForeignKey(
         Payment, related_name="transactions", on_delete=models.PROTECT
     )
-    token = models.CharField(max_length=128, blank=True, default="")
+    token = models.CharField(max_length=512, blank=True, default="")
     kind = models.CharField(max_length=25, choices=TransactionKind.CHOICES)
     is_success = models.BooleanField(default=False)
     action_required = models.BooleanField(default=False)
@@ -219,7 +219,7 @@ class Transaction(models.Model):
     customer_id = models.CharField(max_length=256, null=True)
     gateway_response = JSONField(encoder=DjangoJSONEncoder)
     already_processed = models.BooleanField(default=False)
-    searchable_key = models.CharField(max_length=256, null=True, blank=True)
+    searchable_key = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         ordering = ("pk",)
@@ -232,4 +232,4 @@ class Transaction(models.Model):
         )
 
     def get_amount(self):
-        return Money(self.amount, self.currency or settings.DEFAULT_CURRENCY)
+        return Money(self.amount, self.currency)

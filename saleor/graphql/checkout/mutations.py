@@ -6,6 +6,9 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Prefetch
 
+from ...channel.exceptions import ChannelNotDefined
+from ...channel.models import Channel
+from ...channel.utils import get_default_channel
 from ...checkout import models
 from ...checkout.complete_checkout import complete_checkout
 from ...checkout.error_codes import CheckoutErrorCode
@@ -21,7 +24,6 @@ from ...checkout.utils import (
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock, PermissionDenied, ProductNotPublished
-from ...core.permissions import OrderPermissions
 from ...core.transactions import transaction_with_commit_on_errors
 from ...order import models as order_models
 from ...payment import models as payment_models
@@ -32,7 +34,6 @@ from ..account.types import AddressInput
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import CheckoutError
 from ..core.utils import from_global_id_strict_type
-from ..meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -129,12 +130,18 @@ def check_lines_quantity(variants, quantities, country):
             raise ValidationError({"quantity": ValidationError(message, code=e.code)})
 
 
-def validate_variants_available_for_purchase(variants):
-    not_available_variants = [
-        variant.pk
-        for variant in variants
-        if not variant.product.is_available_for_purchase()
-    ]
+def validate_variants_available_for_purchase(variants, channel_id):
+    not_available_variants = []
+    for variant in variants:
+        product_channel_listing = variant.product.channel_listings.filter(
+            channel_id=channel_id
+        ).first()
+        if not (
+            product_channel_listing
+            and product_channel_listing.is_available_for_purchase()
+        ):
+            not_available_variants.append(variant.pk)
+
     if not_available_variants:
         variant_ids = [
             graphene.Node.to_global_id("ProductVariant", pk)
@@ -157,6 +164,9 @@ class CheckoutLineInput(graphene.InputObjectType):
 
 
 class CheckoutCreateInput(graphene.InputObjectType):
+    channel = graphene.String(
+        description="Slug of a channel in which to create a checkout."
+    )
     lines = graphene.List(
         CheckoutLineInput,
         description=(
@@ -200,7 +210,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def process_checkout_lines(
-        cls, lines, country
+        cls, lines, country, channel_id
     ) -> Tuple[List[product_models.ProductVariant], List[int]]:
         variant_ids = [line.get("variant_id") for line in lines]
         variants = cls.get_nodes_or_error(
@@ -213,7 +223,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         )
         quantities = [line.get("quantity") for line in lines]
 
-        validate_variants_available_for_purchase(variants)
+        validate_variants_available_for_purchase(variants, channel_id)
         check_lines_quantity(variants, quantities, country)
 
         return variants, quantities
@@ -235,10 +245,55 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return None
 
     @classmethod
+    def validate_channel(cls, channel_slug):
+        try:
+            channel = Channel.objects.get(slug=channel_slug)
+        except Channel.DoesNotExist:
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        f"Channel with '{channel_slug}' slug does not exist.",
+                        code=CheckoutErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
+        if not channel.is_active:
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        f"Channel with '{channel_slug}' is inactive.",
+                        code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
+                    )
+                }
+            )
+        return channel
+
+    @classmethod
+    def clean_channel(cls, channel_slug):
+        if channel_slug is not None:
+            channel = cls.validate_channel(channel_slug)
+        else:
+            try:
+                channel = get_default_channel()
+            except ChannelNotDefined:
+                raise ValidationError(
+                    {
+                        "channel": ValidationError(
+                            "You need to provide channel slug.",
+                            code=CheckoutErrorCode.MISSING_CHANNEL_SLUG,
+                        )
+                    }
+                )
+        return channel
+
+    @classmethod
     def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
         user = info.context.user
         country = info.context.country.code
+        channel = cls.clean_channel(cleaned_input.get("channel"))
+        cleaned_input["channel"] = channel
+        cleaned_input["currency"] = channel.currency_code
 
         # set country to one from shipping address
         shipping_address = cleaned_input.get("shipping_address")
@@ -253,7 +308,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             (
                 cleaned_input["variants"],
                 cleaned_input["quantities"],
-            ) = cls.process_checkout_lines(lines, country)
+            ) = cls.process_checkout_lines(lines, country, cleaned_input["channel"].id)
 
         cleaned_input["shipping_address"] = cls.retrieve_shipping_address(user, data)
         cleaned_input["billing_address"] = cls.retrieve_billing_address(user, data)
@@ -321,7 +376,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # `perform_mutation` is overridden to properly get or create a checkout
         # instance here and abort mutation if needed.
         if user.is_authenticated:
-            checkout, _ = get_user_checkout(user)
+            checkout = get_user_checkout(user)
 
             if checkout is not None:
                 # If user has an active checkout, return it without any
@@ -331,7 +386,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             checkout = models.Checkout(user=user)
         else:
             checkout = models.Checkout()
-
         cleaned_input = cls.clean_input(info, checkout, data.get("input"))
         checkout = cls.construct_instance(checkout, cleaned_input)
         cls.clean_instance(info, checkout)
@@ -371,7 +425,7 @@ class CheckoutLinesAdd(BaseMutation):
         quantities = [line.get("quantity") for line in lines]
 
         check_lines_quantity(variants, quantities, checkout.get_country())
-        validate_variants_available_for_purchase(variants)
+        validate_variants_available_for_purchase(variants, checkout.channel_id)
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
@@ -628,7 +682,6 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-
         billing_address = cls.validate_address(
             billing_address, instance=checkout.billing_address, info=info
         )
@@ -696,7 +749,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                     )
                 }
             )
-
         if not checkout.is_shipping_required():
             raise ValidationError(
                 {
@@ -820,6 +872,15 @@ class CheckoutComplete(BaseMutation):
 
                 order = order_models.Order.objects.get_by_checkout_token(checkout_token)
                 if order:
+                    if not order.channel.is_active:
+                        raise ValidationError(
+                            {
+                                "channel": ValidationError(
+                                    "Cannot complete checkout with inactive channel.",
+                                    code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
+                                )
+                            }
+                        )
                     # The order is already created. We return it as a success
                     # checkoutComplete response. Order is anonymized for not logged in
                     # user
@@ -897,43 +958,3 @@ class CheckoutRemovePromoCode(BaseMutation):
         remove_promo_code_from_checkout(checkout, promo_code)
         info.context.plugins.checkout_updated(checkout)
         return CheckoutRemovePromoCode(checkout=checkout)
-
-
-class CheckoutUpdateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates metadata for checkout."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        model = models.Checkout
-        public = True
-        error_type_class = CheckoutError
-        error_type_field = "checkout_errors"
-
-
-class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates private metadata for checkout."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        model = models.Checkout
-        public = False
-        error_type_class = CheckoutError
-        error_type_field = "checkout_errors"
-
-
-class CheckoutClearMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clear metadata for checkout."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        model = models.Checkout
-        public = True
-        error_type_class = CheckoutError
-        error_type_field = "checkout_errors"
-
-
-class CheckoutClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clear private metadata for checkout."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        model = models.Checkout
-        public = False
-        error_type_class = CheckoutError
-        error_type_field = "checkout_errors"

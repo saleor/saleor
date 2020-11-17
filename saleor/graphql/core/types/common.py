@@ -5,7 +5,9 @@ from ...translations.enums import LanguageCodeEnum
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
+    ChannelErrorCode,
     CheckoutErrorCode,
+    CollectionErrorCode,
     DiscountErrorCode,
     ExportErrorCode,
     GiftCardErrorCode,
@@ -24,6 +26,7 @@ from ..enums import (
     ShopErrorCode,
     StockErrorCode,
     TranslationErrorCode,
+    UploadErrorCode,
     WarehouseErrorCode,
     WebhookErrorCode,
     WeightUnitsEnum,
@@ -100,6 +103,10 @@ class StaffError(AccountError):
     )
 
 
+class ChannelError(Error):
+    code = ChannelErrorCode(description="The error code.", required=True)
+
+
 class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.", required=True)
     variants = graphene.List(
@@ -109,8 +116,20 @@ class CheckoutError(Error):
     )
 
 
-class DiscountError(Error):
+class ProductWithoutVariantError(Error):
+    products = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of products IDs which causes the error.",
+    )
+
+
+class DiscountError(ProductWithoutVariantError):
     code = DiscountErrorCode(description="The error code.", required=True)
+    channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channels IDs which causes the error.",
+        required=False,
+    )
 
 
 class ExportError(Error):
@@ -132,6 +151,11 @@ class OrderError(Error):
     )
     order_line = graphene.ID(
         description="Order line ID which causes the error.", required=False,
+    )
+    variants = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of product variants that are associated with the error",
+        required=False,
     )
 
 
@@ -162,6 +186,26 @@ class ProductError(Error):
     )
 
 
+class CollectionError(ProductWithoutVariantError):
+    code = CollectionErrorCode(description="The error code.", required=True)
+
+
+class ProductChannelListingError(ProductError):
+    channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channels IDs which causes the error.",
+        required=False,
+    )
+
+
+class CollectionChannelListingError(ProductError):
+    channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channels IDs which causes the error.",
+        required=False,
+    )
+
+
 class BulkProductError(ProductError):
     index = graphene.Int(
         description="Index of an input list item that caused the error."
@@ -169,6 +213,11 @@ class BulkProductError(ProductError):
     warehouses = graphene.List(
         graphene.NonNull(graphene.ID),
         description="List of warehouse IDs which causes the error.",
+        required=False,
+    )
+    channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channel IDs which causes the error.",
         required=False,
     )
 
@@ -182,6 +231,11 @@ class ShippingError(Error):
     warehouses = graphene.List(
         graphene.NonNull(graphene.ID),
         description="List of warehouse IDs which causes the error.",
+        required=False,
+    )
+    channels = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of channels IDs which causes the error.",
         required=False,
     )
 
@@ -212,6 +266,10 @@ class BulkStockError(ProductError):
     )
 
 
+class UploadError(Error):
+    code = UploadErrorCode(description="The error code.", required=True)
+
+
 class WarehouseError(Error):
     code = WarehouseErrorCode(description="The error code.", required=True)
 
@@ -220,7 +278,7 @@ class WebhookError(Error):
     code = WebhookErrorCode(description="The error code.", required=True)
 
 
-class WishlistError(Error):
+class WishlistError(ProductWithoutVariantError):
     code = WishlistErrorCode(description="The error code.", required=True)
 
 
@@ -262,6 +320,13 @@ class Image(graphene.ObjectType):
             url = image.url
         url = info.context.build_absolute_uri(url)
         return Image(url, alt)
+
+
+class UploadedFile(graphene.ObjectType):
+    url = graphene.String(required=True, description="The URL of the uploaded file.")
+    content_type = graphene.String(
+        required=True, description="Content type of uploaded file."
+    )
 
 
 class PriceRangeInput(graphene.InputObjectType):

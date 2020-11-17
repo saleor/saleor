@@ -2,7 +2,7 @@ import graphene
 import pytest
 from django.contrib.auth.models import Group
 
-from .....core.permissions import AccountPermissions
+from .....core.permissions import AccountPermissions, OrderPermissions
 from ....tests.utils import get_graphql_content
 
 
@@ -50,10 +50,7 @@ def test_permission_group_create(
     variables = {
         "input": {
             "name": "New permission group",
-            "addPermissions": [
-                AccountPermissions.MANAGE_USERS.name,
-                AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
-            ],
+            "addPermissions": [AccountPermissions.MANAGE_USERS.name],
             "addUsers": [graphene.Node.to_global_id("User", staff_user.id)],
         }
     }
@@ -77,6 +74,7 @@ def test_permission_group_update(
     staff_api_client,
     permission_manage_apps,
     permission_manage_users,
+    permission_manage_orders,
     count_queries,
 ):
     query = """
@@ -104,7 +102,9 @@ def test_permission_group_update(
     }
     """
     staff_user = staff_users[0]
-    staff_user.user_permissions.add(permission_manage_apps, permission_manage_users)
+    staff_user.user_permissions.add(
+        permission_manage_apps, permission_manage_users, permission_manage_orders
+    )
     group1, group2 = Group.objects.bulk_create(
         [Group(name="manage users"), Group(name="manage staff and users")]
     )
@@ -121,7 +121,7 @@ def test_permission_group_update(
         "id": graphene.Node.to_global_id("Group", group1.id),
         "input": {
             "name": "New permission group",
-            "addPermissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
+            "addPermissions": [OrderPermissions.MANAGE_ORDERS.name],
             "removePermissions": [AccountPermissions.MANAGE_USERS.name],
             "addUsers": [graphene.Node.to_global_id("User", staff_user.pk)],
             "removeUsers": [

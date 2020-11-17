@@ -18,7 +18,6 @@ class AccountErrorCode(Enum):
     LEFT_NOT_MANAGEABLE_PERMISSION = "left_not_manageable_permission"
     INVALID_CREDENTIALS = "invalid_credentials"
     NOT_FOUND = "not_found"
-    OUT_OF_SCOPE_SERVICE_ACCOUNT = "out_of_scope_service_account"
     OUT_OF_SCOPE_USER = "out_of_scope_user"
     OUT_OF_SCOPE_GROUP = "out_of_scope_group"
     OUT_OF_SCOPE_PERMISSION = "out_of_scope_permission"

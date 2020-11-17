@@ -30,9 +30,6 @@
 <br>
 
 <div align="center">
-  <a href="https://circleci.com/gh/mirumee/saleor">
-    <img src="https://circleci.com/gh/mirumee/saleor.svg?style=svg" alt="Build status" />
-  </a>
   <a href="http://codecov.io/github/mirumee/saleor?branch=master">
     <img src="http://codecov.io/github/mirumee/saleor/coverage.svg?branch=master" alt="Codecov" />
   </a>
@@ -90,11 +87,11 @@ Saleor requires Python 3.8, Node.js 10.0+, PostgreSQL and OS-specific dependency
 Note:
 The `master` branch is the development version of Saleor and it may be unstable. To use the latest stable version, download it from the [Releases](https://github.com/mirumee/saleor/releases/) page or switch to a release tag.
 
-The current stable version is 2.10 and you should use this version for all three components:
+The current stable version is 2.11 and you should use this version for all three components:
 
-- Saleor: https://github.com/mirumee/saleor/releases/tag/2.10.2
-- Dashboard: https://github.com/mirumee/saleor-dashboard/releases/tag/2.10.0
-- Storefront: https://github.com/mirumee/saleor-storefront/releases/tag/2.10.3
+- Saleor: https://github.com/mirumee/saleor/releases/tag/2.11.1
+- Dashboard: https://github.com/mirumee/saleor-dashboard/releases/tag/2.11.1
+- Storefront: https://github.com/mirumee/saleor-storefront/releases/tag/2.11.0
 
 ## Documentation
 

@@ -56,11 +56,6 @@ class MenuItem(MPTTModel, SortableModel):
     def linked_object(self):
         return self.category or self.collection or self.page
 
-    def is_public(self):
-        return not self.linked_object or getattr(
-            self.linked_object, "is_published", True
-        )
-
 
 class MenuItemTranslation(models.Model):
     language_code = models.CharField(max_length=10)
