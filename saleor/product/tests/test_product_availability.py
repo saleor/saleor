@@ -243,3 +243,13 @@ def test_filter_not_published_product_is_unpublished_other_channel(
 
     available_products_pln = models.Product.objects.not_published(channel_PLN.slug)
     assert available_products_pln.count() == 1
+
+
+def test_filter_not_published_product_without_assigned_channel(
+    product, channel_USD, channel_PLN
+):
+    not_available_products_usd = models.Product.objects.not_published(channel_USD.slug)
+    assert not_available_products_usd.count() == 0
+
+    not_available_products_pln = models.Product.objects.not_published(channel_PLN.slug)
+    assert not_available_products_pln.count() == 1
