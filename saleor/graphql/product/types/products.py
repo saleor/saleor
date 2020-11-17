@@ -229,6 +229,10 @@ class ProductVariant(CountableDjangoObjectType):
         graphene.NonNull(SelectedAttribute),
         required=True,
         description="List of attributes assigned to this variant.",
+        variant_selection=graphene.Argument(
+            graphene.Boolean,
+            description="Whether an attribute can be used in a variant selection.",
+        ),
     )
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
     margin = graphene.Int(description="Gross margin percentage value.")
@@ -317,8 +321,24 @@ class ProductVariant(CountableDjangoObjectType):
         ).load((root.id, info.context.country))
 
     @staticmethod
-    def resolve_attributes(root: models.ProductVariant, info):
-        return SelectedAttributesByProductVariantIdLoader(info.context).load(root.id)
+    def resolve_attributes(
+        root: models.ProductVariant, info, variant_selection: bool = False
+    ):
+        def apply_variant_selection_filter(selected_attributes):
+            if not variant_selection:
+                return selected_attributes
+            return filter(
+                lambda selected_attribute: selected_attribute["attribute"].input_type
+                == AttributeInputType.DROPDOWN
+                and selected_attribute["attribute"].type == AttributeType.PRODUCT_TYPE,
+                selected_attributes,
+            )
+
+        return (
+            SelectedAttributesByProductVariantIdLoader(info.context)
+            .load(root.id)
+            .then(apply_variant_selection_filter)
+        )
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

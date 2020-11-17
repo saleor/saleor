@@ -3976,7 +3976,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   price: Money
   pricing: VariantPricingInfo
   isAvailable: Boolean @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
-  attributes: [SelectedAttribute!]!
+  attributes(variantSelection: Boolean): [SelectedAttribute!]!
   costPrice: Money
   margin: Int
   quantityOrdered: Int
