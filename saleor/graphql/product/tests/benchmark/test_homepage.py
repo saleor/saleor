@@ -1,25 +1,19 @@
 import pytest
 
+from ....core.enums import ReportingPeriod
 from ....tests.utils import get_graphql_content
 
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_retrieve_product_list(
-    api_client, homepage_collection, category, categories_tree, count_queries,
+    api_client, category, categories_tree, count_queries,
 ):
     query = """
         query ProductsList {
           shop {
             description
             name
-            homepageCollection {
-              id
-              backgroundImage {
-                url
-              }
-              name
-            }
           }
           categories(level: 0, first: 4) {
             edges {
@@ -39,71 +33,33 @@ def test_retrieve_product_list(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_featured_products_list(api_client, homepage_collection, count_queries):
+def test_report_product_sales(
+    staff_api_client,
+    order_with_lines,
+    order_with_lines_channel_PLN,
+    permission_manage_products,
+    permission_manage_orders,
+    channel_USD,
+    count_queries,
+):
     query = """
-        fragment BasicProductFields on Product {
-          id
-          name
-          thumbnail {
-            url
-            alt
-          }
-          thumbnail2x: thumbnail(size: 510) {
-            url
-          }
-        }
-
-        fragment Price on TaxedMoney {
-          gross {
-            amount
-            currency
-          }
-          net {
-            amount
-            currency
-          }
-        }
-
-        fragment ProductPricingField on Product {
-          pricing {
-            onSale
-            priceRangeUndiscounted {
-              start {
-                ...Price
-              }
-              stop {
-                ...Price
-              }
-            }
-            priceRange {
-              start {
-                ...Price
-              }
-              stop {
-                ...Price
-              }
-            }
-          }
-        }
-
-        query FeaturedProducts {
-          shop {
-            homepageCollection {
-              id
-              products(first: 20) {
-                edges {
-                  node {
-                    ...BasicProductFields
-                    ...ProductPricingField
-                    category {
-                      id
-                      name
-                    }
+        query TopProducts($period: ReportingPeriod!, $channel: String!) {
+          reportProductSales(period: $period, first: 20, channel: $channel) {
+            edges {
+              node {
+                revenue(period: $period) {
+                  gross {
+                    amount
                   }
                 }
+                quantityOrdered
+                sku
               }
             }
           }
         }
     """
-    get_graphql_content(api_client.post_graphql(query))
+    variables = {"period": ReportingPeriod.TODAY.name, "channel": channel_USD.slug}
+    permissions = [permission_manage_orders, permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    get_graphql_content(response)

@@ -81,6 +81,68 @@ def test_checkout_complete_order_already_exists(
     assert order_with_lines.token == order_token
 
 
+def test_checkout_complete_with_inactive_channel_order_already_exists(
+    user_api_client, order_with_lines, checkout_with_gift_card,
+):
+    checkout = checkout_with_gift_card
+    order_with_lines.checkout_token = checkout.pk
+    channel = order_with_lines.channel
+    channel.is_active = False
+    channel.save()
+    order_with_lines.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    checkout.delete()
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert data["checkoutErrors"][0]["code"] == CheckoutErrorCode.CHANNEL_INACTIVE.name
+    assert data["checkoutErrors"][0]["field"] == "channel"
+
+
+def test_checkout_complete_with_inactive_channel(
+    user_api_client,
+    checkout_with_gift_card,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_gift_card
+    channel = checkout.channel
+    channel.is_active = False
+    channel.save()
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.store_value_in_metadata(items={"accepted": "true"})
+    checkout.store_value_in_private_metadata(items={"accepted": "false"})
+    checkout.save()
+
+    total = calculations.calculate_checkout_total_with_gift_cards(checkout=checkout)
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert data["checkoutErrors"][0]["code"] == CheckoutErrorCode.CHANNEL_INACTIVE.name
+    assert data["checkoutErrors"][0]["field"] == "channel"
+
+
 @pytest.mark.integration
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete(
@@ -150,7 +212,7 @@ def test_checkout_complete(
     assert payment.transactions.count() == 1
 
     gift_card.refresh_from_db()
-    assert gift_card.current_balance == zero_money()
+    assert gift_card.current_balance == zero_money(gift_card.currency)
     assert gift_card.last_used_on
 
     assert not Checkout.objects.filter(
@@ -754,7 +816,7 @@ def test_checkout_complete_without_redirect_url(
     assert payment.transactions.count() == 1
 
     gift_card.refresh_from_db()
-    assert gift_card.current_balance == zero_money()
+    assert gift_card.current_balance == zero_money(gift_card.currency)
     assert gift_card.last_used_on
 
     assert not Checkout.objects.filter(

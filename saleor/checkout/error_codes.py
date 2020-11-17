@@ -22,3 +22,5 @@ class CheckoutErrorCode(Enum):
     UNIQUE = "unique"
     VOUCHER_NOT_APPLICABLE = "voucher_not_applicable"
     ZERO_QUANTITY = "zero_quantity"
+    MISSING_CHANNEL_SLUG = "missing_channel_slug"
+    CHANNEL_INACTIVE = "channel_inactive"

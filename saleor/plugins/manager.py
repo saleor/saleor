@@ -19,6 +19,7 @@ from .models import PluginConfiguration
 if TYPE_CHECKING:
     # flake8: noqa
     from ..account.models import Address, User
+    from ..channel.models import Channel
     from ..checkout.models import Checkout, CheckoutLine
     from ..invoice.models import Invoice
     from ..order.models import Fulfillment, Order, OrderLine
@@ -125,7 +126,8 @@ class PluginsManager(PaymentInterface):
         discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         line_totals = [
-            self.calculate_checkout_line_total(line, discounts) for line in lines
+            self.calculate_checkout_line_total(line, discounts, checkout.channel)
+            for line in lines
         ]
         default_value = base_calculations.base_checkout_subtotal(
             line_totals, checkout.currency
@@ -154,7 +156,9 @@ class PluginsManager(PaymentInterface):
     def calculate_order_shipping(self, order: "Order") -> TaxedMoney:
         if not order.shipping_method:
             return zero_taxed_money(order.currency)
-        shipping_price = order.shipping_method.price
+        shipping_price = order.shipping_method.channel_listings.get(
+            channel_id=order.channel_id
+        ).price
         default_value = quantize_price(
             TaxedMoney(net=shipping_price, gross=shipping_price),
             shipping_price.currency,
@@ -167,14 +171,21 @@ class PluginsManager(PaymentInterface):
         )
 
     def calculate_checkout_line_total(
-        self, checkout_line: "CheckoutLine", discounts: Iterable[DiscountInfo]
+        self,
+        checkout_line: "CheckoutLine",
+        discounts: Iterable[DiscountInfo],
+        channel: "Channel",
     ):
         default_value = base_calculations.base_checkout_line_total(
-            checkout_line, discounts
+            checkout_line, channel, discounts
         )
         return quantize_price(
             self.__run_method_on_plugins(
-                "calculate_checkout_line_total", default_value, checkout_line, discounts
+                "calculate_checkout_line_total",
+                default_value,
+                checkout_line,
+                discounts,
+                channel,
             ),
             checkout_line.checkout.currency,
         )
