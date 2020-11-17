@@ -1,13 +1,23 @@
 import logging
+import os
+import re
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 from email.headerregistry import Address
 from typing import Optional
 
+import html2text
+import i18naddress
+import pybars
+from babel.numbers import format_currency
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.core.mail.backends.smtp import EmailBackend
-from templated_email import TemplateBackend
+from django.utils.translation import pgettext
+from django_prices.utils.locale import get_locale_data
+from pybars import Compiler
 
 from .base_plugin import ConfigurationTypeField
 from .error_codes import PluginErrorCode
@@ -105,12 +115,54 @@ DEFAULT_EMAIL_CONFIG_STRUCTURE = {
 }
 
 
-def send_email(config: EmailConfig, recipient_list, template_name, context):
+def block_trans(this, options, *args, **kwargs):
+    # TODO add translation here
+    return options["fn"](this)
+
+
+def format_address(this, address, include_phone=True, inline=False, latin=False):
+    address["name"] = pgettext("Address data", "%(first_name)s %(last_name)s") % address
+    address["country_code"] = address["country"]
+    address["street_address"] = pgettext(
+        "Address data", "%(street_address_1)s\n" "%(street_address_2)s" % address
+    )
+    address_lines = i18naddress.format_address(address, latin).split("\n")
+    phone = address.get("phone")
+    if include_phone and phone:
+        address_lines.append(phone)
+    if inline is True:
+        return pybars.strlist([", ".join(address_lines)])
+    return pybars.strlist(["<br>".join(address_lines)])
+
+
+def price(this, net_amount, gross_amount, currency, display_gross=False):
+    amount = net_amount
+    if display_gross:
+        amount = gross_amount
+    try:
+        value = Decimal(amount)
+    except (TypeError, InvalidOperation):
+        return ""
+
+    locale, locale_code = get_locale_data()
+    pattern = locale.currency_formats.get("standard").pattern
+
+    pattern = re.sub("(\xa4+)", '<span class="currency">\\1</span>', pattern)
+
+    formatted_price = format_currency(
+        value, currency, format=pattern, locale=locale_code
+    )
+    return pybars.strlist([formatted_price])
+
+
+def send_email(
+    config: EmailConfig, recipient_list, context, subject="", template_str=""
+):
     sender_name = config.sender_name
     sender_address = config.sender_address
     if not sender_address or not sender_name:
         # TODO when we deprecate the default mail config from Site, we can drop this if
-        # and require the sender's data as a plugin input.
+        # and require the sender's data as a plugin input or take it from settings file.
         site = Site.objects.get_current()
         sender_name = sender_name or site.settings.default_mail_sender_name
         sender_address = sender_address or site.settings.default_mail_sender_address
@@ -125,24 +177,24 @@ def send_email(config: EmailConfig, recipient_list, template_name, context):
         use_ssl=config.use_ssl,
         use_tls=config.use_tls,
     )
-    template_backend = TemplateBackend()
-    template_backend.send(
-        from_email=from_email,
+    compiler = Compiler()
+    template = compiler.compile(template_str)
+    subject_template = compiler.compile(subject)
+    helpers = {
+        "blocktrans": block_trans,
+        "format_address": format_address,
+        "price": price,
+    }
+    message = template(context, helpers=helpers)
+    subject_message = subject_template(context, helpers)
+    send_mail(
+        subject_message,
+        html2text.html2text(message),
+        from_email,
+        recipient_list,
+        html_message=message,
         connection=email_backend,
-        template_name=template_name,
-        recipient_list=recipient_list,
-        context=context,
     )
-    # TODO the template mail will be replaced by the send_mail whith rendered msg by
-    # staff user
-
-    # send_mail(
-    #     subject,
-    #     message,
-    #     from_email,
-    #     recipient_list,
-    #     connection=email_backend
-    # )
 
 
 def validate_email_config(config: EmailConfig):
@@ -187,7 +239,16 @@ def validate_default_email_configuration(plugin_configuration: "PluginConfigurat
                 ),
             }
         )
-    config = EmailConfig(**configuration)
+    config = EmailConfig(
+        host=configuration["host"] or settings.EMAIL_HOST,
+        port=configuration["port"] or settings.EMAIL_PORT,
+        username=configuration["username"] or settings.EMAIL_HOST_USER,
+        password=configuration["password"] or settings.EMAIL_HOST_PASSWORD,
+        sender_name=configuration["sender_name"],
+        sender_address=configuration["sender_address"],
+        use_tls=configuration["use_tls"],
+        use_ssl=configuration["use_ssl"],
+    )
     try:
         validate_email_config(config)
     except Exception as e:
@@ -204,3 +265,46 @@ def validate_default_email_configuration(plugin_configuration: "PluginConfigurat
                 for c in configuration.keys()
             }
         )
+
+
+def get_email_template(
+    plugin_identifier: str, template_field_name: str, default: str
+) -> str:
+    """Get email template from plugin configuration."""
+    plugin_configuration = PluginConfiguration.objects.filter(
+        identifier=plugin_identifier
+    ).first()
+    if not plugin_configuration:
+        return default
+    configuration = plugin_configuration.configuration
+    for config_field in configuration:
+        if config_field["name"] == template_field_name:
+            return config_field["value"] or default
+    return default
+
+
+def get_email_subject(
+    plugin_identifier: str, subject_field_name: str, default: str
+) -> str:
+    """Get email subject from plugin configuration."""
+    plugin_configuration = PluginConfiguration.objects.filter(
+        identifier=plugin_identifier
+    ).first()
+    if not plugin_configuration:
+        return default
+    configuration = plugin_configuration.configuration
+    for config_field in configuration:
+        if config_field["name"] == subject_field_name:
+            return config_field["value"] or default
+    return default
+
+
+def get_default_email_template(template_file_name: str) -> str:
+    """Get default template."""
+    default_template_path = os.path.join(
+        settings.TEMPLATES_DIR, "templated_email/compiled/"
+    )
+    default_template_path = os.path.join(default_template_path, template_file_name)
+    with open(default_template_path) as f:
+        template_str = f.read()
+        return template_str
