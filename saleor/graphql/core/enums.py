@@ -2,6 +2,7 @@ import graphene
 
 from ...account import error_codes as account_error_codes
 from ...app import error_codes as app_error_codes
+from ...channel import error_codes as channel_error_codes
 from ...checkout import error_codes as checkout_error_codes
 from ...core import JobStatus, error_codes as core_error_codes
 from ...core.permissions import get_permissions_enum_list
@@ -87,6 +88,7 @@ WeightUnitsEnum = graphene.Enum(
 
 AccountErrorCode = graphene.Enum.from_enum(account_error_codes.AccountErrorCode)
 AppErrorCode = graphene.Enum.from_enum(app_error_codes.AppErrorCode)
+ChannelErrorCode = graphene.Enum.from_enum(channel_error_codes.ChannelErrorCode)
 CheckoutErrorCode = graphene.Enum.from_enum(checkout_error_codes.CheckoutErrorCode)
 ExportErrorCode = graphene.Enum.from_enum(csv_error_codes.ExportErrorCode)
 DiscountErrorCode = graphene.Enum.from_enum(discount_error_codes.DiscountErrorCode)
@@ -102,6 +104,7 @@ PermissionGroupErrorCode = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode
 )
 ProductErrorCode = graphene.Enum.from_enum(product_error_codes.ProductErrorCode)
+CollectionErrorCode = graphene.Enum.from_enum(product_error_codes.CollectionErrorCode)
 ShopErrorCode = graphene.Enum.from_enum(core_error_codes.ShopErrorCode)
 ShippingErrorCode = graphene.Enum.from_enum(shipping_error_codes.ShippingErrorCode)
 StockErrorCode = graphene.Enum.from_enum(warehouse_error_codes.StockErrorCode)

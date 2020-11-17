@@ -6,6 +6,9 @@ from django.core.exceptions import ValidationError
 from ...core import models
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
+from ...product import models as product_models
+from ...shipping import models as shipping_models
+from ..channel import ChannelContext
 from ..core.mutations import BaseMutation
 from ..core.types.common import MetadataError
 from .extra_methods import MODEL_EXTRA_METHODS
@@ -112,6 +115,21 @@ class BaseMetadataMutation(BaseMutation):
     @classmethod
     def success_response(cls, instance):
         """Return a success response."""
+        # Wrap the instance with ChannelContext for models that use it.
+        use_channel_context = any(
+            [
+                isinstance(instance, Model)
+                for Model in [
+                    product_models.Product,
+                    product_models.ProductVariant,
+                    product_models.Collection,
+                    shipping_models.ShippingMethod,
+                    shipping_models.ShippingZone,
+                ]
+            ]
+        )
+        if use_channel_context:
+            instance = ChannelContext(node=instance, channel_slug=None)
         return cls(**{"item": instance, "errors": []})
 
 

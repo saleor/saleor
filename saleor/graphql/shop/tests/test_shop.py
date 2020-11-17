@@ -76,22 +76,6 @@ def test_query_countries_with_translation(
     assert data["countries"][0]["country"] == expected_value
 
 
-def test_query_currencies(user_api_client, settings):
-    query = """
-    query {
-        shop {
-            currencies
-            defaultCurrency
-        }
-    }
-    """
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    data = content["data"]["shop"]
-    assert len(data["currencies"]) == len(settings.AVAILABLE_CURRENCIES)
-    assert data["defaultCurrency"] == settings.DEFAULT_CURRENCY
-
-
 def test_query_name(user_api_client, site_settings):
     query = """
     query {
@@ -584,61 +568,6 @@ def test_shop_customer_set_password_url_update_invalid_url(
     assert not site_settings.customer_set_password_url
 
 
-def test_homepage_collection_update(
-    staff_api_client, collection, permission_manage_settings
-):
-    query = """
-        mutation homepageCollectionUpdate($collection: ID!) {
-            homepageCollectionUpdate(collection: $collection) {
-                shop {
-                    homepageCollection {
-                        id,
-                        name
-                    }
-                }
-            }
-        }
-    """
-    collection_id = graphene.Node.to_global_id("Collection", collection.id)
-    variables = {"collection": collection_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["homepageCollectionUpdate"]["shop"]
-    assert data["homepageCollection"]["id"] == collection_id
-    assert data["homepageCollection"]["name"] == collection.name
-    site = Site.objects.get_current()
-    assert site.settings.homepage_collection == collection
-
-
-def test_homepage_collection_update_set_null(
-    staff_api_client, collection, site_settings, permission_manage_settings
-):
-    query = """
-        mutation homepageCollectionUpdate($collection: ID) {
-            homepageCollectionUpdate(collection: $collection) {
-                shop {
-                    homepageCollection {
-                        id
-                    }
-                }
-            }
-        }
-    """
-    site_settings.homepage_collection = collection
-    site_settings.save()
-    variables = {"collection": None}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["homepageCollectionUpdate"]["shop"]
-    assert data["homepageCollection"] is None
-    site_settings.refresh_from_db()
-    assert site_settings.homepage_collection is None
-
-
 def test_query_default_country(user_api_client, settings):
     settings.DEFAULT_COUNTRY = "US"
     query = """
@@ -726,11 +655,11 @@ def test_query_available_payment_gateways_specified_currency_USD(
     }
 
 
-def test_query_available_payment_gateways_specified_currency_PLN(
+def test_query_available_payment_gateways_specified_currency_EUR(
     user_api_client, sample_gateway
 ):
     query = AVAILABLE_PAYMENT_GATEWAYS_QUERY
-    response = user_api_client.post_graphql(query, {"currency": "PLN"})
+    response = user_api_client.post_graphql(query, {"currency": "EUR"})
     content = get_graphql_content(response)
     data = content["data"]["shop"]["availablePaymentGateways"]
     assert data[0]["id"] == "sampleDummy.active"

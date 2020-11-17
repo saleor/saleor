@@ -12,12 +12,12 @@ from .. import models
 from ..models import DigitalContentUrl
 from ..thumbnails import create_product_thumbnails
 from ..utils.attributes import associate_attribute_values_to_instance
-from ..utils.costs import get_margin_for_variant
+from ..utils.costs import get_margin_for_variant_channel_listing
 from ..utils.digital_products import increment_download_count
 
 
-def test_filtering_by_attributes(
-    db, color_attribute, size_attribute, category, settings
+def test_filtering_by_attribute(
+    db, color_attribute, size_attribute, category, channel_USD, settings
 ):
     product_type_a = models.ProductType.objects.create(
         name="New class", slug="new-class1", has_variants=True
@@ -33,8 +33,13 @@ def test_filtering_by_attributes(
         product_type=product_type_a,
         category=category,
     )
-    models.ProductVariant.objects.create(
-        product=product_a, sku="1234", price_amount=Decimal(10)
+    variant_a = models.ProductVariant.objects.create(product=product_a, sku="1234")
+    models.ProductVariantChannelListing.objects.create(
+        variant=variant_a,
+        channel=channel_USD,
+        cost_price_amount=Decimal(1),
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     product_b = models.Product.objects.create(
         name="Test product b",
@@ -42,8 +47,13 @@ def test_filtering_by_attributes(
         product_type=product_type_b,
         category=category,
     )
-    variant_b = models.ProductVariant.objects.create(
-        product=product_b, sku="12345", price_amount=Decimal(10)
+    variant_b = models.ProductVariant.objects.create(product=product_b, sku="12345")
+    models.ProductVariantChannelListing.objects.create(
+        variant=variant_b,
+        channel=channel_USD,
+        cost_price_amount=Decimal(1),
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
     )
     color = color_attribute.values.first()
     color_2 = color_attribute.values.last()
@@ -101,24 +111,40 @@ def test_get_price(
     include_discounts,
     site_settings,
     discount_info,
+    channel_USD,
 ):
     product = models.Product.objects.create(
         product_type=product_type, category=category,
     )
-    variant = product.variants.create(price_amount=15)
-
-    price = variant.get_price(discounts=[discount_info] if include_discounts else [])
+    variant = product.variants.create()
+    models.ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(15),
+        currency=channel_USD.currency_code,
+    )
+    price = variant.get_price(
+        channel_USD.slug, discounts=[discount_info] if include_discounts else []
+    )
 
     assert price.amount == expected_price
 
 
-def test_product_get_price_do_not_charge_taxes(product_type, category, discount_info):
+def test_product_get_price_do_not_charge_taxes(
+    product_type, category, discount_info, channel_USD
+):
     product = models.Product.objects.create(
         product_type=product_type, category=category, charge_taxes=False,
     )
-    variant = product.variants.create(price_amount=Decimal(10))
+    variant = product.variants.create()
+    models.ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
+    )
 
-    price = variant.get_price(discounts=[discount_info])
+    price = variant.get_price(channel_USD.slug, discounts=[discount_info])
 
     assert price == Money("5.00", "USD")
 
@@ -216,16 +242,25 @@ def test_digital_product_view_url_expired(client, digital_content):
 @pytest.mark.parametrize(
     "price, cost", [(Money("0", "USD"), Money("1", "USD")), (Money("2", "USD"), None)]
 )
-def test_costs_get_margin_for_variant(variant, price, cost):
-    variant.cost_price = cost
-    variant.price = price
-    assert not get_margin_for_variant(variant)
+def test_costs_get_margin_for_variant_channel_listing(
+    variant, price, cost, channel_USD
+):
+    variant_channel_listing = variant.channel_listings.filter(
+        channel_id=channel_USD.id
+    ).first()
+    variant_channel_listing.cost_price = cost
+    variant_channel_listing.price = price
+    assert not get_margin_for_variant_channel_listing(variant_channel_listing)
 
 
 @patch("saleor.product.thumbnails.create_thumbnails")
 def test_create_product_thumbnails(mock_create_thumbnails, product_with_image):
     product_image = product_with_image.images.first()
     create_product_thumbnails(product_image.pk)
-    assert mock_create_thumbnails.called_once_with(
-        product_image.pk, models.ProductImage, "products"
-    )
+    assert mock_create_thumbnails.call_count == 1
+    args, kwargs = mock_create_thumbnails.call_args
+    assert kwargs == {
+        "model": models.ProductImage,
+        "pk": product_image.pk,
+        "size_set": "products",
+    }

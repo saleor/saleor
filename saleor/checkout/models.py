@@ -13,6 +13,7 @@ from django_prices.models import MoneyField
 from prices import Money
 
 from ..account.models import Address
+from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.permissions import CheckoutPermissions
 from ..core.taxes import zero_money
@@ -64,6 +65,9 @@ class Checkout(ModelWithMetadata):
     email = models.EmailField()
     token = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     quantity = models.PositiveIntegerField(default=0)
+    channel = models.ForeignKey(
+        Channel, related_name="checkouts", on_delete=models.PROTECT,
+    )
     billing_address = models.ForeignKey(
         Address, related_name="+", editable=False, null=True, on_delete=models.SET_NULL
     )
@@ -79,10 +83,7 @@ class Checkout(ModelWithMetadata):
     )
     note = models.TextField(blank=True, default="")
 
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        default=settings.DEFAULT_CURRENCY,
-    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,)
     country = CountryField(default=get_default_country)
 
     discount_amount = models.DecimalField(

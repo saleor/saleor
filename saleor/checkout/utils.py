@@ -7,6 +7,7 @@ from django.utils import timezone
 from prices import Money, MoneyRange, TaxedMoneyRange
 
 from ..account.models import User
+from ..channel.models import Channel
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import ProductNotPublished
@@ -36,22 +37,9 @@ from .models import Checkout, CheckoutLine
 
 
 def get_user_checkout(
-    user: User, checkout_queryset=Checkout.objects.all(), auto_create=False
+    user: User, checkout_queryset=Checkout.objects.all()
 ) -> Tuple[Optional[Checkout], bool]:
-    """Return an active checkout for given user or None if no auto create.
-
-    If auto create is enabled, it will retrieve an active checkout or create it
-    (safer for concurrency).
-    """
-    if auto_create:
-        return checkout_queryset.get_or_create(
-            user=user,
-            defaults={
-                "shipping_address": user.default_shipping_address,
-                "billing_address": user.default_billing_address,
-            },
-        )
-    return checkout_queryset.filter(user=user).first(), False
+    return checkout_queryset.filter(user=user, channel__is_active=True).first()
 
 
 def update_checkout_quantity(checkout):
@@ -93,7 +81,10 @@ def add_variant_to_checkout(
     If `replace` is truthy then any previous quantity is discarded instead
     of added to.
     """
-    if not variant.product.is_published:
+    product_channel_listing = variant.product.channel_listings.filter(
+        channel_id=checkout.channel_id
+    ).first()
+    if not product_channel_listing or not product_channel_listing.is_published:
         raise ProductNotPublished()
 
     new_quantity, line = check_variant_in_stock(
@@ -194,25 +185,28 @@ def _get_shipping_voucher_discount_for_checkout(
     shipping_price = calculations.checkout_shipping_price(
         checkout=checkout, lines=lines, discounts=discounts
     ).gross
-    return voucher.get_discount_amount_for(shipping_price)
+    return voucher.get_discount_amount_for(shipping_price, checkout.channel)
 
 
 def _get_products_voucher_discount(
-    lines, voucher, discounts: Optional[Iterable[DiscountInfo]] = None
+    lines, voucher, channel, discounts: Optional[Iterable[DiscountInfo]] = None
 ):
     """Calculate products discount value for a voucher, depending on its type."""
     prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        prices = get_prices_of_discounted_specific_product(lines, voucher, discounts)
+        prices = get_prices_of_discounted_specific_product(
+            lines, voucher, channel, discounts
+        )
     if not prices:
         msg = "This offer is only valid for selected items."
         raise NotApplicable(msg)
-    return get_products_voucher_discount(voucher, prices)
+    return get_products_voucher_discount(voucher, prices, channel)
 
 
 def get_prices_of_discounted_specific_product(
     lines: List[CheckoutLine],
     voucher: Voucher,
+    channel: Channel,
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> List[Money]:
     """Get prices of variants belonging to the discounted specific products.
@@ -225,7 +219,7 @@ def get_prices_of_discounted_specific_product(
     discounted_lines = get_discounted_lines(lines, voucher)
     for line in discounted_lines:
         line_total = calculations.checkout_line_total(
-            line=line, discounts=discounts or []
+            line=line, discounts=discounts or [], channel=channel
         ).gross
         line_unit_price = quantize_price(
             (line_total / line.quantity), line_total.currency
@@ -250,13 +244,15 @@ def get_voucher_discount_for_checkout(
         subtotal = calculations.checkout_subtotal(
             checkout=checkout, lines=lines, discounts=discounts
         ).gross
-        return voucher.get_discount_amount_for(subtotal)
+        return voucher.get_discount_amount_for(subtotal, checkout.channel)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(
             voucher, checkout, lines, discounts
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        return _get_products_voucher_discount(lines, voucher, discounts)
+        return _get_products_voucher_discount(
+            lines, voucher, checkout.channel, discounts
+        )
     raise NotImplementedError("Unknown discount type")
 
 
@@ -266,7 +262,9 @@ def get_voucher_for_checkout(
     """Return voucher with voucher code saved in checkout if active or None."""
     if checkout.voucher_code is not None:
         if vouchers is None:
-            vouchers = Voucher.objects.active(date=timezone.now())
+            vouchers = Voucher.objects.active_in_channel(
+                date=timezone.now(), channel_slug=checkout.channel.slug
+            )
         try:
             qs = vouchers
             if with_lock:
@@ -302,7 +300,7 @@ def recalculate_checkout_discount(
                 if voucher.type != VoucherType.SHIPPING
                 else discount
             )
-            checkout.discount_name = str(voucher)
+            checkout.discount_name = voucher.name
             checkout.translated_discount_name = (
                 voucher.translated.name
                 if voucher.translated.name != voucher.name
@@ -349,7 +347,9 @@ def add_voucher_code_to_checkout(
     Raise InvalidPromoCode() if voucher of given type cannot be applied.
     """
     try:
-        voucher = Voucher.objects.active(date=timezone.now()).get(code=voucher_code)
+        voucher = Voucher.objects.active_in_channel(
+            date=timezone.now(), channel_slug=checkout.channel.slug
+        ).get(code=voucher_code)
     except Voucher.DoesNotExist:
         raise InvalidPromoCode()
     try:
@@ -433,6 +433,7 @@ def get_valid_shipping_methods_for_checkout(
     manager = get_plugins_manager()
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout,
+        channel_id=checkout.channel_id,
         price=manager.calculate_checkout_subtotal(checkout, lines, discounts).gross,
         country_code=country_code,
     )
