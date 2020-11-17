@@ -7,7 +7,7 @@ from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
 
-from ....attribute import AttributeInputType, AttributeType, models as attribute_models
+from ....attribute import models as attribute_models
 from ....core.permissions import OrderPermissions, ProductPermissions
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
@@ -21,6 +21,7 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
+from ....product.utils.variants import get_variant_selection_attributes
 from ....warehouse.availability import (
     get_available_quantity,
     get_quantity_allocated,
@@ -327,12 +328,16 @@ class ProductVariant(CountableDjangoObjectType):
         def apply_variant_selection_filter(selected_attributes):
             if not variant_selection:
                 return selected_attributes
-            return filter(
-                lambda selected_attribute: selected_attribute["attribute"].input_type
-                == AttributeInputType.DROPDOWN
-                and selected_attribute["attribute"].type == AttributeType.PRODUCT_TYPE,
-                selected_attributes,
-            )
+            attributes = [
+                selected_att["attribute"] for selected_att in selected_attributes
+            ]
+            variant_selection_attrs = get_variant_selection_attributes(attributes)
+
+            return [
+                selected_attribute
+                for selected_attribute in selected_attributes
+                if selected_attribute["attribute"] in variant_selection_attrs
+            ]
 
         return (
             SelectedAttributesByProductVariantIdLoader(info.context)
@@ -728,20 +733,14 @@ class ProductType(CountableDjangoObjectType):
     def resolve_variant_attributes(
         root: models.ProductType, info, variant_selection: bool = False,
     ):
-        def apply_variant_selection_filter(attributes):
-            if not variant_selection:
-                return attributes
-            return [
-                attribute
-                for attribute in attributes
-                if attribute.input_type == AttributeInputType.DROPDOWN
-                and attribute.type == AttributeType.PRODUCT_TYPE
-            ]
-
         return (
             VariantAttributesByProductTypeIdLoader(info.context)
             .load(root.pk)
-            .then(apply_variant_selection_filter)
+            .then(
+                lambda attributes: attributes
+                if not variant_selection
+                else get_variant_selection_attributes(attributes)
+            )
         )
 
     @staticmethod

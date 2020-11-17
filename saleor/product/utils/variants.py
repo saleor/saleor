@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+from ...attribute import AttributeInputType, AttributeType
+
 if TYPE_CHECKING:
     from ...attribute.models import AssignedVariantAttribute
     from ..models import ProductVariant
@@ -15,3 +17,12 @@ def generate_name_for_variant(variant: "ProductVariant") -> str:
         attributes_display.append(", ".join(translated_values))
 
     return " / ".join(attributes_display)
+
+
+def get_variant_selection_attributes(attributes):
+    return [
+        attribute
+        for attribute in attributes
+        if attribute.input_type == AttributeInputType.DROPDOWN
+        and attribute.type == AttributeType.PRODUCT_TYPE
+    ]
