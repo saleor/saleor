@@ -226,10 +226,12 @@ def test_query_menus_with_sort(
         assert menus[order]["node"]["name"] == menu_name
 
 
-def test_menu_items_query(user_api_client, menu_item, collection):
+def test_menu_items_query(
+    user_api_client, menu_item, published_collection, channel_USD
+):
     query = """
-    query menuitem($id: ID!) {
-        menuItem(id: $id) {
+    query menuitem($id: ID!, $channel: String) {
+        menuItem(id: $id, channel: $channel) {
             name
             children {
                 name
@@ -247,20 +249,68 @@ def test_menu_items_query(user_api_client, menu_item, collection):
         }
     }
     """
-    menu_item.collection = collection
+    menu_item.collection = published_collection
     menu_item.url = None
     menu_item.save()
     child_menu = MenuItem.objects.create(
         menu=menu_item.menu, name="Link 2", url="http://example2.com/", parent=menu_item
     )
-    variables = {"id": graphene.Node.to_global_id("MenuItem", menu_item.pk)}
+    variables = {
+        "id": graphene.Node.to_global_id("MenuItem", menu_item.pk),
+        "channel": channel_USD.slug,
+    }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["menuItem"]
     assert data["name"] == menu_item.name
     assert len(data["children"]) == 1
     assert data["children"][0]["name"] == child_menu.name
-    assert data["collection"]["name"] == collection.name
+    assert data["collection"]["name"] == published_collection.name
+    assert not data["category"]
+    assert not data["page"]
+    assert data["url"] is None
+
+
+def test_menu_items_collection_in_other_channel(
+    user_api_client, menu_item, published_collection, channel_PLN
+):
+    query = """
+    query menuitem($id: ID!, $channel: String) {
+        menuItem(id: $id, channel: $channel) {
+            name
+            children {
+                name
+            }
+            collection {
+                name
+            }
+            category {
+                id
+            }
+            page {
+                id
+            }
+            url
+        }
+    }
+    """
+    menu_item.collection = published_collection
+    menu_item.url = None
+    menu_item.save()
+    child_menu = MenuItem.objects.create(
+        menu=menu_item.menu, name="Link 2", url="http://example2.com/", parent=menu_item
+    )
+    variables = {
+        "id": graphene.Node.to_global_id("MenuItem", menu_item.pk),
+        "channel": channel_PLN.slug,
+    }
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["menuItem"]
+    assert data["name"] == menu_item.name
+    assert len(data["children"]) == 1
+    assert data["children"][0]["name"] == child_menu.name
+    assert not data["collection"]
     assert not data["category"]
     assert not data["page"]
     assert data["url"] is None
@@ -360,7 +410,7 @@ def test_menu_item_query_static_url(user_api_client, menu_item):
 
 
 def test_create_menu(
-    staff_api_client, collection, category, page, permission_manage_menus
+    staff_api_client, published_collection, category, page, permission_manage_menus
 ):
     query = """
     mutation mc($name: String!, $collection: ID,
@@ -386,7 +436,7 @@ def test_create_menu(
     """
 
     category_id = graphene.Node.to_global_id("Category", category.pk)
-    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
     page_id = graphene.Node.to_global_id("Page", page.pk)
     url = "http://www.example.com"
 

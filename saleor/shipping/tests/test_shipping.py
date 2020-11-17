@@ -3,15 +3,13 @@ from django_countries import countries
 from measurement.measures import Weight
 from prices import Money
 
-from ..models import ShippingMethod, ShippingMethodType, ShippingZone
+from ..models import (
+    ShippingMethod,
+    ShippingMethodChannelListing,
+    ShippingMethodType,
+    ShippingZone,
+)
 from ..utils import default_shipping_zone_exists, get_countries_without_shipping_zone
-
-
-def test_shipping_get_total(monkeypatch, shipping_zone):
-    method = shipping_zone.shipping_methods.get()
-    price = Money("10.0", "USD")
-
-    assert method.get_total() == price
 
 
 @pytest.mark.parametrize(
@@ -26,17 +24,22 @@ def test_shipping_get_total(monkeypatch, shipping_zone):
     ),
 )  # regular case
 def test_applicable_shipping_methods_price(
-    shipping_zone, price, min_price, max_price, shipping_included
+    shipping_zone, price, min_price, max_price, shipping_included, channel_USD
 ):
-    method = shipping_zone.shipping_methods.create(
+    method = shipping_zone.shipping_methods.create(type=ShippingMethodType.PRICE_BASED,)
+    ShippingMethodChannelListing.objects.create(
+        currency=channel_USD.currency_code,
         minimum_order_price_amount=min_price,
         maximum_order_price_amount=max_price,
-        currency="USD",
-        type=ShippingMethodType.PRICE_BASED,
+        shipping_method=method,
+        channel=channel_USD,
     )
     assert "PL" in shipping_zone.countries
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money(price, "USD"), weight=Weight(kg=0), country_code="PL"
+        price=Money(price, "USD"),
+        weight=Weight(kg=0),
+        country_code="PL",
+        channel_id=channel_USD.id,
     )
     assert (method in result) == shipping_included
 
@@ -53,61 +56,91 @@ def test_applicable_shipping_methods_price(
     ),
 )  # regular case
 def test_applicable_shipping_methods_weight(
-    weight, min_weight, max_weight, shipping_included, shipping_zone
+    weight, min_weight, max_weight, shipping_included, shipping_zone, channel_USD
 ):
     method = shipping_zone.shipping_methods.create(
         minimum_order_weight=min_weight,
         maximum_order_weight=max_weight,
         type=ShippingMethodType.WEIGHT_BASED,
     )
+    ShippingMethodChannelListing.objects.create(
+        shipping_method=method, channel=channel_USD, currency=channel_USD.currency_code
+    )
+
     assert "PL" in shipping_zone.countries
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money("0", "USD"), weight=weight, country_code="PL"
+        price=Money("0", "USD"),
+        weight=weight,
+        country_code="PL",
+        channel_id=channel_USD.id,
     )
     assert (method in result) == shipping_included
 
 
-def test_applicable_shipping_methods_country_code_outside_shipping_zone(shipping_zone):
-    method = shipping_zone.shipping_methods.create(
+def test_applicable_shipping_methods_country_code_outside_shipping_zone(
+    shipping_zone, channel_USD
+):
+    method = shipping_zone.shipping_methods.create(type=ShippingMethodType.PRICE_BASED,)
+    ShippingMethodChannelListing.objects.create(
         minimum_order_price=Money("1.0", "USD"),
         maximum_order_price=Money("10.0", "USD"),
-        type=ShippingMethodType.PRICE_BASED,
+        shipping_method=method,
+        channel=channel_USD,
     )
+
     shipping_zone.countries = ["DE"]
     shipping_zone.save()
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money("5.0", "USD"), weight=Weight(kg=0), country_code="PL"
+        price=Money("5.0", "USD"),
+        weight=Weight(kg=0),
+        country_code="PL",
+        channel_id=channel_USD.id,
     )
     assert method not in result
 
 
-def test_applicable_shipping_methods_inproper_shipping_method_type(shipping_zone):
+def test_applicable_shipping_methods_inproper_shipping_method_type(
+    shipping_zone, channel_USD
+):
     """Case when shipping suits the price requirements of the weight type
     shipping method and the other way around.
     """
     price_method = shipping_zone.shipping_methods.create(
-        minimum_order_price=Money("1.0", "USD"),
-        maximum_order_price=Money("10.0", "USD"),
-        minimum_order_weight=Weight(kg=100),
-        type=ShippingMethodType.WEIGHT_BASED,
+        minimum_order_weight=Weight(kg=100), type=ShippingMethodType.WEIGHT_BASED,
     )
     weight_method = shipping_zone.shipping_methods.create(
         minimum_order_weight=Weight(kg=1),
         maximum_order_weight=Weight(kg=10),
-        minimum_order_price=Money("1000.0", "USD"),
         type=ShippingMethodType.PRICE_BASED,
     )
+    ShippingMethodChannelListing.objects.bulk_create(
+        [
+            ShippingMethodChannelListing(
+                minimum_order_price=Money("1.0", "USD"),
+                maximum_order_price=Money("10.0", "USD"),
+                shipping_method=price_method,
+                channel=channel_USD,
+            ),
+            ShippingMethodChannelListing(
+                shipping_method=weight_method,
+                channel=channel_USD,
+                minimum_order_price=Money("1000.0", "USD"),
+            ),
+        ]
+    )
+
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money("5.0", "USD"), weight=Weight(kg=5), country_code="PL"
+        price=Money("5.0", "USD"),
+        weight=Weight(kg=5),
+        country_code="PL",
+        channel_id=channel_USD.id,
     )
     assert price_method not in result
     assert weight_method not in result
 
 
-def test_applicable_shipping_methods(shipping_zone):
+def test_applicable_shipping_methods(shipping_zone, channel_USD):
     price_method = shipping_zone.shipping_methods.create(
-        minimum_order_price=Money("1.0", "USD"),
-        maximum_order_price=Money("10.0", "USD"),
         type=ShippingMethodType.PRICE_BASED,
     )
     weight_method = shipping_zone.shipping_methods.create(
@@ -115,14 +148,57 @@ def test_applicable_shipping_methods(shipping_zone):
         maximum_order_weight=Weight(kg=10),
         type=ShippingMethodType.WEIGHT_BASED,
     )
+    ShippingMethodChannelListing.objects.bulk_create(
+        [
+            ShippingMethodChannelListing(
+                shipping_method=weight_method,
+                channel=channel_USD,
+                currency=channel_USD.currency_code,
+            ),
+            ShippingMethodChannelListing(
+                minimum_order_price=Money("1.0", "USD"),
+                maximum_order_price=Money("10.0", "USD"),
+                shipping_method=price_method,
+                channel=channel_USD,
+                currency=channel_USD.currency_code,
+            ),
+        ]
+    )
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money("5.0", "USD"), weight=Weight(kg=5), country_code="PL"
+        price=Money("5.0", "USD"),
+        weight=Weight(kg=5),
+        country_code="PL",
+        channel_id=channel_USD.id,
     )
     assert price_method in result
     assert weight_method in result
 
 
-def test_use_default_shipping_zone(shipping_zone):
+def test_applicable_shipping_methods_not_in_channel(shipping_zone, channel_USD):
+    price_method = shipping_zone.shipping_methods.create(
+        type=ShippingMethodType.PRICE_BASED,
+    )
+    weight_method = shipping_zone.shipping_methods.create(
+        minimum_order_weight=Weight(kg=1),
+        maximum_order_weight=Weight(kg=10),
+        type=ShippingMethodType.WEIGHT_BASED,
+    )
+    ShippingMethodChannelListing.objects.create(
+        shipping_method=weight_method,
+        channel=channel_USD,
+        currency=channel_USD.currency_code,
+    ),
+    result = ShippingMethod.objects.applicable_shipping_methods(
+        price=Money("5.0", "USD"),
+        weight=Weight(kg=5),
+        country_code="PL",
+        channel_id=channel_USD.id,
+    )
+    assert price_method not in result
+    assert weight_method in result
+
+
+def test_use_default_shipping_zone(shipping_zone, channel_USD):
     shipping_zone.countries = ["PL"]
     shipping_zone.save()
 
@@ -135,8 +211,17 @@ def test_use_default_shipping_zone(shipping_zone):
         maximum_order_weight=Weight(kg=10),
         type=ShippingMethodType.WEIGHT_BASED,
     )
+
+    ShippingMethodChannelListing.objects.create(
+        shipping_method=weight_method,
+        channel=channel_USD,
+        currency=channel_USD.currency_code,
+    )
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=Money("5.0", "USD"), weight=Weight(kg=5), country_code="DE"
+        price=Money("5.0", "USD"),
+        weight=Weight(kg=5),
+        country_code="DE",
+        channel_id=channel_USD.id,
     )
     assert result[0] == weight_method
 

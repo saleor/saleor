@@ -6,7 +6,6 @@ from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
     AuthorizationKeyAdd,
     AuthorizationKeyDelete,
-    HomepageCollectionUpdate,
     OrderSettingsUpdate,
     ShopAddressUpdate,
     ShopDomainUpdate,
@@ -21,7 +20,7 @@ from .types import OrderSettings, Shop
 
 class ShopQueries(graphene.ObjectType):
     shop = graphene.Field(
-        Shop, description="Return information about the shop.", required=True
+        Shop, description="Return information about the shop.", required=True,
     )
     order_settings = graphene.Field(
         OrderSettings, description="Order related settings from site settings."
@@ -43,7 +42,6 @@ class ShopMutations(graphene.ObjectType):
     staff_notification_recipient_update = StaffNotificationRecipientUpdate.Field()
     staff_notification_recipient_delete = StaffNotificationRecipientDelete.Field()
 
-    homepage_collection_update = HomepageCollectionUpdate.Field()
     shop_domain_update = ShopDomainUpdate.Field()
     shop_settings_update = ShopSettingsUpdate.Field()
     shop_fetch_tax_rates = ShopFetchTaxRates.Field()

@@ -232,7 +232,7 @@ class OrderUpdateShipping(BaseMutation):
                 )
 
             order.shipping_method = None
-            order.shipping_price = zero_taxed_money()
+            order.shipping_price = zero_taxed_money(order.currency)
             order.shipping_method_name = None
             order.save(
                 update_fields=[
