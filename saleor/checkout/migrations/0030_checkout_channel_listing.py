@@ -39,6 +39,7 @@ class Migration(migrations.Migration):
             model_name="checkout",
             name="channel",
             field=models.ForeignKey(
+                null=True,
                 on_delete=django.db.models.deletion.PROTECT,
                 related_name="checkouts",
                 to="channel.channel",
@@ -50,4 +51,13 @@ class Migration(migrations.Migration):
             field=models.CharField(max_length=3),
         ),
         migrations.RunPython(add_channel_slug),
+        migrations.AlterField(
+            model_name="checkout",
+            name="channel",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="checkouts",
+                to="channel.channel",
+            ),
+        ),
     ]
