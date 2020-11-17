@@ -797,7 +797,7 @@ class Collection(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_products(root: models.Collection, info, first=None, **kwargs):
-        return root.products.collection_sorted(info.context.user)
+        return root.products.visible_to_user(info.context.user)
 
     @classmethod
     def get_node(cls, info, id):

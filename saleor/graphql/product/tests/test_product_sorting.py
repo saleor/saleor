@@ -12,7 +12,7 @@ mutation ReorderCollectionProducts($collectionId: ID!, $moves: [MoveProductInput
   collectionReorderProducts(collectionId: $collectionId, moves: $moves) {
     collection {
       id
-      products(first: 10) {
+      products(first: 10, sortBy:{field:COLLECTION, direction:ASC}) {
         edges {
           node {
             name
@@ -90,27 +90,14 @@ def test_sort_products_within_collection(
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
 
     products = collection_with_products
-    assert len(products) == 3
-
-    # Sort the products per sort_order
-    products = list(collection.products.collection_sorted(staff_user))
-    assert len(products) == 3
+    product = graphene.Node.to_global_id("Product", products[0].pk)
+    second_product = graphene.Node.to_global_id("Product", products[1].pk)
+    third_product = graphene.Node.to_global_id("Product", products[2].pk)
 
     variables = {
         "collectionId": collection_id,
-        "moves": [
-            {
-                "productId": graphene.Node.to_global_id("Product", products[0].pk),
-                "sortOrder": +1,
-            },
-            {
-                "productId": graphene.Node.to_global_id("Product", products[2].pk),
-                "sortOrder": -1,
-            },
-        ],
+        "moves": [{"productId": product, "sortOrder": -1}],
     }
-
-    expected_order = [products[1].pk, products[2].pk, products[0].pk]
 
     content = get_graphql_content(
         staff_api_client.post_graphql(COLLECTION_RESORT_QUERY, variables)
@@ -119,13 +106,23 @@ def test_sort_products_within_collection(
 
     assert content["collection"]["id"] == collection_id
 
-    gql_products = content["collection"]["products"]["edges"]
-    assert len(gql_products) == len(expected_order)
+    products = content["collection"]["products"]["edges"]
+    assert products[0]["node"]["id"] == product
+    assert products[1]["node"]["id"] == third_product
+    assert products[2]["node"]["id"] == second_product
 
-    for attr, expected_pk in zip(gql_products, expected_order):
-        gql_type, gql_attr_id = graphene.Node.from_global_id(attr["node"]["id"])
-        assert gql_type == "Product"
-        assert int(gql_attr_id) == expected_pk
+    variables = {
+        "collectionId": collection_id,
+        "moves": [{"productId": product, "sortOrder": 1}],
+    }
+    content = get_graphql_content(
+        staff_api_client.post_graphql(COLLECTION_RESORT_QUERY, variables)
+    )["data"]["collectionReorderProducts"]
+
+    products = content["collection"]["products"]["edges"]
+    assert products[0]["node"]["id"] == third_product
+    assert products[1]["node"]["id"] == product
+    assert products[2]["node"]["id"] == second_product
 
 
 GET_SORTED_PRODUCTS_QUERY = """
