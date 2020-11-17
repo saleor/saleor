@@ -69,6 +69,7 @@ def process_payment(
     success = False
     error = None
     transaction_id = None
+    searchable_key = None
     raw_response = None
     if response is not None:
         raw_response = etree.tostring(response).decode()
@@ -76,6 +77,7 @@ def process_payment(
             response.transactionResponse, "transId"
         ):
             transaction_id = response.transactionResponse.transId
+            searchable_key = transaction_id
         if response.messages.resultCode == "Ok":
             if hasattr(response.transactionResponse, "messages"):
                 success = True
@@ -104,4 +106,5 @@ def process_payment(
         kind=TransactionKind.CAPTURE,
         raw_response=raw_response,
         customer_id=payment_information.customer_id,
+        searchable_key=searchable_key,
     )
