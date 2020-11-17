@@ -127,6 +127,72 @@ def test_update_empty_attribute_and_add_values(
     assert attribute.values.filter(name=attribute_value_name).exists()
 
 
+def test_update_attribute_with_file_input_type(
+    staff_api_client,
+    image_attribute_without_values_and_file_input_type,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_MUTATION
+    attribute = image_attribute_without_values_and_file_input_type
+    name = "Wings name"
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+
+    variables = {
+        "name": name,
+        "id": node_id,
+        "addValues": [],
+        "removeValues": [],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    data = content["data"]["attributeUpdate"]
+    assert not data["attributeErrors"]
+    assert data["attribute"]["name"] == name == attribute.name
+
+
+def test_update_attribute_with_file_input_type_and_values(
+    staff_api_client,
+    image_attribute_without_values_and_file_input_type,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_MUTATION
+    attribute = image_attribute_without_values_and_file_input_type
+    name = "Wings name"
+    attribute_value_name = "Test file"
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+
+    variables = {
+        "name": name,
+        "id": node_id,
+        "addValues": [{"name": attribute_value_name}],
+        "removeValues": [],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    data = content["data"]["attributeUpdate"]
+    errors = data["attributeErrors"]
+    assert not data["attribute"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "addValues"
+    assert errors[0]["code"] == AttributeErrorCode.INVALID.name
+
+
 UPDATE_ATTRIBUTE_SLUG_MUTATION = """
     mutation updateAttribute(
     $id: ID!, $slug: String) {
