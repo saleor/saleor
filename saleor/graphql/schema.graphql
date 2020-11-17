@@ -2820,6 +2820,7 @@ type OrderEvent implements Node {
   lines: [OrderEventOrderLineObject]
   fulfilledItems: [FulfillmentLine]
   warehouse: Warehouse
+  transactionReference: String
 }
 
 type OrderEventCountableConnection {

@@ -228,7 +228,9 @@ def mark_order_as_paid(
         searchable_key=external_reference or "",
         gateway_response={},
     )
-    events.order_manually_marked_as_paid_event(order=order, user=request_user)
+    events.order_manually_marked_as_paid_event(
+        order=order, user=request_user, transaction_reference=external_reference
+    )
     manager = get_plugins_manager()
     manager.order_fully_paid(order)
     manager.order_updated(order)

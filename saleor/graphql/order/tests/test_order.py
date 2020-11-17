@@ -2095,6 +2095,9 @@ MUTATION_MARK_ORDER_AS_PAID = """
             }
             order {
                 isPaid
+                events{
+                    transactionReference
+                }
             }
         }
     }
@@ -2124,11 +2127,12 @@ def test_paid_order_mark_as_paid(
 def test_order_mark_as_paid_with_external_reference(
     staff_api_client, permission_manage_orders, order_with_lines, staff_user
 ):
+    transaction_reference = "searchable-id"
     order = order_with_lines
     query = MUTATION_MARK_ORDER_AS_PAID
     assert not order.is_fully_paid()
     order_id = graphene.Node.to_global_id("Order", order.id)
-    variables = {"id": order_id, "transaction": "searchable-id"}
+    variables = {"id": order_id, "transaction": transaction_reference}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
@@ -2137,11 +2141,17 @@ def test_order_mark_as_paid_with_external_reference(
     data = content["data"]["orderMarkAsPaid"]["order"]
     order.refresh_from_db()
     assert data["isPaid"] is True
+    assert len(data["events"]) == 1
+    assert data["events"][0]["transactionReference"] == transaction_reference
     assert order.is_fully_paid()
     event_order_paid = order.events.first()
     assert event_order_paid.type == order_events.OrderEvents.ORDER_MARKED_AS_PAID
     assert event_order_paid.user == staff_user
-    order_payments = order.payments.filter(transactions__searchable_key="searchable-id")
+    event_reference = event_order_paid.parameters.get("transaction_reference")
+    assert event_reference == transaction_reference
+    order_payments = order.payments.filter(
+        transactions__searchable_key=transaction_reference
+    )
     assert order_payments.count() == 1
 
 
