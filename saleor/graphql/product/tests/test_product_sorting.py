@@ -13,7 +13,7 @@ mutation ReorderCollectionProducts($collectionId: ID!, $moves: [MoveProductInput
   collectionReorderProducts(collectionId: $collectionId, moves: $moves) {
     collection {
       id
-      products(first: 10, sortBy:{field:COLLECTION_ORDER,direction:ASC}) {
+      products(first: 10, sortBy:{field:COLLECTION, direction:ASC}) {
         edges {
           node {
             name

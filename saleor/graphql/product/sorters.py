@@ -140,16 +140,16 @@ class ProductOrderField(graphene.Enum):
     TYPE = ["product_type__name", "name", "slug"]
     PUBLISHED = ["is_published", "name", "slug"]
     PUBLICATION_DATE = ["publication_date", "name", "slug"]
-    COLLECTION_ORDER = ["row_number"]
+    COLLECTION = ["row_number"]
     RATING = ["rating", "name", "slug"]
 
     @property
     def description(self):
         # pylint: disable=no-member
         descriptions = {
-            ProductOrderField.COLLECTION_ORDER.name: (
-                "collection order. "
-                "Note: This sorter is only for query products from Collection."
+            ProductOrderField.COLLECTION.name: (
+                "collection. Note: "
+                "This option is available only for the `Collection.products` query."
             ),
             ProductOrderField.NAME.name: "name.",
             ProductOrderField.PRICE.name: "price.",
@@ -173,7 +173,7 @@ class ProductOrderField(graphene.Enum):
         )
 
     @staticmethod
-    def qs_with_collection_order(queryset: QuerySet) -> QuerySet:
+    def qs_with_collection(queryset: QuerySet) -> QuerySet:
         return queryset.annotate(
             row_number=Window(
                 expression=RowNumber(),
