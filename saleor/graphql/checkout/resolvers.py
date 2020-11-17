@@ -8,24 +8,30 @@ def resolve_checkout_lines():
     return queryset
 
 
-def resolve_checkouts():
+def resolve_checkouts(channel_slug):
     queryset = models.Checkout.objects.all()
+    if channel_slug:
+        queryset = queryset.filter(channel__slug=channel_slug)
     return queryset
 
 
-def resolve_checkout(info, token):
-    checkout = models.Checkout.objects.filter(token=token).first()
+def resolve_checkout(info, token, channel_slug):
+    checkout = models.Checkout.objects.filter(
+        token=token, channel__slug=channel_slug
+    ).first()
 
     if checkout is None:
         return None
 
-    # resolve checkout for anonymous customer
-    if not checkout.user:
-        return checkout
+    # resolve checkout in active channel
+    if checkout.channel.is_active:
+        # resolve checkout for anonymous customer
+        if not checkout.user:
+            return checkout
 
-    # resolve checkout for logged-in customer
-    if checkout.user == info.context.user:
-        return checkout
+        # resolve checkout for logged-in customer
+        if checkout.user == info.context.user:
+            return checkout
 
     # resolve checkout for staff user
     requester = get_user_or_app_from_context(info.context)

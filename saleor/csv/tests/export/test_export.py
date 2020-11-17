@@ -2,6 +2,7 @@ import shutil
 from tempfile import NamedTemporaryFile
 from unittest.mock import ANY, MagicMock, patch
 
+import graphene
 import openpyxl
 import petl as etl
 import pytest
@@ -10,7 +11,7 @@ from freezegun import freeze_time
 
 from ....core import JobStatus
 from ....graphql.csv.enums import ProductFieldEnum
-from ....product.models import Product
+from ....product.models import Product, ProductChannelListing
 from ... import FileTypes
 from ...utils.export import (
     append_to_file,
@@ -44,6 +45,7 @@ def test_export_products(
         "fields": [ProductFieldEnum.NAME.value],
         "warehouses": [],
         "attributes": [],
+        "channels": [],
     }
 
     mock_file = MagicMock(spec=File)
@@ -89,7 +91,7 @@ def test_export_products_ids(
 ):
     # given
     pks = [product.pk for product in product_list[:2]]
-    export_info = {"fields": [], "warehouses": [], "attributes": []}
+    export_info = {"fields": [], "warehouses": [], "attributes": [], "channels": []}
     file_type = FileTypes.CSV
 
     assert user_export_file.status == JobStatus.PENDING
@@ -120,17 +122,19 @@ def test_export_products_ids(
 @patch("saleor.csv.utils.export.export_products_in_batches")
 @patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
 @patch("saleor.csv.utils.export.save_csv_file_in_export_file")
-def test_export_products_filter(
+def test_export_products_filter_is_published(
     save_file_mock,
     send_email_mock,
     export_products_in_batches_mock,
     create_file_with_headers_mock,
     product_list,
     user_export_file,
+    channel_USD,
 ):
     # given
-    product_list[0].is_published = False
-    product_list[0].save(update_fields=["is_published"])
+    ProductChannelListing.objects.filter(
+        product=product_list[0], channel=channel_USD
+    ).update(is_published=False)
 
     export_info = {"fields": [], "warehouses": [], "attributes": []}
     file_type = FileTypes.CSV
@@ -143,18 +147,74 @@ def test_export_products_filter(
 
     # when
     export_products(
-        user_export_file, {"filter": {"is_published": True}}, export_info, file_type
+        user_export_file,
+        {"filter": {"is_published": True, "channel": channel_USD.slug}},
+        export_info,
+        file_type,
     )
 
     # then
     create_file_with_headers_mock.assert_called_once_with(["id"], ";", file_type)
 
     assert export_products_in_batches_mock.call_count == 1
-    args, kwargs = export_products_in_batches_mock.call_args
+    args, _ = export_products_in_batches_mock.call_args
     assert set(args[0].values_list("pk", flat=True)) == set(
-        Product.objects.filter(is_published=True).values_list("pk", flat=True)
+        Product.objects.filter(
+            channel_listings__is_published=True, channel_listings__channel=channel_USD
+        ).values_list("pk", flat=True)
     )
     assert args[1:] == (export_info, {"id"}, ["id"], ";", mock_file, file_type,)
+    send_email_mock.assert_called_once_with(
+        user_export_file, user_export_file.user.email, "export_products_success"
+    )
+    save_file_mock.assert_called_once_with(user_export_file, mock_file, ANY)
+
+
+@patch("saleor.csv.utils.export.create_file_with_headers")
+@patch("saleor.csv.utils.export.export_products_in_batches")
+@patch("saleor.csv.utils.export.send_email_with_link_to_download_file")
+@patch("saleor.csv.utils.export.save_csv_file_in_export_file")
+def test_export_products_filter_collections(
+    save_file_mock,
+    send_email_mock,
+    export_products_in_batches_mock,
+    create_file_with_headers_mock,
+    product_list,
+    user_export_file,
+    channel_USD,
+    collection,
+):
+    # given
+    collection.products.add(product_list[-1])
+
+    export_info = {"fields": [], "warehouses": [], "attributes": []}
+    file_type = FileTypes.CSV
+
+    assert user_export_file.status == JobStatus.PENDING
+    assert not user_export_file.content_file
+
+    mock_file = MagicMock(spec=File)
+    create_file_with_headers_mock.return_value = mock_file
+
+    # when
+    export_products(
+        user_export_file,
+        {
+            "filter": {
+                "collections": [graphene.Node.to_global_id("Collection", collection.pk)]
+            }
+        },
+        export_info,
+        file_type,
+    )
+
+    # then
+    create_file_with_headers_mock.assert_called_once_with(["id"], ";", file_type)
+
+    assert export_products_in_batches_mock.call_count == 1
+    batch_args, _ = export_products_in_batches_mock.call_args
+    assert set(batch_args[0].values_list("pk", flat=True)) == {product_list[-1].pk}
+    assert batch_args[1:] == (export_info, {"id"}, ["id"], ";", mock_file, file_type)
     send_email_mock.assert_called_once_with(
         user_export_file, user_export_file.user.email, "export_products_success"
     )
@@ -178,6 +238,7 @@ def test_export_products_by_app(
         "fields": [ProductFieldEnum.NAME.value],
         "warehouses": [],
         "attributes": [],
+        "channels": [],
     }
     file_type = FileTypes.CSV
 
@@ -391,6 +452,7 @@ def test_export_products_in_batches_for_csv(
         "fields": [ProductFieldEnum.NAME.value, ProductFieldEnum.VARIANT_SKU.value],
         "warehouses": [],
         "attributes": [],
+        "channels": [],
     }
     export_fields = ["id", "name", "variants__sku"]
     expected_headers = ["id", "name", "variant sku"]
@@ -444,6 +506,7 @@ def test_export_products_in_batches_for_xlsx(
         "fields": [ProductFieldEnum.NAME.value, ProductFieldEnum.VARIANT_SKU.value],
         "warehouses": [],
         "attributes": [],
+        "channels": [],
     }
     export_fields = ["id", "name", "variants__sku"]
     expected_headers = ["id", "name", "variant sku"]

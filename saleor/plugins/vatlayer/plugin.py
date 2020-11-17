@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from ...account.models import Address
     from ...checkout.models import Checkout, CheckoutLine
+    from ...channel.models import Channel
     from ...discount import DiscountInfo
     from ...order.models import Order, OrderLine
     from ..models import PluginConfiguration
@@ -122,8 +123,10 @@ class VatlayerPlugin(BasePlugin):
             taxes = self._get_taxes_for_country(address.country)
         if not checkout.shipping_method:
             return previous_value
-
-        return get_taxed_shipping_price(checkout.shipping_method.price, taxes)
+        shipping_price = checkout.shipping_method.channel_listings.get(
+            channel_id=checkout.channel_id
+        ).price
+        return get_taxed_shipping_price(shipping_price, taxes)
 
     def calculate_order_shipping(
         self, order: "Order", previous_value: TaxedMoney
@@ -137,12 +140,16 @@ class VatlayerPlugin(BasePlugin):
             taxes = self._get_taxes_for_country(address.country)
         if not order.shipping_method:
             return previous_value
-        return get_taxed_shipping_price(order.shipping_method.price, taxes)
+        shipping_price = order.shipping_method.channel_listings.get(
+            channel_id=order.channel_id
+        ).price
+        return get_taxed_shipping_price(shipping_price, taxes)
 
     def calculate_checkout_line_total(
         self,
         checkout_line: "CheckoutLine",
         discounts: List["DiscountInfo"],
+        channel: "Channel",
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):
@@ -152,7 +159,7 @@ class VatlayerPlugin(BasePlugin):
             checkout_line.checkout.shipping_address
             or checkout_line.checkout.billing_address
         )
-        price = checkout_line.variant.get_price(discounts)
+        price = checkout_line.variant.get_price(channel.slug, discounts)
         country = address.country if address else None
         return (
             self.__apply_taxes_to_product(checkout_line.variant.product, price, country)

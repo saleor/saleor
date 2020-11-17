@@ -90,12 +90,11 @@ FRAGMENT_ADDRESS = """
 
 FRAGMENT_SHIPPING_METHOD = """
     fragment ShippingMethod on ShippingMethod {
-      id
-      name
-      price {
-        currency
-        amount
-      }
+        id
+        name
+        price {
+            amount
+        }
     }
 """
 
@@ -160,6 +159,7 @@ def test_create_checkout(
     api_client,
     graphql_address_data,
     stock,
+    channel_USD,
     product_with_default_variant,
     product_with_single_variant,
     product_with_two_variants,
@@ -181,10 +181,10 @@ def test_create_checkout(
             }
         """
     )
-
     checkout_counts = Checkout.objects.count()
     variables = {
         "checkoutInput": {
+            "channel": channel_USD.slug,
             "email": "test@example.com",
             "shippingAddress": graphql_address_data,
             "lines": [

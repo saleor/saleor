@@ -537,7 +537,7 @@ def test_create_order_with_gift_card_partial_use(
     )
 
     assert order.gift_cards.count() > 0
-    assert order.total == zero_taxed_money()
+    assert order.total == zero_taxed_money(order.currency)
     assert gift_card_balance_before_order == expected_old_balance
 
 
@@ -579,7 +579,7 @@ def test_create_order_with_many_gift_cards(
 
     gift_card_created_by_staff.refresh_from_db()
     gift_card.refresh_from_db()
-    zero_price = zero_money()
+    zero_price = zero_money(gift_card.currency)
     assert order.gift_cards.count() > 0
     assert gift_card_created_by_staff.current_balance == zero_price
     assert gift_card.current_balance == zero_price

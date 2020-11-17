@@ -37,6 +37,7 @@ from .tasks import api_post_request_task
 if TYPE_CHECKING:
     # flake8: noqa
     from ...checkout.models import Checkout, CheckoutLine
+    from ...channel.models import Channel
     from ...order.models import Order, OrderLine
     from ..models import PluginConfiguration
 
@@ -121,12 +122,15 @@ class AvataxPlugin(BasePlugin):
         self,
         price: TaxedMoney,
         lines: Iterable["CheckoutLine"],
+        channel: "Channel",
         discounts: Iterable[DiscountInfo],
     ):
         for line in lines:
             if line.variant.product.charge_taxes:
                 continue
-            line_price = base_calculations.base_checkout_line_total(line, discounts)
+            line_price = base_calculations.base_checkout_line_total(
+                line, channel, discounts
+            )
             price.gross.amount += line_price.gross.amount
             price.net.amount += line_price.net.amount
         return price
@@ -154,7 +158,9 @@ class AvataxPlugin(BasePlugin):
         total_gross = Money(amount=total_net + tax, currency=currency)
         total_net = Money(amount=total_net, currency=currency)
         taxed_total = TaxedMoney(net=total_net, gross=total_gross)
-        total = self._append_prices_of_not_taxed_lines(taxed_total, lines, discounts)
+        total = self._append_prices_of_not_taxed_lines(
+            taxed_total, lines, checkout.channel, discounts
+        )
         voucher_value = checkout.discount
         if voucher_value:
             total -= voucher_value
@@ -182,7 +188,9 @@ class AvataxPlugin(BasePlugin):
         sub_total_gross = Money(sub_net + sub_tax, currency)
         sub_total_net = Money(sub_net, currency)
         taxed_subtotal = TaxedMoney(net=sub_total_net, gross=sub_total_gross)
-        return self._append_prices_of_not_taxed_lines(taxed_subtotal, lines, discounts)
+        return self._append_prices_of_not_taxed_lines(
+            taxed_subtotal, lines, checkout.channel, discounts
+        )
 
     def calculate_checkout_subtotal(
         self,
@@ -305,6 +313,7 @@ class AvataxPlugin(BasePlugin):
         self,
         checkout_line: "CheckoutLine",
         discounts: Iterable[DiscountInfo],
+        channel: "Channel",
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):
