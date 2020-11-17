@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils.text import slugify
 
-from ...attribute import models as models
+from ...attribute import AttributeInputType, models as models
 from ...attribute.error_codes import AttributeErrorCode
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
@@ -190,9 +190,20 @@ class AttributeMixin:
         an attribute.
         """
         values_input = cleaned_input.get(cls.ATTRIBUTE_VALUES_FIELD)
+        attribute_input_type = cleaned_input.get("input_type") or attribute.input_type
 
         if values_input is None:
             return
+
+        if attribute_input_type == AttributeInputType.FILE and values_input:
+            raise ValidationError(
+                {
+                    cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
+                        "Values cannot be used with input type FILE.",
+                        code=AttributeErrorCode.INVALID.value,
+                    )
+                }
+            )
 
         for value_data in values_input:
             value_data["slug"] = slugify(value_data["name"], allow_unicode=True)

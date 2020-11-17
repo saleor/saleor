@@ -3,11 +3,9 @@ class AttributeInputType:
 
     DROPDOWN = "dropdown"
     MULTISELECT = "multiselect"
+    FILE = "file"
 
-    CHOICES = [
-        (DROPDOWN, "Dropdown"),
-        (MULTISELECT, "Multi Select"),
-    ]
+    CHOICES = [(DROPDOWN, "Dropdown"), (MULTISELECT, "Multi Select"), (FILE, "File")]
     # list the input types that cannot be assigned to a variant
     NON_ASSIGNABLE_TO_VARIANTS = [MULTISELECT]
 

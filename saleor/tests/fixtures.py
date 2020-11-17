@@ -768,6 +768,16 @@ def weight_attribute(db):
 
 
 @pytest.fixture
+def image_attribute_without_values_and_file_input_type(db):
+    return Attribute.objects.create(
+        slug="image",
+        name="Image",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.FILE,
+    )
+
+
+@pytest.fixture
 def size_page_attribute(db):
     attribute = Attribute.objects.create(
         slug="page-size", name="Page size", type=AttributeType.PAGE_TYPE
