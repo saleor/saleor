@@ -1,7 +1,6 @@
 import graphene
 
-from ...core.permissions import ChannelPermissions
-from ..decorators import permission_required
+from ..decorators import staff_member_or_app_required
 from .mutations import (
     ChannelActivate,
     ChannelCreate,
@@ -23,11 +22,11 @@ class ChannelQueries(graphene.ObjectType):
         graphene.NonNull(Channel), description="List of all channels."
     )
 
-    @permission_required(ChannelPermissions.MANAGE_CHANNELS)
+    @staff_member_or_app_required
     def resolve_channel(self, info, id=None, **kwargs):
         return resolve_channel(info, id)
 
-    @permission_required(ChannelPermissions.MANAGE_CHANNELS)
+    @staff_member_or_app_required
     def resolve_channels(self, _info, **kwargs):
         return resolve_channels()
 

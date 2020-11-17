@@ -297,16 +297,17 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         if not root.channel_slug:
             return None
 
+        channel_slug = str(root.channel_slug)
         context = info.context
         product = ProductByIdLoader(context).load(root.node.product_id)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
-        ).load((root.node.product_id, root.channel_slug))
+        ).load((root.node.product_id, channel_slug))
         variant_channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
             context
-        ).load((root.node.id, root.channel_slug))
+        ).load((root.node.id, channel_slug))
         collections = CollectionsByProductIdLoader(context).load(root.node.product_id)
-        channel = ChannelBySlugLoader(context).load(root.channel_slug)
+        channel = ChannelBySlugLoader(context).load(channel_slug)
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel(channel):
@@ -582,7 +583,7 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
             return None
 
         context = info.context
-        channel_slug = root.channel_slug
+        channel_slug = str(root.channel_slug)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
         ).load((root.node.id, channel_slug))
