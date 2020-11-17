@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import List
 
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
@@ -24,23 +24,23 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
     PLUGIN_ID = "mirumee.payments.authorize_net"
 
     DEFAULT_CONFIGURATION = [
-        {"name": "API Login ID", "value": None},
-        {"name": "Transaction Key", "value": None},
-        {"name": "Client Key", "value": None},
+        {"name": "api_login_id", "value": None},
+        {"name": "transaction_key", "value": None},
+        {"name": "client_key", "value": None},
     ]
 
     CONFIG_STRUCTURE = {
-        "API Login ID": {
+        "api_login_id": {
             "type": ConfigurationTypeField.STRING,
             "help_text": ("Provide public Authorize.Net Login ID."),
             "label": "API Login ID",
         },
-        "Transaction Key": {
+        "transaction_key": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": ("Provide private Authorize.Net Transaction Key."),
             "label": "Transaction Key",
         },
-        "Client Key": {
+        "client_key": {
             "type": ConfigurationTypeField.STRING,
             "help_text": ("Provide public Authorize.Net Client Key"),
             "label": "Client Key",
@@ -57,9 +57,9 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
             # auto_capture=configuration["Automatic payment capture"],
             # supported_currencies=configuration["Supported currencies"],
             connection_params={
-                "api_login_id": configuration["API Login ID"],
-                "transaction_key": configuration["Transaction Key"],
-                "client_key": configuration["Client Key"],
+                "api_login_id": configuration["api_login_id"],
+                "transaction_key": configuration["transaction_key"],
+                "client_key": configuration["client_key"],
             },
             # store_customer=configuration["Store customers card"],
         )

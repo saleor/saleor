@@ -29,17 +29,6 @@ def process_payment(
     order.invoiceNumber = payment_information.order_id
     order.description = ""
 
-    customer_address = apicontractsv1.customerAddressType()
-    customer_address.firstName = payment_information.billing.first_name
-    customer_address.lastName = payment_information.billing.last_name
-    customer_address.company = payment_information.billing.company_name
-    # authorize.net support says we should not attempt submitting street_address_2
-    customer_address.address = payment_information.billing.street_address_1
-    customer_address.city = payment_information.billing.city
-    customer_address.state = payment_information.billing.country_area
-    customer_address.zip = payment_information.billing.postal_code
-    customer_address.country = payment_information.billing.country
-
     customer_data = apicontractsv1.customerDataType()
     customer_data.type = "individual"
     customer_data.id = payment_information.customer_id
@@ -50,8 +39,20 @@ def process_payment(
     transaction_request.amount = payment_information.amount
     transaction_request.order = order
     transaction_request.payment = payment_one
-    transaction_request.billTo = customer_address
     transaction_request.customer = customer_data
+
+    if payment_information.billing:
+        customer_address = apicontractsv1.customerAddressType()
+        customer_address.firstName = payment_information.billing.first_name
+        customer_address.lastName = payment_information.billing.last_name
+        customer_address.company = payment_information.billing.company_name
+        # authorize.net support says we should not attempt submitting street_address_2
+        customer_address.address = payment_information.billing.street_address_1
+        customer_address.city = payment_information.billing.city
+        customer_address.state = payment_information.billing.country_area
+        customer_address.zip = payment_information.billing.postal_code
+        customer_address.country = payment_information.billing.country
+        transaction_request.billTo = customer_address
 
     create_transaction_request = apicontractsv1.createTransactionRequest()
     create_transaction_request.merchantAuthentication = merchant_auth
@@ -68,8 +69,9 @@ def process_payment(
     success = False
     error = None
     transaction_id = None
-    raw_response = etree.tostring(response).decode()
+    raw_response = None
     if response is not None:
+        raw_response = etree.tostring(response).decode()
         if hasattr(response, "transactionResponse") and hasattr(
             response.transactionResponse, "transId"
         ):
