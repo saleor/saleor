@@ -181,7 +181,7 @@ def order_manually_marked_as_paid_event(
 ) -> OrderEvent:
     if not _user_is_valid(user):
         user = None
-    parameters = None
+    parameters = {}  # type: ignore
     if transaction_reference:
         parameters = {"transaction_reference": transaction_reference}
     return OrderEvent.objects.create(
