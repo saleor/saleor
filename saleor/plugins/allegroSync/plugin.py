@@ -64,7 +64,8 @@ class AllegroSyncPlugin(BasePlugin):
         conf = {item["name"]: item["value"] for item in plugin_configs.configuration}
         token = conf.get('token_value')
         allegro_api = AllegroAPI(token)
-        params = {'publication.status': ['ACTIVE', 'ACTIVATING']}
+        params = {'publication.status': ['ACTIVE', 'ACTIVATING'], 'limit': '1000',
+                  'offset': self.offset}
         response = allegro_api.get_request('sale/offers', params)
         offers = json.loads(response.text).get('offers')
         errors = []
