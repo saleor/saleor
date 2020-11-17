@@ -4,20 +4,30 @@ from urllib.parse import urlencode
 
 import Adyen
 from django.contrib.auth.hashers import make_password
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
+from requests.exceptions import SSLError
 
 from ....checkout.models import Checkout
 from ....core.utils import build_absolute_uri
 from ....core.utils.url import prepare_url
 from ....order.events import external_notification_event
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
+from ....plugins.error_codes import PluginErrorCode
+from ....plugins.models import PluginConfiguration
 from ... import PaymentError, TransactionKind
-from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentGateway
+from ...interface import (
+    GatewayConfig,
+    GatewayResponse,
+    InitializedPaymentResponse,
+    PaymentData,
+    PaymentGateway,
+)
 from ...models import Payment, Transaction
 from ..utils import get_supported_currencies
-from .utils import (
+from .utils.apple_pay import initialize_apple_pay, make_request_to_initialize_apple_pay
+from .utils.common import (
     AUTH_STATUS,
     FAILED_STATUSES,
     PENDING_STATUSES,
@@ -62,6 +72,7 @@ class AdyenGatewayPlugin(BasePlugin):
         {"name": "notification-user", "value": ""},
         {"name": "notification-password", "value": ""},
         {"name": "enable-native-3d-secure", "value": False},
+        {"name": "apple-pay-cert", "value": None},
     ]
 
     CONFIG_STRUCTURE = {
@@ -168,6 +179,17 @@ class AdyenGatewayPlugin(BasePlugin):
             ),
             "label": "Enable native 3D Secure",
         },
+        "apple-pay-cert": {
+            "type": ConfigurationTypeField.SECRET_MULTILINE,
+            "help_text": (
+                "Follow the Adyen docs related to activating the Apple Pay for the "
+                "web - https://docs.adyen.com/payment-methods/apple-pay/"
+                "enable-apple-pay. This certificate is only required when you offer "
+                "the Apple Pay as a web payment method.  Leave it blank if you don't "
+                "offer Apple Pay or offer it only as a payment method in your iOS app."
+            ),
+            "label": "Apple Pay certificate",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -187,6 +209,7 @@ class AdyenGatewayPlugin(BasePlugin):
                 "webhook_user_password": configuration["notification-password"],
                 "adyen_auto_capture": configuration["adyen-auto-capture"],
                 "enable_native_3d_secure": configuration["enable-native-3d-secure"],
+                "apple_pay_cert": configuration["apple-pay-cert"],
             },
         )
         api_key = self.config.connection_params["api_key"]
@@ -213,6 +236,21 @@ class AdyenGatewayPlugin(BasePlugin):
     @require_active_plugin
     def token_is_required_as_payment_input(self, previous_value):
         return False
+
+    @require_active_plugin
+    def initialize_payment(
+        self, payment_data, previous_value
+    ) -> "InitializedPaymentResponse":
+        payment_method = payment_data.get("paymentMethod")
+        if payment_method == "applepay":
+            # The apple pay on the web requires additional step
+            session_obj = initialize_apple_pay(
+                payment_data, self.config.connection_params["apple_pay_cert"]
+            )
+            return InitializedPaymentResponse(
+                gateway=self.PLUGIN_ID, name=self.PLUGIN_NAME, data=session_obj
+            )
+        return previous_value
 
     @require_active_plugin
     def get_payment_gateway_for_checkout(
@@ -551,3 +589,40 @@ class AdyenGatewayPlugin(BasePlugin):
             raw_response=result.message,
             searchable_key=result.message.get("pspReference", ""),
         )
+
+    @classmethod
+    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+        """Validate if provided configuration is correct."""
+        configuration = plugin_configuration.configuration
+        configuration = {item["name"]: item["value"] for item in configuration}
+        apple_certificate = configuration["apple-pay-cert"]
+        if plugin_configuration.active and apple_certificate:
+            global_apple_url = (
+                "https://apple-pay-gateway.apple.com/paymentservices/paymentSession"
+            )
+            request_data = {
+                "merchantIdentifier": "",
+                "displayName": "",
+                "initiative": "web",
+                "initiativeContext": "",
+            }
+            # Try to exectue the session request without all required data. If the
+            # apple certificate is correct we will get the error related to the missing
+            # parameters. If certificate is incorrect, the SSL error will be raised.
+            try:
+                make_request_to_initialize_apple_pay(
+                    validation_url=global_apple_url,
+                    request_data=request_data,
+                    certificate=apple_certificate,
+                )
+            except SSLError:
+                raise ValidationError(
+                    {
+                        "apple-pay-cert": ValidationError(
+                            "The provided apple certificate is invalid.",
+                            code=PluginErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            except Exception:
+                pass

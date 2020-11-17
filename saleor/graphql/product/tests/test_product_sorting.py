@@ -1,3 +1,4 @@
+import random
 from datetime import date, timedelta
 
 import graphene
@@ -170,3 +171,32 @@ def test_sort_products_by_publication_date(
         graphene.Node.to_global_id("Product", product.pk)
         for product in Product.objects.order_by(order_direction)
     ]
+
+
+@pytest.mark.parametrize(
+    "direction, order_direction", (("ASC", "rating"), ("DESC", "-rating")),
+)
+def test_sort_products_by_rating(
+    direction, order_direction, staff_api_client, product_list
+):
+
+    for product in product_list:
+        product.rating = random.uniform(1, 10)
+    Product.objects.bulk_update(product_list, ["rating"])
+
+    variables = {
+        "sortBy": {"direction": direction, "field": "RATING"},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(GET_SORTED_PRODUCTS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["products"]["edges"]
+
+    sorted_products = Product.objects.order_by(order_direction)
+    expected_ids = [
+        graphene.Node.to_global_id("Product", product.pk) for product in sorted_products
+    ]
+    assert [node["node"]["id"] for node in data] == expected_ids
