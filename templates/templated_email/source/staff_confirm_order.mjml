@@ -8,7 +8,7 @@
       <mj-column>
         <mj-text font-size="16px">
           {{#blocktrans "Standard e-mail greeting"}}
-            Hi! Pawel to gej!
+            Hi!
           {{/blocktrans}}
         </mj-text>
         <mj-text>
