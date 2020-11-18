@@ -20,9 +20,14 @@ def generate_name_for_variant(variant: "ProductVariant") -> str:
 
 
 def get_variant_selection_attributes(attributes):
+    """Return attributes that can be used in variant selection.
+
+    Attribute must be product attribute and attribute input type must be
+    in ALLOWED_IN_VARIANT_SELECTION list.
+    """
     return [
         attribute
         for attribute in attributes
-        if attribute.input_type == AttributeInputType.DROPDOWN
+        if attribute.input_type in AttributeInputType.ALLOWED_IN_VARIANT_SELECTION
         and attribute.type == AttributeType.PRODUCT_TYPE
     ]

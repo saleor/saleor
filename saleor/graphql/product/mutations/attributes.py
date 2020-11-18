@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Q
 
-from ....attribute import AttributeInputType, AttributeType, models as attribute_models
+from ....attribute import AttributeType, models as attribute_models
 from ....core.permissions import ProductTypePermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
@@ -115,28 +115,6 @@ class ProductAttributeAssign(BaseMutation):
                 (f"{msg} have already been assigned to this product type."),
                 code=ProductErrorCode.ATTRIBUTE_ALREADY_ASSIGNED,
                 params={"attributes": invalid_attr_ids},
-            )
-            errors["operations"].append(error)
-
-        # check if attributes' input type is assignable to variants
-        not_assignable_to_variant = attribute_models.Attribute.objects.filter(
-            Q(pk__in=variant_attrs_pks)
-            & Q(input_type__in=AttributeInputType.NON_ASSIGNABLE_TO_VARIANTS)
-        )
-
-        if not_assignable_to_variant:
-            not_assignable_attr_ids = [
-                graphene.Node.to_global_id("Attribute", attr.pk)
-                for attr in not_assignable_to_variant
-            ]
-            error = ValidationError(
-                (
-                    f"Attributes having for input types "
-                    f"{AttributeInputType.NON_ASSIGNABLE_TO_VARIANTS} "
-                    f"cannot be assigned as variant attributes"
-                ),
-                code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED,
-                params={"attributes": not_assignable_attr_ids},
             )
             errors["operations"].append(error)
 
