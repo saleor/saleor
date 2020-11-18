@@ -102,6 +102,7 @@ def test_calculate_checkout_line_total(
         line.variant.product,
         [],
         checkout_with_item.shipping_address,
+        checkout_with_item.channel,
         discounts,
     )
     total = quantize_price(total, total.currency)
@@ -453,9 +454,12 @@ def test_get_cached_tax_codes_or_fetch_wrong_response(monkeypatch):
     assert len(tax_codes) == 0
 
 
-def test_taxes_need_new_fetch(monkeypatch, checkout_with_item, address):
+def test_checkout_needs_new_fetch(
+    monkeypatch, checkout_with_item, address, shipping_method
+):
     monkeypatch.setattr("saleor.plugins.avatax.cache.get", lambda x: None)
     checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method = shipping_method
     config = AvataxConfiguration(
         username_or_account="wrong_data", password_or_license="wrong_data"
     )

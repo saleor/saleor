@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Set, Union
+from typing import TYPE_CHECKING, Dict, Iterable, List, Set, Union
 
 from django.conf import settings
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from .models import Sale, Voucher
+    from .models import Sale, Voucher, SaleChannelListing
 
 
 class DiscountValueType:
@@ -13,7 +13,7 @@ class DiscountValueType:
     PERCENTAGE = "percentage"
 
     CHOICES = [
-        (FIXED, settings.DEFAULT_CURRENCY),
+        (FIXED, "fixed"),
         (PERCENTAGE, "%"),
     ]
 
@@ -33,6 +33,7 @@ class VoucherType:
 @dataclass
 class DiscountInfo:
     sale: Union["Sale", "Voucher"]
+    channel_listings: Dict[str, "SaleChannelListing"]
     product_ids: Union[List[int], Set[int]]
     category_ids: Union[List[int], Set[int]]
     collection_ids: Union[List[int], Set[int]]

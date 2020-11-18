@@ -11,7 +11,6 @@ from ..account.types import AddressInput
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import ShopError
-from ..product.types import Collection
 from .types import AuthorizationKey, AuthorizationKeyType, Shop
 
 
@@ -176,30 +175,6 @@ class ShopFetchTaxRates(BaseMutation):
                 code=ShopErrorCode.CANNOT_FETCH_TAX_RATES.value,
             )
         return ShopFetchTaxRates(shop=Shop())
-
-
-class HomepageCollectionUpdate(BaseMutation):
-    shop = graphene.Field(Shop, description="Updated shop.")
-
-    class Arguments:
-        collection = graphene.ID(description="Collection displayed on homepage.")
-
-    class Meta:
-        description = "Updates homepage collection of the shop."
-        permissions = (SitePermissions.MANAGE_SETTINGS,)
-        error_type_class = ShopError
-        error_type_field = "shop_errors"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, collection=None):
-        new_collection = cls.get_node_or_error(
-            info, collection, field="collection", only_type=Collection
-        )
-        site_settings = info.context.site.settings
-        site_settings.homepage_collection = new_collection
-        cls.clean_instance(info, site_settings)
-        site_settings.save(update_fields=["homepage_collection"])
-        return HomepageCollectionUpdate(shop=Shop())
 
 
 class AuthorizationKeyInput(graphene.InputObjectType):

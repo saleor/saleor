@@ -8,17 +8,14 @@ from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....order import OrderStatus, models as order_models
 from ....product import models
 from ....product.error_codes import ProductErrorCode
-from ....product.tasks import update_product_minimal_variant_price_task
+from ....product.tasks import update_product_discounted_price_task
 from ....product.utils import delete_categories
 from ....product.utils.attributes import generate_name_for_variant
 from ....warehouse import models as warehouse_models
 from ....warehouse.error_codes import StockErrorCode
-from ...core.mutations import (
-    BaseBulkMutation,
-    BaseMutation,
-    ModelBulkDeleteMutation,
-    ModelMutation,
-)
+from ...channel import ChannelContext
+from ...channel.types import Channel
+from ...core.mutations import BaseMutation, ModelBulkDeleteMutation, ModelMutation
 from ...core.types.common import (
     BulkProductError,
     BulkStockError,
@@ -29,6 +26,7 @@ from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
 from ...utils import resolve_global_ids_to_primary_keys
 from ...warehouse.types import Warehouse
+from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.products import (
     AttributeAssignmentMixin,
     AttributeValueInput,
@@ -72,30 +70,6 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
 
-class CollectionBulkPublish(BaseBulkMutation):
-    class Arguments:
-        ids = graphene.List(
-            graphene.ID,
-            required=True,
-            description="List of collections IDs to (un)publish.",
-        )
-        is_published = graphene.Boolean(
-            required=True,
-            description="Determine if collections will be published or not.",
-        )
-
-    class Meta:
-        description = "Publish collections."
-        model = models.Collection
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-    @classmethod
-    def bulk_action(cls, queryset, is_published):
-        queryset.update(is_published=is_published)
-
-
 class ProductBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
@@ -137,6 +111,11 @@ class ProductVariantBulkCreateInput(ProductVariantInput):
     stocks = graphene.List(
         graphene.NonNull(StockInput),
         description=("Stocks of a product available for sale."),
+        required=False,
+    )
+    channel_listings = graphene.List(
+        graphene.NonNull(ProductVariantChannelListingAddInput),
+        description="List of prices assigned to channels.",
         required=False,
     )
     sku = graphene.String(required=True, description="Stock keeping unit.")
@@ -186,24 +165,6 @@ class ProductVariantBulkCreate(BaseMutation):
             info, instance, data, input_cls=ProductVariantBulkCreateInput
         )
 
-        cost_price_amount = cleaned_input.pop("cost_price", None)
-        if cost_price_amount is not None:
-            try:
-                validate_price_precision(cost_price_amount)
-            except ValidationError as error:
-                error.code = ProductErrorCode.INVALID.value
-                raise ValidationError({"cost_price": error})
-            cleaned_input["cost_price_amount"] = cost_price_amount
-
-        price_amount = cleaned_input.pop("price", None)
-        if price_amount is not None:
-            try:
-                validate_price_precision(price_amount)
-            except ValidationError as error:
-                error.code = ProductErrorCode.INVALID.value
-                raise ValidationError({"price": error})
-            cleaned_input["price_amount"] = price_amount
-
         attributes = cleaned_input.get("attributes")
         if attributes:
             try:
@@ -214,11 +175,91 @@ class ProductVariantBulkCreate(BaseMutation):
                 exc.params = {"index": variant_index}
                 errors["attributes"] = exc
 
+        channel_listings = cleaned_input.get("channel_listings")
+        if channel_listings:
+            cleaned_input["channel_listings"] = cls.clean_channel_listings(
+                channel_listings, errors, data["product"], variant_index
+            )
+
         stocks = cleaned_input.get("stocks")
         if stocks:
             cls.clean_stocks(stocks, errors, variant_index)
 
         return cleaned_input
+
+    @classmethod
+    def clean_price(
+        cls, price, field_name, currency, channel_id, variant_index, errors
+    ):
+        try:
+            validate_price_precision(price, currency)
+        except ValidationError as error:
+            error.code = ProductErrorCode.INVALID.value
+            error.params = {
+                "channels": [channel_id],
+                "index": variant_index,
+            }
+            errors[field_name].append(error)
+
+    @classmethod
+    def clean_channel_listings(cls, channels_data, errors, product, variant_index):
+        channel_ids = [
+            channel_listing["channel_id"] for channel_listing in channels_data
+        ]
+        duplicates = get_duplicated_values(channel_ids)
+        if duplicates:
+            errors["channel_listings"] = ValidationError(
+                "Duplicated channel ID.",
+                code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+                params={"channels": duplicates, "index": variant_index},
+            )
+            return channels_data
+        channels = cls.get_nodes_or_error(
+            channel_ids, "channel_listings", only_type=Channel
+        )
+        for index, channel_listing_data in enumerate(channels_data):
+            channel_listing_data["channel"] = channels[index]
+
+        for channel_listing_data in channels_data:
+            price = channel_listing_data.get("price")
+            cost_price = channel_listing_data.get("cost_price")
+            channel_id = channel_listing_data["channel_id"]
+            currency_code = channel_listing_data["channel"].currency_code
+            cls.clean_price(
+                price, "price", currency_code, channel_id, variant_index, errors
+            )
+            cls.clean_price(
+                cost_price,
+                "cost_price",
+                currency_code,
+                channel_id,
+                variant_index,
+                errors,
+            )
+
+        channels_not_assigned_to_product = []
+        channels_assigned_to_product = list(
+            models.ProductChannelListing.objects.filter(product=product.id).values_list(
+                "channel_id", flat=True
+            )
+        )
+        for channel_listing_data in channels_data:
+            if not channel_listing_data["channel"].id in channels_assigned_to_product:
+                channels_not_assigned_to_product.append(
+                    channel_listing_data["channel_id"]
+                )
+        if channels_not_assigned_to_product:
+            errors["channel_id"].append(
+                ValidationError(
+                    "Product not available in channels.",
+                    code=ProductErrorCode.PRODUCT_NOT_ASSIGNED_TO_CHANNEL.value,
+                    params={
+                        "index": variant_index,
+                        "channels": channels_not_assigned_to_product,
+                    },
+                )
+            )
+        return channels_data
 
     @classmethod
     def clean_stocks(cls, stocks_data, errors, variant_index):
@@ -227,7 +268,7 @@ class ProductVariantBulkCreate(BaseMutation):
         if duplicates:
             errors["stocks"] = ValidationError(
                 "Duplicated warehouse ID.",
-                code=ProductErrorCode.DUPLICATED_INPUT_ITEM,
+                code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
                 params={"warehouses": duplicates, "index": variant_index},
             )
 
@@ -295,6 +336,7 @@ class ProductVariantBulkCreate(BaseMutation):
 
             cleaned_input = None
             variant_data["product_type"] = product.product_type
+            variant_data["product"] = product
             cleaned_input = cls.clean_variant_input(
                 info, None, variant_data, errors, index
             )
@@ -307,14 +349,41 @@ class ProductVariantBulkCreate(BaseMutation):
         return cleaned_inputs
 
     @classmethod
+    def create_variant_channel_listings(cls, variant, cleaned_input):
+        channel_listings_data = cleaned_input.get("channel_listings")
+        if not channel_listings_data:
+            return
+        variant_channel_listings = []
+        for channel_listing_data in channel_listings_data:
+            channel = channel_listing_data["channel"]
+            price = channel_listing_data["price"]
+            cost_price = channel_listing_data.get("cost_price")
+            variant_channel_listings.append(
+                models.ProductVariantChannelListing(
+                    channel=channel,
+                    variant=variant,
+                    price_amount=price,
+                    cost_price_amount=cost_price,
+                    currency=channel.currency_code,
+                )
+            )
+        models.ProductVariantChannelListing.objects.bulk_create(
+            variant_channel_listings
+        )
+
+    @classmethod
     @transaction.atomic
-    def save_variants(cls, info, instances, cleaned_inputs):
+    def save_variants(cls, info, instances, product, cleaned_inputs):
         assert len(instances) == len(
             cleaned_inputs
         ), "There should be the same number of instances and cleaned inputs."
         for instance, cleaned_input in zip(instances, cleaned_inputs):
             cls.save(info, instance, cleaned_input)
             cls.create_variant_stocks(instance, cleaned_input)
+            cls.create_variant_channel_listings(instance, cleaned_input)
+        if not product.default_variant:
+            product.default_variant = instances[0]
+            product.save(update_fields=["default_variant", "updated_at"])
 
     @classmethod
     def create_variant_stocks(cls, variant, cleaned_input):
@@ -336,11 +405,14 @@ class ProductVariantBulkCreate(BaseMutation):
         instances = cls.create_variants(info, cleaned_inputs, product, errors)
         if errors:
             raise ValidationError(errors)
-        cls.save_variants(info, instances, cleaned_inputs)
+        cls.save_variants(info, instances, product, cleaned_inputs)
 
-        # Recalculate the "minimal variant price" for the parent product
-        update_product_minimal_variant_price_task.delay(product.pk)
+        # Recalculate the "discounted price" for the parent product
+        update_product_discounted_price_task.delay(product.pk)
 
+        instances = [
+            ChannelContext(node=instance, channel_slug=None) for instance in instances
+        ]
         return ProductVariantBulkCreate(
             count=len(instances), product_variants=instances
         )
@@ -428,6 +500,8 @@ class ProductVariantStocksCreate(BaseMutation):
             if errors:
                 raise ValidationError(errors)
             create_stocks(variant, stocks, warehouses)
+
+        variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
     @classmethod
@@ -496,6 +570,8 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 warehouse_ids, "warehouse", only_type=Warehouse
             )
             cls.update_or_create_variant_stocks(variant, stocks, warehouses)
+
+        variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
     @classmethod
@@ -540,6 +616,8 @@ class ProductVariantStocksDelete(BaseMutation):
         warehouse_models.Stock.objects.filter(
             product_variant=variant, warehouse__pk__in=warehouses_pks
         ).delete()
+
+        variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)
 
 
@@ -573,24 +651,3 @@ class ProductImageBulkDelete(ModelBulkDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
-
-
-class ProductBulkPublish(BaseBulkMutation):
-    class Arguments:
-        ids = graphene.List(
-            graphene.ID, required=True, description="List of products IDs to publish."
-        )
-        is_published = graphene.Boolean(
-            required=True, description="Determine if products will be published or not."
-        )
-
-    class Meta:
-        description = "Publish products."
-        model = models.Product
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
-
-    @classmethod
-    def bulk_action(cls, queryset, is_published):
-        queryset.update(is_published=is_published)

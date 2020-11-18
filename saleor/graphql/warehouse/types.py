@@ -5,6 +5,7 @@ from django.db.models.functions import Coalesce
 from ...core.permissions import OrderPermissions, ProductPermissions
 from ...warehouse import models
 from ..account.enums import CountryCodeEnum
+from ..channel import ChannelContext
 from ..core.connection import CountableDjangoObjectType
 from ..decorators import one_of_permissions_required
 
@@ -58,6 +59,15 @@ class Warehouse(CountableDjangoObjectType):
             "email",
         ]
 
+    @staticmethod
+    def resolve_shipping_zones(root, *_args, **_kwargs):
+        instances = root.shipping_zones.all()
+        shipping_zones = [
+            ChannelContext(node=shipping_zone, channel_slug=None)
+            for shipping_zone in instances
+        ]
+        return shipping_zones
+
 
 class Stock(CountableDjangoObjectType):
     quantity = graphene.Int(
@@ -91,6 +101,10 @@ class Stock(CountableDjangoObjectType):
             quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
         )["quantity_allocated"]
 
+    @staticmethod
+    def resolve_product_variant(root, *_args):
+        return ChannelContext(node=root.product_variant, channel_slug=None)
+
 
 class Allocation(CountableDjangoObjectType):
     quantity = graphene.Int(required=True, description="Quantity allocated for orders.")
@@ -116,6 +130,4 @@ class Allocation(CountableDjangoObjectType):
         [ProductPermissions.MANAGE_PRODUCTS, OrderPermissions.MANAGE_ORDERS]
     )
     def resolve_quantity(root, *_args):
-        return root.stock.allocations.aggregate(
-            quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
-        )["quantity_allocated"]
+        return root.quantity_allocated

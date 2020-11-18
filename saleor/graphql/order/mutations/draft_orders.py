@@ -21,12 +21,17 @@ from ....order.utils import (
 from ....warehouse.management import allocate_stock
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
+from ...channel.types import Channel
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types.common import OrderError
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
-from ..utils import validate_draft_order
+from ..utils import (
+    validate_draft_order,
+    validate_product_is_published_in_channel,
+    validate_variant_channel_listings,
+)
 
 
 class OrderLineInput(graphene.InputObjectType):
@@ -58,6 +63,9 @@ class DraftOrderInput(InputObjectType):
     customer_note = graphene.String(
         description="A note from a customer. Visible by customers in the order summary."
     )
+    channel = graphene.ID(
+        description="ID of the channel associated with the order.", name="channel"
+    )
 
 
 class DraftOrderCreateInput(DraftOrderInput):
@@ -83,15 +91,61 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         error_type_field = "order_errors"
 
     @classmethod
+    def clean_channel_id(cls, instance, channel_id):
+        if channel_id and hasattr(instance, "channel"):
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        "Can't update existing order channel id.",
+                        code=OrderErrorCode.NOT_EDITABLE.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def clean_voucher(cls, voucher, channel):
+        if not voucher.channel_listings.filter(channel=channel).exists():
+            raise ValidationError(
+                {
+                    "voucher": ValidationError(
+                        "Voucher not available for this order.",
+                        code=OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value,
+                    )
+                }
+            )
+
+    @classmethod
     def clean_input(cls, info, instance, data):
         shipping_address = data.pop("shipping_address", None)
         billing_address = data.pop("billing_address", None)
         cleaned_input = super().clean_input(info, instance, data)
-
         lines = data.pop("lines", None)
+        channel_id = data.get("channel", None)
+        if "channel" in cleaned_input and channel_id is None:
+            del cleaned_input["channel"]
+        cls.clean_channel_id(instance, channel_id)
+        voucher = cleaned_input.get("voucher", None)
+        if voucher:
+            channel = cleaned_input.get("channel") or instance.channel
+            cls.clean_voucher(voucher, channel)
+
+        channel = instance.channel if hasattr(instance, "channel") else None
+        if not channel and channel_id:
+            channel = cls.get_node_or_error(info, channel_id, only_type=Channel)
+        if channel:
+            cleaned_input["currency"] = channel.currency_code
+
         if lines:
             variant_ids = [line.get("variant_id") for line in lines]
             variants = cls.get_nodes_or_error(variant_ids, "variants", ProductVariant)
+            try:
+                validate_product_is_published_in_channel(variants, channel)
+                validate_variant_channel_listings(variants, channel)
+            except ValidationError as error:
+                field_name = "lines"
+                if error.code == OrderErrorCode.REQUIRED:
+                    field_name = "channel"
+                raise ValidationError({field_name: error})
             quantities = [line.get("quantity") for line in lines]
             cleaned_input["variants"] = variants
             cleaned_input["quantities"] = quantities
@@ -279,7 +333,7 @@ class DraftOrderComplete(BaseMutation):
 
         if not order.is_shipping_required():
             order.shipping_method_name = None
-            order.shipping_price = zero_taxed_money()
+            order.shipping_price = zero_taxed_money(order.currency)
             if order.shipping_address:
                 order.shipping_address.delete()
                 order.shipping_address = None
@@ -358,7 +412,13 @@ class DraftOrderLinesCreate(BaseMutation):
                         )
                     }
                 )
-
+        variants = [line[1] for line in lines_to_add]
+        try:
+            channel = order.channel
+            validate_product_is_published_in_channel(variants, channel)
+            validate_variant_channel_listings(variants, channel)
+        except ValidationError as error:
+            raise ValidationError({"input": error})
         # Add the lines
         try:
             lines = [

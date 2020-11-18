@@ -28,8 +28,10 @@ from . import (
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ...checkout.models import Checkout, CheckoutLine
+    from ...account.models import Address
+    from ...channel.models import Channel
     from ...checkout import CheckoutLineInfo
+    from ...checkout.models import Checkout, CheckoutLine
     from ...discount import DiscountInfo
     from ...product.models import Collection, Product, ProductVariant
     from ...account.models import Address
@@ -135,8 +137,10 @@ class VatlayerPlugin(BasePlugin):
             taxes = self._get_taxes_for_country(address.country)
         if not checkout.shipping_method:
             return previous_value
-
-        return get_taxed_shipping_price(checkout.shipping_method.price, taxes)
+        shipping_price = checkout.shipping_method.channel_listings.get(
+            channel_id=checkout.channel_id
+        ).price
+        return get_taxed_shipping_price(shipping_price, taxes)
 
     def calculate_order_shipping(
         self, order: "Order", previous_value: TaxedMoney
@@ -150,7 +154,10 @@ class VatlayerPlugin(BasePlugin):
             taxes = self._get_taxes_for_country(address.country)
         if not order.shipping_method:
             return previous_value
-        return get_taxed_shipping_price(order.shipping_method.price, taxes)
+        shipping_price = order.shipping_method.channel_listings.get(
+            channel_id=order.channel_id
+        ).price
+        return get_taxed_shipping_price(shipping_price, taxes)
 
     def calculate_checkout_line_total(
         self,
@@ -161,12 +168,13 @@ class VatlayerPlugin(BasePlugin):
         collections: List["Collection"],
         address: Optional["Address"],
         discounts: List["DiscountInfo"],
+        channel: "Channel",
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):
             return previous_value
 
-        price = variant.get_price(product, collections, discounts)
+        price = variant.get_price(product, collections, channel.slug, discounts)
         country = address.country if address else None
         return (
             self.__apply_taxes_to_product(product, price, country)

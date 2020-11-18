@@ -39,6 +39,7 @@ if TYPE_CHECKING:
     from ...checkout import CheckoutLineInfo
     from ...account.models import Address
     from ...checkout.models import Checkout, CheckoutLine
+    from ...channel.models import Channel
     from ...order.models import Order, OrderLine
     from ...product.models import Collection, Product, ProductVariant
     from ..models import PluginConfiguration
@@ -124,6 +125,7 @@ class AvataxPlugin(BasePlugin):
         self,
         price: TaxedMoney,
         lines: Iterable["CheckoutLineInfo"],
+        channel: "Channel",
         discounts: Iterable[DiscountInfo],
     ):
         for line_info in lines:
@@ -134,6 +136,7 @@ class AvataxPlugin(BasePlugin):
                 line_info.variant,
                 line_info.product,
                 line_info.collections,
+                channel,
                 discounts,
             )
             price.gross.amount += line_price.gross.amount
@@ -164,7 +167,9 @@ class AvataxPlugin(BasePlugin):
         total_gross = Money(amount=total_net + tax, currency=currency)
         total_net = Money(amount=total_net, currency=currency)
         taxed_total = TaxedMoney(net=total_net, gross=total_gross)
-        total = self._append_prices_of_not_taxed_lines(taxed_total, lines, discounts)
+        total = self._append_prices_of_not_taxed_lines(
+            taxed_total, lines, checkout.channel, discounts
+        )
         voucher_value = checkout.discount
         if voucher_value:
             total -= voucher_value
@@ -192,7 +197,9 @@ class AvataxPlugin(BasePlugin):
         sub_total_gross = Money(sub_net + sub_tax, currency)
         sub_total_net = Money(sub_net, currency)
         taxed_subtotal = TaxedMoney(net=sub_total_net, gross=sub_total_gross)
-        return self._append_prices_of_not_taxed_lines(taxed_subtotal, lines, discounts)
+        return self._append_prices_of_not_taxed_lines(
+            taxed_subtotal, lines, checkout.channel, discounts
+        )
 
     def calculate_checkout_subtotal(
         self,
@@ -321,6 +328,7 @@ class AvataxPlugin(BasePlugin):
         collections: Iterable["Collection"],
         address: Optional["Address"],
         discounts: Iterable[DiscountInfo],
+        channel: "Channel",
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):

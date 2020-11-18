@@ -7,15 +7,17 @@ if TYPE_CHECKING:
 
 def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
     data = []
+    channel = checkout.channel
     for line in checkout.lines.select_related("variant__product").all():
         variant = line.variant
         product = variant.product
+        base_price = variant.get_price(product, [], channel.slug)
         data.append(
             {
                 "sku": variant.sku,
                 "quantity": line.quantity,
-                "base_price": str(variant.price.amount),
-                "currency": variant.currency,
+                "base_price": str(base_price.amount),
+                "currency": channel.currency_code,
                 "full_name": variant.display_product(),
                 "product_name": product.name,
                 "variant_name": variant.name,

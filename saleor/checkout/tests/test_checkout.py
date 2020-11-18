@@ -12,7 +12,7 @@ from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...core.taxes import zero_money
 from ...discount import DiscountValueType, VoucherType
-from ...discount.models import NotApplicable, Voucher
+from ...discount.models import NotApplicable, Voucher, VoucherChannelListing
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...shipping.models import ShippingZone
@@ -100,18 +100,21 @@ def test_get_discount_for_checkout_value_voucher(
     discount_value_type,
     expected_value,
     monkeypatch,
+    channel_USD,
 ):
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
-        discount_value=discount_value,
-        min_spent=(
-            Money(min_spent_amount, "USD") if min_spent_amount is not None else None
-        ),
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
-    checkout = Mock(spec=Checkout, quantity=total_quantity)
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(discount_value, channel_USD.currency_code),
+        min_spent_amount=(min_spent_amount if min_spent_amount is not None else None),
+    )
+    checkout = Mock(spec=Checkout, quantity=total_quantity, channel=channel_USD)
     subtotal = TaxedMoney(Money(total, "USD"), Money(total, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
@@ -144,7 +147,7 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
     quantity = checkout_with_voucher.quantity
     customer_email = checkout_with_voucher.get_customer_email()
     mock_validate_voucher.assert_called_once_with(
-        voucher, subtotal.gross, quantity, customer_email
+        voucher, subtotal.gross, quantity, customer_email, checkout_with_voucher.channel
     )
 
 
@@ -167,18 +170,21 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
     min_spent_amount,
     min_checkout_items_quantity,
     monkeypatch,
+    channel_USD,
 ):
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_type,
-        discount_value=discount_value,
-        min_spent=(
-            Money(min_spent_amount, "USD") if min_spent_amount is not None else None
-        ),
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
-    checkout = Mock(spec=Checkout, quantity=total_quantity)
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(discount_value, channel_USD.currency_code),
+        min_spent_amount=(min_spent_amount if min_spent_amount is not None else None),
+    )
+    checkout = Mock(spec=Checkout, quantity=total_quantity, channel=channel_USD)
     subtotal = TaxedMoney(Money(total, "USD"), Money(total, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
@@ -210,13 +216,18 @@ def test_get_discount_for_checkout_specific_products_voucher(
     discount_type,
     apply_once_per_order,
     discount_amount,
+    channel_USD,
 ):
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=discount_type,
-        discount_value=discount_value,
         apply_once_per_order=apply_once_per_order,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(discount_value, channel_USD.currency_code),
     )
     for product in product_list:
         voucher.products.add(product)
@@ -247,6 +258,7 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
     discount_type,
     min_spent_amount,
     min_checkout_items_quantity,
+    channel_USD,
 ):
     discounts = []
     monkeypatch.setattr(
@@ -270,18 +282,20 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         ),
     )
 
-    voucher = Voucher(
+    manager = get_plugins_manager()
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=discount_type,
-        discount_value=discount_value,
-        min_spent=(
-            Money(min_spent_amount, "USD") if min_spent_amount is not None else None
-        ),
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
-    checkout = Mock(quantity=total_quantity, spec=Checkout)
-    manager = get_plugins_manager()
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(discount_value, channel_USD.currency_code),
+        min_spent_amount=(min_spent_amount if min_spent_amount is not None else None),
+    )
+    checkout = Mock(quantity=total_quantity, spec=Checkout, channel=channel_USD)
     with pytest.raises(NotApplicable):
         get_voucher_discount_for_checkout(
             manager, voucher, checkout, [], None, discounts
@@ -306,6 +320,8 @@ def test_get_discount_for_checkout_shipping_voucher(
     countries,
     expected_value,
     monkeypatch,
+    channel_USD,
+    shipping_method,
 ):
     manager = get_plugins_manager()
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
@@ -324,16 +340,22 @@ def test_get_discount_for_checkout_shipping_voucher(
     checkout = Mock(
         spec=Checkout,
         is_shipping_required=Mock(return_value=True),
-        shipping_method=Mock(get_total=Mock(return_value=shipping_total)),
+        channel_id=channel_USD.id,
+        channel=channel_USD,
+        shipping_method=shipping_method,
         get_shipping_price=Mock(return_value=shipping_total),
         shipping_address=Mock(country=Country(shipping_country_code)),
     )
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
-        discount_value=discount_value,
         countries=countries,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(discount_value, channel_USD.currency_code),
     )
     discount = get_voucher_discount_for_checkout(
         manager, voucher, checkout, [], None, None
@@ -341,7 +363,9 @@ def test_get_discount_for_checkout_shipping_voucher(
     assert discount == Money(expected_value, "USD")
 
 
-def test_get_discount_for_checkout_shipping_voucher_all_countries(monkeypatch):
+def test_get_discount_for_checkout_shipping_voucher_all_countries(
+    monkeypatch, channel_USD, shipping_method
+):
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
@@ -361,16 +385,23 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(monkeypatch):
     )
     checkout = Mock(
         spec=Checkout,
+        channel_id=channel_USD.id,
+        channel=channel_USD,
+        shipping_method_id=shipping_method.id,
         is_shipping_required=Mock(return_value=True),
         shipping_method=Mock(get_total=Mock(return_value=shipping_total)),
         shipping_address=Mock(country=Country("PL")),
     )
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SHIPPING,
         discount_value_type=DiscountValueType.PERCENTAGE,
-        discount_value=50,
         countries=[],
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(50, channel_USD.currency_code),
     )
 
     manager = get_plugins_manager()
@@ -381,7 +412,9 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(monkeypatch):
     assert discount == Money(5, "USD")
 
 
-def test_get_discount_for_checkout_shipping_voucher_limited_countries(monkeypatch):
+def test_get_discount_for_checkout_shipping_voucher_limited_countries(
+    monkeypatch, channel_USD
+):
     subtotal = TaxedMoney(net=Money(100, "USD"), gross=Money(100, "USD"))
     shipping_total = TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
     monkeypatch.setattr(
@@ -390,16 +423,21 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(monkeypatc
     )
     checkout = Mock(
         get_subtotal=Mock(return_value=subtotal),
+        channel=channel_USD,
         is_shipping_required=Mock(return_value=True),
         shipping_method=Mock(get_total=Mock(return_value=shipping_total)),
         shipping_address=Mock(country=Country("PL")),
     )
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SHIPPING,
         discount_value_type=DiscountValueType.PERCENTAGE,
-        discount_value=50,
         countries=["UK", "DE"],
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(50, channel_USD.currency_code),
     )
 
     manager = get_plugins_manager()
@@ -501,6 +539,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     total_quantity,
     error_msg,
     monkeypatch,
+    channel_USD,
 ):
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
@@ -519,20 +558,23 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         shipping_address=Mock(spec=Address, country=Mock(code="PL")),
         quantity=total_quantity,
         spec=Checkout,
+        channel=channel_USD,
     )
 
-    voucher = Voucher(
+    voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
-        discount_value=discount_value,
-        min_spent=(
-            Money(min_spent_amount, "USD") if min_spent_amount is not None else None
-        ),
         min_checkout_items_quantity=min_checkout_items_quantity,
         countries=countries,
     )
     manager = get_plugins_manager()
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(discount_value, channel_USD.currency_code),
+        min_spent_amount=(min_spent_amount if min_spent_amount is not None else None),
+    )
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_checkout(
             manager, voucher, checkout, [], checkout.shipping_address, None
@@ -565,15 +607,14 @@ def test_remove_voucher_from_checkout(checkout_with_voucher, voucher_translation
     assert not checkout.voucher_code
     assert not checkout.discount_name
     assert not checkout.translated_discount_name
-    assert checkout.discount == zero_money()
+    assert checkout.discount == zero_money(checkout.channel.currency_code)
 
 
 def test_recalculate_checkout_discount(
-    checkout_with_voucher, voucher, voucher_translation_fr, settings
+    checkout_with_voucher, voucher, voucher_translation_fr, settings, channel_USD
 ):
     settings.LANGUAGE_CODE = "fr"
-    voucher.discount_value = 10
-    voucher.save()
+    voucher.channel_listings.filter(channel=channel_USD).update(discount_value=10)
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout_with_voucher)
@@ -603,11 +644,10 @@ def test_recalculate_checkout_discount_with_sale(
 
 
 def test_recalculate_checkout_discount_voucher_not_applicable(
-    checkout_with_voucher, voucher
+    checkout_with_voucher, voucher, channel_USD
 ):
     checkout = checkout_with_voucher
-    voucher.min_spent = Money(100, "USD")
-    voucher.save(update_fields=["min_spent_amount", "currency"])
+    voucher.channel_listings.filter(channel=channel_USD).update(min_spent_amount=100)
 
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
@@ -615,7 +655,7 @@ def test_recalculate_checkout_discount_voucher_not_applicable(
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
-    assert checkout.discount == zero_money()
+    assert checkout.discount == zero_money(checkout.channel.currency_code)
 
 
 def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, voucher):
@@ -630,29 +670,30 @@ def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, vo
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
-    assert checkout.discount == zero_money()
+    assert checkout.discount == zero_money(checkout.channel.currency_code)
 
 
 def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping(
     checkout_with_voucher_percentage_and_shipping,
     voucher_free_shipping,
     shipping_method,
+    channel_USD,
 ):
     checkout = checkout_with_voucher_percentage_and_shipping
-
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
-    shipping_method.price = calculations.checkout_subtotal(
+    channel_listing = shipping_method.channel_listings.get(channel_id=channel_USD.id)
+    channel_listing.price = calculations.checkout_subtotal(
         manager=manager,
         checkout=checkout,
         lines=lines,
         address=checkout.shipping_address,
     ).gross + Money("10.00", "USD")
-    shipping_method.save()
+    channel_listing.save()
 
     recalculate_checkout_discount(manager, checkout, lines, None)
 
-    assert checkout.discount == shipping_method.price
+    assert checkout.discount == channel_listing.price
     assert checkout.discount_name == "Free shipping"
     checkout_total = calculations.checkout_total(
         manager=manager,
@@ -673,22 +714,23 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
     checkout_with_voucher_percentage_and_shipping,
     voucher_free_shipping,
     shipping_method,
+    channel_USD,
 ):
     checkout = checkout_with_voucher_percentage_and_shipping
-
     manager = get_plugins_manager()
     lines = fetch_checkout_lines(checkout)
-    shipping_method.price = calculations.checkout_subtotal(
+    channel_listing = shipping_method.channel_listings.get(channel=channel_USD)
+    channel_listing.price = calculations.checkout_subtotal(
         manager=manager,
         checkout=checkout,
         lines=lines,
         address=checkout.shipping_address,
     ).gross - Money("1.00", "USD")
-    shipping_method.save()
+    channel_listing.save()
 
     recalculate_checkout_discount(manager, checkout, lines, None)
 
-    assert checkout.discount == shipping_method.price
+    assert checkout.discount == channel_listing.price
     assert checkout.discount_name == "Free shipping"
     checkout_total = calculations.checkout_total(
         manager=manager,
@@ -715,7 +757,7 @@ def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shippi
 
     assert not checkout.discount_name
     assert not checkout.voucher_code
-    assert checkout.discount == zero_money()
+    assert checkout.discount == zero_money(checkout.channel.currency_code)
 
 
 def test_change_address_in_checkout(checkout, address):

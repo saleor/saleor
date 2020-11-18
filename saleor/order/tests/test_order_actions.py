@@ -39,7 +39,7 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
 
     quantity = 3
     product = variant.product
-    net = variant.get_price(product, [], None)
+    net = variant.get_price(product, [], order.channel.slug, None)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     line = order.lines.create(
         product_name=str(product),

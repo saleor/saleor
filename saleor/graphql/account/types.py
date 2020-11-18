@@ -14,7 +14,6 @@ from ..core.fields import PrefetchingConnectionField
 from ..core.types import CountryDisplay, Image, Permission
 from ..core.utils import from_global_id_strict_type
 from ..decorators import one_of_permissions_required, permission_required
-from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
@@ -253,7 +252,7 @@ class User(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_checkout(root: models.User, _info, **_kwargs):
-        return get_user_checkout(root)[0]
+        return get_user_checkout(root)
 
     @staticmethod
     def resolve_gift_cards(root: models.User, info, **_kwargs):
@@ -319,17 +318,6 @@ class User(CountableDjangoObjectType):
         if root == info.context.user:
             return resolve_payment_sources(root)
         raise PermissionDenied()
-
-    @staticmethod
-    @one_of_permissions_required(
-        [AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF]
-    )
-    def resolve_private_meta(root: models.User, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.User, _info):
-        return resolve_meta(root, _info)
 
     @staticmethod
     def resolve_wishlist(root: models.User, info, **_kwargs):

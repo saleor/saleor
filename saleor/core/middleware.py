@@ -80,8 +80,6 @@ def currency(get_response):
     def _currency_middleware(request):
         if hasattr(request, "country") and request.country is not None:
             request.currency = get_currency_for_country(request.country)
-        else:
-            request.currency = settings.DEFAULT_CURRENCY
         return get_response(request)
 
     return _currency_middleware

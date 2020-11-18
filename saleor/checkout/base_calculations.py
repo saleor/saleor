@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from ..checkout import CheckoutLineInfo
     from ..product.models import Collection, Product, ProductVariant
     from .models import Checkout, CheckoutLine
+    from ..channel.models import Channel
 
 
 def base_checkout_shipping_price(
@@ -24,10 +25,13 @@ def base_checkout_shipping_price(
 ) -> TaxedMoney:
     """Return checkout shipping price."""
     # FIXME: Optimize checkout.is_shipping_required
-    if not checkout.shipping_method or not checkout.is_shipping_required():
+    shipping_method = checkout.shipping_method
+    if not shipping_method or not checkout.is_shipping_required():
         return zero_taxed_money(checkout.currency)
+    shipping_price = shipping_method.channel_listings.get(
+        channel_id=checkout.channel_id,
+    ).get_total()
 
-    shipping_price = checkout.shipping_method.get_total()
     return quantize_price(
         TaxedMoney(net=shipping_price, gross=shipping_price), shipping_price.currency
     )
@@ -54,10 +58,13 @@ def base_checkout_line_total(
     variant: "ProductVariant",
     product: "Product",
     collections: Iterable["Collection"],
+    channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> TaxedMoney:
     """Return the total price of this line."""
-    variant_price = variant.get_price(product, collections, discounts or [])
+    variant_price = variant.get_price(
+        product, collections, channel.slug, discounts or []
+    )
     amount = line.quantity * variant_price
     price = quantize_price(amount, amount.currency)
     return TaxedMoney(net=price, gross=price)

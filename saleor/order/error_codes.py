@@ -27,3 +27,5 @@ class OrderErrorCode(Enum):
     ZERO_QUANTITY = "zero_quantity"
     INSUFFICIENT_STOCK = "insufficient_stock"
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
+    NOT_AVAILABLE_IN_CHANNEL = "not_available_in_channel"
+    CHANNEL_INACTIVE = "channel_inactive"

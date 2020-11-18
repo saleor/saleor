@@ -10,7 +10,7 @@ from ......checkout.utils import fetch_checkout_lines
 from ......order import OrderEvents, OrderStatus
 from ......plugins.manager import get_plugins_manager
 from ..... import ChargeStatus, TransactionKind
-from ...utils import to_adyen_price
+from ...utils.common import to_adyen_price
 from ...webhooks import (
     create_new_transaction,
     handle_authorization,

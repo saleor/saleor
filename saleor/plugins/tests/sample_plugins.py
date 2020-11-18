@@ -47,6 +47,11 @@ class PluginSample(BasePlugin):
             "help_text": "API key",
             "label": "Private key",
         },
+        "certificate": {
+            "type": ConfigurationTypeField.SECRET_MULTILINE,
+            "help_text": "",
+            "label": "Multiline certificate",
+        },
     }
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
@@ -86,6 +91,7 @@ class PluginSample(BasePlugin):
         product,
         collections,
         address,
+        channel,
         discounts,
         previous_value,
     ):
@@ -158,7 +164,7 @@ class ActiveDummyPaymentGateway(BasePlugin):
     ]
     PLUGIN_NAME = "SampleDummy"
     DEFAULT_ACTIVE = True
-    SUPPORTED_CURRENCIES = ["PLN", "USD"]
+    SUPPORTED_CURRENCIES = ["EUR", "USD"]
 
     def process_payment(self, payment_information, previous_value):
         pass

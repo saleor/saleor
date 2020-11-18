@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 from graphene import relay
+from promise import Promise
 
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.exceptions import PermissionDenied
@@ -15,19 +16,23 @@ from ...product.templatetags.product_images import get_product_image_thumbnail
 from ...warehouse import models as warehouse_models
 from ..account.types import User
 from ..account.utils import requestor_has_access
+from ..channel import ChannelContext
+from ..channel.dataloaders import ChannelByIdLoader, ChannelByOrderLineIdLoader
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.common import Image
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import one_of_permissions_required, permission_required
+from ..discount.dataloaders import VoucherByIdLoader
 from ..giftcard.types import GiftCard
 from ..invoice.types import Invoice
-from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
+from ..product.resolvers import resolve_variant
 from ..product.types import ProductVariant
+from ..shipping.dataloaders import ShippingMethodByIdLoader
 from ..shipping.types import ShippingMethod
 from ..warehouse.types import Allocation, Warehouse
-from .dataloaders import AllocationsByOrderLineIdLoader
+from .dataloaders import AllocationsByOrderLineIdLoader, OrderLinesByOrderIdLoader
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
 
@@ -222,15 +227,6 @@ class Fulfillment(CountableDjangoObjectType):
         line = root.lines.first()
         return line.stock.warehouse if line and line.stock else None
 
-    @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_private_meta(root: models.Fulfillment, _info):
-        return resolve_private_meta(root, _info)
-
-    @staticmethod
-    def resolve_meta(root: models.Fulfillment, _info):
-        return resolve_meta(root, _info)
-
 
 class OrderLine(CountableDjangoObjectType):
     thumbnail = graphene.Field(
@@ -303,6 +299,11 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_translated_variant_name(root: models.OrderLine, _info):
         return root.translated_variant_name
+
+    @staticmethod
+    def resolve_variant(root: models.OrderLine, info):
+        dataloader = ChannelByOrderLineIdLoader(info.context)
+        return resolve_variant(info, root, dataloader)
 
     @staticmethod
     @one_of_permissions_required(
@@ -382,6 +383,7 @@ class Order(CountableDjangoObjectType):
             "billing_address",
             "created",
             "customer_note",
+            "channel",
             "discount",
             "discount_name",
             "display_gross_prices",
@@ -465,8 +467,8 @@ class Order(CountableDjangoObjectType):
         return qs.order_by("pk")
 
     @staticmethod
-    def resolve_lines(root: models.Order, _info):
-        return root.lines.all().order_by("pk")
+    def resolve_lines(root: models.Order, info):
+        return OrderLinesByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)
@@ -523,24 +525,55 @@ class Order(CountableDjangoObjectType):
         raise PermissionDenied()
 
     @staticmethod
+    def resolve_shipping_method(root: models.Order, info):
+        if not root.shipping_method_id:
+            return None
+
+        def wrap_shipping_method_with_channel_context(data):
+            shipping_method, channel = data
+            return ChannelContext(node=shipping_method, channel_slug=channel.slug)
+
+        shipping_method = ShippingMethodByIdLoader(info.context).load(
+            root.shipping_method_id
+        )
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
+
+        return Promise.all([shipping_method, channel]).then(
+            wrap_shipping_method_with_channel_context
+        )
+
+    @staticmethod
+    # TODO: We should optimize it in/after PR#5819
     def resolve_available_shipping_methods(root: models.Order, _info):
         available = get_valid_shipping_methods_for_order(root)
         if available is None:
             return []
-
+        available_shipping_methods = []
         manager = get_plugins_manager()
         display_gross = display_gross_prices()
         for shipping_method in available:
             # Ignore typing check because it is checked in
             # get_valid_shipping_methods_for_order
-            taxed_price = manager.apply_taxes_to_shipping(
-                shipping_method.price, root.shipping_address  # type: ignore
-            )
-            if display_gross:
-                shipping_method.price = taxed_price.gross
-            else:
-                shipping_method.price = taxed_price.net
-        return available
+            shipping_channel_listing = shipping_method.channel_listings.filter(
+                channel=root.channel
+            ).first()
+            if shipping_channel_listing:
+                taxed_price = manager.apply_taxes_to_shipping(
+                    shipping_channel_listing.price,
+                    root.shipping_address,  # type: ignore
+                )
+                if display_gross:
+                    shipping_method.price = taxed_price.gross
+                else:
+                    shipping_method.price = taxed_price.net
+                available_shipping_methods.append(shipping_method)
+        channel_slug = root.channel.slug
+        instances = [
+            ChannelContext(node=shipping, channel_slug=channel_slug)
+            for shipping in available_shipping_methods
+        ]
+
+        return instances
 
     @staticmethod
     def resolve_invoices(root: models.Order, info):
@@ -558,10 +591,15 @@ class Order(CountableDjangoObjectType):
         return root.gift_cards.all()
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_private_meta(root: models.Order, _info):
-        return resolve_private_meta(root, _info)
+    def resolve_voucher(root: models.Order, info):
+        if not root.voucher_id:
+            return None
 
-    @staticmethod
-    def resolve_meta(root: models.Order, _info):
-        return resolve_meta(root, _info)
+        def wrap_voucher_with_channel_context(data):
+            voucher, channel = data
+            return ChannelContext(node=voucher, channel_slug=channel.slug)
+
+        voucher = VoucherByIdLoader(info.context).load(root.voucher_id)
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
+
+        return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)

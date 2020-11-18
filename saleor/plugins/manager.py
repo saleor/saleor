@@ -18,20 +18,22 @@ from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from .base_plugin import BasePlugin
+    from ..account.models import Address, User
+    from ..channel.models import Channel
     from ..checkout import CheckoutLineInfo
     from ..checkout.models import Checkout, CheckoutLine
-    from ..product.models import Collection, Product, ProductType, ProductVariant
-    from ..account.models import Address, User
-    from ..order.models import Fulfillment, OrderLine, Order
     from ..invoice.models import Invoice
+    from ..order.models import Fulfillment, Order, OrderLine
     from ..payment.interface import (
-        PaymentData,
-        TokenConfig,
-        GatewayResponse,
         CustomerSource,
+        GatewayResponse,
+        PaymentData,
         PaymentGateway,
+        InitializedPaymentResponse,
+        TokenConfig,
     )
+    from ..product.models import Collection, Product, ProductType, ProductVariant
+    from .base_plugin import BasePlugin
 
 
 class PluginsManager(PaymentInterface):
@@ -143,6 +145,7 @@ class PluginsManager(PaymentInterface):
                 line_info.product,
                 line_info.collections,
                 address,
+                checkout.channel,
                 discounts,
             )
             for line_info in lines
@@ -185,7 +188,9 @@ class PluginsManager(PaymentInterface):
     def calculate_order_shipping(self, order: "Order") -> TaxedMoney:
         if not order.shipping_method:
             return zero_taxed_money(order.currency)
-        shipping_price = order.shipping_method.price
+        shipping_price = order.shipping_method.channel_listings.get(
+            channel_id=order.channel_id
+        ).price
         default_value = quantize_price(
             TaxedMoney(net=shipping_price, gross=shipping_price),
             shipping_price.currency,
@@ -205,10 +210,11 @@ class PluginsManager(PaymentInterface):
         product: "Product",
         collections: Iterable["Collection"],
         address: Optional["Address"],
+        channel: "Channel",
         discounts: Iterable[DiscountInfo],
     ):
         default_value = base_calculations.base_checkout_line_total(
-            checkout_line, variant, product, collections, discounts
+            checkout_line, variant, product, collections, channel, discounts
         )
         return quantize_price(
             self.__run_method_on_plugins(
@@ -220,6 +226,7 @@ class PluginsManager(PaymentInterface):
                 product,
                 collections,
                 address,
+                channel,
                 discounts,
             ),
             checkout.currency,
@@ -360,6 +367,19 @@ class PluginsManager(PaymentInterface):
     def checkout_updated(self, checkout: "Checkout"):
         default_value = None
         return self.__run_method_on_plugins("checkout_updated", default_value, checkout)
+
+    def initialize_payment(
+        self, gateway, payment_data: dict
+    ) -> Optional["InitializedPaymentResponse"]:
+        method_name = "initialize_payment"
+        default_value = None
+        gtw = self.get_plugin(gateway)
+        if not gtw:
+            return None
+
+        return self.__run_method_on_single_plugin(
+            gtw, method_name, previous_value=default_value, payment_data=payment_data,
+        )
 
     def authorize_payment(
         self, gateway: str, payment_information: "PaymentData"
