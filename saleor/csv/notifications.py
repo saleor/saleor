@@ -33,7 +33,7 @@ def send_export_download_link_notification(export_file: "ExportFile"):
     }
 
     manager = get_plugins_manager()
-    manager.notify(NotifyEventType.CSV_PRODUCT_EXPORT_SUCCESS, payload)
+    manager.notify(NotifyEventType.CSV_PRODUCT_EXPORT_SUCCESS, payload)  # type: ignore
     events.export_file_sent_event(export_file=export_file, user=export_file.user)
 
 
@@ -44,5 +44,5 @@ def send_export_failed_info(export_file: "ExportFile"):
         "recipient_email": export_file.user.email if export_file.user else None,
     }
     manager = get_plugins_manager()
-    manager.notify(NotifyEventType.CSV_EXPORT_FAILED, payload)
+    manager.notify(NotifyEventType.CSV_EXPORT_FAILED, payload)  # type: ignore
     events.export_failed_info_sent_event(export_file=export_file, user=export_file.user)
