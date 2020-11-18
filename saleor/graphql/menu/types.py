@@ -87,7 +87,8 @@ class MenuItem(ChannelContextType, CountableDjangoObjectType):
         menus = MenuItemChildrenLoader(info.context).load(root.node.id)
         return menus.then(
             lambda menus: [
-                ChannelContext(node=menu, channel_slug=None) for menu in menus
+                ChannelContext(node=menu, channel_slug=root.channel_slug)
+                for menu in menus
             ]
         )
 

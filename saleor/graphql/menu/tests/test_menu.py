@@ -226,9 +226,7 @@ def test_query_menus_with_sort(
         assert menus[order]["node"]["name"] == menu_name
 
 
-def test_menu_items_query(
-    user_api_client, menu_item, published_collection, channel_USD
-):
+def test_menu_item_query(user_api_client, menu_item, published_collection, channel_USD):
     query = """
     query menuitem($id: ID!, $channel: String) {
         menuItem(id: $id, channel: $channel) {
@@ -269,6 +267,52 @@ def test_menu_items_query(
     assert not data["category"]
     assert not data["page"]
     assert data["url"] is None
+
+
+def test_menu_items_query(
+    user_api_client, menu_with_items, published_collection, channel_USD, category
+):
+    query = """
+    fragment SecondaryMenuSubItem on MenuItem {
+        id
+        name
+        category {
+            id
+            name
+        }
+        url
+        collection {
+            id
+            name
+        }
+        page {
+            slug
+        }
+    }
+    query menuitem($id: ID!, $channel: String) {
+        menu(id: $id, channel: $channel) {
+            items {
+                ...SecondaryMenuSubItem
+                children {
+                ...SecondaryMenuSubItem
+                }
+            }
+        }
+    }
+    """
+    variables = {
+        "id": graphene.Node.to_global_id("Menu", menu_with_items.pk),
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+
+    items = content["data"]["menu"]["items"]
+    assert not items[0]["category"]
+    assert not items[0]["collection"]
+    assert items[1]["children"][0]["category"]["name"] == category.name
+    assert items[1]["children"][1]["collection"]["name"] == published_collection.name
 
 
 def test_menu_items_collection_in_other_channel(
