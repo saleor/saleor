@@ -2570,11 +2570,15 @@ def menu_item_list(menu):
 
 
 @pytest.fixture
-def menu_with_items(menu, category, collection):
+def menu_with_items(menu, category, published_collection):
     menu.items.create(name="Link 1", url="http://example.com/")
     menu_item = menu.items.create(name="Link 2", url="http://example.com/")
     menu.items.create(name=category.name, category=category, parent=menu_item)
-    menu.items.create(name=collection.name, collection=collection, parent=menu_item)
+    menu.items.create(
+        name=published_collection.name,
+        collection=published_collection,
+        parent=menu_item,
+    )
     return menu
 
 

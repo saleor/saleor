@@ -13,15 +13,11 @@ query {
 """
 
 
-def test_query_channels_as_staff_user(
-    staff_api_client, permission_manage_channels, channel_USD, channel_PLN
-):
+def test_query_channels_as_staff_user(staff_api_client, channel_USD, channel_PLN):
     # given
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY_CHANNELS, {}, permissions=(permission_manage_channels,)
-    )
+    response = staff_api_client.post_graphql(QUERY_CHANNELS, {})
     content = get_graphql_content(response)
 
     # then
@@ -39,15 +35,11 @@ def test_query_channels_as_staff_user(
     } in channels
 
 
-def test_query_channels_as_app(
-    app_api_client, permission_manage_channels, channel_USD, channel_PLN
-):
+def test_query_channels_as_app(app_api_client, channel_USD, channel_PLN):
     # given
 
     # when
-    response = app_api_client.post_graphql(
-        QUERY_CHANNELS, {}, permissions=(permission_manage_channels,)
-    )
+    response = app_api_client.post_graphql(QUERY_CHANNELS, {})
     content = get_graphql_content(response)
 
     # then
@@ -97,17 +89,13 @@ query getChannel($id: ID!){
 """
 
 
-def test_query_channel_as_staff_user(
-    staff_api_client, permission_manage_channels, channel_USD
-):
+def test_query_channel_as_staff_user(staff_api_client, channel_USD):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {"id": channel_id}
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY_CHANNEL, variables, permissions=(permission_manage_channels,)
-    )
+    response = staff_api_client.post_graphql(QUERY_CHANNEL, variables)
     content = get_graphql_content(response)
 
     # then
@@ -118,15 +106,13 @@ def test_query_channel_as_staff_user(
     assert channel_data["currencyCode"] == channel_USD.currency_code
 
 
-def test_query_channel_as_app(app_api_client, permission_manage_channels, channel_USD):
+def test_query_channel_as_app(app_api_client, channel_USD):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {"id": channel_id}
 
     # when
-    response = app_api_client.post_graphql(
-        QUERY_CHANNEL, variables, permissions=(permission_manage_channels,)
-    )
+    response = app_api_client.post_graphql(QUERY_CHANNEL, variables)
     content = get_graphql_content(response)
 
     # then
