@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from ....core.permissions import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
+from ...channel import ChannelContext
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import Upload
 from ...core.types.common import ProductError
@@ -113,7 +114,9 @@ class DigitalContentCreate(BaseMutation):
 
         variant.digital_content = digital_content
         variant.digital_content.save()
-        return DigitalContentCreate(content=digital_content)
+
+        variant = ChannelContext(node=variant, channel_slug=None)
+        return DigitalContentCreate(content=digital_content, variant=variant)
 
 
 class DigitalContentDelete(BaseMutation):
@@ -140,6 +143,7 @@ class DigitalContentDelete(BaseMutation):
         if hasattr(variant, "digital_content"):
             variant.digital_content.delete()
 
+        variant = ChannelContext(node=variant, channel_slug=None)
         return DigitalContentDelete(variant=variant)
 
 
@@ -218,6 +222,7 @@ class DigitalContentUpdate(BaseMutation):
         variant.digital_content = digital_content
         variant.digital_content.save()
 
+        variant = ChannelContext(node=variant, channel_slug=None)
         return DigitalContentUpdate(content=digital_content, variant=variant)
 
 

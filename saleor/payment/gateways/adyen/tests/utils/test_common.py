@@ -36,6 +36,7 @@ def test_append_klarna_data(
 ):
     # given
     checkout_ready_to_complete.payments.add(payment_dummy)
+    channel_id = checkout_ready_to_complete.channel_id
     line = checkout_ready_to_complete.lines.first()
     payment_data = {
         "reference": "test",
@@ -46,9 +47,10 @@ def test_append_klarna_data(
     result = append_klarna_data(dummy_payment_data, payment_data)
 
     # then
-    total = to_adyen_price(
-        line.variant.price_amount * line.quantity, line.variant.currency
-    )
+    variant_channel_listing = line.variant.channel_listings.get(channel_id=channel_id)
+    variant_price = variant_channel_listing.price_amount
+    variant_currency = variant_channel_listing.currency
+    total = to_adyen_price(variant_price * line.quantity, variant_currency)
     assert result == {
         "reference": "test",
         "shopperLocale": get_shopper_locale_value(country_code),

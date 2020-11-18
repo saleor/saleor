@@ -1,7 +1,23 @@
 from collections import defaultdict
 
-from ...checkout.models import CheckoutLine
+from ...checkout.models import Checkout, CheckoutLine
 from ..core.dataloaders import DataLoader
+
+
+class CheckoutByIdLoader(DataLoader):
+    context_key = "checkout_by_id"
+
+    def batch_load(self, keys):
+        checkouts = Checkout.objects.in_bulk(keys)
+        return [checkouts.get(checkout_id) for checkout_id in keys]
+
+
+class CheckoutLineByIdLoader(DataLoader):
+    context_key = "checkout_line_by_id"
+
+    def batch_load(self, keys):
+        checkout_lines = CheckoutLine.objects.in_bulk(keys)
+        return [checkout_lines.get(line_id) for line_id in keys]
 
 
 class CheckoutLinesByCheckoutTokenLoader(DataLoader):

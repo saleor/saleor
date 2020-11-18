@@ -401,10 +401,10 @@ def test_add_public_metadata_for_category(
 
 
 def test_add_public_metadata_for_collection(
-    staff_api_client, permission_manage_products, collection
+    staff_api_client, permission_manage_products, published_collection, channel_USD
 ):
     # given
-    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -413,7 +413,7 @@ def test_add_public_metadata_for_collection(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], collection, collection_id
+        response["data"]["updateMetadata"]["item"], published_collection, collection_id
     )
 
 
@@ -975,9 +975,10 @@ def test_delete_public_metadata_for_category(
 
 
 def test_delete_public_metadata_for_collection(
-    staff_api_client, permission_manage_products, collection
+    staff_api_client, permission_manage_products, published_collection, channel_USD
 ):
     # given
+    collection = published_collection
     collection.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     collection.save(update_fields=["metadata"])
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
@@ -1611,9 +1612,10 @@ def test_add_private_metadata_for_category(
 
 
 def test_add_private_metadata_for_collection(
-    staff_api_client, permission_manage_products, collection
+    staff_api_client, permission_manage_products, published_collection, channel_USD
 ):
     # given
+    collection = published_collection
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
 
     # when
@@ -2213,9 +2215,10 @@ def test_delete_private_metadata_for_category(
 
 
 def test_delete_private_metadata_for_collection(
-    staff_api_client, permission_manage_products, collection
+    staff_api_client, permission_manage_products, published_collection, channel_USD
 ):
     # given
+    collection = published_collection
     collection.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     collection.save(update_fields=["private_metadata"])
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)

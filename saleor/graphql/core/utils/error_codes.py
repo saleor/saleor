@@ -3,6 +3,7 @@ from enum import Enum
 from ....account.error_codes import AccountErrorCode, PermissionGroupErrorCode
 from ....app.error_codes import AppErrorCode
 from ....attribute.error_codes import AttributeErrorCode
+from ....channel.error_codes import ChannelErrorCode
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.error_codes import (
     MetadataErrorCode,
@@ -54,6 +55,7 @@ SALEOR_ERROR_CODE_ENUMS = [
     AccountErrorCode,
     AppErrorCode,
     AttributeErrorCode,
+    ChannelErrorCode,
     CheckoutErrorCode,
     ExportErrorCode,
     DiscountErrorCode,

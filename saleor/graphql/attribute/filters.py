@@ -5,18 +5,19 @@ from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ...attribute.models import Attribute
 from ...product.models import Category, Product
 from ..attribute.enums import AttributeTypeEnum
+from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import EnumFilter
-from ..core.types import FilterInputObjectType
+from ..core.types import ChannelFilterInputObjectType
 from ..core.utils import from_global_id_strict_type
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_fields_containing_value
 
 
-def filter_attributes_by_product_types(qs, field, value, requestor):
+def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug):
     if not value:
         return qs
 
-    product_qs = Product.objects.visible_to_user(requestor)
+    product_qs = Product.objects.visible_to_user(requestor, channel_slug)
 
     if field == "in_category":
         category_id = from_global_id_strict_type(
@@ -31,7 +32,9 @@ def filter_attributes_by_product_types(qs, field, value, requestor):
         product_qs = product_qs.filter(category__in=tree)
 
         if not product_qs.user_has_access_to_all(requestor):
-            product_qs = product_qs.exclude(visible_in_listings=False)
+            product_qs = product_qs.annotate_visible_in_listings(channel_slug).exclude(
+                visible_in_listings=False
+            )
 
     elif field == "in_collection":
         collection_id = from_global_id_strict_type(
@@ -78,13 +81,19 @@ class AttributeFilter(django_filters.FilterSet):
 
     def filter_in_collection(self, queryset, name, value):
         requestor = get_user_or_app_from_context(self.request)
-        return filter_attributes_by_product_types(queryset, name, value, requestor)
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return filter_attributes_by_product_types(
+            queryset, name, value, requestor, channel_slug
+        )
 
     def filter_in_category(self, queryset, name, value):
         requestor = get_user_or_app_from_context(self.request)
-        return filter_attributes_by_product_types(queryset, name, value, requestor)
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return filter_attributes_by_product_types(
+            queryset, name, value, requestor, channel_slug
+        )
 
 
-class AttributeFilterInput(FilterInputObjectType):
+class AttributeFilterInput(ChannelFilterInputObjectType):
     class Meta:
         filterset_class = AttributeFilter
