@@ -160,6 +160,8 @@ def order_created_event(
 def order_confirmed_event(
     *, order: Order, user: UserType, from_draft=False
 ) -> OrderEvent:
+    if not _user_is_valid(user):
+        user = None
     return OrderEvent.objects.create(order=order, type=OrderEvents.CONFIRMED, user=user)
 
 

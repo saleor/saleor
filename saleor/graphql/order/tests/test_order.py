@@ -2031,15 +2031,24 @@ def test_draft_order_complete(
     data = content["data"]["draftOrderComplete"]["order"]
     order.refresh_from_db()
     assert data["status"] == order.status.upper()
-    draft_placed_event = OrderEvent.objects.get()
 
     for line in order:
         allocation = line.allocations.get()
         assert allocation.quantity_allocated == line.quantity_unfulfilled
 
-    assert draft_placed_event.user == staff_user
-    assert draft_placed_event.type == order_events.OrderEvents.PLACED_FROM_DRAFT
-    assert draft_placed_event.parameters == {}
+    # ensure there are only 2 events with correct types
+    event_params = {
+        "user": staff_user,
+        "type__in": [
+            order_events.OrderEvents.PLACED_FROM_DRAFT,
+            order_events.OrderEvents.CONFIRMED,
+        ],
+        "parameters": {},
+    }
+    matching_events = OrderEvent.objects.filter(**event_params)
+    assert matching_events.count() == 2
+    assert matching_events[0].type != matching_events[1].type
+    assert not OrderEvent.objects.exclude(**event_params).exists()
 
 
 def test_draft_order_complete_with_inactive_channel(
@@ -2090,13 +2099,22 @@ def test_draft_order_complete_product_without_inventory_tracking(
 
     order.refresh_from_db()
     assert data["status"] == order.status.upper()
-    draft_placed_event = OrderEvent.objects.get()
 
     assert not Allocation.objects.filter(order_line__order=order).exists()
 
-    assert draft_placed_event.user == staff_user
-    assert draft_placed_event.type == order_events.OrderEvents.PLACED_FROM_DRAFT
-    assert draft_placed_event.parameters == {}
+    # ensure there are only 2 events with correct types
+    event_params = {
+        "user": staff_user,
+        "type__in": [
+            order_events.OrderEvents.PLACED_FROM_DRAFT,
+            order_events.OrderEvents.CONFIRMED,
+        ],
+        "parameters": {},
+    }
+    matching_events = OrderEvent.objects.filter(**event_params)
+    assert matching_events.count() == 2
+    assert matching_events[0].type != matching_events[1].type
+    assert not OrderEvent.objects.exclude(**event_params).exists()
 
 
 def test_draft_order_complete_out_of_stock_variant(

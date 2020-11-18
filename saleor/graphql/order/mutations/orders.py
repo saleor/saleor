@@ -11,11 +11,11 @@ from ....order.actions import (
     clean_mark_order_as_paid,
     mark_order_as_paid,
     order_captured,
+    order_confirmed,
     order_refunded,
     order_shipping_updated,
     order_voided,
 )
-from ....order.emails import send_order_confirmed
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import get_valid_shipping_methods_for_order, update_order_prices
 from ....payment import CustomPaymentChoices, PaymentError, TransactionKind, gateway
@@ -519,6 +519,5 @@ class OrderConfirm(ModelMutation):
         order = cls.get_instance(info, **data)
         order.status = OrderStatus.UNFULFILLED
         order.save(update_fields=["status"])
-        events.order_confirmed_event(order=order, user=info.context.user)
-        send_order_confirmed.delay(order.pk, info.context.user.pk)
+        order_confirmed(order, info.context.user, send_confirmation_email=True)
         return OrderConfirm(order=order)
