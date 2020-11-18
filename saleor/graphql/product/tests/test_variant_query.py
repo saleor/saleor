@@ -3,9 +3,10 @@ import pytest
 
 from ....attribute.utils import _associate_attribute_to_instance
 from ...tests.utils import assert_graphql_error_with_message, get_graphql_content
+from ..enums import VariantAttributeScope
 
 VARIANT_QUERY = """
-query variant($id: ID, $sku: String, $variantSelection: Boolean){
+query variant($id: ID, $sku: String, $variantSelection: VariantAttributeScope){
     productVariant(id:$id, sku:$sku){
         sku
         attributes(variantSelection: $variantSelection) {
@@ -348,7 +349,14 @@ def test_get_variant_by_sku_as_anonymous_user(api_client, variant):
     assert data["sku"] == variant.sku
 
 
-@pytest.mark.parametrize("variant_selection", [True, False])
+@pytest.mark.parametrize(
+    "variant_selection",
+    [
+        VariantAttributeScope.ALL.name,
+        VariantAttributeScope.VARIANT_SELECTION.name,
+        VariantAttributeScope.NOT_VARIANT_SELECTION.name,
+    ],
+)
 def test_get_variant_by_id_with_variant_selection_filter(
     variant_selection,
     staff_api_client,
@@ -383,4 +391,14 @@ def test_get_variant_by_id_with_variant_selection_filter(
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
     assert data["sku"] == variant.sku
-    assert len(data["attributes"]) == 1 if variant_selection else 2
+    if variant_selection == VariantAttributeScope.NOT_VARIANT_SELECTION.name:
+        assert len(data["attributes"]) == 1
+        assert (
+            data["attributes"][0]["attribute"]["slug"]
+            == image_attribute_without_values_and_file_input_type.slug
+        )
+    elif variant_selection == VariantAttributeScope.VARIANT_SELECTION.name:
+        assert len(data["attributes"]) == 1
+        assert data["attributes"][0]["attribute"]["slug"] == size_attribute.slug
+    else:
+        len(data["attributes"]) == 2

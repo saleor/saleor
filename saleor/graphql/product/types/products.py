@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from typing import List, Union
+from typing import List, Optional, Union
 
 import graphene
 from django.conf import settings
@@ -65,6 +65,7 @@ from ..dataloaders import (
     SelectedAttributesByProductVariantIdLoader,
     VariantAttributesByProductTypeIdLoader,
 )
+from ..enums import VariantAttributeScope
 from ..filters import ProductFilterInput
 from ..sorters import ProductOrder
 from .digital_contents import DigitalContent
@@ -231,8 +232,7 @@ class ProductVariant(CountableDjangoObjectType):
         required=True,
         description="List of attributes assigned to this variant.",
         variant_selection=graphene.Argument(
-            graphene.Boolean,
-            description="Whether an attribute can be used in a variant selection.",
+            VariantAttributeScope, description="Define scope of returned attributes.",
         ),
     )
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
@@ -323,20 +323,26 @@ class ProductVariant(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_attributes(
-        root: models.ProductVariant, info, variant_selection: bool = False
+        root: models.ProductVariant, info, variant_selection: Optional[str] = None
     ):
         def apply_variant_selection_filter(selected_attributes):
-            if not variant_selection:
+            if not variant_selection or variant_selection == VariantAttributeScope.ALL:
                 return selected_attributes
             attributes = [
                 selected_att["attribute"] for selected_att in selected_attributes
             ]
             variant_selection_attrs = get_variant_selection_attributes(attributes)
 
+            if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
+                return [
+                    selected_attribute
+                    for selected_attribute in selected_attributes
+                    if selected_attribute["attribute"] in variant_selection_attrs
+                ]
             return [
                 selected_attribute
                 for selected_attribute in selected_attributes
-                if selected_attribute["attribute"] in variant_selection_attrs
+                if selected_attribute["attribute"] not in variant_selection_attrs
             ]
 
         return (
@@ -684,8 +690,7 @@ class ProductType(CountableDjangoObjectType):
         Attribute,
         description="Variant attributes of that product type.",
         variant_selection=graphene.Argument(
-            graphene.Boolean,
-            description="Whether an attribute can be used in a variant selection.",
+            VariantAttributeScope, description="Define scope of returned attributes.",
         ),
     )
     product_attributes = graphene.List(
@@ -731,16 +736,20 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_variant_attributes(
-        root: models.ProductType, info, variant_selection: bool = False,
+        root: models.ProductType, info, variant_selection: Optional[str] = None,
     ):
+        def apply_variant_selection_filter(attributes):
+            if not variant_selection or variant_selection == VariantAttributeScope.ALL:
+                return attributes
+            variant_selection_attrs = get_variant_selection_attributes(attributes)
+            if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
+                return variant_selection_attrs
+            return [attr for attr in attributes if attr not in variant_selection_attrs]
+
         return (
             VariantAttributesByProductTypeIdLoader(info.context)
             .load(root.pk)
-            .then(
-                lambda attributes: attributes
-                if not variant_selection
-                else get_variant_selection_attributes(attributes)
-            )
+            .then(apply_variant_selection_filter)
         )
 
     @staticmethod

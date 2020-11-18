@@ -3869,7 +3869,7 @@ type ProductType implements Node & ObjectWithMetadata {
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   taxRate: TaxRateType
   taxType: TaxType
-  variantAttributes(variantSelection: Boolean): [Attribute]
+  variantAttributes(variantSelection: VariantAttributeScope): [Attribute]
   productAttributes: [Attribute]
   availableAttributes(filter: AttributeFilterInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
 }
@@ -3976,7 +3976,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   price: Money
   pricing: VariantPricingInfo
   isAvailable: Boolean @deprecated(reason: "Use the stock field instead. This field will be removed after 2020-07-31.")
-  attributes(variantSelection: Boolean): [SelectedAttribute!]!
+  attributes(variantSelection: VariantAttributeScope): [SelectedAttribute!]!
   costPrice: Money
   margin: Int
   quantityOrdered: Int
@@ -5019,6 +5019,12 @@ type VAT {
   countryCode: String!
   standardRate: Float
   reducedRates: [ReducedRate]!
+}
+
+enum VariantAttributeScope {
+  ALL
+  VARIANT_SELECTION
+  NOT_VARIANT_SELECTION
 }
 
 type VariantImageAssign {

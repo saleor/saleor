@@ -42,6 +42,7 @@ from ...tests.utils import (
     get_multipart_request_body,
 )
 from ..bulk_mutations.products import ProductVariantStocksUpdate
+from ..enums import VariantAttributeScope
 from ..utils import create_stocks
 
 
@@ -3401,7 +3402,7 @@ def test_product_type(user_api_client, product_type):
 
 
 PRODUCT_TYPE_QUERY = """
-    query getProductType($id: ID!, $variantSelection: Boolean) {
+    query getProductType($id: ID!, $variantSelection: VariantAttributeScope) {
         productType(id: $id) {
             name
             variantAttributes(variantSelection: $variantSelection) {
@@ -3468,7 +3469,14 @@ def test_product_type_query(
     assert len(data["productType"]["variantAttributes"]) == variant_attributes_count
 
 
-@pytest.mark.parametrize("variant_selection", [True, False])
+@pytest.mark.parametrize(
+    "variant_selection",
+    [
+        VariantAttributeScope.ALL.name,
+        VariantAttributeScope.VARIANT_SELECTION.name,
+        VariantAttributeScope.NOT_VARIANT_SELECTION.name,
+    ],
+)
 def test_product_type_query_only_variant_selections_value_set(
     variant_selection,
     user_api_client,
@@ -3512,17 +3520,25 @@ def test_product_type_query_only_variant_selections_value_set(
     assert data["productType"]["products"]["totalCount"] == no_products
     assert data["productType"]["taxType"]["taxCode"] == "123"
     assert data["productType"]["taxType"]["description"] == "Standard Taxes"
-    if not variant_selection:
-        assert (
-            len(data["productType"]["variantAttributes"])
-            == product_type.variant_attributes.count()
-        )
-    else:
+
+    if variant_selection == VariantAttributeScope.VARIANT_SELECTION.name:
         assert (
             len(data["productType"]["variantAttributes"])
             == product_type.variant_attributes.filter(
                 input_type=AttributeInputType.DROPDOWN, type=AttributeType.PRODUCT_TYPE
             ).count()
+        )
+    elif variant_selection == VariantAttributeScope.NOT_VARIANT_SELECTION.name:
+        assert (
+            len(data["productType"]["variantAttributes"])
+            == product_type.variant_attributes.exclude(
+                input_type=AttributeInputType.DROPDOWN, type=AttributeType.PRODUCT_TYPE
+            ).count()
+        )
+    else:
+        assert (
+            len(data["productType"]["variantAttributes"])
+            == product_type.variant_attributes.count()
         )
 
 
