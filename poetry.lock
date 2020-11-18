@@ -1104,6 +1104,14 @@ lxml = "*"
 dev = ["pre-commit", "mock", "pytest"]
 
 [[package]]
+name = "html2text"
+version = "2020.1.16"
+description = "Turn HTML into equivalent Markdown-structured text."
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[[package]]
 name = "html5lib"
 version = "1.1"
 description = "HTML parser based on the WHATWG HTML specification"
@@ -2429,7 +2437,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8"
-content-hash = "c17587daca837af033ce11ed3b57edee2e8b451768f4f760b4fa9c650ce6fc6d"
+content-hash = "a2477805bec92a2c0ef947ce3e7911278b8b2395be66466e1b3c03c8678aa320"
 
 [metadata.files]
 adyen = [
@@ -2885,6 +2893,10 @@ h11 = [
 ]
 html-to-draftjs = [
     {file = "html-to-draftjs-1.0.1.tar.gz", hash = "sha256:2212acf3b063c17b6dc91875f474159e1f730c1a4e5fbf74f9a66250f7040e9a"},
+]
+html2text = [
+    {file = "html2text-2020.1.16-py3-none-any.whl", hash = "sha256:c7c629882da0cf377d66f073329ccf34a12ed2adf0169b9285ae4e63ef54c82b"},
+    {file = "html2text-2020.1.16.tar.gz", hash = "sha256:e296318e16b059ddb97f7a8a1d6a5c1d7af4544049a01e261731d2d5cc277bbb"},
 ]
 html5lib = [
     {file = "html5lib-1.1-py2.py3-none-any.whl", hash = "sha256:0d78f8fde1c230e99fe37986a60526d7049ed4bf8a9fadbad5f00e22e58e041d"},

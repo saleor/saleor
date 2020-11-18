@@ -70,6 +70,7 @@ google-cloud-pubsub = ">=1.7,<3.0"
 uvicorn = ">=0.11.8,<0.13.0"
 gunicorn = "^20.0.4"
 pybars3 = "^0.9.7"
+html2text = "^2020.1.16"
 
 [tool.poetry.dev-dependencies]
 black = "19.10b0"

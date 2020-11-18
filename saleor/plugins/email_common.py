@@ -17,7 +17,6 @@ from django.core.mail import send_mail
 from django.core.mail.backends.smtp import EmailBackend
 from django.utils.translation import pgettext
 from django_prices.utils.locale import get_locale_data
-from pybars import Compiler
 
 from .base_plugin import ConfigurationTypeField
 from .error_codes import PluginErrorCode
@@ -97,7 +96,8 @@ DEFAULT_EMAIL_CONFIG_STRUCTURE = {
             "Whether to use a TLS (secure) connection when talking to the SMTP "
             "server. This is used for explicit TLS connections, generally on port "
             "587. Use TLS/Use SSL are mutually exclusive, so only set one of those"
-            " settings to True."
+            " settings to True. Leave it blank if you want to use system environment"
+            " - EMAIL_USE_TLS"
         ),
         "label": "Use TLS",
     },
@@ -108,7 +108,8 @@ DEFAULT_EMAIL_CONFIG_STRUCTURE = {
             "the SMTP server. In most email documentation this type of TLS "
             "connection is referred to as SSL. It is generally used on port 465. "
             "Use TLS/Use SSL are mutually exclusive, so only set one of those"
-            " settings to True."
+            " settings to True. Leave it blank if you want to use system environment"
+            " - EMAIL_USE_SSL"
         ),
         "label": "Use SSL",
     },
@@ -177,7 +178,7 @@ def send_email(
         use_ssl=config.use_ssl,
         use_tls=config.use_tls,
     )
-    compiler = Compiler()
+    compiler = pybars.Compiler()
     template = compiler.compile(template_str)
     subject_template = compiler.compile(subject)
     helpers = {

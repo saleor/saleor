@@ -159,8 +159,8 @@ class AdminEmailPlugin(BasePlugin):
             password=configuration["password"] or settings.EMAIL_HOST_PASSWORD,
             sender_name=configuration["sender_name"],
             sender_address=configuration["sender_address"],
-            use_tls=configuration["use_tls"],
-            use_ssl=configuration["use_ssl"],
+            use_tls=configuration["use_tls"] or settings.EMAIL_USE_TLS,
+            use_ssl=configuration["use_ssl"] or settings.EMAIL_USE_SSL,
         )
         self.templates = AdminTemplate(
             csv_export_failed=configuration[CSV_EXPORT_FAILED_TEMPLATE_FIELD],
