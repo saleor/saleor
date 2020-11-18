@@ -1,11 +1,21 @@
 import graphene
+import pytest
 
+from ....attribute.utils import _associate_attribute_to_instance
 from ...tests.utils import assert_graphql_error_with_message, get_graphql_content
+from ..enums import VariantAttributeScope
 
 VARIANT_QUERY = """
-query variant($id: ID, $sku: String, $channel: String){
-    productVariant(id: $id, sku: $sku, channel: $channel){
+query variant(
+    $id: ID, $sku: String, $variantSelection: VariantAttributeScope, $channel: String
+){
+    productVariant(id:$id, sku:$sku, channel: $channel){
         sku
+        attributes(variantSelection: $variantSelection) {
+            attribute {
+                slug
+            }
+        }
     }
 }
 """
@@ -339,3 +349,58 @@ def test_get_variant_by_sku_as_anonymous_user(api_client, variant, channel_USD):
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
     assert data["sku"] == variant.sku
+
+
+@pytest.mark.parametrize(
+    "variant_selection",
+    [
+        VariantAttributeScope.ALL.name,
+        VariantAttributeScope.VARIANT_SELECTION.name,
+        VariantAttributeScope.NOT_VARIANT_SELECTION.name,
+    ],
+)
+def test_get_variant_by_id_with_variant_selection_filter(
+    variant_selection,
+    staff_api_client,
+    permission_manage_products,
+    variant,
+    size_attribute,
+    image_attribute_without_values_and_file_input_type,
+    product_type,
+):
+    # given
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "variantSelection": variant_selection}
+
+    product_type.variant_attributes.add(
+        image_attribute_without_values_and_file_input_type
+    )
+
+    _associate_attribute_to_instance(
+        variant, image_attribute_without_values_and_file_input_type.pk
+    )
+    _associate_attribute_to_instance(variant, size_attribute.pk)
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_QUERY,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariant"]
+    assert data["sku"] == variant.sku
+    if variant_selection == VariantAttributeScope.NOT_VARIANT_SELECTION.name:
+        assert len(data["attributes"]) == 1
+        assert (
+            data["attributes"][0]["attribute"]["slug"]
+            == image_attribute_without_values_and_file_input_type.slug
+        )
+    elif variant_selection == VariantAttributeScope.VARIANT_SELECTION.name:
+        assert len(data["attributes"]) == 1
+        assert data["attributes"][0]["attribute"]["slug"] == size_attribute.slug
+    else:
+        len(data["attributes"]) == 2
