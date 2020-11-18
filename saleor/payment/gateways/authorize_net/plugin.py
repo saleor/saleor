@@ -1,9 +1,11 @@
 from typing import List
 
+from django.core.exceptions import ValidationError
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
+from saleor.plugins.error_codes import PluginErrorCode
 
 from ..utils import get_supported_currencies
-from . import GatewayConfig, process_payment
+from . import GatewayConfig, process_payment, authenticate_test
 
 
 GATEWAY_NAME = "Authorize.Net"
@@ -27,6 +29,7 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
         {"name": "api_login_id", "value": None},
         {"name": "transaction_key", "value": None},
         {"name": "client_key", "value": None},
+        {"name": "use_sandbox", "value": True},
     ]
 
     CONFIG_STRUCTURE = {
@@ -42,8 +45,13 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
         },
         "client_key": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": ("Provide public Authorize.Net Client Key"),
+            "help_text": ("Provide public Authorize.Net Client Key."),
             "label": "Client Key",
+        },
+        "use_sandbox": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": "Determines if Saleor should use Authorize.Net sandbox environment.",
+            "label": "Use sandbox",
         },
     }
 
@@ -60,12 +68,29 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
                 "api_login_id": configuration["api_login_id"],
                 "transaction_key": configuration["transaction_key"],
                 "client_key": configuration["client_key"],
+                "use_sandbox": configuration["use_sandbox"],
             },
             # store_customer=configuration["Store customers card"],
         )
 
     def _get_gateway_config(self) -> GatewayConfig:
         return self.config
+
+    @classmethod
+    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+        """Validate if provided configuration is correct."""
+        configuration = {
+            item["name"]: item["value"] for item in plugin_configuration.configuration
+        }
+        success, message = authenticate_test(
+            configuration.get("api_login_id"),
+            configuration.get("transaction_key"),
+            configuration.get("use_sandbox"),
+        )
+        if not success:
+            raise ValidationError(
+                message, code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+            )
 
     # @require_active_plugin
     # def authorize_payment(
@@ -121,4 +146,5 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
                 "value": config.connection_params["api_login_id"],
             },
             {"field": "client_key", "value": config.connection_params["client_key"]},
+            {"field": "use_sandbox", "value": config.connection_params["use_sandbox"]},
         ]

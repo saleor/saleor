@@ -1,9 +1,43 @@
+import json
+from typing import Tuple
 from lxml import etree
+import requests
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import constants, createTransactionController
 
 from ... import TransactionKind
 from ...interface import GatewayConfig, PaymentData, GatewayResponse
+
+
+def authenticate_test(
+    name: str, transaction_key: str, use_sandbox: bool
+) -> Tuple[bool, str]:
+    """
+    Check if credentials are correct.
+    This API is not present in the authorizenet Python package.
+    https://developer.authorize.net/api/reference/index.html#gettingstarted-section-section-header
+    """
+    if use_sandbox is True:
+        url = constants.SANDBOX
+    else:
+        url = constants.PRODUCTION
+    data = {
+        "authenticateTestRequest": {
+            "merchantAuthentication": {"name": name, "transactionKey": transaction_key}
+        }
+    }
+    response = requests.post(
+        url, json=data, headers={"content-type": "application/json"}
+    )
+    # Response content is utf-8-sig, which requires usage of json.loads
+    result = json.loads(response.content)
+    message = ""
+    if result.get("messages", {}).get("resultCode") == "Ok":
+        return True, ""
+    response_message = result.get("messages", {}).get("message")
+    if len(response_message):
+        message = response_message[0].get("text", "")
+    return False, message
 
 
 def process_payment(
@@ -62,6 +96,9 @@ def process_payment(
     create_transaction_controller = createTransactionController(
         create_transaction_request
     )
+    if config.connection_params.get("use_sandbox") is False:
+        create_transaction_controller.setenvironment(constants.PRODUCTION)
+
     create_transaction_controller.execute()
 
     response = create_transaction_controller.getresponse()

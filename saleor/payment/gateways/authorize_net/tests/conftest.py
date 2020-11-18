@@ -12,6 +12,7 @@ def authorize_net_gateway_config():
         connection_params={
             "api_login_id": "public",
             "transaction_key": "secret",
-            "client_key": "public"
+            "client_key": "public",
+            "use_sandbox": True
         }
     )
