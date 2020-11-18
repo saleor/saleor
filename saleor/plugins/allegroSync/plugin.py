@@ -69,6 +69,8 @@ class AllegroSyncPlugin(BasePlugin):
         response = allegro_api.get_request('sale/offers', params)
         totalCount = json.loads(response.text).get('totalCount')
 
+        if totalCount == None:
+            return
         limit = 1000
         errors = []
 
