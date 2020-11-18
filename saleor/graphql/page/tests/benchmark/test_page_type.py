@@ -5,7 +5,7 @@ from ....tests.utils import get_graphql_content
 
 
 @pytest.mark.django_db
-@pytest.mark.count_queries(autouse=True)
+@pytest.mark.count_queries(autouse=False)
 def test_query_page_type(
     page_type,
     staff_api_client,
@@ -68,7 +68,7 @@ def test_query_page_type(
 
 
 @pytest.mark.django_db
-@pytest.mark.count_queries(autouse=True)
+@pytest.mark.count_queries(autouse=False)
 def test_query_page_types(
     page_type_list,
     staff_api_client,

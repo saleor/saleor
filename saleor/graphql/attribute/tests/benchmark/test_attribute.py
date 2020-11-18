@@ -5,7 +5,7 @@ from ....tests.utils import get_graphql_content
 
 
 @pytest.mark.django_db
-@pytest.mark.count_queries(autouse=True)
+@pytest.mark.count_queries(autouse=False)
 def test_query_attribute(
     staff_api_client, color_attribute, permission_manage_products, count_queries,
 ):
@@ -40,7 +40,7 @@ def test_query_attribute(
 
 
 @pytest.mark.django_db
-@pytest.mark.count_queries(autouse=True)
+@pytest.mark.count_queries(autouse=False)
 def test_query_attributes(
     staff_api_client,
     size_attribute,
