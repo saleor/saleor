@@ -519,5 +519,5 @@ class OrderConfirm(ModelMutation):
         order = cls.get_instance(info, **data)
         order.status = OrderStatus.UNFULFILLED
         order.save(update_fields=["status"])
-        order_confirmed(order, info.context, send_confirmation_email=True)
+        order_confirmed(order, info.context.user, send_confirmation_email=True)
         return OrderConfirm(order=order)
