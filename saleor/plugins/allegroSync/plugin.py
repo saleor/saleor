@@ -75,7 +75,7 @@ class AllegroSyncPlugin(BasePlugin):
         for i in range(int(int(totalCount) / limit) + 1):
             offset = i * limit
 
-            params = {'publication.status': ['ACTIVE', 'ACTIVATING'], 'limit': limit,
+            params = {'publication.status': [str(self.type)], 'limit': limit,
                       'offset': offset}
             response = allegro_api.get_request('sale/offers', params)
             offers = json.loads(response.text).get('offers')
