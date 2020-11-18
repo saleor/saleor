@@ -1797,6 +1797,7 @@ input DraftOrderCreateInput {
   voucher: ID
   customerNote: String
   channel: ID
+  redirectUrl: String
   lines: [OrderLineCreateInput]
 }
 
@@ -1816,6 +1817,7 @@ input DraftOrderInput {
   voucher: ID
   customerNote: String
   channel: ID
+  redirectUrl: String
 }
 
 type DraftOrderLineDelete {

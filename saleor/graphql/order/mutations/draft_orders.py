@@ -7,6 +7,7 @@ from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError, zero_taxed_money
+from ....core.utils.url import validate_storefront_url
 from ....order import OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
@@ -66,6 +67,13 @@ class DraftOrderInput(InputObjectType):
     channel = graphene.ID(
         description="ID of the channel associated with the order.", name="channel"
     )
+    redirect_url = graphene.String(
+        required=False,
+        description=(
+            "URL of a view where users should be redirected to "
+            "see the order details. URL in RFC 1808 format."
+        ),
+    )
 
 
 class DraftOrderCreateInput(DraftOrderInput):
@@ -115,8 +123,18 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             )
 
     @classmethod
+    def clean_redirect_url(cls, redirect_url):
+        try:
+            validate_storefront_url(redirect_url)
+        except ValidationError as error:
+            raise ValidationError(
+                {"redirect_url": error}, code=OrderErrorCode.INVALID.value
+            )
+
+    @classmethod
     def clean_input(cls, info, instance, data):
         shipping_address = data.pop("shipping_address", None)
+        redirect_url = data.pop("redirect_url", None)
         billing_address = data.pop("billing_address", None)
         cleaned_input = super().clean_input(info, instance, data)
         lines = data.pop("lines", None)
@@ -177,6 +195,8 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 billing_address, "billing", user=instance
             )
             cleaned_input["billing_address"] = billing_address
+        if redirect_url:
+            cls.clean_redirect_url(redirect_url)
         return cleaned_input
 
     @staticmethod
