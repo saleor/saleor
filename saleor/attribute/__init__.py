@@ -6,8 +6,8 @@ class AttributeInputType:
     FILE = "file"
 
     CHOICES = [(DROPDOWN, "Dropdown"), (MULTISELECT, "Multi Select"), (FILE, "File")]
-    # list the input types that cannot be assigned to a variant
-    NON_ASSIGNABLE_TO_VARIANTS = [MULTISELECT]
+    # list of the input types that can be used in variant selection
+    ALLOWED_IN_VARIANT_SELECTION = [DROPDOWN]
 
 
 class AttributeType:

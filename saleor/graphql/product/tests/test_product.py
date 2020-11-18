@@ -42,6 +42,7 @@ from ...tests.utils import (
     get_multipart_request_body,
 )
 from ..bulk_mutations.products import ProductVariantStocksUpdate
+from ..enums import VariantAttributeScope
 from ..utils import create_stocks
 
 
@@ -3400,10 +3401,36 @@ def test_product_type(user_api_client, product_type):
     assert len(content["data"]["productTypes"]["edges"]) == no_product_types
 
 
+PRODUCT_TYPE_QUERY = """
+    query getProductType($id: ID!, $variantSelection: VariantAttributeScope) {
+        productType(id: $id) {
+            name
+            variantAttributes(variantSelection: $variantSelection) {
+                slug
+            }
+            products(first: 20) {
+                totalCount
+                edges {
+                    node {
+                        name
+                    }
+                }
+            }
+            taxRate
+            taxType {
+                taxCode
+                description
+            }
+        }
+    }
+"""
+
+
 def test_product_type_query(
     user_api_client,
     staff_api_client,
     product_type,
+    image_attribute_without_values_and_file_input_type,
     product,
     permission_manage_products,
     monkeypatch,
@@ -3413,29 +3440,18 @@ def test_product_type_query(
         "get_tax_code_from_object_meta",
         lambda self, x: TaxType(code="123", description="Standard Taxes"),
     )
-    query = """
-            query getProductType($id: ID!) {
-                productType(id: $id) {
-                    name
-                    products(first: 20) {
-                        totalCount
-                        edges {
-                            node {
-                                name
-                            }
-                        }
-                    }
-                    taxRate
-                    taxType {
-                        taxCode
-                        description
-                    }
-                }
-            }
-        """
+
+    query = PRODUCT_TYPE_QUERY
+
     no_products = Product.objects.count()
     product.is_published = False
     product.save()
+
+    product_type.variant_attributes.add(
+        image_attribute_without_values_and_file_input_type
+    )
+    variant_attributes_count = product_type.variant_attributes.count()
+
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.id)}
 
     response = user_api_client.post_graphql(query, variables)
@@ -3450,6 +3466,80 @@ def test_product_type_query(
     assert data["productType"]["products"]["totalCount"] == no_products
     assert data["productType"]["taxType"]["taxCode"] == "123"
     assert data["productType"]["taxType"]["description"] == "Standard Taxes"
+    assert len(data["productType"]["variantAttributes"]) == variant_attributes_count
+
+
+@pytest.mark.parametrize(
+    "variant_selection",
+    [
+        VariantAttributeScope.ALL.name,
+        VariantAttributeScope.VARIANT_SELECTION.name,
+        VariantAttributeScope.NOT_VARIANT_SELECTION.name,
+    ],
+)
+def test_product_type_query_only_variant_selections_value_set(
+    variant_selection,
+    user_api_client,
+    staff_api_client,
+    product_type,
+    image_attribute_without_values_and_file_input_type,
+    author_page_attribute,
+    product,
+    permission_manage_products,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        PluginsManager,
+        "get_tax_code_from_object_meta",
+        lambda self, x: TaxType(code="123", description="Standard Taxes"),
+    )
+    query = PRODUCT_TYPE_QUERY
+
+    no_products = Product.objects.count()
+    product.is_published = False
+    product.save()
+
+    product_type.variant_attributes.add(
+        image_attribute_without_values_and_file_input_type, author_page_attribute
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductType", product_type.id),
+        "variantSelection": variant_selection,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert data["productType"]["products"]["totalCount"] == no_products - 1
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert data["productType"]["products"]["totalCount"] == no_products
+    assert data["productType"]["taxType"]["taxCode"] == "123"
+    assert data["productType"]["taxType"]["description"] == "Standard Taxes"
+
+    if variant_selection == VariantAttributeScope.VARIANT_SELECTION.name:
+        assert (
+            len(data["productType"]["variantAttributes"])
+            == product_type.variant_attributes.filter(
+                input_type=AttributeInputType.DROPDOWN, type=AttributeType.PRODUCT_TYPE
+            ).count()
+        )
+    elif variant_selection == VariantAttributeScope.NOT_VARIANT_SELECTION.name:
+        assert (
+            len(data["productType"]["variantAttributes"])
+            == product_type.variant_attributes.exclude(
+                input_type=AttributeInputType.DROPDOWN, type=AttributeType.PRODUCT_TYPE
+            ).count()
+        )
+    else:
+        assert (
+            len(data["productType"]["variantAttributes"])
+            == product_type.variant_attributes.count()
+        )
 
 
 PRODUCT_TYPE_CREATE_MUTATION = """

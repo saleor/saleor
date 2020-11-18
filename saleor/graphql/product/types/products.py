@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from typing import List, Union
+from typing import List, Optional, Union
 
 import graphene
 from django.conf import settings
@@ -21,6 +21,7 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
+from ....product.utils.variants import get_variant_selection_attributes
 from ....warehouse.availability import (
     get_available_quantity,
     get_quantity_allocated,
@@ -64,6 +65,7 @@ from ..dataloaders import (
     SelectedAttributesByProductVariantIdLoader,
     VariantAttributesByProductTypeIdLoader,
 )
+from ..enums import VariantAttributeScope
 from ..filters import ProductFilterInput
 from ..sorters import ProductOrder
 from .digital_contents import DigitalContent
@@ -229,6 +231,9 @@ class ProductVariant(CountableDjangoObjectType):
         graphene.NonNull(SelectedAttribute),
         required=True,
         description="List of attributes assigned to this variant.",
+        variant_selection=graphene.Argument(
+            VariantAttributeScope, description="Define scope of returned attributes.",
+        ),
     )
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
     margin = graphene.Int(description="Gross margin percentage value.")
@@ -317,8 +322,34 @@ class ProductVariant(CountableDjangoObjectType):
         ).load((root.id, info.context.country))
 
     @staticmethod
-    def resolve_attributes(root: models.ProductVariant, info):
-        return SelectedAttributesByProductVariantIdLoader(info.context).load(root.id)
+    def resolve_attributes(
+        root: models.ProductVariant, info, variant_selection: Optional[str] = None
+    ):
+        def apply_variant_selection_filter(selected_attributes):
+            if not variant_selection or variant_selection == VariantAttributeScope.ALL:
+                return selected_attributes
+            attributes = [
+                selected_att["attribute"] for selected_att in selected_attributes
+            ]
+            variant_selection_attrs = get_variant_selection_attributes(attributes)
+
+            if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
+                return [
+                    selected_attribute
+                    for selected_attribute in selected_attributes
+                    if selected_attribute["attribute"] in variant_selection_attrs
+                ]
+            return [
+                selected_attribute
+                for selected_attribute in selected_attributes
+                if selected_attribute["attribute"] not in variant_selection_attrs
+            ]
+
+        return (
+            SelectedAttributesByProductVariantIdLoader(info.context)
+            .load(root.id)
+            .then(apply_variant_selection_filter)
+        )
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -656,7 +687,11 @@ class ProductType(CountableDjangoObjectType):
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
     )
     variant_attributes = graphene.List(
-        Attribute, description="Variant attributes of that product type."
+        Attribute,
+        description="Variant attributes of that product type.",
+        variant_selection=graphene.Argument(
+            VariantAttributeScope, description="Define scope of returned attributes.",
+        ),
     )
     product_attributes = graphene.List(
         Attribute, description="Product attributes of that product type."
@@ -700,8 +735,22 @@ class ProductType(CountableDjangoObjectType):
         return ProductAttributesByProductTypeIdLoader(info.context).load(root.pk)
 
     @staticmethod
-    def resolve_variant_attributes(root: models.ProductType, info):
-        return VariantAttributesByProductTypeIdLoader(info.context).load(root.pk)
+    def resolve_variant_attributes(
+        root: models.ProductType, info, variant_selection: Optional[str] = None,
+    ):
+        def apply_variant_selection_filter(attributes):
+            if not variant_selection or variant_selection == VariantAttributeScope.ALL:
+                return attributes
+            variant_selection_attrs = get_variant_selection_attributes(attributes)
+            if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
+                return variant_selection_attrs
+            return [attr for attr in attributes if attr not in variant_selection_attrs]
+
+        return (
+            VariantAttributesByProductTypeIdLoader(info.context)
+            .load(root.pk)
+            .then(apply_variant_selection_filter)
+        )
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, **_kwargs):
