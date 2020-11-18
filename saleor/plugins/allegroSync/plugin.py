@@ -64,31 +64,41 @@ class AllegroSyncPlugin(BasePlugin):
         conf = {item["name"]: item["value"] for item in plugin_configs.configuration}
         token = conf.get('token_value')
         allegro_api = AllegroAPI(token)
-        params = {'publication.status': ['ACTIVE', 'ACTIVATING'], 'limit': '1000',
-                  'offset': self.offset}
+        params = {'publication.status': [str(self.type)], 'limit': '1',
+                  'offset': 0}
         response = allegro_api.get_request('sale/offers', params)
-        offers = json.loads(response.text).get('offers')
-        errors = []
-        if offers:
-            skus = [offer.get('external').get('id') for offer in offers]
-            product_variants = list(ProductVariant.objects.filter(sku__in=skus))
-            for offer in offers:
-                product_errors = []
-                sku = offer.get('external').get('id')
-                id = offer.get('id')
-                variant = next((x for x in product_variants if x.sku == sku), None)
-                if variant:
-                    product = variant.product
-                    product_errors = AllegroSyncPlugin.valid_product(product)
-                    if len(product_errors) == 0:
-                        if product.private_metadata.get('publish.allegro.id') != id:
-                            product.store_value_in_private_metadata({
-                                'publish.allegro.id': id})
-                            product.save(update_fields=["private_metadata"])
-                else:
-                    product_errors.append('nie znaleziono produktu o podanym SKU')
+        totalCount = json.loads(response.text).get('totalCount')
 
-                errors.append({'sku': sku, 'errors': product_errors})
+        limit = 1000
+        errors = []
+
+        for i in range(int(int(totalCount) / limit) + 1):
+            offset = i * limit
+
+            params = {'publication.status': ['ACTIVE', 'ACTIVATING'], 'limit': limit,
+                      'offset': offset}
+            response = allegro_api.get_request('sale/offers', params)
+            offers = json.loads(response.text).get('offers')
+            if offers:
+                skus = [offer.get('external').get('id') for offer in offers]
+                product_variants = list(ProductVariant.objects.filter(sku__in=skus))
+                for offer in offers:
+                    product_errors = []
+                    sku = offer.get('external').get('id')
+                    id = offer.get('id')
+                    variant = next((x for x in product_variants if x.sku == sku), None)
+                    if variant:
+                        product = variant.product
+                        product_errors = AllegroSyncPlugin.valid_product(product)
+                        if len(product_errors) == 0:
+                            if product.private_metadata.get('publish.allegro.id') != id:
+                                product.store_value_in_private_metadata({
+                                    'publish.allegro.id': id})
+                                product.save(update_fields=["private_metadata"])
+                    else:
+                        product_errors.append('nie znaleziono produktu o podanym SKU')
+
+                    errors.append({'sku': sku, 'errors': product_errors})
         html_errors_list = plugin_configs.create_table(errors)
         return self.send_mail(html_errors_list)
 
