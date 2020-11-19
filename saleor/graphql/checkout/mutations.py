@@ -287,12 +287,12 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return channel
 
     @classmethod
-    def clean_input(
-        cls, info, instance: models.Checkout, data, channel, input_cls=None
-    ):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
         user = info.context.user
         country = info.context.country.code
+        channel = data.pop("channel")
+        cleaned_input = super().clean_input(info, instance, data)
+
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
 
@@ -375,8 +375,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         user = info.context.user
         channel_input = data.get("input", {}).get("channel")
         channel = cls.clean_channel(channel_input)
-        if channel_input:
-            del data["input"]["channel"]
+        if channel:
+            data["input"]["channel"] = channel
 
         # `perform_mutation` is overridden to properly get or create a checkout
         # instance here and abort mutation if needed.
@@ -392,7 +392,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             checkout = models.Checkout(user=user)
         else:
             checkout = models.Checkout()
-        cleaned_input = cls.clean_input(info, checkout, data.get("input"), channel)
+        cleaned_input = cls.clean_input(info, checkout, data.get("input"))
         checkout = cls.construct_instance(checkout, cleaned_input)
         cls.clean_instance(info, checkout)
         cls.save(info, checkout, cleaned_input)
