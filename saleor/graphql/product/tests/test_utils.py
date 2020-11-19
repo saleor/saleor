@@ -3,10 +3,8 @@ import graphene
 from ....attribute import AttributeInputType
 from ....page.error_codes import PageErrorCode
 from ....product.error_codes import ProductErrorCode
-from ..utils import (
-    validate_attributes_input_for_product_and_page,
-    validate_attributes_input_for_variant,
-)
+from ..mutations.products import AttrValuesInput
+from ..utils import validate_attributes_input
 
 
 def test_validate_attributes_input_for_product(
@@ -19,11 +17,23 @@ def test_validate_attributes_input_for_product(
     weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required"])
 
-    input_data = [(weight_attribute, ["a"]), (color_attribute, ["b"])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+        ),
+        (
+            color_attribute,
+            AttrValuesInput(values=["b"], file_url=None, content_type=None),
+        ),
+    ]
 
     # when
-    errors = validate_attributes_input_for_product_and_page(
-        input_data, product_type.product_attributes.all(), ProductErrorCode
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        ProductErrorCode,
+        variant_validation=False,
     )
 
     # then
@@ -40,11 +50,20 @@ def test_validate_attributes_input_for_product_no_values_given(
     weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required"])
 
-    input_data = [(weight_attribute, []), (color_attribute, [])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=[], file_url=None, content_type=None),
+        ),
+        (color_attribute, AttrValuesInput(values=[], file_url=None, content_type=None)),
+    ]
 
     # when
-    errors = validate_attributes_input_for_product_and_page(
-        input_data, product_type.product_attributes.all(), ProductErrorCode
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        ProductErrorCode,
+        variant_validation=False,
     )
 
     # then
@@ -69,11 +88,23 @@ def test_validate_attributes_input_for_product_too_many_values_given(
     weight_attribute.input_type = AttributeInputType.MULTISELECT
     weight_attribute.save(update_fields=["value_required", "input_type"])
 
-    input_data = [(weight_attribute, ["abc", "efg"]), (color_attribute, ["a", "b"])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=["abc", "efg"], file_url=None, content_type=None),
+        ),
+        (
+            color_attribute,
+            AttrValuesInput(values=["a", "b"], file_url=None, content_type=None),
+        ),
+    ]
 
     # when
-    errors = validate_attributes_input_for_product_and_page(
-        input_data, product_type.product_attributes.all(), ProductErrorCode
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        ProductErrorCode,
+        variant_validation=False,
     )
 
     # then
@@ -97,11 +128,23 @@ def test_validate_attributes_input_for_product_empty_values_given(
     weight_attribute.input_type = AttributeInputType.MULTISELECT
     weight_attribute.save(update_fields=["value_required", "input_type"])
 
-    input_data = [(weight_attribute, ["a", None]), (color_attribute, ["  "])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=["a", None], file_url=None, content_type=None),
+        ),
+        (
+            color_attribute,
+            AttrValuesInput(values=["  "], file_url=None, content_type=None),
+        ),
+    ]
 
     # when
-    errors = validate_attributes_input_for_product_and_page(
-        input_data, product_type.product_attributes.all(), ProductErrorCode
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        ProductErrorCode,
+        variant_validation=False,
     )
 
     # then
@@ -126,11 +169,16 @@ def test_validate_attributes_input_for_product_lack_of_required_attribute(
     weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required"])
 
-    input_data = [(weight_attribute, ["a"])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+        ),
+    ]
 
     # when
-    errors = validate_attributes_input_for_product_and_page(
-        input_data, product_attributes, ProductErrorCode
+    errors = validate_attributes_input(
+        input_data, product_attributes, ProductErrorCode, variant_validation=False
     )
 
     # then
@@ -154,11 +202,23 @@ def test_validate_attributes_input_for_product_multiply_errors(
     weight_attribute.input_type = AttributeInputType.MULTISELECT
     weight_attribute.save(update_fields=["value_required", "input_type"])
 
-    input_data = [(weight_attribute, [None]), (color_attribute, ["a", "b"])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=[None], file_url=None, content_type=None),
+        ),
+        (
+            color_attribute,
+            AttrValuesInput(values=["a", "b"], file_url=None, content_type=None),
+        ),
+    ]
 
     # when
-    errors = validate_attributes_input_for_product_and_page(
-        input_data, product_type.product_attributes.all(), ProductErrorCode
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        ProductErrorCode,
+        variant_validation=False,
     )
 
     # then
@@ -183,11 +243,23 @@ def test_validate_attributes_input_for_page(
     weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required"])
 
-    input_data = [(weight_attribute, ["a"]), (color_attribute, ["b"])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+        ),
+        (
+            color_attribute,
+            AttrValuesInput(values=["b"], file_url=None, content_type=None),
+        ),
+    ]
 
     # when
-    errors = validate_attributes_input_for_product_and_page(
-        input_data, page_type.page_attributes.all(), PageErrorCode
+    errors = validate_attributes_input(
+        input_data,
+        page_type.page_attributes.all(),
+        PageErrorCode,
+        variant_validation=False,
     )
 
     # then
@@ -204,11 +276,20 @@ def test_validate_attributes_input_for_page_no_values_given(
     weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required"])
 
-    input_data = [(weight_attribute, []), (color_attribute, [])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=[], file_url=None, content_type=None),
+        ),
+        (color_attribute, AttrValuesInput(values=[], file_url=None, content_type=None)),
+    ]
 
     # when
-    errors = validate_attributes_input_for_product_and_page(
-        input_data, page_type.page_attributes.all(), PageErrorCode
+    errors = validate_attributes_input(
+        input_data,
+        page_type.page_attributes.all(),
+        PageErrorCode,
+        variant_validation=False,
     )
 
     # then
@@ -233,11 +314,23 @@ def test_validate_attributes_input_for_page_too_many_values_given(
     weight_attribute.input_type = AttributeInputType.MULTISELECT
     weight_attribute.save(update_fields=["value_required", "input_type"])
 
-    input_data = [(weight_attribute, ["abc", "efg"]), (color_attribute, ["a", "b"])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=["abc", "efg"], file_url=None, content_type=None),
+        ),
+        (
+            color_attribute,
+            AttrValuesInput(values=["a", "b"], file_url=None, content_type=None),
+        ),
+    ]
 
     # when
-    errors = validate_attributes_input_for_product_and_page(
-        input_data, page_type.page_attributes.all(), PageErrorCode
+    errors = validate_attributes_input(
+        input_data,
+        page_type.page_attributes.all(),
+        PageErrorCode,
+        variant_validation=False,
     )
 
     # then
@@ -261,11 +354,23 @@ def test_validate_attributes_input_for_page_empty_values_given(
     weight_attribute.input_type = AttributeInputType.MULTISELECT
     weight_attribute.save(update_fields=["value_required", "input_type"])
 
-    input_data = [(weight_attribute, ["a", None]), (color_attribute, ["  "])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=["a", None], file_url=None, content_type=None),
+        ),
+        (
+            color_attribute,
+            AttrValuesInput(values=["  "], file_url=None, content_type=None),
+        ),
+    ]
 
     # when
-    errors = validate_attributes_input_for_product_and_page(
-        input_data, page_type.page_attributes.all(), PageErrorCode
+    errors = validate_attributes_input(
+        input_data,
+        page_type.page_attributes.all(),
+        PageErrorCode,
+        variant_validation=False,
     )
 
     # then
@@ -290,11 +395,16 @@ def test_validate_attributes_input_for_page_lack_of_required_attribute(
     weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required"])
 
-    input_data = [(weight_attribute, ["a"])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+        ),
+    ]
 
     # when
-    errors = validate_attributes_input_for_product_and_page(
-        input_data, page_attributes, PageErrorCode
+    errors = validate_attributes_input(
+        input_data, page_attributes, PageErrorCode, variant_validation=False
     )
 
     # then
@@ -318,11 +428,23 @@ def test_validate_attributes_input_for_page_multiply_errors(
     weight_attribute.input_type = AttributeInputType.MULTISELECT
     weight_attribute.save(update_fields=["value_required", "input_type"])
 
-    input_data = [(weight_attribute, [None]), (color_attribute, ["a", "b"])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=[None], file_url=None, content_type=None),
+        ),
+        (
+            color_attribute,
+            AttrValuesInput(values=["a", "b"], file_url=None, content_type=None),
+        ),
+    ]
 
     # when
-    errors = validate_attributes_input_for_product_and_page(
-        input_data, page_type.page_attributes.all(), PageErrorCode
+    errors = validate_attributes_input(
+        input_data,
+        page_type.page_attributes.all(),
+        PageErrorCode,
+        variant_validation=False,
     )
 
     # then
@@ -337,7 +459,7 @@ def test_validate_attributes_input_for_page_multiply_errors(
     }
 
 
-def test_validate_attributes_input_for_variant(weight_attribute, color_attribute):
+def test_validate_attributes_input(weight_attribute, color_attribute, product_type):
     # given
     color_attribute.value_required = True
     color_attribute.save(update_fields=["value_required"])
@@ -345,17 +467,30 @@ def test_validate_attributes_input_for_variant(weight_attribute, color_attribute
     weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required"])
 
-    input_data = [(weight_attribute, ["a"]), (color_attribute, ["b"])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+        ),
+        (
+            color_attribute,
+            AttrValuesInput(values=["b"], file_url=None, content_type=None),
+        ),
+    ]
+
+    attributes = product_type.variant_attributes.all()
 
     # when
-    errors = validate_attributes_input_for_variant(input_data)
+    errors = validate_attributes_input(
+        input_data, attributes, ProductErrorCode, variant_validation=True
+    )
 
     # then
     assert not errors
 
 
-def test_validate_attributes_input_for_variant_no_values_given(
-    weight_attribute, color_attribute
+def test_validate_attributes_input_no_values_given(
+    weight_attribute, color_attribute, product_type
 ):
     # given
     color_attribute.value_required = True
@@ -364,10 +499,20 @@ def test_validate_attributes_input_for_variant_no_values_given(
     weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required"])
 
-    input_data = [(weight_attribute, []), (color_attribute, [])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=[], file_url=None, content_type=None),
+        ),
+        (color_attribute, AttrValuesInput(values=[], file_url=None, content_type=None)),
+    ]
+
+    attributes = product_type.variant_attributes.all()
 
     # when
-    errors = validate_attributes_input_for_variant(input_data)
+    errors = validate_attributes_input(
+        input_data, attributes, ProductErrorCode, variant_validation=True
+    )
 
     # then
     assert len(errors) == 1
@@ -379,8 +524,8 @@ def test_validate_attributes_input_for_variant_no_values_given(
     }
 
 
-def test_validate_attributes_input_for_variant_too_many_values_given(
-    weight_attribute, color_attribute
+def test_validate_attributes_input_too_many_values_given(
+    weight_attribute, color_attribute, product_type
 ):
     # given
     color_attribute.value_required = True
@@ -389,10 +534,23 @@ def test_validate_attributes_input_for_variant_too_many_values_given(
     weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required"])
 
-    input_data = [(weight_attribute, ["abc", "efg"]), (color_attribute, ["a", "b"])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=["abc", "efg"], file_url=None, content_type=None),
+        ),
+        (
+            color_attribute,
+            AttrValuesInput(values=["a", "b"], file_url=None, content_type=None),
+        ),
+    ]
+
+    attributes = product_type.variant_attributes.all()
 
     # when
-    errors = validate_attributes_input_for_variant(input_data)
+    errors = validate_attributes_input(
+        input_data, attributes, ProductErrorCode, variant_validation=True
+    )
 
     # then
     assert len(errors) == 1
@@ -404,8 +562,8 @@ def test_validate_attributes_input_for_variant_too_many_values_given(
     }
 
 
-def test_validate_attributes_input_for_variant_empty_values_given(
-    weight_attribute, color_attribute
+def test_validate_attributes_input_empty_values_given(
+    weight_attribute, color_attribute, product_type
 ):
     # given
     color_attribute.value_required = True
@@ -414,10 +572,23 @@ def test_validate_attributes_input_for_variant_empty_values_given(
     weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required", "input_type"])
 
-    input_data = [(weight_attribute, [None]), (color_attribute, ["  "])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=[None], file_url=None, content_type=None),
+        ),
+        (
+            color_attribute,
+            AttrValuesInput(values=["  "], file_url=None, content_type=None),
+        ),
+    ]
+
+    attributes = product_type.variant_attributes.all()
 
     # when
-    errors = validate_attributes_input_for_variant(input_data)
+    errors = validate_attributes_input(
+        input_data, attributes, ProductErrorCode, variant_validation=True
+    )
 
     # then
     assert len(errors) == 1
@@ -429,8 +600,8 @@ def test_validate_attributes_input_for_variant_empty_values_given(
     }
 
 
-def test_validate_attributes_input_for_variant_multiply_errors(
-    weight_attribute, color_attribute
+def test_validate_attributes_input_multiply_errors(
+    weight_attribute, color_attribute, product_type
 ):
     # given
     color_attribute.value_required = True
@@ -439,10 +610,23 @@ def test_validate_attributes_input_for_variant_multiply_errors(
     weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required", "input_type"])
 
-    input_data = [(weight_attribute, [None]), (color_attribute, ["a", "b"])]
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=[None], file_url=None, content_type=None),
+        ),
+        (
+            color_attribute,
+            AttrValuesInput(values=["a", "b"], file_url=None, content_type=None),
+        ),
+    ]
+
+    attributes = product_type.variant_attributes.all()
 
     # when
-    errors = validate_attributes_input_for_variant(input_data)
+    errors = validate_attributes_input(
+        input_data, attributes, ProductErrorCode, variant_validation=True
+    )
 
     # then
     assert len(errors) == 2

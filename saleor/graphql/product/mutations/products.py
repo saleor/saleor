@@ -1,5 +1,5 @@
 import datetime
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from typing import TYPE_CHECKING, Iterable, List, Tuple, Union
 
 import graphene
@@ -10,7 +10,7 @@ from django.utils.text import slugify
 from graphene.types import InputObjectType
 from graphql_relay import from_global_id
 
-from ....attribute import AttributeType
+from ....attribute import AttributeInputType, AttributeType
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
@@ -58,8 +58,7 @@ from ..utils import (
     create_stocks,
     get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
-    validate_attributes_input_for_product_and_page,
-    validate_attributes_input_for_variant,
+    validate_attributes_input,
 )
 
 if TYPE_CHECKING:
@@ -427,12 +426,14 @@ class AttributeValueInput(InputObjectType):
     id = graphene.ID(description="ID of the selected attribute.")
     values = graphene.List(
         graphene.String,
-        required=True,
+        required=False,
         description=(
             "The value or slug of an attribute to resolve. "
             "If the passed value is non-existent, it will be created."
         ),
     )
+    file = graphene.String(required=False, description="URL of the file attribute.")
+    content_type = graphene.String(required=False, description="File content type.")
 
 
 class ProductInput(graphene.InputObjectType):
@@ -510,8 +511,9 @@ class ProductCreateInput(ProductInput):
     )
 
 
-T_INPUT_MAP = List[Tuple["attribute_models.Attribute", List[str]]]
+AttrValuesInput = namedtuple("AttrValuesInput", ["values", "file_url", "content_type"])
 T_INSTANCE = Union[models.Product, models.ProductVariant, page_models.Page]
+T_INPUT_MAP = List[Tuple["attribute_models.Attribute", AttrValuesInput]]
 
 
 class AttributeAssignmentMixin:
@@ -592,7 +594,7 @@ class AttributeAssignmentMixin:
 
     @classmethod
     def _pre_save_values(
-        cls, attribute: "attribute_models.Attribute", values: List[str]
+        cls, attribute: "attribute_models.Attribute", attr_values: AttrValuesInput
     ):
         """Lazy-retrieve or create the database objects from the supplied raw values."""
         get_or_create = attribute.values.get_or_create
@@ -602,56 +604,60 @@ class AttributeAssignmentMixin:
                 slug=slugify(value, allow_unicode=True),
                 defaults={"name": value},
             )[0]
-            for value in values
+            for value in attr_values.values
         )
 
     @classmethod
-    def _validate_product_attributes_input(
-        cls, cleaned_input: T_INPUT_MAP, attribute_qs: QuerySet, is_variant: bool
+    def _pre_save_file_value(
+        cls, attribute: "attribute_models.Attribute", attr_values: AttrValuesInput
     ):
-        """Check if no invalid operations were supplied.
-
-        :raises ValidationError: when an invalid operation was found.
-        """
-        if is_variant:
-            return cls._check_input_for_variant(cleaned_input, attribute_qs)
-        else:
-            return cls._check_input_for_page_and_product(
-                cleaned_input, attribute_qs, False
-            )
+        """Lazy-retrieve or create the database objects from the supplied raw values."""
+        get_or_create = attribute.values.get_or_create
+        file_url = attr_values.file_url
+        return (
+            get_or_create(
+                attribute=attribute,
+                slug=slugify(file_url, allow_unicode=True),
+                name=file_url,
+                file_url=file_url,
+                content_type=attr_values.content_type,
+            )[0],
+        )
 
     @classmethod
-    def _check_input_for_variant(cls, cleaned_input: T_INPUT_MAP, qs: QuerySet):
-        """Check the cleaned attribute input for a variant.
-
-        An Attribute queryset is supplied.
-
-        - ensure all attributes are passed
-        - ensure the values are correct for a variant
-        """
-        if len(cleaned_input) != qs.count():
-            raise ValidationError(
-                "All attributes must take a value", code=ProductErrorCode.REQUIRED.value
-            )
-
-        errors = validate_attributes_input_for_variant(cleaned_input)
-        if errors:
-            raise ValidationError(errors)
-
-    @classmethod
-    def _check_input_for_page_and_product(
-        cls, cleaned_input: T_INPUT_MAP, qs: QuerySet, is_page_attributes: bool
+    def _validate_attributes_input(
+        cls,
+        cleaned_input: T_INPUT_MAP,
+        attribute_qs: QuerySet,
+        *,
+        is_variant: bool,
+        is_page_attributes: bool
     ):
-        """Check the cleaned attribute input for a product.
+        """Check the cleaned attribute input.
 
         An Attribute queryset is supplied.
 
         - ensure all required attributes are passed
-        - ensure the values are correct for a product
+        - ensure the values are correct
+
+        :raises ValidationError: when an invalid operation was found.
         """
+        variant_validation = False
+        if is_variant:
+            if len(cleaned_input) != attribute_qs.count():
+                raise ValidationError(
+                    "All attributes must take a value",
+                    code=ProductErrorCode.REQUIRED.value,
+                )
+            variant_validation = True
+
         error_codes_enum = PageErrorCode if is_page_attributes else ProductErrorCode
-        errors = validate_attributes_input_for_product_and_page(
-            cleaned_input, qs, error_codes_enum
+
+        errors = validate_attributes_input(
+            cleaned_input,
+            attribute_qs,
+            error_codes_enum,
+            variant_validation=variant_validation,
         )
 
         if errors:
@@ -688,7 +694,11 @@ class AttributeAssignmentMixin:
         for attribute_input in raw_input:
             global_id = attribute_input.get("id")
             slug = attribute_input.get("slug")
-            values = attribute_input["values"]
+            values = AttrValuesInput(
+                values=attribute_input.get("values"),
+                file_url=attribute_input.get("file"),
+                content_type=attribute_input.get("content_type"),
+            )
 
             if global_id:
                 internal_id = cls._resolve_attribute_global_id(global_id)
@@ -715,13 +725,13 @@ class AttributeAssignmentMixin:
                 key = slugs[attribute.slug]
 
             cleaned_input.append((attribute, key))
+        cls._validate_attributes_input(
+            cleaned_input,
+            attributes_qs,
+            is_variant=is_variant,
+            is_page_attributes=is_page_attributes,
+        )
 
-        if is_page_attributes:
-            cls._check_input_for_page_and_product(cleaned_input, attributes_qs, True)
-        else:
-            cls._validate_product_attributes_input(
-                cleaned_input, attributes_qs, is_variant
-            )
         return cleaned_input
 
     @classmethod
@@ -733,8 +743,11 @@ class AttributeAssignmentMixin:
         :param instance: the product or variant to associate the attribute against.
         :param cleaned_input: the cleaned user input (refer to clean_attributes)
         """
-        for attribute, values in cleaned_input:
-            attribute_values = cls._pre_save_values(attribute, values)
+        for attribute, attr_values in cleaned_input:
+            if attribute.input_type == AttributeInputType.FILE:
+                attribute_values = cls._pre_save_file_value(attribute, attr_values)
+            else:
+                attribute_values = cls._pre_save_values(attribute, attr_values)
             associate_attribute_values_to_instance(
                 instance, attribute, *attribute_values
             )

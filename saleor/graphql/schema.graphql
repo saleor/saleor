@@ -593,7 +593,9 @@ type AttributeValueDelete {
 
 input AttributeValueInput {
   id: ID
-  values: [String]!
+  values: [String]
+  file: String
+  contentType: String
 }
 
 type AttributeValueTranslatableContent implements Node {

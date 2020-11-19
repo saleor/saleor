@@ -1009,7 +1009,7 @@ def test_update_product_variant_with_duplicated_attribute(
     "values, message",
     (
         ([], "Attribute expects a value but none were given"),
-        (["one", "two"], "A variant attribute cannot take more than one value"),
+        (["one", "two"], "Attribute must take only one value"),
         (["   "], "Attribute values cannot be blank"),
         ([None], "Attribute values cannot be blank"),
     ),
