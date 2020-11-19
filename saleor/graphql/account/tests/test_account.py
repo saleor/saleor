@@ -3091,8 +3091,9 @@ def test_account_reset_password_user_is_inactive(
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
-    assert len(data["errors"]) == 1
-    assert data["errors"][0]["field"] == "email"
+    assert data["errors"] == [
+        {"field": "email", "message": "User with this email is inactive"}
+    ]
     assert not send_password_reset_email_mock.called
 
 
