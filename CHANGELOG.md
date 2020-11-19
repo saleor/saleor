@@ -8,6 +8,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add basic rating for `Products` - #6284 by @korycins
 - Add metadata to shipping zones and shipping methods - #6340 by @maarcingebala
 - Drop deprecated meta mutations - #6422 by @maarcingebala
+- Add Page Types - #6261 by @IKarbowiak
 - Migrate draftjs content to editorjs format - #6430 by @IKarbowiak
 - Drop deprecated service accounts and webhooks API - #6431 by @maarcingebala
 - Add editorjs sanitizer - #6456 by @IKarbowiak

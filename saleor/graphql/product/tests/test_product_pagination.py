@@ -4,6 +4,7 @@ from decimal import Decimal
 import graphene
 import pytest
 
+from ....attribute.utils import associate_attribute_values_to_instance
 from ....product.models import (
     Category,
     Collection,
@@ -14,7 +15,6 @@ from ....product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
-from ....product.utils.attributes import associate_attribute_values_to_instance
 from ....warehouse.models import Stock
 from ...tests.utils import get_graphql_content
 
