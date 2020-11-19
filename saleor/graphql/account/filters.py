@@ -1,20 +1,15 @@
 import django_filters
-from django.db.models import Count, Sum
+from django.db.models import Count
 
 from ...account.models import User
 from ..core.filters import EnumFilter, ObjectTypeFilter
-from ..core.types.common import DateRangeInput, IntRangeInput, PriceRangeInput
+from ..core.types.common import DateRangeInput, IntRangeInput
 from ..utils.filters import filter_by_query_param, filter_range_field
 from .enums import StaffMemberStatus
 
 
 def filter_date_joined(qs, _, value):
     return filter_range_field(qs, "date_joined__date", value)
-
-
-def filter_money_spent(qs, _, value):
-    qs = qs.annotate(money_spent=Sum("orders__total_gross_amount"))
-    return filter_range_field(qs, "money_spent", value)
 
 
 def filter_number_of_orders(qs, _, value):
@@ -61,9 +56,6 @@ class CustomerFilter(django_filters.FilterSet):
     date_joined = ObjectTypeFilter(
         input_class=DateRangeInput, method=filter_date_joined
     )
-    money_spent = ObjectTypeFilter(
-        input_class=PriceRangeInput, method=filter_money_spent
-    )
     number_of_orders = ObjectTypeFilter(
         input_class=IntRangeInput, method=filter_number_of_orders
     )
@@ -76,7 +68,6 @@ class CustomerFilter(django_filters.FilterSet):
         model = User
         fields = [
             "date_joined",
-            "money_spent",
             "number_of_orders",
             "placed_orders",
             "search",

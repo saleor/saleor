@@ -2,6 +2,7 @@ from enum import Enum
 
 from ....account.error_codes import AccountErrorCode, PermissionGroupErrorCode
 from ....app.error_codes import AppErrorCode
+from ....channel.error_codes import ChannelErrorCode
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.error_codes import (
     MetadataErrorCode,
@@ -51,6 +52,7 @@ DJANGO_FORM_FIELDS_ERROR_CODES = [
 SALEOR_ERROR_CODE_ENUMS = [
     AccountErrorCode,
     AppErrorCode,
+    ChannelErrorCode,
     CheckoutErrorCode,
     ExportErrorCode,
     DiscountErrorCode,

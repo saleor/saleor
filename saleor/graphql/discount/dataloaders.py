@@ -1,53 +1,20 @@
 from collections import defaultdict
 
+from django.db.models import F
+
 from ...discount import DiscountInfo
-from ...discount.models import Sale
-from ...product.models import Category
+from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
+from ...discount.utils import (
+    fetch_categories,
+    fetch_collections,
+    fetch_products,
+    fetch_sale_channel_listings,
+)
 from ..core.dataloaders import DataLoader
 
 
 class DiscountsByDateTimeLoader(DataLoader):
     context_key = "discounts"
-
-    def fetch_categories(self, sale_pks):
-        categories = (
-            Sale.categories.through.objects.filter(sale_id__in=sale_pks)
-            .order_by("id")
-            .values_list("sale_id", "category_id")
-        )
-        category_map = defaultdict(set)
-        for sale_pk, category_pk in categories:
-            category_map[sale_pk].add(category_pk)
-        subcategory_map = defaultdict(set)
-        for sale_pk, category_pks in category_map.items():
-            subcategory_map[sale_pk] = set(
-                Category.tree.filter(pk__in=category_pks)
-                .get_descendants(include_self=True)
-                .values_list("id", flat=True)
-            )
-        return subcategory_map
-
-    def fetch_collections(self, sale_pks):
-        collections = (
-            Sale.collections.through.objects.filter(sale_id__in=sale_pks)
-            .order_by("id")
-            .values_list("sale_id", "collection_id")
-        )
-        collection_map = defaultdict(set)
-        for sale_pk, collection_pk in collections:
-            collection_map[sale_pk].add(collection_pk)
-        return collection_map
-
-    def fetch_products(self, sale_pks):
-        products = (
-            Sale.products.through.objects.filter(sale_id__in=sale_pks)
-            .order_by("id")
-            .values_list("sale_id", "product_id")
-        )
-        product_map = defaultdict(set)
-        for sale_pk, product_pk in products:
-            product_map[sale_pk].add(product_pk)
-        return product_map
 
     def batch_load(self, keys):
         sales_map = {
@@ -55,14 +22,16 @@ class DiscountsByDateTimeLoader(DataLoader):
             for datetime in keys
         }
         pks = {s.pk for d, ss in sales_map.items() for s in ss}
-        collections = self.fetch_collections(pks)
-        products = self.fetch_products(pks)
-        categories = self.fetch_categories(pks)
+        collections = fetch_collections(pks)
+        channel_listings = fetch_sale_channel_listings(pks)
+        products = fetch_products(pks)
+        categories = fetch_categories(pks)
 
         return [
             [
                 DiscountInfo(
                     sale=sale,
+                    channel_listings=channel_listings[sale.pk],
                     category_ids=categories[sale.pk],
                     collection_ids=collections[sale.pk],
                     product_ids=products[sale.pk],
@@ -70,4 +39,81 @@ class DiscountsByDateTimeLoader(DataLoader):
                 for sale in sales_map[datetime]
             ]
             for datetime in keys
+        ]
+
+
+class SaleChannelListingBySaleIdAndChanneSlugLoader(DataLoader):
+    context_key = "salechannelisting_by_sale_and_channel"
+
+    def batch_load(self, keys):
+        sale_ids = [key[0] for key in keys]
+        channel_slugs = [key[1] for key in keys]
+        sale_channel_listings = SaleChannelListing.objects.filter(
+            sale_id__in=sale_ids, channel__slug__in=channel_slugs
+        ).annotate(channel_slug=F("channel__slug"))
+        sale_channel_listings_by_sale_and_channel_map = {}
+        for sale_channel_listing in sale_channel_listings:
+            key = (sale_channel_listing.sale_id, sale_channel_listing.channel_slug)
+            sale_channel_listings_by_sale_and_channel_map[key] = sale_channel_listing
+        return [sale_channel_listings_by_sale_and_channel_map.get(key) for key in keys]
+
+
+class SaleChannelListingBySaleIdLoader(DataLoader):
+    context_key = "salechannelisting_by_sale"
+
+    def batch_load(self, keys):
+        sale_channel_listings = SaleChannelListing.objects.filter(sale_id__in=keys)
+        sale_channel_listings_by_sale_map = defaultdict(list)
+        for sale_channel_listing in sale_channel_listings:
+            sale_channel_listings_by_sale_map[sale_channel_listing.sale_id].append(
+                sale_channel_listing
+            )
+        return [sale_channel_listings_by_sale_map[sale_id] for sale_id in keys]
+
+
+class VoucherByIdLoader(DataLoader):
+    context_key = "voucher_by_id"
+
+    def batch_load(self, keys):
+        vouchers = Voucher.objects.in_bulk(keys)
+        return [vouchers.get(voucher_id) for voucher_id in keys]
+
+
+class VoucherChannelListingByVoucherIdAndChanneSlugLoader(DataLoader):
+    context_key = "voucherchannelisting_by_voucher_and_channel"
+
+    def batch_load(self, keys):
+        voucher_ids = [key[0] for key in keys]
+        channel_slugs = [key[1] for key in keys]
+        voucher_channel_listings = VoucherChannelListing.objects.filter(
+            voucher_id__in=voucher_ids, channel__slug__in=channel_slugs
+        ).annotate(channel_slug=F("channel__slug"))
+        voucher_channel_listings_by_voucher_and_channel_map = {}
+        for voucher_channel_listing in voucher_channel_listings:
+            key = (
+                voucher_channel_listing.voucher_id,
+                voucher_channel_listing.channel_slug,
+            )
+            voucher_channel_listings_by_voucher_and_channel_map[
+                key
+            ] = voucher_channel_listing
+        return [
+            voucher_channel_listings_by_voucher_and_channel_map.get(key) for key in keys
+        ]
+
+
+class VoucherChannelListingByVoucherIdLoader(DataLoader):
+    context_key = "voucherchannellisting_by_voucher"
+
+    def batch_load(self, keys):
+        voucher_channel_listings = VoucherChannelListing.objects.filter(
+            voucher_id__in=keys
+        )
+        voucher_channel_listings_by_voucher_map = defaultdict(list)
+        for voucher_channel_listing in voucher_channel_listings:
+            voucher_channel_listings_by_voucher_map[
+                voucher_channel_listing.voucher_id
+            ].append(voucher_channel_listing)
+        return [
+            voucher_channel_listings_by_voucher_map[voucher_id] for voucher_id in keys
         ]
