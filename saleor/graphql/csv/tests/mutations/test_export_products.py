@@ -3,10 +3,10 @@ from unittest.mock import ANY, patch
 import graphene
 import pytest
 
+from .....attribute.models import Attribute
 from .....channel.models import Channel
 from .....csv import ExportEvents
 from .....csv.models import ExportEvent
-from .....product.models import Attribute
 from .....warehouse.models import Warehouse
 from ....tests.utils import get_graphql_content
 from ...enums import ExportScope, FileTypeEnum, ProductFieldEnum

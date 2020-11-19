@@ -1,18 +1,19 @@
 import re
 
 import graphene
-from graphene import relay
 
-from ....core.permissions import ProductPermissions
-from ....product import models
-from ...core.connection import CountableDjangoObjectType
-from ...decorators import permission_required
-from ...meta.types import ObjectWithMetadata
-from ...translations.fields import TranslationField
-from ...translations.types import AttributeTranslation, AttributeValueTranslation
-from ..dataloaders import AttributeValuesByAttributeIdLoader
-from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
-from ..enums import AttributeInputTypeEnum, AttributeValueType
+from ...attribute import models
+from ..core.connection import CountableDjangoObjectType
+from ..decorators import (
+    check_attribute_required_permissions,
+    check_attribute_value_required_permissions,
+)
+from ..meta.types import ObjectWithMetadata
+from ..translations.fields import TranslationField
+from ..translations.types import AttributeTranslation, AttributeValueTranslation
+from .dataloaders import AttributeValuesByAttributeIdLoader
+from .descriptions import AttributeDescriptions, AttributeValueDescriptions
+from .enums import AttributeInputTypeEnum, AttributeTypeEnum, AttributeValueType
 
 COLOR_PATTERN = r"^(#[0-9a-fA-F]{3}|#(?:[0-9a-fA-F]{2}){2,4}|(rgb|hsl)a?\((-?\d+%?[,\s]+){2,3}\s*[\d\.]+%?\))$"  # noqa
 color_pattern = re.compile(COLOR_PATTERN)
@@ -46,7 +47,7 @@ class AttributeValue(CountableDjangoObjectType):
     class Meta:
         description = "Represents a value of an attribute."
         only_fields = ["id"]
-        interfaces = [relay.Node]
+        interfaces = [graphene.relay.Node]
         model = models.AttributeValue
 
     @staticmethod
@@ -54,7 +55,7 @@ class AttributeValue(CountableDjangoObjectType):
         return resolve_attribute_value_type(root.value)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @check_attribute_value_required_permissions()
     def resolve_input_type(root: models.AttributeValue, *_args):
         return root.input_type
 
@@ -64,6 +65,7 @@ class Attribute(CountableDjangoObjectType):
 
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
+    type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
 
     values = graphene.List(AttributeValue, description=AttributeDescriptions.VALUES)
 
@@ -95,7 +97,7 @@ class Attribute(CountableDjangoObjectType):
             "variants at the product type level."
         )
         only_fields = ["id", "product_types", "product_variant_types"]
-        interfaces = [relay.Node, ObjectWithMetadata]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.Attribute
 
     @staticmethod
@@ -103,32 +105,32 @@ class Attribute(CountableDjangoObjectType):
         return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @check_attribute_required_permissions()
     def resolve_value_required(root: models.Attribute, *_args):
         return root.value_required
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @check_attribute_required_permissions()
     def resolve_visible_in_storefront(root: models.Attribute, *_args):
         return root.visible_in_storefront
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @check_attribute_required_permissions()
     def resolve_filterable_in_storefront(root: models.Attribute, *_args):
         return root.filterable_in_storefront
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @check_attribute_required_permissions()
     def resolve_filterable_in_dashboard(root: models.Attribute, *_args):
         return root.filterable_in_dashboard
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @check_attribute_required_permissions()
     def resolve_storefront_search_position(root: models.Attribute, *_args):
         return root.storefront_search_position
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @check_attribute_required_permissions()
     def resolve_available_in_grid(root: models.Attribute, *_args):
         return root.available_in_grid
 

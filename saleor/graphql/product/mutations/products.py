@@ -1,6 +1,6 @@
 import datetime
 from collections import defaultdict
-from typing import Iterable, List, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, List, Tuple, Union
 
 import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -10,9 +10,13 @@ from django.utils.text import slugify
 from graphene.types import InputObjectType
 from graphql_relay import from_global_id
 
+from ....attribute import AttributeType
+from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....order import OrderStatus, models as order_models
+from ....page import models as page_models
+from ....page.error_codes import PageErrorCode
 from ....product import models
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.tasks import (
@@ -26,11 +30,9 @@ from ....product.thumbnails import (
     create_product_thumbnails,
 )
 from ....product.utils import delete_categories, get_products_ids_without_variants
-from ....product.utils.attributes import (
-    associate_attribute_values_to_instance,
-    generate_name_for_variant,
-)
+from ....product.utils.variants import generate_name_for_variant
 from ...channel import ChannelContext
+from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types import SeoInput, Upload
@@ -56,10 +58,12 @@ from ..utils import (
     create_stocks,
     get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
-    validate_attributes_input_for_product,
+    validate_attributes_input_for_product_and_page,
     validate_attributes_input_for_variant,
 )
-from .common import ReorderInput
+
+if TYPE_CHECKING:
+    from ....attribute import models as attribute_models
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -502,8 +506,8 @@ class ProductCreateInput(ProductInput):
     )
 
 
-T_INPUT_MAP = List[Tuple[models.Attribute, List[str]]]
-T_INSTANCE = Union[models.Product, models.ProductVariant]
+T_INPUT_MAP = List[Tuple["attribute_models.Attribute", List[str]]]
+T_INSTANCE = Union[models.Product, models.ProductVariant, page_models.Page]
 
 
 class AttributeAssignmentMixin:
@@ -533,7 +537,7 @@ class AttributeAssignmentMixin:
     ):
         """Retrieve attributes nodes from given global IDs and/or slugs."""
         qs = qs.filter(Q(pk__in=pks) | Q(slug__in=slugs))
-        nodes = list(qs)  # type: List[models.Attribute]
+        nodes: List["attribute_models.Attribute"] = list(qs)
 
         if not nodes:
             raise ValidationError(
@@ -583,7 +587,9 @@ class AttributeAssignmentMixin:
         return int(internal_id)
 
     @classmethod
-    def _pre_save_values(cls, attribute: models.Attribute, values: List[str]):
+    def _pre_save_values(
+        cls, attribute: "attribute_models.Attribute", values: List[str]
+    ):
         """Lazy-retrieve or create the database objects from the supplied raw values."""
         get_or_create = attribute.values.get_or_create
         return tuple(
@@ -596,37 +602,19 @@ class AttributeAssignmentMixin:
         )
 
     @classmethod
-    def _check_input_for_product(cls, cleaned_input: T_INPUT_MAP, qs: QuerySet):
-        """Check the cleaned attribute input for a product.
+    def _validate_product_attributes_input(
+        cls, cleaned_input: T_INPUT_MAP, attribute_qs: QuerySet, is_variant: bool
+    ):
+        """Check if no invalid operations were supplied.
 
-        An Attribute queryset is supplied.
-
-        - ensure all required attributes are passed
-        - ensure the values are correct for a product
+        :raises ValidationError: when an invalid operation was found.
         """
-        errors = validate_attributes_input_for_product(cleaned_input)
-
-        supplied_attribute_pk = [attribute.pk for attribute, _ in cleaned_input]
-
-        # Asserts all required attributes are supplied
-        missing_required_attributes = qs.filter(
-            Q(value_required=True) & ~Q(pk__in=supplied_attribute_pk)
-        )
-
-        if missing_required_attributes:
-            ids = [
-                graphene.Node.to_global_id("Attribute", attr.pk)
-                for attr in missing_required_attributes
-            ]
-            error = ValidationError(
-                "All attributes flagged as having a value required must be supplied.",
-                code=ProductErrorCode.REQUIRED.value,
-                params={"attributes": ids},
+        if is_variant:
+            return cls._check_input_for_variant(cleaned_input, attribute_qs)
+        else:
+            return cls._check_input_for_page_and_product(
+                cleaned_input, attribute_qs, False
             )
-            errors.append(error)
-
-        if errors:
-            raise ValidationError(errors)
 
     @classmethod
     def _check_input_for_variant(cls, cleaned_input: T_INPUT_MAP, qs: QuerySet):
@@ -647,21 +635,31 @@ class AttributeAssignmentMixin:
             raise ValidationError(errors)
 
     @classmethod
-    def _validate_input(
-        cls, cleaned_input: T_INPUT_MAP, attribute_qs, is_variant: bool
+    def _check_input_for_page_and_product(
+        cls, cleaned_input: T_INPUT_MAP, qs: QuerySet, is_page_attributes: bool
     ):
-        """Check if no invalid operations were supplied.
+        """Check the cleaned attribute input for a product.
 
-        :raises ValidationError: when an invalid operation was found.
+        An Attribute queryset is supplied.
+
+        - ensure all required attributes are passed
+        - ensure the values are correct for a product
         """
-        if is_variant:
-            return cls._check_input_for_variant(cleaned_input, attribute_qs)
-        else:
-            return cls._check_input_for_product(cleaned_input, attribute_qs)
+        error_codes_enum = PageErrorCode if is_page_attributes else ProductErrorCode
+        errors = validate_attributes_input_for_product_and_page(
+            cleaned_input, qs, error_codes_enum
+        )
+
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
     def clean_input(
-        cls, raw_input: dict, attributes_qs: QuerySet, is_variant: bool
+        cls,
+        raw_input: dict,
+        attributes_qs: QuerySet,
+        is_variant: bool = False,
+        is_page_attributes: bool = False,
     ) -> T_INPUT_MAP:
         """Resolve and prepare the input for further checks.
 
@@ -669,6 +667,7 @@ class AttributeAssignmentMixin:
         :param attributes_qs:
             A queryset of attributes, the attribute values must be prefetched.
             Prefetch is needed by ``_pre_save_values`` during save.
+        :param page_attributes: Whether the input is for page type or not.
         :param is_variant: Whether the input is for a variant or a product.
 
         :raises ValidationError: contain the message.
@@ -712,7 +711,13 @@ class AttributeAssignmentMixin:
                 key = slugs[attribute.slug]
 
             cleaned_input.append((attribute, key))
-        cls._validate_input(cleaned_input, attributes_qs, is_variant)
+
+        if is_page_attributes:
+            cls._check_input_for_page_and_product(cleaned_input, attributes_qs, True)
+        else:
+            cls._validate_product_attributes_input(
+                cleaned_input, attributes_qs, is_variant
+            )
         return cleaned_input
 
     @classmethod
@@ -1279,7 +1284,30 @@ class ProductTypeCreate(ModelMutation):
         if tax_code:
             info.context.plugins.assign_tax_code_to_object_meta(instance, tax_code)
 
+        cls.validate_attributes(cleaned_input)
+
         return cleaned_input
+
+    @classmethod
+    def validate_attributes(cls, cleaned_data):
+        errors = {}
+        for field in ["product_attributes", "variant_attributes"]:
+            attributes = cleaned_data.get(field)
+            if not attributes:
+                continue
+            not_valid_attributes = [
+                graphene.Node.to_global_id("Attribute", attr.pk)
+                for attr in attributes
+                if attr.type != AttributeType.PRODUCT_TYPE
+            ]
+            if not_valid_attributes:
+                errors[field] = ValidationError(
+                    "Only Product type attributes are allowed.",
+                    code=ProductErrorCode.INVALID.value,
+                    params={"attributes": not_valid_attributes},
+                )
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):

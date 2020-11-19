@@ -3,17 +3,16 @@ from decimal import Decimal
 import graphene
 import pytest
 
-from ....product.models import (
-    Attribute,
-    AttributeProduct,
-    AttributeVariant,
+from .....attribute import AttributeType
+from .....attribute.models import Attribute, AttributeProduct, AttributeVariant
+from .....product.models import (
     Product,
     ProductChannelListing,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
 )
-from ...tests.utils import get_graphql_content
+from ....tests.utils import get_graphql_content
 
 
 @pytest.fixture
@@ -25,30 +24,35 @@ def attributes_for_pagination(collection, category, channel_USD):
                 slug="attr1",
                 value_required=True,
                 storefront_search_position=4,
+                type=AttributeType.PRODUCT_TYPE,
             ),
             Attribute(
                 name="AttrAttr1",
                 slug="attr_attr1",
                 value_required=True,
                 storefront_search_position=3,
+                type=AttributeType.PRODUCT_TYPE,
             ),
             Attribute(
                 name="AttrAttr2",
                 slug="attr_attr2",
                 value_required=True,
                 storefront_search_position=2,
+                type=AttributeType.PRODUCT_TYPE,
             ),
             Attribute(
                 name="Attr2",
                 slug="attr2",
                 value_required=False,
                 storefront_search_position=5,
+                type=AttributeType.PRODUCT_TYPE,
             ),
             Attribute(
                 name="Attr3",
                 slug="attr3",
                 value_required=False,
                 storefront_search_position=1,
+                type=AttributeType.PRODUCT_TYPE,
             ),
         ]
     )

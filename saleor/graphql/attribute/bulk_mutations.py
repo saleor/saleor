@@ -1,9 +1,9 @@
 import graphene
 
-from ....core.permissions import ProductPermissions
-from ....product import models
-from ...core.mutations import ModelBulkDeleteMutation
-from ...core.types.common import ProductError
+from ...attribute import models
+from ...core.permissions import PageTypePermissions
+from ..core.mutations import ModelBulkDeleteMutation
+from ..core.types.common import AttributeError
 
 
 class AttributeBulkDelete(ModelBulkDeleteMutation):
@@ -15,9 +15,9 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes attributes."
         model = models.Attribute
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        error_type_class = AttributeError
+        error_type_field = "attribute_errors"
 
 
 class AttributeValueBulkDelete(ModelBulkDeleteMutation):
@@ -31,6 +31,6 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes values of attributes."
         model = models.AttributeValue
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        error_type_class = AttributeError
+        error_type_field = "attribute_errors"
