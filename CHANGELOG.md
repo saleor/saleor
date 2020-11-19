@@ -88,7 +88,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix filtering products by multiple attributes - #6215 by @GrzegorzDerdak
 - Add attributes validation while creating/updating a product's variant - #6269 by @GrzegorzDerdak
 - Add metadata to page model - #6292 by @dominik-zeglen
-- Fix for unnecesary attributes validation while updating simple product - #6300 
+- Fix for unnecesary attributes validation while updating simple product - #6300 by @GrzegorzDerdak
 - Include order line total price to webhook payload - #6354 by @korycins
 - Fix for fulfilling an order when product quantity equals allocated quantity - #6333 by @GrzegorzDerdak
 - Fix for the ability to filter products on collection - #6363 by @GrzegorzDerdak
