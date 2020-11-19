@@ -503,6 +503,19 @@ def user_checkout(customer_user, channel_USD):
 
 
 @pytest.fixture
+def user_checkout_PLN(customer_user, channel_PLN):
+    checkout = Checkout.objects.create(
+        user=customer_user,
+        channel=channel_PLN,
+        billing_address=customer_user.default_billing_address,
+        shipping_address=customer_user.default_shipping_address,
+        note="Test notes",
+        currency="PLN",
+    )
+    return checkout
+
+
+@pytest.fixture
 def user_checkout_with_items(user_checkout, product_list):
     for product in product_list:
         variant = product.variants.get()

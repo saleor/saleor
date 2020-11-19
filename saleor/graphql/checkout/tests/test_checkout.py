@@ -399,6 +399,33 @@ def test_checkout_create_with_multiple_channel_with_channel_slug(
     assert checkout_line.quantity == 1
 
 
+def test_checkout_create_with_existing_checkout_in_other_channel(
+    user_api_client, stock, graphql_address_data, channel_USD, user_checkout_PLN
+):
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    old_checkout = Checkout.objects.first()
+
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert content["created"] is True
+
+    checkout_data = content["checkout"]
+    assert checkout_data["token"] != str(old_checkout.token)
+
+
 def test_checkout_create_with_inactive_channel_slug(
     api_client, stock, graphql_address_data, channel_USD
 ):
