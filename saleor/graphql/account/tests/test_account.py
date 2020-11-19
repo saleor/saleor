@@ -18,6 +18,7 @@ from ....account import events as account_events
 from ....account.error_codes import AccountErrorCode
 from ....account.models import Address, User
 from ....checkout import AddressType
+from ....checkout.models import Checkout
 from ....core.jwt import create_token
 from ....core.permissions import AccountPermissions, OrderPermissions
 from ....order.models import FulfillmentStatus, Order
@@ -619,6 +620,152 @@ def test_me_query_checkout_with_inactive_channel(user_api_client, checkout):
     content = get_graphql_content(response)
     data = content["data"]["me"]
     assert not data["checkout"]
+
+
+QUERY_ME_CHECKOUT_TOKENS = """
+query getCheckoutTokens($channel: String) {
+  me {
+    checkoutTokens(channel: $channel)
+  }
+}
+"""
+
+
+def test_me_checkout_tokens_without_channel_param(
+    user_api_client, channel_USD, channel_PLN
+):
+    # given
+    user = user_api_client.user
+    checkouts = Checkout.objects.bulk_create(
+        [
+            Checkout(
+                currency=channel_USD.currency_code, channel=channel_USD, user=user,
+            ),
+            Checkout(
+                currency=channel_PLN.currency_code, channel=channel_PLN, user=user,
+            ),
+        ]
+    )
+
+    # when
+    response = user_api_client.post_graphql(QUERY_ME_CHECKOUT_TOKENS)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert len(data["checkoutTokens"]) == len(checkouts)
+    for checkout in checkouts:
+        assert str(checkout.token) in data["checkoutTokens"]
+
+
+def test_me_checkout_tokens_without_channel_param_inactive_channel(
+    user_api_client, channel_USD, channel_PLN
+):
+    # given
+    channel_PLN.is_active = False
+    channel_PLN.save()
+    user = user_api_client.user
+    checkouts = Checkout.objects.bulk_create(
+        [
+            Checkout(
+                currency=channel_USD.currency_code, channel=channel_USD, user=user,
+            ),
+            Checkout(
+                currency=channel_PLN.currency_code, channel=channel_PLN, user=user,
+            ),
+        ]
+    )
+
+    # when
+    response = user_api_client.post_graphql(QUERY_ME_CHECKOUT_TOKENS)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert str(checkouts[0].token) in data["checkoutTokens"]
+    assert not str(checkouts[1].token) in data["checkoutTokens"]
+
+
+def test_me_checkout_tokens_with_channel(user_api_client, channel_USD, channel_PLN):
+    # given
+    user = user_api_client.user
+    checkouts = Checkout.objects.bulk_create(
+        [
+            Checkout(
+                currency=channel_USD.currency_code, channel=channel_USD, user=user,
+            ),
+            Checkout(
+                currency=channel_PLN.currency_code, channel=channel_PLN, user=user,
+            ),
+        ]
+    )
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_ME_CHECKOUT_TOKENS, {"channel": channel_USD.slug}
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert str(checkouts[0].token) in data["checkoutTokens"]
+    assert not str(checkouts[1].token) in data["checkoutTokens"]
+
+
+def test_me_checkout_tokens_with_inactive_channel(
+    user_api_client, channel_USD, channel_PLN
+):
+    # given
+    channel_USD.is_active = False
+    channel_USD.save()
+    user = user_api_client.user
+    Checkout.objects.bulk_create(
+        [
+            Checkout(
+                currency=channel_USD.currency_code, channel=channel_USD, user=user,
+            ),
+            Checkout(
+                currency=channel_PLN.currency_code, channel=channel_PLN, user=user,
+            ),
+        ]
+    )
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_ME_CHECKOUT_TOKENS, {"channel": channel_USD.slug}
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert not data["checkoutTokens"]
+
+
+def test_me_checkout_tokens_with_not_existing_channel(
+    user_api_client, channel_USD, channel_PLN
+):
+    # given
+    user = user_api_client.user
+    Checkout.objects.bulk_create(
+        [
+            Checkout(
+                currency=channel_USD.currency_code, channel=channel_USD, user=user,
+            ),
+            Checkout(
+                currency=channel_PLN.currency_code, channel=channel_PLN, user=user,
+            ),
+        ]
+    )
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_ME_CHECKOUT_TOKENS, {"channel": "Not-existing"}
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert not data["checkoutTokens"]
 
 
 def test_me_with_cancelled_fulfillments(
