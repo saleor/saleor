@@ -2813,6 +2813,7 @@ type Order implements Node & ObjectWithMetadata {
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
+  redirectUrl: String
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   fulfillments: [Fulfillment]!

@@ -197,6 +197,8 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             cleaned_input["billing_address"] = billing_address
         if redirect_url:
             cls.clean_redirect_url(redirect_url)
+            cleaned_input["redirect_url"] = redirect_url
+
         return cleaned_input
 
     @staticmethod
