@@ -2477,23 +2477,6 @@ def collection_list(db, channel_USD):
 
 
 @pytest.fixture
-def collection_list_unpublished(collection_list):
-    collections = Collection.objects.filter(
-        pk__in=[collection.pk for collection in collection_list]
-    )
-    collections.update(is_published=False)
-    return collections
-
-
-@pytest.fixture
-def draft_collection(db):
-    collection = Collection.objects.create(
-        name="Draft collection", slug="draft-collection", is_published=False
-    )
-    return collection
-
-
-@pytest.fixture
 def page(db):
     data = {
         "slug": "test-url",
