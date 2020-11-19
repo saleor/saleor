@@ -228,17 +228,3 @@ class ChannelContextFilterConnectionField(FilterInputConnectionField):
             edges_with_context.append(edge)
         connection.edges = edges_with_context
         return connection
-
-
-class FieldWithChannel(graphene.Field):
-    def __init__(self, type, *args, **kwargs):
-        kwargs.setdefault(
-            "channel",
-            graphene.Argument(
-                graphene.String,
-                description=(
-                    "Slug of the channel for which the data should be returned."
-                ),
-            ),
-        )
-        super().__init__(type, *args, **kwargs)
