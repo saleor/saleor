@@ -18,7 +18,6 @@ from ....account import events as account_events
 from ....account.error_codes import AccountErrorCode
 from ....account.models import Address, User
 from ....checkout import AddressType
-from ....checkout.models import Checkout
 from ....core.jwt import create_token
 from ....core.permissions import AccountPermissions, OrderPermissions
 from ....order.models import FulfillmentStatus, Order
@@ -632,20 +631,10 @@ query getCheckoutTokens($channel: String) {
 
 
 def test_me_checkout_tokens_without_channel_param(
-    user_api_client, channel_USD, channel_PLN
+    user_api_client, checkouts_assigned_to_customer
 ):
     # given
-    user = user_api_client.user
-    checkouts = Checkout.objects.bulk_create(
-        [
-            Checkout(
-                currency=channel_USD.currency_code, channel=channel_USD, user=user,
-            ),
-            Checkout(
-                currency=channel_PLN.currency_code, channel=channel_PLN, user=user,
-            ),
-        ]
-    )
+    checkouts = checkouts_assigned_to_customer
 
     # when
     response = user_api_client.post_graphql(QUERY_ME_CHECKOUT_TOKENS)
@@ -659,22 +648,12 @@ def test_me_checkout_tokens_without_channel_param(
 
 
 def test_me_checkout_tokens_without_channel_param_inactive_channel(
-    user_api_client, channel_USD, channel_PLN
+    user_api_client, channel_PLN, checkouts_assigned_to_customer
 ):
     # given
     channel_PLN.is_active = False
     channel_PLN.save()
-    user = user_api_client.user
-    checkouts = Checkout.objects.bulk_create(
-        [
-            Checkout(
-                currency=channel_USD.currency_code, channel=channel_USD, user=user,
-            ),
-            Checkout(
-                currency=channel_PLN.currency_code, channel=channel_PLN, user=user,
-            ),
-        ]
-    )
+    checkouts = checkouts_assigned_to_customer
 
     # when
     response = user_api_client.post_graphql(QUERY_ME_CHECKOUT_TOKENS)
@@ -686,19 +665,11 @@ def test_me_checkout_tokens_without_channel_param_inactive_channel(
     assert not str(checkouts[1].token) in data["checkoutTokens"]
 
 
-def test_me_checkout_tokens_with_channel(user_api_client, channel_USD, channel_PLN):
+def test_me_checkout_tokens_with_channel(
+    user_api_client, channel_USD, checkouts_assigned_to_customer
+):
     # given
-    user = user_api_client.user
-    checkouts = Checkout.objects.bulk_create(
-        [
-            Checkout(
-                currency=channel_USD.currency_code, channel=channel_USD, user=user,
-            ),
-            Checkout(
-                currency=channel_PLN.currency_code, channel=channel_PLN, user=user,
-            ),
-        ]
-    )
+    checkouts = checkouts_assigned_to_customer
 
     # when
     response = user_api_client.post_graphql(
@@ -713,22 +684,11 @@ def test_me_checkout_tokens_with_channel(user_api_client, channel_USD, channel_P
 
 
 def test_me_checkout_tokens_with_inactive_channel(
-    user_api_client, channel_USD, channel_PLN
+    user_api_client, channel_USD, checkouts_assigned_to_customer
 ):
     # given
     channel_USD.is_active = False
     channel_USD.save()
-    user = user_api_client.user
-    Checkout.objects.bulk_create(
-        [
-            Checkout(
-                currency=channel_USD.currency_code, channel=channel_USD, user=user,
-            ),
-            Checkout(
-                currency=channel_PLN.currency_code, channel=channel_PLN, user=user,
-            ),
-        ]
-    )
 
     # when
     response = user_api_client.post_graphql(
@@ -742,20 +702,9 @@ def test_me_checkout_tokens_with_inactive_channel(
 
 
 def test_me_checkout_tokens_with_not_existing_channel(
-    user_api_client, channel_USD, channel_PLN
+    user_api_client, checkouts_assigned_to_customer
 ):
     # given
-    user = user_api_client.user
-    Checkout.objects.bulk_create(
-        [
-            Checkout(
-                currency=channel_USD.currency_code, channel=channel_USD, user=user,
-            ),
-            Checkout(
-                currency=channel_PLN.currency_code, channel=channel_PLN, user=user,
-            ),
-        ]
-    )
 
     # when
     response = user_api_client.post_graphql(
