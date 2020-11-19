@@ -35,7 +35,7 @@ def authenticate_test(
     if result.get("messages", {}).get("resultCode") == "Ok":
         return True, ""
     response_message = result.get("messages", {}).get("message")
-    if len(response_message):
+    if len(response_message) > 0:
         message = response_message[0].get("text", "")
     return False, message
 

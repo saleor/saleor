@@ -82,15 +82,19 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
         configuration = {
             item["name"]: item["value"] for item in plugin_configuration.configuration
         }
-        success, message = authenticate_test(
-            configuration.get("api_login_id"),
-            configuration.get("transaction_key"),
-            configuration.get("use_sandbox"),
-        )
-        if not success:
-            raise ValidationError(
-                message, code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+
+        api_login_id = configuration.get("api_login_id", None)
+        transaction_key = configuration.get("transaction_key", None)
+
+        # Only check when both are set, otherwise the dashboard is hard to use
+        if api_login_id and transaction_key:
+            success, message = authenticate_test(
+                api_login_id, transaction_key, configuration.get("use_sandbox")
             )
+            if not success:
+                raise ValidationError(
+                    message, code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+                )
 
     # @require_active_plugin
     # def authorize_payment(
