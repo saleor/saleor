@@ -228,6 +228,22 @@ def test_retrieve_channel_listings(
                   }
                   isAvailableForPurchase
                   availableForPurchase
+                  pricing {
+                    priceRangeUndiscounted {
+                      start {
+                        gross {
+                          amount
+                          currency
+                        }
+                      }
+                      stop {
+                        gross {
+                          amount
+                          currency
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
