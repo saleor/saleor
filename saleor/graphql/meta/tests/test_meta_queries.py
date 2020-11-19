@@ -143,8 +143,8 @@ def test_query_public_meta_for_staff_as_app(
 
 
 QUERY_CHECKOUT_PUBLIC_META = """
-    query checkoutMeta($token: UUID!, $channel: String!){
-        checkout(token: $token, channel: $channel){
+    query checkoutMeta($token: UUID!){
+        checkout(token: $token){
             metadata{
                 key
                 value
@@ -158,7 +158,7 @@ def test_query_public_meta_for_checkout_as_anonymous_user(api_client, checkout):
     # given
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     checkout.save(update_fields=["metadata"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = api_client.post_graphql(QUERY_CHECKOUT_PUBLIC_META, variables)
@@ -177,7 +177,7 @@ def test_query_public_meta_for_other_customer_checkout_as_anonymous_user(
     checkout.user = customer_user
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     checkout.save(update_fields=["user", "metadata"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = api_client.post_graphql(QUERY_CHECKOUT_PUBLIC_META, variables)
@@ -192,7 +192,7 @@ def test_query_public_meta_for_checkout_as_customer(user_api_client, checkout):
     checkout.user = user_api_client.user
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     checkout.save(update_fields=["user", "metadata"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = user_api_client.post_graphql(QUERY_CHECKOUT_PUBLIC_META, variables)
@@ -211,7 +211,7 @@ def test_query_public_meta_for_checkout_as_staff(
     checkout.user = customer_user
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     checkout.save(update_fields=["user", "metadata"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = staff_api_client.post_graphql(
@@ -235,7 +235,7 @@ def test_query_public_meta_for_checkout_as_app(
     checkout.user = customer_user
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     checkout.save(update_fields=["user", "metadata"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = app_api_client.post_graphql(
@@ -1605,8 +1605,8 @@ def test_query_private_meta_for_staff_as_app(
 
 
 QUERY_CHECKOUT_PRIVATE_META = """
-    query checkoutMeta($token: UUID!, $channel: String!){
-        checkout(token: $token, channel: $channel){
+    query checkoutMeta($token: UUID!){
+        checkout(token: $token){
             privateMetadata{
                 key
                 value
@@ -1618,7 +1618,7 @@ QUERY_CHECKOUT_PRIVATE_META = """
 
 def test_query_private_meta_for_checkout_as_anonymous_user(api_client, checkout):
     # given
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = api_client.post_graphql(QUERY_CHECKOUT_PRIVATE_META, variables)
@@ -1633,7 +1633,7 @@ def test_query_private_meta_for_other_customer_checkout_as_anonymous_user(
     # given
     checkout.user = customer_user
     checkout.save(update_fields=["user"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = api_client.post_graphql(QUERY_CHECKOUT_PRIVATE_META, variables)
@@ -1647,7 +1647,7 @@ def test_query_private_meta_for_checkout_as_customer(user_api_client, checkout):
     # given
     checkout.user = user_api_client.user
     checkout.save(update_fields=["user"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = user_api_client.post_graphql(QUERY_CHECKOUT_PRIVATE_META, variables)
@@ -1663,7 +1663,7 @@ def test_query_private_meta_for_checkout_as_staff(
     checkout.user = customer_user
     checkout.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     checkout.save(update_fields=["user", "private_metadata"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = staff_api_client.post_graphql(
@@ -1687,7 +1687,7 @@ def test_query_private_meta_for_checkout_as_app(
     checkout.user = customer_user
     checkout.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     checkout.save(update_fields=["user", "private_metadata"])
-    variables = {"token": checkout.pk, "channel": checkout.channel.slug}
+    variables = {"token": checkout.pk}
 
     # when
     response = app_api_client.post_graphql(

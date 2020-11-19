@@ -277,6 +277,24 @@ def checkouts_list(channel_USD, channel_PLN):
 
 
 @pytest.fixture
+def checkouts_assigned_to_customer(channel_USD, channel_PLN, customer_user):
+    return Checkout.objects.bulk_create(
+        [
+            Checkout(
+                currency=channel_USD.currency_code,
+                channel=channel_USD,
+                user=customer_user,
+            ),
+            Checkout(
+                currency=channel_PLN.currency_code,
+                channel=channel_PLN,
+                user=customer_user,
+            ),
+        ]
+    )
+
+
+@pytest.fixture
 def checkout_ready_to_complete(checkout_with_item, address, shipping_method, gift_card):
     checkout = checkout_with_item
     checkout.shipping_address = address
@@ -500,6 +518,19 @@ def user_checkout(customer_user, channel_USD):
         shipping_address=customer_user.default_shipping_address,
         note="Test notes",
         currency="USD",
+    )
+    return checkout
+
+
+@pytest.fixture
+def user_checkout_PLN(customer_user, channel_PLN):
+    checkout = Checkout.objects.create(
+        user=customer_user,
+        channel=channel_PLN,
+        billing_address=customer_user.default_billing_address,
+        shipping_address=customer_user.default_shipping_address,
+        note="Test notes",
+        currency="PLN",
     )
     return checkout
 
@@ -2545,23 +2576,6 @@ def collection_list(db, channel_USD):
         ]
     )
     return collections
-
-
-@pytest.fixture
-def collection_list_unpublished(collection_list):
-    collections = Collection.objects.filter(
-        pk__in=[collection.pk for collection in collection_list]
-    )
-    collections.update(is_published=False)
-    return collections
-
-
-@pytest.fixture
-def draft_collection(db):
-    collection = Collection.objects.create(
-        name="Draft collection", slug="draft-collection", is_published=False
-    )
-    return collection
 
 
 @pytest.fixture
