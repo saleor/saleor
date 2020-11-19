@@ -256,7 +256,9 @@ class VariantsChannelListingByProductIdAndChanneSlugLoader(
                     (product_id, channel_slug)
                 ] = variants_channel_listing
 
-        return [variant_channel_listing_by_product_and_channel[key] for key in keys]
+        return [
+            variant_channel_listing_by_product_and_channel.get(key, []) for key in keys
+        ]
 
     def batch_load_channel(
         self, channel_slug: str, products_ids: Iterable[int]
@@ -274,7 +276,7 @@ class VariantsChannelListingByProductIdAndChanneSlugLoader(
             )
 
         return [
-            (products_id, variants_channel_listings_map.get(products_id))
+            (products_id, variants_channel_listings_map.get(products_id, []))
             for products_id in products_ids
         ]
 
