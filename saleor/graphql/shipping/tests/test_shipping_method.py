@@ -1,8 +1,10 @@
 import graphene
 import pytest
+from django.db.models import Q
 from measurement.measures import Weight
 
 from ....core.weight import WeightUnits
+from ....product import models as product_models
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.utils import get_countries_without_shipping_zone
 from ...core.enums import WeightUnitsEnum
@@ -907,3 +909,338 @@ def test_delete_shipping_method(
     assert data["shippingZone"]["id"] == shipping_zone_id
     with pytest.raises(shipping_method._meta.model.DoesNotExist):
         shipping_method.refresh_from_db()
+
+
+EXCLUDE_PRODUCTS_MUTATION = """
+    mutation shippingPriceRemoveProductFromExclude(
+        $id: ID!, $input:ShippingPriceExcludeProductsInput!
+        ) {
+        shippingPriceExcludeProducts(
+            id: $id
+            input: $input) {
+            shippingErrors {
+                field
+                code
+            }
+            shippingMethod {
+                id
+                excludedProducts(first:10){
+                   totalCount
+                   edges{
+                     node{
+                       id
+                     }
+                   }
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize("requestor", ["staff", "app"])
+def test_exclude_products_for_shipping_method_only_products(
+    requestor,
+    app_api_client,
+    shipping_method,
+    product_list,
+    staff_api_client,
+    permission_manage_shipping,
+):
+    api = staff_api_client if requestor == "staff" else app_api_client
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    product_ids = [graphene.Node.to_global_id("Product", p.pk) for p in product_list]
+    variables = {"id": shipping_method_id, "input": {"products": product_ids}}
+    response = api.post_graphql(
+        EXCLUDE_PRODUCTS_MUTATION, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    shipping_method = content["data"]["shippingPriceExcludeProducts"]["shippingMethod"]
+    excluded_products = shipping_method["excludedProducts"]
+    total_count = excluded_products["totalCount"]
+    excluded_product_ids = {p["node"]["id"] for p in excluded_products["edges"]}
+    assert len(product_ids) == total_count
+    assert excluded_product_ids == set(product_ids)
+
+
+@pytest.mark.parametrize("requestor", ["staff", "app"])
+def test_exclude_products_for_shipping_method_only_collections(
+    requestor,
+    app_api_client,
+    shipping_method,
+    product_list_published,
+    product,
+    published_collection,
+    collection,
+    staff_api_client,
+    permission_manage_shipping,
+):
+    api = staff_api_client if requestor == "staff" else app_api_client
+    published_collection.products.set(list(product_list_published))
+    collection_list = [collection, published_collection]
+    collection.products.add(product)
+    expected_products = product_models.Product.objects.filter(
+        collections__in=collection_list
+    )
+    expected_product_ids = [
+        graphene.Node.to_global_id("Product", p.pk) for p in expected_products
+    ]
+
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+
+    collection_ids = [
+        graphene.Node.to_global_id("Collection", c.pk) for c in collection_list
+    ]
+    variables = {"id": shipping_method_id, "input": {"collections": collection_ids}}
+
+    response = api.post_graphql(
+        EXCLUDE_PRODUCTS_MUTATION, variables, permissions=[permission_manage_shipping]
+    )
+
+    content = get_graphql_content(response)
+    shipping_method = content["data"]["shippingPriceExcludeProducts"]["shippingMethod"]
+    excluded_products = shipping_method["excludedProducts"]
+    total_count = excluded_products["totalCount"]
+    excluded_product_ids = {p["node"]["id"] for p in excluded_products["edges"]}
+    assert len(expected_product_ids) == total_count
+    assert excluded_product_ids == set(expected_product_ids)
+
+
+@pytest.mark.parametrize("requestor", ["staff", "app"])
+def test_exclude_products_for_shipping_method_only_categories(
+    requestor,
+    app_api_client,
+    shipping_method,
+    categories_tree_with_published_products,
+    staff_api_client,
+    permission_manage_shipping,
+):
+    api = staff_api_client if requestor == "staff" else app_api_client
+    parent_category = categories_tree_with_published_products
+    tree = parent_category.get_descendants(include_self=True)
+    categories_ids = [graphene.Node.to_global_id("Category", parent_category.pk)]
+
+    expected_products = product_models.Product.objects.filter(category__in=tree)
+    expected_product_ids = [
+        graphene.Node.to_global_id("Product", p.pk) for p in expected_products
+    ]
+
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    variables = {"id": shipping_method_id, "input": {"categories": categories_ids}}
+
+    response = api.post_graphql(
+        EXCLUDE_PRODUCTS_MUTATION, variables, permissions=[permission_manage_shipping]
+    )
+
+    content = get_graphql_content(response)
+    shipping_method = content["data"]["shippingPriceExcludeProducts"]["shippingMethod"]
+    excluded_products = shipping_method["excludedProducts"]
+    total_count = excluded_products["totalCount"]
+    excluded_product_ids = {p["node"]["id"] for p in excluded_products["edges"]}
+    assert len(expected_product_ids) == total_count
+    assert excluded_product_ids == set(expected_product_ids)
+
+
+@pytest.mark.parametrize("requestor", ["staff", "app"])
+def test_exclude_products_for_shipping_method_all_input_fields(
+    requestor,
+    app_api_client,
+    shipping_method,
+    published_collection,
+    product_list_published,
+    product_list,
+    categories_tree_with_published_products,
+    collection,
+    staff_api_client,
+    permission_manage_shipping,
+):
+    api = staff_api_client if requestor == "staff" else app_api_client
+    # product_list has products with slugs slug:test-product-a, slug:test-product-b,
+    # slug:test-product-c
+    product_db_ids = [p.pk for p in product_list]
+    product_ids = [graphene.Node.to_global_id("Product", p) for p in product_db_ids]
+
+    # product_list_published has products with slugs slug:test-product-a,
+    # slug:test-product-b, slug:test-product-c
+    published_collection.products.set(list(product_list_published))
+    collection_list = [collection, published_collection]
+    collection_ids = [
+        graphene.Node.to_global_id("Collection", c.pk) for c in collection_list
+    ]
+
+    # category has products: slug:test-product-10 and   slug:test-product-11
+    parent_category = categories_tree_with_published_products
+    tree = parent_category.get_descendants(include_self=True)
+    categories_ids = [graphene.Node.to_global_id("Category", parent_category.pk)]
+
+    expected_products = product_models.Product.objects.filter(
+        Q(category__in=tree)
+        | Q(id__in=product_db_ids)
+        | Q(collections__in=collection_list)
+    ).distinct()
+    expected_product_ids = [
+        graphene.Node.to_global_id("Product", p.pk) for p in expected_products
+    ]
+
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    variables = {
+        "id": shipping_method_id,
+        "input": {
+            "categories": categories_ids,
+            "collections": collection_ids,
+            "products": product_ids,
+        },
+    }
+
+    response = api.post_graphql(
+        EXCLUDE_PRODUCTS_MUTATION, variables, permissions=[permission_manage_shipping]
+    )
+
+    content = get_graphql_content(response)
+    shipping_method = content["data"]["shippingPriceExcludeProducts"]["shippingMethod"]
+    excluded_products = shipping_method["excludedProducts"]
+    total_count = excluded_products["totalCount"]
+    excluded_product_ids = {p["node"]["id"] for p in excluded_products["edges"]}
+    assert len(expected_product_ids) == total_count == 5
+    assert excluded_product_ids == set(expected_product_ids)
+
+
+@pytest.mark.parametrize("requestor", ["staff", "app"])
+def test_exclude_products_for_shipping_method_already_has_excluded_products(
+    requestor,
+    shipping_method,
+    product_list,
+    product,
+    staff_api_client,
+    permission_manage_shipping,
+    app_api_client,
+):
+    api = staff_api_client if requestor == "staff" else app_api_client
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    shipping_method.excluded_products.add(product, product_list[0])
+    product_ids = [graphene.Node.to_global_id("Product", p.pk) for p in product_list]
+    variables = {"id": shipping_method_id, "input": {"products": product_ids}}
+    response = api.post_graphql(
+        EXCLUDE_PRODUCTS_MUTATION, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    shipping_method = content["data"]["shippingPriceExcludeProducts"]["shippingMethod"]
+    excluded_products = shipping_method["excludedProducts"]
+    total_count = excluded_products["totalCount"]
+    expected_product_ids = product_ids
+    expected_product_ids.append(graphene.Node.to_global_id("Product", product.pk))
+    excluded_product_ids = {p["node"]["id"] for p in excluded_products["edges"]}
+    assert len(expected_product_ids) == total_count
+    assert excluded_product_ids == set(expected_product_ids)
+
+
+REMOVE_PRODUCTS_FROM_EXCLUDED_PRODUCTS_MUTATION = """
+    mutation shippingPriceRemoveProductFromExclude(
+        $id: ID!, $input:ShippingPriceRemoveProductFromExcludeInput!
+        ) {
+        shippingPriceRemoveProductFromExclude(
+            id: $id
+            input: $input) {
+            shippingErrors {
+                field
+                code
+            }
+            shippingMethod {
+                id
+                excludedProducts(first:10){
+                   totalCount
+                   edges{
+                     node{
+                       id
+                     }
+                   }
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize("requestor", ["staff", "app"])
+def test_remove_products_from_excluded_products_for_shipping_method_delete_all_products(
+    requestor,
+    shipping_method,
+    product_list,
+    staff_api_client,
+    permission_manage_shipping,
+    app_api_client,
+):
+    api = staff_api_client if requestor == "staff" else app_api_client
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    shipping_method.excluded_products.set(product_list)
+
+    product_ids = [graphene.Node.to_global_id("Product", p.pk) for p in product_list]
+    variables = {"id": shipping_method_id, "input": {"products": product_ids}}
+    response = api.post_graphql(
+        REMOVE_PRODUCTS_FROM_EXCLUDED_PRODUCTS_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
+    )
+
+    content = get_graphql_content(response)
+    shipping_method = content["data"]["shippingPriceRemoveProductFromExclude"][
+        "shippingMethod"
+    ]
+    excluded_products = shipping_method["excludedProducts"]
+    total_count = excluded_products["totalCount"]
+    excluded_product_ids = {p["node"]["id"] for p in excluded_products["edges"]}
+    assert total_count == 0
+    assert len(excluded_product_ids) == 0
+
+
+@pytest.mark.parametrize("requestor", ["staff", "app"])
+def test_remove_products_from_excluded_products_for_shipping_method(
+    requestor,
+    shipping_method,
+    product_list,
+    staff_api_client,
+    permission_manage_shipping,
+    product,
+    app_api_client,
+):
+    api = staff_api_client if requestor == "staff" else app_api_client
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.pk
+    )
+    shipping_method.excluded_products.set(product_list)
+    shipping_method.excluded_products.add(product)
+
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.pk),
+    ]
+    variables = {"id": shipping_method_id, "input": {"products": product_ids}}
+    response = api.post_graphql(
+        REMOVE_PRODUCTS_FROM_EXCLUDED_PRODUCTS_MUTATION,
+        variables,
+        permissions=[permission_manage_shipping],
+    )
+
+    content = get_graphql_content(response)
+    shipping_method = content["data"]["shippingPriceRemoveProductFromExclude"][
+        "shippingMethod"
+    ]
+    excluded_products = shipping_method["excludedProducts"]
+    total_count = excluded_products["totalCount"]
+    expected_product_ids = {
+        graphene.Node.to_global_id("Product", p.pk) for p in product_list
+    }
+    excluded_product_ids = {p["node"]["id"] for p in excluded_products["edges"]}
+    assert total_count == len(expected_product_ids)
+    assert excluded_product_ids == expected_product_ids

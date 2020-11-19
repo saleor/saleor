@@ -4,6 +4,7 @@ from graphene import relay
 from ...core.permissions import ShippingPermissions
 from ...core.weight import convert_weight_to_default_weight_unit
 from ...shipping import models
+from ..channel import ChannelQsContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import (
     ChannelContext,
@@ -11,9 +12,11 @@ from ..channel.types import (
     ChannelContextTypeWithMetadata,
 )
 from ..core.connection import CountableDjangoObjectType
+from ..core.fields import ChannelContextFilterConnectionField
 from ..core.types import CountryDisplay, Money, MoneyRange
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
+from ..product import types as product_types
 from ..shipping.resolvers import resolve_price_range
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
@@ -64,6 +67,10 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     minimum_order_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
+    )
+    excluded_products = ChannelContextFilterConnectionField(
+        product_types.Product,
+        description="List of excluded products for the shipping method.",
     )
 
     class Meta:
@@ -149,6 +156,13 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         return ShippingMethodChannelListingByShippingMethodIdLoader(info.context).load(
             root.node.id
         )
+
+    @staticmethod
+    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
+    def resolve_excluded_products(
+        root: ChannelContext[models.ShippingMethod], _info, **_kwargs
+    ):
+        return ChannelQsContext(qs=root.node.excluded_products.all(), channel_slug=None)
 
 
 class ShippingZone(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
