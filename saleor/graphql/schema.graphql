@@ -5544,7 +5544,7 @@ enum WeightUnitsEnum {
 
 scalar _Any
 
-union _Entity = ProductVariant | Product | ProductType | Collection | Category | ProductImage | Address | User | Group | App
+union _Entity = Address | User | Group | App | ProductVariant | Product | ProductType | Collection | Category | ProductImage
 
 type _Service {
   sdl: String

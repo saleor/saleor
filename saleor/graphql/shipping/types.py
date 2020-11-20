@@ -16,7 +16,6 @@ from ..core.fields import ChannelContextFilterConnectionField
 from ..core.types import CountryDisplay, Money, MoneyRange
 from ..decorators import permission_required
 from ..meta.types import ObjectWithMetadata
-from ..product import types as product_types
 from ..shipping.resolvers import resolve_price_range
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
@@ -69,7 +68,7 @@ class ShippingMethod(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
         Money, description="The price of the cheapest variant (including discounts)."
     )
     excluded_products = ChannelContextFilterConnectionField(
-        product_types.Product,
+        "saleor.graphql.product.types.products.Product",
         description="List of excluded products for the shipping method.",
     )
 
