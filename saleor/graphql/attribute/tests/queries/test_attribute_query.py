@@ -183,10 +183,10 @@ def test_get_single_page_attribute_by_staff_no_perm(
 
 
 def test_get_single_product_attribute_with_file_value(
-    staff_api_client, image_attribute, permission_manage_products
+    staff_api_client, file_attribute, permission_manage_products
 ):
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    attribute_gql_id = graphene.Node.to_global_id("Attribute", image_attribute.id)
+    attribute_gql_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
     query = QUERY_ATTRIBUTE
     content = get_graphql_content(
         staff_api_client.post_graphql(query, {"id": attribute_gql_id})
@@ -195,27 +195,25 @@ def test_get_single_product_attribute_with_file_value(
 
     assert attribute_data, "Should have found an attribute"
     assert attribute_data["id"] == attribute_gql_id
-    assert attribute_data["slug"] == image_attribute.slug
-    assert attribute_data["valueRequired"] == image_attribute.value_required
-    assert (
-        attribute_data["visibleInStorefront"] == image_attribute.visible_in_storefront
-    )
+    assert attribute_data["slug"] == file_attribute.slug
+    assert attribute_data["valueRequired"] == file_attribute.value_required
+    assert attribute_data["visibleInStorefront"] == file_attribute.visible_in_storefront
     assert (
         attribute_data["filterableInStorefront"]
-        == image_attribute.filterable_in_storefront
+        == file_attribute.filterable_in_storefront
     )
     assert (
         attribute_data["filterableInDashboard"]
-        == image_attribute.filterable_in_dashboard
+        == file_attribute.filterable_in_dashboard
     )
-    assert attribute_data["availableInGrid"] == image_attribute.available_in_grid
+    assert attribute_data["availableInGrid"] == file_attribute.available_in_grid
     assert (
         attribute_data["storefrontSearchPosition"]
-        == image_attribute.storefront_search_position
+        == file_attribute.storefront_search_position
     )
-    assert len(attribute_data["values"]) == image_attribute.values.count()
+    assert len(attribute_data["values"]) == file_attribute.values.count()
     attribute_value_data = []
-    for value in image_attribute.values.all():
+    for value in file_attribute.values.all():
         data = {
             "slug": value.slug,
             "inputType": value.input_type.upper(),

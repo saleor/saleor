@@ -641,11 +641,11 @@ def test_validate_attributes_input_multiply_errors(
 
 
 def test_validate_attributes_with_file_input_type_for_product(
-    weight_attribute, image_attribute, product_type
+    weight_attribute, file_attribute, product_type
 ):
     # given
-    image_attribute.value_required = True
-    image_attribute.save(update_fields=["value_required"])
+    file_attribute.value_required = True
+    file_attribute.save(update_fields=["value_required"])
 
     weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required"])
@@ -656,7 +656,7 @@ def test_validate_attributes_with_file_input_type_for_product(
             AttrValuesInput(values=["a"], file_url=None, content_type=None),
         ),
         (
-            image_attribute,
+            file_attribute,
             AttrValuesInput(
                 values=[], file_url="test_file.jpeg", content_type="image/jpeg"
             ),
@@ -676,11 +676,11 @@ def test_validate_attributes_with_file_input_type_for_product(
 
 
 def test_validate_attributes_with_file_input_type_for_product_no_file_given(
-    weight_attribute, image_attribute, product_type
+    weight_attribute, file_attribute, product_type
 ):
     # given
-    image_attribute.value_required = True
-    image_attribute.save(update_fields=["value_required"])
+    file_attribute.value_required = True
+    file_attribute.save(update_fields=["value_required"])
 
     weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required"])
@@ -691,7 +691,7 @@ def test_validate_attributes_with_file_input_type_for_product_no_file_given(
             AttrValuesInput(values=["a"], file_url=None, content_type=None),
         ),
         (
-            image_attribute,
+            file_attribute,
             AttrValuesInput(values=[], file_url="", content_type="image/jpeg"),
         ),
     ]
@@ -709,16 +709,16 @@ def test_validate_attributes_with_file_input_type_for_product_no_file_given(
     error = errors[0]
     assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
-        graphene.Node.to_global_id("Attribute", image_attribute.pk)
+        graphene.Node.to_global_id("Attribute", file_attribute.pk)
     }
 
 
 def test_validate_attributes_with_file_input_type_for_product_empty_file_value(
-    weight_attribute, image_attribute, product_type
+    weight_attribute, file_attribute, product_type
 ):
     # given
-    image_attribute.value_required = True
-    image_attribute.save(update_fields=["value_required"])
+    file_attribute.value_required = True
+    file_attribute.save(update_fields=["value_required"])
 
     weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required"])
@@ -729,7 +729,7 @@ def test_validate_attributes_with_file_input_type_for_product_empty_file_value(
             AttrValuesInput(values=["a"], file_url=None, content_type=None),
         ),
         (
-            image_attribute,
+            file_attribute,
             AttrValuesInput(values=[], file_url="  ", content_type="image/jpeg"),
         ),
     ]
@@ -747,5 +747,5 @@ def test_validate_attributes_with_file_input_type_for_product_empty_file_value(
     error = errors[0]
     assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
-        graphene.Node.to_global_id("Attribute", image_attribute.pk)
+        graphene.Node.to_global_id("Attribute", file_attribute.pk)
     }
