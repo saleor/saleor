@@ -563,7 +563,16 @@ ORDER_CONFIRM_MUTATION = """
 """
 
 
-def test_order_confirm(staff_api_client, order_unconfirmed, permission_manage_orders):
+@patch("saleor.payment.gateway.capture")
+def test_order_confirm(
+    capture_mock,
+    staff_api_client,
+    order_unconfirmed,
+    permission_manage_orders,
+    payment_txn_preauth,
+):
+    payment_txn_preauth.order = order_unconfirmed
+    payment_txn_preauth.save()
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     assert not OrderEvent.objects.exists()
     response = staff_api_client.post_graphql(
@@ -587,6 +596,7 @@ def test_order_confirm(staff_api_client, order_unconfirmed, permission_manage_or
         type=order_events.OrderEvents.EMAIL_SENT,
         parameters__email=order_unconfirmed.get_customer_email(),
     ).exists()
+    capture_mock.assert_called_once_with(payment_txn_preauth)
 
 
 def test_order_confirm_unfulfilled(staff_api_client, order, permission_manage_orders):
