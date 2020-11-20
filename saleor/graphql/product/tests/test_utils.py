@@ -638,3 +638,114 @@ def test_validate_attributes_input_multiply_errors(
         graphene.Node.to_global_id("Attribute", attr.pk)
         for attr in [weight_attribute, color_attribute]
     }
+
+
+def test_validate_attributes_with_file_input_type_for_product(
+    weight_attribute, image_attribute, product_type
+):
+    # given
+    image_attribute.value_required = True
+    image_attribute.save(update_fields=["value_required"])
+
+    weight_attribute.value_required = True
+    weight_attribute.save(update_fields=["value_required"])
+
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+        ),
+        (
+            image_attribute,
+            AttrValuesInput(
+                values=[], file_url="test_file.jpeg", content_type="image/jpeg"
+            ),
+        ),
+    ]
+
+    # when
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        ProductErrorCode,
+        variant_validation=False,
+    )
+
+    # then
+    assert not errors
+
+
+def test_validate_attributes_with_file_input_type_for_product_no_file_given(
+    weight_attribute, image_attribute, product_type
+):
+    # given
+    image_attribute.value_required = True
+    image_attribute.save(update_fields=["value_required"])
+
+    weight_attribute.value_required = True
+    weight_attribute.save(update_fields=["value_required"])
+
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+        ),
+        (
+            image_attribute,
+            AttrValuesInput(values=[], file_url="", content_type="image/jpeg"),
+        ),
+    ]
+
+    # when
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        ProductErrorCode,
+        variant_validation=False,
+    )
+
+    # then
+    assert len(errors) == 1
+    error = errors[0]
+    assert error.code == ProductErrorCode.REQUIRED.value
+    assert set(error.params["attributes"]) == {
+        graphene.Node.to_global_id("Attribute", image_attribute.pk)
+    }
+
+
+def test_validate_attributes_with_file_input_type_for_product_empty_file_value(
+    weight_attribute, image_attribute, product_type
+):
+    # given
+    image_attribute.value_required = True
+    image_attribute.save(update_fields=["value_required"])
+
+    weight_attribute.value_required = True
+    weight_attribute.save(update_fields=["value_required"])
+
+    input_data = [
+        (
+            weight_attribute,
+            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+        ),
+        (
+            image_attribute,
+            AttrValuesInput(values=[], file_url="  ", content_type="image/jpeg"),
+        ),
+    ]
+
+    # when
+    errors = validate_attributes_input(
+        input_data,
+        product_type.product_attributes.all(),
+        ProductErrorCode,
+        variant_validation=False,
+    )
+
+    # then
+    assert len(errors) == 1
+    error = errors[0]
+    assert error.code == ProductErrorCode.REQUIRED.value
+    assert set(error.params["attributes"]) == {
+        graphene.Node.to_global_id("Attribute", image_attribute.pk)
+    }

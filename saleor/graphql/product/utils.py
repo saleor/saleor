@@ -58,6 +58,7 @@ def validate_attributes_input(
             if not value:
                 if attribute.value_required or variant_validation:
                     attribute_errors[error_no_file_given].append(attribute_id)
+                continue
             if value is None or not value.strip():
                 attribute_errors[error_blank_file_value].append(attribute_id)
                 continue
