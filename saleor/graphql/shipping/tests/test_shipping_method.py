@@ -1146,11 +1146,11 @@ def test_exclude_products_for_shipping_method_already_has_excluded_products(
 
 REMOVE_PRODUCTS_FROM_EXCLUDED_PRODUCTS_MUTATION = """
     mutation shippingPriceRemoveProductFromExclude(
-        $id: ID!, $input:ShippingPriceRemoveProductFromExcludeInput!
+        $id: ID!, $products: [ID]!
         ) {
         shippingPriceRemoveProductFromExclude(
             id: $id
-            input: $input) {
+            products: $products) {
             shippingErrors {
                 field
                 code
@@ -1187,7 +1187,7 @@ def test_remove_products_from_excluded_products_for_shipping_method_delete_all_p
     shipping_method.excluded_products.set(product_list)
 
     product_ids = [graphene.Node.to_global_id("Product", p.pk) for p in product_list]
-    variables = {"id": shipping_method_id, "input": {"products": product_ids}}
+    variables = {"id": shipping_method_id, "products": product_ids}
     response = api.post_graphql(
         REMOVE_PRODUCTS_FROM_EXCLUDED_PRODUCTS_MUTATION,
         variables,
@@ -1225,7 +1225,7 @@ def test_remove_products_from_excluded_products_for_shipping_method(
     product_ids = [
         graphene.Node.to_global_id("Product", product.pk),
     ]
-    variables = {"id": shipping_method_id, "input": {"products": product_ids}}
+    variables = {"id": shipping_method_id, "products": product_ids}
     response = api.post_graphql(
         REMOVE_PRODUCTS_FROM_EXCLUDED_PRODUCTS_MUTATION,
         variables,

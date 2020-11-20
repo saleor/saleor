@@ -415,14 +415,6 @@ class ShippingPriceExcludeProducts(BaseMutation):
         )
 
 
-class ShippingPriceRemoveProductFromExcludeInput(graphene.InputObjectType):
-    products = graphene.List(
-        graphene.ID,
-        required=True,
-        description="List of products which will be removed from excluded list.",
-    )
-
-
 class ShippingPriceRemoveProductFromExclude(BaseMutation):
     shipping_method = graphene.Field(
         ShippingMethod,
@@ -431,9 +423,10 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a shipping price.")
-        input = ShippingPriceRemoveProductFromExcludeInput(
-            description="Shipping price remove from excluded product input.",
+        products = graphene.List(
+            graphene.ID,
             required=True,
+            description="List of products which will be removed from excluded list.",
         )
 
     class Meta:
@@ -447,8 +440,7 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
         shipping_method = cls.get_node_or_error(
             info, data.get("id"), only_type=ShippingMethod
         )
-        input = data.get("input")
-        product_ids = input.get("products")
+        product_ids = data.get("products")
         if product_ids:
             _, product_db_ids = resolve_global_ids_to_primary_keys(
                 product_ids, product_types.Product
