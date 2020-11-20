@@ -1,0 +1,12 @@
+[Unit]
+Description=gunicorn daemon
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/var/www/html/saleor
+ExecStart=/root/saleorenv/saleor/bin/gunicorn --access-logfile - --workers 3 --bind unix:/var/www/html/saleor/saleor.sock saleor.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
