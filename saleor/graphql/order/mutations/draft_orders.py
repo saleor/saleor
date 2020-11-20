@@ -127,9 +127,8 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         try:
             validate_storefront_url(redirect_url)
         except ValidationError as error:
-            raise ValidationError(
-                {"redirect_url": error}, code=OrderErrorCode.INVALID.value
-            )
+            error.code = OrderErrorCode.INVALID.value
+            raise ValidationError({"redirect_url": error})
 
     @classmethod
     def clean_input(cls, info, instance, data):
