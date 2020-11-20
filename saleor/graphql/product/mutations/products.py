@@ -614,13 +614,14 @@ class AttributeAssignmentMixin:
         """Lazy-retrieve or create the database objects from the supplied raw values."""
         get_or_create = attribute.values.get_or_create
         file_url = attr_values.file_url
+        if not file_url:
+            return tuple()
         return (
             get_or_create(
                 attribute=attribute,
                 slug=slugify(file_url, allow_unicode=True),
-                name=file_url,
                 file_url=file_url,
-                content_type=attr_values.content_type,
+                defaults={"name": file_url, "content_type": attr_values.content_type},
             )[0],
         )
 

@@ -654,15 +654,15 @@ def file_attribute(db):
     )
     AttributeValue.objects.create(
         attribute=attribute,
-        name="Test file",
-        slug="test-file",
+        name="test_file.txt",
+        slug="test_filetxt",
         file_url="test_file.txt",
         content_type="text/plain",
     )
     AttributeValue.objects.create(
         attribute=attribute,
-        name="Test file 2",
-        slug="test-file-2",
+        name="test_file.jpeg",
+        slug="test_filejpeg",
         file_url="test_file.jpeg",
         content_type="image/jpeg",
     )

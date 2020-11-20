@@ -1394,6 +1394,10 @@ CREATE_PRODUCT_MUTATION = """
                                 }
                                 values {
                                     slug
+                                    file {
+                                        url
+                                        contentType
+                                    }
                                 }
                             }
                             visibleInListings
@@ -1525,6 +1529,255 @@ def test_create_product_with_rating(
     assert data["productErrors"] == []
     assert data["product"]["rating"] == expected_rating
     assert Product.objects.get().rating == expected_rating
+
+
+def test_create_product_with_file_attribute(
+    staff_api_client,
+    product_type,
+    category,
+    file_attribute,
+    color_attribute,
+    permission_manage_products,
+    settings,
+    monkeypatch,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+    product_price = "22.33"
+
+    values_count = file_attribute.values.count()
+
+    # Add second attribute
+    product_type.product_attributes.add(file_attribute)
+    file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
+    existing_value = file_attribute.values.first()
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "basePrice": product_price,
+            "attributes": [{"id": file_attr_id, "file": existing_value.file_url}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert len(data["product"]["attributes"]) == 2
+    expected_attributes_data = [
+        {"attribute": {"slug": color_attribute.slug}, "values": []},
+        {
+            "attribute": {"slug": file_attribute.slug},
+            "values": [
+                {
+                    "slug": existing_value.slug,
+                    "file": {
+                        "url": existing_value.file_url,
+                        "contentType": existing_value.content_type,
+                    },
+                }
+            ],
+        },
+    ]
+    for attr_data in data["product"]["attributes"]:
+        assert attr_data in expected_attributes_data
+
+    file_attribute.refresh_from_db()
+    assert file_attribute.values.count() == values_count
+
+
+def test_create_product_with_file_attribute_new_attribute_value(
+    staff_api_client,
+    product_type,
+    category,
+    file_attribute,
+    color_attribute,
+    permission_manage_products,
+    settings,
+    monkeypatch,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+    product_price = "22.33"
+
+    values_count = file_attribute.values.count()
+
+    # Add second attribute
+    product_type.product_attributes.add(file_attribute)
+    file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
+    non_existing_value = "new_test.jpg"
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "basePrice": product_price,
+            "attributes": [{"id": file_attr_id, "file": non_existing_value}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert len(data["product"]["attributes"]) == 2
+    expected_attributes_data = [
+        {"attribute": {"slug": color_attribute.slug}, "values": []},
+        {
+            "attribute": {"slug": file_attribute.slug},
+            "values": [
+                {
+                    "slug": slugify(non_existing_value, allow_unicode=True),
+                    "file": {"url": non_existing_value, "contentType": None},
+                }
+            ],
+        },
+    ]
+    for attr_data in data["product"]["attributes"]:
+        assert attr_data in expected_attributes_data
+
+    file_attribute.refresh_from_db()
+    assert file_attribute.values.count() == values_count + 1
+
+
+# TODO: consider --> should we add validation for such situation or ignore
+# not valida part?
+def test_create_product_with_file_attribute_not_required_no_file_url_given(
+    staff_api_client,
+    product_type,
+    category,
+    file_attribute,
+    color_attribute,
+    permission_manage_products,
+    settings,
+    monkeypatch,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+    product_price = "22.33"
+
+    file_attribute.value_required = False
+    file_attribute.save(update_fields=["value_required"])
+
+    # Add second attribute
+    product_type.product_attributes.add(file_attribute)
+    file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "basePrice": product_price,
+            "attributes": [{"id": file_attr_id, "values": ["test.txt"]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["productErrors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert len(data["product"]["attributes"]) == 2
+    expected_attributes_data = [
+        {"attribute": {"slug": color_attribute.slug}, "values": []},
+        {"attribute": {"slug": file_attribute.slug}, "values": []},
+    ]
+    for attr_data in data["product"]["attributes"]:
+        assert attr_data in expected_attributes_data
+
+    file_attribute.refresh_from_db()
+
+
+def test_create_product_with_file_attribute_required_no_file_url_given(
+    staff_api_client,
+    product_type,
+    category,
+    file_attribute,
+    color_attribute,
+    permission_manage_products,
+    settings,
+    monkeypatch,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_slug = "product-test-slug"
+    product_price = "22.33"
+
+    file_attribute.value_required = True
+    file_attribute.save(update_fields=["value_required"])
+
+    # Add second attribute
+    product_type.product_attributes.add(file_attribute)
+    file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "basePrice": product_price,
+            "attributes": [{"id": file_attr_id, "values": ["test.txt"]}],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    errors = data["productErrors"]
+    assert not data["product"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["attributes"] == [
+        graphene.Node.to_global_id("Attribute", file_attribute.pk)
+    ]
 
 
 PRODUCT_VARIANT_SET_DEFAULT_MUTATION = """

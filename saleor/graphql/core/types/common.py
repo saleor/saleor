@@ -282,7 +282,7 @@ class Image(graphene.ObjectType):
 class File(graphene.ObjectType):
     url = graphene.String(required=True, description="The URL of the file.")
     content_type = graphene.String(
-        required=True, description="Content type of the file."
+        required=False, description="Content type of the file."
     )
 
 
