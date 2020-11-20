@@ -2319,6 +2319,7 @@ QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
                 id
                 name
                 slug
+                rating
                 variants{
                     id
                     sku
@@ -2576,72 +2577,54 @@ def test_product_create_with_collections_webhook(
 
 
 MUTATION_UPDATE_PRODUCT = """
-    mutation updateProduct(
-        $productId: ID!,
-        $categoryId: ID!,
-        $name: String!,
-        $slug: String!,
-        $descriptionJson: JSONString!,
-        $isPublished: Boolean!,
-        $visibleInListings: Boolean!,
-        $chargeTaxes: Boolean!,
-        $taxCode: String!,
-        $basePrice: PositiveDecimal!,
-        $attributes: [AttributeValueInput!]) {
-            productUpdate(
-                id: $productId,
-                input: {
-                    category: $categoryId,
-                    name: $name,
-                    slug: $slug,
-                    descriptionJson: $descriptionJson,
-                    isPublished: $isPublished,
-                    visibleInListings: $visibleInListings,
-                    chargeTaxes: $chargeTaxes,
-                    taxCode: $taxCode,
-                    basePrice: $basePrice,
-                    attributes: $attributes
-                }) {
-                    product {
-                        category {
-                            name
-                        }
-                        descriptionJson
-                        isPublished
-                        publicationDate
-                        chargeTaxes
-                        variants {
-                            price {
-                                amount
-                            }
-                        }
-                        taxType {
-                            taxCode
-                            description
-                        }
+    mutation updateProduct($productId: ID!, $input: ProductInput!) {
+        productUpdate(id: $productId, input: $input) {
+                product {
+                    category {
                         name
-                        slug
-                        productType {
+                    }
+                    descriptionJson
+                    isPublished
+                    publicationDate
+                    chargeTaxes
+                    rating
+                    variants {
+                        price {
+                            amount
+                        }
+                    }
+                    taxType {
+                        taxCode
+                        description
+                    }
+                    name
+                    slug
+                    productType {
+                        name
+                    }
+                    attributes {
+                        attribute {
+                            id
                             name
                         }
-                        attributes {
-                            attribute {
-                                id
-                                name
-                            }
-                            values {
-                                name
-                                slug
+                        values {
+                            name
+                            slug
+                            file {
+                                url
+                                contentType
                             }
                         }
-                        visibleInListings
-                        }
-                        errors {
+                    }
+                    visibleInListings
+                    }
+                    productErrors {
                         message
                         field
-                        }
+                        code
                     }
-                    }
+                }
+            }
 """
 
 
@@ -2682,16 +2665,18 @@ def test_update_product(
 
     variables = {
         "productId": product_id,
-        "categoryId": category_id,
-        "name": product_name,
-        "slug": product_slug,
-        "descriptionJson": other_description_json,
-        "isPublished": product_is_published,
-        "visibleInListings": product_visible_in_listings,
-        "chargeTaxes": product_charge_taxes,
-        "taxCode": product_tax_rate,
-        "basePrice": basePrice,
-        "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
+        "input": {
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "descriptionJson": other_description_json,
+            "isPublished": product_is_published,
+            "visibleInListings": product_visible_in_listings,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "basePrice": basePrice,
+            "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
+        },
     }
 
     response = staff_api_client.post_graphql(
@@ -2699,7 +2684,7 @@ def test_update_product(
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert data["errors"] == []
+    assert data["productErrors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["descriptionJson"] == other_description_json
@@ -2723,25 +2708,65 @@ def test_update_product(
     updated_webhook_mock.assert_called_once_with(product)
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_file_attribute_value(
+    updated_webhook_mock,
+    staff_api_client,
+    file_attribute,
+    non_default_category,
+    product,
+    product_type,
+    permission_manage_products,
+    color_attribute,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
+    product_type.product_attributes.add(file_attribute)
+
+    new_value = "new_file.json"
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "file": new_value}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["productErrors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_file_att_data = {
+        "attribute": {"id": attribute_id, "name": file_attribute.name},
+        "values": [
+            {
+                "name": new_value,
+                "slug": slugify(new_value),
+                "file": {"url": new_value, "contentType": None},
+            }
+        ],
+    }
+    assert expected_file_att_data in attributes
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
 @freeze_time("2020-03-18 12:00:00")
 def test_update_product_rating(
     staff_api_client, product, permission_manage_products,
 ):
-    query = """
-        mutation updateProduct($productId: ID!, $input: ProductInput!) {
-            productUpdate(id: $productId, input: $input) {
-                product {
-                    rating
-                }
-                productErrors {
-                    field
-                    code
-                    message
-                    attributes
-                }
-            }
-        }
-    """
+    query = MUTATION_UPDATE_PRODUCT
 
     product.rating = 5.5
     product.save(update_fields=["rating"])
@@ -2802,16 +2827,18 @@ def test_update_product_when_default_currency_changeed(
 
     variables = {
         "productId": product_id,
-        "categoryId": category_id,
-        "name": product_name,
-        "slug": product_slug,
-        "descriptionJson": other_description_json,
-        "isPublished": product_is_published,
-        "visibleInListings": product_visible_in_listings,
-        "chargeTaxes": product_charge_taxes,
-        "taxCode": product_tax_rate,
-        "basePrice": basePrice,
-        "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
+        "input": {
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "descriptionJson": other_description_json,
+            "isPublished": product_is_published,
+            "visibleInListings": product_visible_in_listings,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "basePrice": basePrice,
+            "attributes": [{"id": attribute_id, "values": ["Rainbow"]}],
+        },
     }
 
     response = staff_api_client.post_graphql(
@@ -2819,7 +2846,7 @@ def test_update_product_when_default_currency_changeed(
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    assert data["errors"] == []
+    assert data["productErrors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
     assert data["product"]["descriptionJson"] == other_description_json
