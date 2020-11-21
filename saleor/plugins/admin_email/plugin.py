@@ -9,6 +9,8 @@ from ..base_plugin import BasePlugin, ConfigurationTypeField
 from ..email_common import (
     DEFAULT_EMAIL_CONFIG_STRUCTURE,
     DEFAULT_EMAIL_CONFIGURATION,
+    DEFAULT_SUBJECT_MESSAGE,
+    DEFAULT_TEMPLATE_MESSAGE,
     EmailConfig,
     validate_default_email_configuration,
 )
@@ -72,12 +74,6 @@ class AdminEmailPlugin(BasePlugin):
     PLUGIN_NAME = "Admin emails"
     DEFAULT_ACTIVE = True
 
-    DEFAULT_TEMPLATE_MESSAGE = (
-        "An HTML template built with handlebars template language. Leave it "
-        "blank if you don't want to send an email for this action. Use the "
-        "default Saleor template by providing DEFAULT value."
-    )
-    DEFAULT_TITLE_MESSAGE = "An email subject built with handlebars template language."
     DEFAULT_CONFIGURATION = [
         {
             "name": STAFF_ORDER_CONFIRMATION_TITLE_FIELD,
@@ -107,7 +103,7 @@ class AdminEmailPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         STAFF_ORDER_CONFIRMATION_TITLE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TITLE_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
             "label": "Staff order confirmation subject",
         },
         STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD: {
@@ -117,7 +113,7 @@ class AdminEmailPlugin(BasePlugin):
         },
         SET_STAFF_PASSWORD_TITLE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TITLE_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
             "label": "Set staff password subject",
         },
         SET_STAFF_PASSWORD_TEMPLATE_FIELD: {
@@ -127,7 +123,7 @@ class AdminEmailPlugin(BasePlugin):
         },
         CSV_PRODUCT_EXPORT_SUCCESS_TITLE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TITLE_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
             "label": "CSV product export success subject",
         },
         CSV_PRODUCT_EXPORT_SUCCESS_TEMPLATE_FIELD: {
@@ -137,7 +133,7 @@ class AdminEmailPlugin(BasePlugin):
         },
         CSV_EXPORT_FAILED_TITLE_FIELD: {
             "type": ConfigurationTypeField.STRING,
-            "help_text": DEFAULT_TITLE_MESSAGE,
+            "help_text": DEFAULT_SUBJECT_MESSAGE,
             "label": "CSV export failed template",
         },
         CSV_EXPORT_FAILED_TEMPLATE_FIELD: {

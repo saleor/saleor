@@ -40,6 +40,8 @@ def test_invoice_send_notification(
     expected_payload = {
         "invoice": get_invoice_payload(invoice),
         "recipient_email": invoice.order.get_customer_email(),
+        "domain": "mirumee.com",
+        "site_name": "mirumee.com",
     }
 
     mock_notify.assert_called_once_with(NotifyEventType.INVOICE_READY, expected_payload)

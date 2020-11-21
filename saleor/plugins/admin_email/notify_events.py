@@ -9,7 +9,11 @@ from .tasks import (
 def send_set_staff_password_email(payload: dict, config: dict):
     recipient_email = payload["recipient_email"]
     send_set_staff_password_email_task.delay(
-        recipient_email, payload["redirect_url"], payload["token"], config
+        # TODO do not limit the payload to the specific fields
+        recipient_email,
+        payload["redirect_url"],
+        payload["token"],
+        config,
     )
 
 

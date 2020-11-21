@@ -1,7 +1,7 @@
 from unittest import mock
 from urllib.parse import urlencode
 
-from ....core.emails import get_email_context
+from ....core.notifications import get_site_context
 from ....core.utils.url import prepare_url
 from ....order.notifications import get_default_order_payload
 from ...email_common import EmailConfig
@@ -45,7 +45,7 @@ def test_send_set_staff_password_email_task_custom_template(
 
     params = urlencode({"email": recipient_email, "token": token})
     password_set_url = prepare_url(params, redirect_url)
-    send_kwargs, ctx = get_email_context()
+    ctx = get_site_context()
     ctx["password_set_url"] = password_set_url
 
     send_set_staff_password_email_task(
@@ -90,7 +90,7 @@ def test_send_email_with_link_to_download_file_task_custom_template(
     recipient_email = "admin@example.com"
     csv_url = "http://127.0.0.1:8000"
 
-    send_kwargs, ctx = get_email_context()
+    ctx = get_site_context()
     ctx["csv_link"] = csv_url
 
     send_email_with_link_to_download_file_task(
@@ -131,7 +131,7 @@ def test_send_export_failed_email_task_custom_template(
     )
     recipient_email = "admin@example.com"
 
-    _, ctx = get_email_context()
+    ctx = get_site_context()
 
     send_export_failed_email_task(recipient_email, email_dict_config)
 
@@ -177,7 +177,7 @@ def test_send_staff_order_confirmation_email_task_custom_template(
         "recipient_list": ["admin@example.com"],
     }
 
-    _, ctx = get_email_context()
+    ctx = get_site_context()
     payload.update(ctx)
 
     send_staff_order_confirmation_email_task(payload, email_dict_config)
