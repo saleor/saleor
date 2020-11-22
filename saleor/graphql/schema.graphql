@@ -1798,6 +1798,7 @@ input DraftOrderCreateInput {
   voucher: ID
   customerNote: String
   channel: ID
+  redirectUrl: String
   lines: [OrderLineCreateInput]
 }
 
@@ -1817,6 +1818,7 @@ input DraftOrderInput {
   voucher: ID
   customerNote: String
   channel: ID
+  redirectUrl: String
 }
 
 type DraftOrderLineDelete {
@@ -2819,6 +2821,7 @@ type Order implements Node & ObjectWithMetadata {
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
+  redirectUrl: String
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   fulfillments: [Fulfillment]!
