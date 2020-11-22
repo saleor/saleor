@@ -785,13 +785,14 @@ DRAFT_ORDER_CREATE_MUTATION = """
     mutation draftCreate(
         $user: ID, $discount: PositiveDecimal, $lines: [OrderLineCreateInput],
         $shippingAddress: AddressInput, $shippingMethod: ID, $voucher: ID,
-        $customerNote: String, $channel: ID
+        $customerNote: String, $channel: ID, $redirectUrl: String
         ) {
             draftOrderCreate(
                 input: {user: $user, discount: $discount,
                 lines: $lines, shippingAddress: $shippingAddress,
                 shippingMethod: $shippingMethod, voucher: $voucher,
                 channel: $channel,
+                redirectUrl: $redirectUrl,
                 customerNote: $customerNote}) {
                     orderErrors {
                         field
@@ -804,6 +805,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
                             amount
                         }
                         discountName
+                        redirectUrl
                         lines {
                             productName
                             productSku
@@ -854,6 +856,8 @@ def test_draft_order_create(
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    redirect_url = "https://www.example.com"
+
     variables = {
         "user": user_id,
         "discount": discount,
@@ -863,6 +867,7 @@ def test_draft_order_create(
         "voucher": voucher_id,
         "customerNote": customer_note,
         "channel": channel_id,
+        "redirectUrl": redirect_url,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -873,6 +878,7 @@ def test_draft_order_create(
     assert data["status"] == OrderStatus.DRAFT.upper()
     assert data["voucher"]["code"] == voucher.code
     assert data["customerNote"] == customer_note
+    assert data["redirectUrl"] == redirect_url
 
     order = Order.objects.first()
     assert order.user == customer_user
