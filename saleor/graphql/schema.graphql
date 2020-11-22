@@ -3691,8 +3691,8 @@ type Product implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   url: String! @deprecated(reason: "This field will be removed after 2020-07-31.")
   thumbnail(size: Int): Image
-  pricing(countryCode: CountryCode): ProductPricingInfo
-  isAvailable(countryCode: CountryCode): Boolean
+  pricing(address: AddressInput): ProductPricingInfo
+  isAvailable(address: AddressInput): Boolean
   taxType: TaxType
   attributes: [SelectedAttribute!]!
   channelListings: [ProductChannelListing!]
@@ -4113,7 +4113,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   channelListings: [ProductVariantChannelListing!]
-  pricing(countryCode: CountryCode): VariantPricingInfo
+  pricing(address: AddressInput): VariantPricingInfo
   attributes: [SelectedAttribute!]!
   costPrice: Money
   margin: Int
@@ -4122,8 +4122,8 @@ type ProductVariant implements Node & ObjectWithMetadata {
   images: [ProductImage]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
-  stocks(countryCode: CountryCode): [Stock]
-  quantityAvailable(countryCode: CountryCode): Int!
+  stocks(address: AddressInput): [Stock]
+  quantityAvailable(address: AddressInput): Int!
 }
 
 type ProductVariantBulkCreate {
