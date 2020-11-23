@@ -94,45 +94,22 @@ def test_process_payment(payment_adyen_for_checkout, checkout_with_items, adyen_
 
 
 @pytest.mark.vcr
-def test_process_payment_with_adyen_auto_capture(
-    payment_adyen_for_checkout, checkout_with_items, adyen_plugin
-):
-    payment_info = create_payment_information(
-        payment_adyen_for_checkout,
-        additional_data={"paymentMethod": {"paymentdata": ""}},
-    )
-    adyen_plugin = adyen_plugin(adyen_auto_capture=True)
-    response = adyen_plugin.process_payment(payment_info, None)
-    assert response.is_success is True
-    assert response.action_required is False
-    assert response.kind == TransactionKind.CAPTURE
-    assert response.amount == Decimal("80.00")
-    assert response.currency == checkout_with_items.currency
-    assert response.transaction_id == "882595494831959A"  # ID returned by Adyen
-    assert response.error is None
-
-
-@pytest.mark.vcr
 @mock.patch("saleor.payment.gateways.adyen.plugin.call_capture")
-def test_process_payment_with_adyen_auto_capture_order_confirmation(
-    capture_mock,
-    payment_adyen_for_checkout,
-    checkout_with_items,
-    adyen_plugin,
-    site_settings,
+def test_process_payment_with_adyen_auto_capture(
+    capture_mock, payment_adyen_for_checkout, checkout_with_items, adyen_plugin
 ):
-    site_settings.automatically_confirm_all_new_orders = False
-    site_settings.save()
     payment_info = create_payment_information(
         payment_adyen_for_checkout,
         additional_data={"paymentMethod": {"paymentdata": ""}},
     )
     adyen_plugin = adyen_plugin(adyen_auto_capture=True)
     response = adyen_plugin.process_payment(payment_info, None)
+    # ensure call_capture is not called
     assert not capture_mock.called
     assert response.is_success is True
     assert response.action_required is False
-    assert response.kind == TransactionKind.AUTH
+    # kind should still be capture as Adyen had adyen_auto_capture set to True
+    assert response.kind == TransactionKind.CAPTURE
     assert response.amount == Decimal("80.00")
     assert response.currency == checkout_with_items.currency
     assert response.transaction_id == "882595494831959A"  # ID returned by Adyen

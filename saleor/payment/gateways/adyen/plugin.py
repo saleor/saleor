@@ -318,7 +318,7 @@ class AdyenGatewayPlugin(BasePlugin):
         kind = TransactionKind.AUTH
         if result_code in PENDING_STATUSES:
             kind = TransactionKind.PENDING
-        elif adyen_auto_capture and self.order_auto_confirmation:
+        elif adyen_auto_capture:
             kind = TransactionKind.CAPTURE
         searchable_key = result.message.get("pspReference", "")
         action = result.message.get("action")
