@@ -714,7 +714,7 @@ def author_page_attribute(db):
 
 
 @pytest.fixture
-def file_page_attribute(db):
+def page_file_attribute(db):
     attribute = Attribute.objects.create(
         slug="image",
         name="Image",

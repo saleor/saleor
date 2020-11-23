@@ -352,7 +352,7 @@ def test_page_create_mutation_empty_attribute_value(
 
 
 def test_create_page_with_file_attribute(
-    staff_api_client, permission_manage_pages, page_type, file_page_attribute
+    staff_api_client, permission_manage_pages, page_type, page_file_attribute
 ):
     # given
     page_slug = "test-slug"
@@ -365,11 +365,11 @@ def test_create_page_with_file_attribute(
     )
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
-    file_attribute_id = graphene.Node.to_global_id("Attribute", file_page_attribute.pk)
-    page_type.page_attributes.add(file_page_attribute)
-    attr_value = file_page_attribute.values.first()
+    file_attribute_id = graphene.Node.to_global_id("Attribute", page_file_attribute.pk)
+    page_type.page_attributes.add(page_file_attribute)
+    attr_value = page_file_attribute.values.first()
 
-    values_count = file_page_attribute.values.count()
+    values_count = page_file_attribute.values.count()
 
     # test creating root page
     variables = {
@@ -401,7 +401,7 @@ def test_create_page_with_file_attribute(
     assert data["page"]["pageType"]["id"] == page_type_id
     assert len(data["page"]["attributes"]) == 1
     expected_attr_data = {
-        "attribute": {"slug": file_page_attribute.slug},
+        "attribute": {"slug": page_file_attribute.slug},
         "values": [
             {
                 "slug": attr_value.slug,
@@ -414,12 +414,12 @@ def test_create_page_with_file_attribute(
     }
     assert data["page"]["attributes"][0] == expected_attr_data
 
-    file_page_attribute.refresh_from_db()
-    assert file_page_attribute.values.count() == values_count
+    page_file_attribute.refresh_from_db()
+    assert page_file_attribute.values.count() == values_count
 
 
 def test_create_page_with_file_attribute_new_attribute_value(
-    staff_api_client, permission_manage_pages, page_type, file_page_attribute
+    staff_api_client, permission_manage_pages, page_type, page_file_attribute
 ):
     # given
     page_slug = "test-slug"
@@ -432,12 +432,12 @@ def test_create_page_with_file_attribute_new_attribute_value(
     )
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
-    file_attribute_id = graphene.Node.to_global_id("Attribute", file_page_attribute.pk)
-    page_type.page_attributes.add(file_page_attribute)
+    file_attribute_id = graphene.Node.to_global_id("Attribute", page_file_attribute.pk)
+    page_type.page_attributes.add(page_file_attribute)
     new_value = "new_test_value.txt"
     new_value_content_type = "text/plain"
 
-    values_count = file_page_attribute.values.count()
+    values_count = page_file_attribute.values.count()
 
     # test creating root page
     variables = {
@@ -475,7 +475,7 @@ def test_create_page_with_file_attribute_new_attribute_value(
     assert data["page"]["pageType"]["id"] == page_type_id
     assert len(data["page"]["attributes"]) == 1
     expected_attr_data = {
-        "attribute": {"slug": file_page_attribute.slug},
+        "attribute": {"slug": page_file_attribute.slug},
         "values": [
             {
                 "slug": slugify(new_value),
@@ -485,12 +485,12 @@ def test_create_page_with_file_attribute_new_attribute_value(
     }
     assert data["page"]["attributes"][0] == expected_attr_data
 
-    file_page_attribute.refresh_from_db()
-    assert file_page_attribute.values.count() == values_count + 1
+    page_file_attribute.refresh_from_db()
+    assert page_file_attribute.values.count() == values_count + 1
 
 
 def test_create_page_with_file_attribute_not_required_no_file_url_given(
-    staff_api_client, permission_manage_pages, page_type, file_page_attribute
+    staff_api_client, permission_manage_pages, page_type, page_file_attribute
 ):
     # given
     page_slug = "test-slug"
@@ -503,11 +503,11 @@ def test_create_page_with_file_attribute_not_required_no_file_url_given(
     )
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
-    file_attribute_id = graphene.Node.to_global_id("Attribute", file_page_attribute.pk)
-    page_type.page_attributes.add(file_page_attribute)
+    file_attribute_id = graphene.Node.to_global_id("Attribute", page_file_attribute.pk)
+    page_type.page_attributes.add(page_file_attribute)
 
-    file_page_attribute.value_required = False
-    file_page_attribute.save(update_fields=["value_required"])
+    page_file_attribute.value_required = False
+    page_file_attribute.save(update_fields=["value_required"])
 
     # test creating root page
     variables = {
@@ -539,7 +539,7 @@ def test_create_page_with_file_attribute_not_required_no_file_url_given(
 
 
 def test_create_page_with_file_attribute_required_no_file_url_given(
-    staff_api_client, permission_manage_pages, page_type, file_page_attribute
+    staff_api_client, permission_manage_pages, page_type, page_file_attribute
 ):
     # given
     page_slug = "test-slug"
@@ -552,11 +552,11 @@ def test_create_page_with_file_attribute_required_no_file_url_given(
     )
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
-    file_attribute_id = graphene.Node.to_global_id("Attribute", file_page_attribute.pk)
-    page_type.page_attributes.add(file_page_attribute)
+    file_attribute_id = graphene.Node.to_global_id("Attribute", page_file_attribute.pk)
+    page_type.page_attributes.add(page_file_attribute)
 
-    file_page_attribute.value_required = True
-    file_page_attribute.save(update_fields=["value_required"])
+    page_file_attribute.value_required = True
+    page_file_attribute.save(update_fields=["value_required"])
 
     # test creating root page
     variables = {
@@ -709,23 +709,23 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
 
 
 def test_update_page_with_file_attribute_value(
-    staff_api_client, permission_manage_pages, page, file_page_attribute
+    staff_api_client, permission_manage_pages, page, page_file_attribute
 ):
     # given
     query = UPDATE_PAGE_MUTATION
 
     page_type = page.page_type
-    page_type.page_attributes.add(file_page_attribute)
+    page_type.page_attributes.add(page_file_attribute)
     new_value = "test.txt"
-    file_page_attribute_id = graphene.Node.to_global_id(
-        "Attribute", file_page_attribute.pk
+    page_file_attribute_id = graphene.Node.to_global_id(
+        "Attribute", page_file_attribute.pk
     )
 
     page_id = graphene.Node.to_global_id("Page", page.id)
 
     variables = {
         "id": page_id,
-        "input": {"attributes": [{"id": file_page_attribute_id, "file": new_value}]},
+        "input": {"attributes": [{"id": page_file_attribute_id, "file": new_value}]},
     }
 
     # when
@@ -740,7 +740,7 @@ def test_update_page_with_file_attribute_value(
     assert not data["pageErrors"]
     assert data["page"]
     updated_attribute = {
-        "attribute": {"slug": file_page_attribute.slug},
+        "attribute": {"slug": page_file_attribute.slug},
         "values": [
             {
                 "slug": slugify(new_value),

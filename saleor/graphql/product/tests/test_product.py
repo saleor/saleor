@@ -3704,7 +3704,7 @@ def test_product_type_query(
     user_api_client,
     staff_api_client,
     product_type,
-    image_attribute_without_values_and_file_input_type,
+    file_attribute_with_file_input_type_without_values,
     product,
     permission_manage_products,
     monkeypatch,
@@ -3722,7 +3722,7 @@ def test_product_type_query(
     product.save()
 
     product_type.variant_attributes.add(
-        image_attribute_without_values_and_file_input_type
+        file_attribute_with_file_input_type_without_values
     )
     variant_attributes_count = product_type.variant_attributes.count()
 
@@ -3756,7 +3756,7 @@ def test_product_type_query_only_variant_selections_value_set(
     user_api_client,
     staff_api_client,
     product_type,
-    image_attribute_without_values_and_file_input_type,
+    file_attribute_with_file_input_type_without_values,
     author_page_attribute,
     product,
     permission_manage_products,
@@ -3774,7 +3774,7 @@ def test_product_type_query_only_variant_selections_value_set(
     product.save()
 
     product_type.variant_attributes.add(
-        image_attribute_without_values_and_file_input_type, author_page_attribute
+        file_attribute_with_file_input_type_without_values, author_page_attribute
     )
 
     variables = {
