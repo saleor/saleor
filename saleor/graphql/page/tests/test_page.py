@@ -613,15 +613,10 @@ def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
 
 UPDATE_PAGE_MUTATION = """
     mutation updatePage(
-        $id: ID!,
-        $slug: String,
-        $is_published: Boolean!,
-        $attributes: [AttributeValueInput!]
+        $id: ID!, $input: PageInput!
     ) {
         pageUpdate(
-            id: $id, input: {
-                slug: $slug, isPublished: $is_published, attributes: $attributes
-            }
+            id: $id, input: $input
         ) {
             page {
                 id
@@ -635,6 +630,10 @@ UPDATE_PAGE_MUTATION = """
                     }
                     values {
                         slug
+                        file {
+                            url
+                            contentType
+                        }
                     }
                 }
             }
@@ -665,9 +664,11 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
 
     variables = {
         "id": page_id,
-        "slug": new_slug,
-        "is_published": True,
-        "attributes": [{"id": tag_attr_id, "values": [new_value]}],
+        "input": {
+            "slug": new_slug,
+            "isPublished": True,
+            "attributes": [{"id": tag_attr_id, "values": [new_value]}],
+        },
     }
 
     # when
@@ -688,13 +689,13 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
     for attr in page_type.page_attributes.all():
         if attr.slug != tag_attr.slug:
             values = [
-                {"slug": slug}
+                {"slug": slug, "file": None}
                 for slug in page_attr.filter(assignment__attribute=attr).values_list(
                     "values__slug", flat=True
                 )
             ]
         else:
-            values = [{"slug": slugify(new_value)}]
+            values = [{"slug": slugify(new_value), "file": None}]
         attr_data = {
             "attribute": {"slug": attr.slug},
             "values": values,
@@ -705,6 +706,49 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
     assert len(attributes) == len(expected_attributes)
     for attr_data in attributes:
         assert attr_data in expected_attributes
+
+
+def test_update_page_with_file_attribute_value(
+    staff_api_client, permission_manage_pages, page, file_page_attribute
+):
+    # given
+    query = UPDATE_PAGE_MUTATION
+
+    page_type = page.page_type
+    page_type.page_attributes.add(file_page_attribute)
+    new_value = "test.txt"
+    file_page_attribute_id = graphene.Node.to_global_id(
+        "Attribute", file_page_attribute.pk
+    )
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    variables = {
+        "id": page_id,
+        "input": {"attributes": [{"id": file_page_attribute_id, "file": new_value}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+
+    assert not data["pageErrors"]
+    assert data["page"]
+    updated_attribute = {
+        "attribute": {"slug": file_page_attribute.slug},
+        "values": [
+            {
+                "slug": slugify(new_value),
+                "file": {"url": new_value, "contentType": None},
+            }
+        ],
+    }
+    assert updated_attribute in data["page"]["attributes"]
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -720,7 +764,7 @@ def test_public_page_sets_publication_date(
     }
     page = Page.objects.create(**data)
     page_id = graphene.Node.to_global_id("Page", page.id)
-    variables = {"id": page_id, "is_published": True, "slug": page.slug}
+    variables = {"id": page_id, "input": {"isPublished": True, "slug": page.slug}}
     response = staff_api_client.post_graphql(
         UPDATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
     )
@@ -740,7 +784,7 @@ def test_update_page_blank_slug_value(
     assert slug_value != page.slug
 
     page_id = graphene.Node.to_global_id("Page", page.id)
-    variables = {"id": page_id, "slug": slug_value, "is_published": True}
+    variables = {"id": page_id, "input": {"slug": slug_value, "isPublished": True}}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_pages]
     )
