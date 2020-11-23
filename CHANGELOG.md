@@ -4,6 +4,11 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+# 2.11.2
+
+- Fix reordering collection products - #6488 by @dwysocki
+- Fix getting config for Apple Pay - #6521 by @korycins
+
 # 2.11.1
 
 - Add support for Apple Pay on the web - #6466 by @korycins
