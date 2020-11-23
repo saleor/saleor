@@ -1539,7 +1539,6 @@ def test_create_product_with_file_attribute(
     color_attribute,
     permission_manage_products,
     settings,
-    monkeypatch,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -1609,7 +1608,6 @@ def test_create_product_with_file_attribute_new_attribute_value(
     color_attribute,
     permission_manage_products,
     settings,
-    monkeypatch,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -1668,8 +1666,6 @@ def test_create_product_with_file_attribute_new_attribute_value(
     assert file_attribute.values.count() == values_count + 1
 
 
-# TODO: consider --> should we add validation for such situation or ignore
-# not valida part?
 def test_create_product_with_file_attribute_not_required_no_file_url_given(
     staff_api_client,
     product_type,
@@ -1678,7 +1674,6 @@ def test_create_product_with_file_attribute_not_required_no_file_url_given(
     color_attribute,
     permission_manage_products,
     settings,
-    monkeypatch,
 ):
     query = CREATE_PRODUCT_MUTATION
 
@@ -1736,7 +1731,6 @@ def test_create_product_with_file_attribute_required_no_file_url_given(
     color_attribute,
     permission_manage_products,
     settings,
-    monkeypatch,
 ):
     query = CREATE_PRODUCT_MUTATION
 
