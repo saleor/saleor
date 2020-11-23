@@ -3,6 +3,7 @@ from uuid import uuid4
 
 import graphene
 import pytest
+from django.utils.text import slugify
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
@@ -127,6 +128,10 @@ CREATE_VARIANT_MUTATION = """
                             }
                             values {
                                 slug
+                                file {
+                                    url
+                                    contentType
+                                }
                             }
                         }
                         price {
@@ -211,6 +216,194 @@ def test_create_variant(
     assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
     assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
     updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_create_variant_with_file_attribute(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    file_attribute,
+    permission_manage_products,
+    warehouse,
+):
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+    price = 1.32
+    cost_price = 3.22
+    weight = 10.22
+
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(file_attribute)
+    file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
+    existing_value = file_attribute.values.first()
+
+    values_count = file_attribute.values.count()
+
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "stocks": stocks,
+        "costPrice": cost_price,
+        "price": price,
+        "weight": weight,
+        "attributes": [{"id": file_attr_id, "file": existing_value.file_url}],
+        "trackInventory": True,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    assert not content["productErrors"]
+    data = content["productVariant"]
+    assert data["name"] == existing_value.name
+    assert data["costPrice"]["amount"] == cost_price
+    assert data["price"]["amount"] == price
+    assert data["sku"] == sku
+    assert data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
+    assert data["attributes"][0]["values"][0]["slug"] == existing_value.slug
+    assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
+    assert data["weight"]["value"] == weight
+    assert len(data["stocks"]) == 1
+    assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
+    assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+
+    file_attribute.refresh_from_db()
+    assert file_attribute.values.count() == values_count
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_create_variant_with_file_attribute_new_value(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    file_attribute,
+    permission_manage_products,
+    warehouse,
+):
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+    price = 1.32
+    cost_price = 3.22
+    weight = 10.22
+
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(file_attribute)
+    file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
+    new_value = "new_value.txt"
+
+    values_count = file_attribute.values.count()
+
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "stocks": stocks,
+        "costPrice": cost_price,
+        "price": price,
+        "weight": weight,
+        "attributes": [{"id": file_attr_id, "file": new_value}],
+        "trackInventory": True,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    assert not content["productErrors"]
+    data = content["productVariant"]
+    assert data["name"] == new_value
+    assert data["costPrice"]["amount"] == cost_price
+    assert data["price"]["amount"] == price
+    assert data["sku"] == sku
+    assert data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
+    assert data["attributes"][0]["values"][0]["slug"] == slugify(new_value)
+    assert data["weight"]["unit"] == WeightUnitsEnum.KG.name
+    assert data["weight"]["value"] == weight
+    assert len(data["stocks"]) == 1
+    assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
+    assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+
+    file_attribute.refresh_from_db()
+    assert file_attribute.values.count() == values_count + 1
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_create_variant_with_file_attribute_no_file_url_given(
+    updated_webhook_mock,
+    staff_api_client,
+    product,
+    product_type,
+    file_attribute,
+    permission_manage_products,
+    warehouse,
+):
+    query = CREATE_VARIANT_MUTATION
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    sku = "1"
+    price = 1.32
+    cost_price = 3.22
+    weight = 10.22
+
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(file_attribute)
+    file_attr_id = graphene.Node.to_global_id("Attribute", file_attribute.id)
+
+    values_count = file_attribute.values.count()
+
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "stocks": stocks,
+        "costPrice": cost_price,
+        "price": price,
+        "weight": weight,
+        "attributes": [{"id": file_attr_id}],
+        "trackInventory": True,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    errors = content["productErrors"]
+    data = content["productVariant"]
+    assert not data
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["attributes"] == [file_attr_id]
+
+    file_attribute.refresh_from_db()
+    assert file_attribute.values.count() == values_count
+
+    updated_webhook_mock.assert_not_called()
 
 
 def test_create_product_variant_without_price(

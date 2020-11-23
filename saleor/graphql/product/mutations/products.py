@@ -511,7 +511,9 @@ class ProductCreateInput(ProductInput):
     )
 
 
-AttrValuesInput = namedtuple("AttrValuesInput", ["values", "file_url", "content_type"])
+AttrValuesInput = namedtuple(
+    "AttrValuesInput", ["global_id", "values", "file_url", "content_type"]
+)
 T_INSTANCE = Union[models.Product, models.ProductVariant, page_models.Page]
 T_INPUT_MAP = List[Tuple["attribute_models.Attribute", AttrValuesInput]]
 
@@ -696,6 +698,7 @@ class AttributeAssignmentMixin:
             global_id = attribute_input.get("id")
             slug = attribute_input.get("slug")
             values = AttrValuesInput(
+                global_id=global_id,
                 values=attribute_input.get("values"),
                 file_url=attribute_input.get("file"),
                 content_type=attribute_input.get("content_type"),
@@ -1113,11 +1116,16 @@ class ProductVariantCreate(ModelMutation):
 
     @classmethod
     def validate_duplicated_attribute_values(
-        cls, attributes, used_attribute_values, instance=None
+        cls, attributes_data, used_attribute_values, instance=None
     ):
         attribute_values = defaultdict(list)
-        for attribute in attributes:
-            attribute_values[attribute.id].extend(attribute.values)
+        for attr, attr_data in attributes_data:
+            values = (
+                slugify(attr_data.file_url)
+                if attr.input_type == AttributeInputType.FILE
+                else attr_data.values
+            )
+            attribute_values[attr_data.global_id].extend(values)
         if attribute_values in used_attribute_values:
             raise ValidationError(
                 "Duplicated attribute values for product variant.",
@@ -1197,12 +1205,11 @@ class ProductVariantCreate(ModelMutation):
             attributes = cleaned_input.get("attributes")
             try:
                 if attributes:
+                    cleaned_attributes = cls.clean_attributes(attributes, product_type)
                     cls.validate_duplicated_attribute_values(
-                        attributes, used_attribute_values, instance
+                        cleaned_attributes, used_attribute_values, instance
                     )
-                    cleaned_input["attributes"] = cls.clean_attributes(
-                        attributes, product_type
-                    )
+                    cleaned_input["attributes"] = cleaned_attributes
                 elif not instance.pk and not attributes:
                     # if attributes were not provided on creation
                     raise ValidationError(
@@ -1294,19 +1301,21 @@ class ProductVariantUpdate(ProductVariantCreate):
 
     @classmethod
     def validate_duplicated_attribute_values(
-        cls, attributes, used_attribute_values, instance=None
+        cls, attributes_data, used_attribute_values, instance=None
     ):
         # Check if the variant is getting updated,
         # and the assigned attributes do not change
         if instance.product_id is not None:
             assigned_attributes = get_used_attribute_values_for_variant(instance)
             input_attribute_values = defaultdict(list)
-            for attribute in attributes:
-                input_attribute_values[attribute.id].extend(attribute.values)
+            for attr, attr_data in attributes_data:
+                input_attribute_values[attr_data.global_id].extend(attr_data.values)
             if input_attribute_values == assigned_attributes:
                 return
         # if assigned attributes is getting updated run duplicated attribute validation
-        super().validate_duplicated_attribute_values(attributes, used_attribute_values)
+        super().validate_duplicated_attribute_values(
+            attributes_data, used_attribute_values
+        )
 
 
 class ProductVariantDelete(ModelDeleteMutation):

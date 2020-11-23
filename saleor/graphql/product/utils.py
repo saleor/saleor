@@ -143,8 +143,8 @@ def get_used_attribute_values_for_variant(variant):
     for assigned_variant_attribute in variant.attributes.all():
         attribute = assigned_variant_attribute.attribute
         attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
-        for variant in assigned_variant_attribute.values.all():
-            attribute_values[attribute_id].append(variant.slug)
+        for attr_value in assigned_variant_attribute.values.all():
+            attribute_values[attribute_id].append(attr_value.slug)
     return attribute_values
 
 
