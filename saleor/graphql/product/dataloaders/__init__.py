@@ -1,5 +1,4 @@
 from .attributes import (
-    AttributeValuesByAttributeIdLoader,
     ProductAttributesByProductTypeIdLoader,
     SelectedAttributesByProductIdLoader,
     SelectedAttributesByProductVariantIdLoader,
@@ -28,7 +27,6 @@ from .products import (
 )
 
 __all__ = [
-    "AttributeValuesByAttributeIdLoader",
     "CategoryByIdLoader",
     "CollectionByIdLoader",
     "CollectionChannelListingByCollectionIdAndChannelSlugLoader",

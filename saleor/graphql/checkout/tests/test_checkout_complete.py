@@ -185,7 +185,8 @@ def test_checkout_complete(
 
     orders_count = Order.objects.count()
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    redirect_url = "https://www.example.com"
+    variables = {"checkoutId": checkout_id, "redirectUrl": redirect_url}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     content = get_graphql_content(response)
@@ -197,6 +198,7 @@ def test_checkout_complete(
     order = Order.objects.first()
     assert order.status == OrderStatus.UNFULFILLED
     assert order.token == order_token
+    assert order.redirect_url == redirect_url
     assert order.total.gross == total.gross
     assert order.metadata == checkout.metadata
     assert order.private_metadata == checkout.private_metadata

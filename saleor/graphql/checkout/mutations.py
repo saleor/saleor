@@ -288,10 +288,11 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data)
         user = info.context.user
         country = info.context.country.code
-        channel = cls.clean_channel(cleaned_input.get("channel"))
+        channel = data.pop("channel")
+        cleaned_input = super().clean_input(info, instance, data)
+
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
 
@@ -308,7 +309,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             (
                 cleaned_input["variants"],
                 cleaned_input["quantities"],
-            ) = cls.process_checkout_lines(lines, country, cleaned_input["channel"].id)
+            ) = cls.process_checkout_lines(lines, country, channel.id)
 
         cleaned_input["shipping_address"] = cls.retrieve_shipping_address(user, data)
         cleaned_input["billing_address"] = cls.retrieve_billing_address(user, data)
@@ -372,11 +373,16 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         user = info.context.user
+        channel_input = data.get("input", {}).get("channel")
+        channel = cls.clean_channel(channel_input)
+        if channel:
+            data["input"]["channel"] = channel
 
         # `perform_mutation` is overridden to properly get or create a checkout
         # instance here and abort mutation if needed.
         if user.is_authenticated:
-            checkout = get_user_checkout(user)
+            checkout_queryset = models.Checkout.objects.filter(channel=channel)
+            checkout = get_user_checkout(user, checkout_queryset=checkout_queryset)
 
             if checkout is not None:
                 # If user has an active checkout, return it without any

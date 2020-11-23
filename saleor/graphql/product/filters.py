@@ -7,29 +7,20 @@ from django.db.models import Exists, F, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Coalesce
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
-from ...product.models import (
+from ...attribute.models import (
     AssignedProductAttribute,
     AssignedVariantAttribute,
     Attribute,
-    Category,
-    Collection,
-    Product,
-    ProductType,
-    ProductVariant,
 )
+from ...product.models import Category, Collection, Product, ProductType, ProductVariant
 from ...search.backends import picker
 from ...warehouse.models import Stock
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.types.common import IntRangeInput, PriceRangeInput
-from ..core.utils import from_global_id_strict_type
-from ..utils import (
-    get_nodes,
-    get_user_or_app_from_context,
-    resolve_global_ids_to_primary_keys,
-)
-from ..utils.filters import filter_by_query_param, filter_range_field
+from ..utils import get_nodes, resolve_global_ids_to_primary_keys
+from ..utils.filters import filter_fields_containing_value, filter_range_field
 from ..warehouse import types as warehouse_types
 from .enums import (
     CollectionPublished,
@@ -37,17 +28,6 @@ from .enums import (
     ProductTypeEnum,
     StockAvailability,
 )
-
-
-def filter_fields_containing_value(*search_fields: str):
-    """Create a icontains filters through given fields on a given query set object."""
-
-    def _filter_qs(qs, _, value):
-        if value:
-            qs = filter_by_query_param(qs, value, search_fields)
-        return qs
-
-    return _filter_qs
 
 
 def _clean_product_attributes_filter_input(
@@ -251,44 +231,6 @@ def filter_product_type(qs, _, value):
     return qs
 
 
-def filter_attributes_by_product_types(qs, field, value, requestor, channel_slug):
-    if not value:
-        return qs
-
-    product_qs = Product.objects.visible_to_user(requestor, channel_slug)
-
-    if field == "in_category":
-        category_id = from_global_id_strict_type(
-            value, only_type="Category", field=field
-        )
-        category = Category.objects.filter(pk=category_id).first()
-
-        if category is None:
-            return qs.none()
-
-        tree = category.get_descendants(include_self=True)
-        product_qs = product_qs.filter(category__in=tree)
-
-        if not product_qs.user_has_access_to_all(requestor):
-            product_qs = product_qs.annotate_visible_in_listings(channel_slug).exclude(
-                visible_in_listings=False
-            )
-
-    elif field == "in_collection":
-        collection_id = from_global_id_strict_type(
-            value, only_type="Collection", field=field
-        )
-        product_qs = product_qs.filter(collections__id=collection_id)
-
-    else:
-        raise NotImplementedError(f"Filtering by {field} is unsupported")
-
-    product_types = set(product_qs.values_list("product_type_id", flat=True))
-    return qs.filter(
-        Q(product_types__in=product_types) | Q(product_variant_types__in=product_types)
-    )
-
-
 def filter_stocks(qs, _, value):
     warehouse_ids = value.get("warehouse_ids")
     quantity = value.get("quantity")
@@ -359,7 +301,7 @@ class ProductFilter(django_filters.FilterSet):
         field_name="minimal_price_amount",
     )
     attributes = ListObjectTypeFilter(
-        input_class="saleor.graphql.product.types.attributes.AttributeInput",
+        input_class="saleor.graphql.attribute.types.AttributeInput",
         method=filter_attributes,
     )
     stock_availability = EnumFilter(
@@ -459,42 +401,6 @@ class ProductTypeFilter(django_filters.FilterSet):
         fields = ["search", "configurable", "product_type"]
 
 
-class AttributeFilter(django_filters.FilterSet):
-    # Search by attribute name and slug
-    search = django_filters.CharFilter(
-        method=filter_fields_containing_value("slug", "name")
-    )
-    ids = GlobalIDMultipleChoiceFilter(field_name="id")
-
-    in_collection = GlobalIDFilter(method="filter_in_collection")
-    in_category = GlobalIDFilter(method="filter_in_category")
-
-    class Meta:
-        model = Attribute
-        fields = [
-            "value_required",
-            "is_variant_only",
-            "visible_in_storefront",
-            "filterable_in_storefront",
-            "filterable_in_dashboard",
-            "available_in_grid",
-        ]
-
-    def filter_in_collection(self, queryset, name, value):
-        requestor = get_user_or_app_from_context(self.request)
-        channel_slug = get_channel_slug_from_filter_data(self.data)
-        return filter_attributes_by_product_types(
-            queryset, name, value, requestor, channel_slug
-        )
-
-    def filter_in_category(self, queryset, name, value):
-        requestor = get_user_or_app_from_context(self.request)
-        channel_slug = get_channel_slug_from_filter_data(self.data)
-        return filter_attributes_by_product_types(
-            queryset, name, value, requestor, channel_slug
-        )
-
-
 class ProductFilterInput(ChannelFilterInputObjectType):
     class Meta:
         filterset_class = ProductFilter
@@ -518,8 +424,3 @@ class CategoryFilterInput(FilterInputObjectType):
 class ProductTypeFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = ProductTypeFilter
-
-
-class AttributeFilterInput(ChannelFilterInputObjectType):
-    class Meta:
-        filterset_class = AttributeFilter

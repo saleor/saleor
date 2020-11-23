@@ -63,8 +63,10 @@ def test_handle_fully_paid_order_digital_lines(
     mock_send_fulfillment_confirmation,
     order_with_digital_line,
 ):
-
+    redirect_url = "http://localhost.pl"
     order = order_with_digital_line
+    order.redirect_url = redirect_url
+    order.save()
     handle_fully_paid_order(order)
 
     fulfillment = order.fulfillments.first()
@@ -89,7 +91,9 @@ def test_handle_fully_paid_order_digital_lines(
     )
 
     mock_send_payment_confirmation.assert_called_once_with(order.pk)
-    mock_send_fulfillment_confirmation.assert_called_once_with(order.pk, fulfillment.pk)
+    mock_send_fulfillment_confirmation.assert_called_once_with(
+        order.pk, fulfillment.pk, redirect_url
+    )
 
     order.refresh_from_db()
     assert order.status == OrderStatus.FULFILLED

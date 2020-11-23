@@ -752,8 +752,9 @@ def test_send_fulfillment_order_lines_mails(
     has_standard,
     has_digital,
 ):
-
+    redirect_url = "http://localhost.pl"
     order = fulfilled_order
+    order.redirect_url = redirect_url
     assert order.lines.count() == 2
 
     if not has_standard:
@@ -769,12 +770,12 @@ def test_send_fulfillment_order_lines_mails(
         line.save()
 
     send_fulfillment_confirmation_to_customer(
-        order=order, fulfillment=fulfillment, user=staff_user
+        order=order, fulfillment=fulfillment, user=staff_user,
     )
     events = OrderEvent.objects.all()
 
     mocked_send_fulfillment_confirmation.delay.assert_called_once_with(
-        order.pk, fulfillment.pk
+        order.pk, fulfillment.pk, redirect_url
     )
 
     # Ensure the standard fulfillment event was triggered

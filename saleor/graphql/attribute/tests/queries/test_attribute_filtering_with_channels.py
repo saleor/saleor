@@ -3,18 +3,16 @@ from decimal import Decimal
 import graphene
 import pytest
 
-from ....product.models import (
-    Attribute,
-    AttributeProduct,
-    AttributeVariant,
+from .....attribute.models import Attribute, AttributeProduct, AttributeVariant
+from .....product.models import (
     Product,
     ProductChannelListing,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
 )
-from ...channel.filters import LACK_OF_CHANNEL_IN_FILTERING_MSG
-from ...tests.utils import assert_graphql_error_with_message, get_graphql_content
+from ....channel.filters import LACK_OF_CHANNEL_IN_FILTERING_MSG
+from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
 
 
 @pytest.fixture
