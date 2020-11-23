@@ -1121,7 +1121,7 @@ class ProductVariantCreate(ModelMutation):
         attribute_values = defaultdict(list)
         for attr, attr_data in attributes_data:
             values = (
-                slugify(attr_data.file_url)
+                [slugify(attr_data.file_url)]
                 if attr.input_type == AttributeInputType.FILE
                 else attr_data.values
             )
@@ -1309,7 +1309,12 @@ class ProductVariantUpdate(ProductVariantCreate):
             assigned_attributes = get_used_attribute_values_for_variant(instance)
             input_attribute_values = defaultdict(list)
             for attr, attr_data in attributes_data:
-                input_attribute_values[attr_data.global_id].extend(attr_data.values)
+                values = (
+                    slugify(attr_data.file_url)
+                    if attr.input_type == AttributeInputType.FILE
+                    else attr_data.values
+                )
+                input_attribute_values[attr_data.global_id].extend(values)
             if input_attribute_values == assigned_attributes:
                 return
         # if assigned attributes is getting updated run duplicated attribute validation

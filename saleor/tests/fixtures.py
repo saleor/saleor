@@ -986,6 +986,42 @@ def product_with_variant_with_two_attributes(
 
 
 @pytest.fixture
+def product_with_variant_with_file_attribute(
+    color_attribute, file_attribute, category, warehouse
+):
+    product_type = ProductType.objects.create(
+        name="Type with variant and file attribute",
+        slug="type-with-file-attribute",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type.variant_attributes.add(file_attribute)
+
+    product = Product.objects.create(
+        name="Test product with variant and file attribute",
+        slug="test-product-with-variant-and-file-attribute",
+        product_type=product_type,
+        category=category,
+        is_published=True,
+        available_for_purchase=datetime.date(1999, 1, 1),
+        visible_in_listings=True,
+    )
+
+    variant = ProductVariant.objects.create(
+        product=product,
+        sku="prodVarTest",
+        cost_price=Money("1.00", "USD"),
+        price_amount=Decimal(10),
+    )
+
+    associate_attribute_values_to_instance(
+        variant, file_attribute, file_attribute.values.first()
+    )
+
+    return product
+
+
+@pytest.fixture
 def product_with_multiple_values_attributes(product, product_type, category) -> Product:
 
     attribute = Attribute.objects.create(

@@ -20,11 +20,21 @@ def test_validate_attributes_input_for_product(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["a"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             color_attribute,
-            AttrValuesInput(values=["b"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=["b"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
     ]
 
@@ -53,9 +63,22 @@ def test_validate_attributes_input_for_product_no_values_given(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=[], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=[],
+                file_url=None,
+                content_type=None,
+            ),
         ),
-        (color_attribute, AttrValuesInput(values=[], file_url=None, content_type=None)),
+        (
+            color_attribute,
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=[],
+                file_url=None,
+                content_type=None,
+            ),
+        ),
     ]
 
     # when
@@ -91,11 +114,21 @@ def test_validate_attributes_input_for_product_too_many_values_given(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=["abc", "efg"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["abc", "efg"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             color_attribute,
-            AttrValuesInput(values=["a", "b"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=["a", "b"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
     ]
 
@@ -131,11 +164,21 @@ def test_validate_attributes_input_for_product_empty_values_given(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=["a", None], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["a", None],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             color_attribute,
-            AttrValuesInput(values=["  "], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=["  "],
+                file_url=None,
+                content_type=None,
+            ),
         ),
     ]
 
@@ -172,7 +215,12 @@ def test_validate_attributes_input_for_product_lack_of_required_attribute(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["a"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
     ]
 
@@ -205,11 +253,21 @@ def test_validate_attributes_input_for_product_multiply_errors(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=[None], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=[None],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             color_attribute,
-            AttrValuesInput(values=["a", "b"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=["a", "b"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
     ]
 
@@ -246,11 +304,21 @@ def test_validate_attributes_input_for_page(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["a"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             color_attribute,
-            AttrValuesInput(values=["b"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=["b"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
     ]
 
@@ -279,9 +347,22 @@ def test_validate_attributes_input_for_page_no_values_given(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=[], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=[],
+                file_url=None,
+                content_type=None,
+            ),
         ),
-        (color_attribute, AttrValuesInput(values=[], file_url=None, content_type=None)),
+        (
+            color_attribute,
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=[],
+                file_url=None,
+                content_type=None,
+            ),
+        ),
     ]
 
     # when
@@ -317,11 +398,21 @@ def test_validate_attributes_input_for_page_too_many_values_given(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=["abc", "efg"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["abc", "efg"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             color_attribute,
-            AttrValuesInput(values=["a", "b"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=["a", "b"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
     ]
 
@@ -357,11 +448,21 @@ def test_validate_attributes_input_for_page_empty_values_given(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=["a", None], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["a", None],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             color_attribute,
-            AttrValuesInput(values=["  "], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=["  "],
+                file_url=None,
+                content_type=None,
+            ),
         ),
     ]
 
@@ -398,7 +499,12 @@ def test_validate_attributes_input_for_page_lack_of_required_attribute(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["a"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
     ]
 
@@ -431,11 +537,21 @@ def test_validate_attributes_input_for_page_multiply_errors(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=[None], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=[None],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             color_attribute,
-            AttrValuesInput(values=["a", "b"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=["a", "b"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
     ]
 
@@ -470,11 +586,21 @@ def test_validate_attributes_input(weight_attribute, color_attribute, product_ty
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["a"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             color_attribute,
-            AttrValuesInput(values=["b"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=["b"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
     ]
 
@@ -502,9 +628,22 @@ def test_validate_attributes_input_no_values_given(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=[], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=[],
+                file_url=None,
+                content_type=None,
+            ),
         ),
-        (color_attribute, AttrValuesInput(values=[], file_url=None, content_type=None)),
+        (
+            color_attribute,
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=[],
+                file_url=None,
+                content_type=None,
+            ),
+        ),
     ]
 
     attributes = product_type.variant_attributes.all()
@@ -537,11 +676,21 @@ def test_validate_attributes_input_too_many_values_given(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=["abc", "efg"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["abc", "efg"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             color_attribute,
-            AttrValuesInput(values=["a", "b"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=["a", "b"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
     ]
 
@@ -575,11 +724,21 @@ def test_validate_attributes_input_empty_values_given(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=[None], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=[None],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             color_attribute,
-            AttrValuesInput(values=["  "], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=["  "],
+                file_url=None,
+                content_type=None,
+            ),
         ),
     ]
 
@@ -613,11 +772,21 @@ def test_validate_attributes_input_multiply_errors(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=[None], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=[None],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             color_attribute,
-            AttrValuesInput(values=["a", "b"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                values=["a", "b"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
     ]
 
@@ -653,12 +822,20 @@ def test_validate_attributes_with_file_input_type_for_product(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["a"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             file_attribute,
             AttrValuesInput(
-                values=[], file_url="test_file.jpeg", content_type="image/jpeg"
+                global_id=graphene.Node.to_global_id("Attribute", file_attribute.pk),
+                values=[],
+                file_url="test_file.jpeg",
+                content_type="image/jpeg",
             ),
         ),
     ]
@@ -688,11 +865,21 @@ def test_validate_attributes_with_file_input_type_for_product_no_file_given(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["a"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             file_attribute,
-            AttrValuesInput(values=[], file_url="", content_type="image/jpeg"),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", file_attribute.pk),
+                values=[],
+                file_url="",
+                content_type="image/jpeg",
+            ),
         ),
     ]
 
@@ -726,11 +913,21 @@ def test_validate_attributes_with_file_input_type_for_product_empty_file_value(
     input_data = [
         (
             weight_attribute,
-            AttrValuesInput(values=["a"], file_url=None, content_type=None),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+                values=["a"],
+                file_url=None,
+                content_type=None,
+            ),
         ),
         (
             file_attribute,
-            AttrValuesInput(values=[], file_url="  ", content_type="image/jpeg"),
+            AttrValuesInput(
+                global_id=graphene.Node.to_global_id("Attribute", file_attribute.pk),
+                values=[],
+                file_url="  ",
+                content_type="image/jpeg",
+            ),
         ),
     ]
 

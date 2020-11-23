@@ -51,7 +51,7 @@ def validate_attributes_input(
 
     attribute_errors: Dict[ValidationError, List[str]] = defaultdict(list)
     for attribute, attr_values in input_data:
-        attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+        attribute_id = attr_values.global_id
         # validation for file attribute
         if attribute.input_type == AttributeInputType.FILE:
             value = attr_values.file_url

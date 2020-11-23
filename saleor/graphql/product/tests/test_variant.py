@@ -968,6 +968,17 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
                     price: $price,
                     attributes: $attributes
                 }) {
+                productVariant {
+                    sku
+                    attributes {
+                        attribute {
+                            slug
+                        }
+                        values {
+                            slug
+                        }
+                    }
+                }
                 errors {
                     field
                     message
@@ -1182,6 +1193,95 @@ def test_update_product_variant_with_duplicated_attribute(
             {"id": color_attribute_id, "values": ["blue"]},
             {"id": size_attribute_id, "values": ["big"]},
         ],
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariantUpdate"]
+    assert data["productErrors"][0] == {
+        "field": "attributes",
+        "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
+    }
+
+
+def test_update_product_variant_with_current_file_attribute(
+    staff_api_client,
+    product_with_variant_with_file_attribute,
+    file_attribute,
+    permission_manage_products,
+):
+    product = product_with_variant_with_file_attribute
+    variant = product.variants.first()
+    sku = str(uuid4())[:12]
+    assert not variant.sku == sku
+    assert set(variant.attributes.first().values.values_list("slug", flat=True)) == {
+        "test_filetxt"
+    }
+    second_value = file_attribute.values.last()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    file_attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "price": 15,
+        "attributes": [{"id": file_attribute_id, "file": second_value.file_url}],
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariantUpdate"]
+    assert not data["errors"]
+    variant_data = data["productVariant"]
+    assert variant_data
+    assert variant_data["sku"] == sku
+    assert len(variant_data["attributes"]) == 1
+    assert variant_data["attributes"][0]["attribute"]["slug"] == file_attribute.slug
+    assert len(variant_data["attributes"][0]["values"]) == 1
+    assert variant_data["attributes"][0]["values"][0]["slug"] == slugify(second_value)
+
+
+def test_update_product_variant_with_duplicated_file_attribute(
+    staff_api_client,
+    product_with_variant_with_file_attribute,
+    file_attribute,
+    permission_manage_products,
+):
+    product = product_with_variant_with_file_attribute
+    variant = product.variants.first()
+    variant2 = product.variants.first()
+
+    variant2.pk = None
+    variant2.sku = str(uuid4())[:12]
+    variant2.save()
+    file_attr_value = file_attribute.values.last()
+    associate_attribute_values_to_instance(variant2, file_attribute, file_attr_value)
+
+    assert set(variant.attributes.first().values.values_list("slug", flat=True)) == {
+        "test_filetxt"
+    }
+    assert set(variant2.attributes.first().values.values_list("slug", flat=True)) == {
+        "test_filejpeg"
+    }
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    file_attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
+
+    variables = {
+        "id": variant_id,
+        "price": 15,
+        "attributes": [{"id": file_attribute_id, "file": file_attr_value.file_url}],
     }
 
     response = staff_api_client.post_graphql(
