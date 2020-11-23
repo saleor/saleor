@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
-from .....product.models import Attribute, Product, ProductImage, VariantImage
+from .....attribute.models import Attribute
+from .....product.models import Product, ProductImage, VariantImage
 from .....warehouse.models import Warehouse
 from ....utils import ProductExportFields
 from ....utils.products_data import (

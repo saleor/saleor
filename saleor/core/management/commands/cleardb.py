@@ -10,13 +10,14 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 
 from ....account.models import User
+from ....attribute.models import Attribute
 from ....checkout.models import Checkout
 from ....discount.models import Sale, Voucher
 from ....giftcard.models import GiftCard
 from ....order.models import Order
 from ....page.models import Page
 from ....payment.models import Payment, Transaction
-from ....product.models import Attribute, Category, Collection, Product, ProductType
+from ....product.models import Category, Collection, Product, ProductType
 from ....shipping.models import ShippingMethod, ShippingZone
 from ....warehouse.models import Warehouse
 from ....webhook.models import Webhook

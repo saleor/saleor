@@ -10,7 +10,7 @@ from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_discounted_price_task
 from ....product.utils import delete_categories
-from ....product.utils.attributes import generate_name_for_variant
+from ....product.utils.variants import generate_name_for_variant
 from ....warehouse import models as warehouse_models
 from ....warehouse.error_codes import StockErrorCode
 from ...channel import ChannelContext

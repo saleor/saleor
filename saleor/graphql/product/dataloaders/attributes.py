@@ -2,39 +2,18 @@ from collections import defaultdict
 
 from promise import Promise
 
-from ....core.permissions import ProductPermissions
-from ....product.models import (
+from ....attribute.models import (
     AssignedProductAttribute,
     AssignedVariantAttribute,
-    Attribute,
     AttributeProduct,
     AttributeValue,
     AttributeVariant,
 )
+from ....core.permissions import ProductPermissions
+from ...attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ...core.dataloaders import DataLoader
 from ...utils import get_user_or_app_from_context
 from .products import ProductByIdLoader, ProductVariantByIdLoader
-
-
-class AttributeValuesByAttributeIdLoader(DataLoader):
-    context_key = "attributevalues_by_attribute"
-
-    def batch_load(self, keys):
-        attribute_values = AttributeValue.objects.filter(attribute_id__in=keys)
-        attribute_to_attributevalues = defaultdict(list)
-        for attribute_value in attribute_values.iterator():
-            attribute_to_attributevalues[attribute_value.attribute_id].append(
-                attribute_value
-            )
-        return [attribute_to_attributevalues[attribute_id] for attribute_id in keys]
-
-
-class AttributesByAttributeId(DataLoader):
-    context_key = "attributes_by_id"
-
-    def batch_load(self, keys):
-        attributes = Attribute.objects.in_bulk(keys)
-        return [attributes.get(key) for key in keys]
 
 
 class BaseProductAttributesByProductTypeIdLoader(DataLoader):
@@ -183,14 +162,6 @@ class AssignedVariantAttributesByProductVariantId(DataLoader):
                 assigned_variant_attribute
             )
         return [variant_attributes[variant_id] for variant_id in keys]
-
-
-class AttributeValueByIdLoader(DataLoader):
-    context_key = "attributevalue_by_id"
-
-    def batch_load(self, keys):
-        attribute_values = AttributeValue.objects.in_bulk(keys)
-        return [attribute_values.get(attribute_value_id) for attribute_value_id in keys]
 
 
 class AttributeValuesByAssignedProductAttributeIdLoader(DataLoader):

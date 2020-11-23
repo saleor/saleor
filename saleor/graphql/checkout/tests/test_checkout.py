@@ -399,6 +399,33 @@ def test_checkout_create_with_multiple_channel_with_channel_slug(
     assert checkout_line.quantity == 1
 
 
+def test_checkout_create_with_existing_checkout_in_other_channel(
+    user_api_client, stock, graphql_address_data, channel_USD, user_checkout_PLN
+):
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    old_checkout = Checkout.objects.first()
+
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert content["created"] is True
+
+    checkout_data = content["checkout"]
+    assert checkout_data["token"] != str(old_checkout.token)
+
+
 def test_checkout_create_with_inactive_channel_slug(
     api_client, stock, graphql_address_data, channel_USD
 ):
@@ -1064,8 +1091,8 @@ def expected_dummy_gateway():
 
 
 GET_CHECKOUT_PAYMENTS_QUERY = """
-query getCheckoutPayments($token: UUID!, $channel: String!) {
-    checkout(token: $token, channel: $channel) {
+query getCheckoutPayments($token: UUID!) {
+    checkout(token: $token) {
         availablePaymentGateways {
             id
             name
@@ -1084,10 +1111,7 @@ def test_checkout_available_payment_gateways(
     api_client, checkout_with_item, expected_dummy_gateway,
 ):
     query = GET_CHECKOUT_PAYMENTS_QUERY
-    variables = {
-        "token": str(checkout_with_item.token),
-        "channel": checkout_with_item.channel.slug,
-    }
+    variables = {"token": str(checkout_with_item.token)}
     response = api_client.post_graphql(query, variables)
 
     content = get_graphql_content(response)
@@ -1105,10 +1129,7 @@ def test_checkout_available_payment_gateways_currency_specified_USD(
 
     query = GET_CHECKOUT_PAYMENTS_QUERY
 
-    variables = {
-        "token": str(checkout_with_item.token),
-        "channel": checkout_with_item.channel.slug,
-    }
+    variables = {"token": str(checkout_with_item.token)}
     response = api_client.post_graphql(query, variables)
 
     content = get_graphql_content(response)
@@ -1127,10 +1148,7 @@ def test_checkout_available_payment_gateways_currency_specified_EUR(
 
     query = GET_CHECKOUT_PAYMENTS_QUERY
 
-    variables = {
-        "token": str(checkout_with_item.token),
-        "channel": checkout_with_item.channel.slug,
-    }
+    variables = {"token": str(checkout_with_item.token)}
     response = api_client.post_graphql(query, variables)
 
     content = get_graphql_content(response)
@@ -1141,8 +1159,8 @@ def test_checkout_available_payment_gateways_currency_specified_EUR(
 
 
 GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS = """
-query getCheckout($token: UUID!, $channel: String!) {
-    checkout(token: $token, channel: $channel) {
+query getCheckout($token: UUID!) {
+    checkout(token: $token) {
         availableShippingMethods {
             name
             price {
@@ -1161,10 +1179,7 @@ def test_checkout_available_shipping_methods(
     checkout_with_item.save()
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
-    variables = {
-        "token": checkout_with_item.token,
-        "channel": checkout_with_item.channel.slug,
-    }
+    variables = {"token": checkout_with_item.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
@@ -1204,10 +1219,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
 
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
 
-    variables = {
-        "token": checkout_with_item.token,
-        "channel": checkout_with_item.channel.slug,
-    }
+    variables = {"token": checkout_with_item.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
@@ -1222,10 +1234,7 @@ def test_checkout_no_available_shipping_methods_without_address(
     api_client, checkout_with_item
 ):
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
-    variables = {
-        "token": checkout_with_item.token,
-        "channel": checkout_with_item.channel.slug,
-    }
+    variables = {"token": checkout_with_item.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
@@ -1236,7 +1245,7 @@ def test_checkout_no_available_shipping_methods_without_address(
 def test_checkout_no_available_shipping_methods_without_lines(api_client, checkout):
     query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
 
-    variables = {"token": checkout.token, "channel": checkout.channel.slug}
+    variables = {"token": checkout.token}
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
@@ -2180,8 +2189,8 @@ TRANSACTION_CONFIRM_GATEWAY_RESPONSE = GatewayResponse(
 
 def test_fetch_checkout_by_token(user_api_client, checkout_with_item):
     query = """
-    query getCheckout($token: UUID!, $channel: String!) {
-        checkout(token: $token, channel: $channel) {
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
            token,
            lines {
                 variant {
@@ -2205,8 +2214,8 @@ def test_fetch_checkout_by_token(user_api_client, checkout_with_item):
 
 
 QUERY_CHECKOUT_USER_ID = """
-    query getCheckout($token: UUID!, $channel: String!) {
-        checkout(token: $token, channel: $channel) {
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
            user {
                id
            }
@@ -2217,7 +2226,7 @@ QUERY_CHECKOUT_USER_ID = """
 
 def test_anonymous_client_cant_fetch_checkout_user(api_client, checkout):
     query = QUERY_CHECKOUT_USER_ID
-    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
+    variables = {"token": str(checkout.token)}
     response = api_client.post_graphql(query, variables)
     assert_no_permission(response)
 
@@ -2229,7 +2238,7 @@ def test_authorized_access_to_checkout_user_as_customer(
     checkout.user = customer_user
     checkout.save()
 
-    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
+    variables = {"token": str(checkout.token)}
     customer_user_id = graphene.Node.to_global_id("User", customer_user.id)
 
     response = user_api_client.post_graphql(query, variables)
@@ -2248,7 +2257,7 @@ def test_authorized_access_to_checkout_user_as_staff(
     checkout.user = customer_user
     checkout.save()
 
-    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
+    variables = {"token": str(checkout.token)}
     customer_user_id = graphene.Node.to_global_id("User", customer_user.id)
 
     response = staff_api_client.post_graphql(
@@ -2269,7 +2278,7 @@ def test_authorized_access_to_checkout_user_as_staff_no_permission(
     checkout.user = customer_user
     checkout.save()
 
-    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
+    variables = {"token": str(checkout.token)}
 
     response = staff_api_client.post_graphql(
         query,
@@ -2281,8 +2290,8 @@ def test_authorized_access_to_checkout_user_as_staff_no_permission(
 
 
 QUERY_CHECKOUT = """
-    query getCheckout($token: UUID!, $channel: String!) {
-        checkout(token: $token, channel: $channel) {
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
             token
         }
     }
@@ -2297,8 +2306,8 @@ def test_query_anonymous_customer_checkout_as_anonymous_customer(api_client, che
 
 
 QUERY_CHECKOUT_CHANNEL_SLUG = """
-    query getCheckout($token: UUID!, $channel: String!) {
-        checkout(token: $token, channel: $channel) {
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
             token
             channel {
                 slug
@@ -2314,7 +2323,7 @@ def test_query_anonymous_customer_channel_checkout_as_anonymous_customer(
     query = QUERY_CHECKOUT_CHANNEL_SLUG
     checkout_token = str(checkout.token)
     channel_slug = checkout.channel.slug
-    variables = {"token": checkout_token, "channel": channel_slug}
+    variables = {"token": checkout_token}
 
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -2329,7 +2338,9 @@ def test_query_anonymous_customer_channel_checkout_as_customer(
     query = QUERY_CHECKOUT_CHANNEL_SLUG
     checkout_token = str(checkout.token)
     channel_slug = checkout.channel.slug
-    variables = {"token": checkout_token, "channel": channel_slug}
+    variables = {
+        "token": checkout_token,
+    }
 
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -2339,7 +2350,7 @@ def test_query_anonymous_customer_channel_checkout_as_customer(
 
 
 def test_query_anonymous_customer_checkout_as_customer(user_api_client, checkout):
-    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
+    variables = {"token": str(checkout.token)}
     response = user_api_client.post_graphql(QUERY_CHECKOUT, variables)
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["token"] == str(checkout.token)
@@ -2348,7 +2359,7 @@ def test_query_anonymous_customer_checkout_as_customer(user_api_client, checkout
 def test_query_anonymous_customer_checkout_as_staff_user(
     staff_api_client, checkout, permission_manage_checkouts
 ):
-    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
+    variables = {"token": str(checkout.token)}
     response = staff_api_client.post_graphql(
         QUERY_CHECKOUT,
         variables,
@@ -2362,7 +2373,7 @@ def test_query_anonymous_customer_checkout_as_staff_user(
 def test_query_anonymous_customer_checkout_as_app(
     app_api_client, checkout, permission_manage_checkouts
 ):
-    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
+    variables = {"token": str(checkout.token)}
     response = app_api_client.post_graphql(
         QUERY_CHECKOUT,
         variables,
@@ -2378,7 +2389,7 @@ def test_query_customer_checkout_as_anonymous_customer(
 ):
     checkout.user = customer_user
     checkout.save(update_fields=["user"])
-    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
+    variables = {"token": str(checkout.token)}
     response = api_client.post_graphql(QUERY_CHECKOUT, variables)
     content = get_graphql_content(response)
     assert not content["data"]["checkout"]
@@ -2387,7 +2398,7 @@ def test_query_customer_checkout_as_anonymous_customer(
 def test_query_customer_checkout_as_customer(user_api_client, checkout, customer_user):
     checkout.user = customer_user
     checkout.save(update_fields=["user"])
-    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
+    variables = {"token": str(checkout.token)}
     response = user_api_client.post_graphql(QUERY_CHECKOUT, variables)
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["token"] == str(checkout.token)
@@ -2398,7 +2409,7 @@ def test_query_other_customer_checkout_as_customer(
 ):
     checkout.user = staff_user
     checkout.save(update_fields=["user"])
-    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
+    variables = {"token": str(checkout.token)}
     response = user_api_client.post_graphql(QUERY_CHECKOUT, variables)
     content = get_graphql_content(response)
     assert not content["data"]["checkout"]
@@ -2409,7 +2420,7 @@ def test_query_customer_checkout_as_staff_user(
 ):
     checkout.user = customer_user
     checkout.save(update_fields=["user"])
-    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
+    variables = {"token": str(checkout.token)}
     response = app_api_client.post_graphql(
         QUERY_CHECKOUT,
         variables,
@@ -2425,7 +2436,7 @@ def test_query_customer_checkout_as_app(
 ):
     checkout.user = customer_user
     checkout.save(update_fields=["user"])
-    variables = {"token": str(checkout.token), "channel": checkout.channel.slug}
+    variables = {"token": str(checkout.token)}
     response = staff_api_client.post_graphql(
         QUERY_CHECKOUT,
         variables,
@@ -2437,7 +2448,7 @@ def test_query_customer_checkout_as_app(
 
 
 def test_fetch_checkout_invalid_token(user_api_client, channel_USD):
-    variables = {"token": str(uuid.uuid4()), "channel": channel_USD.slug}
+    variables = {"token": str(uuid.uuid4())}
     response = user_api_client.post_graphql(QUERY_CHECKOUT, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
@@ -2446,8 +2457,8 @@ def test_fetch_checkout_invalid_token(user_api_client, channel_USD):
 
 def test_checkout_prices(user_api_client, checkout_with_item):
     query = """
-    query getCheckout($token: UUID!, $channel: String!) {
-        checkout(token: $token, channel: $channel) {
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
            token,
            totalPrice {
                 currency
@@ -2472,10 +2483,7 @@ def test_checkout_prices(user_api_client, checkout_with_item):
         }
     }
     """
-    variables = {
-        "token": str(checkout_with_item.token),
-        "channel": checkout_with_item.channel.slug,
-    }
+    variables = {"token": str(checkout_with_item.token)}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]

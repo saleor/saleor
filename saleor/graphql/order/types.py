@@ -401,6 +401,7 @@ class Order(CountableDjangoObjectType):
             "user",
             "voucher",
             "weight",
+            "redirect_url",
         ]
 
     @staticmethod

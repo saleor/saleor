@@ -26,6 +26,14 @@ from prices import Money, TaxedMoney
 from ..account.models import Address, StaffNotificationRecipient, User
 from ..app.models import App, AppInstallation
 from ..app.types import AppType
+from ..attribute import AttributeInputType, AttributeType
+from ..attribute.models import (
+    Attribute,
+    AttributeTranslation,
+    AttributeValue,
+    AttributeValueTranslation,
+)
+from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout import utils
 from ..checkout.models import Checkout
 from ..checkout.utils import add_variant_to_checkout
@@ -51,19 +59,14 @@ from ..order.actions import cancel_fulfillment, fulfill_order_line
 from ..order.events import OrderEvents
 from ..order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
 from ..order.utils import recalculate_order
-from ..page.models import Page, PageTranslation
+from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import GatewayConfig, PaymentData
 from ..payment.models import Payment
 from ..plugins.invoicing.plugin import InvoicingPlugin
 from ..plugins.models import PluginConfiguration
 from ..plugins.vatlayer.plugin import VatlayerPlugin
-from ..product import AttributeInputType
 from ..product.models import (
-    Attribute,
-    AttributeTranslation,
-    AttributeValue,
-    AttributeValueTranslation,
     Category,
     CategoryTranslation,
     Collection,
@@ -81,7 +84,6 @@ from ..product.models import (
     ProductVariantTranslation,
 )
 from ..product.tests.utils import create_image
-from ..product.utils.attributes import associate_attribute_values_to_instance
 from ..shipping.models import (
     ShippingMethod,
     ShippingMethodChannelListing,
@@ -272,6 +274,24 @@ def checkouts_list(channel_USD, channel_PLN):
         ]
     )
     return [*checkouts_pln, *checkouts_usd]
+
+
+@pytest.fixture
+def checkouts_assigned_to_customer(channel_USD, channel_PLN, customer_user):
+    return Checkout.objects.bulk_create(
+        [
+            Checkout(
+                currency=channel_USD.currency_code,
+                channel=channel_USD,
+                user=customer_user,
+            ),
+            Checkout(
+                currency=channel_PLN.currency_code,
+                channel=channel_PLN,
+                user=customer_user,
+            ),
+        ]
+    )
 
 
 @pytest.fixture
@@ -503,6 +523,19 @@ def user_checkout(customer_user, channel_USD):
 
 
 @pytest.fixture
+def user_checkout_PLN(customer_user, channel_PLN):
+    checkout = Checkout.objects.create(
+        user=customer_user,
+        channel=channel_PLN,
+        billing_address=customer_user.default_billing_address,
+        shipping_address=customer_user.default_shipping_address,
+        note="Test notes",
+        currency="PLN",
+    )
+    return checkout
+
+
+@pytest.fixture
 def user_checkout_with_items(user_checkout, product_list):
     for product in product_list:
         variant = product.variants.get()
@@ -681,7 +714,9 @@ def shipping_method_channel_PLN(shipping_zone, channel_PLN):
 
 @pytest.fixture
 def color_attribute(db):  # pylint: disable=W0613
-    attribute = Attribute.objects.create(slug="color", name="Color")
+    attribute = Attribute.objects.create(
+        slug="color", name="Color", type=AttributeType.PRODUCT_TYPE
+    )
     AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
     AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
     return attribute
@@ -689,7 +724,9 @@ def color_attribute(db):  # pylint: disable=W0613
 
 @pytest.fixture
 def color_attribute_without_values(db):  # pylint: disable=W0613
-    return Attribute.objects.create(slug="color", name="Color")
+    return Attribute.objects.create(
+        slug="color", name="Color", type=AttributeType.PRODUCT_TYPE
+    )
 
 
 @pytest.fixture
@@ -702,7 +739,9 @@ def pink_attribute_value(color_attribute):  # pylint: disable=W0613
 
 @pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
-    attribute = Attribute.objects.create(slug="size", name="Size")
+    attribute = Attribute.objects.create(
+        slug="size", name="Size", type=AttributeType.PRODUCT_TYPE
+    )
     AttributeValue.objects.create(attribute=attribute, name="Small", slug="small")
     AttributeValue.objects.create(attribute=attribute, name="Big", slug="big")
     return attribute
@@ -710,7 +749,9 @@ def size_attribute(db):  # pylint: disable=W0613
 
 @pytest.fixture
 def weight_attribute(db):
-    attribute = Attribute.objects.create(slug="material", name="Material")
+    attribute = Attribute.objects.create(
+        slug="material", name="Material", type=AttributeType.PRODUCT_TYPE
+    )
     AttributeValue.objects.create(attribute=attribute, name="Cotton", slug="cotton")
     AttributeValue.objects.create(
         attribute=attribute, name="Poliester", slug="poliester"
@@ -719,13 +760,66 @@ def weight_attribute(db):
 
 
 @pytest.fixture
-def attribute_list() -> List[Attribute]:
+def size_page_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="page-size", name="Page size", type=AttributeType.PAGE_TYPE
+    )
+    AttributeValue.objects.create(attribute=attribute, name="10", slug="10")
+    AttributeValue.objects.create(attribute=attribute, name="15", slug="15")
+    return attribute
+
+
+@pytest.fixture
+def tag_page_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="tag", name="tag", type=AttributeType.PAGE_TYPE
+    )
+    AttributeValue.objects.create(attribute=attribute, name="About", slug="about")
+    AttributeValue.objects.create(attribute=attribute, name="Help", slug="help")
+    return attribute
+
+
+@pytest.fixture
+def author_page_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="author", name="author", type=AttributeType.PAGE_TYPE
+    )
+    AttributeValue.objects.create(
+        attribute=attribute, name="Test author 1", slug="test-author-1"
+    )
+    AttributeValue.objects.create(
+        attribute=attribute, name="Test author 2", slug="test-author-2"
+    )
+    return attribute
+
+
+@pytest.fixture
+def product_type_attribute_list() -> List[Attribute]:
     return list(
         Attribute.objects.bulk_create(
             [
-                Attribute(slug="size", name="Size"),
-                Attribute(slug="weight", name="Weight"),
-                Attribute(slug="thickness", name="Thickness"),
+                Attribute(slug="size", name="Size", type=AttributeType.PRODUCT_TYPE),
+                Attribute(
+                    slug="weight", name="Weight", type=AttributeType.PRODUCT_TYPE
+                ),
+                Attribute(
+                    slug="thickness", name="Thickness", type=AttributeType.PRODUCT_TYPE
+                ),
+            ]
+        )
+    )
+
+
+@pytest.fixture
+def page_type_attribute_list() -> List[Attribute]:
+    return list(
+        Attribute.objects.bulk_create(
+            [
+                Attribute(slug="size", name="Size", type=AttributeType.PAGE_TYPE),
+                Attribute(slug="font", name="Weight", type=AttributeType.PAGE_TYPE),
+                Attribute(
+                    slug="margin", name="Thickness", type=AttributeType.PAGE_TYPE
+                ),
             ]
         )
     )
@@ -1047,7 +1141,10 @@ def product_with_variant_with_two_attributes(
 def product_with_multiple_values_attributes(product, product_type, category) -> Product:
 
     attribute = Attribute.objects.create(
-        slug="modes", name="Available Modes", input_type=AttributeInputType.MULTISELECT
+        slug="modes",
+        name="Available Modes",
+        input_type=AttributeInputType.MULTISELECT,
+        type=AttributeType.PRODUCT_TYPE,
     )
 
     attr_val_1 = AttributeValue.objects.create(
@@ -2360,6 +2457,11 @@ def permission_manage_pages():
 
 
 @pytest.fixture
+def permission_manage_page_types_and_attributes():
+    return Permission.objects.get(codename="manage_page_types_and_attributes")
+
+
+@pytest.fixture
 def permission_manage_translations():
     return Permission.objects.get(codename="manage_translations")
 
@@ -2484,62 +2586,94 @@ def collection_list(db, channel_USD):
 
 
 @pytest.fixture
-def collection_list_unpublished(collection_list):
-    collections = Collection.objects.filter(
-        pk__in=[collection.pk for collection in collection_list]
-    )
-    collections.update(is_published=False)
-    return collections
-
-
-@pytest.fixture
-def draft_collection(db):
-    collection = Collection.objects.create(
-        name="Draft collection", slug="draft-collection", is_published=False
-    )
-    return collection
-
-
-@pytest.fixture
-def page(db):
+def page(db, page_type):
     data = {
         "slug": "test-url",
         "title": "Test page",
         "content": "test content",
         "is_published": True,
+        "page_type": page_type,
     }
     page = Page.objects.create(**data)
+
+    # associate attribute value
+    page_attr = page_type.page_attributes.first()
+    page_attr_value = page_attr.values.first()
+
+    associate_attribute_values_to_instance(page, page_attr, page_attr_value)
+
     return page
 
 
 @pytest.fixture
-def page_list(db):
+def page_list(db, page_type):
     data_1 = {
         "slug": "test-url",
         "title": "Test page",
         "content": "test content",
         "is_published": True,
+        "page_type": page_type,
     }
     data_2 = {
         "slug": "test-url-2",
         "title": "Test page",
         "content": "test content",
         "is_published": True,
+        "page_type": page_type,
     }
     pages = Page.objects.bulk_create([Page(**data_1), Page(**data_2)])
     return pages
 
 
 @pytest.fixture
-def page_list_unpublished(db):
+def page_list_unpublished(db, page_type):
     pages = Page.objects.bulk_create(
         [
-            Page(slug="page-1", title="Page 1", is_published=False),
-            Page(slug="page-2", title="Page 2", is_published=False),
-            Page(slug="page-3", title="Page 3", is_published=False),
+            Page(
+                slug="page-1", title="Page 1", is_published=False, page_type=page_type
+            ),
+            Page(
+                slug="page-2", title="Page 2", is_published=False, page_type=page_type
+            ),
+            Page(
+                slug="page-3", title="Page 3", is_published=False, page_type=page_type
+            ),
         ]
     )
     return pages
+
+
+@pytest.fixture
+def page_type(db, size_page_attribute, tag_page_attribute):
+    page_type = PageType.objects.create(name="Test page type", slug="test-page-type")
+    page_type.page_attributes.add(size_page_attribute)
+    page_type.page_attributes.add(tag_page_attribute)
+
+    return page_type
+
+
+@pytest.fixture
+def page_type_list(db, tag_page_attribute):
+    page_types = list(
+        PageType.objects.bulk_create(
+            [
+                PageType(name="Test page type 1", slug="test-page-type-1"),
+                PageType(name="Example page type 2", slug="page-type-2"),
+                PageType(name="Example page type 3", slug="page-type-3"),
+            ]
+        )
+    )
+
+    for i, page_type in enumerate(page_types):
+        page_type.page_attributes.add(tag_page_attribute)
+        Page.objects.create(
+            title=f"Test page {i}",
+            slug=f"test-url-{i}",
+            is_published=True,
+            page_type=page_type,
+        )
+
+    return page_types
 
 
 @pytest.fixture
