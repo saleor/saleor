@@ -595,7 +595,7 @@ class AdyenGatewayPlugin(BasePlugin):
         """Validate if provided configuration is correct."""
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
-        apple_certificate = configuration["apple-pay-cert"]
+        apple_certificate = configuration.get("apple-pay-cert")
         if plugin_configuration.active and apple_certificate:
             global_apple_url = (
                 "https://apple-pay-gateway.apple.com/paymentservices/paymentSession"
