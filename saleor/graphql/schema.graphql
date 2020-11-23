@@ -1799,6 +1799,7 @@ input DraftOrderCreateInput {
   voucher: ID
   customerNote: String
   channel: ID
+  redirectUrl: String
   lines: [OrderLineCreateInput]
 }
 
@@ -1818,6 +1819,7 @@ input DraftOrderInput {
   voucher: ID
   customerNote: String
   channel: ID
+  redirectUrl: String
 }
 
 type DraftOrderLineDelete {
@@ -2820,6 +2822,7 @@ type Order implements Node & ObjectWithMetadata {
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
+  redirectUrl: String
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   fulfillments: [Fulfillment]!
@@ -4728,8 +4731,6 @@ type Shop {
   geolocalization: Geolocalization
   authorizationKeys: [AuthorizationKey]!
   countries(languageCode: LanguageCodeEnum): [CountryDisplay!]!
-  currencies: [String]! @deprecated(reason: "This field will be removed in Saleor 3.0")
-  defaultCurrency: String! @deprecated(reason: "This field will be removed in Saleor 3.0")
   defaultCountry: CountryDisplay
   defaultMailSenderName: String
   defaultMailSenderAddress: String

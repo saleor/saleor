@@ -173,6 +173,7 @@ class Order(ModelWithMetadata):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, default=zero_weight
     )
+    redirect_url = models.URLField(blank=True, null=True)
     objects = OrderQueryset.as_manager()
 
     class Meta:

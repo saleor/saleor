@@ -11,7 +11,7 @@ interactions:
       true, "screenHeight": 1440, "screenWidth": 2560, "userAgent": "Mozilla/5.0 (Macintosh;
       Intel Mac OS X 10_15_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1
       Safari/605.1.15", "timeZoneOffset": -120}, "applicationInfo": {"adyenLibrary":
-      {"name": "adyen-python-api-library", "version": "3.0.0"}}}'
+      {"name": "adyen-python-api-library", "version": "3.1.0"}}}'
     headers:
       Accept:
       - '*/*'
@@ -24,11 +24,11 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - adyen-python-api-library/3.0.0
+      - adyen-python-api-library/3.1.0
       x-api-key:
         - test_key
     method: POST
-    uri: https://checkout-test.adyen.com/v49/payments
+    uri: https://checkout-test.adyen.com/v64/payments
   response:
     body:
       string: '{"pspReference":"883596624248178D","resultCode":"Authorised","merchantReference":"UGF5bWVudDoxNw=="}'
@@ -44,7 +44,7 @@ interactions:
       Server:
       - Apache
       Set-Cookie:
-      - JSESSIONID=7C62498C2A031656D45B70E9A2F50F69.test3e; Path=/checkout; Secure;
+      - JSESSIONID=5C0A57B6D3E7789A25187C45FF6D9ACD.test104e; Path=/checkout; Secure;
         HttpOnly
       Transfer-Encoding:
       - chunked
@@ -52,12 +52,12 @@ interactions:
       - 851596624248090H
     status:
       code: 200
-      message: '200'
+      message: OK
 - request:
     body: '{"merchantAccount": "SaleorECOM", "modificationAmount": {"value": "123400",
       "currency": "USD"}, "originalReference": "883596624248178D", "reference": "UGF5bWVudDoxNw==",
       "applicationInfo": {"adyenLibrary": {"name": "adyen-python-api-library", "version":
-      "3.0.0"}}}'
+      "3.1.0"}}}'
     headers:
       Accept:
       - '*/*'
@@ -70,11 +70,11 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - adyen-python-api-library/3.0.0
+      - adyen-python-api-library/3.1.0
       x-api-key:
-      - AQEhhmfuXNWTK0Qc+iSDk2g9qPaBhkT1nbWV8YkFf5Sl/5+mEMFdWw2+5HzctViMSCJMYAc=-4yzUVXf8vxvefP8rRR8UOK/fHR34XP+tZmVZZFWntAs=-?[Cv%4@EEx:C5b6f
+        - test_key
     method: POST
-    uri: https://pal-test.adyen.com/pal/servlet/Payment/v49/capture
+    uri: https://pal-test.adyen.com/pal/servlet/Payment/v64/capture
   response:
     body:
       string: '{"pspReference":"853596624248395G","response":"[capture-received]"}'
@@ -90,12 +90,12 @@ interactions:
       Server:
       - Apache
       Set-Cookie:
-      - JSESSIONID=109BFB126438537FBB7852C4C592655E.test3e; Path=/pal; Secure; HttpOnly
+      - JSESSIONID=5C0A57B6D3E7789A25187C45FF6D9ACD.test104e; Path=/checkout; Secure;
       Transfer-Encoding:
       - chunked
       pspReference:
       - 853596624248395G
     status:
       code: 200
-      message: '200'
+      message: OK
 version: 1
