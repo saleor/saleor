@@ -2,7 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...checkout.calculations import calculate_checkout_total_with_gift_cards
-from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
+from ...checkout.checkout_cleaner import clean_checkout_shipping
 from ...checkout.utils import cancel_active_payments
 from ...core.permissions import OrderPermissions
 from ...core.utils import get_client_ip
@@ -11,7 +11,6 @@ from ...payment import PaymentError, gateway, models
 from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
-from ..account.types import AddressInput
 from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
 from ..core.scalars import PositiveDecimal
@@ -41,15 +40,6 @@ class PaymentInput(graphene.InputObjectType):
             "the checkout total will be used."
         ),
     )
-    billing_address = AddressInput(
-        required=False,
-        description=(
-            "[Deprecated] Billing address. If empty, the billing address associated "
-            "with the checkout instance will be used. Use `checkoutCreate` or "
-            "`checkoutBillingAddressUpdate` mutations to set it. This field will be "
-            "removed after 2020-07-31."
-        ),
-    )
     return_url = graphene.String(
         required=False,
         description=(
@@ -74,18 +64,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         description = "Create a new payment for given checkout."
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
-
-    @classmethod
-    def clean_shipping_method(cls, checkout):
-        if not checkout.shipping_method:
-            raise ValidationError(
-                {
-                    "shipping_method": ValidationError(
-                        "Shipping method not set for this checkout.",
-                        code=PaymentErrorCode.SHIPPING_METHOD_NOT_SET,
-                    )
-                }
-            )
 
     @classmethod
     def clean_payment_amount(cls, info, checkout_total, amount):
@@ -161,7 +139,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         clean_checkout_shipping(
             checkout, list(checkout), info.context.discounts, PaymentErrorCode
         )
-        clean_billing_address(checkout, PaymentErrorCode)
         cls.clean_payment_amount(info, checkout_total, amount)
         extra_data = {
             "customer_user_agent": info.context.META.get("HTTP_USER_AGENT"),
