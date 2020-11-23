@@ -432,7 +432,13 @@ class AttributeValueInput(InputObjectType):
             "If the passed value is non-existent, it will be created."
         ),
     )
-    file = graphene.String(required=False, description="URL of the file attribute.")
+    file = graphene.String(
+        required=False,
+        description=(
+            "URL of the file attribute. If value with passed URL is non-existent, "
+            "it will be created."
+        ),
+    )
     content_type = graphene.String(required=False, description="File content type.")
 
 

@@ -660,6 +660,11 @@ enum AuthorizationKeyType {
   GOOGLE_OAUTH2
 }
 
+input BulkAttributeValueInput {
+  id: ID
+  values: [String]!
+}
+
 type BulkProductError {
   field: String
   message: String
@@ -4004,7 +4009,7 @@ type ProductVariantBulkCreate {
 }
 
 input ProductVariantBulkCreateInput {
-  attributes: [AttributeValueInput]!
+  attributes: [BulkAttributeValueInput]!
   costPrice: PositiveDecimal
   price: PositiveDecimal
   sku: String!

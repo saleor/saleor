@@ -3,6 +3,7 @@ from collections import defaultdict
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from graphene.types import InputObjectType
 
 from ....core.permissions import ProductPermissions, ProductTypePermissions
 from ....order import OrderStatus, models as order_models
@@ -31,7 +32,6 @@ from ...utils import resolve_global_ids_to_primary_keys
 from ...warehouse.types import Warehouse
 from ..mutations.products import (
     AttributeAssignmentMixin,
-    AttributeValueInput,
     ProductVariantCreate,
     ProductVariantInput,
     StockInput,
@@ -128,9 +128,21 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         return response
 
 
+class BulkAttributeValueInput(InputObjectType):
+    id = graphene.ID(description="ID of the selected attribute.")
+    values = graphene.List(
+        graphene.String,
+        required=True,
+        description=(
+            "The value or slug of an attribute to resolve. "
+            "If the passed value is non-existent, it will be created."
+        ),
+    )
+
+
 class ProductVariantBulkCreateInput(ProductVariantInput):
     attributes = graphene.List(
-        AttributeValueInput,
+        BulkAttributeValueInput,
         required=True,
         description="List of attributes specific to this variant.",
     )
