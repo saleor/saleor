@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add editorjs sanitizer - #6456 by @IKarbowiak
 - Add generic FileUpload mutation - #6470 by @IKarbowiak
 - Multichannel MVP: Multicurrency - #6242 by @fowczarek @d-wysocki
+- Add possibility to exclude products from shipping method - #6506 by @korycins
 
 # 2.11.1
 
