@@ -935,7 +935,6 @@ input CheckoutCreateInput {
   email: String
   shippingAddress: AddressInput
   billingAddress: AddressInput
-  country: CountryCode
 }
 
 type CheckoutCustomerAttach {

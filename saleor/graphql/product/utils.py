@@ -1,7 +1,8 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
@@ -13,8 +14,10 @@ from ...warehouse.models import Stock
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
+    from ...account import models as account_models
     from ...attribute.models import Attribute
     from ...product.models import ProductVariant
+    from ..account import types as account_types
 
 
 def validate_attributes_input_for_product_and_page(
@@ -203,3 +206,23 @@ def create_stocks(
     except IntegrityError:
         msg = "Stock for one of warehouses already exists for this product variant."
         raise ValidationError(msg)
+
+
+def get_country_for_stock_and_tax_calculation(
+    destination_address: Optional[
+        Union["account_types.AddressInput", "account_models.Address"]
+    ] = None,
+    company_address: Optional["account_models.Address"] = None,
+) -> str:
+    """Get country code needed for stock quantity validation and tax calculations.
+
+    Country code for checkout is based on shipping address. If shipping address is not
+    provided, try to use the company address configured in the shop settings. If this
+    address is not set, fallback to the `DEFAULT_COUNTRY` setting.
+    """
+    if destination_address and destination_address.country:
+        return destination_address.country
+    elif company_address and company_address.country:
+        return company_address.country.code
+    else:
+        return settings.DEFAULT_COUNTRY

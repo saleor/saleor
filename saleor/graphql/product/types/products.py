@@ -1,5 +1,4 @@
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Optional
 
 import graphene
 from django.conf import settings
@@ -79,6 +78,7 @@ from ..dataloaders import (
 )
 from ..filters import ProductFilterInput
 from ..sorters import ProductOrder
+from ..utils import get_country_for_stock_and_tax_calculation
 from .channels import (
     CollectionChannelListing,
     ProductChannelListing,
@@ -86,27 +86,7 @@ from .channels import (
 )
 from .digital_contents import DigitalContent
 
-if TYPE_CHECKING:
-    from ....account import models as account_models
-
-
-def get_country_for_stock_and_tax_calculation(
-    address: Optional["account_types.AddressInput"],
-    company_address: Optional["account_models.Address"],
-) -> str:
-    """Get country code for stock quantity or tax calculation purposes.
-
-    If address is empty, use `SiteSettings.company_address` or settings.DEFAULT_COUNTRY.
-    """
-    if address and address.country:
-        return address.country
-    elif company_address and company_address.country:
-        return company_address.country.code
-    else:
-        return settings.DEFAULT_COUNTRY
-
-
-destination_address = graphene.Argument(
+destination_address_argument = graphene.Argument(
     account_types.AddressInput,
     description=(
         "Destination address used to find warehouses where stock availability "
@@ -179,7 +159,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     pricing = graphene.Field(
         VariantPricingInfo,
-        address=destination_address,
+        address=destination_address_argument,
         description=(
             "Lists the storefront variant's pricing, the current price and discounts, "
             "only meant for displaying."
@@ -216,12 +196,12 @@ class ProductVariant(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     stocks = graphene.Field(
         graphene.List(Stock),
         description="Stocks for the product variant.",
-        address=destination_address,
+        address=destination_address_argument,
     )
     quantity_available = graphene.Int(
         required=True,
         description="Quantity of a product available for sale in one checkout.",
-        address=destination_address,
+        address=destination_address_argument,
     )
 
     class Meta:
@@ -430,14 +410,14 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
     )
     pricing = graphene.Field(
         ProductPricingInfo,
-        address=destination_address,
+        address=destination_address_argument,
         description=(
             "Lists the storefront product's pricing, the current price and discounts, "
             "only meant for displaying."
         ),
     )
     is_available = graphene.Boolean(
-        address=destination_address,
+        address=destination_address_argument,
         description="Whether the product is in stock and visible or not.",
     )
     tax_type = graphene.Field(
@@ -614,7 +594,6 @@ class Product(ChannelContextTypeWithMetadata, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_is_available(root: ChannelContext[models.Product], info, address=None):
-        print("ROOT CHANNEL : ", root.channel_slug)
         if not root.channel_slug:
             return None
 
